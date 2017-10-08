@@ -80,10 +80,18 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 
 	set_simulation_invalid(sim);
 	set_simulation_core(sim,ctrl_name);
-	set_Simulation_elements(sim,constructor_Elements(sim->d));
+	set_Simulation_elements(sim,constructor_Elements(sim->d)); // destructed
 
 	check_necessary_simulation_parameters(sim);
 	set_simulation_default(sim);
+
+	struct Mesh_Input mesh_input = set_Mesh_Input(sim);
+	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements); // destructed
+
+	sim->volumes = constructor_Volumes(sim,mesh); // destructed
+	sim->faces   = constructor_Faces(sim,mesh);   // destructed
+
+	destructor_Mesh(mesh);
 
 	return sim;
 }
@@ -464,15 +472,16 @@ static void mesh_name_assemble (struct Simulation*const sim, const struct Mesh_C
 
 	strcpy(mesh_name_full,mesh_ctrl_data->mesh_path);
 	if (strstr(mesh_ctrl_data->mesh_path,"../meshes/")) {
+EXIT_ERROR("Use sprintf and deprecate strcat_path_c as the repeated strlen computation is unnecessarily inefficient");
+// see https://stackoverflow.com/a/2674354/5983549
 		strcat_path_c(mesh_name_full,sim->geom_name,"/");
 		strcat_path_c(mesh_name_full,sim->pde_name,"/");
 		strcat_path_c(mesh_name_full,sim->pde_spec,"/");
 		strcat_path_c(mesh_name_full,sim->geom_spec,"/");
 		strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_domain,"__");
 
-		const char*const mesh_gen_name = extract_name(mesh_ctrl_data->mesh_generator,true); // free
+		const char*const mesh_gen_name = extract_name(mesh_ctrl_data->mesh_generator,true);
 		strcat_path_c(mesh_name_full,mesh_gen_name,"__");
-		free((void*)mesh_gen_name);
 
 		strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_elem_type,"_ml");
 		strcat_path_i(mesh_name_full,sim->ml[0]);

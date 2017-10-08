@@ -69,8 +69,7 @@ void test_unit_operators_tp (struct Test_Info*const test_info)
 
 static void test_unit_construct_std_from_tp (struct Test_Info*const test_info, const char*const e_type)
 {
-	char test_name[STRLEN_MAX] = { 0, };
-	sprintf(test_name,"%s%s%s","Operators - construct std from tp (",e_type,")");
+	sprintf(test_info->name,"%s%s%s","Operators - construct std from tp (",e_type,")");
 
 	bool pass         = false;
 	double* tol       = NULL;
@@ -102,7 +101,7 @@ static void test_unit_construct_std_from_tp (struct Test_Info*const test_info, c
 		if (differences[0])
 			print_diff_const_Matrix_d(op_std_r,op_std_c,tol[0]);
 	}
-	test_increment_and_print(test_info,pass,test_name);
+	test_increment_and_print(test_info,pass);
 
 	destructor_const_Matrix_d(op_std_r);
 	destructor_const_Matrix_d(op_std_c);
@@ -110,8 +109,7 @@ static void test_unit_construct_std_from_tp (struct Test_Info*const test_info, c
 
 static void test_unit_apply_tp(struct Test_Info*const test_info, const char*const e_type)
 {
-	char test_name[STRLEN_MAX] = { 0, };
-	sprintf(test_name,"%s%s%s","Operators - apply tp (",e_type,")");
+	sprintf(test_info->name,"%s%s%s","Operators - apply tp (",e_type,")");
 
 	bool pass         = false;
 	double* tol       = NULL;
@@ -156,7 +154,7 @@ static void test_unit_apply_tp(struct Test_Info*const test_info, const char*cons
 		if (differences[1])
 			print_diff_const_Multiarray_d(c_r,c_tp,tol[1]);
 	}
-	test_increment_and_print(test_info,pass,test_name);
+	test_increment_and_print(test_info,pass);
 
 	destructor_const_Multiarray_d(c_r);
 	destructor_const_Multiarray_d(c_std);

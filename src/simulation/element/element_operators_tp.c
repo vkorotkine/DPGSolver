@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
+#include "const_cast.h"
 #include "element.h"
 #include "element_operators.h"
 #include "multiarray_operator.h"
@@ -70,8 +71,7 @@ static void set_row_permutation_indices
 void set_operators_tp
 	(struct Operators_TP* ops_tp,
 	 const struct Multiarray_Operator* op_00, const struct Multiarray_Operator* op_01,
-	 const struct Multiarray_Operator* op_10, const struct Multiarray_Operator* op_11
-	)
+	 const struct Multiarray_Operator* op_10, const struct Multiarray_Operator* op_11)
 {
 	assert(op_00 != NULL);
 	if (op_01 == NULL)
@@ -80,25 +80,11 @@ void set_operators_tp
 		op_10 = op_00;
 	if (op_11 == NULL)
 		op_11 = op_10;
-//	assert(op_01 != NULL);
 
 	ops_tp->op[0][0] = op_00;
 	ops_tp->op[0][1] = op_01;
 	ops_tp->op[1][0] = op_10;
 	ops_tp->op[1][1] = op_11;
-/*
-	if (op_10 != NULL) {
-//		assert(op_11 != NULL);
-
-		ops_tp->op[1][0] = op_10;
-		ops_tp->op[1][1] = op_11;
-	} else {
-		assert(op_11 == NULL);
-
-		ops_tp->op[1][0] = op_00;
-		ops_tp->op[1][1] = op_01;
-	}
-	*/
 }
 
 const struct Multiarray_Operator* constructor_operators_tp
@@ -139,6 +125,9 @@ const struct Multiarray_Operator* constructor_operators_tp
 		// Set the tensor-product operators
 		const_constructor_move_Multiarray_Matrix_d(
 			&op->data[ind_op]->ops_tp,constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d})); // keep
+
+		// Sub-operators are always owned by sub-elements.
+		const_cast_bool(&op->data[ind_op]->ops_tp->owns_data,false);
 		for (int i = 0; i < d; ++i)
 			const_constructor_move_const_Matrix_d(&op->data[ind_op]->ops_tp->data[i],sub_op_info.sub_op_Md[i]);
 	}

@@ -139,10 +139,5 @@ struct Intrusive_Link* erase_IL (struct Intrusive_List* lst, struct Intrusive_Li
 	}
 }
 
-void set_derived_link (void* base, void* derived)
-{
-	((struct Intrusive_Link*)base)->derived = (struct Intrusive_Link*)derived;
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

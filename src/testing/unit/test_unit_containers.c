@@ -56,7 +56,7 @@ void test_unit_containers (struct Test_Info*const test_info)
 
 static void test_unit_matrix_mm (struct Test_Info*const test_info)
 {
-	char* test_name = "Containers - Matrix mm";
+	sprintf(test_info->name,"%s","Containers - Matrix mm");
 	bool pass = true;
 
 	const char*const file_name_full = constructor_file_name_unit("containers/matrix"); // free
@@ -121,12 +121,12 @@ static void test_unit_matrix_mm (struct Test_Info*const test_info)
 	destructor_Matrix_d(c_NTC);
 	destructor_Matrix_d(c_TTC);
 
-	test_increment_and_print(test_info,pass,test_name);
+	test_increment_and_print(test_info,pass);
 }
 
 static void test_unit_matrix_mv (struct Test_Info*const test_info)
 {
-	char* test_name = "Containers - Matrix mv";
+	sprintf(test_info->name,"%s","Containers - Matrix mv");
 	bool pass = true;
 
 	const char*const file_name_full = constructor_file_name_unit("containers/matrix"); // free
@@ -157,5 +157,5 @@ static void test_unit_matrix_mv (struct Test_Info*const test_info)
 	destructor_Vector_d(c_N);
 	destructor_Vector_d(c_T);
 
-	test_increment_and_print(test_info,pass,test_name);
+	test_increment_and_print(test_info,pass);
 }

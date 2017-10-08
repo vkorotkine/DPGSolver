@@ -32,29 +32,23 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Constructor for an individual \ref Solver_Volume.
- *  \return Standard. */
-static struct Solver_Volume* constructor_Solver_Volume
-	(struct Volume* volume,       ///< \ref Volume.
-	 const struct Simulation* sim ///< \ref Simulation.
+/// \brief Constructor for the members of a \ref Solver_Volume, excluding the base member.
+static void construct_Solver_Volume
+	(struct Solver_Volume* volume, ///< \ref Volume.
+	 const struct Simulation* sim  ///< \ref Simulation.
 	);
 
-/// \brief Destructor for an individual \ref Solver_Volume.
+/// \brief Destructor for a \ref Solver_Volume.
 static void destructor_Solver_Volume
 	(struct Solver_Volume* volume ///< Standard.
 	);
 
 // Interface functions ********************************************************************************************** //
 
-struct Intrusive_List* constructor_Solver_Volumes (struct Simulation*const sim)
+void construct_Solver_Volumes (struct Simulation*const sim)
 {
-	struct Intrusive_List* volumes        = sim->volumes;
-	struct Intrusive_List* solver_volumes = constructor_empty_IL(IL_SOLVER_VOLUME,volumes);
-
-	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next)
-		push_back_IL(solver_volumes,(struct Intrusive_Link*) constructor_Solver_Volume((struct Volume*)curr,sim));
-
-	return solver_volumes;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
+		construct_Solver_Volume((struct Solver_Volume*)curr,sim);
 }
 
 void destructor_Solver_Volumes (struct Intrusive_List* solver_volumes)
@@ -64,7 +58,6 @@ void destructor_Solver_Volumes (struct Intrusive_List* solver_volumes)
 		destructor_Solver_Volume((struct Solver_Volume*) curr);
 		curr = next;
 	}
-	destructor_IL(solver_volumes);
 }
 
 static void destructor_Solver_Volume (struct Solver_Volume* volume)
@@ -80,26 +73,18 @@ static void destructor_Solver_Volume (struct Solver_Volume* volume)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static struct Solver_Volume* constructor_Solver_Volume (struct Volume* volume, const struct Simulation* sim)
+static void construct_Solver_Volume (struct Solver_Volume* volume, const struct Simulation* sim)
 {
-	struct Solver_Volume* solver_volume = calloc(1,sizeof *solver_volume); // returned
-	memcpy(&solver_volume->volume,volume,sizeof *volume); // shallow copy of the base.
+	const_cast_i(&volume->p_ref,sim->p_s_v[0]);
+	const_constructor_move_Multiarray_d(&volume->geom_coef,constructor_default_Multiarray_d());
 
-	set_derived_link(volume,solver_volume);
-	set_derived_link(solver_volume,NULL);
-
-	const_cast_i(&solver_volume->p_ref,sim->p_s_v[0]);
-	const_constructor_move_Multiarray_d(&solver_volume->geom_coef,constructor_default_Multiarray_d());
-
-	solver_volume->sol_coef  = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0});   // destructed
-	solver_volume->grad_coef = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}); // destructed
+	volume->sol_coef  = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0});   // destructed
+	volume->grad_coef = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}); // destructed
 
 	const_constructor_move_Multiarray_d(
-		&solver_volume->metrics_vm,constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
+		&volume->metrics_vm,constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
 	const_constructor_move_Multiarray_d(
-		&solver_volume->metrics_vc,constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}));   // destructed
+		&volume->metrics_vc,constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
 	const_constructor_move_Multiarray_d(
-		&solver_volume->jacobian_det_vc,constructor_empty_Multiarray_d('C',1,(ptrdiff_t[]){0})); // destructed
-
-	return solver_volume;
+		&volume->jacobian_det_vc,constructor_empty_Multiarray_d('C',1,(ptrdiff_t[]){0})); // destructed
 }

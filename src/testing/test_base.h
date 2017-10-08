@@ -15,12 +15,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #ifndef DPG__test_base_h__INCLUDED
 #define DPG__test_base_h__INCLUDED
-/**	\file
- *	\brief Provides base functions/structures for general testing.
+/** \file
+ *  \brief Provides base functions/structures for general testing.
  */
 
 #include <stdbool.h>
 #include <time.h>
+
+#include "definitions_alloc.h"
 
 // Containers ******************************************************************************************************* //
 
@@ -37,6 +39,8 @@ struct Test_Info {
 	int    nargc; ///< Standard.
 	char** argv;  ///< Standard.
 
+	char name[STRLEN_MAX]; ///< The test name.
+
 	clock_t ts, ///< Start time.
 	        te; ///< End time.
 
@@ -49,11 +53,18 @@ struct Test_Info {
 
 // Interface functions ********************************************************************************************** //
 
-/// \brief Increment test counters and print pass/fail related information for the current test.
-void test_increment_and_print
+/** \brief Increment test counters and print pass/fail related information for the current test using the input test
+ *         name. */
+void test_increment_and_print_name
 	(struct Test_Info*const test_info, ///< \ref Test_Info.
 	 const bool pass,                  ///< Flag for whether the test passed or failed.
 	 const char*const test_name        ///< The test name string.
+	);
+
+/// \brief Call \ref test_increment_and_print_name using \ref Test_Info::name as the test name.
+void test_increment_and_print
+	(struct Test_Info*const test_info, ///< \ref Test_Info.
+	 const bool pass                   ///< Flag for whether the test passed or failed.
 	);
 
 /// \brief Print a warning and increment \ref Test_Info::n_warn.

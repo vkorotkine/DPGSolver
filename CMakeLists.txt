@@ -12,7 +12,7 @@
 
 cmake_minimum_required(VERSION 3.9)
 
-message("Running cmake with build type: ${CMAKE_BUILD_TYPE}.\n")
+message("Running cmake (version ${CMAKE_VERSION}) with build type: ${CMAKE_BUILD_TYPE}.\n")
 
 project(DPGSolver)
 

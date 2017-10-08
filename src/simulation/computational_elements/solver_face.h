@@ -36,20 +36,19 @@ struct Solver_Face {
 	const struct const_Multiarray_d*const xyz_fc;
 
 	/// Values of the outward pointing unit normal vector at the face cubature nodes.
-	const struct const_Multiarray_d*const n_fc;
+	const struct const_Multiarray_d*const normals_fc;
 
 	/** The determinant of the face geometry Jacobian evaluated at the face cubature nodes. See (eq. (B.6),
 	 *  \cite Zwanenburg2016) for the precise definition. */
 	const struct const_Multiarray_d*const jacobian_det_fc;
 };
 
-/** \brief Constructs the \ref Solver_Face \ref Intrusive_List.
- *  \return Standard. */
-struct Intrusive_List* constructor_Solver_Faces
+/// \brief Constructor for the members of a list of \ref Solver_Face\*s, excluding the base member.
+void construct_Solver_Faces
 	(struct Simulation*const sim ///< The \ref Simulation.
 	);
 
-/// \brief Destructs the \ref Solver_Face \ref Intrusive_List.
+/// \brief Destructor for the list of \ref Solver_Face\*s.
 void destructor_Solver_Faces
 	(struct Intrusive_List* solver_faces ///< Standard.
 	);

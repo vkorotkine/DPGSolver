@@ -139,6 +139,26 @@ ptrdiff_t compute_size
 	 const ptrdiff_t*const extents ///< \ref Multiarray_d::extents.
 	);
 
+/** \brief Get pointer to row of row-major \ref Multiarray_d\* of order 2.
+ *  \return Pointer to the first entry of the row. */
+double* get_row_Multiarray_d
+	(const ptrdiff_t row,         ///< Desired row.
+	 const struct Multiarray_d* a ///< Multiarray.
+	);
+
+/** \brief `const` version of \ref get_row_Multiarray_d.
+ *  \return See brief. */
+const double* get_row_const_Multiarray_d
+	(const ptrdiff_t row,               ///< Defined for \ref get_row_Multiarray_d.
+	 const struct const_Multiarray_d* a ///< Defined for \ref get_row_Multiarray_d.
+	);
+
+/// \brief Set all data entries to the input value.
+void set_to_value_Multiarray_d
+	(struct Multiarray_d*const a, ///< Standard.
+	 const double val             ///< The value.
+	);
+
 /// \brief Set the values of the \ref Multiarray_Vector_i based on the input `int*` data.
 void set_Multiarray_Vector_i_i
 	(struct Multiarray_Vector_i* a, ///< Standard.

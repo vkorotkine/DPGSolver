@@ -56,13 +56,12 @@ struct Solver_Volume {
 	const struct const_Multiarray_d*const jacobian_det_vc;
 };
 
-/** \brief Constructs the \ref Solver_Volume \ref Intrusive_List.
- *  \return Standard. */
-struct Intrusive_List* constructor_Solver_Volumes
+/// \brief Constructor for the members of a list of \ref Solver_Volume\*s, excluding the base member.
+void construct_Solver_Volumes
 	(struct Simulation*const sim ///< The \ref Simulation.
 	);
 
-/// \brief Destructs the \ref Solver_Volume \ref Intrusive_List.
+/// \brief Destructor for the list of \ref Solver_Volume\*s.
 void destructor_Solver_Volumes
 	(struct Intrusive_List* solver_volumes ///< Standard.
 	);

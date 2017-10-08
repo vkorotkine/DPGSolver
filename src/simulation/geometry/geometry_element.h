@@ -95,17 +95,14 @@ struct const_Geometry_Element {
 
 // Constructor/Destructor functions ********************************************************************************* //
 
-/** \brief Constructor for a list of \ref Geometry_Element\*s.
- *  No return is provided as \ref Simulation::elements is set to point to the newly created list.
- */
+/// \brief Constructor for the members of a list of \ref Geometry_Element\*s, excluding the base member.
 void constructor_Geometry_Elements
 	(struct Simulation*const sim ///< The \ref Simulation.
 	);
 
-/// \brief Destructs the \ref Geometry_Element\*s.
+/// \brief Destructor for the list of \ref Geometry_Element\*s.
 void destructor_Geometry_Elements
 	(const struct const_Intrusive_List* geometry_elements ///< Standard.
 	);
-
 
 #endif // DPG__geometry_element_h__INCLUDED

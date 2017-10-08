@@ -56,6 +56,8 @@ static struct Element* get_mutable_element_by_type
 
 struct const_Intrusive_List* constructor_Elements (const int d)
 {
+	assert(sizeof(struct Element) == sizeof(struct const_Element));
+
 	struct Intrusive_List* elements = constructor_empty_IL(IL_ELEMENT,NULL);
 
 	push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(POINT));
@@ -384,7 +386,6 @@ struct Multiarray_d* constructor_reference_normals
 
 static struct Element* constructor_Element (const int elem_type)
 {
-	// Note the use of the compound literals for the initialization of the local variables.
 	struct Elem_info e_info;
 	switch (elem_type) {
 	case POINT:
@@ -543,6 +544,10 @@ struct Multiarray_d* constructor_reference_normals (const int e_type, const stru
 	            * theta_zeta = NULL;
 
 	switch (e_type) {
+	case POINT:
+		theta_eta  = NULL;
+		theta_zeta = NULL;
+		break;
 	case LINE: {
 		static const double t_e[] = { 0.0, 0.0, };
 		static const double t_z[] = { PI, 0.0, };
@@ -562,9 +567,7 @@ struct Multiarray_d* constructor_reference_normals (const int e_type, const stru
 		theta_zeta = t_z;
 		break;
 	} case TET: {
-		static const double theta_e = THETA_E_TET;
-
-		static const double t_e[] = { theta_e - 0.5*PI, theta_e - 0.5*PI, theta_e - 0.5*PI, 0.5*PI, };
+		static const double t_e[] = { THETA_E_TET-0.5*PI, THETA_E_TET-0.5*PI, THETA_E_TET-0.5*PI, 0.5*PI, };
 		static const double t_z[] = { 1.0/6.0*PI, 5.0/6.0*PI, 9.0/6.0*PI, 0.0, };
 		theta_eta  = t_e;
 		theta_zeta = t_z;
@@ -582,10 +585,8 @@ struct Multiarray_d* constructor_reference_normals (const int e_type, const stru
 		theta_zeta = t_z;
 		break;
 	} case PYR: {
-		const double theta_e = THETA_E_PYR;
-
 		static const double t_e[] =
-			{ theta_e - 0.5*PI, theta_e - 0.5*PI, theta_e - 0.5*PI, theta_e - 0.5*PI, 0.5*PI, };
+			{ THETA_E_PYR-0.5*PI, THETA_E_PYR-0.5*PI, THETA_E_PYR-0.5*PI, THETA_E_PYR-0.5*PI, 0.5*PI, };
 		static const double t_z[] = { PI, 0.0, 1.5*PI, 0.5*PI, 0.0, };
 		theta_eta  = t_e;
 		theta_zeta = t_z;

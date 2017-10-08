@@ -37,6 +37,14 @@ void transpose_Multiarray_d
 	 const bool mem_only     ///< Flag for whether only the memory should be transposed (with extents unchanged).
 	);
 
+/// \brief Normalize the primary extents of a \ref Multiarray_d\*, optionally storing the value of the norms.
+void normalize_Multiarray_d
+	(struct Multiarray_d* a,      ///< Multiarray to be normalized.
+	 const char*const norm_type,  ///< Defined for \ref norm_d.
+	 const bool store_norms,      ///< Flag for whether norm values should be stored.
+	 struct Multiarray_d* a_norms ///< Multiarray in which to store the norms if enabled.
+	);
+
 /// \brief Permute the the input multiarray according to the input permutation by reinterpretting as a matrix.
 void permute_Multiarray_d
 	(struct Multiarray_d* a, ///< Multiarray to be permuted.

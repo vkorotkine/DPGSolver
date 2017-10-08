@@ -166,11 +166,7 @@ const struct Multiarray_Operator* constructor_move_Multiarray_Operator_dyn_exten
 
 static void destructor_mutable_Multiarray_Operator (struct mutable_Multiarray_Operator* a)
 {
-	// Multiarray_Operators may be NULL for tensor-product operator sub-operator components of tensor-product
-	// elements.
-	if (a == NULL)
-		return;
-
+	assert(a != NULL);
 	assert(a->data != NULL);
 
 	const ptrdiff_t size = compute_size(a->order,a->extents);

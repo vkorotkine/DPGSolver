@@ -23,14 +23,6 @@ struct Simulation;
 struct Intrusive_List;
 struct Solver_Volume;
 
-/**	\brief Set up the geometry for the simulation. Computes:
- *	- \ref Solver_Volume::geom_coef.
- */
-void set_up_geometry
-	(struct Simulation* sim,               ///< \ref Simulation.
-	 struct Intrusive_List* solver_volumes ///< The solver volumes for which to set up the geometry.
-	);
-
 /**	\brief Set up the solver geometry:
  *	- \ref Solver_Volume::metrics_vm;
  *	- \ref Solver_Volume::metrics_vc;

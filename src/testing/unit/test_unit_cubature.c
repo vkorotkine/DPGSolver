@@ -133,9 +133,7 @@ static void destructor_Cubature_Data_PYR
 static void test_unit_cubature_tensor_product (struct Test_Info*const test_info)
 {
 	char* test_name = "cubature_tp";
-	char test_name_full[STRLEN_MAX];
-	strcpy(test_name_full,"Cubature - ");
-	strcat(test_name_full,test_name);
+	sprintf(test_info->name,"%s%s","Cubature - ",test_name);
 
 	bool pass = true;
 
@@ -166,7 +164,7 @@ static void test_unit_cubature_tensor_product (struct Test_Info*const test_info)
 	}
 
 	if (diff) {
-		test_print_failure(test_info,test_name_full);
+		test_print_failure(test_info,test_info->name);
 
 		pass = false;
 
@@ -195,15 +193,13 @@ static void test_unit_cubature_tensor_product (struct Test_Info*const test_info)
 	destructor_Cubature_Data_TP(cub_data_r);
 	destructor_Cubature_Data_TP(cub_data_c);
 
-	test_increment_and_print(test_info,pass,test_name_full);
+	test_increment_and_print(test_info,pass);
 }
 
 static void test_unit_cubature_simplex (struct Test_Info*const test_info)
 {
 	char* test_name = "cubature_si";
-	char test_name_full[STRLEN_MAX];
-	strcpy(test_name_full,"Cubature - ");
-	strcat(test_name_full,test_name);
+	sprintf(test_info->name,"%s%s","Cubature - ",test_name);
 
 	bool pass = true;
 
@@ -232,7 +228,7 @@ static void test_unit_cubature_simplex (struct Test_Info*const test_info)
 	}
 
 	if (diff) {
-		test_print_failure(test_info,test_name_full);
+		test_print_failure(test_info,test_info->name);
 
 		pass = false;
 
@@ -249,15 +245,13 @@ static void test_unit_cubature_simplex (struct Test_Info*const test_info)
 	destructor_Cubature_Data_SI(cub_data_r);
 	destructor_Cubature_Data_SI(cub_data_c);
 
-	test_increment_and_print(test_info,pass,test_name_full);
+	test_increment_and_print(test_info,pass);
 }
 
 static void test_unit_cubature_pyramid (struct Test_Info*const test_info)
 {
 	char* test_name = "cubature_pyr";
-	char test_name_full[STRLEN_MAX];
-	strcpy(test_name_full,"Cubature - ");
-	strcat(test_name_full,test_name);
+	sprintf(test_info->name,"%s%s","Cubature - ",test_name);
 
 	bool pass = true;
 
@@ -284,7 +278,7 @@ static void test_unit_cubature_pyramid (struct Test_Info*const test_info)
 	}
 
 	if (diff) {
-		test_print_failure(test_info,test_name_full);
+		test_print_failure(test_info,test_info->name);
 
 		pass = false;
 
@@ -296,7 +290,7 @@ static void test_unit_cubature_pyramid (struct Test_Info*const test_info)
 	destructor_Cubature_Data_PYR(cub_data_r);
 	destructor_Cubature_Data_PYR(cub_data_c);
 
-	test_increment_and_print(test_info,pass,test_name_full);
+	test_increment_and_print(test_info,pass);
 }
 
 // Level 1 ********************************************************************************************************** //

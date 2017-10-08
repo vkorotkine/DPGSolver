@@ -23,19 +23,17 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 struct Mesh;
 
-/** \brief Constructor for computational element lists.
- *
- *  If a list other than the base list is constructed, its corresponding base list is destructed here.
+/** \brief Construct derived \ref Volume and \ref Face computational element lists.
+ *  \ref Simulation::volumes and \ref Simulation::faces are set to point to the newly created lists.
  */
-void constructor_computational_element_lists
-	(struct Simulation* sim,       ///< \ref Simulation.
-	 const struct Mesh*const mesh, ///< The \ref Mesh (only required for base lists).
-	 const int list_category       /**< The computational element list category.
-	                                *   Options: see \ref definitions_intrusive.h. */
+void construct_derived_computational_elements
+	(struct Simulation* sim, ///< \ref Simulation.
+	 const int list_category /**< The computational element list category.
+	                          *   Options: see \ref definitions_intrusive.h. */
 	);
 
 /** \brief Constructor for a list of derived \ref Element\*s.
- *  No return is provided as \ref Simulation::elements is set to point to the newly created list.
+ *  \ref Simulation::elements is set to point to the newly created list.
  */
 void constructor_derived_Elements
 	(struct Simulation* sim, ///< \ref Simulation.

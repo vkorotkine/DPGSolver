@@ -12,7 +12,7 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-/**	\file
+/** \file
  */
 
 #include "test_integration_fe_init.h"
@@ -37,8 +37,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/**	\brief Compare members of the \ref Volume and \ref Face finite element lists with expected values.
- *	\return `true` if tests passed. */
+/** \brief Compare members of the \ref Volume and \ref Face finite element lists with expected values.
+ *  \return `true` if tests passed. */
 static bool compare_members_fe
 	(struct Test_Info*const test_info, ///< Defined in \ref test_integration_mesh.
 	 const struct Simulation*const sim ///< \ref Simulation.
@@ -50,25 +50,10 @@ void test_integration_fe_init (struct Test_Info*const test_info, const char*cons
 {
 	struct Simulation*const sim = constructor_Simulation(ctrl_name); // destructed
 
-	struct Mesh_Input mesh_input = set_Mesh_Input(sim);
-	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements); // destructed
-
-	sim->volumes = constructor_Volumes(sim,mesh); // destructed
-	sim->faces   = constructor_Faces(sim,mesh);   // destructed
-
-	destructor_Mesh(mesh);
-
 	const bool pass = compare_members_fe(test_info,sim);
 
-	char* test_name_end = extract_name(ctrl_name,false); // free
-
-	char test_name[STRLEN_MAX];
-	strcpy(test_name,"FE initialization - ");
-	strcat(test_name,test_name_end);
-
-	free(test_name_end);
-
-	test_increment_and_print(test_info,pass,test_name);
+	sprintf(test_info->name,"%s%s","FE initialization - ",extract_name(ctrl_name,false));
+	test_increment_and_print(test_info,pass);
 
 	destructor_Simulation(sim);
 }
@@ -82,27 +67,27 @@ struct FE_Test_Data {
 	struct Intrusive_List* faces;   ///< Defined in \ref Simulation.
 };
 
-/**	\brief Constructor for the name of the data file containing the finite element information.
- *	\return Standard. */
-static char* constructor_data_name_fe
+/** \brief Set the name of the data file containing the finite element information.
+ *  \return Standard. */
+static const char* set_data_name_fe
 	(const char*const ctrl_name ///< The name of the control file.
 	);
 
-/**	\brief Constructor for the \ref FE_Test_Data.
- *	\return Standard. */
+/** \brief Constructor for the \ref FE_Test_Data.
+ *  \return Standard. */
 static struct FE_Test_Data* constructor_FE_Test_Data
 	(const char*const data_name,                      ///< The name of the data file.
 	 const struct const_Intrusive_List*const elements ///< \ref Simulation::elements.
 	);
 
-///	\brief Destructor for the \ref FE_Test_Data.
+/// \brief Destructor for the \ref FE_Test_Data.
 static void destructor_FE_Test_Data
 	(struct FE_Test_Data* fe_test_data ///< \ref FE_Test_Data.
 	);
 
 
-/**	\brief Compare members of the computed and read \ref Face with expected values.
- *	\return `true` if tests passed. */
+/** \brief Compare members of the computed and read \ref Face with expected values.
+ *  \return `true` if tests passed. */
 static bool compare_members_Face
 	(const struct Face*const face,      ///< Computed \ref Face.
 	 const struct Face*const face_test, ///< Read \ref Face.
@@ -114,10 +99,9 @@ static bool compare_members_fe
 {
 	bool pass = true;
 
-	char* data_name = constructor_data_name_fe(sim->ctrl_name_full); // destructed (free)
+	const char* data_name = set_data_name_fe(sim->ctrl_name_full);
 
 	struct FE_Test_Data* fe_test_data = constructor_FE_Test_Data(data_name,sim->elements); // destructed
-	free(data_name);
 
 	// Volumes
 	for (const struct Intrusive_Link* curr = sim->volumes->first, *curr_test = fe_test_data->volumes->first;
@@ -184,25 +168,18 @@ static bool compare_members_fe
 
 // Level 1 ********************************************************************************************************** //
 
-/**	\brief Compare members of the computed and read \ref Face::Neigh_Info with expected values.
- *	\return `true` if tests passed. */
+/** \brief Compare members of the computed and read \ref Face::Neigh_Info with expected values.
+ *  \return `true` if tests passed. */
 static bool compare_members_Face_Neigh_Info
 	(const struct Face*const face,      ///< Computed \ref Face.
 	 const struct Face*const face_test, ///< Read \ref Face.
 	 const bool print_enabled           ///< Flag for whether values should be printed if the comparison fails.
 	);
 
-static char* constructor_data_name_fe (const char*const ctrl_name)
+static const char* set_data_name_fe (const char*const ctrl_name)
 {
-	char* data_name_mid = extract_name(ctrl_name,true); // free
-
-	char*const data_name = malloc(STRLEN_MAX * sizeof *data_name); // returned
-
-	strcpy(data_name,"../testing/fe/");
-	strcat(data_name,data_name_mid);
-	strcat(data_name,".fe.data");
-
-	free(data_name_mid);
+	static char data_name[STRLEN_MAX] = { 0, };
+	sprintf(data_name,"%s%s%s","../testing/fe/",extract_name(ctrl_name,true),".fe.data");
 
 	return data_name;
 }

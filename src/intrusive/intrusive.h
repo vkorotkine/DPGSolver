@@ -45,7 +45,7 @@ struct const_Intrusive_List {
 	const struct const_Intrusive_Link*const first; ///< Defined in \ref Intrusive_List.
 	const struct const_Intrusive_Link*const last;  ///< Defined in \ref Intrusive_List.
 
-	int name; ///< Defined in \ref Intrusive_List.
+	const int name; ///< Defined in \ref Intrusive_List.
 	const struct const_Intrusive_List*const base;  ///< Defined in \ref Intrusive_List.
 };
 
@@ -133,12 +133,6 @@ void push_back_const_IL
 struct Intrusive_Link* erase_IL
 	(struct Intrusive_List* lst, ///< The list.
 	 struct Intrusive_Link* curr ///< The current link.
-	);
-
-/// \brief Set \ref Intrusive_Link::derived.
-void set_derived_link
-	(void* base,   ///< The base link.
-	 void* derived ///< The derived link.
 	);
 
 #endif // DPG__Intrusive_h__INCLUDED

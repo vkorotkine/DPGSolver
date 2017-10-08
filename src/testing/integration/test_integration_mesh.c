@@ -69,11 +69,8 @@ void test_integration_mesh (struct Test_Info*const test_info, const char*const m
 
 	const bool pass = compare_members_Mesh(test_info,mesh_input->mesh_name_full,mesh);
 
-	char test_name[STRLEN_MAX];
-	strcpy(test_name,"Mesh - ");
-	strcat(test_name,mesh_name);
-
-	test_increment_and_print(test_info,pass,test_name);
+	sprintf(test_info->name,"%s%s","Mesh - ",mesh_name);
+	test_increment_and_print(test_info,pass);
 
 	destructor_Mesh(mesh);
 	destructor_Mesh_Input(mesh_input);

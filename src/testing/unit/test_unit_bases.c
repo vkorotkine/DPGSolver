@@ -133,7 +133,7 @@ static void test_unit_basis_tensor_product_orthonormal (struct Test_Info*const t
 		if (differences[1]) print_diff_const_Matrix_d(b_data_a->phi22,b_data_c->phi22,tol[1]);
 		if (differences[2]) print_diff_const_Matrix_d(b_data_a->phi31,b_data_c->phi31,tol[2]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - tp_orthonormal_basis");
+	test_increment_and_print_name(test_info,pass,"Bases - tp_orthonormal_basis");
 
 	tol = (double[]) { EPS, 2*EPS, EPS, };
 	differences = (bool[])
@@ -149,7 +149,7 @@ static void test_unit_basis_tensor_product_orthonormal (struct Test_Info*const t
 		if (differences[2])
 			print_diff_const_Multiarray_Matrix_d(b_data_a->grad_phi31,b_data_c->grad_phi31,tol[2]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - tp_orthonormal_grad_basis");
+	test_increment_and_print_name(test_info,pass,"Bases - tp_orthonormal_grad_basis");
 
 	tol = (double[]) { EPS, EPS, 2*EPS, };
 	differences = (bool[])
@@ -162,7 +162,7 @@ static void test_unit_basis_tensor_product_orthonormal (struct Test_Info*const t
 		if (differences[1]) print_diff_const_Matrix_d(b_data_a->m_24,b_data_c->m_24,tol[1]);
 		if (differences[2]) print_diff_const_Matrix_d(b_data_a->m_34,b_data_c->m_34,tol[2]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - tp_orthonormal_mass_matrix");
+	test_increment_and_print_name(test_info,pass,"Bases - tp_orthonormal_mass_matrix");
 
 	tol = (double[]) { EPS, 2*EPS, 20*EPS, };
 	differences = (bool[])
@@ -175,7 +175,7 @@ static void test_unit_basis_tensor_product_orthonormal (struct Test_Info*const t
 		if (differences[1]) print_diff_const_Multiarray_d(b_data_a->grad_coef_23,b_data_c->grad_coef_23,tol[1]);
 		if (differences[2]) print_diff_const_Multiarray_d(b_data_a->grad_coef_33,b_data_c->grad_coef_33,tol[2]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - tp_orthonormal_grad_basis_computation");
+	test_increment_and_print_name(test_info,pass,"Bases - tp_orthonormal_grad_basis_computation");
 
 	destructor_Basis_Data_TP_Ortho(b_data_a);
 	destructor_Basis_Data_TP_Ortho(b_data_c);
@@ -232,7 +232,7 @@ static void test_unit_basis_simplex_orthonormal (struct Test_Info*const test_inf
 		if (differences[1]) print_diff_const_Matrix_d(b_data_a->phi23,b_data_c->phi23,tol[1]);
 		if (differences[2]) print_diff_const_Matrix_d(b_data_a->phi32,b_data_c->phi32,tol[2]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - si_orthonormal_basis");
+	test_increment_and_print_name(test_info,pass,"Bases - si_orthonormal_basis");
 
 	tol = (double[]) { 2*EPS, EPS,};
 	differences = (bool[])
@@ -245,7 +245,7 @@ static void test_unit_basis_simplex_orthonormal (struct Test_Info*const test_inf
 		if (differences[1])
 			print_diff_const_Multiarray_Matrix_d(b_data_a->grad_phi31,b_data_c->grad_phi31,tol[1]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - si_orthonormal_grad_basis");
+	test_increment_and_print_name(test_info,pass,"Bases - si_orthonormal_grad_basis");
 
 	tol = (double[]) { 20*EPS, 30*EPS, };
 	differences = (bool[])
@@ -256,7 +256,7 @@ static void test_unit_basis_simplex_orthonormal (struct Test_Info*const test_inf
 		if (differences[0]) print_diff_const_Matrix_d(b_data_a->m_24,b_data_c->m_24,tol[0]);
 		if (differences[1]) print_diff_const_Matrix_d(b_data_a->m_34,b_data_c->m_34,tol[1]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - si_orthonormal_mass_matrix");
+	test_increment_and_print_name(test_info,pass,"Bases - si_orthonormal_mass_matrix");
 
 	tol = (double[]) { 9*EPS, 5e4*EPS, };
 	differences = (bool[])
@@ -267,7 +267,7 @@ static void test_unit_basis_simplex_orthonormal (struct Test_Info*const test_inf
 		if (differences[0]) print_diff_const_Multiarray_d(b_data_a->grad_coef_25,b_data_c->grad_coef_25,tol[0]);
 		if (differences[1]) print_diff_const_Multiarray_d(b_data_a->grad_coef_37,b_data_c->grad_coef_37,tol[1]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - si_orthonormal_grad_basis_computation");
+	test_increment_and_print_name(test_info,pass,"Bases - si_orthonormal_grad_basis_computation");
 
 	destructor_Basis_Data_SI_Ortho(b_data_a);
 	destructor_Basis_Data_SI_Ortho(b_data_c);
@@ -314,7 +314,7 @@ static void test_unit_basis_pyramid_orthonormal (struct Test_Info*const test_inf
 	if (check_diff(1,differences,&pass)) {
 		if (differences[0]) print_diff_const_Matrix_d(b_data_a->phi32,b_data_c->phi32,tol[0]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - pyr_orthonormal_basis");
+	test_increment_and_print_name(test_info,pass,"Bases - pyr_orthonormal_basis");
 
 	tol = (double[]) { 2*EPS, };
 	differences = (bool[])
@@ -324,7 +324,7 @@ static void test_unit_basis_pyramid_orthonormal (struct Test_Info*const test_inf
 		if (differences[0])
 			print_diff_const_Multiarray_Matrix_d(b_data_a->grad_phi32,b_data_c->grad_phi32,tol[0]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - pyr_orthonormal_grad_basis");
+	test_increment_and_print_name(test_info,pass,"Bases - pyr_orthonormal_grad_basis");
 
 	tol = (double[]) { 2e2*EPS };
 	differences = (bool[])
@@ -333,7 +333,7 @@ static void test_unit_basis_pyramid_orthonormal (struct Test_Info*const test_inf
 	if (check_diff(1,differences,&pass)) {
 		if (differences[0]) print_diff_const_Matrix_d(b_data_a->m_34,b_data_c->m_34,tol[0]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - pyr_orthonormal_mass_matrix");
+	test_increment_and_print_name(test_info,pass,"Bases - pyr_orthonormal_mass_matrix");
 
 	tol = (double[]) { 5e6*EPS, };
 	differences = (bool[])
@@ -342,7 +342,7 @@ static void test_unit_basis_pyramid_orthonormal (struct Test_Info*const test_inf
 	if (check_diff(1,differences,&pass)) {
 		if (differences[0]) print_diff_const_Multiarray_d(b_data_a->grad_coef_36,b_data_c->grad_coef_36,tol[0]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - pyr_orthonormal_grad_basis_computation");
+	test_increment_and_print_name(test_info,pass,"Bases - pyr_orthonormal_grad_basis_computation");
 
 	destructor_Basis_Data_PYR_Ortho(b_data_a);
 	destructor_Basis_Data_PYR_Ortho(b_data_c);
@@ -403,7 +403,7 @@ static void test_unit_basis_tensor_product_bezier (struct Test_Info*const test_i
 		if (differences[1]) print_diff_const_Matrix_d(b_data_a->phi22,b_data_c->phi22,tol[1]);
 		if (differences[2]) print_diff_const_Matrix_d(b_data_a->phi32,b_data_c->phi32,tol[2]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - tp_bezier_basis");
+	test_increment_and_print_name(test_info,pass,"Bases - tp_bezier_basis");
 
 	tol = (double[]) { EPS, 2*EPS, EPS, };
 	differences = (bool[])
@@ -419,7 +419,7 @@ static void test_unit_basis_tensor_product_bezier (struct Test_Info*const test_i
 		if (differences[2])
 			print_diff_const_Multiarray_Matrix_d(b_data_a->grad_phi31,b_data_c->grad_phi31,tol[2]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - tp_bezier_grad_basis");
+	test_increment_and_print_name(test_info,pass,"Bases - tp_bezier_grad_basis");
 
 	tol = (double[]) { EPS, EPS, EPS, };
 	differences = (bool[])
@@ -432,7 +432,7 @@ static void test_unit_basis_tensor_product_bezier (struct Test_Info*const test_i
 		if (differences[1]) print_diff_const_Vector_d(b_data_a->p_24,b_data_c->p_24,tol[1]);
 		if (differences[2]) print_diff_const_Vector_d(b_data_a->p_34,b_data_c->p_34,tol[2]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - tp_bezier_part_unity");
+	test_increment_and_print_name(test_info,pass,"Bases - tp_bezier_part_unity");
 
 	tol = (double[]) { EPS, 20*EPS, 5*EPS, };
 	differences = (bool[])
@@ -445,7 +445,7 @@ static void test_unit_basis_tensor_product_bezier (struct Test_Info*const test_i
 		if (differences[1]) print_diff_const_Multiarray_d(b_data_a->grad_coef_23,b_data_c->grad_coef_23,tol[1]);
 		if (differences[2]) print_diff_const_Multiarray_d(b_data_a->grad_coef_33,b_data_c->grad_coef_33,tol[2]);
 	}
-	test_increment_and_print(test_info,pass,"Bases - tp_bezier_grad_basis_computation");
+	test_increment_and_print_name(test_info,pass,"Bases - tp_bezier_grad_basis_computation");
 
 	destructor_Basis_Data_TP_Bezier(b_data_a);
 	destructor_Basis_Data_TP_Bezier(b_data_c);

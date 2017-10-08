@@ -32,29 +32,23 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Constructor for an individual \ref Solver_Face.
- *  \return Standard. */
-static struct Solver_Face* constructor_Solver_Face
-	(struct Face* face,           ///< \ref Face.
+/// \brief Constructor for the members of a \ref Solver_Face, excluding the base member.
+static void construct_Solver_Face
+	(struct Solver_Face* face,    ///< \ref Face.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destructor for an individual \ref Solver_Face.
+/// \brief Destructor for a \ref Solver_Face.
 static void destructor_Solver_Face
 	(struct Solver_Face* face ///< Standard.
 	);
 
 // Interface functions ********************************************************************************************** //
 
-struct Intrusive_List* constructor_Solver_Faces (struct Simulation*const sim)
+void construct_Solver_Faces (struct Simulation*const sim)
 {
-	struct Intrusive_List* faces        = sim->faces;
-	struct Intrusive_List* solver_faces = constructor_empty_IL(IL_SOLVER_FACE,faces);
-
-	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next)
-		push_back_IL(solver_faces,(struct Intrusive_Link*) constructor_Solver_Face((struct Face*)curr,sim));
-
-	return solver_faces;
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
+		construct_Solver_Face((struct Solver_Face*)curr,sim);
 }
 
 void destructor_Solver_Faces (struct Intrusive_List* solver_faces)
@@ -64,13 +58,12 @@ void destructor_Solver_Faces (struct Intrusive_List* solver_faces)
 		destructor_Solver_Face((struct Solver_Face*) curr);
 		curr = next;
 	}
-	destructor_IL(solver_faces);
 }
 
 static void destructor_Solver_Face (struct Solver_Face* face)
 {
 	destructor_const_Multiarray_d(face->xyz_fc);
-	destructor_const_Multiarray_d(face->n_fc);
+	destructor_const_Multiarray_d(face->normals_fc);
 	destructor_const_Multiarray_d(face->jacobian_det_fc);
 }
 
@@ -83,25 +76,17 @@ bool check_for_curved_neigh
 	(struct Face* face ///< \ref Face.
 	);
 
-static struct Solver_Face* constructor_Solver_Face (struct Face* face, const struct Simulation* sim)
+static void construct_Solver_Face (struct Solver_Face* face, const struct Simulation* sim)
 {
-	struct Solver_Face* solver_face = calloc(1,sizeof *solver_face); // returned
-	memcpy(&solver_face->face,face,sizeof *face); // shallow copy of the base.
-
-	set_derived_link(face,solver_face);
-	set_derived_link(solver_face,NULL);
-
-	const_cast_i(&solver_face->p_ref,sim->p_s_v[0]);
-	const_cast_c(&solver_face->cub_type,(check_for_curved_neigh(face) ? 'c' : 's'));
+	const_cast_i(&face->p_ref,sim->p_s_v[0]);
+	const_cast_c(&face->cub_type,(check_for_curved_neigh((struct Face*)face) ? 'c' : 's'));
 
 	const_constructor_move_Multiarray_d(
-		&solver_face->xyz_fc,constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}));        // destructed
+		&face->xyz_fc,constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}));        // destructed
 	const_constructor_move_Multiarray_d(
-		&solver_face->n_fc,constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}));          // destructed
+		&face->normals_fc,constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}));    // destructed
 	const_constructor_move_Multiarray_d(
-		&solver_face->jacobian_det_fc,constructor_empty_Multiarray_d('C',1,(ptrdiff_t[]){0})); // destructed
-
-	return solver_face;
+		&face->jacobian_det_fc,constructor_empty_Multiarray_d('C',1,(ptrdiff_t[]){0})); // destructed
 }
 
 // Level 1 ********************************************************************************************************** //

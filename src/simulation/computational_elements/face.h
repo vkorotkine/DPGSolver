@@ -41,7 +41,7 @@ struct Face {
 
 	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
 
-	/** \brief Container for information relating to the neighbouring \ref Volume on either side of the face.
+	/** \brief Container for information relating to the neighbouring \ref Volume on either side of the \ref Face.
 	 *
 	 *  The information for the first index `neigh_info[0]` relates to the Volume whose outward normal vector on the
 	 *  current face coincides with that stored as part of the Face; this is generally referred to as the left

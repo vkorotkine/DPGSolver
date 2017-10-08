@@ -26,14 +26,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_intrusive.h"
 
 #include "computational_elements.h"
-#include "face.h"
-#include "volume.h"
-//#include "solver_face.h"
-//#include "solver_volume.h"
 
 #include "file_processing.h"
 #include "geometry.h"
-#include "mesh.h"
 #include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
@@ -51,27 +46,13 @@ void test_integration_geometry (struct Test_Info*const test_info, const char*con
 {
 	struct Simulation*const sim = constructor_Simulation(ctrl_name); // destructed
 
-	struct Mesh_Input mesh_input = set_Mesh_Input(sim);
-	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements);
-
-	constructor_computational_element_lists(sim,mesh,IL_BASE);
-	destructor_Mesh(mesh);
-
-	constructor_computational_element_lists(sim,NULL,IL_SOLVER);
+	construct_derived_computational_elements(sim,IL_SOLVER);
 	set_up_solver_geometry(sim);
-
 
 	const bool pass = compare_members_geom(test_info,sim);
 
-	char* test_name_end = extract_name(ctrl_name,false); // free
-
-	char test_name[STRLEN_MAX];
-	strcpy(test_name,"Geom initialization - ");
-	strcat(test_name,test_name_end);
-
-	free(test_name_end);
-
-	test_increment_and_print(test_info,pass,test_name);
+	sprintf(test_info->name,"%s%s","Geom initialization - ",extract_name(ctrl_name,false));
+	test_increment_and_print(test_info,pass);
 
 	destructor_Simulation(sim);
 }

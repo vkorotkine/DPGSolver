@@ -266,13 +266,14 @@ char* extract_name (const char*const name_full, const bool extension_present)
 	if (len_name == 0)
 		EXIT_ERROR("Did not find the name in '%s'.\n",name_full);
 
-	char*const name = calloc(len_name+1 , sizeof *name); // returned
+	static char name[STRLEN_MAX] = { 0, };
 
 	ind = 0;
 	while (end != beg) {
 		name[ind] = *beg++;
 		++ind;
 	}
+	name[ind] = 0;
 
 	return name;
 }
