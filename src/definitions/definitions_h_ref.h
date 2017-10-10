@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *
  *  \todo Ensure that all magic numbers are replaced with the appropriate constants defined here.
  *  \todo Add reference to figures accompanying the definitions.
+ *  \todo Add vertices for PYR.
  */
 
 // POINT element **************************************************************************************************** //
@@ -203,6 +204,52 @@ You should have received a copy of the GNU General Public License along with DPG
 #define H_WEDGE8_F41 22 ///< vertice(s): [13,14,16].
 #define H_WEDGE8_F42 23 ///< vertice(s): [15,16,17].
 #define H_WEDGE8_F43 24 ///< vertice(s): [16,15,13].
+///\}
+
+// PYR element ****************************************************************************************************** //
+
+///\{ \name PYR element volumes.
+#define H_PYR1_V0 0 ///< Vertice(s):
+
+#define H_PYR10_V0 1  ///< Vertice(s):
+#define H_PYR10_V1 2  ///< Vertice(s):
+#define H_PYR10_V2 3  ///< Vertice(s):
+#define H_PYR10_V3 4  ///< Vertice(s):
+#define H_PYR10_V4 5  ///< Vertice(s):
+#define H_PYR10_V5 6  ///< Vertice(s):
+#define H_PYR10_V6 7  ///< Vertice(s):
+#define H_PYR10_V7 8  ///< Vertice(s):
+#define H_PYR10_V8 9  ///< Vertice(s):
+#define H_PYR10_V9 10 ///< Vertice(s):
+///\}
+
+///\{ \name PYR element faces.
+#define H_PYR1_F0 0 ///< vertice(s):
+#define H_PYR1_F1 1 ///< vertice(s):
+#define H_PYR1_F2 2 ///< vertice(s):
+#define H_PYR1_F3 3 ///< vertice(s):
+#define H_PYR1_F4 4 ///< vertice(s):
+
+#define H_PYR10_F00 5  ///< vertice(s):
+#define H_PYR10_F01 6  ///< vertice(s):
+#define H_PYR10_F02 7  ///< vertice(s):
+#define H_PYR10_F03 8  ///< vertice(s):
+#define H_PYR10_F10 9  ///< vertice(s):
+#define H_PYR10_F11 10 ///< vertice(s):
+#define H_PYR10_F12 11 ///< vertice(s):
+#define H_PYR10_F13 12 ///< vertice(s):
+#define H_PYR10_F20 13 ///< vertice(s):
+#define H_PYR10_F21 14 ///< vertice(s):
+#define H_PYR10_F22 15 ///< vertice(s):
+#define H_PYR10_F23 16 ///< vertice(s):
+#define H_PYR10_F30 17 ///< vertice(s):
+#define H_PYR10_F31 18 ///< vertice(s):
+#define H_PYR10_F32 19 ///< vertice(s):
+#define H_PYR10_F33 20 ///< vertice(s):
+#define H_PYR10_F40 21 ///< vertice(s):
+#define H_PYR10_F41 22 ///< vertice(s):
+#define H_PYR10_F42 23 ///< vertice(s):
+#define H_PYR10_F43 24 ///< vertice(s):
 ///\}
 
 #endif // DPG__definitions_h_ref_h__INCLUDED

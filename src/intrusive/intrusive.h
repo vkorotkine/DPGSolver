@@ -135,4 +135,11 @@ struct Intrusive_Link* erase_IL
 	 struct Intrusive_Link* curr ///< The current link.
 	);
 
+/** \brief `const` version of \ref erase_IL.
+ *  \return See brief. */
+const struct const_Intrusive_Link* erase_const_IL
+	(const struct const_Intrusive_List* lst,  ///< Defined for \ref erase_IL.
+	 const struct const_Intrusive_Link* curr  ///< Defined for \ref erase_IL.
+	);
+
 #endif // DPG__Intrusive_h__INCLUDED

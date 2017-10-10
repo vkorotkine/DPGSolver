@@ -13,47 +13,47 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_support_cubature_h__INCLUDED
-#define DPG__test_support_cubature_h__INCLUDED
+#ifndef DPG__test_support_nodes_h__INCLUDED
+#define DPG__test_support_nodes_h__INCLUDED
 /** \file
- *  \brief Provides support functions for testing relating to the \ref Cubature container.
+ *  \brief Provides support functions for testing relating to the \ref Nodes container.
  */
 
 #include <stdbool.h>
 
 // Constructor functions ******************************************************************************************** //
 
-/** \brief Constructor for a \ref Cubature\* from data in the input file of the given name.
+/** \brief Constructor for a \ref Nodes\* from data in the input file of the given name.
  *  \return Standard. */
-struct Cubature* constructor_file_name_Cubature
+struct Nodes* constructor_file_name_Nodes
 	(const char*const var_name,      ///< The name of the variable to be read in from the file.
 	 const char*const file_name_full ///< The name of the file (including the full path).
 	);
 
-/** \brief `const` version of \ref constructor_file_name_Cubature.
+/** \brief `const` version of \ref constructor_file_name_Nodes.
  *  \return Standard. */
-const struct const_Cubature* constructor_file_name_const_Cubature
-	(const char*const var_name,      ///< Defined for \ref constructor_file_name_Cubature.
-	 const char*const file_name_full ///< Defined for \ref constructor_file_name_Cubature.
+const struct const_Nodes* constructor_file_name_const_Nodes
+	(const char*const var_name,      ///< Defined for \ref constructor_file_name_Nodes.
+	 const char*const file_name_full ///< Defined for \ref constructor_file_name_Nodes.
 	);
 
 // Difference functions ********************************************************************************************* //
 
-/** \brief Check the difference between members of the input \ref Cubature\*s.
+/** \brief Check the difference between members of the input \ref Nodes\*s.
  *  \return The `true` if inputs differ; `false` otherwise. */
-bool diff_const_Cubature
-	(const struct const_Cubature*const a, ///< Input 0.
-	 const struct const_Cubature*const b, ///< Input 1.
-	 const double tol                     ///< The tolerance.
+bool diff_const_Nodes
+	(const struct const_Nodes*const a, ///< Input 0.
+	 const struct const_Nodes*const b, ///< Input 1.
+	 const double tol                  ///< The tolerance.
 	);
 
 // Printing functions *********************************************************************************************** //
 
-/// \brief Print the relative difference of the \ref Cubature members, outputting 0 if less than the tolerance.
-void print_diff_const_Cubature
-	(const struct const_Cubature*const a, ///< Input 0.
-	 const struct const_Cubature*const b, ///< Input 1.
-	 const double tol                     ///< The tolerance.
+/// \brief Print the relative difference of the \ref Nodes members, outputting 0 if less than the tolerance.
+void print_diff_const_Nodes
+	(const struct const_Nodes*const a, ///< Input 0.
+	 const struct const_Nodes*const b, ///< Input 1.
+	 const double tol                  ///< The tolerance.
 	);
 
-#endif // DPG__test_support_cubature_h__INCLUDED
+#endif // DPG__test_support_nodes_h__INCLUDED

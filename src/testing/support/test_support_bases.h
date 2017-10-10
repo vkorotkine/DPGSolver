@@ -27,62 +27,62 @@ You should have received a copy of the GNU General Public License along with DPG
  *         definitions.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_basis_tp_orthonormal_def
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for polynomial operator(s) for the gradient(s) of the tensor-product orthonomal basis from the
  *         basis function definitions.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal_def
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for a polynomial operator for the simplex orthonomal basis from the basis function definitions.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_basis_si_orthonormal_def
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for polynomial operators for the gradients of the simplex orthonomal basis from the basis
  *         function definitions.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal_def
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for a polynomial operator for the pyramid orthonomal basis from the basis function definitions.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_basis_pyr_orthonormal_def
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for polynomial operators for the gradients of the pyramid orthonomal basis from the basis
  *         function definitions.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal_def
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for a polynomial operator for the tensor-product bezier basis from the basis function
  *         definitions.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_basis_tp_bezier_def
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for polynomial operator(s) for the gradient(s) of the tensor-product bezier basis from the basis
  *         function definitions.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier_def
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 // Additional functions ********************************************************************************************* //

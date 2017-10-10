@@ -31,16 +31,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_alloc.h"
-#include "definitions_cubature.h"
-#include "definitions_tol.h"
 #include "definitions_elements.h"
+#include "definitions_nodes.h"
+#include "definitions_tol.h"
 
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
 
 #include "bases.h"
-#include "cubature.h"
+#include "nodes.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -458,9 +458,9 @@ static struct Basis_Data_TP_Ortho* constructor_Basis_Data_TP_Ortho (const char e
 {
 	struct Basis_Data_TP_Ortho* b_data = calloc(1,sizeof *b_data); // returned
 
-	const struct const_Cubature* d1_p4_GLL = constructor_const_Cubature_tp(1,4,CUB_GLL), // destructed
-	                           * d2_p4_GLL = constructor_const_Cubature_tp(2,4,CUB_GLL), // destructed
-	                           * d3_p4_GLL = constructor_const_Cubature_tp(3,4,CUB_GLL); // destructed
+	const struct const_Nodes* d1_p4_GLL = constructor_const_Nodes_tp(1,4,NODES_GLL), // destructed
+	                        * d2_p4_GLL = constructor_const_Nodes_tp(2,4,NODES_GLL), // destructed
+	                        * d3_p4_GLL = constructor_const_Nodes_tp(3,4,NODES_GLL); // destructed
 	const int   super_type = ST_TP;
 	const char* basis_name = "tp_ortho";
 	if (eval_type == 'a') {
@@ -492,9 +492,9 @@ static struct Basis_Data_TP_Ortho* constructor_Basis_Data_TP_Ortho (const char e
 	} else {
 		EXIT_UNSUPPORTED;
 	}
-	destructor_const_Cubature(d1_p4_GLL);
-	destructor_const_Cubature(d2_p4_GLL);
-	destructor_const_Cubature(d3_p4_GLL);
+	destructor_const_Nodes(d1_p4_GLL);
+	destructor_const_Nodes(d2_p4_GLL);
+	destructor_const_Nodes(d3_p4_GLL);
 
 	return b_data;
 }
@@ -522,8 +522,8 @@ static struct Basis_Data_SI_Ortho* constructor_Basis_Data_SI_Ortho (const char e
 {
 	struct Basis_Data_SI_Ortho* b_data = calloc(1,sizeof *b_data); // returned
 
-	const struct const_Cubature* d2_p4_AO = constructor_const_Cubature_si(2,4,CUB_AO), // destructed
-	                           * d3_p4_AO = constructor_const_Cubature_si(3,4,CUB_AO); // destructed
+	const struct const_Nodes* d2_p4_AO = constructor_const_Nodes_si(2,4,NODES_AO), // destructed
+	                        * d3_p4_AO = constructor_const_Nodes_si(3,4,NODES_AO); // destructed
 	const int super_type = ST_SI;
 	const int p_mass = 4;
 	const char* basis_name = "si_ortho";
@@ -550,8 +550,8 @@ static struct Basis_Data_SI_Ortho* constructor_Basis_Data_SI_Ortho (const char e
 	} else {
 		EXIT_UNSUPPORTED;
 	}
-	destructor_const_Cubature(d2_p4_AO);
-	destructor_const_Cubature(d3_p4_AO);
+	destructor_const_Nodes(d2_p4_AO);
+	destructor_const_Nodes(d3_p4_AO);
 
 	return b_data;
 }
@@ -576,7 +576,7 @@ static struct Basis_Data_PYR_Ortho* constructor_Basis_Data_PYR_Ortho (const char
 {
 	struct Basis_Data_PYR_Ortho* b_data = calloc(1,sizeof *b_data); // returned
 
-	const struct const_Cubature* d3_p4_GLL = constructor_const_Cubature_pyr(3,4,CUB_GLL); // destructed
+	const struct const_Nodes* d3_p4_GLL = constructor_const_Nodes_pyr(3,4,NODES_GLL); // destructed
 	const int super_type = ST_PYR;
 	const int p_mass = 4;
 	const char* basis_name = "pyr_ortho";
@@ -593,7 +593,7 @@ static struct Basis_Data_PYR_Ortho* constructor_Basis_Data_PYR_Ortho (const char
 	} else {
 		EXIT_UNSUPPORTED;
 	}
-	destructor_const_Cubature(d3_p4_GLL);
+	destructor_const_Nodes(d3_p4_GLL);
 
 	return b_data;
 }
@@ -613,9 +613,9 @@ static struct Basis_Data_TP_Bezier* constructor_Basis_Data_TP_Bezier (const char
 {
 	struct Basis_Data_TP_Bezier* b_data = calloc(1,sizeof *b_data); // returned
 
-	const struct const_Cubature* d1_p4_GLL = constructor_const_Cubature_tp(1,4,CUB_GLL), // destructed
-	                           * d2_p4_GLL = constructor_const_Cubature_tp(2,4,CUB_GLL), // destructed
-	                           * d3_p4_GLL = constructor_const_Cubature_tp(3,4,CUB_GLL); // destructed
+	const struct const_Nodes* d1_p4_GLL = constructor_const_Nodes_tp(1,4,NODES_GLL), // destructed
+	                        * d2_p4_GLL = constructor_const_Nodes_tp(2,4,NODES_GLL), // destructed
+	                        * d3_p4_GLL = constructor_const_Nodes_tp(3,4,NODES_GLL); // destructed
 	const char* basis_name = "tp_bezier";
 	if (eval_type == 'a') {
 		b_data->phi13        = constructor_basis_tp_bezier_def(3,d1_p4_GLL->rst);      // keep
@@ -646,9 +646,9 @@ static struct Basis_Data_TP_Bezier* constructor_Basis_Data_TP_Bezier (const char
 	} else {
 		EXIT_UNSUPPORTED;
 	}
-	destructor_const_Cubature(d1_p4_GLL);
-	destructor_const_Cubature(d2_p4_GLL);
-	destructor_const_Cubature(d3_p4_GLL);
+	destructor_const_Nodes(d1_p4_GLL);
+	destructor_const_Nodes(d2_p4_GLL);
+	destructor_const_Nodes(d3_p4_GLL);
 
 	return b_data;
 }

@@ -23,7 +23,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_core.h"
-#include "definitions_cubature.h"
 #include "definitions_element_operators.h"
 #include "definitions_elements.h"
 #include "definitions_bases.h"
@@ -34,8 +33,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "bases.h"
 #include "const_cast.h"
-#include "cubature.h"
-#include "cubature_operators.h"
+#include "nodes.h"
+#include "nodes_operators.h"
 #include "element.h"
 #include "multiarray_operator.h"
 #include "operator.h"
@@ -46,9 +45,9 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Set the current standard operator(s).
  *  \note Standard operators include all permutations of coef/value to coef/value with possible differentiation.
  *
- *  Currently, the cubature is recomputed upon each entry into this function. It would be more efficient to compute the
- *  required cubature rules in advance and pass a multiarray of cubature nodes to this function. This would also allow
- *  for more efficient computation of the cubature nodes themselves.
+ *  Currently, the nodes are recomputed upon each entry into this function. It would be more efficient to compute the
+ *  required nodes rules in advance and pass a multiarray of nodes to this function. This would also allow for more
+ *  efficient computation of the nodes themselves.
  */
 static void set_operator_std
 	(ptrdiff_t*const ind_values,           ///< The index of the first row of \ref Operator_Info::values_op to use.
@@ -172,17 +171,17 @@ void destructor_Operator_Info (struct Operator_Info* op_info)
 
 int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 {
-	const int s_type   = op_io->s_type,
-	          p_op     = op_io->p_op,
-	          cub_kind = op_io->kind,
-	          cub_sc   = op_io->sc;
+	const int s_type     = op_io->s_type,
+	          p_op       = op_io->p_op,
+	          nodes_kind = op_io->kind,
+	          op_sc      = op_io->sc;
 // Add Simulation::p_X_p for each kind, X, for variable orders for a given reference order in future.
-	switch (cub_kind) {
+	switch (nodes_kind) {
 	case 's': // solution
 		return p_op;
 		break;
 	case 'g': // geometry
-		if (cub_sc == 's')
+		if (op_sc == 's')
 			return 1;
 
 		if (strcmp(sim->geom_rep,"isoparametric") == 0)
@@ -212,7 +211,7 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 		break;
 	} case 'c': // fallthrough
 	default:
-		EXIT_ERROR("Unsupported: %c\n",cub_kind);
+		EXIT_ERROR("Unsupported: %c\n",nodes_kind);
 		break;
 	}
 	EXIT_UNSUPPORTED;
@@ -251,7 +250,7 @@ bool check_op_info_loss (const int*const op_values)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Compute the super type of the cubature based on the kind of operator.
+/** \brief Compute the super type of the nodes based on the kind of operator.
  *  \return See brief. */
 static int compute_super_type_op
 	(const struct Op_IO* op_io,          ///< \ref Op_IO.
@@ -323,32 +322,33 @@ static void set_operator_std
 		}
 
 		const int s_type = op_io[OP_IND_I].s_type;
-		basis_fptr constructor_basis = get_basis_by_super_type(s_type,"ortho");
+		constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type,"ortho");
 
 		/* Compute `op_cvNr`: [operator, coefficients to values, differentiation order N, reference basis].
 		 * op_cvNr == basis(p_i,rst_o). */
-		const struct const_Cubature* cub_o = constructor_const_Cubature_h(OP_IND_O,op_io,element,sim); // destructed
+		const struct const_Nodes* nodes_o = constructor_const_Nodes_h(OP_IND_O,op_io,element,sim); // destructed
 
 		const struct const_Multiarray_Matrix_d* op_cvNr = NULL;
 		if (op_info->range_d == OP_R_D_0) {
-			const struct const_Matrix_d* cv0r = constructor_basis(p_ptr[OP_IND_I],cub_o->rst); // moved
+			const struct const_Matrix_d* cv0r = constructor_basis(p_ptr[OP_IND_I],nodes_o->rst); // moved
 
 			op_cvNr = constructor_op_MMd(true,n_op); // destructed
 			const_constructor_move_const_Matrix_d(&op_cvNr->data[0],cv0r); // destructed
 		} else if (op_info->range_d == OP_R_D_ALL) {
-			grad_basis_fptr constructor_grad_basis = get_grad_basis_by_super_type(s_type,"ortho");
-			op_cvNr = constructor_grad_basis(p_ptr[OP_IND_I],cub_o->rst); // destructed
+			constructor_grad_basis_fptr constructor_grad_basis =
+				get_constructor_grad_basis_by_super_type(s_type,"ortho");
+			op_cvNr = constructor_grad_basis(p_ptr[OP_IND_I],nodes_o->rst); // destructed
 		} else {
 			EXIT_ERROR("Unsupported: %d\n",op_info->range_d);
 		}
 
 		/* Compute `op_cvN`: [operator, coefficients to values, differentiation order N].
 		 * op_cvN == op_cvNr*T_i (Corollary 2.2, \cite Zwanenburg2016). */
-		const struct const_Cubature* cub_i = constructor_const_Cubature_h(OP_IND_I,op_io,element,sim); // destructed
+		const struct const_Nodes* nodes_i = constructor_const_Nodes_h(OP_IND_I,op_io,element,sim); // destructed
 
-		const struct const_Matrix_d* cv0r_ii = constructor_basis(p_ptr[OP_IND_I],cub_i->rst);   // destructed
-		const struct const_Matrix_d* cv0_ii  = constructor_cv(cub_i->rst,&op_io[OP_IND_I],sim); // destructed
-		destructor_const_Cubature(cub_i);
+		const struct const_Matrix_d* cv0r_ii = constructor_basis(p_ptr[OP_IND_I],nodes_i->rst);   // destructed
+		const struct const_Matrix_d* cv0_ii  = constructor_cv(nodes_i->rst,&op_io[OP_IND_I],sim); // destructed
+		destructor_const_Nodes(nodes_i);
 
 		const struct const_Matrix_d* T_i = constructor_sgesv_const_Matrix_d(cv0r_ii,cv0_ii); // destructed
 
@@ -368,7 +368,7 @@ static void set_operator_std
 		 * op_coN == inv_cv0_oo*op_cvN   <=>   op_coN = sgesv(cv0_oo,op_cvN). */
 		const struct const_Multiarray_Matrix_d* op_coN = constructor_op_MMd(true,n_op);  // destructed
 		if (op_type == OP_T_CC || op_type == OP_T_VC) {
-			const struct const_Matrix_d* cv0_oo = constructor_cv(cub_o->rst,&op_io[OP_IND_O],sim); // destructed
+			const struct const_Matrix_d* cv0_oo = constructor_cv(nodes_o->rst,&op_io[OP_IND_O],sim); // destructed
 
 			for (int i = 0; i < n_op; ++i) {
 				const struct const_Matrix_d* cv0 = op_cvN->data[i];
@@ -381,7 +381,7 @@ static void set_operator_std
 			for (int i = 0; i < n_op; ++i)
 				const_constructor_move_const_Matrix_d(&op_coN->data[i],op_cvN->data[i]); // destructed
 		}
-		destructor_const_Cubature(cub_o);
+		destructor_const_Nodes(nodes_o);
 		destructor_const_Multiarray_Matrix_d(op_cvN);
 
 		/* Compute `op_ioN`: [operator, input (coefs/values) to output (coefs/values), differentiation order N].
@@ -680,7 +680,7 @@ const struct const_Matrix_d* constructor_cv
 	if (basis_type == BASIS_LAGRANGE) {
 		cv = constructor_identity_const_Matrix_d('R',rst->ext_0); // returned
 	} else {
-		basis_fptr constructor_basis = get_basis_by_super_type_i(s_type,basis_type);
+		constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type_i(s_type,basis_type);
 		cv = constructor_basis(p_basis,rst); // returned
 	}
 

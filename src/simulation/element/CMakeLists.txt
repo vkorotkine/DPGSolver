@@ -1,10 +1,10 @@
 set	(SOURCE
+	 bases.c
 	 element.c
 	 element_operators.c
 	 element_operators_tp.c
-	 bases.c
-	 cubature.c
-	 cubature_operators.c
+	 nodes.c
+	 nodes_operators.c
 	)
 
 set	(LIBS_DEPEND

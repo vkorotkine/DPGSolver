@@ -81,7 +81,7 @@ struct Simulation {
 	 *  - interp_si:  AO, WSH, EQ;
 	 *  - interp_pyr: GL, GLL.
 	 *
-	 *  See \ref definitions_cubature.h for the expansion of the acronyms.
+	 *  See \ref definitions_nodes.h for the expansion of the acronyms.
 	 *
 	 *  \warning EQ nodes should only be used for comparison with other codes where GL/GLL nodes are not available as
 	 *           they provide an increasingly poor interpolation as the order is increased due to growth of their

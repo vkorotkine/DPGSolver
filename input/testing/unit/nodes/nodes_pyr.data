@@ -1,8 +1,8 @@
 --------------------------------------------------------------------------------
-Test_cubature_pyr_d3
+Test_nodes_pyr_d3
 
-Cubature_d3_p2_GLe
-container Cubature
+Nodes_d3_p2_GLe
+container Nodes
 has_weights: 0
 rst:
 container Matrix_d
@@ -22,8 +22,8 @@ C 14 3
  0.000000000000000  0.000000000000000 -0.123458488793238
  0.000000000000000  0.000000000000000  0.971986626217095
 
-Cubature_d3_p3_GLoL
-container Cubature
+Nodes_d3_p3_GLoL
+container Nodes
 has_weights: 0
 rst:
 container Matrix_d
@@ -59,8 +59,8 @@ C 30 3
 -0.000000000000000 -0.000000000000000  0.108036302695091
  0.000000000000000  0.000000000000000  1.131370849898476
 
-Cubature_d3_p4_WV
-container Cubature
+Nodes_d3_p4_WV
+container Nodes
 has_weights: 1
 rst:
 container Matrix_d

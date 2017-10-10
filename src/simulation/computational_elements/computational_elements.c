@@ -37,6 +37,58 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** \brief Function pointer to a derived Volume constructor function for a volume which is part of an
+ *         \ref Intrusive_List.
+ *  \param volume_ptr Pointer to the volume link in the list.
+ *  \param sim        \ref Simulation.
+ */
+typedef void (*constructor_derived_Volume_fptr)
+	(struct Volume* volume_ptr,
+	 const struct Simulation* sim
+	);
+
+/** \brief Function pointer to a derived Volume destructor function for a volume which is part of an
+ *         \ref Intrusive_List.
+ *  \param volume Pointer to the volume link in the list.
+ */
+typedef void (*destructor_derived_Volume_fptr)
+	(struct Volume* volume_ptr
+	);
+
+/** \brief Function pointer to a derived Face constructor function for a face which is part of an \ref Intrusive_List.
+ *  \param face_ptr Pointer to the face link in the list.
+ *  \param sim      \ref Simulation.
+ */
+typedef void (*constructor_derived_Face_fptr)
+	(struct Face* face_ptr,
+	 const struct Simulation* sim
+	);
+
+/** \brief Function pointer to a derived Face destructor function for a face which is part of an \ref Intrusive_List.
+ *  \param face Pointer to the face link in the list.
+ */
+typedef void (*destructor_derived_Face_fptr)
+	(struct Face* face_ptr
+	);
+
+/** \brief Function pointer to a derived Element constructor function for a element which is part of an
+ *         \ref Intrusive_List.
+ *  \param element_ptr Pointer to the element link in the list.
+ *  \param sim         \ref Simulation.
+ */
+typedef void (*constructor_derived_Element_fptr)
+	(struct Element* element_ptr,
+	 const struct Simulation* sim
+	);
+
+/** \brief Function pointer to a derived Element destructor function for a element which is part of an
+ *         \ref Intrusive_List.
+ *  \param element Pointer to the element link in the list.
+ */
+typedef void (*destructor_derived_Element_fptr)
+	(struct Element* element_ptr
+	);
+
 /** \brief Update pointers to computational elements in the derived lists.
  *
  *  Every time a new derived list is created and the accompanying base list is destructed, any pointers to computational
@@ -54,7 +106,7 @@ static void update_computational_element_elements
 
 /** \brief Constructor for a derived \ref Intrusive_Link\* to be inserted in a list.
  *  \return See brief. */
-struct Intrusive_Link* constructor_derived_Intrusive_Link
+static struct Intrusive_Link* constructor_derived_Intrusive_Link
 	(struct Intrusive_Link* base, ///< Pointer to the base link.
 	 const size_t sizeof_base,    ///< Value of std::sizeof(base).
 	 const size_t sizeof_derived  ///< Value of std::sizeof(derived).
@@ -62,28 +114,38 @@ struct Intrusive_Link* constructor_derived_Intrusive_Link
 
 /** \brief `const` version of \ref constructor_derived_Intrusive_Link.
  *  \return See brief. */
-const struct const_Intrusive_Link* constructor_derived_const_Intrusive_Link
+static const struct const_Intrusive_Link* constructor_derived_const_Intrusive_Link
 	(const struct const_Intrusive_Link* base, ///< Defined for \ref constructor_derived_Intrusive_Link.
 	 const size_t sizeof_base,                ///< Defined for \ref constructor_derived_Intrusive_Link.
 	 const size_t sizeof_derived              ///< Defined for \ref constructor_derived_Intrusive_Link.
 	);
 
-/** \brief Construts a base \ref Element by copying the input amount of memory from the derived element.
- *  \return The \ref Intrusive_Link\* to be inserted in the list. */
-static const struct const_Intrusive_Link* constructor_base_Element
-	(struct const_Element* derived, ///< Pointer to the current derived \ref Element.
-	 const size_t base_size         ///< The size (in bytes) of the memory to copy from the derived element.
+/** \brief Constructor for a base \ref Intrusive_Link\* to be inserted in a list.
+ *  \return See brief. */
+static struct Intrusive_Link* constructor_base_Intrusive_Link
+	(struct Intrusive_Link* derived, ///< Pointer to the derived link.
+	 const size_t sizeof_base        ///< Value of std::sizeof(base).
+	);
+
+/** \brief `const` version of \ref constructor_base_Intrusive_Link.
+ *  \return See brief. */
+static const struct const_Intrusive_Link* constructor_base_const_Intrusive_Link
+	(const struct const_Intrusive_Link* derived, ///< Defined for \ref constructor_base_Intrusive_Link.
+	 const size_t sizeof_base                    ///< Defined for \ref constructor_base_Intrusive_Link.
 	);
 
 // Interface functions ********************************************************************************************** //
 
-void construct_derived_computational_elements (struct Simulation* sim, const int list_category)
+void constructor_derived_computational_elements (struct Simulation* sim, const int derived_category)
 {
-	// Reserve memory for the derived lists.
+	// Set parameters
+// Make external function here after usage is set.
 	int list_name[2]         = { 0, 0, };
 	size_t sizeof_base[2]    = { 0, 0, },
 	       sizeof_derived[2] = { 0, 0, };
-	switch (list_category) {
+	constructor_derived_Volume_fptr constructor_derived_Volume = NULL;
+	constructor_derived_Face_fptr   constructor_derived_Face   = NULL;
+	switch (derived_category) {
 	case IL_SOLVER:
 		list_name[0] = IL_SOLVER_VOLUME;
 		list_name[1] = IL_SOLVER_FACE;
@@ -91,15 +153,18 @@ void construct_derived_computational_elements (struct Simulation* sim, const int
 		sizeof_base[1] = sizeof(struct Face);
 		sizeof_derived[0] = sizeof(struct Solver_Volume);
 		sizeof_derived[1] = sizeof(struct Solver_Face);
+		constructor_derived_Volume = constructor_derived_Solver_Volume;
+		constructor_derived_Face   = constructor_derived_Solver_Face;
 		break;
 	default:
-		EXIT_ERROR("Unsupported: %d\n",list_category);
+		EXIT_ERROR("Unsupported: %d\n",derived_category);
 		break;
 	}
 
 	struct Intrusive_List* base[2]    = { sim->volumes, sim->faces, };
 	struct Intrusive_List* derived[2] = { NULL, NULL, };
 
+	// Reserve memory for the derived lists.
 	for (int i = 0; i < 2; ++i) {
 		derived[i] = constructor_empty_IL(list_name[i],base[i]);
 		for (struct Intrusive_Link* curr = base[i]->first; curr; curr = curr->next)
@@ -110,14 +175,16 @@ void construct_derived_computational_elements (struct Simulation* sim, const int
 	sim->faces   = derived[1];
 
 	// Perform construction specific to the derived lists.
-	switch (list_category) {
-	case IL_SOLVER:
-		construct_Solver_Volumes(sim);
-		construct_Solver_Faces(sim);
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",list_category);
-		break;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; ) {
+		struct Intrusive_Link* next = curr->next;
+		constructor_derived_Volume((struct Volume*)curr,sim);
+		curr = next;
+	}
+
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; ) {
+		struct Intrusive_Link* next = curr->next;
+		constructor_derived_Face((struct Face*)curr,sim);
+		curr = next;
 	}
 
 	// Update pointers to the base computational elements to point to the derived computational elements.
@@ -128,24 +195,87 @@ void construct_derived_computational_elements (struct Simulation* sim, const int
 	destructor_IL_base(sim->faces);
 }
 
-void constructor_derived_Elements (struct Simulation* sim, const int list_name)
+void destructor_derived_computational_elements (struct Simulation* sim, const int derived_category)
 {
-	// Reserve memory for the derived element list.
-	size_t sizeof_base    = 0,
-	       sizeof_derived = 0;
-	switch (list_name) {
-	case IL_GEOMETRY_ELEMENT:
-		sizeof_base    = sizeof(struct Element);
-		sizeof_derived = sizeof(struct Geometry_Element);
+	// Set parameters
+// Make external function here after usage is set.
+	int base_name[2]         = { 0, 0, };
+	size_t sizeof_base[2]    = { 0, 0, };
+	destructor_derived_Volume_fptr destructor_derived_Volume = NULL;
+	destructor_derived_Face_fptr   destructor_derived_Face   = NULL;
+	switch (derived_category) {
+	case IL_SOLVER:
+		base_name[0] = IL_VOLUME;
+		base_name[1] = IL_FACE;
+		sizeof_base[0] = sizeof(struct Volume);
+		sizeof_base[1] = sizeof(struct Face);
+		destructor_derived_Volume = destructor_derived_Solver_Volume;
+		destructor_derived_Face   = destructor_derived_Solver_Face;
 		break;
 	default:
-		EXIT_ERROR("Unsupported: %d\n",list_name);
+		EXIT_ERROR("Unsupported: %d\n",derived_category);
+		break;
+	}
+
+	// Perform destruction specific to the derived lists.
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; ) {
+		struct Intrusive_Link* next = curr->next;
+		destructor_derived_Volume((struct Volume*)curr);
+		curr = next;
+	}
+
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; ) {
+		struct Intrusive_Link* next = curr->next;
+		destructor_derived_Face((struct Face*)curr);
+		curr = next;
+	}
+
+	// Reserve memory for the base lists.
+	int ind_list = -1;
+
+	++ind_list;
+	struct Intrusive_List* volumes_prev = sim->volumes;
+	sim->volumes = constructor_empty_IL(base_name[ind_list],NULL); // keep
+	for (struct Intrusive_Link* curr = volumes_prev->first; curr; curr = curr->next)
+		push_back_IL(sim->volumes,constructor_base_Intrusive_Link(curr,sizeof_base[ind_list]));
+
+	++ind_list;
+	struct Intrusive_List* faces_prev = sim->faces;
+	sim->faces = constructor_empty_IL(base_name[ind_list],NULL); // keep
+	for (struct Intrusive_Link* curr = faces_prev->first; curr; curr = curr->next)
+		push_back_IL(sim->faces,constructor_base_Intrusive_Link(curr,sizeof_base[ind_list]));
+
+	// Update pointers to the base computational elements to point to the derived computational elements.
+	update_computational_element_list_pointers(sim);
+
+	// Destruct the derived lists.
+	destructor_IL(volumes_prev);
+	destructor_IL(faces_prev);
+}
+
+void constructor_derived_Elements (struct Simulation* sim, const int derived_name)
+{
+	// Set parameters
+// Make external function here after usage is set.
+	size_t sizeof_base    = 0,
+	       sizeof_derived = 0;
+	constructor_derived_Element_fptr constructor_derived_Element = NULL;
+	switch (derived_name) {
+	case IL_GEOMETRY_ELEMENT:
+		assert(sizeof(struct Geometry_Element) == sizeof(struct const_Geometry_Element));
+		sizeof_base    = sizeof(struct Element);
+		sizeof_derived = sizeof(struct Geometry_Element);
+		constructor_derived_Element = constructor_derived_Geometry_Element;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",derived_name);
 		break;
 	}
 
 	const struct const_Intrusive_List* base = sim->elements;
 
-	const struct const_Intrusive_List* elements = constructor_empty_const_IL(list_name,base); // moved
+	// Reserve memory for the derived element list.
+	const struct const_Intrusive_List* elements = constructor_empty_const_IL(derived_name,base); // moved
 	for (const struct const_Intrusive_Link* curr = base->first; curr; curr = curr->next)
 		push_back_const_IL(elements,constructor_derived_const_Intrusive_Link(curr,sizeof_base,sizeof_derived));
 	set_tp_sub_elements((struct Intrusive_List*)elements);
@@ -153,11 +283,11 @@ void constructor_derived_Elements (struct Simulation* sim, const int list_name)
 	sim->elements = elements;
 
 	// Perform construction specific to the derived element list.
-	switch (list_name) {
-	case IL_GEOMETRY_ELEMENT: constructor_Geometry_Elements(sim); break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",list_name);
-		break;
+	for (const struct const_Intrusive_Link* curr = sim->elements->first; curr; ) {
+		const struct const_Intrusive_Link* next = curr->next;
+		if (((struct Element*)curr)->present)
+			constructor_derived_Element((struct Element*)curr,sim);
+		curr = next;
 	}
 
 	// Update pointers to the base elements to point to the derived elements.
@@ -167,31 +297,47 @@ void constructor_derived_Elements (struct Simulation* sim, const int list_name)
 	destructor_const_IL_base(sim->elements);
 }
 
-void destructor_derived_Elements (struct Simulation* sim, const int base_name)
+void destructor_derived_Elements (struct Simulation* sim, const int derived_name)
 {
+	// Set parameters
+// Make external function here after usage is set.
+	int base_name      = -1;
+	size_t sizeof_base = 0;
+	destructor_derived_Element_fptr destructor_derived_Element = NULL;
+
 	const int curr_name = sim->elements->name;
+	assert(curr_name == derived_name);
 	switch (curr_name) {
-		case IL_GEOMETRY_ELEMENT: destructor_Geometry_Elements(sim->elements); break;
+		case IL_GEOMETRY_ELEMENT:
+			base_name = IL_ELEMENT;
+			sizeof_base = sizeof(struct Element);
+			destructor_derived_Element = destructor_derived_Geometry_Element;
+			break;
 		default:
 			EXIT_ERROR("Unsupported: %d\n",curr_name);
 			break;
 	}
 
-	size_t base_size = 0;
-	switch (base_name) {
-		case IL_ELEMENT: base_size = sizeof(struct Element); break;
-		default:
-			EXIT_ERROR("Unsupported: %d\n",base_name);
-			break;
+	// Perform destruction specific to the derived element list.
+	for (const struct const_Intrusive_Link* curr = sim->elements->first; curr; ) {
+		const struct const_Intrusive_Link* next = curr->next;
+		if (((struct Element*)curr)->present)
+			destructor_derived_Element((struct Element*)curr);
+		curr = next;
 	}
 
-	const struct const_Intrusive_List* elements = constructor_empty_const_IL(base_name,NULL); // moved
-	for (const struct const_Intrusive_Link* curr = sim->elements->first; curr; curr = curr->next)
-		push_back_const_IL(elements,constructor_base_Element((struct const_Element*)curr,base_size));
+	// Reserve memory for the base element list.
+	const struct const_Intrusive_List* elements_prev = sim->elements;
+	sim->elements = constructor_empty_const_IL(base_name,NULL); // keep
+	for (const struct const_Intrusive_Link* curr = elements_prev->first; curr; curr = curr->next) {
+		push_back_const_IL(sim->elements,constructor_base_const_Intrusive_Link(curr,sizeof_base));
+	}
 
-	destructor_const_IL(sim->elements);
-	sim->elements = elements;
+	// Update pointers to the derived elements to point to the base elements.
 	update_computational_element_elements(sim);
+
+	// Destruct the derived list.
+	destructor_const_IL(elements_prev);
 }
 
 // Static functions ************************************************************************************************* //
@@ -231,7 +377,7 @@ static void update_computational_element_elements (struct Simulation* sim)
 	}
 }
 
-struct Intrusive_Link* constructor_derived_Intrusive_Link
+static struct Intrusive_Link* constructor_derived_Intrusive_Link
 	(struct Intrusive_Link* base, const size_t sizeof_base, const size_t sizeof_derived)
 {
 	struct Intrusive_Link* derived = calloc(1,sizeof_derived); // returned
@@ -243,20 +389,33 @@ struct Intrusive_Link* constructor_derived_Intrusive_Link
 	return derived;
 }
 
-const struct const_Intrusive_Link* constructor_derived_const_Intrusive_Link
+static const struct const_Intrusive_Link* constructor_derived_const_Intrusive_Link
 	(const struct const_Intrusive_Link* base, const size_t sizeof_base, const size_t sizeof_derived)
 {
 	return (const struct const_Intrusive_Link*)
 		constructor_derived_Intrusive_Link((struct Intrusive_Link*)base,sizeof_base,sizeof_derived);
 }
 
-static const struct const_Intrusive_Link* constructor_base_Element
-	(struct const_Element* derived, const size_t base_size)
+static struct Intrusive_Link* constructor_base_Intrusive_Link
+	(struct Intrusive_Link* derived, const size_t sizeof_base)
 {
-	void* element = malloc(base_size);
-	memcpy(element,derived,base_size);
+	struct Intrusive_Link* base = calloc(1,sizeof_base); // returned
+	memcpy(base,derived,sizeof_base); // shallow copy of the derived.
 
-	return (const struct const_Intrusive_Link*) element;
+	base->derived = NULL;
+
+	// Set the derived link's `derived` member to the base to fix computational element pointers. The derived list
+	// is immediately destructed after fixing the pointers so this does not impact any other code.
+	derived->derived = base;
+
+	return base;
+}
+
+static const struct const_Intrusive_Link* constructor_base_const_Intrusive_Link
+	(const struct const_Intrusive_Link* derived, const size_t sizeof_base)
+{
+	return (const struct const_Intrusive_Link*)
+		constructor_base_Intrusive_Link((struct Intrusive_Link*)derived,sizeof_base);
 }
 
 // Level 1 ********************************************************************************************************** //

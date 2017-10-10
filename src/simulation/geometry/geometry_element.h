@@ -95,14 +95,15 @@ struct const_Geometry_Element {
 
 // Constructor/Destructor functions ********************************************************************************* //
 
-/// \brief Constructor for the members of a list of \ref Geometry_Element\*s, excluding the base member.
-void constructor_Geometry_Elements
-	(struct Simulation*const sim ///< The \ref Simulation.
+/// \brief Constructor for a derived \ref Geometry_Element.
+void constructor_derived_Geometry_Element
+	(struct Element* element,     ///< \ref Geometry_Element.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destructor for the list of \ref Geometry_Element\*s.
-void destructor_Geometry_Elements
-	(const struct const_Intrusive_List* geometry_elements ///< Standard.
+/// \brief Destructor for a \ref Geometry_Element.
+void destructor_derived_Geometry_Element
+	(struct Element* element ///< Standard.
 	);
 
 #endif // DPG__geometry_element_h__INCLUDED

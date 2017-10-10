@@ -30,14 +30,14 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- v: volume
  *  	- f: face
  *  	- e: edge
- *  - [2/5]: character denoting the kind of basis/cubature to be used (kind):
+ *  - [2/5]: character denoting the kind of basis/nodes to be used (kind):
  *  	- g: geometry
  *  	- m: metric
  *  	- s: solution
  *  	- v: vertex (Only available as p1 nodes [5])
  *  	- p: plotting (Not available as a basis [2])
  *  	- c: cubature (Not available as a basis [2])
- *  - (3/6): character denoting whether the basis/cubature is meant to be used for straight or curved elements (sc):
+ *  - (3/6): character denoting whether the basis/nodes is meant to be used for straight or curved elements (sc):
  *  	- s: straight
  *  	- c: curved
  *  - (7): if present, character specifying which basis was used for the operator:
@@ -60,7 +60,7 @@ struct const_Element;
 /// Container specifying the effect ("from which input to which output") of the operator application.
 struct Op_IO {
 	const char ce,   ///< The computational element.
-	           kind, ///< The kind of basis/cubature.
+	           kind, ///< The kind of basis/nodes.
 	           sc;   ///< Indication of straight/curved.
 
 	const int ce_op, ///< The computational element index of the operator.

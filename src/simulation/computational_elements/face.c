@@ -64,8 +64,8 @@ static struct Face* constructor_Face
 	 const int index                            ///< The face index.
 	);
 
-/// \brief Destructor for an individual \ref Face.
-static void destructor_Face
+/// \brief Destructor for a \ref Face in a \ref Intrusive_List, excluding the memory for the link itself.
+static void destructor_Face_link
 	(struct Face* face ///< Standard.
 	);
 
@@ -118,8 +118,8 @@ struct Intrusive_List* constructor_Faces (struct Simulation*const sim, const str
 			struct Volume*const volume_n = ( v_neigh == -1 ? NULL : volume_array[v_neigh] );
 
 			struct Face_mesh_info face_mi =
-				{ .element              = get_element_by_face(volume->element,lf),
-				  .ve_inds              = ve_inds,
+				{ .element            = get_element_by_face(volume->element,lf),
+				  .ve_inds            = ve_inds,
 				  .neigh_info[0] = { .ind_lf = lf,
 				                     .volume = volume, },
 				  .neigh_info[1] = { .ind_lf = ind_lf,
@@ -149,7 +149,7 @@ void destructor_Faces (struct Intrusive_List* faces)
 {
 	for (const struct Intrusive_Link* curr = faces->first; curr; ) {
 		struct Intrusive_Link* next = curr->next;
-		destructor_Face((struct Face*) curr);
+		destructor_Face_link((struct Face*) curr);
 		curr = next;
 	}
 	destructor_IL(faces);
@@ -231,9 +231,10 @@ static struct Face* constructor_Face
 	return face;
 }
 
-static void destructor_Face (struct Face* face)
+static void destructor_Face_link (struct Face* face)
 {
-	UNUSED(face); // freed as part of the list.
+	// Do nothing.
+	UNUSED(face);
 }
 
 const struct const_Vector_i* compute_ve_inds_f

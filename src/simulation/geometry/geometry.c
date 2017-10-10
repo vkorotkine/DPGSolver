@@ -120,7 +120,7 @@ void set_up_solver_geometry (struct Simulation* sim)
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
 		compute_geometry_face(sim,(struct Solver_Face*) curr);
 
-	destructor_derived_Elements(sim,IL_ELEMENT);
+	destructor_derived_Elements(sim,IL_GEOMETRY_ELEMENT);
 }
 
 // Static functions ************************************************************************************************* //

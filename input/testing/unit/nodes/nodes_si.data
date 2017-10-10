@@ -1,8 +1,8 @@
 --------------------------------------------------------------------------------
-Test_cubature_si_d2
+Test_nodes_si_d2
 
-Cubature_d2_p3_EQ
-container Cubature
+Nodes_d2_p3_EQ
+container Nodes
 has_weights: 0
 rst:
 container Matrix_d
@@ -18,8 +18,8 @@ C 10 2
  0.000000000000000  1.154700538379251
  0.000000000000000  0.000000000000000
 
-Cubature_d2_p3_AO
-container Cubature
+Nodes_d2_p3_AO
+container Nodes
 has_weights: 0
 rst:
 container Matrix_d
@@ -35,8 +35,8 @@ C 10 2
 -0.000000000000000  1.154700538379252
 -0.000000000000000 -0.000000000000000
 
-Cubature_d2_p3_WSH
-container Cubature
+Nodes_d2_p3_WSH
+container Nodes
 has_weights: 1
 rst:
 container Matrix_d
@@ -65,8 +65,8 @@ C 10 1
  0.072669080167812
  0.349082696138027
 
-Cubature_d2_p6_WV
-container Cubature
+Nodes_d2_p6_WV
+container Nodes
 has_weights: 1
 rst:
 container Matrix_d
@@ -101,10 +101,10 @@ C 12 1
 
 
 --------------------------------------------------------------------------------
-Test_cubature_si_d3
+Test_nodes_si_d3
 
-Cubature_d3_p2_AO
-container Cubature
+Nodes_d3_p2_AO
+container Nodes
 has_weights: 0
 rst:
 container Matrix_d
@@ -120,8 +120,8 @@ C 10 3
  0.000000000000000  1.154700538379252 -0.408248290463863
  0.000000000000000  0.000000000000000  1.224744871391589
 
-Cubature_d3_p2_WSH
-container Cubature
+Nodes_d3_p2_WSH
+container Nodes
 has_weights: 1
 rst:
 container Matrix_d
@@ -150,8 +150,8 @@ C 10 1
  0.044908950209075
  0.044908950209075
 
-Cubature_d3_p4_WV
-container Cubature
+Nodes_d3_p4_WV
+container Nodes
 has_weights: 1
 rst:
 container Matrix_d

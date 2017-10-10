@@ -61,6 +61,11 @@ static struct Volume* constructor_Volume
 	 const int index                             ///< The volume index.
 	);
 
+/// \brief Destructor for a \ref Volume in a \ref Intrusive_List, excluding the memory for the link itself.
+static void destructor_Volume_link
+	(struct Volume* volume ///< Standard.
+	);
+
 /** \brief Check for a match of boundaries relating to the two input vertex bc vectors.
  *
  *  The two input vectors of vertex boundary conditions are searched for a matching boundary condition possibly subject
@@ -105,15 +110,10 @@ void destructor_Volumes (struct Intrusive_List* volumes)
 {
 	for (const struct Intrusive_Link* curr = volumes->first; curr; ) {
 		struct Intrusive_Link* next = curr->next;
-		destructor_Volume((struct Volume*) curr);
+		destructor_Volume_link((struct Volume*) curr);
 		curr = next;
 	}
 	destructor_IL(volumes);
-}
-
-void destructor_Volume (struct Volume* volume)
-{
-	destructor_const_Multiarray_d(volume->xyz_ve);
 }
 
 bool check_ve_condition
@@ -223,6 +223,11 @@ static struct Volume* constructor_Volume
 	                check_if_curved_v(sim->domain_type,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
 
 	return volume;
+}
+
+static void destructor_Volume_link (struct Volume* volume)
+{
+	destructor_const_Multiarray_d(volume->xyz_ve);
 }
 
 static bool find_bc_match

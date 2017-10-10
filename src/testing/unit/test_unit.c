@@ -24,7 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_base.h"
 #include "test_unit_containers.h"
-#include "test_unit_cubature.h"
+#include "test_unit_nodes.h"
 #include "test_unit_bases.h"
 #include "test_unit_operators_tp.h"
 
@@ -38,7 +38,7 @@ void run_tests_unit (struct Test_Info*const test_info)
 	printf("-------------------------------------------------------------------------------------------------\n\n");
 
 	test_unit_containers(test_info);
-	test_unit_cubature(test_info);
+	test_unit_nodes(test_info);
 	test_print_warning(test_info,"Need to add tests for plotting nodes");
 	test_unit_bases(test_info);
 

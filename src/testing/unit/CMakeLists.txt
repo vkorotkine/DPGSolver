@@ -2,7 +2,7 @@ set	(SOURCE
 	 test_unit.c
 	 test_unit_bases.c
 	 test_unit_containers.c
-	 test_unit_cubature.c
+	 test_unit_nodes.c
 	 test_unit_operators_tp.c
 	)
 

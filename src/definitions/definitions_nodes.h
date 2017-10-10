@@ -13,10 +13,10 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__definitions_cubature_h__INCLUDED
-#define DPG__definitions_cubature_h__INCLUDED
+#ifndef DPG__definitions_nodes_h__INCLUDED
+#define DPG__definitions_nodes_h__INCLUDED
 /** \file
- *  \brief Provides the definitions related to the cubature.
+ *  \brief Provides the definitions related to the reference element nodes.
  *
  *  Definitions are provided for:
  *  - the node types;
@@ -24,27 +24,27 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name Nodes available for several element super types.
-#define CUB_VERTEX 101 ///< Vertex coordinates.
+#define NODES_VERTEX 101 ///< Vertex coordinates.
 
-#define CUB_EQ 111 ///< Equally spaced.
-#define CUB_WV 112 ///< Witherden-Vincent.
+#define NODES_EQ 111 ///< Equally spaced.
+#define NODES_WV 112 ///< Witherden-Vincent.
 ///\}
 
 ///\{ \name The available tensor-product nodes.
-#define CUB_GL  201 ///< Gauss-Legendre.
-#define CUB_GLL 202 ///< Gauss-Lobatto-Legendre.
+#define NODES_GL  201 ///< Gauss-Legendre.
+#define NODES_GLL 202 ///< Gauss-Lobatto-Legendre.
 ///\}
 
 ///\{ \name The available simplex nodes.
-#define CUB_AO  301 ///< Alpha-optimized.
-#define CUB_WSH 302 ///< Williams-Shunn-Ham.
+#define NODES_AO  301 ///< Alpha-optimized.
+#define NODES_WSH 302 ///< Williams-Shunn-Ham.
 ///\}
 
 ///\{ \name The available pyramid nodes.
-#define CUB_GLW    401 ///< Gauss-Legendre with Weights.
-#define CUB_GLLW   402 ///< Gauss-Lobatto-Legendre with Weights.
-#define CUB_GJW    403 ///< Gauss-Jacobi with Weights.
-#define CUB_WVHToP 404 ///< Witherden-Vincent, HEX to PYR.
+#define NODES_GLW    401 ///< Gauss-Legendre with Weights.
+#define NODES_GLLW   402 ///< Gauss-Lobatto-Legendre with Weights.
+#define NODES_GJW    403 ///< Gauss-Jacobi with Weights.
+#define NODES_WVHToP 404 ///< Witherden-Vincent, HEX to PYR.
 ///\}
 
 
@@ -54,4 +54,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #define CUB_C_COL  1003 ///< Collocated:   p_cub_col  = p_ref.
 ///\}
 
-#endif // DPG__definitions_cubature_h__INCLUDED
+#endif // DPG__definitions_nodes_h__INCLUDED

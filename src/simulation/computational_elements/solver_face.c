@@ -32,52 +32,18 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Constructor for the members of a \ref Solver_Face, excluding the base member.
-static void construct_Solver_Face
-	(struct Solver_Face* face,    ///< \ref Face.
-	 const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/// \brief Destructor for a \ref Solver_Face.
-static void destructor_Solver_Face
-	(struct Solver_Face* face ///< Standard.
-	);
-
-// Interface functions ********************************************************************************************** //
-
-void construct_Solver_Faces (struct Simulation*const sim)
-{
-	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
-		construct_Solver_Face((struct Solver_Face*)curr,sim);
-}
-
-void destructor_Solver_Faces (struct Intrusive_List* solver_faces)
-{
-	for (const struct Intrusive_Link* curr = solver_faces->first; curr; ) {
-		struct Intrusive_Link* next = curr->next;
-		destructor_Solver_Face((struct Solver_Face*) curr);
-		curr = next;
-	}
-}
-
-static void destructor_Solver_Face (struct Solver_Face* face)
-{
-	destructor_const_Multiarray_d(face->xyz_fc);
-	destructor_const_Multiarray_d(face->normals_fc);
-	destructor_const_Multiarray_d(face->jacobian_det_fc);
-}
-
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
 /** \brief Checks if one of the neighbouring volumes to the current face is curved.
  *  \return `true` if curved volume is found; `false` otherwise. */
 bool check_for_curved_neigh
 	(struct Face* face ///< \ref Face.
 	);
 
-static void construct_Solver_Face (struct Solver_Face* face, const struct Simulation* sim)
+// Interface functions ********************************************************************************************** //
+
+void constructor_derived_Solver_Face (struct Face* face_ptr, const struct Simulation* sim)
 {
+	struct Solver_Face* face = (struct Solver_Face*) face_ptr;
+
 	const_cast_i(&face->p_ref,sim->p_s_v[0]);
 	const_cast_c(&face->cub_type,(check_for_curved_neigh((struct Face*)face) ? 'c' : 's'));
 
@@ -89,11 +55,21 @@ static void construct_Solver_Face (struct Solver_Face* face, const struct Simula
 		&face->jacobian_det_fc,constructor_empty_Multiarray_d('C',1,(ptrdiff_t[]){0})); // destructed
 }
 
-// Level 1 ********************************************************************************************************** //
+void destructor_derived_Solver_Face (struct Face* face_ptr)
+{
+	struct Solver_Face* face = (struct Solver_Face*) face_ptr;
+
+	destructor_const_Multiarray_d(face->xyz_fc);
+	destructor_const_Multiarray_d(face->normals_fc);
+	destructor_const_Multiarray_d(face->jacobian_det_fc);
+}
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
 bool check_for_curved_neigh (struct Face* face)
 {
-	if (face->neigh_info[0].volume->curved || face->neigh_info[1].volume->curved)
+	if (face->neigh_info[0].volume->curved || (face->neigh_info[1].volume && face->neigh_info[1].volume->curved))
 		return true;
 	return false;
 }

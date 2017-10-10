@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 /// \file
 
-#include "cubature.h"
+#include "nodes.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -26,7 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "gsl/gsl_errno.h"
 
 #include "macros.h"
-#include "definitions_cubature.h"
+#include "definitions_nodes.h"
 #include "definitions_math.h"
 #include "definitions_tol.h"
 #include "definitions_alloc.h"
@@ -40,37 +40,37 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Constructor for a \ref Cubature container of simplex (tri) type.
+/** \brief Constructor for a \ref Nodes container of simplex (tri) type.
  *  \return Standard. */
-static const struct const_Cubature* constructor_const_Cubature_tri
-	(const int p,        ///< Defined for \ref constructor_const_Cubature_si.
-	 const int node_type ///< Defined for \ref constructor_const_Cubature_si.
+static const struct const_Nodes* constructor_const_Nodes_tri
+	(const int p,        ///< Defined for \ref constructor_const_Nodes_si.
+	 const int node_type ///< Defined for \ref constructor_const_Nodes_si.
 	);
 
-/** \brief Constructor for a \ref Cubature container of simplex (tet) type.
+/** \brief Constructor for a \ref Nodes container of simplex (tet) type.
  *  \return Standard. */
-static const struct const_Cubature* constructor_const_Cubature_tet
-	(const int p,        ///< Defined for \ref constructor_const_Cubature_si.
-	 const int node_type ///< Defined for \ref constructor_const_Cubature_si.
+static const struct const_Nodes* constructor_const_Nodes_tet
+	(const int p,        ///< Defined for \ref constructor_const_Nodes_si.
+	 const int node_type ///< Defined for \ref constructor_const_Nodes_si.
 	);
 
-/** \brief Constructor for a \ref Cubature container for the p1 reference element vertices or arbitrary element type.
+/** \brief Constructor for a \ref Nodes container for the p1 reference element vertices or arbitrary element type.
  *  \return See brief. */
-static const struct const_Cubature* constructor_const_Cubature_vertices
-	(const int d,     ///< Defined in \ref cubature_fptr.
-	 const int p,     ///< Defined in \ref cubature_fptr.
+static const struct const_Nodes* constructor_const_Nodes_vertices
+	(const int d,     ///< Defined in \ref constructor_Nodes_fptr.
+	 const int p,     ///< Defined in \ref constructor_Nodes_fptr.
 	 const int s_type ///< \ref Element::s_type.
 	);
 
 // Constructor functions ******************************************************************************************** //
 
-const struct const_Cubature* constructor_const_Cubature_tp (const int d, const int p, const int node_type)
+const struct const_Nodes* constructor_const_Nodes_tp (const int d, const int p, const int node_type)
 {
 	assert(p >= 0);
 	assert((d >= 0) && (d <= 3));
 
-	if (node_type == CUB_VERTEX)
-		return constructor_const_Cubature_vertices(d,p,ST_TP);
+	if (node_type == NODES_VERTEX)
+		return constructor_const_Nodes_vertices(d,p,ST_TP);
 
 	bool has_nodes   = true;
 	bool has_weights = true;
@@ -83,14 +83,14 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 		// 0-dimensional nodes => empty.
 		has_nodes   = false;
 		has_weights = false;
-	} else if (node_type == CUB_GL) {
+	} else if (node_type == NODES_GL) {
 		if (jac_zeros_gj(r,pp1,0.0,0.0) != GSL_SUCCESS)
 			EXIT_ERROR("Problem computing nodes.\n");
 
 		has_weights = true;
 		if (jac_weights_gj(r,w_1d,pp1,0.0,0.0,NULL) != GSL_SUCCESS)
 			EXIT_ERROR("Problem computing weights.\n");
-	} else if (node_type == CUB_GLL) {
+	} else if (node_type == NODES_GLL) {
 		if (p == 0)
 			EXIT_ERROR("The order of the GLL nodes must be greater than 0.\n");
 
@@ -100,7 +100,7 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 		has_weights = true;
 		if (jac_weights_glj(r,w_1d,pp1,0.0,0.0,NULL) != GSL_SUCCESS)
 			EXIT_ERROR("Problem computing weights.\n");
-	} else if (node_type == CUB_EQ) {
+	} else if (node_type == NODES_EQ) {
 		has_weights = false;
 		for (int i = 0; i < pp1; ++i)
 			r[i] = -1.0 + (2.0/p)*i;
@@ -144,51 +144,51 @@ const struct const_Cubature* constructor_const_Cubature_tp (const int d, const i
 		}}}
 	}
 
-	struct Cubature* cubature = calloc(1,sizeof *cubature); // returned
+	struct Nodes* nodes = calloc(1,sizeof *nodes); // returned
 
-	cubature->p         = p;
-	cubature->node_type = node_type;
+	nodes->p         = p;
+	nodes->node_type = node_type;
 
-	cubature->rst = constructor_move_Matrix_d_d('C',ext_0,d,true,rst); // keep
+	nodes->rst = constructor_move_Matrix_d_d('C',ext_0,d,true,rst); // keep
 
-	cubature->has_weights = has_weights;
+	nodes->has_weights = has_weights;
 	if (has_weights)
-		cubature->w = constructor_move_Vector_d_d(ext_0,true,w); // keep
+		nodes->w = constructor_move_Vector_d_d(ext_0,true,w); // keep
 	else
-		cubature->w = NULL;
+		nodes->w = NULL;
 
-	return (const struct const_Cubature*) cubature;
+	return (const struct const_Nodes*) nodes;
 }
 
-const struct const_Cubature* constructor_const_Cubature_si (const int d, const int p, const int node_type)
+const struct const_Nodes* constructor_const_Nodes_si (const int d, const int p, const int node_type)
 {
 	assert(p >= 0);
 	assert((d >= 2) && (d <= 3));
 
-	if (node_type == CUB_VERTEX)
-		return constructor_const_Cubature_vertices(d,p,ST_SI);
+	if (node_type == NODES_VERTEX)
+		return constructor_const_Nodes_vertices(d,p,ST_SI);
 
 	if (d == 2)
-		return constructor_const_Cubature_tri(p,node_type);
+		return constructor_const_Nodes_tri(p,node_type);
 	else if (d == 3)
-		return constructor_const_Cubature_tet(p,node_type);
+		return constructor_const_Nodes_tet(p,node_type);
 	else
 		EXIT_UNSUPPORTED;
 }
 
-const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const int p, const int node_type)
+const struct const_Nodes* constructor_const_Nodes_pyr (const int d, const int p, const int node_type)
 {
 	assert(p >= 0);
 	assert(d == 3);
 
-	if (node_type == CUB_VERTEX)
-		return constructor_const_Cubature_vertices(d,p,ST_PYR);
+	if (node_type == NODES_VERTEX)
+		return constructor_const_Nodes_vertices(d,p,ST_PYR);
 
 	const unsigned int P = p;
 	bool has_weights = true;
 
 	static const unsigned int perms_QUAD[] = { 0,1,2,3, 3,0,1,2, 2,3,0,1, 1,2,3,0 };
-	// Note: Does not necessarily match rst from constructor_const_Cubature_vertices(3,1,ST_PYR).
+	// Note: Does not necessarily match rst from constructor_const_Nodes_vertices(3,1,ST_PYR).
 	static const double rst_V[] = { -1.0,        1.0,        1.0,       -1.0,       0.0,
 	                                -1.0,       -1.0,        1.0,        1.0,       0.0,
 	                                -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, 4.0/5.0*SQRT2};
@@ -210,27 +210,27 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 	wOut = NULL;
 
 	const char* NodeType = NULL;
-	if (node_type == CUB_GL) {
+	if (node_type == NODES_GL) {
 		has_weights = false;
 		NodeType = "GL";
 		PMax = 6;
-	} else if (node_type == CUB_GLL) {
+	} else if (node_type == NODES_GLL) {
 		has_weights = false;
 		NodeType = "GLL";
 		PMax = 6;
-	} else if (node_type == CUB_GLW) {
+	} else if (node_type == NODES_GLW) {
 		NodeType = "GLW";
 		PMax = 6;
-	} else if (node_type == CUB_GLLW) {
+	} else if (node_type == NODES_GLLW) {
 		NodeType = "GLLW";
 		PMax = 6;
-	} else if (node_type == CUB_GJW) {
+	} else if (node_type == NODES_GJW) {
 		NodeType = "GJW";
 		PMax = 10;
-	} else if (node_type == CUB_WV) {
+	} else if (node_type == NODES_WV) {
 		NodeType = "WV";
 		PMax = 10;
-	} else if (node_type == CUB_WVHToP) {
+	} else if (node_type == NODES_WVHToP) {
 		NodeType = "WV";
 		PMax = 11;
 	} else {
@@ -246,14 +246,14 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 	Pc      = malloc(STRLEN_MIN * sizeof *Pc);      // free
 	sprintf(Pc,"%d",P);
 
-	strcpy(CubFile,"../cubature/pyr/");
+	strcpy(CubFile,"../nodes/pyr/");
 	strcat(CubFile,NodeType);
 	strcat(CubFile,Pc);
 	strcat(CubFile,".txt");
 	free(Pc);
 
 	if ((fID = fopen(CubFile,"r")) == NULL)
-		printf("Error: Cubature file %s not found.\n",CubFile), exit(1);
+		printf("Error: Nodes file %s not found.\n",CubFile), exit(1);
 	free(CubFile);
 
 	StringRead = malloc(STRLEN_MAX * sizeof *StringRead); // free
@@ -424,46 +424,46 @@ const struct const_Cubature* constructor_const_Cubature_pyr (const int d, const 
 	destructor_Matrix_d(rstOut_M);
 
 
-	struct Cubature* cubature = calloc(1,sizeof *cubature); // returned;
+	struct Nodes* nodes = calloc(1,sizeof *nodes); // returned;
 
-	cubature->p         = p;
-	cubature->node_type = node_type;
+	nodes->p         = p;
+	nodes->node_type = node_type;
 
 	const ptrdiff_t ext_0 = NnOut;
-	cubature->rst = constructor_move_Matrix_d_d('C',ext_0,d,true,rstOut); // keep
+	nodes->rst = constructor_move_Matrix_d_d('C',ext_0,d,true,rstOut); // keep
 
-	cubature->has_weights = has_weights;
+	nodes->has_weights = has_weights;
 	if (has_weights)
-		cubature->w = constructor_move_Vector_d_d(ext_0,true,wOut); // keep
+		nodes->w = constructor_move_Vector_d_d(ext_0,true,wOut); // keep
 	else
-		cubature->w = NULL;
+		nodes->w = NULL;
 
-	return (const struct const_Cubature*) cubature;
+	return (const struct const_Nodes*) nodes;
 }
 
-void destructor_Cubature (struct Cubature* cub)
+void destructor_Nodes (struct Nodes* nodes)
 {
-	destructor_Matrix_d(cub->rst);
-	if (cub->has_weights)
-		destructor_Vector_d(cub->w);
-	free(cub);
+	destructor_Matrix_d(nodes->rst);
+	if (nodes->has_weights)
+		destructor_Vector_d(nodes->w);
+	free(nodes);
 }
 
-void destructor_const_Cubature (const struct const_Cubature*const cub)
+void destructor_const_Nodes (const struct const_Nodes*const nodes)
 {
-	destructor_Cubature((struct Cubature*)cub);
+	destructor_Nodes((struct Nodes*)nodes);
 }
 
 // Helper functions ************************************************************************************************* //
 
-cubature_fptr get_cubature_by_super_type (const int s_type)
+constructor_Nodes_fptr get_constructor_Nodes_by_super_type (const int s_type)
 {
 	if (s_type == ST_TP)
-		return constructor_const_Cubature_tp;
+		return constructor_const_Nodes_tp;
 	else if (s_type == ST_SI)
-		return constructor_const_Cubature_si;
+		return constructor_const_Nodes_si;
 	else if (s_type == ST_PYR)
-		return constructor_const_Cubature_pyr;
+		return constructor_const_Nodes_pyr;
 	else
 		EXIT_UNSUPPORTED;
 }
@@ -471,14 +471,14 @@ cubature_fptr get_cubature_by_super_type (const int s_type)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static const struct const_Cubature* constructor_const_Cubature_tri (const int p, const int node_type)
+static const struct const_Nodes* constructor_const_Nodes_tri (const int p, const int node_type)
 {
 	const unsigned int d = 2;
 	const unsigned int P = p;
 	bool has_weights = true;
 
 	static const unsigned int perms[] = { 0,1,2, 2,0,1, 1,2,0, 0,2,1, 1,0,2, 2,1,0 };
-	// Note: Does not necessarily match rst from constructor_const_Cubature_vertices(2,1,ST_SI).
+	// Note: Does not necessarily match rst from constructor_const_Nodes_vertices(2,1,ST_SI).
 	static const double rst_V[] = { -1.0,        1.0,       0.0,
 	                                -1.0/SQRT3, -1.0/SQRT3, 2.0/SQRT3};
 
@@ -497,17 +497,17 @@ static const struct const_Cubature* constructor_const_Cubature_tri (const int p,
 	wOut = NULL;
 
 	const char* NodeType = NULL;
-	if (node_type == CUB_AO) {
+	if (node_type == NODES_AO) {
 		has_weights = false;
 		NodeType = "AO";
 		PMax = 15;
-	} else if (node_type == CUB_WSH) {
+	} else if (node_type == NODES_WSH) {
 		NodeType = "WSH";
 		PMax = 8;
-	} else if (node_type == CUB_WV) {
+	} else if (node_type == NODES_WV) {
 		NodeType = "WV";
 		PMax = 20;
-	} else if (node_type == CUB_EQ) {
+	} else if (node_type == NODES_EQ) {
 		has_weights = false;
 		NodeType = "EQ";
 		PMax = 8;
@@ -525,14 +525,14 @@ static const struct const_Cubature* constructor_const_Cubature_tri (const int p,
 	Pc      = malloc(STRLEN_MIN * sizeof *Pc);      // free
 	sprintf(Pc,"%d",P);
 
-	strcpy(CubFile,"../cubature/tri/");
+	strcpy(CubFile,"../nodes/tri/");
 	strcat(CubFile,NodeType);
 	strcat(CubFile,Pc);
 	strcat(CubFile,".txt");
 	free(Pc);
 
 	if ((fID = fopen(CubFile,"r")) == NULL)
-		printf("Error: Cubature file %s not found.\n",CubFile), exit(1);
+		printf("Error: Nodes file %s not found.\n",CubFile), exit(1);
 	free(CubFile);
 
 	StringRead = malloc(STRLEN_MAX * sizeof *StringRead); // free
@@ -661,24 +661,24 @@ static const struct const_Cubature* constructor_const_Cubature_tri (const int p,
 	destructor_Matrix_d(rstOut_M);
 
 
-	struct Cubature* cubature = calloc(1,sizeof *cubature); // returned;
+	struct Nodes* nodes = calloc(1,sizeof *nodes); // returned;
 
-	cubature->p         = p;
-	cubature->node_type = node_type;
+	nodes->p         = p;
+	nodes->node_type = node_type;
 
 	const ptrdiff_t ext_0 = NnOut;
-	cubature->rst = constructor_move_Matrix_d_d('C',ext_0,d,true,rstOut); // keep
+	nodes->rst = constructor_move_Matrix_d_d('C',ext_0,d,true,rstOut); // keep
 
-	cubature->has_weights = has_weights;
+	nodes->has_weights = has_weights;
 	if (has_weights)
-		cubature->w = constructor_move_Vector_d_d(ext_0,true,wOut); // keep
+		nodes->w = constructor_move_Vector_d_d(ext_0,true,wOut); // keep
 	else
-		cubature->w = NULL;
+		nodes->w = NULL;
 
-	return (const struct const_Cubature*) cubature;
+	return (const struct const_Nodes*) nodes;
 }
 
-static const struct const_Cubature* constructor_const_Cubature_tet (const int p, const int node_type)
+static const struct const_Nodes* constructor_const_Nodes_tet (const int p, const int node_type)
 {
 	const unsigned int d = 3;
 	const unsigned int P = p;
@@ -686,7 +686,7 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 
 	static const unsigned int perms_TRI[] = { 0,1,2, 2,0,1, 1,2,0, 0,2,1, 1,0,2, 2,1,0 };
 	static const unsigned int perms_TET[] = { 0,1,2,3, 3,0,1,2, 2,3,0,1, 1,2,3,0 };
-	// Note: Does not necessarily match rst from constructor_const_Cubature_vertices(3,1,ST_SI).
+	// Note: Does not necessarily match rst from constructor_const_Nodes_vertices(3,1,ST_SI).
 	static const double rst_V[] = { -1.0,        1.0,        0.0,       0.0,
 	                                -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, 0.0,
 	                                -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6, 3.0/SQRT6};
@@ -708,14 +708,14 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 	w_read = wOut = NULL;
 
 	const char* NodeType = NULL;
-	if (node_type == CUB_AO) {
+	if (node_type == NODES_AO) {
 		has_weights = false;
 		NodeType = "AO";
 		PMax = 15;
-	} else if (node_type == CUB_WSH) {
+	} else if (node_type == NODES_WSH) {
 		NodeType = "WSH";
 		PMax = 6;
-	} else if (node_type == CUB_WV) {
+	} else if (node_type == NODES_WV) {
 		NodeType = "WV";
 		PMax = 10;
 	} else {
@@ -731,14 +731,14 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 	Pc      = malloc(STRLEN_MIN * sizeof *Pc);      // free
 	sprintf(Pc,"%d",P);
 
-	strcpy(CubFile,"../cubature/tet/");
+	strcpy(CubFile,"../nodes/tet/");
 	strcat(CubFile,NodeType);
 	strcat(CubFile,Pc);
 	strcat(CubFile,".txt");
 	free(Pc);
 
 	if ((fID = fopen(CubFile,"r")) == NULL)
-		printf("Error: Cubature file %s not found.\n",CubFile), exit(1);
+		printf("Error: Nodes file %s not found.\n",CubFile), exit(1);
 	free(CubFile);
 
 	StringRead = malloc(STRLEN_MAX * sizeof *StringRead); // free
@@ -928,27 +928,27 @@ static const struct const_Cubature* constructor_const_Cubature_tet (const int p,
 	destructor_Matrix_d(rstOut_M);
 
 
-	struct Cubature* cubature = calloc(1,sizeof *cubature); // returned;
+	struct Nodes* nodes = calloc(1,sizeof *nodes); // returned;
 
-	cubature->p         = p;
-	cubature->node_type = node_type;
+	nodes->p         = p;
+	nodes->node_type = node_type;
 
 	const ptrdiff_t ext_0 = NnOut;
-	cubature->rst = constructor_move_Matrix_d_d('C',ext_0,d,true,rstOut); // keep
+	nodes->rst = constructor_move_Matrix_d_d('C',ext_0,d,true,rstOut); // keep
 
-	cubature->has_weights = has_weights;
+	nodes->has_weights = has_weights;
 	if (has_weights)
-		cubature->w = constructor_move_Vector_d_d(ext_0,true,wOut); // keep
+		nodes->w = constructor_move_Vector_d_d(ext_0,true,wOut); // keep
 	else
-		cubature->w = NULL;
+		nodes->w = NULL;
 
-	return (const struct const_Cubature*) cubature;
+	return (const struct const_Nodes*) nodes;
 }
 
-static const struct const_Cubature* constructor_const_Cubature_vertices (const int d, const int p, const int s_type)
+static const struct const_Nodes* constructor_const_Nodes_vertices (const int d, const int p, const int s_type)
 {
 	assert(p == 1);
-	const int node_type = CUB_VERTEX;
+	const int node_type = NODES_VERTEX;
 
 	const double* rst = NULL;
 
@@ -1000,18 +1000,18 @@ static const struct const_Cubature* constructor_const_Cubature_vertices (const i
 		break;
 	}
 
-	struct Cubature* cubature = calloc(1,sizeof *cubature); // returned
+	struct Nodes* nodes = calloc(1,sizeof *nodes); // returned
 
-	cubature->p         = p;
-	cubature->node_type = node_type;
+	nodes->p         = p;
+	nodes->node_type = node_type;
 
 	const ptrdiff_t ext_0 = compute_n_basis(d,p,s_type);
 
-//	cubature->rst = constructor_copy_Matrix_d_d('C',ext_0,d,rst); // keep
-	cubature->rst = (struct Matrix_d*) constructor_move_const_Matrix_d_d('C',ext_0,d,false,rst); // keep
+//	nodes->rst = constructor_copy_Matrix_d_d('C',ext_0,d,rst); // keep
+	nodes->rst = (struct Matrix_d*) constructor_move_const_Matrix_d_d('C',ext_0,d,false,rst); // keep
 
-	cubature->has_weights = false;
-	cubature->w = NULL;
+	nodes->has_weights = false;
+	nodes->w = NULL;
 
-	return (const struct const_Cubature*) cubature;
+	return (const struct const_Nodes*) nodes;
 }

@@ -32,49 +32,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Constructor for the members of a \ref Solver_Volume, excluding the base member.
-static void construct_Solver_Volume
-	(struct Solver_Volume* volume, ///< \ref Volume.
-	 const struct Simulation* sim  ///< \ref Simulation.
-	);
-
-/// \brief Destructor for a \ref Solver_Volume.
-static void destructor_Solver_Volume
-	(struct Solver_Volume* volume ///< Standard.
-	);
-
 // Interface functions ********************************************************************************************** //
 
-void construct_Solver_Volumes (struct Simulation*const sim)
+void constructor_derived_Solver_Volume (struct Volume* volume_ptr, const struct Simulation* sim)
 {
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
-		construct_Solver_Volume((struct Solver_Volume*)curr,sim);
-}
+	struct Solver_Volume* volume = (struct Solver_Volume*) volume_ptr;
 
-void destructor_Solver_Volumes (struct Intrusive_List* solver_volumes)
-{
-	for (const struct Intrusive_Link* curr = solver_volumes->first; curr; ) {
-		struct Intrusive_Link* next = curr->next;
-		destructor_Solver_Volume((struct Solver_Volume*) curr);
-		curr = next;
-	}
-}
-
-static void destructor_Solver_Volume (struct Solver_Volume* volume)
-{
-	destructor_const_Multiarray_d(volume->geom_coef);
-	destructor_Multiarray_d(volume->sol_coef);
-	destructor_Multiarray_d(volume->grad_coef);
-	destructor_const_Multiarray_d(volume->metrics_vm);
-	destructor_const_Multiarray_d(volume->metrics_vc);
-	destructor_const_Multiarray_d(volume->jacobian_det_vc);
-}
-
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-static void construct_Solver_Volume (struct Solver_Volume* volume, const struct Simulation* sim)
-{
 	const_cast_i(&volume->p_ref,sim->p_s_v[0]);
 	const_constructor_move_Multiarray_d(&volume->geom_coef,constructor_default_Multiarray_d());
 
@@ -88,3 +51,18 @@ static void construct_Solver_Volume (struct Solver_Volume* volume, const struct 
 	const_constructor_move_Multiarray_d(
 		&volume->jacobian_det_vc,constructor_empty_Multiarray_d('C',1,(ptrdiff_t[]){0})); // destructed
 }
+
+void destructor_derived_Solver_Volume (struct Volume* volume_ptr)
+{
+	struct Solver_Volume* volume = (struct Solver_Volume*) volume_ptr;
+
+	destructor_const_Multiarray_d(volume->geom_coef);
+	destructor_Multiarray_d(volume->sol_coef);
+	destructor_Multiarray_d(volume->grad_coef);
+	destructor_const_Multiarray_d(volume->metrics_vm);
+	destructor_const_Multiarray_d(volume->metrics_vc);
+	destructor_const_Multiarray_d(volume->jacobian_det_vc);
+}
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //

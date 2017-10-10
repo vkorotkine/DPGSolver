@@ -13,8 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__cubature_h__INCLUDED
-#define DPG__cubature_h__INCLUDED
+#ifndef DPG__nodes_h__INCLUDED
+#define DPG__nodes_h__INCLUDED
 /** \file
  *  \brief Provides the interface to functions computing the reference element coordinates (and associated cubature
  *         weights if relevant).
@@ -23,7 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 
 /// Container for reference element coordinates and cubature related information.
-struct Cubature {
+struct Nodes {
 	/** By default, the order of the nodes. For node sets which do not have the correct number of nodes to form a
 	 *  polynomial Lagrange basis, this is the order of the cubature strength. */
 	int p;
@@ -36,23 +36,23 @@ struct Cubature {
 	struct Vector_d* w; ///< The cubature weights.
 };
 
-/// `const` version of \ref Cubature.
-struct const_Cubature {
-	const int p,         ///< Defined in \ref Cubature.
-	          node_type; ///< Defined in \ref Cubature.
+/// `const` version of \ref Nodes.
+struct const_Nodes {
+	const int p,         ///< Defined in \ref Nodes.
+	          node_type; ///< Defined in \ref Nodes.
 
-	const struct const_Matrix_d*const rst; ///< Defined in \ref Cubature.
+	const struct const_Matrix_d*const rst; ///< Defined in \ref Nodes.
 
-	const bool has_weights;              ///< Defined in \ref Cubature.
-	const struct const_Vector_d*const w; ///< Defined in \ref Cubature.
+	const bool has_weights;              ///< Defined in \ref Nodes.
+	const struct const_Vector_d*const w; ///< Defined in \ref Nodes.
 };
 
-/** \brief Function pointer to cubature functions.
+/** \brief Function pointer to node constructor function.
  *  \param d         The dimension of the nodes.
- *  \param p         Defined in \ref Cubature.
- *  \param node_type Defined in \ref Cubature.
+ *  \param p         Defined in \ref Nodes.
+ *  \param node_type Defined in \ref Nodes.
  */
-typedef const struct const_Cubature* (*cubature_fptr)
+typedef const struct const_Nodes* (*constructor_Nodes_fptr)
 	(const int d,
 	 const int p,
 	 const int node_type
@@ -60,7 +60,7 @@ typedef const struct const_Cubature* (*cubature_fptr)
 
 // Constructor functions ******************************************************************************************** //
 
-/** \brief Constructor for a \ref Cubature container of tensor-product type.
+/** \brief Constructor for a \ref Nodes container of tensor-product type.
  *  \return Standard.
  *
  *  The available nodes are:
@@ -71,13 +71,13 @@ typedef const struct const_Cubature* (*cubature_fptr)
  *  The nodes and weights are computed using the Jacobi library extension to the GNU GSL library written by Paulo
  *  Jabardo.
  */
-const struct const_Cubature* constructor_const_Cubature_tp
-	(const int d,        ///< Defined in \ref cubature_fptr.
-	 const int p,        ///< Defined in \ref cubature_fptr.
-	 const int node_type ///< Defined in \ref cubature_fptr.
+const struct const_Nodes* constructor_const_Nodes_tp
+	(const int d,        ///< Defined in \ref constructor_Nodes_fptr.
+	 const int p,        ///< Defined in \ref constructor_Nodes_fptr.
+	 const int node_type ///< Defined in \ref constructor_Nodes_fptr.
 	);
 
-/** \brief Constructor for a \ref Cubature container of simplex type.
+/** \brief Constructor for a \ref Nodes container of simplex type.
  *  \return Standard.
  *
  *  The available nodes are:
@@ -94,18 +94,16 @@ const struct const_Cubature* constructor_const_Cubature_tp
  *  3d (TET) WSH nodes have the following [polynomial order, cubature strength] pairs:
  *  - [0,1], [1,2], [2,3], [3,5], [4,6], [5,8], [6,9].
  *
- *  \todo Needs modernizing.
- *
  *  <!-- References: -->
  *  [pyfr_web]: http://www.pyfr.org
  */
-const struct const_Cubature* constructor_const_Cubature_si
-	(const int d,        ///< Defined in \ref cubature_fptr.
-	 const int p,        ///< Defined in \ref cubature_fptr.
-	 const int node_type ///< Defined in \ref cubature_fptr.
+const struct const_Nodes* constructor_const_Nodes_si
+	(const int d,        ///< Defined in \ref constructor_Nodes_fptr.
+	 const int p,        ///< Defined in \ref constructor_Nodes_fptr.
+	 const int node_type ///< Defined in \ref constructor_Nodes_fptr.
 	);
 
-/** \brief Constructor for a \ref Cubature container of pyramid type.
+/** \brief Constructor for a \ref Nodes container of pyramid type.
  *  \return Standard.
  *
  *  The available nodes are:
@@ -129,10 +127,10 @@ const struct const_Cubature* constructor_const_Cubature_si
  *  expected. After accounting for the added contribution to the `c` term from the weight (w = w_HEX*pow(1-c,2)), GL
  *  nodes of order p+1 are required for exact integration of all terms.
  *
- *  The set of all (symmetrically redundant) cubature nodes is computed from the barycentric coordinates of the node
- *  symmetry groups provided in the input files. Unlike for the simplex elements, barycentric coordinates for the
- *  pyramid element may be negative. This does not result in any limitations, and is simply a result of the last
- *  additional condition when computing the barycentric coordinates of the nodes (chosen for good conditioning).
+ *  The set of all (symmetrically redundant) nodes is computed from the barycentric coordinates of the node symmetry
+ *  groups provided in the input files. Unlike for the simplex elements, barycentric coordinates for the pyramid element
+ *  may be negative. This does not result in any limitations, and is simply a result of the last additional condition
+ *  when computing the barycentric coordinates of the nodes (chosen for good conditioning).
  *
  *  Given the following conditions:
  *  - [ones]_{Nn x 1}  = [BCoords]_{Nn x Nc} * [ones]_{Nc x 1}           => Partition of unity (1 condition)
@@ -145,34 +143,31 @@ const struct const_Cubature* constructor_const_Cubature_si
  *  where
  *  	cond([ones(Nc,1) rst_V {r*s*t}_V]) = 2.0 (the condition number).
  *
- *
- *  \todo Needs modernizing.
- *
  *  <!-- References: -->
  *  [pyfr_web]: http://www.pyfr.org
  */
-const struct const_Cubature* constructor_const_Cubature_pyr
-	(const int d,        ///< Defined in \ref cubature_fptr.
-	 const int p,        ///< Defined in \ref cubature_fptr.
-	 const int node_type ///< Defined in \ref cubature_fptr.
+const struct const_Nodes* constructor_const_Nodes_pyr
+	(const int d,        ///< Defined in \ref constructor_Nodes_fptr.
+	 const int p,        ///< Defined in \ref constructor_Nodes_fptr.
+	 const int node_type ///< Defined in \ref constructor_Nodes_fptr.
 	);
 
-/// \brief Destructor for a \ref Cubature\* container.
-void destructor_Cubature
-	(struct Cubature* cub ///< Standard.
+/// \brief Destructor for a \ref Nodes\* container.
+void destructor_Nodes
+	(struct Nodes* nodes ///< Standard.
 	);
 
-/// \brief Destructor for a \ref const_Cubature\* container.
-void destructor_const_Cubature
-	(const struct const_Cubature*const cub ///< Standard.
+/// \brief Destructor for a \ref const_Nodes\* container.
+void destructor_const_Nodes
+	(const struct const_Nodes*const nodes ///< Standard.
 	);
 
 // Helper functions ************************************************************************************************* //
 
-/** \brief Get a pointer to the appropriate cubature constructor function based on the input element super type.
+/** \brief Get a pointer to the appropriate Nodes constructor function based on the input element super type.
  *  \return See brief. */
-cubature_fptr get_cubature_by_super_type
+constructor_Nodes_fptr get_constructor_Nodes_by_super_type
 	(const int s_type ///< \ref Element::s_type.
 	);
 
-#endif // DPG__cubature_h__INCLUDED
+#endif // DPG__nodes_h__INCLUDED

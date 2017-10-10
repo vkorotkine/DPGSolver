@@ -139,5 +139,11 @@ struct Intrusive_Link* erase_IL (struct Intrusive_List* lst, struct Intrusive_Li
 	}
 }
 
+const struct const_Intrusive_Link* erase_const_IL
+	(const struct const_Intrusive_List* lst, const struct const_Intrusive_Link* curr)
+{
+	return (const struct const_Intrusive_Link*) erase_IL((struct Intrusive_List*)lst,(struct Intrusive_Link*)curr);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

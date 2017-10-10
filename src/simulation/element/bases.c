@@ -646,7 +646,7 @@ const struct const_Matrix_d* constructor_abc_from_rst_pyr (const struct const_Ma
 	return (const struct const_Matrix_d*) abc;
 }
 
-basis_fptr get_basis_by_super_type (const int s_type, const char*const ref_basis_name)
+constructor_basis_fptr get_constructor_basis_by_super_type (const int s_type, const char*const ref_basis_name)
 {
 	if (strcmp(ref_basis_name,"ortho") == 0) {
 		switch (s_type) {
@@ -666,14 +666,14 @@ basis_fptr get_basis_by_super_type (const int s_type, const char*const ref_basis
 	EXIT_ERROR("Did not find the basis with the specified inputs: (%d, %s)\n",s_type,ref_basis_name);
 }
 
-basis_fptr get_basis_by_super_type_i (const int s_type, const int ind_basis)
+constructor_basis_fptr get_constructor_basis_by_super_type_i (const int s_type, const int ind_basis)
 {
 	switch (ind_basis) {
 	case BASIS_ORTHO:
-		return get_basis_by_super_type(s_type,"ortho");
+		return get_constructor_basis_by_super_type(s_type,"ortho");
 		break;
 	case BASIS_BEZIER:
-		return get_basis_by_super_type(s_type,"bezier");
+		return get_constructor_basis_by_super_type(s_type,"bezier");
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",ind_basis);
@@ -682,7 +682,7 @@ basis_fptr get_basis_by_super_type_i (const int s_type, const int ind_basis)
 //	EXIT_ERROR("Did not find the basis with the specified inputs: (%d, %s)\n",s_type,ref_basis_name);
 }
 
-grad_basis_fptr get_grad_basis_by_super_type (const int s_type, const char*const ref_basis_name)
+constructor_grad_basis_fptr get_constructor_grad_basis_by_super_type (const int s_type, const char*const ref_basis_name)
 {
 	if (s_type == ST_TP) {
 		if (strcmp(ref_basis_name,"ortho") == 0)

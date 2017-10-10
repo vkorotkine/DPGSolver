@@ -377,7 +377,7 @@ static void set_ops_Md
 	assert(op_values->data[OP_IND_H+OP_IND_I] == 0); // Not valid for fine to coarse (i.e. if info_loss == true)
 
 	const int d = op_info->element->d;
-	struct Matrix_i* sub_op_values = constructor_empty_Matrix_i('R',d,OP_ORDER_MAX); // tbd
+	struct Matrix_i* sub_op_values = constructor_empty_Matrix_i('R',d,OP_ORDER_MAX); // destructed
 	set_to_value_Matrix_i(sub_op_values,OP_INVALID_IND);
 	const int set_inds[] = { OP_IND_P+OP_IND_I, OP_IND_P+OP_IND_O, OP_IND_H+OP_IND_I };
 	for (int i = 0; i < (int)(sizeof(set_inds)/sizeof(*set_inds)); ++i) {
@@ -395,6 +395,7 @@ static void set_ops_Md
 
 		op_Md[i] = op_MO[i]->data[ind_sub_op]->op_std;
 	}
+	destructor_Matrix_i(sub_op_values);
 }
 
 // Level 1 ********************************************************************************************************** //

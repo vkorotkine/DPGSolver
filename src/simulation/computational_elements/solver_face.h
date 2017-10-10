@@ -43,14 +43,15 @@ struct Solver_Face {
 	const struct const_Multiarray_d*const jacobian_det_fc;
 };
 
-/// \brief Constructor for the members of a list of \ref Solver_Face\*s, excluding the base member.
-void construct_Solver_Faces
-	(struct Simulation*const sim ///< The \ref Simulation.
+/// \brief Constructor for a derived \ref Solver_Face.
+void constructor_derived_Solver_Face
+	(struct Face* face_ptr,       ///< Pointer to the face.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destructor for the list of \ref Solver_Face\*s.
-void destructor_Solver_Faces
-	(struct Intrusive_List* solver_faces ///< Standard.
+/// \brief Destructor for a derived \ref Solver_Face.
+void destructor_derived_Solver_Face
+	(struct Face* face_ptr ///< Pointer to the face.
 	);
 
 #endif // DPG__solver_face_h__INCLUDED

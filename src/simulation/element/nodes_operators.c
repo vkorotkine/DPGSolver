@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 /// \file
 
-#include "cubature_operators.h"
+#include "nodes_operators.h"
 #include "element_operators.h"
 
 #include <assert.h>
@@ -22,48 +22,48 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "gsl/gsl_math.h"
 
 #include "macros.h"
-#include "definitions_cubature.h"
+#include "definitions_nodes.h"
 #include "definitions_element_operators.h"
 
 #include "matrix.h"
 #include "vector.h"
 
-#include "simulation.h"
-#include "element.h"
 #include "bases.h"
-#include "cubature.h"
-#include "element_operators.h"
 #include "const_cast.h"
+#include "element.h"
+#include "element_operators.h"
+#include "nodes.h"
+#include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Compute the node type of the cubature based on the kind of operator.
+/** \brief Compute the node type based on the kind of operator.
  *  \return See brief. */
-static int compute_node_type_cub
+static int compute_node_type
 	(const struct Op_IO* op_io,           ///< \ref Op_IO.
 	 const struct const_Element* element, ///< \ref const_Element.
 	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 
-/** \brief Compute the dimension of the cubature based off of the computational element and the simulation dimension.
+/** \brief Compute the dimension of the nodes based off of the computational element and the simulation dimension.
  *  \return See brief. */
-static int compute_d_cub
+static int compute_d_nodes
 	(const char ce,   ///< \ref Op_IO::ce.
 	 const int elem_d ///< \ref Element::d.
 	);
 
-/** \brief Compute the order of the cubature nodes to be computed based on the reference order and the kind of operator.
+/** \brief Compute the order of the nodes to be computed based on the reference order and the kind of operator.
  *  \return See brief. */
-static int compute_p_cub
+static int compute_p_nodes
 	(const struct Op_IO* op_io,   ///< \ref Op_IO.
-	 const int node_type,         ///< \ref Cubature::node_type.
+	 const int node_type,         ///< \ref Nodes::node_type.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /** \brief Constructor for the rst coordinates associated with vertices of the (potentially h-refined) reference
  *         element.
  *  \return See brief. */
-const struct const_Matrix_d* constructor_rst_ve
+static const struct const_Matrix_d* constructor_rst_ve
 	(const int s_type,            ///< \ref Element::s_type.
 	 const int d_i,               ///< The dimension of the input basis coordinates.
 	 const int d_io,              ///< The dimension of the input/output rst coordinates.
@@ -75,7 +75,7 @@ const struct const_Matrix_d* constructor_rst_ve
 
 /** \brief Constructor for rst coordinates as a projection of
  *  \return See brief. */
-struct Matrix_d* constructor_rst_proj
+static struct Matrix_d* constructor_rst_proj
 	(const int e_type,                      ///< \ref Element::type.
 	 const int d_i,                         ///< The dimension of the input basis coordinates.
 	 const int d_io,                        ///< The dimension of the input/output rst coordinates.
@@ -88,86 +88,94 @@ struct Matrix_d* constructor_rst_proj
 
 // Constructor functions ******************************************************************************************** //
 
-// Possibly return a Cubature_Multiarray here.
-const struct const_Cubature* constructor_const_Cubature_h
+const struct const_Nodes* constructor_const_Nodes_h
 	(const int ind_io, const struct Op_IO op_io[2], const struct const_Element* element,
 	 const struct Simulation* sim)
 {
-	const int s_type_io    = op_io[ind_io].s_type;
-	const int node_type_io = compute_node_type_cub(&op_io[ind_io],element,sim);
+	const int s_type_i     = op_io[OP_IND_I].s_type,
+	          s_type_io    = op_io[ind_io].s_type,
+	          node_type_io = compute_node_type(&op_io[ind_io],element,sim);
 
-	// Always use the input to establish the dimension of the cubature nodes as it is in bases of this dimension in
-	// which the nodes will be used.
-	const int d_i          = compute_d_cub(op_io[OP_IND_I].ce,element->d);
-	const int d_io         = compute_d_cub(op_io[ind_io].ce,element->d);
-	const int p_io         = compute_p_cub(&op_io[ind_io],node_type_io,sim);
-	const int ind_h_io     = op_io[ind_io].h_op;
-	const int ind_ce_io    = op_io[ind_io].ce_op;
+	// Always use the input to establish the dimension of the nodes as it is in bases of this dimension in which the
+	// nodes will be used.
+	const int d_i          = compute_d_nodes(op_io[OP_IND_I].ce,element->d),
+	          d_io         = compute_d_nodes(op_io[ind_io].ce,element->d),
+	          p_io         = compute_p_nodes(&op_io[ind_io],node_type_io,sim),
+	          ind_h_io     = op_io[ind_io].h_op,
+	          ind_ce_io    = op_io[ind_io].ce_op;
 	const char ce_io       = op_io[ind_io].ce;
 
-	cubature_fptr constructor_Cubature = get_cubature_by_super_type(s_type_io);
-	basis_fptr    constructor_basis    = get_basis_by_super_type(s_type_io,"ortho");
+	constructor_Nodes_fptr constructor_Nodes = get_constructor_Nodes_by_super_type(s_type_io);
+	constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type_io,"ortho");
 
-	const struct const_Cubature* cub_io = constructor_Cubature(d_io,p_io,node_type_io); // destructed
+	const struct const_Nodes* nodes_io = constructor_Nodes(d_io,p_io,node_type_io); // destructed
 
 	const struct const_Matrix_d* rst_ve = constructor_rst_ve(s_type_io,d_io,d_io,0,0,'v',sim); // destructed
 
 	// vXX: (v)olume XX (Arbitrary, would be replaced with [op_io.kind,op_io.sc] if specified)
 	const struct const_Matrix_d* cv0r_vvs_vvs     = constructor_basis(1,rst_ve);                      // destructed
 	const struct const_Matrix_d* inv_cv0r_vvs_vvs = constructor_inverse_const_Matrix_d(cv0r_vvs_vvs); // destructed
-	const struct const_Matrix_d* cv0r_vvs_vXX     = constructor_basis(1,cub_io->rst);                 // destructed
+	const struct const_Matrix_d* cv0r_vvs_vXX     = constructor_basis(1,nodes_io->rst);               // destructed
 	const struct const_Matrix_d* cv0_vvs_vXX =
 		constructor_mm_const_Matrix_d('N','N',1.0,0.0,cv0r_vvs_vXX,inv_cv0r_vvs_vvs,'R'); // destructed
-	destructor_const_Cubature(cub_io);
+	destructor_const_Nodes(nodes_io);
 	destructor_const_Matrix_d(rst_ve);
 	destructor_const_Matrix_d(cv0r_vvs_vvs);
 	destructor_const_Matrix_d(inv_cv0r_vvs_vvs);
 	destructor_const_Matrix_d(cv0r_vvs_vXX);
 
-	struct Cubature* cubature = malloc(sizeof* cubature); // returned
+	struct Nodes* nodes = malloc(sizeof* nodes); // returned
 
-	cubature->has_weights = false;
-	cubature->w           = NULL;
+	nodes->has_weights = false;
+	nodes->w           = NULL;
 
-	cubature->p           = p_io;
-	cubature->node_type   = node_type_io;
+	nodes->p           = p_io;
+	nodes->node_type   = node_type_io;
 
 	const char ce_i = op_io[OP_IND_I].ce,
 	           ce_o = op_io[OP_IND_O].ce;
 	if ((ind_io == OP_IND_I) || (ce_i == 'v')) { // ((vv || ff || ee) || (vf || ve))
-		// Compute the output rst coordinates by multiplying the barycentric coordinates of the cubature nodes with
-		// the appropriate (sub)set of reference element vertices.
+		// Compute the output rst coordinates by multiplying the barycentric coordinates of the nodes with the
+		// appropriate (sub)set of reference element vertices.
 		const struct const_Matrix_d* rst_ve_io =
-			constructor_rst_ve(s_type_io,d_i,d_io,ind_h_io,ind_ce_io,ce_io,sim); // destructed
-		cubature->rst = constructor_mm_Matrix_d('N','N',1.0,0.0,cv0_vvs_vXX,rst_ve_io,'C'); // keep
+			constructor_rst_ve(s_type_i,d_i,d_io,ind_h_io,ind_ce_io,ce_io,sim); // destructed
+		nodes->rst = constructor_mm_Matrix_d('N','N',1.0,0.0,cv0_vvs_vXX,rst_ve_io,'C'); // keep
 		destructor_const_Matrix_d(rst_ve_io);
 	} else if (ce_o == 'v') { // (fv || ev)
-		cubature->rst = constructor_rst_proj(element->type,d_i,d_io,ind_h_io,ind_ce_io,ce_i,cv0_vvs_vXX,sim); // keep
+		nodes->rst = constructor_rst_proj(element->type,d_i,d_io,ind_h_io,ind_ce_io,ce_i,cv0_vvs_vXX,sim); // keep
 	} else { // (fe || ef)
 		EXIT_ADD_SUPPORT;
 	}
 	destructor_const_Matrix_d(cv0_vvs_vXX);
 
-	return (const struct const_Cubature*) cubature;
+	return (const struct const_Nodes*) nodes;
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Compute the node type of the cubature based on the kind of operator for standard (non-collocated) nodes.
+/** \brief Compute the node type based on the kind of operator for standard (non-collocated) nodes.
  *  \return See brief. */
-static int compute_node_type_cub_std
+static int compute_node_type_std
 	(const struct Op_IO* op_io,           ///< \ref Op_IO.
 	 const struct const_Element* element, ///< \ref const_Element.
 	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 
-/** \brief Compute the node type of the cubature based on the kind of operator for collocated nodes.
+/** \brief Compute the node type based on the kind of operator for collocated nodes.
  *  \return See brief. */
-static int compute_node_type_cub_collocated
+static int compute_node_type_collocated
 	(const struct Op_IO* op_io,           ///< \ref Op_IO.
 	 const struct const_Element* element, ///< \ref const_Element.
 	 const struct Simulation* sim         ///< \ref Simulation.
+	);
+
+/** \brief Compute the index of the type of processing required to get from the reference order to the cubature
+ *         (integration) order.
+ *  \return See brief. */
+static int compute_cub_c_type
+	(const int node_type,         ///< The type of cubature nodes.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /** \brief Constructor for the barycentric coordinates of the p2 reference element of the input type.
@@ -175,7 +183,7 @@ static int compute_node_type_cub_collocated
  *
  *  \todo Move this to be with the h-refinement related connectivity information?
  */
-const struct const_Matrix_d* constructor_b_coords
+static const struct const_Matrix_d* constructor_b_coords
 	(const int e_type ///< \ref Element::type.
 	);
 
@@ -187,7 +195,7 @@ const struct const_Matrix_d* constructor_b_coords
  *  \todo Move this to be with the h-refinement related connectivity information?
  *
  *  \return See brief. */
-const struct const_Vector_i* constructor_ind_h_b_coords
+static const struct const_Vector_i* constructor_ind_h_b_coords
 	(const int e_type,            ///< \ref Element::type.
 	 const char ce,               ///< \ref Op_IO::ce.
 	 const int ind_h,             ///< The index of the h-refinement.
@@ -195,20 +203,20 @@ const struct const_Vector_i* constructor_ind_h_b_coords
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-static int compute_node_type_cub
+static int compute_node_type
 	(const struct Op_IO* op_io, const struct const_Element* element, const struct Simulation* sim)
 {
 	switch (op_io->kind) {
 	case 's': // fallthrough
 	case 'g': // fallthrough
 	case 'm': // fallthrough
-		return compute_node_type_cub_std(op_io,element,sim);
+		return compute_node_type_std(op_io,element,sim);
 		break;
 	case 'c':
 		if (!sim->collocated)
-			return compute_node_type_cub_std(op_io,element,sim);
+			return compute_node_type_std(op_io,element,sim);
 		else
-			return compute_node_type_cub_collocated(op_io,element,sim);
+			return compute_node_type_collocated(op_io,element,sim);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %c\n",op_io->kind);
@@ -218,7 +226,7 @@ static int compute_node_type_cub
 	return -1;
 }
 
-static int compute_d_cub (const char ce, const int elem_d)
+static int compute_d_nodes (const char ce, const int elem_d)
 {
 	assert(elem_d > 0);
 
@@ -234,42 +242,11 @@ static int compute_d_cub (const char ce, const int elem_d)
 	return -1;
 }
 
-/** \brief Compute the index of the type of processing required to get from the reference order to the cubature
- *         (integration) order.
- *  \return See brief. */
-static int compute_cub_c_type
-	(const int node_type,         ///< The type of cubature nodes.
-	 const struct Simulation* sim ///< \ref Simulation.
-	);
-
-static int compute_cub_c_type (const int node_type, const struct Simulation* sim)
+static int compute_p_nodes (const struct Op_IO* op_io, const int node_type, const struct Simulation* sim)
 {
-	switch (node_type) {
-	case CUB_GL: // fallthrough
-	case CUB_GLL:
-		if (!sim->collocated)
-			return CUB_C_DIV2;
-		else
-			return CUB_C_COL;
-		break;
-	case CUB_WSH:
-		assert(sim->collocated);
-		return CUB_C_COL;
-		break;
-	case CUB_WV:
-		return CUB_C_STD;
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",node_type);
-		break;
-	}
-}
-
-static int compute_p_cub (const struct Op_IO* op_io, const int node_type, const struct Simulation* sim)
-{
-	const int cub_kind = op_io->kind;
+	const int node_kind = op_io->kind;
 // Add Simulation::p_X_p for each kind, X, for variable orders for a given reference order in future.
-	switch (cub_kind) {
+	switch (node_kind) {
 	case 's': // fallthrough
 	case 'g':
 	case 'm':
@@ -298,14 +275,14 @@ static int compute_p_cub (const struct Op_IO* op_io, const int node_type, const 
 		}
 		break;
 	} default:
-		EXIT_ERROR("Unsupported: %c\n",cub_kind);
+		EXIT_ERROR("Unsupported: %c\n",node_kind);
 		break;
 	}
 	EXIT_UNSUPPORTED;
 	return -1;
 }
 
-const struct const_Matrix_d* constructor_rst_ve
+static const struct const_Matrix_d* constructor_rst_ve
 	(const int s_type, const int d_i, const int d_io, const int ind_h, const int ind_ce, const char ce,
 	 const struct Simulation* sim)
 {
@@ -321,21 +298,21 @@ UNUSED(d_io);
 	const struct const_Matrix_d* vv0_vvs_vvs =
 		constructor_subset_const_Matrix_d(b_coords,ind_h_b_coords); // destructed
 
-	cubature_fptr constructor_Cubature = get_cubature_by_super_type(s_type);
+	constructor_Nodes_fptr constructor_Nodes = get_constructor_Nodes_by_super_type(s_type);
 // May need to use d_io below for fv, ev
-	const struct const_Cubature* cub_ve = constructor_Cubature(d_i,1,CUB_VERTEX); // destructed
+	const struct const_Nodes* nodes_ve = constructor_Nodes(d_i,1,NODES_VERTEX); // destructed
 
-	const struct const_Matrix_d* rst_ve  = constructor_mm_NN1C_const_Matrix_d(vv0_vvs_vvs,cub_ve->rst); // returned
+	const struct const_Matrix_d* rst_ve  = constructor_mm_NN1C_const_Matrix_d(vv0_vvs_vvs,nodes_ve->rst); // returned
 
 	destructor_const_Matrix_d(b_coords);
 	destructor_const_Vector_i(ind_h_b_coords);
 	destructor_const_Matrix_d(vv0_vvs_vvs);
-	destructor_const_Cubature(cub_ve);
+	destructor_const_Nodes(nodes_ve);
 
 	return rst_ve;
 }
 
-struct Matrix_d* constructor_rst_proj
+static struct Matrix_d* constructor_rst_proj
 	(const int e_type, const int d_i, const int d_io, const int ind_h, const int ind_ce, const char ce,
 	 const struct const_Matrix_d* b_coords, const struct Simulation* sim)
 {
@@ -364,58 +341,58 @@ EXIT_ERROR("Ensure that all is working as expected.\n");
 
 // Level 1 ********************************************************************************************************** //
 
-static int compute_node_type_cub_std
+static int compute_node_type_std
 	(const struct Op_IO* op_io, const struct const_Element* element, const struct Simulation* sim)
 {
-	const char cub_kind = op_io->kind,
-	           cub_ce   = op_io->ce;
+	const char node_kind = op_io->kind,
+	           node_ce   = op_io->ce;
 	const int s_type = element->s_type;
-	switch (cub_kind) {
+	switch (node_kind) {
 	case 's':
-		assert(cub_ce == 'v'); // Can be updated to include 'f' in future.
+		assert(node_ce == 'v'); // Can be updated to include 'f' in future.
 		if (strcmp(sim->nodes_interp[s_type],"GL") == 0)
-			return CUB_GL;
+			return NODES_GL;
 		else if (strcmp(sim->nodes_interp[s_type],"GLL") == 0)
-			return CUB_GLL;
+			return NODES_GLL;
 		else if (strcmp(sim->nodes_interp[s_type],"AO") == 0)
-			return CUB_AO;
+			return NODES_AO;
 		else if (strcmp(sim->nodes_interp[s_type],"WSH") == 0)
-			return CUB_WSH;
+			return NODES_WSH;
 		else if (strcmp(sim->nodes_interp[s_type],"EQ") == 0)
-			return CUB_EQ;
+			return NODES_EQ;
 		else
 			EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
 	case 'g': // fallthrough
 	case 'm':
-		assert(cub_ce == 'v');
+		assert(node_ce == 'v');
 		switch (s_type) {
-			case ST_TP:  return CUB_GLL; break;
-			case ST_SI:  return CUB_AO;  break;
-			case ST_PYR: return CUB_GLL; break;
+			case ST_TP:  return NODES_GLL; break;
+			case ST_SI:  return NODES_AO;  break;
+			case ST_PYR: return NODES_GLL; break;
 			default:     EXIT_ERROR("Unsupported: %d\n",s_type); break;
 		}
 		break;
 	case 'c':
 		switch (s_type) {
 		case ST_TP:
-			return CUB_GL;
+			return NODES_GL;
 			break;
 		case ST_SI:
 			switch (sim->d) {
 			case 2:
-				switch (cub_ce) {
-					case 'v': return CUB_WV; break;
-					case 'f': return CUB_GL; break;
+				switch (node_ce) {
+					case 'v': return NODES_WV; break;
+					case 'f': return NODES_GL; break;
 					case 'e': // fallthrough
-					default:  EXIT_ERROR("Unsupported: %c\n",cub_ce); break;
+					default:  EXIT_ERROR("Unsupported: %c\n",node_ce); break;
 				}
 				break;
 			case 3:
-				switch (cub_ce) {
-					case 'v': return CUB_WV; break;
-					case 'f': return CUB_WV; break;
-					case 'e': return CUB_GL; break;
-					default:  EXIT_ERROR("Unsupported: %c\n",cub_ce); break;
+				switch (node_ce) {
+					case 'v': return NODES_WV; break;
+					case 'f': return NODES_WV; break;
+					case 'e': return NODES_GL; break;
+					default:  EXIT_ERROR("Unsupported: %c\n",node_ce); break;
 				}
 				break;
 			default:
@@ -424,13 +401,13 @@ static int compute_node_type_cub_std
 			}
 			break;
 		case ST_PYR: {
-			const int out_e_type = compute_elem_type_sub_ce(element->type,cub_ce,op_io->h_op);
+			const int out_e_type = compute_elem_type_sub_ce(element->type,node_ce,op_io->h_op);
 
 			switch (out_e_type) {
-				case TRI:  return CUB_WV;  break;
-				case QUAD: return CUB_GL;  break;
-				case TET:  return CUB_WV;  break;
-				case PYR:  return CUB_GJW; break;
+				case TRI:  return NODES_WV;  break;
+				case QUAD: return NODES_GL;  break;
+				case TET:  return NODES_WV;  break;
+				case PYR:  return NODES_GJW; break;
 				default:   EXIT_ERROR("Unsupported: %d\n",out_e_type);
 			}
 			break;
@@ -440,27 +417,27 @@ static int compute_node_type_cub_std
 		}
 		break;
 	default:
-		EXIT_ERROR("Unsupported: %c\n",cub_kind); break;
+		EXIT_ERROR("Unsupported: %c\n",node_kind); break;
 		break;
 	}
 	EXIT_UNSUPPORTED;
 	return -1;
 }
 
-static int compute_node_type_cub_collocated
+static int compute_node_type_collocated
 	(const struct Op_IO* op_io, const struct const_Element* element, const struct Simulation* sim)
 {
-	const char cub_kind = op_io->kind,
-	           cub_ce   = op_io->ce;
+	const char node_kind = op_io->kind,
+	           node_ce   = op_io->ce;
 	const int s_type = element->s_type;
-	switch (cub_kind) {
+	switch (node_kind) {
 	case 'c':
 		switch (s_type) {
 		case ST_TP:
 			if (strcmp(sim->nodes_interp[s_type],"GL") == 0)
-				return CUB_GL;
+				return NODES_GL;
 			else if (strcmp(sim->nodes_interp[s_type],"GLL") == 0)
-				return CUB_GLL;
+				return NODES_GLL;
 			else
 				EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
 			break;
@@ -470,20 +447,20 @@ static int compute_node_type_cub_collocated
 
 			switch (sim->d) {
 			case 2:
-				switch (cub_ce) {
-					case 'v': return CUB_WSH; break;
-					case 'f': return CUB_GL;  break;
+				switch (node_ce) {
+					case 'v': return NODES_WSH; break;
+					case 'f': return NODES_GL;  break;
 					case 'e': // fallthrough
-					default:  EXIT_ERROR("Unsupported: %c\n",cub_ce); break;
+					default:  EXIT_ERROR("Unsupported: %c\n",node_ce); break;
 				}
 				break;
 			case 3:
 				// If wedges are present, WSH nodes must be used for the face cubature for consistency with
 				// tet faces. If not present, the higher strength WV nodes are used.
 				if (wedges_present(sim->elements))
-					return CUB_WSH;
+					return NODES_WSH;
 				else
-					return CUB_WV;
+					return NODES_WV;
 				break;
 			default:
 				break;
@@ -499,14 +476,37 @@ static int compute_node_type_cub_collocated
 	case 'g': // fallthrough
 	case 'm': // fallthrough
 	default:
-		EXIT_ERROR("Unsupported: %c\n",cub_kind); break;
+		EXIT_ERROR("Unsupported: %c\n",node_kind); break;
 		break;
 	}
 	EXIT_UNSUPPORTED;
 	return -1;
 }
 
-const struct const_Matrix_d* constructor_b_coords (const int e_type)
+static int compute_cub_c_type (const int node_type, const struct Simulation* sim)
+{
+	switch (node_type) {
+	case NODES_GL: // fallthrough
+	case NODES_GLL:
+		if (!sim->collocated)
+			return CUB_C_DIV2;
+		else
+			return CUB_C_COL;
+		break;
+	case NODES_WSH:
+		assert(sim->collocated);
+		return CUB_C_COL;
+		break;
+	case NODES_WV:
+		return CUB_C_STD;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",node_type);
+		break;
+	}
+}
+
+static const struct const_Matrix_d* constructor_b_coords (const int e_type)
 {
 	/* `ext_0` is not necessarily equal to the number of p2 rst coordinate nodes for the `e_type`. Additional nodes
 	 * may be included for certain refinements (such as splitting a TET into 12 TETs). */
@@ -583,7 +583,7 @@ const struct const_Matrix_d* constructor_b_coords (const int e_type)
 	return constructor_copy_const_Matrix_d_d('R',ext_0,ext_1,b_coords);
 }
 
-const struct const_Vector_i* constructor_ind_h_b_coords
+static const struct const_Vector_i* constructor_ind_h_b_coords
 	(const int e_type, const char ce, const int ind_h, const int ind_ce, const struct Simulation* sim)
 {
 	const struct const_Element* element = get_element_by_type(sim->elements,e_type);

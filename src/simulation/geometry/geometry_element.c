@@ -21,7 +21,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_intrusive.h"
-#include "definitions_cubature.h"
 #include "definitions_element_operators.h"
 #include "definitions_elements.h"
 
@@ -35,64 +34,28 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Constructor for the members of a \ref Geometry_Element, excluding the base member.
-static void constructor_Geometry_Element
-	(struct Geometry_Element* element, ///< \ref Geometry_Element.
-	 const struct Simulation* sim      ///< \ref Simulation.
+/// \brief Constructor for a derived \ref Geometry_Element using the standard operators.
+static void constructor_derived_Geometry_Element_std
+	(struct Element* element,     ///< Defined for \ref constructor_derived_Geometry_Element.
+	 const struct Simulation* sim ///< Defined for \ref constructor_derived_Geometry_Element.
 	);
 
-/// \brief Destructor for a \ref Geometry_Element.
-static void destructor_Geometry_Element
-	(struct Geometry_Element* element ///< Standard.
+/// \brief Constructor for a derived \ref Geometry_Element using the tensor-product of sub-element operators.
+static void constructor_derived_Geometry_Element_tp
+	(struct Element* element,     ///< Defined for \ref constructor_derived_Geometry_Element.
+	 const struct Simulation* sim ///< Defined for \ref constructor_derived_Geometry_Element.
 	);
 
 // Interface functions ********************************************************************************************** //
 
-void constructor_Geometry_Elements (struct Simulation*const sim)
+void constructor_derived_Geometry_Element (struct Element* element_ptr, const struct Simulation* sim)
 {
-	assert(sizeof(struct Geometry_Element) == sizeof(struct const_Geometry_Element));
-
-	for (const struct const_Intrusive_Link* curr = sim->elements->first; curr; curr = curr->next) {
-		if (((struct const_Element*)curr)->present)
-			constructor_Geometry_Element((struct Geometry_Element*)curr,sim);
-	}
-}
-
-void destructor_Geometry_Elements (const struct const_Intrusive_List* geometry_elements)
-{
-	for (const struct const_Intrusive_Link* curr = geometry_elements->first; curr; ) {
-		const struct const_Intrusive_Link* next = curr->next;
-		if (((struct const_Element*)curr)->present)
-			destructor_Geometry_Element((struct Geometry_Element*) curr);
-		curr = next;
-	}
-}
-
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-/** \brief Constructor for the members of a \ref Geometry_Element, excluding the base element, using the standard
- *         operators. */
-static void constructor_Geometry_Element_standard
-	(struct Geometry_Element* element, ///< \ref Geometry_Element.
-	 const struct Simulation* sim      ///< \ref Simulation.
-	);
-
-/** \brief Constructor for the members of a \ref Geometry_Element, excluding the base element, using the tensor-product
- *         of sub-element operators. */
-static void constructor_Geometry_Element_tensor_product
-	(struct Geometry_Element* element, ///< \ref Geometry_Element.
-	 const struct Simulation* sim      ///< \ref Simulation.
-	);
-
-static void constructor_Geometry_Element (struct Geometry_Element* element, const struct Simulation* sim)
-{
-	switch (((struct Element*)element)->type) {
+	switch (element_ptr->type) {
 	case LINE: case TRI: case TET: case PYR:
-		constructor_Geometry_Element_standard(element,sim);
+		constructor_derived_Geometry_Element_std(element_ptr,sim);
 		break;
 	case QUAD: case HEX: case WEDGE:
-		constructor_Geometry_Element_tensor_product(element,sim);
+		constructor_derived_Geometry_Element_tp(element_ptr,sim);
 		break;
 	default:
 		EXIT_UNSUPPORTED;
@@ -100,8 +63,9 @@ static void constructor_Geometry_Element (struct Geometry_Element* element, cons
 	}
 }
 
-static void destructor_Geometry_Element (struct Geometry_Element* element)
+void destructor_derived_Geometry_Element (struct Element* element_ptr)
 {
+	struct Geometry_Element* element = (struct Geometry_Element*) element_ptr;
 	destructor_Multiarray_Operator(element->vc0_vgc_vgc);
 
 	destructor_Multiarray_Operator(element->cv1_vgs_vcs);
@@ -133,10 +97,13 @@ static void destructor_Geometry_Element (struct Geometry_Element* element)
 	}
 }
 
-// Level 1 ********************************************************************************************************** //
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
-static void constructor_Geometry_Element_standard (struct Geometry_Element* element, const struct Simulation* sim)
+static void constructor_derived_Geometry_Element_std (struct Element* element_ptr, const struct Simulation* sim)
 {
+	struct Geometry_Element* element = (struct Geometry_Element*) element_ptr;
+
 	struct const_Element* b_e = (struct const_Element*)element;
 
 	element->vc0_vgc_vgc = constructor_operators("vc0","vgc","vgc","H_1_P_1P",sim->p_s_v,b_e,sim); // destructed
@@ -159,8 +126,10 @@ static void constructor_Geometry_Element_standard (struct Geometry_Element* elem
 	element->vv0_vmc_fcc = constructor_operators("vv0","vmc","fcc","H_1_P_PM1",sim->p_s_v,b_e,sim); // destructed
 }
 
-static void constructor_Geometry_Element_tensor_product (struct Geometry_Element* element, const struct Simulation* sim)
+static void constructor_derived_Geometry_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
 {
+	struct Geometry_Element* element = (struct Geometry_Element*) element_ptr;
+
 	const struct const_Element* b_e     = (const struct const_Element*)element;
 	const struct const_Element* bs_e[2] = { b_e->sub_element[0], b_e->sub_element[1], };
 	struct Geometry_Element* s_e[2]     = { (struct Geometry_Element*) bs_e[0],

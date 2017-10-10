@@ -29,13 +29,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_intrusive.h"
 
 #include "element.h"
-#include "mesh.h"
 #include "volume.h"
-#include "solver_volume.h"
 #include "face.h"
-#include "file_processing.h"
+
 #include "const_cast.h"
+#include "file_processing.h"
 #include "intrusive.h"
+#include "mesh.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -87,6 +87,7 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 
 	struct Mesh_Input mesh_input = set_Mesh_Input(sim);
 	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements); // destructed
+	remove_absent_Elements(sim->elements);
 
 	sim->volumes = constructor_Volumes(sim,mesh); // destructed
 	sim->faces   = constructor_Faces(sim,mesh);   // destructed
@@ -98,25 +99,13 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 
 void destructor_Simulation (struct Simulation* sim)
 {
-// Add function pointers here when this gets bigger.
+	assert(sim->elements->name == IL_ELEMENT);
+	assert(sim->volumes->name  == IL_VOLUME);
+	assert(sim->faces->name    == IL_FACE);
 
-	switch (sim->elements->name) {
-		case IL_ELEMENT: destructor_const_Elements(sim->elements); break;
-		default:         EXIT_UNSUPPORTED;                         break;
-	}
-
-
-	switch (sim->volumes->name) {
-		case IL_VOLUME:        destructor_Volumes(sim->volumes);        break;
-		case IL_SOLVER_VOLUME: destructor_Solver_Volumes(sim->volumes); break;
-		default:               EXIT_UNSUPPORTED;                        break;
-	}
-
-	switch (sim->faces->name) {
-		case IL_FACE:        destructor_Faces(sim->faces);        break;
-//		case IL_SOLVER_FACE: destructor_Solver_Faces(sim->faces); break;
-		default:             EXIT_UNSUPPORTED;                    break;
-	}
+	destructor_const_Elements(sim->elements);
+	destructor_Volumes(sim->volumes);
+	destructor_Faces(sim->faces);
 
 	free(sim);
 }
@@ -363,8 +352,8 @@ static void set_mesh_extension
 	);
 
 /** \brief Assemble the mesh name with full path and extension.
- *	If the standard mesh path (../meshes/) is used, assemble the full mesh name based on data included in the control
- *	file. Otherwise, it is assumed that the full mesh name (including the path) was provided in the control file.
+ *  If the standard mesh path (../meshes/) is used, assemble the full mesh name based on data included in the control
+ *  file. Otherwise, it is assumed that the full mesh name (including the path) was provided in the control file.
  */
 static void mesh_name_assemble
 	(struct Simulation*const sim,                     ///< Standard.
@@ -372,7 +361,6 @@ static void mesh_name_assemble
 	);
 
 /** \brief Set the domain type based on the `MeshDomain` input.
- *	\todo Remove the redundant `MeshCurving` variable.
  */
 static void set_domain_type
 	(struct Simulation*const sim,                     ///< Standard.

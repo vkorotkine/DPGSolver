@@ -21,20 +21,20 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
-/** \brief Function pointer to basis functions.
+/** \brief Function pointer to basis constructor function.
  *  \param p_b The order of the basis.
  *  \param rst The nodes at which the basis functions are evaluated.
  */
-typedef const struct const_Matrix_d* (*basis_fptr)
+typedef const struct const_Matrix_d* (*constructor_basis_fptr)
 	(const int p_b,
 	 const struct const_Matrix_d*const rst
 	);
 
-/** \brief Function pointer to basis gradient functions.
- *  \param p_b Defined in \ref basis_fptr.
- *  \param rst Defined in \ref basis_fptr.
+/** \brief Function pointer to basis gradient constructor function.
+ *  \param p_b Defined in \ref constructor_basis_fptr.
+ *  \param rst Defined in \ref constructor_basis_fptr.
  */
-typedef const struct const_Multiarray_Matrix_d* (*grad_basis_fptr)
+typedef const struct const_Multiarray_Matrix_d* (*constructor_grad_basis_fptr)
 	(const int p_b,
 	 const struct const_Matrix_d*const rst
 	);
@@ -44,8 +44,8 @@ typedef const struct const_Multiarray_Matrix_d* (*grad_basis_fptr)
 /** \brief Constructor for a polynomial operator for a general basis of the given super type and basis type.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_basis
-	(const int p_b,                         ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst, ///< Defined in \ref basis_fptr.
+	(const int p_b,                         ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst, ///< Defined in \ref constructor_basis_fptr.
 	 const int s_type,                      ///< \ref Element::s_type.
 	 const char*const basis_type            ///< The basis type.
 	);
@@ -54,8 +54,8 @@ const struct const_Matrix_d* constructor_basis
  *         basis type.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis
-	(const int p_b,                         ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst, ///< Defined in \ref basis_fptr.
+	(const int p_b,                         ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst, ///< Defined in \ref constructor_basis_fptr.
 	 const int s_type,                      ///< \ref Element::s_type.
 	 const char*const basis_type            ///< The basis type.
 	);
@@ -69,16 +69,16 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis
  *  The dimension of the basis functions is determined according to the dimension of the input nodes.
  */
 const struct const_Matrix_d* constructor_basis_tp_orthonormal
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for polynomial operator(s) for the gradient(s) of the tensor-product orthonomal basis
  *         (derivative of normalized Legendre polynomials).
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for a polynomial operator for the simplex orthonomal basis (appendix A.1, \cite Hesthaven2007).
@@ -87,15 +87,15 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
  *  The dimension of the basis functions is determined according to the dimension of the input nodes.
  */
 const struct const_Matrix_d* constructor_basis_si_orthonormal
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for polynomial operators for the gradients of the simplex orthonomal basis.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for a polynomial operator for the pyramid orthonomal basis (eq. (2.1), \cite Chan2016).
@@ -104,15 +104,15 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal
  *  The dimension of the basis functions is determined according to the dimension of the input nodes.
  */
 const struct const_Matrix_d* constructor_basis_pyr_orthonormal
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for polynomial operators for the gradients of the pyramid orthonomal basis.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 // Bezier basis ***************************************************************************************************** //
@@ -124,16 +124,16 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal
  *  The dimension of the basis functions is determined according to the dimension of the input nodes.
  */
 const struct const_Matrix_d* constructor_basis_tp_bezier
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for polynomial operator(s) for the gradient(s) of the tensor-product bezier basis (derivatives of
  *         Bernstein polynomials, (section 2.4 \cite Prautzsch2002)).
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
-	(const int p_b,                        ///< Defined in \ref basis_fptr.
-	 const struct const_Matrix_d*const rst ///< Defined in \ref basis_fptr.
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 // Helper functions ************************************************************************************************* //
@@ -168,21 +168,21 @@ const struct const_Matrix_d* constructor_abc_from_rst_pyr
 
 /** \brief Get a pointer to the appropriate basis constructor function based on the input element super type.
  *  \return See brief. */
-basis_fptr get_basis_by_super_type
+constructor_basis_fptr get_constructor_basis_by_super_type
 	(const int s_type,               ///< \ref Element::s_type.
 	 const char*const ref_basis_name ///< The name of the reference basis to be used.
 	);
 
-/** \brief Same as \ref get_basis_by_super_type but with `int` input.
+/** \brief Same as \ref get_constructor_basis_by_super_type but with `int` input.
  *  \return See brief. */
-basis_fptr get_basis_by_super_type_i
+constructor_basis_fptr get_constructor_basis_by_super_type_i
 	(const int s_type,   ///< \ref Element::s_type.
 	 const int ind_basis ///< The index of the basis to be used.
 	);
 
 /** \brief Get a pointer to the appropriate basis gradient constructor function based on the input element super type.
  *  \return See brief. */
-grad_basis_fptr get_grad_basis_by_super_type
+constructor_grad_basis_fptr get_constructor_grad_basis_by_super_type
 	(const int s_type,               ///< \ref Element::s_type.
 	 const char*const ref_basis_name ///< The name of the reference basis to be used.
 	);

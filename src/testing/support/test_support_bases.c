@@ -27,16 +27,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_support_matrix.h"
 
 #include "macros.h"
-#include "definitions_cubature.h"
-#include "definitions_elements.h"
 #include "definitions_core.h"
+#include "definitions_elements.h"
+#include "definitions_nodes.h"
 
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
 
 #include "bases.h"
-#include "cubature.h"
+#include "nodes.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -1209,46 +1209,46 @@ const struct const_Matrix_d* constructor_mass_orthonormal_def (const int d, cons
 
 const struct const_Matrix_d* constructor_mass_orthonormal (const int d, const int p_b, const int super_type)
 {
-	int cub_type  = 0;
-	int cub_order = 0;
-	cubature_fptr cub_fun   = NULL;
-	basis_fptr    basis_fun = NULL;
+	int node_type  = 0;
+	int node_order = 0;
+	constructor_Nodes_fptr nodes_fun = NULL;
+	constructor_basis_fptr basis_fun = NULL;
 	if (super_type == ST_TP) {
-		cub_type  = CUB_GL;
-		cub_order = p_b;
-		cub_fun   = constructor_const_Cubature_tp;
+		node_type  = NODES_GL;
+		node_order = p_b;
+		nodes_fun   = constructor_const_Nodes_tp;
 		basis_fun = constructor_basis_tp_orthonormal;
 	} else if (super_type == ST_SI) {
-		cub_type  = CUB_WV;
-		cub_order = 2*p_b;
-		cub_fun   = constructor_const_Cubature_si;
+		node_type  = NODES_WV;
+		node_order = 2*p_b;
+		nodes_fun   = constructor_const_Nodes_si;
 		basis_fun = constructor_basis_si_orthonormal;
 	} else if (super_type == ST_PYR) {
-		const int cub_opt = 0;
-		const int cub_type_opt[]  = { CUB_GJW, CUB_GLW, CUB_GLLW, };
-		const int cub_order_opt[] = { p_b,     p_b+1,   p_b+2,    };
+		const int node_opt = 0;
+		const int node_type_opt[]  = { NODES_GJW, NODES_GLW, NODES_GLLW, };
+		const int node_order_opt[] = { p_b,       p_b+1,     p_b+2,      };
 
-		cub_type  = cub_type_opt[cub_opt];
-		cub_order = cub_order_opt[cub_opt];
-		cub_fun   = constructor_const_Cubature_pyr;
+		node_type  = node_type_opt[node_opt];
+		node_order = node_order_opt[node_opt];
+		nodes_fun   = constructor_const_Nodes_pyr;
 		basis_fun = constructor_basis_pyr_orthonormal;
 	} else {
 		EXIT_UNSUPPORTED;
 	}
 
-	const struct const_Cubature* cub = cub_fun(d,cub_order,cub_type); // destructed
+	const struct const_Nodes* nodes = nodes_fun(d,node_order,node_type); // destructed
 
-	const struct const_Matrix_d*const phi   = basis_fun(p_b,cub->rst),              // destructed
+	const struct const_Matrix_d*const phi   = basis_fun(p_b,nodes->rst),              // destructed
 	                           *const phi_w = constructor_copy_const_Matrix_d(phi); // destructed
 
 	transpose_const_Matrix_d(phi_w,false);
-	scale_const_Matrix_by_Vector_d('R',1.0,phi_w,cub->w);
+	scale_const_Matrix_by_Vector_d('R',1.0,phi_w,nodes->w);
 
 	const struct const_Matrix_d* mass = constructor_mm_const_Matrix_d('N','N',1.0,0.0,phi_w,phi,'R'); // returned
 
 	destructor_const_Matrix_d(phi_w);
 	destructor_const_Matrix_d(phi);
-	destructor_const_Cubature(cub);
+	destructor_const_Nodes(nodes);
 
 	return mass;
 }
@@ -1270,90 +1270,90 @@ const struct const_Vector_d* constructor_part_unity (const struct const_Matrix_d
 const struct const_Multiarray_d* constructor_grad_vals_computation_def
 	(const int d, const int p_b, const char*const basis_name)
 {
-	int cub_type  = 0;
-	int cub_order = 0;
-	cubature_fptr cub_fun = NULL;
+	int node_type  = 0;
+	int node_order = 0;
+	constructor_Nodes_fptr nodes_fun = NULL;
 	if (strcmp(basis_name,"tp_ortho") == 0) {
-		cub_type  = CUB_GLL;
-		cub_order = p_b;
-		cub_fun   = constructor_const_Cubature_tp;
+		node_type  = NODES_GLL;
+		node_order = p_b;
+		nodes_fun   = constructor_const_Nodes_tp;
 	} else if (strcmp(basis_name,"si_ortho") == 0) {
-		cub_type  = CUB_AO;
-		cub_order = p_b;
-		cub_fun   = constructor_const_Cubature_si;
+		node_type  = NODES_AO;
+		node_order = p_b;
+		nodes_fun   = constructor_const_Nodes_si;
 	} else if (strcmp(basis_name,"pyr_ortho") == 0) {
-		cub_type  = CUB_GLL;
-		cub_order = p_b;
-		cub_fun   = constructor_const_Cubature_pyr;
+		node_type  = NODES_GLL;
+		node_order = p_b;
+		nodes_fun   = constructor_const_Nodes_pyr;
 	} else if (strcmp(basis_name,"tp_bezier") == 0) {
-		cub_type  = CUB_GLL;
-		cub_order = p_b;
-		cub_fun   = constructor_const_Cubature_tp;
+		node_type  = NODES_GLL;
+		node_order = p_b;
+		nodes_fun   = constructor_const_Nodes_tp;
 	} else {
 		EXIT_UNSUPPORTED;
 	}
 
-	const struct const_Cubature* cub = cub_fun(d,cub_order,cub_type); // destructed
-	const struct const_Multiarray_d* grad_f_vc = constructor_grad_f_rst(cub->rst); // returned
+	const struct const_Nodes* nodes = nodes_fun(d,node_order,node_type); // destructed
+	const struct const_Multiarray_d* grad_f_vc = constructor_grad_f_rst(nodes->rst); // returned
 
-	destructor_const_Cubature(cub);
+	destructor_const_Nodes(nodes);
 	return grad_f_vc;
 }
 
 const struct const_Multiarray_d* constructor_grad_vals_computation
 	(const int d, const int p_b, const char*const basis_name)
 {
-	int cub_type  = 0;
-	int cub_order = 0;
-	cubature_fptr   cub_fun        = NULL;
-	basis_fptr      basis_fun      = NULL;
-	grad_basis_fptr grad_basis_fun = NULL;
+	int node_type  = 0;
+	int node_order = 0;
+	constructor_Nodes_fptr nodes_fun           = NULL;
+	constructor_basis_fptr basis_fun           = NULL;
+	constructor_grad_basis_fptr grad_basis_fun = NULL;
 	if (strcmp(basis_name,"tp_ortho") == 0) {
-		cub_type  = CUB_GLL;
-		cub_order = p_b;
-		cub_fun   = constructor_const_Cubature_tp;
+		node_type  = NODES_GLL;
+		node_order = p_b;
+		nodes_fun   = constructor_const_Nodes_tp;
 		basis_fun      = constructor_basis_tp_orthonormal;
 		grad_basis_fun = constructor_grad_basis_tp_orthonormal;
 	} else if (strcmp(basis_name,"si_ortho") == 0) {
-		cub_type  = CUB_AO;
-		cub_order = p_b;
-		cub_fun   = constructor_const_Cubature_si;
+		node_type  = NODES_AO;
+		node_order = p_b;
+		nodes_fun   = constructor_const_Nodes_si;
 		basis_fun      = constructor_basis_si_orthonormal;
 		grad_basis_fun = constructor_grad_basis_si_orthonormal;
 	} else if (strcmp(basis_name,"pyr_ortho") == 0) {
-		cub_type  = CUB_GLL;
-		cub_order = p_b;
-		cub_fun   = constructor_const_Cubature_pyr;
+		node_type  = NODES_GLL;
+		node_order = p_b;
+		nodes_fun   = constructor_const_Nodes_pyr;
 		basis_fun      = constructor_basis_pyr_orthonormal;
 		grad_basis_fun = constructor_grad_basis_pyr_orthonormal;
 	} else if (strcmp(basis_name,"tp_bezier") == 0) {
-		cub_type  = CUB_GLL;
-		cub_order = p_b;
-		cub_fun   = constructor_const_Cubature_tp;
+		node_type  = NODES_GLL;
+		node_order = p_b;
+		nodes_fun   = constructor_const_Nodes_tp;
 		basis_fun      = constructor_basis_tp_bezier;
 		grad_basis_fun = constructor_grad_basis_tp_bezier;
 	} else {
 		EXIT_UNSUPPORTED;
 	}
 
-	const struct const_Cubature* cub = cub_fun(d,cub_order,cub_type); // destructed
-	const struct const_Multiarray_d* f_vc_MA = constructor_f_rst(cub->rst); // destructed
+	const struct const_Nodes* nodes = nodes_fun(d,node_order,node_type); // destructed
+	const struct const_Multiarray_d* f_vc_MA = constructor_f_rst(nodes->rst); // destructed
 
 	const struct const_Vector_d* f_vc =
 		constructor_set_const_Vector_d_Multiarray_d(f_vc_MA,(ptrdiff_t[]){0}); // destructed
 
-	const struct const_Matrix_d*const phi = basis_fun(p_b,cub->rst); // destructed
+	const struct const_Matrix_d*const phi = basis_fun(p_b,nodes->rst); // destructed
 	const struct const_Vector_d* f_vc_coef = constructor_sgesv_const_Vector_d(phi,f_vc); // destructed
 	destructor_const_Matrix_d(phi);
 	destructor_const_Vector_d(f_vc);
 	destructor_const_Multiarray_d(f_vc_MA);
 
-	const struct const_Multiarray_Matrix_d*const grad_phi = grad_basis_fun(p_b,cub->rst); // destructed
+	const struct const_Multiarray_Matrix_d*const grad_phi = grad_basis_fun(p_b,nodes->rst); // destructed
 	const struct const_Multiarray_d* grad_f =
 		constructor_MaM1_V_const_Multiarray_d('C','N',1.0,0.0,grad_phi,f_vc_coef); // returned
 	destructor_const_Multiarray_Matrix_d(grad_phi);
 	destructor_const_Vector_d(f_vc_coef);
-	destructor_const_Cubature(cub);
+	destructor_const_Nodes(nodes);
 
 	return (const struct const_Multiarray_d*) grad_f;
 }

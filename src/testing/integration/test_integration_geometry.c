@@ -46,8 +46,9 @@ void test_integration_geometry (struct Test_Info*const test_info, const char*con
 {
 	struct Simulation*const sim = constructor_Simulation(ctrl_name); // destructed
 
-	construct_derived_computational_elements(sim,IL_SOLVER);
+	constructor_derived_computational_elements(sim,IL_SOLVER);
 	set_up_solver_geometry(sim);
+	destructor_derived_computational_elements(sim,IL_SOLVER);
 
 	const bool pass = compare_members_geom(test_info,sim);
 

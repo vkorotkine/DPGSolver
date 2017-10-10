@@ -120,6 +120,11 @@ void set_elements_present
 	 const struct const_Vector_i*const elem_types ///< \ref Mesh_Data::elem_types.
 	);
 
+/// \brief Remove \ref Element\*s which are not present from the list, except for the POINT element.
+void remove_absent_Elements
+	(const struct const_Intrusive_List* elements ///< \ref Simulation::elements.
+	);
+
 /** \brief See return.
  *  \return Pointer to a \ref Element of the input `type`. */
 const struct const_Element* get_element_by_type

@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_elements.h"
 #include "definitions_intrusive.h"
 #include "definitions_math.h"
+#include "definitions_h_ref.h"
 
 #include "multiarray.h"
 #include "vector.h"
@@ -214,17 +215,16 @@ int compute_elem_type_sub_ce (const int e_type, const char ce, const int ind_ce)
 			return QUAD;
 			break;
 		case WEDGE:
-/// \todo Replace with definitions from definitions_h_ref.h
 			switch (ind_ce) {
-			case 0:  case 1:  case 2:           // 3 quad faces of wedge reference element.
-			case 5:  case 6:  case 7:  case 8:  // 4 quad refined face 0 sub-faces.
-			case 9:  case 10: case 11: case 12: // 4 quad refined face 1 sub-faces.
-			case 13: case 14: case 15: case 16: // 4 quad refined face 2 sub-faces.
+			case H_WEDGE1_F0:  case H_WEDGE1_F1:  case H_WEDGE1_F2:
+			case H_WEDGE8_F00: case H_WEDGE8_F01: case H_WEDGE8_F02: case H_WEDGE8_F03:
+			case H_WEDGE8_F10: case H_WEDGE8_F11: case H_WEDGE8_F12: case H_WEDGE8_F13:
+			case H_WEDGE8_F20: case H_WEDGE8_F21: case H_WEDGE8_F22: case H_WEDGE8_F23:
 				return QUAD;
 				break;
-			case 3: case 4:                     // 2 tri faces of wedge reference element.
-			case 17: case 18: case 19: case 20: // 4 tri refined face 3 sub-faces.
-			case 21: case 22: case 23: case 24: // 4 tri refined face 4 sub-faces.
+			case H_WEDGE1_F3:  case H_WEDGE1_F4:
+			case H_WEDGE8_F30: case H_WEDGE8_F31: case H_WEDGE8_F32: case H_WEDGE8_F33:
+			case H_WEDGE8_F40: case H_WEDGE8_F41: case H_WEDGE8_F42: case H_WEDGE8_F43:
 				return TRI;
 				break;
 			default:
@@ -234,15 +234,15 @@ int compute_elem_type_sub_ce (const int e_type, const char ce, const int ind_ce)
 			break;
 		case PYR:
 			switch (ind_ce) {
-			case 0:  case 1:  case 2:  case 3:  // 4 tri faces of pyr reference element.
-			case 5:  case 6:  case 7:  case 8:  // 4 tri refined face 0 sub-faces.
-			case 9:  case 10: case 11: case 12: // 4 tri refined face 1 sub-faces.
-			case 13: case 14: case 15: case 16: // 4 tri refined face 2 sub-faces.
-			case 17: case 18: case 19: case 20: // 4 tri refined face 3 sub-faces.
+			case H_PYR1_F0:   case H_PYR1_F1:   case H_PYR1_F2:   case H_PYR1_F3:
+			case H_PYR10_F00: case H_PYR10_F01: case H_PYR10_F02: case H_PYR10_F03:
+			case H_PYR10_F10: case H_PYR10_F11: case H_PYR10_F12: case H_PYR10_F13:
+			case H_PYR10_F20: case H_PYR10_F21: case H_PYR10_F22: case H_PYR10_F23:
+			case H_PYR10_F30: case H_PYR10_F31: case H_PYR10_F32: case H_PYR10_F33:
 				return TRI;
 				break;
-			case 4:                             // 1 quad face of pyr reference element.
-			case 21: case 22: case 23: case 24: // 4 quad refined face 4 sub-faces.
+			case H_PYR1_F4:
+			case H_PYR10_F40: case H_PYR10_F41: case H_PYR10_F42: case H_PYR10_F43:
 				return QUAD;
 				break;
 			default:
@@ -325,6 +325,20 @@ void set_elements_present (const struct const_Intrusive_List* elements, const st
 			e_type = elem_types->data[i];
 			set_element_present(e_type,elements);
 		}
+	}
+}
+
+void remove_absent_Elements (const struct const_Intrusive_List* elements)
+{
+	for (const struct const_Intrusive_Link* curr = elements->first; curr; ) {
+		const struct const_Intrusive_Link* next = curr->next;
+		struct Element* element = (struct Element*) curr;
+		if (!element->present && element->type != POINT) {
+			destructor_Element(element);
+			erase_const_IL(elements,curr);
+			free(element);
+		}
+		curr = next;
 	}
 }
 

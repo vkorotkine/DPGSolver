@@ -1,5 +1,0 @@
-file(GLOB_RECURSE CUB_FILES *.txt)
-foreach(cub_name_full ${CUB_FILES})
-	string(REPLACE "${CMAKE_SOURCE_DIR}/input" "" cub_name ${cub_name_full})
-	configure_file(${cub_name_full} ${PROJECT_BINARY_DIR}${cub_name} @ONLY)
-endforeach()
