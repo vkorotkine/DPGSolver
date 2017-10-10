@@ -24,12 +24,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_intrusive.h"
+#include "definitions_visualization.h"
 
 #include "computational_elements.h"
 
 #include "file_processing.h"
 #include "geometry.h"
 #include "simulation.h"
+#include "visualization.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -47,7 +49,10 @@ void test_integration_geometry (struct Test_Info*const test_info, const char*con
 	struct Simulation*const sim = constructor_Simulation(ctrl_name); // destructed
 
 	constructor_derived_computational_elements(sim,IL_SOLVER);
+
 	set_up_solver_geometry(sim);
+	output_visualization(sim,VIS_GEOM_VOLUME);
+
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 
 	const bool pass = compare_members_geom(test_info,sim);

@@ -245,6 +245,7 @@ const struct const_Matrix_d* constructor_sgesv_const_Matrix_d
 
 /** \brief Constructor for a \ref Matrix_d\* from a matrix-matrix multiplication.
  *  \return Standard. */
+/// \todo remove beta from input parameters.
 struct Matrix_d* constructor_mm_Matrix_d
 	(const char trans_a_i,                ///< Defined for \ref mm_d.
 	 const char trans_b_i,                ///< Defined for \ref mm_d.

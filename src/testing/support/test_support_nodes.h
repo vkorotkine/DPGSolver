@@ -23,13 +23,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Constructor functions ******************************************************************************************** //
 
-/** \brief Constructor for a \ref Nodes\* from data in the input file of the given name.
- *  \return Standard. */
-struct Nodes* constructor_file_name_Nodes
-	(const char*const var_name,      ///< The name of the variable to be read in from the file.
-	 const char*const file_name_full ///< The name of the file (including the full path).
-	);
-
 /** \brief `const` version of \ref constructor_file_name_Nodes.
  *  \return Standard. */
 const struct const_Nodes* constructor_file_name_const_Nodes
@@ -37,23 +30,45 @@ const struct const_Nodes* constructor_file_name_const_Nodes
 	 const char*const file_name_full ///< Defined for \ref constructor_file_name_Nodes.
 	);
 
+/** \brief `const` version of \ref constructor_file_name_Plotting_Nodes.
+ *  \return See brief. */
+const struct const_Plotting_Nodes* constructor_file_name_const_Plotting_Nodes
+	(const char*const var_name,      ///< The name of the variable to be read in from the file.
+	 const char*const file_name_full ///< The name of the file (including the full path).
+	);
+
 // Difference functions ********************************************************************************************* //
 
-/** \brief Check the difference between members of the input \ref Nodes\*s.
- *  \return The `true` if inputs differ; `false` otherwise. */
+/** \brief `const` version of \ref diff_Nodes.
+ *  \return See brief. */
 bool diff_const_Nodes
 	(const struct const_Nodes*const a, ///< Input 0.
 	 const struct const_Nodes*const b, ///< Input 1.
 	 const double tol                  ///< The tolerance.
 	);
 
+/** \brief `const` version of \ref diff_const_Plotting_Nodes.
+ *  \return See brief. */
+bool diff_const_Plotting_Nodes
+	(const struct const_Plotting_Nodes*const a, ///< Input 0.
+	 const struct const_Plotting_Nodes*const b, ///< Input 1.
+	 const double tol                           ///< The tolerance.
+	);
+
 // Printing functions *********************************************************************************************** //
 
-/// \brief Print the relative difference of the \ref Nodes members, outputting 0 if less than the tolerance.
+/// \brief `const` version of \ref print_diff_Nodes.
 void print_diff_const_Nodes
 	(const struct const_Nodes*const a, ///< Input 0.
 	 const struct const_Nodes*const b, ///< Input 1.
 	 const double tol                  ///< The tolerance.
+	);
+
+/// \brief `const` version of \ref print_diff_Plotting_Nodes.
+void print_diff_const_Plotting_Nodes
+	(const struct const_Plotting_Nodes*const a, ///< Input 0.
+	 const struct const_Plotting_Nodes*const b, ///< Input 1.
+	 const double tol                           ///< The tolerance.
 	);
 
 #endif // DPG__test_support_nodes_h__INCLUDED

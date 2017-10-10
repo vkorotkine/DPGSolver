@@ -63,6 +63,12 @@ struct Multiarray_d* constructor_file_Multiarray_d
 	 const bool check_container ///< Flag for whether the container type should be checked.
 	);
 
+/** \brief Constructor for a \ref Multiarray_Vector_i\* as read from a file.
+ *  \return Standard. */
+struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i
+	(FILE* data_file ///< The file containing the data.
+	);
+
 // Difference functions ********************************************************************************************* //
 
 /** \brief Check the difference between entries in the input \ref Multiarray_Vector_i\*s.

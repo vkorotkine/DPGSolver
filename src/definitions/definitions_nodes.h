@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Nodes available for several element super types.
 #define NODES_VERTEX 101 ///< Vertex coordinates.
+#define NODES_PLOT   102 ///< Plotting nodes.
 
 #define NODES_EQ 111 ///< Equally spaced.
 #define NODES_WV 112 ///< Witherden-Vincent.

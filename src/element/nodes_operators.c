@@ -212,6 +212,8 @@ static int compute_node_type
 	case 'm': // fallthrough
 		return compute_node_type_std(op_io,element,sim);
 		break;
+	case 'p':
+		return NODES_PLOT;
 	case 'c':
 		if (!sim->collocated)
 			return compute_node_type_std(op_io,element,sim);
@@ -248,8 +250,9 @@ static int compute_p_nodes (const struct Op_IO* op_io, const int node_type, cons
 // Add Simulation::p_X_p for each kind, X, for variable orders for a given reference order in future.
 	switch (node_kind) {
 	case 's': // fallthrough
-	case 'g':
-	case 'm':
+	case 'g': // fallthrough
+	case 'm': // fallthrough
+	case 'p':
 		return compute_p_basis(op_io,sim);
 		break;
 	case 'c': {

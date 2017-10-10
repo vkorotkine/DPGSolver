@@ -23,6 +23,13 @@ syntax keyword Special Multiarray_c
 syntax keyword Special Intrusive_List const_Intrusive_List
 syntax keyword Special Intrusive_Link const_Intrusive_Link
 
-syntax keyword Identifier Element const_Element Geometry_Element const_Geometry_Element
-syntax keyword Identifier Volume Solver_Volume
-syntax keyword Identifier Face Solver_Face
+
+syntax keyword Identifier Element const_Element
+syntax keyword Identifier Geometry_Element const_Geometry_Element
+syntax keyword Identifier Plotting_Element const_Plotting_Element
+
+syntax keyword Identifier Volume
+syntax keyword Identifier Solver_Volume
+
+syntax keyword Identifier Face
+syntax keyword Identifier Solver_Face

@@ -1,5 +1,4 @@
 add_subdirectory(computational_elements)
-add_subdirectory(element)
 add_subdirectory(geometry)
 add_subdirectory(operators)
 add_subdirectory(mesh)
@@ -11,6 +10,7 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 Computational_Elements
+	 Mesh
 	)
 
 add_library(Simulation ${SOURCE})

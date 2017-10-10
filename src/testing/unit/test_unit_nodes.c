@@ -29,8 +29,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_alloc.h"
 #include "definitions_nodes.h"
 #include "definitions_tol.h"
+#include "definitions_elements.h"
 
 #include "nodes.h"
+#include "nodes_plotting.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -49,6 +51,11 @@ static void test_unit_nodes_pyramid
 	(struct Test_Info*const test_info ///< \ref Test_Info.
 	);
 
+/// \brief Provides unit tests for the plotting nodes for all element types.
+static void test_unit_nodes_plotting
+	(struct Test_Info*const test_info ///< \ref Test_Info.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void test_unit_nodes (struct Test_Info*const test_info)
@@ -58,6 +65,7 @@ void test_unit_nodes (struct Test_Info*const test_info)
 	test_unit_nodes_tensor_product(test_info);
 	test_unit_nodes_simplex(test_info);
 	test_unit_nodes_pyramid(test_info);
+	test_unit_nodes_plotting(test_info);
 }
 
 // Static functions ************************************************************************************************* //
@@ -94,6 +102,17 @@ struct Nodes_Data_PYR {
 	                        * d3_p4_WV;  ///< See \ref definitions_nodes.h.
 };
 
+/// Container for plotting node data to be tested for comparison with expected values.
+struct Plotting_Nodes_Data {
+	const struct const_Plotting_Nodes* plt_line,  ///< Plotting nodes for the LINE  element.
+	                                 * plt_tri,   ///< Plotting nodes for the TRI   element.
+	                                 * plt_quad,  ///< Plotting nodes for the QUAD  element.
+	                                 * plt_tet,   ///< Plotting nodes for the TET   element.
+	                                 * plt_hex,   ///< Plotting nodes for the HEX   element.
+	                                 * plt_wedge, ///< Plotting nodes for the WEDGE element.
+	                                 * plt_pyr;   ///< Plotting nodes for the PYR   element.
+};
+
 /** \brief Constructor for the \ref Nodes_Data_TP.
  *  \return Standard. */
 static struct Nodes_Data_TP* constructor_Nodes_Data_TP
@@ -128,6 +147,18 @@ static struct Nodes_Data_PYR* constructor_Nodes_Data_PYR
 /// \brief Destructor for the \ref Nodes_Data_PYR.
 static void destructor_Nodes_Data_PYR
 	(struct Nodes_Data_PYR* nodes_data ///< Standard.
+	);
+
+/** \brief Constructor for the \ref Plotting_Nodes_Data.
+ *  \return Standard. */
+static struct Plotting_Nodes_Data* constructor_Plotting_Nodes_Data
+	(const char eval_type,      ///< Method to use to obtain the data. Options: 'r'ead, 'c'ompute
+	 const char*const node_type ///< The type of nodes to test.
+	);
+
+/// \brief Destructor for the \ref Plotting_Nodes_Data.
+static void destructor_Plotting_Nodes_Data
+	(struct Plotting_Nodes_Data* p_nodes_data ///< Standard.
 	);
 
 static void test_unit_nodes_tensor_product (struct Test_Info*const test_info)
@@ -293,6 +324,66 @@ static void test_unit_nodes_pyramid (struct Test_Info*const test_info)
 	test_increment_and_print(test_info,pass);
 }
 
+static void test_unit_nodes_plotting (struct Test_Info*const test_info)
+{
+	char* test_name = "nodes_plotting";
+	sprintf(test_info->name,"%s%s","Nodes - ",test_name);
+
+	bool pass = true;
+
+	struct Plotting_Nodes_Data* p_nodes_data_r = constructor_Plotting_Nodes_Data('r',test_name), // destructed
+	                          * p_nodes_data_c = constructor_Plotting_Nodes_Data('c',test_name); // destructed
+
+	double tol[]       = { EPS, 2*EPS, EPS, 4*EPS, EPS, 2*EPS, EPS, };
+	bool differences[] =
+		{ diff_const_Plotting_Nodes(p_nodes_data_r->plt_line, p_nodes_data_c->plt_line, tol[0]),
+		  diff_const_Plotting_Nodes(p_nodes_data_r->plt_tri,  p_nodes_data_c->plt_tri,  tol[1]),
+		  diff_const_Plotting_Nodes(p_nodes_data_r->plt_quad, p_nodes_data_c->plt_quad, tol[2]),
+		  diff_const_Plotting_Nodes(p_nodes_data_r->plt_tet,  p_nodes_data_c->plt_tet,  tol[3]),
+		  diff_const_Plotting_Nodes(p_nodes_data_r->plt_hex,  p_nodes_data_c->plt_hex,  tol[4]),
+		  diff_const_Plotting_Nodes(p_nodes_data_r->plt_wedge,p_nodes_data_c->plt_wedge,tol[5]),
+		  diff_const_Plotting_Nodes(p_nodes_data_r->plt_pyr,  p_nodes_data_c->plt_pyr,  tol[6]),
+		};
+
+	test_print_warning(test_info,"TP nodes not being computed using tensor-product of lower dim nodes.");
+
+	const int n_diff = sizeof(differences)/sizeof(*differences);
+
+	bool diff = false;
+	for (int i = 0; i < n_diff; ++i) {
+		if (differences[i]) {
+			diff = true;
+			break;
+		}
+	}
+
+	if (diff) {
+		test_print_failure(test_info,test_info->name);
+
+		pass = false;
+
+		if (differences[0])
+			print_diff_const_Plotting_Nodes(p_nodes_data_r->plt_line, p_nodes_data_c->plt_line, tol[0]);
+		if (differences[1])
+			print_diff_const_Plotting_Nodes(p_nodes_data_r->plt_tri,  p_nodes_data_c->plt_tri,  tol[1]);
+		if (differences[2])
+			print_diff_const_Plotting_Nodes(p_nodes_data_r->plt_quad, p_nodes_data_c->plt_quad, tol[2]);
+		if (differences[3])
+			print_diff_const_Plotting_Nodes(p_nodes_data_r->plt_tet,  p_nodes_data_c->plt_tet,  tol[3]);
+		if (differences[4])
+			print_diff_const_Plotting_Nodes(p_nodes_data_r->plt_hex,  p_nodes_data_c->plt_hex,  tol[4]);
+		if (differences[5])
+			print_diff_const_Plotting_Nodes(p_nodes_data_r->plt_wedge,p_nodes_data_c->plt_wedge,tol[5]);
+		if (differences[6])
+			print_diff_const_Plotting_Nodes(p_nodes_data_r->plt_pyr,  p_nodes_data_c->plt_pyr,  tol[6]);
+	}
+
+	destructor_Plotting_Nodes_Data(p_nodes_data_r);
+	destructor_Plotting_Nodes_Data(p_nodes_data_c);
+
+	test_increment_and_print(test_info,pass);
+}
+
 // Level 1 ********************************************************************************************************** //
 
 static struct Nodes_Data_TP* constructor_Nodes_Data_TP (const char eval_type, const char*const node_type)
@@ -302,7 +393,7 @@ static struct Nodes_Data_TP* constructor_Nodes_Data_TP (const char eval_type, co
 		char file_name_part[STRLEN_MAX];
 		strcpy(file_name_part,"nodes/");
 		strcat(file_name_part,node_type);
-		const char*const file_name_full = constructor_file_name_unit(file_name_part); // free
+		const char*const file_name_full = constructor_file_name_unit(file_name_part);
 
 		nodes_data->d1_p3_EQ  = constructor_file_name_const_Nodes("Nodes_d1_p3_EQ",file_name_full);   // keep
 		nodes_data->d2_p4_EQ  = constructor_file_name_const_Nodes("Nodes_d2_p4_EQ",file_name_full);   // keep
@@ -313,8 +404,6 @@ static struct Nodes_Data_TP* constructor_Nodes_Data_TP (const char eval_type, co
 		nodes_data->d1_p3_GL  = constructor_file_name_const_Nodes("Nodes_d1_p3_GLe",file_name_full);  // keep
 		nodes_data->d2_p4_GL  = constructor_file_name_const_Nodes("Nodes_d2_p4_GLe",file_name_full);  // keep
 		nodes_data->d3_p3_GL  = constructor_file_name_const_Nodes("Nodes_d3_p3_GLe",file_name_full);  // keep
-
-		free((void*)file_name_full);
 	} else if (eval_type == 'c') {
 		nodes_data->d1_p3_EQ  = constructor_const_Nodes_tp(1,3,NODES_EQ);  // keep
 		nodes_data->d2_p4_EQ  = constructor_const_Nodes_tp(2,4,NODES_EQ);  // keep
@@ -353,7 +442,7 @@ static struct Nodes_Data_SI* constructor_Nodes_Data_SI (const char eval_type, co
 		char file_name_part[STRLEN_MAX];
 		strcpy(file_name_part,"nodes/");
 		strcat(file_name_part,node_type);
-		const char*const file_name_full = constructor_file_name_unit(file_name_part); // free
+		const char*const file_name_full = constructor_file_name_unit(file_name_part);
 
 		nodes_data->d2_p3_EQ  = constructor_file_name_const_Nodes("Nodes_d2_p3_EQ",file_name_full);  // keep
 		nodes_data->d2_p3_AO  = constructor_file_name_const_Nodes("Nodes_d2_p3_AO",file_name_full);  // keep
@@ -362,8 +451,6 @@ static struct Nodes_Data_SI* constructor_Nodes_Data_SI (const char eval_type, co
 		nodes_data->d3_p2_AO  = constructor_file_name_const_Nodes("Nodes_d3_p2_AO",file_name_full);  // keep
 		nodes_data->d3_p2_WSH = constructor_file_name_const_Nodes("Nodes_d3_p2_WSH",file_name_full); // keep
 		nodes_data->d3_p4_WV  = constructor_file_name_const_Nodes("Nodes_d3_p4_WV",file_name_full);  // keep
-
-		free((void*)file_name_full);
 	} else if (eval_type == 'c') {
 		nodes_data->d2_p3_EQ  = constructor_const_Nodes_si(2,3,NODES_EQ);  // keep
 		nodes_data->d2_p3_AO  = constructor_const_Nodes_si(2,3,NODES_AO);  // keep
@@ -398,13 +485,11 @@ static struct Nodes_Data_PYR* constructor_Nodes_Data_PYR (const char eval_type, 
 		char file_name_part[STRLEN_MAX];
 		strcpy(file_name_part,"nodes/");
 		strcat(file_name_part,node_type);
-		const char*const file_name_full = constructor_file_name_unit(file_name_part); // free
+		const char*const file_name_full = constructor_file_name_unit(file_name_part);
 
 		nodes_data->d3_p2_GL  = constructor_file_name_const_Nodes("Nodes_d3_p2_GLe", file_name_full); // keep
 		nodes_data->d3_p3_GLL = constructor_file_name_const_Nodes("Nodes_d3_p3_GLoL",file_name_full); // keep
 		nodes_data->d3_p4_WV  = constructor_file_name_const_Nodes("Nodes_d3_p4_WV",  file_name_full); // keep
-
-		free((void*)file_name_full);
 	} else if (eval_type == 'c') {
 		nodes_data->d3_p2_GL  = constructor_const_Nodes_pyr(3,2,NODES_GL);  // keep
 		nodes_data->d3_p3_GLL = constructor_const_Nodes_pyr(3,3,NODES_GLL); // keep
@@ -422,4 +507,46 @@ static void destructor_Nodes_Data_PYR (struct Nodes_Data_PYR* nodes_data)
 	destructor_const_Nodes(nodes_data->d3_p4_WV);
 
 	free(nodes_data);
+}
+
+static struct Plotting_Nodes_Data* constructor_Plotting_Nodes_Data (const char eval_type, const char*const node_type)
+{
+	struct Plotting_Nodes_Data* p_nodes_data = calloc(1,sizeof *p_nodes_data); // returned
+	if (eval_type == 'r') {
+		char file_name_part[STRLEN_MAX];
+		sprintf(file_name_part,"%s%s","nodes/",node_type);
+		const char*const file_name_full = constructor_file_name_unit(file_name_part);
+
+		p_nodes_data->plt_line  = constructor_file_name_const_Plotting_Nodes("Nodes_line", file_name_full); // keep
+		p_nodes_data->plt_tri   = constructor_file_name_const_Plotting_Nodes("Nodes_tri",  file_name_full); // keep
+		p_nodes_data->plt_quad  = constructor_file_name_const_Plotting_Nodes("Nodes_quad", file_name_full); // keep
+		p_nodes_data->plt_tet   = constructor_file_name_const_Plotting_Nodes("Nodes_tet",  file_name_full); // keep
+		p_nodes_data->plt_hex   = constructor_file_name_const_Plotting_Nodes("Nodes_hex",  file_name_full); // keep
+		p_nodes_data->plt_wedge = constructor_file_name_const_Plotting_Nodes("Nodes_wedge",file_name_full); // keep
+		p_nodes_data->plt_pyr   = constructor_file_name_const_Plotting_Nodes("Nodes_pyr",  file_name_full); // keep
+	} else if (eval_type == 'c') {
+		p_nodes_data->plt_line  = constructor_const_Plotting_Nodes(3,LINE);  // keep
+		p_nodes_data->plt_tri   = constructor_const_Plotting_Nodes(3,TRI);   // keep
+		p_nodes_data->plt_quad  = constructor_const_Plotting_Nodes(3,QUAD);  // keep
+		p_nodes_data->plt_tet   = constructor_const_Plotting_Nodes(3,TET);   // keep
+		p_nodes_data->plt_hex   = constructor_const_Plotting_Nodes(3,HEX);   // keep
+		p_nodes_data->plt_wedge = constructor_const_Plotting_Nodes(3,WEDGE); // keep
+		p_nodes_data->plt_pyr   = constructor_const_Plotting_Nodes(3,PYR);   // keep
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+	return p_nodes_data;
+}
+
+static void destructor_Plotting_Nodes_Data (struct Plotting_Nodes_Data* p_nodes_data)
+{
+	destructor_const_Plotting_Nodes(p_nodes_data->plt_line);
+	destructor_const_Plotting_Nodes(p_nodes_data->plt_tri);
+	destructor_const_Plotting_Nodes(p_nodes_data->plt_quad);
+	destructor_const_Plotting_Nodes(p_nodes_data->plt_tet);
+	destructor_const_Plotting_Nodes(p_nodes_data->plt_hex);
+	destructor_const_Plotting_Nodes(p_nodes_data->plt_wedge);
+	destructor_const_Plotting_Nodes(p_nodes_data->plt_pyr);
+
+	free(p_nodes_data);
 }

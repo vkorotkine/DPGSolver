@@ -209,6 +209,9 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 			break;
 		}
 		break;
+	case 'p': // plotting
+		return p_op;
+		break;
 	} case 'c': // fallthrough
 	default:
 		EXIT_ERROR("Unsupported: %c\n",nodes_kind);

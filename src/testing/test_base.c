@@ -26,7 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Allocates memory and sets the path to the data file.
+/** \brief Sets the path to unit test data files in a `static char` (no free necessary).
  *  \return See brief. */
 static char* constructor_file_name_base ();
 
@@ -89,7 +89,7 @@ void output_test_info (struct Test_Info*const test_info)
 	}
 }
 
-char* constructor_file_name_unit (const char*const file_name_spec)
+const char* constructor_file_name_unit (const char*const file_name_spec)
 {
 	char*const file_name = constructor_file_name_base();
 
@@ -105,9 +105,7 @@ char* constructor_file_name_unit (const char*const file_name_spec)
 
 static char* constructor_file_name_base ()
 {
-	char*const file_name_base = malloc(STRLEN_MAX * sizeof *file_name_base); // returned
-
+	static char file_name_base[STRLEN_MAX];
 	strcpy(file_name_base,"../testing/unit");
-
 	return file_name_base;
 }

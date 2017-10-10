@@ -75,7 +75,7 @@ static void test_unit_construct_std_from_tp (struct Test_Info*const test_info, c
 	double* tol       = NULL;
 	bool* differences = NULL;
 
-	const char*const file_name_full = constructor_file_name_unit("operators/operators_tp"); // free
+	const char*const file_name_full = constructor_file_name_unit("operators/operators_tp");
 
 	char name_ops_tp[STRLEN_MIN] = { 0, },
 	     name_op_std[STRLEN_MIN] = { 0, };
@@ -88,8 +88,6 @@ static void test_unit_construct_std_from_tp (struct Test_Info*const test_info, c
 	const struct const_Matrix_d* op_std_r =
 		constructor_file_name_const_Matrix_d(name_op_std,file_name_full); // destructed
 	const struct const_Matrix_d* op_std_c = constructor_op_std(ops_tp_r);   // destructed
-
-	free((void*)file_name_full);
 
 	destructor_const_Multiarray_Matrix_d(ops_tp_r);
 
@@ -116,7 +114,7 @@ static void test_unit_apply_tp(struct Test_Info*const test_info, const char*cons
 	bool* differences = NULL;
 	char var_name[STRLEN_MIN] = { 0, };
 
-	const char*const file_name_full = constructor_file_name_unit("operators/operators_tp"); // free
+	const char*const file_name_full = constructor_file_name_unit("operators/operators_tp");
 
 	sprintf(var_name,"%s%s",e_type,"_ops_tp");
 	const struct const_Multiarray_Matrix_d* ops_tp =
@@ -133,8 +131,6 @@ static void test_unit_apply_tp(struct Test_Info*const test_info, const char*cons
 	sprintf(var_name,"%s%s",e_type,"_c");
 	const struct const_Multiarray_d* c_r =
 		constructor_file_name_const_Multiarray_d(var_name,file_name_full); // destructed
-
-	free((void*)file_name_full);
 
 	const struct const_Multiarray_d* c_std = constructor_mm_NN1C_const_Multiarray_d(op.op_std,b_r); // destructed
 	const struct const_Multiarray_d* c_tp  = constructor_mm_tp_NN1C_const_Multiarray_d(op.ops_tp,b_r); // destructed

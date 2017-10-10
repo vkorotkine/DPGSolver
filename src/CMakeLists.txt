@@ -10,11 +10,12 @@ include_directories(
 	allocators
 	containers
 	definitions
+	element
 	general
 	intrusive
+	processing/post
 	simulation
 	simulation/computational_elements
-	simulation/element
 	simulation/geometry
 	simulation/mesh
 	simulation/operators
@@ -24,7 +25,9 @@ include_directories(
 
 add_subdirectory(allocators)
 add_subdirectory(containers)
+add_subdirectory(element)
 add_subdirectory(general)
 add_subdirectory(intrusive)
+add_subdirectory(processing)
 add_subdirectory(simulation)
 add_subdirectory(testing)

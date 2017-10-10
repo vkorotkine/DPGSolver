@@ -59,12 +59,11 @@ static void test_unit_matrix_mm (struct Test_Info*const test_info)
 	sprintf(test_info->name,"%s","Containers - Matrix mm");
 	bool pass = true;
 
-	const char*const file_name_full = constructor_file_name_unit("containers/matrix"); // free
+	const char*const file_name_full = constructor_file_name_unit("containers/matrix");
 
 	const struct const_Matrix_d* a = constructor_file_name_const_Matrix_d("a_Matrix",file_name_full), // destructed
 	                           * b = constructor_file_name_const_Matrix_d("b_Matrix",file_name_full); // destructed
 	struct Matrix_d* c_R = constructor_file_name_Matrix_d("c_Matrix",file_name_full); // destructed
-	free((void*)file_name_full);
 
 	const struct const_Matrix_d* a_t = constructor_copy_transpose_const_Matrix_d(a,false), // destructed
 	                           * b_t = constructor_copy_transpose_const_Matrix_d(b,false); // destructed
@@ -129,12 +128,11 @@ static void test_unit_matrix_mv (struct Test_Info*const test_info)
 	sprintf(test_info->name,"%s","Containers - Matrix mv");
 	bool pass = true;
 
-	const char*const file_name_full = constructor_file_name_unit("containers/matrix"); // free
+	const char*const file_name_full = constructor_file_name_unit("containers/matrix");
 
 	const struct const_Matrix_d* a = constructor_file_name_const_Matrix_d("a_Matrix",file_name_full); // destructed
 	const struct const_Vector_d* b = constructor_file_name_const_Vector_d("b_Vector",file_name_full); // destructed
 	struct Vector_d* c = constructor_file_name_Vector_d("c_Vector",file_name_full); // destructed
-	free((void*)file_name_full);
 
 	const struct const_Matrix_d* a_t = constructor_copy_transpose_const_Matrix_d(a,false); // destructed
 

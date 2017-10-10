@@ -35,8 +35,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
-#include "math_functions.h"
 #include "bases.h"
+#include "math_functions.h"
+#include "nodes_plotting.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -102,8 +103,20 @@ const struct const_Nodes* constructor_const_Nodes_tp (const int d, const int p, 
 			EXIT_ERROR("Problem computing weights.\n");
 	} else if (node_type == NODES_EQ) {
 		has_weights = false;
-		for (int i = 0; i < pp1; ++i)
-			r[i] = -1.0 + (2.0/p)*i;
+		if (p == 0) {
+			r[0] = 0.0;
+		} else {
+			for (int i = 0; i < pp1; ++i)
+				r[i] = -1.0 + (2.0/p)*i;
+		}
+	} else if (node_type == NODES_PLOT) {
+		has_weights = false;
+		if (p == 0) {
+			r[0] = 0.0;
+		} else {
+			for (int i = 0; i < pp1; ++i)
+				r[i] = -1.0 + (2.0/p)*i;
+		}
 	} else {
 		EXIT_UNSUPPORTED;
 	}

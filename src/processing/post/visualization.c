@@ -15,34 +15,52 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_unit.h"
+#include "visualization.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "macros.h"
+#include "definitions_intrusive.h"
+#include "definitions_visualization.h"
 
-#include "test_base.h"
-#include "test_unit_containers.h"
-#include "test_unit_nodes.h"
-#include "test_unit_bases.h"
-#include "test_unit_operators_tp.h"
+#include "computational_elements.h"
+#include "element_plotting.h"
+#include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
 
+/// \brief Output the visualization of the specified output in a format suitable for Paraview.
+static void output_visualization_paraview
+	(const struct Simulation* sim, ///< \ref Simulation.
+	 const int vis_type            ///< The type of visualization. Options: see \ref definitions_visualization.h.
+	);
+
 // Interface functions ********************************************************************************************** //
 
-void run_tests_unit (struct Test_Info*const test_info)
+void output_visualization (struct Simulation* sim, const int vis_type)
 {
-	printf("\n\nRunning Unit Tests:\n");
-	printf("-------------------------------------------------------------------------------------------------\n\n");
+	assert(sim->volumes->name == IL_SOLVER_VOLUME);
+	assert(sim->faces->name   == IL_SOLVER_FACE);
 
-	test_unit_containers(test_info);
-	test_unit_nodes(test_info);
-	test_unit_bases(test_info);
+	constructor_derived_Elements(sim,IL_PLOTTING_ELEMENT);
 
-	test_unit_operators_tp(test_info);
+	output_visualization_paraview(sim,vis_type);
+
+/// \todo change input here to desired base list.
+	destructor_derived_Elements(sim,IL_PLOTTING_ELEMENT);
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void output_visualization_paraview (const struct Simulation* sim, const int vis_type)
+{
+UNUSED(sim);
+	switch (vis_type) {
+	default:
+		EXIT_ERROR("Unsupported: %d\n",vis_type);
+		break;
+	}
+}

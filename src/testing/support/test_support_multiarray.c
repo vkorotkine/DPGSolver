@@ -35,9 +35,19 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Constructor for a \ref Multiarray_Vector_i\* as read from a file.
- *  \return Standard. */
-static struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i
+///\{ \name The maximum number of extents for the read Multiarray.
+#define EXTENTS_MAX 10
+///\}
+
+/// Container for partial members of the Multiarray.
+struct Multiarray_Partial {
+	int       order;                ///< Defined in \ref Multiarray_d.
+	ptrdiff_t extents[EXTENTS_MAX]; ///< Defined in \ref Multiarray_d.
+};
+
+/** \brief Obtain the order and extents of the Multiarray.
+ *	\return See brief. */
+struct Multiarray_Partial read_order_extents
 	(FILE* data_file ///< The file containing the data.
 	);
 
@@ -170,6 +180,34 @@ struct Multiarray_d* constructor_file_Multiarray_d (FILE* data_file, const bool 
 
 	if (layout == 'C')
 		transpose_Multiarray_d(dest,true);
+
+	return dest;
+}
+
+struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i (FILE* data_file)
+{
+	check_container_type(data_file,"Multiarray_Vector_i");
+
+	struct Multiarray_Partial ma_p = read_order_extents(data_file);
+
+	struct Multiarray_Vector_i* dest = NULL;
+	switch (ma_p.order) {
+	case 1:
+		dest = constructor_empty_Multiarray_Vector_i(false,ma_p.order,ma_p.extents);
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+
+	char line[STRLEN_MAX];
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
+	if (!strstr(line,"ext_0/data"))
+		EXIT_ERROR("Did not find expected data description.");
+
+	ptrdiff_t size = compute_size(dest->order,dest->extents);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		dest->data[i] = constructor_file_Vector_i(data_file,false);
 
 	return dest;
 }
@@ -329,50 +367,6 @@ void print_diff_const_Multiarray_Matrix_d
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-///\{ \name The maximum number of extents for the read Multiarray.
-#define EXTENTS_MAX 10
-///\}
-
-/// Container for partial members of the Multiarray.
-struct Multiarray_Partial {
-	int       order;                ///< Defined in \ref Multiarray_d.
-	ptrdiff_t extents[EXTENTS_MAX]; ///< Defined in \ref Multiarray_d.
-};
-
-/** \brief Obtain the order and extents of the Multiarray.
- *	\return See brief. */
-struct Multiarray_Partial read_order_extents
-	(FILE* data_file ///< The file containing the data.
-	);
-
-static struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i (FILE* data_file)
-{
-	check_container_type(data_file,"Multiarray_Vector_i");
-
-	struct Multiarray_Partial ma_p = read_order_extents(data_file);
-
-	struct Multiarray_Vector_i* dest = NULL;
-	switch (ma_p.order) {
-	case 1:
-		dest = constructor_empty_Multiarray_Vector_i(false,ma_p.order,ma_p.extents);
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
-
-	char line[STRLEN_MAX];
-	if (fgets(line,sizeof(line),data_file) != NULL) {};
-	if (!strstr(line,"ext_0/data"))
-		EXIT_ERROR("Did not find expected data description.");
-
-	ptrdiff_t size = compute_size(dest->order,dest->extents);
-	for (ptrdiff_t i = 0; i < size; ++i)
-		dest->data[i] = constructor_file_Vector_i(data_file,false);
-
-	return dest;
-}
-
 static struct Multiarray_Matrix_d* constructor_file_Multiarray_Matrix_d (FILE* data_file)
 {
 	check_container_type(data_file,"Multiarray_Matrix_d");
@@ -395,8 +389,6 @@ static struct Multiarray_Matrix_d* constructor_file_Multiarray_Matrix_d (FILE* d
 
 	return dest;
 }
-
-// Level 1 ********************************************************************************************************** //
 
 struct Multiarray_Partial read_order_extents (FILE* data_file)
 {

@@ -5,6 +5,7 @@ set	(SOURCE
 	 element_operators_tp.c
 	 nodes.c
 	 nodes_operators.c
+	 nodes_plotting.c
 	)
 
 set	(LIBS_DEPEND

@@ -10,6 +10,7 @@ set	(SOURCE
 set	(LIBS_DEPEND
 	 Geometry
 	 Mesh
+	 Post_Processing
 	 Simulation
 	 Test_Base
 	 Test_Support
