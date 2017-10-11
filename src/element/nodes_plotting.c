@@ -32,6 +32,18 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+///\{ \name Values of VTK linear cell types. See Figure 2 in $ROOT/doc/VTK_file_formats.pdf.
+#define VTK_LINE       3
+#define VTK_TRIANGLE   5
+#define VTK_QUAD       9
+#define VTK_TETRA      10
+#define VTK_HEXAHEDRON 12
+#define VTK_WEDGE      13
+#define VTK_PYR        14
+
+#define VTK_POLY_LINE  4
+///\}
+
 /** \brief Sets up (and allocates memory for) coordinates and connectivity information of plotting nodes.
  *  This function needs modernizing.
  */
@@ -108,6 +120,9 @@ const struct const_Plotting_Nodes* constructor_const_Plotting_Nodes (const int p
 
 	p_nodes->vtk_types = constructor_move_Vector_i_i(n_e,true,vtk_types); // destructed
 
+	p_nodes->vtk_types_e = constructor_empty_Vector_i(n_edge); // destructed
+	set_to_value_Vector_i(p_nodes->vtk_types_e,VTK_POLY_LINE);
+
 	return (const struct const_Plotting_Nodes*) p_nodes;
 }
 
@@ -130,6 +145,9 @@ void print_Plotting_Nodes_tol (const struct Plotting_Nodes*const p_nodes, const 
 
 	printf("vtk_types:\n");
 	print_Vector_i(p_nodes->vtk_types);
+
+	printf("vtk_types_e:\n");
+	print_Vector_i(p_nodes->vtk_types_e);
 }
 
 void print_Plotting_Nodes (const struct Plotting_Nodes*const p_nodes)
@@ -166,6 +184,7 @@ static void destructor_Plotting_Nodes (struct Plotting_Nodes* p_nodes)
 	destructor_Multiarray_Vector_i(p_nodes->connect);
 	destructor_Multiarray_Vector_i(p_nodes->connect_e);
 	destructor_Vector_i(p_nodes->vtk_types);
+	destructor_Vector_i(p_nodes->vtk_types_e);
 
 	free(p_nodes);
 }
@@ -858,30 +877,16 @@ static void plotting_element_info
 static int get_vtk_n_corners (const int vtk_type)
 {
 	switch (vtk_type) {
-	case 3: // LINE
-		return 2;
-		break;
-	case 5: // TRI
-		return 3;
-		break;
-	case 9: // QUAD
-		return 4;
-		break;
-	case 10: // TET
-		return 4;
-		break;
-	case 12: // HEX
-		return 8;
-		break;
-	case 13: // WEDGE
-		return 6;
-		break;
-	case 14: // PYR
-		return 5;
-		break;
-	default:
-		EXIT_ERROR("Error: Unsupported VTK_type (%d).\n",vtk_type);
-		break;
+		case VTK_LINE:       return 2; break;
+		case VTK_TRIANGLE:   return 3; break;
+		case VTK_QUAD:       return 4; break;
+		case VTK_TETRA:      return 4; break;
+		case VTK_HEXAHEDRON: return 8; break;
+		case VTK_WEDGE:      return 6; break;
+		case VTK_PYR:        return 5; break;
+		default:
+			EXIT_ERROR("Error: Unsupported VTK_type (%d).\n",vtk_type);
+			break;
 	}
 }
 

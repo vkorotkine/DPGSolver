@@ -88,9 +88,12 @@ double* get_row_Multiarray_d (const ptrdiff_t row, const struct Multiarray_d* a)
 
 const double* get_row_const_Multiarray_d (const ptrdiff_t row, const struct const_Multiarray_d* a)
 {
-	assert(a->order == 2);
+	assert(a->order >  0);
+	assert(a->order <= 2);
 	assert(a->layout == 'R');
-	return &a->data[row*(a->extents[1])];
+
+	const ptrdiff_t ext_1 = ( a->order == 1 ? 1 : a->extents[1] );
+	return &a->data[row*ext_1];
 }
 
 void set_to_value_Multiarray_d (struct Multiarray_d*const a, const double val)

@@ -38,6 +38,12 @@ FILE* fopen_input
 	 const char*const input_spec  ///< The input specifier. Options: "geometry".
 	);
 
+/** \brief Open file of the given input name, creating the directory if it does not exist.
+ *  \return See brief. */
+FILE* fopen_create_dir
+	(const char*const file_name_full ///< File name including full path.
+	);
+
 // Reading data from the current line ******************************************************************************* //
 
 /// \brief Skip lines in a file while reading.

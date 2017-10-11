@@ -8,6 +8,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 ${MPI_C_LIBRARIES}
 	 Geometry
 	 Mesh
 	 Post_Processing

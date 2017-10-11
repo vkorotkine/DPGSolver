@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray_print.h"
 
+#include <assert.h>
+
 #include "macros.h"
 #include "definitions_tol.h"
 
@@ -151,6 +153,14 @@ void print_Multiarray_extents (const int order, const ptrdiff_t*const extents)
 	for (ptrdiff_t i = 0; i < order; i++)
 		printf(" %td,",extents[i]);
 	printf(" }\n\n");
+}
+
+void fprint_const_Multiarray_Vector_i (FILE* file, const int n_tab, const struct const_Multiarray_Vector_i* a)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	for (ptrdiff_t i = 0; i < size; ++i)
+		fprint_const_Vector_i(file,n_tab,a->data[i]);
 }
 
 // Static functions ************************************************************************************************* //

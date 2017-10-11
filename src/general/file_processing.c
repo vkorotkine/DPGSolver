@@ -17,10 +17,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "file_processing.h"
 
+#include <assert.h>
 #include <string.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <errno.h>
 
 #include "macros.h"
 #include "definitions_alloc.h"
@@ -39,6 +42,25 @@ static int strtoi
 	(const char* str, ///< The input string.
 	 char** endptr,   ///< Will point to the next char following the `int` input in `str`.
 	 int base         ///< The base for the number to be read (generally base 10).
+	);
+
+/** \brief Extract the path from the string input.
+ *  \return The path (no free necessary). */
+static const char* extract_path
+	(const char*const name_full ///< The full input.
+	);
+
+/** \brief Analogue of `mkdir -p` but called from within the code.
+ *  \return 0 if successful.
+ *
+ *  This function was taken from [Jonathon Reinhart's improved version] of [this SO answer][SO_mkdir_p].
+ *
+ *  <!-- References: -->
+ *  [SO_mkdir_p]: https://stackoverflow.com/a/2336245/5983549
+ *  [Jonathon Reinhart's improved version]: https://gist.github.com/JonathonReinhart/8c0d90191c38af2dcadb102c4e202950
+ */
+static int mkdir_p
+	(const char *path ///< The full path to the directory to be created.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -64,6 +86,13 @@ FILE* fopen_input (const char*const input_path, const char*const input_spec)
 		EXIT_UNSUPPORTED;
 
 	return fopen_checked(input_name);
+}
+
+FILE* fopen_create_dir (const char*const file_name_full)
+{
+	const char*const file_path = extract_path(file_name_full);
+	mkdir_p(file_path);
+	return fopen(file_name_full,"w");
 }
 
 void skip_lines (FILE* file, const int n_skip)
@@ -304,6 +333,64 @@ static int strtoi (const char* str, char** endptr, int base)
 #else
 	return (int) strto_subrange(str,endptr,base,INT_MIN,INT_MAX);
 #endif
+}
+
+static const char* extract_path (const char*const name_full)
+{
+	const size_t len = strlen(name_full);
+
+	size_t path_len = len;
+	while (name_full[path_len] != '/')
+		--path_len; // Do nothing
+
+	assert(path_len != len);
+	assert(path_len != 0);
+
+	static char name_path[STRLEN_MAX] = { 0, };
+	for (size_t i = 0; i < path_len; ++i)
+		name_path[i] = name_full[i];
+	name_path[path_len] = 0;
+
+	return name_path;
+}
+
+static int mkdir_p (const char *path)
+{
+    /* Adapted from http://stackoverflow.com/a/2336245/119527 */
+    const size_t len = strlen(path);
+    char _path[PATH_MAX];
+    char *p;
+
+    errno = 0;
+
+    /* Copy string so its mutable */
+    if (len > sizeof(_path)-1) {
+        errno = ENAMETOOLONG;
+        return -1;
+    }
+    strcpy(_path, path);
+
+    /* Iterate the string */
+    for (p = _path + 1; *p; p++) {
+        if (*p == '/') {
+            /* Temporarily truncate */
+            *p = '\0';
+
+            if (mkdir(_path, S_IRWXU) != 0) {
+                if (errno != EEXIST)
+                    return -1;
+            }
+
+            *p = '/';
+        }
+    }
+
+    if (mkdir(_path, S_IRWXU) != 0) {
+        if (errno != EEXIST)
+            return -1;
+    }
+
+    return 0;
 }
 
 // Level 1 ********************************************************************************************************** //

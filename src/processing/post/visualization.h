@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__visualization_h__INCLUDED
 /** \file
  *  \brief Provides functions used for visualization of outputs.
+ *
+ *  In preparation for parallelization of the code, a 'p'arallel and 's'erial file is generated for each of the outputs.
+ *  For example, for the unstructured Paraview format, both '.pvtu' and '.vtu' files are generated.
  */
 
 struct Simulation;

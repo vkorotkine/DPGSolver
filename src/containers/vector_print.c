@@ -79,5 +79,22 @@ void print_const_Vector_d (const struct const_Vector_d*const a)
 	print_Vector_d((const struct Vector_d*)a);
 }
 
+void fprint_const_Vector_i (FILE* file, const int n_tab, const struct const_Vector_i* a)
+{
+	for (int i = 0; i < n_tab; ++i)
+		fprintf(file,"\t");
+
+	const ptrdiff_t ext_0 = a->ext_0;
+	for (ptrdiff_t i = 0; i < ext_0; ++i)
+		fprintf(file," % 3d",a->data[i]);
+
+	fprintf(file,"\n");
+}
+
+void fprint_Vector_i (FILE* file, const int n_tab, struct Vector_i* a)
+{
+	fprint_const_Vector_i(file,n_tab,(const struct const_Vector_i*)a);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

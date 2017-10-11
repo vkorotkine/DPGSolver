@@ -34,16 +34,20 @@ struct Plotting_Nodes {
 
 	/// Indices of the linear VTK element types used by paraview. See the Figure 2 in $ROOT/doc/VTK_file_formats.pdf.
 	struct Vector_i* vtk_types;
+
+	/// Indices equal to the polyline VTK element type used by paraview. Edges are always represented by polylines.
+	struct Vector_i* vtk_types_e;
 };
 
 /// `const` version of \ref Plotting_Nodes.
 struct const_Plotting_Nodes {
 	const struct const_Nodes nodes; ///< Defined in \ref Plotting_Nodes.
 
-	const struct const_Multiarray_Vector_i* connect;   ///< Defined in \ref Plotting_Nodes.
-	const struct const_Multiarray_Vector_i* connect_e; ///< Defined in \ref Plotting_Nodes.
+	const struct const_Multiarray_Vector_i*const connect;   ///< Defined in \ref Plotting_Nodes.
+	const struct const_Multiarray_Vector_i*const connect_e; ///< Defined in \ref Plotting_Nodes.
 
-	const struct const_Vector_i* vtk_types; ///< Defined in \ref Plotting_Nodes.
+	const struct const_Vector_i*const vtk_types;   ///< Defined in \ref Plotting_Nodes.
+	const struct const_Vector_i*const vtk_types_e; ///< Defined in \ref Plotting_Nodes.
 };
 
 // Constructor functions ******************************************************************************************** //

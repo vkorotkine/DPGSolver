@@ -32,6 +32,9 @@ ext_0/data
 vtk_types:
 container Vector_i
 3	3 3 3
+vtk_types_e:
+container Vector_i
+2	4 4
 
 
 --------------------------------------------------------------------------------
@@ -87,6 +90,9 @@ ext_0/data
 vtk_types:
 container Vector_i
 9	5 5 5 5 5 5 5 5 5
+vtk_types_e:
+container Vector_i
+3	4 4 4
 
 
 P3 QUAD nodes:
@@ -146,6 +152,9 @@ ext_0/data
 vtk_types:
 container Vector_i
 9	9 9 9 9 9 9 9 9 9
+vtk_types_e:
+container Vector_i
+4	4 4 4 4
 
 
 --------------------------------------------------------------------------------
@@ -224,6 +233,9 @@ ext_0/data
 vtk_types:
 container Vector_i
 19	10 10 10 10 10 10 14 14 14 14 14 14 10 10 10 10 14 14 10
+vtk_types_e:
+container Vector_i
+6	4 4 4 4 4 4
 
 
 P3 HEX nodes:
@@ -351,6 +363,9 @@ ext_0/data
 vtk_types:
 container Vector_i
 27	12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12 12
+vtk_types_e:
+container Vector_i
+12	4 4 4 4 4 4 4 4 4 4 4 4
 
 
 P3 WEDGE nodes:
@@ -457,6 +472,9 @@ ext_0/data
 vtk_types:
 container Vector_i
 27	13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13 13
+vtk_types_e:
+container Vector_i
+9	4 4 4 4 4 4 4 4 4
 
 
 P3 PYR nodes:
@@ -560,3 +578,6 @@ ext_0/data
 vtk_types:
 container Vector_i
 35	14 14 14 14 14 14 14 14 14 10 10 10 10 10 10 10 10 10 10 10 10 14 14 14 14 14 14 14 14 10 10 10 10 14 14
+vtk_types_e:
+container Vector_i
+8	4 4 4 4 4 4 4 4

@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element_operators.h"
 #include "element_operators_tp.h"
 #include "multiarray_operator.h"
+#include "nodes_plotting.h"
 #include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
@@ -53,6 +54,15 @@ void constructor_derived_Plotting_Element (struct Element* element_ptr, const st
 		EXIT_UNSUPPORTED;
 		break;
 	}
+
+	const int* p_ref = sim->p_s_v;
+	const int n_p = p_ref[1]+1;
+
+	struct Plotting_Element* element = (struct Plotting_Element*) element_ptr;
+	element->n_p = n_p;
+	element->p_nodes = calloc(n_p , sizeof *element->p_nodes); // free
+	for (int i = p_ref[0]; i <= p_ref[1]; ++i)
+		element->p_nodes[i] = constructor_const_Plotting_Nodes(i,element_ptr->type); // destructed
 }
 
 void destructor_derived_Plotting_Element (struct Element* element_ptr)
@@ -60,6 +70,13 @@ void destructor_derived_Plotting_Element (struct Element* element_ptr)
 	struct Plotting_Element* element = (struct Plotting_Element*) element_ptr;
 	destructor_Multiarray_Operator(element->cv0_vgs_vps);
 	destructor_Multiarray_Operator(element->cv0_vgc_vpc);
+
+	const int n_p = element->n_p;
+	for (int i = 0; i < n_p; ++i) {
+		if (element->p_nodes[i])
+			destructor_const_Plotting_Nodes(element->p_nodes[i]);
+	}
+	free(element->p_nodes);
 }
 
 // Static functions ************************************************************************************************* //

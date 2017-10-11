@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides Vector_\* printing functions.
  */
 
+#include <stdio.h>
+
 struct Vector_i;
 struct Vector_d;
 struct const_Vector_i;
@@ -54,6 +56,20 @@ void print_Vector_d
 /// \brief `const` version of \ref print_Vector_d.
 void print_const_Vector_d
 	(const struct const_Vector_d*const a ///< Defined for \ref print_Vector_d.
+	);
+
+/// \brief Print a \ref const_Vector_i to a file with the input number of tabs before each row.
+void fprint_const_Vector_i
+	(FILE* file,                    ///< The file.
+	 const int n_tab,               ///< The number of tabs.
+	 const struct const_Vector_i* a ///< Standard.
+	);
+
+/// \brief `mutable` version of \ref fprint_const_Vector_i.
+void fprint_Vector_i
+	(FILE* file,        ///< Defined for \ref fprint_const_Vector_i.
+	 const int n_tab,   ///< Defined for \ref fprint_const_Vector_i.
+	 struct Vector_i* a ///< Defined for \ref fprint_const_Vector_i.
 	);
 
 #endif // DPG__vector_print_h__INCLUDED

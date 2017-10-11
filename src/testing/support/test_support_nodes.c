@@ -282,5 +282,8 @@ static struct Plotting_Nodes* constructor_file_Plotting_Nodes (FILE* data_file)
 	skip_lines(data_file,1);
 	p_nodes->vtk_types = constructor_file_Vector_i(data_file,true); // keep
 
+	skip_lines(data_file,1);
+	p_nodes->vtk_types_e = constructor_file_Vector_i(data_file,true); // keep
+
 	return p_nodes;
 }

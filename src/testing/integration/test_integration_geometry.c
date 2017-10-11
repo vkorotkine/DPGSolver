@@ -51,7 +51,7 @@ void test_integration_geometry (struct Test_Info*const test_info, const char*con
 	constructor_derived_computational_elements(sim,IL_SOLVER);
 
 	set_up_solver_geometry(sim);
-	output_visualization(sim,VIS_GEOM_VOLUME);
+	output_visualization(sim,VIS_GEOM_VOLUMES);
 
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 

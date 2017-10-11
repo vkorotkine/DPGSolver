@@ -20,7 +20,8 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name Available visualization output types.
-#define VIS_GEOM_VOLUME 101 ///< The high-order geometry of the \ref Volume computational elements.
+#define VIS_GEOM_VOLUMES 101 ///< The high-order volume geometry of the \ref Volume computational elements.
+#define VIS_GEOM_EDGES   102 ///< The high-order edge   geometry of the \ref Volume computational elements.
 ///\}
 
 #endif // DPG__definitions_visualization_h__INCLUDED

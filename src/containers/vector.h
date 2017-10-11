@@ -89,6 +89,12 @@ void set_to_data_Vector_i
 	);
 
 /// \brief Set all data entries to the input value.
+void set_to_value_Vector_i
+	(struct Vector_i*const a, ///< Standard.
+	 const int val            ///< The value.
+	);
+
+/// \brief Set all data entries to the input value.
 void set_to_value_Vector_d
 	(struct Vector_d*const a, ///< Standard.
 	 const double val         ///< The value.

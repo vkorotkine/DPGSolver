@@ -41,6 +41,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Struct holding data related to the simulation.
 struct Simulation {
+	const int mpi_size, ///< The number of mpi processes.
+	          mpi_rank; ///< The mpi rank of the current processor.
+
 	const char ctrl_name_full[STRLEN_MAX]; ///< Name of the control file (including full path and file extension).
 	const char mesh_name_full[STRLEN_MAX]; ///< Name of the mesh    file (including full path and file extension).
 	const char input_path[STRLEN_MAX];     ///< The path to the directory containing relevant input files.

@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <string.h>
 #include <limits.h>
 #include <stdbool.h>
+#include "mpi.h"
 
 #include "macros.h"
 #include "definitions_core.h"
@@ -42,6 +43,11 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Invalid value for a polynomial order (which would be unlikely to be chosen inadvertently).
 #define P_INVALID -314159265
 ///\}
+
+/// \brief Set the MPI related members of \ref Simulation.
+static void set_simulation_mpi
+	(struct Simulation*const sim ///< Standard.
+	);
 
 /** \brief Set core parameters for the simulation as specified in the control file.
  *
@@ -79,6 +85,7 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 	struct Simulation* sim = calloc(1,sizeof *sim); // returned;
 
 	set_simulation_invalid(sim);
+	set_simulation_mpi(sim);
 	set_simulation_core(sim,ctrl_name);
 	set_Simulation_elements(sim,constructor_Elements(sim->d)); // destructed
 
@@ -180,6 +187,9 @@ static void set_input_path
 
 static void set_simulation_invalid (struct Simulation*const sim)
 {
+	const_cast_i(&sim->mpi_size,-1);
+	const_cast_i(&sim->mpi_rank,-1);
+
 	for (int i = 0; i < N_ST_STD; ++i) {
 		const_cast_c(sim->nodes_interp[i],0);
 		const_cast_c(sim->geom_blending[i],0);
@@ -199,6 +209,17 @@ static void set_simulation_invalid (struct Simulation*const sim)
 	const_cast_i(&sim->p_t_p,P_INVALID);
 
 	const_cast_bool(&sim->collocated,false);
+}
+
+static void set_simulation_mpi (struct Simulation*const sim)
+{
+	int mpi_size = -1,
+	    mpi_rank = -1;
+	MPI_Comm_size(MPI_COMM_WORLD,&mpi_size);
+	MPI_Comm_rank(MPI_COMM_WORLD,&mpi_rank);
+
+	const_cast_i(&sim->mpi_size,mpi_size);
+	const_cast_i(&sim->mpi_rank,mpi_rank);
 }
 
 static void set_simulation_core (struct Simulation*const sim, const char*const ctrl_name)
@@ -251,6 +272,9 @@ if (0)
 
 static void check_necessary_simulation_parameters (struct Simulation*const sim)
 {
+	assert(sim->mpi_size >  0);
+	assert(sim->mpi_rank >= 0);
+
 	assert((sim->nodes_interp[0][0] != 0) ||
 	       (sim->nodes_interp[1][0] != 0) ||
 	       (sim->nodes_interp[2][0] != 0));

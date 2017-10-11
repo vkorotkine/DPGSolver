@@ -20,10 +20,12 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <stddef.h>
+#include <stdio.h>
 
 struct Multiarray_d;
 struct Multiarray_Vector_i;
 struct Multiarray_Matrix_d;
+struct const_Vector_i;
 struct const_Multiarray_d;
 struct const_Multiarray_Vector_i;
 struct const_Multiarray_Matrix_d;
@@ -86,6 +88,13 @@ void print_const_Multiarray_Matrix_d
 void print_Multiarray_extents
 	(const int order,              ///< Defined in \ref Multiarray_d.
 	 const ptrdiff_t*const extents ///< Defined in \ref Multiarray_d.
+	);
+
+/// \brief Print a \ref const_Multiarray_Vector_i to a file with the input number of tabs before each row.
+void fprint_const_Multiarray_Vector_i
+	(FILE* file,                               ///< The file.
+	 const int n_tab,                          ///< The number of tabs.
+	 const struct const_Multiarray_Vector_i* a ///< Standard.
 	);
 
 #endif // DPG__multiarray_print_h__INCLUDED

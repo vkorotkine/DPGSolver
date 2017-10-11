@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <mpi.h>
 
 #include "macros.h"
 #include "test_integration_mesh.h"
@@ -32,6 +33,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void run_tests_integration (struct Test_Info*const test_info)
 {
+	MPI_Init(NULL,NULL);
+
 	printf("\n\nRunning Integration Tests:\n");
 	printf("-------------------------------------------------------------------------------------------------\n\n");
 
@@ -45,6 +48,8 @@ void run_tests_integration (struct Test_Info*const test_info)
 	test_integration_geometry(test_info,"extern_mesh/TEST_curved_2d_mixed");
 
 //	test_integration_euler(test_info);
+
+	MPI_Finalize();
 }
 
 // Static functions ************************************************************************************************* //
