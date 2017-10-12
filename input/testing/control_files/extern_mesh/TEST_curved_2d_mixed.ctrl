@@ -14,7 +14,7 @@ mesh_domain      curved
 mesh_type        mixed
 mesh_level       0 0
 mesh_unrealistic 0
-mesh_path        ../testing/mesh/curved_2d_mixed.msh
+mesh_path        ../testing/integration/mesh/curved_2d_mixed.msh
 
 
 # Remaining variables

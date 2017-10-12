@@ -9,21 +9,6 @@ Petsc Solver Updates
 LHS changes:
 1) Move memory allocation (calloc) to relevant compute_* functions (remove in update_VOLUME/FACE functions)
 2) Free memory as soon as it is no longer needed during compute_RLHS stage (Including freeing Qhat_What**)
-3) Remove dependence on global variables (when implementing HDG)
-	- remove variables which are only used in certain functions of the code from currently defined global structs (e.g.
-	  remove LHS, QhatV from the VOLUME struct). Replace these with new structs derived from the common VOLUME with the
-	  additional required parameters for the specific functions under consideration (e.g. solving, geometry).
-
-Linearization changes: (generalize to all functions in the future)
-1) Make new structs for specific functions with const reference (const move constructor) to required previously
-   initialized data and with declarations of required limited scope data as part of the constructor.
-   - Start by simply transferring to local struct and getting the function to work, then switch to new "classes" for
-	 data storage (S_MULTI_ARRAY_cx)
-   Ex: Construct S_VOLUME_solver_cx which takes required parameters from S_VOLUME for complex RHS evaluation.
-2) When completed, should be able to remove the following variables from S_VOLUME:
-	- *RHS_c, *What_c, **Qhat_c, **QhatV_c, **qhat_c
-
-
 
 
 Code refactoring:

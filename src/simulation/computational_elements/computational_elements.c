@@ -105,14 +105,6 @@ static void update_computational_element_elements
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Constructor for a derived \ref Intrusive_Link\* to be inserted in a list.
- *  \return See brief. */
-static struct Intrusive_Link* constructor_derived_Intrusive_Link
-	(struct Intrusive_Link* base, ///< Pointer to the base link.
-	 const size_t sizeof_base,    ///< Value of std::sizeof(base).
-	 const size_t sizeof_derived  ///< Value of std::sizeof(derived).
-	);
-
 /** \brief `const` version of \ref constructor_derived_Intrusive_Link.
  *  \return See brief. */
 static const struct const_Intrusive_Link* constructor_derived_const_Intrusive_Link
@@ -133,6 +125,12 @@ static struct Intrusive_Link* constructor_base_Intrusive_Link
 static const struct const_Intrusive_Link* constructor_base_const_Intrusive_Link
 	(const struct const_Intrusive_Link* derived, ///< Defined for \ref constructor_base_Intrusive_Link.
 	 const size_t sizeof_base                    ///< Defined for \ref constructor_base_Intrusive_Link.
+	);
+
+/** \brief See return.
+ *  \return The index of the intrusive list category corresponding to the current volume and face list names. */
+static int get_list_category
+	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -196,20 +194,32 @@ void constructor_derived_computational_elements (struct Simulation* sim, const i
 	destructor_IL_base(sim->faces);
 }
 
-void destructor_derived_computational_elements (struct Simulation* sim, const int derived_category)
+void destructor_derived_computational_elements (struct Simulation* sim, const int base_category)
 {
 	// Set parameters
 // Make external function here after usage is set.
 	int base_name[2]         = { 0, 0, };
 	size_t sizeof_base[2]    = { 0, 0, };
-	destructor_derived_Volume_fptr destructor_derived_Volume = NULL;
-	destructor_derived_Face_fptr   destructor_derived_Face   = NULL;
-	switch (derived_category) {
-	case IL_SOLVER:
+
+	switch (base_category) {
+	case IL_BASE:
 		base_name[0] = IL_VOLUME;
 		base_name[1] = IL_FACE;
 		sizeof_base[0] = sizeof(struct Volume);
 		sizeof_base[1] = sizeof(struct Face);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",base_category);
+		break;
+	}
+
+	destructor_derived_Volume_fptr destructor_derived_Volume = NULL;
+	destructor_derived_Face_fptr   destructor_derived_Face   = NULL;
+
+	const int derived_category = get_list_category(sim);
+	switch (derived_category) {
+	case IL_SOLVER:
+		assert(base_category == IL_BASE);
 		destructor_derived_Volume = destructor_derived_Solver_Volume;
 		destructor_derived_Face   = destructor_derived_Solver_Face;
 		break;
@@ -304,25 +314,35 @@ void constructor_derived_Elements (struct Simulation* sim, const int derived_nam
 	destructor_const_IL_base(sim->elements);
 }
 
-void destructor_derived_Elements (struct Simulation* sim, const int derived_name)
+void destructor_derived_Elements (struct Simulation* sim, const int base_name)
 {
 	// Set parameters
 // Make external function here after usage is set.
-	int base_name      = -1;
 	size_t sizeof_base = 0;
 	destructor_derived_Element_fptr destructor_derived_Element = NULL;
 
-	const int curr_name = sim->elements->name;
-	assert(curr_name == derived_name);
-	switch (curr_name) {
-		case IL_GEOMETRY_ELEMENT:
-			base_name = IL_ELEMENT;
-			sizeof_base = sizeof(struct Element);
-			destructor_derived_Element = destructor_derived_Geometry_Element;
-			break;
-		default:
-			EXIT_ERROR("Unsupported: %d\n",curr_name);
-			break;
+	switch (base_name) {
+	case IL_ELEMENT:
+		sizeof_base = sizeof(struct Element);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",base_name);
+		break;
+	}
+
+	const int derived_name = sim->elements->name;
+	switch (derived_name) {
+	case IL_GEOMETRY_ELEMENT:
+		assert(base_name == IL_ELEMENT);
+		destructor_derived_Element = destructor_derived_Geometry_Element;
+		break;
+	case IL_PLOTTING_ELEMENT:
+		assert(base_name == IL_ELEMENT);
+		destructor_derived_Element = destructor_derived_Plotting_Element;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",derived_name);
+		break;
 	}
 
 	// Perform destruction specific to the derived element list.
@@ -345,6 +365,18 @@ void destructor_derived_Elements (struct Simulation* sim, const int derived_name
 
 	// Destruct the derived list.
 	destructor_const_IL(elements_prev);
+}
+
+struct Intrusive_Link* constructor_derived_Intrusive_Link
+	(struct Intrusive_Link* base, const size_t sizeof_base, const size_t sizeof_derived)
+{
+	struct Intrusive_Link* derived = calloc(1,sizeof_derived); // returned
+	memcpy(derived,base,sizeof_base); // shallow copy of the base.
+
+	assert(base->derived == NULL);
+	base->derived = derived;
+
+	return derived;
 }
 
 // Static functions ************************************************************************************************* //
@@ -384,18 +416,6 @@ static void update_computational_element_elements (struct Simulation* sim)
 	}
 }
 
-static struct Intrusive_Link* constructor_derived_Intrusive_Link
-	(struct Intrusive_Link* base, const size_t sizeof_base, const size_t sizeof_derived)
-{
-	struct Intrusive_Link* derived = calloc(1,sizeof_derived); // returned
-	memcpy(derived,base,sizeof_base); // shallow copy of the base.
-
-	assert(base->derived == NULL);
-	base->derived = derived;
-
-	return derived;
-}
-
 static const struct const_Intrusive_Link* constructor_derived_const_Intrusive_Link
 	(const struct const_Intrusive_Link* base, const size_t sizeof_base, const size_t sizeof_derived)
 {
@@ -423,6 +443,24 @@ static const struct const_Intrusive_Link* constructor_base_const_Intrusive_Link
 {
 	return (const struct const_Intrusive_Link*)
 		constructor_base_Intrusive_Link((struct Intrusive_Link*)derived,sizeof_base);
+}
+
+static int get_list_category (const struct Simulation* sim)
+{
+	const int v_name = sim->volumes->name,
+	          f_name = sim->faces->name;
+
+	int ce_name = -1;
+	switch (v_name) {
+	case IL_SOLVER_VOLUME:
+		assert(f_name == IL_SOLVER_FACE);
+		ce_name = IL_SOLVER;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",v_name);
+		break;
+	}
+	return ce_name;
 }
 
 // Level 1 ********************************************************************************************************** //

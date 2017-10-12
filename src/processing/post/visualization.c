@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "volume.h"
 #include "solver_volume.h"
+#include "solver_face.h"
 
 #include "multiarray.h"
 #include "vector.h"
@@ -64,8 +65,7 @@ void output_visualization (struct Simulation* sim, const int vis_type)
 
 	output_visualization_paraview(sim,vis_type);
 
-/// \todo change input here to desired base list.
-	destructor_derived_Elements(sim,IL_PLOTTING_ELEMENT);
+	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
 // Static functions ************************************************************************************************* //
@@ -77,6 +77,11 @@ static void output_visualization_vtk_geom
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/// \brief Output the visualization of the face normals in vtk xml format.
+static void output_visualization_vtk_normals
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
 static void output_visualization_paraview (const struct Simulation* sim, const int vis_type)
 {
 	switch (vis_type) {
@@ -84,6 +89,9 @@ static void output_visualization_paraview (const struct Simulation* sim, const i
 	case VIS_GEOM_EDGES:
 		output_visualization_vtk_geom('v',sim);
 		output_visualization_vtk_geom('e',sim);
+		break;
+	case VIS_NORMALS:
+		output_visualization_vtk_normals(sim);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",vis_type);
@@ -101,6 +109,15 @@ const char* set_output_name
 	 const char*const name_spec ///< The specific name.
 	);
 
+/** \brief Open the file to which the visualization output will be written.
+ *  \return The pointer to the file. */
+static FILE* fopen_vis_output_file
+	(const char sp_type,              ///< Type indicator for 's'erial or 'p'arallel.
+	 const char*const name_part,      ///< Partial output file name.
+	 const char*const extension_part, ///< File extension.
+	 const struct Simulation* sim     ///< \ref Simulation.
+	);
+
 /// \brief Print the input string to the file with the specified number of tabs.
 static void fprintf_tn
 	(FILE* file,               ///< The file.
@@ -110,19 +127,29 @@ static void fprintf_tn
 
 /// \brief Print the vtk header for the output file.
 static void fprint_vtk_header_footer
-	(FILE* file,             ///< The file.
-	 const bool is_parallel, ///< Flag for whether the output file is the parallel or normal file.
-	 const char hf_type      ///< Type indicator for whether the 'h'eader or 'f'ooter should be printed.
+	(FILE* file,                    ///< The file.
+	 const bool is_parallel,        ///< Flag for whether the output file is the parallel or normal file.
+	 const char hf_type,            ///< Type indicator for whether the 'h'eader or 'f'ooter should be printed.
+	 const char*const vtk_type_part ///< The partial vtk file type.
 	);
 
-/// \brief Print the 's'tart/'e'nd of a piece to the file.
-static void fprint_vtk_piece
+/// \brief Print the 's'tart/'e'nd of a geometry piece to the file.
+static void fprint_vtk_piece_geom
 	(FILE* file,                                ///< The file.
 	 const char sp_type,                        ///< Type indicator for 's'erial or 'p'arallel.
 	 const char se_type,                        ///< Type indicator for 's'tart or 'e'nd.
 	 const char geom_type,                      ///< Defined for \ref output_visualization_vtk_geom.
 	 const struct const_Multiarray_d* xyz,      ///< Coordinates of the points (required for 's'erial, 's'tart).
 	 const struct const_Plotting_Nodes* p_nodes ///< \ref Plotting_Nodes (required for 's'erial, 's'tart).
+	);
+
+/// \brief Print the 's'tart/'e'nd of a normals piece to the file.
+static void fprint_vtk_piece_normals
+	(FILE* file,                              ///< The file.
+	 const char sp_type,                      ///< Type indicator for 's'erial or 'p'arallel.
+	 const char se_type,                      ///< Type indicator for 's'tart or 'e'nd.
+	 const struct const_Multiarray_d* xyz,    ///< Coordinates of the points (required for 's'erial, 's'tart).
+	 const struct const_Multiarray_d* normals ///< Normal vector coordinates at each of the coordinates.
 	);
 
 static void output_visualization_vtk_geom (const char geom_type, const struct Simulation* sim)
@@ -134,32 +161,26 @@ static void output_visualization_vtk_geom (const char geom_type, const struct Si
 
 	const char*const output_name = set_output_name(VIS_SOFTWARE_PARAVIEW,output_part);
 
+	static char* extension_part = "vtu";
 	if (sim->mpi_rank == 0) {
-		static char parallel_name[STRLEN_MAX] = { 0, };
-		sprintf(parallel_name,"%s%s",output_name,".pvtu");
+		FILE* p_file = fopen_vis_output_file('p',output_name,extension_part,sim);
 
-		FILE* p_file = fopen_create_dir(parallel_name);
+		fprint_vtk_header_footer(p_file,true,'h',"UnstructuredGrid");
 
-		fprint_vtk_header_footer(p_file,true,'h');
-
-		fprint_vtk_piece(p_file,'p','s',geom_type,NULL,NULL);
+		fprint_vtk_piece_geom(p_file,'p','s',geom_type,NULL,NULL);
 
 		for (int i = 0; i < sim->mpi_size; ++i)
 			fprintf(p_file,"<Piece Source=\"%s_%d.vtu\"/>\n",output_part,i);
 		fprintf(p_file,"\n");
 
-		fprint_vtk_header_footer(p_file,true,'f');
+		fprint_vtk_header_footer(p_file,true,'f',"UnstructuredGrid");
 
 		fclose(p_file);
 	}
 
-	static char serial_name[STRLEN_MAX] = { 0, };
-	sprintf(serial_name,"%s%s%d%s",output_name,"_",sim->mpi_rank,".vtu");
+	FILE* s_file = fopen_vis_output_file('s',output_name,extension_part,sim);
 
-	FILE* s_file = fopen_create_dir(serial_name);
-
-	fprint_vtk_header_footer(s_file,false,'h');
-
+	fprint_vtk_header_footer(s_file,false,'h',"UnstructuredGrid");
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Volume* base_volume   = (struct Volume*)curr;
 		struct Solver_Volume* volume = (struct Solver_Volume*)curr;
@@ -171,39 +192,78 @@ static void output_visualization_vtk_geom (const char geom_type, const struct Si
 			(!base_volume->curved ? get_Multiarray_Operator(element->cv0_vgs_vps,(ptrdiff_t[]){0,0,p,1})
 			                      : get_Multiarray_Operator(element->cv0_vgc_vpc,(ptrdiff_t[]){0,0,p,p}) );
 
-		print_const_Multiarray_d(volume->geom_coef);
-
 		const struct const_Multiarray_d* g_coef = volume->geom_coef;
 		const struct const_Multiarray_d* xyz_p =
 			constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vg_vp,g_coef,'R','d',g_coef->order,NULL); // destructed
 
-		fprint_vtk_piece(s_file,'s','s',geom_type,xyz_p,element->p_nodes[p]);
-		fprint_vtk_piece(s_file,'s','e',geom_type,NULL,NULL);
+		fprint_vtk_piece_geom(s_file,'s','s',geom_type,xyz_p,element->p_nodes[p]);
+		fprint_vtk_piece_geom(s_file,'s','e',geom_type,NULL,NULL);
 
 		destructor_const_Multiarray_d(xyz_p);
 	}
+	fprint_vtk_header_footer(s_file,false,'f',"UnstructuredGrid");
 
-	fprint_vtk_header_footer(s_file,false,'f');
+	fclose(s_file);
+}
+
+static void output_visualization_vtk_normals (const struct Simulation* sim)
+{
+	static const char* output_part = "normals";
+	const char*const output_name = set_output_name(VIS_SOFTWARE_PARAVIEW,output_part);
+
+	static char* extension_part = "vtp";
+	if (sim->mpi_rank == 0) {
+		FILE* p_file = fopen_vis_output_file('p',output_name,extension_part,sim);
+
+		fprint_vtk_header_footer(p_file,true,'h',"PolyData");
+		fprint_vtk_piece_normals(p_file,'p','s',NULL,NULL);
+
+		for (int i = 0; i < sim->mpi_size; ++i)
+			fprintf(p_file,"<Piece Source=\"%s_%d.vtp\"/>\n",output_part,i);
+		fprintf(p_file,"\n");
+
+		fprint_vtk_header_footer(p_file,true,'f',"PolyData");
+
+		fclose(p_file);
+	}
+
+	FILE* s_file = fopen_vis_output_file('s',output_name,extension_part,sim);
+
+	fprint_vtk_header_footer(s_file,false,'h',"PolyData");
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		struct Solver_Face* face = (struct Solver_Face*)curr;
+
+		fprint_vtk_piece_normals(s_file,'s','s',face->xyz_fc,face->normals_fc);
+		fprint_vtk_piece_normals(s_file,'s','e',NULL,NULL);
+	}
+	fprint_vtk_header_footer(s_file,false,'f',"PolyData");
 
 	fclose(s_file);
 }
 
 // Level 2 ********************************************************************************************************** //
 
-/** \brief Print a \ref const_Multiarray_d to a file with the input number of tabs before each row, and padding rows
- *         with zeroes until they have 3 entries. */
-void fprint_const_Multiarray_d_vtk_point
-	(FILE* file,                        ///< The file.
-	 const int n_tab,                   ///< The number of tabs.
-	 const struct const_Multiarray_d* a ///< Standard.
-	);
-
-/** \brief Print the array of cummulative sum of `ext_0` of the \ref Vector_i\*s of the input \ref
- * const_Multiarray_Vector_i to a file with the input number of tabs before each row. */
+/** \brief Print the array of cummulative sum of `ext_0` of the \ref Vector_i\*s of the input
+ *         \ref const_Multiarray_Vector_i to a file with the input number of tabs before each row. */
 void fprint_const_Multiarray_Vector_i_offsets
 	(FILE* file,                               ///< The file.
 	 const int n_tab,                          ///< The number of tabs.
 	 const struct const_Multiarray_Vector_i* a ///< Standard.
+	);
+
+/// \brief Print a vtk Points entry to the file.
+void fprint_vtk_Points
+	(FILE* file,                          ///< The file.
+	 const char sp_type,                  ///< Type indicator for 's'erial or 'p'arallel.
+	 const struct const_Multiarray_d* xyz ///< Coordinates of the points (required for 's'erial).
+	);
+
+/// \brief Print a vtk DataArray entry for a `double` Vector to the file.
+void fprint_vtk_DataArray_Vector_d
+	(FILE* file,                           ///< The file.
+	 const char sp_type,                   ///< Type indicator for 's'erial or 'p'arallel.
+	 const char*const data_name,           ///< The name of the data.
+	 const struct const_Multiarray_d* data ///< Coordinates of the points (required for 's'erial).
 	);
 
 const char* set_output_name (const int vis_software, const char*const name_spec)
@@ -220,14 +280,27 @@ const char* set_output_name (const int vis_software, const char*const name_spec)
 		break;
 	}
 
-	if (strcmp(name_spec,"geom_v") == 0 ||
-	    strcmp(name_spec,"geom_e") == 0) {
+	if (strcmp(name_spec,"geom_v")  == 0 || strcmp(name_spec,"geom_e")  == 0 || strcmp(name_spec,"normals") == 0)
 		strcat(output_name,name_spec);
-	} else {
+	else
 		EXIT_ERROR("Unsupported: %s\n",name_spec);
-	}
 
 	return output_name;
+}
+
+static FILE* fopen_vis_output_file
+	(const char sp_type, const char*const name_part, const char*const extension_part,
+	 const struct Simulation* sim)
+{
+	assert(sp_type == 's' || sp_type == 'p');
+	static char file_name[STRLEN_MAX] = { 0, };
+
+	if (sp_type == 's')
+		sprintf(file_name,"%s%c%d%s%s",name_part,'_',sim->mpi_rank,".",extension_part);
+	else if (sp_type == 'p')
+		sprintf(file_name,"%s%s%s",name_part,".p",extension_part);
+
+	return fopen_create_dir(file_name);
 }
 
 static void fprintf_tn (FILE* file, const int n_tabs, const char*const string_i)
@@ -237,16 +310,16 @@ static void fprintf_tn (FILE* file, const int n_tabs, const char*const string_i)
 	fprintf(file,"%s\n",string_i);
 }
 
-static void fprint_vtk_header_footer (FILE* file, const bool is_parallel, const char hf_type)
+static void fprint_vtk_header_footer
+	(FILE* file, const bool is_parallel, const char hf_type, const char*const vtk_type_part)
 {
 	static char vtk_type[STRLEN_MIN] = { 0, },
 	            string_i[STRLEN_MAX] = { 0, };
 
 	if (is_parallel)
-		strcpy(vtk_type,"PUnstructuredGrid");
+		sprintf(vtk_type,"%c%s",'P',vtk_type_part);
 	else
-		strcpy(vtk_type,"UnstructuredGrid");
-
+		strcpy(vtk_type,vtk_type_part);
 
 	if (hf_type == 'h') {
 		fprintf_tn(file,0,"<?xml version=\"1.0\"?>");
@@ -268,22 +341,17 @@ static void fprint_vtk_header_footer (FILE* file, const bool is_parallel, const 
 	}
 }
 
-static void fprint_vtk_piece
+static void fprint_vtk_piece_geom
 	(FILE* file, const char sp_type, const char se_type, const char geom_type, const struct const_Multiarray_d* xyz,
 	const struct const_Plotting_Nodes* p_nodes)
 {
-	// Note: Points **must** have 3 values.
-
 	assert(sp_type == 's' || sp_type == 'p');
 	assert(se_type == 's' || se_type == 'e');
 	assert(geom_type == 'v' || geom_type == 'e');
 
 	if (sp_type == 'p') {
 		if (se_type == 's') {
-			fprintf_tn(file,1,"<PPoints>");
-				fprintf(file,"\t\t<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\"/>\n");
-			fprintf_tn(file,1,"</PPoints>");
-
+			fprint_vtk_Points(file,sp_type,NULL);
 			fprintf_tn(file,1,"<PCells>");
 				fprintf_tn(file,2,"<PDataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\"/>");
 				fprintf_tn(file,2,"<PDataArray type=\"Int32\" Name=\"offsets\" format=\"ascii\"/>");
@@ -306,12 +374,8 @@ static void fprint_vtk_piece
 			}
 
 			fprintf(file,"\n<Piece NumberOfPoints=\"%td\" NumberOfCells=\"%td\">\n",
-			        xyz->extents[0],connect->extents[0]);
-			fprintf_tn(file,1,"<Points>");
-				fprintf(file,"\t\t<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\">\n");
-				fprint_const_Multiarray_d_vtk_point(file,2,xyz);
-				fprintf_tn(file,2,"</DataArray>");
-			fprintf_tn(file,1,"</Points>");
+			             xyz->extents[0],connect->extents[0]);
+			fprint_vtk_Points(file,sp_type,xyz);
 
 			fprintf_tn(file,1,"<Cells>");
 				fprintf_tn(file,2,"<DataArray type=\"Int32\" Name=\"connectivity\" format=\"ascii\">");
@@ -332,7 +396,97 @@ static void fprint_vtk_piece
 	}
 }
 
+static void fprint_vtk_piece_normals
+	(FILE* file, const char sp_type, const char se_type, const struct const_Multiarray_d* xyz,
+	 const struct const_Multiarray_d* normals)
+{
+	assert(sp_type == 's' || sp_type == 'p');
+	assert(se_type == 's' || se_type == 'e');
+
+	if (sp_type == 'p') {
+		if (se_type == 's') {
+			fprint_vtk_Points(file,sp_type,NULL);
+			fprint_vtk_DataArray_Vector_d(file,sp_type,"Normals",normals);
+			fprintf(file,"\n");
+		} else if (se_type == 'e') {
+			EXIT_UNSUPPORTED;
+		}
+	} else if (sp_type == 's') {
+		if (se_type == 's') {
+			fprintf(file,"\n<Piece NumberOfPoints=\"%td\" NumberOfVerts=\"0\" NumberOfLines=\"0\" "
+			             "NumberOfStrips=\"0\" NumberOfPolys=\"0\">\n",xyz->extents[0]);
+			fprint_vtk_Points(file,sp_type,xyz);
+			fprint_vtk_DataArray_Vector_d(file,sp_type,"Normals",normals);
+		} else if (se_type == 'e') {
+			fprintf_tn(file,0,"</Piece>\n");
+		}
+	}
+}
+
 // Level 3 ********************************************************************************************************** //
+
+/** \brief Print a \ref const_Multiarray_d to a file with the input number of tabs before each row, and padding rows
+ *         with zeroes until they have 3 entries. */
+void fprint_const_Multiarray_d_vtk_point
+	(FILE* file,                        ///< The file.
+	 const int n_tab,                   ///< The number of tabs.
+	 const struct const_Multiarray_d* a ///< Standard.
+	);
+
+void fprint_vtk_Points (FILE* file, const char sp_type, const struct const_Multiarray_d* xyz)
+{
+	// Note: Points **must** have 3 values.
+	assert(sp_type == 's' || sp_type == 'p');
+
+	static char points_name[STRLEN_MIN] = { 0, };
+	if (sp_type == 's')
+		strcpy(points_name,"Points");
+	else
+		sprintf(points_name,"%c%s",'P',"Points");
+
+	fprintf(file,"\t<%s>\n",points_name);
+	fprintf_tn(file,2,"<DataArray type=\"Float32\" NumberOfComponents=\"3\" format=\"ascii\">");
+	if (sp_type == 's')
+		fprint_const_Multiarray_d_vtk_point(file,2,xyz);
+	fprintf_tn(file,2,"</DataArray>");
+	fprintf(file,"\t</%s>\n",points_name);
+}
+
+void fprint_vtk_DataArray_Vector_d
+	(FILE* file, const char sp_type, const char*const data_name, const struct const_Multiarray_d* data)
+{
+	// Note: Points **must** have 3 values.
+	assert(sp_type == 's' || sp_type == 'p');
+
+	static char pointdata_name[STRLEN_MIN] = { 0, };
+	if (sp_type == 's')
+		strcpy(pointdata_name,"PointData");
+	else
+		sprintf(pointdata_name,"%c%s",'P',"PointData");
+
+	fprintf(file,"\t<%s Vectors=\"%s\">\n",pointdata_name,data_name);
+	fprintf(file,"\t\t<DataArray type=\"Float32\" Name=\"%s\" NumberOfComponents=\"3\" format=\"ascii\">\n",data_name);
+	if (sp_type == 's')
+		fprint_const_Multiarray_d_vtk_point(file,2,data);
+	fprintf_tn(file,2,"</DataArray>");
+	fprintf(file,"\t</%s>\n",pointdata_name);
+}
+
+void fprint_const_Multiarray_Vector_i_offsets (FILE* file, const int n_tab, const struct const_Multiarray_Vector_i* a)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	struct Vector_i* a_V = constructor_empty_Vector_i(size); // destructed
+	ptrdiff_t sum = 0;
+	for (ptrdiff_t i = 0; i < size; ++i) {
+		a_V->data[i] = sum + a->data[i]->ext_0;
+		sum = a_V->data[i];
+	}
+	fprint_Vector_i(file,n_tab,a_V);
+	destructor_Vector_i(a_V);
+}
+
+// Level 4 ********************************************************************************************************** //
 
 void fprint_const_Multiarray_d_vtk_point (FILE* file, const int n_tab, const struct const_Multiarray_d* a)
 {
@@ -364,18 +518,4 @@ void fprint_const_Multiarray_d_vtk_point (FILE* file, const int n_tab, const str
 
 	if (transpose_Ma)
 		transpose_Multiarray_d((struct Multiarray_d*)a,true);
-}
-
-void fprint_const_Multiarray_Vector_i_offsets (FILE* file, const int n_tab, const struct const_Multiarray_Vector_i* a)
-{
-	const ptrdiff_t size = compute_size(a->order,a->extents);
-
-	struct Vector_i* a_V = constructor_empty_Vector_i(size); // destructed
-	ptrdiff_t sum = 0;
-	for (ptrdiff_t i = 0; i < size; ++i) {
-		a_V->data[i] = sum + a->data[i]->ext_0;
-		sum = a_V->data[i];
-	}
-	fprint_Vector_i(file,n_tab,a_V);
-	destructor_Vector_i(a_V);
 }

@@ -1,5 +1,0 @@
-file(GLOB_RECURSE DATA_FILES *.fe*)
-foreach(data_name_full ${DATA_FILES})
-	string(REPLACE "${CMAKE_SOURCE_DIR}/input/testing/fe/" "" data_name ${data_name_full})
-	configure_file(${data_name_full} ${PROJECT_BINARY_DIR}/testing/fe/${data_name} COPYONLY)
-endforeach()

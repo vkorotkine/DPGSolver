@@ -231,7 +231,7 @@ static void set_Mesh_Input
 	const_cast_bool(&mesh_input->mesh_unrealistic,mesh_unrealistic);
 
 	char* mesh_name_full = (char*) mesh_input->mesh_name_full;
-	strcpy(mesh_name_full,"../testing/mesh/");
+	strcpy(mesh_name_full,"../testing/integration/mesh/");
 	strcat(mesh_name_full,mesh_name);
 
 	char* geom_name = (char*) mesh_input->geom_name;

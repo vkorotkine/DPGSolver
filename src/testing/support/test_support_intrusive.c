@@ -12,7 +12,8 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-/**	\file
+/** \file
+ *  \todo Likely name change to 'test_support_computational_elements'.
  */
 
 #include "test_support_intrusive.h"
@@ -65,7 +66,7 @@ struct Intrusive_List* constructor_file_name_IL
 			if (il_info.list_name == IL_VOLUME)
 				push_back_IL(intrusive_list,(struct Intrusive_Link*) constructor_Volume(file,line,elements));
 			else if (il_info.list_name == IL_FACE)
-				push_back_IL(intrusive_list,(struct Intrusive_Link*) constructor_Face(file,line,elements,volumes));
+				push_back_IL(intrusive_list,(struct Intrusive_Link*) constructor_Face_file(file,line,elements,volumes));
 			else
 				EXIT_UNSUPPORTED;
 		}
@@ -77,6 +78,45 @@ struct Intrusive_List* constructor_file_name_IL
 		EXIT_ERROR("Did not find a '%s' member in the file: %s.",list_name,file_name);
 
 	return intrusive_list;
+}
+
+void constructor_file_name_derived_Faces (struct Intrusive_List* faces, const char*const file_name)
+{
+	const int list_name = faces->name;
+
+	FILE* file = fopen_checked(file_name); // closed
+
+	struct Intrusive_Link* curr = faces->first;
+	char var_name[STRLEN_MIN] = { 0, };
+	bool found_last = 0;
+
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),file)) {
+
+		struct Face* face = (struct Face*)curr;
+		sprintf(var_name,"%s %d","Face",face->index);
+
+		if (strstr(line,var_name)) {
+			if (found_last)
+				EXIT_ERROR("Already found the last face.");
+
+			switch (list_name) {
+			case IL_SOLVER_FACE:
+				constructor_file_Solver_Face(file,line,face);
+				break;
+			default:
+				EXIT_ERROR("Unsupported: %d\n",list_name);
+				break;
+			}
+
+			if (curr == faces->last)
+				found_last = true;
+
+			curr = curr->next;
+		}
+	}
+	if (!found_last)
+		EXIT_ERROR("Did not find all faces in the file: %s.",file_name);
 }
 
 // Static functions ************************************************************************************************* //

@@ -10,5 +10,4 @@ foreach(data_name_full ${DATA_FILES})
 	configure_file(${data_name_full} ${PROJECT_BINARY_DIR}/testing/${data_name} COPYONLY)
 endforeach()
 
-add_subdirectory(fe)
-add_subdirectory(mesh)
+add_subdirectory(integration/mesh)

@@ -91,4 +91,11 @@ const char* constructor_file_name_unit
 	                                  *   relative path from '../test/unit'). */
 	);
 
+/** \brief Sets the name of the integration test data file.
+ *  \return See brief. */
+const char* set_data_file_name_integration
+	(const char*const ctrl_name,    ///< The name of the control file.
+	 const char*const int_test_type ///< The type of integration test.
+	);
+
 #endif // DPG__test_base_h__INCLUDED

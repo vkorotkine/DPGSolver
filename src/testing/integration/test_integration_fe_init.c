@@ -67,12 +67,6 @@ struct FE_Test_Data {
 	struct Intrusive_List* faces;   ///< Defined in \ref Simulation.
 };
 
-/** \brief Set the name of the data file containing the finite element information.
- *  \return Standard. */
-static const char* set_data_name_fe
-	(const char*const ctrl_name ///< The name of the control file.
-	);
-
 /** \brief Constructor for the \ref FE_Test_Data.
  *  \return Standard. */
 static struct FE_Test_Data* constructor_FE_Test_Data
@@ -84,7 +78,6 @@ static struct FE_Test_Data* constructor_FE_Test_Data
 static void destructor_FE_Test_Data
 	(struct FE_Test_Data* fe_test_data ///< \ref FE_Test_Data.
 	);
-
 
 /** \brief Compare members of the computed and read \ref Face with expected values.
  *  \return `true` if tests passed. */
@@ -99,7 +92,7 @@ static bool compare_members_fe
 {
 	bool pass = true;
 
-	const char* data_name = set_data_name_fe(sim->ctrl_name_full);
+	const char* data_name = set_data_file_name_integration(sim->ctrl_name_full,"fe");
 
 	struct FE_Test_Data* fe_test_data = constructor_FE_Test_Data(data_name,sim->elements); // destructed
 
@@ -175,14 +168,6 @@ static bool compare_members_Face_Neigh_Info
 	 const struct Face*const face_test, ///< Read \ref Face.
 	 const bool print_enabled           ///< Flag for whether values should be printed if the comparison fails.
 	);
-
-static const char* set_data_name_fe (const char*const ctrl_name)
-{
-	static char data_name[STRLEN_MAX] = { 0, };
-	sprintf(data_name,"%s%s%s","../testing/fe/",extract_name(ctrl_name,true),".fe.data");
-
-	return data_name;
-}
 
 static struct FE_Test_Data* constructor_FE_Test_Data
 	(const char*const data_name, const struct const_Intrusive_List*const elements)

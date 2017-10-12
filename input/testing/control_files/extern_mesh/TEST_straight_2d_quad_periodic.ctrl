@@ -14,7 +14,7 @@ mesh_domain      straight
 mesh_type        quad
 mesh_level       1 1
 mesh_unrealistic 0
-mesh_path        ../testing/mesh/straight_2d_quad_periodic.msh
+mesh_path        ../testing/integration/mesh/straight_2d_quad_periodic.msh
 
 
 # Remaining variables

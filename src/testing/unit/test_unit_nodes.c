@@ -345,8 +345,6 @@ static void test_unit_nodes_plotting (struct Test_Info*const test_info)
 		  diff_const_Plotting_Nodes(p_nodes_data_r->plt_pyr,  p_nodes_data_c->plt_pyr,  tol[6]),
 		};
 
-	test_print_warning(test_info,"TP nodes not being computed using tensor-product of lower dim nodes.");
-
 	const int n_diff = sizeof(differences)/sizeof(*differences);
 
 	bool diff = false;

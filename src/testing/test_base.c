@@ -24,11 +24,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_alloc.h"
 
+#include "file_processing.h"
+
 // Static function declarations ************************************************************************************* //
 
-/** \brief Sets the path to unit test data files in a `static char` (no free necessary).
+/** \brief Sets the path to the test data file.
  *  \return See brief. */
-static char* constructor_file_name_base ();
+static char* set_file_name_base
+	(const char*const test_type ///< The type of test. Options: "unit", "integration".
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -89,9 +93,10 @@ void output_test_info (struct Test_Info*const test_info)
 	}
 }
 
+/// \todo Name change to be consistent with 'integration'
 const char* constructor_file_name_unit (const char*const file_name_spec)
 {
-	char*const file_name = constructor_file_name_base();
+	char*const file_name = set_file_name_base("unit");
 
 	strcat(file_name,"/");
 	strcat(file_name,file_name_spec);
@@ -100,12 +105,24 @@ const char* constructor_file_name_unit (const char*const file_name_spec)
 	return file_name;
 }
 
+const char* set_data_file_name_integration (const char*const ctrl_name, const char*const int_test_type)
+{
+	char*const file_name = set_file_name_base("integration");
+	strcat(file_name,"/");
+	strcat_path_c(file_name,int_test_type,"/");
+	strcat_path_c(file_name,extract_name(ctrl_name,true),".");
+	strcat_path_c(file_name,int_test_type,".");
+	strcat(file_name,"data");
+
+	return file_name;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static char* constructor_file_name_base ()
+static char* set_file_name_base (const char*const test_type)
 {
 	static char file_name_base[STRLEN_MAX];
-	strcpy(file_name_base,"../testing/unit");
+	sprintf(file_name_base,"%s%s","../testing/",test_type);
 	return file_name_base;
 }

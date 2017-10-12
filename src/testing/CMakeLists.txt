@@ -3,7 +3,13 @@ set	(SOURCE
 	 test_base.c
 	)
 
-add_library(Test_Base ${SOURCE})
+set	(LIBS_DEPEND
+	 General
+	)
+
+set (LIB Test_Base)
+add_library(${LIB} ${SOURCE})
+target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
 
 
 include_directories(
