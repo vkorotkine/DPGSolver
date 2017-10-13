@@ -391,7 +391,7 @@ static struct Nodes_Data_TP* constructor_Nodes_Data_TP (const char eval_type, co
 		char file_name_part[STRLEN_MAX];
 		strcpy(file_name_part,"nodes/");
 		strcat(file_name_part,node_type);
-		const char*const file_name_full = constructor_file_name_unit(file_name_part);
+		const char*const file_name_full = set_data_file_name_unit(file_name_part);
 
 		nodes_data->d1_p3_EQ  = constructor_file_name_const_Nodes("Nodes_d1_p3_EQ",file_name_full);   // keep
 		nodes_data->d2_p4_EQ  = constructor_file_name_const_Nodes("Nodes_d2_p4_EQ",file_name_full);   // keep
@@ -440,7 +440,7 @@ static struct Nodes_Data_SI* constructor_Nodes_Data_SI (const char eval_type, co
 		char file_name_part[STRLEN_MAX];
 		strcpy(file_name_part,"nodes/");
 		strcat(file_name_part,node_type);
-		const char*const file_name_full = constructor_file_name_unit(file_name_part);
+		const char*const file_name_full = set_data_file_name_unit(file_name_part);
 
 		nodes_data->d2_p3_EQ  = constructor_file_name_const_Nodes("Nodes_d2_p3_EQ",file_name_full);  // keep
 		nodes_data->d2_p3_AO  = constructor_file_name_const_Nodes("Nodes_d2_p3_AO",file_name_full);  // keep
@@ -483,7 +483,7 @@ static struct Nodes_Data_PYR* constructor_Nodes_Data_PYR (const char eval_type, 
 		char file_name_part[STRLEN_MAX];
 		strcpy(file_name_part,"nodes/");
 		strcat(file_name_part,node_type);
-		const char*const file_name_full = constructor_file_name_unit(file_name_part);
+		const char*const file_name_full = set_data_file_name_unit(file_name_part);
 
 		nodes_data->d3_p2_GL  = constructor_file_name_const_Nodes("Nodes_d3_p2_GLe", file_name_full); // keep
 		nodes_data->d3_p3_GLL = constructor_file_name_const_Nodes("Nodes_d3_p3_GLoL",file_name_full); // keep
@@ -513,7 +513,7 @@ static struct Plotting_Nodes_Data* constructor_Plotting_Nodes_Data (const char e
 	if (eval_type == 'r') {
 		char file_name_part[STRLEN_MAX];
 		sprintf(file_name_part,"%s%s","nodes/",node_type);
-		const char*const file_name_full = constructor_file_name_unit(file_name_part);
+		const char*const file_name_full = set_data_file_name_unit(file_name_part);
 
 		p_nodes_data->plt_line  = constructor_file_name_const_Plotting_Nodes("Nodes_line", file_name_full); // keep
 		p_nodes_data->plt_tri   = constructor_file_name_const_Plotting_Nodes("Nodes_tri",  file_name_full); // keep

@@ -75,7 +75,7 @@ static void test_unit_construct_std_from_tp (struct Test_Info*const test_info, c
 	double* tol       = NULL;
 	bool* differences = NULL;
 
-	const char*const file_name_full = constructor_file_name_unit("operators/operators_tp");
+	const char*const file_name_full = set_data_file_name_unit("operators/operators_tp");
 
 	char name_ops_tp[STRLEN_MIN] = { 0, },
 	     name_op_std[STRLEN_MIN] = { 0, };
@@ -114,7 +114,7 @@ static void test_unit_apply_tp(struct Test_Info*const test_info, const char*cons
 	bool* differences = NULL;
 	char var_name[STRLEN_MIN] = { 0, };
 
-	const char*const file_name_full = constructor_file_name_unit("operators/operators_tp");
+	const char*const file_name_full = set_data_file_name_unit("operators/operators_tp");
 
 	sprintf(var_name,"%s%s",e_type,"_ops_tp");
 	const struct const_Multiarray_Matrix_d* ops_tp =

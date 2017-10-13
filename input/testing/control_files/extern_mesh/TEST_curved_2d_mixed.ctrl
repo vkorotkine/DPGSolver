@@ -17,7 +17,7 @@ mesh_unrealistic 0
 mesh_path        ../testing/integration/mesh/curved_2d_mixed.msh
 
 
-# Remaining variables
+# Simulation variables
 
 interp_tp  GLL
 interp_si  AO
@@ -30,12 +30,19 @@ geom_representation  isoparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_s_v   2 2
-p_s_f   2 2
-p_sg_v  2 2
-p_sg_f  2 2
+p_ref    2 2
+p_s_v_p  0
+p_s_f_p  0
+p_sg_v_p 0
+p_sg_f_p 0
 
 p_cub_x 2
 p_cub_p 1
 
 p_test_p 2
+
+
+# Testing variables
+
+ml_test    0 0
+p_ref_test 2 2

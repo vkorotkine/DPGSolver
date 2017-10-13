@@ -19,13 +19,20 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <mpi.h>
 
 #include "macros.h"
+#include "definitions_alloc.h"
+
 #include "test_integration_mesh.h"
 #include "test_integration_fe_init.h"
 #include "test_integration_geometry.h"
 #include "test_integration_euler.h"
+
+#include "const_cast.h"
+#include "file_processing.h"
+#include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -38,6 +45,7 @@ void run_tests_integration (struct Test_Info*const test_info)
 	printf("\n\nRunning Integration Tests:\n");
 	printf("-------------------------------------------------------------------------------------------------\n\n");
 
+if (0) {
 	test_integration_mesh(test_info,"curved_2d_mixed.msh");
 	test_integration_mesh(test_info,"straight_2d_quad_periodic.msh");
 
@@ -46,10 +54,35 @@ void run_tests_integration (struct Test_Info*const test_info)
 
 	test_integration_geometry(test_info,"extern_mesh/TEST_straight_2d_quad_periodic");
 //	test_integration_geometry(test_info,"extern_mesh/TEST_curved_2d_mixed");
+}
 
-//	test_integration_euler(test_info);
+	test_integration_euler(test_info);
 
 	MPI_Finalize();
+}
+
+struct Integration_Test_Info* constructor_Integration_Test_Info (const char*const ctrl_name_full)
+{
+	struct Integration_Test_Info* int_test_info = malloc(sizeof *int_test_info); // returned
+
+	// Read information
+	FILE *ctrl_file = fopen_checked(ctrl_name_full);
+
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),ctrl_file)) {
+		if (strstr(line,"ml_range_test")) read_skip_const_i_1(line,1,int_test_info->ml,2);
+		if (strstr(line,"p_range_test"))  read_skip_const_i_1(line,1,int_test_info->p_ref,2);
+	}
+	fclose(ctrl_file);
+
+	const_cast_i(&int_test_info->adapt_type,compute_adapt_type(int_test_info->p_ref,int_test_info->ml));
+
+	return int_test_info;
+}
+
+void destructor_Integration_Test_Info (struct Integration_Test_Info* int_test_info)
+{
+	free(int_test_info);
 }
 
 // Static functions ************************************************************************************************* //

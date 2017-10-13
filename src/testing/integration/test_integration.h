@@ -21,9 +21,35 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Test_Info;
 
+/// Container for integration test related parameters
+struct Integration_Test_Info {
+	/** The minimal and maximal reference orders to be used for convergence order testing.
+	 *
+	 *  This range may differ from \ref Simulation::p_ref, such that convergence order testing can be performed
+	 *  without calling the adaptation functions, but it is then expected that the corresponding control files for
+	 *  each of the cases are present.
+	 */
+	const int p_ref[2];
+
+	const int ml[2]; ///< The minimal and maximal mesh levels to be used for convergence order testing.
+
+	const int adapt_type; ///< Analogue of \ref Simulation::adapt_type.
+};
+
 /// \brief Call integration test functions.
 void run_tests_integration
 	(struct Test_Info*const test_info ///< \ref Test_Info.
+	);
+
+/** \brief Constructor for the \ref Integration_Test_Info from the data in the control file.
+ *  \return Standard. */
+struct Integration_Test_Info* constructor_Integration_Test_Info
+	(const char*const ctrl_name_full ///< The control name including the full path.
+	);
+
+/// \brief Destructor for the \ref Integration_Test_Info.
+void destructor_Integration_Test_Info
+	(struct Integration_Test_Info* int_test_info ///< Standard.
 	);
 
 #endif // DPG__test_integration_h__INCLUDED

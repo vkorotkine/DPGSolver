@@ -93,8 +93,7 @@ void output_test_info (struct Test_Info*const test_info)
 	}
 }
 
-/// \todo Name change to be consistent with 'integration'
-const char* constructor_file_name_unit (const char*const file_name_spec)
+const char* set_data_file_name_unit (const char*const file_name_spec)
 {
 	char*const file_name = set_file_name_base("unit");
 

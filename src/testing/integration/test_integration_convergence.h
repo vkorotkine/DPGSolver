@@ -13,17 +13,22 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__solution_h__INCLUDED
-#define DPG__solution_h__INCLUDED
+#ifndef DPG__test_integration_convergence_h__INCLUDED
+#define DPG__test_integration_convergence_h__INCLUDED
 /** \file
- *  \brief Provides the interface to functions used for solution computation.
+ *  \brief Provides functionality for integration testing of the solution convergence.
  */
 
-struct Simulation;
+struct Test_Info;
 
-/// \brief Compute the solution for the current simulation.
-void compute_solution
-	(struct Simulation* sim ///< \ref Simulation.
+/** \test Performs integration testing for the solution convergence.
+ *  \return The expected output is the convergence of the solution at the expected rate.
+ *
+ *  \todo Add comments.
+ */
+void test_integration_convergence
+	(struct Test_Info*const test_info, ///< \ref Test_Info.
+	 const char*const ctrl_name        ///< The name of the input control file.
 	);
 
-#endif // DPG__solution_h__INCLUDED
+#endif // DPG__test_integration_convergence_h__INCLUDED

@@ -59,7 +59,7 @@ static void test_unit_matrix_mm (struct Test_Info*const test_info)
 	sprintf(test_info->name,"%s","Containers - Matrix mm");
 	bool pass = true;
 
-	const char*const file_name_full = constructor_file_name_unit("containers/matrix");
+	const char*const file_name_full = set_data_file_name_unit("containers/matrix");
 
 	const struct const_Matrix_d* a = constructor_file_name_const_Matrix_d("a_Matrix",file_name_full), // destructed
 	                           * b = constructor_file_name_const_Matrix_d("b_Matrix",file_name_full); // destructed
@@ -128,7 +128,7 @@ static void test_unit_matrix_mv (struct Test_Info*const test_info)
 	sprintf(test_info->name,"%s","Containers - Matrix mv");
 	bool pass = true;
 
-	const char*const file_name_full = constructor_file_name_unit("containers/matrix");
+	const char*const file_name_full = set_data_file_name_unit("containers/matrix");
 
 	const struct const_Matrix_d* a = constructor_file_name_const_Matrix_d("a_Matrix",file_name_full); // destructed
 	const struct const_Vector_d* b = constructor_file_name_const_Vector_d("b_Vector",file_name_full); // destructed

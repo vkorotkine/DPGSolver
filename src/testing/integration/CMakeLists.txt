@@ -5,6 +5,7 @@ set	(SOURCE
 	 test_integration_geometry.c
 	 test_integration_euler.c
 	 test_integration_linearization.c
+	 test_integration_convergence.c
 	)
 
 set	(LIBS_DEPEND

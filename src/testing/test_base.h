@@ -86,7 +86,7 @@ void output_test_info
 
 /** \brief Sets the name of the data file in a `static char` (no free necessary).
  *  \return See brief. */
-const char* constructor_file_name_unit
+const char* set_data_file_name_unit
 	(const char*const file_name_spec /**< The specific name of the data file (`file_name` without extension but with
 	                                  *   relative path from '../test/unit'). */
 	);

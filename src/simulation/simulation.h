@@ -44,7 +44,7 @@ struct Simulation {
 	const int mpi_size, ///< The number of mpi processes.
 	          mpi_rank; ///< The mpi rank of the current processor.
 
-	const char ctrl_name_full[STRLEN_MAX]; ///< Name of the control file (including full path and file extension).
+	const char* ctrl_name_full; ///< Name of the control file (including full path and file extension).
 	const char mesh_name_full[STRLEN_MAX]; ///< Name of the mesh    file (including full path and file extension).
 	const char input_path[STRLEN_MAX];     ///< The path to the directory containing relevant input files.
 
@@ -67,8 +67,8 @@ struct Simulation {
 	 */
 	const int domain_type;
 
-	/** The range of minimal and maximal mesh levels to be used. h-adaptation is enabled if the levels differ. The
-	 *  input mesh is chosen based on the value of ml[0]. */
+	/** The minimal and maximal mesh levels to be used. h-adaptation is enabled if the levels differ. The input mesh
+	 *  is chosen based on the value of ml[0]. */
 	const int ml[2];
 
 	/** Flag for whether the mesh vertices should be unrealistically corrected to lie on the input domain boundary
@@ -128,17 +128,24 @@ struct Simulation {
 	 */
 	const char geom_blending[N_ST_STD][STRLEN_MIN];
 
-	/// The range of minimal and maximal solution orders for volumes. p-adaptation is enabled if the orders differ.
+	/** The minimal and maximal reference orders. p-adaptation is enabled if the orders differ.
+	 *
+	 *  \note While this order corresponds to the order of the solution in the domain volumes in the case of the
+	 *        standard continuous/discontinuous Galerkin scheme, this is not necessarily the case for other methods.
+	 */
+	const int p_ref[2];
+
+	/// The minimal and maximal solution orders for volumes. p-adaptation is enabled if the orders differ.
 	const int p_s_v[2];
 
-	/// The range of minimal and maximal solution orders for faces. p-adaptation is enabled if the orders differ.
+	/// The minimal and maximal solution orders for faces. p-adaptation is enabled if the orders differ.
 	const int p_s_f[2];
 
-	/** The range of minimal and maximal gradient solution orders for volumes. p-adaptation is enabled if the orders
+	/** The minimal and maximal gradient solution orders for volumes. p-adaptation is enabled if the orders
 	 *  differ. */
 	const int p_sg_v[2];
 
-	/** The range of minimal and maximal gradient solution orders for faces. p-adaptation is enabled if the orders
+	/** The minimal and maximal gradient solution orders for faces. p-adaptation is enabled if the orders
 	 *  differ. */
 	const int p_sg_f[2];
 
@@ -169,22 +176,22 @@ struct Simulation {
 
 	const int adapt_type; ///< The type of adaptation to be used. Set based on the ctrl file paramters.
 
+/// \todo maybe move to a testcase struct.
+	const int pde_index; ///< Index corresponding to \ref pde_name.
+
+	const int n_var, ///< Number of variables in the PDE under consideration.
+	          n_eq;  ///< Number of equations in the PDE under consideration.
+
+	const struct const_Intrusive_List* elements; ///< Pointer to the head of the Element list.
+	struct Intrusive_List* volumes;              ///< Pointer to the head of the Volume  list.
+	struct Intrusive_List* faces;                ///< Pointer to the head of the Face    list.
+
 // ---------------------------- //
 	const bool collocated; /**< Whether a collocated interpolation and integration node set is being used. Significant
 	                        *   performance increase may be observed when this is `true`. */
 
 	const int method;     /**< Solver method to be used.
 	                       *   	Options: 1 (DG), 2 (HDG), 3 (HDPG), 4 (DPG). */
-
-	const struct const_Intrusive_List* elements; ///< Pointer to the head of the Element list.
-	struct Intrusive_List* volumes;              ///< Pointer to the head of the Volume  list.
-	struct Intrusive_List* faces;                ///< Pointer to the head of the Face    list.
-
-// ToBeMoved to the solver context.
-const int pde_index; ///< Index corresponding to \ref pde_name.
-
-	const int n_var, ///< Number of variables in the PDE under consideration.
-	          n_eq;  ///< Number of equations in the PDE under consideration.
 };
 
 /** \brief Constructor for \ref Simulation.
@@ -202,6 +209,19 @@ void destructor_Simulation
 	(struct Simulation* sim ///< Standard.
 	);
 
+/** \brief Set full control file name (including path and file extension).
+ *
+ *  If "TEST" is not included as part of the name (default option):
+ *  - it is assumed that `ctrl_name` includes the full name and path from CMAKE_PROJECT_DIR/control_files;
+ *  - `ctrl_name_full` -> ../control_files/`ctrl_name`.
+ *  otherwise:
+ *  - it is assumed that `ctrl_name` includes the full name and path from CMAKE_PROJECT_DIR/testing/control_files;
+ *  - `ctrl_name_full` -> ../testing/control_files/`ctrl_name`.
+ */
+const char* set_ctrl_name_full
+	(const char*const ctrl_name ///< Defined in \ref set_simulation_core.
+	);
+
 /**	\brief Set the \ref Mesh_Input based on the parameters in the \ref Simulation.
  *	\return See brief. */
 struct Mesh_Input set_Mesh_Input
@@ -214,16 +234,11 @@ void set_Simulation_elements
 	 struct const_Intrusive_List* elements ///< See \ref Simulation.
 	);
 
-/** \brief Check whether the simulation is p-adaptive.
- *  \return `true` if yes. */
-bool is_p_adaptive
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/** \brief Check whether the simulation is h-adaptive.
- *  \return `true` if yes. */
-bool is_h_adaptive
-	(const struct Simulation* sim ///< \ref Simulation.
+/** \brief Computes the value of \ref Simulation::adapt_type based on the input order/mesh level parameters.
+ *  \return See brief. */
+int compute_adapt_type
+	(const int p_ref[2], ///< The array of minimal and maximal orders.
+	 const int ml[2]     ///< The array of minimal and maximal mesh levels.
 	);
 
 #endif // DPG__Simulation_h__INCLUDED

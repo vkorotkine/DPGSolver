@@ -13,8 +13,7 @@ mesh_format      gmsh
 mesh_domain      straight
 mesh_type        quad
 mesh_level       1 1
-mesh_unrealistic 0
-mesh_path        ../testing/integration/mesh/straight_2d_quad_periodic.msh
+mesh_path        ../meshes/
 
 
 # Simulation variables
@@ -44,5 +43,5 @@ p_test_p 2
 
 # Testing variables
 
-ml_test    0 0
-p_ref_test 2 2
+ml_range_test 0 2
+p_range_test  1 2

@@ -59,6 +59,14 @@ static void set_simulation_core
 	 const char*const ctrl_name   ///< Control file name (excluding the file extension).
 	);
 
+/** \brief Set associations between `char*` and `int` variables.
+ *
+ *  This is done such that if/switch conditions are simplified when these variables are used.
+ */
+static void set_string_associations
+	(struct Simulation*const sim ///< Standard.
+	);
+
 /// \brief Set \ref Simulation parameters to invalid values so that it can be recognized if they were not read.
 static void set_simulation_invalid
 	(struct Simulation*const sim ///< Standard.
@@ -78,6 +86,12 @@ static void check_necessary_simulation_parameters
 	(struct Simulation*const sim ///< Standard.
 	);
 
+/** \brief Check whether h/p-adaption should be enabled based on the input array.
+ *  \return `true` if yes. */
+static bool is_adaptive
+	(const int var[2] ///< The array of minimal and maximal orders/mesh levels.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 struct Simulation* constructor_Simulation (const char*const ctrl_name)
@@ -87,6 +101,8 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 	set_simulation_invalid(sim);
 	set_simulation_mpi(sim);
 	set_simulation_core(sim,ctrl_name);
+	set_string_associations(sim);
+
 	set_Simulation_elements(sim,constructor_Elements(sim->d)); // destructed
 
 	check_necessary_simulation_parameters(sim);
@@ -117,6 +133,20 @@ void destructor_Simulation (struct Simulation* sim)
 	free(sim);
 }
 
+const char* set_ctrl_name_full (const char*const ctrl_name)
+{
+	static char ctrl_name_full[STRLEN_MAX] = { 0, };
+
+	strcpy(ctrl_name_full,"../");
+	if (strstr(ctrl_name,"TEST"))
+		strcat(ctrl_name_full,"testing/");
+	strcat(ctrl_name_full,"control_files/");
+	strcat(ctrl_name_full,ctrl_name);
+	strcat(ctrl_name_full,".ctrl");
+
+	return ctrl_name_full;
+}
+
 struct Mesh_Input set_Mesh_Input (const struct Simulation*const sim)
 {
 	struct Mesh_Input mesh_input =
@@ -131,10 +161,28 @@ struct Mesh_Input set_Mesh_Input (const struct Simulation*const sim)
 	return mesh_input;
 }
 
+int compute_adapt_type (const int p_ref[2], const int ml[2])
+{
+	const bool p_adapt = is_adaptive(p_ref),
+	           h_adapt = is_adaptive(ml);
+
+	if (!p_adapt && !h_adapt)
+		return ADAPT_0;
+	else if (p_adapt && !h_adapt)
+		return ADAPT_P;
+	else if (!p_adapt && h_adapt)
+		return ADAPT_H;
+	else if (p_adapt && h_adapt)
+		return ADAPT_HP;
+
+	EXIT_UNSUPPORTED;
+	return -1;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-///< \brief Holds data relating to the mesh as read from the control file.
+/// \brief Holds data relating to the mesh as read from the control file.
 struct Mesh_Ctrl_Data {
 	char mesh_generator[STRLEN_MAX], ///< The name of the file used to generate the mesh.
 	     mesh_format[STRLEN_MAX],    ///< Format of the input mesh. Options: gmsh.
@@ -145,44 +193,28 @@ struct Mesh_Ctrl_Data {
 	     mesh_extension[STRLEN_MIN]; ///< File extension (set based on \ref mesh_format.
 };
 
-/** \brief Set full control file name (including path and file extension).
- *
- *  If "TEST" is not included as part of the name (default option):
- *  - it is assumed that `ctrl_name` includes the full name and path from CMAKE_PROJECT_DIR/control_files;
- *  - `ctrl_name_full` -> ../control_files/`ctrl_name`.
- *  otherwise:
- *  - it is assumed that `ctrl_name` includes the full name and path from CMAKE_PROJECT_DIR/testing/control_files;
- *  - `ctrl_name_full` -> ../testing/control_files/`ctrl_name`.
- */
-static void set_ctrl_name_full
-	(struct Simulation*const sim, ///< Standard.
-	 const char*const ctrl_name   ///< Defined in \ref set_simulation_core.
-	);
+/// \brief Container for the input solution order data.
+struct Orders {
+	int p_s_v_p,  ///< The additive constant of the volume solution order relative to \ref Simulation::p_ref.
+	    p_s_f_p,  ///< The additive constant of the face   solution order relative to \ref Simulation::p_ref.
+	    p_sg_v_p, ///< The additive constant of the volume solution gradient order relative to \ref Simulation::p_ref.
+	    p_sg_f_p; ///< The additive constant of the face   solution gradient order relative to \ref Simulation::p_ref.
+};
 
 /// \brief Set the mesh parameters.
 static void set_mesh_parameters
 	(struct Simulation*const sim ///< Standard.
 	);
 
-/** \brief Computes the value of \ref Simulation::adapt_type based on the simulation parameters.
- *  \return See brief. */
-static int compute_adapt_type
-	(struct Simulation*const sim ///< Standard.
-	);
-
-/** \brief Set associations between `char*` and `int` variables.
- *
- *  This is done such that if/switch conditions are simplified when these variables are used.
- *
- *  \todo This should be moved to the Solver context.
- */
-static void set_string_associations
-	(struct Simulation*const sim ///< Standard.
-	);
-
 /// \brief Set the path to the input files.
 static void set_input_path
 	(struct Simulation*const sim ///< Standard.
+	);
+
+/// \brief Set the orders of the various solution components based on the input data.
+static void set_orders
+	(struct Simulation*const sim, ///< Standard.
+	 struct Orders*const orders   ///< \ref Orders.
 	);
 
 static void set_simulation_invalid (struct Simulation*const sim)
@@ -199,6 +231,7 @@ static void set_simulation_invalid (struct Simulation*const sim)
 	const_cast_c(sim->basis_sol,0);
 	const_cast_c(sim->geom_rep,0);
 
+	const_cast_i1(sim->p_ref,(int[]){P_INVALID,P_INVALID},2);
 	const_cast_i1(sim->p_s_v,(int[]){P_INVALID,P_INVALID},2);
 	const_cast_i1(sim->p_s_f,(int[]){P_INVALID,P_INVALID},2);
 	const_cast_i1(sim->p_sg_v,(int[]){P_INVALID,P_INVALID},2);
@@ -224,8 +257,10 @@ static void set_simulation_mpi (struct Simulation*const sim)
 
 static void set_simulation_core (struct Simulation*const sim, const char*const ctrl_name)
 {
-	set_ctrl_name_full(sim,ctrl_name);
+	sim->ctrl_name_full = set_ctrl_name_full(ctrl_name);
 	FILE *ctrl_file = fopen_checked(sim->ctrl_name_full);
+
+	struct Orders orders = { P_INVALID, P_INVALID, P_INVALID, P_INVALID, };
 
 	// Read information
 	char line[STRLEN_MAX];
@@ -251,10 +286,11 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"geom_blending_si"))  read_skip_const_c_1(line,sim->geom_blending[1]);
 		if (strstr(line,"geom_blending_pyr")) read_skip_const_c_1(line,sim->geom_blending[2]);
 
-		if (strstr(line,"p_s_v"))    read_skip_const_i_1(line,1,sim->p_s_v,2);
-		if (strstr(line,"p_s_f"))    read_skip_const_i_1(line,1,sim->p_s_f,2);
-		if (strstr(line,"p_sg_v"))   read_skip_const_i_1(line,1,sim->p_sg_v,2);
-		if (strstr(line,"p_sg_f"))   read_skip_const_i_1(line,1,sim->p_sg_f,2);
+		if (strstr(line,"p_ref"))    read_skip_const_i_1(line,1,sim->p_ref,2);
+		if (strstr(line,"p_s_v_p"))  read_skip_i(line,&orders.p_s_v_p);
+		if (strstr(line,"p_s_f_p"))  read_skip_i(line,&orders.p_s_f_p);
+		if (strstr(line,"p_sg_v_p")) read_skip_i(line,&orders.p_sg_v_p);
+		if (strstr(line,"p_sg_f_p")) read_skip_i(line,&orders.p_sg_f_p);
 		if (strstr(line,"p_cub_x"))  read_skip_const_i_1(line,1,&sim->p_c_x,1);
 		if (strstr(line,"p_cub_p"))  read_skip_const_i_1(line,1,&sim->p_c_p,1);
 		if (strstr(line,"p_test_p")) read_skip_const_i_1(line,1,&sim->p_t_p,1);
@@ -265,9 +301,22 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 
 	set_mesh_parameters(sim);
 	set_input_path(sim);
+	set_orders(sim,&orders);
+}
 
-if (0)
-	set_string_associations(sim);
+static void set_string_associations (struct Simulation*const sim)
+{
+	// pde_index
+	if (strstr(sim->pde_name,"Advection"))
+		const_cast_i(&sim->pde_index,PDE_ADVECTION);
+	else if (strstr(sim->pde_name,"Poisson"))
+		const_cast_i(&sim->pde_index,PDE_POISSON);
+	else if (strstr(sim->pde_name,"Euler"))
+		const_cast_i(&sim->pde_index,PDE_EULER);
+	else if (strstr(sim->pde_name,"NavierStokes"))
+		const_cast_i(&sim->pde_index,PDE_NAVIERSTOKES);
+	else
+		EXIT_ERROR("Unsupported: %s\n",sim->pde_name);
 }
 
 static void check_necessary_simulation_parameters (struct Simulation*const sim)
@@ -299,18 +348,6 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 	assert(sim->p_s_v[0] != P_INVALID);
 	assert(sim->p_s_v[1] != P_INVALID);
 	assert(sim->p_s_v[1] >= sim->p_s_v[0]);
-
-	if (sim->p_s_v[0] != sim->p_s_v[1])
-		assert(sim->p_s_v[0] == 0);
-
-	if (sim->p_s_f[0] != sim->p_s_f[1])
-		assert(sim->p_s_f[0] == 0);
-
-	if (sim->p_sg_v[0] != sim->p_sg_v[1])
-		assert(sim->p_sg_v[0] == 0);
-
-	if (sim->p_sg_f[0] != sim->p_sg_f[1])
-		assert(sim->p_sg_f[0] == 0);
 }
 
 static void set_simulation_default (struct Simulation*const sim)
@@ -340,7 +377,7 @@ static void set_simulation_default (struct Simulation*const sim)
 		assert(sim->p_t_p >= 0);
 
 	const_cast_i(&sim->n_hp,3);
-	const_cast_i(&sim->adapt_type,compute_adapt_type(sim));
+	const_cast_i(&sim->adapt_type,compute_adapt_type(sim->p_ref,sim->ml));
 }
 
 void set_Simulation_elements (struct Simulation*const sim, struct const_Intrusive_List* elements)
@@ -348,21 +385,9 @@ void set_Simulation_elements (struct Simulation*const sim, struct const_Intrusiv
 	*(struct const_Intrusive_List**)&sim->elements = elements;
 }
 
-bool is_p_adaptive (const struct Simulation* sim)
+static bool is_adaptive (const int var[2])
 {
-	if ((sim->p_s_v[0]  != sim->p_s_v[1])  ||
-	    (sim->p_s_f[0]  != sim->p_s_f[1])  ||
-	    (sim->p_sg_v[0] != sim->p_sg_v[1]) ||
-	    (sim->p_sg_f[0] != sim->p_sg_f[1]))
-	{
-		return true;
-	}
-	return false;
-}
-
-bool is_h_adaptive (const struct Simulation* sim)
-{
-	if (sim->ml[0] != sim->ml[1])
+	if (var[0] == var[1])
 		return true;
 	return false;
 }
@@ -390,32 +415,6 @@ static void set_domain_type
 	(struct Simulation*const sim,                     ///< Standard.
 	 const struct Mesh_Ctrl_Data*const mesh_ctrl_data ///< The \ref Mesh_Ctrl_Data.
 	);
-
-static void set_ctrl_name_full (struct Simulation*const sim, const char*const ctrl_name)
-{
-	strcpy((char*)sim->ctrl_name_full,"../");
-	if (strstr(ctrl_name,"TEST"))
-		strcat((char*)sim->ctrl_name_full,"testing/");
-	strcat((char*)sim->ctrl_name_full,"control_files/");
-	strcat((char*)sim->ctrl_name_full,ctrl_name);
-	strcat((char*)sim->ctrl_name_full,".ctrl");
-}
-
-static void set_string_associations (struct Simulation*const sim)
-{
-// use const_cast.
-	// pde_index
-	if (strstr(sim->pde_name,"Advection"))
-		*(int*)&sim->pde_index = PDE_ADVECTION;
-	else if (strstr(sim->pde_name,"Poisson"))
-		*(int*)&sim->pde_index = PDE_POISSON;
-	else if (strstr(sim->pde_name,"Euler"))
-		*(int*)&sim->pde_index = PDE_EULER;
-	else if (strstr(sim->pde_name,"NavierStokes"))
-		*(int*)&sim->pde_index = PDE_NAVIERSTOKES;
-	else
-		EXIT_UNSUPPORTED;
-}
 
 static void set_mesh_parameters (struct Simulation*const sim)
 {
@@ -450,22 +449,19 @@ static void set_input_path (struct Simulation*const sim)
 	strcat_path_c(input_path,sim->pde_spec,"/");
 }
 
-static int compute_adapt_type (struct Simulation*const sim)
+static void set_orders (struct Simulation*const sim, struct Orders*const orders)
 {
-	const bool p_adapt = is_p_adaptive(sim),
-	           h_adapt = is_h_adaptive(sim);
+	assert(orders->p_s_v_p  != P_INVALID);
+	assert(orders->p_s_f_p  != P_INVALID);
+	assert(orders->p_sg_v_p != P_INVALID);
+	assert(orders->p_sg_f_p != P_INVALID);
 
-	if (!p_adapt && !h_adapt)
-		return ADAPT_0;
-	else if (p_adapt && !h_adapt)
-		return ADAPT_P;
-	else if (!p_adapt && h_adapt)
-		return ADAPT_H;
-	else if (p_adapt && h_adapt)
-		return ADAPT_HP;
-
-	EXIT_UNSUPPORTED;
-	return -1;
+	for (int i = 0; i < 2; ++i) {
+		const_cast_i(&sim->p_s_v[i],sim->p_ref[i]+orders->p_s_v_p);
+		const_cast_i(&sim->p_s_f[i],sim->p_ref[i]+orders->p_s_f_p);
+		const_cast_i(&sim->p_sg_v[i],sim->p_ref[i]+orders->p_sg_v_p);
+		const_cast_i(&sim->p_sg_f[i],sim->p_ref[i]+orders->p_sg_f_p);
+	}
 }
 
 // Level 2 ********************************************************************************************************** //
@@ -482,22 +478,18 @@ static void mesh_name_assemble (struct Simulation*const sim, const struct Mesh_C
 {
 	char* mesh_name_full = (char*)sim->mesh_name_full;
 
-	strcpy(mesh_name_full,mesh_ctrl_data->mesh_path);
+	int index = sprintf(mesh_name_full,"%s",mesh_ctrl_data->mesh_path);
 	if (strstr(mesh_ctrl_data->mesh_path,"../meshes/")) {
-EXIT_ERROR("Use sprintf and deprecate strcat_path_c as the repeated strlen computation is unnecessarily inefficient");
-// see https://stackoverflow.com/a/2674354/5983549
-		strcat_path_c(mesh_name_full,sim->geom_name,"/");
-		strcat_path_c(mesh_name_full,sim->pde_name,"/");
-		strcat_path_c(mesh_name_full,sim->pde_spec,"/");
-		strcat_path_c(mesh_name_full,sim->geom_spec,"/");
-		strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_domain,"__");
+		index += sprintf(mesh_name_full+index,"%s%s%s%s%s%s",sim->geom_name,"/",sim->pde_name,"/",sim->pde_spec,"/");
+		if (strcmp(sim->geom_spec,"NONE") != 0)
+			index += sprintf(mesh_name_full+index,"%s%s",sim->geom_spec,"/");
+		index += sprintf(mesh_name_full+index,"%s%s",mesh_ctrl_data->mesh_domain,"__");
 
 		const char*const mesh_gen_name = extract_name(mesh_ctrl_data->mesh_generator,true);
-		strcat_path_c(mesh_name_full,mesh_gen_name,"__");
+		index += sprintf(mesh_name_full+index,"%s%s",mesh_gen_name,"__");
 
-		strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_elem_type,"_ml");
-		strcat_path_i(mesh_name_full,sim->ml[0]);
-		strcat_path_c(mesh_name_full,mesh_ctrl_data->mesh_extension,NULL);
+		index += sprintf(mesh_name_full+index,"%s%s%d",mesh_ctrl_data->mesh_elem_type,"_ml",sim->ml[0]);
+		index += sprintf(mesh_name_full+index,"%s",mesh_ctrl_data->mesh_extension);
 	}
 }
 

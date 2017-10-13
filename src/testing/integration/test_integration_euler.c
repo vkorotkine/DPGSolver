@@ -23,37 +23,33 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_integration_euler.h"
 #include "test_integration_linearization.h"
+#include "test_integration_convergence.h"
 
 void test_integration_euler (struct Test_Info*const test_info)
 {
 	if (test_info->t_int.equivalence_real_complex) {
-		;
+		test_print_warning(test_info,"Euler equivalence real/complex testing not yet implemented");
 	} else {
 		test_print_warning(test_info,"Euler equivalence real/complex testing currently disabled");
 	}
 
 	if (test_info->t_int.equivalence_algorithms) {
-		;
+		test_print_warning(test_info,"Euler equivalence algorithms testing not yet implemented");
 	} else {
 		test_print_warning(test_info,"Euler equivalence algorithms testing currently disabled");
 	}
 
 	if (test_info->t_int.linearization) {
-#if 1
- #if 0
-		test_integration_linearization("test/euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
- #else
-		test_integration_linearization("test/euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
- #endif
-#else
-		test_integration_linearization("test/euler/Test_Euler_PeriodicVortex_Stationary_QUAD");
-#endif
+		test_print_warning(test_info,"Euler linearization testing not yet implemented");
+//		test_integration_linearization("test/euler/Test_Euler_SupersonicVortex_ToBeCurvedMIXED2D");
+//		test_integration_linearization("test/euler/Test_Euler_SupersonicVortex_CurvedMIXED2D");
+//		test_integration_linearization("test/euler/Test_Euler_PeriodicVortex_Stationary_QUAD");
 	} else {
 		test_print_warning(test_info,"Euler linearization testing currently disabled");
 	}
 
 	if (test_info->t_int.conv_order) {
-		;
+		test_integration_convergence(test_info,"euler/TEST_Euler_PeriodicVortex_Stationary_QUAD__ml0__p1");
 	} else {
 		test_print_warning(test_info,"Euler convergence order testing currently disabled");
 	}
