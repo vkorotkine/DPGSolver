@@ -1,5 +1,8 @@
 set	(SOURCE
+	 element_solution.c
 	 solution.c
+	 solution_euler.c
+	 periodic_vortex/solution_periodic_vortex.c
 	)
 
 set	(LIBS_DEPEND

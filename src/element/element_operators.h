@@ -33,10 +33,11 @@ You should have received a copy of the GNU General Public License along with DPG
  *  - [2/5]: character denoting the kind of basis/nodes to be used (kind):
  *  	- g: geometry
  *  	- m: metric
- *  	- s: solution
  *  	- v: vertex (Only available as p1 nodes [5])
  *  	- p: plotting (Not available as a basis [2])
  *  	- c: cubature (Not available as a basis [2])
+ *  	- s: solution
+ *  	- r: gradient
  *  - (3/6): character denoting whether the basis/nodes is meant to be used for straight or curved elements (sc):
  *  	- s: straight
  *  	- c: curved

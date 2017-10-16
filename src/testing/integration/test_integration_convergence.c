@@ -130,9 +130,9 @@ static void structor_simulation
 	case ADAPT_HP:
 		EXIT_ADD_SUPPORT;
 		if (ml != ml_prev)
-			; // h-adapt
+			{ ; } // h-adapt
 		if (p != p_prev)
-			; // p-adapt
+			{ ; } // p-adapt
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",adapt_type);

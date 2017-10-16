@@ -5,6 +5,8 @@ TOP_DIR="${PWD}/../.."
 
 # Modifiable parameters ****************************************************** #
 
+export MKLROOT=/opt/intel/compilers_and_libraries_2017.4.196/linux/mkl
+
 BUILD_DIR=${TOP_DIR}/build
 
 CMAKE_BUILD_TYPE=Debug

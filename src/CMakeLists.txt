@@ -7,6 +7,7 @@ include_directories(${MKL_INCLUDE_DIRS})
 find_package(GSL 2.4 REQUIRED)
 include_directories(${GSL_INCLUDE_DIRS})
 
+# Currently including all directories here so that `#include`s need not specify relative paths.
 include_directories(
 	allocators
 	containers
@@ -20,7 +21,9 @@ include_directories(
 	simulation/geometry
 	simulation/mesh
 	simulation/operators
-	simulation/solution
+	simulation/test_case
+	simulation/test_case/solution
+	simulation/test_case/solution/periodic_vortex
 	testing
 	)
 

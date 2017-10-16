@@ -13,17 +13,19 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__solution_h__INCLUDED
-#define DPG__solution_h__INCLUDED
+#ifndef DPG__solution_periodic_vortex_h__INCLUDED
+#define DPG__solution_periodic_vortex_h__INCLUDED
 /** \file
  *  \brief Provides the interface to functions used for solution computation.
  */
 
 struct Simulation;
+struct Solver_Volume;
 
-/// \brief Compute the solution for the current simulation.
-void compute_solution
-	(struct Simulation* sim ///< \ref Simulation.
+/// \brief Function pointer to be used for compute_sol_coef_v for the periodic vortex test case.
+void compute_sol_coef_v_periodic_vortex
+	(const struct Simulation* sim, ///< Defined for \ref compute_sol_coef_v_fptr.
+	 struct Solver_Volume* volume  ///< Defined for \ref compute_sol_coef_v_fptr.
 	);
 
-#endif // DPG__solution_h__INCLUDED
+#endif // DPG__solution_periodic_vortex_h__INCLUDED

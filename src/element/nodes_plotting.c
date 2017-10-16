@@ -212,7 +212,7 @@ static void plotting_element_info
 		int Indc,
 		             N2,
 		             nLINE[2], nQUAD[4], nHEX[8];
-		int          sd, sP, sN;
+		int          sd, sP;
 		double *r;
 
 		// Arbitrary initializations for variables defined in conditionals (to eliminate compiler warnings)
@@ -229,7 +229,6 @@ static void plotting_element_info
 		u1 = 1;
 		sd = d;
 		sP = P;
-		sN = N;
 
 		r      = malloc(N       * sizeof *r);      // free
 		rstOut = malloc(n_nOut*d * sizeof *rstOut); // keep

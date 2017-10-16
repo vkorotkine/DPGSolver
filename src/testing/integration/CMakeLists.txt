@@ -14,6 +14,7 @@ set	(LIBS_DEPEND
 	 Mesh
 	 Post_Processing
 	 Simulation
+	 Solution
 	 Test_Base
 	 Test_Support
 	)

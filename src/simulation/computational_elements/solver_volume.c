@@ -28,7 +28,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "const_cast.h"
 #include "geometry.h"
 #include "simulation.h"
-#include "solution.h"
 
 // Static function declarations ************************************************************************************* //
 

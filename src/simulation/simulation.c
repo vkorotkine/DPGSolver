@@ -37,6 +37,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "file_processing.h"
 #include "intrusive.h"
 #include "mesh.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -57,14 +58,6 @@ static void set_simulation_mpi
 static void set_simulation_core
 	(struct Simulation*const sim, ///< Standard.
 	 const char*const ctrl_name   ///< Control file name (excluding the file extension).
-	);
-
-/** \brief Set associations between `char*` and `int` variables.
- *
- *  This is done such that if/switch conditions are simplified when these variables are used.
- */
-static void set_string_associations
-	(struct Simulation*const sim ///< Standard.
 	);
 
 /// \brief Set \ref Simulation parameters to invalid values so that it can be recognized if they were not read.
@@ -101,7 +94,6 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 	set_simulation_invalid(sim);
 	set_simulation_mpi(sim);
 	set_simulation_core(sim,ctrl_name);
-	set_string_associations(sim);
 
 	set_Simulation_elements(sim,constructor_Elements(sim->d)); // destructed
 
@@ -117,6 +109,9 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 
 	destructor_Mesh(mesh);
 
+	sim->test_case = constructor_Test_Case(sim);
+//	set_string_associations(sim);
+
 	return sim;
 }
 
@@ -129,6 +124,8 @@ void destructor_Simulation (struct Simulation* sim)
 	destructor_const_Elements(sim->elements);
 	destructor_Volumes(sim->volumes);
 	destructor_Faces(sim->faces);
+
+	destructor_Test_Case(sim->test_case);
 
 	free(sim);
 }
@@ -241,6 +238,8 @@ static void set_simulation_invalid (struct Simulation*const sim)
 	const_cast_i(&sim->p_c_p,P_INVALID);
 	const_cast_i(&sim->p_t_p,P_INVALID);
 
+	const_cast_i(&sim->method,-1);
+
 	const_cast_bool(&sim->collocated,false);
 }
 
@@ -295,6 +294,8 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"p_cub_p"))  read_skip_const_i_1(line,1,&sim->p_c_p,1);
 		if (strstr(line,"p_test_p")) read_skip_const_i_1(line,1,&sim->p_t_p,1);
 
+		if (strstr(line,"fe_method")) read_skip_const_i_1(line,1,&sim->method,1);
+
 		if (strstr(line,"collocated")) read_skip_const_b(line,&sim->collocated);
 	}
 	fclose(ctrl_file);
@@ -302,21 +303,6 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 	set_mesh_parameters(sim);
 	set_input_path(sim);
 	set_orders(sim,&orders);
-}
-
-static void set_string_associations (struct Simulation*const sim)
-{
-	// pde_index
-	if (strstr(sim->pde_name,"Advection"))
-		const_cast_i(&sim->pde_index,PDE_ADVECTION);
-	else if (strstr(sim->pde_name,"Poisson"))
-		const_cast_i(&sim->pde_index,PDE_POISSON);
-	else if (strstr(sim->pde_name,"Euler"))
-		const_cast_i(&sim->pde_index,PDE_EULER);
-	else if (strstr(sim->pde_name,"NavierStokes"))
-		const_cast_i(&sim->pde_index,PDE_NAVIERSTOKES);
-	else
-		EXIT_ERROR("Unsupported: %s\n",sim->pde_name);
 }
 
 static void check_necessary_simulation_parameters (struct Simulation*const sim)
@@ -348,6 +334,9 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 	assert(sim->p_s_v[0] != P_INVALID);
 	assert(sim->p_s_v[1] != P_INVALID);
 	assert(sim->p_s_v[1] >= sim->p_s_v[0]);
+
+	assert((sim->method == METHOD_DG)   || (sim->method == METHOD_HDG) ||
+	       (sim->method == METHOD_HDPG) || (sim->method == METHOD_DPG));
 }
 
 static void set_simulation_default (struct Simulation*const sim)

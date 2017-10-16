@@ -96,6 +96,16 @@ const double* get_row_const_Multiarray_d (const ptrdiff_t row, const struct cons
 	return &a->data[row*ext_1];
 }
 
+const double* get_col_const_Multiarray_d (const ptrdiff_t col, const struct const_Multiarray_d* a)
+{
+	assert(a->order >  0);
+	assert(a->order <= 2);
+	assert(a->layout == 'C');
+
+	const ptrdiff_t ext_0 = a->extents[0];
+	return &a->data[col*ext_0];
+}
+
 void set_to_value_Multiarray_d (struct Multiarray_d*const a, const double val)
 {
 	const ptrdiff_t size = compute_size(a->order,a->extents);

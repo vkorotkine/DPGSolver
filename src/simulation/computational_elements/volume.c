@@ -40,7 +40,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "face.h"
 #include "element.h"
 #include "geometry.h"
-#include "solution.h"
 
 // Static function declarations ************************************************************************************* //
 

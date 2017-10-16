@@ -28,15 +28,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_elements.h"
 
 ///\{ \name Definitions for the available solver methods.
-#define METHOD_DG  1
-#define METHOD_HDG 2
-///\}
-
-///\{ \name Definitions for the available PDEs.
-#define PDE_ADVECTION    1
-#define PDE_POISSON      2
-#define PDE_EULER        3
-#define PDE_NAVIERSTOKES 4
+#define METHOD_DG   1
+#define METHOD_HDG  2
+#define METHOD_HDPG 3
+#define METHOD_DPG  4
 ///\}
 
 /// \brief Struct holding data related to the simulation.
@@ -44,7 +39,7 @@ struct Simulation {
 	const int mpi_size, ///< The number of mpi processes.
 	          mpi_rank; ///< The mpi rank of the current processor.
 
-	const char* ctrl_name_full; ///< Name of the control file (including full path and file extension).
+	const char* ctrl_name_full;            ///< Name of the control file (including full path and file extension).
 	const char mesh_name_full[STRLEN_MAX]; ///< Name of the mesh    file (including full path and file extension).
 	const char input_path[STRLEN_MAX];     ///< The path to the directory containing relevant input files.
 
@@ -161,6 +156,9 @@ struct Simulation {
 	 *  p_t = p_s + p_t_p. */
 	const int p_t_p;
 
+	/// Finite element method to be used. Options: 1 (DG), 2 (HDG), 3 (HDPG), 4 (DPG).
+	const int method;
+
 	/** The number of required extents for hp operator stored in the various \ref Element\*s. This is currently a
 	 *  fixed value determined from the most general hp adaptive case.
 	 *  - h-adaptation: Does not add any extents, but increases the range of the first extent such that operators
@@ -176,11 +174,7 @@ struct Simulation {
 
 	const int adapt_type; ///< The type of adaptation to be used. Set based on the ctrl file paramters.
 
-/// \todo maybe move to a testcase struct.
-	const int pde_index; ///< Index corresponding to \ref pde_name.
-
-	const int n_var, ///< Number of variables in the PDE under consideration.
-	          n_eq;  ///< Number of equations in the PDE under consideration.
+	const struct Test_Case* test_case; ///< Pointer to the \ref Test_Case.
 
 	const struct const_Intrusive_List* elements; ///< Pointer to the head of the Element list.
 	struct Intrusive_List* volumes;              ///< Pointer to the head of the Volume  list.
@@ -189,9 +183,6 @@ struct Simulation {
 // ---------------------------- //
 	const bool collocated; /**< Whether a collocated interpolation and integration node set is being used. Significant
 	                        *   performance increase may be observed when this is `true`. */
-
-	const int method;     /**< Solver method to be used.
-	                       *   	Options: 1 (DG), 2 (HDG), 3 (HDPG), 4 (DPG). */
 };
 
 /** \brief Constructor for \ref Simulation.
@@ -210,6 +201,7 @@ void destructor_Simulation
 	);
 
 /** \brief Set full control file name (including path and file extension).
+ *  \return See brief.
  *
  *  If "TEST" is not included as part of the name (default option):
  *  - it is assumed that `ctrl_name` includes the full name and path from CMAKE_PROJECT_DIR/control_files;

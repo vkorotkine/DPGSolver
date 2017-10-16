@@ -153,6 +153,13 @@ const double* get_row_const_Multiarray_d
 	 const struct const_Multiarray_d* a ///< Defined for \ref get_row_Multiarray_d.
 	);
 
+/** \brief Get pointer to col of col-major \ref const_Multiarray_d\*.
+ *  \return See brief. */
+const double* get_col_const_Multiarray_d
+	(const ptrdiff_t col,               ///< Desired column.
+	 const struct const_Multiarray_d* a ///< Multiarray.
+	);
+
 /// \brief Set all data entries to the input value.
 void set_to_value_Multiarray_d
 	(struct Multiarray_d*const a, ///< Standard.

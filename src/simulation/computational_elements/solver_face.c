@@ -27,7 +27,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "const_cast.h"
 #include "geometry.h"
 #include "simulation.h"
-#include "solution.h"
 #include "volume.h"
 
 // Static function declarations ************************************************************************************* //
@@ -47,6 +46,9 @@ void constructor_derived_Solver_Face (struct Face* face_ptr, const struct Simula
 	const_cast_i(&face->p_ref,sim->p_s_v[0]);
 	const_cast_c(&face->cub_type,(check_for_curved_neigh((struct Face*)face) ? 'c' : 's'));
 
+	face->sol_coef  = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0});   // destructed
+	face->grad_coef = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}); // destructed
+
 	const_constructor_move_Multiarray_d(
 		&face->xyz_fc,constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}));        // destructed
 	const_constructor_move_Multiarray_d(
@@ -58,6 +60,9 @@ void constructor_derived_Solver_Face (struct Face* face_ptr, const struct Simula
 void destructor_derived_Solver_Face (struct Face* face_ptr)
 {
 	struct Solver_Face* face = (struct Solver_Face*) face_ptr;
+
+	destructor_Multiarray_d(face->sol_coef);
+	destructor_Multiarray_d(face->grad_coef);
 
 	destructor_const_Multiarray_d(face->xyz_fc);
 	destructor_const_Multiarray_d(face->normals_fc);

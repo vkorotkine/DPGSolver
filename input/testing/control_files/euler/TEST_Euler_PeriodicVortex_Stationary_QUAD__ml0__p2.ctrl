@@ -40,6 +40,8 @@ p_cub_p 1
 
 p_test_p 2
 
+fe_method 1
+
 
 # Testing variables
 

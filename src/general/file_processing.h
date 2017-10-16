@@ -35,7 +35,7 @@ FILE* fopen_checked
  *  \return See brief. */
 FILE* fopen_input
 	(const char*const input_path, ///< Full path to the location of the input file.
-	 const char*const input_spec  ///< The input specifier. Options: "geometry".
+	 const char input_spec        ///< The input specifier. Options: "geometry".
 	);
 
 /** \brief Open file of the given input name, creating the directory if it does not exist.

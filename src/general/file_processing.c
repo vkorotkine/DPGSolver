@@ -75,15 +75,22 @@ FILE* fopen_checked (const char*const file_name_full)
 	return file;
 }
 
-FILE* fopen_input (const char*const input_path, const char*const input_spec)
+FILE* fopen_input (const char*const input_path, const char input_spec)
 {
 	char input_name[STRLEN_MAX];
 
-	strcpy(input_name,input_path);
-	if (strstr(input_spec,"geometry"))
-		strcat(input_name,"geometry_parameters.geo");
-	else
-		EXIT_UNSUPPORTED;
+	int index = sprintf(input_name,"%s",input_path);
+	switch (input_spec) {
+	case 'g':
+		sprintf(index+input_name,"%s","geometry_parameters.geo");
+		break;
+	case 's':
+		sprintf(index+input_name,"%s","solution.data");
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %c\n",input_spec);
+		break;
+	}
 
 	return fopen_checked(input_name);
 }
