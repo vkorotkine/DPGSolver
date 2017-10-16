@@ -430,12 +430,7 @@ static void set_mesh_parameters (struct Simulation*const sim)
 
 static void set_input_path (struct Simulation*const sim)
 {
-	char* input_path = (char*) sim->input_path;
-
-	strcpy(input_path,"");
-	strcat_path_c(input_path,"input_files","/");
-	strcat_path_c(input_path,sim->pde_name,"/");
-	strcat_path_c(input_path,sim->pde_spec,"/");
+	sprintf((char*)sim->input_path,"%s%s%s%s%s","../input_files/",sim->pde_name,"/",sim->pde_spec,"/");
 }
 
 static void set_orders (struct Simulation*const sim, struct Orders*const orders)

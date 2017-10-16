@@ -58,8 +58,9 @@ void test_integration_geometry (struct Test_Info*const test_info, const char*con
 	constructor_derived_computational_elements(sim,IL_SOLVER);
 
 	set_up_solver_geometry(sim);
-//	output_visualization(sim,VIS_GEOM_VOLUMES);
-//	output_visualization(sim,VIS_NORMALS);
+
+	output_visualization(sim,VIS_GEOM_VOLUMES);
+	output_visualization(sim,VIS_NORMALS);
 
 	const bool pass = compare_members_geom(test_info,sim);
 

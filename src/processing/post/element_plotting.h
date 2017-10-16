@@ -29,8 +29,10 @@ struct Simulation;
 struct Plotting_Element {
 	struct const_Element element; ///< Base \ref const_Element.
 
-	const struct Multiarray_Operator* cv0_vgs_vps; ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* cv0_vgc_vpc; ///< See notation in \ref element_operators.h.
+/// \todo Remove the s/c from the plotting part of the operator names.
+	const struct Multiarray_Operator* cv0_vgs_vp; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vgc_vp; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vs_vp;  ///< See notation in \ref element_operators.h.
 
 	int n_p;                                     ///< The number of stored plotting nodes.
 	const struct const_Plotting_Nodes** p_nodes; ///< The array of \ref Plotting_Nodes for each order.
@@ -40,8 +42,9 @@ struct Plotting_Element {
 struct const_Plotting_Element {
 	const struct const_Element element; ///< Defined in \ref Plotting_Element.
 
-	const struct Multiarray_Operator*const cv0_vgs_vps; ///< Defined in \ref Plotting_Element.
-	const struct Multiarray_Operator*const cv0_vgc_vpc; ///< Defined in \ref Plotting_Element.
+	const struct Multiarray_Operator*const cv0_vgs_vp; ///< Defined in \ref Plotting_Element.
+	const struct Multiarray_Operator*const cv0_vgc_vp; ///< Defined in \ref Plotting_Element.
+	const struct Multiarray_Operator*const cv0_vs_vp;  ///< Defined in \ref Plotting_Element.
 
 	int n_p;                                               ///< Defined in \ref Plotting_Element.
 	const struct const_Plotting_Nodes*const*const p_nodes; ///< Defined in \ref Plotting_Element.

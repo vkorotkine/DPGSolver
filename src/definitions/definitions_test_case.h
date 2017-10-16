@@ -26,4 +26,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define PDE_NAVIER_STOKES 4
 ///\}
 
+///\{ \name Definitions for variables related to the PDEs.
+#define GAMMA  1.4
+#define GM1    0.4
+#define GM3   -1.6
+///\}
+
 #endif // DPG__definitions_test_case_h__INCLUDED

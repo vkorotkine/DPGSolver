@@ -139,7 +139,7 @@ static int get_list_category
 void constructor_derived_computational_elements (struct Simulation* sim, const int derived_category)
 {
 	// Set parameters
-// Make external function here after usage is set.
+/// \todo Make external function here after usage is set.
 	int list_name[2]         = { 0, 0, };
 	size_t sizeof_base[2]    = { 0, 0, },
 	       sizeof_derived[2] = { 0, 0, };
@@ -346,6 +346,10 @@ void destructor_derived_Elements (struct Simulation* sim, const int base_name)
 	case IL_PLOTTING_ELEMENT:
 		assert(base_name == IL_ELEMENT);
 		destructor_derived_Element = destructor_derived_Plotting_Element;
+		break;
+	case IL_SOLUTION_ELEMENT:
+		assert(base_name == IL_ELEMENT);
+		destructor_derived_Element = destructor_derived_Solution_Element;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_name);

@@ -96,7 +96,7 @@ const double* get_row_const_Multiarray_d (const ptrdiff_t row, const struct cons
 	return &a->data[row*ext_1];
 }
 
-const double* get_col_const_Multiarray_d (const ptrdiff_t col, const struct const_Multiarray_d* a)
+double* get_col_Multiarray_d (const ptrdiff_t col, struct Multiarray_d* a)
 {
 	assert(a->order >  0);
 	assert(a->order <= 2);
@@ -104,6 +104,11 @@ const double* get_col_const_Multiarray_d (const ptrdiff_t col, const struct cons
 
 	const ptrdiff_t ext_0 = a->extents[0];
 	return &a->data[col*ext_0];
+}
+
+const double* get_col_const_Multiarray_d (const ptrdiff_t col, const struct const_Multiarray_d* a)
+{
+	return (const double*) get_col_Multiarray_d(col,(struct Multiarray_d*)a);
 }
 
 void set_to_value_Multiarray_d (struct Multiarray_d*const a, const double val)

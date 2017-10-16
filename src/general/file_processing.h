@@ -117,12 +117,20 @@ void read_skip_const_b
 	 const bool*const var   ///< Variable in which to store data.
 	);
 
-/// \brief Read a `const double`, optionally skipping strings and optionally removing trailing semicolons.
+/// \brief Read a `double`, optionally skipping strings and optionally removing trailing semicolons.
+void read_skip_d
+	(char*const line,       ///< Line from which to read data.
+	 double*const var,      ///< Variable in which to store data.
+	 const int n_skip,      ///< The number of strings to skip.
+	 const bool remove_semi ///< Flag for optional removal of semicolon.
+	);
+
+/// \brief `const` version of \ref read_skip_d.
 void read_skip_const_d
-	(char*const line,        ///< Line from which to read data.
-	 const double*const var, ///< Variable in which to store data.
-	 const int n_skip,       ///< The number of strings to skip.
-	 const bool remove_semi  ///< Flag for optional removal of semicolon.
+	(char*const line,        ///< Defined for \ref read_skip_d.
+	 const double*const var, ///< Defined for \ref read_skip_d.
+	 const int n_skip,       ///< Defined for \ref read_skip_d.
+	 const bool remove_semi  ///< Defined for \ref read_skip_d.
 	);
 
 /// \brief Get the next line from the input file and read the `var_name` variable into `var` of type `const bool`.

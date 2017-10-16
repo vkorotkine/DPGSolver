@@ -34,6 +34,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "simulation.h"
 #include "solution.h"
 
+#include "definitions_visualization.h"
+#include "visualization.h"
+
 // Static function declarations ************************************************************************************* //
 
 /// \brief 'Con'/'De'strucor for a \ref Simulation depending on `adapt_type`.
@@ -75,8 +78,15 @@ void test_integration_convergence (struct Test_Info*const test_info, const char*
 	struct Simulation* sim = NULL;
 	for (int p = p_ref[0], p_prev = p; p <= p_ref[1]; ++p) {
 	for (int ml = ml_ref[0], ml_prev = ml; ml <= ml_ref[1]; ++ml) {
+p = 2;
+ml = 2;
+
+
 		const char*const ctrl_name_curr = set_ctrl_name_curr(adapt_type,p,ml,ctrl_name);
 		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr);
+
+		output_visualization(sim,VIS_GEOM_EDGES);
+		output_visualization(sim,VIS_SOLUTION);
 
 		p_prev  = p;
 		ml_prev = ml;

@@ -44,7 +44,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *	- \ref Solver_Volume::sol_coef;
  *	- \ref Solver_Volume::grad_coef (if applicable).
  */
-static void set_up_solution
+static void set_initial_solution
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
@@ -57,7 +57,9 @@ void compute_solution (struct Simulation* sim)
 
 	constructor_derived_Elements(sim,IL_SOLUTION_ELEMENT);
 
-	set_up_solution(sim);
+	set_initial_solution(sim);
+EXIT_ADD_SUPPORT;
+// derive DG Solver_Volumes/Faces and start solving. Include RES in the solver volume for simplicity.
 
 	destructor_derived_Elements(sim,IL_ELEMENT);
 }
@@ -98,8 +100,8 @@ const struct const_Multiarray_d* constructor_xyz_vs (const struct Simulation* si
 	const int p = volume->p_ref;
 
 	const struct Operator* cv0_vg_vs =
-		(!base_volume->curved ? get_Multiarray_Operator(element->cv0_vgs_vss,(ptrdiff_t[]){0,0,p,1})
-		                      : get_Multiarray_Operator(element->cv0_vgc_vsc,(ptrdiff_t[]){0,0,p,p}) );
+		(!base_volume->curved ? get_Multiarray_Operator(element->cv0_vgs_vs,(ptrdiff_t[]){0,0,p,1})
+		                      : get_Multiarray_Operator(element->cv0_vgc_vs,(ptrdiff_t[]){0,0,p,p}) );
 
 	const int n_vs = cv0_vg_vs->op_std->ext_0;
 
@@ -113,7 +115,7 @@ const struct const_Multiarray_d* constructor_xyz_vs (const struct Simulation* si
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static void set_up_solution (struct Simulation* sim)
+static void set_initial_solution (struct Simulation* sim)
 {
 	const struct Test_Case* test_case = sim->test_case;
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
@@ -121,10 +123,5 @@ static void set_up_solution (struct Simulation* sim)
 
 		test_case->compute_init_sol_coef_v(sim,volume);
 		test_case->compute_init_grad_coef_v(sim,volume);
-
-printf("sol: %d\n",((struct Volume*)volume)->index);
-print_Multiarray_d(volume->sol_coef);
 	}
-
-EXIT_UNSUPPORTED;
 }

@@ -50,7 +50,10 @@ struct Test_Case {
 	/// Function pointer to the function computing the initial \ref Solver_Face::grad_coef.
 	compute_sol_coef_f_fptr compute_init_grad_coef_f;
 
-	double time; ///< Parameter storing the current time of the test case.
+
+	// Parameters for unsteady simulations.
+	double time,       ///< Parameter storing the current time of the test case.
+	       time_final; ///< Parameter storing the final time of the test case.
 };
 
 /** \brief Constructor for a \ref Test_Case.

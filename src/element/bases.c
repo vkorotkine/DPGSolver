@@ -648,7 +648,7 @@ const struct const_Matrix_d* constructor_abc_from_rst_pyr (const struct const_Ma
 
 constructor_basis_fptr get_constructor_basis_by_super_type (const int s_type, const char*const ref_basis_name)
 {
-	if (strcmp(ref_basis_name,"ortho") == 0) {
+	if (strcmp(ref_basis_name,"orthonormal") == 0) {
 		switch (s_type) {
 			case ST_TP:  return constructor_basis_tp_orthonormal;  break;
 			case ST_SI:  return constructor_basis_si_orthonormal;  break;
@@ -670,7 +670,7 @@ constructor_basis_fptr get_constructor_basis_by_super_type_i (const int s_type, 
 {
 	switch (ind_basis) {
 	case BASIS_ORTHO:
-		return get_constructor_basis_by_super_type(s_type,"ortho");
+		return get_constructor_basis_by_super_type(s_type,"orthonormal");
 		break;
 	case BASIS_BEZIER:
 		return get_constructor_basis_by_super_type(s_type,"bezier");
@@ -685,7 +685,7 @@ constructor_basis_fptr get_constructor_basis_by_super_type_i (const int s_type, 
 constructor_grad_basis_fptr get_constructor_grad_basis_by_super_type (const int s_type, const char*const ref_basis_name)
 {
 	if (s_type == ST_TP) {
-		if (strcmp(ref_basis_name,"ortho") == 0)
+		if (strcmp(ref_basis_name,"orthonormal") == 0)
 			return  constructor_grad_basis_tp_orthonormal;
 		else if (strcmp(ref_basis_name,"bezier") == 0)
 			return  constructor_grad_basis_tp_bezier;
@@ -701,7 +701,7 @@ constructor_grad_basis_fptr get_constructor_grad_basis_by_super_type (const int 
 int get_basis_i_from_s (const char*const basis_name_s)
 {
 	int basis_name_i = -1;
-	if (strcmp(basis_name_s,"ortho") == 0)
+	if (strcmp(basis_name_s,"orthonormal") == 0)
 		basis_name_i = BASIS_ORTHO;
 	else if (strcmp(basis_name_s,"lagrange") == 0)
 		basis_name_i = BASIS_LAGRANGE;

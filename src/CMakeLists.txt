@@ -24,6 +24,7 @@ include_directories(
 	simulation/test_case
 	simulation/test_case/solution
 	simulation/test_case/solution/periodic_vortex
+	simulation/test_case/solution/supersonic_vortex
 	testing
 	)
 

@@ -153,11 +153,18 @@ const double* get_row_const_Multiarray_d
 	 const struct const_Multiarray_d* a ///< Defined for \ref get_row_Multiarray_d.
 	);
 
-/** \brief Get pointer to col of col-major \ref const_Multiarray_d\*.
+/** \brief Get pointer to col of col-major \ref Multiarray_d\*.
+ *  \return See brief. */
+double* get_col_Multiarray_d
+	(const ptrdiff_t col,   ///< Desired column.
+	 struct Multiarray_d* a ///< Multiarray.
+	);
+
+/** \brief `const` version of \ref get_col_Multiarray_d.
  *  \return See brief. */
 const double* get_col_const_Multiarray_d
-	(const ptrdiff_t col,               ///< Desired column.
-	 const struct const_Multiarray_d* a ///< Multiarray.
+	(const ptrdiff_t col,               ///< Defined for \ref get_col_Multiarray_d.
+	 const struct const_Multiarray_d* a ///< Defined for \ref get_col_Multiarray_d.
 	);
 
 /// \brief Set all data entries to the input value.

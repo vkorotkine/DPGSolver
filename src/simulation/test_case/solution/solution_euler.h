@@ -22,10 +22,39 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Test_Case;
 struct Simulation;
 
+struct Multiarray_d;
+struct const_Multiarray_d;
+
 /// \brief Set the solution function pointer members of an Euler \ref Test_Case.
 void set_function_pointers_solution_euler
 	(struct Test_Case* test_case,      ///< \ref Test_Case.
 	 const struct Simulation*const sim ///< \ref Simulation.
+	);
+
+/** \brief Convert between support variable types.
+ *
+ *  Supported types include:
+ *  - 'p'rimitive:    [rho u v w p].
+ *  - 'c'onservative: [rho*[1 u v w] E]; E = p/(GAMMA-1) + 0.5*rho*V^2.
+ */
+void convert_variables
+	(struct Multiarray_d* vars, ///< The container holding the data.
+	 const char type_i,         ///< The input variable type.
+	 const char type_o          ///< The output variable type.
+	);
+
+/// \brief Compute the entropy measure: s = p/pow(rho,GAMMA).
+void compute_entropy
+	(struct Multiarray_d* s,                ///< The container to hold the entropy data.
+	 const struct const_Multiarray_d* vars, ///< The container of Euler variables.
+	 const char var_type                    ///< The type of the variables.
+	);
+
+/// \brief Compute the mach number: mach = V/c.
+void compute_mach
+	(struct Multiarray_d* mach,             ///< The container to hold the mach data.
+	 const struct const_Multiarray_d* vars, ///< The container of Euler variables.
+	 const char var_type                    ///< The type of the variables.
 	);
 
 #endif // DPG__solution_euler_h__INCLUDED

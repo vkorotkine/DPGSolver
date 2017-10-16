@@ -68,6 +68,18 @@ void const_cast_c1
 	 const char*const  src   ///< Source.
 	);
 
+/// \brief Cast from `double` to `const double`.
+void const_cast_d
+	(const double* dest, ///< Destination.
+	 const double src    ///< Source.
+	);
+
+/// \brief Cast from `double*` to `const double*const`.
+void const_cast_d1
+	(const double*const* dest, ///< Destination.
+	 const double*const  src   ///< Source.
+	);
+
 /// \brief Cast from `void*` to `const void*const`.
 void const_cast_void1
 	(const void*const* dest, ///< Destination.

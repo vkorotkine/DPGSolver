@@ -9,5 +9,5 @@ set	(LIBS_DEPEND
 	 Operators
 	)
 
-add_library(Post_Processing ${SOURCE})
+add_library(Post_Processing STATIC ${SOURCE})
 target_link_libraries(Post_Processing PRIVATE ${LIBS_DEPEND})

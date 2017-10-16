@@ -325,7 +325,7 @@ static void set_operator_std
 		}
 
 		const int s_type = op_io[OP_IND_I].s_type;
-		constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type,"ortho");
+		constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type,"orthonormal");
 
 		/* Compute `op_cvNr`: [operator, coefficients to values, differentiation order N, reference basis].
 		 * op_cvNr == basis(p_i,rst_o). */
@@ -339,7 +339,7 @@ static void set_operator_std
 			const_constructor_move_const_Matrix_d(&op_cvNr->data[0],cv0r); // destructed
 		} else if (op_info->range_d == OP_R_D_ALL) {
 			constructor_grad_basis_fptr constructor_grad_basis =
-				get_constructor_grad_basis_by_super_type(s_type,"ortho");
+				get_constructor_grad_basis_by_super_type(s_type,"orthonormal");
 			op_cvNr = constructor_grad_basis(p_ptr[OP_IND_I],nodes_o->rst); // destructed
 		} else {
 			EXIT_ERROR("Unsupported: %d\n",op_info->range_d);

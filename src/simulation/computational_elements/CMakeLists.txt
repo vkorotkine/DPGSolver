@@ -12,6 +12,7 @@ set	(LIBS_DEPEND
 	 General
 	 Geometry
 	 Intrusive
+	 Post_Processing
 	 Solution
 	)
 

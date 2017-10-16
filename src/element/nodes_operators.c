@@ -106,7 +106,7 @@ const struct const_Nodes* constructor_const_Nodes_h
 	const char ce_io       = op_io[ind_io].ce;
 
 	constructor_Nodes_fptr constructor_Nodes = get_constructor_Nodes_by_super_type(s_type_io);
-	constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type_io,"ortho");
+	constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type_io,"orthonormal");
 
 	const struct const_Nodes* nodes_io = constructor_Nodes(d_io,p_io,node_type_io); // destructed
 

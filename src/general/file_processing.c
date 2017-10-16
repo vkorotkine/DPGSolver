@@ -183,7 +183,7 @@ void read_skip_const_b (const char*const line, const bool*const var)
 	sscanf(line,"%*s %d",(int*)var);
 }
 
-void read_skip_const_d (char*const line, const double*const var, const int n_skip, const bool remove_semi)
+void read_skip_d (char*const line, double*const var, const int n_skip, const bool remove_semi)
 {
 	char* token_s = strtok(line," ");
 	for (int i = 0; i < n_skip; ++i)
@@ -191,7 +191,12 @@ void read_skip_const_d (char*const line, const double*const var, const int n_ski
 
 	char* token_s_clean = ( remove_semi ? strtok(token_s,";") : token_s );
 
-	sscanf(token_s_clean,"%lf",(double*)var);
+	sscanf(token_s_clean,"%lf",var);
+}
+
+void read_skip_const_d (char*const line, const double*const var, const int n_skip, const bool remove_semi)
+{
+	read_skip_d(line,(double*)var,n_skip,remove_semi);
 }
 
 void read_skip_const_i_1 (char*const line, const int n_skip, const int*const var, const int n_var)
