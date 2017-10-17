@@ -12,23 +12,24 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__solve_explicit_h__INCLUDED
+#define DPG__solve_explicit_h__INCLUDED
 /** \file
+ *  \brief Provides the interface to functions used to solve for the solution using explicit procedures.
+ *
+ *  \todo Add the references.
+ *  The available options are:
+ *  - Forward Euler;
+ *  - Strong stability preserving Runge-Kutta (3 stage, 3rd order);
+ *  - Low storage Runge-Kutta (5 stage, 4rd order).
  */
 
-#include "template.h"
+struct Simulation;
 
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
+/// \brief Solve for the solution using an explicit solver.
+void solve_explicit
+	(struct Simulation* sim ///< \ref Simulation.
+	);
 
-// Static function declarations ************************************************************************************* //
-
-
-
-// Interface functions ********************************************************************************************** //
-
-
-
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
+#endif // DPG__solve_explicit_h__INCLUDED

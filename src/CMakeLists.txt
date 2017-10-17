@@ -21,6 +21,8 @@ include_directories(
 	simulation/geometry
 	simulation/mesh
 	simulation/operators
+	simulation/solvers
+	simulation/solvers/dg
 	simulation/test_case
 	simulation/test_case/solution
 	simulation/test_case/solution/periodic_vortex

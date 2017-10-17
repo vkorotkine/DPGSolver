@@ -174,7 +174,7 @@ struct Simulation {
 
 	const int adapt_type; ///< The type of adaptation to be used. Set based on the ctrl file paramters.
 
-	const struct Test_Case* test_case; ///< Pointer to the \ref Test_Case.
+	struct Test_Case* test_case; ///< Pointer to the \ref Test_Case.
 
 	const struct const_Intrusive_List* elements; ///< Pointer to the head of the Element list.
 	struct Intrusive_List* volumes;              ///< Pointer to the head of the Volume  list.

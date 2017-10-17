@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "solver_face.h"
+#include "face_solver.h"
 
 #include <string.h>
 

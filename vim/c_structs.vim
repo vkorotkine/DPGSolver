@@ -30,7 +30,7 @@ syntax keyword Identifier Plotting_Element const_Plotting_Element
 syntax keyword Identifier Solution_Element const_Solution_Element
 
 syntax keyword Identifier Volume
-syntax keyword Identifier Solver_Volume
+syntax keyword Identifier Solver_Volume DG_Solver_Volume
 
 syntax keyword Identifier Face
-syntax keyword Identifier Solver_Face
+syntax keyword Identifier Solver_Face DG_Solver_Face

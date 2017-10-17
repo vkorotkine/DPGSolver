@@ -33,7 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "computational_elements.h"
 #include "face.h"
 #include "volume.h"
-#include "solver_face.h"
+#include "face_solver.h"
 
 #include "file_processing.h"
 #include "geometry.h"

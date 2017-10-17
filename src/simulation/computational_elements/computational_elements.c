@@ -24,10 +24,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_elements.h"
 #include "definitions_intrusive.h"
 
-#include "volume.h"
-#include "solver_volume.h"
 #include "face.h"
-#include "solver_face.h"
+#include "face_solver.h"
+#include "face_solver_dg.h"
+#include "volume.h"
+#include "volume_solver.h"
+#include "volume_solver_dg.h"
 
 #include "element.h"
 #include "geometry_element.h"
@@ -140,6 +142,7 @@ void constructor_derived_computational_elements (struct Simulation* sim, const i
 {
 	// Set parameters
 /// \todo Make external function here after usage is set.
+// Likely separate the base and derived category sizes.
 	int list_name[2]         = { 0, 0, };
 	size_t sizeof_base[2]    = { 0, 0, },
 	       sizeof_derived[2] = { 0, 0, };
@@ -147,6 +150,8 @@ void constructor_derived_computational_elements (struct Simulation* sim, const i
 	constructor_derived_Face_fptr   constructor_derived_Face   = NULL;
 	switch (derived_category) {
 	case IL_SOLVER:
+		assert(sim->volumes->name == IL_VOLUME);
+		assert(sim->faces->name   == IL_FACE);
 		list_name[0] = IL_SOLVER_VOLUME;
 		list_name[1] = IL_SOLVER_FACE;
 		sizeof_base[0] = sizeof(struct Volume);
@@ -155,6 +160,18 @@ void constructor_derived_computational_elements (struct Simulation* sim, const i
 		sizeof_derived[1] = sizeof(struct Solver_Face);
 		constructor_derived_Volume = constructor_derived_Solver_Volume;
 		constructor_derived_Face   = constructor_derived_Solver_Face;
+		break;
+	case IL_SOLVER_DG:
+		assert(sim->volumes->name == IL_SOLVER_VOLUME);
+		assert(sim->faces->name   == IL_SOLVER_FACE);
+		list_name[0] = IL_VOLUME_SOLVER_DG;
+		list_name[1] = IL_FACE_SOLVER_DG;
+		sizeof_base[0] = sizeof(struct Solver_Volume);
+		sizeof_base[1] = sizeof(struct Solver_Face);
+		sizeof_derived[0] = sizeof(struct DG_Solver_Volume);
+		sizeof_derived[1] = sizeof(struct DG_Solver_Face);
+		constructor_derived_Volume = constructor_derived_DG_Solver_Volume;
+		constructor_derived_Face   = constructor_derived_DG_Solver_Face;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_category);

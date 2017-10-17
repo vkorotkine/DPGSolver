@@ -15,19 +15,28 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "template.h"
+#include "compute_grad_coef_dg.h"
 
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "macros.h"
+
+#include "simulation.h"
+#include "test_case.h"
+
 // Static function declarations ************************************************************************************* //
-
-
 
 // Interface functions ********************************************************************************************** //
 
+void compute_grad_coef_dg (const struct Simulation* sim)
+{
+	if (!sim->test_case->has_2nd_order)
+		return;
 
+	EXIT_ADD_SUPPORT;
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

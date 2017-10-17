@@ -35,7 +35,7 @@ FILE* fopen_checked
  *  \return See brief. */
 FILE* fopen_input
 	(const char*const input_path, ///< Full path to the location of the input file.
-	 const char input_spec        ///< The input specifier. Options: "geometry".
+	 const char input_spec        ///< The input specifier. Options: 'g'eometry, 's'olution, 't'est case.
 	);
 
 /** \brief Open file of the given input name, creating the directory if it does not exist.
@@ -103,6 +103,12 @@ void read_skip_c
 void read_skip_i
 	(const char*const line, ///< Line from which to read data.
 	 int*const var          ///< Variable in which to store data.
+	);
+
+/// \brief `const` version of \ref read_skip_i.
+void read_skip_const_i
+	(const char*const line, ///< Defined for \ref read_skip_i.
+	 const int*const var    ///< Defined for \ref read_skip_i.
 	);
 
 /// \brief Read a `const char*`, skipping the first string.

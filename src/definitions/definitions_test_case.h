@@ -32,4 +32,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #define GM3   -1.6
 ///\}
 
+///\{ \name Definitions for the available solver procedures.
+#define SOLVER_E  100 ///< Explicit.
+#define SOLVER_I  200 ///< Implicit.
+#define SOLVER_EI 300 ///< Explicit then implicit.
+///\}
+
+///\{ \name Definitions for the available solver types.
+#define SOLVER_E_EULER     101 ///< Explicit forward Euler.
+#define SOLVER_E_SSP_RK_33 102 ///< Explicit strong stability preserving Runge-Kutta (3-stage, 3rd order).
+#define SOLVER_E_LS_RK_54  103 ///< Explicit low storage Runge-Kutta (5-stage, 4rd order).
+///\}
+
 #endif // DPG__definitions_test_case_h__INCLUDED

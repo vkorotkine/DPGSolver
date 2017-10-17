@@ -31,7 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element.h"
 #include "element_solution.h"
 #include "volume.h"
-#include "solver_volume.h"
+#include "volume_solver.h"
 
 #include "multiarray_operator.h"
 #include "operator.h"
@@ -40,45 +40,34 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Set up the initial solution for the simulation. Computes:
- *	- \ref Solver_Volume::sol_coef;
- *	- \ref Solver_Volume::grad_coef (if applicable).
- */
-static void set_initial_solution
-	(struct Simulation* sim ///< \ref Simulation.
-	);
-
 // Interface functions ********************************************************************************************** //
 
-void compute_solution (struct Simulation* sim)
+void set_initial_solution (struct Simulation* sim)
 {
-	assert(sim->volumes->name == IL_SOLVER_VOLUME);
-	assert(sim->faces->name   == IL_SOLVER_FACE);
+	const struct Test_Case* test_case = sim->test_case;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* volume = (struct Solver_Volume*) curr;
 
-	constructor_derived_Elements(sim,IL_SOLUTION_ELEMENT);
-
-	set_initial_solution(sim);
-EXIT_ADD_SUPPORT;
-// derive DG Solver_Volumes/Faces and start solving. Include RES in the solver volume for simplicity.
-
-	destructor_derived_Elements(sim,IL_ELEMENT);
+		test_case->set_sol_coef_v(sim,volume);
+		test_case->set_grad_coef_v(sim,volume);
+	}
 }
 
-void compute_grad_coef_v_do_nothing (const struct Simulation* sim, struct Solver_Volume* volume)
+void set_grad_coef_v_do_nothing (const struct Simulation* sim, struct Solver_Volume* volume)
 {
 	UNUSED(sim);
 	UNUSED(volume);
 	return;
 }
 
-void compute_sol_coef_f_do_nothing (const struct Simulation* sim, struct Solver_Face* face)
+void set_sol_coef_f_do_nothing (const struct Simulation* sim, struct Solver_Face* face)
 {
 	UNUSED(sim);
 	UNUSED(face);
 	return;
 }
 
-void compute_grad_coef_f_do_nothing (const struct Simulation* sim, struct Solver_Face* face)
+void set_grad_coef_f_do_nothing (const struct Simulation* sim, struct Solver_Face* face)
 {
 	UNUSED(sim);
 	UNUSED(face);
@@ -114,14 +103,3 @@ const struct const_Multiarray_d* constructor_xyz_vs (const struct Simulation* si
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static void set_initial_solution (struct Simulation* sim)
-{
-	const struct Test_Case* test_case = sim->test_case;
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume* volume = (struct Solver_Volume*) curr;
-
-		test_case->compute_init_sol_coef_v(sim,volume);
-		test_case->compute_init_grad_coef_v(sim,volume);
-	}
-}

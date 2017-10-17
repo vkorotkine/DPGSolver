@@ -15,6 +15,7 @@ set	(LIBS_DEPEND
 	 Post_Processing
 	 Simulation
 	 Solution
+	 Solvers
 	 Test_Base
 	 Test_Support
 	)

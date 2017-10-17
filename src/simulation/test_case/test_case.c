@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_case.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_case.h"
 
 #include "const_cast.h"
+#include "file_processing.h"
 #include "simulation.h"
 #include "solution_euler.h"
 
@@ -36,8 +38,8 @@ static void set_string_associations
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
-/// \brief Set \ref Test_Case::n_var and \ref Test_Case::n_eq.
-static void set_n_var_eq
+/// \brief Set pde related parameters.
+static void set_pde_related
 	(struct Test_Case* test_case,      ///< \ref Test_Case.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
@@ -48,20 +50,25 @@ static void set_function_pointers
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
+/// \brief Read members of \ref Test_Case from input file.
+static void read_test_case_parameters
+	(struct Test_Case* test_case,      ///< \ref Test_Case.
+	 const struct Simulation*const sim ///< \ref Simulation.
+	);
+
 // Interface functions ********************************************************************************************** //
 
-const struct Test_Case* constructor_Test_Case (const struct Simulation* sim)
+struct Test_Case* constructor_Test_Case (const struct Simulation* sim)
 {
-	struct Test_Case* test_case = malloc(sizeof *test_case); // returned
+	struct Test_Case* test_case = calloc(1,sizeof *test_case); // returned
 
 	set_string_associations(test_case,sim);
-	set_n_var_eq(test_case,sim);
+	set_pde_related(test_case,sim);
 
+	read_test_case_parameters(test_case,sim);
 	set_function_pointers(test_case,sim);
 
-	test_case->time = 0.0;
-
-	return (const struct Test_Case*) test_case;
+	return test_case;
 }
 
 void destructor_Test_Case (const struct Test_Case* test_case)
@@ -87,18 +94,32 @@ static void set_string_associations (struct Test_Case* test_case, const struct S
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_name);
 }
 
-static void set_n_var_eq (struct Test_Case* test_case, const struct Simulation* sim)
+static void set_pde_related (struct Test_Case* test_case, const struct Simulation* sim)
 {
 	switch (test_case->pde_index) {
-	case PDE_ADVECTION: // fallthrough
+	case PDE_ADVECTION:
+		const_cast_i(&test_case->n_var,1);
+		const_cast_i(&test_case->n_eq,1);
+		const_cast_bool(&test_case->has_1st_order,true);
+		const_cast_bool(&test_case->has_2nd_order,false);
+		break;
 	case PDE_POISSON:
 		const_cast_i(&test_case->n_var,1);
 		const_cast_i(&test_case->n_eq,1);
+		const_cast_bool(&test_case->has_1st_order,false);
+		const_cast_bool(&test_case->has_2nd_order,true);
 		break;
 	case PDE_EULER:        // fallthrough
+		const_cast_i(&test_case->n_var,sim->d+2);
+		const_cast_i(&test_case->n_eq,sim->d+2);
+		const_cast_bool(&test_case->has_1st_order,true);
+		const_cast_bool(&test_case->has_2nd_order,false);
+		break;
 	case PDE_NAVIER_STOKES:
 		const_cast_i(&test_case->n_var,sim->d+2);
 		const_cast_i(&test_case->n_eq,sim->d+2);
+		const_cast_bool(&test_case->has_1st_order,true);
+		const_cast_bool(&test_case->has_2nd_order,true);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
@@ -118,4 +139,30 @@ static void set_function_pointers (struct Test_Case* test_case, const struct Sim
 //		case PDE_NAVIER_STOKES: set_function_pointers_solution_navier_stokes(test_case,sim); break;
 		default: EXIT_ERROR("Unsupported: %d\n",test_case->pde_index); break;
 	}
+}
+
+static void read_test_case_parameters (struct Test_Case* test_case, const struct Simulation*const sim)
+{
+	const int count_to_find = 1;
+
+	FILE* input_file = fopen_input(sim->input_path,'t'); // closed
+
+	int count_found = 0;
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),input_file)) {
+		if (strstr(line,"solver_proc")) {
+			++count_found;
+			read_skip_const_i(line,&test_case->solver_proc);
+		}
+		if (strstr(line,"solver_type_e")) read_skip_const_i(line,&test_case->solver_type_e);
+
+		if (strstr(line,"time_final")) read_skip_const_d(line,&test_case->time_final,1,false);
+		if (strstr(line,"time_step"))  read_skip_const_d(line,&test_case->dt,1,false);
+
+		if (strstr(line,"display_progress")) read_skip_const_b(line,&test_case->display_progress);
+	}
+	fclose(input_file);
+
+	if (count_found != count_to_find)
+		EXIT_ERROR("Did not find the required number of variables");
 }

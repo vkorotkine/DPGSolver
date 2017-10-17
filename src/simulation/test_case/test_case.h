@@ -19,7 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides container(s) and functions relating to the test cases.
  */
 
+#include <stdbool.h>
+
 #include "solution.h"
+#include "solve.h"
 
 struct Simulation;
 
@@ -35,30 +38,47 @@ struct Simulation;
 struct Test_Case {
 	const int pde_index; ///< Index corresponding to \ref Simulation::pde_name.
 
+	const bool has_1st_order, ///< Flag for whether the pde under consideration has 1st order terms.
+	           has_2nd_order; ///< Flag for whether the pde under consideration has 2nd order terms.
+
 	const int n_var, ///< Number of variables in the PDE under consideration.
 	          n_eq;  ///< Number of equations in the PDE under consideration.
 
-	/// Function pointer to the function computing the initial \ref Solver_Volume::sol_coef.
-	compute_sol_coef_v_fptr compute_init_sol_coef_v;
+	/// Function pointer to the function used to set \ref Solver_Volume::sol_coef.
+	set_sol_coef_v_fptr set_sol_coef_v;
 
-	/// Function pointer to the function computing the initial \ref Solver_Volume::grad_coef.
-	compute_sol_coef_v_fptr compute_init_grad_coef_v;
+	/// Function pointer to the function used to set \ref Solver_Volume::grad_coef.
+	set_sol_coef_v_fptr set_grad_coef_v;
 
-	/// Function pointer to the function computing the initial \ref Solver_Face::sol_coef.
-	compute_sol_coef_f_fptr compute_init_sol_coef_f;
+	/// Function pointer to the function used to set \ref Solver_Face::sol_coef.
+	set_sol_coef_f_fptr set_sol_coef_f;
 
-	/// Function pointer to the function computing the initial \ref Solver_Face::grad_coef.
-	compute_sol_coef_f_fptr compute_init_grad_coef_f;
+	/// Function pointer to the function used to set \ref Solver_Face::grad_coef.
+	set_sol_coef_f_fptr set_grad_coef_f;
 
 
-	// Parameters for unsteady simulations.
-	double time,       ///< Parameter storing the current time of the test case.
-	       time_final; ///< Parameter storing the final time of the test case.
+	// Solver related parameters
+	const bool display_progress; ///< Flag for whether the solver progress should be displayed (in stdout).
+
+	/// The type of solver procedure to be used for the simulation. Options: See definitions_test_case.h.
+	const int solver_proc;
+
+	// Parameters for explicit simulations.
+	const int solver_type_e; ///< The explicit solver type. Options: See definitions_test_case.h.
+
+	double time;             ///< The current time.
+	const double time_final; ///< The final time.
+	const double dt;         ///< The time increment at each stage of the explicit solve.
+
+
+	// Parameters for explicit to implicit simulations.
+	const double exit_tol_e;   ///< The exit tolerance for the residual during the explicit solver stage.
+	const double exit_ratio_e; ///< The exit ratio for the residual during the explicit solver stage.
 };
 
 /** \brief Constructor for a \ref Test_Case.
  *  \return See brief. */
-const struct Test_Case* constructor_Test_Case
+struct Test_Case* constructor_Test_Case
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 

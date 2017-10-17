@@ -15,20 +15,48 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "template.h"
+#include "compute_volume_rlhs_dg.h"
 
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "macros.h"
+#include "definitions_intrusive.h"
+
+#include "multiarray.h"
+
+#include "volume_solver_dg.h"
+
+#include "intrusive.h"
+#include "simulation.h"
+#include "test_case.h"
+
 // Static function declarations ************************************************************************************* //
 
-
+/// \brief Set the memory of the rhs and lhs (if applicable) terms to zero for the volumes.
+static void zero_memory_volumes
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
 
 // Interface functions ********************************************************************************************** //
 
+void compute_volume_rhs_dg (const struct Simulation* sim)
+{
+	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
 
+/// \todo Check if this is required.
+	zero_memory_volumes(sim);
+
+	EXIT_ADD_SUPPORT;
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+static void zero_memory_volumes (const struct Simulation* sim)
+{
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		set_to_value_Multiarray_d(((struct DG_Solver_Volume*)curr)->rhs,0.0);
+	}
+}

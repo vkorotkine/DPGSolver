@@ -29,7 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "element_solution.h"
-#include "solver_volume.h"
+#include "volume_solver.h"
 
 #include "file_processing.h"
 #include "multiarray_operator.h"
@@ -80,7 +80,7 @@ void set_xy_c
 
 // Interface functions ********************************************************************************************** //
 
-void compute_sol_coef_v_periodic_vortex (const struct Simulation* sim, struct Solver_Volume* volume)
+void set_sol_coef_v_periodic_vortex (const struct Simulation* sim, struct Solver_Volume* volume)
 {
 	assert(sim->d >= 2);
 
@@ -164,11 +164,11 @@ void compute_sol_coef_v_periodic_vortex (const struct Simulation* sim, struct So
 	destructor_Multiarray_d(sol_vs);
 }
 
-void compute_sol_coef_f_periodic_vortex (const struct Simulation* sim, struct Solver_Face* face)
+void set_sol_coef_f_periodic_vortex (const struct Simulation* sim, struct Solver_Face* face)
 {
 	switch (sim->method) {
 	case METHOD_DG:
-		compute_sol_coef_f_do_nothing(sim,face);
+		set_sol_coef_f_do_nothing(sim,face);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);

@@ -40,14 +40,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void set_function_pointers_solution_euler (struct Test_Case* test_case, const struct Simulation*const sim)
 {
-	test_case->compute_init_grad_coef_v = compute_grad_coef_v_do_nothing;
-	test_case->compute_init_grad_coef_f = compute_grad_coef_f_do_nothing;
+	test_case->set_grad_coef_v = set_grad_coef_v_do_nothing;
+	test_case->set_grad_coef_f = set_grad_coef_f_do_nothing;
 	if (strstr(sim->pde_spec,"periodic_vortex")) {
-		test_case->compute_init_sol_coef_v = compute_sol_coef_v_periodic_vortex;
-		test_case->compute_init_sol_coef_f = compute_sol_coef_f_periodic_vortex;
+		test_case->set_sol_coef_v = set_sol_coef_v_periodic_vortex;
+		test_case->set_sol_coef_f = set_sol_coef_f_periodic_vortex;
 	} else if (strstr(sim->pde_spec,"supersonic_vortex")) {
-		test_case->compute_init_sol_coef_v = compute_sol_coef_v_supersonic_vortex;
-		test_case->compute_init_sol_coef_f = compute_sol_coef_f_supersonic_vortex;
+		test_case->set_sol_coef_v = set_sol_coef_v_supersonic_vortex;
+		test_case->set_sol_coef_f = set_sol_coef_f_supersonic_vortex;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}

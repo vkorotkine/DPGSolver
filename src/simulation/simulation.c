@@ -110,7 +110,6 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 	destructor_Mesh(mesh);
 
 	sim->test_case = constructor_Test_Case(sim);
-//	set_string_associations(sim);
 
 	return sim;
 }

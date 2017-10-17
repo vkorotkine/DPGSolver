@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "solver_volume.h"
+#include "volume_solver.h"
 
 #include <string.h>
 

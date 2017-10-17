@@ -1,9 +1,9 @@
 set	(SOURCE
 	 computational_elements.c
-	 volume.c
-	 solver_volume.c
-	 solver_face.c
 	 face.c
+	 face_solver.c
+	 volume.c
+	 volume_solver.c
 	)
 
 set	(LIBS_DEPEND

@@ -13,8 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__solver_volume_h__INCLUDED
-#define DPG__solver_volume_h__INCLUDED
+#ifndef DPG__volume_solver_h__INCLUDED
+#define DPG__volume_solver_h__INCLUDED
 /** \file
  *  \brief Provides the interface for the \ref Solver_Volume container and associated functions.
  */
@@ -67,4 +67,4 @@ void destructor_derived_Solver_Volume
 	(struct Volume* volume_ptr ///< Pointer to the volume.
 	);
 
-#endif // DPG__solver_volume_h__INCLUDED
+#endif // DPG__volume_solver_h__INCLUDED

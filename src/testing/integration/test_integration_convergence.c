@@ -32,7 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "geometry.h"
 #include "simulation.h"
-#include "solution.h"
+#include "solve.h"
 
 #include "definitions_visualization.h"
 #include "visualization.h"
@@ -115,7 +115,7 @@ static void structor_simulation
 			*sim = constructor_Simulation(ctrl_name); // destructed
 			constructor_derived_computational_elements(*sim,IL_SOLVER); // destructed
 			set_up_solver_geometry(*sim);
-			compute_solution(*sim);
+			solve_for_solution(*sim);
 		} else if (mode == 'd') {
 			destructor_derived_computational_elements(*sim,IL_BASE);
 			destructor_Simulation(*sim);

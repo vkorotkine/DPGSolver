@@ -15,20 +15,24 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "template.h"
+#include "solve_implicit.h"
 
-#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "macros.h"
+
+#include "simulation.h"
+
 // Static function declarations ************************************************************************************* //
-
-
 
 // Interface functions ********************************************************************************************** //
 
-
+void solve_implicit (struct Simulation* sim)
+{
+UNUSED(sim);
+EXIT_ADD_SUPPORT;
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-

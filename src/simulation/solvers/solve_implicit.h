@@ -12,23 +12,20 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__solve_implicit_h__INCLUDED
+#define DPG__solve_implicit_h__INCLUDED
 /** \file
+ *  \brief Provides the interface to functions used to solve for the solution using implicit procedures.
+ *
+ *  \todo Update this.
  */
 
-#include "template.h"
+struct Simulation;
 
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
+/// \brief Solve for the solution using an implicit solver.
+void solve_implicit
+	(struct Simulation* sim ///< \ref Simulation.
+	);
 
-// Static function declarations ************************************************************************************* //
-
-
-
-// Interface functions ********************************************************************************************** //
-
-
-
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
+#endif // DPG__solve_implicit_h__INCLUDED

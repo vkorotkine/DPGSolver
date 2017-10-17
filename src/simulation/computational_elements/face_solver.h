@@ -13,8 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__solver_face_h__INCLUDED
-#define DPG__solver_face_h__INCLUDED
+#ifndef DPG__face_solver_h__INCLUDED
+#define DPG__face_solver_h__INCLUDED
 /** \file
  *  \brief Provides the interface for the \ref Solver_Face container and associated functions.
  */
@@ -60,4 +60,4 @@ void destructor_derived_Solver_Face
 	(struct Face* face_ptr ///< Pointer to the face.
 	);
 
-#endif // DPG__solver_face_h__INCLUDED
+#endif // DPG__face_solver_h__INCLUDED

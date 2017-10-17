@@ -87,6 +87,9 @@ FILE* fopen_input (const char*const input_path, const char input_spec)
 	case 's':
 		sprintf(index+input_name,"%s","solution.data");
 		break;
+	case 't':
+		sprintf(index+input_name,"%s","test_case.data");
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %c\n",input_spec);
 		break;
@@ -171,6 +174,11 @@ void read_skip_c (const char*const line, char*const var)
 void read_skip_i (const char*const line, int*const var)
 {
 	sscanf(line,"%*s %u",var);
+}
+
+void read_skip_const_i (const char*const line, const int*const var)
+{
+	read_skip_i(line,(int*)var);
 }
 
 void read_skip_const_c_1 (const char*const line, const char*const var)

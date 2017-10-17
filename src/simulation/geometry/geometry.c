@@ -31,8 +31,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "computational_elements.h"
-#include "solver_volume.h"
-#include "solver_face.h"
+#include "volume_solver.h"
+#include "face_solver.h"
 
 #include "const_cast.h"
 #include "geometry_element.h"

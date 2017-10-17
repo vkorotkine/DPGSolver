@@ -1,0 +1,9 @@
+/// Solver parameters for test case: euler/periodic/periodic_vortex
+
+solver_proc   100
+solver_type_e 102
+
+time_step  0.00001
+time_final 0.001
+
+print_enabled 1

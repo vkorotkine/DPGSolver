@@ -12,23 +12,23 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__compute_volume_rlhs_dg_h__INCLUDED
+#define DPG__compute_volume_rlhs_dg_h__INCLUDED
 /** \file
+ *  \brief Provides functions used for computing the volume contributions to the right and left-hand sides (rlhs) terms
+ *         of the DG scheme.
  */
 
-#include "template.h"
+struct Simulation;
 
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
+/** \brief Compute the volume contributions to the rhs terms for the DG scheme.
+ *
+ *  Computes:
+ *  - \ref DG_Solver_Volume::rhs.
+ */
+void compute_volume_rhs_dg
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
 
-// Static function declarations ************************************************************************************* //
-
-
-
-// Interface functions ********************************************************************************************** //
-
-
-
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
+#endif // DPG__compute_volume_rlhs_dg_h__INCLUDED

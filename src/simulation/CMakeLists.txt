@@ -2,6 +2,7 @@ add_subdirectory(computational_elements)
 add_subdirectory(geometry)
 add_subdirectory(operators)
 add_subdirectory(mesh)
+add_subdirectory(solvers)
 add_subdirectory(test_case)
 
 set	(SOURCE
