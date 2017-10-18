@@ -29,7 +29,6 @@ struct Simulation;
 struct Plotting_Element {
 	struct const_Element element; ///< Base \ref const_Element.
 
-/// \todo Remove the s/c from the plotting part of the operator names.
 	const struct Multiarray_Operator* cv0_vgs_vp; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vgc_vp; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vs_vp;  ///< See notation in \ref element_operators.h.

@@ -71,7 +71,7 @@ EXIT_ADD_SUPPORT;
 
 }
 
-double compute_RHS (const struct Simulation* sim)
+double compute_rhs (const struct Simulation* sim)
 {
 	double max_rhs = 0.0;
 

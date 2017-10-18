@@ -33,7 +33,7 @@ void solve_for_solution
  *  The rhs includes all terms of the discretization except for the time-varying term and **does not** include the
  *  inverse of the mass matrix (i.e. M_v d/dt sol_coef = rhs).
  */
-double compute_RHS
+double compute_rhs
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 

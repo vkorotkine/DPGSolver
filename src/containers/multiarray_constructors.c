@@ -137,6 +137,22 @@ const struct const_Multiarray_Matrix_d* constructor_empty_const_Multiarray_Matri
 	return (const struct const_Multiarray_Matrix_d*) constructor_empty_Multiarray_Matrix_d_V(alloc_M,extents_i_V);
 }
 
+// Zero constructors ************************************************************************************************ //
+
+struct Multiarray_d* constructor_zero_Multiarray_d
+	(const char layout, const int order, const ptrdiff_t*const extents_i)
+{
+	ptrdiff_t*const extents = allocate_and_set_extents(order,extents_i); // keep
+	return constructor_zero_Multiarray_d_dyn_extents(layout,order,extents);
+}
+
+struct Multiarray_d* constructor_zero_Multiarray_d_dyn_extents
+	(const char layout, const int order, const ptrdiff_t*const extents_i)
+{
+	double* data = calloc(compute_size(order,extents) , sizeof *data); // keep
+	return constructor_move_Multiarray_d_dyn_extents(layout,order,(ptrdiff_t*)extents,true,data);
+}
+
 // Copy constructors ************************************************************************************************ //
 
 struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i

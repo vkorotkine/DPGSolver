@@ -35,6 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "geometry_element.h"
 #include "element_plotting.h"
 #include "element_solution.h"
+#include "element_solver_dg.h"
 
 #include "intrusive.h"
 #include "simulation.h"
@@ -307,6 +308,12 @@ void constructor_derived_Elements (struct Simulation* sim, const int derived_nam
 		sizeof_base    = sizeof(struct Element);
 		sizeof_derived = sizeof(struct Solution_Element);
 		constructor_derived_Element = constructor_derived_Solution_Element;
+		break;
+	case IL_ELEMENT_SOLVER_DG:
+		assert(sizeof(struct DG_Solver_Element) == sizeof(struct const_DG_Solver_Element));
+		sizeof_base    = sizeof(struct Element);
+		sizeof_derived = sizeof(struct DG_Solver_Element);
+		constructor_derived_Element = constructor_derived_DG_Solver_Element;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_name);

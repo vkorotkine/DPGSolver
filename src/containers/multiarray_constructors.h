@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- {0} : Type of constructor
  *  		- default: reserve memory only for the container itself (not for the data).
  *  		- empty:   reserve memory storage for the data but do not set it.
+ *  		- zero:    same as empty, but with memory initially set to zero.
  *  		- copy:    reserve memory storage for the data and set it to a copy of the input data.
  *  		- move:    move data to the container being constructed.
  *  		- set:     construct a container and set its entries to the input container but use `owns_data = false`.
@@ -165,6 +166,24 @@ struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d_V
 const struct const_Multiarray_Matrix_d* constructor_empty_const_Multiarray_Matrix_d_V
 	(const bool alloc_M,                           ///< Defined for \ref constructor_empty_Multiarray_Matrix_d.
 	 const struct const_Vector_i*const extents_i_V ///< The input extents in vector format.
+	);
+
+// Zero constructors ************************************************************************************************ //
+
+/** \brief Same as \ref constructor_empty_Multiarray_d but with data calloc'ed.
+ *  \return Standard. */
+struct Multiarray_d* constructor_zero_Multiarray_d
+	(const char layout,              ///< Defined in \ref Multiarray_d.
+	 const int order,                ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents_i ///< The input extents.
+	);
+
+/** \brief Same as \ref constructor_empty_Multiarray_d_dyn_extents but with data calloc'ed.
+ *  \return Standard. */
+struct Multiarray_d* constructor_zero_Multiarray_d_dyn_extents
+	(const char layout,            ///< Defined in \ref Multiarray_d.
+	 const int order,              ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents ///< Defined in \ref Multiarray_d.
 	);
 
 // Copy constructors ************************************************************************************************ //

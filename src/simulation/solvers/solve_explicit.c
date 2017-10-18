@@ -79,7 +79,7 @@ void solve_explicit (struct Simulation* sim)
 	assert(sim->method == METHOD_DG); // Can be made flexible in future.
 
 	constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
-//	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
+	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
 
 	time_step_fptr time_step = set_time_step(sim);
 
@@ -105,7 +105,7 @@ void solve_explicit (struct Simulation* sim)
 			break;
 	}
 
-//	destructor_derived_Elements(sim,IL_ELEMENT);
+	destructor_derived_Elements(sim,IL_ELEMENT);
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 EXIT_ADD_SUPPORT;
 }
@@ -222,7 +222,7 @@ static double time_step_ssp_rk_33 (const double dt, const struct Simulation* sim
 
 	double max_rhs = 0.0;
 	for (int rk = 0; rk < 3; rk++) {
-		max_rhs = compute_RHS(sim);
+		max_rhs = compute_rhs(sim);
 		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 			struct Solver_Volume*    s_vol    = (struct Solver_Volume*) curr;
 			struct DG_Solver_Volume* s_vol_dg = (struct DG_Solver_Volume*) curr;

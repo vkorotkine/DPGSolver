@@ -159,12 +159,15 @@ struct Simulation {
 	/// Finite element method to be used. Options: 1 (DG), 2 (HDG), 3 (HDPG), 4 (DPG).
 	const int method;
 
+	const bool collocated; /**< Whether a collocated interpolation and integration node set is being used.
+	                        *   Significant performance increase may be observed when this is `true`. */
+
 	/** The number of required extents for hp operator stored in the various \ref Element\*s. This is currently a
 	 *  fixed value determined from the most general hp adaptive case.
 	 *  - h-adaptation: Does not add any extents, but increases the range of the first extent such that operators
-	 *                  acting between sub-elements can be stored. Unlike the case for the p-adaptive operators, it is
-	 *                  quite rare to require an operator from a fine to coarse element and the additional index was
-	 *                  thus not added for this case.
+	 *                  acting between sub-elements can be stored. Unlike the case for the p-adaptive operators, it
+	 *                  is quite rare to require an operator from a fine to coarse element and the additional index
+	 *                  was thus not added for this case.
 	 *  - p-adaptation: Adds two extents such that operators acting between bases of different orders can be stored.
 	 *                  The additional extent ordering is [p_in][p_out].
 	 *  - hp-adaptation: Add both p and h adaptation indices:
@@ -179,10 +182,6 @@ struct Simulation {
 	const struct const_Intrusive_List* elements; ///< Pointer to the head of the Element list.
 	struct Intrusive_List* volumes;              ///< Pointer to the head of the Volume  list.
 	struct Intrusive_List* faces;                ///< Pointer to the head of the Face    list.
-
-// ---------------------------- //
-	const bool collocated; /**< Whether a collocated interpolation and integration node set is being used. Significant
-	                        *   performance increase may be observed when this is `true`. */
 };
 
 /** \brief Constructor for \ref Simulation.

@@ -30,23 +30,24 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name The \ref Element list names.
-#define IL_ELEMENT          100
-#define IL_GEOMETRY_ELEMENT 101
-#define IL_PLOTTING_ELEMENT 102
-#define IL_SOLUTION_ELEMENT 103
-#define IL_SOLVER_ELEMENT   104
+#define IL_ELEMENT           100
+/// \todo name change here (ELEMENT first)
+#define IL_GEOMETRY_ELEMENT  101
+#define IL_PLOTTING_ELEMENT  102
+#define IL_SOLUTION_ELEMENT  103
+#define IL_ELEMENT_SOLVER_DG 104
 ///\}
 
 ///\{ \name The \ref Volume list names.
 #define IL_VOLUME           200
-/// \todo name change here
+/// \todo name change here (VOLUME first)
 #define IL_SOLVER_VOLUME    210
 #define IL_VOLUME_SOLVER_DG 211
 ///\}
 
 ///\{ \name The \ref Face list names.
 #define IL_FACE           300
-/// \todo name change here
+/// \todo name change here (FACE first)
 #define IL_SOLVER_FACE    310
 #define IL_FACE_SOLVER_DG 311
 ///\}
