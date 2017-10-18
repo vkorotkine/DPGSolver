@@ -1,3 +1,4 @@
+add_subdirectory(flux)
 add_subdirectory(solution)
 
 set	(SOURCE
@@ -5,6 +6,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 Flux
 	 Solution
 	)
 

@@ -68,6 +68,8 @@ struct Test_Case* constructor_Test_Case (const struct Simulation* sim)
 	read_test_case_parameters(test_case,sim);
 	set_function_pointers(test_case,sim);
 
+	test_case->solver_method_curr = 0;
+
 	return test_case;
 }
 
@@ -109,7 +111,7 @@ static void set_pde_related (struct Test_Case* test_case, const struct Simulatio
 		const_cast_bool(&test_case->has_1st_order,false);
 		const_cast_bool(&test_case->has_2nd_order,true);
 		break;
-	case PDE_EULER:        // fallthrough
+	case PDE_EULER:
 		const_cast_i(&test_case->n_var,sim->d+2);
 		const_cast_i(&test_case->n_eq,sim->d+2);
 		const_cast_bool(&test_case->has_1st_order,true);

@@ -181,9 +181,9 @@ struct Multiarray_d* constructor_zero_Multiarray_d
 /** \brief Same as \ref constructor_empty_Multiarray_d_dyn_extents but with data calloc'ed.
  *  \return Standard. */
 struct Multiarray_d* constructor_zero_Multiarray_d_dyn_extents
-	(const char layout,            ///< Defined in \ref Multiarray_d.
-	 const int order,              ///< Defined in \ref Multiarray_d.
-	 const ptrdiff_t*const extents ///< Defined in \ref Multiarray_d.
+	(const char layout,              ///< Defined in \ref Multiarray_d.
+	 const int order,                ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents_i ///< Defined in \ref Multiarray_d.
 	);
 
 // Copy constructors ************************************************************************************************ //

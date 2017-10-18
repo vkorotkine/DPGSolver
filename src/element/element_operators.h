@@ -25,6 +25,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- cc: coefficients to coefficients
  *  	- vv: values       to values
  *  	- vc: values       to coefficients
+ *  	- tw: 't'est functions with 'w'eights.
+ *  \note For collocated schemes, `tw` operators also include premultiplication by the inverse weights.
  *  - [0]:   value for the order of differentiation (0 for no differentiation).
  *  - [1/4]: character denoting the type of computational element (ce):
  *  	- 'v'olume
@@ -58,6 +60,22 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 struct const_Element;
+struct Multiarray_Operator;
+struct Operator_Info;
+
+/** \brief Function pointer to a function which will set the operators.
+ *
+ *  \param ind_values The index of the first row of \ref Operator_Info::values_op to use.
+ *  \param op         The multiarray of operators.
+ *  \param op_info    \ref Operator_Info.
+ *  \param sim        \ref Simulation.
+ */
+typedef void (*set_operator_fptr)
+	(ptrdiff_t*const ind_values,
+	 const struct Multiarray_Operator* op,
+	 const struct Operator_Info* op_info,
+	 const struct Simulation* sim
+	);
 
 /// Container specifying the effect ("from which input to which output") of the operator application.
 struct Op_IO {
@@ -93,6 +111,8 @@ struct Operator_Info {
 	const struct const_Vector_i* extents_op;
 
 	const struct const_Matrix_i* values_op; ///< The values of d, f, h, p_in, and p_out for each operator.
+
+	set_operator_fptr set_operator; ///< \ref set_operator_fptr.
 };
 
 // Interface functions ********************************************************************************************** //

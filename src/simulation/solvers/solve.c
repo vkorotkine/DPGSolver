@@ -78,7 +78,9 @@ double compute_rhs (const struct Simulation* sim)
 	switch (sim->method) {
 	case METHOD_DG:
 		compute_grad_coef_dg(sim);
+// name change here: rhs -> rlhs
 		compute_volume_rhs_dg(sim);
+// make face->rhs point to the same memory as volume->rhs.
 EXIT_UNSUPPORTED;
 		break;
 	default:

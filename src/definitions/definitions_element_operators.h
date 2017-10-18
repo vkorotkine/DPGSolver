@@ -44,7 +44,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define OP_T_VV 102 ///< Values       to values.
 #define OP_T_VC 103 ///< Values       to coefficients.
 
-//#define OP_T_DG_WEAK_VV 110 ///< (D)iscontinuous-(G)alerkin (Weak) (V)olume to (V)olume.
+#define OP_T_TW 110 /**< Transposed 'T'est function multiplied with 'W'eights. Premultiplied by inverse weights if
+                     *   collocated. */
 ///\}
 
 

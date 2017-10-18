@@ -16,6 +16,7 @@ set	(LIBS_DEPEND
 	 Simulation
 	 Solution
 	 Solvers
+	 Test_Case
 	 Test_Base
 	 Test_Support
 	)

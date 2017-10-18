@@ -112,8 +112,9 @@ void permute_Multiarray_d (struct Multiarray_d* a, const ptrdiff_t* p)
 	permute_Matrix_d (&a_M,p);
 }
 
-void mm_NN1C_Multiarray_d
-	(const struct const_Matrix_d*const a, const struct const_Multiarray_d*const b, struct Multiarray_d*const c)
+void mm_NNC_Multiarray_d
+	(const double alpha, const double beta, const struct const_Matrix_d*const a,
+	 const struct const_Multiarray_d*const b, struct Multiarray_d*const c)
 {
 	const char layout = 'C';
 	assert(c->layout == layout);
@@ -135,10 +136,16 @@ void mm_NN1C_Multiarray_d
 		constructor_move_const_Matrix_d_d(b->layout,ext_0_b,ext_1,false,b->data); // destructed
 	struct Matrix_d* c_M = constructor_move_Matrix_d_d(c->layout,ext_0_c,ext_1,false,c->data); // destructed
 
-	mm_d('N','N',1.0,0.0,a,b_M,c_M);
+	mm_d('N','N',alpha,beta,a,b_M,c_M);
 
 	destructor_const_Matrix_d(b_M);
 	destructor_Matrix_d(c_M);
+}
+
+void mm_NN1C_Multiarray_d
+	(const struct const_Matrix_d*const a, const struct const_Multiarray_d*const b, struct Multiarray_d*const c)
+{
+	mm_NNC_Multiarray_d(1.0,0.0,a,b,c);
 }
 
 void reinterpret_const_Multiarray_as_Matrix_d

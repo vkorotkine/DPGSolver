@@ -36,7 +36,18 @@ void const_cast_ptrdiff (const ptrdiff_t* dest, const ptrdiff_t src)
 
 void const_cast_bool (const bool* dest, const bool src)
 {
+	const_cast_b(dest,src);
+}
+
+void const_cast_b (const bool* dest, const bool src)
+{
 	*(bool*) dest = src;
+}
+
+void const_cast_b1 (const bool* dest, const bool* src, const int n_src)
+{
+	for (int i = 0; i < n_src; ++i)
+		const_cast_bool(&dest[i],src[i]);
 }
 
 void const_cast_c (const char* dest, const char src)

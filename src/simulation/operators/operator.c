@@ -89,9 +89,10 @@ void set_ops_tp_n_rows_cols
 
 // Math functions *************************************************************************************************** //
 
-void mm_NN1C_Operator_Multiarray_d
-	(const struct Operator* op, const struct const_Multiarray_d* b, struct Multiarray_d* c, const char op_format,
-	 const int order_sub_ma, const ptrdiff_t* sub_inds_b, const ptrdiff_t* sub_inds_c)
+void mm_NNC_Operator_Multiarray_d
+	(const double alpha, const double beta, const struct Operator* op, const struct const_Multiarray_d* b,
+	 struct Multiarray_d* c, const char op_format, const int order_sub_ma, const ptrdiff_t* sub_inds_b,
+	 const ptrdiff_t* sub_inds_c)
 {
 	assert(b->layout == 'C');
 	assert(c->layout == 'C');
@@ -134,8 +135,8 @@ void mm_NN1C_Operator_Multiarray_d
 
 	switch (op_format) {
 	case 'd': // fallthrough
-	case 's': mm_NN1C_Multiarray_d(op->op_std,b_op,c_op);    break;
-//	case 't': mm_tp_NN1C_Multiarray_d(op->ops_tp,b_op,c_op); break;
+	case 's': mm_NNC_Multiarray_d(alpha,beta,op->op_std,b_op,c_op);    break;
+//	case 't': mm_tp_NNC_Multiarray_d(alpha,beta,op->ops_tp,b_op,c_op); break;
 	case 'c':
 		EXIT_ADD_SUPPORT;
 		break;
@@ -148,6 +149,13 @@ void mm_NN1C_Operator_Multiarray_d
 		destructor_const_Multiarray_d(b_op);
 	if (order_sub_ma != order_c)
 		destructor_Multiarray_d(c_op);
+}
+
+void mm_NN1C_Operator_Multiarray_d
+	(const struct Operator* op, const struct const_Multiarray_d* b, struct Multiarray_d* c, const char op_format,
+	 const int order_sub_ma, const ptrdiff_t* sub_inds_b, const ptrdiff_t* sub_inds_c)
+{
+	mm_NNC_Operator_Multiarray_d(1.0,0.0,op,b,c,op_format,order_sub_ma,sub_inds_b,sub_inds_c);
 }
 
 void mm_NN1_Operator_Multiarray_d

@@ -24,6 +24,7 @@ include_directories(
 	simulation/solvers
 	simulation/solvers/dg
 	simulation/test_case
+	simulation/test_case/flux
 	simulation/test_case/solution
 	simulation/test_case/solution/periodic_vortex
 	simulation/test_case/solution/supersonic_vortex

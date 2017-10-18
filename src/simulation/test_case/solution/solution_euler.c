@@ -28,6 +28,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include "const_cast.h"
+#include "flux.h"
 #include "simulation.h"
 #include "solution.h"
 #include "solution_periodic_vortex.h"
@@ -51,6 +53,15 @@ void set_function_pointers_solution_euler (struct Test_Case* test_case, const st
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}
+
+	const_cast_b1(test_case->flux_comp_mem_e,(bool[]){1,0,0},3);
+	const_cast_b1(test_case->flux_comp_mem_i,(bool[]){1,1,0},3);
+
+	test_case->compute_Flux = compute_Flux_1;
+	test_case->compute_Flux_e[0] = compute_Flux_euler;
+	test_case->compute_Flux_e[1] = NULL;
+	test_case->compute_Flux_i[0] = compute_Flux_euler_jacobian;
+	test_case->compute_Flux_i[1] = NULL;
 }
 
 void convert_variables (struct Multiarray_d* vars, const char type_i, const char type_o)

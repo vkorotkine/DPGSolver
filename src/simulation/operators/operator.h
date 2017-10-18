@@ -90,6 +90,23 @@ void set_ops_tp_n_rows_cols
 /** \brief Apply a matrix-matrix multiplication of an operator with a \ref const_Multiarray_d\* using the input operator
  *         format, asserting that the two input multiarrays have column-major layout.
  *
+ *  See comments in \ref mm_NNC_Multiarray_d for the preset matrix-matrix multiplication parameters.
+ */
+void mm_NNC_Operator_Multiarray_d
+	(const double alpha,                 ///< Defined for \ref mm_NNC_Multiarray_d.
+	 const double beta,                  ///< Defined for \ref mm_NNC_Multiarray_d.
+	 const struct Operator* op,          ///< \ref Operator.
+	 const struct const_Multiarray_d* b, ///< The input multiarray.
+	 struct Multiarray_d* c,             ///< The output multiarray.
+	 const char op_format,               ///< The operator format to be used.
+	 const int order_sub_ma,             ///< The order of each of the sub-multiarrays to be operated on.
+	 const ptrdiff_t* sub_inds_b,        ///< The sub-indices of the `b` multiarray if required.
+	 const ptrdiff_t* sub_inds_c         ///< The sub-indices of the `c` multiarray if required.
+	);
+
+/** \brief Apply a matrix-matrix multiplication of an operator with a \ref const_Multiarray_d\* using the input operator
+ *         format, asserting that the two input multiarrays have column-major layout.
+ *
  *  See comments in \ref constructor_mm_NN1C_Matrix_d for the preset matrix-matrix multiplication parameters.
  */
 void mm_NN1C_Operator_Multiarray_d

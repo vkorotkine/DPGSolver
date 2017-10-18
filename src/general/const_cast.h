@@ -50,10 +50,24 @@ void const_cast_ptrdiff
 	 const ptrdiff_t src    ///< Source.
 	);
 
-/// \brief Cast from `bool` to `const bool`.
+/// \brief To be deprecated version of \ref const_cast_bool.
+/// \todo \deprecated Remove this.
 void const_cast_bool
 	(const bool* dest, ///< Destination.
 	 const bool src    ///< Source.
+	);
+
+/// \brief Cast from `bool` to `const bool`.
+void const_cast_b
+	(const bool* dest, ///< Destination.
+	 const bool src    ///< Source.
+	);
+
+/// \brief Cast from `bool*` to `const bool*`.
+void const_cast_b1
+	(const bool* dest, ///< Destination.
+	 const bool* src,  ///< Source.
+	 const int n_src   ///< Number of entries in `src`.
 	);
 
 /// \brief Cast from `char` to `const char`.

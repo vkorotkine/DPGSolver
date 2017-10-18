@@ -55,6 +55,24 @@ void permute_Multiarray_d
  *         a matrix with the appropriate extents, asserting that the input multiarrays have column-major layout.
  *
  *  The first extent **must** be equal to `ext_1` of the `a` matrix.
+ *
+ *  Defaults:
+ *	- `trans_a_i = 'N'`;
+ *	- `trans_b_i = 'N'`;
+ *	- `layout = 'C'`.
+ */
+void mm_NNC_Multiarray_d
+	(const double alpha,                      ///< Defined for \ref mm_d.
+	 const double beta,                       ///< Defined for \ref mm_d.
+	 const struct const_Matrix_d*const a,     ///< Defined for \ref mm_d.
+	 const struct const_Multiarray_d*const b, ///< Input `b`.
+	 struct Multiarray_d*const c              ///< Output `c`.
+	);
+
+/** \brief Perform a matrix-matrix multiplication on a \ref const_Multiarray_d\*, interpreting the input multiarray as a
+ *         a matrix with the appropriate extents, asserting that the input multiarrays have column-major layout.
+ *
+ *  The first extent **must** be equal to `ext_1` of the `a` matrix.
  *  See comments in \ref constructor_mm_NN1C_Matrix_d for the preset matrix-matrix multiplication parameters.
  */
 void mm_NN1C_Multiarray_d

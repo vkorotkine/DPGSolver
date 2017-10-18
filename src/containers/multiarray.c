@@ -98,8 +98,6 @@ const double* get_row_const_Multiarray_d (const ptrdiff_t row, const struct cons
 
 double* get_col_Multiarray_d (const ptrdiff_t col, struct Multiarray_d* a)
 {
-	assert(a->order >  0);
-	assert(a->order <= 2);
 	assert(a->layout == 'C');
 
 	const ptrdiff_t ext_0 = a->extents[0];

@@ -149,8 +149,8 @@ struct Multiarray_d* constructor_zero_Multiarray_d
 struct Multiarray_d* constructor_zero_Multiarray_d_dyn_extents
 	(const char layout, const int order, const ptrdiff_t*const extents_i)
 {
-	double* data = calloc(compute_size(order,extents) , sizeof *data); // keep
-	return constructor_move_Multiarray_d_dyn_extents(layout,order,(ptrdiff_t*)extents,true,data);
+	double* data = calloc(compute_size(order,extents_i) , sizeof *data); // keep
+	return constructor_move_Multiarray_d_dyn_extents(layout,order,(ptrdiff_t*)extents_i,true,data);
 }
 
 // Copy constructors ************************************************************************************************ //

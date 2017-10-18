@@ -29,7 +29,7 @@ void solve_for_solution
 /** \brief Compute the volume and face rhs terms for the the given method.
  *  \return The maximum absolute value of the rhs.
  *
- *  \todo Make the math pretty.
+ *  \todo Make the equation pretty.
  *  The rhs includes all terms of the discretization except for the time-varying term and **does not** include the
  *  inverse of the mass matrix (i.e. M_v d/dt sol_coef = rhs).
  */

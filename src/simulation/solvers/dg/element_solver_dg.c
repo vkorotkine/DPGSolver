@@ -60,6 +60,9 @@ void destructor_derived_DG_Solver_Element (struct Element* element_ptr)
 	struct DG_Solver_Element* element = (struct DG_Solver_Element*) element_ptr;
 	destructor_Multiarray_Operator(element->cv0_vs_vcs);
 	destructor_Multiarray_Operator(element->cv0_vs_vcc);
+
+	destructor_Multiarray_Operator(element->tw1_vs_vcs);
+	destructor_Multiarray_Operator(element->tw1_vs_vcc);
 }
 
 // Static functions ************************************************************************************************* //
@@ -73,6 +76,10 @@ static void constructor_derived_DG_Solver_Element_std (struct Element* element_p
 
 	element->cv0_vs_vcs = constructor_operators("cv0","vsA","vcs","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
 	element->cv0_vs_vcc = constructor_operators("cv0","vsA","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+
+	element->tw1_vs_vcs = constructor_operators("tw1","vsA","vcs","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+	element->tw1_vs_vcc = constructor_operators("tw1","vsA","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+EXIT_UNSUPPORTED;
 }
 
 static void constructor_derived_DG_Solver_Element_tp (struct Element* element_ptr, const struct Simulation* sim)

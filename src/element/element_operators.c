@@ -42,7 +42,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Set the current standard operator(s).
+/** \brief Version of \ref set_operator setting standard operator(s).
  *  \note Standard operators include all permutations of coef/value to coef/value with possible differentiation.
  *
  *  Currently, the nodes are recomputed upon each entry into this function. It would be more efficient to compute the
@@ -50,10 +50,19 @@ You should have received a copy of the GNU General Public License along with DPG
  *  efficient computation of the nodes themselves.
  */
 static void set_operator_std
-	(ptrdiff_t*const ind_values,           ///< The index of the first row of \ref Operator_Info::values_op to use.
-	 const struct Multiarray_Operator* op, ///< The multiarray of operators.
-	 const struct Operator_Info* op_info,  ///< \ref Operator_Info.
-	 const struct Simulation* sim          ///< \ref Simulation.
+	(ptrdiff_t*const ind_values,           ///< Defined for \ref set_operator_fptr.
+	 const struct Multiarray_Operator* op, ///< Defined for \ref set_operator_fptr.
+	 const struct Operator_Info* op_info,  ///< Defined for \ref set_operator_fptr.
+	 const struct Simulation* sim          ///< Defined for \ref set_operator_fptr.
+	);
+
+/** \brief Version of \ref set_operator setting solver operator(s).
+ *  \ref set_operator_std may contain relevant comments. */
+static void set_operator_solver
+	(ptrdiff_t*const ind_values,           ///< Defined for \ref set_operator_fptr.
+	 const struct Multiarray_Operator* op, ///< Defined for \ref set_operator_fptr.
+	 const struct Operator_Info* op_info,  ///< Defined for \ref set_operator_fptr.
+	 const struct Simulation* sim          ///< Defined for \ref set_operator_fptr.
 	);
 
 /** \brief Convert the `char*` input to the appropriate definition of OP_T_*.
@@ -100,24 +109,13 @@ const struct Multiarray_Operator* constructor_operators
 {
 	struct Operator_Info* op_info =
 		constructor_Operator_Info(name_type,name_in,name_out,name_range,p_ref,element); // destructed
+	assert((op_info->range_d == OP_R_D_0) || (op_info->range_d == OP_R_D_ALL));
 
 	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator_V(op_info->extents_op); // returned
 
 	const ptrdiff_t row_max = op_info->values_op->ext_0;
-	for (ptrdiff_t row = 0; row < row_max; ) {
-		// row is incremented when setting the operators.
-		switch (op_info->op_type) {
-		case OP_T_CV:
-		case OP_T_CC:
-		case OP_T_VV:
-		case OP_T_VC:
-			set_operator_std(&row,op,op_info,sim);
-			break;
-		default:
-			EXIT_UNSUPPORTED;
-			break;
-		}
-	}
+	for (ptrdiff_t row = 0; row < row_max; ) // row is incremented when setting the operators.
+		op_info->set_operator(&row,op,op_info,sim);
 	destructor_Operator_Info(op_info);
 
 	return op;
@@ -158,6 +156,18 @@ struct Operator_Info* constructor_Operator_Info
 
 	set_up_extents(op_info);
 	set_up_values_op(op_info);
+
+	switch (op_info->op_type) {
+	case OP_T_CV: case OP_T_CC: case OP_T_VV: case OP_T_VC:
+		op_info->set_operator = set_operator_std;
+		break;
+	case OP_T_TW:
+		op_info->set_operator = set_operator_solver;
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
 
 	return op_info;
 }
@@ -306,7 +316,6 @@ static void set_operator_std
 	const bool info_loss = check_op_info_loss(op_values);
 	const struct const_Element* element = op_info->element;
 
-	assert((op_info->range_d == OP_R_D_0) || (op_info->range_d == OP_R_D_ALL));
 	const ptrdiff_t n_op = ( op_info->range_d == OP_R_D_0 ? 1 : element->d );
 
 	const struct const_Multiarray_Matrix_d* op_ioN = constructor_op_MMd(false,n_op); // destructed
@@ -420,6 +429,23 @@ static void set_operator_std
 	destructor_const_Vector_i(indices_op);
 }
 
+static void set_operator_solver
+	(ptrdiff_t*const ind_values, const struct Multiarray_Operator* op, const struct Operator_Info* op_info,
+	 const struct Simulation* sim)
+{
+	const int op_type = op_info->op_type;
+	assert(op_type == OP_T_TW);    // To be made flexible.
+
+	const_cast_i(&op_info->op_type,OP_T_CV);
+	set_operator_std(ind_values,op,op_info,sim);
+	const_cast_i(&op_info->op_type,op_type);
+// Multiply by weights and transpose.
+
+UNUSED(op);
+UNUSED(sim);
+	EXIT_ADD_SUPPORT;
+}
+
 int convert_to_type (const char* name_type)
 {
 	if (strstr(name_type,"cv"))
@@ -430,6 +456,8 @@ int convert_to_type (const char* name_type)
 		return OP_T_VV;
 	else if (strstr(name_type,"vc"))
 		return OP_T_VC;
+	else if (strstr(name_type,"tw"))
+		return OP_T_TW;
 	else
 		EXIT_ERROR("(%s)\n",name_type);
 	return -1;

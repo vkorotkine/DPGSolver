@@ -8,6 +8,8 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 Containers
+	 Element
+	 Flux
 	)
 
 set (LIB Solver_DG)

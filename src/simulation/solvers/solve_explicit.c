@@ -78,6 +78,7 @@ void solve_explicit (struct Simulation* sim)
 {
 	assert(sim->method == METHOD_DG); // Can be made flexible in future.
 
+	sim->test_case->solver_method_curr = 'e';
 	constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
 	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
 
@@ -107,6 +108,7 @@ void solve_explicit (struct Simulation* sim)
 
 	destructor_derived_Elements(sim,IL_ELEMENT);
 	destructor_derived_computational_elements(sim,IL_SOLVER);
+	sim->test_case->solver_method_curr = 0;
 EXIT_ADD_SUPPORT;
 }
 

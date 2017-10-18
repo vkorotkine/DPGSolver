@@ -21,8 +21,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 
+/// \todo Potentially make a special header for function pointers to limit the dependency generation here.
+#include "flux.h"
 #include "solution.h"
-#include "solve.h"
 
 struct Simulation;
 
@@ -58,6 +59,7 @@ struct Test_Case {
 
 
 	// Solver related parameters
+	char solver_method_curr;     ///< The current solver method. Options: 'e'xplicit, 'i'mplicit.
 	const bool display_progress; ///< Flag for whether the solver progress should be displayed (in stdout).
 
 	/// The type of solver procedure to be used for the simulation. Options: See definitions_test_case.h.
@@ -74,6 +76,20 @@ struct Test_Case {
 	// Parameters for explicit to implicit simulations.
 	const double exit_tol_e;   ///< The exit tolerance for the residual during the explicit solver stage.
 	const double exit_ratio_e; ///< The exit ratio for the residual during the explicit solver stage.
+
+	const bool flux_comp_mem_e[MAX_FLUX_OUT]; ///< \ref Flux_Input::compute_member for the explicit solver.
+	const bool flux_comp_mem_i[MAX_FLUX_OUT]; ///< \ref Flux_Input::compute_member for the implicit solver.
+
+	/// Function pointer to the function used to call the combination of 1st and 2nd order flux functions.
+	compute_Flux_fptr compute_Flux;
+
+/// \todo Merge the flux computation functions (without and with Jacobian) and remove one of these function pointers.
+	/// Function pointers to the functions used to compute the 1st/2nd order fluxes for the explicit solver.
+	compute_Flux_fptr compute_Flux_e[2];
+
+	/** Function pointers to the functions used to compute the 1st/2nd order fluxes (and optionally flux Jacobians)
+	 *  for the implicit solver. */
+	compute_Flux_fptr compute_Flux_i[2];
 };
 
 /** \brief Constructor for a \ref Test_Case.

@@ -31,6 +31,9 @@ struct DG_Solver_Element {
 
 	const struct Multiarray_Operator* cv0_vs_vcs; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vs_vcc; ///< See notation in \ref element_operators.h.
+
+	const struct Multiarray_Operator* tw1_vs_vcs; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* tw1_vs_vcc; ///< See notation in \ref element_operators.h.
 };
 
 /// \brief `const` version of the \ref DG_Solver_Element container.
@@ -39,6 +42,9 @@ struct const_DG_Solver_Element {
 
 	const struct Multiarray_Operator*const cv0_vs_vcs; ///< Defined in \ref DG_Solver_Element.
 	const struct Multiarray_Operator*const cv0_vs_vcc; ///< Defined in \ref DG_Solver_Element.
+
+	const struct Multiarray_Operator*const tw1_vs_vcs; ///< Defined in \ref DG_Solver_Element.
+	const struct Multiarray_Operator*const tw1_vs_vcc; ///< Defined in \ref DG_Solver_Element.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //
