@@ -13,23 +13,17 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__compute_volume_rlhs_dg_h__INCLUDED
-#define DPG__compute_volume_rlhs_dg_h__INCLUDED
+#ifndef DPG__vector_math_h__INCLUDED
+#define DPG__vector_math_h__INCLUDED
 /** \file
- *  \brief Provides functions used for computing the volume contributions to the right and left-hand sides (rlhs) terms
- *         of the DG scheme.
+ *  \brief Provides Vector_\* math functions.
  */
 
-struct Simulation;
+struct Vector_d;
 
-/** \brief Compute the volume contributions to the rhs (and optionally lhs) terms for the DG scheme.
- *
- *  \todo update this list when complete.
- *  Computes:
- *  - \ref DG_Solver_Volume::rhs.
- */
-void compute_volume_rlhs_dg
-	(const struct Simulation* sim ///< \ref Simulation.
+/// \brief Invert each of the entries of the input \ref Vector_d\*.
+void invert_Vector_d
+	(struct Vector_d* a ///< Input vector.
 	);
 
-#endif // DPG__compute_volume_rlhs_dg_h__INCLUDED
+#endif // DPG__vector_math_h__INCLUDED

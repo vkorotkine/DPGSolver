@@ -9,6 +9,7 @@ set	(SOURCE
 	 matrix_print.c
 	 vector.c
 	 vector_constructors.c
+	 vector_math.c
 	 vector_print.c
 	)
 

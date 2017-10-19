@@ -36,8 +36,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "compute_grad_coef_dg.h"
 #include "compute_volume_rlhs_dg.h"
+#include "compute_face_rlhs_dg.h"
 
 // Static function declarations ************************************************************************************* //
+
+/// \brief Set the memory of the rhs and lhs (if applicable) terms to zero for the volumes.
+static void zero_memory_volumes
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -67,20 +73,19 @@ void solve_for_solution (struct Simulation* sim)
 		break;
 	}
 EXIT_ADD_SUPPORT;
-// derive DG Solver_Volumes/Faces and start solving. Include RES in the solver volume for simplicity.
-
 }
 
 double compute_rhs (const struct Simulation* sim)
 {
+	/// \todo Add assertions relevant to rhs then call 'compute_rlhs'.
 	double max_rhs = 0.0;
 
 	switch (sim->method) {
 	case METHOD_DG:
+		zero_memory_volumes(sim); // Possibly move this to a dg specific file.
 		compute_grad_coef_dg(sim);
-// name change here: rhs -> rlhs
-		compute_volume_rhs_dg(sim);
-// make face->rhs point to the same memory as volume->rhs.
+		compute_volume_rlhs_dg(sim);
+		compute_face_rlhs_dg(sim);
 EXIT_UNSUPPORTED;
 		break;
 	default:
@@ -94,3 +99,9 @@ EXIT_UNSUPPORTED;
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+static void zero_memory_volumes (const struct Simulation* sim)
+{
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		set_to_value_Multiarray_d(((struct DG_Solver_Volume*)curr)->rhs,0.0);
+	}
+}

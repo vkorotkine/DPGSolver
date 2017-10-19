@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 
 #include "vector_constructors.h"
+#include "vector_math.h"
 #include "vector_print.h"
 
 /// \brief Vector (`int`).

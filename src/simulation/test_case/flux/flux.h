@@ -41,7 +41,7 @@ typedef void (*compute_Flux_fptr)
 	 struct mutable_Flux* flux
 	);
 
-/// \brief Container holding data used for computing the fluxes and flux jacobians.
+/// \brief Container holding data used for computing the fluxes and flux Jacobians.
 struct Flux_Input {
 	const bool* compute_member; ///< Array of flags for which of the \ref Flux members should be computed.
 
@@ -61,7 +61,7 @@ struct Flux_Input {
 	compute_Flux_fptr compute_Flux_2nd; ///< \ref compute_Flux_fptr for the 2nd order fluxes.
 };
 
-/** \brief Container holding data storing the fluxes and flux jacobians.
+/** \brief Container storing the fluxes and flux Jacobians.
  *  The number of members should be equal to \ref MAX_FLUX_OUT. */
 struct Flux {
 	const struct const_Multiarray_d* f;     ///< The fluxes.

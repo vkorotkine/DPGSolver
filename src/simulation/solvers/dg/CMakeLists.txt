@@ -1,4 +1,5 @@
 set	(SOURCE
+	 compute_face_rlhs_dg.c
 	 compute_grad_coef_dg.c
 	 compute_volume_rlhs_dg.c
 	 element_solver_dg.c

@@ -104,6 +104,16 @@ static void update_computational_element_list_pointers
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/// \brief Version of \ref update_computational_element_list_pointers acting only on volume pointers.
+static void update_volume_list_pointers
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Version of \ref update_computational_element_list_pointers acting only on face pointers.
+static void update_face_list_pointers
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
 /// \brief Update the pointers to the \ref Element members in the current computational element lists.
 static void update_computational_element_elements
 	(struct Simulation* sim ///< \ref Simulation.
@@ -192,21 +202,20 @@ void constructor_derived_computational_elements (struct Simulation* sim, const i
 	sim->volumes = derived[0];
 	sim->faces   = derived[1];
 
-	// Perform construction specific to the derived lists.
+	// Perform construction specific to the derived lists and update pointers.
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; ) {
 		struct Intrusive_Link* next = curr->next;
 		constructor_derived_Volume((struct Volume*)curr,sim);
 		curr = next;
 	}
+	update_face_list_pointers(sim);
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; ) {
 		struct Intrusive_Link* next = curr->next;
 		constructor_derived_Face((struct Face*)curr,sim);
 		curr = next;
 	}
-
-	// Update pointers to the base computational elements to point to the derived computational elements.
-	update_computational_element_list_pointers(sim);
+	update_volume_list_pointers(sim);
 
 	// Destruct the base lists.
 	destructor_IL_base(sim->volumes);
@@ -429,9 +438,18 @@ static void update_face_pointers
 
 static void update_computational_element_list_pointers (const struct Simulation* sim)
 {
+	update_volume_list_pointers(sim);
+	update_face_list_pointers(sim);
+}
+
+static void update_volume_list_pointers (const struct Simulation* sim)
+{
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
 		update_volume_pointers(curr);
+}
 
+static void update_face_list_pointers (const struct Simulation* sim)
+{
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
 		update_face_pointers(curr);
 }

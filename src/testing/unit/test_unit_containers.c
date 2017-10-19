@@ -43,12 +43,18 @@ static void test_unit_matrix_mv
 	(struct Test_Info*const test_info ///< \ref Test_Info.
 	);
 
+/// \brief Provides unit tests for the matrix-diagonal matrix multiplication functions.
+static void test_unit_matrix_mm_diag
+	(struct Test_Info*const test_info ///< \ref Test_Info.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void test_unit_containers (struct Test_Info*const test_info)
 {
 	test_unit_matrix_mm(test_info);
 	test_unit_matrix_mv(test_info);
+	test_unit_matrix_mm_diag(test_info);
 }
 
 // Static functions ************************************************************************************************* //
@@ -154,6 +160,63 @@ static void test_unit_matrix_mv (struct Test_Info*const test_info)
 	destructor_Vector_d(c);
 	destructor_Vector_d(c_N);
 	destructor_Vector_d(c_T);
+
+	test_increment_and_print(test_info,pass);
+}
+
+static void test_unit_matrix_mm_diag (struct Test_Info*const test_info)
+{
+	sprintf(test_info->name,"%s","Containers - Matrix mm diag");
+	bool pass = true;
+
+	const char*const file_name_full = set_data_file_name_unit("containers/matrix");
+
+	const struct const_Matrix_d* a  = constructor_file_name_const_Matrix_d("a_Matrix", file_name_full); // destructed
+	const struct const_Vector_d* bl = constructor_file_name_const_Vector_d("bl_Vector",file_name_full); // destructed
+	const struct const_Vector_d* br = constructor_file_name_const_Vector_d("br_Vector",file_name_full); // destructed
+	const struct const_Matrix_d* cl = constructor_file_name_const_Matrix_d("cl_Matrix",file_name_full); // destructed
+	const struct const_Matrix_d* cr = constructor_file_name_const_Matrix_d("cr_Matrix",file_name_full); // destructed
+
+	const struct const_Matrix_d* a_t  = constructor_copy_transpose_const_Matrix_d(a,true);  // destructed
+	const struct const_Matrix_d* cl_t = constructor_copy_transpose_const_Matrix_d(cl,true); // destructed
+	const struct const_Matrix_d* cr_t = constructor_copy_transpose_const_Matrix_d(cr,true); // destructed
+
+	const struct const_Matrix_d* cl_R = constructor_mm_diag_const_Matrix_d(1.0,a,bl,'L',false);   // destructed
+	const struct const_Matrix_d* cr_R = constructor_mm_diag_const_Matrix_d(1.0,a,br,'R',false);   // destructed
+	const struct const_Matrix_d* cl_C = constructor_mm_diag_const_Matrix_d(1.0,a_t,bl,'L',false); // destructed
+	const struct const_Matrix_d* cr_C = constructor_mm_diag_const_Matrix_d(1.0,a_t,br,'R',false); // destructed
+
+	destructor_const_Matrix_d(a);
+	destructor_const_Matrix_d(a_t);
+	destructor_const_Vector_d(bl);
+	destructor_const_Vector_d(br);
+
+	const bool* differences = (bool[])
+		{ diff_const_Matrix_d(cl,cl_R,EPS),
+		  diff_const_Matrix_d(cr,cr_R,EPS),
+		  diff_const_Matrix_d(cl_t,cl_C,EPS),
+		  diff_const_Matrix_d(cr_t,cr_C,EPS),
+		};
+	if (check_diff(4,differences,&pass)) {
+		if (differences[0])
+			print_diff_const_Matrix_d(cl,cl_R,EPS);
+		if (differences[1])
+			print_diff_const_Matrix_d(cr,cr_R,EPS);
+		if (differences[2])
+			print_diff_const_Matrix_d(cl_t,cl_C,EPS);
+		if (differences[3])
+			print_diff_const_Matrix_d(cr_t,cr_C,EPS);
+	}
+
+	destructor_const_Matrix_d(cl);
+	destructor_const_Matrix_d(cr);
+	destructor_const_Matrix_d(cl_t);
+	destructor_const_Matrix_d(cr_t);
+
+	destructor_const_Matrix_d(cl_R);
+	destructor_const_Matrix_d(cr_R);
+	destructor_const_Matrix_d(cl_C);
+	destructor_const_Matrix_d(cr_C);
 
 	test_increment_and_print(test_info,pass);
 }

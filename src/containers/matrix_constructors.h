@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Multiarray_d;
 struct Multiarray_Matrix_d;
 struct const_Vector_i;
+struct const_Vector_d;
 struct const_Matrix_i;
 struct const_Multiarray_d;
 struct const_Multiarray_Matrix_d;
@@ -308,6 +309,29 @@ struct Matrix_d* constructor_mm_NN1C_Matrix_d
 const struct const_Matrix_d* constructor_mm_NN1C_const_Matrix_d
 	(const struct const_Matrix_d*const a, ///< Defined for \ref constructor_mm_NN1C_Matrix_d.
 	 const struct const_Matrix_d*const b  ///< Defined for \ref constructor_mm_NN1C_Matrix_d.
+	);
+
+/** \brief Constructor for a \ref Matrix_d\* from a matrix-diagonal matrix multiplication.
+ *  \return Standard.
+ *
+ *  The diagonal matrix is input as a vector and may be applied either from the left or the right.
+ */
+struct Matrix_d* constructor_mm_diag_Matrix_d
+	(const double alpha,                  ///< Defined for \ref mm_d.
+	 const struct const_Matrix_d*const a, ///< Input matrix to be multiplied by the diagonal.
+	 const struct const_Vector_d*const b, ///< Vector storing the entries of the diagonal matrix.
+	 const char side,                     ///< The side from which to apply the diagonal matrix.
+	 const bool invert_diag               ///< Defined for \ref scale_Matrix_by_Vector_d.
+	);
+
+/** \brief `const` version of \ref constructor_mm_diag_Matrix_d.
+ *  \return See brief. */
+const struct const_Matrix_d* constructor_mm_diag_const_Matrix_d
+	(const double alpha,                  ///< Defined for \ref constructor_mm_diag_Matrix_d.
+	 const struct const_Matrix_d*const a, ///< Defined for \ref constructor_mm_diag_Matrix_d.
+	 const struct const_Vector_d*const b, ///< Defined for \ref constructor_mm_diag_Matrix_d.
+	 const char side,                     ///< Defined for \ref constructor_mm_diag_Matrix_d.
+	 const bool invert_diag               ///< Defined for \ref constructor_mm_diag_Matrix_d.
 	);
 
 /// \brief Set a \ref Matrix_d\* from a sub range of a \ref Multiarray_d\*.

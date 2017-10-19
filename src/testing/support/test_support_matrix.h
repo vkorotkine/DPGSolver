@@ -82,7 +82,8 @@ void scale_const_Matrix_by_Vector_d
 	(const char side,                     ///< Defined for \ref scale_Matrix_by_Vector_d.
 	 const double alpha,                  ///< Defined for \ref scale_Matrix_by_Vector_d.
 	 const struct const_Matrix_d*const a, ///< Defined for \ref scale_Matrix_by_Vector_d.
-	 const struct const_Vector_d*const b  ///< Defined for \ref scale_Matrix_by_Vector_d.
+	 const struct const_Vector_d*const b, ///< Defined for \ref scale_Matrix_by_Vector_d.
+	 const bool invert_diag               ///< Defined for \ref scale_Matrix_by_Vector_d.
 	);
 
 // Math functions *************************************************************************************************** //

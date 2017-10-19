@@ -88,12 +88,7 @@ struct Flux_Ref {
 
 /** \brief Set the parameters of \ref S_Params.
  *  \return A statically allocated \ref S_Params container. */
-struct S_Params set_s_params
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/// \brief Set the memory of the rhs and lhs (if applicable) terms to zero for the volumes.
-static void zero_memory_volumes
+static struct S_Params set_s_params
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
@@ -104,7 +99,8 @@ static void zero_memory_volumes
  *  specified by Zwanenburg et al. (eq. (B.3), \cite Zwanenburg2016). The memory layout of the reference flux terms
  *  (nodes,dim,eq) was chosen such that terms are grouped by dimension, allowing for differentiation operators to be
  *  applied efficiently; note that **this is not the same ordering as that used for the physical flux**. Please consult
- *  \ref compute_geometry_volume for the ordering of the metric terms if desired. */
+ *  \ref compute_geometry_volume for the ordering of the metric terms if desired.
+ */
 static struct Flux_Ref* constructor_Flux_Ref
 	(const struct const_Multiarray_d* m, ///< The metric terms.
 	 const struct Flux* flux             ///< The physical \ref Flux.
@@ -117,14 +113,13 @@ static void destructor_Flux_Ref
 
 // Interface functions ********************************************************************************************** //
 
-void compute_volume_rhs_dg (const struct Simulation* sim)
+void compute_volume_rlhs_dg (const struct Simulation* sim)
 {
 	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
 
 	struct S_Params s_params = set_s_params(sim);
-	struct Flux_Input* flux_i = constructor_Flux_Input(sim);
+	struct Flux_Input* flux_i = constructor_Flux_Input(sim); // destructed
 
-	zero_memory_volumes(sim);
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Volume*        vol   = (struct Volume*) curr;
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
@@ -146,12 +141,8 @@ void compute_volume_rhs_dg (const struct Simulation* sim)
 		// Compute the rhs (and optionally the lhs) terms.
 		s_params.compute_rlhs(flux_r,vol,sim);
 		destructor_Flux_Ref(flux_r);
-EXIT_UNSUPPORTED;
 	}
-
 	destructor_Flux_Input(flux_i);
-
-	EXIT_ADD_SUPPORT;
 }
 
 // Static functions ************************************************************************************************* //
@@ -189,13 +180,13 @@ static const struct const_Multiarray_d* constructor_flux_ref
 	);
 
 /// \brief Compute only the rhs term.
-void compute_rhs
+static void compute_rhs
 	(const struct Flux_Ref* flux_r, ///< Defined for \ref compute_rlhs_fptr.
 	 struct Volume* volume,         ///< Defined for \ref compute_rlhs_fptr.
 	 const struct Simulation* sim   ///< Defined for \ref compute_rlhs_fptr.
 	);
 
-struct S_Params set_s_params (const struct Simulation* sim)
+static struct S_Params set_s_params (const struct Simulation* sim)
 {
 	struct S_Params s_params;
 
@@ -228,13 +219,6 @@ struct S_Params set_s_params (const struct Simulation* sim)
 	}
 
 	return s_params;
-}
-
-static void zero_memory_volumes (const struct Simulation* sim)
-{
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		set_to_value_Multiarray_d(((struct DG_Solver_Volume*)curr)->rhs,0.0);
-	}
 }
 
 static struct Flux_Ref* constructor_Flux_Ref (const struct const_Multiarray_d* m, const struct Flux* flux)
@@ -349,7 +333,7 @@ static const struct const_Multiarray_d* constructor_flux_ref
 	return (const struct const_Multiarray_d*) fr;
 }
 
-void compute_rhs (const struct Flux_Ref* flux_r, struct Volume* volume, const struct Simulation* sim)
+static void compute_rhs (const struct Flux_Ref* flux_r, struct Volume* volume, const struct Simulation* sim)
 {
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
 
@@ -371,8 +355,6 @@ void compute_rhs (const struct Flux_Ref* flux_r, struct Volume* volume, const st
 	const ptrdiff_t d = sim->d;
 	for (ptrdiff_t dim = 0; dim < d; ++dim)
 		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vs_vc->data[dim],flux_r->fr,dg_s_volume->rhs,op_format,2,&dim,NULL);
-
-EXIT_UNSUPPORTED; // check the multiplication in octave
 
 	free((void*)tw1_vs_vc);
 }

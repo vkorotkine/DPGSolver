@@ -109,10 +109,12 @@ void mv_d
  *  	computes: A = alpha*A*diag(b).
  */
 void scale_Matrix_by_Vector_d
-	(const char side,                    ///< The side from which to apply the vector as a diagonal matrix.
-	 const double alpha,                 ///< Multiplicative constant.
-	 struct Matrix_d*const a,            ///< Input \ref const_Matrix_d\*.
-	 const struct const_Vector_d*const b ///< Input \ref const_Vector_d\*.
+	(const char side,                     ///< The side from which to apply the vector as a diagonal matrix.
+	 const double alpha,                  ///< Multiplicative constant.
+	 struct Matrix_d*const a,             ///< Input \ref const_Matrix_d\*.
+	 const struct const_Vector_d*const b, ///< Input \ref const_Vector_d\*.
+	 const bool invert_diag               /**< Flag for whether the diagonal entries should be inverted before
+	                                       *   application. */
 	);
 
 /// \brief Reinterpret the input \ref const_Matrix_d\* as having the input extents.

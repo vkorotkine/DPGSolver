@@ -37,7 +37,7 @@ You should have received a copy of the GNU General Public License along with DPG
 void compute_Flux_euler (const struct Flux_Input* flux_i, struct mutable_Flux* flux)
 {
 	int const d   = flux_i->d,
-	          Neq = flux_i->n_eq;
+	          Neq = d+2;
 	const ptrdiff_t NnTotal = flux_i->s->extents[0];
 
 	double const *const W = flux_i->s->data;
@@ -153,7 +153,7 @@ void compute_Flux_euler (const struct Flux_Input* flux_i, struct mutable_Flux* f
 void compute_Flux_euler_jacobian (const struct Flux_Input* flux_i, struct mutable_Flux* flux)
 {
 	int const d   = flux_i->d,
-	          Neq = flux_i->n_eq;
+	          Neq = d+2;
 	const ptrdiff_t NnTotal = flux_i->s->extents[0];
 
 	double const *const W    = flux_i->s->data;

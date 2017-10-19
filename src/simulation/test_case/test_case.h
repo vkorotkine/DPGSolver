@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \todo Potentially make a special header for function pointers to limit the dependency generation here.
 #include "flux.h"
+#include "numerical_flux.h"
 #include "solution.h"
 
 struct Simulation;
@@ -73,12 +74,12 @@ struct Test_Case {
 	const double dt;         ///< The time increment at each stage of the explicit solve.
 
 
-	// Parameters for explicit to implicit simulations.
+	// Parameters for explicit/implicit simulations.
 	const double exit_tol_e;   ///< The exit tolerance for the residual during the explicit solver stage.
 	const double exit_ratio_e; ///< The exit ratio for the residual during the explicit solver stage.
 
-	const bool flux_comp_mem_e[MAX_FLUX_OUT]; ///< \ref Flux_Input::compute_member for the explicit solver.
-	const bool flux_comp_mem_i[MAX_FLUX_OUT]; ///< \ref Flux_Input::compute_member for the implicit solver.
+	const bool flux_comp_mem_e[MAX_FLUX_OUT], ///< \ref Flux_Input::compute_member (explicit).
+	           flux_comp_mem_i[MAX_FLUX_OUT]; ///< \ref Flux_Input::compute_member (implicit).
 
 	/// Function pointer to the function used to call the combination of 1st and 2nd order flux functions.
 	compute_Flux_fptr compute_Flux;
@@ -90,6 +91,21 @@ struct Test_Case {
 	/** Function pointers to the functions used to compute the 1st/2nd order fluxes (and optionally flux Jacobians)
 	 *  for the implicit solver. */
 	compute_Flux_fptr compute_Flux_i[2];
+
+
+	const bool num_flux_comp_mem_e[MAX_NUM_FLUX_OUT], ///< \ref Numerical_Flux_Input::compute_member (explicit).
+	           num_flux_comp_mem_i[MAX_NUM_FLUX_OUT]; ///< \ref Numerical_Flux_Input::compute_member (implicit).
+
+	/// Function pointer to the function used to call the combination of 1st and 2nd order numerical flux functions.
+	compute_Numerical_Flux_fptr compute_Numerical_Flux;
+
+/// \todo Merge the numerical flux computation functions (without and with Jacobian) and remove one of these function pointers.
+	/// Function pointers to the functions used to compute the 1st/2nd order numerical fluxes for the explicit solver.
+	compute_Numerical_Flux_fptr compute_Numerical_Flux_e[2];
+
+	/** Function pointers to the functions used to compute the 1st/2nd order numerical fluxes (and optionally
+	 *  Jacobians) for the implicit solver. */
+	compute_Numerical_Flux_fptr compute_Numerical_Flux_i[2];
 };
 
 /** \brief Constructor for a \ref Test_Case.

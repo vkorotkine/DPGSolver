@@ -272,7 +272,7 @@ static int compute_super_type_op
 
 /** \brief Constructor for the coefficient to value operator, selecting the operator basis based on `kind`.
  *  \return See brief. */
-const struct const_Matrix_d* constructor_cv
+static const struct const_Matrix_d* constructor_cv
 	(const struct const_Matrix_d* rst, ///< The rst coordinates.
 	 const struct Op_IO* op_io,        ///< \ref Op_IO.
 	 const struct Simulation* sim      ///< \ref Simulation.
@@ -303,8 +303,29 @@ static void compute_range_p_o
 
 /** \brief Get the value for the maximum number of h-refinements.
  *  \return See brief. */
-int get_n_ref_max
+static int get_n_ref_max
 	(const struct Operator_Info* op_info ///< \ref Operator_Info.
+	);
+
+/** \brief Return the number of operators to be set depending on \ref Op_Info::range_d.
+ *  \return See brief. */
+static int get_n_op
+	(const int range_d, ///< \ref Op_Info::range_d.
+	 const int d        ///< The dimension of the element for which operators are being constructed.
+	);
+
+/// \brief Set the values of \ref Op_IO for the current operator.
+static void set_current_op_io
+	(const struct Operator_Info* op_info, ///< \ref Operator_Info.
+	 const int* op_values                 ///< \ref One line of values of \ref Operator_Info::values_op.
+	);
+
+/** \brief Return the index of the operator currently being set.
+ *  \return See brief. */
+static ptrdiff_t get_ind_op
+	(const struct Operator_Info* op_info, ///< \ref Operator_Info.
+	 const int* op_values,                ///< \ref One line of values of \ref Operator_Info::values_op.
+	 const struct Multiarray_Operator* op ///< Defined for \ref set_operator_fptr.
 	);
 
 static void set_operator_std
@@ -316,22 +337,15 @@ static void set_operator_std
 	const bool info_loss = check_op_info_loss(op_values);
 	const struct const_Element* element = op_info->element;
 
-	const ptrdiff_t n_op = ( op_info->range_d == OP_R_D_0 ? 1 : element->d );
+	const int n_op = get_n_op (op_info->range_d,element->d);
 
 	const struct const_Multiarray_Matrix_d* op_ioN = constructor_op_MMd(false,n_op); // destructed
 	if (!info_loss) {
 // separate function in future
+		set_current_op_io(op_info,op_values);
 		const struct Op_IO* op_io = op_info->op_io;
 
-		const int*const ce_ptr = &op_values[OP_IND_CE],
-		         *const h_ptr = &op_values[OP_IND_H],
-		         *const p_ptr = &op_values[OP_IND_P];
-		for (int i = 0; i < 2; ++i) {
-			const_cast_i(&op_io[i].ce_op,ce_ptr[i]);
-			const_cast_i(&op_io[i].h_op,h_ptr[i]);
-			const_cast_i(&op_io[i].p_op,p_ptr[i]);
-			const_cast_i(&op_io[i].s_type,compute_super_type_op(&op_io[i],element));
-		}
+		const int*const p_ptr = &op_values[OP_IND_P];
 
 		const int s_type = op_io[OP_IND_I].s_type;
 		constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type,"orthonormal");
@@ -417,16 +431,12 @@ static void set_operator_std
 		EXIT_ADD_SUPPORT; // L2 projection operators.
 	}
 
-	const int order_op = op_info->extents_op->ext_0;
-	const struct const_Vector_i* indices_op = constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
-
-	ptrdiff_t ind_op = compute_index_sub_container_pi(op->order,0,op->extents,indices_op->data);
+	ptrdiff_t ind_op = get_ind_op(op_info,op_values,op);
 	for (int i = 0; i < n_op; ++i)
 		const_constructor_move_const_Matrix_d(&op->data[ind_op++]->op_std,op_ioN->data[i]);
 	*ind_values += n_op;
 
 	destructor_const_Multiarray_Matrix_d(op_ioN);
-	destructor_const_Vector_i(indices_op);
 }
 
 static void set_operator_solver
@@ -436,14 +446,38 @@ static void set_operator_solver
 	const int op_type = op_info->op_type;
 	assert(op_type == OP_T_TW);    // To be made flexible.
 
+	const int* op_values = get_row_const_Matrix_i(*ind_values,op_info->values_op);
+
 	const_cast_i(&op_info->op_type,OP_T_CV);
 	set_operator_std(ind_values,op,op_info,sim);
 	const_cast_i(&op_info->op_type,op_type);
-// Multiply by weights and transpose.
 
-UNUSED(op);
-UNUSED(sim);
-	EXIT_ADD_SUPPORT;
+	const struct const_Element* element = op_info->element;
+
+	const struct Op_IO* op_io = op_info->op_io;
+	const struct const_Nodes* nodes_o = constructor_const_Nodes_h(OP_IND_O,op_io,element,sim); // destructed
+	assert(nodes_o->has_weights);
+
+	const int n_op   = get_n_op (op_info->range_d,element->d);
+	ptrdiff_t ind_op = get_ind_op(op_info,op_values,op);
+
+	for (int i = 0; i < n_op; ++i) {
+		struct Matrix_d* op_std = (struct Matrix_d*) op->data[ind_op+i]->op_std;
+		transpose_Matrix_d(op_std,false);
+		scale_Matrix_by_Vector_d('R',1.0,op_std,nodes_o->w,false);
+	}
+
+	if (sim->collocated) {
+		const struct const_Nodes* nodes_i = constructor_const_Nodes_h(OP_IND_I,op_io,element,sim); // destructed
+		assert(nodes_i->has_weights);
+
+		for (int i = 0; i < n_op; ++i) {
+			struct Matrix_d* op_std = (struct Matrix_d*) op->data[ind_op+i]->op_std;
+			scale_Matrix_by_Vector_d('L',1.0,op_std,nodes_i->w,true);
+		}
+		destructor_const_Nodes(nodes_i);
+		EXIT_ERROR("Ensure that all is working as expected.\n");
+	}
 }
 
 int convert_to_type (const char* name_type)
@@ -687,7 +721,7 @@ static int compute_super_type_op (const struct Op_IO* op_io, const struct const_
 	return compute_super_from_elem_type(sub_e_type);
 }
 
-const struct const_Matrix_d* constructor_cv
+static const struct const_Matrix_d* constructor_cv
 	(const struct const_Matrix_d* rst, const struct Op_IO* op_io, const struct Simulation* sim)
 {
 	int basis_type = -1;
@@ -875,7 +909,7 @@ static void compute_range_p_o (int p_o_mm[2], const struct Operator_Info* op_inf
 	}
 }
 
-int get_n_ref_max (const struct Operator_Info* op_info)
+static int get_n_ref_max (const struct Operator_Info* op_info)
 {
 	// There are currently no h-adaptation operators for other `range_ce` values.
 	if (op_info->range_ce == OP_R_CE_VV)
@@ -883,4 +917,36 @@ int get_n_ref_max (const struct Operator_Info* op_info)
 	else if (op_info->range_ce == OP_R_CE_VF)
 		return op_info->element->n_ref_max_f;
 	EXIT_UNSUPPORTED;
+}
+
+static void set_current_op_io (const struct Operator_Info* op_info, const int* op_values)
+{
+	const struct Op_IO* op_io = op_info->op_io;
+
+	const int*const ce_ptr = &op_values[OP_IND_CE],
+	         *const h_ptr = &op_values[OP_IND_H],
+	         *const p_ptr = &op_values[OP_IND_P];
+	for (int i = 0; i < 2; ++i) {
+		const_cast_i(&op_io[i].ce_op,ce_ptr[i]);
+		const_cast_i(&op_io[i].h_op,h_ptr[i]);
+		const_cast_i(&op_io[i].p_op,p_ptr[i]);
+		const_cast_i(&op_io[i].s_type,compute_super_type_op(&op_io[i],op_info->element));
+	}
+}
+
+static int get_n_op (const int range_d, const int d)
+{
+	return ( range_d == OP_R_D_0 ? 1 : d );
+}
+
+static ptrdiff_t get_ind_op
+	(const struct Operator_Info* op_info, const int* op_values, const struct Multiarray_Operator* op)
+{
+	const int order_op = op_info->extents_op->ext_0;
+	const struct const_Vector_i* indices_op = constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
+
+	ptrdiff_t ind_op = compute_index_sub_container_pi(op->order,0,op->extents,indices_op->data);
+	destructor_const_Vector_i(indices_op);
+
+	return ind_op;
 }

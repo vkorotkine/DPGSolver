@@ -176,8 +176,12 @@ void mv_d
 }
 
 void scale_Matrix_by_Vector_d
-	(const char side, const double alpha, struct Matrix_d*const a, const struct const_Vector_d*const b)
+	(const char side, const double alpha, struct Matrix_d*const a, const struct const_Vector_d*const b,
+	 const bool invert_diag)
 {
+	if (invert_diag)
+		invert_Vector_d((struct Vector_d*)b);
+
 	if (alpha != 1.0)
 		scale_Matrix_d(a,alpha);
 
@@ -218,6 +222,8 @@ void scale_Matrix_by_Vector_d
 	}
 	if (transpose_a)
 		transpose_Matrix_d(a,true);
+	if (invert_diag)
+		invert_Vector_d((struct Vector_d*)b);
 }
 
 void reinterpret_const_Matrix_d (const struct const_Matrix_d* a, const ptrdiff_t ext_0, const ptrdiff_t ext_1)

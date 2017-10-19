@@ -15,39 +15,19 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "face_solver_dg.h"
+#include "vector_math.h"
 
-#include <string.h>
-
-#include "macros.h"
-#include "definitions_test_case.h"
-
-#include "face.h"
-#include "volume_solver_dg.h"
-
-#include "multiarray.h"
-
-#include "simulation.h"
-#include "test_case.h"
+#include "vector.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-void constructor_derived_DG_Solver_Face (struct Face* face_ptr, const struct Simulation* sim)
+void invert_Vector_d (struct Vector_d* a)
 {
-	UNUSED(sim);
-	struct DG_Solver_Face* face = (struct DG_Solver_Face*) face_ptr;
-
-	for (int i = 0; i < 2; ++i) {
-		struct DG_Solver_Volume* volume = (struct DG_Solver_Volume*) face_ptr->neigh_info[i].volume;
-		face->rhs[i] = ( volume ? volume->rhs : NULL );
-	}
-}
-
-void destructor_derived_DG_Solver_Face (struct Face* face_ptr)
-{
-	UNUSED(face_ptr);
+	const ptrdiff_t ext_0 = a->ext_0;
+	for (ptrdiff_t i = 0; i < ext_0; ++i)
+		a->data[i] = 1.0/(a->data[i]);
 }
 
 // Static functions ************************************************************************************************* //

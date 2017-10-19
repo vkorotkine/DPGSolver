@@ -118,7 +118,6 @@ const struct const_Nodes* constructor_const_Nodes_h
 	const struct const_Matrix_d* cv0r_vvs_vXX     = constructor_basis(1,nodes_io->rst);               // destructed
 	const struct const_Matrix_d* cv0_vvs_vXX =
 		constructor_mm_const_Matrix_d('N','N',1.0,0.0,cv0r_vvs_vXX,inv_cv0r_vvs_vvs,'R'); // destructed
-	destructor_const_Nodes(nodes_io);
 	destructor_const_Matrix_d(rst_ve);
 	destructor_const_Matrix_d(cv0r_vvs_vvs);
 	destructor_const_Matrix_d(inv_cv0r_vvs_vvs);
@@ -126,8 +125,11 @@ const struct const_Nodes* constructor_const_Nodes_h
 
 	struct Nodes* nodes = malloc(sizeof* nodes); // returned
 
-	nodes->has_weights = false;
-	nodes->w           = NULL;
+	nodes->has_weights = nodes_io->has_weights;
+	nodes->w           = (struct Vector_d*) nodes_io->w;
+
+	const_cast_b(&nodes_io->has_weights,false);
+	destructor_const_Nodes(nodes_io);
 
 	nodes->p           = p_io;
 	nodes->node_type   = node_type_io;

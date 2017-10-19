@@ -413,6 +413,22 @@ const struct const_Matrix_d* constructor_mm_NN1C_const_Matrix_d
 	return (const struct const_Matrix_d*) constructor_mm_NN1C_Matrix_d(a,b);
 }
 
+struct Matrix_d* constructor_mm_diag_Matrix_d
+	(const double alpha, const struct const_Matrix_d*const a, const struct const_Vector_d*const b, const char side,
+	 const bool invert_diag)
+{
+	struct Matrix_d* c = constructor_copy_Matrix_d((struct Matrix_d*)a);
+	scale_Matrix_by_Vector_d(side,alpha,c,b,invert_diag);
+	return c;
+}
+
+const struct const_Matrix_d* constructor_mm_diag_const_Matrix_d
+	(const double alpha, const struct const_Matrix_d*const a, const struct const_Vector_d*const b, const char side,
+	 const bool invert_diag)
+{
+	return (const struct const_Matrix_d*) constructor_mm_diag_Matrix_d(alpha,a,b,side,invert_diag);
+}
+
 void set_Matrix_from_Multiarray_d (struct Matrix_d* dest, struct Multiarray_d* src, const ptrdiff_t*const sub_indices)
 {
 	dest->layout    = src->layout;

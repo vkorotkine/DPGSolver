@@ -1242,7 +1242,7 @@ const struct const_Matrix_d* constructor_mass_orthonormal (const int d, const in
 	                           *const phi_w = constructor_copy_const_Matrix_d(phi); // destructed
 
 	transpose_const_Matrix_d(phi_w,false);
-	scale_const_Matrix_by_Vector_d('R',1.0,phi_w,nodes->w);
+	scale_const_Matrix_by_Vector_d('R',1.0,phi_w,nodes->w,false);
 
 	const struct const_Matrix_d* mass = constructor_mm_const_Matrix_d('N','N',1.0,0.0,phi_w,phi,'R'); // returned
 
