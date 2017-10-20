@@ -49,6 +49,13 @@ struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
 	 const char*const file_name_full ///< The name of the file (including the full path).
 	);
 
+/** \brief `const` version of \ref constructor_file_name_Multiarray_Vector_i.
+ *  \return Standard. */
+const struct const_Multiarray_Vector_i* constructor_file_name_const_Multiarray_Vector_i
+	(const char*const var_name,      ///< Defined for \ref constructor_file_name_Multiarray_Vector_i.
+	 const char*const file_name_full ///< Defined for \ref constructor_file_name_Multiarray_Vector_i.
+	);
+
 /** \brief Constructor for a \ref const_Multiarray_Matrix_d\* from data in the input file of the given name.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_file_name_const_Multiarray_Matrix_d
@@ -76,6 +83,13 @@ struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i
 bool diff_Multiarray_Vector_i
 	(const struct Multiarray_Vector_i*const a, ///< Input 0.
 	 const struct Multiarray_Vector_i*const b  ///< Input 1.
+	);
+
+/** \brief `const` version of \ref diff_Multiarray_Vector_i.
+ *  \return See brief. */
+bool diff_const_Multiarray_Vector_i
+	(const struct const_Multiarray_Vector_i*const a, ///< Input 0.
+	 const struct const_Multiarray_Vector_i*const b  ///< Input 1.
 	);
 
 /** \brief Check the relative difference between entries in the input \ref Multiarray_d\*s up to the input tolerance.
@@ -117,6 +131,12 @@ bool diff_const_Multiarray_Matrix_d
 void print_diff_Multiarray_Vector_i
 	(const struct Multiarray_Vector_i*const a, ///< Input 0.
 	 const struct Multiarray_Vector_i*const b  ///< Input 1.
+	);
+
+/// \brief `const` version of \ref print_diff_Multiarray_Vector_i.
+void print_diff_const_Multiarray_Vector_i
+	(const struct const_Multiarray_Vector_i*const a, ///< Defined for \ref print_diff_Multiarray_Vector_i.
+	 const struct const_Multiarray_Vector_i*const b  ///< Defined for \ref print_diff_Multiarray_Vector_i.
 	);
 
 /// \brief Print the relative difference of the input \ref Multiarray_d\*s, outputting 0 if less than the tolerance.

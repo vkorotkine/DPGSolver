@@ -23,7 +23,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <string.h>
 
 #include "test_base.h"
+#include "test_support.h"
 #include "test_support_nodes.h"
+#include "test_support_multiarray.h"
 
 #include "macros.h"
 #include "definitions_alloc.h"
@@ -31,8 +33,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_tol.h"
 #include "definitions_elements.h"
 
+#include "multiarray.h"
+
 #include "nodes.h"
 #include "nodes_plotting.h"
+#include "nodes_correspondence.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -56,6 +61,11 @@ static void test_unit_nodes_plotting
 	(struct Test_Info*const test_info ///< \ref Test_Info.
 	);
 
+/// \brief Provides unit tests for the node correspondence for all permutations of adjacent faces.
+static void test_unit_nodes_face_correspondence
+	(struct Test_Info*const test_info ///< \ref Test_Info.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void test_unit_nodes (struct Test_Info*const test_info)
@@ -66,6 +76,7 @@ void test_unit_nodes (struct Test_Info*const test_info)
 	test_unit_nodes_simplex(test_info);
 	test_unit_nodes_pyramid(test_info);
 	test_unit_nodes_plotting(test_info);
+	test_unit_nodes_face_correspondence(test_info);
 }
 
 // Static functions ************************************************************************************************* //
@@ -111,6 +122,17 @@ struct Plotting_Nodes_Data {
 	                                 * plt_hex,   ///< Plotting nodes for the HEX   element.
 	                                 * plt_wedge, ///< Plotting nodes for the WEDGE element.
 	                                 * plt_pyr;   ///< Plotting nodes for the PYR   element.
+};
+
+/// Container for face correspondence node data to be tested for comparison with expected values.
+struct Nodes_FC_Data {
+	const struct const_Multiarray_Vector_i* point_N, ///< Vectors of correspondence indices for a N- node point face.
+	                                      * line_3,  ///< Vectors of correspondence indices for a 3- node line  face.
+	                                      * line_4,  ///< Vectors of correspondence indices for a 4- node line  face.
+	                                      * quad_9,  ///< Vectors of correspondence indices for a 9- node quad  face.
+	                                      * quad_16, ///< Vectors of correspondence indices for a 16-node quad  face.
+	                                      * tri_6,   ///< Vectors of correspondence indices for a 6- node tri   face.
+	                                      * tri_10;  ///< Vectors of correspondence indices for a 10-node tri   face.
 };
 
 /** \brief Constructor for the \ref Nodes_Data_TP.
@@ -159,6 +181,18 @@ static struct Plotting_Nodes_Data* constructor_Plotting_Nodes_Data
 /// \brief Destructor for the \ref Plotting_Nodes_Data.
 static void destructor_Plotting_Nodes_Data
 	(struct Plotting_Nodes_Data* p_nodes_data ///< Standard.
+	);
+
+/** \brief Constructor for the \ref Nodes_FC_Data container.
+ *  \return Standard. */
+static struct Nodes_FC_Data* constructor_Nodes_FC_Data
+	(const char eval_type,      ///< Method to use to obtain the data. Options: 'r'ead, 'c'ompute
+	 const char*const node_type ///< The type of nodes to test.
+	);
+
+/// \brief Destructor for the \ref Nodes_FC_Data.
+static void destructor_Nodes_FC_Data
+	(struct Nodes_FC_Data* nodes_fc_data ///< Standard.
 	);
 
 static void test_unit_nodes_tensor_product (struct Test_Info*const test_info)
@@ -382,6 +416,47 @@ static void test_unit_nodes_plotting (struct Test_Info*const test_info)
 	test_increment_and_print(test_info,pass);
 }
 
+static void test_unit_nodes_face_correspondence (struct Test_Info*const test_info)
+{
+	char* test_name = "nodes_correspondence";
+	sprintf(test_info->name,"%s%s","Nodes - ",test_name);
+
+	bool pass = true;
+
+	struct Nodes_FC_Data* nodes_fc_data_r = constructor_Nodes_FC_Data('r',test_name), // destructed
+	                    * nodes_fc_data_c = constructor_Nodes_FC_Data('c',test_name); // destructed
+
+	// Note: The TRI node ordering actually depends on the symmetries of the nodes (which is not being tested for
+	//       here. Keep this in mind if additional triangular node sets are to be tested for face correspondence. This
+	//       is not relevant for the tensor-product nodes.
+	bool diffs[] =
+		{ diff_const_Multiarray_Vector_i(nodes_fc_data_r->point_N,nodes_fc_data_c->point_N),
+		  diff_const_Multiarray_Vector_i(nodes_fc_data_r->line_3, nodes_fc_data_c->line_3),
+		  diff_const_Multiarray_Vector_i(nodes_fc_data_r->line_4, nodes_fc_data_c->line_4),
+		  diff_const_Multiarray_Vector_i(nodes_fc_data_r->quad_9, nodes_fc_data_c->quad_9),
+		  diff_const_Multiarray_Vector_i(nodes_fc_data_r->quad_16,nodes_fc_data_c->quad_16),
+		  diff_const_Multiarray_Vector_i(nodes_fc_data_r->tri_6,  nodes_fc_data_c->tri_6),
+		  diff_const_Multiarray_Vector_i(nodes_fc_data_r->tri_10, nodes_fc_data_c->tri_10),
+		};
+
+	const int n_diff = sizeof(diffs)/sizeof(*diffs);
+	if (check_diff(n_diff,diffs,&pass)) {
+		int ind = 0;
+		if (diffs[ind++]) print_diff_const_Multiarray_Vector_i(nodes_fc_data_r->point_N,nodes_fc_data_c->point_N);
+		if (diffs[ind++]) print_diff_const_Multiarray_Vector_i(nodes_fc_data_r->line_3, nodes_fc_data_c->line_3);
+		if (diffs[ind++]) print_diff_const_Multiarray_Vector_i(nodes_fc_data_r->line_4, nodes_fc_data_c->line_4);
+		if (diffs[ind++]) print_diff_const_Multiarray_Vector_i(nodes_fc_data_r->quad_9, nodes_fc_data_c->quad_9);
+		if (diffs[ind++]) print_diff_const_Multiarray_Vector_i(nodes_fc_data_r->quad_16,nodes_fc_data_c->quad_16);
+		if (diffs[ind++]) print_diff_const_Multiarray_Vector_i(nodes_fc_data_r->tri_6,  nodes_fc_data_c->tri_6);
+		if (diffs[ind++]) print_diff_const_Multiarray_Vector_i(nodes_fc_data_r->tri_10, nodes_fc_data_c->tri_10);
+	}
+
+	destructor_Nodes_FC_Data(nodes_fc_data_r);
+	destructor_Nodes_FC_Data(nodes_fc_data_c);
+
+	test_increment_and_print(test_info,pass);
+}
+
 // Level 1 ********************************************************************************************************** //
 
 static struct Nodes_Data_TP* constructor_Nodes_Data_TP (const char eval_type, const char*const node_type)
@@ -548,3 +623,46 @@ static void destructor_Plotting_Nodes_Data (struct Plotting_Nodes_Data* p_nodes_
 
 	free(p_nodes_data);
 }
+
+static struct Nodes_FC_Data* constructor_Nodes_FC_Data (const char eval_type, const char*const node_type)
+{
+	struct Nodes_FC_Data* nodes_fc_data = calloc(1,sizeof *nodes_fc_data); // returned
+	if (eval_type == 'r') {
+		char file_name_part[STRLEN_MAX];
+		sprintf(file_name_part,"%s%s","nodes/",node_type);
+		const char*const file_name_full = set_data_file_name_unit(file_name_part);
+
+		nodes_fc_data->point_N = constructor_file_name_const_Multiarray_Vector_i("point_N",file_name_full); // keep
+		nodes_fc_data->line_3  = constructor_file_name_const_Multiarray_Vector_i("line_3", file_name_full); // keep
+		nodes_fc_data->line_4  = constructor_file_name_const_Multiarray_Vector_i("line_4", file_name_full); // keep
+		nodes_fc_data->quad_9  = constructor_file_name_const_Multiarray_Vector_i("quad_9", file_name_full); // keep
+		nodes_fc_data->quad_16 = constructor_file_name_const_Multiarray_Vector_i("quad_16",file_name_full); // keep
+		nodes_fc_data->tri_6   = constructor_file_name_const_Multiarray_Vector_i("tri_6",  file_name_full); // keep
+		nodes_fc_data->tri_10  = constructor_file_name_const_Multiarray_Vector_i("tri_10", file_name_full); // keep
+	} else if (eval_type == 'c') {
+		nodes_fc_data->point_N = constructor_nodes_face_corr(0,2,NODES_GL,ST_TP);  // keep
+		nodes_fc_data->line_3  = constructor_nodes_face_corr(1,2,NODES_GL,ST_TP);  // keep
+		nodes_fc_data->line_4  = constructor_nodes_face_corr(1,3,NODES_GL,ST_TP);  // keep
+		nodes_fc_data->quad_9  = constructor_nodes_face_corr(2,2,NODES_GL,ST_TP);  // keep
+		nodes_fc_data->quad_16 = constructor_nodes_face_corr(2,3,NODES_GL,ST_TP);  // keep
+		nodes_fc_data->tri_6   = constructor_nodes_face_corr(2,2,NODES_WSH,ST_SI); // keep
+		nodes_fc_data->tri_10  = constructor_nodes_face_corr(2,3,NODES_WSH,ST_SI); // keep
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+	return nodes_fc_data;
+}
+
+static void destructor_Nodes_FC_Data (struct Nodes_FC_Data* nodes_fc_data)
+{
+	destructor_const_Multiarray_Vector_i(nodes_fc_data->point_N);
+	destructor_const_Multiarray_Vector_i(nodes_fc_data->line_3);
+	destructor_const_Multiarray_Vector_i(nodes_fc_data->line_4);
+	destructor_const_Multiarray_Vector_i(nodes_fc_data->quad_9);
+	destructor_const_Multiarray_Vector_i(nodes_fc_data->quad_16);
+	destructor_const_Multiarray_Vector_i(nodes_fc_data->tri_6);
+	destructor_const_Multiarray_Vector_i(nodes_fc_data->tri_10);
+
+	free(nodes_fc_data);
+}
+

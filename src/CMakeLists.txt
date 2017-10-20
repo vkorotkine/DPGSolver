@@ -23,6 +23,7 @@ include_directories(
 	simulation/operators
 	simulation/solvers
 	simulation/solvers/dg
+	simulation/solvers/numerical_flux
 	simulation/test_case
 	simulation/test_case/flux
 	simulation/test_case/solution

@@ -4,6 +4,7 @@ set	(SOURCE
 	 element_operators.c
 	 element_operators_tp.c
 	 nodes.c
+	 nodes_correspondence.c
 	 nodes_operators.c
 	 nodes_plotting.c
 	)

@@ -30,15 +30,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
-#include "simulation.h"
+#include "const_cast.h"
+#include "element.h"
+#include "math_functions.h"
 #include "mesh.h"
 #include "mesh_readers.h"
 #include "mesh_connectivity.h"
 #include "mesh_vertices.h"
+#include "nodes_correspondence.h"
+#include "simulation.h"
 #include "volume.h"
-#include "element.h"
-#include "const_cast.h"
-#include "math_functions.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -358,13 +359,13 @@ static void set_ind_ord (struct Neigh_Info neigh_info[2], const struct const_Mat
 
 	const int n_ve = vert_corr->matches_R_to_L->ext_0;
 	if (n_ve == 2) { // LINE
-		n_possible = 2;
+		n_possible = LINE_N_PERM;
 		matches_possible_i = (int[]) { 0,1, 1,0, };
 	} else if (n_ve == 3) { // TRI
-		n_possible = 6;
+		n_possible = TRI_N_PERM;
 		matches_possible_i = (int[]) { 0,1,2, 1,2,0, 2,0,1, 0,2,1, 2,1,0, 1,0,2 };
 	} else if (n_ve == 4) { // QUAD
-		n_possible = 8;
+		n_possible = QUAD_N_PERM;
 		matches_possible_i = (int[]) { 0,1,2,3, 1,0,3,2, 2,3,0,1, 3,2,1,0, 0,2,1,3, 2,0,3,1, 1,3,0,2, 3,1,2,0};
 	} else {
 		EXIT_UNSUPPORTED;

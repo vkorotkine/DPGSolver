@@ -106,6 +106,15 @@ struct Test_Case {
 	/** Function pointers to the functions used to compute the 1st/2nd order numerical fluxes (and optionally
 	 *  Jacobians) for the implicit solver. */
 	compute_Numerical_Flux_fptr compute_Numerical_Flux_i[2];
+
+	/// Solution from the left volume to face cubature nodes as seen from the left volume.
+	constructor_sg_fc_fptr constructor_s_l_fcl;
+
+	/// Solution gradient from the left volume to face cubature nodes as seen from the left volume.
+	constructor_sg_fc_fptr constructor_g_l_fcl;
+
+	/** \note constructor_*_r_fcl are provided as part of the Solver_Face_* container as they are dependent upon
+	 *        whether the face is on a boundary or not. */
 };
 
 /** \brief Constructor for a \ref Test_Case.

@@ -4,6 +4,7 @@ set	(SOURCE
 	 compute_volume_rlhs_dg.c
 	 element_solver_dg.c
 	 face_solver_dg.c
+	 solve_dg.c
 	 volume_solver_dg.c
 	)
 
@@ -11,6 +12,7 @@ set	(LIBS_DEPEND
 	 Containers
 	 Element
 	 Flux
+	 Numerical_Flux
 	)
 
 set (LIB Solver_DG)

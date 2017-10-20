@@ -87,7 +87,7 @@ void check_container_type (FILE* data_file, const char*const container_type)
 
 	const bool found = ( strstr(line,expected_line) ? true : false );
 	if (!found)
-		EXIT_ERROR("Reading incorrect container type: %s",line);
+		EXIT_ERROR("Reading incorrect container type: %s. (expected: %s)",line,expected_line);
 }
 
 bool check_diff (const int n_entries, const bool*const differences, bool* pass)

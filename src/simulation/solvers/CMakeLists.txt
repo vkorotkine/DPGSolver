@@ -1,4 +1,5 @@
 add_subdirectory(dg)
+add_subdirectory(numerical_flux)
 
 set	(SOURCE
 	 solve.c
@@ -8,6 +9,7 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 Computational_Elements
+	 Numerical_Flux
 	 Solution
 	 Solver_DG
 	)

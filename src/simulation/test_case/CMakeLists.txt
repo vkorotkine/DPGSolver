@@ -7,6 +7,7 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 Flux
+	 Numerical_Flux
 	 Solution
 	)
 

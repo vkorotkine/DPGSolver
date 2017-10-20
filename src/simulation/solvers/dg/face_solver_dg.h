@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "face_solver.h"
+#include "numerical_flux.h"
 
 /// \brief Container for data relating to the DG solver faces.
 struct DG_Solver_Face {
@@ -29,7 +30,15 @@ struct DG_Solver_Face {
 
 	struct Multiarray_d* rhs[2]; ///< The rhs terms corresponding to the left/right volumes.
 
-	// Terms required for 2nd order PDE terms.
+	/// Solution from the right volume (or boundary condition) to face cubature nodes as seen from the left volume.
+	constructor_sg_fc_fptr constructor_s_r_fcl;
+
+
+	// Members required for 2nd order PDE terms.
+
+	/** Solution gradient from the right volume (or boundary condition) to face cubature nodes as seen from the left
+	 *  volume. */
+	constructor_sg_fc_fptr constructor_g_r_fcl;
 
 	/// The face contributions to the solution gradient coefficients in each of the neighbouring volumes.
 	struct Multiarray_d* grad_coef_f[2];
@@ -37,7 +46,7 @@ struct DG_Solver_Face {
 
 /// \brief Constructor for a derived \ref DG_Solver_Face.
 void constructor_derived_DG_Solver_Face
-	(struct Face* face_ptr,   ///< Pointer to the face.
+	(struct Face* face_ptr,       ///< Pointer to the face.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 

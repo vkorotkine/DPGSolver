@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element_solver_dg.h"
 
 #include "simulation.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -66,7 +67,7 @@ const struct const_Multiarray_d* constructor_sol_fc
 
 /** \brief Set the parameters of \ref S_Params.
  *  \return A statically allocated \ref S_Params container. */
-struct S_Params set_s_params
+static struct S_Params set_s_params
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
@@ -76,22 +77,30 @@ void compute_face_rlhs_dg (const struct Simulation* sim)
 {
 	assert(sim->faces->name == IL_FACE_SOLVER_DG);
 
+	struct Test_Case* test_case = sim->test_case;
+
 	struct S_Params s_params = set_s_params(sim);
+UNUSED(s_params);
+	struct Numerical_Flux_Input* num_flux_i = constructor_Numerical_Flux_Input(sim); // destructed
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		struct Face*        face   = (struct Face*) curr;
-		struct Solver_Face* s_face = (struct Solver_Face*) curr;
+		struct Face*        face         = (struct Face*) curr;
+//		struct Solver_Face* s_face       = (struct Solver_Face*) curr;
+		struct DG_Solver_Face* dg_s_face = (struct DG_Solver_Face*) curr;
 
-		// Compute the solution and gradients at the face cubature nodes on each side of the face.
-// place these immediately in the n_num_flux input container. Make sure that the input container has data for both a
-// left and right volume.
-		const struct const_Multiarray_d* left_s_fc = constructor_sol_fc(face,sim);
-		// always interp
+		// Compute the solution and gradients to be used for the numerical flux at the face cubature nodes.
+// make external function
+		num_flux_i->neigh_info[0].s = test_case->constructor_s_l_fcl(face,sim);
+print_const_Multiarray_d(num_flux_i->neigh_info[0].s);
+		num_flux_i->neigh_info[0].g = test_case->constructor_g_l_fcl(face,sim);
+		num_flux_i->neigh_info[1].s = dg_s_face->constructor_s_r_fcl(face,sim);
+print_const_Multiarray_d(num_flux_i->neigh_info[1].s);
+		num_flux_i->neigh_info[1].g = dg_s_face->constructor_g_r_fcl(face,sim);
 
-		const struct const_Multiarray_d* right_s_fc = constructor_sol_fc
-		// either interp or boundary.
-
+EXIT_UNSUPPORTED;
 	}
+
+	destructor_Numerical_Flux_Input(num_flux_i);
 
 	EXIT_ADD_SUPPORT;
 }

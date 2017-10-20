@@ -32,17 +32,25 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** \brief Set the function pointers to the appropriate functions to compute values needed for the numerical flux
+ *         computation. */
+static void set_function_pointers_num_flux
+	(struct Face* face_ptr,       ///< Defined for \ref constructor_derived_DG_Solver_Face.
+	 const struct Simulation* sim ///< Defined for \ref constructor_derived_DG_Solver_Face.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void constructor_derived_DG_Solver_Face (struct Face* face_ptr, const struct Simulation* sim)
 {
-	UNUSED(sim);
 	struct DG_Solver_Face* face = (struct DG_Solver_Face*) face_ptr;
 
 	for (int i = 0; i < 2; ++i) {
 		struct DG_Solver_Volume* volume = (struct DG_Solver_Volume*) face_ptr->neigh_info[i].volume;
 		face->rhs[i] = ( volume ? volume->rhs : NULL );
 	}
+
+	set_function_pointers_num_flux(face_ptr,sim);
 }
 
 void destructor_derived_DG_Solver_Face (struct Face* face_ptr)
@@ -52,3 +60,30 @@ void destructor_derived_DG_Solver_Face (struct Face* face_ptr)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void set_function_pointers_num_flux (struct Face* face_ptr, const struct Simulation* sim)
+{
+	struct DG_Solver_Face* dg_s_face = (struct DG_Solver_Face*) face_ptr;
+	if (!face_ptr->boundary) {
+// make external and move to another file after usage is set.
+		struct Test_Case* test_case = sim->test_case;
+		switch (test_case->pde_index) {
+		case PDE_ADVECTION:
+		case PDE_EULER:
+			dg_s_face->constructor_s_r_fcl = constructor_s_r_fcl_interp;
+			dg_s_face->constructor_g_r_fcl = constructor_sg_fc_null;
+			break;
+		case PDE_POISSON:
+			EXIT_UNSUPPORTED;
+			break;
+		case PDE_NAVIER_STOKES:
+			EXIT_UNSUPPORTED;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
+			break;
+		}
+	} else {
+		EXIT_ADD_SUPPORT; // pointer to boundary condition function (depends only on bc index).
+	}
+}

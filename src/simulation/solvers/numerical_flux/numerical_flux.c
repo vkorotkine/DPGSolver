@@ -25,7 +25,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include "element_solver_dg.h"
+#include "face.h"
+#include "face_solver.h"
+#include "volume.h"
+#include "volume_solver.h"
+
 #include "const_cast.h"
+#include "multiarray_operator.h"
+#include "operator.h"
 #include "simulation.h"
 #include "test_case.h"
 
@@ -72,10 +80,10 @@ void destructor_Numerical_Flux_Input (struct Numerical_Flux_Input* num_flux_i)
 
 struct Numerical_Flux* constructor_Numerical_Flux (const struct Numerical_Flux_Input* num_flux_i)
 {
-	assert(((num_flux_i->neigh_info[0]->s != NULL && num_flux_i->neigh_info[0]->s->layout == 'C') &&
-	        (num_flux_i->neigh_info[1]->s != NULL && num_flux_i->neigh_info[1]->s->layout == 'C')) ||
-	       ((num_flux_i->neigh_info[0]->g != NULL && num_flux_i->neigh_info[0]->g->layout == 'C') &&
-	        (num_flux_i->neigh_info[1]->g != NULL && num_flux_i->neigh_info[1]->g->layout == 'C')));
+	assert(((num_flux_i->neigh_info[0].s != NULL && num_flux_i->neigh_info[0].s->layout == 'C') &&
+	        (num_flux_i->neigh_info[1].s != NULL && num_flux_i->neigh_info[1].s->layout == 'C')) ||
+	       ((num_flux_i->neigh_info[0].g != NULL && num_flux_i->neigh_info[0].g->layout == 'C') &&
+	        (num_flux_i->neigh_info[1].g != NULL && num_flux_i->neigh_info[1].g->layout == 'C')));
 
 	const bool* c_m = num_flux_i->compute_member;
 	assert(c_m[0] || c_m[1] || c_m[2]);
@@ -83,16 +91,17 @@ struct Numerical_Flux* constructor_Numerical_Flux (const struct Numerical_Flux_I
 	const int d     = num_flux_i->d,
 	          n_eq  = num_flux_i->n_eq,
 		    n_var = num_flux_i->n_var;
-	const ptrdiff_t n_n = ( num_flux_i->neigh_info[0]->s != NULL ? num_flux_i->neigh_info[0]->s->extents[0] :
-	                                                               num_flux_i->neigh_info[0]->g->extents[0] );
+	const ptrdiff_t n_n = ( num_flux_i->neigh_info[0].s != NULL ? num_flux_i->neigh_info[0].s->extents[0] :
+	                                                              num_flux_i->neigh_info[0].g->extents[0] );
 
 	struct mutable_Numerical_Flux* num_flux = calloc(1,sizeof *num_flux); // returned
 
 	num_flux->nnf = (c_m[0] ? constructor_zero_Multiarray_d('C',2,(ptrdiff_t[]){n_n,n_eq}) : NULL);
 	for (int i = 0; i < 2; ++i) {
-		struct m_Neigh_Info n_i = num_flux->neigh_info[i];
+		struct m_Neigh_Info_NF n_i = num_flux->neigh_info[i];
 		n_i.dnnf_ds = (c_m[1] ? constructor_zero_Multiarray_d('C',3,(ptrdiff_t[]){n_n,n_eq,n_var})   : NULL);
 		n_i.dnnf_dg = (c_m[2] ? constructor_zero_Multiarray_d('C',4,(ptrdiff_t[]){n_n,n_eq,n_var,d}) : NULL);
+	}
 
 	num_flux_i->compute_Numerical_Flux(num_flux_i,num_flux);
 
@@ -105,7 +114,7 @@ void destructor_Numerical_Flux (struct Numerical_Flux* num_flux)
 		destructor_const_Multiarray_d(num_flux->nnf);
 
 	for (int i = 0; i < 2; ++i) {
-		struct m_Neigh_Info n_i = num_flux->neigh_info[i];
+		struct Neigh_Info_NF n_i = num_flux->neigh_info[i];
 		if (n_i.dnnf_ds != NULL)
 			destructor_const_Multiarray_d(n_i.dnnf_ds);
 		if (n_i.dnnf_dg != NULL)
@@ -126,3 +135,59 @@ void compute_Numerical_Flux_12 (const struct Numerical_Flux_Input* num_flux_i, s
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+/** \brief Version of \ref constructor_sg_fc_fptr interpolating the solution from the neighbouring volume to the face.
+ *  \return See brief. */
+static const struct const_Multiarray_d* constructor_s_fc_interp
+	(const struct Face* face,      ///< Defined for \ref constructor_sg_fc_fptr.
+	 const struct Simulation* sim, ///< Defined for \ref constructor_sg_fc_fptr.
+	 const int side_index          ///< The index of the side of the face under consideration.
+	);
+
+const struct const_Multiarray_d* constructor_s_l_fcl_interp (const struct Face* face, const struct Simulation* sim)
+{
+	return constructor_s_fc_interp(face,sim,0);
+}
+
+const struct const_Multiarray_d* constructor_s_r_fcl_interp (const struct Face* face, const struct Simulation* sim)
+{
+	struct Multiarray_d* sol_r_fcr = (struct Multiarray_d*) constructor_s_fc_interp(face,sim,1);
+	EXIT_ADD_SUPPORT; // Add support for row rearrange
+	return (const struct const_Multiarray_d*) sol_r_fcr;
+}
+
+const struct const_Multiarray_d* constructor_sg_fc_null (const struct Face* face, const struct Simulation* sim)
+{
+	UNUSED(face);
+	UNUSED(sim);
+	return NULL;
+}
+
+// Level 0 ********************************************************************************************************** //
+
+static const struct const_Multiarray_d* constructor_s_fc_interp
+	(const struct Face* face, const struct Simulation* sim, const int side_index)
+{
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	UNUSED(sim);
+	const char op_format = 'd';
+
+	struct Solver_Face* s_face     = (struct Solver_Face*) face;
+	struct Volume* volume          = face->neigh_info[side_index].volume;
+	struct Solver_Volume* s_volume = (struct Solver_Volume*) volume;
+
+	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
+
+	const int ind_lf   = face->neigh_info[side_index].ind_lf,
+	          ind_href = face->neigh_info[side_index].ind_href;
+	const int p_v = s_volume->p_ref,
+	          p_f = s_face->p_ref;
+
+	const struct Operator* cv0_vs_fc = ( (s_face->cub_type == 's')
+		? get_Multiarray_Operator(e->cv0_vs_fcs,(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v})
+		: get_Multiarray_Operator(e->cv0_vs_fcc,(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v}) );
+
+	const struct const_Multiarray_d* s_coef = (const struct const_Multiarray_d*) s_volume->sol_coef;
+
+	return constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vs_fc,s_coef,'C',op_format,s_coef->order,NULL);
+}

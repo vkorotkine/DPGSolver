@@ -109,7 +109,7 @@ void permute_Multiarray_d (struct Multiarray_d* a, const ptrdiff_t* p)
 	struct Matrix_d a_M;
 	reinterpret_Multiarray_as_Matrix_d(a,&a_M,ext_0,ext_1);
 
-	permute_Matrix_d (&a_M,p);
+	permute_Matrix_d(&a_M,p);
 }
 
 void mm_NNC_Multiarray_d

@@ -116,6 +116,13 @@ struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
 	return dest;
 }
 
+const struct const_Multiarray_Vector_i* constructor_file_name_const_Multiarray_Vector_i
+	(const char*const var_name, const char*const file_name_full)
+{
+	return (const struct const_Multiarray_Vector_i*)
+		constructor_file_name_Multiarray_Vector_i(var_name,file_name_full);
+}
+
 const struct const_Multiarray_Matrix_d* constructor_file_name_const_Multiarray_Matrix_d
 	(const char*const var_name, const char*const file_name_full)
 {
@@ -229,6 +236,12 @@ bool diff_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a, const s
 	return false;
 }
 
+bool diff_const_Multiarray_Vector_i
+	(const struct const_Multiarray_Vector_i*const a, const struct const_Multiarray_Vector_i*const b)
+{
+	return diff_Multiarray_Vector_i((struct Multiarray_Vector_i*)a,(struct Multiarray_Vector_i*)b);
+}
+
 bool diff_Multiarray_d (const struct Multiarray_d*const a, const struct Multiarray_d*const b, const double tol)
 {
 	const ptrdiff_t size = compute_size(a->order,a->extents);
@@ -296,6 +309,12 @@ void print_diff_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a, c
 	for (ptrdiff_t i = 0; i < size; i++)
 		print_diff_Vector_i(a->data[i],b->data[i]);
 	printf("\n");
+}
+
+void print_diff_const_Multiarray_Vector_i
+	(const struct const_Multiarray_Vector_i*const a, const struct const_Multiarray_Vector_i*const b)
+{
+	print_diff_Multiarray_Vector_i((struct Multiarray_Vector_i*)a,(struct Multiarray_Vector_i*)b);
 }
 
 void print_diff_Multiarray_d (const struct Multiarray_d*const a, const struct Multiarray_d*const b, const double tol)

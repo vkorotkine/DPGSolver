@@ -62,6 +62,9 @@ void set_function_pointers_solution_euler (struct Test_Case* test_case, const st
 	test_case->compute_Flux_e[1] = NULL;
 	test_case->compute_Flux_i[0] = compute_Flux_euler_jacobian;
 	test_case->compute_Flux_i[1] = NULL;
+
+	test_case->constructor_s_l_fcl = constructor_s_l_fcl_interp;
+	test_case->constructor_g_l_fcl = constructor_sg_fc_null;
 }
 
 void convert_variables (struct Multiarray_d* vars, const char type_i, const char type_o)

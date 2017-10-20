@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Numerical_Flux_Input;
 struct mutable_Numerical_Flux;
 struct Simulation;
+struct Face;
 
 #include <stdbool.h>
 
@@ -38,6 +39,18 @@ struct Simulation;
 typedef void (*compute_Numerical_Flux_fptr)
 	(const struct Numerical_Flux_Input* num_flux_i,
 	 struct mutable_Numerical_Flux* num_flux
+	);
+
+/** \brief Function pointer to functions constructing the solution/gradients needed by the numerical flux at the face
+ *         cubature nodes.
+ *  \return Standard.
+ *
+ *  \param face \ref Face.
+ *  \param sim  \ref Simulation.
+ */
+typedef const struct const_Multiarray_d* (*constructor_sg_fc_fptr)
+	(const struct Face* face,
+	 const struct Simulation* sim
 	);
 
 /// \brief Container holding data used for computing the numerical fluxes and their Jacobians.
@@ -117,6 +130,29 @@ void destructor_Numerical_Flux_Input
  *  \return See brief. */
 struct Numerical_Flux* constructor_Numerical_Flux
 	(const struct Numerical_Flux_Input* num_flux_i ///< \ref Numerical_Flux_Input.
+	);
+
+/** \brief Version of \ref constructor_sg_fc_fptr constructing the solution needed by the numerical flux on the left
+ *         side of the face at the face cubature nodes as seen from the left volume.
+ *  \return See brief. */
+const struct const_Multiarray_d* constructor_s_l_fcl_interp
+	(const struct Face* face,     ///< Defined for \ref constructor_sg_fc_fptr.
+	 const struct Simulation* sim ///< Defined for \ref constructor_sg_fc_fptr.
+	);
+
+/** \brief Version of \ref constructor_sg_fc_fptr constructing the solution needed by the numerical flux on the right
+ *         side of the face at the face cubature nodes as seen from the left volume.
+ *  \return See brief. */
+const struct const_Multiarray_d* constructor_s_r_fcl_interp
+	(const struct Face* face,     ///< Defined for \ref constructor_sg_fc_fptr.
+	 const struct Simulation* sim ///< Defined for \ref constructor_sg_fc_fptr.
+	);
+
+/** \brief Version of \ref constructor_sg_fc_fptr returning NULL.
+ *  \return See brief. */
+const struct const_Multiarray_d* constructor_sg_fc_null
+	(const struct Face* face,     ///< Defined for \ref constructor_sg_fc_fptr.
+	 const struct Simulation* sim ///< Defined for \ref constructor_sg_fc_fptr.
 	);
 
 /// \brief Destructor for a \ref Numerical_Flux container.
