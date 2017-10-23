@@ -21,8 +21,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
-#include "multiarray.h"
 #include "matrix.h"
+#include "multiarray.h"
+#include "vector.h"
+
 #include "math_functions.h"
 
 // Static function declarations ************************************************************************************* //
@@ -96,7 +98,7 @@ void normalize_Multiarray_d
 	}
 }
 
-void permute_Multiarray_d (struct Multiarray_d* a, const ptrdiff_t* p)
+void permute_Multiarray_d (struct Multiarray_d* a, const ptrdiff_t* p, const char perm_layout)
 {
 	if (p == NULL)
 		return;
@@ -109,7 +111,34 @@ void permute_Multiarray_d (struct Multiarray_d* a, const ptrdiff_t* p)
 	struct Matrix_d a_M;
 	reinterpret_Multiarray_as_Matrix_d(a,&a_M,ext_0,ext_1);
 
+	if (perm_layout != a->layout)
+		transpose_Matrix_d(&a_M,true);
 	permute_Matrix_d(&a_M,p);
+	if (perm_layout != a->layout)
+		transpose_Matrix_d(&a_M,true);
+}
+
+void permute_Multiarray_d_V (struct Multiarray_d* a, const struct const_Vector_i* p_V, const char perm_layout)
+{
+	const ptrdiff_t ext_0 = a->extents[0];
+	assert(p_V->ext_0 == ext_0);
+
+	ptrdiff_t p[ext_0];
+	for (int i = 0; i < ext_0; ++i)
+		p[i] = p_V->data[i];
+
+	permute_Multiarray_d(a,p,perm_layout);
+}
+
+void scale_Multiarray_by_Vector_d
+	(const char side, const double alpha, struct Multiarray_d*const a, const struct const_Vector_d*const b,
+	 const bool invert_diag)
+{
+	const ptrdiff_t ext_0 = a->extents[0],
+	                ext_1 = compute_size(a->order,a->extents)/ext_0;
+	struct Matrix_d a_M;
+	reinterpret_Multiarray_as_Matrix_d(a,&a_M,ext_0,ext_1);
+	scale_Matrix_by_Vector_d(side,alpha,&a_M,b,invert_diag);
 }
 
 void mm_NNC_Multiarray_d

@@ -233,6 +233,13 @@ void resize_Multiarray_d (struct Multiarray_d* a, const int order, const ptrdiff
 	a->data = realloc(a->data,compute_size(order,extents) * sizeof *a->data);
 }
 
+const struct const_Vector_i* get_const_Multiarray_Vector_i
+	(const struct const_Multiarray_Vector_i* src, const ptrdiff_t*const sub_indices)
+{
+	assert(src != NULL);
+	return src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

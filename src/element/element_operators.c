@@ -31,12 +31,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
+#include "element.h"
+
 #include "bases.h"
 #include "const_cast.h"
-#include "nodes.h"
-#include "nodes_operators.h"
-#include "element.h"
 #include "multiarray_operator.h"
+#include "nodes.h"
+#include "nodes_correspondence.h"
+#include "nodes_operators.h"
 #include "operator.h"
 #include "simulation.h"
 
@@ -63,6 +65,14 @@ static void set_operator_solver
 	 const struct Multiarray_Operator* op, ///< Defined for \ref set_operator_fptr.
 	 const struct Operator_Info* op_info,  ///< Defined for \ref set_operator_fptr.
 	 const struct Simulation* sim          ///< Defined for \ref set_operator_fptr.
+	);
+
+/// \brief Set the node correspondence for the supported arrangements.
+static void set_node_correspondence
+	(ptrdiff_t ind_values,                       ///< Defined for \ref set_operator_fptr.
+	 const struct const_Multiarray_Vector_i* nc, ///< Container for the node correspondence data.
+	 const struct Operator_Info* op_info,        ///< Defined for \ref set_operator_fptr.
+	 const struct Simulation* sim                ///< Defined for \ref set_operator_fptr.
 	);
 
 /** \brief Convert the `char*` input to the appropriate definition of OP_T_*.
@@ -121,6 +131,37 @@ const struct Multiarray_Operator* constructor_operators
 	return op;
 }
 
+const struct const_Multiarray_Vector_i* constructor_operators_nc
+	(const int ind_f_elem, const char*const name_in, const char*const name_out, const char*const name_range,
+	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim)
+{
+	struct Operator_Info* op_info =
+		constructor_Operator_Info("UNUSED0",name_in,name_out,name_range,p_ref,element); // destructed
+
+	const struct const_Vector_i* e_o = op_info->extents_op;
+
+	const struct const_Element* f_element = element->face_element[ind_f_elem];
+	assert(f_element != NULL);
+
+	// Add an additional index for the possible permutations
+	const ptrdiff_t len_e = e_o->ext_0+1;
+	struct Vector_i* e_o_p1 = constructor_empty_Vector_i(len_e); // destructed
+	e_o_p1->data[0] = get_n_perm_corr(f_element->d,f_element->s_type);
+	for (int i = 0; i < len_e-1; i++)
+		e_o_p1->data[i+1] = e_o->data[i];
+
+	const struct const_Multiarray_Vector_i* nc =
+		constructor_empty_const_Multiarray_Vector_i_V(false,(struct const_Vector_i*)e_o_p1); // returned
+	destructor_Vector_i(e_o_p1);
+
+	const ptrdiff_t row_max = op_info->values_op->ext_0;
+	for (ptrdiff_t row = 0; row < row_max; ++row)
+		set_node_correspondence(row,nc,op_info,sim);
+	destructor_Operator_Info(op_info);
+
+	return nc;
+}
+
 struct Operator_Info* constructor_Operator_Info
 	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
 	 const int p_ref[2], const struct const_Element* element)
@@ -163,6 +204,9 @@ struct Operator_Info* constructor_Operator_Info
 		break;
 	case OP_T_TW:
 		op_info->set_operator = set_operator_solver;
+		break;
+	case OP_T_UNUSED:
+		; // Do nothing
 		break;
 	default:
 		EXIT_UNSUPPORTED;
@@ -328,6 +372,14 @@ static ptrdiff_t get_ind_op
 	 const struct Multiarray_Operator* op ///< Defined for \ref set_operator_fptr.
 	);
 
+/** \brief Return the index of the node correspondence sub multiarray currently being set.
+ *  \return See brief. */
+static ptrdiff_t get_ind_nc
+	(const struct Operator_Info* op_info,       ///< \ref Operator_Info.
+	 const int* op_values,                      ///< \ref One line of values of \ref Operator_Info::values_op.
+	 const struct const_Multiarray_Vector_i* nc ///< Defined for \ref set_node_correspondence.
+	);
+
 static void set_operator_std
 	(ptrdiff_t*const ind_values, const struct Multiarray_Operator* op, const struct Operator_Info* op_info,
 	 const struct Simulation* sim)
@@ -480,6 +532,28 @@ static void set_operator_solver
 	}
 }
 
+static void set_node_correspondence
+	(ptrdiff_t ind_values, const struct const_Multiarray_Vector_i* nc, const struct Operator_Info* op_info,
+	 const struct Simulation* sim)
+{
+	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
+
+	set_current_op_io(op_info,op_values);
+	const struct Op_IO* op_io = op_info->op_io;
+
+	const struct const_Element* element = op_info->element;
+	const struct const_Multiarray_Vector_i* nc_curr =
+		constructor_nodes_face_corr_op(&op_io[OP_IND_O],element,sim); // destructed/moved
+
+	const ptrdiff_t n_nc = nc->extents[0];
+	ptrdiff_t ind_nc = get_ind_nc(op_info,op_values,nc);
+	for (ptrdiff_t i = 0; i < n_nc; ++i)
+		const_constructor_move_const_Vector_i(&nc->data[ind_nc++],nc_curr->data[i]);
+
+	const_cast_b(&nc_curr->owns_data,false);
+	destructor_const_Multiarray_Vector_i(nc_curr);
+}
+
 int convert_to_type (const char* name_type)
 {
 	if (strstr(name_type,"cv"))
@@ -492,6 +566,8 @@ int convert_to_type (const char* name_type)
 		return OP_T_VC;
 	else if (strstr(name_type,"tw"))
 		return OP_T_TW;
+	else if (strstr(name_type,"UNUSED"))
+		return OP_T_UNUSED;
 	else
 		EXIT_ERROR("(%s)\n",name_type);
 	return -1;
@@ -949,4 +1025,16 @@ static ptrdiff_t get_ind_op
 	destructor_const_Vector_i(indices_op);
 
 	return ind_op;
+}
+
+static ptrdiff_t get_ind_nc
+	(const struct Operator_Info* op_info, const int* op_values, const struct const_Multiarray_Vector_i* nc)
+{
+	const int order_op = op_info->extents_op->ext_0;
+	const struct const_Vector_i* indices_op = constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
+
+	ptrdiff_t ind_nc = compute_index_sub_container_pi(nc->order,1,nc->extents,indices_op->data);
+	destructor_const_Vector_i(indices_op);
+
+	return ind_nc;
 }

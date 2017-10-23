@@ -81,6 +81,18 @@ void destructor_Test_Case (const struct Test_Case* test_case)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+/// Container for input strings which are to be subsequently converted to integer parameters.
+struct Test_Case_String_Inputs {
+	const char num_flux_1st[STRLEN_MIN]; ///< The name of the 1st order numerical flux scheme to be used.
+	const char num_flux_2nd[STRLEN_MIN]; ///< The name of the 2nd order numerical flux scheme to be used.
+};
+
+/// \brief Set the string association relating to the \ref Test_Case input parameters.
+static void set_string_associations_test_case
+	(struct Test_Case* test_case,               ///< \ref Test_Case.
+	 const struct Test_Case_String_Inputs* tcsi ///< \ref Test_Case_String_Inputs.
+	);
+
 static void set_string_associations (struct Test_Case* test_case, const struct Simulation*const sim)
 {
 	// pde_index
@@ -149,6 +161,11 @@ static void read_test_case_parameters (struct Test_Case* test_case, const struct
 
 	FILE* input_file = fopen_input(sim->input_path,'t'); // closed
 
+	struct Test_Case_String_Inputs tcsi;
+// make external
+	const_cast_c(tcsi.num_flux_1st,0);
+	const_cast_c(tcsi.num_flux_2nd,0);
+
 	int count_found = 0;
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),input_file)) {
@@ -158,6 +175,9 @@ static void read_test_case_parameters (struct Test_Case* test_case, const struct
 		}
 		if (strstr(line,"solver_type_e")) read_skip_const_i(line,&test_case->solver_type_e);
 
+		if (strstr(line,"num_flux_1st")) read_skip_const_c_1(line,tcsi.num_flux_1st);
+		if (strstr(line,"num_flux_2nd")) read_skip_const_c_1(line,tcsi.num_flux_2nd);
+
 		if (strstr(line,"time_final")) read_skip_const_d(line,&test_case->time_final,1,false);
 		if (strstr(line,"time_step"))  read_skip_const_d(line,&test_case->dt,1,false);
 
@@ -165,6 +185,25 @@ static void read_test_case_parameters (struct Test_Case* test_case, const struct
 	}
 	fclose(input_file);
 
+	set_string_associations_test_case(test_case,&tcsi);
+
 	if (count_found != count_to_find)
 		EXIT_ERROR("Did not find the required number of variables");
+}
+
+// Level 1 ********************************************************************************************************** //
+
+static void set_string_associations_test_case (struct Test_Case* test_case, const struct Test_Case_String_Inputs* tcsi)
+{
+	// num_flux_1st
+	if (strcmp(tcsi->num_flux_1st,"Roe-Pike") == 0)
+		const_cast_i(&test_case->ind_num_flux[0],NUM_FLUX_ROE_PIKE);
+	else
+		const_cast_i(&test_case->ind_num_flux[0],NUM_FLUX_INVALID);
+
+	// num_flux_2nd
+	if (strcmp(tcsi->num_flux_2nd,"BR2") == 0)
+		const_cast_i(&test_case->ind_num_flux[1],NUM_FLUX_BR2);
+	else
+		const_cast_i(&test_case->ind_num_flux[1],NUM_FLUX_INVALID);
 }

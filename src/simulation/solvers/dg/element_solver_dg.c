@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_elements.h"
 
+#include "multiarray.h"
+
 #include "element_operators.h"
 #include "element_operators_tp.h"
 #include "multiarray_operator.h"
@@ -53,6 +55,17 @@ void constructor_derived_DG_Solver_Element (struct Element* element_ptr, const s
 		EXIT_UNSUPPORTED;
 		break;
 	}
+
+	struct const_Element* b_e = (struct const_Element*)element_ptr;
+	for (int i = 0; i < 2; ++i) {
+		struct DG_Solver_Element* f_element = (struct DG_Solver_Element*) b_e->face_element[i];
+		if (f_element && f_element->nc_fcs == NULL) {
+			f_element->nc_fcs =
+				constructor_operators_nc(i,"fcs","fcs","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+			f_element->nc_fcc =
+				constructor_operators_nc(i,"fcc","fcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+		}
+	}
 }
 
 void destructor_derived_DG_Solver_Element (struct Element* element_ptr)
@@ -66,6 +79,16 @@ void destructor_derived_DG_Solver_Element (struct Element* element_ptr)
 
 	destructor_Multiarray_Operator(element->cv0_vs_fcs);
 	destructor_Multiarray_Operator(element->cv0_vs_fcc);
+
+	struct const_Element* b_e = (struct const_Element*)element_ptr;
+	for (int i = 0; i < 2; ++i) {
+		struct DG_Solver_Element* f_element = (struct DG_Solver_Element*) b_e->face_element[i];
+		if (f_element && f_element->nc_fcs != NULL) {
+			destructor_const_Multiarray_Vector_i(f_element->nc_fcs);
+			destructor_const_Multiarray_Vector_i(f_element->nc_fcc);
+			f_element->nc_fcs = NULL;
+		}
+	}
 
 	destructor_Multiarray_Operator(element->tw0_vs_vcs);
 	destructor_Multiarray_Operator(element->tw0_vs_vcc);

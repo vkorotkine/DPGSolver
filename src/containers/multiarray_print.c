@@ -49,8 +49,15 @@ void print_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a)
 
 	const ptrdiff_t size = compute_size(a->order,a->extents);
 
-	for (ptrdiff_t i = 0; i < size; i++)
-		print_Vector_i(a->data[i]);
+	for (ptrdiff_t i = 0; i < size; i++) {
+		printf("\nIndex: % 3td: ",i);
+		if (a->data[i]) {
+			printf("\n\n");
+			print_Vector_i(a->data[i]);
+		} else {
+			printf("*** NULL ***");
+		}
+	}
 	printf("\n");
 }
 

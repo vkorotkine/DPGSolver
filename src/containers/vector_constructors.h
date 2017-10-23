@@ -144,6 +144,12 @@ void const_constructor_move_Vector_i
 	 struct Vector_i* src                     ///< Source.
 	);
 
+/// \brief Move constructor for a `const` \ref const_Vector_i `*const` from a `const` \ref const_Vector_i `*const`.
+void const_constructor_move_const_Vector_i
+	(const struct const_Vector_i*const* dest, ///< Destination.
+	 const struct const_Vector_i* src         ///< Source.
+	);
+
 // Set constructors ************************************************************************************************* //
 
 /** \brief Constructor for a \ref Vector_d\* from a sub range of a \ref Multiarray_d\*.
@@ -262,13 +268,6 @@ void destructor_Vector_i
 /// \brief Destructs a \ref const_Vector_i\*.
 void destructor_const_Vector_i
 	(const struct const_Vector_i* a ///< Standard.
-	);
-
-/// \brief Destructs a \ref Vector_i\*\*.
-void destructor_Vector_i_2
-	(struct Vector_i** a,   ///< Standard.
-	 const ptrdiff_t n_src, ///< The number of \ref Vector_i\* components.
-	 const bool owns_data   ///< Standard.
 	);
 
 #endif // DPG__vector_constructors_h__INCLUDED

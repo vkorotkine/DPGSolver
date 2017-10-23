@@ -336,6 +336,7 @@ void constructor_derived_Elements (struct Simulation* sim, const int derived_nam
 	for (const struct const_Intrusive_Link* curr = base->first; curr; curr = curr->next)
 		push_back_const_IL(elements,constructor_derived_const_Intrusive_Link(curr,sizeof_base,sizeof_derived));
 	set_tp_sub_elements((struct Intrusive_List*)elements);
+	set_face_elements((struct Intrusive_List*)elements);
 
 	sim->elements = elements;
 

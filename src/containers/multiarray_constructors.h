@@ -138,6 +138,21 @@ struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i
 	 const ptrdiff_t*const extents_i ///< The input extents.
 	);
 
+/** \brief `const` version of \ref constructor_empty_Multiarray_Vector_i.
+ *  \return Standard. */
+const struct const_Multiarray_Vector_i* constructor_empty_const_Multiarray_Vector_i
+	(const bool alloc_V,             ///< Defined for \ref constructor_empty_Multiarray_Vector_i.
+	 const int order,                ///< Defined for \ref constructor_empty_Multiarray_Vector_i.
+	 const ptrdiff_t*const extents_i ///< Defined for \ref constructor_empty_Multiarray_Vector_i.
+	);
+
+/** \brief Constructor for an empty \ref Multiarray_Vector_i\* where a \ref const_Vector_i holds the order/extents.
+ *  \return Standard. */
+const struct const_Multiarray_Vector_i* constructor_empty_const_Multiarray_Vector_i_V
+	(const bool alloc_V,                           ///< Defined for \ref constructor_empty_Multiarray_Vector_i.
+	 const struct const_Vector_i*const extents_i_V ///< Vector holding the order and extents.
+	);
+
 /** \brief Constructor for an empty \ref Multiarray_Matrix_d\*.
  *  \return Standard. */
 struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d

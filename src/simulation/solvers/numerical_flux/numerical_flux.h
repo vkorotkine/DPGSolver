@@ -25,6 +25,7 @@ struct Simulation;
 struct Face;
 
 #include <stdbool.h>
+#include "numerical_flux_euler.h"
 
 ///\{ \name The maximum number of outputs from the numerical flux functions.
 #define MAX_NUM_FLUX_OUT 3 ///< See the members of \ref Numerical_Flux.

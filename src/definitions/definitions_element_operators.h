@@ -48,6 +48,9 @@ You should have received a copy of the GNU General Public License along with DPG
                      *   collocated. */
 ///\}
 
+///\{ \name Operator types.
+#define OP_T_UNUSED 9999 ///< Name to be used when the operator type is not used.
+///\}
 
 // Operator Range Options ******************************************************************************************* //
 

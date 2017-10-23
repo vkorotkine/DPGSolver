@@ -47,7 +47,8 @@ struct Element {
 
 	struct Multiarray_d* normals; ///< The reference unit normal vectors for each of the element faces.
 
-	struct Element* sub_element[2]; ///< Sub-elements used to form the tensor-product element (if applicable).
+	struct Element* sub_element[2];  ///< Sub-element(s) used to form the tensor-product element (if applicable).
+	struct Element* face_element[2]; ///< Element(s) associated with the faces of the \ref Element.
 
 	void* derived; ///< Pointer to the element currently derived from the base element.
 };
@@ -73,7 +74,8 @@ struct const_Element {
 
 	const struct const_Multiarray_d* normals; ///< Defined in \ref Element.
 
-	const struct const_Element*const sub_element[2]; ///< Defined in \ref Element.
+	const struct const_Element*const sub_element[2];  ///< Defined in \ref Element.
+	const struct const_Element*const face_element[2]; ///< Defined in \ref Element.
 
 	const void*const derived; ///< Defined in \ref Element.
 };
@@ -107,8 +109,13 @@ void const_cast_const_Element
 	 const struct const_Element*const src    ///< Source.
 	);
 
-/// \brief Set the pointers to the tensor-product sub-elements when applicable (QUAD, HEX, WEDGE).
+/// \brief Set the pointers to \ref Element::sub_element when applicable (QUAD, HEX, WEDGE).
 void set_tp_sub_elements
+	(struct Intrusive_List* elements ///< The list of elements.
+	);
+
+/// \brief Set the pointers to \ref Element::face_element.
+void set_face_elements
 	(struct Intrusive_List* elements ///< The list of elements.
 	);
 

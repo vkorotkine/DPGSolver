@@ -38,6 +38,8 @@ struct DG_Solver_Element {
 	// Face rlhs
 	const struct Multiarray_Operator* cv0_vs_fcs; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vs_fcc; ///< See notation in \ref element_operators.h.
+	const struct const_Multiarray_Vector_i* nc_fcs; ///< Node correspondence between 'f'ace 'c'ubature 's'traight.
+	const struct const_Multiarray_Vector_i* nc_fcc; ///< Node correspondence between 'f'ace 'c'ubature 'c'urved.
 
 	// Source rhs
 	const struct Multiarray_Operator* tw0_vs_vcs; ///< See notation in \ref element_operators.h.
@@ -57,6 +59,8 @@ struct const_DG_Solver_Element {
 	// Face rlhs
 	const struct Multiarray_Operator*const cv0_vs_fcs; ///< Defined in \ref DG_Solver_Element.
 	const struct Multiarray_Operator*const cv0_vs_fcc; ///< Defined in \ref DG_Solver_Element.
+	const struct const_Multiarray_Vector_i*const fc_fcs; ///< Defined in \ref DG_Solver_Element.
+	const struct const_Multiarray_Vector_i*const fc_fcc; ///< Defined in \ref DG_Solver_Element.
 
 	// Source rhs
 	const struct Multiarray_Operator*const tw0_vs_vcs; ///< Defined in \ref DG_Solver_Element.

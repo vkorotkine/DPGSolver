@@ -44,4 +44,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define SOLVER_E_LS_RK_54  103 ///< Explicit low storage Runge-Kutta (5-stage, 4rd order).
 ///\}
 
+///\{ \name Definitions for the available numerical fluxes.
+#define NUM_FLUX_ROE_PIKE  31
+
+#define NUM_FLUX_BR2       41
+
+#define NUM_FLUX_INVALID   1
+///\}
+
 #endif // DPG__definitions_test_case_h__INCLUDED

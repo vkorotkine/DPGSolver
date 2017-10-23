@@ -129,6 +129,18 @@ const struct Multiarray_Operator* constructor_operators
 	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 
+/** \brief Constructor for a \ref const_Multiarray_Vector_i\* of 'n'ode 'c'orrespondence vectors.
+ *  \return See brief. */
+const struct const_Multiarray_Vector_i* constructor_operators_nc
+	(const int ind_f_elem,                ///< Index of \ref Element::face_element.
+	 const char*const name_in,            ///< Defined for \ref constructor_operators.
+	 const char*const name_out,           ///< Defined for \ref constructor_operators.
+	 const char*const name_range,         ///< Defined for \ref constructor_operators.
+	 const int p_ref[2],                  ///< Defined for \ref constructor_operators.
+	 const struct const_Element* element, ///< Defined for \ref constructor_operators.
+	 const struct Simulation* sim         ///< Defined for \ref constructor_operators.
+	);
+
 /** \brief Constructor for the \ref Operator_Info\* having the given inputs.
  *  \return Standard. */
 struct Operator_Info* constructor_Operator_Info

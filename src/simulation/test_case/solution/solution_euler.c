@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "const_cast.h"
 #include "flux.h"
+#include "numerical_flux.h"
 #include "simulation.h"
 #include "solution.h"
 #include "solution_periodic_vortex.h"
@@ -54,14 +55,29 @@ void set_function_pointers_solution_euler (struct Test_Case* test_case, const st
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}
 
-	const_cast_b1(test_case->flux_comp_mem_e,(bool[]){1,0,0},3);
-	const_cast_b1(test_case->flux_comp_mem_i,(bool[]){1,1,0},3);
+	const bool* flux_comp_mem_e = (bool[]){1,0,0},
+	          * flux_comp_mem_i = (bool[]){1,1,0};
+	for (int i = 0; i < MAX_NUM_FLUX_OUT; ++i) {
+		const_cast_b(&test_case->flux_comp_mem_e[i],flux_comp_mem_e[i]);
+		const_cast_b(&test_case->flux_comp_mem_i[i],flux_comp_mem_i[i]);
+	}
 
 	test_case->compute_Flux = compute_Flux_1;
 	test_case->compute_Flux_e[0] = compute_Flux_euler;
 	test_case->compute_Flux_e[1] = NULL;
 	test_case->compute_Flux_i[0] = compute_Flux_euler_jacobian;
 	test_case->compute_Flux_i[1] = NULL;
+
+	test_case->compute_Numerical_Flux = compute_Numerical_Flux_1;
+	switch (test_case->ind_num_flux[0]) {
+	case NUM_FLUX_ROE_PIKE:
+		test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_euler_roe_pike;
+//		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_euler_roe_pike_jacobian;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
+		break;
+	}
 
 	test_case->constructor_s_l_fcl = constructor_s_l_fcl_interp;
 	test_case->constructor_g_l_fcl = constructor_sg_fc_null;

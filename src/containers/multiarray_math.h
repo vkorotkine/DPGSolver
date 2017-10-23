@@ -23,6 +23,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 
 struct Multiarray_d;
+struct const_Vector_i;
+struct const_Vector_d;
 struct const_Matrix_d;
 struct const_Multiarray_d;
 
@@ -48,7 +50,24 @@ void normalize_Multiarray_d
 /// \brief Permute the the input multiarray according to the input permutation by reinterpretting as a matrix.
 void permute_Multiarray_d
 	(struct Multiarray_d* a, ///< Multiarray to be permuted.
-	 const ptrdiff_t* p      ///< Permutation indices.
+	 const ptrdiff_t* p,     ///< Permutation indices.
+	 const char perm_layout  ///< The layout in which to permute. Options: 'R'ow, 'C'olumn.
+	);
+
+/// \brief Call \ref permute_Multiarray_d using the indices of the vector as the permutation indices.
+void permute_Multiarray_d_V
+	(struct Multiarray_d* a,           ///< Defined for \ref permute_Multiarray_d.
+	 const struct const_Vector_i* p_V, ///< Vector of permutation indices.
+	 const char perm_layout            ///< Defined for \ref permute_Multiarray_d.
+	);
+
+/// \brief Call \ref scale_Matrix_by_Vector_d after interpreting the multiarray as a matrix.
+void scale_Multiarray_by_Vector_d
+	(const char side,                     ///< Defined for \ref scale_Matrix_by_Vector_d.
+	 const double alpha,                  ///< Defined for \ref scale_Matrix_by_Vector_d.
+	 struct Multiarray_d*const a,         ///< Defined for \ref scale_Matrix_by_Vector_d.
+	 const struct const_Vector_d*const b, ///< Defined for \ref scale_Matrix_by_Vector_d.
+	 const bool invert_diag               ///< Defined for \ref scale_Matrix_by_Vector_d.
 	);
 
 /** \brief Perform a matrix-matrix multiplication on a \ref const_Multiarray_d\*, interpreting the input multiarray as a

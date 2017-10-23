@@ -34,6 +34,9 @@ struct Nodes {
 
 	bool has_weights;   ///< Flag for whether weights are included.
 	struct Vector_d* w; ///< The cubature weights.
+
+	bool has_symms;     ///< Flag for whether the symmetries are included.
+	struct Vector_i* s; ///< The node symmetries.
 };
 
 /// `const` version of \ref Nodes.
@@ -45,6 +48,9 @@ struct const_Nodes {
 
 	const bool has_weights;              ///< Defined in \ref Nodes.
 	const struct const_Vector_d*const w; ///< Defined in \ref Nodes.
+
+	const bool has_symms;           ///< Defined in \ref Nodes.
+	const struct const_Vector_i* s; ///< Defined in \ref Nodes.
 };
 
 /** \brief Function pointer to node constructor function.

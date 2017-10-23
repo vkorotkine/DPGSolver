@@ -224,7 +224,7 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 	free((void*)ops.cv1_vg_vc);
 
 	const ptrdiff_t* perm = set_jacobian_permutation(d);
-	permute_Multiarray_d(jacobian_vc,perm);
+	permute_Multiarray_d(jacobian_vc,perm,jacobian_vc->layout);
 
 	compute_detJV((struct const_Multiarray_d*)jacobian_vc,(struct Multiarray_d*)volume->jacobian_det_vc);
 	compute_cofactors((struct const_Multiarray_d*)jacobian_vm,(struct Multiarray_d*)volume->metrics_vm);

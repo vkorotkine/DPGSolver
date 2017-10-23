@@ -20,6 +20,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *         neighbouring volumes on either side.
  */
 
+#include <stddef.h>
+
 ///\{ \name Number of possible permutations for two neighbouring faces.
 #define POINT_N_PERM 1
 #define LINE_N_PERM  2
@@ -39,6 +41,13 @@ const struct const_Multiarray_Vector_i* constructor_nodes_face_corr
 	 const int p,         ///< Defined in \ref constructor_Nodes_fptr.
 	 const int node_type, ///< Defined in \ref constructor_Nodes_fptr.
 	 const int s_type     ///< \ref Element::s_type.
+	);
+
+/** \brief Get the appropriate number of permutations for the correspondence of the current node type.
+ *  \return See brief. */
+ptrdiff_t get_n_perm_corr
+	(const int d,     ///< The dimension
+	 const int s_type ///< \ref Element::s_type.
 	);
 
 #endif // DPG__nodes_correspondence_h__INCLUDED

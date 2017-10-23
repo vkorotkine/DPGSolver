@@ -237,4 +237,11 @@ void resize_Multiarray_d
 	 const ptrdiff_t* extents ///< Defined in \ref Multiarray_d.
 	);
 
+/** \brief Get a pointer to a \ref const_Vector_i\* from a sub range of a \ref const_Multiarray_Vector_i\*.
+ *  \return See brief. */
+const struct const_Vector_i* get_const_Multiarray_Vector_i
+	(const struct const_Multiarray_Vector_i* src, ///< The source.
+	 const ptrdiff_t*const sub_indices            ///< The sub-indices specifying which part of the source to extract.
+	);
+
 #endif // DPG__multiarray_h__INCLUDED

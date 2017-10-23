@@ -77,6 +77,7 @@ struct const_Intrusive_List* constructor_Elements (const int d)
 	}
 
 	set_tp_sub_elements(elements);
+	set_face_elements(elements);
 
 	return (struct const_Intrusive_List*) elements;
 }
@@ -363,6 +364,47 @@ void set_tp_sub_elements (struct Intrusive_List* elements)
 		case WEDGE:
 			element->sub_element[0] = get_mutable_element_by_type(elements,TRI);
 			element->sub_element[1] = get_mutable_element_by_type(elements,LINE);
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",element->type);
+			break;
+		}
+	}
+}
+
+void set_face_elements (struct Intrusive_List* elements)
+{
+	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
+		struct Element* element = (struct Element*) curr;
+		switch (element->type) {
+		case POINT:
+			element->face_element[0] = NULL;
+			element->face_element[1] = NULL;
+			break;
+		case LINE:
+			element->face_element[0] = get_mutable_element_by_type(elements,POINT);
+			element->face_element[1] = NULL;
+			break;
+		case TRI:  // fallthrough
+		case QUAD:
+			element->face_element[0] = get_mutable_element_by_type(elements,LINE);
+			element->face_element[1] = NULL;
+			break;
+		case TET:
+			element->face_element[0] = get_mutable_element_by_type(elements,TRI);
+			element->face_element[1] = NULL;
+			break;
+		case HEX:
+			element->face_element[0] = get_mutable_element_by_type(elements,QUAD);
+			element->face_element[1] = NULL;
+			break;
+		case WEDGE:
+			element->face_element[0] = get_mutable_element_by_type(elements,QUAD);
+			element->face_element[1] = get_mutable_element_by_type(elements,TRI);
+			break;
+		case PYR:
+			element->face_element[0] = get_mutable_element_by_type(elements,TRI);
+			element->face_element[1] = get_mutable_element_by_type(elements,QUAD);
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %d\n",element->type);

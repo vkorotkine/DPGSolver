@@ -33,6 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element.h"
 #include "element_operators.h"
 #include "nodes.h"
+#include "nodes_correspondence.h"
 #include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
@@ -128,7 +129,11 @@ const struct const_Nodes* constructor_const_Nodes_h
 	nodes->has_weights = nodes_io->has_weights;
 	nodes->w           = (struct Vector_d*) nodes_io->w;
 
+	nodes->has_symms = nodes_io->has_symms;
+	nodes->s         = (struct Vector_i*) nodes_io->s;
+
 	const_cast_b(&nodes_io->has_weights,false);
+	const_cast_b(&nodes_io->has_symms,false);
 	destructor_const_Nodes(nodes_io);
 
 	nodes->p           = p_io;
@@ -151,6 +156,16 @@ const struct const_Nodes* constructor_const_Nodes_h
 	destructor_const_Matrix_d(cv0_vvs_vXX);
 
 	return (const struct const_Nodes*) nodes;
+}
+
+const struct const_Multiarray_Vector_i* constructor_nodes_face_corr_op
+	(const struct Op_IO* op_io, const struct const_Element* element, const struct Simulation* sim)
+{
+	const int node_type = compute_node_type(op_io,element,sim),
+	          s_type    = op_io->s_type,
+	          d         = compute_d_nodes(op_io->ce,element->d),
+	          p         = compute_p_nodes(op_io,node_type,sim);
+	return constructor_nodes_face_corr(d,p,node_type,s_type);
 }
 
 // Static functions ************************************************************************************************* //

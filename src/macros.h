@@ -26,7 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdlib.h>
 
 ///\{ \name Print the file name, function and line number.
-#define PRINT_FILELINE   ({ printf("\n\nFILE: %s, FUNCTION: %s (LINE: %d)\n\n\n",__FILE__,__func__,__LINE__); })
+#define PRINT_FILELINE   ({ printf("\n\nPrinting at: FILE: %s, FUNCTION: %s (LINE: %d)\n\n\n",__FILE__,__func__,__LINE__); })
 ///\}
 
 ///\{ \name Exit from the code.

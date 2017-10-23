@@ -93,10 +93,29 @@ struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i
 	if (alloc_V)
 		data = constructor_default_Vector_i_2(compute_size(order,extents)); // keep
 	else
-		data = malloc(compute_size(order,extents) * sizeof *data); // keep
+		data = calloc(1,compute_size(order,extents) * sizeof *data); // keep
 
 	return constructor_move_Multiarray_Vector_i_dyn_extents(order,extents,true,data);
 }
+
+const struct const_Multiarray_Vector_i* constructor_empty_const_Multiarray_Vector_i
+	(const bool alloc_V, const int order, const ptrdiff_t*const extents_i)
+{
+	return (const struct const_Multiarray_Vector_i*) constructor_empty_Multiarray_Vector_i(alloc_V,order,extents_i);
+}
+
+const struct const_Multiarray_Vector_i* constructor_empty_const_Multiarray_Vector_i_V
+	(const bool alloc_V, const struct const_Vector_i*const extents_i_V)
+{
+	const ptrdiff_t order = extents_i_V->ext_0;
+
+	ptrdiff_t extents_i[order];
+	for (ptrdiff_t i = 0; i < order; ++i)
+		extents_i[i] = extents_i_V->data[i];
+
+	return constructor_empty_const_Multiarray_Vector_i(alloc_V,order,extents_i);
+}
+
 
 struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d
 	(const bool alloc_M, const int order, const ptrdiff_t*const extents_i)
@@ -463,8 +482,17 @@ void destructor_const_Multiarray_d (const struct const_Multiarray_d* a)
 void destructor_Multiarray_Vector_i (struct Multiarray_Vector_i* a)
 {
 	assert(a != NULL);
+	assert(a->data != NULL);
 
-	destructor_Vector_i_2(a->data,compute_size(a->order,a->extents),a->owns_data);
+	if (a->owns_data) {
+		const ptrdiff_t size = compute_size(a->order,a->extents);
+		for (ptrdiff_t i = 0; i < size; ++i) {
+			// It is possible that not all vectors present in the Multiarray were set.
+			if (a->data[i])
+				destructor_Vector_i(a->data[i]);
+		}
+	}
+	free(a->data);
 	free(a->extents);
 	free(a);
 }
@@ -482,7 +510,7 @@ void destructor_Multiarray_Matrix_d (struct Multiarray_Matrix_d* a)
 	if (a->owns_data) {
 		const ptrdiff_t size = compute_size(a->order,a->extents);
 		for (ptrdiff_t i = 0; i < size; ++i) {
-			// It is common that not all operators are present in Multiarray were set.
+			// It is common that not all operators present in the Multiarray were set.
 			if (a->data[i])
 				destructor_Matrix_d(a->data[i]);
 		}

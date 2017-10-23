@@ -3,6 +3,8 @@
 solver_proc   100
 solver_type_e 102
 
+num_flux_1st Roe-Pike
+
 time_step  0.00001
 time_final 0.001
 

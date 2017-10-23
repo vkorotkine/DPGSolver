@@ -170,6 +170,9 @@ const struct const_Nodes* constructor_const_Nodes_tp (const int d, const int p, 
 	else
 		nodes->w = NULL;
 
+	nodes->has_symms = false;
+	nodes->s = NULL;
+
 	return (const struct const_Nodes*) nodes;
 }
 
@@ -197,21 +200,21 @@ const struct const_Nodes* constructor_const_Nodes_pyr (const int d, const int p,
 	if (node_type == NODES_VERTEX)
 		return constructor_const_Nodes_vertices(d,p,ST_PYR);
 
-	const unsigned int P = p;
+	const int P = p;
 	bool has_weights = true;
 
-	static const unsigned int perms_QUAD[] = { 0,1,2,3, 3,0,1,2, 2,3,0,1, 1,2,3,0 };
+	static const int perms_QUAD[] = { 0,1,2,3, 3,0,1,2, 2,3,0,1, 1,2,3,0 };
 	// Note: Does not necessarily match rst from constructor_const_Nodes_vertices(3,1,ST_PYR).
 	static const double rst_V[] = { -1.0,        1.0,        1.0,       -1.0,       0.0,
 	                                -1.0,       -1.0,        1.0,        1.0,       0.0,
 	                                -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, 4.0/5.0*SQRT2};
 
-	unsigned int symms41[2] = {0, 0}, NQUADsymms = 0;
+	int symms41[2] = {0, 0}, NQUADsymms = 0;
 	double BCoords_tmp[5];
-	unsigned int i, iMax, j, k, QUADsymm,
+	int i, iMax, j, k, QUADsymm,
 	             IndB, IndBC, IndGroup, Ind1, GroupCount, Nc, N1,
 	             PMax, NnOut, Ngroups, Nsymms, Nperms;
-	unsigned int *symms_Nperms, *symms_count;
+	int *symms_Nperms, *symms_count;
 	char         *StringRead, *strings, *stringe, *CubFile, *Pc;
 	double       *rstOut, *wOut, *BCoords, *BCoords_complete, *w_read;
 
@@ -451,6 +454,9 @@ const struct const_Nodes* constructor_const_Nodes_pyr (const int d, const int p,
 	else
 		nodes->w = NULL;
 
+	nodes->has_symms = false;
+	nodes->s = NULL;
+
 	return (const struct const_Nodes*) nodes;
 }
 
@@ -459,6 +465,8 @@ void destructor_Nodes (struct Nodes* nodes)
 	destructor_Matrix_d(nodes->rst);
 	if (nodes->has_weights)
 		destructor_Vector_d(nodes->w);
+	if (nodes->has_symms)
+		destructor_Vector_i(nodes->s);
 	free(nodes);
 }
 
@@ -486,21 +494,21 @@ constructor_Nodes_fptr get_constructor_Nodes_by_super_type (const int s_type)
 
 static const struct const_Nodes* constructor_const_Nodes_tri (const int p, const int node_type)
 {
-	const unsigned int d = 2;
-	const unsigned int P = p;
+	const int d = 2;
+	const int P = p;
 	bool has_weights = true;
 
-	static const unsigned int perms[] = { 0,1,2, 2,0,1, 1,2,0, 0,2,1, 1,0,2, 2,1,0 };
+	static const int perms[] = { 0,1,2, 2,0,1, 1,2,0, 0,2,1, 1,0,2, 2,1,0 };
 	// Note: Does not necessarily match rst from constructor_const_Nodes_vertices(2,1,ST_SI).
 	static const double rst_V[] = { -1.0,        1.0,       0.0,
 	                                -1.0/SQRT3, -1.0/SQRT3, 2.0/SQRT3};
 
 	// Standard datatypes
-	unsigned int symms31[2] = {0, 0};
-	unsigned int i, iMax, j, jMax, k,
+	int symms31[2] = {0, 0};
+	int i, iMax, j, jMax, k,
 	             IndB, IndBC, IndGroup, GroupCount, Nc,
 	             PMax, NnOut, Ngroups, Nsymms;
-	unsigned int  *symms_Nperms, *symms_count;
+	int  *symms_Nperms, *symms_count;
 	char         *StringRead, *strings, *stringe, *CubFile, *Pc;
 	double       *rstOut, *wOut, *BCoords, *BCoords_complete, *w_read;
 
@@ -654,6 +662,20 @@ static const struct const_Nodes* constructor_const_Nodes_tri (const int p, const
 			IndGroup += 1;
 		}
 	}
+
+	int NsOut = 0;
+	for (i = 0; i < 2; i++)
+		NsOut += symms31[i];
+
+	int* symmsOut = malloc(NsOut * sizeof *symmsOut); // moved
+	k = 0;
+	for (i = 0; i < 2; i++) {
+	for (j = 0; jMax = symms31[i], j < jMax; j++) {
+		if (i == 0) symmsOut[k] = 3;
+		else        symmsOut[k] = 1;
+		k++;
+	}}
+
 	free(symms_count);
 	free(symms_Nperms);
 	free(BCoords);
@@ -688,29 +710,32 @@ static const struct const_Nodes* constructor_const_Nodes_tri (const int p, const
 	else
 		nodes->w = NULL;
 
+	nodes->has_symms = true;
+	nodes->s         = constructor_move_Vector_i_i(NsOut,true,symmsOut); // keep
+
 	return (const struct const_Nodes*) nodes;
 }
 
 static const struct const_Nodes* constructor_const_Nodes_tet (const int p, const int node_type)
 {
-	const unsigned int d = 3;
-	const unsigned int P = p;
+	const int d = 3;
+	const int P = p;
 	bool has_weights = true;
 
-	static const unsigned int perms_TRI[] = { 0,1,2, 2,0,1, 1,2,0, 0,2,1, 1,0,2, 2,1,0 };
-	static const unsigned int perms_TET[] = { 0,1,2,3, 3,0,1,2, 2,3,0,1, 1,2,3,0 };
+	static const int perms_TRI[] = { 0,1,2, 2,0,1, 1,2,0, 0,2,1, 1,0,2, 2,1,0 };
+	static const int perms_TET[] = { 0,1,2,3, 3,0,1,2, 2,3,0,1, 1,2,3,0 };
 	// Note: Does not necessarily match rst from constructor_const_Nodes_vertices(3,1,ST_SI).
 	static const double rst_V[] = { -1.0,        1.0,        0.0,       0.0,
 	                                -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, 0.0,
 	                                -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6, 3.0/SQRT6};
 
-	unsigned int symms31[2] = {0, 0}, NTRIsymms[3], TETperms[4];
+	int symms31[2] = {0, 0}, NTRIsymms[3], TETperms[4];
 	double BCoords_tmp[4];
 
-	unsigned int i, iMax, j, jMax, k, kMax, l, lMax, TRIsymm,
+	int i, iMax, j, jMax, k, kMax, l, lMax, TRIsymm,
 	             IndB, IndBC, IndGroup, Ind1, Indperm, GroupCount, Nc, N1,
 	             PMax, NnOut, Ngroups, Nsymms, Nperms;
-	unsigned int *symms_Nperms, *symms_count;
+	int *symms_Nperms, *symms_count;
 	char         *StringRead, *strings, *stringe, *CubFile, *Pc;
 	double       *rstOut, *wOut, *BCoords, *BCoords_complete, *w_read;
 
@@ -955,6 +980,9 @@ static const struct const_Nodes* constructor_const_Nodes_tet (const int p, const
 	else
 		nodes->w = NULL;
 
+	nodes->has_symms = false;
+	nodes->s = NULL;
+
 	return (const struct const_Nodes*) nodes;
 }
 
@@ -1025,6 +1053,9 @@ static const struct const_Nodes* constructor_const_Nodes_vertices (const int d, 
 
 	nodes->has_weights = false;
 	nodes->w = NULL;
+
+	nodes->has_symms = false;
+	nodes->s = NULL;
 
 	return (const struct const_Nodes*) nodes;
 }

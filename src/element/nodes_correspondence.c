@@ -34,13 +34,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Get the appropriate number of permutations for the current node type.
- *  \return See brief. */
-static ptrdiff_t get_n_perm
-	(const int d,     ///< The dimension
-	 const int s_type ///< \ref Element::s_type.
-	);
-
 /** \brief Constructor for a \ref const_Vector_i holding the face correspondence indices for the input permutation
  *         index.
  *  \return See brief. */
@@ -60,7 +53,7 @@ const struct const_Multiarray_Vector_i* constructor_nodes_face_corr
 
 	const struct const_Nodes* nodes = constructor_Nodes(d,p,node_type);
 
-	const ptrdiff_t n_perm = get_n_perm(d,s_type);
+	const ptrdiff_t n_perm = get_n_perm_corr(d,s_type);
 
 	struct Multiarray_Vector_i* face_corr = constructor_empty_Multiarray_Vector_i(false,1,&n_perm); // returned
 
@@ -71,23 +64,7 @@ const struct const_Multiarray_Vector_i* constructor_nodes_face_corr
 	return (const struct const_Multiarray_Vector_i*) face_corr;
 }
 
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-/// \brief Reverse the entries of the input data.
-static void reverse_entries
-	(const int n, ///< The number of entries.
-	 int* data    ///< The data.
-	);
-
-/// \brief Swap the two input data blocks.
-static void swap_blocks
-	(const int n, ///< The number of entries in both of the blocks.
-	 int* data_0, ///< The data of block 0.
-	 int* data_1  ///< The data of block 1.
-	);
-
-static ptrdiff_t get_n_perm (const int d, const int s_type)
+ptrdiff_t get_n_perm_corr (const int d, const int s_type)
 {
 	switch (d) {
 	case 0:
@@ -107,6 +84,22 @@ static ptrdiff_t get_n_perm (const int d, const int s_type)
 		break;
 	}
 }
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
+
+/// \brief Reverse the entries of the input data.
+static void reverse_entries
+	(const int n, ///< The number of entries.
+	 int* data    ///< The data.
+	);
+
+/// \brief Swap the two input data blocks.
+static void swap_blocks
+	(const int n, ///< The number of entries in both of the blocks.
+	 int* data_0, ///< The data of block 0.
+	 int* data_1  ///< The data of block 1.
+	);
 
 static const struct const_Vector_i* constructor_face_corr
 	(const struct const_Nodes* nodes, const int ind_perm, const int e_type)
@@ -189,13 +182,13 @@ static const struct const_Vector_i* constructor_face_corr
 				break;
 			}
 		} else if (e_type == TRI) {
-			const ptrdiff_t Ns = 0;
-			const int* symms = NULL;
-			EXIT_ADD_SUPPORT; // Need to set symms in nodes.
+			assert(nodes->has_symms == true);
+
+			const ptrdiff_t Ns = nodes->s->ext_0;
+			const int* symms = nodes->s->data;
 
 			int j, k, kMax, iInd, subOrder[3], fc_data_swap3[3], fc_data_swap[Nn], Foundn[Nn], IndX[Nn];
 			double       DY[Nn*Nn];
-			// Add in switch (Nn) here and write out low order options (ToBeDeleted)
 
 			for (i = 0; i < Nn; i++)
 				fc_data[i] = i;
@@ -253,8 +246,9 @@ static const struct const_Vector_i* constructor_face_corr
 
 			// Rotate entries of 3-symmetry blocks if necessary
 			switch(ind_perm) {
-				default: // cases 0, 5
-					; // No rotations needed
+				case 0:
+				case 5:
+					subOrder[0] = 0; subOrder[1] = 1; subOrder[2] = 2;
 					break;
 				case 1:
 				case 3:
@@ -263,6 +257,9 @@ static const struct const_Vector_i* constructor_face_corr
 				case 2:
 				case 4:
 					subOrder[0] = 2; subOrder[1] = 0; subOrder[2] = 1;
+					break;
+				default:
+					EXIT_ERROR("Unsupported: %d\n",ind_perm);
 					break;
 			}
 

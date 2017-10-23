@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 
 #include "multiarray.h"
+#include "vector.h"
 
 #include "element_solver_dg.h"
 #include "face.h"
@@ -56,12 +57,12 @@ struct Numerical_Flux_Input* constructor_Numerical_Flux_Input (const struct Simu
 	num_flux_i->compute_Numerical_Flux = test_case->compute_Numerical_Flux;
 	switch (test_case->solver_method_curr) {
 	case 'e':
-		num_flux_i->compute_member   = test_case->num_flux_comp_mem_e;
+		num_flux_i->compute_member = test_case->flux_comp_mem_e;
 		num_flux_i->compute_Numerical_Flux_1st = test_case->compute_Numerical_Flux_e[0];
 		num_flux_i->compute_Numerical_Flux_2nd = test_case->compute_Numerical_Flux_e[1];
 		break;
 	case 'i':
-		num_flux_i->compute_member   = test_case->num_flux_comp_mem_i;
+		num_flux_i->compute_member = test_case->flux_comp_mem_i;
 		num_flux_i->compute_Numerical_Flux_1st = test_case->compute_Numerical_Flux_i[0];
 		num_flux_i->compute_Numerical_Flux_2nd = test_case->compute_Numerical_Flux_i[1];
 		break;
@@ -151,8 +152,23 @@ const struct const_Multiarray_d* constructor_s_l_fcl_interp (const struct Face* 
 
 const struct const_Multiarray_d* constructor_s_r_fcl_interp (const struct Face* face, const struct Simulation* sim)
 {
+	const int side_index = 1;
 	struct Multiarray_d* sol_r_fcr = (struct Multiarray_d*) constructor_s_fc_interp(face,sim,1);
-	EXIT_ADD_SUPPORT; // Add support for row rearrange
+
+	const struct Neigh_Info* neigh_info = &face->neigh_info[side_index];
+
+	struct Volume* vol_r = neigh_info->volume;
+	const struct DG_Solver_Element* f_e =
+		(const struct DG_Solver_Element*) get_element_by_face(vol_r->element,neigh_info->ind_lf);
+
+	struct Solver_Face* s_face = (struct Solver_Face*) face;
+	const int ind_ord = neigh_info->ind_ord,
+	          p_f     = s_face->p_ref;
+	const struct const_Vector_i* nc_fc = ((s_face->cub_type == 's')
+		? get_const_Multiarray_Vector_i(f_e->nc_fcs,(ptrdiff_t[]){ind_ord,0,0,p_f,p_f})
+		: get_const_Multiarray_Vector_i(f_e->nc_fcc,(ptrdiff_t[]){ind_ord,0,0,p_f,p_f}) );
+
+	permute_Multiarray_d_V(sol_r_fcr,nc_fc,'R');
 	return (const struct const_Multiarray_d*) sol_r_fcr;
 }
 
