@@ -66,6 +66,29 @@ void print_const_Multiarray_Vector_i (const struct const_Multiarray_Vector_i*con
 	print_Multiarray_Vector_i((struct Multiarray_Vector_i*)a);
 }
 
+void print_Multiarray_Vector_d (const struct Multiarray_Vector_d*const a)
+{
+	print_Multiarray_extents(a->order,a->extents);
+
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	for (ptrdiff_t i = 0; i < size; i++) {
+		printf("\nIndex: % 3td: ",i);
+		if (a->data[i]) {
+			printf("\n\n");
+			print_Vector_d(a->data[i]);
+		} else {
+			printf("*** NULL ***");
+		}
+	}
+	printf("\n");
+}
+
+void print_const_Multiarray_Vector_d (const struct const_Multiarray_Vector_d*const a)
+{
+	print_Multiarray_Vector_d((struct Multiarray_Vector_d*)a);
+}
+
 void print_Multiarray_d_tol (const struct Multiarray_d*const a, const double tol)
 {
 	const int order               = a->order;

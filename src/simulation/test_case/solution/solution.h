@@ -41,6 +41,15 @@ typedef void (*set_sol_coef_f_fptr)
 	 struct Solver_Face* face
 	);
 
+/** \brief Function pointer to the function setting the source contribution of \ref Solver_Volume::rhs.
+ *  \param sim    \ref Simulation.
+ *  \param volume \ref Solver_Volume.
+ */
+typedef void (*compute_source_fptr)
+	(const struct Simulation* sim,
+	 struct Solver_Volume* volume
+	);
+
 // Interface functions ********************************************************************************************** //
 
 /** \brief Set up the initial solution for the simulation. Sets:
@@ -76,6 +85,12 @@ void set_grad_coef_f_do_nothing
 const struct const_Multiarray_d* constructor_xyz_vs
 	(const struct Simulation* sim, ///< \ref Simulation.
 	 struct Solver_Volume* volume  ///< \ref Solver_Volume.
+	);
+
+/// \brief Function pointer to be used for \ref Test_Case::compute_source when there is no source term.
+void compute_source_do_nothing
+	(const struct Simulation* sim, ///< Defined for \ref compute_source_fptr.
+	 struct Solver_Volume* volume  ///< Defined for \ref compute_source_fptr.
 	);
 
 #endif // DPG__solution_h__INCLUDED

@@ -25,6 +25,7 @@ include_directories(
 	simulation/solvers/dg
 	simulation/solvers/numerical_flux
 	simulation/test_case
+	simulation/test_case/compute_error
 	simulation/test_case/flux
 	simulation/test_case/solution
 	simulation/test_case/solution/periodic_vortex

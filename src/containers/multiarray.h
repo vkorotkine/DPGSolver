@@ -112,6 +112,24 @@ struct const_Multiarray_Vector_i {
 	const struct const_Vector_i*const*const data; ///< Defined in \ref Multiarray_d.
 };
 
+/// \brief Multiarray (`Vector_d*`).
+struct Multiarray_Vector_d {
+	int order;          ///< Defined in \ref Multiarray_d.
+	ptrdiff_t* extents; ///< Defined in \ref Multiarray_d.
+
+	bool owns_data;         ///< Defined in \ref Multiarray_d.
+	struct Vector_d** data; ///< Defined in \ref Multiarray_d.
+};
+
+/// \brief Multiarray (`const Vector_d*`).
+struct const_Multiarray_Vector_d {
+	const int order;               ///< Defined in \ref Multiarray_d.
+	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
+
+	const bool owns_data;                         ///< Defined in \ref Multiarray_d.
+	const struct const_Vector_d*const*const data; ///< Defined in \ref Multiarray_d.
+};
+
 /// \brief Multiarray (`Matrix_d*`).
 struct Multiarray_Matrix_d {
 	int order;          ///< Defined in \ref Multiarray_d.
@@ -242,6 +260,19 @@ void resize_Multiarray_d
 const struct const_Vector_i* get_const_Multiarray_Vector_i
 	(const struct const_Multiarray_Vector_i* src, ///< The source.
 	 const ptrdiff_t*const sub_indices            ///< The sub-indices specifying which part of the source to extract.
+	);
+
+/** \brief Get a pointer to a \ref const_Vector_d\* from a sub range of a \ref const_Multiarray_Vector_d\*.
+ *  \return See brief. */
+const struct const_Vector_d* get_const_Multiarray_Vector_d
+	(const struct const_Multiarray_Vector_d* src, ///< The source.
+	 const ptrdiff_t*const sub_indices            ///< The sub-indices specifying which part of the source to extract.
+	);
+
+/** \brief Return a copy of a stack allocated \ref const_Vector_d holding the data of the input multiarray of order 1.
+ *  \return See brief. */
+struct const_Vector_d interpret_const_Multiarray_as_Vector_d
+	(const struct const_Multiarray_d* a_Ma ///< The input multiarray.
 	);
 
 #endif // DPG__multiarray_h__INCLUDED

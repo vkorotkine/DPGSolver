@@ -1238,13 +1238,13 @@ const struct const_Matrix_d* constructor_mass_orthonormal (const int d, const in
 
 	const struct const_Nodes* nodes = nodes_fun(d,node_order,node_type); // destructed
 
-	const struct const_Matrix_d*const phi   = basis_fun(p_b,nodes->rst),              // destructed
+	const struct const_Matrix_d*const phi   = basis_fun(p_b,nodes->rst),            // destructed
 	                           *const phi_w = constructor_copy_const_Matrix_d(phi); // destructed
 
 	transpose_const_Matrix_d(phi_w,false);
 	scale_const_Matrix_by_Vector_d('R',1.0,phi_w,nodes->w,false);
 
-	const struct const_Matrix_d* mass = constructor_mm_const_Matrix_d('N','N',1.0,0.0,phi_w,phi,'R'); // returned
+	const struct const_Matrix_d* mass = constructor_mm_const_Matrix_d('N','N',1.0,phi_w,phi,'R'); // returned
 
 	destructor_const_Matrix_d(phi_w);
 	destructor_const_Matrix_d(phi);

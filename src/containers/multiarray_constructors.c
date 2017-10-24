@@ -116,6 +116,37 @@ const struct const_Multiarray_Vector_i* constructor_empty_const_Multiarray_Vecto
 	return constructor_empty_const_Multiarray_Vector_i(alloc_V,order,extents_i);
 }
 
+struct Multiarray_Vector_d* constructor_empty_Multiarray_Vector_d
+	(const bool alloc_V, const int order, const ptrdiff_t*const extents_i)
+{
+	ptrdiff_t*const extents = allocate_and_set_extents(order,extents_i); // keep
+
+	struct Vector_d** data = NULL;
+	if (alloc_V)
+		EXIT_ADD_SUPPORT;
+	else
+		data = calloc(1,compute_size(order,extents) * sizeof *data); // keep
+
+	return constructor_move_Multiarray_Vector_d_dyn_extents(order,extents,true,data);
+}
+
+const struct const_Multiarray_Vector_d* constructor_empty_const_Multiarray_Vector_d
+	(const bool alloc_V, const int order, const ptrdiff_t*const extents_i)
+{
+	return (const struct const_Multiarray_Vector_d*) constructor_empty_Multiarray_Vector_d(alloc_V,order,extents_i);
+}
+
+const struct const_Multiarray_Vector_d* constructor_empty_const_Multiarray_Vector_d_V
+	(const bool alloc_V, const struct const_Vector_i*const extents_i_V)
+{
+	const ptrdiff_t order = extents_i_V->ext_0;
+
+	ptrdiff_t extents_i[order];
+	for (ptrdiff_t i = 0; i < order; ++i)
+		extents_i[i] = extents_i_V->data[i];
+
+	return constructor_empty_const_Multiarray_Vector_d(alloc_V,order,extents_i);
+}
 
 struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d
 	(const bool alloc_M, const int order, const ptrdiff_t*const extents_i)
@@ -250,6 +281,19 @@ struct Multiarray_Vector_i* constructor_move_Multiarray_Vector_i_dyn_extents
 	return dest;
 }
 
+struct Multiarray_Vector_d* constructor_move_Multiarray_Vector_d_dyn_extents
+	(const int order, ptrdiff_t*const extents, const bool owns_data, struct Vector_d**const data)
+{
+	struct Multiarray_Vector_d* dest = calloc(1,sizeof *dest); // returned
+
+	dest->order     = order;
+	dest->extents   = extents;
+	dest->owns_data = owns_data;
+	dest->data      = data;
+
+	return dest;
+}
+
 struct Multiarray_Matrix_d* constructor_move_Multiarray_Matrix_d_dyn_extents
 	(const int order, ptrdiff_t*const extents, const bool owns_data, struct Matrix_d**const data)
 {
@@ -339,7 +383,7 @@ void set_const_Multiarray_Matrix_from_Multiarray_Matrix_d
 		(struct Multiarray_Matrix_d*)dest,(struct Multiarray_Matrix_d*)src,order_o,sub_indices);
 }
 
-const struct const_Multiarray_d* constructor_mm_NN1C_const_Multiarray_d
+struct Multiarray_d* constructor_mm_NN1C_Multiarray_d
 	(const struct const_Matrix_d*const a, const struct const_Multiarray_d*const b)
 {
 	const char layout  = 'C';
@@ -350,7 +394,13 @@ const struct const_Multiarray_d* constructor_mm_NN1C_const_Multiarray_d
 
 	mm_NN1C_Multiarray_d(a,b,c);
 
-	return (const struct const_Multiarray_d*) c;
+	return c;
+}
+
+const struct const_Multiarray_d* constructor_mm_NN1C_const_Multiarray_d
+	(const struct const_Matrix_d*const a, const struct const_Multiarray_d*const b)
+{
+	return (const struct const_Multiarray_d*) constructor_mm_NN1C_Multiarray_d(a,b);
 }
 
 /*const struct const_Multiarray_d* constructor_mm_NN1_const_Multiarray_d
@@ -500,6 +550,29 @@ void destructor_Multiarray_Vector_i (struct Multiarray_Vector_i* a)
 void destructor_const_Multiarray_Vector_i (const struct const_Multiarray_Vector_i* a)
 {
 	destructor_Multiarray_Vector_i((struct Multiarray_Vector_i*)a);
+}
+
+void destructor_Multiarray_Vector_d (struct Multiarray_Vector_d* a)
+{
+	assert(a != NULL);
+	assert(a->data != NULL);
+
+	if (a->owns_data) {
+		const ptrdiff_t size = compute_size(a->order,a->extents);
+		for (ptrdiff_t i = 0; i < size; ++i) {
+			// It is possible that not all vectors present in the Multiarray were set.
+			if (a->data[i])
+				destructor_Vector_d(a->data[i]);
+		}
+	}
+	free(a->data);
+	free(a->extents);
+	free(a);
+}
+
+void destructor_const_Multiarray_Vector_d (const struct const_Multiarray_Vector_d* a)
+{
+	destructor_Multiarray_Vector_d((struct Multiarray_Vector_d*)a);
 }
 
 void destructor_Multiarray_Matrix_d (struct Multiarray_Matrix_d* a)

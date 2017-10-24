@@ -345,18 +345,16 @@ static void compute_rhs (const struct Flux_Ref* flux_r, struct Volume* volume, c
 
 	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
 
-	const struct Multiarray_Operator* tw1_vs_vc = constructor_default_Multiarray_Operator(); // free (only)
+	const struct Multiarray_Operator tw1_vs_vc;
 	const int p = s_volume->p_ref;
 	if (!volume->curved)
-		set_MO_from_MO(tw1_vs_vc,e->tw1_vs_vcs,1,(ptrdiff_t[]){0,0,p,p});
+		set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vcs,1,(ptrdiff_t[]){0,0,p,p});
 	else
-		set_MO_from_MO(tw1_vs_vc,e->tw1_vs_vcc,1,(ptrdiff_t[]){0,0,p,p});
+		set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vcc,1,(ptrdiff_t[]){0,0,p,p});
 
 	const ptrdiff_t d = sim->d;
 	for (ptrdiff_t dim = 0; dim < d; ++dim)
-		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vs_vc->data[dim],flux_r->fr,dg_s_volume->rhs,op_format,2,&dim,NULL);
-
-	free((void*)tw1_vs_vc);
+		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vs_vc.data[dim],flux_r->fr,dg_s_volume->rhs,op_format,2,&dim,NULL);
 }
 
 // Level 2 ********************************************************************************************************** //

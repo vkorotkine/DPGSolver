@@ -150,6 +150,12 @@ void const_constructor_move_const_Vector_i
 	 const struct const_Vector_i* src         ///< Source.
 	);
 
+/// \brief Move constructor for a `const` \ref const_Vector_d `*const` from a `const` \ref const_Vector_d `*const`.
+void const_constructor_move_const_Vector_d
+	(const struct const_Vector_d*const* dest, ///< Destination.
+	 const struct const_Vector_d* src         ///< Source.
+	);
+
 // Set constructors ************************************************************************************************* //
 
 /** \brief Constructor for a \ref Vector_d\* from a sub range of a \ref Multiarray_d\*.
@@ -167,6 +173,13 @@ const struct const_Vector_d* constructor_set_const_Vector_d_Multiarray_d
 	);
 
 // Special constructors ********************************************************************************************* //
+
+/** \brief Constructor for a \ref const_Vector_d\* using an element-wise multiplication of each entry of the inputs.
+ *  \return See brief. */
+const struct const_Vector_d* constructor_dot_mult_const_Vector_d
+	(const struct const_Vector_d* a, ///< The 1st input.
+	 const struct const_Vector_d* b  ///< The 2nd input.
+	);
 
 /** \brief Constructs a \ref Vector_d\* as the sum of the rows/columns of the input Matrix in the specified direction.
  *  \return Standard. */

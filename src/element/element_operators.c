@@ -75,6 +75,14 @@ static void set_node_correspondence
 	 const struct Simulation* sim                ///< Defined for \ref set_operator_fptr.
 	);
 
+/// \brief Set the cubature weights for the supported arrangements.
+static void set_weights
+	(ptrdiff_t ind_values,                      ///< Defined for \ref set_operator_fptr.
+	 const struct const_Multiarray_Vector_d* w, ///< Container for the cubature weight data.
+	 const struct Operator_Info* op_info,       ///< Defined for \ref set_operator_fptr.
+	 const struct Simulation* sim               ///< Defined for \ref set_operator_fptr.
+	);
+
 /** \brief Convert the `char*` input to the appropriate definition of OP_T_*.
  *  \return See brief. */
 int convert_to_type
@@ -160,6 +168,24 @@ const struct const_Multiarray_Vector_i* constructor_operators_nc
 	destructor_Operator_Info(op_info);
 
 	return nc;
+}
+
+const struct const_Multiarray_Vector_d* constructor_operators_w
+	(const char*const name_in, const char*const name_out, const char*const name_range, const int p_ref[2],
+	 const struct const_Element* element, const struct Simulation* sim)
+{
+	struct Operator_Info* op_info =
+		constructor_Operator_Info("UNUSED0",name_in,name_out,name_range,p_ref,element); // destructed
+
+	const struct const_Multiarray_Vector_d* w =
+		constructor_empty_const_Multiarray_Vector_d_V(false,op_info->extents_op); // returned
+
+	const ptrdiff_t row_max = op_info->values_op->ext_0;
+	for (ptrdiff_t row = 0; row < row_max; ++row)
+		set_weights(row,w,op_info,sim);
+	destructor_Operator_Info(op_info);
+
+	return w;
 }
 
 struct Operator_Info* constructor_Operator_Info
@@ -380,6 +406,14 @@ static ptrdiff_t get_ind_nc
 	 const struct const_Multiarray_Vector_i* nc ///< Defined for \ref set_node_correspondence.
 	);
 
+/** \brief Return the index of the cubature weight currently being set.
+ *  \return See brief. */
+static ptrdiff_t get_ind_w
+	(const struct Operator_Info* op_info,      ///< \ref Operator_Info.
+	 const int* op_values,                     ///< \ref One line of values of \ref Operator_Info::values_op.
+	 const struct const_Multiarray_Vector_d* w ///< Defined for \ref set_weights.
+	);
+
 static void set_operator_std
 	(ptrdiff_t*const ind_values, const struct Multiarray_Operator* op, const struct Operator_Info* op_info,
 	 const struct Simulation* sim)
@@ -510,7 +544,7 @@ static void set_operator_solver
 	const struct const_Nodes* nodes_o = constructor_const_Nodes_h(OP_IND_O,op_io,element,sim); // destructed
 	assert(nodes_o->has_weights);
 
-	const int n_op   = get_n_op (op_info->range_d,element->d);
+	const int n_op   = get_n_op(op_info->range_d,element->d);
 	ptrdiff_t ind_op = get_ind_op(op_info,op_values,op);
 
 	for (int i = 0; i < n_op; ++i) {
@@ -552,6 +586,22 @@ static void set_node_correspondence
 
 	const_cast_b(&nc_curr->owns_data,false);
 	destructor_const_Multiarray_Vector_i(nc_curr);
+}
+
+static void set_weights
+	(ptrdiff_t ind_values, const struct const_Multiarray_Vector_d* w, const struct Operator_Info* op_info,
+	 const struct Simulation* sim)
+{
+	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
+
+	set_current_op_io(op_info,op_values);
+	const struct Op_IO* op_io = op_info->op_io;
+
+	const struct const_Element* element = op_info->element;
+	const struct const_Vector_d* w_curr = constructor_weights(&op_io[OP_IND_O],element,sim); // moved
+
+	ptrdiff_t ind_w = get_ind_w(op_info,op_values,w);
+	const_constructor_move_const_Vector_d(&w->data[ind_w++],w_curr);
 }
 
 int convert_to_type (const char* name_type)
@@ -1037,4 +1087,16 @@ static ptrdiff_t get_ind_nc
 	destructor_const_Vector_i(indices_op);
 
 	return ind_nc;
+}
+
+static ptrdiff_t get_ind_w
+	(const struct Operator_Info* op_info, const int* op_values, const struct const_Multiarray_Vector_d* w)
+{
+	const int order_op = op_info->extents_op->ext_0;
+	const struct const_Vector_i* indices_op = constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
+
+	ptrdiff_t ind_w = compute_index_sub_container_pi(w->order,0,w->extents,indices_op->data);
+	destructor_const_Vector_i(indices_op);
+
+	return ind_w;
 }

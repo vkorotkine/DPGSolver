@@ -76,13 +76,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 
 struct Vector_i;
+struct Vector_d;
 struct Matrix_d;
+struct Multiarray_Vector_d;
 struct Multiarray_Matrix_d;
 struct const_Vector_i;
 struct const_Vector_d;
 struct const_Matrix_d;
 struct const_Multiarray_d;
 struct const_Multiarray_Vector_i;
+struct const_Multiarray_Vector_d;
 struct const_Multiarray_Matrix_d;
 
 // Helper functions ************************************************************************************************* //
@@ -149,6 +152,29 @@ const struct const_Multiarray_Vector_i* constructor_empty_const_Multiarray_Vecto
 /** \brief Constructor for an empty \ref Multiarray_Vector_i\* where a \ref const_Vector_i holds the order/extents.
  *  \return Standard. */
 const struct const_Multiarray_Vector_i* constructor_empty_const_Multiarray_Vector_i_V
+	(const bool alloc_V,                           ///< Defined for \ref constructor_empty_Multiarray_Vector_i.
+	 const struct const_Vector_i*const extents_i_V ///< Vector holding the order and extents.
+	);
+
+/** \brief Constructor for an empty \ref Multiarray_Vector_d\*.
+ *  \return Standard. */
+struct Multiarray_Vector_d* constructor_empty_Multiarray_Vector_d
+	(const bool alloc_V,             ///< Flag for whether memory should be reserved for the individual Vectors.
+	 const int order,                ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents_i ///< The input extents.
+	);
+
+/** \brief `const` version of \ref constructor_empty_Multiarray_Vector_d.
+ *  \return Standard. */
+const struct const_Multiarray_Vector_d* constructor_empty_const_Multiarray_Vector_d
+	(const bool alloc_V,             ///< Defined for \ref constructor_empty_Multiarray_Vector_d.
+	 const int order,                ///< Defined for \ref constructor_empty_Multiarray_Vector_d.
+	 const ptrdiff_t*const extents_i ///< Defined for \ref constructor_empty_Multiarray_Vector_d.
+	);
+
+/** \brief Constructor for an empty \ref Multiarray_Vector_d\* where a \ref const_Vector_d holds the order/extents.
+ *  \return Standard. */
+const struct const_Multiarray_Vector_d* constructor_empty_const_Multiarray_Vector_d_V
 	(const bool alloc_V,                           ///< Defined for \ref constructor_empty_Multiarray_Vector_i.
 	 const struct const_Vector_i*const extents_i_V ///< Vector holding the order and extents.
 	);
@@ -254,6 +280,16 @@ struct Multiarray_Vector_i* constructor_move_Multiarray_Vector_i_dyn_extents
 	 struct Vector_i**const data ///< Standard.
 	);
 
+/** \brief Move constructor for a \ref Multiarray_Vector_d\* with the input extents having been previously
+ *         dynamically allocated.
+ *  \return See brief. */
+struct Multiarray_Vector_d* constructor_move_Multiarray_Vector_d_dyn_extents
+	(const int order,            ///< Standard.
+	 ptrdiff_t*const extents,    ///< Standard.
+	 const bool owns_data,       ///< Standard.
+	 struct Vector_d**const data ///< Standard.
+	);
+
 /** \brief Move constructor for a \ref Multiarray_Matrix_d\* with the input extents having been previously
  *         dynamically allocated.
  *  \return See brief. */
@@ -352,16 +388,23 @@ void set_const_Multiarray_Matrix_from_Multiarray_Matrix_d
 	 const ptrdiff_t*const sub_indices             ///< Defined for mutable version.
 	);
 
-/** \brief Constructor for a \ref const_Multiarray_d\* using a matrix-matrix multiplication, interpreting the input
+/** \brief Constructor for a \ref Multiarray_d\* using a matrix-matrix multiplication, interpreting the input
  *         multiarray as a matrix with the appropriate extents.
  *  \return The result of the mm function call with the same number of columns as the reinterpreted input.
  *
  *  The first extent **must** be equal to `ext_1` of the `a` matrix.
  *  See comments in \ref constructor_mm_NN1C_Matrix_d for the preset matrix-matrix multiplication parameters.
  */
-const struct const_Multiarray_d* constructor_mm_NN1C_const_Multiarray_d
+struct Multiarray_d* constructor_mm_NN1C_Multiarray_d
 	(const struct const_Matrix_d*const a,    ///< Defined for \ref mm_d.
 	 const struct const_Multiarray_d*const b ///< Input `b` in multiarray format.
+	);
+
+/** \brief `const` version of \ref constructor_mm_NN1C_Multiarray_d.
+ *  \return See brief. */
+const struct const_Multiarray_d* constructor_mm_NN1C_const_Multiarray_d
+	(const struct const_Matrix_d*const a,    ///< Defined for \ref  constructor_mm_NN1C_Multiarray_d.
+	 const struct const_Multiarray_d*const b ///< Defined for \ref  constructor_mm_NN1C_Multiarray_d.
 	);
 
 /** \brief Constructor for a \ref const_Multiarray_d\* using a matrix-matrix multiplication, interpreting the input
@@ -413,6 +456,16 @@ void destructor_Multiarray_Vector_i
 /// \brief `const` version of \ref destructor_Multiarray_Vector_i.
 void destructor_const_Multiarray_Vector_i
 	(const struct const_Multiarray_Vector_i* a ///< Defined for \ref destructor_Multiarray_Vector_i.
+	);
+
+/// \brief Destructs a \ref Multiarray_Vector_d\*.
+void destructor_Multiarray_Vector_d
+	(struct Multiarray_Vector_d* a ///< Standard.
+	);
+
+/// \brief `const` version of \ref destructor_Multiarray_Vector_d.
+void destructor_const_Multiarray_Vector_d
+	(const struct const_Multiarray_Vector_d* a ///< Defined for \ref destructor_Multiarray_Vector_d.
 	);
 
 /// \brief Destructs a \ref Multiarray_Matrix_d\*.

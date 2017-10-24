@@ -251,7 +251,6 @@ struct Matrix_d* constructor_mm_Matrix_d
 	(const char trans_a_i,                ///< Defined for \ref mm_d.
 	 const char trans_b_i,                ///< Defined for \ref mm_d.
 	 const double alpha,                  ///< Defined for \ref mm_d.
-	 const double beta,                   ///< Defined for \ref mm_d.
 	 const struct const_Matrix_d*const a, ///< Defined for \ref mm_d.
 	 const struct const_Matrix_d*const b, ///< Defined for \ref mm_d.
 	 const char layout                    ///< The `layout` of the constructed \ref Matrix_d.
@@ -263,7 +262,6 @@ const struct const_Matrix_d* constructor_mm_const_Matrix_d
 	(const char trans_a_i,                ///< Defined for \ref constructor_mm_Matrix_d.
 	 const char trans_b_i,                ///< Defined for \ref constructor_mm_Matrix_d.
 	 const double alpha,                  ///< Defined for \ref constructor_mm_Matrix_d.
-	 const double beta,                   ///< Defined for \ref constructor_mm_Matrix_d.
 	 const struct const_Matrix_d*const a, ///< Defined for \ref constructor_mm_Matrix_d.
 	 const struct const_Matrix_d*const b, ///< Defined for \ref constructor_mm_Matrix_d.
 	 const char layout                    ///< Defined for \ref constructor_mm_Matrix_d.

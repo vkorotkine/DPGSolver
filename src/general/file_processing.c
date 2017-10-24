@@ -28,6 +28,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_alloc.h"
 
+#include "const_cast.h"
+
 // Static function declarations ************************************************************************************* //
 
 /** \brief Converts the string pointed to by the argument `str` to an `int`.
@@ -188,7 +190,9 @@ void read_skip_const_c_1 (const char*const line, const char*const var)
 
 void read_skip_const_b (const char*const line, const bool*const var)
 {
-	sscanf(line,"%*s %d",(int*)var);
+	int tmp = 0;
+	sscanf(line,"%*s %d",&tmp);
+	const_cast_b(var,tmp);
 }
 
 void read_skip_d (char*const line, double*const var, const int n_skip, const bool remove_semi)

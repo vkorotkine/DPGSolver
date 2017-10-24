@@ -39,6 +39,12 @@ void transpose_Multiarray_d
 	 const bool mem_only     ///< Flag for whether only the memory should be transposed (with extents unchanged).
 	);
 
+/// \brief Scale the \ref Multiarray_d\* by a constant value.
+void scale_Multiarray_d
+	(struct Multiarray_d* a, ///< The multiarray.
+	 const double val        ///< The value by which to scale.
+	);
+
 /// \brief Normalize the primary extents of a \ref Multiarray_d\*, optionally storing the value of the norms.
 void normalize_Multiarray_d
 	(struct Multiarray_d* a,      ///< Multiarray to be normalized.
@@ -98,6 +104,13 @@ void mm_NN1C_Multiarray_d
 	(const struct const_Matrix_d*const a,     ///< Defined for \ref mm_d.
 	 const struct const_Multiarray_d*const b, ///< Input `b`.
 	 struct Multiarray_d*const c              ///< Output `c`.
+	);
+
+/** \brief Similar to \ref mm_NN1C_Multiarray_d but where the input `b` is overwritten by the result.
+ *  See comments in \ref constructor_mm_NN1C_Matrix_d for the preset matrix-matrix multiplication parameters. */
+void mm_NN1C_overwrite_Multiarray_d
+	(const struct const_Matrix_d*const a, ///< Defined for \ref mm_d.
+	 struct Multiarray_d** b              ///< Input/Output `b`.
 	);
 
 /** \brief Compute the extents of the output multiarray from a matrix-multiarray multiplication.

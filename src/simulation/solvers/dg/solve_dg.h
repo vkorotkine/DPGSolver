@@ -20,12 +20,23 @@ You should have received a copy of the GNU General Public License along with DPG
  *         method.
  */
 
+struct Multiarray_d;
+struct Solver_Face;
 struct Simulation;
 
 /** \brief Version of \ref compute_rhs for the dg method.
  *  \return See brief. */
 double compute_rhs_dg
 	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Permute the input multiarray such that its ordering is such that it is in the reference coordinates of the
+ *         face cubature nodes of the opposite volume. */
+void permute_Multiarray_d_fc
+	(struct Multiarray_d* data,       ///< The data to be permuted.
+	 const char perm_layout,          ///< Defined for \ref permute_Multiarray_d_V.
+	 const int side_index_dest,       ///< The side index of the destination.
+	 const struct Solver_Face* s_face ///< \ref Solver_Face.
 	);
 
 #endif // DPG__solve_dg_h__INCLUDED

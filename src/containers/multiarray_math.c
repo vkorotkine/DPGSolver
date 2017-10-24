@@ -72,6 +72,13 @@ assert(a->order <= 2);
 	destructor_Matrix_d(a_M);
 }
 
+void scale_Multiarray_d (struct Multiarray_d* a, const double val)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		a->data[i] *= val;
+}
+
 void normalize_Multiarray_d
 	(struct Multiarray_d* a, const char*const norm_type, const bool store_norms, struct Multiarray_d* a_norms)
 {
@@ -175,6 +182,13 @@ void mm_NN1C_Multiarray_d
 	(const struct const_Matrix_d*const a, const struct const_Multiarray_d*const b, struct Multiarray_d*const c)
 {
 	mm_NNC_Multiarray_d(1.0,0.0,a,b,c);
+}
+
+void mm_NN1C_overwrite_Multiarray_d (const struct const_Matrix_d*const a, struct Multiarray_d** b)
+{
+	struct Multiarray_d* c = constructor_mm_NN1C_Multiarray_d(a,(struct const_Multiarray_d*)*b); // keep
+	destructor_Multiarray_d(*b);
+	*b = c;
 }
 
 void reinterpret_const_Multiarray_as_Matrix_d

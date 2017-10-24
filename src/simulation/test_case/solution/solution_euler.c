@@ -48,9 +48,13 @@ void set_function_pointers_solution_euler (struct Test_Case* test_case, const st
 	if (strstr(sim->pde_spec,"periodic_vortex")) {
 		test_case->set_sol_coef_v = set_sol_coef_v_periodic_vortex;
 		test_case->set_sol_coef_f = set_sol_coef_f_periodic_vortex;
+		test_case->compute_source = compute_source_do_nothing;
+		test_case->constructor_error_ce = constructor_Error_CE_euler_all;
 	} else if (strstr(sim->pde_spec,"supersonic_vortex")) {
 		test_case->set_sol_coef_v = set_sol_coef_v_supersonic_vortex;
 		test_case->set_sol_coef_f = set_sol_coef_f_supersonic_vortex;
+		test_case->compute_source = compute_source_do_nothing;
+//		test_case->compute_errors = compute_errors_euler_all;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}

@@ -236,6 +236,12 @@ void destructor_derived_computational_elements (struct Simulation* sim, const in
 		sizeof_base[0] = sizeof(struct Volume);
 		sizeof_base[1] = sizeof(struct Face);
 		break;
+	case IL_SOLVER:
+		base_name[0] = IL_SOLVER_VOLUME;
+		base_name[1] = IL_SOLVER_FACE;
+		sizeof_base[0] = sizeof(struct Solver_Volume);
+		sizeof_base[1] = sizeof(struct Solver_Face);
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",base_category);
 		break;
@@ -250,6 +256,11 @@ void destructor_derived_computational_elements (struct Simulation* sim, const in
 		assert(base_category == IL_BASE);
 		destructor_derived_Volume = destructor_derived_Solver_Volume;
 		destructor_derived_Face   = destructor_derived_Solver_Face;
+		break;
+	case IL_SOLVER_DG:
+		assert(base_category == IL_SOLVER);
+		destructor_derived_Volume = destructor_derived_DG_Solver_Volume;
+		destructor_derived_Face   = destructor_derived_DG_Solver_Face;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_category);
@@ -385,6 +396,10 @@ void destructor_derived_Elements (struct Simulation* sim, const int base_name)
 		assert(base_name == IL_ELEMENT);
 		destructor_derived_Element = destructor_derived_Solution_Element;
 		break;
+	case IL_ELEMENT_SOLVER_DG:
+		assert(base_name == IL_ELEMENT);
+		destructor_derived_Element = destructor_derived_DG_Solver_Element;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_name);
 		break;
@@ -509,6 +524,10 @@ static int get_list_category (const struct Simulation* sim)
 	case IL_SOLVER_VOLUME:
 		assert(f_name == IL_SOLVER_FACE);
 		ce_name = IL_SOLVER;
+		break;
+	case IL_VOLUME_SOLVER_DG:
+		assert(f_name == IL_FACE_SOLVER_DG);
+		ce_name = IL_SOLVER_DG;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",v_name);

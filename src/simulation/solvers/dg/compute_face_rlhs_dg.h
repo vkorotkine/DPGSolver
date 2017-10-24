@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__compute_face_rlhs_dg_h__INCLUDED
 #define DPG__compute_face_rlhs_dg_h__INCLUDED
 /** \file
- *  \brief Provides functions used for computing the face contributions to the right and left-hand sides (rlhs) terms
+ *  \brief Provides functions used for computing the face contributions to the right and left-hand side (rlhs) terms
  *         of the DG scheme.
  */
 

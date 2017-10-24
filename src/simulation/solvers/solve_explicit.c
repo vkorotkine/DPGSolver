@@ -79,8 +79,8 @@ void solve_explicit (struct Simulation* sim)
 	assert(sim->method == METHOD_DG); // Can be made flexible in future.
 
 	sim->test_case->solver_method_curr = 'e';
-	constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
 	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
+	constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
 
 	time_step_fptr time_step = set_time_step(sim);
 
@@ -106,10 +106,9 @@ void solve_explicit (struct Simulation* sim)
 			break;
 	}
 
-	destructor_derived_Elements(sim,IL_ELEMENT);
 	destructor_derived_computational_elements(sim,IL_SOLVER);
+	destructor_derived_Elements(sim,IL_ELEMENT);
 	sim->test_case->solver_method_curr = 0;
-EXIT_ADD_SUPPORT;
 }
 
 // Static functions ************************************************************************************************* //
@@ -167,7 +166,7 @@ void display_progress (const struct Test_Case* test_case, const int t_step, cons
 
 	switch (test_case->solver_proc) {
 	case SOLVER_E:
-		printf("Complete: % 7.2f%%, tstep: %8d, maxRHS (no MInv): % .3e\n",
+		printf("Complete: % 7.2f%%, tstep: %8d, maxRHS: % .3e\n",
 		       100*(test_case->time)/(test_case->time_final),t_step,max_rhs);
 		break;
 	case SOLVER_EI:

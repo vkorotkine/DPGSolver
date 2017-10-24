@@ -75,10 +75,10 @@ static void test_unit_matrix_mm (struct Test_Info*const test_info)
 	                           * b_t = constructor_copy_transpose_const_Matrix_d(b,false); // destructed
 
 	// row major
-	struct Matrix_d* c_NNR = constructor_mm_Matrix_d('N','N',1.0,0.0,a,  b,  'R'), // destructed
-	               * c_TNR = constructor_mm_Matrix_d('T','N',1.0,0.0,a_t,b,  'R'), // destructed
-	               * c_NTR = constructor_mm_Matrix_d('N','T',1.0,0.0,a  ,b_t,'R'), // destructed
-	               * c_TTR = constructor_mm_Matrix_d('T','T',1.0,0.0,a_t,b_t,'R'); // destructed
+	struct Matrix_d* c_NNR = constructor_mm_Matrix_d('N','N',1.0,a,  b,  'R'), // destructed
+	               * c_TNR = constructor_mm_Matrix_d('T','N',1.0,a_t,b,  'R'), // destructed
+	               * c_NTR = constructor_mm_Matrix_d('N','T',1.0,a  ,b_t,'R'), // destructed
+	               * c_TTR = constructor_mm_Matrix_d('T','T',1.0,a_t,b_t,'R'); // destructed
 
 	transpose_const_Matrix_d(a,true);
 	transpose_const_Matrix_d(b,true);
@@ -87,10 +87,10 @@ static void test_unit_matrix_mm (struct Test_Info*const test_info)
 
 	// col major
 	struct Matrix_d* c_C   = constructor_copy_transpose_Matrix_d(c_R,true),        // destructed
-	               * c_NNC = constructor_mm_Matrix_d('N','N',1.0,0.0,a,  b,  'C'), // destructed
-	               * c_TNC = constructor_mm_Matrix_d('T','N',1.0,0.0,a_t,b,  'C'), // destructed
-	               * c_NTC = constructor_mm_Matrix_d('N','T',1.0,0.0,a  ,b_t,'C'), // destructed
-	               * c_TTC = constructor_mm_Matrix_d('T','T',1.0,0.0,a_t,b_t,'C'); // destructed
+	               * c_NNC = constructor_mm_Matrix_d('N','N',1.0,a,  b,  'C'), // destructed
+	               * c_TNC = constructor_mm_Matrix_d('T','N',1.0,a_t,b,  'C'), // destructed
+	               * c_NTC = constructor_mm_Matrix_d('N','T',1.0,a  ,b_t,'C'), // destructed
+	               * c_TTC = constructor_mm_Matrix_d('T','T',1.0,a_t,b_t,'C'); // destructed
 
 	destructor_const_Matrix_d(a);
 	destructor_const_Matrix_d(b);

@@ -15,73 +15,36 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "solve.h"
+#include "compute_volume_rlhs_dg.h"
 
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "macros.h"
-#include "definitions_test_case.h"
 #include "definitions_intrusive.h"
 
-#include "computational_elements.h"
+#include "volume_solver.h"
 
 #include "intrusive.h"
 #include "simulation.h"
-#include "solve_explicit.h"
-#include "solve_implicit.h"
-#include "solution.h"
 #include "test_case.h"
-
-#include "solve_dg.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-void solve_for_solution (struct Simulation* sim)
+void compute_source_rhs_dg (const struct Simulation* sim)
 {
-	assert(sim->volumes->name == IL_SOLVER_VOLUME);
-	assert(sim->faces->name   == IL_SOLVER_FACE);
+	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
 
-	constructor_derived_Elements(sim,IL_SOLUTION_ELEMENT);
-	set_initial_solution(sim);
-	destructor_derived_Elements(sim,IL_ELEMENT);
+	struct Test_Case* test_case = sim->test_case;
 
-	const struct Test_Case* test_case = sim->test_case;
-	switch (test_case->solver_proc) {
-	case SOLVER_E:
-		solve_explicit(sim);
-		break;
-	case SOLVER_I:
-		solve_implicit(sim);
-		break;
-	case SOLVER_EI:
-		solve_explicit(sim);
-		solve_implicit(sim);
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",sim->test_case->solver_proc);
-		break;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+
+		test_case->compute_source(sim,s_vol);
 	}
-}
-
-double compute_rhs (const struct Simulation* sim)
-{
-/// \todo Add assertions relevant to rhs then call 'compute_rlhs'.
-	double max_rhs = 0.0;
-
-	switch (sim->method) {
-	case METHOD_DG:
-		max_rhs = compute_rhs_dg(sim);
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",sim->method);
-		break;
-	}
-
-	return max_rhs;
 }
 
 // Static functions ************************************************************************************************* //

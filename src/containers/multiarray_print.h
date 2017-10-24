@@ -24,10 +24,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Multiarray_d;
 struct Multiarray_Vector_i;
+struct Multiarray_Vector_d;
 struct Multiarray_Matrix_d;
 struct const_Vector_i;
 struct const_Multiarray_d;
 struct const_Multiarray_Vector_i;
+struct const_Multiarray_Vector_d;
 struct const_Multiarray_Matrix_d;
 
 /// \brief Print a \ref Multiarray_Vector_i\* to the terminal.
@@ -38,6 +40,16 @@ void print_Multiarray_Vector_i
 /// \brief `const` version of \ref print_Multiarray_Vector_i.
 void print_const_Multiarray_Vector_i
 	(const struct const_Multiarray_Vector_i*const a ///< Defined for \ref print_Multiarray_Vector_i.
+	);
+
+/// \brief Print a \ref Multiarray_Vector_d\* to the terminal.
+void print_Multiarray_Vector_d
+	(const struct Multiarray_Vector_d*const a ///< Standard.
+	);
+
+/// \brief `const` version of \ref print_Multiarray_Vector_d.
+void print_const_Multiarray_Vector_d
+	(const struct const_Multiarray_Vector_d*const a ///< Defined for \ref print_Multiarray_Vector_d.
 	);
 
 /// \brief Print a \ref Multiarray_d\* to the terminal displaying entries below the tolerance as 0.0.

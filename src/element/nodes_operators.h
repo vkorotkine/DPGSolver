@@ -48,4 +48,12 @@ const struct const_Multiarray_Vector_i* constructor_nodes_face_corr_op
 	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 
+/** \brief Constructor for a set of cubature weights based on the given input parameters.
+ *  \return See brief. */
+const struct const_Vector_d* constructor_weights
+	(const struct Op_IO op_io[2],         ///< \ref Op_IO.
+	 const struct const_Element* element, ///< \ref const_Element.
+	 const struct Simulation* sim         ///< \ref Simulation.
+	);
+
 #endif // DPG__nodes_operators_h__INCLUDED

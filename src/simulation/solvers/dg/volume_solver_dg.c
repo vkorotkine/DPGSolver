@@ -22,23 +22,45 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_test_case.h"
 
-#include "multiarray.h"
+#include "element_solver_dg.h"
+#include "volume.h"
+#include "volume_solver.h"
 
+#include "matrix.h"
+#include "multiarray.h"
+#include "vector.h"
+
+#include "multiarray_operator.h"
+#include "operator.h"
 #include "simulation.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Check if the memory allocation for \ref DG_Solver_Volume::sol_coef_p is needed.
- *  \return `true` if needed. */
-static bool check_need_sol_coef_p
-	(const struct Test_Case* test_case ///< \ref Test_Case.
+/// Container holding flags for which members of \ref DG_Solver_Volume are needed.
+struct Needed_Members {
+	bool sol_coef_p, ///< Flag for \ref DG_Solver_Volume::sol_coef_p.
+	     m_inv;      ///< Flag for \ref DG_Solver_Volume::m_inv.
+};
+
+/** \brief Return a statically allocated \ref Needed_Members container with values set.
+ *  \return See brief. */
+static struct Needed_Members set_needed_members
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Constructor for the inverse mass matrix of the input volume.
+ *  \return See brief. */
+static const struct const_Matrix_d* constructor_inverse_mass
+	(const struct DG_Solver_Volume* volume ///< \ref DG_Solver_Volume.
 	);
 
 // Interface functions ********************************************************************************************** //
 
 void constructor_derived_DG_Solver_Volume (struct Volume* volume_ptr, const struct Simulation* sim)
 {
+	struct Needed_Members needed_members = set_needed_members(sim);
+
 	struct Solver_Volume* s_volume  = (struct Solver_Volume*) volume_ptr;
 	struct DG_Solver_Volume* volume = (struct DG_Solver_Volume*) volume_ptr;
 
@@ -46,8 +68,10 @@ void constructor_derived_DG_Solver_Volume (struct Volume* volume_ptr, const stru
 	ptrdiff_t* extents = s_volume->sol_coef->extents;
 
 	volume->rhs        = constructor_empty_Multiarray_d('C',order,extents); // destructed
-	volume->sol_coef_p = // destructed
-		( check_need_sol_coef_p(sim->test_case) ? constructor_empty_Multiarray_d('C',order,extents) : NULL );
+	volume->sol_coef_p =
+		( needed_members.sol_coef_p ? constructor_empty_Multiarray_d('C',order,extents) : NULL ); // destructed
+
+	volume->m_inv = ( needed_members.m_inv ? constructor_inverse_mass(volume) : NULL ); // destructed
 }
 
 void destructor_derived_DG_Solver_Volume (struct Volume* volume_ptr)
@@ -55,24 +79,31 @@ void destructor_derived_DG_Solver_Volume (struct Volume* volume_ptr)
 	struct DG_Solver_Volume* volume = (struct DG_Solver_Volume*) volume_ptr;
 
 	destructor_Multiarray_d(volume->rhs);
-	if (volume->sol_coef_p != NULL)
+	if (volume->sol_coef_p)
 		destructor_Multiarray_d(volume->sol_coef_p);
+	if (volume->m_inv)
+		destructor_const_Matrix_d(volume->m_inv);
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static bool check_need_sol_coef_p (const struct Test_Case* test_case)
+static struct Needed_Members set_needed_members (const struct Simulation* sim)
 {
-	bool allocate_sol_coef_p = false;
+	const struct Test_Case* test_case = sim->test_case;
+	struct Needed_Members needed_members =
+		{ .sol_coef_p = false,
+		  .m_inv      = false, };
 
 	switch (test_case->solver_proc) {
 	case SOLVER_E: // fallthrough
 	case SOLVER_EI:
+		if (!sim->collocated)
+			needed_members.m_inv = true;
 		switch (test_case->solver_type_e) {
 		case SOLVER_E_SSP_RK_33: // fallthrough
 		case SOLVER_E_LS_RK_54:
-			allocate_sol_coef_p = true;
+			needed_members.sol_coef_p = true;
 			break;
 		case SOLVER_E_EULER:
 			// Do nothing
@@ -90,5 +121,39 @@ static bool check_need_sol_coef_p (const struct Test_Case* test_case)
 		break;
 	}
 
-	return allocate_sol_coef_p;
+	return needed_members;
+}
+
+static const struct const_Matrix_d* constructor_inverse_mass (const struct DG_Solver_Volume* volume)
+{
+	struct Volume* b_vol        = (struct Volume*) volume;
+	struct Solver_Volume* s_vol = (struct Solver_Volume*) volume;
+
+	struct DG_Solver_Element* e = (struct DG_Solver_Element*) b_vol->element;
+
+	const int p = s_vol->p_ref;
+	const struct Operator* cv0_vs_vc = NULL;
+	const struct const_Vector_d* w_vc = NULL;
+	if (!b_vol->curved) {
+		cv0_vs_vc = get_Multiarray_Operator(e->cv0_vs_vcs,(ptrdiff_t[]){0,0,p,p});
+		w_vc      = get_const_Multiarray_Vector_d(e->w_vcs,(ptrdiff_t[]){0,0,p,p});
+	} else {
+		cv0_vs_vc = get_Multiarray_Operator(e->cv0_vs_vcc,(ptrdiff_t[]){0,0,p,p});
+		w_vc      = get_const_Multiarray_Vector_d(e->w_vcc,(ptrdiff_t[]){0,0,p,p});
+	}
+
+	const struct const_Vector_d jacobian_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
+	const struct const_Vector_d* wJ_vc = constructor_dot_mult_const_Vector_d(w_vc,&jacobian_det_vc); // destructed
+
+	const struct const_Matrix_d* m_l = cv0_vs_vc->op_std;
+	const struct const_Matrix_d* m_r = constructor_mm_diag_const_Matrix_d(1.0,m_l,wJ_vc,'L',false); // destructed
+	destructor_const_Vector_d(wJ_vc);
+
+	const struct const_Matrix_d* m = constructor_mm_const_Matrix_d('T','N',1.0,m_l,m_r,'R'); // destructed
+	destructor_const_Matrix_d(m_r);
+
+	const struct const_Matrix_d* m_inv = constructor_inverse_const_Matrix_d(m); // returned
+	destructor_const_Matrix_d(m);
+
+	return m_inv;
 }

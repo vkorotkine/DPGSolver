@@ -101,5 +101,12 @@ const struct const_Multiarray_d* constructor_xyz_vs (const struct Simulation* si
 	return (const struct const_Multiarray_d*) xyz_vs;
 }
 
+void compute_source_do_nothing (const struct Simulation* sim, struct Solver_Volume* volume)
+{
+	UNUSED(sim);
+	UNUSED(volume);
+	return;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

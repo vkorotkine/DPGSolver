@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "flux.h"
 #include "numerical_flux.h"
 #include "solution.h"
+#include "compute_error.h"
 
 struct Simulation;
 
@@ -117,6 +118,10 @@ struct Test_Case {
 
 	/** \note constructor_*_r_fcl are provided as part of the Solver_Face_* container as they are dependent upon
 	 *        whether the face is on a boundary or not. */
+
+	compute_source_fptr compute_source; ///< Function pointer to the source computation function.
+
+	constructor_Error_Fe_fptr constructor_error_ce; ///< Function pointer to the function computing the error.
 };
 
 /** \brief Constructor for a \ref Test_Case.

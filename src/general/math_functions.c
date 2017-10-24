@@ -67,10 +67,16 @@ bool equal_d (const double x0, const double x1, const double tol)
 double norm_d (const ptrdiff_t n_entries, const double*const data, const char*const norm_type)
 {
 	double norm = 0.0;
-	if (strstr(norm_type,"L2")) {
+	if (strcmp(norm_type,"L2") == 0) {
 		for (ptrdiff_t i = 0; i < n_entries; ++i)
 			norm += data[i]*data[i];
 		return sqrt(norm);
+	} else if (strcmp(norm_type,"Inf") == 0) {
+		for (ptrdiff_t i = 0; i < n_entries; ++i) {
+			if (fabs(data[i]) > norm)
+				norm = fabs(data[i]);
+		}
+		return norm;
 	}
 	EXIT_UNSUPPORTED;
 }

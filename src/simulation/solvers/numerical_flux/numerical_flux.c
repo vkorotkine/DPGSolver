@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
+#include "solve_dg.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -153,22 +154,10 @@ const struct const_Multiarray_d* constructor_s_l_fcl_interp (const struct Face* 
 const struct const_Multiarray_d* constructor_s_r_fcl_interp (const struct Face* face, const struct Simulation* sim)
 {
 	const int side_index = 1;
-	struct Multiarray_d* sol_r_fcr = (struct Multiarray_d*) constructor_s_fc_interp(face,sim,1);
 
-	const struct Neigh_Info* neigh_info = &face->neigh_info[side_index];
+	struct Multiarray_d* sol_r_fcr = (struct Multiarray_d*) constructor_s_fc_interp(face,sim,side_index);
+	permute_Multiarray_d_fc(sol_r_fcr,'R',side_index,(struct Solver_Face*)face);
 
-	struct Volume* vol_r = neigh_info->volume;
-	const struct DG_Solver_Element* f_e =
-		(const struct DG_Solver_Element*) get_element_by_face(vol_r->element,neigh_info->ind_lf);
-
-	struct Solver_Face* s_face = (struct Solver_Face*) face;
-	const int ind_ord = neigh_info->ind_ord,
-	          p_f     = s_face->p_ref;
-	const struct const_Vector_i* nc_fc = ((s_face->cub_type == 's')
-		? get_const_Multiarray_Vector_i(f_e->nc_fcs,(ptrdiff_t[]){ind_ord,0,0,p_f,p_f})
-		: get_const_Multiarray_Vector_i(f_e->nc_fcc,(ptrdiff_t[]){ind_ord,0,0,p_f,p_f}) );
-
-	permute_Multiarray_d_V(sol_r_fcr,nc_fc,'R');
 	return (const struct const_Multiarray_d*) sol_r_fcr;
 }
 
@@ -179,7 +168,7 @@ const struct const_Multiarray_d* constructor_sg_fc_null (const struct Face* face
 	return NULL;
 }
 
-// Level 0 ********************************************************************************************************** //
+// Level 1 ********************************************************************************************************** //
 
 static const struct const_Multiarray_d* constructor_s_fc_interp
 	(const struct Face* face, const struct Simulation* sim, const int side_index)

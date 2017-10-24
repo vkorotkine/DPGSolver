@@ -240,6 +240,23 @@ const struct const_Vector_i* get_const_Multiarray_Vector_i
 	return src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
 }
 
+const struct const_Vector_d* get_const_Multiarray_Vector_d
+	(const struct const_Multiarray_Vector_d* src, const ptrdiff_t*const sub_indices)
+{
+	assert(src != NULL);
+	return src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
+}
+
+struct const_Vector_d interpret_const_Multiarray_as_Vector_d (const struct const_Multiarray_d* a_Ma)
+{
+	assert(a_Ma->order == 1);
+	struct const_Vector_d a =
+		{ .ext_0     = a_Ma->extents[0],
+		  .owns_data = false,
+		  .data      = a_Ma->data, };
+	return a;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

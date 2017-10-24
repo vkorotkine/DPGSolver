@@ -179,6 +179,12 @@ void const_constructor_move_const_Vector_i
 	const_constructor_move_Vector_i(dest,(struct Vector_i*)src);
 }
 
+void const_constructor_move_const_Vector_d
+	(const struct const_Vector_d*const* dest, const struct const_Vector_d* src)
+{
+	const_constructor_move_Vector_d(dest,(struct Vector_d*)src);
+}
+
 // Set constructors ************************************************************************************************* //
 
 struct Vector_d* constructor_set_Vector_d_Multiarray_d (struct Multiarray_d* src, const ptrdiff_t* sub_indices)
@@ -197,6 +203,20 @@ const struct const_Vector_d* constructor_set_const_Vector_d_Multiarray_d
 }
 
 // Special constructors ********************************************************************************************* //
+
+const struct const_Vector_d* constructor_dot_mult_const_Vector_d
+	(const struct const_Vector_d* a, const struct const_Vector_d* b)
+{
+	assert(a->ext_0 == b->ext_0);
+
+	const ptrdiff_t ext_0 = a->ext_0;
+	double* data_c = malloc(ext_0 * sizeof *data_c); // moved
+
+	for (ptrdiff_t i = 0; i < ext_0; ++i)
+		data_c[i] = a->data[i]*b->data[i];
+
+	return (const struct const_Vector_d*) constructor_move_Vector_d_d(ext_0,true,data_c);
+}
 
 struct Vector_d* constructor_sum_Vector_d_const_Matrix_d (const char sum_dir, const struct const_Matrix_d*const src)
 {

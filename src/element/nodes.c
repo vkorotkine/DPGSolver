@@ -83,7 +83,7 @@ const struct const_Nodes* constructor_const_Nodes_tp (const int d, const int p, 
 	if (d == 0) {
 		// 0-dimensional nodes => empty.
 		has_nodes   = false;
-		has_weights = false;
+		has_weights = true;
 	} else if (node_type == NODES_GL) {
 		if (jac_zeros_gj(r,pp1,0.0,0.0) != GSL_SUCCESS)
 			EXIT_ERROR("Problem computing nodes.\n");
@@ -155,6 +155,13 @@ const struct const_Nodes* constructor_const_Nodes_tp (const int d, const int p, 
 			if (d == 3) w[row] *= w_1d[j]*w_1d[k];
 			row++;
 		}}}
+
+		// Special case for d = 0. The zero-dimensional node is given a weight of 1.0 for generality of node usage
+		// with nodes from higher dimensions.
+		if (d == 0) {
+			assert(ext_0 == 1);
+			w[0] = 1.0;
+		}
 	}
 
 	struct Nodes* nodes = calloc(1,sizeof *nodes); // returned
@@ -428,7 +435,7 @@ const struct const_Nodes* constructor_const_Nodes_pyr (const int d, const int p,
 	struct Matrix_d* BCoords_M = constructor_move_Matrix_d_d('R',NnOut,Nc,false,BCoords_complete); // destructed
 	struct Matrix_d* rst_V_M   = constructor_move_Matrix_d_d('C',Nc,d,false,(double*)rst_V); // destructed
 	struct Matrix_d* rstOut_M  =
-		constructor_mm_Matrix_d('N','N',1.0,0.0,(struct const_Matrix_d*)BCoords_M,
+		constructor_mm_Matrix_d('N','N',1.0,(struct const_Matrix_d*)BCoords_M,
 		                        (struct const_Matrix_d*)rst_V_M,'C'); // destructed
 	free(BCoords_complete);
 
@@ -684,7 +691,7 @@ static const struct const_Nodes* constructor_const_Nodes_tri (const int p, const
 	struct Matrix_d* BCoords_M = constructor_move_Matrix_d_d('R',NnOut,Nc,false,BCoords_complete); // destructed
 	struct Matrix_d* rst_V_M   = constructor_move_Matrix_d_d('C',Nc,d,false,(double*)rst_V); // destructed
 	struct Matrix_d* rstOut_M  =
-		constructor_mm_Matrix_d('N','N',1.0,0.0,(struct const_Matrix_d*)BCoords_M,
+		constructor_mm_Matrix_d('N','N',1.0,(struct const_Matrix_d*)BCoords_M,
 		                        (struct const_Matrix_d*)rst_V_M,'C'); // destructed
 	free(BCoords_complete);
 
@@ -954,7 +961,7 @@ static const struct const_Nodes* constructor_const_Nodes_tet (const int p, const
 	struct Matrix_d* BCoords_M = constructor_move_Matrix_d_d('R',NnOut,Nc,false,BCoords_complete); // destructed
 	struct Matrix_d* rst_V_M   = constructor_move_Matrix_d_d('C',Nc,d,false,(double*)rst_V); // destructed
 	struct Matrix_d* rstOut_M  =
-		constructor_mm_Matrix_d('N','N',1.0,0.0,(struct const_Matrix_d*)BCoords_M,
+		constructor_mm_Matrix_d('N','N',1.0,(struct const_Matrix_d*)BCoords_M,
 		                        (struct const_Matrix_d*)rst_V_M,'C'); // destructed
 	free(BCoords_complete);
 

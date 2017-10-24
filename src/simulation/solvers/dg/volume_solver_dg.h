@@ -30,6 +30,9 @@ struct DG_Solver_Volume {
 	struct Multiarray_d* sol_coef_p; ///< The coefficients of the solution at a previous Runge-Kutta stage.
 	struct Multiarray_d* rhs;        ///< The rhs terms.
 
+	// Terms required for explicit runs.
+	const struct const_Matrix_d* m_inv; ///< The mass matrix.
+
 	// Terms required for 2nd order PDE terms.
 	struct Multiarray_d* grad_coef_v; ///< The volume contribution to the solution gradient coefficients.
 };

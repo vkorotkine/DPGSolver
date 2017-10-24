@@ -4,6 +4,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 Solver_DG
 	)
 
 set (LIB Numerical_Flux)

@@ -359,7 +359,7 @@ static void plotting_element_info
 
 		const struct const_Matrix_d* BCoords_M = constructor_move_const_Matrix_d_d('R',n_nOut,Nc,false,BCoords); // destructed
 		const struct const_Matrix_d* rst_V_M   = constructor_move_const_Matrix_d_d('R',Nc,d,false,rst_V); // destructed
-		struct Matrix_d* rst_M = constructor_mm_Matrix_d('N','N',1.0,0.0,BCoords_M,rst_V_M,'C'); // destructed
+		struct Matrix_d* rst_M = constructor_mm_Matrix_d('N','N',1.0,BCoords_M,rst_V_M,'C'); // destructed
 		rstOut = rst_M->data; // keep
 		rst_M->owns_data = false;
 		destructor_Matrix_d(rst_M);
@@ -473,7 +473,7 @@ static void plotting_element_info
 
 		const struct const_Matrix_d* BCoords_M = constructor_move_const_Matrix_d_d('R',n_nOut,Nc,false,BCoords); // destructed
 		const struct const_Matrix_d* rst_V_M   = constructor_move_const_Matrix_d_d('R',Nc,d,false,rst_V); // destructed
-		struct Matrix_d* rst_M = constructor_mm_Matrix_d('N','N',1.0,0.0,BCoords_M,rst_V_M,'C'); // destructed
+		struct Matrix_d* rst_M = constructor_mm_Matrix_d('N','N',1.0,BCoords_M,rst_V_M,'C'); // destructed
 		rstOut = rst_M->data; // keep
 		rst_M->owns_data = false;
 		destructor_Matrix_d(rst_M);

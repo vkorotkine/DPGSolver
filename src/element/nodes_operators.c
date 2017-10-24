@@ -118,7 +118,7 @@ const struct const_Nodes* constructor_const_Nodes_h
 	const struct const_Matrix_d* inv_cv0r_vvs_vvs = constructor_inverse_const_Matrix_d(cv0r_vvs_vvs); // destructed
 	const struct const_Matrix_d* cv0r_vvs_vXX     = constructor_basis(1,nodes_io->rst);               // destructed
 	const struct const_Matrix_d* cv0_vvs_vXX =
-		constructor_mm_const_Matrix_d('N','N',1.0,0.0,cv0r_vvs_vXX,inv_cv0r_vvs_vvs,'R'); // destructed
+		constructor_mm_const_Matrix_d('N','N',1.0,cv0r_vvs_vXX,inv_cv0r_vvs_vvs,'R'); // destructed
 	destructor_const_Matrix_d(rst_ve);
 	destructor_const_Matrix_d(cv0r_vvs_vvs);
 	destructor_const_Matrix_d(inv_cv0r_vvs_vvs);
@@ -146,7 +146,7 @@ const struct const_Nodes* constructor_const_Nodes_h
 		// appropriate (sub)set of reference element vertices.
 		const struct const_Matrix_d* rst_ve_io =
 			constructor_rst_ve(s_type_i,d_i,d_io,ind_h_io,ind_ce_io,ce_io,sim); // destructed
-		nodes->rst = constructor_mm_Matrix_d('N','N',1.0,0.0,cv0_vvs_vXX,rst_ve_io,'C'); // keep
+		nodes->rst = constructor_mm_Matrix_d('N','N',1.0,cv0_vvs_vXX,rst_ve_io,'C'); // keep
 		destructor_const_Matrix_d(rst_ve_io);
 	} else if (ce_o == 'v') { // (fv || ev)
 		nodes->rst = constructor_rst_proj(element->type,d_i,d_io,ind_h_io,ind_ce_io,ce_i,cv0_vvs_vXX,sim); // keep
@@ -166,6 +166,27 @@ const struct const_Multiarray_Vector_i* constructor_nodes_face_corr_op
 	          d         = compute_d_nodes(op_io->ce,element->d),
 	          p         = compute_p_nodes(op_io,node_type,sim);
 	return constructor_nodes_face_corr(d,p,node_type,s_type);
+}
+
+const struct const_Vector_d* constructor_weights
+	(const struct Op_IO* op_io, const struct const_Element* element, const struct Simulation* sim)
+{
+	const int s_type    = op_io->s_type,
+	          node_type = compute_node_type(op_io,element,sim),
+	          d         = compute_d_nodes(op_io->ce,element->d),
+	          p         = compute_p_nodes(op_io,node_type,sim);
+
+	constructor_Nodes_fptr constructor_Nodes = get_constructor_Nodes_by_super_type(s_type);
+
+	const struct const_Nodes* nodes = constructor_Nodes(d,p,node_type); // destructed
+	assert(nodes->has_weights);
+
+	const struct const_Vector_d* w = nodes->w;
+
+	const_cast_b(&nodes->has_weights,false);
+	destructor_const_Nodes(nodes);
+
+	return w;
 }
 
 // Static functions ************************************************************************************************* //

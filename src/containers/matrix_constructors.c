@@ -369,7 +369,7 @@ const struct const_Matrix_d* constructor_sgesv_const_Matrix_d
 }
 
 struct Matrix_d* constructor_mm_Matrix_d
-	(const char trans_a_i, const char trans_b_i, const double alpha, const double beta,
+	(const char trans_a_i, const char trans_b_i, const double alpha,
 	 const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, const char layout)
 {
 	const MKL_INT m = ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ),
@@ -377,22 +377,22 @@ struct Matrix_d* constructor_mm_Matrix_d
 
 	struct Matrix_d* c = constructor_empty_Matrix_d(layout,m,n); // returned
 
-	mm_d(trans_a_i,trans_b_i,alpha,beta,a,b,c);
+	mm_d(trans_a_i,trans_b_i,alpha,0.0,a,b,c);
 
 	return c;
 }
 
 const struct const_Matrix_d* constructor_mm_const_Matrix_d
-	(const char trans_a_i, const char trans_b_i, const double alpha, const double beta,
+	(const char trans_a_i, const char trans_b_i, const double alpha,
 	 const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, const char layout)
 {
-	return (const struct const_Matrix_d*) constructor_mm_Matrix_d(trans_a_i,trans_b_i,alpha,beta,a,b,layout);
+	return (const struct const_Matrix_d*) constructor_mm_Matrix_d(trans_a_i,trans_b_i,alpha,a,b,layout);
 }
 
 struct Matrix_d* constructor_mm_NN1R_Matrix_d
 	(const struct const_Matrix_d*const a, const struct const_Matrix_d*const b)
 {
-	return constructor_mm_Matrix_d('N','N',1.0,0.0,a,b,'R');
+	return constructor_mm_Matrix_d('N','N',1.0,a,b,'R');
 }
 
 const struct const_Matrix_d* constructor_mm_NN1R_const_Matrix_d
@@ -404,7 +404,7 @@ const struct const_Matrix_d* constructor_mm_NN1R_const_Matrix_d
 struct Matrix_d* constructor_mm_NN1C_Matrix_d
 	(const struct const_Matrix_d*const a, const struct const_Matrix_d*const b)
 {
-	return constructor_mm_Matrix_d('N','N',1.0,0.0,a,b,'C');
+	return constructor_mm_Matrix_d('N','N',1.0,a,b,'C');
 }
 
 const struct const_Matrix_d* constructor_mm_NN1C_const_Matrix_d
