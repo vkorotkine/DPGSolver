@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to functions used for error computation and output relating to the Euler variables.
  */
 
+struct Simulation;
+
 /** \brief Version of \ref constructor_Error_CE_fptr checking the error of all supported Euler variables.
  *  \return See brief.
  *

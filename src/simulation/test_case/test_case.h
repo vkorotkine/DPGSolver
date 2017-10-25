@@ -47,18 +47,8 @@ struct Test_Case {
 	const int n_var, ///< Number of variables in the PDE under consideration.
 	          n_eq;  ///< Number of equations in the PDE under consideration.
 
-	/// Function pointer to the function used to set \ref Solver_Volume::sol_coef.
-	set_sol_coef_v_fptr set_sol_coef_v;
-
-	/// Function pointer to the function used to set \ref Solver_Volume::grad_coef.
-	set_sol_coef_v_fptr set_grad_coef_v;
-
-	/// Function pointer to the function used to set \ref Solver_Face::sol_coef.
-	set_sol_coef_f_fptr set_sol_coef_f;
-
-	/// Function pointer to the function used to set \ref Solver_Face::grad_coef.
-	set_sol_coef_f_fptr set_grad_coef_f;
-
+	set_sol_fptr set_sol;  ///< Function pointer to the function used to set data relating to the solution.
+	set_sol_fptr set_grad; ///< Function pointer to the function used to set data relating to the solution gradients.
 
 	// Solver related parameters
 	char solver_method_curr;     ///< The current solver method. Options: 'e'xplicit, 'i'mplicit.
@@ -121,7 +111,7 @@ struct Test_Case {
 
 	compute_source_fptr compute_source; ///< Function pointer to the source computation function.
 
-	constructor_Error_Fe_fptr constructor_error_ce; ///< Function pointer to the function computing the error.
+	constructor_Error_CE_fptr constructor_Error_CE; ///< Function pointer to the function computing the error.
 };
 
 /** \brief Constructor for a \ref Test_Case.

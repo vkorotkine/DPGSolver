@@ -25,7 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_case.h"
 #include "definitions_intrusive.h"
 
-#include "computational_elements.h"
+//#include "computational_elements.h"
 
 #include "intrusive.h"
 #include "simulation.h"
@@ -45,9 +45,7 @@ void solve_for_solution (struct Simulation* sim)
 	assert(sim->volumes->name == IL_SOLVER_VOLUME);
 	assert(sim->faces->name   == IL_SOLVER_FACE);
 
-	constructor_derived_Elements(sim,IL_SOLUTION_ELEMENT);
 	set_initial_solution(sim);
-	destructor_derived_Elements(sim,IL_ELEMENT);
 
 	const struct Test_Case* test_case = sim->test_case;
 	switch (test_case->solver_proc) {

@@ -44,39 +44,40 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void set_initial_solution (struct Simulation* sim)
 {
+	assert(sim->volumes->name == IL_SOLVER_VOLUME);
+	assert(sim->faces->name   == IL_SOLVER_FACE);
+
+	constructor_derived_Elements(sim,IL_SOLUTION_ELEMENT);
+
+	struct Solution_Container sol_cont =
+		{ .ce_type = 'v', .cv_type = 'c', .node_kind = 's', .volume = NULL, .face = NULL, .sol = NULL, };
 	const struct Test_Case* test_case = sim->test_case;
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume* volume = (struct Solver_Volume*) curr;
 
-		test_case->set_sol_coef_v(sim,volume);
-		test_case->set_grad_coef_v(sim,volume);
+		sol_cont.volume = volume;
+		sol_cont.sol = volume->sol_coef;
+		test_case->set_sol(sim,sol_cont);
+
+		sol_cont.sol = volume->grad_coef;
+		test_case->set_grad(sim,sol_cont);
 	}
+
+	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
-void set_grad_coef_v_do_nothing (const struct Simulation* sim, struct Solver_Volume* volume)
+void set_sg_do_nothing (const struct Simulation* sim, struct Solution_Container sol_cont)
 {
 	UNUSED(sim);
-	UNUSED(volume);
+	UNUSED(sol_cont);
 	return;
 }
 
-void set_sol_coef_f_do_nothing (const struct Simulation* sim, struct Solver_Face* face)
+const struct const_Multiarray_d* constructor_xyz_v
+	(const struct Simulation* sim, struct Solver_Volume* volume, const char node_kind)
 {
-	UNUSED(sim);
-	UNUSED(face);
-	return;
-}
-
-void set_grad_coef_f_do_nothing (const struct Simulation* sim, struct Solver_Face* face)
-{
-	UNUSED(sim);
-	UNUSED(face);
-	return;
-}
-
-const struct const_Multiarray_d* constructor_xyz_vs (const struct Simulation* sim, struct Solver_Volume* volume)
-{
-	assert(sim->elements->name == IL_SOLUTION_ELEMENT);
+UNUSED(sim);
+	assert((node_kind == 's') || (node_kind == 'c'));
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
@@ -86,19 +87,39 @@ const struct const_Multiarray_d* constructor_xyz_vs (const struct Simulation* si
 
 	const int d = ((struct const_Element*)element)->d;
 
-	const int p = volume->p_ref;
+	const int curved = base_volume->curved,
+	          p_o    = volume->p_ref,
+		    p_i    = ( curved ? p_o : 1 );
 
-	const struct Operator* cv0_vg_vs =
-		(!base_volume->curved ? get_Multiarray_Operator(element->cv0_vgs_vs,(ptrdiff_t[]){0,0,p,1})
-		                      : get_Multiarray_Operator(element->cv0_vgc_vs,(ptrdiff_t[]){0,0,p,p}) );
+	const struct Operator* cv0_vg_vX = NULL;
+	if (node_kind == 's')
+		cv0_vg_vX = get_Multiarray_Operator(element->cv0_vg_vs[curved],(ptrdiff_t[]){0,0,p_o,p_i});
+	else if (node_kind == 'c')
+		cv0_vg_vX = get_Multiarray_Operator(element->cv0_vg_vc[curved],(ptrdiff_t[]){0,0,p_o,p_i});
 
-	const int n_vs = cv0_vg_vs->op_std->ext_0;
+	const int n_vs = cv0_vg_vX->op_std->ext_0;
 
 	const struct const_Multiarray_d*const geom_coef = volume->geom_coef;
-	struct Multiarray_d* xyz_vs = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_vs,d}); // returned
-	mm_NN1C_Operator_Multiarray_d(cv0_vg_vs,geom_coef,xyz_vs,op_format,geom_coef->order,NULL,NULL);
+	struct Multiarray_d* xyz_v = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_vs,d}); // returned
+	mm_NN1C_Operator_Multiarray_d(cv0_vg_vX,geom_coef,xyz_v,op_format,geom_coef->order,NULL,NULL);
 
-	return (const struct const_Multiarray_d*) xyz_vs;
+	return (const struct const_Multiarray_d*) xyz_v;
+}
+
+void compute_coef_from_val_vs
+	(const struct Solver_Volume* s_vol, const struct const_Multiarray_d* sol_val, struct Multiarray_d* sol_coef)
+{
+	const char op_format = 'd';
+
+	struct Volume* base_volume = (struct Volume*) s_vol;
+	struct const_Solution_Element* element = (struct const_Solution_Element*) base_volume->element;
+
+	const int p_ref = s_vol->p_ref;
+
+	const struct Operator* vc0_vs_vs = get_Multiarray_Operator(element->vc0_vs_vs,(ptrdiff_t[]){0,0,p_ref,p_ref});
+
+	resize_Multiarray_d(sol_coef,sol_val->order,sol_val->extents);
+	mm_NN1C_Operator_Multiarray_d(vc0_vs_vs,sol_val,sol_coef,op_format,sol_coef->order,NULL,NULL);
 }
 
 void compute_source_do_nothing (const struct Simulation* sim, struct Solver_Volume* volume)

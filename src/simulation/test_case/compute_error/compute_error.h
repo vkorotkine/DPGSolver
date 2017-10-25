@@ -21,6 +21,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Error_CE;
 struct Simulation;
+struct Solver_Volume;
+
+#include "compute_error_euler.h"
 
 /** \brief Function pointer to error computing functions (which construct \ref Error_CE containers).
  *  \param sim \ref Simulation.
@@ -38,8 +41,15 @@ struct Error_CE {
 
 // Interface functions ********************************************************************************************** //
 
+/// \brief Output the error of the solution.
 void output_error
 	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Compute the volume of the input \ref Solver_Volume.
+ *  \return See brief. */
+double compute_volume
+	(const struct Solver_Volume* s_vol ///< \ref Solver_Volume.
 	);
 
 #endif // DPG__compute_error_h__INCLUDED

@@ -28,13 +28,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include "compute_error.h"
 #include "const_cast.h"
 #include "flux.h"
 #include "numerical_flux.h"
 #include "simulation.h"
 #include "solution.h"
 #include "solution_periodic_vortex.h"
-#include "solution_supersonic_vortex.h"
+//#include "solution_supersonic_vortex.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -43,17 +44,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void set_function_pointers_solution_euler (struct Test_Case* test_case, const struct Simulation*const sim)
 {
-	test_case->set_grad_coef_v = set_grad_coef_v_do_nothing;
-	test_case->set_grad_coef_f = set_grad_coef_f_do_nothing;
+	test_case->set_grad = set_sg_do_nothing;
 	if (strstr(sim->pde_spec,"periodic_vortex")) {
-		test_case->set_sol_coef_v = set_sol_coef_v_periodic_vortex;
-		test_case->set_sol_coef_f = set_sol_coef_f_periodic_vortex;
+		test_case->set_sol = set_sol_periodic_vortex;
 		test_case->compute_source = compute_source_do_nothing;
-		test_case->constructor_error_ce = constructor_Error_CE_euler_all;
+		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
 	} else if (strstr(sim->pde_spec,"supersonic_vortex")) {
-		test_case->set_sol_coef_v = set_sol_coef_v_supersonic_vortex;
-		test_case->set_sol_coef_f = set_sol_coef_f_supersonic_vortex;
-		test_case->compute_source = compute_source_do_nothing;
+		EXIT_ADD_SUPPORT;
+//		test_case->set_sol_v = set_sol_v_supersonic_vortex;
+//		test_case->set_sol_f = set_sol_f_supersonic_vortex;
+//		test_case->compute_source = compute_source_do_nothing;
 //		test_case->compute_errors = compute_errors_euler_all;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
@@ -133,6 +133,9 @@ void convert_variables (struct Multiarray_d* vars, const char type_i, const char
 				}
 			}
 			break;
+		case 'p':
+			return;
+			break;
 		default:
 			EXIT_ERROR("Unsupported: %c\n",type_o);
 			break;
@@ -173,6 +176,9 @@ void convert_variables (struct Multiarray_d* vars, const char type_i, const char
 					break;
 				}
 			}
+			break;
+		case 'c':
+			return;
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %c\n",type_o);

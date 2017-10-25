@@ -22,19 +22,19 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <ctype.h>
 
 #include "macros.h"
-#include "definitions_intrusive.h"
 #include "definitions_core.h"
+#include "definitions_intrusive.h"
+#include "definitions_visualization.h"
 
 #include "test_base.h"
 #include "test_integration.h"
 
 #include "computational_elements.h"
 
+#include "compute_error.h"
 #include "geometry.h"
 #include "simulation.h"
 #include "solve.h"
-
-#include "definitions_visualization.h"
 #include "visualization.h"
 
 // Static function declarations ************************************************************************************* //
@@ -87,6 +87,8 @@ ml = 2;
 
 		output_visualization(sim,VIS_GEOM_EDGES);
 		output_visualization(sim,VIS_SOLUTION);
+
+		output_error(sim);
 
 		p_prev  = p;
 		ml_prev = ml;

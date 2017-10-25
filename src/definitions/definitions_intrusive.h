@@ -35,7 +35,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define IL_GEOMETRY_ELEMENT  101
 #define IL_PLOTTING_ELEMENT  102
 #define IL_SOLUTION_ELEMENT  103
-#define IL_ELEMENT_SOLVER_DG 104
+#define IL_ELEMENT_ERROR     104
+#define IL_ELEMENT_SOLVER_DG 105
 ///\}
 
 ///\{ \name The \ref Volume list names.

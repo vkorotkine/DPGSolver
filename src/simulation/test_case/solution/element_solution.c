@@ -58,8 +58,11 @@ void constructor_derived_Solution_Element (struct Element* element_ptr, const st
 void destructor_derived_Solution_Element (struct Element* element_ptr)
 {
 	struct Solution_Element* element = (struct Solution_Element*) element_ptr;
-	destructor_Multiarray_Operator(element->cv0_vgs_vs);
-	destructor_Multiarray_Operator(element->cv0_vgc_vs);
+
+	for (int i = 0; i < 2; ++i) {
+		destructor_Multiarray_Operator(element->cv0_vg_vs[i]);
+		destructor_Multiarray_Operator(element->cv0_vg_vc[i]);
+	}
 	destructor_Multiarray_Operator(element->vc0_vs_vs);
 	if (element->cv0_vgs_vr != NULL) {
 		destructor_Multiarray_Operator(element->cv0_vgs_vr);
@@ -88,8 +91,10 @@ static void constructor_derived_Solution_Element_std (struct Element* element_pt
 
 	switch (sim->method) {
 	case METHOD_DG:
-		e->cv0_vgs_vs = constructor_operators("cv0","vgs","vsA","H_1_P_1P", sim->p_s_v,b_e,sim); // destructed
-		e->cv0_vgc_vs = constructor_operators("cv0","vgc","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+		e->cv0_vg_vs[0] = constructor_operators("cv0","vgs","vsA","H_1_P_1P", sim->p_s_v,b_e,sim); // destructed
+		e->cv0_vg_vs[1] = constructor_operators("cv0","vgc","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+		e->cv0_vg_vc[0] = constructor_operators("cv0","vgs","vcs","H_1_P_1P", sim->p_s_v,b_e,sim); // destructed
+		e->cv0_vg_vc[1] = constructor_operators("cv0","vgc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
 		e->vc0_vs_vs  = constructor_operators("vc0","vsA","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
 		e->cv0_vgs_vr = NULL;
 		e->cv0_vgc_vr = NULL;
@@ -117,11 +122,17 @@ static void constructor_derived_Solution_Element_tp (struct Element* element_ptr
 
 	switch (sim->method) {
 	case METHOD_DG:
-		set_operators_tp(&ops_tp,s_e[0]->cv0_vgs_vs,NULL,s_e[1]->cv0_vgs_vs,NULL);
-		e->cv0_vgs_vs = constructor_operators_tp("cv0","vgs","vsA","H_1_P_1P", sim->p_s_v,b_e,sim,&ops_tp); // destructed
+		set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vs[0],NULL,s_e[1]->cv0_vg_vs[0],NULL);
+		e->cv0_vg_vs[0] = constructor_operators_tp("cv0","vgs","vsA","H_1_P_1P", sim->p_s_v,b_e,sim,&ops_tp); // destructed
 
-		set_operators_tp(&ops_tp,s_e[0]->cv0_vgc_vs,NULL,s_e[1]->cv0_vgc_vs,NULL);
-		e->cv0_vgc_vs = constructor_operators_tp("cv0","vgc","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+		set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vs[1],NULL,s_e[1]->cv0_vg_vs[1],NULL);
+		e->cv0_vg_vs[1] = constructor_operators_tp("cv0","vgc","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+
+		set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vc[0],NULL,s_e[1]->cv0_vg_vc[0],NULL);
+		e->cv0_vg_vc[0] = constructor_operators_tp("cv0","vgs","vsA","H_1_P_1P", sim->p_s_v,b_e,sim,&ops_tp); // destructed
+
+		set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vc[1],NULL,s_e[1]->cv0_vg_vc[1],NULL);
+		e->cv0_vg_vc[1] = constructor_operators_tp("cv0","vgc","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
 
 		set_operators_tp(&ops_tp,s_e[0]->vc0_vs_vs,NULL,s_e[1]->vc0_vs_vs,NULL);
 		e->vc0_vs_vs  = constructor_operators_tp("vc0","vsA","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed

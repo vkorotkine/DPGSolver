@@ -10,6 +10,7 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 ${MPI_C_LIBRARIES}
+	 Compute_Error
 	 Geometry
 	 Mesh
 	 Post_Processing

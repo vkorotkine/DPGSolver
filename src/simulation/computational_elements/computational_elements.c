@@ -35,6 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "geometry_element.h"
 #include "element_plotting.h"
 #include "element_solution.h"
+#include "element_error.h"
 #include "element_solver_dg.h"
 
 #include "intrusive.h"
@@ -92,6 +93,20 @@ typedef void (*constructor_derived_Element_fptr)
  */
 typedef void (*destructor_derived_Element_fptr)
 	(struct Element* element_ptr
+	);
+
+/// Container holding information used for \ref constructor_derived_Elements.
+struct Derived_Elements_Info {
+	size_t sizeof_base,    ///< The size of the base element.
+	       sizeof_derived; ///< The size of the derived element.
+
+	constructor_derived_Element_fptr constructor_derived_Element; ///< \ref constructor_derived_Element_fptr.
+};
+
+/** \brief Return a stack-allocated \ref Derived_Elements_Info container.
+ *  \return See brief. */
+struct Derived_Elements_Info get_Derived_Elements_Info
+	(const int derived_name ///< Defined for \ref constructor_derived_Elements.
 	);
 
 /** \brief Update pointers to computational elements in the derived lists.
@@ -305,47 +320,15 @@ void destructor_derived_computational_elements (struct Simulation* sim, const in
 
 void constructor_derived_Elements (struct Simulation* sim, const int derived_name)
 {
-	// Set parameters
-// Make external function here after usage is set.
-	size_t sizeof_base    = 0,
-	       sizeof_derived = 0;
-	constructor_derived_Element_fptr constructor_derived_Element = NULL;
-	switch (derived_name) {
-	case IL_GEOMETRY_ELEMENT:
-		assert(sizeof(struct Geometry_Element) == sizeof(struct const_Geometry_Element));
-		sizeof_base    = sizeof(struct Element);
-		sizeof_derived = sizeof(struct Geometry_Element);
-		constructor_derived_Element = constructor_derived_Geometry_Element;
-		break;
-	case IL_PLOTTING_ELEMENT:
-		assert(sizeof(struct Plotting_Element) == sizeof(struct const_Plotting_Element));
-		sizeof_base    = sizeof(struct Element);
-		sizeof_derived = sizeof(struct Plotting_Element);
-		constructor_derived_Element = constructor_derived_Plotting_Element;
-		break;
-	case IL_SOLUTION_ELEMENT:
-		assert(sizeof(struct Solution_Element) == sizeof(struct const_Solution_Element));
-		sizeof_base    = sizeof(struct Element);
-		sizeof_derived = sizeof(struct Solution_Element);
-		constructor_derived_Element = constructor_derived_Solution_Element;
-		break;
-	case IL_ELEMENT_SOLVER_DG:
-		assert(sizeof(struct DG_Solver_Element) == sizeof(struct const_DG_Solver_Element));
-		sizeof_base    = sizeof(struct Element);
-		sizeof_derived = sizeof(struct DG_Solver_Element);
-		constructor_derived_Element = constructor_derived_DG_Solver_Element;
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",derived_name);
-		break;
-	}
+	struct Derived_Elements_Info de_i = get_Derived_Elements_Info(derived_name);
 
 	const struct const_Intrusive_List* base = sim->elements;
 
 	// Reserve memory for the derived element list.
 	const struct const_Intrusive_List* elements = constructor_empty_const_IL(derived_name,base); // moved
 	for (const struct const_Intrusive_Link* curr = base->first; curr; curr = curr->next)
-		push_back_const_IL(elements,constructor_derived_const_Intrusive_Link(curr,sizeof_base,sizeof_derived));
+		push_back_const_IL(elements,
+		                   constructor_derived_const_Intrusive_Link(curr,de_i.sizeof_base,de_i.sizeof_derived));
 	set_tp_sub_elements((struct Intrusive_List*)elements);
 	set_face_elements((struct Intrusive_List*)elements);
 
@@ -355,7 +338,7 @@ void constructor_derived_Elements (struct Simulation* sim, const int derived_nam
 	for (const struct const_Intrusive_Link* curr = sim->elements->first; curr; ) {
 		const struct const_Intrusive_Link* next = curr->next;
 		if (((struct Element*)curr)->present)
-			constructor_derived_Element((struct Element*)curr,sim);
+			de_i.constructor_derived_Element((struct Element*)curr,sim);
 		curr = next;
 	}
 
@@ -451,6 +434,49 @@ static void update_volume_pointers
 static void update_face_pointers
 	(struct Intrusive_Link* link ///< The current link.
 	);
+
+struct Derived_Elements_Info get_Derived_Elements_Info (const int derived_name)
+{
+	struct Derived_Elements_Info de_info;
+
+	switch (derived_name) {
+	case IL_GEOMETRY_ELEMENT:
+		assert(sizeof(struct Geometry_Element) == sizeof(struct const_Geometry_Element));
+		de_info.sizeof_base    = sizeof(struct Element);
+		de_info.sizeof_derived = sizeof(struct Geometry_Element);
+		de_info.constructor_derived_Element = constructor_derived_Geometry_Element;
+		break;
+	case IL_PLOTTING_ELEMENT:
+		assert(sizeof(struct Plotting_Element) == sizeof(struct const_Plotting_Element));
+		de_info.sizeof_base    = sizeof(struct Element);
+		de_info.sizeof_derived = sizeof(struct Plotting_Element);
+		de_info.constructor_derived_Element = constructor_derived_Plotting_Element;
+		break;
+	case IL_SOLUTION_ELEMENT:
+		assert(sizeof(struct Solution_Element) == sizeof(struct const_Solution_Element));
+		de_info.sizeof_base    = sizeof(struct Element);
+		de_info.sizeof_derived = sizeof(struct Solution_Element);
+		de_info.constructor_derived_Element = constructor_derived_Solution_Element;
+		break;
+	case IL_ELEMENT_ERROR:
+		assert(sizeof(struct Error_Element) == sizeof(struct const_Error_Element));
+		de_info.sizeof_base    = sizeof(struct Solution_Element);
+		de_info.sizeof_derived = sizeof(struct Error_Element);
+		de_info.constructor_derived_Element = constructor_derived_Error_Element;
+		break;
+	case IL_ELEMENT_SOLVER_DG:
+		assert(sizeof(struct DG_Solver_Element) == sizeof(struct const_DG_Solver_Element));
+		de_info.sizeof_base    = sizeof(struct Element);
+		de_info.sizeof_derived = sizeof(struct DG_Solver_Element);
+		de_info.constructor_derived_Element = constructor_derived_DG_Solver_Element;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",derived_name);
+		break;
+	}
+
+	return de_info;
+}
 
 static void update_computational_element_list_pointers (const struct Simulation* sim)
 {

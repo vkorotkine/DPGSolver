@@ -3,11 +3,12 @@ set	(SOURCE
 	 solution.c
 	 solution_euler.c
 	 periodic_vortex/solution_periodic_vortex.c
-	 supersonic_vortex/solution_supersonic_vortex.c
+#	 supersonic_vortex/solution_supersonic_vortex.c
 	)
 
 set	(LIBS_DEPEND
 	 Computational_Elements
+	 Compute_Error
 	 Containers
 	 Element
 	)

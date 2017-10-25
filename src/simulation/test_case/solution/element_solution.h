@@ -29,8 +29,8 @@ struct Simulation;
 struct Solution_Element {
 	struct const_Element element; ///< Base \ref const_Element.
 
-	const struct Multiarray_Operator* cv0_vgs_vs; ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* cv0_vgc_vs; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vg_vs[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vg_vc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vc0_vs_vs;  ///< See notation in \ref element_operators.h.
 
 	const struct Multiarray_Operator* cv0_vgs_vr; ///< See notation in \ref element_operators.h.
@@ -47,8 +47,8 @@ struct Solution_Element {
 struct const_Solution_Element {
 	const struct const_Element element; ///< Defined in \ref Solution_Element.
 
-	const struct Multiarray_Operator*const cv0_vgs_vs; ///< Defined in \ref Solution_Element.
-	const struct Multiarray_Operator*const cv0_vgc_vs; ///< Defined in \ref Solution_Element.
+	const struct Multiarray_Operator*const cv0_vg_vs[2]; ///< Defined in \ref Solution_Element.
+	const struct Multiarray_Operator*const cv0_vg_vc[2]; ///< Defined in \ref Solution_Element.
 	const struct Multiarray_Operator*const vc0_vs_vs;  ///< Defined in \ref Solution_Element.
 
 	const struct Multiarray_Operator*const cv0_vgs_vr; ///< Defined in \ref Solution_Element.

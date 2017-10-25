@@ -22,23 +22,15 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 struct Solver_Volume;
 struct Solver_Face;
+struct Solution_Container;
 
 /** \brief Function pointer to volume solution setting function.
- *  \param sim    \ref Simulation.
- *  \param volume \ref Solver_Volume.
+ *  \param sim      \ref Simulation.
+ *  \param sol_cont \ref Solution_Container.
  */
-typedef void (*set_sol_coef_v_fptr)
+typedef void (*set_sol_fptr)
 	(const struct Simulation* sim,
-	 struct Solver_Volume* volume
-	);
-
-/** \brief Function pointer to face solution setting function.
- *  \param sim  \ref Simulation.
- *  \param face \ref Solver_Face.
- */
-typedef void (*set_sol_coef_f_fptr)
-	(const struct Simulation* sim,
-	 struct Solver_Face* face
+	 struct Solution_Container sol_cont
 	);
 
 /** \brief Function pointer to the function setting the source contribution of \ref Solver_Volume::rhs.
@@ -49,6 +41,18 @@ typedef void (*compute_source_fptr)
 	(const struct Simulation* sim,
 	 struct Solver_Volume* volume
 	);
+
+/// Container for members relating to the solution computation.
+struct Solution_Container {
+	const char ce_type,   ///< The type of computational element associated with the solution data being set.
+	           cv_type,   ///< The format in which to return the solution. Options: 'c'oefficients, 'v'alues.
+	           node_kind; ///< The kind of nodes to be used. Options: 's'olution, 'c'ubature.
+
+	struct Solver_Volume* volume; ///< \ref Solver_Volume.
+	struct Solver_Face* face;     ///< \ref Solver_Face.
+
+	struct Multiarray_d* sol; ///< The container for the computed solution.
+};
 
 // Interface functions ********************************************************************************************** //
 
@@ -62,29 +66,26 @@ void set_initial_solution
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Function pointer to be used for \ref Test_Case::set_grad_coef_v when there are no volume solution gradients.
-void set_grad_coef_v_do_nothing
-	(const struct Simulation* sim, ///< Defined for \ref set_sol_coef_v_fptr.
-	 struct Solver_Volume* volume  ///< Defined for \ref set_sol_coef_v_fptr.
+/** \brief Function pointer to be used for \ref Test_Case::set_sol or \ref Test_Case::set_grad when this solution is not
+ *         required. */
+void set_sg_do_nothing
+	(const struct Simulation* sim,      ///< Defined for \ref set_sol_fptr.
+	 struct Solution_Container sol_cont ///< Defined for \ref set_sol_fptr.
 	);
 
-/// \brief Function pointer to be used for \ref Test_Case::set_sol_coef_f when there is no face solution.
-void set_sol_coef_f_do_nothing
-	(const struct Simulation* sim, ///< Defined for \ref set_sol_coef_f_fptr.
-	 struct Solver_Face* face      ///< Defined for \ref set_sol_coef_f_fptr.
-	);
-
-/// \brief Function pointer to be used for \ref Test_Case::set_grad_coef_f when there are no face solution gradients.
-void set_grad_coef_f_do_nothing
-	(const struct Simulation* sim, ///< Defined for \ref set_sol_coef_f_fptr.
-	 struct Solver_Face* face      ///< Defined for \ref set_sol_coef_f_fptr.
-	);
-
-/** \brief Contructor for a \ref const_Multiarray_d\* holding the xyz coordinates at the volume solution nodes.
+/** \brief Contructor for a \ref const_Multiarray_d\* holding the xyz coordinates at volume nodes of input kind.
  *  \return See brief. */
-const struct const_Multiarray_d* constructor_xyz_vs
+const struct const_Multiarray_d* constructor_xyz_v
 	(const struct Simulation* sim, ///< \ref Simulation.
-	 struct Solver_Volume* volume  ///< \ref Solver_Volume.
+	 struct Solver_Volume* volume, ///< \ref Solver_Volume.
+	 const char node_kind          ///< The kind of node. Options: 's'olution, 'c'ubature.
+	);
+
+/// \brief Compute the coefficients associated with the values of the volume solution.
+void compute_coef_from_val_vs
+	(const struct Solver_Volume* s_vol,        ///< \ref Solver_Volume.
+	 const struct const_Multiarray_d* sol_val, ///< The solution values.
+	 struct Multiarray_d* sol_coef             ///< To hold the solution coefficients.
 	);
 
 /// \brief Function pointer to be used for \ref Test_Case::compute_source when there is no source term.

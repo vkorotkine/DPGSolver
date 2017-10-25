@@ -29,6 +29,7 @@ syntax keyword Identifier Element const_Element
 syntax keyword Identifier Geometry_Element const_Geometry_Element
 syntax keyword Identifier Plotting_Element const_Plotting_Element
 syntax keyword Identifier Solution_Element const_Solution_Element
+syntax keyword Identifier Error_Element const_Error_Element
 syntax keyword Identifier DG_Solver_Element const_DG_Solver_Element
 
 syntax keyword Identifier Volume
