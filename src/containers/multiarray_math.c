@@ -148,6 +148,15 @@ void scale_Multiarray_by_Vector_d
 	scale_Matrix_by_Vector_d(side,alpha,&a_M,b,invert_diag);
 }
 
+void subtract_in_place_Multiarray_d (struct Multiarray_d* a, const struct const_Multiarray_d* b)
+{
+	assert(compute_size(a->order,a->extents) == compute_size(b->order,b->extents));
+
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		a->data[i] -= b->data[i];
+}
+
 void mm_NNC_Multiarray_d
 	(const double alpha, const double beta, const struct const_Matrix_d*const a,
 	 const struct const_Multiarray_d*const b, struct Multiarray_d*const c)

@@ -22,6 +22,8 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Error_CE;
 struct Simulation;
 struct Solver_Volume;
+struct Vector_d;
+struct const_Multiarray_d;
 
 #include "compute_error_euler.h"
 
@@ -32,7 +34,7 @@ typedef struct Error_CE* (*constructor_Error_CE_fptr)
 	(const struct Simulation* sim
 	);
 
-/// Container holding information relating to the computational elements.
+/// Container holding information relating to the computational element errors.
 struct Error_CE {
 	const double domain_volume; ///< The volume of the domain.
 
@@ -41,15 +43,31 @@ struct Error_CE {
 
 // Interface functions ********************************************************************************************** //
 
-/// \brief Output the error of the solution.
+/** \brief Output the error of the solution.
+ *
+ *  The error, for a generic variable \f$v\f$, is computed as:
+ *  \f[
+ *  \text{Error}_{L^2(\Omega)} =
+ *  \left(
+ *  \frac{\int_{\Omega} (v-v_{\text{exact}})^2 d \Omega}{\int_{Omega} d \Omega}
+ *  \right)^{\frac{1}{2}}
+ *  \f]
+ */
 void output_error
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Compute the volume of the input \ref Solver_Volume.
+/** \brief Compute the volume of the domain.
  *  \return See brief. */
-double compute_volume
-	(const struct Solver_Volume* s_vol ///< \ref Solver_Volume.
+double compute_domain_volume
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Increment the global squared \f$L^2\f$ errors with the contribution from the current volume.
+void increment_vol_errors_l2_2
+	(struct Vector_d* errors_l2_2,           ///< Holds the global squared l2 errors.
+	 const struct const_Multiarray_d* err_v, ///< Holds the error values for the current volume.
+	 const struct Solver_Volume* s_vol       ///< Current \ref Solver_Volume.
 	);
 
 #endif // DPG__compute_error_h__INCLUDED

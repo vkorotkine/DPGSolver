@@ -100,9 +100,9 @@ struct Numerical_Flux* constructor_Numerical_Flux (const struct Numerical_Flux_I
 
 	num_flux->nnf = (c_m[0] ? constructor_zero_Multiarray_d('C',2,(ptrdiff_t[]){n_n,n_eq}) : NULL);
 	for (int i = 0; i < 2; ++i) {
-		struct m_Neigh_Info_NF n_i = num_flux->neigh_info[i];
-		n_i.dnnf_ds = (c_m[1] ? constructor_zero_Multiarray_d('C',3,(ptrdiff_t[]){n_n,n_eq,n_var})   : NULL);
-		n_i.dnnf_dg = (c_m[2] ? constructor_zero_Multiarray_d('C',4,(ptrdiff_t[]){n_n,n_eq,n_var,d}) : NULL);
+		struct m_Neigh_Info_NF* n_i = &num_flux->neigh_info[i];
+		n_i->dnnf_ds = (c_m[1] ? constructor_zero_Multiarray_d('C',3,(ptrdiff_t[]){n_n,n_eq,n_var})   : NULL);
+		n_i->dnnf_dg = (c_m[2] ? constructor_zero_Multiarray_d('C',4,(ptrdiff_t[]){n_n,n_eq,n_var,d}) : NULL);
 	}
 
 	num_flux_i->compute_Numerical_Flux(num_flux_i,num_flux);

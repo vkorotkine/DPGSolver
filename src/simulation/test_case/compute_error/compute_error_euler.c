@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "macros.h"
 
@@ -64,7 +65,7 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 	const int d     = sim->d;
 	const int n_out = d+2+1;
 
-	double domain_volume = 0.0;
+	const double domain_volume = compute_domain_volume(sim);
 	struct Vector_d* sol_L2 = constructor_empty_Vector_d(n_out); // moved
 
 	struct Solution_Container sol_cont =
@@ -76,45 +77,48 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 	struct Solver_Volume* s_vol[2] = { NULL, constructor_Solver_Volume_exact(), }; // destructed
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		s_vol[0] = (struct Solver_Volume*) curr;
-		domain_volume += compute_volume(s_vol[0]);
 
 		set_Solver_Volume_exact(s_vol[1],s_vol[0]);
 
-printf("\n\n\n");
-		s->extents[0] = s_vol[0]->jacobian_det_vc->extents[0];
 		struct Multiarray_d* sol[2] = { NULL, NULL, };
+
+		sol[0] = constructor_sol_v(sim,s_vol[0],sol_cont.node_kind);       // destructed
+		sol[1] = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}), // destructed
+
+		sol_cont.sol = sol[1];
+		sol_cont.volume = s_vol[1];
+		sim->test_case->set_sol(sim,sol_cont);
+		assert(sol[1]->extents[1] == d+2);
+
+		s->extents[0] = s_vol[0]->jacobian_det_vc->extents[0];
 		for (int i = 0; i < 2; ++i) {
-			sol[i] = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}), // destructed
-
-			sol_cont.sol = sol[i];
-			sol_cont.volume = s_vol[i];
-			sim->test_case->set_sol(sim,sol_cont);
-
-			sol[i]->extents[1] = d+2;
-
-print_Multiarray_d(sol[i]);
 			convert_variables(sol[i],'c','p');
 
-print_Multiarray_d(sol[i]);
+			resize_Multiarray_d(sol[i],sol[i]->order,(ptrdiff_t[]){sol[i]->extents[0],n_out});
+
+			sol[i]->extents[1] = d+2;
 			s->data = get_col_Multiarray_d(d+2,sol[i]);
 			compute_entropy(s,(const struct const_Multiarray_d*)sol[i],'p');
-
-			sol[i]->extents[1]    = d+2+1;
-print_Multiarray_d(sol[i]);
+			sol[i]->extents[1] = n_out;
 		}
+
+		subtract_in_place_Multiarray_d(sol[0],(const struct const_Multiarray_d*)sol[1]);
+
+		increment_vol_errors_l2_2(sol_L2,(const struct const_Multiarray_d*)sol[0],s_vol[0]);
 
 		for (int i = 0; i < 2; ++i)
 			destructor_Multiarray_d(sol[i]);
-EXIT_UNSUPPORTED;
 	}
 	destructor_Solver_Volume_exact(s_vol[1]);
+
+	for (int i = 0; i < sol_L2->ext_0; ++i)
+		sol_L2->data[i] = sqrt(sol_L2->data[i]/domain_volume);
 
 	struct Error_CE* error_ce = malloc(sizeof *error_ce); // returned
 
 	const_cast_d(&error_ce->domain_volume,domain_volume);
 	error_ce->sol_L2 = (const struct const_Vector_d*) sol_L2;
 
-EXIT_UNSUPPORTED;
 	return error_ce;
 }
 

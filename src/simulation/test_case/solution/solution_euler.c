@@ -205,7 +205,8 @@ void compute_entropy (struct Multiarray_d* s, const struct const_Multiarray_d* v
 
 	const ptrdiff_t ext_0 = s->extents[0];
 	for (ptrdiff_t i = 0; i < ext_0; ++i)
-		s->data[i] = p[i]*pow(rho[i],-GAMMA);
+//		s->data[i] = p[i]*pow(rho[i],-GAMMA);
+		s->data[i] = log(p[i]*pow(rho[i],-GAMMA));
 
 	if (var_type != 'p')
 		convert_variables((struct Multiarray_d*)vars,'p',var_type);

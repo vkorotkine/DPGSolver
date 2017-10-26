@@ -76,6 +76,12 @@ void scale_Multiarray_by_Vector_d
 	 const bool invert_diag               ///< Defined for \ref scale_Matrix_by_Vector_d.
 	);
 
+/// \brief Subtract the 2nd from the 1st multiarray in-place.
+void subtract_in_place_Multiarray_d
+	(struct Multiarray_d* a,            ///< 1st multiarray.
+	 const struct const_Multiarray_d* b ///< 2nd multiarray.
+	);
+
 /** \brief Perform a matrix-matrix multiplication on a \ref const_Multiarray_d\*, interpreting the input multiarray as a
  *         a matrix with the appropriate extents, asserting that the input multiarrays have column-major layout.
  *

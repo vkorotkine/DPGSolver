@@ -5,7 +5,10 @@ TOP_DIR="${PWD}/../.."
 
 # Modifiable parameters ****************************************************** #
 
-export MKLROOT=/opt/intel/compilers_and_libraries_2017.4.196/linux/mkl
+# Must use mpich configured with --disable-checkpointing when running with valgrind otherwise there
+# is a clash between the two programs. See [this][https://stackoverflow.com/a/37643501/5983549] SO
+# answer.
+export CMAKE_PREFIX_PATH=/home/pzwan/Applications/mpich/mpich-3.2/build
 
 BUILD_DIR=${TOP_DIR}/build
 

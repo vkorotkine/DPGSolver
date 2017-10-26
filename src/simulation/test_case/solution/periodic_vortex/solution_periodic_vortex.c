@@ -206,26 +206,6 @@ static struct Multiarray_d* constructor_sol_periodic_vortex
 	convert_variables(sol,'p','c');
 
 	return sol;
-/*
-// external function here
-	// Convert to coefficients
-	const char op_format = 'd';
-
-	struct Volume* base_volume = (struct Volume*) volume;
-	struct const_Solution_Element* element = (struct const_Solution_Element*) base_volume->element;
-
-	const int p_ref = volume->p_ref;
-
-	const struct Operator* vc0_vs_vs = get_Multiarray_Operator(element->vc0_vs_vs,(ptrdiff_t[]){0,0,p_ref,p_ref});
-
-	struct Multiarray_d* sol_coef = volume->sol_coef;
-
-	resize_Multiarray_d(sol_coef,sol_vs->order,sol_vs->extents);
-	mm_NN1C_Operator_Multiarray_d(
-		vc0_vs_vs,(const struct const_Multiarray_d*)sol_vs,sol_coef,op_format,sol_coef->order,NULL,NULL);
-
-	destructor_Multiarray_d(sol_vs);
-*/
 }
 
 static void set_sol_coef_f_periodic_vortex (const struct Simulation* sim, struct Solver_Face* face)

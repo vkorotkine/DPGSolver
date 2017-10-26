@@ -31,6 +31,7 @@ if [ "$USE_VALGRIND" = "1" ]; then
   VALGRIND_OPTS="valgrind \
                    --track-origins=yes \
                    --leak-check=yes \
+                   --num-callers=20 \
                    --suppressions=../external/valgrind/valgrind.supp \
                 "
 #                   --gen-suppressions=all \
@@ -60,3 +61,4 @@ ENDCOMMENT
 
 #clear
 ${MPI_DIR}mpiexec -n ${N_PROCS} ${VALGRIND_OPTS} ${EXECUTABLE} ${TESTCASE} ${LOGFILE}
+#${VALGRIND_OPTS} ${MPI_DIR}mpiexec -n ${N_PROCS} ${EXECUTABLE} ${TESTCASE} ${LOGFILE}

@@ -88,6 +88,14 @@ void compute_coef_from_val_vs
 	 struct Multiarray_d* sol_coef             ///< To hold the solution coefficients.
 	);
 
+/** \brief Contructor for a \ref Multiarray_d\* holding the solution at volume nodes of input kind.
+ *  \return See brief. */
+struct Multiarray_d* constructor_sol_v
+	(const struct Simulation* sim, ///< \ref Simulation.
+	 struct Solver_Volume* volume, ///< \ref Solver_Volume.
+	 const char node_kind          ///< The kind of node. Options: 's'olution, 'c'ubature.
+	);
+
 /// \brief Function pointer to be used for \ref Test_Case::compute_source when there is no source term.
 void compute_source_do_nothing
 	(const struct Simulation* sim, ///< Defined for \ref compute_source_fptr.
