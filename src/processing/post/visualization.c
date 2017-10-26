@@ -124,15 +124,6 @@ const char* set_output_name
 	 const char*const name_spec ///< The specific name.
 	);
 
-/** \brief Open the file to which the visualization output will be written.
- *  \return The pointer to the file. */
-static FILE* fopen_vis_output_file
-	(const char sp_type,              ///< Type indicator for 's'erial or 'p'arallel.
-	 const char*const name_part,      ///< Partial output file name.
-	 const char*const extension_part, ///< File extension.
-	 const struct Simulation* sim     ///< \ref Simulation.
-	);
-
 /// \brief Print the input string to the file with the specified number of tabs.
 static void fprintf_tn
 	(FILE* file,               ///< The file.
@@ -195,7 +186,7 @@ static void output_visualization_vtk_geom
 
 	static char* extension_part = "vtu";
 	if (sim->mpi_rank == 0) {
-		FILE* p_file = fopen_vis_output_file('p',output_name,extension_part,sim);
+		FILE* p_file = fopen_sp_output_file('p',output_name,extension_part,sim->mpi_rank); // closed
 
 		fprint_vtk_header_footer(p_file,true,'h',"UnstructuredGrid");
 
@@ -210,7 +201,7 @@ static void output_visualization_vtk_geom
 		fclose(p_file);
 	}
 
-	FILE* s_file = fopen_vis_output_file('s',output_name,extension_part,sim);
+	FILE* s_file = fopen_sp_output_file('s',output_name,extension_part,sim->mpi_rank); // closed
 
 	fprint_vtk_header_footer(s_file,false,'h',"UnstructuredGrid");
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
@@ -245,7 +236,7 @@ static void output_visualization_vtk_normals (const struct Simulation* sim)
 
 	static char* extension_part = "vtp";
 	if (sim->mpi_rank == 0) {
-		FILE* p_file = fopen_vis_output_file('p',output_name,extension_part,sim);
+		FILE* p_file = fopen_sp_output_file('p',output_name,extension_part,sim->mpi_rank); // closed
 
 		fprint_vtk_header_footer(p_file,true,'h',"PolyData");
 		fprint_vtk_piece_normals(p_file,'p','s',NULL,NULL);
@@ -259,7 +250,7 @@ static void output_visualization_vtk_normals (const struct Simulation* sim)
 		fclose(p_file);
 	}
 
-	FILE* s_file = fopen_vis_output_file('s',output_name,extension_part,sim);
+	FILE* s_file = fopen_sp_output_file('s',output_name,extension_part,sim->mpi_rank); // closed
 
 	fprint_vtk_header_footer(s_file,false,'h',"PolyData");
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
@@ -285,7 +276,7 @@ static void output_visualization_vtk_sol (const struct Simulation* sim)
 
 	static char* extension_part = "vtu";
 	if (sim->mpi_rank == 0) {
-		FILE* p_file = fopen_vis_output_file('p',output_name,extension_part,sim);
+		FILE* p_file = fopen_sp_output_file('p',output_name,extension_part,sim->mpi_rank); // closed
 
 		fprint_vtk_header_footer(p_file,true,'h',"UnstructuredGrid");
 
@@ -300,7 +291,7 @@ static void output_visualization_vtk_sol (const struct Simulation* sim)
 		fclose(p_file);
 	}
 
-	FILE* s_file = fopen_vis_output_file('s',output_name,extension_part,sim);
+	FILE* s_file = fopen_sp_output_file('s',output_name,extension_part,sim->mpi_rank); // closed
 
 	fprint_vtk_header_footer(s_file,false,'h',"UnstructuredGrid");
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
@@ -386,21 +377,6 @@ const char* set_output_name (const int vis_software, const char*const name_spec)
 	strcat(output_name,name_spec);
 
 	return output_name;
-}
-
-static FILE* fopen_vis_output_file
-	(const char sp_type, const char*const name_part, const char*const extension_part,
-	 const struct Simulation* sim)
-{
-	assert(sp_type == 's' || sp_type == 'p');
-	static char file_name[STRLEN_MAX] = { 0, };
-
-	if (sp_type == 's')
-		sprintf(file_name,"%s%c%d%s%s",name_part,'_',sim->mpi_rank,".",extension_part);
-	else if (sp_type == 'p')
-		sprintf(file_name,"%s%s%s",name_part,".p",extension_part);
-
-	return fopen_create_dir(file_name);
 }
 
 static void fprintf_tn (FILE* file, const int n_tabs, const char*const string_i)

@@ -44,6 +44,24 @@ FILE* fopen_create_dir
 	(const char*const file_name_full ///< File name including full path.
 	);
 
+/** \brief Open the file to which the 's'erial/'p'arallel output will be written.
+ *  \return The pointer to the file. */
+FILE* fopen_sp_output_file
+	(const char sp_type,              ///< Type indicator for 's'erial or 'p'arallel.
+	 const char*const name_part,      ///< Partial output file name.
+	 const char*const extension_part, ///< File extension.
+	 const int mpi_rank               ///< The mpi rank.
+	);
+
+/** \brief Open the file from which the 's'erial/'p'arallel input will be read.
+ *  \return The pointer to the file. */
+FILE* fopen_sp_input_file
+	(const char sp_type,              ///< Defined for \ref fopen_sp_output_file.
+	 const char*const name_part,      ///< Defined for \ref fopen_sp_output_file.
+	 const char*const extension_part, ///< Defined for \ref fopen_sp_output_file.
+	 const int mpi_rank               ///< Defined for \ref fopen_sp_output_file.
+	);
+
 // Reading data from the current line ******************************************************************************* //
 
 /// \brief Skip lines in a file while reading.
@@ -160,20 +178,36 @@ void read_skip_file_i
 	 int*const var              ///< Variable in which to store data.
 	);
 
-/// \brief Read a `const int*`, optionally skipping strings.
+/// \brief Read a `int*`, optionally skipping strings.
+void read_skip_i_1
+	(char*const line_i, ///< Line from which to read data.
+	 const int n_skip,  ///< The number of strings to skip.
+	 int*const var,     ///< Variable in which to store data.
+	 const int n_var    ///< The number of entries to store in the `var` array.
+	);
+
+/// \brief `const` version of \ref read_skip_i_1.
 void read_skip_const_i_1
-	(char*const line,     ///< Line from which to read data.
-	 const int n_skip,    ///< The number of strings to skip.
-	 const int*const var, ///< Variable in which to store data.
-	 const int n_var      ///< The number of entries to store in the `var` array.
+	(char*const line_i,   ///< Defined for \ref read_skip_i_1.
+	 const int n_skip,    ///< Defined for \ref read_skip_i_1.
+	 const int*const var, ///< Defined for \ref read_skip_i_1.
+	 const int n_var      ///< Defined for \ref read_skip_i_1.
 	);
 
 /// \brief Read a `ptrdiff_t*`, optionally skipping strings.
 void read_skip_ptrdiff_1
-	(char*const line,     ///< Line from which to read data.
+	(char*const line_i,   ///< Line from which to read data.
 	 const int n_skip,    ///< The number of strings to skip.
 	 ptrdiff_t*const var, ///< Variable in which to store data.
 	 const int n_var      ///< The number of entries to store in the `var` array.
+	);
+
+/// \brief Read a `double*`, optionally skipping strings.
+void read_skip_d_1
+	(char*const line_i, ///< Line from which to read data.
+	 const int n_skip,  ///< The number of strings to skip.
+	 double*const var,  ///< Variable in which to store data.
+	 const int n_var    ///< The number of entries to store in the `var` array.
 	);
 
 // Setting/Getting file names *************************************************************************************** //

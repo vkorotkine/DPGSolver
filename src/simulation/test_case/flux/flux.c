@@ -102,6 +102,8 @@ void destructor_Flux (struct Flux* flux)
 		destructor_const_Multiarray_d(flux->df_ds);
 	if (flux->df_dg != NULL)
 		destructor_const_Multiarray_d(flux->df_dg);
+
+	free(flux);
 }
 
 void compute_Flux_1 (const struct Flux_Input* flux_i, struct mutable_Flux* flux)

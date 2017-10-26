@@ -71,6 +71,29 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray_math.h"
 #include "multiarray_print.h"
 
+/// \brief Multiarray (`int`).
+struct Multiarray_i {
+	char layout; ///< The layout may be 'R'ow or 'C'olumn major.
+
+	int order;          ///< Number of dimensions.
+	ptrdiff_t* extents; ///< Size of array in each dimension.
+
+	bool owns_data; /**< Flag for whether the data should be freed in the destructor. This would be false if a move
+	                     constructor was used. */
+	int* data; ///< The data.
+};
+
+/// \brief Multiarray (`const int`).
+struct const_Multiarray_i {
+	const char layout; ///< Defined in \ref Multiarray_i.
+
+	const int order;               ///< Defined in \ref Multiarray_i.
+	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_i.
+
+	const bool owns_data; ///< Defined in \ref Multiarray_i.
+	const int*const data; ///< Defined in \ref Multiarray_i.
+};
+
 /// \brief Multiarray (`double`).
 struct Multiarray_d {
 	char layout; ///< The layout may be 'R'ow or 'C'olumn major.

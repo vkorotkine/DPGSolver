@@ -19,10 +19,16 @@ You should have received a copy of the GNU General Public License along with DPG
  *	\brief Provides functions/structures for integration testing.
  */
 
+#include <stdbool.h>
+
 struct Test_Info;
 
 /// Container for integration test related parameters
 struct Integration_Test_Info {
+	const char* ctrl_name; ///< The name of the control file used for the current test.
+
+	const bool display_progress; ///< \ref Test_Case::display_progress.
+
 	/** The minimal and maximal reference orders to be used for convergence order testing.
 	 *
 	 *  This range may differ from \ref Simulation::p_ref, such that convergence order testing can be performed
@@ -44,7 +50,7 @@ void run_tests_integration
 /** \brief Constructor for the \ref Integration_Test_Info from the data in the control file.
  *  \return Standard. */
 struct Integration_Test_Info* constructor_Integration_Test_Info
-	(const char*const ctrl_name_full ///< The control name including the full path.
+	(const char*const ctrl_name ///< The control name excluding the full path.
 	);
 
 /// \brief Destructor for the \ref Integration_Test_Info.

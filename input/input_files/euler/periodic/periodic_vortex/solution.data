@@ -1,6 +1,6 @@
 /// Solution parameters for test case: euler/periodic/periodic_vortex
 
-r_v   0.1
+r_v   0.165
 theta 0.7853981633974483
 V_inf 0.5916079783099616
 p_inf 1.0

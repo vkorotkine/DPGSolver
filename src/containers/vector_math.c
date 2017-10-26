@@ -30,5 +30,12 @@ void invert_Vector_d (struct Vector_d* a)
 		a->data[i] = 1.0/(a->data[i]);
 }
 
+void add_to_Vector_d_d (struct Vector_d* a, const double* b)
+{
+	const ptrdiff_t ext_0 = a->ext_0;
+	for (ptrdiff_t i = 0; i < ext_0; ++i)
+		a->data[i] += b[i];
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

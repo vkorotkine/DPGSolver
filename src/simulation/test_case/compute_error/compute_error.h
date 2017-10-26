@@ -25,6 +25,8 @@ struct Solver_Volume;
 struct Vector_d;
 struct const_Multiarray_d;
 
+#include <stddef.h>
+#include "definitions_alloc.h"
 #include "compute_error_euler.h"
 
 /** \brief Function pointer to error computing functions (which construct \ref Error_CE containers).
@@ -36,9 +38,13 @@ typedef struct Error_CE* (*constructor_Error_CE_fptr)
 
 /// Container holding information relating to the computational element errors.
 struct Error_CE {
+	const ptrdiff_t dof; ///< The number of degrees of freedom.
 	const double domain_volume; ///< The volume of the domain.
 
-	const struct const_Vector_d* sol_L2; ///< The solution measured in L2.
+	const struct const_Vector_d* sol_L2;         ///< The solution measured in L2.
+	const struct const_Vector_i* expected_order; ///< The expected convergence order of each variable.
+
+	const char* header_spec; ///< The header for the file specific to the variables for which the error was computed.
 };
 
 // Interface functions ********************************************************************************************** //
@@ -47,9 +53,9 @@ struct Error_CE {
  *
  *  The error, for a generic variable \f$v\f$, is computed as:
  *  \f[
- *  \text{Error}_{L^2(\Omega)} =
+ *  ||v||_{L^2(\Omega)} =
  *  \left(
- *  \frac{\int_{\Omega} (v-v_{\text{exact}})^2 d \Omega}{\int_{Omega} d \Omega}
+ *  \frac{\int_{\Omega} (v-v_{\text{exact}})^2 d \Omega}{\int_{\Omega} d \Omega}
  *  \right)^{\frac{1}{2}}
  *  \f]
  */
@@ -68,6 +74,18 @@ void increment_vol_errors_l2_2
 	(struct Vector_d* errors_l2_2,           ///< Holds the global squared l2 errors.
 	 const struct const_Multiarray_d* err_v, ///< Holds the error values for the current volume.
 	 const struct Solver_Volume* s_vol       ///< Current \ref Solver_Volume.
+	);
+
+/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom.
+ *  \return See brief. */
+ptrdiff_t compute_dof
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Return a statically allocated `char*` holding the name of the error file.
+ *  \return See brief. */
+const char* compute_error_file_name
+	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
 #endif // DPG__compute_error_h__INCLUDED

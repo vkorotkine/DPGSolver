@@ -175,8 +175,8 @@ static void destructor_sol_vc_col
 /** \brief Constructor for a \ref const_Multiarray_d\* of reference flux from physical flux.
  *  \return See brief. */
 static const struct const_Multiarray_d* constructor_flux_ref
-	(const struct const_Multiarray_d* m, /// Defined for \ref constructor_Flux_Ref.
-	 const struct const_Multiarray_d* f  /// The physical flux data.
+	(const struct const_Multiarray_d* m, ///< Defined for \ref constructor_Flux_Ref.
+	 const struct const_Multiarray_d* f  ///< The physical flux data.
 	);
 
 /// \brief Compute only the rhs term.
@@ -243,6 +243,7 @@ static void destructor_Flux_Ref (struct Flux_Ref* flux_ref)
 		destructor_const_Multiarray_d(flux_ref->dfr_ds);
 	if (flux_ref->dfr_dg)
 		destructor_const_Multiarray_d(flux_ref->dfr_dg);
+	free(flux_ref);
 }
 
 // Level 1 ********************************************************************************************************** //

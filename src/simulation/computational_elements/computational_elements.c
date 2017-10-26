@@ -101,12 +101,20 @@ struct Derived_Elements_Info {
 	       sizeof_derived; ///< The size of the derived element.
 
 	constructor_derived_Element_fptr constructor_derived_Element; ///< \ref constructor_derived_Element_fptr.
+	destructor_derived_Element_fptr  destructor_derived_Element;  ///< \ref destructor_derived_Element_fptr.
 };
 
-/** \brief Return a stack-allocated \ref Derived_Elements_Info container.
+/** \brief Return a stack-allocated \ref Derived_Elements_Info container for \ref constructor_derived_Elements.
  *  \return See brief. */
-struct Derived_Elements_Info get_Derived_Elements_Info
+static struct Derived_Elements_Info get_c_Derived_Elements_Info
 	(const int derived_name ///< Defined for \ref constructor_derived_Elements.
+	);
+
+/** \brief Return a stack-allocated \ref Derived_Elements_Info container for \ref destructor_derived_Elements.
+ *  \return See brief. */
+static struct Derived_Elements_Info get_d_Derived_Elements_Info
+	(const int base_name,   ///< Defined for \ref destructor_derived_Elements.
+	 const int derived_name ///< Defined for \ref constructor_derived_Elements.
 	);
 
 /** \brief Update pointers to computational elements in the derived lists.
@@ -320,7 +328,7 @@ void destructor_derived_computational_elements (struct Simulation* sim, const in
 
 void constructor_derived_Elements (struct Simulation* sim, const int derived_name)
 {
-	struct Derived_Elements_Info de_i = get_Derived_Elements_Info(derived_name);
+	struct Derived_Elements_Info de_i = get_c_Derived_Elements_Info(derived_name);
 
 	const struct const_Intrusive_List* base = sim->elements;
 
@@ -351,48 +359,13 @@ void constructor_derived_Elements (struct Simulation* sim, const int derived_nam
 
 void destructor_derived_Elements (struct Simulation* sim, const int base_name)
 {
-	// Set parameters
-// Make external function here after usage is set.
-	size_t sizeof_base = 0;
-	destructor_derived_Element_fptr destructor_derived_Element = NULL;
-
-	switch (base_name) {
-	case IL_ELEMENT:
-		sizeof_base = sizeof(struct Element);
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",base_name);
-		break;
-	}
-
-	const int derived_name = sim->elements->name;
-	switch (derived_name) {
-	case IL_GEOMETRY_ELEMENT:
-		assert(base_name == IL_ELEMENT);
-		destructor_derived_Element = destructor_derived_Geometry_Element;
-		break;
-	case IL_PLOTTING_ELEMENT:
-		assert(base_name == IL_ELEMENT);
-		destructor_derived_Element = destructor_derived_Plotting_Element;
-		break;
-	case IL_SOLUTION_ELEMENT:
-		assert(base_name == IL_ELEMENT);
-		destructor_derived_Element = destructor_derived_Solution_Element;
-		break;
-	case IL_ELEMENT_SOLVER_DG:
-		assert(base_name == IL_ELEMENT);
-		destructor_derived_Element = destructor_derived_DG_Solver_Element;
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",derived_name);
-		break;
-	}
+	struct Derived_Elements_Info de_i = get_d_Derived_Elements_Info(base_name,sim->elements->name);
 
 	// Perform destruction specific to the derived element list.
 	for (const struct const_Intrusive_Link* curr = sim->elements->first; curr; ) {
 		const struct const_Intrusive_Link* next = curr->next;
 		if (((struct Element*)curr)->present)
-			destructor_derived_Element((struct Element*)curr);
+			de_i.destructor_derived_Element((struct Element*)curr);
 		curr = next;
 	}
 
@@ -400,7 +373,7 @@ void destructor_derived_Elements (struct Simulation* sim, const int base_name)
 	const struct const_Intrusive_List* elements_prev = sim->elements;
 	sim->elements = constructor_empty_const_IL(base_name,NULL); // keep
 	for (const struct const_Intrusive_Link* curr = elements_prev->first; curr; curr = curr->next) {
-		push_back_const_IL(sim->elements,constructor_base_const_Intrusive_Link(curr,sizeof_base));
+		push_back_const_IL(sim->elements,constructor_base_const_Intrusive_Link(curr,de_i.sizeof_base));
 	}
 
 	// Update pointers to the derived elements to point to the base elements.
@@ -435,7 +408,7 @@ static void update_face_pointers
 	(struct Intrusive_Link* link ///< The current link.
 	);
 
-struct Derived_Elements_Info get_Derived_Elements_Info (const int derived_name)
+static struct Derived_Elements_Info get_c_Derived_Elements_Info (const int derived_name)
 {
 	struct Derived_Elements_Info de_info;
 
@@ -475,6 +448,50 @@ struct Derived_Elements_Info get_Derived_Elements_Info (const int derived_name)
 		break;
 	}
 
+	return de_info;
+}
+
+static struct Derived_Elements_Info get_d_Derived_Elements_Info (const int base_name, const int derived_name)
+{
+	struct Derived_Elements_Info de_info;
+
+	switch (base_name) {
+	case IL_ELEMENT:
+		de_info.sizeof_base = sizeof(struct Element);
+		break;
+	case IL_SOLUTION_ELEMENT:
+		de_info.sizeof_base = sizeof(struct Solution_Element);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",base_name);
+		break;
+	}
+
+	switch (derived_name) {
+	case IL_GEOMETRY_ELEMENT:
+		assert(base_name == IL_ELEMENT);
+		de_info.destructor_derived_Element = destructor_derived_Geometry_Element;
+		break;
+	case IL_PLOTTING_ELEMENT:
+		assert(base_name == IL_ELEMENT);
+		de_info.destructor_derived_Element = destructor_derived_Plotting_Element;
+		break;
+	case IL_SOLUTION_ELEMENT:
+		assert(base_name == IL_ELEMENT);
+		de_info.destructor_derived_Element = destructor_derived_Solution_Element;
+		break;
+	case IL_ELEMENT_ERROR:
+		assert(base_name == IL_SOLUTION_ELEMENT);
+		de_info.destructor_derived_Element = destructor_derived_Error_Element;
+		break;
+	case IL_ELEMENT_SOLVER_DG:
+		assert(base_name == IL_ELEMENT);
+		de_info.destructor_derived_Element = destructor_derived_DG_Solver_Element;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",derived_name);
+		break;
+	}
 	return de_info;
 }
 

@@ -1,0 +1,11 @@
+/// Solver parameters for test case: euler/internal/supersonic_vortex
+
+solver_proc   100
+solver_type_e 102
+
+num_flux_1st Roe-Pike
+
+time_step  1.0e0
+time_final 1.0e20
+
+display_progress 1

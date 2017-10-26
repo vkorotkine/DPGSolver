@@ -44,7 +44,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Version of \ref set_operator setting standard operator(s).
+/** \brief Version of \ref set_operator_fptr setting standard operator(s).
  *  \note Standard operators include all permutations of coef/value to coef/value with possible differentiation.
  *
  *  Currently, the nodes are recomputed upon each entry into this function. It would be more efficient to compute the
@@ -58,7 +58,7 @@ static void set_operator_std
 	 const struct Simulation* sim          ///< Defined for \ref set_operator_fptr.
 	);
 
-/** \brief Version of \ref set_operator setting solver operator(s).
+/** \brief Version of \ref set_operator_fptr setting solver operator(s).
  *  \ref set_operator_std may contain relevant comments. */
 static void set_operator_solver
 	(ptrdiff_t*const ind_values,           ///< Defined for \ref set_operator_fptr.
@@ -377,24 +377,24 @@ static int get_n_ref_max
 	(const struct Operator_Info* op_info ///< \ref Operator_Info.
 	);
 
-/** \brief Return the number of operators to be set depending on \ref Op_Info::range_d.
+/** \brief Return the number of operators to be set depending on \ref Operator_Info::range_d.
  *  \return See brief. */
 static int get_n_op
-	(const int range_d, ///< \ref Op_Info::range_d.
+	(const int range_d, ///< \ref Operator_Info::range_d.
 	 const int d        ///< The dimension of the element for which operators are being constructed.
 	);
 
 /// \brief Set the values of \ref Op_IO for the current operator.
 static void set_current_op_io
 	(const struct Operator_Info* op_info, ///< \ref Operator_Info.
-	 const int* op_values                 ///< \ref One line of values of \ref Operator_Info::values_op.
+	 const int* op_values                 ///< One line of values of \ref Operator_Info::values_op.
 	);
 
 /** \brief Return the index of the operator currently being set.
  *  \return See brief. */
 static ptrdiff_t get_ind_op
 	(const struct Operator_Info* op_info, ///< \ref Operator_Info.
-	 const int* op_values,                ///< \ref One line of values of \ref Operator_Info::values_op.
+	 const int* op_values,                ///< One line of values of \ref Operator_Info::values_op.
 	 const struct Multiarray_Operator* op ///< Defined for \ref set_operator_fptr.
 	);
 
@@ -402,7 +402,7 @@ static ptrdiff_t get_ind_op
  *  \return See brief. */
 static ptrdiff_t get_ind_nc
 	(const struct Operator_Info* op_info,       ///< \ref Operator_Info.
-	 const int* op_values,                      ///< \ref One line of values of \ref Operator_Info::values_op.
+	 const int* op_values,                      ///< One line of values of \ref Operator_Info::values_op.
 	 const struct const_Multiarray_Vector_i* nc ///< Defined for \ref set_node_correspondence.
 	);
 
@@ -410,7 +410,7 @@ static ptrdiff_t get_ind_nc
  *  \return See brief. */
 static ptrdiff_t get_ind_w
 	(const struct Operator_Info* op_info,      ///< \ref Operator_Info.
-	 const int* op_values,                     ///< \ref One line of values of \ref Operator_Info::values_op.
+	 const int* op_values,                     ///< One line of values of \ref Operator_Info::values_op.
 	 const struct const_Multiarray_Vector_d* w ///< Defined for \ref set_weights.
 	);
 
@@ -552,6 +552,7 @@ static void set_operator_solver
 		transpose_Matrix_d(op_std,false);
 		scale_Matrix_by_Vector_d('R',1.0,op_std,nodes_o->w,false);
 	}
+	destructor_const_Nodes(nodes_o);
 
 	if (sim->collocated) {
 		const struct const_Nodes* nodes_i = constructor_const_Nodes_h(OP_IND_I,op_io,element,sim); // destructed

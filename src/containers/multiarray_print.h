@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdio.h>
 
+struct Multiarray_i;
 struct Multiarray_d;
 struct Multiarray_Vector_i;
 struct Multiarray_Vector_d;
@@ -50,6 +51,11 @@ void print_Multiarray_Vector_d
 /// \brief `const` version of \ref print_Multiarray_Vector_d.
 void print_const_Multiarray_Vector_d
 	(const struct const_Multiarray_Vector_d*const a ///< Defined for \ref print_Multiarray_Vector_d.
+	);
+
+/// \brief Print a \ref Multiarray_i\* to the terminal.
+void print_Multiarray_i
+	(const struct Multiarray_i*const a ///< Standard.
 	);
 
 /// \brief Print a \ref Multiarray_d\* to the terminal displaying entries below the tolerance as 0.0.

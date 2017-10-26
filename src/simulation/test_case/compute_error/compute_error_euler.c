@@ -44,7 +44,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Constructor for a derived \ref Solver_Volume used to compute the exact solution.
+/** \brief Return a statically allocated `char*` holding the specific header for all of the Euler variables.
+ *  \return See brief. */
+static const char* compute_header_spec_euler_all
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Constructor for a derived \ref Solver_Volume used to compute the exact solution.
+ *  \return See brief. */
 static struct Solver_Volume* constructor_Solver_Volume_exact ();
 
 /// \brief Destructor for a derived \ref Solver_Volume used to compute the exact solution.
@@ -66,13 +73,17 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 	const int n_out = d+2+1;
 
 	const double domain_volume = compute_domain_volume(sim);
+	const char* header_spec    = compute_header_spec_euler_all(sim);
 	struct Vector_d* sol_L2 = constructor_empty_Vector_d(n_out); // moved
+	set_to_value_Vector_d(sol_L2,0.0);
 
 	struct Solution_Container sol_cont =
 		{ .ce_type = 'v', .cv_type = 'v', .node_kind = 'c', .volume = NULL, .face = NULL, .sol = NULL, };
 
 	ptrdiff_t s_extents[2] = { 0, 1 };
-	struct Multiarray_d* s = constructor_move_Multiarray_d_dyn_extents('C',2,s_extents,false,NULL); // destructed
+	struct Multiarray_d* s = constructor_move_Multiarray_d_d('C',2,s_extents,false,NULL); // destructed
+
+	int domain_order = -1;
 
 	struct Solver_Volume* s_vol[2] = { NULL, constructor_Solver_Volume_exact(), }; // destructed
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
@@ -108,22 +119,48 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 
 		for (int i = 0; i < 2; ++i)
 			destructor_Multiarray_d(sol[i]);
+
+		if (domain_order == -1)
+			domain_order = s_vol[0]->p_ref;
+		else
+			assert(domain_order == s_vol[0]->p_ref);
+
 	}
 	destructor_Solver_Volume_exact(s_vol[1]);
+	destructor_Multiarray_d(s);
 
 	for (int i = 0; i < sol_L2->ext_0; ++i)
 		sol_L2->data[i] = sqrt(sol_L2->data[i]/domain_volume);
 
+	struct Vector_i* expected_order = constructor_empty_Vector_i(n_out); // moved
+	set_to_value_Vector_i(expected_order,domain_order+1);
+
 	struct Error_CE* error_ce = malloc(sizeof *error_ce); // returned
 
 	const_cast_d(&error_ce->domain_volume,domain_volume);
-	error_ce->sol_L2 = (const struct const_Vector_d*) sol_L2;
+	error_ce->sol_L2         = (const struct const_Vector_d*) sol_L2;
+	error_ce->expected_order = (const struct const_Vector_i*) expected_order;
+	const_cast_c1(&error_ce->header_spec,header_spec);
 
 	return error_ce;
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static const char* compute_header_spec_euler_all (const struct Simulation* sim)
+{
+	static char header_spec[STRLEN_MAX];
+
+	int index = sprintf(header_spec,"%-14s%-14s","L2rho","L2u");
+	if (sim->d >= 2)
+		index += sprintf(header_spec+index,"%-14s","L2v");
+	if (sim->d >= 3)
+		index += sprintf(header_spec+index,"%-14s","L2w");
+	sprintf(header_spec+index,"%-14s%-14s","L2p","L2s");
+
+	return header_spec;
+}
 
 static struct Solver_Volume* constructor_Solver_Volume_exact ()
 {
@@ -137,6 +174,7 @@ static struct Solver_Volume* constructor_Solver_Volume_exact ()
 static void destructor_Solver_Volume_exact (struct Solver_Volume* s_vol_ex)
 {
 	destructor_Multiarray_d(s_vol_ex->sol_coef);
+	free(s_vol_ex);
 }
 
 static void set_Solver_Volume_exact (struct Solver_Volume* s_vol_ex, struct Solver_Volume* s_vol)

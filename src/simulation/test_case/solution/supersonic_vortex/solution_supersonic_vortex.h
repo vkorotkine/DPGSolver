@@ -23,16 +23,16 @@ struct Simulation;
 struct Solver_Volume;
 struct Solver_Face;
 
-/// \brief Function pointer to be used for \ref Test_Case::set_sol_coef_v for the supersonic vortex test case.
+/// \brief \todo update this.
 void set_sol_coef_v_supersonic_vortex
-	(const struct Simulation* sim, ///< Defined for \ref set_sol_coef_v_fptr.
-	 struct Solver_Volume* volume  ///< Defined for \ref set_sol_coef_v_fptr.
+	(const struct Simulation* sim, ///< \todo update this.
+	 struct Solver_Volume* volume  ///< \todo update this.
 	);
 
-/// \brief Function pointer to be used for \ref Test_Case::set_sol_coef_f for the supersonic vortex test case.
+/// \brief \todo update this.
 void set_sol_coef_f_supersonic_vortex
-	(const struct Simulation* sim, ///< Defined for \ref set_sol_coef_f_fptr.
-	 struct Solver_Face* face      ///< Defined for \ref set_sol_coef_f_fptr.
+	(const struct Simulation* sim, ///< \todo update this.
+	 struct Solver_Face* face      ///< \todo update this.
 	);
 
 #endif // DPG__solution_supersonic_vortex_h__INCLUDED

@@ -5,6 +5,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 ${MPI_C_LIBRARIES}
 	 Computational_Elements
 	 Containers
 	 Element

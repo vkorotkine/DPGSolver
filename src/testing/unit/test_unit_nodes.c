@@ -76,9 +76,7 @@ void test_unit_nodes (struct Test_Info*const test_info)
 	test_unit_nodes_simplex(test_info);
 	test_unit_nodes_pyramid(test_info);
 	test_unit_nodes_plotting(test_info);
-if (0)
 	test_unit_nodes_face_correspondence(test_info);
-test_print_warning(test_info,"face_correspondence currently disabled.");
 }
 
 // Static functions ************************************************************************************************* //

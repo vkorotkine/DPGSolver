@@ -34,7 +34,7 @@ void compute_Numerical_Flux_euler_lax_friedrichs
 	);
 
 /** \brief Compute the numerical fluxes using the Roe-Pike scheme.
- *  The implementation is based off of that explained in (Ch. 11.3, \ref Toro2009). */
+ *  The implementation is based off of that explained in (Ch. 11.3, \cite Toro2009). */
 void compute_Numerical_Flux_euler_roe_pike
 	(const struct Numerical_Flux_Input* num_flux_i, ///< Defined for \ref compute_Numerical_Flux_fptr.
 	 struct mutable_Numerical_Flux* num_flux        ///< Defined for \ref compute_Numerical_Flux_fptr.

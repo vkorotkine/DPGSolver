@@ -24,8 +24,8 @@ struct Solution_Container;
 
 /// \brief Function pointer to be used for \ref Test_Case::set_sol for the periodic vortex test case.
 void set_sol_periodic_vortex
-	(const struct Simulation* sim,      ///< Defined for \ref set_sol_v_fptr.
-	 struct Solution_Container sol_cont ///< Defined for \ref set_sol_v_fptr.
+	(const struct Simulation* sim,      ///< Defined for \ref set_sol_fptr.
+	 struct Solution_Container sol_cont ///< Defined for \ref set_sol_fptr.
 	);
 
 #endif // DPG__solution_periodic_vortex_h__INCLUDED

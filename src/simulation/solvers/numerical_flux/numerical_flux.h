@@ -107,7 +107,7 @@ struct Numerical_Flux {
 struct mutable_Numerical_Flux {
 	struct Multiarray_d* nnf; ///< Defined in \ref Numerical_Flux.
 
-	/// `mutable` version of \ref Neigh_Info_NF.
+	/// Defined in \ref Numerical_Flux.
 	struct m_Neigh_Info_NF {
 		struct Multiarray_d* dnnf_ds; ///< Defined in \ref Numerical_Flux.
 		struct Multiarray_d* dnnf_dg; ///< Defined in \ref Numerical_Flux.

@@ -23,7 +23,7 @@ interp_si  AO
 interp_pyr GLL
 
 basis_geom  bezier
-basis_sol   orthonormal
+basis_sol   lagrange
 
 geom_representation  isoparametric
 geom_blending_tp     gordon_hall

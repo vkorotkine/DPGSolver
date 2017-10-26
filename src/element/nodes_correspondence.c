@@ -51,7 +51,7 @@ const struct const_Multiarray_Vector_i* constructor_nodes_face_corr
 	assert(d >= 0 && d <= 2); // faces only.
 	constructor_Nodes_fptr constructor_Nodes = get_constructor_Nodes_by_super_type(s_type);
 
-	const struct const_Nodes* nodes = constructor_Nodes(d,p,node_type);
+	const struct const_Nodes* nodes = constructor_Nodes(d,p,node_type); // destructed
 
 	const ptrdiff_t n_perm = get_n_perm_corr(d,s_type);
 
@@ -60,6 +60,8 @@ const struct const_Multiarray_Vector_i* constructor_nodes_face_corr
 	const int e_type = compute_elem_from_super_type(s_type,d);
 	for (int i = 0; i < n_perm; ++i)
 		face_corr->data[i] = (struct Vector_i*) constructor_face_corr(nodes,i,e_type);
+
+	destructor_const_Nodes(nodes);
 
 	return (const struct const_Multiarray_Vector_i*) face_corr;
 }
@@ -107,7 +109,7 @@ static const struct const_Vector_i* constructor_face_corr
 	/// \todo Needs clean-up.
 	const ptrdiff_t d  = nodes->rst->ext_1;
 	const ptrdiff_t Nn = nodes->rst->ext_0;
-	const double* rst = nodes->rst->data;
+	const double* rst  = nodes->rst->data;
 
 	struct Vector_i* face_corr = constructor_empty_Vector_i(Nn);
 	int* fc_data = face_corr->data;

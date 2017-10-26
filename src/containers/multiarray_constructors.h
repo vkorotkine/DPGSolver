@@ -83,6 +83,7 @@ struct Multiarray_Matrix_d;
 struct const_Vector_i;
 struct const_Vector_d;
 struct const_Matrix_d;
+struct const_Multiarray_i;
 struct const_Multiarray_d;
 struct const_Multiarray_Vector_i;
 struct const_Multiarray_Vector_d;
@@ -211,6 +212,22 @@ const struct const_Multiarray_Matrix_d* constructor_empty_const_Multiarray_Matri
 
 // Zero constructors ************************************************************************************************ //
 
+/** \brief `int` version of \ref constructor_zero_Multiarray_d.
+ *  \return Standard. */
+struct Multiarray_i* constructor_zero_Multiarray_i
+	(const char layout,              ///< Defined in \ref Multiarray_i.
+	 const int order,                ///< Defined in \ref Multiarray_i.
+	 const ptrdiff_t*const extents_i ///< The input extents.
+	);
+
+/** \brief `int` version of \ref constructor_zero_Multiarray_d_dyn_extents.
+ *  \return Standard. */
+struct Multiarray_i* constructor_zero_Multiarray_i_dyn_extents
+	(const char layout,              ///< Defined in \ref Multiarray_i.
+	 const int order,                ///< Defined in \ref Multiarray_i.
+	 const ptrdiff_t*const extents_i ///< Defined in \ref Multiarray_i.
+	);
+
 /** \brief Same as \ref constructor_empty_Multiarray_d but with data calloc'ed.
  *  \return Standard. */
 struct Multiarray_d* constructor_zero_Multiarray_d
@@ -298,6 +315,17 @@ struct Multiarray_Matrix_d* constructor_move_Multiarray_Matrix_d_dyn_extents
 	 ptrdiff_t*const extents,    ///< Standard.
 	 const bool owns_data,       ///< Standard.
 	 struct Matrix_d**const data ///< Standard.
+	);
+
+/** \brief Move constructor for a \ref Multiarray_i\* with the input extents having been previously dynamically
+ *         allocated.
+ *  \return See brief. */
+struct Multiarray_i* constructor_move_Multiarray_i_dyn_extents
+	(const char layout,       ///< Standard.
+	 const int order,         ///< Standard.
+	 ptrdiff_t*const extents, ///< Standard.
+	 const bool owns_data,    ///< Standard.
+	 int*const data           ///< Standard.
 	);
 
 /** \brief Move constructor for a \ref Multiarray_d\* with the input extents having been previously dynamically
@@ -437,6 +465,16 @@ const struct const_Multiarray_d* constructor_mm_tp_NN1C_const_Multiarray_d
 	);
 
 // Destructors ****************************************************************************************************** //
+
+/// \brief Destructs a \ref Multiarray_i\*.
+void destructor_Multiarray_i
+	(struct Multiarray_i* a ///< Standard.
+	);
+
+/// \brief Destructs a \ref const_Multiarray_i\*.
+void destructor_const_Multiarray_i
+	(const struct const_Multiarray_i* a ///< Standard.
+	);
 
 /// \brief Destructs a \ref Multiarray_d\*.
 void destructor_Multiarray_d

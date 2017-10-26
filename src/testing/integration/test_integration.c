@@ -12,7 +12,7 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-/**	\file
+/** \file
  */
 
 #include "test_integration.h"
@@ -25,10 +25,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_alloc.h"
 
-#include "test_integration_mesh.h"
+#include "test_integration_advection.h"
+#include "test_integration_euler.h"
 #include "test_integration_fe_init.h"
 #include "test_integration_geometry.h"
-#include "test_integration_euler.h"
+#include "test_integration_mesh.h"
 
 #include "const_cast.h"
 #include "file_processing.h"
@@ -56,16 +57,19 @@ if (0) {
 //	test_integration_geometry(test_info,"extern_mesh/TEST_curved_2d_mixed");
 }
 
+	test_integration_advection(test_info);
 	test_integration_euler(test_info);
 
 	MPI_Finalize();
 }
 
-struct Integration_Test_Info* constructor_Integration_Test_Info (const char*const ctrl_name_full)
+struct Integration_Test_Info* constructor_Integration_Test_Info (const char*const ctrl_name)
 {
 	struct Integration_Test_Info* int_test_info = malloc(sizeof *int_test_info); // returned
+	int_test_info->ctrl_name = ctrl_name;
 
 	// Read information
+	const char* ctrl_name_full = set_ctrl_name_full(ctrl_name);
 	FILE *ctrl_file = fopen_checked(ctrl_name_full);
 
 	char line[STRLEN_MAX];

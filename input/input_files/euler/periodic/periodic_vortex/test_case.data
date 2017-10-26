@@ -5,7 +5,7 @@ solver_type_e 102
 
 num_flux_1st Roe-Pike
 
-time_step  0.01
-time_final 0.1
+time_step  0.0025
+time_final 0.20
 
-display_progress 1
+display_progress 0

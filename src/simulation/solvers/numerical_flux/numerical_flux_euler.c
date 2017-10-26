@@ -312,7 +312,7 @@ void compute_Numerical_Flux_euler_lax_friedrichs
 void compute_Numerical_Flux_euler_roe_pike
 	(const struct Numerical_Flux_Input* num_flux_i, struct mutable_Numerical_Flux* num_flux)
 {
-	/// The simple entropy fix is taken from (eq. (35), \ref Qu2015).
+	/// The simple entropy fix is taken from (eq. (35), \cite Qu2015).
 
 	int const d   = num_flux_i->d,
 	          Neq = d+2;

@@ -122,6 +122,7 @@ void destructor_Numerical_Flux (struct Numerical_Flux* num_flux)
 		if (n_i.dnnf_dg != NULL)
 			destructor_const_Multiarray_d(n_i.dnnf_dg);
 	}
+	free(num_flux);
 }
 
 void compute_Numerical_Flux_1 (const struct Numerical_Flux_Input* num_flux_i, struct mutable_Numerical_Flux* num_flux)

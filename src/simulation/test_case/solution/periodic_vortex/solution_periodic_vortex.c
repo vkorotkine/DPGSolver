@@ -79,15 +79,9 @@ static void set_data_periodic_vortex
 /** \brief Return a \ref Multiarray_d\* container holding the solution values at the input coordinates.
  *  \return See brief. */
 static struct Multiarray_d* constructor_sol_periodic_vortex
-	(const struct Simulation* sim,         ///< Defined for \ref set_sol_v_periodic_vortex.
+	(const struct Simulation* sim,         ///< Defined for \ref set_sol_periodic_vortex.
 	 const struct const_Multiarray_d* xyz, ///< xyz coordinates at which to evaluate the solution.
 	 const struct Sol_Data__pv* sol_data   ///< \ref Sol_Data__pv.
-	);
-
-/// \brief Version of \ref set_sol_f_periodic_vortex for coefficients.
-static void set_sol_coef_f_periodic_vortex
-	(const struct Simulation* sim, ///< Defined for \ref set_sol_f_periodic_vortex.
-	 struct Solver_Face* face      ///< Defined for \ref set_sol_f_periodic_vortex.
 	);
 
 /// \brief Set the centre xy coordinates of the periodic vortex at the given time.
@@ -117,8 +111,11 @@ void set_sol_periodic_vortex (const struct Simulation* sim, struct Solution_Cont
 	assert((cv_type == 'c') || (cv_type == 'v'));
 	if (cv_type == 'v') {
 // possible function for this.
+		assert(sol_cont.sol->data != NULL);
+
 		sol_cont.sol->extents[0] = sol->extents[0];
 		sol_cont.sol->extents[1] = sol->extents[1];
+		free(sol_cont.sol->data);
 		sol_cont.sol->data = sol->data;
 
 		sol->owns_data = false;
@@ -128,16 +125,6 @@ void set_sol_periodic_vortex (const struct Simulation* sim, struct Solution_Cont
 	}
 
 	destructor_Multiarray_d(sol);
-}
-
-///\todo make static
-void set_sol_f_periodic_vortex
-	(const struct Simulation* sim, struct Solver_Face* face, const char cv_type, const char node_kind)
-{
-	if (cv_type == 'c' && node_kind == 'c')
-		set_sol_coef_f_periodic_vortex(sim,face);
-	else
-		EXIT_UNSUPPORTED;
 }
 
 // Static functions ************************************************************************************************* //
@@ -206,19 +193,6 @@ static struct Multiarray_d* constructor_sol_periodic_vortex
 	convert_variables(sol,'p','c');
 
 	return sol;
-}
-
-static void set_sol_coef_f_periodic_vortex (const struct Simulation* sim, struct Solver_Face* face)
-{
-UNUSED(face);
-	switch (sim->method) {
-	case METHOD_DG:
-		set_sg_do_nothing(sim,(struct Solution_Container) {} );
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",sim->method);
-		break;
-	}
 }
 
 static void read_data_periodic_vortex (const char*const input_path, struct Sol_Data__pv*const sol_data)

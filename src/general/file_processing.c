@@ -65,6 +65,15 @@ static int mkdir_p
 	(const char *path ///< The full path to the directory to be created.
 	);
 
+/** \brief Return a statically allocated `char*` holding the full name of the 's'erial/'p'arallel file.
+ *  \return See brief. */
+static const char* get_file_name_sp
+	(const char sp_type,              ///< Defined for \ref fopen_sp_output_file.
+	 const char*const name_part,      ///< Defined for \ref fopen_sp_output_file.
+	 const char*const extension_part, ///< Defined for \ref fopen_sp_output_file.
+	 const int mpi_rank               ///< Defined for \ref fopen_sp_output_file.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 FILE* fopen_checked (const char*const file_name_full)
@@ -107,11 +116,27 @@ FILE* fopen_create_dir (const char*const file_name_full)
 	return fopen(file_name_full,"w");
 }
 
+FILE* fopen_sp_output_file
+	(const char sp_type, const char*const name_part, const char*const extension_part, const int mpi_rank)
+{
+	const char* file_name = get_file_name_sp(sp_type,name_part,extension_part,mpi_rank);
+	return fopen_create_dir(file_name);
+}
+
+FILE* fopen_sp_input_file
+	(const char sp_type, const char*const name_part, const char*const extension_part, const int mpi_rank)
+{
+	const char* file_name = get_file_name_sp(sp_type,name_part,extension_part,mpi_rank);
+	return fopen_checked(file_name);
+}
+
 void skip_lines (FILE* file, const int n_skip)
 {
 	char line[STRLEN_MAX];
-	for (int n = 0; n < n_skip; ++n)
-		if (fgets(line,sizeof(line),file) != NULL) {};
+	for (int n = 0; n < n_skip; ++n) {
+		if (fgets(line,sizeof(line),file) == NULL)
+			EXIT_ERROR("End of file.\n");
+	}
 }
 
 void skip_lines_ptr (FILE* file, char**const line, const int line_size, const int n_skip)
@@ -211,27 +236,53 @@ void read_skip_const_d (char*const line, const double*const var, const int n_ski
 	read_skip_d(line,(double*)var,n_skip,remove_semi);
 }
 
-void read_skip_const_i_1 (char*const line, const int n_skip, const int*const var, const int n_var)
+void read_skip_i_1 (char*const line_i, const int n_skip, int*const var, const int n_var)
 {
+	char line[STRLEN_MAX];
+	strcpy(line,line_i);
+
 	char* token_s = strtok(line," ");
-	for (int i = 0; i < n_skip-1; ++i)
+	for (int i = 0; i < n_skip; ++i)
 		token_s = strtok(NULL," ");
 
 	for (int i = 0; i < n_var; ++i) {
+		sscanf(token_s,"%d",&var[i]);
 		token_s = strtok(NULL," ");
-		sscanf(token_s,"%d",(int*)&var[i]);
 	}
 }
 
-void read_skip_ptrdiff_1 (char*const line, const int n_skip, ptrdiff_t*const var, const int n_var)
+void read_skip_const_i_1 (char*const line_i, const int n_skip, const int*const var, const int n_var)
 {
+	read_skip_i_1(line_i,n_skip,(int*)var,n_var);
+}
+
+void read_skip_ptrdiff_1 (char*const line_i, const int n_skip, ptrdiff_t*const var, const int n_var)
+{
+	char line[STRLEN_MAX];
+	strcpy(line,line_i);
+
 	char* token_s = strtok(line," ");
-	for (int i = 0; i < n_skip-1; ++i)
+	for (int i = 0; i < n_skip; ++i)
 		token_s = strtok(NULL," ");
 
 	for (int i = 0; i < n_var; ++i) {
-		token_s = strtok(NULL," ");
 		sscanf(token_s,"%td",&var[i]);
+		token_s = strtok(NULL," ");
+	}
+}
+
+void read_skip_d_1 (char*const line_i, const int n_skip, double*const var, const int n_var)
+{
+	char line[STRLEN_MAX];
+	strcpy(line,line_i);
+
+	char* token_s = strtok(line," ");
+	for (int i = 0; i < n_skip; ++i)
+		token_s = strtok(NULL," ");
+
+	for (int i = 0; i < n_var; ++i) {
+		sscanf(token_s,"%lf",&var[i]);
+		token_s = strtok(NULL," ");
 	}
 }
 
@@ -287,9 +338,8 @@ void strcat_path_i (char* dest, const int src)
 char* extract_name (const char*const name_full, const bool extension_present)
 {
 	int len_name = 0;
-
-	const char* beg = NULL, // Pointer to the first element of the name_full.
-	          * end = NULL; // Pointer to one past the last element of the name_full.
+	const char* beg = &name_full[0], // Pointer to the first element of the name_full.
+	          * end = NULL;          // Pointer to one past the last element of the name_full.
 
 	bool found_extension = false;
 	int ind = 0;
@@ -415,6 +465,19 @@ static int mkdir_p (const char *path)
     }
 
     return 0;
+}
+
+static const char* get_file_name_sp
+	(const char sp_type, const char*const name_part, const char*const extension_part, const int mpi_rank)
+{
+	assert(sp_type == 's' || sp_type == 'p');
+	static char file_name[STRLEN_MAX] = { 0, };
+
+	if (sp_type == 's')
+		sprintf(file_name,"%s%c%d%s%s",name_part,'_',mpi_rank,".",extension_part);
+	else if (sp_type == 'p')
+		sprintf(file_name,"%s%s%s",name_part,".p",extension_part);
+	return file_name;
 }
 
 // Level 1 ********************************************************************************************************** //

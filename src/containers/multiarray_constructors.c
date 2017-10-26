@@ -189,6 +189,20 @@ const struct const_Multiarray_Matrix_d* constructor_empty_const_Multiarray_Matri
 
 // Zero constructors ************************************************************************************************ //
 
+struct Multiarray_i* constructor_zero_Multiarray_i
+	(const char layout, const int order, const ptrdiff_t*const extents_i)
+{
+	ptrdiff_t*const extents = allocate_and_set_extents(order,extents_i); // keep
+	return constructor_zero_Multiarray_i_dyn_extents(layout,order,extents);
+}
+
+struct Multiarray_i* constructor_zero_Multiarray_i_dyn_extents
+	(const char layout, const int order, const ptrdiff_t*const extents_i)
+{
+	int* data = calloc(compute_size(order,extents_i) , sizeof *data); // keep
+	return constructor_move_Multiarray_i_dyn_extents(layout,order,(ptrdiff_t*)extents_i,true,data);
+}
+
 struct Multiarray_d* constructor_zero_Multiarray_d
 	(const char layout, const int order, const ptrdiff_t*const extents_i)
 {
@@ -245,6 +259,20 @@ const struct const_Multiarray_d* constructor_move_const_Multiarray_d_d
 {
 	return (const struct const_Multiarray_d*)
 		constructor_move_Multiarray_d_d(layout,order,extents_i,owns_data,(double*)data);
+}
+
+struct Multiarray_i* constructor_move_Multiarray_i_dyn_extents
+	(const char layout, const int order, ptrdiff_t*const extents, const bool owns_data, int*const data)
+{
+	struct Multiarray_i* dest = calloc(1,sizeof *dest); // returned
+
+	dest->layout    = layout;
+	dest->order     = order;
+	dest->extents   = extents;
+	dest->owns_data = owns_data;
+	dest->data      = data;
+
+	return dest;
 }
 
 struct Multiarray_d* constructor_move_Multiarray_d_dyn_extents
@@ -513,6 +541,21 @@ const struct const_Multiarray_d* constructor_mm_tp_NN1C_const_Multiarray_d
 }
 
 // Destructors ****************************************************************************************************** //
+
+void destructor_Multiarray_i (struct Multiarray_i* a)
+{
+	assert(a != NULL);
+
+	free(a->extents);
+	if (a->owns_data)
+		free(a->data);
+	free(a);
+}
+
+void destructor_const_Multiarray_i (const struct const_Multiarray_i* a)
+{
+	destructor_Multiarray_i((struct Multiarray_i*)a);
+}
 
 void destructor_Multiarray_d (struct Multiarray_d* a)
 {

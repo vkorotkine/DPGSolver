@@ -33,7 +33,7 @@ typedef void (*set_sol_fptr)
 	 struct Solution_Container sol_cont
 	);
 
-/** \brief Function pointer to the function setting the source contribution of \ref Solver_Volume::rhs.
+/** \brief Function pointer to the function setting the source contribution of the rhs term.
  *  \param sim    \ref Simulation.
  *  \param volume \ref Solver_Volume.
  */

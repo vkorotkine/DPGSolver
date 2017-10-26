@@ -13,23 +13,20 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__vector_math_h__INCLUDED
-#define DPG__vector_math_h__INCLUDED
+#ifndef DPG__test_integration_advection_h__INCLUDED
+#define DPG__test_integration_advection_h__INCLUDED
 /** \file
- *  \brief Provides Vector_\* math functions.
+ *  \brief Provides functionality for linear Advection integration testing.
  */
 
-struct Vector_d;
-
-/// \brief Invert each of the entries of the input \ref Vector_d\*.
-void invert_Vector_d
-	(struct Vector_d* a ///< Input vector.
+/** \brief Tests various components of the Advection solver.
+ *
+ * Integration tests are currently provided for:
+ * - Linearizations;
+ * - Expected convergence orders;
+ */
+void test_integration_advection
+	(struct Test_Info*const test_info /// \ref Test_Info.
 	);
 
-/// \brief Add to a \ref Vector_d\*.
-void add_to_Vector_d_d
-	(struct Vector_d* a, ///< To be added to.
-	 const double* b     ///< Data to add.
-	);
-
-#endif // DPG__vector_math_h__INCLUDED
+#endif // DPG__test_integration_advection_h__INCLUDED

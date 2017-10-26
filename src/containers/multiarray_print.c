@@ -89,6 +89,46 @@ void print_const_Multiarray_Vector_d (const struct const_Multiarray_Vector_d*con
 	print_Multiarray_Vector_d((struct Multiarray_Vector_d*)a);
 }
 
+void print_Multiarray_i (const struct Multiarray_i*const a)
+{
+	const int order               = a->order;
+	const ptrdiff_t*const extents = a->extents;
+
+	print_Multiarray_extents(order,extents);
+
+	if (order == 1) {
+		struct Vector_i* a_V = constructor_move_Vector_i_i(extents[0],false,a->data); // destructed
+		print_Vector_i(a_V);
+		destructor_Vector_i(a_V);
+	} else if (order == 2) {
+		struct Matrix_i* a_M = constructor_move_Matrix_i_i(a->layout,extents[0],extents[1],false,a->data); // destructed
+		print_Matrix_i(a_M);
+		destructor_Matrix_i(a_M);
+	} else if (order > 2) {
+		struct Matrix_i* a_M = constructor_move_Matrix_i_i(a->layout,extents[0],extents[1],false,NULL); // destructed;
+
+		const ptrdiff_t size_tail = compute_size(order-2,&extents[2]);
+
+		ptrdiff_t counter[size_tail];
+		for (ptrdiff_t i = 0; i < size_tail; ++i)
+			counter[i] = 0;
+
+		for (ptrdiff_t i = 0; i < size_tail; ++i) {
+			print_Multiarray_counter(order,counter);
+
+			const ptrdiff_t ind_M = compute_index_sub_matrix(order,extents,counter);
+			a_M->data = &a->data[ind_M];
+			print_Matrix_i(a_M);
+
+			increment_counter(order,extents,counter);
+		}
+		destructor_Matrix_i(a_M);
+	} else {
+		EXIT_ERROR("Unsupported: %d\n",order);
+	}
+	printf("\n");
+}
+
 void print_Multiarray_d_tol (const struct Multiarray_d*const a, const double tol)
 {
 	const int order               = a->order;
