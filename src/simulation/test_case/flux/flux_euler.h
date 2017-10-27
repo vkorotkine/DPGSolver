@@ -23,8 +23,6 @@ struct Flux_Input;
 struct mutable_Flux;
 
 /** \brief Compute the fluxes for the Euler equations.
- *  The memory layout of the fluxes (node, dimension, equation) was chosen such that the memory stride is minimized when
- *  converting from physical to reference space.
  *
  *  Euler fluxes (eq, dim):
  *  \f[

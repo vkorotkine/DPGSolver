@@ -30,15 +30,10 @@ struct DG_Solver_Face {
 
 	struct Multiarray_d* rhs[2]; ///< The rhs terms corresponding to the left/right volumes.
 
-	/// Solution from the right volume (or boundary condition) to face cubature nodes as seen from the left volume.
-	constructor_sg_fc_fptr constructor_s_r_fcl;
-
+	/// Construct 'r'ight numerical flux input members at face cubature nodes as seen from the left volume.
+	constructor_Boundary_Value_fptr constructor_Boundary_Value_fcl;
 
 	// Members required for 2nd order PDE terms.
-
-	/** Solution gradient from the right volume (or boundary condition) to face cubature nodes as seen from the left
-	 *  volume. */
-	constructor_sg_fc_fptr constructor_g_r_fcl;
 
 	/// The face contributions to the solution gradient coefficients in each of the neighbouring volumes.
 	struct Multiarray_d* grad_coef_f[2];

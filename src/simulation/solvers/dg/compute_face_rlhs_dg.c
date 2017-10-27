@@ -120,9 +120,10 @@ void compute_face_rlhs_dg (const struct Simulation* sim)
 
 		constructor_Numerical_Flux_Input_data(num_flux_i,face,sim); // destructed
 /// \todo clean-up
-//print_const_Multiarray_d(num_flux_i->neigh_info[0].s);
-//print_const_Multiarray_d(num_flux_i->neigh_info[1].s);
-
+/*print_const_Multiarray_d(num_flux_i->bv_l.s);
+print_const_Multiarray_d(num_flux_i->bv_r.s);
+EXIT_UNSUPPORTED;
+*/
 		// Compute the normal numerical fluxes (and optionally their Jacobians) at the face cubature nodes.
 		struct Numerical_Flux* num_flux = constructor_Numerical_Flux(num_flux_i); // destructed
 		destructor_Numerical_Flux_Input_data(num_flux_i);
@@ -189,23 +190,15 @@ void constructor_Numerical_Flux_Input_data
 	struct Solver_Face* s_face       = (struct Solver_Face*) face;
 	struct DG_Solver_Face* dg_s_face = (struct DG_Solver_Face*) face;
 
-	num_flux_i->neigh_info[0].s = test_case->constructor_s_l_fcl(face,sim);
-	num_flux_i->neigh_info[0].g = test_case->constructor_g_l_fcl(face,sim);
-	num_flux_i->neigh_info[1].s = dg_s_face->constructor_s_r_fcl(face,sim);
-	num_flux_i->neigh_info[1].g = dg_s_face->constructor_g_r_fcl(face,sim);
+	test_case->constructor_Boundary_Value_Input_face_fcl(&num_flux_i->bv_l,s_face,sim); // destructed
 
-	num_flux_i->normals_l = s_face->normals_fc;
-	num_flux_i->xyz_l     = s_face->xyz_fc;
+	dg_s_face->constructor_Boundary_Value_fcl(
+		&num_flux_i->bv_r,(const struct Boundary_Value_Input*)&num_flux_i->bv_l,s_face,sim); // destructed
 }
 
 void destructor_Numerical_Flux_Input_data (struct Numerical_Flux_Input* num_flux_i)
 {
-	for (int i = 0; i < 2; ++i) {
-		if (num_flux_i->neigh_info[i].s)
-			destructor_const_Multiarray_d(num_flux_i->neigh_info[i].s);
-		if (num_flux_i->neigh_info[i].g)
-			destructor_const_Multiarray_d(num_flux_i->neigh_info[i].g);
-	}
+	destructor_Numerical_Flux_Input_mem(num_flux_i);
 }
 
 // Level 1 ********************************************************************************************************** //

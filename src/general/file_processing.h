@@ -210,6 +210,14 @@ void read_skip_d_1
 	 const int n_var    ///< The number of entries to store in the `var` array.
 	);
 
+/// \brief `const` version of \ref read_skip_d_1.
+void read_skip_const_d_1
+	(char*const line_i,      ///< Defined for \ref read_skip_d_1.
+	 const int n_skip,       ///< Defined for \ref read_skip_d_1.
+	 const double*const var, ///< Defined for \ref read_skip_d_1.
+	 const int n_var         ///< Defined for \ref read_skip_d_1.
+	);
+
 // Setting/Getting file names *************************************************************************************** //
 
 /// \brief Append `src` (char*) to `dest` with optional forward slash ('\').

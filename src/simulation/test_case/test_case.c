@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "const_cast.h"
 #include "file_processing.h"
 #include "simulation.h"
+#include "solution_advection.h"
 #include "solution_euler.h"
 
 // Static function declarations ************************************************************************************* //
@@ -144,12 +145,9 @@ static void set_pde_related (struct Test_Case* test_case, const struct Simulatio
 static void set_function_pointers (struct Test_Case* test_case, const struct Simulation*const sim)
 {
 	switch (test_case->pde_index) {
-//		case PDE_ADVECTION:     set_function_pointers_solution_advection(test_case,sim);     break;
+		case PDE_ADVECTION:     set_function_pointers_solution_advection(test_case,sim);     break;
 //		case PDE_POISSON:       set_function_pointers_solution_poisson(test_case,sim);       break;
-		case PDE_EULER:
-			set_function_pointers_solution_euler(test_case,sim);
-//			test_case->flux_fptr =
-			break;
+		case PDE_EULER:         set_function_pointers_solution_euler(test_case,sim);         break;
 //		case PDE_NAVIER_STOKES: set_function_pointers_solution_navier_stokes(test_case,sim); break;
 		default: EXIT_ERROR("Unsupported: %d\n",test_case->pde_index); break;
 	}
@@ -196,7 +194,9 @@ static void read_test_case_parameters (struct Test_Case* test_case, const struct
 static void set_string_associations_test_case (struct Test_Case* test_case, const struct Test_Case_String_Inputs* tcsi)
 {
 	// num_flux_1st
-	if (strcmp(tcsi->num_flux_1st,"Roe-Pike") == 0)
+	if (strcmp(tcsi->num_flux_1st,"upwind") == 0)
+		const_cast_i(&test_case->ind_num_flux[0],NUM_FLUX_UPWIND);
+	else if (strcmp(tcsi->num_flux_1st,"Roe-Pike") == 0)
 		const_cast_i(&test_case->ind_num_flux[0],NUM_FLUX_ROE_PIKE);
 	else
 		const_cast_i(&test_case->ind_num_flux[0],NUM_FLUX_INVALID);

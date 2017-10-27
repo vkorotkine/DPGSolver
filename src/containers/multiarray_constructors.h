@@ -258,6 +258,18 @@ struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i
 	 const ptrdiff_t*const extents_i ///< The input extents.
 	);
 
+/** \brief Copy constructor for a \ref Multiarray_d\* from a \ref Multiarray_d\*.
+ *  \return Standard. */
+struct Multiarray_d* constructor_copy_Multiarray_d
+	(struct Multiarray_d* src ///< Source.
+	);
+
+/** \brief `const` version of \ref constructor_copy_Multiarray_d.
+ *  \return Standard. */
+const struct const_Multiarray_d* constructor_copy_const_Multiarray_d
+	(const struct const_Multiarray_d*const src ///< Defined for \ref constructor_copy_Multiarray_d.
+	);
+
 /** \brief Copy constructor for a `const` \ref const_Multiarray_d\* from a `const` \ref const_Multiarray_d\*.
  *  \return Standard. */
 void const_constructor_copy_Multiarray_d

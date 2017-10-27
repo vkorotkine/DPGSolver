@@ -27,7 +27,6 @@ struct const_Multiarray_d;
 
 #include <stddef.h>
 #include "definitions_alloc.h"
-#include "compute_error_euler.h"
 
 /** \brief Function pointer to error computing functions (which construct \ref Error_CE containers).
  *  \param sim \ref Simulation.

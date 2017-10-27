@@ -286,6 +286,11 @@ void read_skip_d_1 (char*const line_i, const int n_skip, double*const var, const
 	}
 }
 
+void read_skip_const_d_1 (char*const line_i, const int n_skip, const double*const var, const int n_var)
+{
+	read_skip_d_1(line_i,n_skip,(double*)var,n_var);
+}
+
 void read_skip_file_const_b (const char*const var_name, FILE* file, const bool*const var)
 {
 	char line[STRLEN_MAX];

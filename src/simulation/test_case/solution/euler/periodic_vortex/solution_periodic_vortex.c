@@ -59,7 +59,7 @@ struct Sol_Data__pv {
 	       con;      ///< A scaling constant.
 };
 
-/** \brief Return the statically \ref Sol_Data__pv container.
+/** \brief Return the statically allocated \ref Sol_Data__pv container.
  *  \return See brief. */
 static struct Sol_Data__pv get_sol_data
 	(const struct Simulation* sim ///< \ref Simulation.

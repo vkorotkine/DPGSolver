@@ -47,23 +47,25 @@ struct Numerical_Flux_Input* constructor_Numerical_Flux_Input (const struct Simu
 {
 	struct Numerical_Flux_Input* num_flux_i = calloc(1,sizeof *num_flux_i); // returned
 
-	struct Test_Case* test_case = sim->test_case;
-	const_cast_i(&num_flux_i->d,sim->d);
-	const_cast_i(&num_flux_i->n_eq,test_case->n_eq);
-	const_cast_i(&num_flux_i->n_var,test_case->n_var);
+	const_cast_c1(&num_flux_i->bv_l.input_path,sim->input_path);
 
+	struct Test_Case* test_case = sim->test_case;
 	const_cast_b(&num_flux_i->has_1st_order,test_case->has_1st_order);
 	const_cast_b(&num_flux_i->has_2nd_order,test_case->has_2nd_order);
+
+	const_cast_i(&num_flux_i->bv_l.d,sim->d);
+	const_cast_i(&num_flux_i->bv_l.n_eq,test_case->n_eq);
+	const_cast_i(&num_flux_i->bv_l.n_var,test_case->n_var);
 
 	num_flux_i->compute_Numerical_Flux = test_case->compute_Numerical_Flux;
 	switch (test_case->solver_method_curr) {
 	case 'e':
-		num_flux_i->compute_member = test_case->flux_comp_mem_e;
+		num_flux_i->bv_l.compute_member = test_case->flux_comp_mem_e;
 		num_flux_i->compute_Numerical_Flux_1st = test_case->compute_Numerical_Flux_e[0];
 		num_flux_i->compute_Numerical_Flux_2nd = test_case->compute_Numerical_Flux_e[1];
 		break;
 	case 'i':
-		num_flux_i->compute_member = test_case->flux_comp_mem_i;
+		num_flux_i->bv_l.compute_member = test_case->flux_comp_mem_i;
 		num_flux_i->compute_Numerical_Flux_1st = test_case->compute_Numerical_Flux_i[0];
 		num_flux_i->compute_Numerical_Flux_2nd = test_case->compute_Numerical_Flux_i[1];
 		break;
@@ -80,21 +82,33 @@ void destructor_Numerical_Flux_Input (struct Numerical_Flux_Input* num_flux_i)
 	free(num_flux_i);
 }
 
+void destructor_Numerical_Flux_Input_mem (struct Numerical_Flux_Input* num_flux_i)
+{
+	if (num_flux_i->bv_l.s)
+		destructor_const_Multiarray_d(num_flux_i->bv_l.s);
+	if (num_flux_i->bv_r.s)
+		destructor_const_Multiarray_d(num_flux_i->bv_r.s);
+	if (num_flux_i->bv_l.g)
+		destructor_const_Multiarray_d(num_flux_i->bv_l.g);
+	if (num_flux_i->bv_r.g)
+		destructor_const_Multiarray_d(num_flux_i->bv_r.g);
+}
+
 struct Numerical_Flux* constructor_Numerical_Flux (const struct Numerical_Flux_Input* num_flux_i)
 {
-	assert(((num_flux_i->neigh_info[0].s != NULL && num_flux_i->neigh_info[0].s->layout == 'C') &&
-	        (num_flux_i->neigh_info[1].s != NULL && num_flux_i->neigh_info[1].s->layout == 'C')) ||
-	       ((num_flux_i->neigh_info[0].g != NULL && num_flux_i->neigh_info[0].g->layout == 'C') &&
-	        (num_flux_i->neigh_info[1].g != NULL && num_flux_i->neigh_info[1].g->layout == 'C')));
+	assert(((num_flux_i->bv_l.s != NULL && num_flux_i->bv_l.s->layout == 'C') &&
+	        (num_flux_i->bv_r.s != NULL && num_flux_i->bv_r.s->layout == 'C')) ||
+	       ((num_flux_i->bv_l.g != NULL && num_flux_i->bv_l.g->layout == 'C') &&
+	        (num_flux_i->bv_r.g != NULL && num_flux_i->bv_r.g->layout == 'C')));
 
-	const bool* c_m = num_flux_i->compute_member;
+	const bool* c_m = num_flux_i->bv_l.compute_member;
 	assert(c_m[0] || c_m[1] || c_m[2]);
 
-	const int d     = num_flux_i->d,
-	          n_eq  = num_flux_i->n_eq,
-		    n_var = num_flux_i->n_var;
-	const ptrdiff_t n_n = ( num_flux_i->neigh_info[0].s != NULL ? num_flux_i->neigh_info[0].s->extents[0] :
-	                                                              num_flux_i->neigh_info[0].g->extents[0] );
+	const int d     = num_flux_i->bv_l.d,
+	          n_eq  = num_flux_i->bv_l.n_eq,
+		    n_var = num_flux_i->bv_l.n_var;
+	const ptrdiff_t n_n = ( num_flux_i->bv_l.s != NULL ? num_flux_i->bv_l.s->extents[0]
+	                                                   : num_flux_i->bv_l.g->extents[0] );
 
 	struct mutable_Numerical_Flux* num_flux = calloc(1,sizeof *num_flux); // returned
 
@@ -138,62 +152,3 @@ void compute_Numerical_Flux_12 (const struct Numerical_Flux_Input* num_flux_i, s
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-/** \brief Version of \ref constructor_sg_fc_fptr interpolating the solution from the neighbouring volume to the face.
- *  \return See brief. */
-static const struct const_Multiarray_d* constructor_s_fc_interp
-	(const struct Face* face,      ///< Defined for \ref constructor_sg_fc_fptr.
-	 const struct Simulation* sim, ///< Defined for \ref constructor_sg_fc_fptr.
-	 const int side_index          ///< The index of the side of the face under consideration.
-	);
-
-const struct const_Multiarray_d* constructor_s_l_fcl_interp (const struct Face* face, const struct Simulation* sim)
-{
-	return constructor_s_fc_interp(face,sim,0);
-}
-
-const struct const_Multiarray_d* constructor_s_r_fcl_interp (const struct Face* face, const struct Simulation* sim)
-{
-	const int side_index = 1;
-
-	struct Multiarray_d* sol_r_fcr = (struct Multiarray_d*) constructor_s_fc_interp(face,sim,side_index);
-	permute_Multiarray_d_fc(sol_r_fcr,'R',side_index,(struct Solver_Face*)face);
-
-	return (const struct const_Multiarray_d*) sol_r_fcr;
-}
-
-const struct const_Multiarray_d* constructor_sg_fc_null (const struct Face* face, const struct Simulation* sim)
-{
-	UNUSED(face);
-	UNUSED(sim);
-	return NULL;
-}
-
-// Level 1 ********************************************************************************************************** //
-
-static const struct const_Multiarray_d* constructor_s_fc_interp
-	(const struct Face* face, const struct Simulation* sim, const int side_index)
-{
-	// sim may be used to store a parameter establishing which type of operator to use for the computation.
-	UNUSED(sim);
-	const char op_format = 'd';
-
-	struct Solver_Face* s_face     = (struct Solver_Face*) face;
-	struct Volume* volume          = face->neigh_info[side_index].volume;
-	struct Solver_Volume* s_volume = (struct Solver_Volume*) volume;
-
-	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
-
-	const int ind_lf   = face->neigh_info[side_index].ind_lf,
-	          ind_href = face->neigh_info[side_index].ind_href;
-	const int p_v = s_volume->p_ref,
-	          p_f = s_face->p_ref;
-
-	const struct Operator* cv0_vs_fc = ( (s_face->cub_type == 's')
-		? get_Multiarray_Operator(e->cv0_vs_fcs,(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v})
-		: get_Multiarray_Operator(e->cv0_vs_fcc,(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v}) );
-
-	const struct const_Multiarray_d* s_coef = (const struct const_Multiarray_d*) s_volume->sol_coef;
-
-	return constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vs_fc,s_coef,'C',op_format,s_coef->order,NULL);
-}

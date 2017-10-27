@@ -22,14 +22,15 @@ include_directories(
 	simulation/mesh
 	simulation/operators
 	simulation/solvers
+	simulation/solvers/boundary
 	simulation/solvers/dg
 	simulation/solvers/numerical_flux
 	simulation/test_case
 	simulation/test_case/compute_error
 	simulation/test_case/flux
 	simulation/test_case/solution
-	simulation/test_case/solution/periodic_vortex
-	simulation/test_case/solution/supersonic_vortex
+	simulation/test_case/solution/advection
+	simulation/test_case/solution/euler
 	testing
 	)
 

@@ -42,6 +42,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
+const struct const_Multiarray_d* constructor_const_sol_invalid
+	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
+{
+	UNUSED(xyz);
+	UNUSED(sim);
+	EXIT_ERROR("Should not be entering here.\n");
+	return NULL;
+}
+
 void set_initial_solution (struct Simulation* sim)
 {
 	assert(sim->volumes->name == IL_SOLVER_VOLUME);

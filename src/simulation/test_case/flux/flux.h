@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__flux_h__INCLUDED
 /** \file
  *  \brief Provides containers and functions relating to fluxes of the supported PDEs.
+ *
+ *  The memory layout of the fluxes (node, dimension, equation) was chosen such that the memory stride is minimized when
+ *  converting from physical to reference space.
  */
 
 struct Flux_Input;
@@ -24,7 +27,6 @@ struct mutable_Flux;
 struct Simulation;
 
 #include <stdbool.h>
-#include "flux_euler.h"
 
 ///\{ \name The maximum number of outputs from the flux functions.
 #define MAX_FLUX_OUT 3 ///< See the members of \ref Flux.
@@ -43,6 +45,7 @@ typedef void (*compute_Flux_fptr)
 
 /// \brief Container holding data used for computing the fluxes and flux Jacobians.
 struct Flux_Input {
+	const char* input_path;     ///< Pointer to \ref Simulation::input_path.
 	const bool* compute_member; ///< Array of flags for which of the \ref Flux members should be computed.
 
 	const int d,     ///< \ref Simulation::d.

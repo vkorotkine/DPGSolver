@@ -45,6 +45,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Definitions for the available numerical fluxes.
+#define NUM_FLUX_UPWIND    11
+
 #define NUM_FLUX_ROE_PIKE  31
 
 #define NUM_FLUX_BR2       41

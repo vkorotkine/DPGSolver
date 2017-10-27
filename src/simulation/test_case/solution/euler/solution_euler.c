@@ -28,14 +28,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
-#include "compute_error.h"
+#include "boundary.h"
+#include "compute_error_euler.h"
 #include "const_cast.h"
-#include "flux.h"
-#include "numerical_flux.h"
+#include "flux_euler.h"
+#include "numerical_flux_euler.h"
 #include "simulation.h"
 #include "solution.h"
-#include "solution_periodic_vortex.h"
-//#include "solution_supersonic_vortex.h"
+#include "periodic_vortex/solution_periodic_vortex.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -46,8 +46,9 @@ void set_function_pointers_solution_euler (struct Test_Case* test_case, const st
 {
 	test_case->set_grad = set_sg_do_nothing;
 	if (strstr(sim->pde_spec,"periodic_vortex")) {
-		test_case->set_sol = set_sol_periodic_vortex;
-		test_case->compute_source = compute_source_do_nothing;
+		test_case->constructor_sol = constructor_const_sol_invalid;
+		test_case->set_sol         = set_sol_periodic_vortex;
+		test_case->compute_source  = compute_source_do_nothing;
 		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
 	} else if (strstr(sim->pde_spec,"supersonic_vortex")) {
 //		test_case->set_sol_v = set_sol_v_supersonic_vortex;
@@ -82,8 +83,7 @@ void set_function_pointers_solution_euler (struct Test_Case* test_case, const st
 		break;
 	}
 
-	test_case->constructor_s_l_fcl = constructor_s_l_fcl_interp;
-	test_case->constructor_g_l_fcl = constructor_sg_fc_null;
+	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_s_fcl_interp;
 }
 
 void convert_variables (struct Multiarray_d* vars, const char type_i, const char type_o)

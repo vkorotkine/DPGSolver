@@ -41,14 +41,14 @@ You should have received a copy of the GNU General Public License along with DPG
 void compute_Numerical_Flux_euler_lax_friedrichs
 	(const struct Numerical_Flux_Input* num_flux_i, struct mutable_Numerical_Flux* num_flux)
 {
-	int const d   = num_flux_i->d,
+	int const d   = num_flux_i->bv_l.d,
 	          Neq = d+2;
-	const ptrdiff_t NnTotal = num_flux_i->neigh_info[0].s->extents[0];
+	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->normals_l->data;
+	double const *const nL = num_flux_i->bv_l.normals->data;
 
-	double const *const WL = num_flux_i->neigh_info[0].s->data,
-	             *const WR = num_flux_i->neigh_info[1].s->data;
+	double const *const WL = num_flux_i->bv_l.s->data,
+	             *const WR = num_flux_i->bv_r.s->data;
 
 	double       *const nFluxNum = num_flux->nnf->data;
 
@@ -314,14 +314,14 @@ void compute_Numerical_Flux_euler_roe_pike
 {
 	/// The simple entropy fix is taken from (eq. (35), \cite Qu2015).
 
-	int const d   = num_flux_i->d,
+	int const d   = num_flux_i->bv_l.d,
 	          Neq = d+2;
-	const ptrdiff_t NnTotal = num_flux_i->neigh_info[0].s->extents[0];
+	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->normals_l->data;
+	double const *const nL = num_flux_i->bv_l.normals->data;
 
-	double const *const WL = num_flux_i->neigh_info[0].s->data,
-	             *const WR = num_flux_i->neigh_info[1].s->data;
+	double const *const WL = num_flux_i->bv_l.s->data,
+	             *const WR = num_flux_i->bv_r.s->data;
 
 	double       *const nFluxNum = num_flux->nnf->data;
 

@@ -25,7 +25,7 @@ struct Simulation;
 struct Face;
 
 #include <stdbool.h>
-#include "numerical_flux_euler.h"
+#include "boundary.h"
 
 ///\{ \name The maximum number of outputs from the numerical flux functions.
 #define MAX_NUM_FLUX_OUT 3 ///< See the members of \ref Numerical_Flux.
@@ -42,42 +42,38 @@ typedef void (*compute_Numerical_Flux_fptr)
 	 struct mutable_Numerical_Flux* num_flux
 	);
 
-/** \brief Function pointer to functions constructing the solution/gradients needed by the numerical flux at the face
- *         cubature nodes.
+/** \brief Function pointer to functions constructing the members needed by the numerical flux.
  *  \return Standard.
  *
- *  \param face \ref Face.
- *  \param sim  \ref Simulation.
+ *  \param num_flux_i \ref Numerical_Flux_Input.
+ *  \param face       \ref Face.
+ *  \param sim        \ref Simulation.
  */
-typedef const struct const_Multiarray_d* (*constructor_sg_fc_fptr)
-	(const struct Face* face,
+typedef void (*constructor_Numerical_Flux_Input_mem_fptr)
+	(struct Numerical_Flux_Input* num_flux_i,
+	 const struct Face* face,
 	 const struct Simulation* sim
 	);
 
 /// \brief Container holding data used for computing the numerical fluxes and their Jacobians.
 struct Numerical_Flux_Input {
-	const bool* compute_member; ///< Array of flags for which of the \ref Numerical_Flux members should be computed.
-
-	const int d,     ///< \ref Simulation::d.
-	          n_eq,  ///< \ref Test_Case::n_eq.
-	          n_var; ///< \ref Test_Case::n_var.
+	struct Boundary_Value_Input bv_l; ///< \ref Boundary_Value_Input container.
+	struct Boundary_Value       bv_r; ///< \ref Boundary_Value container.
 
 	const bool has_1st_order, ///< \ref Test_Case::has_1st_order.
 	           has_2nd_order; ///< \ref Test_Case::has_2nd_order.
 
-	const struct const_Multiarray_d* normals_l; ///< The unit normal vector components as seen from the left.
+/*	const struct const_Multiarray_d* normals_l; ///< The unit normal vector components as seen from the left.
 	const struct const_Multiarray_d* xyz_l;     ///< The xyz coordinates as seen from the left.
 
-	/** \brief Container for information from either side of the \ref Face.
-	 *
-	 *  The information for the first index `neigh_info[0]` relates to the what is termed the left side (whose outward
-	 *  pointing unit normal is provided).
-	 */
-	struct Neigh_Info_NFI {
-		const struct const_Multiarray_d* s; ///< The solution variables.
-		const struct const_Multiarray_d* g; ///< The solution gradient variables.
-	} neigh_info[2]; ///< \ref Neigh_Info_NFI.
+	const struct const_Multiarray_d* s_l; ///< The solution variables as seen from the left.
+	const struct const_Multiarray_d* g_l; ///< The solution gradient variables as seen from the left.
 
+	const struct const_Multiarray_d* s_r; ///< The solution variables as seen from the right.
+	const struct const_Multiarray_d* g_r; ///< The solution gradient variables as seen from the right.
+
+	const struct const_Multiarray_d* ds_r_ds_l; ///< The Jacobian of `s_r` wrt `s_l` (Used on boundaries).
+*/
 	/// \ref compute_Numerical_Flux_fptr calling appropriate 1st/2nd order functions.
 	compute_Numerical_Flux_fptr compute_Numerical_Flux;
 
@@ -127,33 +123,16 @@ void destructor_Numerical_Flux_Input
 	(struct Numerical_Flux_Input* num_flux_i ///< Standard.
 	);
 
+/** \brief Destructor for a \ref Numerical_Flux_Input members set in \ref constructor_Numerical_Flux_Input_mem_fptr
+ *         functions. */
+void destructor_Numerical_Flux_Input_mem
+	(struct Numerical_Flux_Input* num_flux_i ///< Standard.
+	);
+
 /** \brief Constructor for a \ref Numerical_Flux container.
  *  \return See brief. */
 struct Numerical_Flux* constructor_Numerical_Flux
 	(const struct Numerical_Flux_Input* num_flux_i ///< \ref Numerical_Flux_Input.
-	);
-
-/** \brief Version of \ref constructor_sg_fc_fptr constructing the solution needed by the numerical flux on the left
- *         side of the face at the face cubature nodes as seen from the left volume.
- *  \return See brief. */
-const struct const_Multiarray_d* constructor_s_l_fcl_interp
-	(const struct Face* face,     ///< Defined for \ref constructor_sg_fc_fptr.
-	 const struct Simulation* sim ///< Defined for \ref constructor_sg_fc_fptr.
-	);
-
-/** \brief Version of \ref constructor_sg_fc_fptr constructing the solution needed by the numerical flux on the right
- *         side of the face at the face cubature nodes as seen from the left volume.
- *  \return See brief. */
-const struct const_Multiarray_d* constructor_s_r_fcl_interp
-	(const struct Face* face,     ///< Defined for \ref constructor_sg_fc_fptr.
-	 const struct Simulation* sim ///< Defined for \ref constructor_sg_fc_fptr.
-	);
-
-/** \brief Version of \ref constructor_sg_fc_fptr returning NULL.
- *  \return See brief. */
-const struct const_Multiarray_d* constructor_sg_fc_null
-	(const struct Face* face,     ///< Defined for \ref constructor_sg_fc_fptr.
-	 const struct Simulation* sim ///< Defined for \ref constructor_sg_fc_fptr.
 	);
 
 /// \brief Destructor for a \ref Numerical_Flux container.

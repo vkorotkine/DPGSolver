@@ -19,10 +19,22 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to functions used for solution specification (initialization).
  */
 
+struct const_Multiarray_d;
 struct Simulation;
 struct Solver_Volume;
 struct Solver_Face;
 struct Solution_Container;
+
+/** \brief Function pointer to a function which constructs the solution given the input xyz coordinates.
+ *  \return A \ref const_Multiarray_d\* container holding the solution.
+ *
+ *  \param xyz \ref Input xyz coordinates.
+ *  \param sim \ref Simulation.
+ */
+typedef const struct const_Multiarray_d* (*constructor_sol_fptr)
+	(const struct const_Multiarray_d* xyz,
+	 const struct Simulation* sim
+	);
 
 /** \brief Function pointer to volume solution setting function.
  *  \param sim      \ref Simulation.
@@ -55,6 +67,13 @@ struct Solution_Container {
 };
 
 // Interface functions ********************************************************************************************** //
+
+/** \brief Version of \ref constructor_sol_fptr to be used what a call to this function should be invalid.
+ *  \return See brief. */
+const struct const_Multiarray_d* constructor_const_sol_invalid
+	(const struct const_Multiarray_d* xyz, ///< Defined for \ref constructor_sol_fptr.
+	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr.
+	);
 
 /** \brief Set up the initial solution for the simulation. Sets:
  *	- \ref Solver_Volume::sol_coef;

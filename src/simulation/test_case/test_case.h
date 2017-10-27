@@ -50,6 +50,8 @@ struct Test_Case {
 	set_sol_fptr set_sol;  ///< Function pointer to the function used to set data relating to the solution.
 	set_sol_fptr set_grad; ///< Function pointer to the function used to set data relating to the solution gradients.
 
+	constructor_sol_fptr constructor_sol; ///< Function pointer to the function used to construct the solution.
+
 	// Solver related parameters
 	char solver_method_curr;     ///< The current solver method. Options: 'e'xplicit, 'i'mplicit.
 	const bool display_progress; ///< Flag for whether the solver progress should be displayed (in stdout).
@@ -100,11 +102,9 @@ struct Test_Case {
 	 *  Jacobians) for the implicit solver. */
 	compute_Numerical_Flux_fptr compute_Numerical_Flux_i[2];
 
-	/// Solution from the left volume to face cubature nodes as seen from the left volume.
-	constructor_sg_fc_fptr constructor_s_l_fcl;
-
-	/// Solution gradient from the left volume to face cubature nodes as seen from the left volume.
-	constructor_sg_fc_fptr constructor_g_l_fcl;
+	/** Constructor for solution and gradient from the left volume at face cubature nodes as seen from the left
+	 *  volume. */
+	constructor_Boundary_Value_Input_face_fptr constructor_Boundary_Value_Input_face_fcl;
 
 	/** \note constructor_*_r_fcl are provided as part of the Solver_Face_* container as they are dependent upon
 	 *        whether the face is on a boundary or not. */

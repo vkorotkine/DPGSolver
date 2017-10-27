@@ -232,6 +232,21 @@ struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i
 	return dest;
 }
 
+struct Multiarray_d* constructor_copy_Multiarray_d (struct Multiarray_d* src)
+{
+	const ptrdiff_t size = compute_size(src->order,src->extents);
+	double* data = malloc(size * sizeof *data); // moved
+	for (int i = 0; i < size; ++i)
+		data[i] = src->data[i];
+
+	return constructor_move_Multiarray_d_d(src->layout,src->order,src->extents,true,data);
+}
+
+const struct const_Multiarray_d* constructor_copy_const_Multiarray_d (const struct const_Multiarray_d*const src)
+{
+	return (const struct const_Multiarray_d*) constructor_copy_Multiarray_d((struct Multiarray_d*)src);
+}
+
 void const_constructor_copy_Multiarray_d
 	(const struct const_Multiarray_d*const* dest, const struct const_Multiarray_d*const src)
 {

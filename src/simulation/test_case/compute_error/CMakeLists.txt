@@ -1,5 +1,6 @@
 set	(SOURCE
 	 compute_error.c
+	 compute_error_advection.c
 	 compute_error_euler.c
 	 element_error.c
 	)

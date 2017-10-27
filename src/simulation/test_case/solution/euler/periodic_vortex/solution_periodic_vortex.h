@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 struct Solution_Container;
 
-/// \brief Function pointer to be used for \ref Test_Case::set_sol for the periodic vortex test case.
+/// \brief Function to be used for \ref Test_Case::set_sol for the periodic vortex test case.
 void set_sol_periodic_vortex
 	(const struct Simulation* sim,      ///< Defined for \ref set_sol_fptr.
 	 struct Solution_Container sol_cont ///< Defined for \ref set_sol_fptr.

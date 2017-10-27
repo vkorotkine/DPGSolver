@@ -1,12 +1,15 @@
 set	(SOURCE
 	 element_solution.c
 	 solution.c
-	 solution_euler.c
-	 periodic_vortex/solution_periodic_vortex.c
+	 advection/solution_advection.c
+	 advection/peterson/solution_peterson.c
+	 euler/solution_euler.c
+	 euler/periodic_vortex/solution_periodic_vortex.c
 #	 supersonic_vortex/solution_supersonic_vortex.c
 	)
 
 set	(LIBS_DEPEND
+	 Boundary
 	 Computational_Elements
 	 Compute_Error
 	 Containers

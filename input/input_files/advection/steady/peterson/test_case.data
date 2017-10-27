@@ -3,9 +3,9 @@
 solver_proc   100
 solver_type_e 102
 
-num_flux_1st Upwind
+num_flux_1st upwind
 
-time_step  1.0
-time_final 1000.0
+time_step  0.1
+time_final 20.0
 
 display_progress 1

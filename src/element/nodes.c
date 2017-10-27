@@ -55,9 +55,17 @@ static const struct const_Nodes* constructor_const_Nodes_tet
 	 const int node_type ///< Defined for \ref constructor_const_Nodes_si.
 	);
 
-/** \brief Constructor for a \ref Nodes container for the p1 reference element vertices or arbitrary element type.
+/** \brief Constructor for a \ref Nodes container for the p1 reference element vertices for arbitrary element type.
  *  \return See brief. */
 static const struct const_Nodes* constructor_const_Nodes_vertices
+	(const int d,     ///< Defined in \ref constructor_Nodes_fptr.
+	 const int p,     ///< Defined in \ref constructor_Nodes_fptr.
+	 const int s_type ///< \ref Element::s_type.
+	);
+
+/** \brief Constructor for a \ref Nodes container for the plotting nodes for arbitrary element type.
+ *  \return See brief. */
+static const struct const_Nodes* constructor_const_Nodes_plot
 	(const int d,     ///< Defined in \ref constructor_Nodes_fptr.
 	 const int p,     ///< Defined in \ref constructor_Nodes_fptr.
 	 const int s_type ///< \ref Element::s_type.
@@ -190,6 +198,8 @@ const struct const_Nodes* constructor_const_Nodes_si (const int d, const int p, 
 
 	if (node_type == NODES_VERTEX)
 		return constructor_const_Nodes_vertices(d,p,ST_SI);
+	else if (node_type == NODES_PLOT)
+		return constructor_const_Nodes_plot(d,p,ST_SI);
 
 	if (d == 2)
 		return constructor_const_Nodes_tri(p,node_type);
@@ -540,7 +550,7 @@ static const struct const_Nodes* constructor_const_Nodes_tri (const int p, const
 		NodeType = "EQ";
 		PMax = 8;
 	} else {
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Unsupported: %d\n",node_type);
 	}
 
 	if (P > PMax)
@@ -1065,4 +1075,14 @@ static const struct const_Nodes* constructor_const_Nodes_vertices (const int d, 
 	nodes->s = NULL;
 
 	return (const struct const_Nodes*) nodes;
+}
+
+static const struct const_Nodes* constructor_const_Nodes_plot (const int d, const int p, const int s_type)
+{
+	const int e_type = compute_elem_from_super_type(s_type,d);
+
+	const struct const_Plotting_Nodes* p_nodes = constructor_const_Plotting_Nodes(p,e_type);
+
+UNUSED(p_nodes);
+EXIT_ADD_SUPPORT;
 }

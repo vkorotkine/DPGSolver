@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "compute_error_euler.h"
+#include "compute_error_advection.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -35,17 +35,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "const_cast.h"
 #include "element.h"
 #include "intrusive.h"
-#include "multiarray_operator.h"
-#include "operator.h"
+//#include "multiarray_operator.h"
+//#include "operator.h"
 #include "simulation.h"
-#include "solution_euler.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
 /** \brief Return a statically allocated `char*` holding the specific header for all of the Euler variables.
  *  \return See brief. */
-static const char* compute_header_spec_euler_all
+static const char* compute_header_spec_advection_all
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
@@ -66,21 +65,19 @@ static void set_Solver_Volume_exact
 
 // Interface functions ********************************************************************************************** //
 
-struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
+struct Error_CE* constructor_Error_CE_advection_all (const struct Simulation* sim)
 {
-	const int d     = sim->d;
-	const int n_out = d+2+1;
+	const int n_out = 1;
 
+/// \todo merge the common elements of the error computation functions when finished with advection.
+/// \todo bubble up duplicated static functions.
 	const double domain_volume = compute_domain_volume(sim);
-	const char* header_spec    = compute_header_spec_euler_all(sim);
+	const char* header_spec    = compute_header_spec_advection_all(sim);
 	struct Vector_d* sol_L2 = constructor_empty_Vector_d(n_out); // moved
 	set_to_value_Vector_d(sol_L2,0.0);
 
 	struct Solution_Container sol_cont =
 		{ .ce_type = 'v', .cv_type = 'v', .node_kind = 'c', .volume = NULL, .face = NULL, .sol = NULL, };
-
-	ptrdiff_t s_extents[2] = { 0, 1 };
-	struct Multiarray_d* s = constructor_move_Multiarray_d_d('C',2,s_extents,false,NULL); // destructed
 
 	int domain_order = -1;
 
@@ -98,19 +95,6 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 		sol_cont.sol = sol[1];
 		sol_cont.volume = s_vol[1];
 		sim->test_case->set_sol(sim,sol_cont);
-		assert(sol[1]->extents[1] == d+2);
-
-		s->extents[0] = s_vol[0]->jacobian_det_vc->extents[0];
-		for (int i = 0; i < 2; ++i) {
-			convert_variables(sol[i],'c','p');
-
-			resize_Multiarray_d(sol[i],sol[i]->order,(ptrdiff_t[]){sol[i]->extents[0],n_out});
-
-			sol[i]->extents[1] = d+2;
-			s->data = get_col_Multiarray_d(d+2,sol[i]);
-			compute_entropy(s,(const struct const_Multiarray_d*)sol[i],'p');
-			sol[i]->extents[1] = n_out;
-		}
 
 		subtract_in_place_Multiarray_d(sol[0],(const struct const_Multiarray_d*)sol[1]);
 
@@ -126,7 +110,6 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 
 	}
 	destructor_Solver_Volume_exact(s_vol[1]);
-	destructor_Multiarray_d(s);
 
 	for (int i = 0; i < sol_L2->ext_0; ++i)
 		sol_L2->data[i] = sqrt(sol_L2->data[i]/domain_volume);
@@ -147,16 +130,12 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static const char* compute_header_spec_euler_all (const struct Simulation* sim)
+static const char* compute_header_spec_advection_all (const struct Simulation* sim)
 {
+	UNUSED(sim);
 	static char header_spec[STRLEN_MAX];
 
-	int index = sprintf(header_spec,"%-14s%-14s","L2rho","L2u");
-	if (sim->d >= 2)
-		index += sprintf(header_spec+index,"%-14s","L2v");
-	if (sim->d >= 3)
-		index += sprintf(header_spec+index,"%-14s","L2w");
-	sprintf(header_spec+index,"%-14s%-14s","L2p","L2s");
+	sprintf(header_spec,"%-14s","L2u");
 
 	return header_spec;
 }

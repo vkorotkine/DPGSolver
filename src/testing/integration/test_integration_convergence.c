@@ -46,7 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
-#define ORDER_VIS_CONV_P      3
+#define ORDER_VIS_CONV_P      1
 #define ORDER_VIS_CONV_ML_MAX 3
 ///\}
 
