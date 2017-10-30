@@ -83,6 +83,15 @@ struct Vector_i* constructor_empty_Vector_i (const ptrdiff_t ext_0)
 	return constructor_move_Vector_i_i(ext_0,true,data);
 }
 
+// Zero constructors ************************************************************************************************ //
+
+struct Vector_i* constructor_zero_Vector_i (const ptrdiff_t ext_0)
+{
+	int* data = calloc(ext_0 , sizeof *data); // keep
+
+	return constructor_move_Vector_i_i(ext_0,true,data);
+}
+
 // Copy constructors ************************************************************************************************ //
 
 struct Vector_i* constructor_copy_Vector_i (const struct Vector_i*const src)

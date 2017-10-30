@@ -63,6 +63,14 @@ struct Vector_i* constructor_empty_Vector_i
 	(const ptrdiff_t ext_0 ///< The value of ext_0.
 	);
 
+// Empty constructors *********************************************************************************************** //
+
+/** \brief The same as \ref constructor_empty_Vector_d but allocating using calloc.
+ *  \return Standard. */
+struct Vector_i* constructor_zero_Vector_i
+	(const ptrdiff_t ext_0 ///< Defined for \ref constructor_empty_Vector_d.
+	);
+
 // Copy constructors ************************************************************************************************ //
 
 /** \brief Copy constructor for a \ref Vector_i\* from a `Vector_i*`.

@@ -27,8 +27,6 @@ struct Test_Info;
 struct Integration_Test_Info {
 	const char* ctrl_name; ///< The name of the control file used for the current test.
 
-	const bool display_progress; ///< \ref Test_Case::display_progress.
-
 	/** The minimal and maximal reference orders to be used for convergence order testing.
 	 *
 	 *  This range may differ from \ref Simulation::p_ref, such that convergence order testing can be performed

@@ -7,6 +7,9 @@ include_directories(${MKL_INCLUDE_DIRS})
 find_package(GSL 2.4 REQUIRED)
 include_directories(${GSL_INCLUDE_DIRS})
 
+find_package(PETSc REQUIRED)
+include_directories(${PETSC_INCLUDES})
+
 # Currently including all directories here so that `#include`s need not specify relative paths.
 include_directories(
 	allocators

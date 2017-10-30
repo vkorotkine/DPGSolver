@@ -53,12 +53,12 @@ typedef double (*time_step_fptr)
 
 /** \brief Set the function pointer to the appropriate time-stepping function.
  *  \return See brief. */
-time_step_fptr set_time_step
+static time_step_fptr set_time_step
 	(const struct Simulation* sim ///< \ref Simulation
 	);
 
 /// \brief Display the solver progress.
-void display_progress
+static void display_progress
 	(const struct Test_Case* test_case, ///< \ref Test_Case.
 	 const int t_step,                  ///< The current time step.
 	 const double max_rhs,              ///< The current maximum value of the rhs term.
@@ -67,7 +67,7 @@ void display_progress
 
 /** \brief Check the exit conditions.
  *  \return `true` if exit conditions are satisfied, `false` otherwise. */
-bool check_exit
+static bool check_exit
 	(const struct Test_Case* test_case, ///< \ref Test_Case.
 	 const double max_rhs,              ///< The current maximum value of the rhs term.
 	 const double max_rhs0              ///< The initial maximum value of the rhs term.
@@ -115,14 +115,14 @@ void solve_explicit (struct Simulation* sim)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Perform time-stepping using the forward Euler method.
+/** \brief Version of \ref time_step_fptr using the forward Euler method.
  *  \return See \ref time_step_fptr. */
 static double time_step_euler
 	(const double dt,             ///< The time step.
 	 const struct Simulation* sim ///< Defined for \ref time_step_fptr.
 	);
 
-/** \brief Perform time-stepping using the strong stability preserving Runge-Kutta 3-stage, 3rd order method.
+/** \brief Version of \ref time_step_fptr using the strong stability preserving Runge-Kutta 3-stage, 3rd order method.
  *  \return See \ref time_step_fptr.
  *
  *  Reference: eq. (4.2) \cite Gottlieb2001.
@@ -132,14 +132,17 @@ static double time_step_ssp_rk_33
 	 const struct Simulation* sim ///< Defined for \ref time_step_fptr.
 	);
 
-/** \brief Perform time-stepping using the low-storage Runge-Kutta 5-stage, 4rd order method.
- *  \return See \ref time_step_fptr. */
+/** \brief Version of \ref time_step_fptr using the low-storage Runge-Kutta 5-stage, 4rd order method.
+ *  \return See \ref time_step_fptr.
+ *
+ *  Reference: Solution 3, Table 1, rational form \cite Carpenter1994.
+ */
 static double time_step_ls_rk_54
 	(const double dt,             ///< The time step.
 	 const struct Simulation* sim ///< Defined for \ref time_step_fptr.
 	);
 
-time_step_fptr set_time_step (const struct Simulation* sim)
+static time_step_fptr set_time_step (const struct Simulation* sim)
 {
 	const struct Test_Case* test_case = sim->test_case;
 	assert((test_case->solver_proc == SOLVER_E) || (test_case->solver_proc == SOLVER_EI));
@@ -160,7 +163,8 @@ time_step_fptr set_time_step (const struct Simulation* sim)
 	}
 }
 
-void display_progress (const struct Test_Case* test_case, const int t_step, const double max_rhs, const double max_rhs0)
+static void display_progress
+	(const struct Test_Case* test_case, const int t_step, const double max_rhs, const double max_rhs0)
 {
 	if (!test_case->display_progress)
 		return;
@@ -180,7 +184,7 @@ void display_progress (const struct Test_Case* test_case, const int t_step, cons
 	}
 }
 
-bool check_exit (const struct Test_Case* test_case, const double max_rhs, const double max_rhs0)
+static bool check_exit (const struct Test_Case* test_case, const double max_rhs, const double max_rhs0)
 {
 	bool exit_now = false;
 	switch (test_case->solver_proc) {
@@ -211,9 +215,28 @@ bool check_exit (const struct Test_Case* test_case, const double max_rhs, const 
 static double time_step_euler (const double dt, const struct Simulation* sim)
 {
 	assert(sim->method == METHOD_DG);
-UNUSED(dt);
-UNUSED(sim);
-EXIT_ADD_SUPPORT;
+	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
+	assert(sim->faces->name   == IL_FACE_SOLVER_DG);
+
+	const double max_rhs = compute_rhs(sim);
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume*    s_vol    = (struct Solver_Volume*) curr;
+		struct DG_Solver_Volume* s_vol_dg = (struct DG_Solver_Volume*) curr;
+
+		struct Multiarray_d* sol_coef = s_vol->sol_coef,
+		                   * rhs      = s_vol_dg->rhs;
+
+		double* data_s   = sol_coef->data,
+		      * data_rhs = rhs->data;
+
+		const ptrdiff_t i_max = compute_size(sol_coef->order,sol_coef->extents);
+		assert(i_max == compute_size(rhs->order,rhs->extents));
+
+		for (ptrdiff_t i = 0; i < i_max; ++i)
+			data_s[i] += dt*data_rhs[i];
+//		enforce_positivity_highorder(sol_coef);
+	}
+	return max_rhs;
 }
 
 static double time_step_ssp_rk_33 (const double dt, const struct Simulation* sim)
@@ -265,14 +288,52 @@ static double time_step_ssp_rk_33 (const double dt, const struct Simulation* sim
 	}
 
 	return max_rhs;
-EXIT_ADD_SUPPORT;
 }
 
 static double time_step_ls_rk_54 (const double dt, const struct Simulation* sim)
 {
-// use 26 decimal precision from carpenter for coefficients.
 	assert(sim->method == METHOD_DG);
-UNUSED(dt);
-UNUSED(sim);
-EXIT_ADD_SUPPORT;
+	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
+	assert(sim->faces->name   == IL_FACE_SOLVER_DG);
+
+	static const double rk4a[] =
+		{  0.0,                              -5673018057730.0/13575370590870.0, -2404267990393.0/20167466952380.0,
+		  -3550918686646.0/20915011793850.0, -1275806237668.0/84257045769900.0, };
+	static const double rk4b[] =
+		{  1432997174477.0/95750804417550.0,  5161836677717.0/13612068292357.0, 17201463215490.0/20902069494980.0,
+		   3134564353537.0/44814673103380.0,  2277821191437.0/14882151754819.0, };
+	static const double rk4c[] =
+		{  0.0,                               1432997174477.0/95750804417550.0,  2526269341429.0/68203639628960.0,
+		   2006345519317.0/32243100637760.0,  2802321613138.0/29243179262510.0, };
+	UNUSED(rk4c);
+
+	double max_rhs = 0.0;
+	for (int rk = 0; rk < 5; rk++) {
+		max_rhs = compute_rhs(sim);
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+			struct Solver_Volume*    s_vol    = (struct Solver_Volume*) curr;
+			struct DG_Solver_Volume* s_vol_dg = (struct DG_Solver_Volume*) curr;
+
+			struct Multiarray_d* sol_coef   = s_vol->sol_coef,
+			                   * sol_coef_p = s_vol_dg->sol_coef_p,
+			                   * rhs        = s_vol_dg->rhs;
+
+			double* data_s   = sol_coef->data,
+			      * data_sp  = sol_coef_p->data,
+			      * data_rhs = rhs->data;
+
+			const ptrdiff_t i_max = compute_size(sol_coef->order,sol_coef->extents);
+			assert(i_max == compute_size(sol_coef_p->order,sol_coef_p->extents));
+			assert(i_max == compute_size(rhs->order,rhs->extents));
+
+			for (ptrdiff_t i = 0; i < i_max; ++i) {
+				data_sp[i] *= rk4a[rk];
+				data_sp[i] += dt*data_rhs[i];
+				data_s[i]  += rk4b[rk]*data_sp[i];
+			}
+//			enforce_positivity_highorder(sol_coef);
+		}
+	}
+
+	return max_rhs;
 }

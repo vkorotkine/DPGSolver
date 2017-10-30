@@ -9,6 +9,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 ${PETSC_LIBRARIES}
 	 Computational_Elements
 	 Numerical_Flux
 	 Solution
@@ -16,5 +17,5 @@ set	(LIBS_DEPEND
 	)
 
 set (LIB Solvers)
-add_library(${LIB} ${SOURCE})
+add_library(${LIB} STATIC ${SOURCE})
 target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})

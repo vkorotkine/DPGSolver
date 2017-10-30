@@ -23,11 +23,19 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Multiarray_d;
 struct Solver_Face;
 struct Simulation;
+struct Solver_Storage_Implicit;
 
 /** \brief Version of \ref compute_rhs for the dg method.
  *  \return See brief. */
 double compute_rhs_dg
 	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Version of \ref compute_rlhs for the dg method.
+ *  \return See brief. */
+double compute_rlhs_dg
+	(const struct Simulation* sim,             ///< \ref Simulation.
+	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
 	);
 
 /** \brief Permute the input multiarray such that its ordering is such that it is in the reference coordinates of the
@@ -37,6 +45,22 @@ void permute_Multiarray_d_fc
 	 const char perm_layout,          ///< Defined for \ref permute_Multiarray_d_V.
 	 const int side_index_dest,       ///< The side index of the destination.
 	 const struct Solver_Face* s_face ///< \ref Solver_Face.
+	);
+
+/** \brief Set the values of \ref Solver_Storage_Implicit::row and Solver_Storage_Implicit::col based on the current
+ *         volume and eq, var indices. */
+void set_petsc_Mat_row_col
+	(const struct Solver_Storage_Implicit*const s_store_i, ///< \ref Solver_Storage_Implicit.
+	 const struct Solver_Volume* v_l,                      ///< The left \ref Solver_Volume.
+	 const int eq,                                         ///< The index of the equation.
+	 const struct Solver_Volume* v_r,                      ///< The right \ref Solver_Volume.
+	 const int vr                                          ///< The index of the variable.
+	);
+
+/// \brief Add lhs values to the petsc Mat at the appropriate location.
+void add_to_petsc_Mat
+	(const struct Solver_Storage_Implicit*const s_store_i, ///< \ref Solver_Storage_Implicit.
+	 const struct const_Matrix_d* lhs                      ///< The matrix containing the lhs data.
 	);
 
 #endif // DPG__solve_dg_h__INCLUDED

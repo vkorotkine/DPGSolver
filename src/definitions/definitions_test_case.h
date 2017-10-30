@@ -42,6 +42,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define SOLVER_E_EULER     101 ///< Explicit forward Euler.
 #define SOLVER_E_SSP_RK_33 102 ///< Explicit strong stability preserving Runge-Kutta (3-stage, 3rd order).
 #define SOLVER_E_LS_RK_54  103 ///< Explicit low storage Runge-Kutta (5-stage, 4rd order).
+
+#define SOLVER_I_DIRECT    201 ///< Implicit direct solver (LU; Cholesky if symmetric).
+#define SOLVER_I_ITER_DEF  202 ///< Implicit default iterative solver (iLU; iCholesky if symmetric).
 ///\}
 
 ///\{ \name Definitions for the available numerical fluxes.

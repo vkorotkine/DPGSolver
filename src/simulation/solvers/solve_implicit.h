@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__solve_implicit_h__INCLUDED
 /** \file
  *  \brief Provides the interface to functions used to solve for the solution using implicit procedures.
- *
- *  \todo Update this.
  */
 
 struct Simulation;

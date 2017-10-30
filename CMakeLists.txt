@@ -24,7 +24,9 @@ set(DPGSolver_VERSION "${DPGSolver_VERSION_MAJOR}.${DPGSolver_VERSION_MINOR}")
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # Global includes
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules")
+list	(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules"
+	                          "${PROJECT_SOURCE_DIR}/cmake/modules/petsc_additional"
+	)
 include(functions)
 
 # Include subdirectory CMakeLists.txt files

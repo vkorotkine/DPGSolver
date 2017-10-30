@@ -108,8 +108,9 @@ void destructor_Numerical_Flux_Input_data
 
 // Interface functions ********************************************************************************************** //
 
-void compute_face_rlhs_dg (const struct Simulation* sim)
+void compute_face_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
 {
+UNUSED(s_store_i);
 	assert(sim->faces->name == IL_FACE_SOLVER_DG);
 
 	struct S_Params s_params = set_s_params(sim);
@@ -120,10 +121,6 @@ void compute_face_rlhs_dg (const struct Simulation* sim)
 
 		constructor_Numerical_Flux_Input_data(num_flux_i,face,sim); // destructed
 /// \todo clean-up
-/*print_const_Multiarray_d(num_flux_i->bv_l.s);
-print_const_Multiarray_d(num_flux_i->bv_r.s);
-EXIT_UNSUPPORTED;
-*/
 		// Compute the normal numerical fluxes (and optionally their Jacobians) at the face cubature nodes.
 		struct Numerical_Flux* num_flux = constructor_Numerical_Flux(num_flux_i); // destructed
 		destructor_Numerical_Flux_Input_data(num_flux_i);

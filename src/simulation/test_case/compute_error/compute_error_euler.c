@@ -47,19 +47,10 @@ static const char* compute_header_spec_euler_all
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Constructor for a derived \ref Solver_Volume used to compute the exact solution.
- *  \return See brief. */
-static struct Solver_Volume* constructor_Solver_Volume_exact ();
-
-/// \brief Destructor for a derived \ref Solver_Volume used to compute the exact solution.
-static void destructor_Solver_Volume_exact
-	(struct Solver_Volume* s_vol_ex ///< Standard.
-	);
-
-/// \brief Set the relevant members of a duplicate \ref Solver_Volume used to compute the exact solution.
-static void set_Solver_Volume_exact
-	(struct Solver_Volume* s_vol_ex, ///< The partially duplicated \ref Solver_Volume.
-	 struct Solver_Volume* s_vol     ///< The \ref Solver_Volume.
+/// \brief Add the computed and exact entropy to the solution data Multiarray.
+static void add_entropy
+	(const struct Error_CE_Helper* e_ce_h, ///< \ref Error_CE_Helper.
+	 struct Error_CE_Data* e_ce_d          ///< \ref Error_CE_Data.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -69,74 +60,26 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 	const int d     = sim->d;
 	const int n_out = d+2+1;
 
-	const double domain_volume = compute_domain_volume(sim);
-	const char* header_spec    = compute_header_spec_euler_all(sim);
-	struct Vector_d* sol_L2 = constructor_empty_Vector_d(n_out); // moved
-	set_to_value_Vector_d(sol_L2,0.0);
+	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
+	e_ce_h->header_spec = compute_header_spec_euler_all(sim);
 
-	struct Solution_Container sol_cont =
-		{ .ce_type = 'v', .cv_type = 'v', .node_kind = 'c', .volume = NULL, .face = NULL, .sol = NULL, };
 
-	ptrdiff_t s_extents[2] = { 0, 1 };
-	struct Multiarray_d* s = constructor_move_Multiarray_d_d('C',2,s_extents,false,NULL); // destructed
-
-	int domain_order = -1;
-
-	struct Solver_Volume* s_vol[2] = { NULL, constructor_Solver_Volume_exact(), }; // destructed
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		s_vol[0] = (struct Solver_Volume*) curr;
-
-		set_Solver_Volume_exact(s_vol[1],s_vol[0]);
-
-		struct Multiarray_d* sol[2] = { NULL, NULL, };
-
-		sol[0] = constructor_sol_v(sim,s_vol[0],sol_cont.node_kind);       // destructed
-		sol[1] = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}); // destructed
-
-		sol_cont.sol = sol[1];
-		sol_cont.volume = s_vol[1];
-		sim->test_case->set_sol(sim,sol_cont);
-
-		s->extents[0] = s_vol[0]->jacobian_det_vc->extents[0];
-		for (int i = 0; i < 2; ++i) {
-			convert_variables(sol[i],'c','p');
-
-			resize_Multiarray_d(sol[i],sol[i]->order,(ptrdiff_t[]){sol[i]->extents[0],n_out});
-
-			sol[i]->extents[1] = d+2;
-			s->data = get_col_Multiarray_d(d+2,sol[i]);
-			compute_entropy(s,(const struct const_Multiarray_d*)sol[i],'p');
-			sol[i]->extents[1] = n_out;
-		}
-
-		subtract_in_place_Multiarray_d(sol[0],(const struct const_Multiarray_d*)sol[1]);
-
-		increment_vol_errors_l2_2(sol_L2,(const struct const_Multiarray_d*)sol[0],s_vol[0]);
+		e_ce_h->s_vol[0] = (struct Solver_Volume*) curr;
+		struct Error_CE_Data* e_ce_d = constructor_Error_CE_Data(e_ce_h,sim); // destructed
 
 		for (int i = 0; i < 2; ++i)
-			destructor_Multiarray_d(sol[i]);
+			convert_variables(e_ce_d->sol[i],'c','p');
+		add_entropy(e_ce_h,e_ce_d);
 
-		if (domain_order == -1)
-			domain_order = s_vol[0]->p_ref;
-		else
-			assert(domain_order == s_vol[0]->p_ref);
+		increment_sol_L2(e_ce_h,e_ce_d);
+		destructor_Error_CE_Data(e_ce_d);
 
+		update_domain_order(e_ce_h);
 	}
-	destructor_Solver_Volume_exact(s_vol[1]);
-	destructor_Multiarray_d(s);
 
-	for (int i = 0; i < sol_L2->ext_0; ++i)
-		sol_L2->data[i] = sqrt(sol_L2->data[i]/domain_volume);
-
-	struct Vector_i* expected_order = constructor_empty_Vector_i(n_out); // moved
-	set_to_value_Vector_i(expected_order,domain_order+1);
-
-	struct Error_CE* error_ce = malloc(sizeof *error_ce); // returned
-
-	const_cast_d(&error_ce->domain_volume,domain_volume);
-	error_ce->sol_L2         = (const struct const_Vector_d*) sol_L2;
-	error_ce->expected_order = (const struct const_Vector_i*) expected_order;
-	const_cast_c1(&error_ce->header_spec,header_spec);
+	struct Error_CE* error_ce = constructor_Error_CE(e_ce_h,sim); // returned
+	destructor_Error_CE_Helper(e_ce_h);
 
 	return error_ce;
 }
@@ -158,29 +101,22 @@ static const char* compute_header_spec_euler_all (const struct Simulation* sim)
 	return header_spec;
 }
 
-static struct Solver_Volume* constructor_Solver_Volume_exact ()
+static void add_entropy (const struct Error_CE_Helper* e_ce_h, struct Error_CE_Data* e_ce_d)
 {
-	struct Solver_Volume* s_vol_ex = calloc(1,sizeof *s_vol_ex); // returned
+	const int d     = e_ce_h->d,
+	          n_out = e_ce_h->n_out;
+	struct Multiarray_d* s = constructor_move_Multiarray_d_d('C',2,(ptrdiff_t[]){0,1},false,NULL); // destructed
 
-	s_vol_ex->sol_coef = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}); // destructed
+	s->extents[0] = e_ce_h->s_vol[0]->jacobian_det_vc->extents[0];
+	for (int i = 0; i < 2; ++i) {
+		struct Multiarray_d* sol = e_ce_d->sol[i];
 
-	return s_vol_ex;
-}
+		resize_Multiarray_d(sol,sol->order,(ptrdiff_t[]){sol->extents[0],n_out});
 
-static void destructor_Solver_Volume_exact (struct Solver_Volume* s_vol_ex)
-{
-	destructor_Multiarray_d(s_vol_ex->sol_coef);
-	free(s_vol_ex);
-}
-
-static void set_Solver_Volume_exact (struct Solver_Volume* s_vol_ex, struct Solver_Volume* s_vol)
-{
-	struct Volume* b_vol_ex = (struct Volume*) s_vol_ex,
-	             * b_vol    = (struct Volume*) s_vol;
-
-	const_cast_b(&b_vol_ex->curved,b_vol->curved);
-	const_cast_const_Element(&b_vol_ex->element,b_vol->element);
-
-	const_cast_i(&s_vol_ex->p_ref,s_vol->p_ref);
-	const_constructor_move_const_Multiarray_d(&s_vol_ex->geom_coef,s_vol->geom_coef);
+		sol->extents[1] = d+2;
+		s->data = get_col_Multiarray_d(d+2,sol);
+		compute_entropy(s,(const struct const_Multiarray_d*)sol,'p');
+		sol->extents[1] = n_out;
+	}
+	destructor_Multiarray_d(s);
 }

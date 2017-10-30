@@ -111,8 +111,27 @@ void mv_d
 void scale_Matrix_by_Vector_d
 	(const char side,                     ///< The side from which to apply the vector as a diagonal matrix.
 	 const double alpha,                  ///< Multiplicative constant.
-	 struct Matrix_d*const a,             ///< Input \ref const_Matrix_d\*.
+	 struct Matrix_d*const a,             ///< Input \ref Matrix_d\*.
 	 const struct const_Vector_d*const b, ///< Input \ref const_Vector_d\*.
+	 const bool invert_diag               /**< Flag for whether the diagonal entries should be inverted before
+	                                       *   application. */
+	);
+
+/** \brief Computes the matrix-"matrix" multiplication of a matrix with a vector interpreted as a diagonal matrix.
+ *
+ *  if (side == 'L')
+ *  	computes: C = alpha*diag(b)*A + beta*C.
+ *  else if (side == 'R')
+ *  	computes: C = alpha*A*diag(b) + beta*C.
+ *
+ */
+void mm_diag_d
+	(const char side,                     ///< The side from which to apply the vector as a diagonal matrix.
+	 const double alpha,                  ///< Multiplicative constant.
+	 const double beta,                   ///< Multiplicative constant.
+	 const struct const_Matrix_d*const a, ///< Input \ref const_Matrix_d\*.
+	 const struct const_Vector_d*const b, ///< Input \ref const_Vector_d\*.
+	 struct Matrix_d* c,                  ///< Input \ref Matrix_d\*.
 	 const bool invert_diag               /**< Flag for whether the diagonal entries should be inverted before
 	                                       *   application. */
 	);

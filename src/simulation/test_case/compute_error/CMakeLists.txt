@@ -10,6 +10,7 @@ set	(LIBS_DEPEND
 	 Computational_Elements
 	 Containers
 	 Element
+	 Solvers
 	)
 
 add_library(Compute_Error STATIC ${SOURCE})

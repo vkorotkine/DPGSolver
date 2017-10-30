@@ -17,12 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__solve_explicit_h__INCLUDED
 /** \file
  *  \brief Provides the interface to functions used to solve for the solution using explicit procedures.
- *
- *  \todo Add the references.
- *  The available options are:
- *  - Forward Euler;
- *  - Strong stability preserving Runge-Kutta (3 stage, 3rd order);
- *  - Low storage Runge-Kutta (5 stage, 4rd order).
  */
 
 struct Simulation;

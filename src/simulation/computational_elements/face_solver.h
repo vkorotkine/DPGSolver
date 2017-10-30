@@ -19,11 +19,15 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface for the \ref Solver_Face container and associated functions.
  */
 
+#include <stddef.h>
 #include "face.h"
 
 /// \brief Container for data relating to the solver faces.
 struct Solver_Face {
 	struct Face face; ///< The base \ref Face.
+
+	/// The index of the first degree of freedom (dof) of the face in relation to the global dof.
+	ptrdiff_t ind_dof;
 
 	/// The reference order of the face. Need not be equal to the order of the solution in the face.
 	const int p_ref;

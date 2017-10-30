@@ -45,6 +45,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+///\{ \name Flag for whether the convergence orders should be displayed for these tests.
+#define DISPLAY_CONV 1
+///\}
+
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
 #define ORDER_VIS_CONV_P      2
 #define ORDER_VIS_CONV_ML_MAX 3
@@ -103,8 +107,7 @@ void test_integration_convergence (struct Test_Info*const test_info, const char*
 
 		output_error(sim);
 
-		const_cast_b(&int_test_info->display_progress,sim->test_case->display_progress);
-		if (int_test_info->display_progress)
+		if (DISPLAY_CONV)
 			printf("ml, p, dof: %d %d %td\n",ml,p,compute_dof(sim));
 
 		destructor_derived_computational_elements(sim,IL_BASE);
@@ -281,7 +284,7 @@ static void check_convergence_orders
 			log10(data_l2[ind_f_e]/data_l2[ind_c_e])/log10(data_h[ind_f_h]/data_h[ind_c_h]);
 	}}}
 
-	if (int_test_info->display_progress) {
+	if (DISPLAY_CONV) {
 		printf("h:\n");
 		print_Multiarray_d(h);
 		printf("L2 errors:\n");

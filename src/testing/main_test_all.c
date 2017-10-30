@@ -43,15 +43,11 @@ int main
 	printf("\nRunning All Tests:\n");
 	test_info.ts = clock();
 
-//	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
-
 	if (run_tests.unit)
 		run_tests_unit(&test_info);
 
 	if (run_tests.integration)
 		run_tests_integration(&test_info);
-
-//	PetscFinalize();
 
 	test_info.te = clock();
 

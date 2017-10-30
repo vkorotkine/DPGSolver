@@ -20,11 +20,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <mpi.h>
+#include "mpi.h"
+#include "petscsys.h"
 
 #include "macros.h"
 #include "definitions_alloc.h"
 
+#include "test_base.h"
 #include "test_integration_advection.h"
 #include "test_integration_euler.h"
 #include "test_integration_fe_init.h"
@@ -41,6 +43,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void run_tests_integration (struct Test_Info*const test_info)
 {
+	PetscInitialize(&test_info->nargc,&test_info->argv,PETSC_NULL,PETSC_NULL);
 	MPI_Init(NULL,NULL);
 
 	printf("\n\nRunning Integration Tests:\n");
@@ -58,9 +61,11 @@ if (0) {
 }
 
 	test_integration_advection(test_info);
+EXIT_UNSUPPORTED;
 	test_integration_euler(test_info);
 
 	MPI_Finalize();
+	PetscFinalize();
 }
 
 struct Integration_Test_Info* constructor_Integration_Test_Info (const char*const ctrl_name)

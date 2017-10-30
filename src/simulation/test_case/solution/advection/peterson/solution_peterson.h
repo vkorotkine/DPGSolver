@@ -28,7 +28,8 @@ void set_sol_peterson
 	 struct Solution_Container sol_cont ///< Defined for \ref set_sol_fptr.
 	);
 
-/// \brief Function to be used for \ref Test_Case::constructor_sol for the peterson test case.
+/** \brief Function to be used for \ref Test_Case::constructor_sol for the peterson test case.
+ *  \return See brief. */
 const struct const_Multiarray_d* constructor_const_sol_peterson
 	(const struct const_Multiarray_d* xyz, ///< Defined for \ref constructor_sol_fptr.
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr.

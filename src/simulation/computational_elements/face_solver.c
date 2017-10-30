@@ -43,6 +43,7 @@ void constructor_derived_Solver_Face (struct Face* face_ptr, const struct Simula
 {
 	struct Solver_Face* face = (struct Solver_Face*) face_ptr;
 
+	face->ind_dof = -1;
 	const_cast_i(&face->p_ref,sim->p_s_v[0]);
 	const_cast_c(&face->cub_type,(check_for_curved_neigh((struct Face*)face) ? 'c' : 's'));
 

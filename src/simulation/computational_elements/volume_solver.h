@@ -19,11 +19,15 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface for the \ref Solver_Volume container and associated functions.
  */
 
+#include <stddef.h>
 #include "volume.h"
 
 /// \brief Container for data relating to the solver volumes.
 struct Solver_Volume {
 	struct Volume volume; ///< The base \ref Volume.
+
+	/// The index of the first degree of freedom (dof) of the volume in relation to the global dof.
+	ptrdiff_t ind_dof;
 
 	/// The reference order of the volume. Need not be equal to the order of the solution in the volume.
 	const int p_ref;

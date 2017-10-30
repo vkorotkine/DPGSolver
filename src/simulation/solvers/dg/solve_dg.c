@@ -42,6 +42,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "intrusive.h"
 #include "math_functions.h"
 #include "simulation.h"
+#include "solve.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -66,14 +67,21 @@ static double compute_max_rhs
 
 double compute_rhs_dg (const struct Simulation* sim)
 {
-	zero_memory_volumes(sim);
-	compute_grad_coef_dg(sim);
-	compute_volume_rlhs_dg(sim);
-	compute_face_rlhs_dg(sim);
-	compute_source_rhs_dg(sim);
+	compute_rlhs_dg(sim,NULL);
 	scale_rhs_by_m_inv(sim);
 
-	return ((sim->test_case->display_progress) ? compute_max_rhs(sim) : 0.0 );
+	return compute_max_rhs(sim);
+}
+
+double compute_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
+{
+	zero_memory_volumes(sim);
+	compute_grad_coef_dg(sim);
+	compute_volume_rlhs_dg(sim,s_store_i);
+	compute_face_rlhs_dg(sim,s_store_i);
+	compute_source_rhs_dg(sim);
+
+	return compute_max_rhs(sim);
 }
 
 void permute_Multiarray_d_fc
@@ -94,6 +102,33 @@ void permute_Multiarray_d_fc
 	permute_Multiarray_d_V(data,nc_fc,perm_layout);
 }
 
+void set_petsc_Mat_row_col
+	(struct Solver_Storage_Implicit*const s_store_i, const struct Solver_Volume* v_l, const int eq,
+	 const struct Solver_Volume* v_r, const int vr)
+{
+	s_store_i->row = v_l->ind_dof+v_l->sol_coef->extents[0]*eq;
+	s_store_i->col = v_r->ind_dof+v_r->sol_coef->extents[0]*vr;
+}
+
+void add_to_petsc_Mat (const struct Solver_Storage_Implicit*const s_store_i, const struct const_Matrix_d* lhs)
+{
+	const ptrdiff_t ext_0 = lhs->ext_0,
+	                ext_1 = lhs->ext_1;
+
+	PetscInt idxm[ext_0],
+	         idxn[ext_1];
+
+	for (int i = 0; i < ext_0; ++i)
+		idxm[i] = s_store_i->row+i;
+
+	for (int i = 0; i < ext_1; ++i)
+		idxn[i] = s_store_i->col+i;
+
+	const PetscScalar*const vv = lhs->data;
+	MatSetValues(s_store_i->A,ext_0,idxm,ext_1,idxn,vv,ADD_VALUES);
+}
+
+// Static functions ************************************************************************************************* //
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

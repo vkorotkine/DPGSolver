@@ -28,7 +28,7 @@ struct Solution_Container;
 /** \brief Function pointer to a function which constructs the solution given the input xyz coordinates.
  *  \return A \ref const_Multiarray_d\* container holding the solution.
  *
- *  \param xyz \ref Input xyz coordinates.
+ *  \param xyz Input xyz coordinates.
  *  \param sim \ref Simulation.
  */
 typedef const struct const_Multiarray_d* (*constructor_sol_fptr)

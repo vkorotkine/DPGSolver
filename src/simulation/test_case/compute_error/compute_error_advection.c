@@ -53,36 +53,19 @@ struct Error_CE* constructor_Error_CE_advection_all (const struct Simulation* si
 	const int n_out = 1;
 
 	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
-	const char* header_spec = compute_header_spec_advection_all(sim);
-/// \todo merge the common elements of the error computation functions when finished with advection.
-/// \todo bubble up duplicated static functions.
-	struct Vector_d* sol_L2 = e_ce_h->sol_L2;
+	e_ce_h->header_spec = compute_header_spec_advection_all(sim);
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		e_ce_h->s_vol[0] = (struct Solver_Volume*) curr;
 		struct Error_CE_Data* e_ce_d = constructor_Error_CE_Data(e_ce_h,sim); // destructed
 
 		increment_sol_L2(e_ce_h,e_ce_d);
-
 		destructor_Error_CE_Data(e_ce_d);
 
 		update_domain_order(e_ce_h);
 	}
 
-EXIT_ERROR("Make constructor function here with input: e_ce_d");
-	for (int i = 0; i < sol_L2->ext_0; ++i)
-		sol_L2->data[i] = sqrt(sol_L2->data[i]/(e_ce_h->domain_volume));
-
-	struct Vector_i* expected_order = constructor_empty_Vector_i(n_out); // moved
-	set_to_value_Vector_i(expected_order,e_ce_h->domain_order+1);
-
-	struct Error_CE* error_ce = malloc(sizeof *error_ce); // returned
-
-	const_cast_d(&error_ce->domain_volume,e_ce_h->domain_volume);
-	error_ce->sol_L2         = (const struct const_Vector_d*) sol_L2;
-	error_ce->expected_order = (const struct const_Vector_i*) expected_order;
-	const_cast_c1(&error_ce->header_spec,header_spec);
-
+	struct Error_CE* error_ce = constructor_Error_CE(e_ce_h,sim); // returned
 	destructor_Error_CE_Helper(e_ce_h);
 
 	return error_ce;

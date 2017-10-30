@@ -70,8 +70,10 @@ struct Test_Case {
 	// Parameters for explicit/implicit simulations.
 	const int ind_num_flux[2]; ///< Integer indices of the type of 1st/2nd order numerical fluxes.
 
-	const double exit_tol_e;   ///< The exit tolerance for the residual during the explicit solver stage.
-	const double exit_ratio_e; ///< The exit ratio for the residual during the explicit solver stage.
+	const double exit_tol_e,   ///< The exit tolerance for the residual during the explicit solver stage.
+	             exit_ratio_e, ///< The exit ratio for the residual during the explicit solver stage.
+	             exit_tol_i,   ///< The exit tolerance for the residual during the implicit solver stage.
+	             exit_ratio_i; ///< The exit ratio for the residual during the implicit solver stage.
 
 	const bool flux_comp_mem_e[MAX_FLUX_OUT], ///< \ref Flux_Input::compute_member (explicit).
 	           flux_comp_mem_i[MAX_FLUX_OUT]; ///< \ref Flux_Input::compute_member (implicit).
@@ -88,8 +90,8 @@ struct Test_Case {
 	compute_Flux_fptr compute_Flux_i[2];
 
 /// \todo Delete if unused.
-	const bool num_flux_comp_mem_e[MAX_NUM_FLUX_OUT], ///< \ref Numerical_Flux_Input::compute_member (explicit).
-	           num_flux_comp_mem_i[MAX_NUM_FLUX_OUT]; ///< \ref Numerical_Flux_Input::compute_member (implicit).
+	const bool num_flux_comp_mem_e[MAX_NUM_FLUX_OUT], ///< \ref Boundary_Value_Input::compute_member (explicit).
+	           num_flux_comp_mem_i[MAX_NUM_FLUX_OUT]; ///< \ref Boundary_Value_Input::compute_member (implicit).
 
 	/// Function pointer to the function used to call the combination of 1st and 2nd order numerical flux functions.
 	compute_Numerical_Flux_fptr compute_Numerical_Flux;

@@ -24,7 +24,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_intrusive.h"
 
+#include "matrix.h"
 #include "multiarray.h"
+#include "vector.h"
 
 #include "volume_solver_dg.h"
 #include "element_solver_dg.h"
@@ -34,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
+#include "solve_dg.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -61,13 +64,15 @@ typedef void (*destructor_sol_vc_fptr)
 
 /** \brief Function pointer to the function used to evaluate the rhs (and optionally lhs) terms.
  *
- *  \param flux_r \ref Flux_Ref.
- *  \param volume \ref Volume.
- *  \param sim    \ref Simulation.
+ *  \param flux_r    \ref Flux_Ref.
+ *  \param volume    \ref Volume.
+ *  \param s_store_i \ref Solver_Storage_Implicit.
+ *  \param sim       \ref Simulation.
  */
 typedef void (*compute_rlhs_fptr)
 	(const struct Flux_Ref* flux_r,
 	 struct Volume* volume,
+	 const struct Solver_Storage_Implicit* s_store_i,
 	 const struct Simulation* sim
 	);
 
@@ -113,7 +118,7 @@ static void destructor_Flux_Ref
 
 // Interface functions ********************************************************************************************** //
 
-void compute_volume_rlhs_dg (const struct Simulation* sim)
+void compute_volume_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
 {
 	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
 
@@ -139,7 +144,7 @@ void compute_volume_rlhs_dg (const struct Simulation* sim)
 		destructor_Flux(flux);
 
 		// Compute the rhs (and optionally the lhs) terms.
-		s_params.compute_rlhs(flux_r,vol,sim);
+		s_params.compute_rlhs(flux_r,vol,s_store_i,sim);
 		destructor_Flux_Ref(flux_r);
 	}
 	destructor_Flux_Input(flux_i);
@@ -181,9 +186,18 @@ static const struct const_Multiarray_d* constructor_flux_ref
 
 /// \brief Compute only the rhs term.
 static void compute_rhs
-	(const struct Flux_Ref* flux_r, ///< Defined for \ref compute_rlhs_fptr.
-	 struct Volume* volume,         ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Simulation* sim   ///< Defined for \ref compute_rlhs_fptr.
+	(const struct Flux_Ref* flux_r,                   ///< Defined for \ref compute_rlhs_fptr.
+	 struct Volume* volume,                           ///< Defined for \ref compute_rlhs_fptr.
+	 const struct Solver_Storage_Implicit* s_store_i, ///< Defined for \ref compute_rlhs_fptr.
+	 const struct Simulation* sim                     ///< Defined for \ref compute_rlhs_fptr.
+	);
+
+/// \brief Compute the rhs and lhs terms for 1st order equations only.
+static void compute_rlhs_1
+	(const struct Flux_Ref* flux_r,                   ///< Defined for \ref compute_rlhs_fptr.
+	 struct Volume* volume,                           ///< Defined for \ref compute_rlhs_fptr.
+	 const struct Solver_Storage_Implicit* s_store_i, ///< Defined for \ref compute_rlhs_fptr.
+	 const struct Simulation* sim                     ///< Defined for \ref compute_rlhs_fptr.
 	);
 
 static struct S_Params set_s_params (const struct Simulation* sim)
@@ -205,7 +219,7 @@ static struct S_Params set_s_params (const struct Simulation* sim)
 		break;
 	case 'i':
 		if (test_case->has_1st_order && !test_case->has_2nd_order)
-			EXIT_ADD_SUPPORT; //s_params.compute_rlhs = compute_rlhs_1;
+			s_params.compute_rlhs = compute_rlhs_1;
 		else if (!test_case->has_1st_order && test_case->has_2nd_order)
 			EXIT_ADD_SUPPORT; //s_params.compute_rlhs = compute_rlhs_2;
 		else if (test_case->has_1st_order && test_case->has_2nd_order)
@@ -334,8 +348,11 @@ static const struct const_Multiarray_d* constructor_flux_ref
 	return (const struct const_Multiarray_d*) fr;
 }
 
-static void compute_rhs (const struct Flux_Ref* flux_r, struct Volume* volume, const struct Simulation* sim)
+static void compute_rhs
+	(const struct Flux_Ref* flux_r, struct Volume* volume, const struct Solver_Storage_Implicit* s_store_i,
+	 const struct Simulation* sim)
 {
+	UNUSED(s_store_i);
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
@@ -356,6 +373,74 @@ static void compute_rhs (const struct Flux_Ref* flux_r, struct Volume* volume, c
 	const ptrdiff_t d = sim->d;
 	for (ptrdiff_t dim = 0; dim < d; ++dim)
 		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vs_vc.data[dim],flux_r->fr,dg_s_volume->rhs,op_format,2,&dim,NULL);
+}
+
+static void compute_rlhs_1
+	(const struct Flux_Ref* flux_r, struct Volume* volume, const struct Solver_Storage_Implicit* s_store_i,
+	 const struct Simulation* sim)
+{
+	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
+	const ptrdiff_t d = sim->d;
+
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	const char op_format = 'd';
+
+	struct Solver_Volume* s_volume       = (struct Solver_Volume*) volume;
+	struct DG_Solver_Volume* dg_s_volume = (struct DG_Solver_Volume*) volume;
+
+	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
+
+	const struct Multiarray_Operator tw1_vs_vc;
+	const int p = s_volume->p_ref;
+	if (!volume->curved)
+		set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vcs,1,(ptrdiff_t[]){0,0,p,p});
+	else
+		set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vcc,1,(ptrdiff_t[]){0,0,p,p});
+
+	// rhs
+	for (ptrdiff_t dim = 0; dim < d; ++dim)
+		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vs_vc.data[dim],flux_r->fr,dg_s_volume->rhs,op_format,2,&dim,NULL);
+
+	// lhs
+/// \todo Add special case for collocated.
+/// \todo change this so that curved can be used as the index.
+	const struct Operator* cv0_vs_vc =
+		(!volume->curved ? get_Multiarray_Operator(e->cv0_vs_vcs,(ptrdiff_t[]){0,0,p,p})
+		                 : get_Multiarray_Operator(e->cv0_vs_vcc,(ptrdiff_t[]){0,0,p,p}) );
+
+	const ptrdiff_t ext_0 = tw1_vs_vc.data[0]->op_std->ext_0,
+	                ext_1 = tw1_vs_vc.data[0]->op_std->ext_1;
+
+	struct Matrix_d* tw1_r = constructor_empty_Matrix_d('R',ext_0,ext_1);                    // destructed
+	struct Matrix_d* lhs   = constructor_empty_Matrix_d('R',ext_0,cv0_vs_vc->op_std->ext_1); // destructed
+
+	const struct const_Multiarray_d* dfr_ds_Ma = flux_r->dfr_ds;
+	struct Vector_d dfr_ds = { .ext_0 = dfr_ds_Ma->extents[0], .owns_data = false, .data = NULL, };
+
+	const int n_eq = sim->test_case->n_eq,
+	          n_vr = sim->test_case->n_var;
+	for (int eq = 0; eq < n_eq; ++eq) {
+	for (int vr = 0; vr < n_vr; ++vr) {
+		set_to_value_Matrix_d(tw1_r,0.0);
+
+		for (int dim = 0; dim < d; ++dim) {
+			const ptrdiff_t ind =
+				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
+			dfr_ds.data = (double*)&dfr_ds_Ma->data[ind];
+			mm_diag_d('R',1.0,1.0,tw1_vs_vc.data[dim]->op_std,(struct const_Vector_d*)&dfr_ds,tw1_r,false);
+		}
+
+		mm_d('N','N',1.0,0.0,(struct const_Matrix_d*)tw1_r,cv0_vs_vc->op_std,lhs);
+
+		set_petsc_Mat_row_col(s_store_i,s_volume,eq,s_volume,vr);
+		add_to_petsc_Mat(s_store_i,(struct const_Matrix_d*)lhs);
+	}}
+
+	destructor_Matrix_d(tw1_r);
+	destructor_Matrix_d(lhs);
+
+UNUSED(s_store_i);
+EXIT_ADD_SUPPORT;
 }
 
 // Level 2 ********************************************************************************************************** //

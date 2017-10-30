@@ -226,6 +226,73 @@ void scale_Matrix_by_Vector_d
 		invert_Vector_d((struct Vector_d*)b);
 }
 
+void mm_diag_d
+	(const char side, const double alpha, const double beta, const struct const_Matrix_d*const a,
+	 const struct const_Vector_d*const b, struct Matrix_d* c, const bool invert_diag)
+{
+	assert(a->ext_0 == c->ext_0);
+	assert(a->ext_1 == c->ext_1);
+	assert(a->layout == c->layout);
+
+	if (invert_diag)
+		invert_Vector_d((struct Vector_d*)b);
+
+	if (beta != 1.0)
+		scale_Matrix_d(c,beta);
+
+	const ptrdiff_t n_row = a->ext_0,
+	                n_col = a->ext_1;
+
+	if (side == 'L') {
+		assert(b->ext_0 == a->ext_0);
+
+		if (a->layout == 'R') {
+			for (ptrdiff_t row = 0; row < n_row; ++row) {
+				const double val = b->data[row];
+				const double* data_a = get_row_const_Matrix_d(row,a);
+				double* data_c       = get_row_Matrix_d(row,c);
+				for (ptrdiff_t col = 0; col < n_col; ++col)
+					data_c[col] += alpha*data_a[col]*val;
+			}
+		} else if (a->layout == 'C') {
+			for (ptrdiff_t col = 0; col < n_col; ++col) {
+				const double* data_a = get_col_const_Matrix_d(col,a);
+				double* data_c       = get_col_Matrix_d(col,c);
+				for (ptrdiff_t row = 0; row < n_row; ++row) {
+					const double val = b->data[row];
+					data_c[col] += alpha*data_a[col]*val;
+				}
+			}
+		}
+	} else if (side == 'R') {
+		assert(b->ext_0 == a->ext_1);
+
+		if (a->layout == 'R') {
+			for (ptrdiff_t row = 0; row < n_row; ++row) {
+				const double* data_a = get_row_const_Matrix_d(row,a);
+				double* data_c       = get_row_Matrix_d(row,c);
+				for (ptrdiff_t col = 0; col < n_col; ++col) {
+					const double val = b->data[col];
+					data_c[col] += alpha*data_a[col]*val;
+				}
+			}
+		} else if (a->layout == 'C') {
+			for (ptrdiff_t col = 0; col < n_col; ++col) {
+				const double val = b->data[col];
+				const double* data_a = get_col_const_Matrix_d(col,a);
+				double* data_c       = get_col_Matrix_d(col,c);
+				for (ptrdiff_t row = 0; row < n_row; ++row)
+					data_c[row] += alpha*data_a[row]*val;
+			}
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+
+	if (invert_diag)
+		invert_Vector_d((struct Vector_d*)b);
+}
+
 void reinterpret_const_Matrix_d (const struct const_Matrix_d* a, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
 {
 	assert(ext_0*ext_1 == ((a->ext_0)*(a->ext_1)));
