@@ -353,6 +353,13 @@ void fprint_vtk_DataArray_d
 	 const char data_type                   ///< The type of data. Options: 'v'ector, 's'calar.
 	);
 
+/// \brief Print the solution data of an advection piece to the file.
+static void fprint_vtk_piece_sol_advection
+	(FILE* file,                          ///< Defined for \ref fprint_vtk_piece_sol.
+	 const char sp_type,                  ///< Defined for \ref fprint_vtk_piece_sol.
+	 const struct const_Multiarray_d* sol ///< Defined for \ref fprint_vtk_piece_sol.
+	);
+
 /// \brief Print the solution data of an euler piece to the file.
 static void fprint_vtk_piece_sol_euler
 	(FILE* file,                          ///< Defined for \ref fprint_vtk_piece_sol.
@@ -517,7 +524,8 @@ static void fprint_vtk_piece_sol
 
 			fprintf_tn(file,1,"<PPointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
 			switch (pde_index) {
-				case PDE_EULER: fprint_vtk_piece_sol_euler(file,sp_type,sol); break;
+				case PDE_ADVECTION: fprint_vtk_piece_sol_advection(file,sp_type,sol); break;
+				case PDE_EULER:     fprint_vtk_piece_sol_euler(file,sp_type,sol);     break;
 				default: EXIT_ERROR("Unsupported: %d\n",pde_index); break;
 			}
 			fprintf_tn(file,1,"</PPointData>");
@@ -551,7 +559,8 @@ static void fprint_vtk_piece_sol
 
 			fprintf_tn(file,1,"<PointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
 			switch (pde_index) {
-				case PDE_EULER: fprint_vtk_piece_sol_euler(file,sp_type,sol); break;
+				case PDE_ADVECTION: fprint_vtk_piece_sol_advection(file,sp_type,sol); break;
+				case PDE_EULER:      fprint_vtk_piece_sol_euler(file,sp_type,sol);    break;
 				default: EXIT_ERROR("Unsupported: %d\n",pde_index); break;
 			}
 			fprintf_tn(file,1,"</PointData>");
@@ -677,6 +686,19 @@ static void fprint_vtk_piece_sol_euler (FILE* file, const char sp_type, const st
 		fprint_vtk_DataArray_d(file,sp_type,"mach",(struct const_Multiarray_d*)var,false,'s');
 
 		destructor_Multiarray_d(var);
+	} else {
+		EXIT_ERROR("Unsupported: %c\n",sp_type);
+	}
+}
+
+static void fprint_vtk_piece_sol_advection (FILE* file, const char sp_type, const struct const_Multiarray_d* sol)
+{
+	if (sp_type == 'p') {
+		fprint_vtk_DataArray_d(file,sp_type,"u",NULL,false,'s');
+	} else if (sp_type == 's') {
+		assert(sol->extents[1] == 1);
+
+		fprint_vtk_DataArray_d(file,sp_type,"u",sol,false,'s');
 	} else {
 		EXIT_ERROR("Unsupported: %c\n",sp_type);
 	}

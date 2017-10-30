@@ -46,7 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
-#define ORDER_VIS_CONV_P      1
+#define ORDER_VIS_CONV_P      2
 #define ORDER_VIS_CONV_ML_MAX 3
 ///\}
 
@@ -102,11 +102,12 @@ void test_integration_convergence (struct Test_Info*const test_info, const char*
 		}
 
 		output_error(sim);
-		destructor_derived_computational_elements(sim,IL_BASE);
 
 		const_cast_b(&int_test_info->display_progress,sim->test_case->display_progress);
 		if (int_test_info->display_progress)
 			printf("ml, p, dof: %d %d %td\n",ml,p,compute_dof(sim));
+
+		destructor_derived_computational_elements(sim,IL_BASE);
 
 		p_prev  = p;
 		ml_prev = ml;

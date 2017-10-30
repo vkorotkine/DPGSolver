@@ -64,6 +64,11 @@ void destructor_const_Plotting_Nodes
 	(const struct const_Plotting_Nodes*const p_nodes ///< Standard.
 	);
 
+/// \brief Destructor for a \ref Plotting_Nodes container, excluding the base \ref Plotting_Nodes::nodes.
+void destructor_const_Plotting_Nodes_part
+	(const struct const_Plotting_Nodes*const p_nodes ///< Standard.
+	);
+
 // Helper functions ************************************************************************************************* //
 
 /// \brief Print a \ref Plotting_Nodes container to the terminal displaying entries below the tolerance as 0.0.

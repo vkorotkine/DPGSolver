@@ -336,22 +336,31 @@ if __name__ == '__main__':
 	input_dir       = project_src_dir+"/input/meshes"
 	mesh_name_full  = sys.argv[2]
 
-	sigma = 0.75  # Good for suboptimal P1
-#	sigma = 0.875 # Good for suboptimal P2
 	NML   = 6
+	NP    = 2
 
-	for ML in range(0,NML):
-		mesh_name_full = re.sub("_ml\d.msh","_ml"+str(ML)+".msh",mesh_name_full)
+	sigma = 0.0
+	for p in range(1,NP+1):
+		mesh_name_full = re.sub("/p\d_","/p"+str(p)+"_",mesh_name_full)
+		if (p == 1):
+			sigma = 0.75
+		elif (p == 2):
+			sigma = 0.875
+		else:
+			EXIT
 
-		Mesh = Mesh_c(sigma,ML,mesh_name_full)
+		for ML in range(0,NML):
+			mesh_name_full = re.sub("_ml\d.msh","_ml"+str(ML)+".msh",mesh_name_full)
 
-		Mesh.compute_nonzero_cols()
-		Mesh.compute_global_node_list()
+			Mesh = Mesh_c(sigma,ML,mesh_name_full)
 
-		Mesh.compute_coordinates()
+			Mesh.compute_nonzero_cols()
+			Mesh.compute_global_node_list()
 
-		Mesh.compute_boundaries(input_dir)
-		Mesh.compute_connectivity()
-		Mesh.compute_gmsh_elements_array()
+			Mesh.compute_coordinates()
 
-		Mesh.output()
+			Mesh.compute_boundaries(input_dir)
+			Mesh.compute_connectivity()
+			Mesh.compute_gmsh_elements_array()
+
+			Mesh.output()

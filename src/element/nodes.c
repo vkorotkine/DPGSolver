@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "bases.h"
+#include "element.h"
 #include "math_functions.h"
 #include "nodes_plotting.h"
 
@@ -1083,6 +1084,7 @@ static const struct const_Nodes* constructor_const_Nodes_plot (const int d, cons
 
 	const struct const_Plotting_Nodes* p_nodes = constructor_const_Plotting_Nodes(p,e_type);
 
-UNUSED(p_nodes);
-EXIT_ADD_SUPPORT;
+	destructor_const_Plotting_Nodes_part(p_nodes);
+
+	return (const struct const_Nodes*) p_nodes;
 }

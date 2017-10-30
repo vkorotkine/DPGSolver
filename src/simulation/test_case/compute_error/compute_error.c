@@ -77,6 +77,21 @@ static void output_errors_global
 	 const struct Simulation* sim     ///< \ref Simulation.
 	);
 
+/** \brief Constructor for a derived \ref Solver_Volume used to compute the exact solution.
+ *  \return See brief. */
+static struct Solver_Volume* constructor_Solver_Volume_exact ();
+
+/// \brief Destructor for a derived \ref Solver_Volume used to compute the exact solution.
+static void destructor_Solver_Volume_exact
+	(struct Solver_Volume* s_vol_ex ///< Standard.
+	);
+
+/// \brief Set the relevant members of a duplicate \ref Solver_Volume used to compute the exact solution.
+static void set_Solver_Volume_exact
+	(struct Solver_Volume* s_vol_ex, ///< The partially duplicated \ref Solver_Volume.
+	 struct Solver_Volume* s_vol     ///< The \ref Solver_Volume.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void output_error (const struct Simulation* sim)
@@ -97,6 +112,76 @@ void output_error (const struct Simulation* sim)
 
 	destructor_derived_Elements((struct Simulation*)sim,IL_SOLUTION_ELEMENT);
 	destructor_derived_Elements((struct Simulation*)sim,IL_ELEMENT);
+}
+
+struct Error_CE_Helper* constructor_Error_CE_Helper (const struct Simulation* sim, const int n_out)
+{
+	struct Error_CE_Helper* e_ce_h = malloc(sizeof * e_ce_h); // destructed
+
+	e_ce_h->domain_order = -1;
+/// \todo Can be made static.
+	e_ce_h->domain_volume = compute_domain_volume(sim);
+	e_ce_h->sol_L2 = constructor_empty_Vector_d(n_out); // to be moved
+	set_to_value_Vector_d(e_ce_h->sol_L2,0.0);
+
+	e_ce_h->sol_cont = malloc(sizeof *e_ce_h->sol_cont); // free
+	const_cast_c(&e_ce_h->sol_cont->ce_type,'v');
+	const_cast_c(&e_ce_h->sol_cont->cv_type,'v');
+	const_cast_c(&e_ce_h->sol_cont->node_kind,'c');
+	e_ce_h->sol_cont->volume = NULL;
+	e_ce_h->sol_cont->face   = NULL;
+	e_ce_h->sol_cont->sol    = NULL;
+
+	e_ce_h->s_vol[0] = NULL;
+	e_ce_h->s_vol[1] = constructor_Solver_Volume_exact(); // destructed
+
+	return e_ce_h;
+}
+
+void destructor_Error_CE_Helper (struct Error_CE_Helper* e_ce_h)
+{
+	free(e_ce_h->sol_cont);
+	destructor_Solver_Volume_exact(e_ce_h->s_vol[1]);
+	free(e_ce_h);
+}
+
+struct Error_CE_Data* constructor_Error_CE_Data
+	(struct Error_CE_Helper* e_ce_h, const struct Simulation* sim)
+{
+	struct Error_CE_Data* e_ce_d = malloc(sizeof *e_ce_d); // destructed
+
+	set_Solver_Volume_exact(e_ce_h->s_vol[1],e_ce_h->s_vol[0]);
+
+	e_ce_d->sol[0] = constructor_sol_v(sim,e_ce_h->s_vol[0],e_ce_h->sol_cont->node_kind); // destructed
+	e_ce_d->sol[1] = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0});            // destructed
+
+	e_ce_h->sol_cont->sol    = e_ce_d->sol[1];
+	e_ce_h->sol_cont->volume = e_ce_h->s_vol[1];
+	sim->test_case->set_sol(sim,*(e_ce_h->sol_cont));
+
+	return e_ce_d;
+}
+
+void destructor_Error_CE_Data (struct Error_CE_Data* e_ce_d)
+{
+	for (int i = 0; i < 2; ++i)
+		destructor_Multiarray_d(e_ce_d->sol[i]);
+	free(e_ce_d);
+}
+
+void increment_sol_L2 (struct Error_CE_Helper* e_ce_h, struct Error_CE_Data* e_ce_d)
+{
+	subtract_in_place_Multiarray_d(e_ce_d->sol[0],(const struct const_Multiarray_d*)e_ce_d->sol[1]);
+/// \todo Can be made static.
+	increment_vol_errors_l2_2(e_ce_h->sol_L2,(const struct const_Multiarray_d*)e_ce_d->sol[0],e_ce_h->s_vol[0]);
+}
+
+void update_domain_order (struct Error_CE_Helper* e_ce_h)
+{
+	if (e_ce_h->domain_order == -1)
+		e_ce_h->domain_order = e_ce_h->s_vol[0]->p_ref;
+	else
+		assert(e_ce_h->domain_order == e_ce_h->s_vol[0]->p_ref);
 }
 
 double compute_domain_volume (const struct Simulation* sim)
@@ -282,4 +367,31 @@ static void output_errors_global (const struct Error_CE* error_ce, const struct 
 	output_errors_sp('p',error_ce_g,sim);
 
 	destructor_Error_CE(error_ce_g);
+}
+
+static struct Solver_Volume* constructor_Solver_Volume_exact ()
+{
+	struct Solver_Volume* s_vol_ex = calloc(1,sizeof *s_vol_ex); // returned
+
+	s_vol_ex->sol_coef = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}); // destructed
+
+	return s_vol_ex;
+}
+
+static void destructor_Solver_Volume_exact (struct Solver_Volume* s_vol_ex)
+{
+	destructor_Multiarray_d(s_vol_ex->sol_coef);
+	free(s_vol_ex);
+}
+
+static void set_Solver_Volume_exact (struct Solver_Volume* s_vol_ex, struct Solver_Volume* s_vol)
+{
+	struct Volume* b_vol_ex = (struct Volume*) s_vol_ex,
+	             * b_vol    = (struct Volume*) s_vol;
+
+	const_cast_b(&b_vol_ex->curved,b_vol->curved);
+	const_cast_const_Element(&b_vol_ex->element,b_vol->element);
+
+	const_cast_i(&s_vol_ex->p_ref,s_vol->p_ref);
+	const_constructor_move_const_Multiarray_d(&s_vol_ex->geom_coef,s_vol->geom_coef);
 }

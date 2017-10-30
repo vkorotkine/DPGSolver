@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_intrusive.h"
 #include "definitions_test_case.h"
+#include "definitions_tol.h"
 
 #include "computational_elements.h"
 #include "volume_solver.h"
@@ -93,7 +94,7 @@ void solve_explicit (struct Simulation* sim)
 
 	test_case->time = 0.0;
 	for (int t_step = 0; ; ++t_step) {
-		if (test_case->time + dt > time_final)
+		if (test_case->time + dt > time_final-1e3*EPS)
 			dt = time_final - test_case->time;
 		test_case->time += dt;
 

@@ -67,8 +67,13 @@ static int get_vtk_n_corners
 	(const int vtk_type ///< The vtk element type.
 	);
 
-/// \brief Destructor for a \ref Plotting_Nodes container.
+/// \brief `mutable` version of \ref destructor_const_Plotting_Nodes.
 static void destructor_Plotting_Nodes
+	(struct Plotting_Nodes* p_nodes ///< Standard.
+	);
+
+/// \brief `mutable` version of \ref destructor_const_Plotting_Nodes_part.
+static void destructor_Plotting_Nodes_part
 	(struct Plotting_Nodes* p_nodes ///< Standard.
 	);
 
@@ -131,6 +136,11 @@ void destructor_const_Plotting_Nodes (const struct const_Plotting_Nodes*const p_
 	destructor_Plotting_Nodes((struct Plotting_Nodes*)p_nodes);
 }
 
+void destructor_const_Plotting_Nodes_part (const struct const_Plotting_Nodes*const p_nodes)
+{
+	destructor_Plotting_Nodes_part((struct Plotting_Nodes*)p_nodes);
+}
+
 // Helper functions ************************************************************************************************* //
 
 void print_Plotting_Nodes_tol (const struct Plotting_Nodes*const p_nodes, const double tol)
@@ -176,17 +186,20 @@ static int get_n_e_type
 
 static void destructor_Plotting_Nodes (struct Plotting_Nodes* p_nodes)
 {
+	destructor_Plotting_Nodes_part(p_nodes);
+
 	struct Nodes* nodes = (struct Nodes*) p_nodes;
 
-	destructor_Matrix_d(nodes->rst);
 	assert(nodes->has_weights == false);
+	destructor_Nodes(nodes);
+}
 
+static void destructor_Plotting_Nodes_part (struct Plotting_Nodes* p_nodes)
+{
 	destructor_Multiarray_Vector_i(p_nodes->connect);
 	destructor_Multiarray_Vector_i(p_nodes->connect_e);
 	destructor_Vector_i(p_nodes->vtk_types);
 	destructor_Vector_i(p_nodes->vtk_types_e);
-
-	free(p_nodes);
 }
 
 static void plotting_element_info

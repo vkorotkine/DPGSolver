@@ -35,8 +35,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "const_cast.h"
 #include "element.h"
 #include "intrusive.h"
-#include "multiarray_operator.h"
-#include "operator.h"
 #include "simulation.h"
 #include "solution_euler.h"
 #include "test_case.h"
@@ -93,12 +91,11 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 		struct Multiarray_d* sol[2] = { NULL, NULL, };
 
 		sol[0] = constructor_sol_v(sim,s_vol[0],sol_cont.node_kind);       // destructed
-		sol[1] = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}), // destructed
+		sol[1] = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}); // destructed
 
 		sol_cont.sol = sol[1];
 		sol_cont.volume = s_vol[1];
 		sim->test_case->set_sol(sim,sol_cont);
-		assert(sol[1]->extents[1] == d+2);
 
 		s->extents[0] = s_vol[0]->jacobian_det_vc->extents[0];
 		for (int i = 0; i < 2; ++i) {
