@@ -10,6 +10,10 @@ TOP_DIR="${PWD}/../.."
 # answer.
 export CMAKE_PREFIX_PATH=/home/pzwan/Applications/mpich/mpich-3.2/build
 
+export PETSC_DIR=/home/pzwan/Applications/petsc/petsc-3.8.0
+export PETSC_ARCH=arch-linux-mkl-mpich-debug
+
+
 BUILD_DIR=${TOP_DIR}/build
 
 CMAKE_BUILD_TYPE=Debug

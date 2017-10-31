@@ -80,16 +80,16 @@ struct Flux* constructor_Flux (const struct Flux_Input* flux_i)
 	const bool* compute_member = flux_i->compute_member;
 	assert(compute_member[0] || compute_member[1] || compute_member[2]);
 
-	const int d     = flux_i->d,
-	          n_eq  = flux_i->n_eq,
-		    n_var = flux_i->n_var;
+	const int d    = flux_i->d,
+	          n_eq = flux_i->n_eq,
+	          n_vr = flux_i->n_var;
 	const ptrdiff_t n_n = ( flux_i->s != NULL ? flux_i->s->extents[0] : flux_i->g->extents[0] );
 
 	struct mutable_Flux* flux = calloc(1,sizeof *flux); // returned
 
-	flux->f     = (compute_member[0] ? constructor_zero_Multiarray_d('C',3,(ptrdiff_t[]){n_n,d,n_eq})         : NULL);
-	flux->df_ds = (compute_member[1] ? constructor_zero_Multiarray_d('C',4,(ptrdiff_t[]){n_n,d,n_eq,n_var})   : NULL);
-	flux->df_dg = (compute_member[2] ? constructor_zero_Multiarray_d('C',5,(ptrdiff_t[]){n_n,d,n_eq,n_var,d}) : NULL);
+	flux->f     = (compute_member[0] ? constructor_zero_Multiarray_d('C',3,(ptrdiff_t[]){n_n,d,n_eq})        : NULL);
+	flux->df_ds = (compute_member[1] ? constructor_zero_Multiarray_d('C',4,(ptrdiff_t[]){n_n,d,n_eq,n_vr})   : NULL);
+	flux->df_dg = (compute_member[2] ? constructor_zero_Multiarray_d('C',5,(ptrdiff_t[]){n_n,d,n_eq,n_vr,d}) : NULL);
 
 	flux_i->compute_Flux(flux_i,flux);
 

@@ -20,8 +20,11 @@ You should have received a copy of the GNU General Public License along with DPG
  *         method.
  */
 
+struct Matrix_d;
+struct const_Matrix_d;
 struct Multiarray_d;
 struct Solver_Face;
+struct Solver_Volume;
 struct Simulation;
 struct Solver_Storage_Implicit;
 
@@ -47,14 +50,23 @@ void permute_Multiarray_d_fc
 	 const struct Solver_Face* s_face ///< \ref Solver_Face.
 	);
 
+/** \brief Permute the input matrix such that its ordering is such that it is in the reference coordinates of the
+ *         face cubature nodes of the opposite volume. */
+void permute_Matrix_d_fc
+	(struct Matrix_d* data,           ///< The data to be permuted.
+	 const char perm_layout,          ///< The layout in which to permute.
+	 const int side_index_dest,       ///< The side index of the destination.
+	 const struct Solver_Face* s_face ///< \ref Solver_Face.
+	);
+
 /** \brief Set the values of \ref Solver_Storage_Implicit::row and Solver_Storage_Implicit::col based on the current
  *         volume and eq, var indices. */
 void set_petsc_Mat_row_col
-	(const struct Solver_Storage_Implicit*const s_store_i, ///< \ref Solver_Storage_Implicit.
-	 const struct Solver_Volume* v_l,                      ///< The left \ref Solver_Volume.
-	 const int eq,                                         ///< The index of the equation.
-	 const struct Solver_Volume* v_r,                      ///< The right \ref Solver_Volume.
-	 const int vr                                          ///< The index of the variable.
+	(struct Solver_Storage_Implicit*const s_store_i, ///< \ref Solver_Storage_Implicit.
+	 const struct Solver_Volume* v_l,                ///< The left \ref Solver_Volume.
+	 const int eq,                                   ///< The index of the equation.
+	 const struct Solver_Volume* v_r,                ///< The right \ref Solver_Volume.
+	 const int vr                                    ///< The index of the variable.
 	);
 
 /// \brief Add lhs values to the petsc Mat at the appropriate location.

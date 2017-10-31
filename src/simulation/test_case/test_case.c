@@ -172,6 +172,7 @@ static void read_test_case_parameters (struct Test_Case* test_case, const struct
 			read_skip_const_i(line,&test_case->solver_proc);
 		}
 		if (strstr(line,"solver_type_e")) read_skip_const_i(line,&test_case->solver_type_e);
+		if (strstr(line,"solver_type_i")) read_skip_const_i(line,&test_case->solver_type_i);
 
 		if (strstr(line,"num_flux_1st")) read_skip_const_c_1(line,tcsi.num_flux_1st);
 		if (strstr(line,"num_flux_2nd")) read_skip_const_c_1(line,tcsi.num_flux_2nd);

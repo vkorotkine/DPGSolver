@@ -28,4 +28,10 @@ void compute_Numerical_Flux_advection_upwind
 	 struct mutable_Numerical_Flux* num_flux        ///< Defined for \ref compute_Numerical_Flux_fptr.
 	);
 
+/// \brief Compute the numerical fluxes and Jacobians as the upwind values.
+void compute_Numerical_Flux_advection_upwind_jacobian
+	(const struct Numerical_Flux_Input* num_flux_i, ///< Defined for \ref compute_Numerical_Flux_fptr.
+	 struct mutable_Numerical_Flux* num_flux        ///< Defined for \ref compute_Numerical_Flux_fptr.
+	);
+
 #endif // DPG__numerical_flux_advection_h__INCLUDED

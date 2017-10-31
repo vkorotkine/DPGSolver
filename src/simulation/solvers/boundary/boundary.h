@@ -100,4 +100,14 @@ void constructor_Boundary_Value_s_fcl_interp
 	 const struct Simulation* sim             ///< Defined for \ref constructor_Boundary_Value_fptr.
 	);
 
+/// \brief Destructor for a \ref Boundary_Value_Input container.
+void destructor_Boundary_Value_Input
+	(struct Boundary_Value_Input* bv_i ///< Standard.
+	);
+
+/// \brief Destructor for a \ref Boundary_Value container.
+void destructor_Boundary_Value
+	(struct Boundary_Value* bv ///< Standard.
+	);
+
 #endif // DPG__boundary_h__INCLUDED

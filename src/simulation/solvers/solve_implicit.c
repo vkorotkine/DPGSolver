@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_intrusive.h"
+#include "definitions_test_case.h"
 
 #include "computational_elements.h"
 #include "face.h"
@@ -45,23 +46,15 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Perform one implicit step.
  *  \return The absolute value of the maximum rhs for the current solution. */
 static double implicit_step
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/// \brief Display the solver progress.
-static void display_progress
-	(const struct Test_Case* test_case, ///< \ref Test_Case.
-	 const int i_step,                  ///< The current implicit step.
-	 const double max_rhs,              ///< The current maximum value of the rhs term.
-	 const double max_rhs0              ///< The initial maximum value of the rhs term.
+	(const int i_step,            ///< The current implicit step.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /** \brief Check the exit conditions.
  *  \return `true` if exit conditions are satisfied, `false` otherwise. */
 static bool check_exit
 	(const struct Test_Case* test_case, ///< \ref Test_Case.
-	 const double max_rhs,              ///< The current maximum value of the rhs term.
-	 const double max_rhs0              ///< The initial maximum value of the rhs term.
+	 const double max_rhs               ///< The current maximum value of the rhs term.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -76,14 +69,10 @@ void solve_implicit (struct Simulation* sim)
 
 	struct Test_Case* test_case = sim->test_case;
 
-	double max_rhs0 = 0.0;
 	for (int i_step = 0; ; ++i_step) {
-		const double max_rhs = implicit_step(sim);
-		if (i_step == 0)
-			max_rhs0 = max_rhs;
+		const double max_rhs = implicit_step(i_step,sim);
 
-		display_progress(test_case,i_step,max_rhs,max_rhs0);
-		if (check_exit(test_case,max_rhs,max_rhs0))
+		if (check_exit(test_case,max_rhs))
 			break;
 	}
 
@@ -96,43 +85,86 @@ void solve_implicit (struct Simulation* sim)
 
 /** \brief Constructor for a \ref Solver_Storage_Implicit container.
  *  \return See brief. */
-struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit
+static struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /// \brief Destructor for a \ref Solver_Storage_Implicit container.
-void destructor_Solver_Storage_Implicit
+static void destructor_Solver_Storage_Implicit
 	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
 	);
 
-static double implicit_step (const struct Simulation* sim)
+/// \brief Assemble \ref Solver_Storage_Implicit::A and \ref Solver_Storage_Implicit::b.
+static void petsc_mat_vec_assemble
+	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	);
+
+/** \brief Constructor for the `x` petsc Vec in "Ax = b" which is initialized to `b`.
+ *  \return See brief. */
+static Vec constructor_petsc_x
+	(Vec b ///< \ref Solver_Storage_Implicit::b.
+	);
+
+/// \brief Destructor for the `x` petsc Vec.
+static void destructor_petsc_x
+	(Vec x ///< Standard.
+	);
+
+/** \brief Constructor for a petsc `KSP` context.
+ *  \return See brief. */
+static KSP constructor_petsc_ksp
+	(Mat A,                       ///< The matrix.
+	 const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Destructor for a petsc `KSP` context.
+static void destructor_petsc_ksp
+	(KSP ksp ///< Standard.
+	);
+
+/// \brief Update the values of \ref Solver_Volume::sol_coef based on the computed increment.
+static void update_sol_coef
+	(Vec x,                       ///< Petsc Vec holding the solution coefficient increments.
+	 const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Display the solver progress.
+static void display_progress
+	(const struct Test_Case* test_case, ///< \ref Test_Case.
+	 const int i_step,                  ///< The current implicit step.
+	 const double max_rhs,              ///< The current maximum value of the rhs term.
+	 KSP ksp                            ///< Petsc `KSP` context.
+	);
+
+/** \brief Check if the pde under consideration is linear.
+ *  \return `true` if yes; `false` otherwise. */
+static bool check_pde_linear
+	(const int pde_index ///< \ref Test_Case::pde_index.
+	);
+
+static double implicit_step (const int i_step, const struct Simulation* sim)
 {
 	struct Solver_Storage_Implicit* s_store_i = constructor_Solver_Storage_Implicit(sim);
+
 	const double max_rhs = compute_rlhs(sim,s_store_i);
 
-//	Vec x; ///< Petsc Vec holding the computed solution (\f$ x = A^{-1}b \f$).
-//	update_sol_coef(sim);
+	petsc_mat_vec_assemble(s_store_i);
+	Vec x = constructor_petsc_x(s_store_i->b);
+
+	KSP ksp = constructor_petsc_ksp(s_store_i->A,sim);
+	KSPSolve(ksp,s_store_i->b,x);
 	destructor_Solver_Storage_Implicit(s_store_i);
-EXIT_UNSUPPORTED;
+
+	update_sol_coef(x,sim);
+	destructor_petsc_x(x);
+
+	display_progress(sim->test_case,i_step,max_rhs,ksp);
+	destructor_petsc_ksp(ksp);
+
 	return max_rhs;
 }
 
-static void display_progress
-	(const struct Test_Case* test_case, const int i_step, const double max_rhs, const double max_rhs0)
-{
-UNUSED(max_rhs0);
-	if (!test_case->display_progress)
-		return;
-
-double emin = 1.0, emax = 0.0;
-int iteration_ksp = 0;
-int reason = 0;
-	printf("iteration: %5d, KSP iterations (cond, reason): %5d (% .3e, %d), maxRHS: % .3e\n",
-	       i_step,iteration_ksp,emax/emin,reason,max_rhs);
-EXIT_ADD_SUPPORT;
-}
-
-static bool check_exit (const struct Test_Case* test_case, const double max_rhs, const double max_rhs0)
+static bool check_exit (const struct Test_Case* test_case, const double max_rhs)
 {
 	bool exit_now = false;
 
@@ -141,10 +173,17 @@ static bool check_exit (const struct Test_Case* test_case, const double max_rhs,
 		exit_now = true;
 	}
 
+	static double max_rhs0 = 0.0;
+	if (max_rhs0 == 0.0)
+		max_rhs0 = max_rhs;
+
 	if (max_rhs/max_rhs0 < test_case->exit_ratio_i) {
 		printf("Complete: max_rhs dropped by % .2e orders.\n",log10(max_rhs/max_rhs0));
 		exit_now = true;
 	}
+
+	if (check_pde_linear(test_case->pde_index))
+		exit_now = true;
 
 	return exit_now;
 }
@@ -163,7 +202,11 @@ static struct Vector_i* constructor_nnz
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit (const struct Simulation* sim)
+static bool check_symmetric
+	(const int pde_index ///< \ref Test_Case::pde_index
+	);
+
+static struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit (const struct Simulation* sim)
 {
 	assert(sizeof(PetscInt) == sizeof(int)); // Ensure that all is working correctly if this is removed.
 
@@ -181,12 +224,155 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit (const struc
 	return s_store_i;
 }
 
-void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* s_store_i)
+static void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* s_store_i)
 {
 	MatDestroy(&s_store_i->A);
 	VecDestroy(&s_store_i->b);
 
 	free(s_store_i);
+}
+
+static void petsc_mat_vec_assemble (struct Solver_Storage_Implicit* s_store_i)
+{
+	MatAssemblyBegin(s_store_i->A,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(s_store_i->A,MAT_FINAL_ASSEMBLY);
+	VecAssemblyBegin(s_store_i->b);
+	VecAssemblyEnd(s_store_i->b);
+}
+
+static Vec constructor_petsc_x (Vec b)
+{
+	PetscInt dof = 0;
+	VecGetSize(b,&dof);
+
+	Vec x = NULL;
+	VecCreateSeq(MPI_COMM_WORLD,dof,&x); // destructed
+	VecCopy(b,x);
+
+	VecAssemblyBegin(x);
+	VecAssemblyEnd(x);
+
+	return x;
+}
+
+static void destructor_petsc_x (Vec x)
+{
+	VecDestroy(&x);
+}
+
+static KSP constructor_petsc_ksp (Mat A, const struct Simulation* sim)
+{
+	KSP ksp;
+	KSPCreate(MPI_COMM_WORLD,&ksp);
+
+	PC pc;
+
+	KSPSetOperators(ksp,A,A);
+	KSPSetComputeSingularValues(ksp,PETSC_TRUE);
+	KSPGetPC(ksp,&pc);
+
+	const bool symmetric = check_symmetric(sim->test_case->pde_index);
+	const int solver_type_i = sim->test_case->solver_type_i;
+	switch (solver_type_i) {
+	case SOLVER_I_DIRECT:
+		KSPSetType(ksp,KSPPREONLY);
+		if (!symmetric)
+			PCSetType(pc,PCLU);
+		else
+			PCSetType(pc,PCCHOLESKY);
+		break;
+	case SOLVER_I_ITER_DEF:
+/// \todo Modify the tolerance used here.
+		KSPSetTolerances(ksp,1e-15,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
+		KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);
+
+		if (!symmetric) {
+			KSPSetType(ksp,KSPGMRES);
+			KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
+			KSPGMRESSetRestart(ksp,60); // Default: 30
+			PCSetType(pc,PCILU);
+		} else {
+			KSPSetType(ksp,KSPCG);
+			PCSetType(pc,PCILU);
+		}
+		PCFactorSetLevels(pc,1); // Cannot use MatOrdering with 0 fill
+		PCFactorSetMatOrderingType(pc,MATORDERINGRCM);
+		break;
+	}
+	KSPSetUp(ksp);
+	PCSetUp(pc);
+
+	return ksp;
+}
+
+static void destructor_petsc_ksp (KSP ksp)
+{
+	KSPDestroy(&ksp);
+}
+
+
+static void update_sol_coef (Vec x, const struct Simulation* sim)
+{
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* s_vol = (struct Solver_Volume*)curr;
+		const int ind_dof             = s_vol->ind_dof;
+		struct Multiarray_d* sol_coef = s_vol->sol_coef;
+
+		const int ni = compute_size(sol_coef->order,sol_coef->extents);
+
+		PetscInt ix[ni];
+		for (int i = 0; i < ni; ++i)
+			ix[i] = ind_dof+i;
+
+		PetscScalar y[ni];
+		VecGetValues(x,ni,ix,y);
+
+		const double alpha = 1.0;
+//		const double alpha = compute_underRelax(s_vol,y,sim);
+//		enforce_positivity_highorder(sol_coef);
+
+		for (int i = 0; i < ni; ++i)
+			sol_coef->data[i] += alpha*y[i];
+	}
+}
+
+static void display_progress (const struct Test_Case* test_case, const int i_step, const double max_rhs, KSP ksp)
+{
+	if (!test_case->display_progress)
+		return;
+
+	static double max_rhs0 = 0.0;
+	if (i_step == 0)
+		max_rhs0 = max_rhs;
+
+	KSPConvergedReason reason;
+	KSPGetConvergedReason(ksp,&reason);
+
+	PetscInt iteration_ksp;
+	KSPGetIterationNumber(ksp,&iteration_ksp);
+
+	PetscReal emax = 0.0, emin = 0.0;
+	KSPComputeExtremeSingularValues(ksp,&emax,&emin);
+
+	printf("iteration: %5d, KSP iterations (cond, reason): %5d (% .3e, %d), max rhs (initial): % .3e (% .3e)\n",
+	       i_step,iteration_ksp,emax/emin,reason,max_rhs,max_rhs0);
+}
+
+static bool check_pde_linear (const int pde_index)
+{
+	switch (pde_index) {
+	case PDE_ADVECTION: // fallthrough
+	case PDE_POISSON:
+		return true;
+		break;
+	case PDE_EULER: // fallthrough
+	case PDE_NAVIER_STOKES:
+		return false;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d.\n",pde_index);
+		break;
+	}
 }
 
 // Level 2 ********************************************************************************************************** //
@@ -259,6 +445,23 @@ static struct Vector_i* constructor_nnz (const struct Simulation* sim)
 	}
 
 	return nnz;
+}
+
+static bool check_symmetric (const int pde_index)
+{
+	switch (pde_index) {
+	case PDE_POISSON:
+		return true;
+		break;
+	case PDE_ADVECTION:     // fallthrough
+	case PDE_EULER:         // fallthrough
+	case PDE_NAVIER_STOKES:
+		return false;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d.\n",pde_index);
+		break;
+	}
 }
 
 // Level 3 ********************************************************************************************************** //

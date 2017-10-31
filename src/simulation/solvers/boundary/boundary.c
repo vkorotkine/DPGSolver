@@ -73,6 +73,24 @@ void constructor_Boundary_Value_s_fcl_interp
 	bv->ds_ds = NULL;
 }
 
+void destructor_Boundary_Value_Input (struct Boundary_Value_Input* bv_i)
+{
+	if (bv_i->s)
+		destructor_const_Multiarray_d(bv_i->s);
+	if (bv_i->g)
+		destructor_const_Multiarray_d(bv_i->g);
+}
+
+void destructor_Boundary_Value (struct Boundary_Value* bv)
+{
+	if (bv->s)
+		destructor_const_Multiarray_d(bv->s);
+	if (bv->g)
+		destructor_const_Multiarray_d(bv->g);
+	if (bv->ds_ds)
+		destructor_const_Multiarray_d(bv->ds_ds);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -94,9 +112,9 @@ static const struct const_Multiarray_d* constructor_s_fc_interp
 	const int p_v = s_volume->p_ref,
 	          p_f = s_face->p_ref;
 
-	const struct Operator* cv0_vs_fc = ( (s_face->cub_type == 's')
-		? get_Multiarray_Operator(e->cv0_vs_fcs,(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v})
-		: get_Multiarray_Operator(e->cv0_vs_fcc,(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v}) );
+	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
+	const struct Operator* cv0_vs_fc =
+		get_Multiarray_Operator(e->cv0_vs_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
 
 	const struct const_Multiarray_d* s_coef = (const struct const_Multiarray_d*) s_volume->sol_coef;
 

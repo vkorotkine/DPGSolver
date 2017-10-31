@@ -132,6 +132,18 @@ void permute_Matrix_d (struct Matrix_d* a, const ptrdiff_t* p)
 	}
 }
 
+void permute_Matrix_d_V (struct Matrix_d* a, const struct const_Vector_i* p_V)
+{
+	const ptrdiff_t ext_0 = p_V->ext_0;
+	assert((a->layout == 'R' && a->ext_0 == ext_0) || (a->layout == 'C' && a->ext_1 == ext_0));
+
+	ptrdiff_t p[ext_0];
+	for (int i = 0; i < ext_0; ++i)
+		p[i] = p_V->data[i];
+
+	permute_Matrix_d(a,p);
+}
+
 void mm_d
 	(const char trans_a_i, const char trans_b_i, const double alpha, const double beta,
 	 const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, struct Matrix_d*const c)

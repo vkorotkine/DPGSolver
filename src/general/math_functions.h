@@ -79,4 +79,12 @@ double binomial_coef
 	 const int den  ///< The denominator.
 	);
 
+/// \brief Variation on the axpy (BLAS 1) function: z = y*x + z.
+void z_yxpz
+	(const int n,     ///< The number of entries.
+	 const double* x, ///< Input x.
+	 const double* y, ///< Input y.
+	 double* z        ///< Location to store the sum.
+	);
+
 #endif // DPG__math_functions_h__INCLUDED

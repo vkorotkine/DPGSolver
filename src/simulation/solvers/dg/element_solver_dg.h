@@ -30,26 +30,19 @@ struct DG_Solver_Element {
 	struct const_Element element; ///< Base \ref const_Element.
 
 	// Volume rlhs
-	const struct Multiarray_Operator* cv0_vs_vcs; ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* cv0_vs_vcc; ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* tw1_vs_vcs; ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* tw1_vs_vcc; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vs_vc[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* tw1_vs_vc[2]; ///< See notation in \ref element_operators.h.
 
 	// Face rlhs
-	const struct Multiarray_Operator* cv0_vs_fcs;   ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* cv0_vs_fcc;   ///< See notation in \ref element_operators.h.
-	const struct const_Multiarray_Vector_i* nc_fcs; ///< Node correspondence between 'f'ace 'c'ubature 's'traight.
-	const struct const_Multiarray_Vector_i* nc_fcc; ///< Node correspondence between 'f'ace 'c'ubature 'c'urved.
-	const struct Multiarray_Operator* tw0_vs_fcs;   ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* tw0_vs_fcc;   ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vs_fc[2];   ///< See notation in \ref element_operators.h.
+	const struct const_Multiarray_Vector_i* nc_fc[2]; ///< Node correspondence between 'f'ace 'c'ubature 's'traight.
+	const struct Multiarray_Operator* tw0_vs_fc[2];   ///< See notation in \ref element_operators.h.
 
 	// Source rhs
-	const struct Multiarray_Operator* tw0_vs_vcs; ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* tw0_vs_vcc; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* tw0_vs_vc[2]; ///< See notation in \ref element_operators.h.
 
 	// Explicit rhs
-	const struct const_Multiarray_Vector_d* w_vcs; ///< Weights for 'v'olume 'c'ubature 's'traight.
-	const struct const_Multiarray_Vector_d* w_vcc; ///< Weights for 'v'olume 'c'ubature 'c'urved.
+	const struct const_Multiarray_Vector_d* w_vc[2]; ///< Weights for 'v'olume 'c'ubature.
 };
 
 /// \brief `const` version of the \ref DG_Solver_Element container.
@@ -57,26 +50,19 @@ struct const_DG_Solver_Element {
 	const struct const_Element element; ///< Defined in \ref DG_Solver_Element.
 
 	// Volume rlhs
-	const struct Multiarray_Operator*const cv0_vs_vcs; ///< Defined in \ref DG_Solver_Element.
-	const struct Multiarray_Operator*const cv0_vs_vcc; ///< Defined in \ref DG_Solver_Element.
-	const struct Multiarray_Operator*const tw1_vs_vcs; ///< Defined in \ref DG_Solver_Element.
-	const struct Multiarray_Operator*const tw1_vs_vcc; ///< Defined in \ref DG_Solver_Element.
+	const struct Multiarray_Operator*const cv0_vs_vc[2]; ///< Defined in \ref DG_Solver_Element.
+	const struct Multiarray_Operator*const tw1_vs_vc[2]; ///< Defined in \ref DG_Solver_Element.
 
 	// Face rlhs
-	const struct Multiarray_Operator*const cv0_vs_fcs;   ///< Defined in \ref DG_Solver_Element.
-	const struct Multiarray_Operator*const cv0_vs_fcc;   ///< Defined in \ref DG_Solver_Element.
-	const struct const_Multiarray_Vector_i*const fc_fcs; ///< Defined in \ref DG_Solver_Element.
-	const struct const_Multiarray_Vector_i*const fc_fcc; ///< Defined in \ref DG_Solver_Element.
-	const struct Multiarray_Operator*const tw0_vs_fcs;   ///< Defined in \ref DG_Solver_Element.
-	const struct Multiarray_Operator*const tw0_vs_fcc;   ///< Defined in \ref DG_Solver_Element.
+	const struct Multiarray_Operator*const cv0_vs_fc[2];   ///< Defined in \ref DG_Solver_Element.
+	const struct const_Multiarray_Vector_i*const nc_fc[2]; ///< Defined in \ref DG_Solver_Element.
+	const struct Multiarray_Operator*const tw0_vs_fc[2];   ///< Defined in \ref DG_Solver_Element.
 
 	// Source rhs
-	const struct Multiarray_Operator*const tw0_vs_vcs; ///< Defined in \ref DG_Solver_Element.
-	const struct Multiarray_Operator*const tw0_vs_vcc; ///< Defined in \ref DG_Solver_Element.
+	const struct Multiarray_Operator*const tw0_vs_vc[2]; ///< Defined in \ref DG_Solver_Element.
 
 	// Explicit rhs
-	const struct const_Multiarray_Vector_d*const w_vcs; ///< Defined in \ref DG_Solver_Element.
-	const struct const_Multiarray_Vector_d*const w_vcc; ///< Defined in \ref DG_Solver_Element.
+	const struct const_Multiarray_Vector_d*const w_vc[2]; ///< Defined in \ref DG_Solver_Element.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

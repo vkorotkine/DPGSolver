@@ -42,19 +42,6 @@ typedef void (*compute_Numerical_Flux_fptr)
 	 struct mutable_Numerical_Flux* num_flux
 	);
 
-/** \brief Function pointer to functions constructing the members needed by the numerical flux.
- *  \return Standard.
- *
- *  \param num_flux_i \ref Numerical_Flux_Input.
- *  \param face       \ref Face.
- *  \param sim        \ref Simulation.
- */
-typedef void (*constructor_Numerical_Flux_Input_mem_fptr)
-	(struct Numerical_Flux_Input* num_flux_i,
-	 const struct Face* face,
-	 const struct Simulation* sim
-	);
-
 /// \brief Container holding data used for computing the numerical fluxes and their Jacobians.
 struct Numerical_Flux_Input {
 	struct Boundary_Value_Input bv_l; ///< \ref Boundary_Value_Input container.
@@ -63,17 +50,6 @@ struct Numerical_Flux_Input {
 	const bool has_1st_order, ///< \ref Test_Case::has_1st_order.
 	           has_2nd_order; ///< \ref Test_Case::has_2nd_order.
 
-/*	const struct const_Multiarray_d* normals_l; ///< The unit normal vector components as seen from the left.
-	const struct const_Multiarray_d* xyz_l;     ///< The xyz coordinates as seen from the left.
-
-	const struct const_Multiarray_d* s_l; ///< The solution variables as seen from the left.
-	const struct const_Multiarray_d* g_l; ///< The solution gradient variables as seen from the left.
-
-	const struct const_Multiarray_d* s_r; ///< The solution variables as seen from the right.
-	const struct const_Multiarray_d* g_r; ///< The solution gradient variables as seen from the right.
-
-	const struct const_Multiarray_d* ds_r_ds_l; ///< The Jacobian of `s_r` wrt `s_l` (Used on boundaries).
-*/
 	/// \ref compute_Numerical_Flux_fptr calling appropriate 1st/2nd order functions.
 	compute_Numerical_Flux_fptr compute_Numerical_Flux;
 
@@ -120,12 +96,6 @@ struct Numerical_Flux_Input* constructor_Numerical_Flux_Input
 
 /// \brief Destructor for a \ref Numerical_Flux_Input container.
 void destructor_Numerical_Flux_Input
-	(struct Numerical_Flux_Input* num_flux_i ///< Standard.
-	);
-
-/** \brief Destructor for a \ref Numerical_Flux_Input members set in \ref constructor_Numerical_Flux_Input_mem_fptr
- *         functions. */
-void destructor_Numerical_Flux_Input_mem
 	(struct Numerical_Flux_Input* num_flux_i ///< Standard.
 	);
 

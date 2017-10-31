@@ -213,6 +213,7 @@ static void jacobian_boundary_Riemann(struct S_BC *const BCdata)
 	X_ptr = &XYZ[NnTotal*0];
 	Y_ptr = &XYZ[NnTotal*1];
 
+/// Alternate order in updated code (Fastest on var, then eq (where eq is actually var_out)).
 	for (eq  = 0; eq  < Neq;  eq++)  {
 	for (var = 0; var < Nvar; var++) {
 		dWdW_ptr[eq*Nvar+var] = &dWdW[(eq*Nvar+var)*NnTotal];

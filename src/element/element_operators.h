@@ -53,6 +53,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  Each operator also has an associated range with a maximum order of \ref OP_ORDER_MAX with the following parameters
  *  (d)(ce_o)(ce_i)[h_o][h_i][p_o][p_i], where entries in square and round brackets are once again required and
  *  optional, respectively.
+ *
+ *  When an operator is declared as an array of size 2, the two indices are used to denote the straight (0) and curved
+ *  (1) operators, respectively.
  */
 
 #include <stddef.h>

@@ -2,6 +2,7 @@
 
 solver_proc   200
 solver_type_e 101
+solver_type_i 201
 
 num_flux_1st upwind
 

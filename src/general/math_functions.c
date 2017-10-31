@@ -118,6 +118,12 @@ double binomial_coef (const int num, const int den)
 	return gsl_sf_fact(num)/(gsl_sf_fact(num-den)*gsl_sf_fact(den));
 }
 
+void z_yxpz (const int n, const double* x, const double* y, double* z)
+{
+	for (int i = 0; i < n; ++i)
+		z[i] += y[i]*x[i];
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

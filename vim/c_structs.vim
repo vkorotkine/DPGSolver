@@ -5,7 +5,7 @@
 " To see the available colour groups: `:highlight`.
 
 syntax keyword Type lapack_int
-syntax keyword Type PetscInt PetscScalar Vec Mat
+syntax keyword Type PetscInt PetscScalar PetscReal Vec Mat KSP PC
 
 syntax keyword Special Vector_i const_Vector_i
 syntax keyword Special Vector_d const_Vector_d

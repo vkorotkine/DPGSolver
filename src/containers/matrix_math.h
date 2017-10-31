@@ -26,6 +26,7 @@ struct Matrix_d;
 struct Vector_d;
 struct const_Matrix_d;
 struct const_Vector_d;
+struct const_Vector_i;
 
 /** \brief Compute the norm of the specified row of the input \ref Matrix_d.
  *  \return See brief. */
@@ -58,6 +59,12 @@ void scale_Matrix_d
 void permute_Matrix_d
 	(struct Matrix_d* a, ///< Matrix to be permuted.
 	 const ptrdiff_t* p  ///< Permutation indices.
+	);
+
+/// \brief Call \ref permute_Matrix_d using the indices of the vector as the permutation indices.
+void permute_Matrix_d_V
+	(struct Matrix_d* a,              ///< Defined for \ref permute_Matrix_d.
+	 const struct const_Vector_i* p_V ///< Vector of permutation indices.
 	);
 
 /** \brief Compute the (m)atrix-(m)atrix multiplication of input `double` matrices.

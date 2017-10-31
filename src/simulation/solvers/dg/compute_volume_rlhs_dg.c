@@ -33,6 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "flux.h"
 #include "intrusive.h"
+#include "math_functions.h"
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
@@ -72,7 +73,7 @@ typedef void (*destructor_sol_vc_fptr)
 typedef void (*compute_rlhs_fptr)
 	(const struct Flux_Ref* flux_r,
 	 struct Volume* volume,
-	 const struct Solver_Storage_Implicit* s_store_i,
+	 struct Solver_Storage_Implicit* s_store_i,
 	 const struct Simulation* sim
 	);
 
@@ -186,18 +187,18 @@ static const struct const_Multiarray_d* constructor_flux_ref
 
 /// \brief Compute only the rhs term.
 static void compute_rhs
-	(const struct Flux_Ref* flux_r,                   ///< Defined for \ref compute_rlhs_fptr.
-	 struct Volume* volume,                           ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Solver_Storage_Implicit* s_store_i, ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Simulation* sim                     ///< Defined for \ref compute_rlhs_fptr.
+	(const struct Flux_Ref* flux_r,             ///< Defined for \ref compute_rlhs_fptr.
+	 struct Volume* volume,                     ///< Defined for \ref compute_rlhs_fptr.
+	 struct Solver_Storage_Implicit* s_store_i, ///< Defined for \ref compute_rlhs_fptr.
+	 const struct Simulation* sim               ///< Defined for \ref compute_rlhs_fptr.
 	);
 
 /// \brief Compute the rhs and lhs terms for 1st order equations only.
 static void compute_rlhs_1
-	(const struct Flux_Ref* flux_r,                   ///< Defined for \ref compute_rlhs_fptr.
-	 struct Volume* volume,                           ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Solver_Storage_Implicit* s_store_i, ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Simulation* sim                     ///< Defined for \ref compute_rlhs_fptr.
+	(const struct Flux_Ref* flux_r,             ///< Defined for \ref compute_rlhs_fptr.
+	 struct Volume* vol,                        ///< Defined for \ref compute_rlhs_fptr.
+	 struct Solver_Storage_Implicit* s_store_i, ///< Defined for \ref compute_rlhs_fptr.
+	 const struct Simulation* sim               ///< Defined for \ref compute_rlhs_fptr.
 	);
 
 static struct S_Params set_s_params (const struct Simulation* sim)
@@ -262,14 +263,6 @@ static void destructor_Flux_Ref (struct Flux_Ref* flux_ref)
 
 // Level 1 ********************************************************************************************************** //
 
-/// \brief Variation on the axpy function: z = y*x+0 + z.
-static void z_yxpz
-	(const int n,     ///< The number of entries.
-	 const double* x, ///< Input x.
-	 const double* y, ///< Input y.
-	 double* z        ///< Location to store the sum.
-	);
-
 static const struct const_Multiarray_d* constructor_sol_vc_interp (struct Volume* volume, const struct Simulation* sim)
 {
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
@@ -280,10 +273,9 @@ static const struct const_Multiarray_d* constructor_sol_vc_interp (struct Volume
 
 	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
 
-	const int p = s_volume->p_ref;
-	const struct Operator* cv0_vs_vc =
-		(!volume->curved ? get_Multiarray_Operator(e->cv0_vs_vcs,(ptrdiff_t[]){0,0,p,p})
-		                 : get_Multiarray_Operator(e->cv0_vs_vcc,(ptrdiff_t[]){0,0,p,p}) );
+	const int p = s_volume->p_ref,
+	          curved = volume->curved;
+	const struct Operator* cv0_vs_vc = get_Multiarray_Operator(e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
 
 	const struct const_Multiarray_d* s_coef = (const struct const_Multiarray_d*) s_volume->sol_coef;
 
@@ -349,7 +341,7 @@ static const struct const_Multiarray_d* constructor_flux_ref
 }
 
 static void compute_rhs
-	(const struct Flux_Ref* flux_r, struct Volume* volume, const struct Solver_Storage_Implicit* s_store_i,
+	(const struct Flux_Ref* flux_r, struct Volume* volume, struct Solver_Storage_Implicit* s_store_i,
 	 const struct Simulation* sim)
 {
 	UNUSED(s_store_i);
@@ -363,12 +355,10 @@ static void compute_rhs
 
 	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
 
+	const int p      = s_volume->p_ref,
+	          curved = volume->curved;
 	const struct Multiarray_Operator tw1_vs_vc;
-	const int p = s_volume->p_ref;
-	if (!volume->curved)
-		set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vcs,1,(ptrdiff_t[]){0,0,p,p});
-	else
-		set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vcc,1,(ptrdiff_t[]){0,0,p,p});
+	set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 
 	const ptrdiff_t d = sim->d;
 	for (ptrdiff_t dim = 0; dim < d; ++dim)
@@ -376,37 +366,36 @@ static void compute_rhs
 }
 
 static void compute_rlhs_1
-	(const struct Flux_Ref* flux_r, struct Volume* volume, const struct Solver_Storage_Implicit* s_store_i,
+	(const struct Flux_Ref* flux_r, struct Volume* vol, struct Solver_Storage_Implicit* s_store_i,
 	 const struct Simulation* sim)
 {
+/// \todo Add special case for collocated.
+// If collocation is enabled, note that the diagonal weight scaling must be added back in to recover the symmetry of the
+// residual Jacobian. Add it just before adding the contribution to the petsc mat. Also add for face terms and RHS
+// terms (volume, face, source or simply the complete rhs).
+assert(sim->collocated == false); // Add support in future.
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
 	const ptrdiff_t d = sim->d;
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
 
-	struct Solver_Volume* s_volume       = (struct Solver_Volume*) volume;
-	struct DG_Solver_Volume* dg_s_volume = (struct DG_Solver_Volume*) volume;
+	struct Solver_Volume* s_vol       = (struct Solver_Volume*) vol;
+	struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) vol;
 
-	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
+	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) vol->element;
 
+	const int p      = s_vol->p_ref,
+	          curved = vol->curved;
 	const struct Multiarray_Operator tw1_vs_vc;
-	const int p = s_volume->p_ref;
-	if (!volume->curved)
-		set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vcs,1,(ptrdiff_t[]){0,0,p,p});
-	else
-		set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vcc,1,(ptrdiff_t[]){0,0,p,p});
+	set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 
 	// rhs
 	for (ptrdiff_t dim = 0; dim < d; ++dim)
-		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vs_vc.data[dim],flux_r->fr,dg_s_volume->rhs,op_format,2,&dim,NULL);
+		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vs_vc.data[dim],flux_r->fr,dg_s_vol->rhs,op_format,2,&dim,NULL);
 
 	// lhs
-/// \todo Add special case for collocated.
-/// \todo change this so that curved can be used as the index.
-	const struct Operator* cv0_vs_vc =
-		(!volume->curved ? get_Multiarray_Operator(e->cv0_vs_vcs,(ptrdiff_t[]){0,0,p,p})
-		                 : get_Multiarray_Operator(e->cv0_vs_vcc,(ptrdiff_t[]){0,0,p,p}) );
+	const struct Operator* cv0_vs_vc = get_Multiarray_Operator(e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
 
 	const ptrdiff_t ext_0 = tw1_vs_vc.data[0]->op_std->ext_0,
 	                ext_1 = tw1_vs_vc.data[0]->op_std->ext_1;
@@ -419,10 +408,9 @@ static void compute_rlhs_1
 
 	const int n_eq = sim->test_case->n_eq,
 	          n_vr = sim->test_case->n_var;
-	for (int eq = 0; eq < n_eq; ++eq) {
 	for (int vr = 0; vr < n_vr; ++vr) {
+	for (int eq = 0; eq < n_eq; ++eq) {
 		set_to_value_Matrix_d(tw1_r,0.0);
-
 		for (int dim = 0; dim < d; ++dim) {
 			const ptrdiff_t ind =
 				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
@@ -432,21 +420,9 @@ static void compute_rlhs_1
 
 		mm_d('N','N',1.0,0.0,(struct const_Matrix_d*)tw1_r,cv0_vs_vc->op_std,lhs);
 
-		set_petsc_Mat_row_col(s_store_i,s_volume,eq,s_volume,vr);
+		set_petsc_Mat_row_col(s_store_i,s_vol,eq,s_vol,vr);
 		add_to_petsc_Mat(s_store_i,(struct const_Matrix_d*)lhs);
 	}}
-
 	destructor_Matrix_d(tw1_r);
 	destructor_Matrix_d(lhs);
-
-UNUSED(s_store_i);
-EXIT_ADD_SUPPORT;
-}
-
-// Level 2 ********************************************************************************************************** //
-
-static void z_yxpz (const int n, const double* x, const double* y, double* z)
-{
-	for (int i = 0; i < n; ++i)
-		z[i] += y[i]*x[i];
 }

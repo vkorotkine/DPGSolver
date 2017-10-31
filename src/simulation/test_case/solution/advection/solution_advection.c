@@ -73,7 +73,7 @@ void set_function_pointers_solution_advection (struct Test_Case* test_case, cons
 	switch (test_case->ind_num_flux[0]) {
 	case NUM_FLUX_UPWIND:
 		test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_advection_upwind;
-//		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_advection_upwind_jacobian;
+		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_advection_upwind_jacobian;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);

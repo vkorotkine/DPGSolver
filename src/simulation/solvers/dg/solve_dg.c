@@ -47,9 +47,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Set the memory of the rhs and lhs (if applicable) terms to zero for the volumes.
-static void zero_memory_volumes
-	(const struct Simulation* sim ///< \ref Simulation.
+/// \brief Call the common functions when computing the rlhs values for explicit and implicit dg schemes.
+static void compute_rlhs_common_dg
+	(const struct Simulation* sim,             ///< \ref Simulation.
+	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
 	);
 
 /// \brief Scale the rhs terms by the the inverse mass matrices (for explicit schemes).
@@ -63,11 +64,17 @@ static double compute_max_rhs
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/// \brief Fill \ref Solver_Storage_Implicit::b with the negative of rhs values.
+static void fill_petsc_Vec_b_dg
+	(const struct Simulation* sim,             ///< Defined for \ref compute_rlhs_dg.
+	 struct Solver_Storage_Implicit* s_store_i ///< Defined for \ref compute_rlhs_dg.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 double compute_rhs_dg (const struct Simulation* sim)
 {
-	compute_rlhs_dg(sim,NULL);
+	compute_rlhs_common_dg(sim,NULL);
 	scale_rhs_by_m_inv(sim);
 
 	return compute_max_rhs(sim);
@@ -75,11 +82,8 @@ double compute_rhs_dg (const struct Simulation* sim)
 
 double compute_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
 {
-	zero_memory_volumes(sim);
-	compute_grad_coef_dg(sim);
-	compute_volume_rlhs_dg(sim,s_store_i);
-	compute_face_rlhs_dg(sim,s_store_i);
-	compute_source_rhs_dg(sim);
+	compute_rlhs_common_dg(sim,s_store_i);
+	fill_petsc_Vec_b_dg(sim,s_store_i);
 
 	return compute_max_rhs(sim);
 }
@@ -90,16 +94,37 @@ void permute_Multiarray_d_fc
 	const struct Neigh_Info* neigh_info = &((struct Face*)s_face)->neigh_info[side_index_dest];
 
 	struct Volume* vol = neigh_info->volume;
-	const struct DG_Solver_Element* f_e =
-		(const struct DG_Solver_Element*) get_element_by_face(vol->element,neigh_info->ind_lf);
+	const struct const_DG_Solver_Element* f_e =
+		(const struct const_DG_Solver_Element*) get_element_by_face(vol->element,neigh_info->ind_lf);
 
 	const int ind_ord = neigh_info->ind_ord,
 	          p_f     = s_face->p_ref;
-	const struct const_Vector_i* nc_fc = ((s_face->cub_type == 's')
-		? get_const_Multiarray_Vector_i(f_e->nc_fcs,(ptrdiff_t[]){ind_ord,0,0,p_f,p_f})
-		: get_const_Multiarray_Vector_i(f_e->nc_fcc,(ptrdiff_t[]){ind_ord,0,0,p_f,p_f}) );
+	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
+	const struct const_Vector_i* nc_fc =
+		get_const_Multiarray_Vector_i(f_e->nc_fc[curved],(ptrdiff_t[]){ind_ord,0,0,p_f,p_f});
 
 	permute_Multiarray_d_V(data,nc_fc,perm_layout);
+}
+
+void permute_Matrix_d_fc
+	(struct Matrix_d* data, const char perm_layout, const int side_index_dest, const struct Solver_Face* s_face)
+{
+	assert(perm_layout == 'R');
+	assert(data->layout == 'R');
+
+	const struct Neigh_Info* neigh_info = &((struct Face*)s_face)->neigh_info[side_index_dest];
+
+	struct Volume* vol = neigh_info->volume;
+	const struct const_DG_Solver_Element* f_e =
+		(const struct const_DG_Solver_Element*) get_element_by_face(vol->element,neigh_info->ind_lf);
+
+	const int ind_ord = neigh_info->ind_ord,
+	          p_f     = s_face->p_ref;
+	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
+	const struct const_Vector_i* nc_fc =
+		get_const_Multiarray_Vector_i(f_e->nc_fc[curved],(ptrdiff_t[]){ind_ord,0,0,p_f,p_f});
+
+	permute_Matrix_d_V(data,nc_fc);
 }
 
 void set_petsc_Mat_row_col
@@ -132,6 +157,11 @@ void add_to_petsc_Mat (const struct Solver_Storage_Implicit*const s_store_i, con
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+/// \brief Set the memory of the rhs and lhs (if applicable) terms to zero for the volumes.
+static void zero_memory_volumes
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
 /// \brief Version of \ref scale_rhs_by_m_inv used for non-collocated runs.
 static void scale_rhs_by_m_inv_std
 	(const struct Simulation* sim ///< \ref Simulation.
@@ -142,11 +172,13 @@ static void scale_rhs_by_m_inv_col
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-static void zero_memory_volumes (const struct Simulation* sim)
+static void compute_rlhs_common_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
 {
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		set_to_value_Multiarray_d(((struct DG_Solver_Volume*)curr)->rhs,0.0);
-	}
+	zero_memory_volumes(sim);
+	compute_grad_coef_dg(sim);
+	compute_volume_rlhs_dg(sim,s_store_i);
+	compute_face_rlhs_dg(sim,s_store_i);
+	compute_source_rhs_dg(sim);
 }
 
 static void scale_rhs_by_m_inv (const struct Simulation* sim)
@@ -174,7 +206,34 @@ static double compute_max_rhs (const struct Simulation* sim)
 	return max_rhs;
 }
 
+static void fill_petsc_Vec_b_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
+{
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const int ind_dof        = ((struct Solver_Volume*)curr)->ind_dof;
+		struct Multiarray_d* rhs = ((struct DG_Solver_Volume*)curr)->rhs;
+
+		const int ni = compute_size(rhs->order,rhs->extents);
+
+		PetscInt    ix[ni];
+		PetscScalar y[ni];
+
+		for (int i = 0; i < ni; ++i) {
+			ix[i] = ind_dof+i;
+			y[i]  = -(rhs->data[i]);
+		}
+
+		VecSetValues(s_store_i->b,ni,ix,y,INSERT_VALUES);
+	}
+}
+
 // Level 1 ********************************************************************************************************** //
+
+static void zero_memory_volumes (const struct Simulation* sim)
+{
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		set_to_value_Multiarray_d(((struct DG_Solver_Volume*)curr)->rhs,0.0);
+	}
+}
 
 static void scale_rhs_by_m_inv_std (const struct Simulation* sim)
 {
