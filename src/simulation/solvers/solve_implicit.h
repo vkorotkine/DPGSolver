@@ -26,4 +26,20 @@ void solve_implicit
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Constructor for a \ref Solver_Storage_Implicit container.
+ *  \return See brief. */
+struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Destructor for a \ref Solver_Storage_Implicit container.
+void destructor_Solver_Storage_Implicit
+	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	);
+
+/// \brief Assemble \ref Solver_Storage_Implicit::A and \ref Solver_Storage_Implicit::b.
+void petsc_mat_vec_assemble
+	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	);
+
 #endif // DPG__solve_implicit_h__INCLUDED

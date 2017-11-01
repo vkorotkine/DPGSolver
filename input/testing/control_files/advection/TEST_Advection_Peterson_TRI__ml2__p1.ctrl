@@ -17,7 +17,7 @@ mesh_path        ../meshes/
 # Simulation variables
 
 interp_tp  GLL
-interp_si  AO
+interp_si  WSH
 interp_pyr GLL
 
 basis_geom  lagrange

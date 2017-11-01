@@ -119,16 +119,30 @@ void compute_face_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_I
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Face* face = (struct Face*) curr;
+//printf("face: %d\n",face->index);
 
 		constructor_Numerical_Flux_Input_data(num_flux_i,face,sim); // destructed
+//print_const_Multiarray_d(num_flux_i->bv_l.s);
+//print_const_Multiarray_d(num_flux_i->bv_r.s);
 
 		struct Numerical_Flux* num_flux = constructor_Numerical_Flux(num_flux_i); // destructed
 		destructor_Numerical_Flux_Input_data(num_flux_i);
+//print_const_Multiarray_d(num_flux->nnf);
+//print_const_Multiarray_d(num_flux->neigh_info[0].dnnf_ds);
+//if (!face->boundary)
+//	print_const_Multiarray_d(num_flux->neigh_info[1].dnnf_ds);
 
 		s_params.scale_by_Jacobian(num_flux,face,sim);
+//print_const_Multiarray_d(num_flux->nnf);
+//print_const_Multiarray_d(num_flux->neigh_info[0].dnnf_ds);
+//if (!face->boundary)
+//	print_const_Multiarray_d(num_flux->neigh_info[1].dnnf_ds);
 		s_params.compute_rlhs(num_flux,face,s_store_i,sim);
 		destructor_Numerical_Flux(num_flux);
+//if (face->index == 2)
+//break;
 	}
+//EXIT_UNSUPPORTED;
 	destructor_Numerical_Flux_Input(num_flux_i);
 }
 
@@ -320,7 +334,9 @@ UNUSED(sim);
 	const struct Operator* tw0_vs_fc =
 		get_Multiarray_Operator(e->tw0_vs_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
 
+//printf("%d\n",vol->index);
 	mm_NNC_Operator_Multiarray_d(-1.0,1.0,tw0_vs_fc,num_flux->nnf,dg_s_vol->rhs,op_format,2,NULL,NULL);
+//print_Multiarray_d(dg_s_vol->rhs);
 }
 
 static void finalize_face_lhs
@@ -378,7 +394,9 @@ static void finalize_face_lhs
 
 		mm_d('N','N',-1.0,0.0,(struct const_Matrix_d*)tw0_nf,cv0_vs_fc,lhs);
 
-		set_petsc_Mat_row_col(s_store_i,s_vol[side_index[0]],eq,s_vol[side_index[1]],vr);
+//printf("var, eq: %d %d\n",vr,eq);
+//print_Matrix_d(lhs);
+		set_petsc_Mat_row_col(s_store_i,s_vol[side_index[1]],eq,s_vol[side_index[0]],vr);
 		add_to_petsc_Mat(s_store_i,(struct const_Matrix_d*)lhs);
 	}}
 	destructor_Matrix_d(tw0_nf);

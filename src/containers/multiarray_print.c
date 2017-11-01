@@ -145,12 +145,12 @@ void print_Multiarray_d_tol (const struct Multiarray_d*const a, const double tol
 		print_Matrix_d_tol(a_M,tol);
 		destructor_Matrix_d(a_M);
 	} else if (order > 2) {
-		struct Matrix_d* a_M = constructor_move_Matrix_d_d(a->layout,extents[0],extents[1],false,NULL); // destructed;
+		struct Matrix_d* a_M = constructor_move_Matrix_d_d(a->layout,extents[0],extents[1],false,NULL); // destructed
 
 		const ptrdiff_t size_tail = compute_size(order-2,&extents[2]);
 
-		ptrdiff_t counter[size_tail];
-		for (ptrdiff_t i = 0; i < size_tail; ++i)
+		ptrdiff_t counter[order-2];
+		for (ptrdiff_t i = 0; i < order-2; ++i)
 			counter[i] = 0;
 
 		for (ptrdiff_t i = 0; i < size_tail; ++i) {

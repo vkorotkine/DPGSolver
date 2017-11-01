@@ -43,6 +43,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+///\{ \name Flag for whether the petsc data containers should be output to a file.
+#define OUTPUT_PETSC_AB false
+///\}
+
 /** \brief Perform one implicit step.
  *  \return The absolute value of the maximum rhs for the current solution. */
 static double implicit_step
@@ -55,6 +59,18 @@ static double implicit_step
 static bool check_exit
 	(const struct Test_Case* test_case, ///< \ref Test_Case.
 	 const double max_rhs               ///< The current maximum value of the rhs term.
+	);
+
+/// \brief Update \ref Solver_Volume::ind_dof and \ref Solver_Face::ind_dof.
+static void update_ind_dof
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Constructor for a \ref Vector_i\* holding the 'n'umber of 'n'on-'z'ero entries in each row of the global
+ *         system matrix.
+ *  \return See brief. */
+static struct Vector_i* constructor_nnz
+	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -81,22 +97,46 @@ void solve_implicit (struct Simulation* sim)
 	sim->test_case->solver_method_curr = 0;
 }
 
+struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit (const struct Simulation* sim)
+{
+	assert(sizeof(PetscInt) == sizeof(int)); // Ensure that all is working correctly if this is removed.
+
+	const ptrdiff_t dof = compute_dof(sim);
+	update_ind_dof(sim);
+	struct Vector_i* nnz = constructor_nnz(sim); // destructed
+
+	struct Solver_Storage_Implicit* s_store_i = calloc(1,sizeof *s_store_i); // free
+
+	MatCreateSeqAIJ(MPI_COMM_WORLD,dof,dof,0,nnz->data,&s_store_i->A); // destructed
+	VecCreateSeq(MPI_COMM_WORLD,dof,&s_store_i->b);                    // destructed
+
+	destructor_Vector_i(nnz);
+
+	return s_store_i;
+}
+
+void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* s_store_i)
+{
+	MatDestroy(&s_store_i->A);
+	VecDestroy(&s_store_i->b);
+
+	free(s_store_i);
+}
+
+void petsc_mat_vec_assemble (struct Solver_Storage_Implicit* s_store_i)
+{
+	MatAssemblyBegin(s_store_i->A,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(s_store_i->A,MAT_FINAL_ASSEMBLY);
+	VecAssemblyBegin(s_store_i->b);
+	VecAssemblyEnd(s_store_i->b);
+}
+
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Constructor for a \ref Solver_Storage_Implicit container.
- *  \return See brief. */
-static struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/// \brief Destructor for a \ref Solver_Storage_Implicit container.
-static void destructor_Solver_Storage_Implicit
-	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
-	);
-
-/// \brief Assemble \ref Solver_Storage_Implicit::A and \ref Solver_Storage_Implicit::b.
-static void petsc_mat_vec_assemble
-	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+/// \brief Output the petsc Mat/Vec to a file for visualization.
+static void output_petsc_mat_vec
+	(Mat A, ///< The petsc Mat.
+	 Vec b  ///< The petsc Vec.
 	);
 
 /** \brief Constructor for the `x` petsc Vec in "Ax = b" which is initialized to `b`.
@@ -136,6 +176,14 @@ static void display_progress
 	 KSP ksp                            ///< Petsc `KSP` context.
 	);
 
+/// \brief Increment the corresponding rows of `nnz` by the input number of columns.
+static void increment_nnz
+	(struct Vector_i* nnz,    ///< Holds the number of non-zero entries for each row.
+	 const ptrdiff_t ind_dof, ///< The index of the first degree of freedom for rows to be incremented.
+	 const ptrdiff_t n_row,   ///< The number of sequential rows to be incremented.
+	 const ptrdiff_t n_col    ///< The increment.
+	);
+
 /** \brief Check if the pde under consideration is linear.
  *  \return `true` if yes; `false` otherwise. */
 static bool check_pde_linear
@@ -149,6 +197,9 @@ static double implicit_step (const int i_step, const struct Simulation* sim)
 	const double max_rhs = compute_rlhs(sim,s_store_i);
 
 	petsc_mat_vec_assemble(s_store_i);
+	if (OUTPUT_PETSC_AB)
+		output_petsc_mat_vec(s_store_i->A,s_store_i->b);
+
 	Vec x = constructor_petsc_x(s_store_i->b);
 
 	KSP ksp = constructor_petsc_ksp(s_store_i->A,sim);
@@ -188,56 +239,87 @@ static bool check_exit (const struct Test_Case* test_case, const double max_rhs)
 	return exit_now;
 }
 
+static void update_ind_dof (const struct Simulation* sim)
+{
+	ptrdiff_t dof = 0;
+	switch (sim->method) {
+	case METHOD_DG:
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+			struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+
+			s_vol->ind_dof = dof;
+
+			struct Multiarray_d* sol_coef = s_vol->sol_coef;
+			dof += compute_size(sol_coef->order,sol_coef->extents);
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d.\n",sim->method);
+		break;
+	}
+	assert(dof == compute_dof(sim));
+}
+
+static struct Vector_i* constructor_nnz (const struct Simulation* sim)
+{
+	const ptrdiff_t dof = compute_dof(sim);
+	struct Vector_i* nnz = constructor_zero_Vector_i(dof); // returned
+
+	switch (sim->method) {
+	case METHOD_DG:
+		// Diagonal contribution
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+			struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+
+			struct Multiarray_d* sol_coef = s_vol->sol_coef;
+			const ptrdiff_t size = compute_size(sol_coef->order,sol_coef->extents);
+			increment_nnz(nnz,s_vol->ind_dof,size,size);
+		}
+
+		// Off-diagonal contributions
+		for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+			struct Face* face = (struct Face*) curr;
+			if (face->boundary)
+				continue;
+
+			struct Solver_Volume* s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
+			                                   (struct Solver_Volume*) face->neigh_info[1].volume, };
+
+			struct Multiarray_d* sol_coef[2] = { s_vol[0]->sol_coef, s_vol[1]->sol_coef, };
+			const ptrdiff_t size[2] = { compute_size(sol_coef[0]->order,sol_coef[0]->extents),
+			                            compute_size(sol_coef[1]->order,sol_coef[1]->extents), };
+
+			increment_nnz(nnz,s_vol[0]->ind_dof,size[0],size[1]);
+			increment_nnz(nnz,s_vol[1]->ind_dof,size[1],size[0]);
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d.\n",sim->method);
+		break;
+	}
+
+	return nnz;
+}
+
 // Level 1 ********************************************************************************************************** //
-
-/// \brief Update \ref Solver_Volume::ind_dof and \ref Solver_Face::ind_dof.
-static void update_ind_dof
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/** \brief Constructor for a \ref Vector_i\* holding the 'n'umber of 'n'on-'z'ero entries in each row of the global
- *         system matrix.
- *  \return See brief. */
-static struct Vector_i* constructor_nnz
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
 
 static bool check_symmetric
 	(const int pde_index ///< \ref Test_Case::pde_index
 	);
 
-static struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit (const struct Simulation* sim)
+static void output_petsc_mat_vec (Mat A, Vec b)
 {
-	assert(sizeof(PetscInt) == sizeof(int)); // Ensure that all is working correctly if this is removed.
+	PetscViewer viewer;
 
-	const ptrdiff_t dof = compute_dof(sim);
-	update_ind_dof(sim);
-	struct Vector_i* nnz = constructor_nnz(sim); // destructed
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output.m",&viewer);
+	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+	MatView(A,viewer);
 
-	struct Solver_Storage_Implicit* s_store_i = calloc(1,sizeof *s_store_i); // free
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"vec_output.m",&viewer);
+	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+	VecView(b,viewer);
 
-	MatCreateSeqAIJ(MPI_COMM_WORLD,dof,dof,0,nnz->data,&s_store_i->A); // destructed
-	VecCreateSeq(MPI_COMM_WORLD,dof,&s_store_i->b);                    // destructed
-
-	destructor_Vector_i(nnz);
-
-	return s_store_i;
-}
-
-static void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* s_store_i)
-{
-	MatDestroy(&s_store_i->A);
-	VecDestroy(&s_store_i->b);
-
-	free(s_store_i);
-}
-
-static void petsc_mat_vec_assemble (struct Solver_Storage_Implicit* s_store_i)
-{
-	MatAssemblyBegin(s_store_i->A,MAT_FINAL_ASSEMBLY);
-	MatAssemblyEnd(s_store_i->A,MAT_FINAL_ASSEMBLY);
-	VecAssemblyBegin(s_store_i->b);
-	VecAssemblyEnd(s_store_i->b);
+	PetscViewerDestroy(&viewer);
 }
 
 static Vec constructor_petsc_x (Vec b)
@@ -287,10 +369,16 @@ static KSP constructor_petsc_ksp (Mat A, const struct Simulation* sim)
 		KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);
 
 		if (!symmetric) {
+#if 1
 			KSPSetType(ksp,KSPGMRES);
 			KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
 			KSPGMRESSetRestart(ksp,60); // Default: 30
 			PCSetType(pc,PCILU);
+#else
+			KSPSetType(ksp,KSPRICHARDSON);
+			PCSetType(pc,PCSOR);
+			PCSORSetSymmetric(pc,SOR_SYMMETRIC_SWEEP);
+#endif
 		} else {
 			KSPSetType(ksp,KSPCG);
 			PCSetType(pc,PCILU);
@@ -377,76 +465,6 @@ static bool check_pde_linear (const int pde_index)
 
 // Level 2 ********************************************************************************************************** //
 
-/// \brief Increment the corresponding rows of `nnz` by the input number of columns.
-static void increment_nnz
-	(struct Vector_i* nnz,    ///< Holds the number of non-zero entries for each row.
-	 const ptrdiff_t ind_dof, ///< The index of the first degree of freedom for rows to be incremented.
-	 const ptrdiff_t n_row,   ///< The number of sequential rows to be incremented.
-	 const ptrdiff_t n_col    ///< The increment.
-	);
-
-static void update_ind_dof (const struct Simulation* sim)
-{
-	ptrdiff_t dof = 0;
-	switch (sim->method) {
-	case METHOD_DG:
-		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-			struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-
-			s_vol->ind_dof = dof;
-
-			struct Multiarray_d* sol_coef = s_vol->sol_coef;
-			dof += compute_size(sol_coef->order,sol_coef->extents);
-		}
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d.\n",sim->method);
-		break;
-	}
-	assert(dof == compute_dof(sim));
-}
-
-static struct Vector_i* constructor_nnz (const struct Simulation* sim)
-{
-	const ptrdiff_t dof = compute_dof(sim);
-	struct Vector_i* nnz = constructor_zero_Vector_i(dof); // returned
-
-	switch (sim->method) {
-	case METHOD_DG:
-		// Diagonal contribution
-		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-			struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-
-			struct Multiarray_d* sol_coef = s_vol->sol_coef;
-			const ptrdiff_t size = compute_size(sol_coef->order,sol_coef->extents);
-			increment_nnz(nnz,s_vol->ind_dof,size,size);
-		}
-
-		// Off-diagonal contributions
-		for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-			struct Face* face = (struct Face*) curr;
-			if (face->boundary)
-				continue;
-
-			struct Solver_Volume* s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
-			                                   (struct Solver_Volume*) face->neigh_info[1].volume, };
-
-			struct Multiarray_d* sol_coef[2] = { s_vol[0]->sol_coef, s_vol[1]->sol_coef, };
-			const ptrdiff_t size[2] = { compute_size(sol_coef[0]->order,sol_coef[0]->extents),
-			                            compute_size(sol_coef[1]->order,sol_coef[1]->extents), };
-
-			increment_nnz(nnz,s_vol[0]->ind_dof,size[0],size[1]);
-			increment_nnz(nnz,s_vol[1]->ind_dof,size[1],size[0]);
-		}
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d.\n",sim->method);
-		break;
-	}
-
-	return nnz;
-}
-
 static bool check_symmetric (const int pde_index)
 {
 	switch (pde_index) {
@@ -463,8 +481,6 @@ static bool check_symmetric (const int pde_index)
 		break;
 	}
 }
-
-// Level 3 ********************************************************************************************************** //
 
 static void increment_nnz (struct Vector_i* nnz, const ptrdiff_t ind_dof, const ptrdiff_t n_row, const ptrdiff_t n_col)
 {

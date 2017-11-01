@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 
 struct Test_Info;
+struct Simulation;
 
 /// Container for integration test related parameters
 struct Integration_Test_Info {
@@ -54,6 +55,27 @@ struct Integration_Test_Info* constructor_Integration_Test_Info
 /// \brief Destructor for the \ref Integration_Test_Info.
 void destructor_Integration_Test_Info
 	(struct Integration_Test_Info* int_test_info ///< Standard.
+	);
+
+/// \brief 'Con'/'De'strucor for a \ref Simulation depending on `adapt_type`.
+void structor_simulation
+	(struct Simulation** sim,   ///< Pointer to the \ref Simulation.
+	 const char mode,           ///< Mode of operation. Options: 'c'onstructor, 'd'estructor.
+	 const int adapt_type,      ///< \ref Integration_Test_Info::adapt_type.
+	 const int p,               ///< The order of the current simulation.
+	 const int ml,              ///< The mesh level of the current simulation.
+	 const int p_prev,          ///< The order of the previous simulation.
+	 const int ml_prev,         ///< The mesh level of the previous simulation.
+	 const char*const ctrl_name ///< The name of the control file (used for \ref constructor_Simulation).
+	);
+
+/** \brief Set the name of the current file to be used based on the adaptation type, order and mesh level.
+ *  \return See brief. */
+const char* set_file_name_curr
+	(const int adapt_type,      ///< \ref Integration_Test_Info::adapt_type.
+	 const int p,               ///< The order of the current simulation.
+	 const int ml,              ///< The mesh level of the current simulation.
+	 const char*const file_name ///< The name of the file.
 	);
 
 #endif // DPG__test_integration_h__INCLUDED

@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_integration_advection.h"
 #include "test_integration_convergence.h"
+#include "test_integration_linearization.h"
 
 void test_integration_advection (struct Test_Info*const test_info)
 {
@@ -39,7 +40,7 @@ void test_integration_advection (struct Test_Info*const test_info)
 	}
 
 	if (test_info->t_int.linearization) {
-		test_print_warning(test_info,"Advection linearization testing not yet implemented");
+		test_integration_linearization("advection/TEST_Advection_Peterson_TRI__ml0__p1");
 	} else {
 		test_print_warning(test_info,"Advection linearization testing currently disabled");
 	}

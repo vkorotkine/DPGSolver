@@ -49,8 +49,7 @@ void test_integration_euler (struct Test_Info*const test_info)
 	}
 
 	if (test_info->t_int.conv_order) {
-// remove 'stationary' from the name here as it is not the case.
-		test_integration_convergence(test_info,"euler/TEST_Euler_PeriodicVortex_Stationary_QUAD__ml0__p2");
+		test_integration_convergence(test_info,"euler/TEST_Euler_PeriodicVortex_QUAD__ml0__p2");
 	} else {
 		test_print_warning(test_info,"Euler convergence order testing currently disabled");
 	}

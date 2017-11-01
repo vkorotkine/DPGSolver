@@ -1,4 +1,5 @@
 set	(SOURCE
+	 complex/volume_solver_dg_complex.c
 	 compute_face_rlhs_dg.c
 	 compute_grad_coef_dg.c
 	 compute_source_rlhs_dg.c
@@ -10,6 +11,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 ${PETSC_LIBRARIES}
 	 Containers
 	 Element
 	 Flux

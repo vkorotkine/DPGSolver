@@ -129,26 +129,34 @@ void compute_volume_rlhs_dg (const struct Simulation* sim, struct Solver_Storage
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Volume*        vol   = (struct Volume*) curr;
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+//printf("%d\n",vol->index);
 
 		// Compute the solution, gradients and xyz coordinates at the volume cubature nodes.
 		flux_i->s   = s_params.constructor_sol_vc(vol,sim);
 /// \todo Add functions computing gradients, xyz.
 		flux_i->g   = NULL;
 		flux_i->xyz = NULL;;
+//print_Multiarray_d(s_vol->sol_coef);
+//print_const_Multiarray_d(flux_i->s);
 
 		// Compute the fluxes (and optionally their Jacobians) at the volume cubature nodes.
 		struct Flux* flux = constructor_Flux(flux_i);
 		s_params.destructor_sol_vc(flux_i->s);
+//print_const_Multiarray_d(flux->f);
+//print_const_Multiarray_d(flux->df_ds);
 
 		// Compute the reference fluxes (and optionally their Jacobians) at the volume cubature nodes.
 		struct Flux_Ref* flux_r = constructor_Flux_Ref(s_vol->metrics_vc,flux);
 		destructor_Flux(flux);
+//print_const_Multiarray_d(flux_r->dfr_ds);
 
 		// Compute the rhs (and optionally the lhs) terms.
 		s_params.compute_rlhs(flux_r,vol,s_store_i,sim);
 		destructor_Flux_Ref(flux_r);
+//EXIT_UNSUPPORTED;
 	}
 	destructor_Flux_Input(flux_i);
+//EXIT_UNSUPPORTED;
 }
 
 // Static functions ************************************************************************************************* //
@@ -393,6 +401,7 @@ assert(sim->collocated == false); // Add support in future.
 	// rhs
 	for (ptrdiff_t dim = 0; dim < d; ++dim)
 		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vs_vc.data[dim],flux_r->fr,dg_s_vol->rhs,op_format,2,&dim,NULL);
+//print_Multiarray_d(dg_s_vol->rhs);
 
 	// lhs
 	const struct Operator* cv0_vs_vc = get_Multiarray_Operator(e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
@@ -419,6 +428,7 @@ assert(sim->collocated == false); // Add support in future.
 		}
 
 		mm_d('N','N',1.0,0.0,(struct const_Matrix_d*)tw1_r,cv0_vs_vc->op_std,lhs);
+//print_Matrix_d(lhs);
 
 		set_petsc_Mat_row_col(s_store_i,s_vol,eq,s_vol,vr);
 		add_to_petsc_Mat(s_store_i,(struct const_Matrix_d*)lhs);

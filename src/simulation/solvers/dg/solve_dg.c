@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "petscvec.h"
 
 #include "macros.h"
 #include "definitions_test_case.h"

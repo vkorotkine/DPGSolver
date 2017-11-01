@@ -17,14 +17,17 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_integration.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include "mpi.h"
 #include "petscsys.h"
 
 #include "macros.h"
 #include "definitions_alloc.h"
+#include "definitions_core.h"
 
 #include "test_base.h"
 #include "test_integration_advection.h"
@@ -43,8 +46,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void run_tests_integration (struct Test_Info*const test_info)
 {
+// Pass Petsc options file for these values in future? Note that this option file should likely not be used for all test
+// cases.
 	PetscInitialize(&test_info->nargc,&test_info->argv,PETSC_NULL,PETSC_NULL);
-	MPI_Init(NULL,NULL);
 
 	printf("\n\nRunning Integration Tests:\n");
 	printf("-------------------------------------------------------------------------------------------------\n\n");
@@ -64,7 +68,6 @@ if (0) {
 EXIT_UNSUPPORTED;
 	test_integration_euler(test_info);
 
-	MPI_Finalize();
 	PetscFinalize();
 }
 
@@ -92,6 +95,91 @@ struct Integration_Test_Info* constructor_Integration_Test_Info (const char*cons
 void destructor_Integration_Test_Info (struct Integration_Test_Info* int_test_info)
 {
 	free(int_test_info);
+}
+
+void structor_simulation
+	(struct Simulation** sim, const char mode, const int adapt_type, const int p, const int ml, const int p_prev,
+	 const int ml_prev, const char*const ctrl_name)
+{
+	assert(mode == 'c' || mode == 'd');
+
+	switch (adapt_type) {
+	case ADAPT_0:
+		if (mode == 'c') {
+			*sim = constructor_Simulation(ctrl_name); // destructed
+		} else if (mode == 'd') {
+			destructor_Simulation(*sim);
+		}
+		break;
+	case ADAPT_P:
+		EXIT_ADD_SUPPORT;
+		if (ml != ml_prev) {
+			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name);
+		} else {
+			; // p-adapt
+		}
+		break;
+	case ADAPT_H:
+		EXIT_ADD_SUPPORT;
+		if (p != p_prev) {
+			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name);
+		} else {
+			; // h-adapt
+		}
+		break;
+	case ADAPT_HP:
+		EXIT_ADD_SUPPORT;
+		if (ml != ml_prev)
+			{ ; } // h-adapt
+		if (p != p_prev)
+			{ ; } // p-adapt
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",adapt_type);
+		break;
+	}
+}
+
+const char* set_file_name_curr (const int adapt_type, const int p, const int ml, const char*const file_name)
+{
+	static char file_name_curr[STRLEN_MAX] = { 0, };
+	strcpy(file_name_curr,file_name);
+
+	assert(p  >= 0 && p  <= 9); // Constraints are only imposed because of the currently limited string processing.
+	assert(ml >= 0 && ml <= 9);
+
+	char* index = NULL;
+	switch (adapt_type) {
+	case ADAPT_0:
+		index = strstr(file_name_curr,"__ml");
+		index[4] = '0'+ml;
+		assert(!isdigit(index[5]));
+		index = strstr(file_name_curr,"__p");
+		index[3] = '0'+p;
+		assert(!isdigit(index[4]));
+		break;
+	case ADAPT_P:
+		assert(strstr(file_name_curr,"__ml") == NULL);
+		index = strstr(file_name_curr,"__p");
+		index[3] = '0'+p;
+		assert(!isdigit(index[4]));
+		break;
+	case ADAPT_H:
+		assert(strstr(file_name_curr,"__p") == NULL);
+		index = strstr(file_name_curr,"__ml");
+		index[4] = '0'+ml;
+		assert(!isdigit(index[5]));
+		break;
+	case ADAPT_HP:
+		assert(strstr(file_name_curr,"__ml") == NULL);
+		assert(strstr(file_name_curr,"__p") == NULL);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",adapt_type);
+		break;
+	}
+
+	return file_name_curr;
 }
 
 // Static functions ************************************************************************************************* //
