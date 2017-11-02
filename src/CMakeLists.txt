@@ -14,6 +14,7 @@ include_directories(${PETSC_INCLUDES})
 include_directories(
 	allocators
 	containers
+	containers/complex
 	definitions
 	element
 	general

@@ -168,4 +168,12 @@ void print_diff_const_Multiarray_Matrix_d
 	 const double tol                                ///< Defined for \ref print_diff_Multiarray_Matrix_d.
 	);
 
+// Math functions *************************************************************************************************** //
+
+/// \brief Perturb the data of the input \ref Multiarray_d\* container.
+void perturb_Multiarray_d
+	(struct Multiarray_d* a, ///< Input multiarray.
+	 const double da         ///< Permutation magnitude.
+	);
+
 #endif // DPG__test_support_multiarray_h__INCLUDED

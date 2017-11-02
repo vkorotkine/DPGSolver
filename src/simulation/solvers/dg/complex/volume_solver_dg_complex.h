@@ -32,14 +32,14 @@ struct Complex_DG_Solver_Volume {
 	struct Multiarray_c* rhs;      ///< The rhs terms.
 };
 
-/// \brief Constructor for a derived \ref DG_Solver_Volume.
+/// \brief Constructor for a derived \ref Complex_DG_Solver_Volume.
 void constructor_derived_Complex_DG_Solver_Volume
 	(struct Volume* volume_ptr,   ///< Pointer to the volume.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destructor for a derived \ref DG_Solver_Volume.
-void destructor_derived_DG_Solver_Volume
+/// \brief Destructor for a derived \ref Complex_DG_Solver_Volume.
+void destructor_derived_Complex_DG_Solver_Volume
 	(struct Volume* volume_ptr ///< Pointer to the volume.
 	);
 

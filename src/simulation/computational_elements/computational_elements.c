@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume.h"
 #include "volume_solver.h"
 #include "volume_solver_dg.h"
+#include "volume_solver_dg_complex.h"
 
 #include "element.h"
 #include "geometry_element.h"
@@ -95,7 +96,21 @@ typedef void (*destructor_derived_Element_fptr)
 	(struct Element* element_ptr
 	);
 
-/// Container holding information used for \ref constructor_derived_Elements.
+/// Container holding information used for \ref constructor_derived_computational_elements.
+struct Derived_Comp_Elements_Info {
+	int list_name[2]; ///< Names of the volume and face computational element lists.
+
+	size_t sizeof_base[2];    ///< Sizes of the base volume and face computational elements.
+	size_t sizeof_derived[2]; ///< Sizes of the derived volume and face computational elements.
+
+	constructor_derived_Volume_fptr constructor_derived_Volume; ///< \ref constructor_derived_Volume_fptr.
+	constructor_derived_Face_fptr   constructor_derived_Face;   ///< \ref constructor_derived_Face_fptr.
+
+	destructor_derived_Volume_fptr destructor_derived_Volume; ///< \ref destructor_derived_Volume_fptr.
+	destructor_derived_Face_fptr   destructor_derived_Face;   ///< \ref destructor_derived_Face_fptr.
+};
+
+/// Container holding information used for \ref constructor_derived_Elements and \ref destructor_derived_Elements.
 struct Derived_Elements_Info {
 	size_t sizeof_base,    ///< The size of the base element.
 	       sizeof_derived; ///< The size of the derived element.
@@ -103,6 +118,22 @@ struct Derived_Elements_Info {
 	constructor_derived_Element_fptr constructor_derived_Element; ///< \ref constructor_derived_Element_fptr.
 	destructor_derived_Element_fptr  destructor_derived_Element;  ///< \ref destructor_derived_Element_fptr.
 };
+
+/** \brief Return a stack-allocated \ref Derived_Comp_Elements_Info container for
+ *         \ref constructor_derived_computational_elements.
+ *  \return See brief. */
+static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
+	(const int derived_category,  ///< Defined for \ref constructor_derived_computational_elements.
+	 const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Return a stack-allocated \ref Derived_Comp_Elements_Info container
+ *         for \ref destructor_derived_computational_elements.
+ *  \return See brief. */
+static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
+	(const int base_category,   ///< Defined for \ref destructor_derived_computational_elements.
+	 const int derived_category ///< The current category of the volume/face lists.
+	);
 
 /** \brief Return a stack-allocated \ref Derived_Elements_Info container for \ref constructor_derived_Elements.
  *  \return See brief. */
@@ -174,52 +205,18 @@ static int get_list_category
 
 void constructor_derived_computational_elements (struct Simulation* sim, const int derived_category)
 {
-	// Set parameters
-/// \todo Make external function here after usage is set.
-// Likely separate the base and derived category sizes.
-	int list_name[2]         = { 0, 0, };
-	size_t sizeof_base[2]    = { 0, 0, },
-	       sizeof_derived[2] = { 0, 0, };
-	constructor_derived_Volume_fptr constructor_derived_Volume = NULL;
-	constructor_derived_Face_fptr   constructor_derived_Face   = NULL;
-	switch (derived_category) {
-	case IL_SOLVER:
-		assert(sim->volumes->name == IL_VOLUME);
-		assert(sim->faces->name   == IL_FACE);
-		list_name[0] = IL_SOLVER_VOLUME;
-		list_name[1] = IL_SOLVER_FACE;
-		sizeof_base[0] = sizeof(struct Volume);
-		sizeof_base[1] = sizeof(struct Face);
-		sizeof_derived[0] = sizeof(struct Solver_Volume);
-		sizeof_derived[1] = sizeof(struct Solver_Face);
-		constructor_derived_Volume = constructor_derived_Solver_Volume;
-		constructor_derived_Face   = constructor_derived_Solver_Face;
-		break;
-	case IL_SOLVER_DG:
-		assert(sim->volumes->name == IL_SOLVER_VOLUME);
-		assert(sim->faces->name   == IL_SOLVER_FACE);
-		list_name[0] = IL_VOLUME_SOLVER_DG;
-		list_name[1] = IL_FACE_SOLVER_DG;
-		sizeof_base[0] = sizeof(struct Solver_Volume);
-		sizeof_base[1] = sizeof(struct Solver_Face);
-		sizeof_derived[0] = sizeof(struct DG_Solver_Volume);
-		sizeof_derived[1] = sizeof(struct DG_Solver_Face);
-		constructor_derived_Volume = constructor_derived_DG_Solver_Volume;
-		constructor_derived_Face   = constructor_derived_DG_Solver_Face;
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",derived_category);
-		break;
-	}
+	struct Derived_Comp_Elements_Info de_i = get_c_Derived_Comp_Elements_Info(derived_category,sim);
 
 	struct Intrusive_List* base[2]    = { sim->volumes, sim->faces, };
 	struct Intrusive_List* derived[2] = { NULL, NULL, };
 
 	// Reserve memory for the derived lists.
 	for (int i = 0; i < 2; ++i) {
-		derived[i] = constructor_empty_IL(list_name[i],base[i]);
-		for (struct Intrusive_Link* curr = base[i]->first; curr; curr = curr->next)
-			push_back_IL(derived[i],constructor_derived_Intrusive_Link(curr,sizeof_base[i],sizeof_derived[i]));
+		derived[i] = constructor_empty_IL(de_i.list_name[i],base[i]);
+		for (struct Intrusive_Link* curr = base[i]->first; curr; curr = curr->next) {
+			push_back_IL(derived[i],
+			             constructor_derived_Intrusive_Link(curr,de_i.sizeof_base[i],de_i.sizeof_derived[i]));
+		}
 	}
 
 	sim->volumes = derived[0];
@@ -228,14 +225,14 @@ void constructor_derived_computational_elements (struct Simulation* sim, const i
 	// Perform construction specific to the derived lists and update pointers.
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; ) {
 		struct Intrusive_Link* next = curr->next;
-		constructor_derived_Volume((struct Volume*)curr,sim);
+		de_i.constructor_derived_Volume((struct Volume*)curr,sim);
 		curr = next;
 	}
 	update_face_list_pointers(sim);
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; ) {
 		struct Intrusive_Link* next = curr->next;
-		constructor_derived_Face((struct Face*)curr,sim);
+		de_i.constructor_derived_Face((struct Face*)curr,sim);
 		curr = next;
 	}
 	update_volume_list_pointers(sim);
@@ -247,59 +244,19 @@ void constructor_derived_computational_elements (struct Simulation* sim, const i
 
 void destructor_derived_computational_elements (struct Simulation* sim, const int base_category)
 {
-	// Set parameters
-// Make external function here after usage is set.
-	int base_name[2]         = { 0, 0, };
-	size_t sizeof_base[2]    = { 0, 0, };
-
-	switch (base_category) {
-	case IL_BASE:
-		base_name[0] = IL_VOLUME;
-		base_name[1] = IL_FACE;
-		sizeof_base[0] = sizeof(struct Volume);
-		sizeof_base[1] = sizeof(struct Face);
-		break;
-	case IL_SOLVER:
-		base_name[0] = IL_SOLVER_VOLUME;
-		base_name[1] = IL_SOLVER_FACE;
-		sizeof_base[0] = sizeof(struct Solver_Volume);
-		sizeof_base[1] = sizeof(struct Solver_Face);
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",base_category);
-		break;
-	}
-
-	destructor_derived_Volume_fptr destructor_derived_Volume = NULL;
-	destructor_derived_Face_fptr   destructor_derived_Face   = NULL;
-
 	const int derived_category = get_list_category(sim);
-	switch (derived_category) {
-	case IL_SOLVER:
-		assert(base_category == IL_BASE);
-		destructor_derived_Volume = destructor_derived_Solver_Volume;
-		destructor_derived_Face   = destructor_derived_Solver_Face;
-		break;
-	case IL_SOLVER_DG:
-		assert(base_category == IL_SOLVER);
-		destructor_derived_Volume = destructor_derived_DG_Solver_Volume;
-		destructor_derived_Face   = destructor_derived_DG_Solver_Face;
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",derived_category);
-		break;
-	}
+	struct Derived_Comp_Elements_Info de_i = get_d_Derived_Comp_Elements_Info(base_category,derived_category);
 
 	// Perform destruction specific to the derived lists.
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; ) {
 		struct Intrusive_Link* next = curr->next;
-		destructor_derived_Volume((struct Volume*)curr);
+		de_i.destructor_derived_Volume((struct Volume*)curr);
 		curr = next;
 	}
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; ) {
 		struct Intrusive_Link* next = curr->next;
-		destructor_derived_Face((struct Face*)curr);
+		de_i.destructor_derived_Face((struct Face*)curr);
 		curr = next;
 	}
 
@@ -308,15 +265,15 @@ void destructor_derived_computational_elements (struct Simulation* sim, const in
 
 	++ind_list;
 	struct Intrusive_List* volumes_prev = sim->volumes;
-	sim->volumes = constructor_empty_IL(base_name[ind_list],NULL); // keep
+	sim->volumes = constructor_empty_IL(de_i.list_name[ind_list],NULL); // keep
 	for (struct Intrusive_Link* curr = volumes_prev->first; curr; curr = curr->next)
-		push_back_IL(sim->volumes,constructor_base_Intrusive_Link(curr,sizeof_base[ind_list]));
+		push_back_IL(sim->volumes,constructor_base_Intrusive_Link(curr,de_i.sizeof_base[ind_list]));
 
 	++ind_list;
 	struct Intrusive_List* faces_prev = sim->faces;
-	sim->faces = constructor_empty_IL(base_name[ind_list],NULL); // keep
+	sim->faces = constructor_empty_IL(de_i.list_name[ind_list],NULL); // keep
 	for (struct Intrusive_Link* curr = faces_prev->first; curr; curr = curr->next)
-		push_back_IL(sim->faces,constructor_base_Intrusive_Link(curr,sizeof_base[ind_list]));
+		push_back_IL(sim->faces,constructor_base_Intrusive_Link(curr,de_i.sizeof_base[ind_list]));
 
 	// Update pointers to the base computational elements to point to the derived computational elements.
 	update_computational_element_list_pointers(sim);
@@ -408,6 +365,101 @@ static void update_face_pointers
 	(struct Intrusive_Link* link ///< The current link.
 	);
 
+static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
+	(const int derived_category, const struct Simulation* sim)
+{
+	struct Derived_Comp_Elements_Info de_info;
+
+	switch (derived_category) {
+	case IL_SOLVER:
+		assert(sim->volumes->name == IL_VOLUME);
+		assert(sim->faces->name   == IL_FACE);
+		de_info.list_name[0] = IL_SOLVER_VOLUME;
+		de_info.list_name[1] = IL_SOLVER_FACE;
+		de_info.sizeof_base[0] = sizeof(struct Volume);
+		de_info.sizeof_base[1] = sizeof(struct Face);
+		de_info.sizeof_derived[0] = sizeof(struct Solver_Volume);
+		de_info.sizeof_derived[1] = sizeof(struct Solver_Face);
+		de_info.constructor_derived_Volume = constructor_derived_Solver_Volume;
+		de_info.constructor_derived_Face   = constructor_derived_Solver_Face;
+		break;
+	case IL_SOLVER_DG:
+		assert(sim->volumes->name == IL_SOLVER_VOLUME);
+		assert(sim->faces->name   == IL_SOLVER_FACE);
+		de_info.list_name[0] = IL_VOLUME_SOLVER_DG;
+		de_info.list_name[1] = IL_FACE_SOLVER_DG;
+		de_info.sizeof_base[0] = sizeof(struct Solver_Volume);
+		de_info.sizeof_base[1] = sizeof(struct Solver_Face);
+		de_info.sizeof_derived[0] = sizeof(struct DG_Solver_Volume);
+		de_info.sizeof_derived[1] = sizeof(struct DG_Solver_Face);
+		de_info.constructor_derived_Volume = constructor_derived_DG_Solver_Volume;
+		de_info.constructor_derived_Face   = constructor_derived_DG_Solver_Face;
+		break;
+	case IL_SOLVER_DG_COMPLEX:
+		assert(sim->volumes->name == IL_SOLVER_VOLUME);
+		assert(sim->faces->name   == IL_SOLVER_FACE);
+		de_info.list_name[0] = IL_VOLUME_SOLVER_DG_COMPLEX;
+		de_info.list_name[1] = IL_FACE_SOLVER_DG;
+		de_info.sizeof_base[0] = sizeof(struct Solver_Volume);
+		de_info.sizeof_base[1] = sizeof(struct Solver_Face);
+		de_info.sizeof_derived[0] = sizeof(struct Complex_DG_Solver_Volume);
+		de_info.sizeof_derived[1] = sizeof(struct DG_Solver_Face);
+		de_info.constructor_derived_Volume = constructor_derived_Complex_DG_Solver_Volume;
+		de_info.constructor_derived_Face   = constructor_derived_DG_Solver_Face;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",derived_category);
+		break;
+	}
+	return de_info;
+}
+
+static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
+	(const int base_category, const int derived_category)
+{
+	struct Derived_Comp_Elements_Info de_info;
+
+	switch (base_category) {
+	case IL_BASE:
+		de_info.list_name[0] = IL_VOLUME;
+		de_info.list_name[1] = IL_FACE;
+		de_info.sizeof_base[0] = sizeof(struct Volume);
+		de_info.sizeof_base[1] = sizeof(struct Face);
+		break;
+	case IL_SOLVER:
+		de_info.list_name[0] = IL_SOLVER_VOLUME;
+		de_info.list_name[1] = IL_SOLVER_FACE;
+		de_info.sizeof_base[0] = sizeof(struct Solver_Volume);
+		de_info.sizeof_base[1] = sizeof(struct Solver_Face);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",base_category);
+		break;
+	}
+
+	switch (derived_category) {
+	case IL_SOLVER:
+		assert(base_category == IL_BASE);
+		de_info.destructor_derived_Volume = destructor_derived_Solver_Volume;
+		de_info.destructor_derived_Face   = destructor_derived_Solver_Face;
+		break;
+	case IL_SOLVER_DG:
+		assert(base_category == IL_SOLVER);
+		de_info.destructor_derived_Volume = destructor_derived_DG_Solver_Volume;
+		de_info.destructor_derived_Face   = destructor_derived_DG_Solver_Face;
+		break;
+	case IL_SOLVER_DG_COMPLEX:
+		assert(base_category == IL_SOLVER);
+		de_info.destructor_derived_Volume = destructor_derived_Complex_DG_Solver_Volume;
+		de_info.destructor_derived_Face   = destructor_derived_DG_Solver_Face;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",derived_category);
+		break;
+	}
+	return de_info;
+}
+
 static struct Derived_Elements_Info get_c_Derived_Elements_Info (const int derived_name)
 {
 	struct Derived_Elements_Info de_info;
@@ -447,7 +499,6 @@ static struct Derived_Elements_Info get_c_Derived_Elements_Info (const int deriv
 		EXIT_ERROR("Unsupported: %d\n",derived_name);
 		break;
 	}
-
 	return de_info;
 }
 
@@ -571,6 +622,10 @@ static int get_list_category (const struct Simulation* sim)
 	case IL_VOLUME_SOLVER_DG:
 		assert(f_name == IL_FACE_SOLVER_DG);
 		ce_name = IL_SOLVER_DG;
+		break;
+	case IL_VOLUME_SOLVER_DG_COMPLEX:
+		assert(f_name == IL_FACE_SOLVER_DG);
+		ce_name = IL_SOLVER_DG_COMPLEX;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",v_name);

@@ -24,9 +24,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name The intrusive list category names. Used when multiple lists must be updated together.
-#define IL_BASE      1000
-#define IL_SOLVER    1010
-#define IL_SOLVER_DG 1011
+#define IL_BASE              1000
+#define IL_SOLVER            1010
+#define IL_SOLVER_DG         1011
+#define IL_SOLVER_DG_COMPLEX 1012
 ///\}
 
 ///\{ \name The \ref Element list names.
@@ -40,10 +41,11 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name The \ref Volume list names.
-#define IL_VOLUME           200
+#define IL_VOLUME                   200
 /// \todo name change here (VOLUME first)
-#define IL_SOLVER_VOLUME    210
-#define IL_VOLUME_SOLVER_DG 211
+#define IL_SOLVER_VOLUME            210
+#define IL_VOLUME_SOLVER_DG         211
+#define IL_VOLUME_SOLVER_DG_COMPLEX 212
 ///\}
 
 ///\{ \name The \ref Face list names.

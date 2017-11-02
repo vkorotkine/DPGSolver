@@ -12,6 +12,7 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 ${PETSC_LIBRARIES}
+	 Complex_Containers
 	 Containers
 	 Element
 	 Flux

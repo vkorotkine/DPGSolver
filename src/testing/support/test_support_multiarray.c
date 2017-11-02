@@ -383,6 +383,15 @@ void print_diff_const_Multiarray_Matrix_d
 	print_diff_Multiarray_Matrix_d((struct Multiarray_Matrix_d*)a,(struct Multiarray_Matrix_d*)b,tol);
 }
 
+// Math functions *************************************************************************************************** //
+
+void perturb_Multiarray_d (struct Multiarray_d* a, const double da)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+	for (int i = 0; i < size; ++i)
+		a->data[i] += da*(((double) rand())/((double) RAND_MAX+1));
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

@@ -17,6 +17,7 @@ syntax keyword Special Matrix_CSR_d const_Matrix_CSR_d
 
 syntax keyword Special Multiarray_i const_Multiarray_i
 syntax keyword Special Multiarray_d const_Multiarray_d
+syntax keyword Special Multiarray_c const_Multiarray_c
 syntax keyword Special Multiarray_Vector_i const_Multiarray_Vector_i
 syntax keyword Special Multiarray_Vector_d const_Multiarray_Vector_d
 syntax keyword Special Multiarray_Matrix_d const_Multiarray_Matrix_d

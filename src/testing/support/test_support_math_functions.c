@@ -15,41 +15,16 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "volume_solver_dg_complex.h"
-
-#include "macros.h"
-
-#include "volume.h"
-#include "volume_solver.h"
-
-#include "complex_multiarray.h"
-#include "multiarray.h"
-
-#include "simulation.h"
+#include "test_support_math_functions.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-void constructor_derived_Complex_DG_Solver_Volume (struct Volume* volume_ptr, const struct Simulation* sim)
+void z_zyxp_dcc (const int n, const double* x, const double complex* y, double complex* z)
 {
-	UNUSED(sim);
-	struct Solver_Volume* s_volume          = (struct Solver_Volume*) volume_ptr;
-	struct Complex_DG_Solver_Volume* volume = (struct Complex_DG_Solver_Volume*) volume_ptr;
-
-	const int order = s_volume->sol_coef->order;
-	ptrdiff_t* extents = s_volume->sol_coef->extents;
-
-	volume->sol_coef = constructor_empty_Multiarray_c('C',order,extents); // destructed
-	volume->rhs      = constructor_empty_Multiarray_c('C',order,extents); // destructed
-}
-
-void destructor_derived_Complex_DG_Solver_Volume (struct Volume* volume_ptr)
-{
-	struct Complex_DG_Solver_Volume* volume = (struct Complex_DG_Solver_Volume*) volume_ptr;
-
-	destructor_Multiarray_c(volume->sol_coef);
-	destructor_Multiarray_c(volume->rhs);
+	for (int i = 0; i < n; ++i)
+		z[i] += y[i]*x[i];
 }
 
 // Static functions ************************************************************************************************* //

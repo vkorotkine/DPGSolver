@@ -14,6 +14,7 @@ target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
 
 include_directories(
 	support
+	support/solvers/dg
 	unit
 	integration
 	)

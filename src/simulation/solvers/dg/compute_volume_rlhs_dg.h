@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 struct Solver_Storage_Implicit;
+struct Volume;
 
 /** \brief Compute the volume contributions to the rhs (and optionally lhs) terms for the DG scheme.
  *
@@ -32,6 +33,12 @@ struct Solver_Storage_Implicit;
 void compute_volume_rlhs_dg
 	(const struct Simulation* sim,             ///< \ref Simulation.
 	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	);
+
+/** \brief Get the appropriate sub-range of the \ref DG_Solver_Element::tw1_vs_vc operators.
+ *  \return See brief. */
+struct Multiarray_Operator get_operator__tw1_vs_vc__rlhs_dg
+	(const struct Volume* volume ///< \ref The current volume.
 	);
 
 #endif // DPG__compute_volume_rlhs_dg_h__INCLUDED

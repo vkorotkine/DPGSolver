@@ -122,6 +122,7 @@ static void destructor_Flux_Ref
 void compute_volume_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
 {
 	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
+	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
 
 	struct S_Params s_params = set_s_params(sim);
 	struct Flux_Input* flux_i = constructor_Flux_Input(sim); // destructed
@@ -157,6 +158,19 @@ void compute_volume_rlhs_dg (const struct Simulation* sim, struct Solver_Storage
 	}
 	destructor_Flux_Input(flux_i);
 //EXIT_UNSUPPORTED;
+}
+
+struct Multiarray_Operator get_operator__tw1_vs_vc__rlhs_dg (const struct Volume* volume)
+{
+	struct Solver_Volume* s_volume = (struct Solver_Volume*) volume;
+	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
+
+	const int p      = s_volume->p_ref,
+	          curved = volume->curved;
+	const struct Multiarray_Operator tw1_vs_vc = {};
+	set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
+
+	return tw1_vs_vc;
 }
 
 // Static functions ************************************************************************************************* //
@@ -353,20 +367,13 @@ static void compute_rhs
 	 const struct Simulation* sim)
 {
 	UNUSED(s_store_i);
-	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
+
+	const struct Multiarray_Operator tw1_vs_vc = get_operator__tw1_vs_vc__rlhs_dg(volume);
+
+	struct DG_Solver_Volume* dg_s_volume = (struct DG_Solver_Volume*) volume;
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
-
-	struct Solver_Volume* s_volume       = (struct Solver_Volume*) volume;
-	struct DG_Solver_Volume* dg_s_volume = (struct DG_Solver_Volume*) volume;
-
-	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
-
-	const int p      = s_volume->p_ref,
-	          curved = volume->curved;
-	const struct Multiarray_Operator tw1_vs_vc;
-	set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 
 	const ptrdiff_t d = sim->d;
 	for (ptrdiff_t dim = 0; dim < d; ++dim)
@@ -382,7 +389,6 @@ static void compute_rlhs_1
 // residual Jacobian. Add it just before adding the contribution to the petsc mat. Also add for face terms and RHS
 // terms (volume, face, source or simply the complete rhs).
 assert(sim->collocated == false); // Add support in future.
-	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
 	const ptrdiff_t d = sim->d;
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.

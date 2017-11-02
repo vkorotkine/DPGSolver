@@ -1,3 +1,5 @@
+add_subdirectory(complex)
+
 set	(SOURCE
 	 multiarray.c
 	 multiarray_constructors.c
