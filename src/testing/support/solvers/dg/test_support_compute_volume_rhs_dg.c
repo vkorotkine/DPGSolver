@@ -24,12 +24,29 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_intrusive.h"
 
 #include "test_support_math_functions.h"
+#include "test_support_flux.h"
+
+#include "volume_solver_dg_complex.h"
+
+#include "complex_multiarray.h"
 
 #include "compute_volume_rlhs_dg.h"
 #include "intrusive.h"
 #include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
+
+/** \brief See \ref compute_volume_rlhs_dg.c.
+ *  \return Standard. */
+static const struct const_Multiarray_c* constructor_sol_vc
+	(struct Volume* volume,       ///< See \ref compute_volume_rlhs_dg.c.
+	 const struct Simulation* sim ///< See \ref compute_volume_rlhs_dg.c.
+	);
+
+/// \brief See \ref compute_volume_rlhs_dg.c.
+static void destructor_sol_vc
+	(const struct const_Multiarray_c* sol_vc ///< See \ref compute_volume_rlhs_dg.c.
+	);
 
 /** \brief Constructor for a \ref Flux_Ref container.
  *  \return See brief. */
@@ -52,32 +69,27 @@ void compute_volume_rhs_dg_c (const struct Simulation* sim, struct Intrusive_Lis
 	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG_COMPLEX);
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
 
-//	struct S_Params s_params = set_s_params(sim);
-//	struct Flux_Input* flux_i = constructor_Flux_Input(sim); // destructed
+	struct Flux_Input_c* flux_i = constructor_Flux_Input_c(sim); // destructed
 
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
-// Change all relevant functions to static.
-UNUSED(curr);
-/*		struct Volume*        vol   = (struct Volume*) curr;
+		struct Volume*        vol   = (struct Volume*) curr;
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+UNUSED(s_vol);
 
-		// Compute the solution, gradients and xyz coordinates at the volume cubature nodes.
-		flux_i->s   = s_params.constructor_sol_vc(vol,sim);
+		flux_i->s   = constructor_sol_vc(vol,sim);
 		flux_i->g   = NULL;
-		flux_i->xyz = NULL;;
+		flux_i->xyz = NULL;
 
-		// Compute the fluxes (and optionally their Jacobians) at the volume cubature nodes.
-		struct Flux* flux = constructor_Flux(flux_i);
-		s_params.destructor_sol_vc(flux_i->s);
+		struct Flux_c* flux = constructor_Flux_c(flux_i);
+		destructor_sol_vc(flux_i->s);
 
-		// Compute the reference fluxes (and optionally their Jacobians) at the volume cubature nodes.
-		struct Flux_Ref* flux_r = constructor_Flux_Ref(s_vol->metrics_vc,flux);
-		destructor_Flux(flux);
+//		struct Flux_Ref* flux_r = constructor_Flux_Ref(s_vol->metrics_vc,flux);
+		destructor_Flux_c(flux);
 
-		compute_rhs(flux_r,vol,sim);
+/*		compute_rhs(flux_r,vol,sim);
 		destructor_Flux_Ref(flux_r); */
 	}
-//	destructor_Flux_Input(flux_i);
+	destructor_Flux_Input_c(flux_i);
 EXIT_ADD_SUPPORT;
 }
 
@@ -90,6 +102,22 @@ EXIT_ADD_SUPPORT;
 	(const struct const_Multiarray_d* m, ///< Defined for \ref constructor_Flux_Ref.
 	 const struct const_Multiarray_c* f  ///< The physical flux data.
 	);*/
+
+static const struct const_Multiarray_c* constructor_sol_vc (struct Volume* volume, const struct Simulation* sim)
+{
+	UNUSED(sim);
+	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc__rlhs_dg(volume);
+
+	struct Complex_DG_Solver_Volume* s_volume = (struct Complex_DG_Solver_Volume*) volume;
+	const struct const_Multiarray_c* s_coef = (const struct const_Multiarray_c*) s_volume->sol_coef;
+
+	return constructor_mm_NN1_Operator_const_Multiarray_c(cv0_vs_vc,s_coef,'C','d',s_coef->order,NULL);
+}
+
+static void destructor_sol_vc (const struct const_Multiarray_c* sol_vc)
+{
+	destructor_const_Multiarray_c(sol_vc);
+}
 
 /*static struct Flux_Ref* constructor_Flux_Ref (const struct const_Multiarray_d* m, const struct Flux* flux)
 {

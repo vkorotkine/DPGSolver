@@ -1,6 +1,8 @@
 set	(SOURCE
 	 solvers/dg/test_support_solve_dg.c
 	 solvers/dg/test_support_compute_volume_rhs_dg.c
+	 test_case/flux/test_support_flux.c
+	 test_case/flux/test_support_flux_advection.c
 	 test_support.c
 	 test_support_bases.c
 	 test_support_face.c

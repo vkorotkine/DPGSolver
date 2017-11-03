@@ -136,7 +136,7 @@ void compute_volume_rlhs_dg (const struct Simulation* sim, struct Solver_Storage
 		flux_i->s   = s_params.constructor_sol_vc(vol,sim);
 /// \todo Add functions computing gradients, xyz.
 		flux_i->g   = NULL;
-		flux_i->xyz = NULL;;
+		flux_i->xyz = NULL;
 //print_Multiarray_d(s_vol->sol_coef);
 //print_const_Multiarray_d(flux_i->s);
 
@@ -171,6 +171,16 @@ struct Multiarray_Operator get_operator__tw1_vs_vc__rlhs_dg (const struct Volume
 	set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 
 	return tw1_vs_vc;
+}
+
+const struct Operator* get_operator__cv0_vs_vc__rlhs_dg (const struct Volume* volume)
+{
+	struct Solver_Volume* s_volume = (struct Solver_Volume*) volume;
+	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
+
+	const int p = s_volume->p_ref,
+	          curved = volume->curved;
+	return get_Multiarray_Operator(e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
 }
 
 // Static functions ************************************************************************************************* //
@@ -287,20 +297,14 @@ static void destructor_Flux_Ref (struct Flux_Ref* flux_ref)
 
 static const struct const_Multiarray_d* constructor_sol_vc_interp (struct Volume* volume, const struct Simulation* sim)
 {
+	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc__rlhs_dg(volume);
+
+	struct Solver_Volume* s_volume = (struct Solver_Volume*) volume;
+	const struct const_Multiarray_d* s_coef = (const struct const_Multiarray_d*) s_volume->sol_coef;
+
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	UNUSED(sim);
 	const char op_format = 'd';
-
-	struct Solver_Volume* s_volume = (struct Solver_Volume*) volume;
-
-	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
-
-	const int p = s_volume->p_ref,
-	          curved = volume->curved;
-	const struct Operator* cv0_vs_vc = get_Multiarray_Operator(e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
-
-	const struct const_Multiarray_d* s_coef = (const struct const_Multiarray_d*) s_volume->sol_coef;
-
 	return constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vs_vc,s_coef,'C',op_format,s_coef->order,NULL);
 }
 

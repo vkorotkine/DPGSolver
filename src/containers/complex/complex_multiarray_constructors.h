@@ -24,6 +24,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 
+struct const_Multiarray_c;
+
 // Default constructors ********************************************************************************************* //
 
 // Empty constructors *********************************************************************************************** //
@@ -38,6 +40,14 @@ struct Multiarray_c* constructor_empty_Multiarray_c
 
 // Zero constructors ************************************************************************************************ //
 
+/** \brief Same as \ref constructor_empty_Multiarray_c but with data calloc'ed.
+ *  \return Standard. */
+struct Multiarray_c* constructor_zero_Multiarray_c
+	(const char layout,              ///< Defined in \ref Multiarray_d.
+	 const int order,                ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents_i ///< The input extents.
+	);
+
 // Copy constructors ************************************************************************************************ //
 
 // Move constructors ************************************************************************************************ //
@@ -49,6 +59,11 @@ struct Multiarray_c* constructor_empty_Multiarray_c
 /// \brief Destructs a \ref Multiarray_c\*.
 void destructor_Multiarray_c
 	(struct Multiarray_c* a ///< Standard.
+	);
+
+/// \brief `const` version of \ref destructor_Multiarray_c.
+void destructor_const_Multiarray_c
+	(const struct const_Multiarray_c* a ///< Standard.
 	);
 
 #endif // DPG__complex_multiarray_constructors_h__INCLUDED

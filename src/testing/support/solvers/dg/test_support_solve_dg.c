@@ -136,6 +136,9 @@ static bool is_volume_neighbour (const struct Volume* vol, const struct Volume* 
 	for (int sf = 0; sf < NSUBFMAX; ++sf) {
 		const struct Face* face = vol_curr->faces[f][sf];
 
+		if (!face)
+			continue;
+
 		const int n_side = ( face->boundary ? 1 : 2 );
 		for (int i = 0; i < n_side; ++i) {
 			if (vol == face->neigh_info[i].volume)
