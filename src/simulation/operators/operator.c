@@ -30,9 +30,6 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 // Constructors ***************************************************************************************************** //
 
-/** \brief Constructor for a \ref const_Multiarray_d\* from the operator-multiarray multiplication using the input
- *         operator format.
- *  \return See brief. */
 const struct const_Multiarray_d* constructor_mm_NN1_Operator_const_Multiarray_d
 	(const struct Operator* op, const struct const_Multiarray_d* b, const char layout_c, const char op_format,
 	 const int order_sub_ma, const ptrdiff_t* sub_inds_b)
@@ -168,7 +165,7 @@ void mm_NN1_Operator_Multiarray_d
 	if (transpose_b)
 		transpose_Multiarray_d((struct Multiarray_d*)b,true);
 	if (transpose_c)
-		swap_layout_Multiarray_d(c); // Data is about to be overwritten
+		swap_layout(&c->layout); // Data is about to be overwritten
 
 	mm_NN1C_Operator_Multiarray_d(op,b,c,op_format,order_sub_ma,sub_inds_b,sub_inds_c);
 

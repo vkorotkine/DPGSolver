@@ -13,8 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__Matrix_h__INCLUDED
-#define DPG__Matrix_h__INCLUDED
+#ifndef DPG__matrix_constructors_h__INCLUDED
+#define DPG__matrix_constructors_h__INCLUDED
 /** \file
  *  \brief Provides Matrix_\* constructors and destructors.
  *
@@ -55,7 +55,7 @@ struct Matrix_d* constructor_empty_Matrix_d
 /** \brief Constructs an empty \ref Matrix_i\*.
  *  \return Standard. */
 struct Matrix_i* constructor_empty_Matrix_i
-	(const char layout,  ///< Standard.
+	(const char layout,     ///< Standard.
 	 const ptrdiff_t ext_0, ///< Standard.
 	 const ptrdiff_t ext_1  ///< Standard.
 	);
@@ -65,13 +65,13 @@ struct Matrix_i* constructor_empty_Matrix_i
 /** \brief Copy constructor for a \ref Matrix_d\* from a \ref Matrix_d\*.
  *  \return Standard. */
 struct Matrix_d* constructor_copy_Matrix_d
-	(struct Matrix_d* src /// The source matrix.
+	(struct Matrix_d* src ///< The source matrix.
 	);
 
 /** \brief Copy constructor for a \ref const_Matrix_d\* from a \ref const_Matrix_d\*.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_copy_const_Matrix_d
-	(const struct const_Matrix_d* src /// The source matrix.
+	(const struct const_Matrix_d* src ///< The source matrix.
 	);
 
 /** \brief Copy constructor for a \ref Matrix_i\* from a `const int*`.
@@ -382,4 +382,4 @@ void destructor_const_Matrix_i
 	(const struct const_Matrix_i* a ///< Standard.
 	);
 
-#endif // DPG__Matrix_h__INCLUDED
+#endif // DPG__matrix_constructors_h__INCLUDED

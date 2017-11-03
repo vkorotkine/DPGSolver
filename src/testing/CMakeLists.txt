@@ -14,8 +14,14 @@ target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
 
 include_directories(
 	support
-	support/solvers/dg
-	support/test_case/flux
+	support/containers
+	support/element
+	support/general
+	support/intrusive
+	support/simulation/computational_elements
+	support/simulation/operators
+	support/simulation/solvers/dg
+	support/simulation/test_case/flux
 	unit
 	integration
 	)

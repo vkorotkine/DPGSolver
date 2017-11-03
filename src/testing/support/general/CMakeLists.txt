@@ -1,10 +1,10 @@
 set	(SOURCE
-	 complex_multiarray_constructors.c
+	 test_support_math_functions.c
 	)
 
 set	(LIBS_DEPEND
 	)
 
-set (LIB Complex_Containers)
+set (LIB Test_Support_General)
 add_library(${LIB} STATIC ${SOURCE})
 target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})

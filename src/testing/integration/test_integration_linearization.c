@@ -22,8 +22,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_intrusive.h"
 #include "definitions_test_integration.h"
+#include "definitions_tol.h"
 
+#include "test_base.h"
 #include "test_integration.h"
+#include "test_support_math_functions.h"
 #include "test_support_multiarray.h"
 #include "test_support_solve_dg.h"
 
@@ -130,14 +133,24 @@ static void compute_lhs_cmplx_step
 	 const struct F_Ptrs_and_Data* f_ptrs_data ///< \ref F_Ptrs_and_Data.
 	);
 
+/// \brief Check the linearizations computed with the various methods.
+static void check_linearizations
+	(struct Test_Info*const test_info,                  ///< \ref Test_Info.
+	 const struct Integration_Test_Info* int_test_info, ///< \ref Integration_Test_Info.
+	 const struct Solver_Storage_Implicit* ssi[2]       ///< \ref Solver_Storage_Implicit for the various methods.
+	);
+
 // Interface functions ********************************************************************************************** //
 
-void test_integration_linearization (const char*const ctrl_name)
+void test_integration_linearization (struct Test_Info*const test_info, const char*const ctrl_name)
 {
 	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name);
 
-	const int p  = int_test_info->p_ref[1],
-	          ml = int_test_info->ml[1];
+	const int p  = int_test_info->p_ref[0],
+	          ml = int_test_info->ml[0];
+/// \todo Uncommment this.
+//	const int p  = int_test_info->p_ref[1],
+//	          ml = int_test_info->ml[1];
 
 	const int adapt_type = int_test_info->adapt_type;
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,ctrl_name);
@@ -159,14 +172,25 @@ void test_integration_linearization (const char*const ctrl_name)
 	                                           constructor_Solver_Storage_Implicit(sim), }; // destructed
 
 	compute_lhs_analytical(sim,ssi[0],f_ptrs_data);
-	compute_lhs_cmplx_step(sim,ssi[0],f_ptrs_data);
+	compute_lhs_cmplx_step(sim,ssi[1],f_ptrs_data);
+
+PetscViewer viewer;
+
+PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output0.m",&viewer);
+PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+MatView(ssi[0]->A,viewer);
+PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output1.m",&viewer);
+PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+MatView(ssi[1]->A,viewer);
+
+PetscViewerDestroy(&viewer);
 
 	destructor_F_Ptrs_and_Data(f_ptrs_data);
 
 	for (int i = 0; i < 2; ++i)
 		petsc_mat_vec_assemble(ssi[i]);
 
-// test here.
+	check_linearizations(test_info,int_test_info,(const struct Solver_Storage_Implicit**)ssi);
 EXIT_UNSUPPORTED;
 
 	for (int i = 0; i < 2; ++i)
@@ -236,6 +260,8 @@ static void compute_lhs_analytical
 		break;
 	}
 	destructor_derived_computational_elements(sim,IL_SOLVER);
+
+	petsc_mat_vec_assemble(ssi);
 }
 
 static void compute_lhs_cmplx_step
@@ -246,15 +272,33 @@ static void compute_lhs_cmplx_step
 	f_ptrs_data->set_initial_solution_complex(sim);
 	f_ptrs_data->compute_lhs_cmplx_step(sim,ssi);
 
-// To avoid polluting the rest of the code by linking the Test_Support library, defined the derived complex solver
-// volumes/faces in the directory of the corresponding solver_method. Con/De'structor functions should also be defined
-// there. This also applies for fluxes/boundary conditions/numerical fluxes.
-
-// All other functions (such as compute_lhs_cmplx functions) can be defined in test_support_* files.
 	destructor_derived_computational_elements(sim,IL_SOLVER);
+}
 
-UNUSED(sim);
-UNUSED(ssi);
-UNUSED(f_ptrs_data);
-EXIT_ADD_SUPPORT;
+static void check_linearizations
+	(struct Test_Info*const test_info, const struct Integration_Test_Info* int_test_info,
+	 const struct Solver_Storage_Implicit* ssi[2])
+{
+	bool pass        = true;
+	const double tol = 2e1*EPS;
+
+	const double diff = norm_diff_petsc_Mat(ssi[0]->A,ssi[1]->A);
+	if (diff > 2e1*EPS) {
+		pass = false;
+		printf("Failed difference: % .3e (tol = % .3e).\n",diff,tol);
+	}
+
+/// \todo Add check for symmetry.
+#if 0
+		PetscBool symmetric = false;
+		MatIsSymmetric(ssi[0]->A,tol,&symmetric);
+		if (!symmetric) {
+			pass = false;
+			printf("Failed symmetric (tol = % .3e).\n",tol);
+		}
+#endif
+
+	char test_name[STRLEN_MAX];
+	sprintf(test_name,"%s%s","Linearization - ",int_test_info->ctrl_name);
+	test_increment_and_print_name(test_info,pass,test_name);
 }

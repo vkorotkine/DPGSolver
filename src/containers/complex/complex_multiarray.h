@@ -16,9 +16,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__complex_multiarray_h__INCLUDED
 #define DPG__complex_multiarray_h__INCLUDED
 /** \file
- *  \brief Provides Multiarray_\* containers and related functions for complex variables.
+ *  \brief Provides Multiarray_\* containers for complex variables.
  *
  *  See \ref multiarray.h for potentially relevant comments.
+ *
+ *  As these containers are only used for testing purposes, the minimal amount of code is exposed here as required by
+ *  functions in the core of the src (i.e. all directories exclusing src/testing). All other required functions for
+ *  testing are implemented in the corresponding test_support_\* file(s).
  */
 
 #include <stddef.h>
@@ -51,13 +55,5 @@ struct const_Multiarray_c {
 	const bool owns_data;            ///< Defined in \ref Multiarray_c.
 	const double complex*const data; ///< Defined in \ref Multiarray_c.
 };
-
-// Interface functions ********************************************************************************************** //
-
-/// \brief Set the data of the \ref Multiarary_c\* container from that of the \ref Multiarray_d\* container.
-void set_Multiarray_c_Multiarray_d
-	(struct Multiarray_c* a,            ///< Multiarray with data to be set.
-	 const struct const_Multiarray_d* b ///< Multiarray from which to take data.
-	);
 
 #endif // DPG__complex_multiarray_h__INCLUDED

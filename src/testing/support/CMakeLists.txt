@@ -1,20 +1,14 @@
+add_subdirectory(containers)
+add_subdirectory(element)
+add_subdirectory(general)
+add_subdirectory(intrusive)
+add_subdirectory(simulation)
+
 set	(SOURCE
-	 solvers/dg/test_support_solve_dg.c
-	 solvers/dg/test_support_compute_volume_rhs_dg.c
-	 test_case/flux/test_support_flux.c
-	 test_case/flux/test_support_flux_advection.c
 	 test_support.c
-	 test_support_bases.c
-	 test_support_face.c
-	 test_support_intrusive.c
-	 test_support_math_functions.c
-	 test_support_matrix.c
-	 test_support_multiarray.c
-	 test_support_nodes.c
-	 test_support_vector.c
-	 test_support_volume.c
 	)
 
+### TODO: Needs clean-up for the library dependencies.
 set	(LIBS_DEPEND
 	 ${GSL_LIBRARIES}
 	 Complex_Containers
@@ -23,7 +17,14 @@ set	(LIBS_DEPEND
 	 Element
 	 General
 	 Intrusive
+	 Test_Support_Containers
+	 Test_Support_Element
+	 Test_Support_Flux
+	 Test_Support_General
+	 Test_Support_Intrusive
+	 Test_Support_Computational_Elements
+	 Test_Support_Solver_DG
 	)
 
 add_library(Test_Support ${SOURCE})
-target_link_libraries(Test_Support ${LIBS_DEPEND})
+target_link_libraries(Test_Support PRIVATE ${LIBS_DEPEND})

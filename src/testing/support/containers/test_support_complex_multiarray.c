@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "complex_multiarray.h"
+#include "test_support_complex_multiarray.h"
 
 #include <assert.h>
 
@@ -34,6 +34,19 @@ void set_Multiarray_c_Multiarray_d (struct Multiarray_c* a, const struct const_M
 
 	for (int i = 0; i < size; ++i)
 		a->data[i] = b->data[i];
+}
+
+double complex* get_col_Multiarray_c (const ptrdiff_t col, struct Multiarray_c* a)
+{
+	assert(a->layout == 'C');
+
+	const ptrdiff_t ext_0 = a->extents[0];
+	return &a->data[col*ext_0];
+}
+
+const double complex* get_col_const_Multiarray_c (const ptrdiff_t col, const struct const_Multiarray_c* a)
+{
+	return (const double complex*) get_col_Multiarray_c(col,(struct Multiarray_c*)a);
 }
 
 // Static functions ************************************************************************************************* //

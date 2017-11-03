@@ -23,44 +23,58 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_intrusive.h"
 
+#include "test_support_complex_multiarray.h"
 #include "test_support_math_functions.h"
 #include "test_support_flux.h"
+#include "test_support_operators.h"
 
 #include "volume_solver_dg_complex.h"
 
 #include "complex_multiarray.h"
+#include "multiarray.h"
 
 #include "compute_volume_rlhs_dg.h"
 #include "intrusive.h"
+#include "multiarray_operator.h"
 #include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
 
+/// \brief `complex` version of \ref Flux_Ref.
+struct Flux_Ref_c {
+	const struct const_Multiarray_c* fr; ///< See brief.
+};
+
 /** \brief See \ref compute_volume_rlhs_dg.c.
  *  \return Standard. */
 static const struct const_Multiarray_c* constructor_sol_vc
-	(struct Volume* volume,       ///< See \ref compute_volume_rlhs_dg.c.
-	 const struct Simulation* sim ///< See \ref compute_volume_rlhs_dg.c.
+	(struct Volume* volume,       ///< See brief.
+	 const struct Simulation* sim ///< See brief.
 	);
 
 /// \brief See \ref compute_volume_rlhs_dg.c.
 static void destructor_sol_vc
-	(const struct const_Multiarray_c* sol_vc ///< See \ref compute_volume_rlhs_dg.c.
+	(const struct const_Multiarray_c* sol_vc ///< See brief.
 	);
 
-/** \brief Constructor for a \ref Flux_Ref container.
+/** \brief `complex` version of \ref constructor_Flux_Ref.
  *  \return See brief. */
-/*static struct Flux_Ref* constructor_Flux_Ref
-	(const struct const_Multiarray_d* m, ///< The metric terms.
-	 const struct Flux* flux             ///< The physical \ref Flux.
-	); */
+static struct Flux_Ref_c* constructor_Flux_Ref_c
+	(const struct const_Multiarray_d* m, ///< See brief.
+	 const struct Flux_c* flux           ///< See brief.
+	);
 
-/// \brief Compute only the rhs term.
-/*static void compute_rhs
-	(const struct Flux_Ref* flux_r, ///< Defined for \ref compute_rlhs_fptr.
-	 struct Volume* volume,         ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Simulation* sim   ///< Defined for \ref compute_rlhs_fptr.
-	); */
+/// \brief `complex` version of \ref destructor_Flux_Ref.
+static void destructor_Flux_Ref_c
+	(struct Flux_Ref_c* flux_ref ///< See brief.
+	);
+
+/// \brief `complex` version of \ref compute_rhs_v_dg.
+static void compute_rhs_v_dg_c
+	(const struct Flux_Ref_c* flux_r, ///< See brief.
+	 struct Volume* volume,           ///< See brief.
+	 const struct Simulation* sim     ///< See brief.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -74,34 +88,34 @@ void compute_volume_rhs_dg_c (const struct Simulation* sim, struct Intrusive_Lis
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
 		struct Volume*        vol   = (struct Volume*) curr;
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-UNUSED(s_vol);
 
 		flux_i->s   = constructor_sol_vc(vol,sim);
 		flux_i->g   = NULL;
 		flux_i->xyz = NULL;
+print_Multiarray_c(s_vol->sol_coef);
+print_const_Multiarray_c(flux_i->s);
+EXIT_UNSUPPORTED;
 
 		struct Flux_c* flux = constructor_Flux_c(flux_i);
 		destructor_sol_vc(flux_i->s);
 
-//		struct Flux_Ref* flux_r = constructor_Flux_Ref(s_vol->metrics_vc,flux);
+		struct Flux_Ref_c* flux_r = constructor_Flux_Ref_c(s_vol->metrics_vc,flux);
 		destructor_Flux_c(flux);
-
-/*		compute_rhs(flux_r,vol,sim);
-		destructor_Flux_Ref(flux_r); */
+		compute_rhs_v_dg_c(flux_r,vol,sim);
+		destructor_Flux_Ref_c(flux_r);
 	}
 	destructor_Flux_Input_c(flux_i);
-EXIT_ADD_SUPPORT;
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Constructor for a \ref const_Multiarray_c\* of reference flux from physical flux.
+/** \brief `complex` version of \ref constructor_flux_ref.
  *  \return See brief. */
-/*static const struct const_Multiarray_c* constructor_flux_ref
-	(const struct const_Multiarray_d* m, ///< Defined for \ref constructor_Flux_Ref.
-	 const struct const_Multiarray_c* f  ///< The physical flux data.
-	);*/
+static const struct const_Multiarray_c* constructor_flux_ref_c
+	(const struct const_Multiarray_d* m, ///< See brief.
+	 const struct const_Multiarray_c* f  ///< See brief.
+	);
 
 static const struct const_Multiarray_c* constructor_sol_vc (struct Volume* volume, const struct Simulation* sim)
 {
@@ -119,19 +133,25 @@ static void destructor_sol_vc (const struct const_Multiarray_c* sol_vc)
 	destructor_const_Multiarray_c(sol_vc);
 }
 
-/*static struct Flux_Ref* constructor_Flux_Ref (const struct const_Multiarray_d* m, const struct Flux* flux)
+static struct Flux_Ref_c* constructor_Flux_Ref_c (const struct const_Multiarray_d* m, const struct Flux_c* flux)
 {
 	assert(flux->f != NULL);
 	assert(m->extents[0] == flux->f->extents[0]);
 
-	struct Flux_Ref* flux_r = calloc(1,sizeof *flux_r); // returned
+	struct Flux_Ref_c* flux_r = calloc(1,sizeof *flux_r); // returned
 
-	flux_r->fr = constructor_flux_ref(m,flux->f);
+	flux_r->fr = constructor_flux_ref_c(m,flux->f);
 
 	return flux_r;
-}*/
+}
 
-/*static void compute_rhs (const struct Flux_Ref* flux_r, struct Volume* volume, const struct Simulation* sim)
+static void destructor_Flux_Ref_c (struct Flux_Ref_c* flux_ref)
+{
+	destructor_const_Multiarray_c(flux_ref->fr);
+	free(flux_ref);
+}
+
+static void compute_rhs_v_dg_c (const struct Flux_Ref_c* flux_r, struct Volume* volume, const struct Simulation* sim)
 {
 	const struct Multiarray_Operator tw1_vs_vc = get_operator__tw1_vs_vc__rlhs_dg(volume);
 
@@ -139,11 +159,11 @@ static void destructor_sol_vc (const struct const_Multiarray_c* sol_vc)
 	const ptrdiff_t d = sim->d;
 	for (ptrdiff_t dim = 0; dim < d; ++dim)
 		mm_NNC_Operator_Multiarray_c(1.0,1.0,tw1_vs_vc.data[dim],flux_r->fr,dg_s_volume->rhs,'d',2,&dim,NULL);
-}*/
+}
 
 // Level 1 ********************************************************************************************************** //
 
-/*static const struct const_Multiarray_c* constructor_flux_ref
+static const struct const_Multiarray_c* constructor_flux_ref_c
 	(const struct const_Multiarray_d* m, const struct const_Multiarray_c* f)
 {
 	assert(f->layout == 'C');
@@ -181,4 +201,4 @@ static void destructor_sol_vc (const struct const_Multiarray_c* sol_vc)
 	}
 
 	return (const struct const_Multiarray_c*) fr;
-}*/
+}

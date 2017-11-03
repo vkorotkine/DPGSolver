@@ -25,6 +25,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
+void swap_layout (char*const layout)
+{
+	*layout = ( *layout == 'R' ? 'C' : 'R' );
+}
+
 double* get_row_Matrix_d (const ptrdiff_t row, const struct Matrix_d* a)
 {
 	assert(a->layout == 'R');

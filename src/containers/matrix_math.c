@@ -33,11 +33,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Swap the layout of the \ref Matrix_d\*.
-static void swap_layout
-	(struct Matrix_d* a ///< The input matrix.
-	);
-
 // Interface functions ********************************************************************************************** //
 
 double compute_norm_Matrix_d_row
@@ -63,7 +58,7 @@ void transpose_Matrix_d (struct Matrix_d* a, const bool mem_only)
 		mkl_dimatcopy(a->layout,'T',a->ext_0,a->ext_1,1.0,a->data,a->ext_0,a->ext_1);
 
 	if (mem_only) {
-		swap_layout(a);
+		swap_layout(&a->layout);
 	} else {
 		ptrdiff_t tmp = a->ext_0;
 		a->ext_0 = a->ext_1;
@@ -314,8 +309,3 @@ void reinterpret_const_Matrix_d (const struct const_Matrix_d* a, const ptrdiff_t
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static void swap_layout (struct Matrix_d* a)
-{
-	a->layout = ( a->layout == 'R' ? 'C' : 'R' );
-}

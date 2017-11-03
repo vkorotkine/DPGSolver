@@ -28,11 +28,6 @@ struct const_Vector_d;
 struct const_Matrix_d;
 struct const_Multiarray_d;
 
-/// \brief Swap the layout of the \ref Multiarray_d\*.
-void swap_layout_Multiarray_d
-	(struct Multiarray_d* a ///< The input multiarray.
-	);
-
 /// \brief Transpose the \ref Multiarray_d\*'s memory by interpreting as a matrix with `ext_0 = extents[0]`.
 void transpose_Multiarray_d
 	(struct Multiarray_d* a, ///< Multiarray to be transposed.

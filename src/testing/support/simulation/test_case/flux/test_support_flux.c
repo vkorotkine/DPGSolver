@@ -24,9 +24,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
+#include "test_support_complex_multiarray.h"
 #include "test_support_flux_advection.h"
-
-#include "complex_multiarray.h"
 
 #include "const_cast.h"
 #include "flux.h"

@@ -53,7 +53,7 @@ bool equal_d
 double norm_d
 	(const ptrdiff_t n_entries, ///< The number of entries.
 	 const double*const data,   ///< The data.
-	 const char*const norm_type ///< The norm type. Options: "L2".
+	 const char*const norm_type ///< The norm type. Options: "L2", "Inf".
 	);
 
 /** \brief Computes the relative norm of the difference between the input `double*` data with the specified norm type.
@@ -62,7 +62,7 @@ double norm_diff_d
 	(const ptrdiff_t n_entries, ///< The number of entries.
 	 const double*const data_0, ///< The data for input 0.
 	 const double*const data_1, ///< The data for input 1.
-	 const char*const norm_type ///< The norm type. Options: "L2".
+	 const char*const norm_type ///< The norm type. Options: "Inf".
 	);
 
 /** \brief Compute the maximum absolute value of the two inputs and return it.

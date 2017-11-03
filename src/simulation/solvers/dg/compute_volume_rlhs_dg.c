@@ -167,7 +167,7 @@ struct Multiarray_Operator get_operator__tw1_vs_vc__rlhs_dg (const struct Volume
 
 	const int p      = s_volume->p_ref,
 	          curved = volume->curved;
-	const struct Multiarray_Operator tw1_vs_vc = {};
+	struct Multiarray_Operator tw1_vs_vc = {};
 	set_MO_from_MO(&tw1_vs_vc,e->tw1_vs_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 
 	return tw1_vs_vc;
@@ -218,7 +218,7 @@ static const struct const_Multiarray_d* constructor_flux_ref
 	);
 
 /// \brief Compute only the rhs term.
-static void compute_rhs
+static void compute_rhs_v_dg
 	(const struct Flux_Ref* flux_r,             ///< Defined for \ref compute_rlhs_fptr.
 	 struct Volume* volume,                     ///< Defined for \ref compute_rlhs_fptr.
 	 struct Solver_Storage_Implicit* s_store_i, ///< Defined for \ref compute_rlhs_fptr.
@@ -248,7 +248,7 @@ static struct S_Params set_s_params (const struct Simulation* sim)
 	struct Test_Case* test_case = sim->test_case;
 	switch (test_case->solver_method_curr) {
 	case 'e':
-		s_params.compute_rlhs = compute_rhs;
+		s_params.compute_rlhs = compute_rhs_v_dg;
 		break;
 	case 'i':
 		if (test_case->has_1st_order && !test_case->has_2nd_order)
@@ -366,7 +366,7 @@ static const struct const_Multiarray_d* constructor_flux_ref
 	return (const struct const_Multiarray_d*) fr;
 }
 
-static void compute_rhs
+static void compute_rhs_v_dg
 	(const struct Flux_Ref* flux_r, struct Volume* volume, struct Solver_Storage_Implicit* s_store_i,
 	 const struct Simulation* sim)
 {

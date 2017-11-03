@@ -26,7 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Container for data relating to the complex DG solver volumes.
 struct Complex_DG_Solver_Volume {
-	struct DG_Solver_Volume volume; ///< The base \ref DG_Solver_Volume.
+	struct Solver_Volume volume; ///< The base \ref Solver_Volume.
 
 	struct Multiarray_c* sol_coef; ///< The coefficients of the solution.
 	struct Multiarray_c* rhs;      ///< The rhs terms.

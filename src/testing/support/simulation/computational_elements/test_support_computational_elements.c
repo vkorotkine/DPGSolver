@@ -15,16 +15,29 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_support_math_functions.h"
+#include "test_support_computational_elements.h"
+
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "macros.h"
+
+#include "intrusive.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-void z_zyxp_dcc (const int n, const double* x, const double complex* y, double complex* z)
+struct Intrusive_Link* constructor_copied_Intrusive_Link
+	(struct Intrusive_Link* base, const size_t sizeof_base, const size_t sizeof_derived)
 {
-	for (int i = 0; i < n; ++i)
-		z[i] += y[i]*x[i];
+	struct Intrusive_Link* derived = calloc(1,sizeof_derived); // returned
+	memcpy(derived,base,sizeof_base); // shallow copy of the base.
+
+	assert(base->derived == NULL);
+
+	return derived;
 }
 
 // Static functions ************************************************************************************************* //

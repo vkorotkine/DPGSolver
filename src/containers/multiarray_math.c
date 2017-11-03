@@ -47,11 +47,6 @@ void reinterpret_Matrix_as_Multiarray_d
 
 // Interface functions ********************************************************************************************** //
 
-void swap_layout_Multiarray_d (struct Multiarray_d* a)
-{
-	a->layout = ( a->layout == 'R' ? 'C' : 'R' );
-}
-
 void transpose_Multiarray_d (struct Multiarray_d* a, const bool mem_only)
 {
 	const int order = a->order;

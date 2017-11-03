@@ -13,20 +13,23 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_support_math_functions_h__INCLUDED
-#define DPG__test_support_math_functions_h__INCLUDED
-/** \file
- *  \brief Provides several standard math functions.
+#ifndef DPG__complex_matrix_print_h__INCLUDED
+#define DPG__complex_matrix_print_h__INCLUDED
+/**	\file
+ *	\brief Provides \ref Matrix_c printing functions.
  */
 
-#include <complex.h>
+struct Matrix_c;
+struct const_Matrix_c;
 
-/// \brief Variation on the axpy (BLAS 1) function: z = y*x + z (`double`,`double complex`,`double complex`).
-void z_yxpz_dcc
-	(const int n,     ///< The number of entries.
-	 const double* x, ///< Input x.
-	 const double complex* y, ///< Input y.
-	 double complex* z        ///< Location to store the sum.
+/// \brief `complex` version of \ref print_Matrix_d.
+void print_Matrix_c
+	(const struct Matrix_c*const a ///< See brief.
 	);
 
-#endif // DPG__test_support_math_functions_h__INCLUDED
+/// \brief `const` version of \ref print_Matrix_c.
+void print_const_Matrix_c
+	(const struct const_Matrix_c*const a ///< See brief.
+	);
+
+#endif // DPG__complex_matrix_print_h__INCLUDED

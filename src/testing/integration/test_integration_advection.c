@@ -40,7 +40,7 @@ void test_integration_advection (struct Test_Info*const test_info)
 	}
 
 	if (test_info->t_int.linearization) {
-		test_integration_linearization("advection/TEST_Advection_Peterson_TRI__ml0__p1");
+		test_integration_linearization(test_info,"advection/TEST_Advection_Peterson_TRI__ml0__p1");
 	} else {
 		test_print_warning(test_info,"Advection linearization testing currently disabled");
 	}

@@ -1,0 +1,4 @@
+add_subdirectory(computational_elements)
+add_subdirectory(operators)
+add_subdirectory(solvers)
+add_subdirectory(test_case)

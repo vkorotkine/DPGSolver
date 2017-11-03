@@ -21,6 +21,8 @@ set	(LIBS_DEPEND
 	 Test_Case
 	 Test_Base
 	 Test_Support
+	 Test_Support_Intrusive
+	 Test_Support_Solver_DG
 	)
 
 set (LIB Test_Integration)

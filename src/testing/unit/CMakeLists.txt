@@ -9,6 +9,8 @@ set	(SOURCE
 set	(LIBS_DEPEND
 	 Test_Base
 	 Test_Support
+	 Test_Support_Containers
+	 Test_Support_Element
 	)
 
 set (LIB Test_Unit)

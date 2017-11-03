@@ -106,6 +106,11 @@ struct const_Matrix_i {
 
 // Interface functions ********************************************************************************************** //
 
+/// \brief Swap the layout.
+void swap_layout
+	(char*const layout ///< Pointer to the layout variable.
+	);
+
 /** \brief Get pointer to row of row-major \ref Matrix_d\*.
  *  \return Pointer to the first entry of the row. */
 double* get_row_Matrix_d

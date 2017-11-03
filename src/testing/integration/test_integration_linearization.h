@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides functionality for integration testing of the solver linearization.
  */
 
+struct Test_Info;
+
 /** \brief Container for the information relating to the linearization testing.
  *  \todo Delete if unused.
  */
@@ -52,7 +54,8 @@ struct Test_Int_Linearization {
  * \todo Update comments if necessary after HDG is implemented.
  */
 void test_integration_linearization
-	(const char*const ctrl_name ///< Defined in \ref Test_Int_Linearization.
+	(struct Test_Info*const test_info, ///< \ref Test_Info.
+	 const char*const ctrl_name        ///< The name of the input control file.
 	);
 
 

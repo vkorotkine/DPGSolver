@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__operator_h__INCLUDED
 #define DPG__operator_h__INCLUDED
 /** \file
- *  \brief Provides the Operator\* container and related functions.
+ *  \brief Provides the \ref Operator\* container and related functions.
  *
  *  In most cases, only the standard, dense matrix operator will be available, however, for tensor-product elements, the
  *  sub-operators are also always available. The CSR sparse matrix format can be made available for operators known to

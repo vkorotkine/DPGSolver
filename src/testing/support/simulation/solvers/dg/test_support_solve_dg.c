@@ -25,6 +25,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_integration.h"
 
 #include "test_support_compute_volume_rhs_dg.h"
+#include "test_support_complex_multiarray.h"
+#include "test_support_computational_elements.h"
 #include "test_support_multiarray.h"
 
 #include "face.h"
@@ -35,9 +37,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "complex_multiarray.h"
 #include "multiarray.h"
 
-#include "computational_elements.h"
 #include "intrusive.h"
 #include "simulation.h"
+#include "solve.h"
+#include "solve_implicit.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -68,17 +71,17 @@ void set_initial_solution_complex_dg (const struct Simulation* sim)
 
 void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
 {
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Volume* vol = (struct Volume*) curr;
+	for (struct Intrusive_Link* curr_c = sim->volumes->first; curr_c; curr_c = curr_c->next) {
+		struct Volume* vol = (struct Volume*) curr_c;
 		struct Intrusive_List* volumes_local = constructor_Volumes_local(vol,sim);
 //		struct Intrusive_List* faces_local   = constructor_Faces_local(vol,sim);
+printf("v ind: %d\n",vol->index);
 
-		struct Complex_DG_Solver_Volume* s_vol = (struct Complex_DG_Solver_Volume*) curr;
-
-		struct Multiarray_c* sol_coef = s_vol->sol_coef;
-		const ptrdiff_t n_col_l = compute_size(sol_coef->order,sol_coef->extents);
+		struct Complex_DG_Solver_Volume* c_dg_s_vol_c = (struct Complex_DG_Solver_Volume*) curr_c;
+		struct Multiarray_c* sol_coef_c = c_dg_s_vol_c->sol_coef;
+		const ptrdiff_t n_col_l = compute_size(sol_coef_c->order,sol_coef_c->extents);
 		for (int col_l = 0; col_l < n_col_l; ++col_l) {
-			sol_coef->data[col_l] += CX_STEP*I;
+			sol_coef_c->data[col_l] += CX_STEP*I;
 			switch (CHECK_LIN) {
 			case CHECK_LIN_VOLUME:
 				compute_volume_rhs_dg_c(sim,volumes_local);
@@ -93,12 +96,49 @@ EXIT_ADD_SUPPORT;
 				EXIT_ERROR("Unsupported: %d.\n",CHECK_LIN);
 				break;
 			}
-			sol_coef->data[col_l] -= CX_STEP*I;
+
+// External function here.
+			struct Solver_Volume* s_vol_c = (struct Solver_Volume*) curr_c;
+			s_store_i->col = s_vol_c->ind_dof+col_l;
+
+			for (struct Intrusive_Link* curr_r = volumes_local->first; curr_r; curr_r = curr_r->next) {
+// Diagonal only.
+assert(CHECK_LIN == CHECK_LIN_VOLUME);
+				struct Solver_Volume* s_vol_r = (struct Solver_Volume*) curr_r;
+				if (s_vol_r->ind_dof != s_vol_c->ind_dof)
+					continue;
+
+				s_store_i->row = s_vol_r->ind_dof+0;
+
+				struct Complex_DG_Solver_Volume* c_dg_s_vol_r = (struct Complex_DG_Solver_Volume*) curr_r;
+				struct Multiarray_c* sol_coef_r = c_dg_s_vol_r->sol_coef;
+				const ptrdiff_t ext_0 = compute_size(sol_coef_r->order,sol_coef_r->extents),
+				                ext_1 = 1;
+
+				PetscInt idxm[ext_0],
+				         idxn[ext_1];
+
+				for (int i = 0; i < ext_0; ++i)
+					idxm[i] = s_store_i->row+i;
+
+				for (int i = 0; i < ext_1; ++i)
+					idxn[i] = s_store_i->col+i;
+
+				struct Multiarray_c* rhs_r = c_dg_s_vol_r->rhs;
+				PetscScalar vv[ext_0];
+				for (int i = 0; i < ext_0; ++i)
+					vv[i] = cimag(rhs_r->data[i])/CX_STEP;
+//printf("%td %td %d %d %d %d %e %e %e\n",ext_0,ext_1,idxm[0],idxm[1],idxm[2],idxn[0],vv[0],vv[1],vv[2]);
+
+				MatSetValues(s_store_i->A,ext_0,idxm,ext_1,idxn,vv,ADD_VALUES);
+			}
+			sol_coef_c->data[col_l] -= CX_STEP*I;
 		}
 
 		destructor_IL(volumes_local);
 UNUSED(s_store_i);
 	}
+	petsc_mat_vec_assemble(s_store_i);
 }
 
 // Static functions ************************************************************************************************* //
@@ -120,7 +160,7 @@ struct Intrusive_List* constructor_Volumes_local (const struct Volume* vol, cons
 		if (!is_volume_neighbour((struct Volume*)curr,vol))
 			continue;
 
-		push_back_IL(volumes,constructor_derived_Intrusive_Link(curr,sizeof_base,sizeof_base));
+		push_back_IL(volumes,constructor_copied_Intrusive_Link(curr,sizeof_base,sizeof_base));
 	}
 
 	return volumes;
