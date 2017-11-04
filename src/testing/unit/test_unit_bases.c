@@ -258,7 +258,7 @@ static void test_unit_basis_simplex_orthonormal (struct Test_Info*const test_inf
 	}
 	test_increment_and_print_name(test_info,pass,"Bases - si_orthonormal_mass_matrix");
 
-	tol = (double[]) { 9*EPS, 5e4*EPS, };
+	tol = (double[]) { 9*EPS, 8e4*EPS, };
 	differences = (bool[])
 		{ diff_const_Multiarray_d(b_data_a->grad_coef_25,b_data_c->grad_coef_25,tol[0]),
 		  diff_const_Multiarray_d(b_data_a->grad_coef_37,b_data_c->grad_coef_37,tol[1]),

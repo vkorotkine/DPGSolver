@@ -19,6 +19,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides \ref Multiarray_c printing functions.
  */
 
+struct Multiarray_c;
+struct const_Multiarray_c;
+
 /// \brief `complex` version of \ref print_Multiarray_c.
 void print_Multiarray_c
 	(const struct Multiarray_c*const a ///< See brief.

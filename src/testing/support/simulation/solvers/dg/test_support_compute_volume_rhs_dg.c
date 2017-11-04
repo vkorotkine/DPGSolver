@@ -23,7 +23,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_intrusive.h"
 
-#include "test_support_complex_multiarray.h"
 #include "test_support_math_functions.h"
 #include "test_support_flux.h"
 #include "test_support_operators.h"
@@ -92,14 +91,12 @@ void compute_volume_rhs_dg_c (const struct Simulation* sim, struct Intrusive_Lis
 		flux_i->s   = constructor_sol_vc(vol,sim);
 		flux_i->g   = NULL;
 		flux_i->xyz = NULL;
-print_Multiarray_c(s_vol->sol_coef);
-print_const_Multiarray_c(flux_i->s);
-EXIT_UNSUPPORTED;
 
 		struct Flux_c* flux = constructor_Flux_c(flux_i);
 		destructor_sol_vc(flux_i->s);
 
 		struct Flux_Ref_c* flux_r = constructor_Flux_Ref_c(s_vol->metrics_vc,flux);
+
 		destructor_Flux_c(flux);
 		compute_rhs_v_dg_c(flux_r,vol,sim);
 		destructor_Flux_Ref_c(flux_r);

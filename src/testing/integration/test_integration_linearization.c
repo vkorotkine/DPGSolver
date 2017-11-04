@@ -52,6 +52,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+///\{ \name Flag for whether PETSc Matrices should be output to files.
+#define OUTPUT_PETSC_MATRICES false
+///\}
+
 /** \brief Function pointer to functions perturbing the solution to ensure that all terms in the linearization are
  *         activated.
  *
@@ -91,7 +95,7 @@ typedef void (*compute_sol_coef_fptr)
 struct F_Ptrs_and_Data {
 	perturb_solution_fptr perturb_solution; ///< \ref perturb_solution_fptr.
 
-	/// `derived_name` from \ref constructor_derived_elements.
+	/// `derived_name` from \ref constructor_derived_Elements.
 	const int derived_elem;
 
 	/// `derived_category` from \ref constructor_derived_computational_elements for the analytical contributions.
@@ -140,6 +144,11 @@ static void check_linearizations
 	 const struct Solver_Storage_Implicit* ssi[2]       ///< \ref Solver_Storage_Implicit for the various methods.
 	);
 
+/// \brief Output PETSc matrices to file for visualization.
+static void output_petsc_matrices
+	(const struct Solver_Storage_Implicit* ssi[2] ///< \ref Solver_Storage_Implicit for the various methods.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void test_integration_linearization (struct Test_Info*const test_info, const char*const ctrl_name)
@@ -174,16 +183,8 @@ void test_integration_linearization (struct Test_Info*const test_info, const cha
 	compute_lhs_analytical(sim,ssi[0],f_ptrs_data);
 	compute_lhs_cmplx_step(sim,ssi[1],f_ptrs_data);
 
-PetscViewer viewer;
-
-PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output0.m",&viewer);
-PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
-MatView(ssi[0]->A,viewer);
-PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output1.m",&viewer);
-PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
-MatView(ssi[1]->A,viewer);
-
-PetscViewerDestroy(&viewer);
+	if (OUTPUT_PETSC_MATRICES)
+		output_petsc_matrices((const struct Solver_Storage_Implicit**)ssi);
 
 	destructor_F_Ptrs_and_Data(f_ptrs_data);
 
@@ -191,7 +192,6 @@ PetscViewerDestroy(&viewer);
 		petsc_mat_vec_assemble(ssi[i]);
 
 	check_linearizations(test_info,int_test_info,(const struct Solver_Storage_Implicit**)ssi);
-EXIT_UNSUPPORTED;
 
 	for (int i = 0; i < 2; ++i)
 		destructor_Solver_Storage_Implicit(ssi[i]);
@@ -301,4 +301,18 @@ static void check_linearizations
 	char test_name[STRLEN_MAX];
 	sprintf(test_name,"%s%s","Linearization - ",int_test_info->ctrl_name);
 	test_increment_and_print_name(test_info,pass,test_name);
+}
+
+static void output_petsc_matrices (const struct Solver_Storage_Implicit* ssi[2])
+{
+	PetscViewer viewer;
+
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output0.m",&viewer);
+	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+	MatView(ssi[0]->A,viewer);
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output1.m",&viewer);
+	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+	MatView(ssi[1]->A,viewer);
+
+	PetscViewerDestroy(&viewer);
 }

@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume.h"
 #include "volume_solver.h"
 
-#include "complex_multiarray.h"
+#include "complex_multiarray_minimal.h"
 #include "multiarray.h"
 
 #include "simulation.h"

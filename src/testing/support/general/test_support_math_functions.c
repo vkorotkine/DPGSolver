@@ -68,7 +68,6 @@ double norm_diff_petsc_Mat (Mat A0, Mat A1)
 		if (max > norm_den)
 			norm_den = max;
 		assert(max < 1e30);
-printf("%d %e %e\n",i,norm_num,norm_den);
 
 		MatRestoreRow(A0,i,&n_cols[0],&cols[0],&vals[0]);
 		MatRestoreRow(A1,i,&n_cols[1],&cols[1],&vals[1]);

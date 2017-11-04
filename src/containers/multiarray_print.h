@@ -33,6 +33,19 @@ struct const_Multiarray_Vector_i;
 struct const_Multiarray_Vector_d;
 struct const_Multiarray_Matrix_d;
 
+/// \brief Print the counter for the indices of order > 2 when printing sub-Matrices of the Multiarray.
+void print_Multiarray_counter
+	(const int order,              ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const counter ///< The counter for the indices of order > 2.
+	);
+
+/// \brief Increment the counter for the indicies of order > 2 by 1.
+void increment_counter
+	(const int order,               ///< Defined in \ref Multiarray_d.
+	 const ptrdiff_t*const extents, ///< Defined in \ref Multiarray_d.
+	 ptrdiff_t*const counter        ///< The counter for the indices of order > 2.
+	);
+
 /// \brief Print a \ref Multiarray_Vector_i\* to the terminal.
 void print_Multiarray_Vector_i
 	(const struct Multiarray_Vector_i*const a ///< Standard.

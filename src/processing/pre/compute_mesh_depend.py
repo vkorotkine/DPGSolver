@@ -93,7 +93,7 @@ if __name__ == "__main__":
 	mesh_make_name   = sys.argv[4]
 	ctrl_files       = sys.argv[5:]
 
-	print(ctrl_files)
+#	print(ctrl_files)
 
 	# Find dependencies
 	dependencies = dict()

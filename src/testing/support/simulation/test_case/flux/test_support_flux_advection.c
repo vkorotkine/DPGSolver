@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 
-#include "complex_multiarray.h"
+#include "complex_multiarray_minimal.h"
 
 #include "test_support_flux.h"
 #include "solution_advection.h"

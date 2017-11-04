@@ -1,5 +1,5 @@
 set	(SOURCE
-	 complex_multiarray_constructors.c
+	 complex_multiarray_minimal_constructors.c
 	)
 
 set	(LIBS_DEPEND

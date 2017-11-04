@@ -30,8 +30,8 @@ struct Simulation;
 /** \brief `complex` version of \ref compute_Flux_fptr.
  *  \return Standard.
  *
- *  \param flux_i \ref Defined for \ref compute_Flux_fptr.
- *  \param flux   \ref Defined for \ref compute_Flux_fptr.
+ *  \param flux_i Defined for \ref compute_Flux_fptr.
+ *  \param flux   Defined for \ref compute_Flux_fptr.
  */
 typedef void (*compute_Flux_c_fptr)
 	(const struct Flux_Input_c* flux_i,

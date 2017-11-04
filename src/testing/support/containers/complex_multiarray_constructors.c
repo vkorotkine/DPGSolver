@@ -15,14 +15,14 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_support_complex_multiarray_constructors.h"
+#include "complex_multiarray_constructors.h"
 
 #include <stdlib.h>
 #include <assert.h>
 
 #include "macros.h"
 
-#include "complex_multiarray.h"
+#include "complex_multiarray_minimal.h"
 #include "multiarray.h"
 
 // Static function declarations ************************************************************************************* //

@@ -24,7 +24,7 @@ struct Solver_Storage_Implicit;
 
 /// \brief Perturb the initial solution for the DG method.
 void perturb_solution_dg
-	(const struct Simulation* sim ///< Defined for \ref peturb_solution_fptr.
+	(const struct Simulation* sim ///< Defined for \ref perturb_solution_fptr.
 	);
 
 /// \brief Set the initial solution for the complex computational elements from the real solution for the DG scheme.

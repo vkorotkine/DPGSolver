@@ -5,8 +5,8 @@ set	(SOURCE
 	 complex_matrix_print.c
 	 complex_multiarray_math.c
 	 complex_multiarray_print.c
-	 test_support_complex_multiarray.c
-	 test_support_complex_multiarray_constructors.c
+	 complex_multiarray.c
+	 complex_multiarray_constructors.c
 	 test_support_matrix.c
 	 test_support_multiarray.c
 	 test_support_vector.c

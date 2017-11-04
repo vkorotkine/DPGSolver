@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 
 #include "complex_matrix.h"
-#include "test_support_complex_multiarray.h"
+#include "complex_multiarray.h"
 #include "matrix.h"
 #include "multiarray.h"
 

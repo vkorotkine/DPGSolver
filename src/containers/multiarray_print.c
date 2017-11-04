@@ -28,20 +28,31 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Print the counter for the indices of order > 2 when printing sub-Matrices of the Multiarray.
-static void print_Multiarray_counter
-	(const int order,              ///< Defined in \ref Multiarray_d.
-	 const ptrdiff_t*const counter ///< The counter for the indices of order > 2.
-	);
-
-///	\brief Increment the counter for the indicies of order > 2 by 1.
-static void increment_counter
-	(const int order,               ///< Defined in \ref Multiarray_d.
-	 const ptrdiff_t*const extents, ///< Defined in \ref Multiarray_d.
-	 ptrdiff_t*const counter        ///< The counter for the indices of order > 2.
-	);
 
 // Interface functions ********************************************************************************************** //
+
+void print_Multiarray_counter (const int order, const ptrdiff_t*const counter)
+{
+	printf("{:,:");
+	for (int i = 0; i < order-2; ++i)
+		printf(",%td",counter[i]);
+	printf("}\n");
+}
+
+void increment_counter (const int order, const ptrdiff_t*const extents, ptrdiff_t*const counter)
+{
+	const ptrdiff_t*const extents_tail = &extents[2];
+
+	for (int i = 0; i < order-2; ++i) {
+		if (counter[i] == extents_tail[i]) {
+			counter[i] = 0;
+			continue;
+		}
+		++counter[i];
+		return;
+	}
+	EXIT_ERROR("Counter greater than extents.");
+}
 
 void print_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a)
 {
@@ -235,26 +246,3 @@ void fprint_const_Multiarray_Vector_i (FILE* file, const int n_tab, const struct
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static void print_Multiarray_counter (const int order, const ptrdiff_t*const counter)
-{
-	printf("{:,:");
-	for (int i = 0; i < order-2; ++i)
-		printf(",%td",counter[i]);
-	printf("}\n");
-}
-
-static void increment_counter (const int order, const ptrdiff_t*const extents, ptrdiff_t*const counter)
-{
-	const ptrdiff_t*const extents_tail = &extents[2];
-
-	for (int i = 0; i < order-2; ++i) {
-		if (counter[i] == extents_tail[i]) {
-			counter[i] = 0;
-			continue;
-		}
-		++counter[i];
-		return;
-	}
-	EXIT_ERROR("Counter greater than extents.");
-}

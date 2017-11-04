@@ -303,6 +303,8 @@ static struct Vector_i* constructor_nnz (const struct Simulation* sim)
 
 // Level 1 ********************************************************************************************************** //
 
+/** \brief Check whether the pde under consideration is symmetric.
+ *  \return `true` if symmetric; `false` otherwise. */
 static bool check_symmetric
 	(const int pde_index ///< \ref Test_Case::pde_index
 	);

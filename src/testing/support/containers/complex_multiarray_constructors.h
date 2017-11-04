@@ -13,8 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_support_complex_multiarray_constructors_h__INCLUDED
-#define DPG__test_support_complex_multiarray_constructors_h__INCLUDED
+#ifndef DPG__complex_multiarray_constructors_h__INCLUDED
+#define DPG__complex_multiarray_constructors_h__INCLUDED
 /** \file
  *  \brief Provides **remaining** Multiarray_\* constructors and destructors for complex variable multiarrays.
  *
@@ -25,7 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 #include <complex.h>
 
-#include "complex_multiarray_constructors.h"
+#include "complex_multiarray_minimal_constructors.h"
 
 struct const_Multiarray_c;
 
@@ -84,4 +84,4 @@ void destructor_const_Multiarray_c
 	(const struct const_Multiarray_c* a ///< Standard.
 	);
 
-#endif // DPG__test_support_complex_multiarray_constructors_h__INCLUDED
+#endif // DPG__complex_multiarray_constructors_h__INCLUDED

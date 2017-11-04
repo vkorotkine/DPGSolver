@@ -38,13 +38,13 @@ void compute_volume_rlhs_dg
 /** \brief Get the pointer to the appropriate \ref DG_Solver_Element::cv0_vs_vc operator.
  *  \return See brief. */
 const struct Operator* get_operator__cv0_vs_vc__rlhs_dg
-	(const struct Volume* volume ///< \ref The current volume.
+	(const struct Volume* volume ///< The current volume.
 	);
 
 /** \brief Get the appropriate sub-range of the \ref DG_Solver_Element::tw1_vs_vc operators.
  *  \return See brief. */
 struct Multiarray_Operator get_operator__tw1_vs_vc__rlhs_dg
-	(const struct Volume* volume ///< \ref The current volume.
+	(const struct Volume* volume ///< The current volume.
 	);
 
 #endif // DPG__compute_volume_rlhs_dg_h__INCLUDED

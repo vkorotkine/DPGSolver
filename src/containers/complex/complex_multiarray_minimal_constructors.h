@@ -13,8 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__complex_multiarray_constructors_h__INCLUDED
-#define DPG__complex_multiarray_constructors_h__INCLUDED
+#ifndef DPG__complex_multiarray_minimal_constructors_h__INCLUDED
+#define DPG__complex_multiarray_minimal_constructors_h__INCLUDED
 /** \file
  *  \brief Provides **minimal** Multiarray_\* constructors and destructors for complex variable multiarrays.
  *
@@ -51,4 +51,4 @@ void destructor_Multiarray_c
 	(struct Multiarray_c* a ///< Standard.
 	);
 
-#endif // DPG__complex_multiarray_constructors_h__INCLUDED
+#endif // DPG__complex_multiarray_minimal_constructors_h__INCLUDED

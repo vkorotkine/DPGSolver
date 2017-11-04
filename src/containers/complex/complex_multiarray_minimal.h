@@ -13,10 +13,10 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__complex_multiarray_h__INCLUDED
-#define DPG__complex_multiarray_h__INCLUDED
+#ifndef DPG__complex_multiarray_minimal_h__INCLUDED
+#define DPG__complex_multiarray_minimal_h__INCLUDED
 /** \file
- *  \brief Provides Multiarray_\* containers for complex variables.
+ *  \brief Provides **minimal** \ref Multiarray_c containers for complex variables.
  *
  *  See \ref multiarray.h for potentially relevant comments.
  *
@@ -29,7 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 #include <complex.h>
 
-#include "complex_multiarray_constructors.h"
+#include "complex_multiarray_minimal_constructors.h"
 
 struct const_Multiarray_d;
 
@@ -56,4 +56,4 @@ struct const_Multiarray_c {
 	const double complex*const data; ///< Defined in \ref Multiarray_c.
 };
 
-#endif // DPG__complex_multiarray_h__INCLUDED
+#endif // DPG__complex_multiarray_minimal_h__INCLUDED

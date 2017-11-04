@@ -231,9 +231,8 @@ static void fill_petsc_Vec_b_dg (const struct Simulation* sim, struct Solver_Sto
 
 static void zero_memory_volumes (const struct Simulation* sim)
 {
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
 		set_to_value_Multiarray_d(((struct DG_Solver_Volume*)curr)->rhs,0.0);
-	}
 }
 
 static void scale_rhs_by_m_inv_std (const struct Simulation* sim)

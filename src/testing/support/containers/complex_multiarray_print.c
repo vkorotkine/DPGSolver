@@ -22,16 +22,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_tol.h"
 
+#include "complex_matrix.h"
+#include "complex_multiarray.h"
 #include "multiarray.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-void print_Multiarray_c_tol (const struct Multiarray_c*const a)
+void print_Multiarray_c (const struct Multiarray_c*const a)
 {
-	const double tol = EPS;
-
 	const int order               = a->order;
 	const ptrdiff_t*const extents = a->extents;
 

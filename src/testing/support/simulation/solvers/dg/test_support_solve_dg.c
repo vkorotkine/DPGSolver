@@ -25,7 +25,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_integration.h"
 
 #include "test_support_compute_volume_rhs_dg.h"
-#include "test_support_complex_multiarray.h"
 #include "test_support_computational_elements.h"
 #include "test_support_multiarray.h"
 
@@ -49,6 +48,11 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Intrusive_List* constructor_Volumes_local
 	(const struct Volume* vol,    ///< The centre \ref Volume.
 	 const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Set the memory of the rhs terms to zero for the local volumes.
+static void zero_memory_volumes_local
+	(struct Intrusive_List* volumes_local ///< The list of local volumes.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -75,12 +79,14 @@ void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Stor
 		struct Volume* vol = (struct Volume*) curr_c;
 		struct Intrusive_List* volumes_local = constructor_Volumes_local(vol,sim);
 //		struct Intrusive_List* faces_local   = constructor_Faces_local(vol,sim);
-printf("v ind: %d\n",vol->index);
+//printf("v ind: %d\n",vol->index);
 
 		struct Complex_DG_Solver_Volume* c_dg_s_vol_c = (struct Complex_DG_Solver_Volume*) curr_c;
 		struct Multiarray_c* sol_coef_c = c_dg_s_vol_c->sol_coef;
 		const ptrdiff_t n_col_l = compute_size(sol_coef_c->order,sol_coef_c->extents);
 		for (int col_l = 0; col_l < n_col_l; ++col_l) {
+			zero_memory_volumes_local(volumes_local);
+
 			sol_coef_c->data[col_l] += CX_STEP*I;
 			switch (CHECK_LIN) {
 			case CHECK_LIN_VOLUME:
@@ -102,10 +108,8 @@ EXIT_ADD_SUPPORT;
 			s_store_i->col = s_vol_c->ind_dof+col_l;
 
 			for (struct Intrusive_Link* curr_r = volumes_local->first; curr_r; curr_r = curr_r->next) {
-// Diagonal only.
-assert(CHECK_LIN == CHECK_LIN_VOLUME);
 				struct Solver_Volume* s_vol_r = (struct Solver_Volume*) curr_r;
-				if (s_vol_r->ind_dof != s_vol_c->ind_dof)
+				if ((CHECK_LIN == CHECK_LIN_VOLUME) && (s_vol_r->ind_dof != s_vol_c->ind_dof))
 					continue;
 
 				s_store_i->row = s_vol_r->ind_dof+0;
@@ -136,7 +140,6 @@ assert(CHECK_LIN == CHECK_LIN_VOLUME);
 		}
 
 		destructor_IL(volumes_local);
-UNUSED(s_store_i);
 	}
 	petsc_mat_vec_assemble(s_store_i);
 }
@@ -164,6 +167,12 @@ struct Intrusive_List* constructor_Volumes_local (const struct Volume* vol, cons
 	}
 
 	return volumes;
+}
+
+static void zero_memory_volumes_local (struct Intrusive_List* volumes_local)
+{
+	for (struct Intrusive_Link* curr = volumes_local->first; curr; curr = curr->next)
+		set_to_value_Multiarray_c(((struct Complex_DG_Solver_Volume*)curr)->rhs,0.0);
 }
 
 // Level 1 ********************************************************************************************************** //

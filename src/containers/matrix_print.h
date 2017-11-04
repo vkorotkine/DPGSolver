@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #ifndef DPG__matrix_print_h__INCLUDED
 #define DPG__matrix_print_h__INCLUDED
-/**	\file
- *	\brief Provides Matrix_\* printing functions.
+/** \file
+ *  \brief Provides Matrix_\* printing functions.
  */
 
 struct Matrix_d;
@@ -32,8 +32,8 @@ void print_Matrix_d_tol
 
 /// \brief `const` version of \ref print_Matrix_d_tol.
 void print_const_Matrix_d_tol
-	(const struct const_Matrix_d*const a, ///< Defined for \ref print_Matrix_d_tol.
-	 const double tol                     ///< Defined for \ref print_Matrix_d_tol.
+	(const struct const_Matrix_d*const a, ///< See brief.
+	 const double tol                     ///< See brief.
 	);
 
 /// \brief Print a \ref Matrix_d\* calling \ref print_Matrix_d_tol with a default tolerance.

@@ -27,13 +27,24 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+///\{ \name The number of decimal places to display.
+#define N_DEC 4
+///\}
+
+/// \brief Print a real value to the terminal with default format.
+static void print_real
+	(const double complex val ///< The complex value.
+	);
+
+/// \brief Print an imaginary value to the terminal with default format.
+static void print_imag
+	(const double complex val ///< The complex value.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void print_Matrix_c (const struct Matrix_c*const a)
 {
-	const double tol = EPS;
-
-	const int n_dec = 4; // Number of places after the decimal.
 
 	const ptrdiff_t ext_0 = a->ext_0,
 	                ext_1 = a->ext_1;
@@ -44,29 +55,13 @@ void print_Matrix_c (const struct Matrix_c*const a)
 	}
 
 	const double complex* data = a->data;
-
-	char format_d[10];
-	char format_i[10];
-	sprintf(format_d,"%s%de%s","% .",n_dec," ");
-	sprintf(format_i,"%s%dd%s","% ",n_dec+7," ");
-
 	switch (a->layout) {
 	case 'R':
 		for (ptrdiff_t i = 0; i < ext_0; i++) {
 			for (ptrdiff_t j = 0; j < ext_1; j++) {
 				const double complex val = *data++;
-				const double val_r = creal(val),
-				             val_i = cimag(val);
-//				printf("% .4e%c%.4ei ",Ar,(Ac >= 0.0)?'+':'\0',Ac);
-				if (isnan(val_r) || (fabs(val_r) > tol)) {
-					printf(format_d,val);
-					printf("%c",(var_i > 0.0 ? '+':'\0'));
-					printf(format_d,val);
-					printf("i");
-				}
-				EXIT_UNSUPPORTED;
-				else
-					printf(format_i,0);
+				print_real(val);
+				print_imag(val);
 			}
 			printf("\n");
 		}
@@ -76,10 +71,8 @@ void print_Matrix_c (const struct Matrix_c*const a)
 		for (ptrdiff_t i = 0; i < ext_0; i++) {
 			for (ptrdiff_t j = 0; j < ext_1; j++) {
 				const double complex val = data[i+ext_0*j];
-				if (isnan(val) || (cabs(val) > tol))
-					printf(format_d,val);
-				else
-					printf(format_i,0);
+				print_real(val);
+				print_imag(val);
 			}
 			printf("\n");
 		}
@@ -98,3 +91,49 @@ void print_const_Matrix_c (const struct const_Matrix_c*const a)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void print_real (const double complex val)
+{
+	static char format_d[10],
+	            format_i[10];
+
+	static bool format_set = false;
+	if (!format_set) {
+		format_set = true;
+		sprintf(format_d,"%s%de","% .",N_DEC);
+		sprintf(format_i,"%s%dd","% ",N_DEC+7);
+	}
+
+	static const double tol = EPS;
+	const double val_r = creal(val);
+	if (isnan(val_r) || (fabs(val_r) > tol))
+		printf(format_d,val_r);
+	else
+		printf(format_i,0);
+}
+
+static void print_imag (const double complex val)
+{
+	static char format_dp[10],
+	            format_dm[10],
+	            format_ip[10];
+
+	static bool format_set = false;
+	if (!format_set) {
+		format_set = true;
+		sprintf(format_dp,"%s%de%s","+%.",N_DEC,"i ");
+		sprintf(format_dm,"%s%de%s","% .",N_DEC,"i ");
+		sprintf(format_ip,"%s%dd%s","+% ",N_DEC+6,"i ");
+	}
+
+	static const double tol_i = EPS*EPS*EPS;
+	const double val_i = cimag(val);
+	if (isnan(val_i) || (fabs(val_i) > tol_i)) {
+		if (val_i >= 0.0)
+			printf(format_dp,val_i);
+		else
+			printf(format_dm,val_i);
+	} else {
+		printf(format_ip,0);
+	}
+}

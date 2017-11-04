@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "complex_matrix_constructors.h"
 #include "complex_matrix_math.h"
+#include "complex_matrix_print.h"
 
 /// \brief `complex` version of \ref Matrix_d.
 struct Matrix_c {
