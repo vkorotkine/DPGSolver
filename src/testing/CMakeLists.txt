@@ -13,26 +13,32 @@ target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
 
 
 include_directories(
+	complex/containers
+	complex/simulation/operators
+	complex/simulation/solvers/dg
+	complex/simulation/solvers/numerical_flux
+	complex/simulation/test_case/boundary
+	complex/simulation/test_case/flux
+	integration
 	support
 	support/containers
 	support/element
 	support/general
 	support/intrusive
 	support/simulation/computational_elements
-	support/simulation/operators
-	support/simulation/solvers/dg
-	support/simulation/test_case/flux
 	unit
-	integration
 	)
 
+add_subdirectory(complex)
+add_subdirectory(integration)
 add_subdirectory(support)
 add_subdirectory(unit)
-add_subdirectory(integration)
+
 
 # Executable generation
 set	(LIBS_DEPEND
 	 Test_Base
+	 Test_Complex
 	 Test_Support
 	 Test_Unit 
 	 Test_Integration

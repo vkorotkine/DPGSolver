@@ -27,8 +27,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_base.h"
 #include "test_integration.h"
 #include "test_support_math_functions.h"
-#include "test_support_multiarray.h"
-#include "test_support_solve_dg.h"
+//#include "test_support_multiarray.h"
+#include "test_complex_solve_dg.h"
 
 #include "face.h"
 #include "element.h"
@@ -192,6 +192,7 @@ void test_integration_linearization (struct Test_Info*const test_info, const cha
 		petsc_mat_vec_assemble(ssi[i]);
 
 	check_linearizations(test_info,int_test_info,(const struct Solver_Storage_Implicit**)ssi);
+EXIT_UNSUPPORTED;
 
 	for (int i = 0; i < 2; ++i)
 		destructor_Solver_Storage_Implicit(ssi[i]);
@@ -267,11 +268,13 @@ static void compute_lhs_analytical
 static void compute_lhs_cmplx_step
 	(struct Simulation* sim, struct Solver_Storage_Implicit* ssi, const struct F_Ptrs_and_Data* f_ptrs_data)
 {
+	constructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_analytical); // destructed
 	constructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_cmplx_step); // destructed
 
 	f_ptrs_data->set_initial_solution_complex(sim);
 	f_ptrs_data->compute_lhs_cmplx_step(sim,ssi);
 
+	destructor_derived_computational_elements(sim,IL_SOLVER_DG);
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 }
 

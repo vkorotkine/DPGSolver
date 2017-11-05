@@ -1,3 +1,4 @@
+add_subdirectory(boundary)
 add_subdirectory(flux)
 add_subdirectory(solution)
 add_subdirectory(compute_error)

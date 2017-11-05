@@ -13,8 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_support_operators_h__INCLUDED
-#define DPG__test_support_operators_h__INCLUDED
+#ifndef DPG__test_complex_operators_h__INCLUDED
+#define DPG__test_complex_operators_h__INCLUDED
 /** \file
  *  \brief Provides `complex` version of functions related to the \ref Operator\* container.
  */
@@ -48,4 +48,4 @@ void mm_NNC_Operator_Multiarray_c
 	 const ptrdiff_t* sub_inds_c         ///< See brief.
 	);
 
-#endif // DPG__test_support_operators_h__INCLUDED
+#endif // DPG__test_complex_operators_h__INCLUDED

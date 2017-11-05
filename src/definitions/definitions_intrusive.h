@@ -51,8 +51,9 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name The \ref Face list names.
 #define IL_FACE           300
 /// \todo name change here (FACE first)
-#define IL_SOLVER_FACE    310
-#define IL_FACE_SOLVER_DG 311
+#define IL_SOLVER_FACE            310
+#define IL_FACE_SOLVER_DG         311
+#define IL_FACE_SOLVER_DG_COMPLEX 312
 ///\}
 
 #endif // DPG__definitions_intrusive_h__INCLUDED

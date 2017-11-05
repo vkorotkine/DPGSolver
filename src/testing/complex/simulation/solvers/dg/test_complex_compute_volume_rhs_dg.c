@@ -16,16 +16,16 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \todo Attempt to template these functions.
  */
 
-#include "test_support_compute_volume_rhs_dg.h"
+#include "test_complex_compute_volume_rhs_dg.h"
 
 #include <assert.h>
 
 #include "macros.h"
 #include "definitions_intrusive.h"
 
+#include "test_complex_flux.h"
+#include "test_complex_operators.h"
 #include "test_support_math_functions.h"
-#include "test_support_flux.h"
-#include "test_support_operators.h"
 
 #include "volume_solver_dg_complex.h"
 

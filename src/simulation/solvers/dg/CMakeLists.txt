@@ -1,4 +1,5 @@
 set	(SOURCE
+	 complex/face_solver_dg_complex.c
 	 complex/volume_solver_dg_complex.c
 	 compute_face_rlhs_dg.c
 	 compute_grad_coef_dg.c

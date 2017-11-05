@@ -13,20 +13,19 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_support_compute_volume_rhs_dg_h__INCLUDED
-#define DPG__test_support_compute_volume_rhs_dg_h__INCLUDED
+#ifndef DPG__test_complex_compute_face_rhs_dg_h__INCLUDED
+#define DPG__test_complex_compute_face_rhs_dg_h__INCLUDED
 /** \file
- *  \brief Provides support functions for testing relating to computation of rhs terms for the 'd'iscontinuous
- *         'g'alerkin solver method.
+ *  \brief Provides `complex` versions of functions defined in \ref compute_face_rlhs_dg.h.
  */
 
 struct Simulation;
 struct Intrusive_List;
 
-/// \brief Version of \ref compute_volume_rlhs_dg computing only complex rhs terms.
-void compute_volume_rhs_dg_c
-	(const struct Simulation* sim,  ///< \ref Simulation.
-	 struct Intrusive_List* volumes ///< The list of volumes for which to compute the rhs term.
+/// \brief Version of \ref compute_face_rlhs_dg computing only complex rhs terms.
+void compute_face_rhs_dg_c
+	(const struct Simulation* sim, ///< \ref Simulation.
+	 struct Intrusive_List* faces  ///< The list of faces for which to compute the rhs term.
 	);
 
-#endif // DPG__test_support_compute_volume_rhs_dg_h__INCLUDED
+#endif // DPG__test_complex_compute_face_rhs_dg_h__INCLUDED

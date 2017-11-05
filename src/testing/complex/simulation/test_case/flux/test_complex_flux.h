@@ -13,8 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_support_flux_h__INCLUDED
-#define DPG__test_support_flux_h__INCLUDED
+#ifndef DPG__test_complex_flux_h__INCLUDED
+#define DPG__test_complex_flux_h__INCLUDED
 /** \file
  *  \brief Provides `complex` versions of containers and functions defined in \ref flux.h.
  *
@@ -42,13 +42,13 @@ typedef void (*compute_Flux_c_fptr)
 struct Flux_Input_c {
 	struct Flux_Input flux_i; ///< Base \ref Flux_Input.
 
-	const struct const_Multiarray_c* s;   ///< Defined for \ref Flux_Input.
-	const struct const_Multiarray_c* g;   ///< Defined for \ref Flux_Input.
-	const struct const_Multiarray_c* xyz; ///< Defined for \ref Flux_Input.
+	const struct const_Multiarray_c* s;   ///< See brief.
+	const struct const_Multiarray_c* g;   ///< See brief.
+	const struct const_Multiarray_c* xyz; ///< See brief.
 
-	compute_Flux_c_fptr compute_Flux;     ///< Defined for \ref Flux_Input.
-	compute_Flux_c_fptr compute_Flux_1st; ///< Defined for \ref Flux_Input.
-	compute_Flux_c_fptr compute_Flux_2nd; ///< Defined for \ref Flux_Input.
+	compute_Flux_c_fptr compute_Flux;     ///< See brief.
+	compute_Flux_c_fptr compute_Flux_1st; ///< See brief.
+	compute_Flux_c_fptr compute_Flux_2nd; ///< See brief.
 };
 
 /// \brief `complex` version of \ref Flux.
@@ -87,14 +87,14 @@ void destructor_Flux_c
 
 /// \brief `complex` version of \ref compute_Flux_1.
 void compute_Flux_c_1
-	(const struct Flux_Input_c* flux_i, ///< Defined for \ref compute_Flux_c_fptr.
-	 struct mutable_Flux_c* flux        ///< Defined for \ref compute_Flux_c_fptr.
+	(const struct Flux_Input_c* flux_i, ///< See brief.
+	 struct mutable_Flux_c* flux        ///< See brief.
 	);
 
 /// \brief `complex` version of \ref compute_Flux_12.
 void compute_Flux_c_12
-	(const struct Flux_Input_c* flux_i, ///< Defined for \ref compute_Flux_c_fptr.
-	 struct mutable_Flux_c* flux        ///< Defined for \ref compute_Flux_c_fptr.
+	(const struct Flux_Input_c* flux_i, ///< See brief.
+	 struct mutable_Flux_c* flux        ///< See brief.
 	);
 
-#endif // DPG__test_support_flux_h__INCLUDED
+#endif // DPG__test_complex_flux_h__INCLUDED

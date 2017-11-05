@@ -44,3 +44,4 @@ syntax keyword Identifier Complex_DG_Solver_Volume
 syntax keyword Identifier Face
 syntax keyword Identifier Solver_Face
 syntax keyword Identifier DG_Solver_Face
+syntax keyword Identifier Complex_DG_Solver_Face

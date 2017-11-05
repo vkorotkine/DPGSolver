@@ -19,11 +19,9 @@ set	(LIBS_DEPEND
 	 Intrusive
 	 Test_Support_Containers
 	 Test_Support_Element
-	 Test_Support_Flux
 	 Test_Support_General
 	 Test_Support_Intrusive
 	 Test_Support_Computational_Elements
-	 Test_Support_Solver_DG
 	)
 
 add_library(Test_Support ${SOURCE})

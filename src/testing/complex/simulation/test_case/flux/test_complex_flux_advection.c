@@ -16,13 +16,13 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \todo Clean-up (potentially template functions).
  */
 
-#include "test_support_flux_advection.h"
+#include "test_complex_flux_advection.h"
 
 #include <assert.h>
 
 #include "complex_multiarray_minimal.h"
 
-#include "test_support_flux.h"
+#include "test_complex_flux.h"
 #include "solution_advection.h"
 
 // Static function declarations ************************************************************************************* //

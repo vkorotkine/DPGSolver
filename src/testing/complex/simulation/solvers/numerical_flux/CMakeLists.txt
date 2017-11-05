@@ -1,13 +1,11 @@
 set	(SOURCE
-	 test_support_matrix.c
-	 test_support_multiarray.c
-	 test_support_vector.c
+	 test_complex_numerical_flux.c
+	 test_complex_numerical_flux_advection.c
 	)
 
 set	(LIBS_DEPEND
-	 Containers
 	)
 
-set (LIB Test_Support_Containers)
+set (LIB Test_Complex_Numerical_Flux)
 add_library(${LIB} STATIC ${SOURCE})
 target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})

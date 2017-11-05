@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "face.h"
 #include "face_solver.h"
 #include "face_solver_dg.h"
+#include "face_solver_dg_complex.h"
 #include "volume.h"
 #include "volume_solver.h"
 #include "volume_solver_dg.h"
@@ -396,16 +397,16 @@ static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
 		de_info.constructor_derived_Face   = constructor_derived_DG_Solver_Face;
 		break;
 	case IL_SOLVER_DG_COMPLEX:
-		assert(sim->volumes->name == IL_SOLVER_VOLUME);
-		assert(sim->faces->name   == IL_SOLVER_FACE);
+		assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
+		assert(sim->faces->name   == IL_FACE_SOLVER_DG);
 		de_info.list_name[0] = IL_VOLUME_SOLVER_DG_COMPLEX;
-		de_info.list_name[1] = IL_FACE_SOLVER_DG;
-		de_info.sizeof_base[0] = sizeof(struct Solver_Volume);
-		de_info.sizeof_base[1] = sizeof(struct Solver_Face);
+		de_info.list_name[1] = IL_FACE_SOLVER_DG_COMPLEX;
+		de_info.sizeof_base[0] = sizeof(struct DG_Solver_Volume);
+		de_info.sizeof_base[1] = sizeof(struct DG_Solver_Face);
 		de_info.sizeof_derived[0] = sizeof(struct Complex_DG_Solver_Volume);
-		de_info.sizeof_derived[1] = sizeof(struct DG_Solver_Face);
+		de_info.sizeof_derived[1] = sizeof(struct Complex_DG_Solver_Face);
 		de_info.constructor_derived_Volume = constructor_derived_Complex_DG_Solver_Volume;
-		de_info.constructor_derived_Face   = constructor_derived_DG_Solver_Face;
+		de_info.constructor_derived_Face   = constructor_derived_Complex_DG_Solver_Face;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_category);
@@ -432,6 +433,12 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 		de_info.sizeof_base[0] = sizeof(struct Solver_Volume);
 		de_info.sizeof_base[1] = sizeof(struct Solver_Face);
 		break;
+	case IL_SOLVER_DG:
+		de_info.list_name[0] = IL_VOLUME_SOLVER_DG;
+		de_info.list_name[1] = IL_FACE_SOLVER_DG;
+		de_info.sizeof_base[0] = sizeof(struct DG_Solver_Volume);
+		de_info.sizeof_base[1] = sizeof(struct DG_Solver_Face);
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",base_category);
 		break;
@@ -449,9 +456,9 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 		de_info.destructor_derived_Face   = destructor_derived_DG_Solver_Face;
 		break;
 	case IL_SOLVER_DG_COMPLEX:
-		assert(base_category == IL_SOLVER);
+		assert(base_category == IL_SOLVER_DG);
 		de_info.destructor_derived_Volume = destructor_derived_Complex_DG_Solver_Volume;
-		de_info.destructor_derived_Face   = destructor_derived_DG_Solver_Face;
+		de_info.destructor_derived_Face   = destructor_derived_Complex_DG_Solver_Face;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_category);
@@ -624,7 +631,7 @@ static int get_list_category (const struct Simulation* sim)
 		ce_name = IL_SOLVER_DG;
 		break;
 	case IL_VOLUME_SOLVER_DG_COMPLEX:
-		assert(f_name == IL_FACE_SOLVER_DG);
+		assert(f_name == IL_FACE_SOLVER_DG_COMPLEX);
 		ce_name = IL_SOLVER_DG_COMPLEX;
 		break;
 	default:

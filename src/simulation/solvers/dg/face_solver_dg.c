@@ -45,12 +45,7 @@ static void set_function_pointers_num_flux
 
 void constructor_derived_DG_Solver_Face (struct Face* face_ptr, const struct Simulation* sim)
 {
-	struct DG_Solver_Face* face = (struct DG_Solver_Face*) face_ptr;
-
-	for (int i = 0; i < 2; ++i) {
-		struct DG_Solver_Volume* volume = (struct DG_Solver_Volume*) face_ptr->neigh_info[i].volume;
-		face->rhs[i] = ( volume ? volume->rhs : NULL );
-	}
+//	struct DG_Solver_Face* face = (struct DG_Solver_Face*) face_ptr;
 
 	set_function_pointers_num_flux(face_ptr,sim);
 }

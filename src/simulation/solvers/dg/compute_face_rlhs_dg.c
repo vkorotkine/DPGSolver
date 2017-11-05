@@ -112,7 +112,9 @@ void destructor_Numerical_Flux_Input_data
 
 void compute_face_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
 {
-	assert(sim->faces->name == IL_FACE_SOLVER_DG);
+	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
+	assert(sim->faces->name    == IL_FACE_SOLVER_DG);
+	assert(sim->volumes->name  == IL_VOLUME_SOLVER_DG);
 
 	struct S_Params s_params = set_s_params(sim);
 	struct Numerical_Flux_Input* num_flux_i = constructor_Numerical_Flux_Input(sim); // destructed

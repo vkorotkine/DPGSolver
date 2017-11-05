@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_support_operators.h"
+#include "test_complex_operators.h"
 
 #include <assert.h>
 

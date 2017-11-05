@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_support_flux.h"
+#include "test_complex_flux.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -24,7 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
-#include "test_support_flux_advection.h"
+#include "test_complex_flux_advection.h"
 
 #include "complex_multiarray.h"
 
@@ -50,7 +50,7 @@ struct Flux_Input_c* constructor_Flux_Input_c (const struct Simulation* sim)
 
 	struct Flux_Input* flux_i_b = constructor_Flux_Input(sim); // destructed.
 
-	struct Flux_Input_c* flux_i = calloc(1,sizeof *flux_i); // destructed.
+	struct Flux_Input_c* flux_i = calloc(1,sizeof *flux_i); // free.
 
 	memcpy(flux_i,flux_i_b,sizeof(struct Flux_Input)); // shallow copy of the base.
 	destructor_Flux_Input(flux_i_b);

@@ -19,6 +19,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface for the \ref Complex_DG_Solver_Volume container and associated functions.
  *
  *  These volumes are needed by the 'D'iscontinuous 'G'alerkin solver functions for complex step linearization testing.
+ *
+ *  While the \ref Complex_DG_Solver_Volume could be derived directly from the \ref Solver_Volume, the intermediary
+ *  \ref DG_Solver_Volume is retained for consistency with the \ref Complex_DG_Solver_Face.
  */
 
 #include <complex.h>
@@ -26,10 +29,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Container for data relating to the complex DG solver volumes.
 struct Complex_DG_Solver_Volume {
-	struct Solver_Volume volume; ///< The base \ref Solver_Volume.
+	struct DG_Solver_Volume volume; ///< The base \ref DG_Solver_Volume.
 
-	struct Multiarray_c* sol_coef; ///< The coefficients of the solution.
-	struct Multiarray_c* rhs;      ///< The rhs terms.
+	struct Multiarray_c* sol_coef; ///< Complex \ref Solver_Volume::sol_coef.
+	struct Multiarray_c* rhs;      ///< Complex \ref DG_Solver_Volume::rhs.
 };
 
 /// \brief Constructor for a derived \ref Complex_DG_Solver_Volume.

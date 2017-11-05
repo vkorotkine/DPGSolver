@@ -13,19 +13,19 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_support_flux_advection_h__INCLUDED
-#define DPG__test_support_flux_advection_h__INCLUDED
+#ifndef DPG__test_complex_compute_volume_rhs_dg_h__INCLUDED
+#define DPG__test_complex_compute_volume_rhs_dg_h__INCLUDED
 /** \file
- *  \brief Provides functions relating to linear advection fluxes.
+ *  \brief Provides `complex` versions of functions defined in \ref compute_volume_rlhs_dg.h.
  */
 
-struct Flux_Input_c;
-struct mutable_Flux_c;
+struct Simulation;
+struct Intrusive_List;
 
-/// \brief `complex` version of \ref compute_Flux_advection.
-void compute_Flux_c_advection
-	(const struct Flux_Input_c* flux_i, ///< \ref Flux_Input_c.
-	 struct mutable_Flux_c* flux        ///< \ref Flux_c.
+/// \brief Version of \ref compute_volume_rlhs_dg computing only complex rhs terms.
+void compute_volume_rhs_dg_c
+	(const struct Simulation* sim,  ///< \ref Simulation.
+	 struct Intrusive_List* volumes ///< The list of volumes for which to compute the rhs term.
 	);
 
-#endif // DPG__test_support_flux_advection_h__INCLUDED
+#endif // DPG__test_complex_compute_volume_rhs_dg_h__INCLUDED

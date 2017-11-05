@@ -24,7 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define CHECK_LIN_FACE   2 ///< Face contributions only.
 #define CHECK_LIN_ALL    3 ///< All contributions.
 
-#define CHECK_LIN 1 ///< The currently selected value from the options above.
+#define CHECK_LIN 2 ///< The currently selected value from the options above.
 ///\}
 
 ///\{ \name Magnitude of the complex step to take for linearization testing.

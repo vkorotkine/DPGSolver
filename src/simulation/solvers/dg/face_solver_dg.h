@@ -28,8 +28,6 @@ You should have received a copy of the GNU General Public License along with DPG
 struct DG_Solver_Face {
 	struct Solver_Face face; ///< The base \ref Solver_Face.
 
-	struct Multiarray_d* rhs[2]; ///< The rhs terms corresponding to the left/right volumes.
-
 	/// Construct 'r'ight numerical flux input members at face cubature nodes as seen from the left volume.
 	constructor_Boundary_Value_fptr constructor_Boundary_Value_fcl;
 

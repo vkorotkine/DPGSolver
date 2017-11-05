@@ -13,10 +13,10 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_support_solve_dg_h__INCLUDED
-#define DPG__test_support_solve_dg_h__INCLUDED
+#ifndef DPG__test_complex_solve_dg_h__INCLUDED
+#define DPG__test_complex_solve_dg_h__INCLUDED
 /** \file
- *  \brief Provides support functions for testing relating to the 'd'iscontinuous 'g'alerkin solver method.
+ *  \brief Provides `complex` versions of functions defined in \ref solve_dg.h.
  */
 
 struct Simulation;
@@ -38,4 +38,4 @@ void compute_lhs_cmplx_step_dg
 	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
 	);
 
-#endif // DPG__test_support_solve_dg_h__INCLUDED
+#endif // DPG__test_complex_solve_dg_h__INCLUDED

@@ -16,13 +16,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__numerical_flux_h__INCLUDED
 #define DPG__numerical_flux_h__INCLUDED
 /** \file
- *  \brief Provides containers and functions relating to fluxes of the supported PDEs.
+ *  \brief Provides containers and functions relating to the supported numerical fluxes.
  */
 
 struct Numerical_Flux_Input;
 struct mutable_Numerical_Flux;
 struct Simulation;
-struct Face;
 
 #include <stdbool.h>
 #include "boundary.h"
