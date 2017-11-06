@@ -111,6 +111,11 @@ ptrdiff_t compute_dof (const struct Simulation* sim)
 	case METHOD_DG:
 		dof += compute_dof_volumes(sim);
 		break;
+	case METHOD_DPG:
+		dof += compute_dof_volumes(sim);
+//		dof += compute_dof_faces_dpg(sim); // define in solve_dpg.c
+EXIT_UNSUPPORTED;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
 		break;
@@ -124,7 +129,9 @@ ptrdiff_t compute_dof (const struct Simulation* sim)
 static ptrdiff_t compute_dof_volumes (const struct Simulation* sim)
 {
 	ptrdiff_t dof = 0;
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
-		dof += ((struct Solver_Volume*)curr)->sol_coef->extents[0];
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+		dof += compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents);
+	}
 	return dof;
 }

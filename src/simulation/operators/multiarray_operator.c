@@ -110,6 +110,22 @@ void destructor_Multiarray2_Operator (const struct Multiarray_Operator* a[2])
 	destructor_Multiarray_Operator(a[1]);
 }
 
+void destructor_Multiarray_Operator_conditional (const struct Multiarray_Operator* a)
+{
+	if (a == NULL)
+		return;
+	destructor_Multiarray_Operator(a);
+}
+
+void destructor_Multiarray2_Operator_conditional (const struct Multiarray_Operator* a[2])
+{
+	if (a[0] == NULL) {
+		assert(a[1] == NULL);
+		return;
+	}
+	destructor_Multiarray2_Operator(a);
+}
+
 // Setter functions ************************************************************************************************* //
 
 void set_MO_from_MO

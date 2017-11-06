@@ -97,7 +97,6 @@ void set_xy_c
 void set_sol_periodic_vortex (const struct Simulation* sim, struct Solution_Container sol_cont)
 {
 	const char ce_type   = sol_cont.ce_type,
-	           cv_type   = sol_cont.cv_type,
 	           node_kind = sol_cont.node_kind;
 
 	assert(ce_type == 'v'); // Add support for faces if necessary.
@@ -108,22 +107,7 @@ void set_sol_periodic_vortex (const struct Simulation* sim, struct Solution_Cont
 	struct Multiarray_d* sol = constructor_sol_periodic_vortex(sim,xyz,&sol_data);           // destructed
 	destructor_const_Multiarray_d(xyz);
 
-	assert((cv_type == 'c') || (cv_type == 'v'));
-	if (cv_type == 'v') {
-// possible function for this.
-		assert(sol_cont.sol->data != NULL);
-
-		sol_cont.sol->extents[0] = sol->extents[0];
-		sol_cont.sol->extents[1] = sol->extents[1];
-		free(sol_cont.sol->data);
-		sol_cont.sol->data = sol->data;
-
-		sol->owns_data = false;
-	} else if (cv_type == 'c') {
-		assert(node_kind == 's');
-		compute_coef_from_val_vs(sol_cont.volume,(struct const_Multiarray_d*)sol,sol_cont.sol);
-	}
-
+	update_Solution_Container_sol(&sol_cont,sol);
 	destructor_Multiarray_d(sol);
 }
 

@@ -29,8 +29,9 @@ list	(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules"
 	)
 include(functions)
 
-# Include subdirectory CMakeLists.txt files
-option(BUILD_SHARED_LIBS "Build the shared library" ON)
+# There was a problem on macOS (CMake 3.9.3) where enabling BUILD_SHARED_LIBS led to differing function addresses in
+# different files.
+option(BUILD_SHARED_LIBS "Build the shared library" OFF)
 
 include_directories(src)
 

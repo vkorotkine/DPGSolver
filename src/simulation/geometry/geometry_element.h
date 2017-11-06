@@ -29,6 +29,7 @@ struct Simulation;
 struct Geometry_Element {
 	struct const_Element element; ///< Base \ref const_Element.
 
+/// \todo Replace the s/c with [2].
 	const struct Multiarray_Operator* vc0_vgc_vgc; ///< See notation in \ref element_operators.h.
 
 	const struct Multiarray_Operator* cv1_vgs_vcs; ///< See notation in \ref element_operators.h.

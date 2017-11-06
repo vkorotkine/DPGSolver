@@ -40,6 +40,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/// \brief Set up the initial \ref Solver_Volume::sol_coef and \ref Solver_Volume::grad_coef.
+static void set_initial_v_sg_coef
+	(struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Set up the initial \ref Solver_Face::nf_coef.
+static void set_initial_f_nf_coef
+	(struct Simulation* sim ///< \ref Simulation.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 const struct const_Multiarray_d* constructor_const_sol_invalid
@@ -58,18 +68,17 @@ void set_initial_solution (struct Simulation* sim)
 
 	constructor_derived_Elements(sim,IL_SOLUTION_ELEMENT);
 
-	struct Solution_Container sol_cont =
-		{ .ce_type = 'v', .cv_type = 'c', .node_kind = 's', .volume = NULL, .face = NULL, .sol = NULL, };
-	const struct Test_Case* test_case = sim->test_case;
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume* volume = (struct Solver_Volume*) curr;
-
-		sol_cont.volume = volume;
-		sol_cont.sol = volume->sol_coef;
-		test_case->set_sol(sim,sol_cont);
-
-		sol_cont.sol = volume->grad_coef;
-		test_case->set_grad(sim,sol_cont);
+	switch (sim->method) {
+	case METHOD_DG:
+		set_initial_v_sg_coef(sim);
+		break;
+	case METHOD_DPG:
+		set_initial_v_sg_coef(sim);
+		set_initial_f_nf_coef(sim);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",sim->method);
+		break;
 	}
 
 	destructor_derived_Elements(sim,IL_ELEMENT);
@@ -170,5 +179,60 @@ void compute_source_do_nothing (const struct Simulation* sim, struct Solver_Volu
 	return;
 }
 
+void update_Solution_Container_sol (struct Solution_Container*const sol_cont, struct Multiarray_d*const sol)
+{
+	const char cv_type = sol_cont->cv_type;
+
+	if (cv_type == 'v') {
+		assert(sol_cont->sol->data != NULL);
+
+		sol_cont->sol->extents[0] = sol->extents[0];
+		sol_cont->sol->extents[1] = sol->extents[1];
+		free(sol_cont->sol->data);
+		sol_cont->sol->data = sol->data;
+
+		sol->owns_data = false;
+	} else if (cv_type == 'c') {
+		assert(sol_cont->node_kind == 's');
+		compute_coef_from_val_vs(sol_cont->volume,(struct const_Multiarray_d*)sol,sol_cont->sol);
+	} else {
+		EXIT_ERROR("Unsupported: %c\n",cv_type);
+	}
+}
+
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void set_initial_v_sg_coef (struct Simulation* sim)
+{
+	struct Solution_Container sol_cont =
+		{ .ce_type = 'v', .cv_type = 'c', .node_kind = 's', .volume = NULL, .face = NULL, .sol = NULL, };
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* volume = (struct Solver_Volume*) curr;
+
+		sol_cont.volume = volume;
+		sol_cont.sol = volume->sol_coef;
+		sim->test_case->set_sol(sim,sol_cont);
+
+		sol_cont.sol = volume->grad_coef;
+		sim->test_case->set_grad(sim,sol_cont);
+	}
+}
+
+static void set_initial_f_nf_coef (struct Simulation* sim)
+{
+	struct Multiarray_d* sol_fs = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}); // destructed
+
+	struct Solution_Container sol_cont =
+		{ .ce_type = 'f', .cv_type = 'v', .node_kind = 's', .volume = NULL, .face = NULL, .sol = NULL, };
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		struct Solver_Face* face = (struct Solver_Face*) curr;
+
+		sol_cont.face = face;
+		sol_cont.sol  = sol_fs;
+		sim->test_case->set_sol(sim,sol_cont);
+EXIT_UNSUPPORTED; // Compute flux, dot with normal and store.
+	}
+	destructor_Multiarray_d(sol_fs);
+}

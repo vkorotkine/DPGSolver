@@ -1,16 +1,13 @@
 set	(SOURCE
-	 computational_elements.c
-	 face.c
-	 volume.c
+	 face_solver_dpg.c
+	 element_solver_dpg.c
+	 volume_solver_dpg.c
 	)
 
 set	(LIBS_DEPEND
-	 Containers
-	 Element
-	 General
-	 Intrusive
+	 ${PETSC_LIBRARIES}
 	)
 
-set(LIB Computational_Elements)
+set (LIB Solver_DPG)
 add_library(${LIB} STATIC ${SOURCE})
 target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})

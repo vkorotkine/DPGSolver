@@ -35,11 +35,16 @@ void set_function_pointers_solution_advection
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
+/** \brief Return the statically allocated \ref Sol_Data__Advection container.
+ *  \return See brief. */
+struct Sol_Data__Advection get_sol_data_advection
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
 /// \brief Read the required solution data into the \ref Sol_Data__Advection container.
 void read_data_advection
 	(const char*const input_path,              ///< Defined in \ref fopen_input.
 	 struct Sol_Data__Advection*const sol_data ///< \ref Sol_Data__Advection.
 	);
-
 
 #endif // DPG__solution_advection_h__INCLUDED

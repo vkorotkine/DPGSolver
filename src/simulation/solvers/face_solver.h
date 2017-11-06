@@ -36,11 +36,8 @@ struct Solver_Face {
 	 *  volume is curved. */
 	const char cub_type;
 
-	/// The coefficients of the solution in the \ref Simulation::basis_sol.
-	struct Multiarray_d* sol_coef;
-
-	/// The coefficients of the solution gradient in the \ref Simulation::basis_sol.
-	struct Multiarray_d* grad_coef;
+	/// The coefficients of the normal flux in the \ref Simulation::basis_sol.
+	struct Multiarray_d* nf_coef;
 
 	/// Values of the physical xyz coordinates at the face cubature nodes.
 	const struct const_Multiarray_d*const xyz_fc;

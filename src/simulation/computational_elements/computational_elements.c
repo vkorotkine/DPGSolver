@@ -27,10 +27,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "face.h"
 #include "face_solver.h"
 #include "face_solver_dg.h"
+#include "face_solver_dpg.h"
 #include "face_solver_dg_complex.h"
 #include "volume.h"
 #include "volume_solver.h"
 #include "volume_solver_dg.h"
+#include "volume_solver_dpg.h"
 #include "volume_solver_dg_complex.h"
 
 #include "element.h"
@@ -39,6 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element_solution.h"
 #include "element_error.h"
 #include "element_solver_dg.h"
+#include "element_solver_dpg.h"
 
 #include "intrusive.h"
 #include "simulation.h"
@@ -396,6 +399,18 @@ static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
 		de_info.constructor_derived_Volume = constructor_derived_DG_Solver_Volume;
 		de_info.constructor_derived_Face   = constructor_derived_DG_Solver_Face;
 		break;
+	case IL_SOLVER_DPG:
+		assert(sim->volumes->name == IL_SOLVER_VOLUME);
+		assert(sim->faces->name   == IL_SOLVER_FACE);
+		de_info.list_name[0] = IL_VOLUME_SOLVER_DPG;
+		de_info.list_name[1] = IL_FACE_SOLVER_DPG;
+		de_info.sizeof_base[0] = sizeof(struct Solver_Volume);
+		de_info.sizeof_base[1] = sizeof(struct Solver_Face);
+		de_info.sizeof_derived[0] = sizeof(struct DPG_Solver_Volume);
+		de_info.sizeof_derived[1] = sizeof(struct DPG_Solver_Face);
+		de_info.constructor_derived_Volume = constructor_derived_DPG_Solver_Volume;
+		de_info.constructor_derived_Face   = constructor_derived_DPG_Solver_Face;
+		break;
 	case IL_SOLVER_DG_COMPLEX:
 		assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
 		assert(sim->faces->name   == IL_FACE_SOLVER_DG);
@@ -438,6 +453,12 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 		de_info.list_name[1] = IL_FACE_SOLVER_DG;
 		de_info.sizeof_base[0] = sizeof(struct DG_Solver_Volume);
 		de_info.sizeof_base[1] = sizeof(struct DG_Solver_Face);
+		break;
+	case IL_SOLVER_DPG:
+		de_info.list_name[0] = IL_VOLUME_SOLVER_DPG;
+		de_info.list_name[1] = IL_FACE_SOLVER_DPG;
+		de_info.sizeof_base[0] = sizeof(struct DPG_Solver_Volume);
+		de_info.sizeof_base[1] = sizeof(struct DPG_Solver_Face);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",base_category);
@@ -501,6 +522,12 @@ static struct Derived_Elements_Info get_c_Derived_Elements_Info (const int deriv
 		de_info.sizeof_base    = sizeof(struct Element);
 		de_info.sizeof_derived = sizeof(struct DG_Solver_Element);
 		de_info.constructor_derived_Element = constructor_derived_DG_Solver_Element;
+		break;
+	case IL_ELEMENT_SOLVER_DPG:
+		assert(sizeof(struct DPG_Solver_Element) == sizeof(struct const_DPG_Solver_Element));
+		de_info.sizeof_base    = sizeof(struct Element);
+		de_info.sizeof_derived = sizeof(struct DPG_Solver_Element);
+		de_info.constructor_derived_Element = constructor_derived_DPG_Solver_Element;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_name);

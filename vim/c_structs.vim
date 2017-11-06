@@ -35,13 +35,18 @@ syntax keyword Identifier Plotting_Element const_Plotting_Element
 syntax keyword Identifier Solution_Element const_Solution_Element
 syntax keyword Identifier Error_Element const_Error_Element
 syntax keyword Identifier DG_Solver_Element const_DG_Solver_Element
+syntax keyword Identifier DPG_Solver_Element const_DPG_Solver_Element
 
 syntax keyword Identifier Volume
 syntax keyword Identifier Solver_Volume
 syntax keyword Identifier DG_Solver_Volume
+syntax keyword Identifier DPG_Solver_Volume
 syntax keyword Identifier Complex_DG_Solver_Volume
+syntax keyword Identifier Complex_DPG_Solver_Volume
 
 syntax keyword Identifier Face
 syntax keyword Identifier Solver_Face
 syntax keyword Identifier DG_Solver_Face
+syntax keyword Identifier DPG_Solver_Face
 syntax keyword Identifier Complex_DG_Solver_Face
+syntax keyword Identifier Complex_DPG_Solver_Face

@@ -68,13 +68,11 @@ void destructor_derived_DG_Solver_Element (struct Element* element_ptr)
 {
 	struct DG_Solver_Element* element = (struct DG_Solver_Element*) element_ptr;
 
-	for (int i = 0; i < 2; ++i) {
-		destructor_Multiarray_Operator(element->cv0_vs_vc[i]);
-		destructor_Multiarray_Operator(element->tw1_vs_vc[i]);
+	destructor_Multiarray2_Operator(element->cv0_vs_vc);
+	destructor_Multiarray2_Operator(element->tw1_vs_vc);
 
-		destructor_Multiarray_Operator(element->cv0_vs_fc[i]);
-		destructor_Multiarray_Operator(element->tw0_vs_fc[i]);
-	}
+	destructor_Multiarray2_Operator(element->cv0_vs_fc);
+	destructor_Multiarray2_Operator(element->tw0_vs_fc);
 
 	struct const_Element* b_e = (struct const_Element*)element_ptr;
 	for (int i = 0; i < 2; ++i) {
@@ -86,9 +84,7 @@ void destructor_derived_DG_Solver_Element (struct Element* element_ptr)
 		}
 	}
 
-	for (int i = 0; i < 2; ++i)
-		destructor_Multiarray_Operator(element->tw0_vs_vc[i]);
-
+	destructor_Multiarray2_Operator(element->tw0_vs_vc);
 	for (int i = 0; i < 2; ++i)
 		destructor_const_Multiarray_Vector_d(element->w_vc[i]);
 }

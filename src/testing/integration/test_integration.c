@@ -64,6 +64,8 @@ if (0) {
 //	test_integration_geometry(test_info,"extern_mesh/TEST_curved_2d_mixed");
 }
 
+	test_print_warning(test_info,"Need to add tests for conservation.");
+
 	test_integration_advection(test_info);
 	test_integration_euler(test_info);
 
@@ -79,14 +81,20 @@ struct Integration_Test_Info* constructor_Integration_Test_Info (const char*cons
 	const char* ctrl_name_full = set_ctrl_name_full(ctrl_name);
 	FILE *ctrl_file = fopen_checked(ctrl_name_full);
 
+	int ml_ctrl[2];
+	int p_ref_ctrl[2];
+
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),ctrl_file)) {
+		if (strstr(line,"mesh_level")) read_skip_const_i_1(line,1,ml_ctrl,2);
+		if (strstr(line,"p_ref"))      read_skip_const_i_1(line,1,p_ref_ctrl,2);
+
 		if (strstr(line,"ml_range_test")) read_skip_const_i_1(line,1,int_test_info->ml,2);
 		if (strstr(line,"p_range_test"))  read_skip_const_i_1(line,1,int_test_info->p_ref,2);
 	}
 	fclose(ctrl_file);
 
-	const_cast_i(&int_test_info->adapt_type,compute_adapt_type(int_test_info->p_ref,int_test_info->ml));
+	const_cast_i(&int_test_info->adapt_type,compute_adapt_type(p_ref_ctrl,ml_ctrl));
 
 	return int_test_info;
 }

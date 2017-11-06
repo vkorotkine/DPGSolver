@@ -37,10 +37,17 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "numerical_flux_advection.h"
 #include "simulation.h"
 #include "solution.h"
+#include "solution_advection_default.h"
 #include "peterson/solution_peterson.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
+
+/// \brief Set the function pointers to the numerical flux computing functions.
+void set_function_pointers_num_flux
+	(struct Test_Case* test_case,      ///< \ref Test_Case.
+	 const struct Simulation*const sim ///< \ref Simulation.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -51,6 +58,12 @@ void set_function_pointers_solution_advection (struct Test_Case* test_case, cons
 		test_case->constructor_sol = constructor_const_sol_peterson;
 		test_case->set_sol         = set_sol_peterson;
 		test_case->compute_source  = compute_source_do_nothing;
+		test_case->constructor_Error_CE = constructor_Error_CE_advection_all;
+	} else if (strcmp(sim->pde_spec,"demkowicz_dpg_ii") == 0) {
+		test_case->constructor_sol = constructor_const_sol_advection_default;
+		test_case->set_sol         = set_sol_advection_default;
+		test_case->compute_source  = compute_source_advection_default;
+// set a function pointer to a norm computing function.
 		test_case->constructor_Error_CE = constructor_Error_CE_advection_all;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
@@ -65,22 +78,24 @@ void set_function_pointers_solution_advection (struct Test_Case* test_case, cons
 
 	test_case->compute_Flux = compute_Flux_1;
 	test_case->compute_Flux_e[0] = compute_Flux_advection;
-	test_case->compute_Flux_e[1] = NULL;
 	test_case->compute_Flux_i[0] = compute_Flux_advection_jacobian;
-	test_case->compute_Flux_i[1] = NULL;
 
-	test_case->compute_Numerical_Flux = compute_Numerical_Flux_1;
-	switch (test_case->ind_num_flux[0]) {
-	case NUM_FLUX_UPWIND:
-		test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_advection_upwind;
-		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_advection_upwind_jacobian;
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
-		break;
-	}
+	set_function_pointers_num_flux(test_case,sim);
 
 	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_s_fcl_interp;
+}
+
+struct Sol_Data__Advection get_sol_data_advection (const struct Simulation* sim)
+{
+	static bool need_input = true;
+
+	static struct Sol_Data__Advection sol_data;
+	if (need_input) {
+		need_input = false;
+		read_data_advection(sim->input_path,&sol_data);
+	}
+
+	return sol_data;
 }
 
 void read_data_advection (const char*const input_path, struct Sol_Data__Advection*const sol_data)
@@ -105,3 +120,27 @@ void read_data_advection (const char*const input_path, struct Sol_Data__Advectio
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+void set_function_pointers_num_flux (struct Test_Case* test_case, const struct Simulation*const sim)
+{
+	switch (sim->method) {
+	case METHOD_DG:
+		test_case->compute_Numerical_Flux = compute_Numerical_Flux_1;
+		switch (test_case->ind_num_flux[0]) {
+		case NUM_FLUX_UPWIND:
+			test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_advection_upwind;
+			test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_advection_upwind_jacobian;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
+			break;
+		}
+		break;
+	case METHOD_DPG:
+		; // Do nothing.
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",sim->method);
+		break;
+	}
+}

@@ -1,0 +1,11 @@
+/// Solver parameters for test case: advection/demkowicz_dpg_ii
+
+solver_proc   200
+solver_type_i 201
+
+test_norm upwind
+
+exit_tol_i   1e-15
+exit_ratio_i 1e-3
+
+display_progress 1

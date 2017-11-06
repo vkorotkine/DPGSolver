@@ -1,10 +1,13 @@
 add_subdirectory(dg)
+add_subdirectory(dpg)
 add_subdirectory(numerical_flux)
 
 set	(SOURCE
+	 face_solver.c
 	 solve.c
 	 solve_explicit.c
 	 solve_implicit.c
+	 volume_solver.c
 	)
 
 set	(LIBS_DEPEND
@@ -13,6 +16,7 @@ set	(LIBS_DEPEND
 	 Numerical_Flux
 	 Solution
 	 Solver_DG
+	 Solver_DPG
 	)
 
 set (LIB Solvers)

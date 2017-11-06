@@ -50,41 +50,51 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	""" Set the -setnumber inputs to be passed to gmsh. """
 	gmsh_setnumbers = ''
 
-	# Mesh level
+	# Required parameters
 
 	mesh_level = re.search(r"(^.*_ml)(\d+)(.*$)",mesh_name).group(2)
 	gmsh_setnumbers += " -setnumber MESH_LEVEL " + mesh_level
 
-	# Required parameters
-
 	gmsh_setnumbers += " -setnumber PDE_NAME "
 	var_names = ["advection","poisson","euler","navierstokes"]
-	gmsh_setnumbers += get_gmsh_number(mesh_name,var_names,input_dir,0)
+	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
+
+	gmsh_setnumbers += " -setnumber MESH_DOMAIN "
+	var_names = ["straight","curved","parametric"]
+	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
+
+	gmsh_setnumbers += " -setnumber MESH_TYPE "
+	var_names = ["line","tri","quad","tet","hex","wedge","pyr","mixed"]
+	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,1)
+
+
+	# Additional spec parameters
+	gmsh_dummy = "-999"
 
 	gmsh_setnumbers += " -setnumber PDE_SPEC "
 	var_names = ["internal/supersonic_vortex",
 	             "periodic/periodic_vortex",
 	            ]
-	gmsh_setnumbers += get_gmsh_number(mesh_name,var_names,input_dir,0)
+	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
-	gmsh_setnumbers += " -setnumber MESH_DOMAIN "
-	var_names = ["straight","curved","parametric"]
-	gmsh_setnumbers += get_gmsh_number(mesh_name,var_names,input_dir,0)
-
-	gmsh_setnumbers += " -setnumber MESH_TYPE "
-	var_names = ["line","tri","quad","tet","hex","wedge","pyr","mixed"]
-	gmsh_setnumbers += get_gmsh_number(mesh_name,var_names,input_dir,1)
-
-	# Additional geom_spec parameters
+	gmsh_setnumbers += " -setnumber GEOM_ADV "
+	if (mesh_name.find("/xl/") != -1):
+		gmsh_setnumbers += get_gmsh_number("Geom_Adv_xl",input_dir,0)
+	elif (mesh_name.find("/yl/") != -1):
+		gmsh_setnumbers += get_gmsh_number("Geom_Adv_yl",input_dir,0)
+	else:
+		gmsh_setnumbers += gmsh_dummy;
 
 	return gmsh_setnumbers
 
 
-def get_gmsh_number (mesh_name,var_names,input_dir,with_underscore):
-	""" Get the number associated with the variable name as specified in the parameters.geo file. """
+def get_gmsh_number_from_mesh_name (mesh_name,var_names,input_dir,with_underscore):
+	""" Get the number associated with the variable name found in the mesh_name as specified in the parameters.geo
+	    file. """
 
 	param_file_name = input_dir+"/parameters.geo"
 
+	var_name = "gmsh_dummy"
 	for target in var_names:
 		target_name = target
 		if (with_underscore):
@@ -94,6 +104,14 @@ def get_gmsh_number (mesh_name,var_names,input_dir,with_underscore):
 			var_name = target.replace('/','_')
 			break
 
+	return get_gmsh_number(var_name,input_dir,with_underscore)
+
+
+def get_gmsh_number (var_name,input_dir,with_underscore):
+	""" Get the number associated with the single variable name as specified in the parameters.geo file. """
+
+	param_file_name = input_dir+"/parameters.geo"
+
 	with open(param_file_name) as f:
 		for line in f:
 			if (var_name.upper() in line):
@@ -101,7 +119,6 @@ def get_gmsh_number (mesh_name,var_names,input_dir,with_underscore):
 
 	print("\n\nDid not find a value for "+var_name.upper()+" in "+param_file_name+'\n')
 	EXIT
-
 
 
 if __name__ == "__main__":

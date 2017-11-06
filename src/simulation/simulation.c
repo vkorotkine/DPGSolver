@@ -42,7 +42,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 ///\{ \name Invalid value for a polynomial order (which would be unlikely to be chosen inadvertently).
-#define P_INVALID -314159265
+#define P_INVALID -99999
 ///\}
 
 /// \brief Set the MPI related members of \ref Simulation.
@@ -321,14 +321,7 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 	       (strcmp(sim->basis_sol,"bezier")      == 0));
 	assert((strcmp(sim->geom_rep,"isoparametric")   == 0) ||
 	       (strcmp(sim->geom_rep,"superparametric") == 0) ||
-	       (strstr(sim->geom_rep,"fixed")           == 0));
-
-	assert(strcmp(sim->geom_blending[0],"gordon_hall") == 0);
-	assert((strcmp(sim->geom_blending[1],"szabo_babuska_gen") == 0) ||
-	       (strcmp(sim->geom_blending[1],"scott") == 0)             ||
-	       (strcmp(sim->geom_blending[1],"lenoir") == 0)            ||
-	       (strcmp(sim->geom_blending[1],"nielson") == 0));
-	assert(sim->geom_blending[2][0] == 0);
+	       (strcmp(sim->geom_rep,"fixed")           == 0));
 
 	assert(sim->p_s_v[0] != P_INVALID);
 	assert(sim->p_s_v[1] != P_INVALID);
@@ -375,7 +368,7 @@ void set_Simulation_elements (struct Simulation*const sim, struct const_Intrusiv
 
 static bool is_adaptive (const int var[2])
 {
-	if (var[0] == var[1])
+	if (var[0] != var[1])
 		return true;
 	return false;
 }
@@ -435,15 +428,19 @@ static void set_input_path (struct Simulation*const sim)
 static void set_orders (struct Simulation*const sim, struct Orders*const orders)
 {
 	assert(orders->p_s_v_p  != P_INVALID);
-	assert(orders->p_s_f_p  != P_INVALID);
-	assert(orders->p_sg_v_p != P_INVALID);
-	assert(orders->p_sg_f_p != P_INVALID);
 
 	for (int i = 0; i < 2; ++i) {
-		const_cast_i(&sim->p_s_v[i],sim->p_ref[i]+orders->p_s_v_p);
-		const_cast_i(&sim->p_s_f[i],sim->p_ref[i]+orders->p_s_f_p);
-		const_cast_i(&sim->p_sg_v[i],sim->p_ref[i]+orders->p_sg_v_p);
-		const_cast_i(&sim->p_sg_f[i],sim->p_ref[i]+orders->p_sg_f_p);
+		int p = sim->p_ref[i]+orders->p_s_v_p;
+		const_cast_i(&sim->p_s_v[i],p);
+
+		p = orders->p_s_f_p + (orders->p_s_f_p == P_INVALID ? 0 : sim->p_ref[i]);
+		const_cast_i(&sim->p_s_f[i],p);
+
+		p = orders->p_sg_v_p + (orders->p_sg_v_p == P_INVALID ? 0 : sim->p_ref[i]);
+		const_cast_i(&sim->p_sg_v[i],p);
+
+		p = orders->p_sg_f_p + (orders->p_sg_f_p == P_INVALID ? 0 : sim->p_ref[i]);
+		const_cast_i(&sim->p_sg_f[i],p);
 	}
 }
 

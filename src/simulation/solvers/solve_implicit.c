@@ -47,6 +47,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #define OUTPUT_PETSC_AB false
 ///\}
 
+/// \brief Constructor for the derived element and computational element lists.
+static void constructor_derived_elements_comp_elements
+	(struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Destructor for the derived element and computational element lists.
+static void destructor_derived_elements_comp_elements
+	(struct Simulation* sim ///< \ref Simulation.
+	);
+
 /** \brief Perform one implicit step.
  *  \return The absolute value of the maximum rhs for the current solution. */
 static double implicit_step
@@ -77,23 +87,17 @@ static struct Vector_i* constructor_nnz
 
 void solve_implicit (struct Simulation* sim)
 {
-	assert(sim->method == METHOD_DG); // Can be made flexible in future.
-
 	sim->test_case->solver_method_curr = 'i';
-	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
-	constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
 
-	struct Test_Case* test_case = sim->test_case;
-
+	constructor_derived_elements_comp_elements(sim); // destructed
 	for (int i_step = 0; ; ++i_step) {
 		const double max_rhs = implicit_step(i_step,sim);
 
-		if (check_exit(test_case,max_rhs))
+		if (check_exit(sim->test_case,max_rhs))
 			break;
 	}
+	destructor_derived_elements_comp_elements(sim);
 
-	destructor_derived_computational_elements(sim,IL_SOLVER);
-	destructor_derived_Elements(sim,IL_ELEMENT);
 	sim->test_case->solver_method_curr = 0;
 }
 
@@ -189,6 +193,29 @@ static void increment_nnz
 static bool check_pde_linear
 	(const int pde_index ///< \ref Test_Case::pde_index.
 	);
+
+static void constructor_derived_elements_comp_elements (struct Simulation* sim)
+{
+	switch (sim->method) {
+	case METHOD_DG:
+		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
+		constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
+		break;
+	case METHOD_DPG:
+		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DPG);       // destructed
+		constructor_derived_computational_elements(sim,IL_SOLVER_DPG); // destructed
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",sim->method);
+		break;
+	}
+}
+
+static void destructor_derived_elements_comp_elements (struct Simulation* sim)
+{
+	destructor_derived_computational_elements(sim,IL_SOLVER);
+	destructor_derived_Elements(sim,IL_ELEMENT);
+}
 
 static double implicit_step (const int i_step, const struct Simulation* sim)
 {

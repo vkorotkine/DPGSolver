@@ -11,6 +11,11 @@ lc = 1.0;
 
 EPS = 1e-15;
 
+
+// Dummy value
+GMSH_DUMMY = -999;
+
+
 // Element types (Gmsh convention)
 POINT = 15;
 LINE  = 1;
@@ -53,6 +58,7 @@ GEOM_AR_2 = 2;
 GEOM_AR_3 = 3;
 
 GEOM_ADV_YL   = 1; // (ADV)ection (Y)-coord (L)eft
+GEOM_ADV_XL   = 2; // (ADV)ection (X)-coord (L)eft
 
 GEOM_2BEXP_0 = 0;
 GEOM_2BEXP_1 = 1;

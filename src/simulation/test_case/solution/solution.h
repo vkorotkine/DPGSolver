@@ -36,6 +36,17 @@ typedef const struct const_Multiarray_d* (*constructor_sol_fptr)
 	 const struct Simulation* sim
 	);
 
+/** \brief `mutable` version of \ref constructor_sol_fptr.
+ *  \return See brief.
+ *
+ *  \param xyz See brief.
+ *  \param sim See brief.
+ */
+typedef struct Multiarray_d* (*mutable_constructor_sol_fptr)
+	(const struct const_Multiarray_d* xyz,
+	 const struct Simulation* sim
+	);
+
 /** \brief Function pointer to volume solution setting function.
  *  \param sim      \ref Simulation.
  *  \param sol_cont \ref Solution_Container.
@@ -78,8 +89,7 @@ const struct const_Multiarray_d* constructor_const_sol_invalid
 /** \brief Set up the initial solution for the simulation. Sets:
  *	- \ref Solver_Volume::sol_coef;
  *	- \ref Solver_Volume::grad_coef (if applicable);
- *	- \ref Solver_Face::sol_coef    (if applicable);
- *	- \ref Solver_Face::grad_coef   (if applicable).
+ *	- \ref Solver_Face::nf_coef     (if applicable);
  */
 void set_initial_solution
 	(struct Simulation* sim ///< \ref Simulation.
@@ -119,6 +129,12 @@ struct Multiarray_d* constructor_sol_v
 void compute_source_do_nothing
 	(const struct Simulation* sim, ///< Defined for \ref compute_source_fptr.
 	 struct Solver_Volume* volume  ///< Defined for \ref compute_source_fptr.
+	);
+
+/// \brief Update \ref Solution_Container::sol based on the input solution values.
+void update_Solution_Container_sol
+	(struct Solution_Container*const sol_cont, ///< Defined for \ref set_sol_fptr.
+	 struct Multiarray_d*const sol             ///< The solution values.
 	);
 
 #endif // DPG__solution_h__INCLUDED

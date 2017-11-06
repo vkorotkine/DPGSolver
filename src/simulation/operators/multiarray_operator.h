@@ -67,6 +67,16 @@ void destructor_Multiarray2_Operator
 	(const struct Multiarray_Operator* a[2] ///< Standard.
 	);
 
+/// \brief Version of \ref destructor_Multiarray_Operator which does not call the destructor for a `NULL` input.
+void destructor_Multiarray_Operator_conditional
+	(const struct Multiarray_Operator* a ///< Standard.
+	);
+
+/// \brief Version of \ref destructor_Multiarray2_Operator which does not call the destructor for `NULL` inputs.
+void destructor_Multiarray2_Operator_conditional
+	(const struct Multiarray_Operator* a[2] ///< See brief.
+	);
+
 // Setter functions ************************************************************************************************* //
 
 /// \brief Set a \ref Multiarray_Operator\* from a sub range of a \ref Multiarray_Operator\*.
