@@ -20,6 +20,8 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <stdbool.h>
+#include "boundary.h"
+#include "complex_boundary.h"
 
 struct Boundary_Value_Input_c;
 struct Boundary_Value_c;
@@ -33,23 +35,8 @@ struct Simulation;
  *  \param s_face See brief.
  *  \param sim    See brief.
  */
-typedef void (*constructor_Boundary_Value_Input_face_c_fptr)
+typedef void (*constructor_Boundary_Value_Input_c_face_fptr)
 	(struct Boundary_Value_Input_c* bv_i,
-	 const struct Solver_Face* s_face,
-	 const struct Simulation* sim
-	);
-
-/** \brief `complex` version of \ref constructor_Boundary_Value_fptr.
- *  \return Standard.
- *
- *  \param bv     See brief.
- *  \param bv_i   See brief.
- *  \param s_face See brief.
- *  \param sim    See brief.
- */
-typedef void (*constructor_Boundary_Value_c_fptr)
-	(struct Boundary_Value_c* bv,
-	 const struct Boundary_Value_Input_c* bv_i,
 	 const struct Solver_Face* s_face,
 	 const struct Simulation* sim
 	);

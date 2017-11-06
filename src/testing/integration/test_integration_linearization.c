@@ -27,7 +27,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_base.h"
 #include "test_integration.h"
 #include "test_support_math_functions.h"
-//#include "test_support_multiarray.h"
 #include "test_complex_solve_dg.h"
 
 #include "face.h"
@@ -155,11 +154,8 @@ void test_integration_linearization (struct Test_Info*const test_info, const cha
 {
 	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name);
 
-	const int p  = int_test_info->p_ref[0],
-	          ml = int_test_info->ml[0];
-/// \todo Uncommment this.
-//	const int p  = int_test_info->p_ref[1],
-//	          ml = int_test_info->ml[1];
+	const int p  = int_test_info->p_ref[1],
+	          ml = int_test_info->ml[1];
 
 	const int adapt_type = int_test_info->adapt_type;
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,ctrl_name);
@@ -192,7 +188,6 @@ void test_integration_linearization (struct Test_Info*const test_info, const cha
 		petsc_mat_vec_assemble(ssi[i]);
 
 	check_linearizations(test_info,int_test_info,(const struct Solver_Storage_Implicit**)ssi);
-EXIT_UNSUPPORTED;
 
 	for (int i = 0; i < 2; ++i)
 		destructor_Solver_Storage_Implicit(ssi[i]);

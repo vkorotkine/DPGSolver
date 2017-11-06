@@ -5,8 +5,12 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 Test_Complex_Boundary
+	 Test_Complex_Containers
 	 Test_Complex_Flux
+	 Test_Complex_Numerical_Flux
 	 Test_Complex_Operators
+	 Test_Complex_Test_Case
 	 Test_Support_General
 	)
 

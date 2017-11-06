@@ -30,7 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 /// \brief `mutable` version of \ref reinterpret_const_Multiarray_as_Matrix_d.
-void reinterpret_Multiarray_as_Matrix_d
+static void reinterpret_Multiarray_as_Matrix_d
 	(struct Multiarray_d* a, ///< Defined for \ref reinterpret_const_Multiarray_as_Matrix_d.
 	 struct Matrix_d* a_M,   ///< Defined for \ref reinterpret_const_Multiarray_as_Matrix_d.
 	 const ptrdiff_t ext_0,  ///< Defined for \ref reinterpret_const_Multiarray_as_Matrix_d.
@@ -38,7 +38,7 @@ void reinterpret_Multiarray_as_Matrix_d
 	);
 
 /// \brief `mutable` version of \ref reinterpret_const_Matrix_as_Multiarray_d.
-void reinterpret_Matrix_as_Multiarray_d
+static void reinterpret_Matrix_as_Multiarray_d
 	(struct Matrix_d* a_M,   ///< Defined for \ref reinterpret_const_Matrix_as_Multiarray_d.
 	 struct Multiarray_d* a, ///< Defined for \ref reinterpret_const_Matrix_as_Multiarray_d.
 	 const int order,        ///< Defined for \ref reinterpret_const_Matrix_as_Multiarray_d.
@@ -222,7 +222,7 @@ ptrdiff_t* compute_extents_mm_MMa (const ptrdiff_t ext_0, const int order, const
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-void reinterpret_Multiarray_as_Matrix_d
+static void reinterpret_Multiarray_as_Matrix_d
 	(struct Multiarray_d* a, struct Matrix_d* a_M, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
 {
 	assert(compute_size(a->order,a->extents) == ext_0*ext_1);
@@ -233,7 +233,7 @@ void reinterpret_Multiarray_as_Matrix_d
 	a_M->data      = a->data;
 }
 
-void reinterpret_Matrix_as_Multiarray_d
+static void reinterpret_Matrix_as_Multiarray_d
 	(struct Matrix_d* a_M, struct Multiarray_d* a, const int order, ptrdiff_t* extents)
 {
 	assert(compute_size(order,extents) == ((a_M->ext_0)*(a_M->ext_1)));

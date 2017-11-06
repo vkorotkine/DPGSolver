@@ -23,13 +23,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <complex.h>
 #include "face_solver_dg.h"
+#include "complex_boundary.h"
 
 /// \brief Container for data relating to the complex DG solver faces.
 struct Complex_DG_Solver_Face {
 	struct DG_Solver_Face face; ///< The base \ref DG_Solver_Face.
 
 	/// Complex version of \ref constructor_Boundary_Value_fptr.
-//	constructor_Boundary_Value_c_fptr constructor_Boundary_Value_fcl;
+	constructor_Boundary_Value_c_fptr constructor_Boundary_Value_c_fcl;
 };
 
 /// \brief Constructor for a derived \ref Complex_DG_Solver_Face.

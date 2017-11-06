@@ -26,6 +26,7 @@ struct mutable_Numerical_Flux_c;
 struct Simulation;
 
 #include <stdbool.h>
+#include "numerical_flux.h"
 #include "test_complex_boundary.h"
 
 /** \brief `complex` version of \ref compute_Numerical_Flux_fptr.

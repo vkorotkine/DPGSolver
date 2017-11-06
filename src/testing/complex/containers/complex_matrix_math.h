@@ -20,26 +20,43 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <stdbool.h>
+#include <stddef.h>
 
 struct Matrix_c;
+struct const_Vector_d;
 struct const_Matrix_d;
 struct const_Matrix_c;
 
 /// \brief `complex` version of \ref transpose_Matrix_d.
 void transpose_Matrix_c
-	(struct Matrix_c* a, ///< Defined for \ref transpose_Matrix_d.
-	 const bool mem_only ///< Defined for \ref transpose_Matrix_d.
+	(struct Matrix_c* a, ///< See brief.
+	 const bool mem_only ///< See brief.
+	);
+
+/// \brief `complex` version of \ref permute_Matrix_d.
+void permute_Matrix_c
+	(struct Matrix_c* a, ///< See brief.
+	 const ptrdiff_t* p  ///< See brief.
+	);
+
+/// \brief `complex` version of \ref scale_Matrix_by_Vector_d.
+void scale_Matrix_c_by_Vector_d
+	(const char side,                     ///< See brief.
+	 const double alpha,                  ///< See brief.
+	 struct Matrix_c*const a,             ///< See brief.
+	 const struct const_Vector_d*const b, ///< See brief.
+	 const bool invert_diag               ///< See brief.
 	);
 
 /// \brief `complex` version of \ref mm_d (`double`,`double complex`,`double complex`).
 void mm_c
-	(const char trans_a_i,                ///< Defined for \ref mm_d.
-	 const char trans_b_i,                ///< Defined for \ref mm_d.
-	 const double alpha,                  ///< Defined for \ref mm_d.
-	 const double beta,                   ///< Defined for \ref mm_d.
-	 const struct const_Matrix_d*const a, ///< Defined for \ref mm_d.
-	 const struct const_Matrix_c*const b, ///< Defined for \ref mm_d.
-	 struct Matrix_c*const c              ///< Defined for \ref mm_d.
+	(const char trans_a_i,                ///< See brief.
+	 const char trans_b_i,                ///< See brief.
+	 const double alpha,                  ///< See brief.
+	 const double beta,                   ///< See brief.
+	 const struct const_Matrix_d*const a, ///< See brief.
+	 const struct const_Matrix_c*const b, ///< See brief.
+	 struct Matrix_c*const c              ///< See brief.
 	);
 
 #endif // DPG__complex_matrix_math_h__INCLUDED

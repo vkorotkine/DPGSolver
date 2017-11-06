@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__volume_solver_dg_complex_h__INCLUDED
 #define DPG__volume_solver_dg_complex_h__INCLUDED
 /** \file
- *  \brief Provides the interface for the \ref Complex_DG_Solver_Volume container and associated functions.
+ *  \brief Provides the **minimal** interface for the \ref Complex_DG_Solver_Volume container and associated functions.
  *
  *  These volumes are needed by the 'D'iscontinuous 'G'alerkin solver functions for complex step linearization testing.
  *

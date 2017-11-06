@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 #include <stddef.h>
 #include <complex.h>
+#include "gsl/gsl_permute_matrix_complex_double.h"
 
 #include "macros.h"
 #include "definitions_mkl.h"
@@ -27,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "complex_matrix.h"
 #include "matrix.h"
+#include "vector.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -48,6 +50,100 @@ void transpose_Matrix_c (struct Matrix_c* a, const bool mem_only)
 	}
 }
 
+void permute_Matrix_c (struct Matrix_c* a, const ptrdiff_t* p)
+{
+	assert((a->layout == 'R') || a->layout == 'C');
+	assert(p != NULL);
+
+	if (a->layout == 'R') {
+		const int n_p = a->ext_0;
+
+		size_t perm_st[n_p];
+		for (int i = 0; i < n_p; ++i)
+			perm_st[i] = p[i];
+
+		const gsl_permutation perm = { .size = n_p, .data = perm_st, };
+
+		transpose_Matrix_c(a,false);
+		gsl_matrix_complex A =
+			{ .size1 = a->ext_0,
+			  .size2 = a->ext_1,
+			  .tda   = a->ext_1,
+			  .data  = (double*) a->data,
+			  .block = NULL,
+			  .owner = 0, };
+
+		gsl_permute_matrix_complex(&perm,&A);
+		transpose_Matrix_c(a,false);
+	} else {
+		const int n_p = a->ext_1;
+
+		size_t perm_st[n_p];
+		for (int i = 0; i < n_p; ++i)
+			perm_st[i] = p[i];
+
+		const gsl_permutation perm = { .size = n_p, .data = perm_st, };
+
+		transpose_Matrix_c(a,true);
+		gsl_matrix_complex A =
+			{ .size1 = a->ext_0,
+			  .size2 = a->ext_1,
+			  .tda   = a->ext_1,
+			  .data  = (double*) a->data,
+			  .block = NULL,
+			  .owner = 0, };
+
+		gsl_permute_matrix_complex(&perm,&A);
+		transpose_Matrix_c(a,true);
+	}
+}
+
+void scale_Matrix_c_by_Vector_d
+	(const char side, const double alpha, struct Matrix_c*const a, const struct const_Vector_d*const b,
+	 const bool invert_diag)
+{
+	assert(invert_diag == false); // Can be made flexible if necessary.
+	assert(alpha == 1.0);
+
+	const ptrdiff_t n_row = a->ext_0,
+	                n_col = a->ext_1;
+
+	bool transpose_a = false;
+	if (side == 'L') {
+		assert(b->ext_0 == a->ext_0);
+
+		if (a->layout == 'C') {
+			transpose_a = true;
+			transpose_Matrix_c(a,true);
+		}
+
+		for (ptrdiff_t row = 0; row < n_row; ++row) {
+			const double val = b->data[row];
+			double complex* data_row = get_row_Matrix_c(row,a);
+			for (ptrdiff_t col = 0; col < n_col; ++col)
+				*data_row++ *= val;
+		}
+	} else if (side == 'R') {
+		assert(b->ext_0 == a->ext_1);
+
+		if (a->layout == 'R') {
+			transpose_a = true;
+			transpose_Matrix_c(a,true);
+		}
+
+		for (ptrdiff_t col = 0; col < n_col; ++col) {
+			const double val = b->data[col];
+			double complex* data_col = get_col_Matrix_c(col,a);
+			for (ptrdiff_t row = 0; row < n_row; ++row)
+				*data_col++ *= val;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+	if (transpose_a)
+		transpose_Matrix_c(a,true);
+}
+
 void mm_c
 	(const char trans_a_i, const char trans_b_i, const double alpha, const double beta,
 	 const struct const_Matrix_d*const a, const struct const_Matrix_c*const b, struct Matrix_c*const c)
@@ -66,7 +162,6 @@ void mm_c
 	assert(n == ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 ));
 	assert(k == ( trans_b_i == 'N' ? b->ext_0 : b->ext_1 ));
 
-/// \todo Check whether the conversion to complex is necessary.
 	const double complex alpha_c = alpha,
 	                     beta_c  = beta;
 

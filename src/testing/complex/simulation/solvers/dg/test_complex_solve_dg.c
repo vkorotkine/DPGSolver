@@ -24,25 +24,34 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_intrusive.h"
 #include "definitions_test_integration.h"
 
+#include "test_complex_boundary.h"
+#include "test_complex_boundary_advection.h"
 #include "test_complex_compute_face_rhs_dg.h"
 #include "test_complex_compute_volume_rhs_dg.h"
 #include "test_support_computational_elements.h"
+#include "test_support_multiarray.h"
 
-#include "face.h"
-#include "face_solver_dg.h"
-#include "volume.h"
-#include "volume_solver.h"
+#include "face_solver_dg_complex.h"
 #include "volume_solver_dg_complex.h"
 
 #include "complex_multiarray.h"
 #include "multiarray.h"
+#include "vector.h"
 
+#include "boundary_advection.h"
 #include "intrusive.h"
 #include "simulation.h"
 #include "solve.h"
+#include "solve_dg.h"
 #include "solve_implicit.h"
 
 // Static function declarations ************************************************************************************* //
+
+/** \brief Set the function pointers to the appropriate functions to compute values needed for the numerical flux
+ *         computation for the \ref Complex_DG_Solver_Face\*s. */
+static void set_function_pointers_num_flux
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
 
 /** \brief Constructor for the list of \ref Volume\*s adjacent to (and including) the current volume.
  *  \return Standard. */
@@ -94,11 +103,12 @@ void set_initial_solution_complex_dg (const struct Simulation* sim)
 
 void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
 {
+	set_function_pointers_num_flux(sim);
+
 	for (struct Intrusive_Link* curr_c = sim->volumes->first; curr_c; curr_c = curr_c->next) {
 		struct Volume* vol = (struct Volume*) curr_c;
 		struct Intrusive_List* volumes_local = constructor_Volumes_local(vol,sim);
 		struct Intrusive_List* faces_local   = constructor_Faces_local(vol,sim);
-//printf("v ind: %d\n",vol->index);
 
 		struct Complex_DG_Solver_Volume* c_dg_s_vol_c = (struct Complex_DG_Solver_Volume*) curr_c;
 		struct Multiarray_c* sol_coef_c = c_dg_s_vol_c->sol_coef;
@@ -114,6 +124,13 @@ void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Stor
 		destructor_IL(faces_local);
 	}
 	petsc_mat_vec_assemble(s_store_i);
+}
+
+void permute_Multiarray_c_fc
+	(struct Multiarray_c* data, const char perm_layout, const int side_index_dest, const struct Solver_Face* s_face)
+{
+	const struct const_Vector_i* nc_fc = get_operator__nc_fc__dg(side_index_dest,s_face);
+	permute_Multiarray_c_V(data,nc_fc,perm_layout);
 }
 
 // Static functions ************************************************************************************************* //
@@ -138,6 +155,23 @@ static void zero_memory_volumes_local
 	(struct Intrusive_List* volumes_local ///< The list of local volumes.
 	);
 
+static void set_function_pointers_num_flux (const struct Simulation* sim)
+{
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		const struct DG_Solver_Face* dg_s_face     = (struct DG_Solver_Face*) curr;
+		struct Complex_DG_Solver_Face* c_dg_s_face = (struct Complex_DG_Solver_Face*) curr;
+
+		if (dg_s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_s_fcl_interp)
+			c_dg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_s_fcl_interp;
+		else if (dg_s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_advection_inflow)
+			c_dg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_advection_inflow;
+		else if (dg_s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_advection_outflow)
+			c_dg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_advection_outflow;
+		else
+			EXIT_UNSUPPORTED;
+	}
+}
+
 struct Intrusive_List* constructor_Volumes_local (const struct Volume* vol, const struct Simulation* sim)
 {
 	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME_SOLVER_DG_COMPLEX,NULL);
@@ -157,7 +191,7 @@ struct Intrusive_List* constructor_Faces_local (const struct Volume* vol, const 
 {
 	struct Intrusive_List* faces = constructor_empty_IL(IL_FACE_SOLVER_DG,NULL);
 
-	const size_t sizeof_base = sizeof(struct DG_Solver_Face);
+	const size_t sizeof_base = sizeof(struct Complex_DG_Solver_Face);
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		if (!is_face_neighbour((struct Face*)curr,vol))
 			continue;
@@ -178,11 +212,10 @@ static void compute_rhs_cmplx_step_dg
 		break;
 	case CHECK_LIN_FACE:
 		compute_face_rhs_dg_c(sim,faces_local);
-EXIT_ADD_SUPPORT;
 		break;
 	case CHECK_LIN_ALL:
 		compute_volume_rhs_dg_c(sim,volumes_local);
-EXIT_ADD_SUPPORT;
+		compute_face_rhs_dg_c(sim,faces_local);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",CHECK_LIN);
@@ -217,7 +250,6 @@ static void set_col_lhs_cmplx_step_dg
 		PetscScalar vv[ext_0];
 		for (int i = 0; i < ext_0; ++i)
 			vv[i] = cimag(rhs_r->data[i])/CX_STEP;
-//printf("%td %td %d %d %d %d %e %e %e\n",ext_0,1,idxm[0],idxm[1],idxm[2],idxn[0],vv[0],vv[1],vv[2]);
 
 		MatSetValues(ssi->A,ext_0,idxm,1,idxn,vv,ADD_VALUES);
 	}

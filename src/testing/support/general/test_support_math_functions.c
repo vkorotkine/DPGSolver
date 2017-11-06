@@ -26,6 +26,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** \brief Check if additional values are equal to zero when rows have a differing number of values.
+ *  \return `true` if additional values are zero; `false` otherwise. */
+static bool additional_values_are_zero
+	(const int*const n_cols,            ///< The number of columns in each row.
+	 const PetscInt*const*const cols,   ///< The indices of the columns for each row.
+	 const PetscScalar*const*const vals ///< The values for each row.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void z_yxpz_dcc (const int n, const double* x, const double complex* y, double complex* z)
@@ -57,8 +65,11 @@ double norm_diff_petsc_Mat (Mat A0, Mat A1)
 		MatGetRow(A0,i,&n_cols[0],&cols[0],&vals[0]);
 		MatGetRow(A1,i,&n_cols[1],&cols[1],&vals[1]);
 
-		if (n_cols[0] != n_cols[1])
-			EXIT_ERROR("Differing number of entries in row %d (%d, %d).\n",i,n_cols[0],n_cols[1]);
+		if (n_cols[0] != n_cols[1]) {
+			// The Petsc Mat sometimes does not add values to the Mat if they are equal to zero.
+			if (!additional_values_are_zero(n_cols,cols,vals))
+				EXIT_ERROR("Differing number of entries in row %d (%d, %d).\n",i,n_cols[0],n_cols[1]);
+		}
 		const double diff = norm_diff_d(n_cols[0],vals[0],vals[1],"Inf");
 		if (diff > norm_num)
 			norm_num = diff;
@@ -78,3 +89,21 @@ double norm_diff_petsc_Mat (Mat A0, Mat A1)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static bool additional_values_are_zero
+	(const int*const n_cols, const PetscInt*const*const cols, const PetscScalar*const*const vals)
+{
+	assert(n_cols[0] != n_cols[1]);
+	const int ind_m = ( n_cols[0] > n_cols[1] ? 0 : 1 ),
+	          ind_s = !ind_m;
+
+	const int i_max = n_cols[ind_m];
+	for (int i = 0, j = 0; i < i_max; ++i) {
+		if (cols[ind_m][i] == cols[ind_s][j])
+			++j;
+		else
+			if (!equal_d(vals[ind_m][i],0.0,1e-1*EPS))
+				return false;
+	}
+	return true;
+}

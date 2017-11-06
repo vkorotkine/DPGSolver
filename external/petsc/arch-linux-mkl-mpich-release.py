@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 configure_options = [
-  '--with-cc=mpicc',
-  '--with-cxx=mpicxx',
-  '--with-fc=mpif90',
+  '--with-mpi-dir=/home/pzwan/Applications/mpich/mpich-3.2/build/',
   '--with-blas-lapack-dir=/opt/intel/mkl',
   '--with-debugging=0',
   'COPTFLAGS=-O3 -march=native -mtune=native',

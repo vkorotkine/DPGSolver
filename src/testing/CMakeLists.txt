@@ -17,6 +17,7 @@ include_directories(
 	complex/simulation/operators
 	complex/simulation/solvers/dg
 	complex/simulation/solvers/numerical_flux
+	complex/simulation/test_case
 	complex/simulation/test_case/boundary
 	complex/simulation/test_case/flux
 	integration
@@ -38,7 +39,6 @@ add_subdirectory(unit)
 # Executable generation
 set	(LIBS_DEPEND
 	 Test_Base
-	 Test_Complex
 	 Test_Support
 	 Test_Unit 
 	 Test_Integration

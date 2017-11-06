@@ -25,5 +25,17 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
+double complex* get_row_Matrix_c (const ptrdiff_t row, const struct Matrix_c* a)
+{
+	assert(a->layout == 'R');
+	return &a->data[row*(a->ext_1)];
+}
+
+double complex* get_col_Matrix_c (const ptrdiff_t col, const struct Matrix_c* a)
+{
+	assert(a->layout == 'C');
+	return &a->data[col*(a->ext_0)];
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

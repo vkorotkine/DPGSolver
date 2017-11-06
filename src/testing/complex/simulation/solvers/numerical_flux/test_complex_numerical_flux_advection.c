@@ -20,13 +20,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 #include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include "gsl/gsl_math.h"
 
 #include "macros.h"
 #include "definitions_test_case.h"
 
+#include "test_complex_numerical_flux.h"
+
+#include "complex_multiarray.h"
 #include "multiarray.h"
 
 #include "const_cast.h"
@@ -38,25 +38,28 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void compute_Numerical_Flux_advection_upwind
-	(const struct Numerical_Flux_Input* num_flux_i, struct mutable_Numerical_Flux* num_flux)
+void compute_Numerical_Flux_c_advection_upwind
+	(const struct Numerical_Flux_Input_c* num_flux_i, struct mutable_Numerical_Flux_c* num_flux)
 {
+	struct Numerical_Flux_Input* num_flux_i_b = (struct Numerical_Flux_Input*) num_flux_i;
+	struct Boundary_Value_Input* bv_l_b       = (struct Boundary_Value_Input*) &num_flux_i->bv_l;
+
 	static bool need_input = true;
 	static struct Sol_Data__Advection sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(num_flux_i->bv_l.input_path,&sol_data);
+		read_data_advection(num_flux_i_b->bv_l.input_path,&sol_data);
 	}
 
-	int const d   = num_flux_i->bv_l.d;
+	int const d   = num_flux_i_b->bv_l.d;
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->bv_l.normals->data;
+	double const *const nL = bv_l_b->normals->data;
 
-	double const *const WL = num_flux_i->bv_l.s->data,
-	             *const WR = num_flux_i->bv_r.s->data;
+	double complex const *const WL = num_flux_i->bv_l.s->data,
+	                     *const WR = num_flux_i->bv_r.s->data;
 
-	double       *const nFluxNum = num_flux->nnf->data;
+	double complex       *const nFluxNum = num_flux->nnf->data;
 
 	const double* b_adv = sol_data.b_adv;
 	for (int n = 0; n < NnTotal; n++) {

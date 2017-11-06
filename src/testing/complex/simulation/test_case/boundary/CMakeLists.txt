@@ -4,6 +4,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 Test_Complex_Containers
 	)
 
 set (LIB Test_Complex_Boundary)

@@ -46,6 +46,18 @@ struct Multiarray_c* constructor_zero_Multiarray_c_dyn_extents
 	 const ptrdiff_t*const extents ///< Defined in \ref Multiarray_d.
 	);
 
+/** \brief Copy constructor for a \ref Multiarray_c\* from a \ref Multiarray_c\*.
+ *  \return Standard. */
+struct Multiarray_c* constructor_copy_Multiarray_c
+	(struct Multiarray_c* src ///< Source.
+	);
+
+/** \brief Copy constructor for a \ref Multiarray_c\* from a \ref Multiarray_d\*.
+ *  \return Standard. */
+struct Multiarray_c* constructor_copy_Multiarray_c_Multiarray_d
+	(struct Multiarray_d* src ///< Source.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 // Default constructors ********************************************************************************************* //
@@ -69,6 +81,18 @@ struct Multiarray_c* constructor_zero_Multiarray_c
 }
 
 // Copy constructors ************************************************************************************************ //
+
+const struct const_Multiarray_c* constructor_copy_const_Multiarray_c
+	(const struct const_Multiarray_c* src)
+{
+	return (struct const_Multiarray_c*) constructor_copy_Multiarray_c((struct Multiarray_c*)src);
+}
+
+const struct const_Multiarray_c* constructor_copy_const_Multiarray_c_Multiarray_d
+	(const struct const_Multiarray_d* src)
+{
+	return (struct const_Multiarray_c*) constructor_copy_Multiarray_c_Multiarray_d((struct Multiarray_d*)src);
+}
 
 // Move constructors ************************************************************************************************ //
 
@@ -119,4 +143,24 @@ struct Multiarray_c* constructor_zero_Multiarray_c_dyn_extents
 {
 	double complex* data = calloc(compute_size(order,extents) , sizeof *data); // keep
 	return constructor_move_Multiarray_c_dyn_extents(layout,order,(ptrdiff_t*)extents,true,data);
+}
+
+struct Multiarray_c* constructor_copy_Multiarray_c (struct Multiarray_c* src)
+{
+	const ptrdiff_t size = compute_size(src->order,src->extents);
+	double complex* data = malloc(size * sizeof *data); // moved
+	for (int i = 0; i < size; ++i)
+		data[i] = src->data[i];
+
+	return constructor_move_Multiarray_c_c(src->layout,src->order,src->extents,true,data);
+}
+
+struct Multiarray_c* constructor_copy_Multiarray_c_Multiarray_d (struct Multiarray_d* src)
+{
+	const ptrdiff_t size = compute_size(src->order,src->extents);
+	double complex* data = malloc(size * sizeof *data); // moved
+	for (int i = 0; i < size; ++i)
+		data[i] = src->data[i];
+
+	return constructor_move_Multiarray_c_c(src->layout,src->order,src->extents,true,data);
 }

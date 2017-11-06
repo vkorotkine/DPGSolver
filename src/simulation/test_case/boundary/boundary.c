@@ -91,16 +91,8 @@ void destructor_Boundary_Value (struct Boundary_Value* bv)
 		destructor_const_Multiarray_d(bv->ds_ds);
 }
 
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-static const struct const_Multiarray_d* constructor_s_fc_interp
-	(const struct Solver_Face* s_face, const struct Simulation* sim, const int side_index)
+const struct Operator* get_operator__cv0_vs_fc__rlhs_dg (const struct Solver_Face* s_face, const int side_index)
 {
-	// sim may be used to store a parameter establishing which type of operator to use for the computation.
-	UNUSED(sim);
-	const char op_format = 'd';
-
 	struct Face* face              = (struct Face*) s_face;
 	struct Volume* volume          = face->neigh_info[side_index].volume;
 	struct Solver_Volume* s_volume = (struct Solver_Volume*) volume;
@@ -113,8 +105,22 @@ static const struct const_Multiarray_d* constructor_s_fc_interp
 	          p_f = s_face->p_ref;
 
 	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
-	const struct Operator* cv0_vs_fc =
-		get_Multiarray_Operator(e->cv0_vs_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
+	return get_Multiarray_Operator(e->cv0_vs_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
+}
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
+
+static const struct const_Multiarray_d* constructor_s_fc_interp
+	(const struct Solver_Face* s_face, const struct Simulation* sim, const int side_index)
+{
+	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc__rlhs_dg(s_face,side_index);
+
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	UNUSED(sim);
+	const char op_format = 'd';
+
+	struct Solver_Volume* s_volume = (struct Solver_Volume*) ((struct Face*)s_face)->neigh_info[side_index].volume;
 
 	const struct const_Multiarray_d* s_coef = (const struct const_Multiarray_d*) s_volume->sol_coef;
 

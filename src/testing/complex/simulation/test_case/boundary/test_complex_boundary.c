@@ -15,26 +15,25 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "boundary.h"
+#include "test_complex_boundary.h"
+
+#include "test_complex_operators.h"
+#include "test_complex_solve_dg.h"
 
 #include <assert.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 #include "macros.h"
 
-#include "multiarray.h"
+#include "complex_multiarray.h"
 
 #include "element_solver_dg.h"
-#include "face.h"
 #include "face_solver.h"
-#include "volume.h"
-#include "volume_solver.h"
+#include "volume_solver_dg_complex.h"
 
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
-#include "solve_dg.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -62,8 +61,10 @@ void constructor_Boundary_Value_Input_c_face_s_fcl_interp
 
 void destructor_Boundary_Value_Input_c (struct Boundary_Value_Input_c* bv_i)
 {
-	destructor_const_Multiarray_c(bv_i->s);
-	destructor_const_Multiarray_c(bv_i->g);
+	if (bv_i->s)
+		destructor_const_Multiarray_c(bv_i->s);
+	if (bv_i->g)
+		destructor_const_Multiarray_c(bv_i->g);
 }
 
 void constructor_Boundary_Value_c_s_fcl_interp
@@ -82,8 +83,10 @@ void constructor_Boundary_Value_c_s_fcl_interp
 
 void destructor_Boundary_Value_c (struct Boundary_Value_c* bv)
 {
-	destructor_const_Multiarray_c(bv->s);
-	destructor_const_Multiarray_c(bv->g);
+	if (bv->s)
+		destructor_const_Multiarray_c(bv->s);
+	if (bv->g)
+		destructor_const_Multiarray_c(bv->g);
 }
 
 // Static functions ************************************************************************************************* //
@@ -92,29 +95,13 @@ void destructor_Boundary_Value_c (struct Boundary_Value_c* bv)
 static const struct const_Multiarray_c* constructor_s_fc_interp_c
 	(const struct Solver_Face* s_face, const struct Simulation* sim, const int side_index)
 {
-EXIT_UNSUPPORTED;
-// function for retrieving the operator (which should be defined in boundary.c)
-	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	UNUSED(sim);
-	const char op_format = 'd';
+	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc__rlhs_dg(s_face,side_index);
 
-	struct Face* face              = (struct Face*) s_face;
-	struct Volume* volume          = face->neigh_info[side_index].volume;
-	struct Solver_Volume* s_volume = (struct Solver_Volume*) volume;
+	struct Solver_Volume* s_vol = (struct Solver_Volume*) ((struct Face*)s_face)->neigh_info[side_index].volume;
 
-	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
-
-	const int ind_lf   = face->neigh_info[side_index].ind_lf,
-	          ind_href = face->neigh_info[side_index].ind_href;
-	const int p_v = s_volume->p_ref,
-	          p_f = s_face->p_ref;
-
-	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
-	const struct Operator* cv0_vs_fc =
-		get_Multiarray_Operator(e->cv0_vs_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
-
-	struct Complex_DG_Solver_Volume* c_dg_s_vol = (struct Complex_DG_Solver_Volume*) volume;
+	struct Complex_DG_Solver_Volume* c_dg_s_vol = (struct Complex_DG_Solver_Volume*) s_vol;
 	const struct const_Multiarray_c* s_coef = (const struct const_Multiarray_c*) c_dg_s_vol->sol_coef;
 
-	return constructor_mm_NN1_Operator_const_Multiarray_c(cv0_vs_fc,s_coef,'C',op_format,s_coef->order,NULL);
+	return constructor_mm_NN1_Operator_const_Multiarray_c(cv0_vs_fc,s_coef,'C','d',s_coef->order,NULL);
 }

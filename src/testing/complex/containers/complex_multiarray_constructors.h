@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "complex_multiarray_minimal_constructors.h"
 
+struct const_Multiarray_d;
 struct const_Multiarray_c;
 
 // Default constructors ********************************************************************************************* //
@@ -53,26 +54,38 @@ struct Multiarray_c* constructor_zero_Multiarray_c
 
 // Copy constructors ************************************************************************************************ //
 
+/** \brief `const` version of \ref constructor_copy_Multiarray_c.
+ *  \return Standard. */
+const struct const_Multiarray_c* constructor_copy_const_Multiarray_c
+	(const struct const_Multiarray_c* src ///< See brief.
+	);
+
+/** \brief `const` version of \ref constructor_copy_Multiarray_c_Multiarray_d.
+ *  \return Standard. */
+const struct const_Multiarray_c* constructor_copy_const_Multiarray_c_Multiarray_d
+	(const struct const_Multiarray_d* src ///< See brief.
+	);
+
 // Move constructors ************************************************************************************************ //
 
 /** \brief `complex` version of \ref constructor_move_Multiarray_d_d.
  *  \return See brief. */
 struct Multiarray_c* constructor_move_Multiarray_c_c
-	(const char layout,               ///< Defined for \ref constructor_move_Multiarray_d_d.
-	 const int order,                 ///< Defined for \ref constructor_move_Multiarray_d_d.
-	 const ptrdiff_t*const extents_i, ///< Defined for \ref constructor_move_Multiarray_d_d.
-	 const bool owns_data,            ///< Defined for \ref constructor_move_Multiarray_d_d.
-	 double complex*const data        ///< Defined for \ref constructor_move_Multiarray_d_d.
+	(const char layout,               ///< See brief.
+	 const int order,                 ///< See brief.
+	 const ptrdiff_t*const extents_i, ///< See brief.
+	 const bool owns_data,            ///< See brief.
+	 double complex*const data        ///< See brief.
 	);
 
 /** \brief `const` version of \ref constructor_move_Multiarray_c_c.
  *  \return Standard. */
 const struct const_Multiarray_c* constructor_move_const_Multiarray_c_c
-	(const char layout,               ///< Defined for \ref constructor_move_Multiarray_c_c.
-	 const int order,                 ///< Defined for \ref constructor_move_Multiarray_c_c.
-	 const ptrdiff_t*const extents_i, ///< Defined for \ref constructor_move_Multiarray_c_c.
-	 const bool owns_data,            ///< Defined for \ref constructor_move_Multiarray_c_c.
-	 const double complex*const data  ///< Defined for \ref constructor_move_Multiarray_c_c.
+	(const char layout,               ///< See brief.
+	 const int order,                 ///< See brief.
+	 const ptrdiff_t*const extents_i, ///< See brief.
+	 const bool owns_data,            ///< See brief.
+	 const double complex*const data  ///< See brief.
 	);
 
 // Special constructors ********************************************************************************************* //

@@ -4,6 +4,8 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 Numerical_Flux
+	 Test_Complex_Containers
 	)
 
 set (LIB Test_Complex_Numerical_Flux)

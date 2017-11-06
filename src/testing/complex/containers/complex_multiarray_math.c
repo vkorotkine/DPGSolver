@@ -23,8 +23,24 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "complex_multiarray.h"
 #include "matrix.h"
 #include "multiarray.h"
+#include "vector.h"
 
 // Static function declarations ************************************************************************************* //
+
+/// \brief `complex` version of \ref permute_Multiarray_d.
+void permute_Multiarray_c
+	(struct Multiarray_c* a, ///< See brief.
+	 const ptrdiff_t* p,     ///< See brief.
+	 const char perm_layout  ///< See brief.
+	);
+
+/// \brief `complex` version of \ref reinterpret_Multiarray_as_Matrix_d.
+void reinterpret_Multiarray_as_Matrix_c
+	(struct Multiarray_c* a, ///< See brief.
+	 struct Matrix_c* a_M,   ///< See brief.
+	 const ptrdiff_t ext_0,  ///< See brief.
+	 const ptrdiff_t ext_1   ///< See brief.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -35,8 +51,7 @@ void transpose_Multiarray_c (struct Multiarray_c* a, const bool mem_only)
 	const ptrdiff_t ext_0 = a->extents[0],
 	                ext_1 = (order == 1 ? 1 : a->extents[1]);
 
-assert(a->order <= 2);
-// Need to do this block-wise for order > 2. Make sure to reset layout,ext_0,ext_1 before each transpose_Matrix call.
+	assert(a->order <= 2);
 
 	struct Matrix_c* a_M = constructor_move_Matrix_c_c(a->layout,ext_0,ext_1,false,a->data); // destructed
 
@@ -46,6 +61,36 @@ assert(a->order <= 2);
 	a->extents[1] = a_M->ext_1;
 
 	destructor_Matrix_c(a_M);
+}
+
+void permute_Multiarray_c_V (struct Multiarray_c* a, const struct const_Vector_i* p_V, const char perm_layout)
+{
+	const ptrdiff_t ext_0 = a->extents[0];
+	assert(p_V->ext_0 == ext_0);
+
+	ptrdiff_t p[ext_0];
+	for (int i = 0; i < ext_0; ++i)
+		p[i] = p_V->data[i];
+
+	permute_Multiarray_c(a,p,perm_layout);
+}
+
+void scale_Multiarray_c (struct Multiarray_c* a, const double complex val)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		a->data[i] *= val;
+}
+
+void scale_Multiarray_c_by_Vector_d
+	(const char side, const double alpha, struct Multiarray_c*const a, const struct const_Vector_d*const b,
+	 const bool invert_diag)
+{
+	const ptrdiff_t ext_0 = a->extents[0],
+	                ext_1 = compute_size(a->order,a->extents)/ext_0;
+	struct Matrix_c a_M;
+	reinterpret_Multiarray_as_Matrix_c(a,&a_M,ext_0,ext_1);
+	scale_Matrix_c_by_Vector_d(side,alpha,&a_M,b,invert_diag);
 }
 
 void mm_NNC_Multiarray_c
@@ -80,3 +125,34 @@ void mm_NNC_Multiarray_c
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+void permute_Multiarray_c (struct Multiarray_c* a, const ptrdiff_t* p, const char perm_layout)
+{
+	if (p == NULL)
+		return;
+
+	assert(a->order > 0);
+
+	const ptrdiff_t ext_0 = a->extents[0],
+	                ext_1 = compute_size(a->order,a->extents)/ext_0;
+
+	struct Matrix_c a_M;
+	reinterpret_Multiarray_as_Matrix_c(a,&a_M,ext_0,ext_1);
+
+	if (perm_layout != a->layout)
+		transpose_Matrix_c(&a_M,true);
+	permute_Matrix_c(&a_M,p);
+	if (perm_layout != a->layout)
+		transpose_Matrix_c(&a_M,true);
+}
+
+void reinterpret_Multiarray_as_Matrix_c
+	(struct Multiarray_c* a, struct Matrix_c* a_M, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
+{
+	assert(compute_size(a->order,a->extents) == ext_0*ext_1);
+	a_M->layout    = a->layout;
+	a_M->ext_0     = ext_0;
+	a_M->ext_1     = ext_1;
+	a_M->owns_data = false;
+	a_M->data      = a->data;
+}

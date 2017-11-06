@@ -92,18 +92,7 @@ double compute_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Impl
 void permute_Multiarray_d_fc
 	(struct Multiarray_d* data, const char perm_layout, const int side_index_dest, const struct Solver_Face* s_face)
 {
-	const struct Neigh_Info* neigh_info = &((struct Face*)s_face)->neigh_info[side_index_dest];
-
-	struct Volume* vol = neigh_info->volume;
-	const struct const_DG_Solver_Element* f_e =
-		(const struct const_DG_Solver_Element*) get_element_by_face(vol->element,neigh_info->ind_lf);
-
-	const int ind_ord = neigh_info->ind_ord,
-	          p_f     = s_face->p_ref;
-	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
-	const struct const_Vector_i* nc_fc =
-		get_const_Multiarray_Vector_i(f_e->nc_fc[curved],(ptrdiff_t[]){ind_ord,0,0,p_f,p_f});
-
+	const struct const_Vector_i* nc_fc = get_operator__nc_fc__dg(side_index_dest,s_face);
 	permute_Multiarray_d_V(data,nc_fc,perm_layout);
 }
 
@@ -113,6 +102,12 @@ void permute_Matrix_d_fc
 	assert(perm_layout == 'R');
 	assert(data->layout == 'R');
 
+	const struct const_Vector_i* nc_fc = get_operator__nc_fc__dg(side_index_dest,s_face);
+	permute_Matrix_d_V(data,nc_fc);
+}
+
+const struct const_Vector_i* get_operator__nc_fc__dg (const int side_index_dest, const struct Solver_Face* s_face)
+{
 	const struct Neigh_Info* neigh_info = &((struct Face*)s_face)->neigh_info[side_index_dest];
 
 	struct Volume* vol = neigh_info->volume;
@@ -122,10 +117,8 @@ void permute_Matrix_d_fc
 	const int ind_ord = neigh_info->ind_ord,
 	          p_f     = s_face->p_ref;
 	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
-	const struct const_Vector_i* nc_fc =
-		get_const_Multiarray_Vector_i(f_e->nc_fc[curved],(ptrdiff_t[]){ind_ord,0,0,p_f,p_f});
 
-	permute_Matrix_d_V(data,nc_fc);
+	return get_const_Multiarray_Vector_i(f_e->nc_fc[curved],(ptrdiff_t[]){ind_ord,0,0,p_f,p_f});
 }
 
 void set_petsc_Mat_row_col

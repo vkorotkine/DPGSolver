@@ -35,6 +35,9 @@ void constructor_derived_Complex_DG_Solver_Face (struct Face* face_ptr, const st
 {
 	UNUSED(sim);
 	UNUSED(face_ptr);
+
+	// Function pointer(s) are set as part of the complex solver functions such that test functions are not exposed
+	// to the main code.
 }
 
 void destructor_derived_Complex_DG_Solver_Face (struct Face* face_ptr)

@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_boundary_advection.h"
 
+#include "test_complex_boundary.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -24,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_mesh.h"
 
+#include "complex_multiarray.h"
 #include "multiarray.h"
 
 #include "boundary.h"
@@ -48,9 +51,9 @@ void constructor_Boundary_Value_c_advection_inflow
 		EXIT_ADD_SUPPORT;
 	}
 
-// Going to need a Complex_Test_Case.
-EXIT_UNSUPPORTED;
-	bv->s = sim->test_case->constructor_sol(xyz,sim);
+	const struct const_Multiarray_d* s = sim->test_case->constructor_sol(xyz,sim); // destructed
+	bv->s = constructor_copy_const_Multiarray_c_Multiarray_d(s); // destructed
+	destructor_const_Multiarray_d(s);
 }
 
 void constructor_Boundary_Value_c_advection_outflow
@@ -60,7 +63,7 @@ void constructor_Boundary_Value_c_advection_outflow
 	UNUSED(face);
 	UNUSED(sim);
 
-	bv->s = constructor_copy_const_Multiarray_c(bv_i->s);
+	bv->s = constructor_copy_const_Multiarray_c(bv_i->s); // destructed
 }
 
 // Static functions ************************************************************************************************* //

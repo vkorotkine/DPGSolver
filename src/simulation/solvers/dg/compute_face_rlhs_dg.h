@@ -49,6 +49,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 struct Solver_Storage_Implicit;
+struct Face;
 
 /** \brief Compute the face contributions to the rhs (and optionally lhs) terms for the DG scheme.
  *
@@ -58,6 +59,13 @@ struct Solver_Storage_Implicit;
 void compute_face_rlhs_dg
 	(const struct Simulation* sim,             ///< \ref Simulation.
 	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	);
+
+/** \brief Get the pointer to the appropriate \ref DG_Solver_Element::tw0_vs_fc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__tw0_vs_fc__rlhs_dg
+	(const int side_index, ///< The index of the side of the face under consideration.
+	 struct Face* face     ///< The current \ref Face.
 	);
 
 #endif // DPG__compute_face_rlhs_dg_h__INCLUDED

@@ -19,10 +19,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 #include <stdlib.h>
-#include <stdio.h>
+#include <string.h>
 
 #include "macros.h"
 
+#include "test_complex_numerical_flux_advection.h"
+
+#include "complex_multiarray.h"
 #include "multiarray.h"
 #include "vector.h"
 
@@ -35,6 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "const_cast.h"
 #include "math_functions.h"
 #include "multiarray_operator.h"
+#include "numerical_flux_advection.h"
 #include "operator.h"
 #include "simulation.h"
 #include "solve_dg.h"
@@ -77,10 +81,9 @@ struct Numerical_Flux_c* constructor_Numerical_Flux_c (const struct Numerical_Fl
 	       ((num_flux_i->bv_l.g != NULL && num_flux_i->bv_l.g->layout == 'C') &&
 	        (num_flux_i->bv_r.g != NULL && num_flux_i->bv_r.g->layout == 'C')));
 
-	struct Flux_Input* num_flux_i_b = (struct Numerical_Flux_Input*) num_flux_i;
+	struct Numerical_Flux_Input* num_flux_i_b = (struct Numerical_Flux_Input*) num_flux_i;
 
-	const int d    = num_flux_i_b->bv_l.d,
-	          n_eq = num_flux_i_b->bv_l.n_eq;
+	const int n_eq = num_flux_i_b->bv_l.n_eq;
 	const ptrdiff_t n_n = ( num_flux_i->bv_l.s != NULL ? num_flux_i->bv_l.s->extents[0]
 	                                                   : num_flux_i->bv_l.g->extents[0] );
 

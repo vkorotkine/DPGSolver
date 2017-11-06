@@ -3,8 +3,8 @@
 ## Dependencies
 
 The following packages must have previously been installed:
-- [MPICH][https://www.mpich.org/];
-- [Intel MKL][https://software.intel.com/en-us/mkl].
+- [MPICH](https://www.mpich.org/);
+- [Intel MKL](https://software.intel.com/en-us/mkl).
 
 ## Instructions
 

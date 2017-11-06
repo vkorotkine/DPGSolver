@@ -65,7 +65,6 @@ if (0) {
 }
 
 	test_integration_advection(test_info);
-EXIT_UNSUPPORTED;
 	test_integration_euler(test_info);
 
 	PetscFinalize();

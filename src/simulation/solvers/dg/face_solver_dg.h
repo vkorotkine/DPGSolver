@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "face_solver.h"
-#include "numerical_flux.h"
+#include "boundary.h"
 
 /// \brief Container for data relating to the DG solver faces.
 struct DG_Solver_Face {

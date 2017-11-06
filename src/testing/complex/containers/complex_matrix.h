@@ -31,26 +31,40 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief `complex` version of \ref Matrix_d.
 struct Matrix_c {
-	char layout; ///< Defined in \ref Matrix_d.
+	char layout; ///< See brief.
 
-	ptrdiff_t ext_0, ///< Defined in \ref Matrix_d.
-	          ext_1; ///< Defined in \ref Matrix_d.
+	ptrdiff_t ext_0, ///< See brief.
+	          ext_1; ///< See brief.
 
-	bool owns_data; ///< Defined in \ref Matrix_d.
-	double complex* data; ///< Defined in \ref Matrix_d.
+	bool owns_data;       ///< See brief.
+	double complex* data; ///< See brief.
 };
 
 /// \brief `const` version of \ref Matrix_c.
 struct const_Matrix_c {
-	const char layout; ///< Defined in \ref Matrix_c.
+	const char layout; ///< See brief.
 
-	const ptrdiff_t ext_0, ///< Defined in \ref Matrix_c.
-	                ext_1; ///< Defined in \ref Matrix_c.
+	const ptrdiff_t ext_0, ///< See brief.
+	                ext_1; ///< See brief.
 
-	const bool owns_data;    ///< Defined in \ref Matrix_c.
-	const double complex*const data; ///< Defined in \ref Matrix_c.
+	const bool owns_data;            ///< See brief.
+	const double complex*const data; ///< See brief.
 };
 
 // Interface functions ********************************************************************************************** //
+
+/** \brief `complex` version of \ref get_row_Matrix_d.
+ *  \return See brief. */
+double complex* get_row_Matrix_c
+	(const ptrdiff_t row,     ///< See brief.
+	 const struct Matrix_c* a ///< See brief.
+	);
+
+/** \brief `complex` version of \ref get_col_Matrix_d.
+ *  \return See brief. */
+double complex* get_col_Matrix_c
+	(const ptrdiff_t col,     ///< See brief.
+	 const struct Matrix_c* a ///< See brief.
+	);
 
 #endif // DPG__complex_matrix_h__INCLUDED

@@ -148,6 +148,22 @@ void compute_face_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_I
 	destructor_Numerical_Flux_Input(num_flux_i);
 }
 
+const struct Operator* get_operator__tw0_vs_fc__rlhs_dg (const int side_index, struct Face* face)
+{
+	struct Solver_Face* s_face = (struct Solver_Face*) face;
+	struct Volume* vol         = (struct Volume*) face->neigh_info[side_index].volume;
+
+	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) vol->element;
+
+	const int ind_lf   = face->neigh_info[side_index].ind_lf,
+	          ind_href = face->neigh_info[side_index].ind_href;
+	const int p_v = ((struct Solver_Volume*)vol)->p_ref,
+	          p_f = s_face->p_ref;
+
+	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
+	return get_Multiarray_Operator(e->tw0_vs_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -166,7 +182,7 @@ static void scale_by_Jacobian_i1
 	);
 
 /// \brief Compute only the rhs term.
-static void compute_rhs
+static void compute_rhs_f_dg
 	(const struct Numerical_Flux* num_flux,     ///< Defined for \ref compute_rlhs_fptr.
 	 struct Face* face,                         ///< Defined for \ref compute_rlhs_fptr.
 	 struct Solver_Storage_Implicit* s_store_i, ///< Defined for \ref compute_rlhs_fptr.
@@ -189,7 +205,7 @@ static struct S_Params set_s_params (const struct Simulation* sim)
 	switch (test_case->solver_method_curr) {
 	case 'e':
 		s_params.scale_by_Jacobian = scale_by_Jacobian_e;
-		s_params.compute_rlhs      = compute_rhs;
+		s_params.compute_rlhs      = compute_rhs_f_dg;
 		break;
 	case 'i':
 		if (test_case->has_1st_order && !test_case->has_2nd_order) {
@@ -218,10 +234,8 @@ void constructor_Numerical_Flux_Input_data
 	struct Solver_Face* s_face       = (struct Solver_Face*) face;
 	struct DG_Solver_Face* dg_s_face = (struct DG_Solver_Face*) face;
 
-	test_case->constructor_Boundary_Value_Input_face_fcl(&num_flux_i->bv_l,s_face,sim); // destructed
-
-	dg_s_face->constructor_Boundary_Value_fcl(
-		&num_flux_i->bv_r,(const struct Boundary_Value_Input*)&num_flux_i->bv_l,s_face,sim); // destructed
+	test_case->constructor_Boundary_Value_Input_face_fcl(&num_flux_i->bv_l,s_face,sim);        // destructed
+	dg_s_face->constructor_Boundary_Value_fcl(&num_flux_i->bv_r,&num_flux_i->bv_l,s_face,sim); // destructed
 }
 
 void destructor_Numerical_Flux_Input_data (struct Numerical_Flux_Input* num_flux_i)
@@ -233,7 +247,7 @@ void destructor_Numerical_Flux_Input_data (struct Numerical_Flux_Input* num_flux
 // Level 1 ********************************************************************************************************** //
 
 /// \brief Finalize the rhs term contribution from the \ref Face.
-static void finalize_face_rhs
+static void finalize_face_rhs_dg
 	(const int side_index,                  ///< The index of the side of the face under consideration.
 	 const struct Numerical_Flux* num_flux, ///< Defined for \ref compute_rlhs_fptr.
 	 struct Face* face,                     ///< Defined for \ref compute_rlhs_fptr.
@@ -274,19 +288,19 @@ UNUSED(sim);
 		scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[1].dnnf_ds,&jacobian_det_fc,false);
 }
 
-static void compute_rhs
+static void compute_rhs_f_dg
 	(const struct Numerical_Flux* num_flux, struct Face* face, struct Solver_Storage_Implicit* s_store_i,
 	 const struct Simulation* sim)
 {
 	UNUSED(s_store_i);
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
 
-	finalize_face_rhs(0,num_flux,face,sim);
+	finalize_face_rhs_dg(0,num_flux,face,sim);
 	if (!face->boundary) {
 		permute_Multiarray_d_fc((struct Multiarray_d*)num_flux->nnf,'R',1,(struct Solver_Face*)face);
-// Can remove both of the scalings (here and and finalize_face_rhs).
+// Can remove both of the scalings (here and and finalize_face_rhs_dg).
 		scale_Multiarray_d((struct Multiarray_d*)num_flux->nnf,-1.0); // Use "-ve" normal.
-		finalize_face_rhs(1,num_flux,face,sim);
+		finalize_face_rhs_dg(1,num_flux,face,sim);
 	}
 }
 
@@ -295,7 +309,7 @@ static void compute_rlhs_1
 	 const struct Simulation* sim)
 {
 	/// See \ref compute_face_rlhs_dg.h for the `lhs_**` notation.
-	compute_rhs(num_flux,face,s_store_i,sim);
+	compute_rhs_f_dg(num_flux,face,s_store_i,sim);
 
 	finalize_face_lhs((int[]){0,0},num_flux,face,s_store_i); // lhs_ll
 	if (!face->boundary) {
@@ -314,27 +328,16 @@ static void compute_rlhs_1
 
 // Level 2 ********************************************************************************************************** //
 
-static void finalize_face_rhs
+static void finalize_face_rhs_dg
 	(const int side_index, const struct Numerical_Flux* num_flux, struct Face* face, const struct Simulation* sim)
 {
+	const struct Operator* tw0_vs_fc = get_operator__tw0_vs_fc__rlhs_dg(side_index,face);
+
 UNUSED(sim);
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
 
-	struct Solver_Face* s_face        = (struct Solver_Face*) face;
-	struct Volume* vol                = (struct Volume*) face->neigh_info[side_index].volume;
-	struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) vol;
-
-	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) vol->element;
-
-	const int ind_lf   = face->neigh_info[side_index].ind_lf,
-	          ind_href = face->neigh_info[side_index].ind_href;
-	const int p_v = ((struct Solver_Volume*)vol)->p_ref,
-	          p_f = s_face->p_ref;
-
-	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
-	const struct Operator* tw0_vs_fc =
-		get_Multiarray_Operator(e->tw0_vs_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
+	struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) face->neigh_info[side_index].volume;
 
 //printf("%d\n",vol->index);
 	mm_NNC_Operator_Multiarray_d(-1.0,1.0,tw0_vs_fc,num_flux->nnf,dg_s_vol->rhs,op_format,2,NULL,NULL);

@@ -3,7 +3,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
-	 Test_Support_Containers
+	 Test_Complex_Containers
 	)
 
 set (LIB Test_Complex_Operators)
