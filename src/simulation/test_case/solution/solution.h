@@ -110,6 +110,14 @@ const struct const_Multiarray_d* constructor_xyz_v
 	 const char node_kind          ///< The kind of node. Options: 's'olution, 'c'ubature.
 	);
 
+/** \brief Contructor for a \ref const_Multiarray_d\* holding the xyz coordinates at face nodes of input kind.
+ *  \return See brief. */
+const struct const_Multiarray_d* constructor_xyz_f
+	(const struct Simulation* sim, ///< \ref Simulation.
+	 struct Solver_Face* face,     ///< \ref Solver_Face.
+	 const char node_kind          ///< The kind of node. Options: 'f'lux, 't'race.
+	);
+
 /// \brief Compute the coefficients associated with the values of the volume solution.
 void compute_coef_from_val_vs
 	(const struct Solver_Volume* s_vol,        ///< \ref Solver_Volume.

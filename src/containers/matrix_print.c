@@ -27,6 +27,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** \brief Check whether either of the matrix extents is zero.
+ *  \return `true` if yes; `false` otherwise. */
+static bool check_Matrix_extents_zero
+	(const ptrdiff_t ext_0, ///< \ref First extent.
+	 const ptrdiff_t ext_1  ///< \ref Second extent.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void print_Matrix_d_tol (const struct Matrix_d*const a, const double tol)
@@ -36,10 +43,8 @@ void print_Matrix_d_tol (const struct Matrix_d*const a, const double tol)
 	const ptrdiff_t ext_0 = a->ext_0,
 	                ext_1 = a->ext_1;
 
-	if (ext_0 == 0 || ext_1 == 0) {
+	if (check_Matrix_extents_zero(ext_0,ext_1))
 		printf("Called print_Matrix_d for input with extents: [%td,%td].\n\n",ext_0,ext_1);
-		return;
-	}
 
 	const double* data = a->data;
 
@@ -101,6 +106,9 @@ void print_Matrix_i (const struct Matrix_i*const a)
 	const ptrdiff_t ext_0 = a->ext_0,
 	                ext_1 = a->ext_1;
 
+	if (check_Matrix_extents_zero(ext_0,ext_1))
+		printf("Called print_Matrix_d for input with extents: [%td,%td].\n\n",ext_0,ext_1);
+
 	const int* data = a->data;
 
 	switch (a->layout) {
@@ -139,3 +147,10 @@ void print_const_Matrix_i (const struct const_Matrix_i*const a)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static bool check_Matrix_extents_zero (const ptrdiff_t ext_0, const ptrdiff_t ext_1)
+{
+	if (ext_0 == 0 || ext_1 == 0)
+		return true;
+	return false;
+}

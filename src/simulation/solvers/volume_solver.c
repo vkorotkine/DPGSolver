@@ -38,7 +38,7 @@ void constructor_derived_Solver_Volume (struct Volume* volume_ptr, const struct 
 	struct Solver_Volume* volume = (struct Solver_Volume*) volume_ptr;
 
 	volume->ind_dof = -1;
-	const_cast_i(&volume->p_ref,sim->p_s_v[0]);
+	const_cast_i(&volume->p_ref,sim->p_ref[0]);
 	const_constructor_move_Multiarray_d(&volume->geom_coef,constructor_default_Multiarray_d());
 
 	volume->sol_coef  = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0});   // destructed

@@ -39,7 +39,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- 'p'lotting (Not available as a basis [2])
  *  	- 'c'ubature (Not available as a basis [2])
  *  	- 's'olution
+ *  	- 'f'lux
  *  	- 'r': g'r'adient
+ *  	- 't'race
  *  - (3/6): character denoting whether the basis/nodes is meant to be used for straight or curved elements (sc):
  *  	- 's'traight
  *  	- 'c'urved
@@ -53,6 +55,12 @@ You should have received a copy of the GNU General Public License along with DPG
  *  Each operator also has an associated range with a maximum order of \ref OP_ORDER_MAX with the following parameters
  *  (d)(ce_o)(ce_i)[h_o][h_i][p_o][p_i], where entries in square and round brackets are once again required and
  *  optional, respectively.
+ *
+ *  Note that the indices for the polynomial degrees relate to the degree of the kind of basis in the computational
+ *  element under consideration **and need not correspond to the degree of the associated operator**. For example, for a
+ *  superparametric geometry `cv_vgc_vgc[0][0][p_v][p_v]` operator in a volume of degree 2 (p_v = 2), the operator basis
+ *  will be of degree 3. Thus, the required supported range of the operator does not correspond to the degree of the
+ *  basis of the operators.
  *
  *  When an operator is declared as an array of size 2, the two indices are used to denote the straight (0) and curved
  *  (1) operators, respectively.
@@ -91,6 +99,8 @@ struct Op_IO {
 	          p_op;  ///< The polynomial order index of the operator (**Not the order of the basis/cubature rule**).
 
 	const int s_type; ///< \ref Element::s_type.
+
+	const int p_rel; ///< The difference between the order of input operators and the operator indices.
 };
 
 /** Container for operator range related information.
@@ -121,13 +131,28 @@ struct Operator_Info {
 // Interface functions ********************************************************************************************** //
 
 /** \brief Constructor for a \ref Multiarray_Operator\* of operators.
- *  \return Standard. */
+ *  \return Standard.
+ *
+ *  \todo Remove all usage of this function.
+ *  \deprecated The p_ref input is not necessary and should be removed. Use \ref constructor_operators2 instead.
+ */
 const struct Multiarray_Operator* constructor_operators
 	(const char*const name_type,          ///< The name of the operator type (including differentiation index).
 	 const char*const name_in,            ///< The name of the operator input.
 	 const char*const name_out,           ///< The name of the operator output.
 	 const char*const name_range,         ///< The name of the operator range.
 	 const int p_ref[2],                  ///< Defined in \ref Operator_Info.
+	 const struct const_Element* element, ///< \ref const_Element.
+	 const struct Simulation* sim         ///< \ref Simulation.
+	);
+
+/** \brief Constructor for a \ref Multiarray_Operator\* of operators.
+ *  \return Standard. */
+const struct Multiarray_Operator* constructor_operators2
+	(const char*const name_type,          ///< The name of the operator type (including differentiation index).
+	 const char*const name_in,            ///< The name of the operator input.
+	 const char*const name_out,           ///< The name of the operator output.
+	 const char*const name_range,         ///< The name of the operator range.
 	 const struct const_Element* element, ///< \ref const_Element.
 	 const struct Simulation* sim         ///< \ref Simulation.
 	);
@@ -156,14 +181,30 @@ const struct const_Multiarray_Vector_d* constructor_operators_w
 	);
 
 /** \brief Constructor for the \ref Operator_Info\* having the given inputs.
- *  \return Standard. */
+ *  \return Standard.
+ *
+ *  \todo Remove all usage of this function.
+ *  \deprecated The p_ref input is not necessary and should be removed. Use \ref constructor_Operator_Info2 instead.
+ */
 struct Operator_Info* constructor_Operator_Info
-	(const char*const name_type,         ///< Defined for \ref constructor_operators.
-	 const char*const name_in,           ///< Defined for \ref constructor_operators.
-	 const char*const name_out,          ///< Defined for \ref constructor_operators.
-	 const char*const name_range,        ///< Defined for \ref constructor_operators.
-	 const int p_ref[2],                 ///< Defined for \ref constructor_operators.
-	 const struct const_Element* element ///< Defined for \ref constructor_operators.
+	(const char*const name_type,          ///< Defined for \ref constructor_operators.
+	 const char*const name_in,            ///< Defined for \ref constructor_operators.
+	 const char*const name_out,           ///< Defined for \ref constructor_operators.
+	 const char*const name_range,         ///< Defined for \ref constructor_operators.
+	 const int p_ref[2],                  ///< Defined for \ref constructor_operators.
+	 const struct const_Element* element, ///< Defined for \ref constructor_operators.
+	 const struct Simulation* sim         ///< Defined for \ref constructor_operators.
+	);
+
+/** \brief Constructor for the \ref Operator_Info\* having the given inputs.
+ *  \return Standard. */
+struct Operator_Info* constructor_Operator_Info2
+	(const char*const name_type,          ///< Defined for \ref constructor_operators.
+	 const char*const name_in,            ///< Defined for \ref constructor_operators.
+	 const char*const name_out,           ///< Defined for \ref constructor_operators.
+	 const char*const name_range,         ///< Defined for \ref constructor_operators.
+	 const struct const_Element* element, ///< Defined for \ref constructor_operators.
+	 const struct Simulation* sim         ///< Defined for \ref constructor_operators.
 	);
 
 /// \brief Destructor for a \ref Operator_Info\*.

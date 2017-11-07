@@ -39,7 +39,7 @@ void test_integration_advection (struct Test_Info*const test_info)
 		test_print_warning(test_info,"Advection equivalence algorithms testing currently disabled");
 	}
 
-test_integration_convergence(test_info,"advection/TEST_Advection_Peterson_TRI__ml0__p1");
+//test_integration_convergence(test_info,"advection/TEST_Advection_Peterson_TRI__ml0__p1");
 test_integration_convergence(test_info,"advection/TEST_Advection_Demkowicz_DPGII_LINE__ml0__p1");
 EXIT_UNSUPPORTED;
 	if (test_info->t_int.linearization) {

@@ -35,11 +35,11 @@ struct Solution_Element {
 	const struct Multiarray_Operator* cv0_vs_vs;    ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vc0_vs_vs;    ///< See notation in \ref element_operators.h.
 
-	const struct Multiarray_Operator* cv0_vg_vr[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vg_ff[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_vm_ff[2]; ///< See notation in \ref element_operators.h.
 
-	const struct Multiarray_Operator* cv0_vg_fs[2]; ///< See notation in \ref element_operators.h.
-
-	const struct Multiarray_Operator* cv0_vg_fr[2]; ///< See notation in \ref element_operators.h.
+	// Tensor-product sub-operators.
+	const struct Multiarray_Operator* cv0_vg_vf[2]; ///< See notation in \ref element_operators.h.
 };
 
 /// \brief `const` version of the \ref Solution_Element container.
@@ -52,11 +52,11 @@ struct const_Solution_Element {
 	const struct Multiarray_Operator*const cv0_vs_vs;    ///< Defined in \ref Solution_Element.
 	const struct Multiarray_Operator*const vc0_vs_vs;    ///< Defined in \ref Solution_Element.
 
-	const struct Multiarray_Operator*const cv0_vg_vr[2]; ///< Defined in \ref Solution_Element.
+	const struct Multiarray_Operator*const cv0_vg_ff[2]; ///< Defined in \ref Solution_Element.
+	const struct Multiarray_Operator*const vv0_vm_ff[2]; ///< Defined in \ref Solution_Element.
 
-	const struct Multiarray_Operator*const cv0_vg_fs[2]; ///< Defined in \ref Solution_Element.
-
-	const struct Multiarray_Operator*const cv0_vg_fr[2]; ///< Defined in \ref Solution_Element.
+	// Tensor-product sub-operators.
+	const struct Multiarray_Operator*const cv0_vg_vf[2]; ///< Defined in \ref Solution_Element.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

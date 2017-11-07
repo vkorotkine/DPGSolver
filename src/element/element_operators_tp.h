@@ -62,7 +62,6 @@ const struct Multiarray_Operator* constructor_operators_tp
 	 const char*const name_in,            ///< The name of the operator input.
 	 const char*const name_out,           ///< The name of the operator output.
 	 const char*const name_range,         ///< The name of the operator range.
-	 const int p_ref[2],                  ///< Defined in \ref Operator_Info.
 	 const struct const_Element* element, ///< \ref const_Element.
 	 const struct Simulation* sim,        ///< \ref Simulation.
 	 const struct Operators_TP* ops_tp    ///< \ref Operators_TP.

@@ -106,11 +106,11 @@ static void constructor_derived_Plotting_Element_tp (struct Element* element_ptr
 	struct Operators_TP ops_tp;
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vgs_vp,NULL,s_e[1]->cv0_vgs_vp,NULL);
-	element->cv0_vgs_vp = constructor_operators_tp("cv0","vgs","vpA","H_1_P_1P",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->cv0_vgs_vp = constructor_operators_tp("cv0","vgs","vpA","H_1_P_1P",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vgc_vp,NULL,s_e[1]->cv0_vgc_vp,NULL);
-	element->cv0_vgc_vp = constructor_operators_tp("cv0","vgc","vpA","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->cv0_vgc_vp = constructor_operators_tp("cv0","vgc","vpA","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vs_vp,NULL,s_e[1]->cv0_vs_vp,NULL);
-	element->cv0_vs_vp = constructor_operators_tp("cv0","vsA","vpA","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->cv0_vs_vp = constructor_operators_tp("cv0","vsA","vpA","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 }

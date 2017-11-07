@@ -130,31 +130,36 @@ struct Simulation {
 	 */
 	const int p_ref[2];
 
+	const int p_s_v_p,  ///< The additive ((p)lus: +) constant of the volume solution order relative to p_ref.
+	          p_s_f_p,  ///< The additive ((p)lus: +) constant of the face   solution order relative to p_ref.
+	          p_sg_v_p, ///< The additive ((p)lus: +) constant of the volume solution gradient order relative to p_ref.
+	          p_sg_f_p; ///< The additive ((p)lus: +) constant of the face   solution gradient order relative to p_ref.
+
+	/** The multiplicative ((times): *) constant of the cubature order in relation to the solution order.
+	 *  p_c = p_c_x*p_s + p_c_p. */
+	const int p_c_x[2];
+
+	/** The additive ((p)lus: +) constant of the cubature order in relation to the solution order.
+	 *  p_c = p_c_x*p_s + p_c_p. */
+	const int p_c_p[2];
+
+	/** The additive ((p)lus: +) constant of the test function order in relation to the solution order.
+	 *  p_t = p_s + p_t_p. */
+	const int p_t_p[2];
+
 	/// The minimal and maximal solution orders for volumes. p-adaptation is enabled if the orders differ.
 	const int p_s_v[2];
 
-	/// The minimal and maximal solution orders for faces. p-adaptation is enabled if the orders differ.
+	/// The minimal and maximal solution/flux orders for faces. p-adaptation is enabled if the orders differ.
 	const int p_s_f[2];
 
 	/** The minimal and maximal gradient solution orders for volumes. p-adaptation is enabled if the orders
 	 *  differ. */
 	const int p_sg_v[2];
 
-	/** The minimal and maximal gradient solution orders for faces. p-adaptation is enabled if the orders
+	/** The minimal and maximal gradient/trace solution orders for faces. p-adaptation is enabled if the orders
 	 *  differ. */
 	const int p_sg_f[2];
-
-	/** The multiplicative ((times): *) constant of the cubature order in relation to the solution order.
-	 *  p_c = p_c_x*p_s + p_c_p. */
-	const int p_c_x;
-
-	/** The additive ((p)lus: +) constant of the cubature order in relation to the solution order.
-	 *  p_c = p_c_x*p_s + p_c_p. */
-	const int p_c_p;
-
-	/** The additive ((p)lus: +) constant of the test function order in relation to the solution order.
-	 *  p_t = p_s + p_t_p. */
-	const int p_t_p;
 
 	/// Finite element method to be used. Options: 1 (DG), 2 (HDG), 3 (HDPG), 4 (DPG).
 	const int method;

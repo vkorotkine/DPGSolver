@@ -189,14 +189,6 @@ struct Mesh_Ctrl_Data {
 	     mesh_extension[STRLEN_MIN]; ///< File extension (set based on \ref mesh_format.
 };
 
-/// \brief Container for the input solution order data.
-struct Orders {
-	int p_s_v_p,  ///< The additive constant of the volume solution order relative to \ref Simulation::p_ref.
-	    p_s_f_p,  ///< The additive constant of the face   solution order relative to \ref Simulation::p_ref.
-	    p_sg_v_p, ///< The additive constant of the volume solution gradient order relative to \ref Simulation::p_ref.
-	    p_sg_f_p; ///< The additive constant of the face   solution gradient order relative to \ref Simulation::p_ref.
-};
-
 /// \brief Set the mesh parameters.
 static void set_mesh_parameters
 	(struct Simulation*const sim ///< Standard.
@@ -209,8 +201,7 @@ static void set_input_path
 
 /// \brief Set the orders of the various solution components based on the input data.
 static void set_orders
-	(struct Simulation*const sim, ///< Standard.
-	 struct Orders*const orders   ///< \ref Orders.
+	(struct Simulation*const sim ///< Standard.
 	);
 
 static void set_simulation_invalid (struct Simulation*const sim)
@@ -233,9 +224,13 @@ static void set_simulation_invalid (struct Simulation*const sim)
 	const_cast_i1(sim->p_sg_v,(int[]){P_INVALID,P_INVALID},2);
 	const_cast_i1(sim->p_sg_f,(int[]){P_INVALID,P_INVALID},2);
 
-	const_cast_i(&sim->p_c_x,P_INVALID);
-	const_cast_i(&sim->p_c_p,P_INVALID);
-	const_cast_i(&sim->p_t_p,P_INVALID);
+	const_cast_i(&sim->p_s_v_p,P_INVALID);
+	const_cast_i(&sim->p_s_f_p,P_INVALID);
+	const_cast_i(&sim->p_sg_v_p,P_INVALID);
+	const_cast_i(&sim->p_sg_f_p,P_INVALID);
+	const_cast_i1(sim->p_c_x,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i1(sim->p_c_p,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i1(sim->p_t_p,(int[]){P_INVALID,P_INVALID},2);
 
 	const_cast_i(&sim->method,-1);
 
@@ -257,8 +252,6 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 {
 	sim->ctrl_name_full = set_ctrl_name_full(ctrl_name);
 	FILE *ctrl_file = fopen_checked(sim->ctrl_name_full);
-
-	struct Orders orders = { P_INVALID, P_INVALID, P_INVALID, P_INVALID, };
 
 	// Read information
 	char line[STRLEN_MAX];
@@ -285,13 +278,13 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"geom_blending_pyr")) read_skip_const_c_1(line,sim->geom_blending[2]);
 
 		if (strstr(line,"p_ref"))    read_skip_const_i_1(line,1,sim->p_ref,2);
-		if (strstr(line,"p_s_v_p"))  read_skip_i(line,&orders.p_s_v_p);
-		if (strstr(line,"p_s_f_p"))  read_skip_i(line,&orders.p_s_f_p);
-		if (strstr(line,"p_sg_v_p")) read_skip_i(line,&orders.p_sg_v_p);
-		if (strstr(line,"p_sg_f_p")) read_skip_i(line,&orders.p_sg_f_p);
-		if (strstr(line,"p_cub_x"))  read_skip_const_i_1(line,1,&sim->p_c_x,1);
-		if (strstr(line,"p_cub_p"))  read_skip_const_i_1(line,1,&sim->p_c_p,1);
-		if (strstr(line,"p_test_p")) read_skip_const_i_1(line,1,&sim->p_t_p,1);
+		if (strstr(line,"p_s_v_p"))  read_skip_const_i(line,&sim->p_s_v_p);
+		if (strstr(line,"p_s_f_p"))  read_skip_const_i(line,&sim->p_s_f_p);
+		if (strstr(line,"p_sg_v_p")) read_skip_const_i(line,&sim->p_sg_v_p);
+		if (strstr(line,"p_sg_f_p")) read_skip_const_i(line,&sim->p_sg_f_p);
+		if (strstr(line,"p_cub_x"))  read_skip_const_i_1(line,1,sim->p_c_x,2);
+		if (strstr(line,"p_cub_p"))  read_skip_const_i_1(line,1,sim->p_c_p,2);
+		if (strstr(line,"p_test_p")) read_skip_const_i_1(line,1,sim->p_t_p,2);
 
 		if (strstr(line,"fe_method")) read_skip_const_i_1(line,1,&sim->method,1);
 
@@ -301,7 +294,7 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 
 	set_mesh_parameters(sim);
 	set_input_path(sim);
-	set_orders(sim,&orders);
+	set_orders(sim);
 }
 
 static void check_necessary_simulation_parameters (struct Simulation*const sim)
@@ -333,29 +326,31 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 
 static void set_simulation_default (struct Simulation*const sim)
 {
-	if (sim->p_s_f[0] == P_INVALID)
-		const_cast_i1(sim->p_s_f,sim->p_s_v,2);
+	for (int i = 0; i < 2; ++i) {
+		if (sim->p_s_f[i] == P_INVALID)
+			const_cast_i(&sim->p_s_f[i],sim->p_s_v[i]);
 
-	if (sim->p_sg_v[0] == P_INVALID)
-		const_cast_i1(sim->p_sg_v,sim->p_s_v,2);
+		if (sim->p_sg_v[i] == P_INVALID)
+			const_cast_i(&sim->p_sg_v[i],sim->p_s_v[i]);
 
-	if (sim->p_sg_f[0] == P_INVALID)
-		const_cast_i1(sim->p_sg_f,sim->p_s_v,2);
+		if (sim->p_sg_f[i] == P_INVALID)
+			const_cast_i(&sim->p_sg_f[i],sim->p_s_v[i]);
 
-	if (sim->p_c_x == P_INVALID)
-		const_cast_i(&sim->p_c_x,2);
-	else
-		assert(sim->p_c_x >= 2);
+		if (sim->p_c_x[i] == P_INVALID)
+			const_cast_i(&sim->p_c_x[i],2);
+		else
+			assert(sim->p_c_x[i] >= 2);
 
-	if (sim->p_c_p == P_INVALID)
-		const_cast_i(&sim->p_c_p,0);
-	else
-		assert(sim->p_c_p >= 0);
+		if (sim->p_c_p[i] == P_INVALID)
+			const_cast_i(&sim->p_c_p[i],0);
+		else
+			assert(sim->p_c_p[i] >= 0);
 
-	if (sim->p_t_p == P_INVALID)
-		const_cast_i(&sim->p_t_p,0);
-	else
-		assert(sim->p_t_p >= 0);
+		if (sim->p_t_p[i] == P_INVALID)
+			const_cast_i(&sim->p_t_p[i],0);
+		else
+			assert(sim->p_t_p[i] >= 0);
+	}
 
 	const_cast_i(&sim->n_hp,3);
 	const_cast_i(&sim->adapt_type,compute_adapt_type(sim->p_ref,sim->ml));
@@ -425,21 +420,31 @@ static void set_input_path (struct Simulation*const sim)
 	sprintf((char*)sim->input_path,"%s%s%s%s%s","../input_files/",sim->pde_name,"/",sim->pde_spec,"/");
 }
 
-static void set_orders (struct Simulation*const sim, struct Orders*const orders)
+static void set_orders (struct Simulation*const sim)
 {
-	assert(orders->p_s_v_p  != P_INVALID);
+	if (sim->p_s_v_p == P_INVALID)
+		const_cast_i(&sim->p_s_v_p,0);
+
+	if (sim->p_s_f_p == P_INVALID)
+		const_cast_i(&sim->p_s_f_p,0);
+
+	if (sim->p_sg_v_p == P_INVALID)
+		const_cast_i(&sim->p_sg_v_p,0);
+
+	if (sim->p_sg_f_p == P_INVALID)
+		const_cast_i(&sim->p_sg_f_p,0);
 
 	for (int i = 0; i < 2; ++i) {
-		int p = sim->p_ref[i]+orders->p_s_v_p;
+		int p = sim->p_ref[i]+sim->p_s_v_p;
 		const_cast_i(&sim->p_s_v[i],p);
 
-		p = orders->p_s_f_p + (orders->p_s_f_p == P_INVALID ? 0 : sim->p_ref[i]);
+		p = sim->p_s_f_p + (sim->p_s_f_p == P_INVALID ? 0 : sim->p_ref[i]);
 		const_cast_i(&sim->p_s_f[i],p);
 
-		p = orders->p_sg_v_p + (orders->p_sg_v_p == P_INVALID ? 0 : sim->p_ref[i]);
+		p = sim->p_sg_v_p + (sim->p_sg_v_p == P_INVALID ? 0 : sim->p_ref[i]);
 		const_cast_i(&sim->p_sg_v[i],p);
 
-		p = orders->p_sg_f_p + (orders->p_sg_f_p == P_INVALID ? 0 : sim->p_ref[i]);
+		p = sim->p_sg_f_p + (sim->p_sg_f_p == P_INVALID ? 0 : sim->p_ref[i]);
 		const_cast_i(&sim->p_sg_f[i],p);
 	}
 }

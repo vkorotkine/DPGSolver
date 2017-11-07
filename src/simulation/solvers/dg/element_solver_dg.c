@@ -126,36 +126,36 @@ static void constructor_derived_DG_Solver_Element_tp (struct Element* element_pt
 	struct Operators_TP ops_tp;
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vs_vc[0],NULL,s_e[1]->cv0_vs_vc[0],NULL);
-	element->cv0_vs_vc[0] = constructor_operators_tp("cv0","vsA","vcs","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->cv0_vs_vc[0] = constructor_operators_tp("cv0","vsA","vcs","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vs_vc[1],NULL,s_e[1]->cv0_vs_vc[1],NULL);
-	element->cv0_vs_vc[1] = constructor_operators_tp("cv0","vsA","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->cv0_vs_vc[1] = constructor_operators_tp("cv0","vsA","vcc","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->tw0_vs_vc[0],s_e[0]->tw1_vs_vc[0],s_e[1]->tw0_vs_vc[0],s_e[1]->tw1_vs_vc[0]);
-	element->tw1_vs_vc[0] = constructor_operators_tp("tw1","vsA","vcs","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->tw1_vs_vc[0] = constructor_operators_tp("tw1","vsA","vcs","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->tw0_vs_vc[1],s_e[0]->tw1_vs_vc[1],s_e[1]->tw0_vs_vc[1],s_e[1]->tw1_vs_vc[1]);
-	element->tw1_vs_vc[1] = constructor_operators_tp("tw1","vsA","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->tw1_vs_vc[1] = constructor_operators_tp("tw1","vsA","vcc","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vs_vc[0],s_e[0]->cv0_vs_fc[0],s_e[1]->cv0_vs_vc[0],s_e[1]->cv0_vs_fc[0]);
-	element->cv0_vs_fc[0] = constructor_operators_tp("cv0","vsA","fcs","H_CF_P_PM1",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->cv0_vs_fc[0] = constructor_operators_tp("cv0","vsA","fcs","H_CF_P_PM1",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vs_vc[1],s_e[0]->cv0_vs_fc[1],s_e[1]->cv0_vs_vc[1],s_e[1]->cv0_vs_fc[1]);
-	element->cv0_vs_fc[1] = constructor_operators_tp("cv0","vsA","fcc","H_CF_P_PM1",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->cv0_vs_fc[1] = constructor_operators_tp("cv0","vsA","fcc","H_CF_P_PM1",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->tw0_vs_vc[0],s_e[0]->tw0_vs_fc[0],s_e[1]->tw0_vs_vc[0],s_e[1]->tw0_vs_fc[0]);
-	element->tw0_vs_fc[0] = constructor_operators_tp("tw0","vsA","fcs","H_CF_P_PM1",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->tw0_vs_fc[0] = constructor_operators_tp("tw0","vsA","fcs","H_CF_P_PM1",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->tw0_vs_vc[1],s_e[0]->tw0_vs_fc[1],s_e[1]->tw0_vs_vc[1],s_e[1]->tw0_vs_fc[1]);
-	element->tw0_vs_fc[1] = constructor_operators_tp("tw0","vsA","fcc","H_CF_P_PM1",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->tw0_vs_fc[1] = constructor_operators_tp("tw0","vsA","fcc","H_CF_P_PM1",b_e,sim,&ops_tp); // destructed
 
 
 	set_operators_tp(&ops_tp,s_e[0]->tw0_vs_vc[0],NULL,s_e[1]->tw0_vs_vc[0],NULL);
-	element->tw0_vs_vc[0] = constructor_operators_tp("tw0","vsA","vcs","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->tw0_vs_vc[0] = constructor_operators_tp("tw0","vsA","vcs","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->tw0_vs_vc[1],NULL,s_e[1]->tw0_vs_vc[1],NULL);
-	element->tw0_vs_vc[1] = constructor_operators_tp("tw0","vsA","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	element->tw0_vs_vc[1] = constructor_operators_tp("tw0","vsA","vcc","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 }
 
 static void constructor_derived_DG_Solver_Element_common (struct Element* element_ptr, const struct Simulation* sim)

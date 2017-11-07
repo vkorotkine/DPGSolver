@@ -65,14 +65,8 @@ void destructor_derived_Solution_Element (struct Element* element_ptr)
 	destructor_Multiarray_Operator_conditional(element->cv0_vs_vs);
 	destructor_Multiarray_Operator(element->vc0_vs_vs);
 
-	destructor_Multiarray2_Operator_conditional(element->cv0_vg_vr);
-	destructor_Multiarray2_Operator_conditional(element->cv0_vg_vr);
-
-	destructor_Multiarray2_Operator_conditional(element->cv0_vg_fs);
-	destructor_Multiarray2_Operator_conditional(element->cv0_vg_fs);
-
-	destructor_Multiarray2_Operator_conditional(element->cv0_vg_fr);
-	destructor_Multiarray2_Operator_conditional(element->cv0_vg_fr);
+	destructor_Multiarray2_Operator_conditional(element->cv0_vg_ff);
+	destructor_Multiarray2_Operator_conditional(element->cv0_vg_vf);
 }
 
 // Static functions ************************************************************************************************* //
@@ -96,7 +90,11 @@ static void constructor_derived_Solution_Element_std (struct Element* element_pt
 		e->cv0_vs_vs    = constructor_operators("cv0","vsA","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
 		break;
 	case METHOD_DPG:
-		/// \todo Add necessary operators.
+		e->cv0_vg_ff[0] = constructor_operators2("cv0","vgs","ffA","H_1_P_1PPM1",b_e,sim); // destructed
+		e->cv0_vg_ff[1] = constructor_operators2("cv0","vgc","ffA","H_1_P_PM1",  b_e,sim); // destructed
+
+		e->vv0_vm_ff[0] = constructor_operators2("vv0","vms","ffA","H_1_P_1PPM1",b_e,sim); // destructed
+		e->vv0_vm_ff[1] = constructor_operators2("vv0","vmc","ffA","H_1_P_PM1",  b_e,sim); // destructed
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
@@ -116,32 +114,40 @@ static void constructor_derived_Solution_Element_tp (struct Element* element_ptr
 	struct Operators_TP ops_tp;
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vs[0],NULL,s_e[1]->cv0_vg_vs[0],NULL);
-	e->cv0_vg_vs[0] = constructor_operators_tp("cv0","vgs","vsA","H_1_P_1P", sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	e->cv0_vg_vs[0] = constructor_operators_tp("cv0","vgs","vsA","H_1_P_1P", b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vs[1],NULL,s_e[1]->cv0_vg_vs[1],NULL);
-	e->cv0_vg_vs[1] = constructor_operators_tp("cv0","vgc","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	e->cv0_vg_vs[1] = constructor_operators_tp("cv0","vgc","vsA","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vc[0],NULL,s_e[1]->cv0_vg_vc[0],NULL);
-	e->cv0_vg_vc[0] = constructor_operators_tp("cv0","vgs","vsA","H_1_P_1P", sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	e->cv0_vg_vc[0] = constructor_operators_tp("cv0","vgs","vsA","H_1_P_1P", b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vc[1],NULL,s_e[1]->cv0_vg_vc[1],NULL);
-	e->cv0_vg_vc[1] = constructor_operators_tp("cv0","vgc","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	e->cv0_vg_vc[1] = constructor_operators_tp("cv0","vgc","vsA","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->vc0_vs_vs,NULL,s_e[1]->vc0_vs_vs,NULL);
-	e->vc0_vs_vs  = constructor_operators_tp("vc0","vsA","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+	e->vc0_vs_vs  = constructor_operators_tp("vc0","vsA","vsA","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	switch (sim->method) {
 	case METHOD_DG:
 		set_operators_tp(&ops_tp,s_e[0]->cv0_vs_vc[0],NULL,s_e[1]->cv0_vs_vc[0],NULL);
-		e->cv0_vs_vc[0] = constructor_operators_tp("cv0","vsA","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+		e->cv0_vs_vc[0] = constructor_operators_tp("cv0","vsA","vsA","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 		set_operators_tp(&ops_tp,s_e[0]->cv0_vs_vc[1],NULL,s_e[1]->cv0_vs_vc[1],NULL);
-		e->cv0_vs_vc[1] = constructor_operators_tp("cv0","vsA","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+		e->cv0_vs_vc[1] = constructor_operators_tp("cv0","vsA","vsA","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 		set_operators_tp(&ops_tp,s_e[0]->cv0_vs_vs,NULL,s_e[1]->cv0_vs_vs,NULL);
-		e->cv0_vs_vs = constructor_operators_tp("cv0","vsA","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim,&ops_tp); // destructed
+		e->cv0_vs_vs = constructor_operators_tp("cv0","vsA","vsA","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 		break;
 	case METHOD_DPG:
+		for (int i = 0; i < 2; ++i) {
+			if (s_e[i]->cv0_vg_vf[0] != NULL)
+				continue;
+
+			s_e[i]->cv0_vg_vf[0] = constructor_operators2("cv0","vgs","vfA","H_1_P_1PPM1",b_e,sim); // destructed
+			s_e[i]->cv0_vg_vf[1] = constructor_operators2("cv0","vgc","vfA","H_1_P_PM1",  b_e,sim); // destructed
+		}
+		EXIT_ADD_SUPPORT;
 		/// \todo Add necessary operators.
 		break;
 	default:

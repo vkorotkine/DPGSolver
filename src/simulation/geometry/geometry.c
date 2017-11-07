@@ -199,15 +199,11 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 	          .cv1_vg_vc = constructor_default_Multiarray_Operator(), // free (only)
 	          .vv0_vm_vc = NULL, };
 
-	if (!base_volume->curved) {
-		set_MO_from_MO(ops.cv1_vg_vm,element->cv1_vgs_vms,1,(ptrdiff_t[]){0,0,1,1});
-		set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vgs_vcs,1,(ptrdiff_t[]){0,0,p,1});
-		ops.vv0_vm_vc = get_Multiarray_Operator(element->vv0_vms_vcs,(ptrdiff_t[]){0,0,p,1});
-	} else {
-		set_MO_from_MO(ops.cv1_vg_vm,element->cv1_vgc_vmc,1,(ptrdiff_t[]){0,0,p,p});
-		set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vgc_vcc,1,(ptrdiff_t[]){0,0,p,p});
-		ops.vv0_vm_vc = get_Multiarray_Operator(element->vv0_vmc_vcc,(ptrdiff_t[]){0,0,p,p});
-	}
+	const bool curved = base_volume->curved;
+	const int p_g = ( curved ? p : 1 );
+	set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vg_vc[curved],1,(ptrdiff_t[]){0,0,p,p_g});
+	set_MO_from_MO(ops.cv1_vg_vm,element->cv1_vg_vm[curved],1,(ptrdiff_t[]){0,0,p_g,p_g});
+	ops.vv0_vm_vc = get_Multiarray_Operator(element->vv0_vm_vc[curved],(ptrdiff_t[]){0,0,p,p_g});
 
 	const ptrdiff_t n_vm = ops.cv1_vg_vm->data[0]->op_std->ext_0,
 	                n_vc = ops.cv1_vg_vc->data[0]->op_std->ext_0;
@@ -263,22 +259,14 @@ static void compute_geometry_face (struct Simulation *sim, struct Solver_Face* f
 	const int ind_lf = base_face->neigh_info[0].ind_lf;
 	const int p_v = volume->p_ref,
 	          p_f = face->p_ref;
+
+	const int curved_f = (face->cub_type == 's' ? 0 : 1);
 	if (!base_volume->curved) {
-		if (face->cub_type == 's') {
-			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgs_fcs,(ptrdiff_t[]){ind_lf,0,0,p_f,1});
-			ops.vv0_vm_fc = get_Multiarray_Operator(element->vv0_vms_fcs,(ptrdiff_t[]){ind_lf,0,0,p_f,1});
-		} else {
-			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgs_fcc,(ptrdiff_t[]){ind_lf,0,0,p_f,1});
-			ops.vv0_vm_fc = get_Multiarray_Operator(element->vv0_vms_fcc,(ptrdiff_t[]){ind_lf,0,0,p_f,1});
-		}
+		ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgs_fc[curved_f],(ptrdiff_t[]){ind_lf,0,0,p_f,1});
+		ops.vv0_vm_fc = get_Multiarray_Operator(element->vv0_vms_fc[curved_f],(ptrdiff_t[]){ind_lf,0,0,p_f,1});
 	} else {
-		if (face->cub_type == 's') {
-			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgc_fcs,(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
-			ops.vv0_vm_fc = get_Multiarray_Operator(element->vv0_vmc_fcs,(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
-		} else {
-			ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgc_fcc,(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
-			ops.vv0_vm_fc = get_Multiarray_Operator(element->vv0_vmc_fcc,(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
-		}
+		ops.cv0_vg_fc = get_Multiarray_Operator(element->cv0_vgc_fc[curved_f],(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
+		ops.vv0_vm_fc = get_Multiarray_Operator(element->vv0_vmc_fc[curved_f],(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
 	}
 
 	const struct const_Multiarray_d* g_coef = volume->geom_coef;

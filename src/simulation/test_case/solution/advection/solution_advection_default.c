@@ -48,10 +48,15 @@ void set_sol_advection_default (const struct Simulation* sim, struct Solution_Co
 	const char ce_type   = sol_cont.ce_type,
 	           node_kind = sol_cont.node_kind;
 
-	assert(ce_type == 'v'); // Add support for faces if necessary.
+	const struct const_Multiarray_d* xyz = NULL;
+	if (ce_type == 'v')
+		xyz = constructor_xyz_v(sim,sol_cont.volume,node_kind); // destructed
+	else if (ce_type == 'f')
+		xyz = constructor_xyz_f(sim,sol_cont.face,node_kind); // destructed
+	else
+		EXIT_ERROR("Unsupported: %c\n",ce_type);
 
-	const struct const_Multiarray_d* xyz = constructor_xyz_v(sim,sol_cont.volume,node_kind); // destructed
-	struct Multiarray_d* sol             = constructor_sol_advection_default(xyz,sim);                // destructed
+	struct Multiarray_d* sol = constructor_sol_advection_default(xyz,sim); // destructed
 	destructor_const_Multiarray_d(xyz);
 
 	update_Solution_Container_sol(&sol_cont,sol);

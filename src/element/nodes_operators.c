@@ -246,6 +246,7 @@ static int compute_node_type
 {
 	switch (op_io->kind) {
 	case 's': // fallthrough
+	case 'f': // fallthrough
 	case 'g': // fallthrough
 	case 'm': // fallthrough
 		return compute_node_type_std(op_io,element,sim);
@@ -285,9 +286,9 @@ static int compute_d_nodes (const char ce, const int elem_d)
 static int compute_p_nodes (const struct Op_IO* op_io, const int node_type, const struct Simulation* sim)
 {
 	const int node_kind = op_io->kind;
-// Add Simulation::p_X_p for each kind, X, for variable orders for a given reference order in future.
 	switch (node_kind) {
 	case 's': // fallthrough
+	case 'f': // fallthrough
 	case 'g': // fallthrough
 	case 'm': // fallthrough
 	case 'p':
@@ -302,8 +303,9 @@ static int compute_p_nodes (const struct Op_IO* op_io, const int node_type, cons
 		if (cub_c_type == CUB_C_COL) {
 			return p_op;
 		} else {
-			const int p_c_x = ( op_io->sc == 's' ? 2 : sim->p_c_x ),
-			          p_c_p = ( op_io->sc == 's' ? 0 : sim->p_c_p );
+			const int ind_p_c = ( op_io->sc == 's' ? 0 : 1 );
+			const int p_c_x = sim->p_c_x[ind_p_c],
+			          p_c_p = sim->p_c_p[ind_p_c];
 
 			const int cub_order = p_c_x*p_op+p_c_p;
 
@@ -389,8 +391,8 @@ static int compute_node_type_std
 	           node_ce   = op_io->ce;
 	const int s_type = element->s_type;
 	switch (node_kind) {
-	case 's':
-		assert(node_ce == 'v'); // Can be updated to include 'f' in future.
+	case 's': // fallthrough
+	case 'f':
 		if (strcmp(sim->nodes_interp[s_type],"GL") == 0)
 			return NODES_GL;
 		else if (strcmp(sim->nodes_interp[s_type],"GLL") == 0)

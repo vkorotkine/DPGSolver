@@ -109,6 +109,14 @@ int convert_to_range
 	 const char*const name_range ///< Defined for \ref constructor_Operator_Info.
 	);
 
+/** \brief Set Op_IO::p_rel for each of the \ref Operator_Info::op_io members.
+ *  The relative degree is set based on the values of the p_\*_\*_p members in \ref Simulation corresponding to the
+ *  computational element and kind of the input basis of the operator. */
+static void set_op_info_p_rel
+	(struct Operator_Info* op_info, ///< \ref Operator_Info.
+	 const struct Simulation* sim   ///< \ref Simulation.
+	);
+
 /// \brief Set up \ref Operator_Info extents_* members.
 static void set_up_extents
 	(struct Operator_Info* op_info ///< \ref Operator_Info.
@@ -126,7 +134,25 @@ const struct Multiarray_Operator* constructor_operators
 	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim)
 {
 	struct Operator_Info* op_info =
-		constructor_Operator_Info(name_type,name_in,name_out,name_range,p_ref,element); // destructed
+		constructor_Operator_Info(name_type,name_in,name_out,name_range,p_ref,element,sim); // destructed
+	assert((op_info->range_d == OP_R_D_0) || (op_info->range_d == OP_R_D_ALL));
+
+	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator_V(op_info->extents_op); // returned
+
+	const ptrdiff_t row_max = op_info->values_op->ext_0;
+	for (ptrdiff_t row = 0; row < row_max; ) // row is incremented when setting the operators.
+		op_info->set_operator(&row,op,op_info,sim);
+	destructor_Operator_Info(op_info);
+
+	return op;
+}
+
+const struct Multiarray_Operator* constructor_operators2
+	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
+	 const struct const_Element* element, const struct Simulation* sim)
+{
+	struct Operator_Info* op_info =
+		constructor_Operator_Info2(name_type,name_in,name_out,name_range,element,sim); // destructed
 	assert((op_info->range_d == OP_R_D_0) || (op_info->range_d == OP_R_D_ALL));
 
 	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator_V(op_info->extents_op); // returned
@@ -144,7 +170,7 @@ const struct const_Multiarray_Vector_i* constructor_operators_nc
 	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim)
 {
 	struct Operator_Info* op_info =
-		constructor_Operator_Info("UNUSED0",name_in,name_out,name_range,p_ref,element); // destructed
+		constructor_Operator_Info("UNUSED0",name_in,name_out,name_range,p_ref,element,sim); // destructed
 
 	const struct const_Vector_i* e_o = op_info->extents_op;
 
@@ -175,7 +201,7 @@ const struct const_Multiarray_Vector_d* constructor_operators_w
 	 const struct const_Element* element, const struct Simulation* sim)
 {
 	struct Operator_Info* op_info =
-		constructor_Operator_Info("UNUSED0",name_in,name_out,name_range,p_ref,element); // destructed
+		constructor_Operator_Info("UNUSED0",name_in,name_out,name_range,p_ref,element,sim); // destructed
 
 	const struct const_Multiarray_Vector_d* w =
 		constructor_empty_const_Multiarray_Vector_d_V(false,op_info->extents_op); // returned
@@ -190,7 +216,64 @@ const struct const_Multiarray_Vector_d* constructor_operators_w
 
 struct Operator_Info* constructor_Operator_Info
 	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
-	 const int p_ref[2], const struct const_Element* element)
+	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim)
+{
+UNUSED(p_ref);
+	struct Operator_Info* op_info = malloc(sizeof *op_info); // returned
+
+	op_info->element = element;
+
+	const int op_type = convert_to_type(name_type);
+
+	const_cast_i(&op_info->op_type,op_type);
+
+	const_cast_c(&op_info->op_io[OP_IND_I].ce,  name_in[0]);
+	const_cast_c(&op_info->op_io[OP_IND_I].kind,name_in[1]);
+	const_cast_c(&op_info->op_io[OP_IND_I].sc,  name_in[2]);
+
+	const_cast_c(&op_info->op_io[OP_IND_O].ce,  name_out[0]);
+	const_cast_c(&op_info->op_io[OP_IND_O].kind,name_out[1]);
+	const_cast_c(&op_info->op_io[OP_IND_O].sc,  name_out[2]);
+
+	const int ranges[] =
+		{ convert_to_range_d(name_type),
+		  convert_to_range_ce(name_in[0],name_out[0]),
+		  convert_to_range('h',name_range),
+		  convert_to_range('p',name_range), };
+
+	const_cast_i(&op_info->range_d, ranges[0]);
+	const_cast_i(&op_info->range_ce,ranges[1]);
+	const_cast_i(&op_info->range_h, ranges[2]);
+	const_cast_i(&op_info->range_p, ranges[3]);
+
+	const_cast_i1(op_info->p_ref,sim->p_ref,2);
+	for (int i = 0; i < 2; ++i)
+		const_cast_i(&op_info->op_io[i].p_rel,0);
+
+	set_up_extents(op_info);
+	set_up_values_op(op_info);
+
+	switch (op_info->op_type) {
+	case OP_T_CV: case OP_T_CC: case OP_T_VV: case OP_T_VC:
+		op_info->set_operator = set_operator_std;
+		break;
+	case OP_T_TW:
+		op_info->set_operator = set_operator_solver;
+		break;
+	case OP_T_UNUSED:
+		; // Do nothing
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+
+	return op_info;
+}
+
+struct Operator_Info* constructor_Operator_Info2
+	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
+	 const struct const_Element* element, const struct Simulation* sim)
 {
 	struct Operator_Info* op_info = malloc(sizeof *op_info); // returned
 
@@ -219,8 +302,8 @@ struct Operator_Info* constructor_Operator_Info
 	const_cast_i(&op_info->range_h, ranges[2]);
 	const_cast_i(&op_info->range_p, ranges[3]);
 
-	const_cast_i1(op_info->p_ref,p_ref,2);
-
+	const_cast_i1(op_info->p_ref,sim->p_ref,2);
+	set_op_info_p_rel(op_info,sim);
 	set_up_extents(op_info);
 	set_up_values_op(op_info);
 
@@ -255,19 +338,26 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 	          p_op       = op_io->p_op,
 	          nodes_kind = op_io->kind,
 	          op_sc      = op_io->sc;
-// Add Simulation::p_X_p for each kind, X, for variable orders for a given reference order in future.
 	switch (nodes_kind) {
 	case 's': // solution
-		return p_op;
+		return p_op+sim->p_s_v_p;
+		break;
+	case 'f': // flux
+//printf("flux degree: %d %d\n",p_op,p_op+sim->p_s_f_p);
+		return p_op+sim->p_s_f_p;
 		break;
 	case 'g': // geometry
 		if (op_sc == 's')
 			return 1;
 
+		const_cast_c(&op_io->kind,'s');
+		const int p_s = compute_p_basis(op_io,sim);
+		const_cast_c(&op_io->kind,'g');
+
 		if (strcmp(sim->geom_rep,"isoparametric") == 0)
-			return p_op;
+			return p_s;
 		else if (strcmp(sim->geom_rep,"superparametric") == 0)
-			return p_op+1;
+			return p_s+1;
 		else if (strstr(sim->geom_rep,"fixed"))
 			EXIT_ADD_SUPPORT; // Find number in geom_rep (use something similar to 'convert_to_range_d').
 		else
@@ -431,7 +521,7 @@ static void set_operator_std
 		set_current_op_io(op_info,op_values);
 		const struct Op_IO* op_io = op_info->op_io;
 
-		const int*const p_ptr = &op_values[OP_IND_P];
+		const int p_i = compute_p_basis(&op_io[OP_IND_I],sim);
 
 		const int s_type = op_io[OP_IND_I].s_type;
 		constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type,"orthonormal");
@@ -442,14 +532,14 @@ static void set_operator_std
 
 		const struct const_Multiarray_Matrix_d* op_cvNr = NULL;
 		if (op_info->range_d == OP_R_D_0) {
-			const struct const_Matrix_d* cv0r = constructor_basis(p_ptr[OP_IND_I],nodes_o->rst); // moved
+			const struct const_Matrix_d* cv0r = constructor_basis(p_i,nodes_o->rst); // moved
 
 			op_cvNr = constructor_op_MMd(true,n_op); // destructed
 			const_constructor_move_const_Matrix_d(&op_cvNr->data[0],cv0r); // destructed
 		} else if (op_info->range_d == OP_R_D_ALL) {
 			constructor_grad_basis_fptr constructor_grad_basis =
 				get_constructor_grad_basis_by_super_type(s_type,"orthonormal");
-			op_cvNr = constructor_grad_basis(p_ptr[OP_IND_I],nodes_o->rst); // destructed
+			op_cvNr = constructor_grad_basis(p_i,nodes_o->rst); // destructed
 		} else {
 			EXIT_ERROR("Unsupported: %d\n",op_info->range_d);
 		}
@@ -458,7 +548,7 @@ static void set_operator_std
 		 * op_cvN == op_cvNr*T_i (Corollary 2.2, \cite Zwanenburg2016). */
 		const struct const_Nodes* nodes_i = constructor_const_Nodes_h(OP_IND_I,op_io,element,sim); // destructed
 
-		const struct const_Matrix_d* cv0r_ii = constructor_basis(p_ptr[OP_IND_I],nodes_i->rst);   // destructed
+		const struct const_Matrix_d* cv0r_ii = constructor_basis(p_i,nodes_i->rst);   // destructed
 		const struct const_Matrix_d* cv0_ii  = constructor_cv(nodes_i->rst,&op_io[OP_IND_I],sim); // destructed
 		destructor_const_Nodes(nodes_i);
 
@@ -695,7 +785,10 @@ int convert_to_range (const char type_range, const char*const name_range)
 		break;
 	case 'p':
 		if (strstr(name_range,"P_1P"))
-			return OP_R_P_1P;
+			if (strstr(name_range,"P_1PPM1"))
+				return OP_R_P_1PPM1;
+			else
+				return OP_R_P_1P;
 		else if (strstr(name_range,"P_1"))
 			return OP_R_P_1;
 		else if (strstr(name_range,"P_PM0"))
@@ -713,6 +806,50 @@ int convert_to_range (const char type_range, const char*const name_range)
 	}
 	EXIT_ERROR("Did not find the operator range.");
 	return -1;
+}
+
+static void set_op_info_p_rel (struct Operator_Info* op_info, const struct Simulation* sim)
+{
+	const char ce_i   = op_info->op_io[OP_IND_I].ce,
+	           kind_i = op_info->op_io[OP_IND_I].kind;
+
+	int p_rel = -1;
+	switch (ce_i) {
+	case 'v':
+		switch (kind_i) {
+		case 'g': // fallthrough
+		case 'm': // fallthrough
+		case 's':
+			p_rel = sim->p_s_v_p;
+			break;
+		case 'r':
+			p_rel = sim->p_sg_v_p;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %c\n",kind_i);
+			break;
+		}
+		break;
+	case 'f':
+		switch (kind_i) {
+		case 'f':
+			p_rel = sim->p_s_f_p;
+			break;
+		case 't':
+			p_rel = sim->p_sg_f_p;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %c\n",kind_i);
+			break;
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %c\n",ce_i);
+		break;
+	}
+
+	for (int i = 0; i < 2; ++i)
+		const_cast_i(&op_info->op_io[i].p_rel,p_rel);
 }
 
 static void set_up_extents (struct Operator_Info* op_info)
@@ -782,7 +919,8 @@ static void set_up_extents (struct Operator_Info* op_info)
 			push_back_Vector_i(extents_op,2,false,false);
 			push_back_Vector_i(extents_op,2,false,false);
 			break;
-		case OP_R_P_1P:
+		case OP_R_P_1P:    // fallthrough
+		case OP_R_P_1PPM1:
 			push_back_Vector_i(extents_op,op_info->p_ref[1]+1,false,false);
 			push_back_Vector_i(extents_op,2,false,false);
 			break;
@@ -838,6 +976,7 @@ static void set_up_values_op (struct Operator_Info* op_info)
 	values->ext_0 = row;
 
 	op_info->values_op = (const struct const_Matrix_i*) values;
+//print_const_Matrix_i(op_info->values_op);
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -990,6 +1129,7 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 		switch (op_info->range_p) {
 		case OP_R_P_1: // fallthrough
 		case OP_R_P_1P:
+		case OP_R_P_1PPM1:
 			x_mm[0] = 1;
 			x_mm[1] = 1+1;
 			break;
@@ -1012,6 +1152,7 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 
 static void compute_range_p_o (int p_o_mm[2], const struct Operator_Info* op_info, const int p_i)
 {
+	const int*const p_ref = op_info->p_ref;
 	switch (op_info->range_p) {
 	case OP_R_P_1:
 		p_o_mm[0] = 1;
@@ -1022,18 +1163,24 @@ static void compute_range_p_o (int p_o_mm[2], const struct Operator_Info* op_inf
 		p_o_mm[1] = p_i+1;
 		break;
 	case OP_R_P_PM1:
-		p_o_mm[0] = GSL_MAX(p_i-1,op_info->p_ref[0]);
-		p_o_mm[1] = GSL_MIN(p_i+1,op_info->p_ref[1])+1;
+		p_o_mm[0] = GSL_MAX(p_i-1,p_ref[0]);
+		p_o_mm[1] = GSL_MIN(p_i+1,p_ref[1])+1;
+		break;
+	case OP_R_P_1PPM1:
+		p_o_mm[0] = GSL_MAX(p_ref[0]-1,p_ref[0]);
+		p_o_mm[1] = GSL_MIN(p_ref[1]+1,p_ref[1])+1;
 		break;
 	case OP_R_P_1P: // fallthrough
 	case OP_R_P_ALL:
-		p_o_mm[0] = op_info->p_ref[0];
-		p_o_mm[1] = op_info->p_ref[1]+1;
+		p_o_mm[0] = p_ref[0];
+		p_o_mm[1] = p_ref[1]+1;
 		break;
 	default:
 		EXIT_UNSUPPORTED;
 		break;
 	}
+	assert(p_o_mm[0] >= 0);
+	assert(p_o_mm[1] >= p_o_mm[0]);
 }
 
 static int get_n_ref_max (const struct Operator_Info* op_info)

@@ -28,11 +28,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 
 #include "computational_elements.h"
+#include "face_solver.h"
 #include "element.h"
 #include "element_solution.h"
 #include "volume.h"
 #include "volume_solver.h"
 
+#include "flux.h"
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
@@ -122,6 +124,42 @@ UNUSED(sim);
 	mm_NN1C_Operator_Multiarray_d(cv0_vg_vX,geom_coef,xyz_v,op_format,geom_coef->order,NULL,NULL);
 
 	return (const struct const_Multiarray_d*) xyz_v;
+}
+
+const struct const_Multiarray_d* constructor_xyz_f
+	(const struct Simulation* sim, struct Solver_Face* s_face, const char node_kind)
+{
+	UNUSED(sim);
+	assert((node_kind == 'f') || (node_kind == 't'));
+
+	struct Face* face  = (struct Face*) s_face;
+	struct Volume* vol = (struct Volume*) face->neigh_info[0].volume;
+
+	const struct const_Solution_Element* e = (const struct const_Solution_Element*) vol->element;
+
+	const int ind_lf   = face->neigh_info[0].ind_lf,
+	          ind_href = face->neigh_info[0].ind_href,
+	          curved   = vol->curved;
+	const int p_v = ( curved ? ((struct Solver_Volume*)vol)->p_ref : 1 ),
+	          p_f = s_face->p_ref;
+
+	const struct Operator* cv0_vg_fX = NULL;
+	if (node_kind == 'f')
+		cv0_vg_fX = get_Multiarray_Operator(e->cv0_vg_ff[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
+	else if (node_kind == 't')
+		EXIT_ADD_SUPPORT;
+
+	const int d    = ((struct const_Element*)e)->d,
+	          n_fs = cv0_vg_fX->op_std->ext_0;
+
+	struct Multiarray_d* xyz_f = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_fs,d}); // returned
+
+	const char op_format = 'd';
+
+	const struct const_Multiarray_d*const geom_coef = ((struct Solver_Volume*)vol)->geom_coef;
+	mm_NN1C_Operator_Multiarray_d(cv0_vg_fX,geom_coef,xyz_f,op_format,geom_coef->order,NULL,NULL);
+
+	return (const struct const_Multiarray_d*) xyz_f;
 }
 
 void compute_coef_from_val_vs
@@ -224,15 +262,22 @@ static void set_initial_f_nf_coef (struct Simulation* sim)
 {
 	struct Multiarray_d* sol_fs = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}); // destructed
 
+	sim->test_case->solver_method_curr = 'e';
+	struct Flux_Input* flux_i = constructor_Flux_Input(sim); // destructed
+	sim->test_case->solver_method_curr = '0';
+
 	struct Solution_Container sol_cont =
-		{ .ce_type = 'f', .cv_type = 'v', .node_kind = 's', .volume = NULL, .face = NULL, .sol = NULL, };
+		{ .ce_type = 'f', .cv_type = 'v', .node_kind = 'f', .volume = NULL, .face = NULL, .sol = NULL, };
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Solver_Face* face = (struct Solver_Face*) curr;
 
 		sol_cont.face = face;
 		sol_cont.sol  = sol_fs;
 		sim->test_case->set_sol(sim,sol_cont);
+print_Multiarray_d(sol_cont.sol);
 EXIT_UNSUPPORTED; // Compute flux, dot with normal and store.
 	}
 	destructor_Multiarray_d(sol_fs);
+
+	destructor_Flux_Input(flux_i);
 }

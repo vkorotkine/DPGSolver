@@ -89,13 +89,10 @@ void set_operators_tp
 
 const struct Multiarray_Operator* constructor_operators_tp
 	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
-	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim,
-	 const struct Operators_TP* ops_tp)
+	 const struct const_Element* element, const struct Simulation* sim, const struct Operators_TP* ops_tp)
 {
-	UNUSED(sim); // Potentially needed in the future?
-
 	struct Operator_Info* op_info =
-		constructor_Operator_Info(name_type,name_in,name_out,name_range,p_ref,element); // destructed
+		constructor_Operator_Info2(name_type,name_in,name_out,name_range,element,sim); // destructed
 
 	const struct Op_IO* op_io = op_info->op_io;
 
