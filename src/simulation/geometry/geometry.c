@@ -105,6 +105,14 @@ static void compute_geometry_face
 	 struct Solver_Face* face ///< \ref Solver_Face.
 	);
 
+/// \brief Compute the face normal vectors at the nodes corresponding to the given face metrics.
+static void compute_normals
+	(const int ind_lf,                             ///< Defined for \ref compute_unit_normals_and_det.
+	 const struct const_Multiarray_d* normals_ref, ///< Defined for \ref compute_unit_normals_and_det.
+	 const struct const_Multiarray_d* metrics_f,   ///< Defined for \ref compute_unit_normals_and_det.
+	 struct Multiarray_d* normals_f                ///< Defined for \ref compute_unit_normals_and_det.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void set_up_solver_geometry (struct Simulation* sim)
@@ -121,6 +129,14 @@ void set_up_solver_geometry (struct Simulation* sim)
 		compute_geometry_face(sim,(struct Solver_Face*) curr);
 
 	destructor_derived_Elements(sim,IL_ELEMENT);
+}
+
+void compute_unit_normals
+	(const int ind_lf, const struct const_Multiarray_d* normals_ref, const struct const_Multiarray_d* metrics_f,
+	 struct Multiarray_d* normals_f)
+{
+	compute_normals(ind_lf,normals_ref,metrics_f,normals_f);
+	normalize_Multiarray_d(normals_f,"L2",false,NULL);
 }
 
 // Static functions ************************************************************************************************* //
@@ -282,6 +298,41 @@ static void compute_geometry_face (struct Simulation *sim, struct Solver_Face* f
 		(struct Multiarray_d*)face->normals_fc,(struct Multiarray_d*)face->jacobian_det_fc);
 
 	destructor_const_Multiarray_d(metrics_fc);
+}
+
+static void compute_normals
+	(const int ind_lf, const struct const_Multiarray_d* normals_ref, const struct const_Multiarray_d* metrics_f,
+	 struct Multiarray_d* normals_f)
+{
+	const int order_n = 2,
+	          order_m = 3;
+
+	const ptrdiff_t* exts_m = metrics_f->extents;
+
+	assert(normals_ref->order == order_n);
+	assert(metrics_f->order == order_m);
+	assert(exts_m[1] == exts_m[2]);
+	assert(normals_f->order == order_n);
+	assert(metrics_f->layout == 'C');
+
+	const ptrdiff_t n_vals = exts_m[0],
+	                d      = exts_m[1];
+
+	resize_Multiarray_d(normals_f,order_n,(ptrdiff_t[]){n_vals,d});
+	set_to_value_Multiarray_d(normals_f,0.0);
+
+	double* normals_d = normals_f->data;
+	const double* normal_ref = get_row_const_Multiarray_d(ind_lf,normals_ref);
+	const double* metrics_d  = metrics_f->data;
+	for (ptrdiff_t dim_0 = 0; dim_0 < d; ++dim_0) {
+	for (ptrdiff_t n = 0; n < n_vals; ++n) {
+		for (ptrdiff_t dim_1 = 0; dim_1 < d; ++dim_1)
+			*normals_d += normal_ref[dim_1]*metrics_d[n_vals*(dim_0+d*dim_1)+n];
+		++normals_d;
+	}}
+	normals_f->layout = 'C';
+
+	transpose_Multiarray_d(normals_f,true);
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -447,36 +498,7 @@ static void compute_unit_normals_and_det
 	(const int ind_lf, const struct const_Multiarray_d* normals_ref, const struct const_Multiarray_d* metrics_f,
 	 struct Multiarray_d* normals_f, struct Multiarray_d* jacobian_det_f)
 {
-	const int order_n = 2,
-	          order_m = 3;
-
-	const ptrdiff_t* exts_m = metrics_f->extents;
-
-	assert(normals_ref->order == order_n);
-	assert(metrics_f->order == order_m);
-	assert(exts_m[1] == exts_m[2]);
-	assert(normals_f->order == order_n);
-	assert(metrics_f->layout == 'C');
-
-	const ptrdiff_t n_vals = exts_m[0],
-	                d      = exts_m[1];
-
-	resize_Multiarray_d(normals_f,order_n,(ptrdiff_t[]){n_vals,d});
-	set_to_value_Multiarray_d(normals_f,0.0);
-
-	double* normals_d = normals_f->data;
-	const double* normal_ref = get_row_const_Multiarray_d(ind_lf,normals_ref);
-	const double* metrics_d  = metrics_f->data;
-	for (ptrdiff_t dim_0 = 0; dim_0 < d; ++dim_0) {
-	for (ptrdiff_t n = 0; n < n_vals; ++n) {
-		for (ptrdiff_t dim_1 = 0; dim_1 < d; ++dim_1)
-			*normals_d += normal_ref[dim_1]*metrics_d[n_vals*(dim_0+d*dim_1)+n];
-		++normals_d;
-	}}
-	normals_f->layout = 'C';
-
-	transpose_Multiarray_d(normals_f,true);
-
+	compute_normals(ind_lf,normals_ref,metrics_f,normals_f);
 	normalize_Multiarray_d(normals_f,"L2",true,jacobian_det_f);
 }
 

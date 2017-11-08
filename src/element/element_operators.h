@@ -63,7 +63,12 @@ You should have received a copy of the GNU General Public License along with DPG
  *  basis of the operators.
  *
  *  When an operator is declared as an array of size 2, the two indices are used to denote the straight (0) and curved
- *  (1) operators, respectively.
+ *  (1) operators, respectively. When a pair of indices of size two are present, the first corresponds to entries [2/3]
+ *  and the second to entres [5/6]. Example: cv0_vg_fc
+ *  - cv0_vg_fc[0][0] == cv0_vgs_fcs;
+ *  - cv0_vg_fc[0][1] == cv0_vgs_fcc;
+ *  - cv0_vg_fc[1][0] == cv0_vgc_fcs;
+ *  - cv0_vg_fc[1][1] == cv0_vgc_fcc.
  */
 
 #include <stddef.h>

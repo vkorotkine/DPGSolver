@@ -343,7 +343,6 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 		return p_op+sim->p_s_v_p;
 		break;
 	case 'f': // flux
-//printf("flux degree: %d %d\n",p_op,p_op+sim->p_s_f_p);
 		return p_op+sim->p_s_f_p;
 		break;
 	case 'g': // geometry
@@ -871,11 +870,24 @@ static void set_up_extents (struct Operator_Info* op_info)
 	}
 
 	switch (op_info->range_ce) {
-		case OP_R_CE_VV:
-		case OP_R_CE_FF:
+		case OP_R_CE_VV: // fallthrough
 		case OP_R_CE_EE:
 			// Do nothing
 			break;
+		case OP_R_CE_FF: {
+			const int n_fe = get_number_of_face_elements(op_info->element);
+			switch (n_fe) {
+			case 1: // fallthrough
+			case 2:
+				push_back_Vector_i(extents_op,n_fe,false,false);
+				push_back_Vector_i(extents_op,n_fe,false,false);
+				break;
+			default:
+				EXIT_ERROR("Unsupported: %d\n",n_fe);
+				break;
+			}
+			break;
+		}
 		case OP_R_CE_VF:
 		case OP_R_CE_FV:
 			push_back_Vector_i(extents_op,element->n_f,false,false);
@@ -996,7 +1008,8 @@ static const struct const_Matrix_d* constructor_cv
 	case 'm':
 		basis_type = get_basis_i_from_s(sim->basis_geom);
 		break;
-	case 's':
+	case 's': // fallthrough
+	case 'f':
 		basis_type = get_basis_i_from_s(sim->basis_sol);
 		break;
 	default:
@@ -1048,11 +1061,14 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 		break;
 	case 'c': // ce
 		switch (op_info->range_ce) {
-		case OP_R_CE_VV:
-		case OP_R_CE_FF:
+		case OP_R_CE_VV: // fallthrough
 		case OP_R_CE_EE:
 			x_mm[0] = OP_INVALID_IND;
 			x_mm[1] = OP_INVALID_IND+1;
+			break;
+		case OP_R_CE_FF:
+			x_mm[0] = 0;
+			x_mm[1] = get_number_of_face_elements(op_info->element);
 			break;
 		case OP_R_CE_VF:
 			if (var_io == 'i') {

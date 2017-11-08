@@ -161,6 +161,11 @@ void const_cast_Face (const struct Face*const* dest, const struct Face*const src
 	*(struct Face**) dest = (struct Face*) src;
 }
 
+int get_face_element_index (const struct Face*const face)
+{
+	return get_face_element_index_by_ind_lf(face->neigh_info[0].volume->element,face->neigh_info[0].ind_lf);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

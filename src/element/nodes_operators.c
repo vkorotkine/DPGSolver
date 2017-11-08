@@ -141,7 +141,7 @@ const struct const_Nodes* constructor_const_Nodes_h
 
 	const char ce_i = op_io[OP_IND_I].ce,
 	           ce_o = op_io[OP_IND_O].ce;
-	if ((ind_io == OP_IND_I) || (ce_i == 'v')) { // ((vv || ff || ee) || (vf || ve))
+	if ((ce_i == ce_o) || (ce_i == 'v')) { // ((vv || ff || ee) || (vf || ve))
 		// Compute the output rst coordinates by multiplying the barycentric coordinates of the nodes with the
 		// appropriate (sub)set of reference element vertices.
 		const struct const_Matrix_d* rst_ve_io =
@@ -151,6 +151,7 @@ const struct const_Nodes* constructor_const_Nodes_h
 	} else if (ce_o == 'v') { // (fv || ev)
 		nodes->rst = constructor_rst_proj(element->type,d_i,d_io,ind_h_io,ind_ce_io,ce_i,cv0_vvs_vXX,sim); // keep
 	} else { // (fe || ef)
+		printf("%c %c\n",ce_i,ce_o);
 		EXIT_ADD_SUPPORT;
 	}
 	destructor_const_Matrix_d(cv0_vvs_vXX);

@@ -1,6 +1,7 @@
 set	(SOURCE
 	 face_solver_dpg.c
 	 element_solver_dpg.c
+	 solve_dpg.c
 	 volume_solver_dpg.c
 	)
 

@@ -22,6 +22,8 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 struct Intrusive_List;
 struct Solver_Volume;
+struct Multiarray_d;
+struct const_Multiarray_d;
 
 /**	\brief Set up the solver geometry:
  *	- \ref Solver_Volume::metrics_vm;
@@ -36,6 +38,14 @@ struct Solver_Volume;
  */
 void set_up_solver_geometry
 	(struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Compute the face unit normal vectors at the nodes corresponding to the given face metrics.
+void compute_unit_normals
+	(const int ind_lf,                             ///< Defined for \ref compute_unit_normals_and_det.
+	 const struct const_Multiarray_d* normals_ref, ///< Defined for \ref compute_unit_normals_and_det.
+	 const struct const_Multiarray_d* metrics_f,   ///< Defined for \ref compute_unit_normals_and_det.
+	 struct Multiarray_d* normals_f                ///< Defined for \ref compute_unit_normals_and_det.
 	);
 
 #endif // DPG__geometry_h__INCLUDED

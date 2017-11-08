@@ -19,7 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to functions used to solve for the solution using implicit procedures.
  */
 
+#include <stddef.h>
+
 struct Simulation;
+struct Vector_i;
 
 /// \brief Solve for the solution using an implicit solver.
 void solve_implicit
@@ -40,6 +43,14 @@ void destructor_Solver_Storage_Implicit
 /// \brief Assemble \ref Solver_Storage_Implicit::A and \ref Solver_Storage_Implicit::b.
 void petsc_mat_vec_assemble
 	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	);
+
+/// \brief Increment the corresponding rows of `nnz` by the input number of columns.
+void increment_nnz
+	(struct Vector_i* nnz,    ///< Holds the number of non-zero entries for each row.
+	 const ptrdiff_t ind_dof, ///< The index of the first degree of freedom for rows to be incremented.
+	 const ptrdiff_t n_row,   ///< The number of sequential rows to be incremented.
+	 const ptrdiff_t n_col    ///< The increment.
 	);
 
 #endif // DPG__solve_implicit_h__INCLUDED

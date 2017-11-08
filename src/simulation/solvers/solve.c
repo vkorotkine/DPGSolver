@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_case.h"
 #include "definitions_intrusive.h"
 
+#include "face_solver.h"
 #include "volume_solver.h"
 
 #include "multiarray.h"
@@ -44,6 +45,12 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Compute the number of 'd'egrees 'o'f 'f'reedom in the volume computational elements.
  *  \return See brief. */
 static ptrdiff_t compute_dof_volumes
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom in the face computational elements.
+ *  \return See brief. */
+static ptrdiff_t compute_dof_faces
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
@@ -106,20 +113,10 @@ double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implici
 
 ptrdiff_t compute_dof (const struct Simulation* sim)
 {
+	assert((sim->method == METHOD_DG) || (sim->method == METHOD_DPG)); // Ensure that all is working correctly if modified.
 	ptrdiff_t dof = 0;
-	switch (sim->method) {
-	case METHOD_DG:
-		dof += compute_dof_volumes(sim);
-		break;
-	case METHOD_DPG:
-		dof += compute_dof_volumes(sim);
-//		dof += compute_dof_faces_dpg(sim); // define in solve_dpg.c
-EXIT_UNSUPPORTED;
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",sim->method);
-		break;
-	}
+	dof += compute_dof_volumes(sim);
+	dof += compute_dof_faces(sim);
 	return dof;
 }
 
@@ -132,6 +129,16 @@ static ptrdiff_t compute_dof_volumes (const struct Simulation* sim)
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
 		dof += compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents);
+	}
+	return dof;
+}
+
+static ptrdiff_t compute_dof_faces (const struct Simulation* sim)
+{
+	ptrdiff_t dof = 0;
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		struct Solver_Face* s_face = (struct Solver_Face*) curr;
+		dof += compute_size(s_face->nf_coef->order,s_face->nf_coef->extents);
 	}
 	return dof;
 }

@@ -306,7 +306,8 @@ void constructor_derived_Elements (struct Simulation* sim, const int derived_nam
 	// Perform construction specific to the derived element list.
 	for (const struct const_Intrusive_Link* curr = sim->elements->first; curr; ) {
 		const struct const_Intrusive_Link* next = curr->next;
-		if (((struct Element*)curr)->present)
+		const struct const_Element* element = (struct const_Element*) curr;
+		if (element->present && element->type != POINT)
 			de_i.constructor_derived_Element((struct Element*)curr,sim);
 		curr = next;
 	}
@@ -325,7 +326,8 @@ void destructor_derived_Elements (struct Simulation* sim, const int base_name)
 	// Perform destruction specific to the derived element list.
 	for (const struct const_Intrusive_Link* curr = sim->elements->first; curr; ) {
 		const struct const_Intrusive_Link* next = curr->next;
-		if (((struct Element*)curr)->present)
+		const struct const_Element* element = (struct const_Element*) curr;
+		if (element->present && element->type != POINT)
 			de_i.destructor_derived_Element((struct Element*)curr);
 		curr = next;
 	}
@@ -492,6 +494,7 @@ static struct Derived_Elements_Info get_c_Derived_Elements_Info (const int deriv
 {
 	struct Derived_Elements_Info de_info;
 
+/// \todo Delete `const` versions of elements which are not required.
 	switch (derived_name) {
 	case IL_GEOMETRY_ELEMENT:
 		assert(sizeof(struct Geometry_Element) == sizeof(struct const_Geometry_Element));
@@ -506,7 +509,6 @@ static struct Derived_Elements_Info get_c_Derived_Elements_Info (const int deriv
 		de_info.constructor_derived_Element = constructor_derived_Plotting_Element;
 		break;
 	case IL_SOLUTION_ELEMENT:
-		assert(sizeof(struct Solution_Element) == sizeof(struct const_Solution_Element));
 		de_info.sizeof_base    = sizeof(struct Element);
 		de_info.sizeof_derived = sizeof(struct Solution_Element);
 		de_info.constructor_derived_Element = constructor_derived_Solution_Element;

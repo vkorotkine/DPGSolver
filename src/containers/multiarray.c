@@ -79,6 +79,19 @@ ptrdiff_t compute_size (const int order, const ptrdiff_t*const extents)
 	return size;
 }
 
+bool check_equal_order_extents
+	(const int order_1, const int order_2, const ptrdiff_t*const extents_1, const ptrdiff_t*const extents_2)
+{
+	if (order_1 != order_2)
+		return false;
+
+	for (int i = 0; i < order_1; ++i) {
+		if (extents_1[i] != extents_2[i])
+			return false;
+	}
+	return true;
+}
+
 double* get_row_Multiarray_d (const ptrdiff_t row, const struct Multiarray_d* a)
 {
 	assert(a->order == 2);
@@ -125,6 +138,18 @@ void set_Multiarray_Vector_i_i
 		for (ptrdiff_t j = 0; j < ext_V[i]; j++)
 			a->data[i]->data[j] = *data_V++;
 	}
+}
+
+void set_Multiarray_d (struct Multiarray_d* a_o, const struct const_Multiarray_d* a_i)
+{
+	assert(a_o->owns_data);
+
+	resize_Multiarray_d(a_o,a_i->order,a_i->extents);
+	a_o->layout = a_i->layout;
+
+	const ptrdiff_t size = compute_size(a_i->order,a_i->extents);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		a_o->data[i] = a_i->data[i];
 }
 
 struct Vector_i* sort_Multiarray_Vector_i (struct Multiarray_Vector_i* a, const bool return_indices)

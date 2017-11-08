@@ -118,4 +118,10 @@ void const_cast_Face
 
 // Helper functions ************************************************************************************************* //
 
+/** \brief Call \ref get_face_element_index_by_ind_lf using parameters from the input \ref Face.
+ *  \return See brief. */
+int get_face_element_index
+	(const struct Face*const face ///< The input face.
+	);
+
 #endif // DPG__Face_h__INCLUDED

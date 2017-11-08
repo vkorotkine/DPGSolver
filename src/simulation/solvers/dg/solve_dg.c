@@ -44,6 +44,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "math_functions.h"
 #include "simulation.h"
 #include "solve.h"
+#include "solve_implicit.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -72,6 +73,53 @@ static void fill_petsc_Vec_b_dg
 	);
 
 // Interface functions ********************************************************************************************** //
+
+void update_ind_dof_dg (const struct Simulation* sim)
+{
+	ptrdiff_t dof = 0;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+
+		s_vol->ind_dof = dof;
+
+		struct Multiarray_d* sol_coef = s_vol->sol_coef;
+		dof += compute_size(sol_coef->order,sol_coef->extents);
+	}
+	assert(dof == compute_dof(sim));
+}
+
+struct Vector_i* constructor_nnz_dg (const struct Simulation* sim)
+{
+	const ptrdiff_t dof = compute_dof(sim);
+	struct Vector_i* nnz = constructor_zero_Vector_i(dof); // returned
+
+	// Diagonal contribution
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+
+		struct Multiarray_d* sol_coef = s_vol->sol_coef;
+		const ptrdiff_t size = compute_size(sol_coef->order,sol_coef->extents);
+		increment_nnz(nnz,s_vol->ind_dof,size,size);
+	}
+
+	// Off-diagonal contributions
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		struct Face* face = (struct Face*) curr;
+		if (face->boundary)
+			continue;
+
+		struct Solver_Volume* s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
+		                                   (struct Solver_Volume*) face->neigh_info[1].volume, };
+
+		struct Multiarray_d* sol_coef[2] = { s_vol[0]->sol_coef, s_vol[1]->sol_coef, };
+		const ptrdiff_t size[2] = { compute_size(sol_coef[0]->order,sol_coef[0]->extents),
+		                            compute_size(sol_coef[1]->order,sol_coef[1]->extents), };
+
+		increment_nnz(nnz,s_vol[0]->ind_dof,size[0],size[1]);
+		increment_nnz(nnz,s_vol[1]->ind_dof,size[1],size[0]);
+	}
+	return nnz;
+}
 
 double compute_rhs_dg (const struct Simulation* sim)
 {
@@ -111,14 +159,14 @@ const struct const_Vector_i* get_operator__nc_fc__dg (const int side_index_dest,
 	const struct Neigh_Info* neigh_info = &((struct Face*)s_face)->neigh_info[side_index_dest];
 
 	struct Volume* vol = neigh_info->volume;
-	const struct const_DG_Solver_Element* f_e =
-		(const struct const_DG_Solver_Element*) get_element_by_face(vol->element,neigh_info->ind_lf);
+	const struct DG_Solver_Element* e = (struct DG_Solver_Element*) vol->element;
 
 	const int ind_ord = neigh_info->ind_ord,
+	          ind_e   = get_face_element_index((struct Face*)s_face),
 	          p_f     = s_face->p_ref;
 	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
 
-	return get_const_Multiarray_Vector_i(f_e->nc_fc[curved],(ptrdiff_t[]){ind_ord,0,0,p_f,p_f});
+	return get_const_Multiarray_Vector_i(e->nc_fc[curved],(ptrdiff_t[]){ind_ord,ind_e,ind_e,0,0,p_f,p_f});
 }
 
 void set_petsc_Mat_row_col
@@ -147,7 +195,6 @@ void add_to_petsc_Mat (const struct Solver_Storage_Implicit*const s_store_i, con
 	MatSetValues(s_store_i->A,ext_0,idxm,ext_1,idxn,vv,ADD_VALUES);
 }
 
-// Static functions ************************************************************************************************* //
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

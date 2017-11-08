@@ -39,6 +39,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "intrusive.h"
 #include "simulation.h"
 #include "solve.h"
+#include "solve_dg.h"
+#include "solve_dpg.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -135,6 +137,17 @@ void petsc_mat_vec_assemble (struct Solver_Storage_Implicit* s_store_i)
 	VecAssemblyEnd(s_store_i->b);
 }
 
+void increment_nnz (struct Vector_i* nnz, const ptrdiff_t ind_dof, const ptrdiff_t n_row, const ptrdiff_t n_col)
+{
+	assert(ind_dof >= 0);
+
+	const ptrdiff_t i_max = ind_dof+n_row;
+	assert(i_max <= nnz->ext_0);
+
+	for (ptrdiff_t i = ind_dof; i < i_max; ++i)
+		nnz->data[i] += n_col;
+}
+
 // Level 0 ********************************************************************************************************** //
 
 /// \brief Output the petsc Mat/Vec to a file for visualization.
@@ -178,14 +191,6 @@ static void display_progress
 	 const int i_step,                  ///< The current implicit step.
 	 const double max_rhs,              ///< The current maximum value of the rhs term.
 	 KSP ksp                            ///< Petsc `KSP` context.
-	);
-
-/// \brief Increment the corresponding rows of `nnz` by the input number of columns.
-static void increment_nnz
-	(struct Vector_i* nnz,    ///< Holds the number of non-zero entries for each row.
-	 const ptrdiff_t ind_dof, ///< The index of the first degree of freedom for rows to be incremented.
-	 const ptrdiff_t n_row,   ///< The number of sequential rows to be incremented.
-	 const ptrdiff_t n_col    ///< The increment.
 	);
 
 /** \brief Check if the pde under consideration is linear.
@@ -268,63 +273,24 @@ static bool check_exit (const struct Test_Case* test_case, const double max_rhs)
 
 static void update_ind_dof (const struct Simulation* sim)
 {
-	ptrdiff_t dof = 0;
 	switch (sim->method) {
-	case METHOD_DG:
-		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-			struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-
-			s_vol->ind_dof = dof;
-
-			struct Multiarray_d* sol_coef = s_vol->sol_coef;
-			dof += compute_size(sol_coef->order,sol_coef->extents);
-		}
-		break;
+	case METHOD_DG:  update_ind_dof_dg(sim);  break;
+	case METHOD_DPG: update_ind_dof_dpg(sim); break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;
 	}
-	assert(dof == compute_dof(sim));
 }
 
 static struct Vector_i* constructor_nnz (const struct Simulation* sim)
 {
-	const ptrdiff_t dof = compute_dof(sim);
-	struct Vector_i* nnz = constructor_zero_Vector_i(dof); // returned
-
+	struct Vector_i* nnz = NULL;
 	switch (sim->method) {
-	case METHOD_DG:
-		// Diagonal contribution
-		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-			struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-
-			struct Multiarray_d* sol_coef = s_vol->sol_coef;
-			const ptrdiff_t size = compute_size(sol_coef->order,sol_coef->extents);
-			increment_nnz(nnz,s_vol->ind_dof,size,size);
-		}
-
-		// Off-diagonal contributions
-		for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-			struct Face* face = (struct Face*) curr;
-			if (face->boundary)
-				continue;
-
-			struct Solver_Volume* s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
-			                                   (struct Solver_Volume*) face->neigh_info[1].volume, };
-
-			struct Multiarray_d* sol_coef[2] = { s_vol[0]->sol_coef, s_vol[1]->sol_coef, };
-			const ptrdiff_t size[2] = { compute_size(sol_coef[0]->order,sol_coef[0]->extents),
-			                            compute_size(sol_coef[1]->order,sol_coef[1]->extents), };
-
-			increment_nnz(nnz,s_vol[0]->ind_dof,size[0],size[1]);
-			increment_nnz(nnz,s_vol[1]->ind_dof,size[1],size[0]);
-		}
-		break;
+	case METHOD_DG: nnz = constructor_nnz_dg(sim); break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;
 	}
-
 	return nnz;
 }
 
@@ -509,15 +475,4 @@ static bool check_symmetric (const int pde_index)
 		EXIT_ERROR("Unsupported: %d.\n",pde_index);
 		break;
 	}
-}
-
-static void increment_nnz (struct Vector_i* nnz, const ptrdiff_t ind_dof, const ptrdiff_t n_row, const ptrdiff_t n_col)
-{
-	assert(ind_dof >= 0);
-
-	const ptrdiff_t i_max = ind_dof+n_row;
-	assert(i_max <= nnz->ext_0);
-
-	for (ptrdiff_t i = ind_dof; i < i_max; ++i)
-		nnz->data[i] += n_col;
 }

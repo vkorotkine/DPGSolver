@@ -74,14 +74,10 @@ void destructor_derived_DG_Solver_Element (struct Element* element_ptr)
 	destructor_Multiarray2_Operator(element->cv0_vs_fc);
 	destructor_Multiarray2_Operator(element->tw0_vs_fc);
 
-	struct const_Element* b_e = (struct const_Element*)element_ptr;
-	for (int i = 0; i < 2; ++i) {
-		struct DG_Solver_Element* f_element = (struct DG_Solver_Element*) b_e->face_element[i];
-		if (f_element && f_element->nc_fc[0] != NULL) {
-			destructor_const_Multiarray_Vector_i(f_element->nc_fc[0]);
-			destructor_const_Multiarray_Vector_i(f_element->nc_fc[1]);
-			f_element->nc_fc[0] = NULL;
-		}
+	const int n_fe = get_number_of_face_elements((struct const_Element*)element_ptr);
+	for (int i = 0; i < n_fe; ++i) {
+		destructor_const_Multiarray_Vector_i(element->nc_fc[0]);
+		destructor_const_Multiarray_Vector_i(element->nc_fc[1]);
 	}
 
 	destructor_Multiarray2_Operator(element->tw0_vs_vc);
@@ -160,18 +156,14 @@ static void constructor_derived_DG_Solver_Element_tp (struct Element* element_pt
 
 static void constructor_derived_DG_Solver_Element_common (struct Element* element_ptr, const struct Simulation* sim)
 {
-	struct const_Element* b_e = (struct const_Element*)element_ptr;
-	for (int i = 0; i < 2; ++i) {
-		struct DG_Solver_Element* f_element = (struct DG_Solver_Element*) b_e->face_element[i];
-		if (f_element && f_element->nc_fc[0] == NULL) {
-			f_element->nc_fc[0] =
-				constructor_operators_nc(i,"fcs","fcs","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
-			f_element->nc_fc[1] =
-				constructor_operators_nc(i,"fcc","fcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
-		}
-	}
-
+	const struct const_Element* b_e   = (struct const_Element*)element_ptr;
 	struct DG_Solver_Element* element = (struct DG_Solver_Element*) element_ptr;
+
+	const int n_fe = get_number_of_face_elements(b_e);
+	for (int i = 0; i < n_fe; ++i) {
+		element->nc_fc[0] = constructor_operators_nc(i,"fcs","fcs","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+		element->nc_fc[1] = constructor_operators_nc(i,"fcc","fcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+	}
 
 	element->w_vc[0] = constructor_operators_w("vcs","vcs","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
 	element->w_vc[1] = constructor_operators_w("vcc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed

@@ -28,6 +28,17 @@ struct Solver_Volume;
 struct Simulation;
 struct Solver_Storage_Implicit;
 
+/// \brief Version of \ref update_ind_dof for the dg method.
+void update_ind_dof_dg
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Version of \ref constructor_nnz for the dg method.
+ *  \return See brief. */
+struct Vector_i* constructor_nnz_dg
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
 /** \brief Version of \ref compute_rhs for the dg method.
  *  \return See brief. */
 double compute_rhs_dg

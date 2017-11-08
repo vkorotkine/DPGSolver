@@ -52,7 +52,7 @@ void constructor_derived_Solver_Face (struct Face* face_ptr, const struct Simula
 	const_constructor_move_Multiarray_d(
 		&face->xyz_fc,constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}));        // destructed
 	const_constructor_move_Multiarray_d(
-		&face->normals_fc,constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0}));    // destructed
+		&face->normals_fc,constructor_empty_Multiarray_d('R',2,(ptrdiff_t[]){0,0}));    // destructed
 	const_constructor_move_Multiarray_d(
 		&face->jacobian_det_fc,constructor_empty_Multiarray_d('C',1,(ptrdiff_t[]){0})); // destructed
 }

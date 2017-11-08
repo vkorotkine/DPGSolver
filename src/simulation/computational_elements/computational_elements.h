@@ -46,6 +46,8 @@ void destructor_derived_computational_elements
 
 /** \brief Constructor for a list of derived \ref Element\*s.
  *  \ref Simulation::elements is set to point to the newly created list.
+ *  While POINT elements are included as part of the list, derived POINT elements are not constructed (i.e. only the
+ *  base POINT element can be used).
  */
 void constructor_derived_Elements
 	(struct Simulation* sim, ///< \ref Simulation.

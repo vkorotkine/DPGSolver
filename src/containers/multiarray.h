@@ -180,6 +180,15 @@ ptrdiff_t compute_size
 	 const ptrdiff_t*const extents ///< \ref Multiarray_d::extents.
 	);
 
+/** \brief Check that the orders and extents are equal.
+ *  \return `true` if yes; `false` otherwise. */
+bool check_equal_order_extents
+	(const int order_1,               ///< The 1st order.
+	 const int order_2,               ///< The 2nd order.
+	 const ptrdiff_t*const extents_1, ///< The 1st extents.
+	 const ptrdiff_t*const extents_2  ///< The 2nd extents.
+	);
+
 /** \brief Get pointer to row of row-major \ref Multiarray_d\* of order 2.
  *  \return Pointer to the first entry of the row. */
 double* get_row_Multiarray_d
@@ -219,6 +228,12 @@ void set_Multiarray_Vector_i_i
 	(struct Multiarray_Vector_i* a, ///< Standard.
 	 const int* data_V,             ///< Input data for the Vectors.
 	 const int*const ext_V          ///< Defined in \ref constructor_copy_Multiarray_Vector_i_i.
+	);
+
+/// \brief Set the values of the output \ref Multiarray_d to those of the input \ref Multiarray_d.
+void set_Multiarray_d
+	(struct Multiarray_d* a_o,            ///< Output multiarray.
+	 const struct const_Multiarray_d* a_i ///< Input multiarray.
 	);
 
 /** \brief Sort the data of the \ref Multiarray_Vector_i\*.

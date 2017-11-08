@@ -118,45 +118,39 @@ const struct const_Element* get_element_by_type (const struct const_Intrusive_Li
 	EXIT_ERROR("Could not find the element of type: %d.\n",type);
 }
 
-const struct const_Element* get_element_by_face (const struct const_Element*const element, const int lf)
+int get_face_element_index_by_ind_lf (const struct const_Element*const element, const int lf)
 {
-	int type_to_find = -1;
+	int ind_fe = -1;
 	switch (element->type) {
-	case LINE:
-		type_to_find = POINT;
-		break;
-	case TRI: case QUAD:
-		type_to_find = LINE;
-		break;
-	case TET:
-		type_to_find = TRI;
-		break;
+	case LINE: // fallthrough
+	case TRI:  // fallthrough
+	case QUAD: // fallthrough
+	case TET:  // fallthrough
 	case HEX:
-		type_to_find = QUAD;
+		ind_fe = 0;
 		break;
 	case WEDGE:
 		if (lf < 3)
-			type_to_find = QUAD;
+			ind_fe = 0;
 		else
-			type_to_find = TRI;
+			ind_fe = 1;
 		break;
 	case PYR:
 		if (lf < 4)
-			type_to_find = TRI;
+			ind_fe = 0;
 		else
-			type_to_find = QUAD;
+			ind_fe = 1;
 		break;
 	default:
 		EXIT_UNSUPPORTED;
 		break;
 	}
+	return ind_fe;
+}
 
-	for (const struct Intrusive_Link* curr = (const struct Intrusive_Link*) element; curr; curr = curr->prev) {
-		struct const_Element* element_curr = (struct const_Element*) curr;
-		if (element_curr->type == type_to_find)
-			return element_curr;
-	}
-	EXIT_ERROR("Did not find the pointer to the face element");
+const struct const_Element* get_element_by_face (const struct const_Element*const element, const int lf)
+{
+	return element->face_element[get_face_element_index_by_ind_lf(element,lf)];
 }
 
 bool wedges_present (const struct const_Intrusive_List*const elements)
@@ -413,6 +407,15 @@ void set_face_elements (struct Intrusive_List* elements)
 	}
 }
 
+int get_number_of_face_elements (const struct const_Element*const element)
+{
+	if (element->face_element[0] == NULL)
+		return 0;
+	else if (element->face_element[1] == NULL)
+		return 1;
+	return 2;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -542,10 +545,6 @@ static struct Element* constructor_Element (const int elem_type)
 
 void set_element_present (const int e_type, const struct const_Intrusive_List* elements)
 {
-	// Enable if needed.
-	if (e_type == POINT)
-		return;
-
 	struct Element* element = (struct Element*) get_element_by_type(elements,e_type);
 	element->present = true;
 
@@ -554,7 +553,7 @@ void set_element_present (const int e_type, const struct const_Intrusive_List* e
 		// Do nothing.
 		break;
 	case LINE:
-		set_element_present(POINT,elements); // Enable if needed.
+		set_element_present(POINT,elements);
 		break;
 	case TRI: // fallthrough
 	case QUAD:

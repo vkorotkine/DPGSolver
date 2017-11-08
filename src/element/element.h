@@ -173,4 +173,17 @@ int compute_elem_from_super_type
 	 const int d       ///< \ref Element::d.
 	);
 
+/** \brief Get the number of face element types for the current element.
+ *  \return See brief. */
+int get_number_of_face_elements
+	(const struct const_Element*const element ///< \ref Element.
+	);
+
+/** \brief Get the index of the \ref Element::face_element corresponding to the input local face index.
+ *  \return See brief. */
+int get_face_element_index_by_ind_lf
+	(const struct const_Element*const element, ///< \ref Element.
+	 const int lf                              ///< \ref Face::ind_lf.
+	);
+
 #endif // DPG__element_h__INCLUDED

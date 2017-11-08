@@ -67,6 +67,7 @@ void destructor_derived_Solution_Element (struct Element* element_ptr)
 
 	destructor_Multiarray2_Operator_conditional(element->cv0_vg_ff);
 	destructor_Multiarray2_Operator_conditional(element->cv0_vg_vf);
+	destructor_Multiarray_Operator_conditional(element->vc0_ff_ff);
 }
 
 // Static functions ************************************************************************************************* //
@@ -92,9 +93,9 @@ static void constructor_derived_Solution_Element_std (struct Element* element_pt
 	case METHOD_DPG:
 		e->cv0_vg_ff[0] = constructor_operators2("cv0","vgs","ffA","H_1_P_1PPM1",b_e,sim); // destructed
 		e->cv0_vg_ff[1] = constructor_operators2("cv0","vgc","ffA","H_1_P_PM1",  b_e,sim); // destructed
-
 		e->vv0_vm_ff[0] = constructor_operators2("vv0","vms","ffA","H_1_P_1PPM1",b_e,sim); // destructed
 		e->vv0_vm_ff[1] = constructor_operators2("vv0","vmc","ffA","H_1_P_PM1",  b_e,sim); // destructed
+		e->vc0_ff_ff    = constructor_operators2("vc0","ffA","ffA","H_1_P_PM0",  b_e,sim); // destructed
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);

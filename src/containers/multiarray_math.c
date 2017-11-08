@@ -80,10 +80,10 @@ void normalize_Multiarray_d
 	assert(a->layout == 'R'); // Can be made flexible if necessary.
 	assert(a->order == 2);
 
-	if (store_norms) {
-		const ptrdiff_t n_vals    = a->extents[0],
-		                n_entries = a->extents[1];
+	const ptrdiff_t n_vals    = a->extents[0],
+	                n_entries = a->extents[1];
 
+	if (store_norms) {
 		assert(a_norms->order == 1);
 		resize_Multiarray_d(a_norms,1,&n_vals);
 		double* norm_data = a_norms->data;
@@ -94,9 +94,13 @@ void normalize_Multiarray_d
 				a_row[j] /= norm_data[i];
 		}
 	} else {
-		EXIT_ADD_SUPPORT;
 		double norm_data = 0.0;
-		UNUSED(norm_data);
+		for (ptrdiff_t i = 0; i < n_vals; ++i) {
+			double* a_row = get_row_Multiarray_d(i,a);
+			norm_data = norm_d(n_entries,a_row,norm_type);
+			for (ptrdiff_t j = 0; j < n_entries; ++j)
+				a_row[j] /= norm_data;
+		}
 	}
 }
 
