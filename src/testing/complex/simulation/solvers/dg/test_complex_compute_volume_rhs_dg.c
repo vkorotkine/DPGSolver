@@ -32,7 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "complex_multiarray.h"
 #include "multiarray.h"
 
-#include "compute_volume_rlhs_dg.h"
+#include "compute_volume_rlhs.h"
 #include "intrusive.h"
 #include "multiarray_operator.h"
 #include "simulation.h"
@@ -47,7 +47,7 @@ struct Flux_Ref_c {
 /** \brief See \ref compute_volume_rlhs_dg.c.
  *  \return Standard. */
 static const struct const_Multiarray_c* constructor_sol_vc
-	(struct Volume* volume,       ///< See brief.
+	(struct Solver_Volume* s_vol, ///< See brief.
 	 const struct Simulation* sim ///< See brief.
 	);
 
@@ -71,7 +71,7 @@ static void destructor_Flux_Ref_c
 /// \brief `complex` version of \ref compute_rhs_v_dg.
 static void compute_rhs_v_dg_c
 	(const struct Flux_Ref_c* flux_r, ///< See brief.
-	 struct Volume* volume,           ///< See brief.
+	 struct Solver_Volume* s_vol,     ///< See brief.
 	 const struct Simulation* sim     ///< See brief.
 	);
 
@@ -85,10 +85,9 @@ void compute_volume_rhs_dg_c (const struct Simulation* sim, struct Intrusive_Lis
 	struct Flux_Input_c* flux_i = constructor_Flux_Input_c(sim); // destructed
 
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
-		struct Volume*        vol   = (struct Volume*) curr;
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
 
-		flux_i->s   = constructor_sol_vc(vol,sim);
+		flux_i->s   = constructor_sol_vc(s_vol,sim);
 		flux_i->g   = NULL;
 		flux_i->xyz = NULL;
 
@@ -98,7 +97,7 @@ void compute_volume_rhs_dg_c (const struct Simulation* sim, struct Intrusive_Lis
 		struct Flux_Ref_c* flux_r = constructor_Flux_Ref_c(s_vol->metrics_vc,flux);
 
 		destructor_Flux_c(flux);
-		compute_rhs_v_dg_c(flux_r,vol,sim);
+		compute_rhs_v_dg_c(flux_r,s_vol,sim);
 		destructor_Flux_Ref_c(flux_r);
 	}
 	destructor_Flux_Input_c(flux_i);
@@ -114,13 +113,13 @@ static const struct const_Multiarray_c* constructor_flux_ref_c
 	 const struct const_Multiarray_c* f  ///< See brief.
 	);
 
-static const struct const_Multiarray_c* constructor_sol_vc (struct Volume* volume, const struct Simulation* sim)
+static const struct const_Multiarray_c* constructor_sol_vc (struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
 	UNUSED(sim);
-	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc__rlhs_dg(volume);
+	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc__rlhs(s_vol);
 
-	struct Complex_DG_Solver_Volume* s_volume = (struct Complex_DG_Solver_Volume*) volume;
-	const struct const_Multiarray_c* s_coef = (const struct const_Multiarray_c*) s_volume->sol_coef;
+	struct Complex_DG_Solver_Volume* dg_s_vol = (struct Complex_DG_Solver_Volume*) s_vol;
+	const struct const_Multiarray_c* s_coef = (const struct const_Multiarray_c*) dg_s_vol->sol_coef;
 
 	return constructor_mm_NN1_Operator_const_Multiarray_c(cv0_vs_vc,s_coef,'C','d',s_coef->order,NULL);
 }
@@ -148,14 +147,15 @@ static void destructor_Flux_Ref_c (struct Flux_Ref_c* flux_ref)
 	free(flux_ref);
 }
 
-static void compute_rhs_v_dg_c (const struct Flux_Ref_c* flux_r, struct Volume* volume, const struct Simulation* sim)
+static void compute_rhs_v_dg_c
+	(const struct Flux_Ref_c* flux_r, struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
-	const struct Multiarray_Operator tw1_vs_vc = get_operator__tw1_vs_vc__rlhs_dg(volume);
+	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc__rlhs(s_vol);
 
-	struct Complex_DG_Solver_Volume* dg_s_volume = (struct Complex_DG_Solver_Volume*) volume;
+	struct Complex_DG_Solver_Volume* dg_s_volume = (struct Complex_DG_Solver_Volume*) s_vol;
 	const ptrdiff_t d = sim->d;
 	for (ptrdiff_t dim = 0; dim < d; ++dim)
-		mm_NNC_Operator_Multiarray_c(1.0,1.0,tw1_vs_vc.data[dim],flux_r->fr,dg_s_volume->rhs,'d',2,&dim,NULL);
+		mm_NNC_Operator_Multiarray_c(1.0,1.0,tw1_vt_vc.data[dim],flux_r->fr,dg_s_volume->rhs,'d',2,&dim,NULL);
 }
 
 // Level 1 ********************************************************************************************************** //

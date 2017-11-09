@@ -126,15 +126,16 @@ static struct Needed_Members set_needed_members (const struct Simulation* sim)
 
 static const struct const_Matrix_d* constructor_inverse_mass (const struct DG_Solver_Volume* volume)
 {
-	struct Volume* b_vol        = (struct Volume*) volume;
+	struct Volume* vol          = (struct Volume*) volume;
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) volume;
 
-	struct DG_Solver_Element* e = (struct DG_Solver_Element*) b_vol->element;
+	struct Solver_Element* s_e       = (struct Solver_Element*) vol->element;
+	struct DG_Solver_Element* dg_s_e = (struct DG_Solver_Element*) vol->element;
 
 	const int p      = s_vol->p_ref,
-	          curved = b_vol->curved;
-	const struct Operator* cv0_vs_vc = get_Multiarray_Operator(e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
-	const struct const_Vector_d* w_vc = get_const_Multiarray_Vector_d(e->w_vc[curved],(ptrdiff_t[]){0,0,p,p});
+	          curved = vol->curved;
+	const struct Operator* cv0_vs_vc = get_Multiarray_Operator(s_e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
+	const struct const_Vector_d* w_vc = get_const_Multiarray_Vector_d(dg_s_e->w_vc[curved],(ptrdiff_t[]){0,0,p,p});
 
 	const struct const_Vector_d jacobian_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
 	const struct const_Vector_d* wJ_vc = constructor_dot_mult_const_Vector_d(w_vc,&jacobian_det_vc); // destructed

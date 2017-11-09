@@ -381,6 +381,14 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 	case 'p': // plotting
 		return p_op;
 		break;
+	case 't': // test space
+		const_cast_c(&op_io->kind,'s');
+		const int p_s = compute_p_basis(op_io,sim);
+		const_cast_c(&op_io->kind,'t');
+
+		const int ind_p_t = ( op_sc == 's' ? 0 : 1 );
+		return p_s + sim->p_t_p[ind_p_t];
+		break;
 	} case 'c': // fallthrough
 	default:
 		EXIT_ERROR("Unsupported: %c\n",nodes_kind);
@@ -644,6 +652,11 @@ static void set_operator_solver
 	destructor_const_Nodes(nodes_o);
 
 	if (sim->collocated) {
+		EXIT_ERROR("Ensure that all is working as expected.\n");
+		// Note: Test space is higher degree than solution so efficiency advantages would not be present.
+		if (sim->method == METHOD_DPG)
+			return;
+
 		const struct const_Nodes* nodes_i = constructor_const_Nodes_h(OP_IND_I,op_io,element,sim); // destructed
 		assert(nodes_i->has_weights);
 
@@ -652,7 +665,6 @@ static void set_operator_solver
 			scale_Matrix_by_Vector_d('L',1.0,op_std,nodes_i->w,true);
 		}
 		destructor_const_Nodes(nodes_i);
-		EXIT_ERROR("Ensure that all is working as expected.\n");
 	}
 }
 
@@ -818,7 +830,8 @@ static void set_op_info_p_rel (struct Operator_Info* op_info, const struct Simul
 		switch (kind_i) {
 		case 'g': // fallthrough
 		case 'm': // fallthrough
-		case 's':
+		case 's': // fallthrough
+		case 't':
 			p_rel = sim->p_s_v_p;
 			break;
 		case 'r':
@@ -1009,7 +1022,8 @@ static const struct const_Matrix_d* constructor_cv
 		basis_type = get_basis_i_from_s(sim->basis_geom);
 		break;
 	case 's': // fallthrough
-	case 'f':
+	case 'f': // fallthrough
+	case 't':
 		basis_type = get_basis_i_from_s(sim->basis_sol);
 		break;
 	default:

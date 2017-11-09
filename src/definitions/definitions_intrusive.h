@@ -34,19 +34,18 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name The \ref Element list names.
 #define IL_ELEMENT             100
-/// \todo name change here (ELEMENT first)
-#define IL_GEOMETRY_ELEMENT    101
-#define IL_PLOTTING_ELEMENT    102
-#define IL_SOLUTION_ELEMENT    103
+#define IL_ELEMENT_GEOMETRY    101
+#define IL_ELEMENT_PLOTTING    102
+#define IL_ELEMENT_SOLUTION    103
 #define IL_ELEMENT_ERROR       104
-#define IL_ELEMENT_SOLVER_DG   105
-#define IL_ELEMENT_SOLVER_DPG  106
+#define IL_ELEMENT_SOLVER      105
+#define IL_ELEMENT_SOLVER_DG   106
+#define IL_ELEMENT_SOLVER_DPG  107
 ///\}
 
 ///\{ \name The \ref Volume list names.
 #define IL_VOLUME                    200
-/// \todo name change here (VOLUME first)
-#define IL_SOLVER_VOLUME             210
+#define IL_VOLUME_SOLVER             210
 #define IL_VOLUME_SOLVER_DG          211
 #define IL_VOLUME_SOLVER_DPG         212
 #define IL_VOLUME_SOLVER_DG_COMPLEX  221
@@ -55,8 +54,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name The \ref Face list names.
 #define IL_FACE                     300
-/// \todo name change here (FACE first)
-#define IL_SOLVER_FACE              310
+#define IL_FACE_SOLVER              310
 #define IL_FACE_SOLVER_DG           311
 #define IL_FACE_SOLVER_DPG          312
 #define IL_FACE_SOLVER_DG_COMPLEX   321

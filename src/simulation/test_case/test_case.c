@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <string.h>
 
 #include "macros.h"
+#include "definitions_dpg.h"
 #include "definitions_test_case.h"
 
 #include "const_cast.h"
@@ -84,8 +85,10 @@ void destructor_Test_Case (const struct Test_Case* test_case)
 
 /// Container for input strings which are to be subsequently converted to integer parameters.
 struct Test_Case_String_Inputs {
-	const char num_flux_1st[STRLEN_MIN]; ///< The name of the 1st order numerical flux scheme to be used.
-	const char num_flux_2nd[STRLEN_MIN]; ///< The name of the 2nd order numerical flux scheme to be used.
+	char num_flux_1st[STRLEN_MIN]; ///< The name of the 1st order numerical flux scheme to be used.
+	char num_flux_2nd[STRLEN_MIN]; ///< The name of the 2nd order numerical flux scheme to be used.
+
+	char test_norm[STRLEN_MIN]; ///< The name of the norm to use for the optimal test function computation.
 };
 
 /// \brief Set the string association relating to the \ref Test_Case input parameters.
@@ -174,8 +177,10 @@ static void read_test_case_parameters (struct Test_Case* test_case, const struct
 		if (strstr(line,"solver_type_e")) read_skip_const_i(line,&test_case->solver_type_e);
 		if (strstr(line,"solver_type_i")) read_skip_const_i(line,&test_case->solver_type_i);
 
-		if (strstr(line,"num_flux_1st")) read_skip_const_c_1(line,tcsi.num_flux_1st);
-		if (strstr(line,"num_flux_2nd")) read_skip_const_c_1(line,tcsi.num_flux_2nd);
+		if (strstr(line,"num_flux_1st")) read_skip_c_1(line,tcsi.num_flux_1st);
+		if (strstr(line,"num_flux_2nd")) read_skip_c_1(line,tcsi.num_flux_2nd);
+
+		if (strstr(line,"test_norm")) read_skip_c_1(line,tcsi.test_norm);
 
 		if (strstr(line,"time_final")) read_skip_const_d(line,&test_case->time_final,1,false);
 		if (strstr(line,"time_step"))  read_skip_const_d(line,&test_case->dt,1,false);
@@ -207,4 +212,10 @@ static void set_string_associations_test_case (struct Test_Case* test_case, cons
 		const_cast_i(&test_case->ind_num_flux[1],NUM_FLUX_BR2);
 	else
 		const_cast_i(&test_case->ind_num_flux[1],NUM_FLUX_INVALID);
+
+	// test_norm
+	if (strcmp(tcsi->test_norm,"H1_semi_upwind") == 0)
+		const_cast_i(&test_case->ind_test_norm,TEST_NORM_H1_SEMI_UPWIND);
+	else
+		const_cast_i(&test_case->ind_test_norm,TEST_NORM_INVALID);
 }

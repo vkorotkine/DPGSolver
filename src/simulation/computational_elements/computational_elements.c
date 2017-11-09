@@ -40,6 +40,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element_plotting.h"
 #include "element_solution.h"
 #include "element_error.h"
+#include "element_solver.h"
 #include "element_solver_dg.h"
 #include "element_solver_dpg.h"
 
@@ -142,7 +143,8 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 /** \brief Return a stack-allocated \ref Derived_Elements_Info container for \ref constructor_derived_Elements.
  *  \return See brief. */
 static struct Derived_Elements_Info get_c_Derived_Elements_Info
-	(const int derived_name ///< Defined for \ref constructor_derived_Elements.
+	(const int derived_name,      ///< Defined for \ref constructor_derived_Elements.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /** \brief Return a stack-allocated \ref Derived_Elements_Info container for \ref destructor_derived_Elements.
@@ -289,7 +291,7 @@ void destructor_derived_computational_elements (struct Simulation* sim, const in
 
 void constructor_derived_Elements (struct Simulation* sim, const int derived_name)
 {
-	struct Derived_Elements_Info de_i = get_c_Derived_Elements_Info(derived_name);
+	struct Derived_Elements_Info de_i = get_c_Derived_Elements_Info(derived_name,sim);
 
 	const struct const_Intrusive_List* base = sim->elements;
 
@@ -380,8 +382,8 @@ static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
 	case IL_SOLVER:
 		assert(sim->volumes->name == IL_VOLUME);
 		assert(sim->faces->name   == IL_FACE);
-		de_info.list_name[0] = IL_SOLVER_VOLUME;
-		de_info.list_name[1] = IL_SOLVER_FACE;
+		de_info.list_name[0] = IL_VOLUME_SOLVER;
+		de_info.list_name[1] = IL_FACE_SOLVER;
 		de_info.sizeof_base[0] = sizeof(struct Volume);
 		de_info.sizeof_base[1] = sizeof(struct Face);
 		de_info.sizeof_derived[0] = sizeof(struct Solver_Volume);
@@ -390,8 +392,8 @@ static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
 		de_info.constructor_derived_Face   = constructor_derived_Solver_Face;
 		break;
 	case IL_SOLVER_DG:
-		assert(sim->volumes->name == IL_SOLVER_VOLUME);
-		assert(sim->faces->name   == IL_SOLVER_FACE);
+		assert(sim->volumes->name == IL_VOLUME_SOLVER);
+		assert(sim->faces->name   == IL_FACE_SOLVER);
 		de_info.list_name[0] = IL_VOLUME_SOLVER_DG;
 		de_info.list_name[1] = IL_FACE_SOLVER_DG;
 		de_info.sizeof_base[0] = sizeof(struct Solver_Volume);
@@ -402,8 +404,8 @@ static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
 		de_info.constructor_derived_Face   = constructor_derived_DG_Solver_Face;
 		break;
 	case IL_SOLVER_DPG:
-		assert(sim->volumes->name == IL_SOLVER_VOLUME);
-		assert(sim->faces->name   == IL_SOLVER_FACE);
+		assert(sim->volumes->name == IL_VOLUME_SOLVER);
+		assert(sim->faces->name   == IL_FACE_SOLVER);
 		de_info.list_name[0] = IL_VOLUME_SOLVER_DPG;
 		de_info.list_name[1] = IL_FACE_SOLVER_DPG;
 		de_info.sizeof_base[0] = sizeof(struct Solver_Volume);
@@ -445,8 +447,8 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 		de_info.sizeof_base[1] = sizeof(struct Face);
 		break;
 	case IL_SOLVER:
-		de_info.list_name[0] = IL_SOLVER_VOLUME;
-		de_info.list_name[1] = IL_SOLVER_FACE;
+		de_info.list_name[0] = IL_VOLUME_SOLVER;
+		de_info.list_name[1] = IL_FACE_SOLVER;
 		de_info.sizeof_base[0] = sizeof(struct Solver_Volume);
 		de_info.sizeof_base[1] = sizeof(struct Solver_Face);
 		break;
@@ -490,44 +492,50 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 	return de_info;
 }
 
-static struct Derived_Elements_Info get_c_Derived_Elements_Info (const int derived_name)
+static struct Derived_Elements_Info get_c_Derived_Elements_Info (const int derived_name, const struct Simulation* sim)
 {
 	struct Derived_Elements_Info de_info;
 
-/// \todo Delete `const` versions of elements which are not required.
 	switch (derived_name) {
-	case IL_GEOMETRY_ELEMENT:
-		assert(sizeof(struct Geometry_Element) == sizeof(struct const_Geometry_Element));
+	case IL_ELEMENT_GEOMETRY:
+		assert(sim->elements->name == IL_ELEMENT);
 		de_info.sizeof_base    = sizeof(struct Element);
 		de_info.sizeof_derived = sizeof(struct Geometry_Element);
 		de_info.constructor_derived_Element = constructor_derived_Geometry_Element;
 		break;
-	case IL_PLOTTING_ELEMENT:
-		assert(sizeof(struct Plotting_Element) == sizeof(struct const_Plotting_Element));
+	case IL_ELEMENT_PLOTTING:
+		assert(sim->elements->name == IL_ELEMENT);
 		de_info.sizeof_base    = sizeof(struct Element);
 		de_info.sizeof_derived = sizeof(struct Plotting_Element);
 		de_info.constructor_derived_Element = constructor_derived_Plotting_Element;
 		break;
-	case IL_SOLUTION_ELEMENT:
+	case IL_ELEMENT_SOLUTION:
+		assert(sim->elements->name == IL_ELEMENT);
 		de_info.sizeof_base    = sizeof(struct Element);
 		de_info.sizeof_derived = sizeof(struct Solution_Element);
 		de_info.constructor_derived_Element = constructor_derived_Solution_Element;
 		break;
 	case IL_ELEMENT_ERROR:
-		assert(sizeof(struct Error_Element) == sizeof(struct const_Error_Element));
+		assert(sim->elements->name == IL_ELEMENT_SOLUTION);
 		de_info.sizeof_base    = sizeof(struct Solution_Element);
 		de_info.sizeof_derived = sizeof(struct Error_Element);
 		de_info.constructor_derived_Element = constructor_derived_Error_Element;
 		break;
-	case IL_ELEMENT_SOLVER_DG:
-		assert(sizeof(struct DG_Solver_Element) == sizeof(struct const_DG_Solver_Element));
+	case IL_ELEMENT_SOLVER:
+		assert(sim->elements->name == IL_ELEMENT);
 		de_info.sizeof_base    = sizeof(struct Element);
+		de_info.sizeof_derived = sizeof(struct Solver_Element);
+		de_info.constructor_derived_Element = constructor_derived_Solver_Element;
+		break;
+	case IL_ELEMENT_SOLVER_DG:
+		assert(sim->elements->name == IL_ELEMENT_SOLVER);
+		de_info.sizeof_base    = sizeof(struct Solver_Element);
 		de_info.sizeof_derived = sizeof(struct DG_Solver_Element);
 		de_info.constructor_derived_Element = constructor_derived_DG_Solver_Element;
 		break;
 	case IL_ELEMENT_SOLVER_DPG:
-		assert(sizeof(struct DPG_Solver_Element) == sizeof(struct const_DPG_Solver_Element));
-		de_info.sizeof_base    = sizeof(struct Element);
+		assert(sim->elements->name == IL_ELEMENT_SOLVER);
+		de_info.sizeof_base    = sizeof(struct Solver_Element);
 		de_info.sizeof_derived = sizeof(struct DPG_Solver_Element);
 		de_info.constructor_derived_Element = constructor_derived_DPG_Solver_Element;
 		break;
@@ -546,8 +554,11 @@ static struct Derived_Elements_Info get_d_Derived_Elements_Info (const int base_
 	case IL_ELEMENT:
 		de_info.sizeof_base = sizeof(struct Element);
 		break;
-	case IL_SOLUTION_ELEMENT:
+	case IL_ELEMENT_SOLUTION:
 		de_info.sizeof_base = sizeof(struct Solution_Element);
+		break;
+	case IL_ELEMENT_SOLVER:
+		de_info.sizeof_base = sizeof(struct Solver_Element);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",base_name);
@@ -555,25 +566,33 @@ static struct Derived_Elements_Info get_d_Derived_Elements_Info (const int base_
 	}
 
 	switch (derived_name) {
-	case IL_GEOMETRY_ELEMENT:
+	case IL_ELEMENT_GEOMETRY:
 		assert(base_name == IL_ELEMENT);
 		de_info.destructor_derived_Element = destructor_derived_Geometry_Element;
 		break;
-	case IL_PLOTTING_ELEMENT:
+	case IL_ELEMENT_PLOTTING:
 		assert(base_name == IL_ELEMENT);
 		de_info.destructor_derived_Element = destructor_derived_Plotting_Element;
 		break;
-	case IL_SOLUTION_ELEMENT:
+	case IL_ELEMENT_SOLUTION:
 		assert(base_name == IL_ELEMENT);
 		de_info.destructor_derived_Element = destructor_derived_Solution_Element;
 		break;
 	case IL_ELEMENT_ERROR:
-		assert(base_name == IL_SOLUTION_ELEMENT);
+		assert(base_name == IL_ELEMENT_SOLUTION);
 		de_info.destructor_derived_Element = destructor_derived_Error_Element;
 		break;
-	case IL_ELEMENT_SOLVER_DG:
+	case IL_ELEMENT_SOLVER:
 		assert(base_name == IL_ELEMENT);
+		de_info.destructor_derived_Element = destructor_derived_Solver_Element;
+		break;
+	case IL_ELEMENT_SOLVER_DG:
+		assert(base_name == IL_ELEMENT_SOLVER);
 		de_info.destructor_derived_Element = destructor_derived_DG_Solver_Element;
+		break;
+	case IL_ELEMENT_SOLVER_DPG:
+		assert(base_name == IL_ELEMENT_SOLVER);
+		de_info.destructor_derived_Element = destructor_derived_DPG_Solver_Element;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_name);
@@ -651,8 +670,8 @@ static int get_list_category (const struct Simulation* sim)
 
 	int ce_name = -1;
 	switch (v_name) {
-	case IL_SOLVER_VOLUME:
-		assert(f_name == IL_SOLVER_FACE);
+	case IL_VOLUME_SOLVER:
+		assert(f_name == IL_FACE_SOLVER);
 		ce_name = IL_SOLVER;
 		break;
 	case IL_VOLUME_SOLVER_DG:

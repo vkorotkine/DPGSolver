@@ -150,6 +150,7 @@ void compute_face_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_I
 
 const struct Operator* get_operator__tw0_vs_fc__rlhs_dg (const int side_index, struct Face* face)
 {
+/// \todo Make the input the most derived type (DG_Solver_Face).
 	struct Solver_Face* s_face = (struct Solver_Face*) face;
 	struct Volume* vol         = (struct Volume*) face->neigh_info[side_index].volume;
 
@@ -354,8 +355,8 @@ static void finalize_face_lhs
 	struct Solver_Volume* s_vol[2] = { (struct Solver_Volume*) vol[0],
 	                                   (struct Solver_Volume*) vol[1], };
 
-	const struct const_DG_Solver_Element* e[2] = { (struct const_DG_Solver_Element*) vol[0]->element,
-	                                               (struct const_DG_Solver_Element*) vol[1]->element, };
+	const struct DG_Solver_Element* e[2] = { (struct DG_Solver_Element*) vol[0]->element,
+	                                         (struct DG_Solver_Element*) vol[1]->element, };
 
 	const int ind_lf[2]   = { face->neigh_info[side_index[0]].ind_lf,   face->neigh_info[side_index[1]].ind_lf, },
 	          ind_href[2] = { face->neigh_info[side_index[0]].ind_href, face->neigh_info[side_index[1]].ind_href, };

@@ -117,10 +117,10 @@ static void compute_normals
 
 void set_up_solver_geometry (struct Simulation* sim)
 {
-	assert(sim->volumes->name == IL_SOLVER_VOLUME);
-	assert(sim->faces->name   == IL_SOLVER_FACE);
+	assert(sim->volumes->name == IL_VOLUME_SOLVER);
+	assert(sim->faces->name   == IL_FACE_SOLVER);
 
-	constructor_derived_Elements(sim,IL_GEOMETRY_ELEMENT);
+	constructor_derived_Elements(sim,IL_ELEMENT_GEOMETRY);
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
 		compute_geometry_volume(sim,(struct Solver_Volume*) curr);
@@ -196,7 +196,7 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 	const char op_format = 'd';
 
 	struct Volume* base_volume = (struct Volume*) volume;
-	struct const_Geometry_Element* element = (struct const_Geometry_Element*) base_volume->element;
+	const struct Geometry_Element* element = (struct Geometry_Element*) base_volume->element;
 
 	compute_geom_coef_fptr compute_geom_coef = set_fptr_geom_coef(sim->domain_type,base_volume->curved);
 	compute_geom_coef(sim,volume);
@@ -263,7 +263,7 @@ static void compute_geometry_face (struct Simulation *sim, struct Solver_Face* f
 	struct Volume* base_volume = base_face->neigh_info[0].volume;
 	struct Solver_Volume* volume = (struct Solver_Volume*) base_volume;
 
-	struct const_Geometry_Element* element = (struct const_Geometry_Element*) base_volume->element;
+	const struct Geometry_Element* element = (struct Geometry_Element*) base_volume->element;
 	struct const_Element* base_element     = (struct const_Element*) element;
 
 	struct Ops {
@@ -524,7 +524,7 @@ static void compute_geom_coef_curved (const struct Simulation*const sim, struct 
 {
 	UNUSED(sim);
 	struct Volume* base_volume = (struct Volume*) volume;
-	struct const_Geometry_Element* element = (struct const_Geometry_Element*) base_volume->element;
+	const struct Geometry_Element* element = (struct Geometry_Element*) base_volume->element;
 
 	const int p = volume->p_ref;
 

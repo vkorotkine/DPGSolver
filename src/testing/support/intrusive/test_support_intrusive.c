@@ -101,7 +101,7 @@ void constructor_file_name_derived_Faces (struct Intrusive_List* faces, const ch
 				EXIT_ERROR("Already found the last face.");
 
 			switch (list_name) {
-			case IL_SOLVER_FACE:
+			case IL_FACE_SOLVER:
 				constructor_file_Solver_Face(file,line,face);
 				break;
 			default:

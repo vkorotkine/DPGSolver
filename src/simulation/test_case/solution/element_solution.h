@@ -27,7 +27,7 @@ struct Simulation;
 
 /// \brief Container for data relating to the solution elements.
 struct Solution_Element {
-	struct const_Element element; ///< Base \ref const_Element.
+	const struct const_Element element; ///< Base \ref const_Element.
 
 	const struct Multiarray_Operator* cv0_vg_vs[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vg_vc[2]; ///< See notation in \ref element_operators.h.

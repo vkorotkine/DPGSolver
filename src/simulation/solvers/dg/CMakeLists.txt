@@ -18,6 +18,7 @@ set	(LIBS_DEPEND
 	 Element
 	 Flux
 	 Numerical_Flux
+	 Solvers
 	)
 
 set (LIB Solver_DG)

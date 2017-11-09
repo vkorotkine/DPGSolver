@@ -171,6 +171,7 @@ void test_integration_linearization (struct Test_Info*const test_info, const cha
 	f_ptrs_data->perturb_solution(sim);
 
 	sim->test_case->solver_method_curr = 'i';
+	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER);         // destructed
 	constructor_derived_Elements(sim,f_ptrs_data->derived_elem); // destructed
 
 	struct Solver_Storage_Implicit* ssi[2] = { constructor_Solver_Storage_Implicit(sim),
@@ -192,6 +193,7 @@ void test_integration_linearization (struct Test_Info*const test_info, const cha
 	for (int i = 0; i < 2; ++i)
 		destructor_Solver_Storage_Implicit(ssi[i]);
 
+	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
 	destructor_derived_Elements(sim,IL_ELEMENT);
 
 	destructor_derived_computational_elements(sim,IL_BASE);

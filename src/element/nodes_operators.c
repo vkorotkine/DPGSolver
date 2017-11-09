@@ -248,8 +248,9 @@ static int compute_node_type
 	switch (op_io->kind) {
 	case 's': // fallthrough
 	case 'f': // fallthrough
+	case 't': // fallthrough
 	case 'g': // fallthrough
-	case 'm': // fallthrough
+	case 'm':
 		return compute_node_type_std(op_io,element,sim);
 		break;
 	case 'p':
@@ -290,6 +291,7 @@ static int compute_p_nodes (const struct Op_IO* op_io, const int node_type, cons
 	switch (node_kind) {
 	case 's': // fallthrough
 	case 'f': // fallthrough
+	case 't': // fallthrough
 	case 'g': // fallthrough
 	case 'm': // fallthrough
 	case 'p':
@@ -393,7 +395,8 @@ static int compute_node_type_std
 	const int s_type = element->s_type;
 	switch (node_kind) {
 	case 's': // fallthrough
-	case 'f':
+	case 'f': // fallthrough
+	case 't':
 		if (strcmp(sim->nodes_interp[s_type],"GL") == 0)
 			return NODES_GL;
 		else if (strcmp(sim->nodes_interp[s_type],"GLL") == 0)

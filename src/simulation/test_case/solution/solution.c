@@ -66,10 +66,10 @@ const struct const_Multiarray_d* constructor_const_sol_invalid
 
 void set_initial_solution (struct Simulation* sim)
 {
-	assert(sim->volumes->name == IL_SOLVER_VOLUME);
-	assert(sim->faces->name   == IL_SOLVER_FACE);
+	assert(sim->volumes->name == IL_VOLUME_SOLVER);
+	assert(sim->faces->name   == IL_FACE_SOLVER);
 
-	constructor_derived_Elements(sim,IL_SOLUTION_ELEMENT);
+	constructor_derived_Elements(sim,IL_ELEMENT_SOLUTION);
 
 	switch (sim->method) {
 	case METHOD_DG:

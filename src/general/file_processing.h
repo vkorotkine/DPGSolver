@@ -129,10 +129,16 @@ void read_skip_const_i
 	 const int*const var    ///< Defined for \ref read_skip_i.
 	);
 
-/// \brief Read a `const char*`, skipping the first string.
-void read_skip_const_c_1
+/// \brief Read a `char*`, skipping the first string.
+void read_skip_c_1
 	(const char*const line, ///< Line from which to read data.
-	 const char*const var   ///< Variable in which to store data.
+	 char*const var         ///< Variable in which to store data.
+	);
+
+/// \brief `const` version of \ref read_skip_c_1.
+void read_skip_const_c_1
+	(const char*const line, ///< See brief.
+	 const char*const var   ///< See brief.
 	);
 
 /// \brief Read a `const bool`, skipping the first string.

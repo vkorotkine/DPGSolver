@@ -62,10 +62,10 @@ static void output_visualization_paraview
 
 void output_visualization (struct Simulation* sim, const int vis_type)
 {
-	assert(sim->volumes->name == IL_SOLVER_VOLUME);
-	assert(sim->faces->name   == IL_SOLVER_FACE);
+	assert(sim->volumes->name == IL_VOLUME_SOLVER);
+	assert(sim->faces->name   == IL_FACE_SOLVER);
 
-	constructor_derived_Elements(sim,IL_PLOTTING_ELEMENT);
+	constructor_derived_Elements(sim,IL_ELEMENT_PLOTTING);
 
 	output_visualization_paraview(sim,vis_type);
 
@@ -172,7 +172,7 @@ static void fprint_vtk_piece_sol
 static void output_visualization_vtk_geom
 	(const char geom_type, const struct Simulation* sim, const bool use_test_case_path)
 {
-	assert(sim->elements->name == IL_PLOTTING_ELEMENT);
+	assert(sim->elements->name == IL_ELEMENT_PLOTTING);
 
 	static char output_part[STRLEN_MAX] = { 0, };
 	if (!use_test_case_path) {
@@ -208,7 +208,7 @@ static void output_visualization_vtk_geom
 		struct Volume* base_volume   = (struct Volume*)curr;
 		struct Solver_Volume* volume = (struct Solver_Volume*)curr;
 
-		const struct const_Plotting_Element* element = (const struct const_Plotting_Element*)base_volume->element;
+		const struct const_Plotting_Element* element = (struct const_Plotting_Element*)base_volume->element;
 
 		const int p = volume->p_ref;
 		const struct Operator* cv0_vg_vp =
@@ -266,7 +266,7 @@ static void output_visualization_vtk_normals (const struct Simulation* sim)
 
 static void output_visualization_vtk_sol (const struct Simulation* sim)
 {
-	assert(sim->elements->name == IL_PLOTTING_ELEMENT);
+	assert(sim->elements->name == IL_ELEMENT_PLOTTING);
 
 	static char output_part[STRLEN_MAX] = { 0, };
 	sprintf(output_part,"%s%c%s%c%s%s",
@@ -298,7 +298,7 @@ static void output_visualization_vtk_sol (const struct Simulation* sim)
 		struct Volume* base_volume   = (struct Volume*)curr;
 		struct Solver_Volume* volume = (struct Solver_Volume*)curr;
 
-		const struct const_Plotting_Element* element = (const struct const_Plotting_Element*)base_volume->element;
+		const struct const_Plotting_Element* element = (struct const_Plotting_Element*)base_volume->element;
 
 		const int p = volume->p_ref;
 		const struct Operator* cv0_vg_vp =

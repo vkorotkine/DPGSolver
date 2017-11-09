@@ -3,6 +3,8 @@ add_subdirectory(dpg)
 add_subdirectory(numerical_flux)
 
 set	(SOURCE
+	 compute_volume_rlhs.c
+	 element_solver.c
 	 face_solver.c
 	 solve.c
 	 solve_explicit.c

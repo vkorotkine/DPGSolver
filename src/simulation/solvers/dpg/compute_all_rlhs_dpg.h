@@ -13,26 +13,21 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__compute_volume_rlhs_dg_h__INCLUDED
-#define DPG__compute_volume_rlhs_dg_h__INCLUDED
+#ifndef DPG__compute_all_rlhs_dpg_h__INCLUDED
+#define DPG__compute_all_rlhs_dpg_h__INCLUDED
 /** \file
- *  \brief Provides functions used for computing the volume contributions to the right and left-hand side (rlhs) terms
- *         of the DG scheme.
+ *  \brief Provides functions used for all contributions to the right and left-hand side (rlhs) terms of the DPG
+ *         scheme.
  */
 
 struct Simulation;
 struct Solver_Storage_Implicit;
 struct Volume;
 
-/** \brief Compute the volume contributions to the rhs (and optionally lhs) terms for the DG scheme.
- *
- *  \todo update this list when complete.
- *  Computes:
- *  - \ref DG_Solver_Volume::rhs.
- */
-void compute_volume_rlhs_dg
-	(const struct Simulation* sim,             ///< \ref Simulation.
-	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+/// \brief Compute all contributions to the rhs and lhs terms for the DPG scheme.
+void compute_all_rlhs_dpg
+	(const struct Simulation* sim,       ///< \ref Simulation.
+	 struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
 	);
 
-#endif // DPG__compute_volume_rlhs_dg_h__INCLUDED
+#endif // DPG__compute_all_rlhs_dpg_h__INCLUDED

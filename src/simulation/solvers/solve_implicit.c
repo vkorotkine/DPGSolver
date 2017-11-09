@@ -201,6 +201,7 @@ static bool check_pde_linear
 
 static void constructor_derived_elements_comp_elements (struct Simulation* sim)
 {
+	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER); // destructed
 	switch (sim->method) {
 	case METHOD_DG:
 		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
@@ -219,6 +220,7 @@ static void constructor_derived_elements_comp_elements (struct Simulation* sim)
 static void destructor_derived_elements_comp_elements (struct Simulation* sim)
 {
 	destructor_derived_computational_elements(sim,IL_SOLVER);
+	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
 	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
@@ -286,7 +288,8 @@ static struct Vector_i* constructor_nnz (const struct Simulation* sim)
 {
 	struct Vector_i* nnz = NULL;
 	switch (sim->method) {
-	case METHOD_DG: nnz = constructor_nnz_dg(sim); break;
+	case METHOD_DG:  nnz = constructor_nnz_dg(sim);  break;
+	case METHOD_DPG: nnz = constructor_nnz_dpg(sim); break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;

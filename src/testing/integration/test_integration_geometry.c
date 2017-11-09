@@ -99,7 +99,7 @@ static bool compare_members_geom (struct Test_Info*const test_info, const struct
 
 	struct Geom_Test_Data* geom_test_data = constructor_Geom_Test_Data(sim); // destructed
 
-	assert(sim->faces->name == IL_SOLVER_FACE);
+	assert(sim->faces->name == IL_FACE_SOLVER);
 
 	for (const struct Intrusive_Link* curr = sim->faces->first, *curr_test = geom_test_data->faces->first;
 	     curr || curr_test;
@@ -140,7 +140,7 @@ static struct Geom_Test_Data* constructor_Geom_Test_Data (const struct Simulatio
 	const size_t sizeof_base    = sizeof(struct Face),
 	             sizeof_derived = sizeof(struct Solver_Face);
 
-	struct Intrusive_List* faces = constructor_empty_IL(IL_SOLVER_FACE,b_faces); // moved
+	struct Intrusive_List* faces = constructor_empty_IL(IL_FACE_SOLVER,b_faces); // moved
 	for (struct Intrusive_Link* curr = b_faces->first; curr; curr = curr->next)
 		push_back_IL(faces,constructor_derived_Intrusive_Link(curr,sizeof_base,sizeof_derived));
 

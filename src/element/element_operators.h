@@ -25,8 +25,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- cc: coefficients to coefficients
  *  	- vv: values       to values
  *  	- vc: values       to coefficients
- *  	- tw: 't'est functions with 'w'eights.
- *  \note For collocated schemes, `tw` operators also include premultiplication by the inverse weights.
+ *  	- sw: 's'olver operator with 'w'eights.
+ *  \note For collocated schemes, `sw` operators also include premultiplication by the inverse weights.
  *  - [0]:   value for the order of differentiation (0 for no differentiation).
  *  - [1/4]: character denoting the type of computational element (ce):
  *  	- 'v'olume
@@ -41,7 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- 's'olution
  *  	- 'f'lux
  *  	- 'r': g'r'adient
- *  	- 't'race
+ *  	- 't'est
  *  - (3/6): character denoting whether the basis/nodes is meant to be used for straight or curved elements (sc):
  *  	- 's'traight
  *  	- 'c'urved

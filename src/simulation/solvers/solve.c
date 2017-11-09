@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_case.h"
 
 #include "solve_dg.h"
+#include "solve_dpg.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -58,8 +59,8 @@ static ptrdiff_t compute_dof_faces
 
 void solve_for_solution (struct Simulation* sim)
 {
-	assert(sim->volumes->name == IL_SOLVER_VOLUME);
-	assert(sim->faces->name   == IL_SOLVER_FACE);
+	assert(sim->volumes->name == IL_VOLUME_SOLVER);
+	assert(sim->faces->name   == IL_FACE_SOLVER);
 
 	set_up_solver_geometry(sim);
 	set_initial_solution(sim);
@@ -104,8 +105,9 @@ double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implici
 	double max_rhs = 0.0;
 
 	switch (sim->method) {
-		case METHOD_DG: max_rhs = compute_rlhs_dg(sim,s_store_i);    break;
-		default:        EXIT_ERROR("Unsupported: %d\n",sim->method); break;
+		case METHOD_DG:  max_rhs = compute_rlhs_dg(sim,s_store_i);    break;
+		case METHOD_DPG: max_rhs = compute_rlhs_dpg(sim,s_store_i);   break;
+		default:         EXIT_ERROR("Unsupported: %d\n",sim->method); break;
 	}
 
 	return max_rhs;

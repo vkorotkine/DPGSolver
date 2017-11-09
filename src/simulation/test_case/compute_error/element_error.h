@@ -32,13 +32,6 @@ struct Error_Element {
 	const struct const_Multiarray_Vector_d* w_vc[2]; ///< Weights for 'v'olume 'c'ubature 's'traight/'c'urved.
 };
 
-/// \brief `const` version of the \ref Error_Element container.
-struct const_Error_Element {
-	const struct Solution_Element element; ///< Defined in \ref Error_Element.
-
-	const struct const_Multiarray_Vector_d*const w_vc[2]; ///< Defined in \ref Error_Element.
-};
-
 // Constructor/Destructor functions ********************************************************************************* //
 
 /// \brief Constructor for a derived \ref Error_Element.

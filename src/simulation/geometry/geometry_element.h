@@ -27,7 +27,7 @@ struct Simulation;
 
 /// \brief Container for data relating to the geometry elements.
 struct Geometry_Element {
-	struct const_Element element; ///< Base \ref const_Element.
+	const struct const_Element element; ///< Base \ref const_Element.
 
 	const struct Multiarray_Operator* vc0_vgc_vgc; ///< See notation in \ref element_operators.h.
 
@@ -48,31 +48,6 @@ struct Geometry_Element {
 	const struct Multiarray_Operator* cv0_vgc_vcs; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vms_vcc; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vmc_vcs; ///< See notation in \ref element_operators.h.
-};
-
-/// \brief `const` version of the \ref Geometry_Element container.
-struct const_Geometry_Element {
-	const struct const_Element element; ///< Defined in \ref Geometry_Element.
-
-	const struct Multiarray_Operator*const vc0_vgc_vgc; ///< Defined in \ref Geometry_Element.
-
-	const struct Multiarray_Operator*const cv1_vg_vc[2]; ///< Defined in \ref Geometry_Element.
-	const struct Multiarray_Operator*const cv1_vg_vm[2]; ///< Defined in \ref Geometry_Element.
-	const struct Multiarray_Operator*const vv0_vm_vc[2]; ///< Defined in \ref Geometry_Element.
-
-	const struct Multiarray_Operator*const cv0_vgs_fc[2]; ///< Defined in \ref Geometry_Element.
-	const struct Multiarray_Operator*const cv0_vgc_fc[2]; ///< Defined in \ref Geometry_Element.
-	const struct Multiarray_Operator*const vv0_vms_fc[2]; ///< Defined in \ref Geometry_Element.
-	const struct Multiarray_Operator*const vv0_vmc_fc[2]; ///< Defined in \ref Geometry_Element.
-
-	// Tensor-product sub-operators.
-	const struct Multiarray_Operator*const cv0_vg_vc[2]; ///< Defined in \ref Geometry_Element.
-	const struct Multiarray_Operator*const cv0_vg_vm[2]; ///< Defined in \ref Geometry_Element.
-
-	const struct Multiarray_Operator*const cv0_vgs_vcc; ///< Defined in \ref Geometry_Element.
-	const struct Multiarray_Operator*const cv0_vgc_vcs; ///< Defined in \ref Geometry_Element.
-	const struct Multiarray_Operator*const vv0_vms_vcc; ///< Defined in \ref Geometry_Element.
-	const struct Multiarray_Operator*const vv0_vmc_vcs; ///< Defined in \ref Geometry_Element.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

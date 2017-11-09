@@ -92,10 +92,10 @@ static void set_Solver_Volume_exact
 
 void output_error (const struct Simulation* sim)
 {
-	assert(sim->volumes->name == IL_SOLVER_VOLUME);
-	assert(sim->faces->name   == IL_SOLVER_FACE);
+	assert(sim->volumes->name == IL_VOLUME_SOLVER);
+	assert(sim->faces->name   == IL_FACE_SOLVER);
 
-	constructor_derived_Elements((struct Simulation*)sim,IL_SOLUTION_ELEMENT);
+	constructor_derived_Elements((struct Simulation*)sim,IL_ELEMENT_SOLUTION);
 	constructor_derived_Elements((struct Simulation*)sim,IL_ELEMENT_ERROR);
 
 	struct Error_CE* error_ce = sim->test_case->constructor_Error_CE(sim);
@@ -105,7 +105,7 @@ void output_error (const struct Simulation* sim)
 
 	destructor_Error_CE(error_ce);
 
-	destructor_derived_Elements((struct Simulation*)sim,IL_SOLUTION_ELEMENT);
+	destructor_derived_Elements((struct Simulation*)sim,IL_ELEMENT_SOLUTION);
 	destructor_derived_Elements((struct Simulation*)sim,IL_ELEMENT);
 }
 

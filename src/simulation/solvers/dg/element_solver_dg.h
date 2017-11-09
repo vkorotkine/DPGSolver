@@ -21,17 +21,15 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \note `const` and non-`const` versions of \ref DG_Solver_Element must have identical members and layout.
  */
 
-#include "element.h"
+#include "element_solver.h"
 
 struct Simulation;
 
 /// \brief Container for data relating to the dg solver element.
 struct DG_Solver_Element {
-	struct const_Element element; ///< Base \ref const_Element.
+	const struct Solver_Element element; ///< Base \ref Solver_Element.
 
 	// Volume rlhs
-	const struct Multiarray_Operator* cv0_vs_vc[2]; ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* tw1_vs_vc[2]; ///< See notation in \ref element_operators.h.
 
 	// Face rlhs
 	const struct Multiarray_Operator* cv0_vs_fc[2];   ///< See notation in \ref element_operators.h.
@@ -43,26 +41,6 @@ struct DG_Solver_Element {
 
 	// Explicit rhs
 	const struct const_Multiarray_Vector_d* w_vc[2]; ///< Weights for 'v'olume 'c'ubature.
-};
-
-/// \brief `const` version of the \ref DG_Solver_Element container.
-struct const_DG_Solver_Element {
-	const struct const_Element element; ///< Defined in \ref DG_Solver_Element.
-
-	// Volume rlhs
-	const struct Multiarray_Operator*const cv0_vs_vc[2]; ///< Defined in \ref DG_Solver_Element.
-	const struct Multiarray_Operator*const tw1_vs_vc[2]; ///< Defined in \ref DG_Solver_Element.
-
-	// Face rlhs
-	const struct Multiarray_Operator*const cv0_vs_fc[2];   ///< Defined in \ref DG_Solver_Element.
-	const struct const_Multiarray_Vector_i*const nc_fc[2]; ///< Defined in \ref DG_Solver_Element.
-	const struct Multiarray_Operator*const tw0_vs_fc[2];   ///< Defined in \ref DG_Solver_Element.
-
-	// Source rhs
-	const struct Multiarray_Operator*const tw0_vs_vc[2]; ///< Defined in \ref DG_Solver_Element.
-
-	// Explicit rhs
-	const struct const_Multiarray_Vector_d*const w_vc[2]; ///< Defined in \ref DG_Solver_Element.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

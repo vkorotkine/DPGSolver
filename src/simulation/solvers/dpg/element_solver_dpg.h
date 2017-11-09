@@ -21,18 +21,13 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \note `const` and non-`const` versions must have identical members and layout.
  */
 
-#include "element.h"
+#include "element_solver.h"
 
 struct Simulation;
 
 /// \brief Container for data relating to the dpg solver element.
 struct DPG_Solver_Element {
-	struct const_Element element; ///< Base \ref const_Element.
-};
-
-/// \brief `const` version of the \ref DPG_Solver_Element container.
-struct const_DPG_Solver_Element {
-	const struct const_Element element; ///< See brief.
+	const struct Solver_Element element; ///< Base \ref Solver_Element.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

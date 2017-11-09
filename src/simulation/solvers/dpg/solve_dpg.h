@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 struct Simulation;
+struct Solver_Storage_Implicit;
 
 /// \brief Update \ref Solver_Volume::ind_dof and \ref Solver_Face::ind_dof for the dg method.
 void update_ind_dof_dpg
@@ -31,6 +32,13 @@ void update_ind_dof_dpg
  *  \return See brief. */
 struct Vector_i* constructor_nnz_dpg
 	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Version of \ref compute_rlhs for the dpg method.
+ *  \return See brief. */
+double compute_rlhs_dpg
+	(const struct Simulation* sim,             ///< See brief.
+	 struct Solver_Storage_Implicit* s_store_i ///< See brief.
 	);
 
 #endif // DPG__solve_dpg_h__INCLUDED

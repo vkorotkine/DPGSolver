@@ -1,4 +1,5 @@
 set	(SOURCE
+	 compute_all_rlhs_dpg.c
 	 face_solver_dpg.c
 	 element_solver_dpg.c
 	 solve_dpg.c

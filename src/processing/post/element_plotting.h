@@ -45,7 +45,7 @@ struct const_Plotting_Element {
 	const struct Multiarray_Operator*const cv0_vgc_vp; ///< Defined in \ref Plotting_Element.
 	const struct Multiarray_Operator*const cv0_vs_vp;  ///< Defined in \ref Plotting_Element.
 
-	int n_p;                                               ///< Defined in \ref Plotting_Element.
+	const int n_p;                                         ///< Defined in \ref Plotting_Element.
 	const struct const_Plotting_Nodes*const*const p_nodes; ///< Defined in \ref Plotting_Element.
 };
 
