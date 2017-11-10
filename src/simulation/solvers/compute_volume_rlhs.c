@@ -146,8 +146,7 @@ struct Multiarray_Operator get_operator__tw1_vt_vc__rlhs (const struct Solver_Vo
 
 	const int p      = s_vol->p_ref,
 	          curved = vol->curved;
-	struct Multiarray_Operator tw1_vt_vc = {};
-	set_MO_from_MO(&tw1_vt_vc,e->tw1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
+	struct Multiarray_Operator tw1_vt_vc = set_MO_from_MO(e->tw1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 
 	return tw1_vt_vc;
 }

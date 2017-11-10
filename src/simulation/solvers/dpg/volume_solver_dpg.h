@@ -26,6 +26,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /// \brief Container for data relating to the DPG solver volumes.
 struct DPG_Solver_Volume {
 	struct Solver_Volume volume; ///< The base \ref Solver_Volume.
+
+	const struct const_Matrix_d* norm_op_H0; ///< The H0 (L2) norm operator.
 };
 
 /// \brief Constructor for a derived \ref DPG_Solver_Volume.

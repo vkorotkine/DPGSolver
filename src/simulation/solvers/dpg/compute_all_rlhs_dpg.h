@@ -22,12 +22,18 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 struct Solver_Storage_Implicit;
-struct Volume;
+struct DPG_Solver_Volume;
 
 /// \brief Compute all contributions to the rhs and lhs terms for the DPG scheme.
 void compute_all_rlhs_dpg
 	(const struct Simulation* sim,       ///< \ref Simulation.
 	 struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
+	);
+
+/** \brief Get the appropriate sub-range of the \ref DPG_Solver_Element::cvt1_vt_vc operators.
+ *  \return See brief. */
+struct Multiarray_Operator get_operator__cvt1_vt_vc__rlhs
+	(const struct DPG_Solver_Volume* dpg_s_vol ///< The current volume.
 	);
 
 #endif // DPG__compute_all_rlhs_dpg_h__INCLUDED

@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "vector_math.h"
 
+#include <assert.h>
+
 #include "vector.h"
 
 // Static function declarations ************************************************************************************* //
@@ -26,8 +28,10 @@ You should have received a copy of the GNU General Public License along with DPG
 void invert_Vector_d (struct Vector_d* a)
 {
 	const ptrdiff_t ext_0 = a->ext_0;
-	for (ptrdiff_t i = 0; i < ext_0; ++i)
+	for (ptrdiff_t i = 0; i < ext_0; ++i) {
+		assert(a->data[i] != 0.0);
 		a->data[i] = 1.0/(a->data[i]);
+	}
 }
 
 void add_to_Vector_d_d (struct Vector_d* a, const double* b)

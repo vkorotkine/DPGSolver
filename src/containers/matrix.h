@@ -230,6 +230,15 @@ void set_to_value_Matrix_i
 	 const int val            ///< The value.
 	);
 
+/// \brief Set a sub-block of a \ref Matrix_d to the entries of the input matrix.
+void set_block_Matrix_d
+	(struct Matrix_d* a,                 ///< The large matrix.
+	 const struct const_Matrix_d* a_sub, ///< The matrix holding the values to set in the sub-block.
+	 const ptrdiff_t row0,               ///< The index of the first row where the sub-block should be placed.
+	 const ptrdiff_t col0,               ///< The index of the first column where the sub-block should be placed.
+	 const char set_type                 ///< The type of setting to use. Options: 'i'nsert, 'a'dd.
+	);
+
 /** \brief Compute the opposite layout.
  *  \return See brief. */
 char compute_opposite_layout

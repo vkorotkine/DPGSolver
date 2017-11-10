@@ -42,7 +42,7 @@ struct mutable_Multiarray_Operator {
 /** \brief Move constructor for a \ref Multiarray_Operator\* with the input extents having been previously
  *         dynamically allocated.
  *  \return See brief. */
-const struct Multiarray_Operator* constructor_move_Multiarray_Operator_dyn_extents
+static const struct Multiarray_Operator* constructor_move_Multiarray_Operator_dyn_extents
 	(const int order,            ///< Standard.
 	 ptrdiff_t*const extents,    ///< Standard.
 	 const bool owns_data,       ///< Standard.
@@ -54,12 +54,12 @@ static void destructor_mutable_Multiarray_Operator
 	(struct mutable_Multiarray_Operator* a ///< Standard.
 	);
 
-/// \brief `mutable` version of \ref set_MO_from_MO.
-void set_mutable_MO_from_MO
-	(struct mutable_Multiarray_Operator* dest, ///< The destination.
-	 struct mutable_Multiarray_Operator* src,  ///< The source.
-	 const int order_o,                        ///< The order of the output (destination).
-	 const ptrdiff_t*const sub_indices         ///< The sub-indices specifying which part of the source to extract.
+/** \brief `mutable` version of \ref set_MO_from_MO.
+ *  \return See brief. */
+static struct mutable_Multiarray_Operator set_mutable_MO_from_MO
+	(struct mutable_Multiarray_Operator* src, ///< The source.
+	 const int order_o,                       ///< The order of the output (destination).
+	 const ptrdiff_t*const sub_indices        ///< The sub-indices specifying which part of the source to extract.
 	);
 
 // Constructor functions ******************************************************************************************** //
@@ -128,12 +128,12 @@ void destructor_Multiarray2_Operator_conditional (const struct Multiarray_Operat
 
 // Setter functions ************************************************************************************************* //
 
-void set_MO_from_MO
-	(const struct Multiarray_Operator* dest, const struct Multiarray_Operator* src, const int order_o,
-	 const ptrdiff_t*const sub_indices)
+struct Multiarray_Operator set_MO_from_MO
+	(const struct Multiarray_Operator* src, const int order_o, const ptrdiff_t*const sub_indices)
 {
-	set_mutable_MO_from_MO(
-		(struct mutable_Multiarray_Operator*)dest,(struct mutable_Multiarray_Operator*)src,order_o,sub_indices);
+	struct mutable_Multiarray_Operator dest =
+		set_mutable_MO_from_MO((struct mutable_Multiarray_Operator*)src,order_o,sub_indices);
+	return *(struct Multiarray_Operator*)& dest;
 }
 
 const struct Operator* get_Multiarray_Operator
@@ -167,7 +167,7 @@ void print_Multiarray_Operator_tol (const struct Multiarray_Operator*const a, co
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-const struct Multiarray_Operator* constructor_move_Multiarray_Operator_dyn_extents
+static const struct Multiarray_Operator* constructor_move_Multiarray_Operator_dyn_extents
 	(const int order, ptrdiff_t*const extents, const bool owns_data, struct Operator**const data)
 {
 	struct mutable_Multiarray_Operator* dest = calloc(1,sizeof *dest); // returned
@@ -198,15 +198,18 @@ static void destructor_mutable_Multiarray_Operator (struct mutable_Multiarray_Op
 	free(a);
 }
 
-void set_mutable_MO_from_MO
-	(struct mutable_Multiarray_Operator* dest, struct mutable_Multiarray_Operator* src, const int order_o,
-	 const ptrdiff_t*const sub_indices)
+static struct mutable_Multiarray_Operator set_mutable_MO_from_MO
+	(struct mutable_Multiarray_Operator* src, const int order_o, const ptrdiff_t*const sub_indices)
 {
+	struct mutable_Multiarray_Operator dest;
+
 	assert(src != NULL);
 	assert(order_o == 1);
 
-	dest->owns_data = false;
-	dest->order     = order_o;
-	dest->extents   = src->extents;
-	dest->data      = &src->data[compute_index_sub_container(src->order,dest->order,src->extents,sub_indices)];
+	dest.owns_data = false;
+	dest.order     = order_o;
+	dest.extents   = src->extents;
+	dest.data      = &src->data[compute_index_sub_container(src->order,dest.order,src->extents,sub_indices)];
+
+	return dest;
 }

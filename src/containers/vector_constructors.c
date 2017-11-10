@@ -92,6 +92,12 @@ struct Vector_i* constructor_zero_Vector_i (const ptrdiff_t ext_0)
 	return constructor_move_Vector_i_i(ext_0,true,data);
 }
 
+struct Vector_d* constructor_zero_Vector_d (const ptrdiff_t ext_0)
+{
+	double* data = calloc(ext_0 , sizeof *data); // keep
+	return constructor_move_Vector_d_d(ext_0,true,data);
+}
+
 // Copy constructors ************************************************************************************************ //
 
 struct Vector_i* constructor_copy_Vector_i (const struct Vector_i*const src)
@@ -213,18 +219,44 @@ const struct const_Vector_d* constructor_set_const_Vector_d_Multiarray_d
 
 // Special constructors ********************************************************************************************* //
 
+struct Vector_d* constructor_inverse_Vector_d (const struct const_Vector_d* src)
+{
+	const ptrdiff_t ext_0 = src->ext_0;
+	const double*const data_src = src->data;
+
+	double* data = malloc(ext_0 * sizeof *data); // keep
+	for (ptrdiff_t i = 0; i < ext_0; i++) {
+		assert(data_src[i] != 0.0);
+		data[i] = 1.0/data_src[i];
+	}
+
+	return constructor_move_Vector_d_d(ext_0,true,data);
+}
+
+const struct const_Vector_d* constructor_inverse_const_Vector_d (const struct const_Vector_d* src)
+{
+	return (struct const_Vector_d*) constructor_inverse_Vector_d(src);
+}
+
 const struct const_Vector_d* constructor_dot_mult_const_Vector_d
-	(const struct const_Vector_d* a, const struct const_Vector_d* b)
+	(const struct const_Vector_d* a, const struct const_Vector_d* b, const int n_repeated)
 {
 	assert(a->ext_0 == b->ext_0);
 
-	const ptrdiff_t ext_0 = a->ext_0;
-	double* data_c = malloc(ext_0 * sizeof *data_c); // moved
+	const ptrdiff_t ext_0     = a->ext_0,
+	                ext_0_rep = n_repeated*ext_0;
+	double* data_c = malloc(ext_0_rep * sizeof *data_c); // moved
 
 	for (ptrdiff_t i = 0; i < ext_0; ++i)
 		data_c[i] = a->data[i]*b->data[i];
 
-	return (const struct const_Vector_d*) constructor_move_Vector_d_d(ext_0,true,data_c);
+	for (int n = 1; n < n_repeated; ++n) {
+		const ptrdiff_t ind_c = ext_0*n;
+		for (ptrdiff_t i = 0; i < ext_0; ++i)
+			data_c[ind_c+i] = data_c[i];
+	}
+
+	return (const struct const_Vector_d*) constructor_move_Vector_d_d(ext_0_rep,true,data_c);
 }
 
 struct Vector_d* constructor_sum_Vector_d_const_Matrix_d (const char sum_dir, const struct const_Matrix_d*const src)

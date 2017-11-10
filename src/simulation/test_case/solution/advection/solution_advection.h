@@ -26,7 +26,7 @@ struct Simulation;
 
 /// \brief Container for solution data relating to linear advection solutions.
 struct Sol_Data__Advection {
-	const double b_adv[DMAX]; ///< The constant advection velocity vector.
+	double b_adv[DMAX]; ///< The constant advection velocity vector.
 };
 
 /// \brief Set the solution function pointer members of an Euler \ref Test_Case.

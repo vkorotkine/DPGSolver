@@ -31,7 +31,7 @@ struct DG_Solver_Volume {
 	struct Multiarray_d* rhs;        ///< The rhs terms.
 
 	// Terms required for explicit runs.
-	const struct const_Matrix_d* m_inv; ///< The mass matrix.
+	const struct const_Matrix_d* m_inv; ///< The inverser mass matrix.
 
 	// Terms required for 2nd order PDE terms.
 	struct Multiarray_d* grad_coef_v; ///< The volume contribution to the solution gradient coefficients.

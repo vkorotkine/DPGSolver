@@ -79,23 +79,23 @@ static void constructor_derived_Solution_Element_std (struct Element* element_pt
 
 	struct const_Element* b_e = (struct const_Element*)e;
 
-	e->cv0_vg_vs[0] = constructor_operators("cv0","vgs","vsA","H_1_P_1P", sim->p_s_v,b_e,sim); // destructed
-	e->cv0_vg_vs[1] = constructor_operators("cv0","vgc","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
-	e->cv0_vg_vc[0] = constructor_operators("cv0","vgs","vcs","H_1_P_1P", sim->p_s_v,b_e,sim); // destructed
-	e->cv0_vg_vc[1] = constructor_operators("cv0","vgc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
-	e->vc0_vs_vs    = constructor_operators("vc0","vsA","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+	e->cv0_vg_vs[0] = constructor_operators("cv0","vgs","vsA","H_1_P_1P", b_e,sim); // destructed
+	e->cv0_vg_vs[1] = constructor_operators("cv0","vgc","vsA","H_1_P_PM0",b_e,sim); // destructed
+	e->cv0_vg_vc[0] = constructor_operators("cv0","vgs","vcs","H_1_P_1P", b_e,sim); // destructed
+	e->cv0_vg_vc[1] = constructor_operators("cv0","vgc","vcc","H_1_P_PM0",b_e,sim); // destructed
+	e->vc0_vs_vs    = constructor_operators("vc0","vsA","vsA","H_1_P_PM0",b_e,sim); // destructed
 	switch (sim->method) {
 	case METHOD_DG:
-		e->cv0_vs_vc[0] = constructor_operators("cv0","vsA","vcs","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
-		e->cv0_vs_vc[1] = constructor_operators("cv0","vsA","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
-		e->cv0_vs_vs    = constructor_operators("cv0","vsA","vsA","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+		e->cv0_vs_vc[0] = constructor_operators("cv0","vsA","vcs","H_1_P_PM0",b_e,sim); // destructed
+		e->cv0_vs_vc[1] = constructor_operators("cv0","vsA","vcc","H_1_P_PM0",b_e,sim); // destructed
+		e->cv0_vs_vs    = constructor_operators("cv0","vsA","vsA","H_1_P_PM0",b_e,sim); // destructed
 		break;
 	case METHOD_DPG:
-		e->cv0_vg_ff[0] = constructor_operators2("cv0","vgs","ffA","H_1_P_1PPM1",b_e,sim); // destructed
-		e->cv0_vg_ff[1] = constructor_operators2("cv0","vgc","ffA","H_1_P_PM1",  b_e,sim); // destructed
-		e->vv0_vm_ff[0] = constructor_operators2("vv0","vms","ffA","H_1_P_1PPM1",b_e,sim); // destructed
-		e->vv0_vm_ff[1] = constructor_operators2("vv0","vmc","ffA","H_1_P_PM1",  b_e,sim); // destructed
-		e->vc0_ff_ff    = constructor_operators2("vc0","ffA","ffA","H_1_P_PM0",  b_e,sim); // destructed
+		e->cv0_vg_ff[0] = constructor_operators("cv0","vgs","ffA","H_1_P_1PPM1",b_e,sim); // destructed
+		e->cv0_vg_ff[1] = constructor_operators("cv0","vgc","ffA","H_1_P_PM1",  b_e,sim); // destructed
+		e->vv0_vm_ff[0] = constructor_operators("vv0","vms","ffA","H_1_P_1PPM1",b_e,sim); // destructed
+		e->vv0_vm_ff[1] = constructor_operators("vv0","vmc","ffA","H_1_P_PM1",  b_e,sim); // destructed
+		e->vc0_ff_ff    = constructor_operators("vc0","ffA","ffA","H_1_P_PM0",  b_e,sim); // destructed
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
@@ -145,8 +145,8 @@ static void constructor_derived_Solution_Element_tp (struct Element* element_ptr
 			if (s_e[i]->cv0_vg_vf[0] != NULL)
 				continue;
 
-			s_e[i]->cv0_vg_vf[0] = constructor_operators2("cv0","vgs","vfA","H_1_P_1PPM1",b_e,sim); // destructed
-			s_e[i]->cv0_vg_vf[1] = constructor_operators2("cv0","vgc","vfA","H_1_P_PM1",  b_e,sim); // destructed
+			s_e[i]->cv0_vg_vf[0] = constructor_operators("cv0","vgs","vfA","H_1_P_1PPM1",b_e,sim); // destructed
+			s_e[i]->cv0_vg_vf[1] = constructor_operators("cv0","vgc","vfA","H_1_P_PM1",  b_e,sim); // destructed
 		}
 		EXIT_ADD_SUPPORT;
 		/// \todo Add necessary operators.

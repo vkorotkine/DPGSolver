@@ -78,8 +78,6 @@ void destructor_derived_DG_Solver_Element (struct Element* element_ptr)
 	}
 
 	destructor_Multiarray2_Operator(dg_s_e->tw0_vs_vc);
-	for (int i = 0; i < 2; ++i)
-		destructor_const_Multiarray_Vector_d(dg_s_e->w_vc[i]);
 }
 
 // Static functions ************************************************************************************************* //
@@ -92,13 +90,13 @@ static void constructor_derived_DG_Solver_Element_std (struct Element* element_p
 	struct const_Element* e = (struct const_Element*)element_ptr;
 
 	// H_CF, P_PM1 are needed for tw0_vs_vc* operators as they are used to assemble tensor-product operators.
-	dg_s_e->cv0_vs_fc[0] = constructor_operators("cv0","vsA","fcs","H_CF_P_PM1",sim->p_s_v,e,sim); // destructed
-	dg_s_e->cv0_vs_fc[1] = constructor_operators("cv0","vsA","fcc","H_CF_P_PM1",sim->p_s_v,e,sim); // destructed
-	dg_s_e->tw0_vs_fc[0] = constructor_operators("tw0","vsA","fcs","H_CF_P_PM1",sim->p_s_v,e,sim); // destructed
-	dg_s_e->tw0_vs_fc[1] = constructor_operators("tw0","vsA","fcc","H_CF_P_PM1",sim->p_s_v,e,sim); // destructed
+	dg_s_e->cv0_vs_fc[0] = constructor_operators("cv0","vsA","fcs","H_CF_P_PM1",e,sim); // destructed
+	dg_s_e->cv0_vs_fc[1] = constructor_operators("cv0","vsA","fcc","H_CF_P_PM1",e,sim); // destructed
+	dg_s_e->tw0_vs_fc[0] = constructor_operators("tw0","vsA","fcs","H_CF_P_PM1",e,sim); // destructed
+	dg_s_e->tw0_vs_fc[1] = constructor_operators("tw0","vsA","fcc","H_CF_P_PM1",e,sim); // destructed
 
-	dg_s_e->tw0_vs_vc[0] = constructor_operators("tw0","vsA","vcs","H_CF_P_PM1",sim->p_s_v,e,sim); // destructed
-	dg_s_e->tw0_vs_vc[1] = constructor_operators("tw0","vsA","vcc","H_CF_P_PM1",sim->p_s_v,e,sim); // destructed
+	dg_s_e->tw0_vs_vc[0] = constructor_operators("tw0","vsA","vcs","H_CF_P_PM1",e,sim); // destructed
+	dg_s_e->tw0_vs_vc[1] = constructor_operators("tw0","vsA","vcc","H_CF_P_PM1",e,sim); // destructed
 }
 
 static void constructor_derived_DG_Solver_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
@@ -142,7 +140,4 @@ static void constructor_derived_DG_Solver_Element_common (struct Element* elemen
 		dg_s_e->nc_fc[0] = constructor_operators_nc(i,"fcs","fcs","H_1_P_PM0",sim->p_s_v,e,sim); // destructed
 		dg_s_e->nc_fc[1] = constructor_operators_nc(i,"fcc","fcc","H_1_P_PM0",sim->p_s_v,e,sim); // destructed
 	}
-
-	dg_s_e->w_vc[0] = constructor_operators_w("vcs","vcs","H_1_P_PM0",sim->p_s_v,e,sim); // destructed
-	dg_s_e->w_vc[1] = constructor_operators_w("vcc","vcc","H_1_P_PM0",sim->p_s_v,e,sim); // destructed
 }

@@ -92,7 +92,7 @@ const struct Multiarray_Operator* constructor_operators_tp
 	 const struct const_Element* element, const struct Simulation* sim, const struct Operators_TP* ops_tp)
 {
 	struct Operator_Info* op_info =
-		constructor_Operator_Info2(name_type,name_in,name_out,name_range,element,sim); // destructed
+		constructor_Operator_Info(name_type,name_in,name_out,name_range,element,sim); // destructed
 
 	const struct Op_IO* op_io = op_info->op_io;
 

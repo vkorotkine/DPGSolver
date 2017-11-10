@@ -21,12 +21,13 @@ You should have received a copy of the GNU General Public License along with DPG
  *  Operator names take the general form: [type][0](7)_[1][2][3]_[4][5][6] where entries in [square brackets] are
  *  required and those in (round brackets) are optional:
  *  - type:
- *  	- cv: coefficients to values
- *  	- cc: coefficients to coefficients
- *  	- vv: values       to values
- *  	- vc: values       to coefficients
- *  	- sw: 's'olver operator with 'w'eights.
- *  \note For collocated schemes, `sw` operators also include premultiplication by the inverse weights.
+ *  	- cv(t): coefficients to values
+ *  	- cc(t): coefficients to coefficients
+ *  	- vv(t): values       to values
+ *  	- vc(t): values       to coefficients
+ *  	- tw: 't'est basis solver operator with 'w'eights.
+ *  (t): Optional 't'ranspose.
+ *  \note For collocated schemes, `tw` operators also include premultiplication by the inverse weights.
  *  - [0]:   value for the order of differentiation (0 for no differentiation).
  *  - [1/4]: character denoting the type of computational element (ce):
  *  	- 'v'olume
@@ -114,7 +115,8 @@ struct Op_IO {
 struct Operator_Info {
 	const struct const_Element* element; ///< \ref Element.
 
-	const int op_type; ///< The type of operator.
+	const int op_type;    ///< The type of operator.
+	const bool transpose; ///< Flag for whether the computed operators should be transposed.
 
 	const struct Op_IO op_io[2]; ///< \ref Op_IO for each of input/output.
 
@@ -136,24 +138,8 @@ struct Operator_Info {
 // Interface functions ********************************************************************************************** //
 
 /** \brief Constructor for a \ref Multiarray_Operator\* of operators.
- *  \return Standard.
- *
- *  \todo Remove all usage of this function.
- *  \deprecated The p_ref input is not necessary and should be removed. Use \ref constructor_operators2 instead.
- */
-const struct Multiarray_Operator* constructor_operators
-	(const char*const name_type,          ///< The name of the operator type (including differentiation index).
-	 const char*const name_in,            ///< The name of the operator input.
-	 const char*const name_out,           ///< The name of the operator output.
-	 const char*const name_range,         ///< The name of the operator range.
-	 const int p_ref[2],                  ///< Defined in \ref Operator_Info.
-	 const struct const_Element* element, ///< \ref const_Element.
-	 const struct Simulation* sim         ///< \ref Simulation.
-	);
-
-/** \brief Constructor for a \ref Multiarray_Operator\* of operators.
  *  \return Standard. */
-const struct Multiarray_Operator* constructor_operators2
+const struct Multiarray_Operator* constructor_operators
 	(const char*const name_type,          ///< The name of the operator type (including differentiation index).
 	 const char*const name_in,            ///< The name of the operator input.
 	 const char*const name_out,           ///< The name of the operator output.
@@ -186,24 +172,8 @@ const struct const_Multiarray_Vector_d* constructor_operators_w
 	);
 
 /** \brief Constructor for the \ref Operator_Info\* having the given inputs.
- *  \return Standard.
- *
- *  \todo Remove all usage of this function.
- *  \deprecated The p_ref input is not necessary and should be removed. Use \ref constructor_Operator_Info2 instead.
- */
-struct Operator_Info* constructor_Operator_Info
-	(const char*const name_type,          ///< Defined for \ref constructor_operators.
-	 const char*const name_in,            ///< Defined for \ref constructor_operators.
-	 const char*const name_out,           ///< Defined for \ref constructor_operators.
-	 const char*const name_range,         ///< Defined for \ref constructor_operators.
-	 const int p_ref[2],                  ///< Defined for \ref constructor_operators.
-	 const struct const_Element* element, ///< Defined for \ref constructor_operators.
-	 const struct Simulation* sim         ///< Defined for \ref constructor_operators.
-	);
-
-/** \brief Constructor for the \ref Operator_Info\* having the given inputs.
  *  \return Standard. */
-struct Operator_Info* constructor_Operator_Info2
+struct Operator_Info* constructor_Operator_Info
 	(const char*const name_type,          ///< Defined for \ref constructor_operators.
 	 const char*const name_in,            ///< Defined for \ref constructor_operators.
 	 const char*const name_out,           ///< Defined for \ref constructor_operators.

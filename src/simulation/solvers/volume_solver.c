@@ -22,8 +22,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_intrusive.h"
 
+#include "element_solver.h"
+
+#include "matrix.h"
 #include "multiarray.h"
-#include "vector.h"
 
 #include "const_cast.h"
 #include "geometry.h"
@@ -62,6 +64,16 @@ void destructor_derived_Solver_Volume (struct Volume* volume_ptr)
 	destructor_const_Multiarray_d(volume->metrics_vm);
 	destructor_const_Multiarray_d(volume->metrics_vc);
 	destructor_const_Multiarray_d(volume->jacobian_det_vc);
+}
+
+const struct const_Vector_d* get_operator__w_vc__s_e (const struct Solver_Volume* s_vol)
+{
+	struct Volume* vol               = (struct Volume*) s_vol;
+	const struct Solver_Element* s_e = (struct Solver_Element*) vol->element;
+
+	const int p      = s_vol->p_ref,
+	          curved = vol->curved;
+	return get_const_Multiarray_Vector_d(s_e->w_vc[curved],(ptrdiff_t[]){0,0,p,p});
 }
 
 // Static functions ************************************************************************************************* //

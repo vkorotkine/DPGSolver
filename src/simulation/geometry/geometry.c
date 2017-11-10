@@ -207,33 +207,27 @@ static void compute_geometry_volume (struct Simulation *sim, struct Solver_Volum
 
 	const int p = volume->p_ref;
 
-	struct Ops {
-		const struct Multiarray_Operator* cv1_vg_vm;
-		const struct Multiarray_Operator* cv1_vg_vc;
-		const struct Operator* vv0_vm_vc;
-	} ops = { .cv1_vg_vm = constructor_default_Multiarray_Operator(), // free (only)
-	          .cv1_vg_vc = constructor_default_Multiarray_Operator(), // free (only)
-	          .vv0_vm_vc = NULL, };
-
 	const bool curved = base_volume->curved;
 	const int p_g = ( curved ? p : 1 );
-	set_MO_from_MO(ops.cv1_vg_vc,element->cv1_vg_vc[curved],1,(ptrdiff_t[]){0,0,p,p_g});
-	set_MO_from_MO(ops.cv1_vg_vm,element->cv1_vg_vm[curved],1,(ptrdiff_t[]){0,0,p_g,p_g});
-	ops.vv0_vm_vc = get_Multiarray_Operator(element->vv0_vm_vc[curved],(ptrdiff_t[]){0,0,p,p_g});
 
-	const ptrdiff_t n_vm = ops.cv1_vg_vm->data[0]->op_std->ext_0,
-	                n_vc = ops.cv1_vg_vc->data[0]->op_std->ext_0;
+	struct Ops {
+		const struct Multiarray_Operator cv1_vg_vm;
+		const struct Multiarray_Operator cv1_vg_vc;
+		const struct Operator* vv0_vm_vc;
+	} ops = { .cv1_vg_vm = set_MO_from_MO(element->cv1_vg_vm[curved],1,(ptrdiff_t[]){0,0,p_g,p_g}),
+	          .cv1_vg_vc = set_MO_from_MO(element->cv1_vg_vc[curved],1,(ptrdiff_t[]){0,0,p,p_g}),
+	          .vv0_vm_vc = get_Multiarray_Operator(element->vv0_vm_vc[curved],(ptrdiff_t[]){0,0,p,p_g}), };
+
+	const ptrdiff_t n_vm = ops.cv1_vg_vm.data[0]->op_std->ext_0,
+	                n_vc = ops.cv1_vg_vc.data[0]->op_std->ext_0;
 
 	struct Multiarray_d* jacobian_vm = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vm,d,d}), // destructed
 	                   * jacobian_vc = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_vc,d,d}); // destructed
 
 	for (ptrdiff_t row = 0; row < d; ++row) {
-		mm_NN1C_Operator_Multiarray_d(ops.cv1_vg_vm->data[row],geom_coef,jacobian_vm,op_format,2,NULL,&row);
-		mm_NN1C_Operator_Multiarray_d(ops.cv1_vg_vc->data[row],geom_coef,jacobian_vc,op_format,2,NULL,&row);
+		mm_NN1C_Operator_Multiarray_d(ops.cv1_vg_vm.data[row],geom_coef,jacobian_vm,op_format,2,NULL,&row);
+		mm_NN1C_Operator_Multiarray_d(ops.cv1_vg_vc.data[row],geom_coef,jacobian_vc,op_format,2,NULL,&row);
 	}
-
-	free((void*)ops.cv1_vg_vm);
-	free((void*)ops.cv1_vg_vc);
 
 	const ptrdiff_t* perm = set_jacobian_permutation(d);
 	permute_Multiarray_d(jacobian_vc,perm,jacobian_vc->layout);

@@ -38,9 +38,6 @@ struct DG_Solver_Element {
 
 	// Source rhs
 	const struct Multiarray_Operator* tw0_vs_vc[2]; ///< See notation in \ref element_operators.h.
-
-	// Explicit rhs
-	const struct const_Multiarray_Vector_d* w_vc[2]; ///< Weights for 'v'olume 'c'ubature.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

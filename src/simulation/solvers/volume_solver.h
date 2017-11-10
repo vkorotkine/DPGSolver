@@ -71,4 +71,10 @@ void destructor_derived_Solver_Volume
 	(struct Volume* volume_ptr ///< Pointer to the volume.
 	);
 
+/** \brief Get the appropriate sub-range of the \ref Solver_Element::w_vc operators.
+ *  \return See brief. */
+const struct const_Vector_d* get_operator__w_vc__s_e
+	(const struct Solver_Volume* s_vol ///< The current volume.
+	);
+
 #endif // DPG__volume_solver_h__INCLUDED

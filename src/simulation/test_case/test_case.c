@@ -97,6 +97,11 @@ static void set_string_associations_test_case
 	 const struct Test_Case_String_Inputs* tcsi ///< \ref Test_Case_String_Inputs.
 	);
 
+/** \brief Return a statically allocated \ref Test_Case_String_Inputs container which zero-initialized members.
+ *  \return See brief. */
+static struct Test_Case_String_Inputs set_Test_Case_String_Inputs
+	();
+
 static void set_string_associations (struct Test_Case* test_case, const struct Simulation*const sim)
 {
 	// pde_index
@@ -162,10 +167,7 @@ static void read_test_case_parameters (struct Test_Case* test_case, const struct
 
 	FILE* input_file = fopen_input(sim->input_path,'t'); // closed
 
-	struct Test_Case_String_Inputs tcsi;
-// make external
-	const_cast_c(tcsi.num_flux_1st,0);
-	const_cast_c(tcsi.num_flux_2nd,0);
+	struct Test_Case_String_Inputs tcsi = set_Test_Case_String_Inputs();
 
 	int count_found = 0;
 	char line[STRLEN_MAX];
@@ -197,6 +199,17 @@ static void read_test_case_parameters (struct Test_Case* test_case, const struct
 
 // Level 1 ********************************************************************************************************** //
 
+static struct Test_Case_String_Inputs set_Test_Case_String_Inputs ()
+{
+	assert(sizeof(struct Test_Case_String_Inputs) == 3*STRLEN_MIN*sizeof(char));
+
+	struct Test_Case_String_Inputs tcsi;
+	tcsi.num_flux_1st[0] = 0;
+	tcsi.num_flux_2nd[0] = 0;
+	tcsi.test_norm[0] = 0;
+	return tcsi;
+}
+
 static void set_string_associations_test_case (struct Test_Case* test_case, const struct Test_Case_String_Inputs* tcsi)
 {
 	// num_flux_1st
@@ -214,8 +227,8 @@ static void set_string_associations_test_case (struct Test_Case* test_case, cons
 		const_cast_i(&test_case->ind_num_flux[1],NUM_FLUX_INVALID);
 
 	// test_norm
-	if (strcmp(tcsi->test_norm,"H1_semi_upwind") == 0)
-		const_cast_i(&test_case->ind_test_norm,TEST_NORM_H1_SEMI_UPWIND);
+	if (strcmp(tcsi->test_norm,"H1_upwind") == 0)
+		const_cast_i(&test_case->ind_test_norm,TEST_NORM_H1_UPWIND);
 	else
 		const_cast_i(&test_case->ind_test_norm,TEST_NORM_INVALID);
 }

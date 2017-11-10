@@ -63,11 +63,17 @@ struct Vector_i* constructor_empty_Vector_i
 	(const ptrdiff_t ext_0 ///< The value of ext_0.
 	);
 
-// Empty constructors *********************************************************************************************** //
+// Zero constructors ************************************************************************************************ //
+
+/** \brief The same as \ref constructor_empty_Vector_i but allocating using calloc.
+ *  \return Standard. */
+struct Vector_i* constructor_zero_Vector_i
+	(const ptrdiff_t ext_0 ///< Defined for \ref constructor_empty_Vector_i.
+	);
 
 /** \brief The same as \ref constructor_empty_Vector_d but allocating using calloc.
  *  \return Standard. */
-struct Vector_i* constructor_zero_Vector_i
+struct Vector_d* constructor_zero_Vector_d
 	(const ptrdiff_t ext_0 ///< Defined for \ref constructor_empty_Vector_d.
 	);
 
@@ -182,11 +188,24 @@ const struct const_Vector_d* constructor_set_const_Vector_d_Multiarray_d
 
 // Special constructors ********************************************************************************************* //
 
+/** \brief Constructor for a \ref Vector_d\* as the inverse of the source vector.
+ *  \return See brief. */
+struct Vector_d* constructor_inverse_Vector_d
+	(const struct const_Vector_d* src ///< The source vector.
+	);
+
+/** \brief `const` version of \ref constructor_inverse_Vector_d.
+ *  \return See brief. */
+const struct const_Vector_d* constructor_inverse_const_Vector_d
+	(const struct const_Vector_d* src ///< See brief.
+	);
+
 /** \brief Constructor for a \ref const_Vector_d\* using an element-wise multiplication of each entry of the inputs.
  *  \return See brief. */
 const struct const_Vector_d* constructor_dot_mult_const_Vector_d
 	(const struct const_Vector_d* a, ///< The 1st input.
-	 const struct const_Vector_d* b  ///< The 2nd input.
+	 const struct const_Vector_d* b, ///< The 2nd input.
+	 const int n_repeated            ///< The number of times the sub-vector should be repeated.
 	);
 
 /** \brief Constructs a \ref Vector_d\* as the sum of the rows/columns of the input Matrix in the specified direction.

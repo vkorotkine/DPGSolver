@@ -124,4 +124,11 @@ int get_face_element_index
 	(const struct Face*const face ///< The input face.
 	);
 
+/** \brief Compute the side index of the current face. Options: 0 (input left volume), 1 (input right volume).
+ *  \return See brief. */
+int compute_side_index_face
+	(const struct Face* face, ///< \ref Face.
+	 const struct Volume* vol ///< The pointer to the neighbouring \ref Volume.
+	);
+
 #endif // DPG__Face_h__INCLUDED

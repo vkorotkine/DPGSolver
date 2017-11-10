@@ -65,7 +65,7 @@ struct Matrix_i* constructor_empty_Matrix_i
 /** \brief Copy constructor for a \ref Matrix_d\* from a \ref Matrix_d\*.
  *  \return Standard. */
 struct Matrix_d* constructor_copy_Matrix_d
-	(struct Matrix_d* src ///< The source matrix.
+	(const struct Matrix_d* src ///< The source matrix.
 	);
 
 /** \brief Copy constructor for a \ref const_Matrix_d\* from a \ref const_Matrix_d\*.

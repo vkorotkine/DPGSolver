@@ -179,12 +179,11 @@ assert(sim->collocated == false); // Add support in future.
 	struct Volume* vol          = (struct Volume*) dg_s_vol;
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) vol;
 
-	const struct Solver_Element* e = (const struct Solver_Element*) vol->element;
+	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
 
 	const int p      = s_vol->p_ref,
 	          curved = vol->curved;
-	const struct Multiarray_Operator tw1_vt_vc;
-	set_MO_from_MO(&tw1_vt_vc,e->tw1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
+	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc__rlhs(s_vol);
 
 	// rhs
 	for (ptrdiff_t dim = 0; dim < d; ++dim)

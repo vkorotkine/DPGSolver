@@ -166,6 +166,17 @@ int get_face_element_index (const struct Face*const face)
 	return get_face_element_index_by_ind_lf(face->neigh_info[0].volume->element,face->neigh_info[0].ind_lf);
 }
 
+int compute_side_index_face (const struct Face* face, const struct Volume* vol)
+{
+	if (face->neigh_info[0].volume == vol) {
+		return 0;
+	} else {
+		assert(face->neigh_info[1].volume == vol);
+		return 1;
+	}
+	EXIT_ERROR("Did not find the volume.\n");
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

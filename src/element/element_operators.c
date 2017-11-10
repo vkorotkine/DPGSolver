@@ -85,26 +85,33 @@ static void set_weights
 
 /** \brief Convert the `char*` input to the appropriate definition of OP_T_*.
  *  \return See brief. */
-int convert_to_type
+static int convert_to_type
 	(const char* name_type ///< Defined for \ref constructor_Operator_Info.
+	);
+
+/** \brief Check if the computed operators should be transposed.
+ *  \return `true` if yes; `false` otherwise. */
+static int check_for_transpose
+	(const char* name_type, ///< Defined for \ref constructor_Operator_Info.
+	 const int op_type      ///< \ref Operator_Info::op_type.
 	);
 
 /** \brief Convert the `char*` input to the appropriate definition of OP_R_D_*.
  *  \return See brief. */
-int convert_to_range_d
+static int convert_to_range_d
 	(const char* name_type ///< Defined for \ref constructor_Operator_Info.
 	);
 
 /** \brief Convert the `char*` inputs to the appropriate definition of OP_R_CE_*.
  *  \return See brief. */
-int convert_to_range_ce
+static int convert_to_range_ce
 	(const char ce_i, ///< `name_in[0]`  which is defined for \ref constructor_Operator_Info.
 	 const char ce_o  ///< `name_out[0]` which is defined for \ref constructor_Operator_Info.
 	);
 
 /** \brief Convert the `char*` input to the appropriate definition of OP_R_*.
  *  \return See brief. */
-int convert_to_range
+static int convert_to_range
 	(const char type_range,      ///< The type of range parameter. Options: 'h', 'p'.
 	 const char*const name_range ///< Defined for \ref constructor_Operator_Info.
 	);
@@ -127,32 +134,19 @@ static void set_up_values_op
 	(struct Operator_Info* op_info ///< \ref Operator_Info.
 	);
 
+/// \brief Transpose the computed operators.
+static void transpose_operators
+	(struct Multiarray_Operator* op ///< Multiarray of operators.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 const struct Multiarray_Operator* constructor_operators
 	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
-	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim)
-{
-	struct Operator_Info* op_info =
-		constructor_Operator_Info(name_type,name_in,name_out,name_range,p_ref,element,sim); // destructed
-	assert((op_info->range_d == OP_R_D_0) || (op_info->range_d == OP_R_D_ALL));
-
-	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator_V(op_info->extents_op); // returned
-
-	const ptrdiff_t row_max = op_info->values_op->ext_0;
-	for (ptrdiff_t row = 0; row < row_max; ) // row is incremented when setting the operators.
-		op_info->set_operator(&row,op,op_info,sim);
-	destructor_Operator_Info(op_info);
-
-	return op;
-}
-
-const struct Multiarray_Operator* constructor_operators2
-	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
 	 const struct const_Element* element, const struct Simulation* sim)
 {
 	struct Operator_Info* op_info =
-		constructor_Operator_Info2(name_type,name_in,name_out,name_range,element,sim); // destructed
+		constructor_Operator_Info(name_type,name_in,name_out,name_range,element,sim); // destructed
 	assert((op_info->range_d == OP_R_D_0) || (op_info->range_d == OP_R_D_ALL));
 
 	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator_V(op_info->extents_op); // returned
@@ -160,6 +154,9 @@ const struct Multiarray_Operator* constructor_operators2
 	const ptrdiff_t row_max = op_info->values_op->ext_0;
 	for (ptrdiff_t row = 0; row < row_max; ) // row is incremented when setting the operators.
 		op_info->set_operator(&row,op,op_info,sim);
+
+	if (op_info->transpose)
+		transpose_operators((struct Multiarray_Operator*)op);
 	destructor_Operator_Info(op_info);
 
 	return op;
@@ -169,8 +166,9 @@ const struct const_Multiarray_Vector_i* constructor_operators_nc
 	(const int ind_f_elem, const char*const name_in, const char*const name_out, const char*const name_range,
 	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim)
 {
+UNUSED(p_ref);
 	struct Operator_Info* op_info =
-		constructor_Operator_Info("UNUSED0",name_in,name_out,name_range,p_ref,element,sim); // destructed
+		constructor_Operator_Info("UNUSED0",name_in,name_out,name_range,element,sim); // destructed
 
 	const struct const_Vector_i* e_o = op_info->extents_op;
 
@@ -200,8 +198,9 @@ const struct const_Multiarray_Vector_d* constructor_operators_w
 	(const char*const name_in, const char*const name_out, const char*const name_range, const int p_ref[2],
 	 const struct const_Element* element, const struct Simulation* sim)
 {
+UNUSED(p_ref);
 	struct Operator_Info* op_info =
-		constructor_Operator_Info("UNUSED0",name_in,name_out,name_range,p_ref,element,sim); // destructed
+		constructor_Operator_Info("UNUSED0",name_in,name_out,name_range,element,sim); // destructed
 
 	const struct const_Multiarray_Vector_d* w =
 		constructor_empty_const_Multiarray_Vector_d_V(false,op_info->extents_op); // returned
@@ -216,72 +215,14 @@ const struct const_Multiarray_Vector_d* constructor_operators_w
 
 struct Operator_Info* constructor_Operator_Info
 	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
-	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim)
-{
-UNUSED(p_ref);
-	struct Operator_Info* op_info = malloc(sizeof *op_info); // returned
-
-	op_info->element = element;
-
-	const int op_type = convert_to_type(name_type);
-
-	const_cast_i(&op_info->op_type,op_type);
-
-	const_cast_c(&op_info->op_io[OP_IND_I].ce,  name_in[0]);
-	const_cast_c(&op_info->op_io[OP_IND_I].kind,name_in[1]);
-	const_cast_c(&op_info->op_io[OP_IND_I].sc,  name_in[2]);
-
-	const_cast_c(&op_info->op_io[OP_IND_O].ce,  name_out[0]);
-	const_cast_c(&op_info->op_io[OP_IND_O].kind,name_out[1]);
-	const_cast_c(&op_info->op_io[OP_IND_O].sc,  name_out[2]);
-
-	const int ranges[] =
-		{ convert_to_range_d(name_type),
-		  convert_to_range_ce(name_in[0],name_out[0]),
-		  convert_to_range('h',name_range),
-		  convert_to_range('p',name_range), };
-
-	const_cast_i(&op_info->range_d, ranges[0]);
-	const_cast_i(&op_info->range_ce,ranges[1]);
-	const_cast_i(&op_info->range_h, ranges[2]);
-	const_cast_i(&op_info->range_p, ranges[3]);
-
-	const_cast_i1(op_info->p_ref,sim->p_ref,2);
-	for (int i = 0; i < 2; ++i)
-		const_cast_i(&op_info->op_io[i].p_rel,0);
-
-	set_up_extents(op_info);
-	set_up_values_op(op_info);
-
-	switch (op_info->op_type) {
-	case OP_T_CV: case OP_T_CC: case OP_T_VV: case OP_T_VC:
-		op_info->set_operator = set_operator_std;
-		break;
-	case OP_T_TW:
-		op_info->set_operator = set_operator_solver;
-		break;
-	case OP_T_UNUSED:
-		; // Do nothing
-		break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
-
-	return op_info;
-}
-
-struct Operator_Info* constructor_Operator_Info2
-	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
 	 const struct const_Element* element, const struct Simulation* sim)
 {
 	struct Operator_Info* op_info = malloc(sizeof *op_info); // returned
 
 	op_info->element = element;
 
-	const int op_type = convert_to_type(name_type);
-
-	const_cast_i(&op_info->op_type,op_type);
+	const_cast_i(&op_info->op_type,convert_to_type(name_type));
+	const_cast_b(&op_info->transpose,check_for_transpose(name_type,op_info->op_type));
 
 	const_cast_c(&op_info->op_io[OP_IND_I].ce,  name_in[0]);
 	const_cast_c(&op_info->op_io[OP_IND_I].kind,name_in[1]);
@@ -706,7 +647,7 @@ static void set_weights
 	const_constructor_move_const_Vector_d(&w->data[ind_w++],w_curr);
 }
 
-int convert_to_type (const char* name_type)
+static int convert_to_type (const char* name_type)
 {
 	if (strstr(name_type,"cv"))
 		return OP_T_CV;
@@ -725,7 +666,27 @@ int convert_to_type (const char* name_type)
 	return -1;
 }
 
-int convert_to_range_d (const char* name_type)
+int check_for_transpose (const char* name_type, const int op_type)
+{
+	switch (op_type) {
+	case OP_T_CV: // fallthrough
+	case OP_T_CC: // fallthrough
+	case OP_T_VV: // fallthrough
+	case OP_T_VC:
+		if (name_type[2] == 't')
+			return true;
+		break;
+	case OP_T_TW:     // fallthrough
+	case OP_T_UNUSED:
+		break; // Do nothing.
+	default:
+		EXIT_ERROR("Unsupported: %d.\n",op_type);
+		break;
+	}
+	return false;
+}
+
+static int convert_to_range_d (const char* name_type)
 {
 	char* char_end = NULL;
 	long order_d = -1;
@@ -746,7 +707,7 @@ int convert_to_range_d (const char* name_type)
 	return -1;
 }
 
-int convert_to_range_ce (const char ce_i, const char ce_o)
+static int convert_to_range_ce (const char ce_i, const char ce_o)
 {
 	switch (ce_i) {
 	case 'v':
@@ -781,7 +742,7 @@ int convert_to_range_ce (const char ce_i, const char ce_o)
 	return -1;
 }
 
-int convert_to_range (const char type_range, const char*const name_range)
+static int convert_to_range (const char type_range, const char*const name_range)
 {
 	switch (type_range) {
 	case 'h':
@@ -821,6 +782,7 @@ int convert_to_range (const char type_range, const char*const name_range)
 
 static void set_op_info_p_rel (struct Operator_Info* op_info, const struct Simulation* sim)
 {
+/// \todo Delete this function if p_rel is unused.
 	const char ce_i   = op_info->op_io[OP_IND_I].ce,
 	           kind_i = op_info->op_io[OP_IND_I].kind;
 
@@ -837,6 +799,9 @@ static void set_op_info_p_rel (struct Operator_Info* op_info, const struct Simul
 		case 'r':
 			p_rel = sim->p_sg_v_p;
 			break;
+		case 'c':
+			p_rel = 0;
+			break;
 		default:
 			EXIT_ERROR("Unsupported: %c\n",kind_i);
 			break;
@@ -849,6 +814,9 @@ static void set_op_info_p_rel (struct Operator_Info* op_info, const struct Simul
 			break;
 		case 't':
 			p_rel = sim->p_sg_f_p;
+			break;
+		case 'c':
+			p_rel = 0;
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %c\n",kind_i);
@@ -1002,6 +970,18 @@ static void set_up_values_op (struct Operator_Info* op_info)
 
 	op_info->values_op = (const struct const_Matrix_i*) values;
 //print_const_Matrix_i(op_info->values_op);
+}
+
+static void transpose_operators (struct Multiarray_Operator* op)
+{
+	const ptrdiff_t size = compute_size(op->order,op->extents);
+	for (ptrdiff_t i = 0; i < size; ++i) {
+		struct Matrix_d* op_std = (struct Matrix_d*) op->data[i]->op_std;
+		if (!op_std)
+			continue;
+
+		transpose_Matrix_d(op_std,false);
+	}
 }
 
 // Level 1 ********************************************************************************************************** //

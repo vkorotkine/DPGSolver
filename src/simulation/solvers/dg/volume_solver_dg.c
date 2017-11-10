@@ -88,6 +88,12 @@ void destructor_derived_DG_Solver_Volume (struct Volume* volume_ptr)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+/** \brief Constructor for the mass matrix of the input volume.
+ *  \return See brief. */
+static const struct const_Matrix_d* constructor_mass
+	(const struct Solver_Volume* s_vol ///< \ref Solver_Volume.
+	);
+
 static struct Needed_Members set_needed_members (const struct Simulation* sim)
 {
 	const struct Test_Case* test_case = sim->test_case;
@@ -126,29 +132,35 @@ static struct Needed_Members set_needed_members (const struct Simulation* sim)
 
 static const struct const_Matrix_d* constructor_inverse_mass (const struct DG_Solver_Volume* volume)
 {
-	struct Volume* vol          = (struct Volume*) volume;
-	struct Solver_Volume* s_vol = (struct Solver_Volume*) volume;
+	const struct const_Matrix_d* m     = constructor_mass((struct Solver_Volume*)volume); // destructed
+	const struct const_Matrix_d* m_inv = constructor_inverse_const_Matrix_d(m);           // returned
+	destructor_const_Matrix_d(m);
 
-	struct Solver_Element* s_e       = (struct Solver_Element*) vol->element;
-	struct DG_Solver_Element* dg_s_e = (struct DG_Solver_Element*) vol->element;
+	return m_inv;
+}
+
+// Level 1 ********************************************************************************************************** //
+
+static const struct const_Matrix_d* constructor_mass (const struct Solver_Volume* s_vol)
+{
+	struct Volume* vol               = (struct Volume*) s_vol;
+	const struct Solver_Element* s_e = (struct Solver_Element*) vol->element;
 
 	const int p      = s_vol->p_ref,
 	          curved = vol->curved;
 	const struct Operator* cv0_vs_vc = get_Multiarray_Operator(s_e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
-	const struct const_Vector_d* w_vc = get_const_Multiarray_Vector_d(dg_s_e->w_vc[curved],(ptrdiff_t[]){0,0,p,p});
+	const struct const_Vector_d* w_vc = get_operator__w_vc__s_e(s_vol);
 
 	const struct const_Vector_d jacobian_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
-	const struct const_Vector_d* wJ_vc = constructor_dot_mult_const_Vector_d(w_vc,&jacobian_det_vc); // destructed
+	const struct const_Vector_d* wJ_vc = constructor_dot_mult_const_Vector_d(w_vc,&jacobian_det_vc,1); // destructed
 
 	const struct const_Matrix_d* m_l = cv0_vs_vc->op_std;
 	const struct const_Matrix_d* m_r = constructor_mm_diag_const_Matrix_d(1.0,m_l,wJ_vc,'L',false); // destructed
 	destructor_const_Vector_d(wJ_vc);
 
-	const struct const_Matrix_d* m = constructor_mm_const_Matrix_d('T','N',1.0,m_l,m_r,'R'); // destructed
+	const struct const_Matrix_d* mass = constructor_mm_const_Matrix_d('T','N',1.0,m_l,m_r,'R'); // returned
 	destructor_const_Matrix_d(m_r);
 
-	const struct const_Matrix_d* m_inv = constructor_inverse_const_Matrix_d(m); // returned
-	destructor_const_Matrix_d(m);
-
-	return m_inv;
+	return mass;
 }
+

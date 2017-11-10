@@ -93,7 +93,7 @@ const struct const_Matrix_d* constructor_copy_const_Matrix_d_d
 	return (const struct const_Matrix_d*) constructor_copy_Matrix_d_d(layout,ext_0,ext_1,data_src);
 }
 
-struct Matrix_d* constructor_copy_Matrix_d (struct Matrix_d* src)
+struct Matrix_d* constructor_copy_Matrix_d (const struct Matrix_d* src)
 {
 	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
 	const double*const data_src = src->data;

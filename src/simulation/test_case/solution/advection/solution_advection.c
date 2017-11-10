@@ -108,7 +108,7 @@ void read_data_advection (const char*const input_path, struct Sol_Data__Advectio
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),input_file)) {
 		if (strstr(line,"b_adv")) {
-			read_skip_const_d_1(line,1,sol_data->b_adv,DMAX);
+			read_skip_d_1(line,1,sol_data->b_adv,DMAX);
 			++count_found;
 		}
 	}

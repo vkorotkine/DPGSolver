@@ -282,6 +282,17 @@ struct const_Vector_d interpret_const_Multiarray_as_Vector_d (const struct const
 	return a;
 }
 
+struct Matrix_d interpret_Multiarray_as_Matrix_d (const struct Multiarray_d* a_Ma)
+{
+	assert(a_Ma->order == 2):
+	struct Matrix_d a =
+		{ .ext_0     = a_Ma->extents[0],
+		  .ext_1     = a_Ma->extents[1],
+		  .owns_data = false,
+		  .data      = a_Ma->data, };
+	return a;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

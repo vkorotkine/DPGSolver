@@ -89,9 +89,9 @@ static void constructor_derived_Plotting_Element_std (struct Element* element_pt
 
 	struct const_Element* b_e = (struct const_Element*)element;
 
-	element->cv0_vgs_vp = constructor_operators("cv0","vgs","vpA","H_1_P_1P",sim->p_s_v,b_e,sim);  // destructed
-	element->cv0_vgc_vp = constructor_operators("cv0","vgc","vpA","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
-	element->cv0_vs_vp  = constructor_operators("cv0","vsA","vpA","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+	element->cv0_vgs_vp = constructor_operators("cv0","vgs","vpA","H_1_P_1P", b_e,sim);  // destructed
+	element->cv0_vgc_vp = constructor_operators("cv0","vgc","vpA","H_1_P_PM0",b_e,sim); // destructed
+	element->cv0_vs_vp  = constructor_operators("cv0","vsA","vpA","H_1_P_PM0",b_e,sim); // destructed
 }
 
 static void constructor_derived_Plotting_Element_tp (struct Element* element_ptr, const struct Simulation* sim)

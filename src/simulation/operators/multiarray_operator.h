@@ -79,12 +79,13 @@ void destructor_Multiarray2_Operator_conditional
 
 // Setter functions ************************************************************************************************* //
 
-/// \brief Set a \ref Multiarray_Operator\* from a sub range of a \ref Multiarray_Operator\*.
-void set_MO_from_MO
-	(const struct Multiarray_Operator* dest, ///< The destination.
-	 const struct Multiarray_Operator* src,  ///< The source.
-	 const int order_o,                      ///< The order of the output (destination).
-	 const ptrdiff_t*const sub_indices       ///< The sub-indices specifying which part of the source to extract.
+/** \brief Set and return a statically allocated \ref Multiarray_Operator\* from a sub range of a
+ *         \ref Multiarray_Operator\*.
+ *  \return See brief. */
+struct Multiarray_Operator set_MO_from_MO
+	(const struct Multiarray_Operator* src, ///< The source.
+	 const int order_o,                     ///< The order of the output (destination).
+	 const ptrdiff_t*const sub_indices      ///< The sub-indices specifying which part of the source to extract.
 	);
 
 /** \brief Get a pointer to a \ref Operator\* from a sub range of a \ref Multiarray_Operator\*.
@@ -106,6 +107,5 @@ void print_Multiarray_Operator_tol
 	(const struct Multiarray_Operator*const a, ///< Standard.
 	 const double tol                          ///< The tolerance.
 	);
-
 
 #endif // DPG__multiarray_operator_h__INCLUDED

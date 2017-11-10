@@ -23,6 +23,28 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** \brief Function pointer to value setting functions.
+ *
+ *  \param dest The destination.
+ *  \param src  The source.
+ */
+typedef void (*set_value_fptr)
+	(double*const dest,
+	 const double src
+	);
+
+/// \brief Version of \ref set_value_fptr inserting values.
+void set_value_insert
+	(double*const dest, ///< See brief.
+	 const double src   ///< See brief.
+	);
+
+/// \brief Version of \ref set_value_fptr adding values.
+void set_value_add
+	(double*const dest, ///< See brief.
+	 const double src   ///< See brief.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void swap_layout (char*const layout)
@@ -162,6 +184,36 @@ void set_to_value_Matrix_d (struct Matrix_d*const a, const double val)
 		a->data[i] = val;
 }
 
+void set_block_Matrix_d
+	(struct Matrix_d* a, const struct const_Matrix_d* a_sub, const ptrdiff_t row0, const ptrdiff_t col0,
+	 const char set_type)
+{
+	assert(a->layout == a_sub->layout); // Add support if required.
+	assert(a->layout == 'R');
+
+	set_value_fptr set_value = NULL;
+	switch (set_type) {
+		case 'i': set_value = set_value_insert; break;
+		case 'a': set_value = set_value_add;    break;
+		default:  EXIT_ERROR("Unsupported: %c.\n",set_type); break;
+	}
+
+	const ptrdiff_t ext_0 = a_sub->ext_0,
+	                ext_1 = a_sub->ext_1;
+
+	assert(row0+ext_0 <= a->ext_0);
+	assert(col0+ext_1 <= a->ext_1);
+
+	for (int i = 0, row = row0; i < ext_0; ++i, ++row) {
+		const double*const data_as = get_row_const_Matrix_d(i,a_sub);
+
+		double* data_a = get_row_Matrix_d(row,a);
+		data_a += col0;
+		for (int j = 0; j < ext_1; ++j)
+			set_value(&data_a[j],data_as[j]);
+	}
+}
+
 char compute_opposite_layout (const char layout_i)
 {
 	assert((layout_i == 'R') || (layout_i == 'C'));
@@ -177,3 +229,13 @@ ptrdiff_t compute_index_Matrix
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+void set_value_insert (double*const dest, const double src)
+{
+	*dest = src;
+}
+
+void set_value_add (double*const dest, const double src)
+{
+	*dest += src;
+}

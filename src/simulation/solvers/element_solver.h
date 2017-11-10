@@ -33,7 +33,9 @@ struct Solver_Element {
 	const struct Multiarray_Operator* cv0_vs_vc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* tw1_vt_vc[2]; ///< See notation in \ref element_operators.h.
 
-	// Tensor-Product
+	const struct const_Multiarray_Vector_d* w_vc[2]; ///< Weights for 'v'olume 'c'ubature.
+
+	// Tensor-product sub-operators.
 	const struct Multiarray_Operator* tw0_vt_vc[2]; ///< See notation in \ref element_operators.h.
 };
 
