@@ -61,22 +61,6 @@ void permute_Multiarray_d_fc
 	 const struct Solver_Face* s_face ///< \ref Solver_Face.
 	);
 
-/** \brief Permute the input matrix such that its ordering is such that it is in the reference coordinates of the
- *         face cubature nodes of the opposite volume. */
-void permute_Matrix_d_fc
-	(struct Matrix_d* data,           ///< The data to be permuted.
-	 const char perm_layout,          ///< The layout in which to permute.
-	 const int side_index_dest,       ///< The side index of the destination.
-	 const struct Solver_Face* s_face ///< \ref Solver_Face.
-	);
-
-/** \brief Get the pointer to the appropriate \ref DG_Solver_Element::nc_fc \ref const_Vector_i\*.
- *  \return See brief. */
-const struct const_Vector_i* get_operator__nc_fc__dg
-	(const int side_index_dest,       ///< Defined for \ref permute_Multiarray_d_fc.
-	 const struct Solver_Face* s_face ///< Defined for \ref permute_Multiarray_d_fc.
-	);
-
 /** \brief Set the values of \ref Solver_Storage_Implicit::row and Solver_Storage_Implicit::col based on the current
  *         volume and eq, var indices. */
 void set_petsc_Mat_row_col

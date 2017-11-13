@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "compute_face_rlhs.h"
 #include "compute_face_rlhs_dg.h"
 #include "intrusive.h"
 #include "simulation.h"
@@ -154,10 +155,11 @@ static void finalize_face_rhs_dg_c
 	(const int side_index, const struct Numerical_Flux_c* num_flux, struct Face* face, const struct Simulation* sim)
 {
 	UNUSED(sim);
-	const struct Operator* tw0_vs_fc = get_operator__tw0_vs_fc__rlhs_dg(side_index,face);
+	const struct Solver_Face* s_face = (struct Solver_Face*) face;
+	const struct Operator* tw0_vt_fc = get_operator__tw0_vt_fc(side_index,s_face);
 
 	struct Complex_DG_Solver_Volume* c_dg_s_vol =
 		(struct Complex_DG_Solver_Volume*) face->neigh_info[side_index].volume;
 
-	mm_NNC_Operator_Multiarray_c(-1.0,1.0,tw0_vs_fc,num_flux->nnf,c_dg_s_vol->rhs,'d',2,NULL,NULL);
+	mm_NNC_Operator_Multiarray_c(-1.0,1.0,tw0_vt_fc,num_flux->nnf,c_dg_s_vol->rhs,'d',2,NULL,NULL);
 }

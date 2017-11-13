@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
+#include "matrix.h"
 #include "vector.h"
 
 // Static function declarations ************************************************************************************* //
@@ -284,7 +285,7 @@ struct const_Vector_d interpret_const_Multiarray_as_Vector_d (const struct const
 
 struct Matrix_d interpret_Multiarray_as_Matrix_d (const struct Multiarray_d* a_Ma)
 {
-	assert(a_Ma->order == 2):
+	assert(a_Ma->order == 2);
 	struct Matrix_d a =
 		{ .ext_0     = a_Ma->extents[0],
 		  .ext_1     = a_Ma->extents[1],

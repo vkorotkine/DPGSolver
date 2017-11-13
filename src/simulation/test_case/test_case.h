@@ -114,7 +114,7 @@ struct Test_Case {
 	/** \note constructor_*_r_fcl are provided as part of the Solver_Face_* container as they are dependent upon
 	 *        whether the face is on a boundary or not. */
 
-	compute_source_fptr compute_source; ///< Function pointer to the source computation function.
+	compute_source_rhs_fptr compute_source_rhs; ///< Function pointer to the rhs source computation function.
 
 	constructor_Error_CE_fptr constructor_Error_CE; ///< Function pointer to the function computing the error.
 };

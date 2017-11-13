@@ -176,13 +176,7 @@ assert(sim->collocated == false); // Add support in future.
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
 
-	struct Volume* vol          = (struct Volume*) dg_s_vol;
-	struct Solver_Volume* s_vol = (struct Solver_Volume*) vol;
-
-	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
-
-	const int p      = s_vol->p_ref,
-	          curved = vol->curved;
+	struct Solver_Volume* s_vol = (struct Solver_Volume*) dg_s_vol;
 	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc__rlhs(s_vol);
 
 	// rhs
@@ -191,35 +185,8 @@ assert(sim->collocated == false); // Add support in future.
 //print_Multiarray_d(dg_s_vol->rhs);
 
 	// lhs
-	const struct Operator* cv0_vs_vc = get_Multiarray_Operator(e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
-
-	const ptrdiff_t ext_0 = tw1_vt_vc.data[0]->op_std->ext_0,
-	                ext_1 = tw1_vt_vc.data[0]->op_std->ext_1;
-
-	struct Matrix_d* tw1_r = constructor_empty_Matrix_d('R',ext_0,ext_1);                    // destructed
-	struct Matrix_d* lhs   = constructor_empty_Matrix_d('R',ext_0,cv0_vs_vc->op_std->ext_1); // destructed
-
-	const struct const_Multiarray_d* dfr_ds_Ma = flux_r->dfr_ds;
-	struct Vector_d dfr_ds = { .ext_0 = dfr_ds_Ma->extents[0], .owns_data = false, .data = NULL, };
-
-	const int n_eq = sim->test_case->n_eq,
-	          n_vr = sim->test_case->n_var;
-	for (int vr = 0; vr < n_vr; ++vr) {
-	for (int eq = 0; eq < n_eq; ++eq) {
-		set_to_value_Matrix_d(tw1_r,0.0);
-		for (int dim = 0; dim < d; ++dim) {
-			const ptrdiff_t ind =
-				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
-			dfr_ds.data = (double*)&dfr_ds_Ma->data[ind];
-			mm_diag_d('R',1.0,1.0,tw1_vt_vc.data[dim]->op_std,(struct const_Vector_d*)&dfr_ds,tw1_r,false);
-		}
-
-		mm_d('N','N',1.0,0.0,(struct const_Matrix_d*)tw1_r,cv0_vs_vc->op_std,lhs);
-//print_Matrix_d(lhs);
-
-		set_petsc_Mat_row_col(ssi,s_vol,eq,s_vol,vr);
-		add_to_petsc_Mat(ssi,(struct const_Matrix_d*)lhs);
-	}}
-	destructor_Matrix_d(tw1_r);
+	struct Matrix_d* lhs = constructor_lhs_v_1(flux_r,s_vol,sim); // destructed
+	set_petsc_Mat_row_col(ssi,s_vol,0,s_vol,0);
+	add_to_petsc_Mat(ssi,(struct const_Matrix_d*)lhs);
 	destructor_Matrix_d(lhs);
 }

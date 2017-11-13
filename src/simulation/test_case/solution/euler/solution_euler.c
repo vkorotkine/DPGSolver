@@ -48,7 +48,7 @@ void set_function_pointers_solution_euler (struct Test_Case* test_case, const st
 	if (strstr(sim->pde_spec,"periodic_vortex")) {
 		test_case->constructor_sol = constructor_const_sol_invalid;
 		test_case->set_sol         = set_sol_periodic_vortex;
-		test_case->compute_source  = compute_source_do_nothing;
+		test_case->compute_source_rhs = compute_source_rhs_do_nothing;
 		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
 	} else if (strstr(sim->pde_spec,"supersonic_vortex")) {
 //		test_case->set_sol_v = set_sol_v_supersonic_vortex;

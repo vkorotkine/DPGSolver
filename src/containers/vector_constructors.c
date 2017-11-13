@@ -121,6 +121,11 @@ struct Vector_d* constructor_copy_Vector_d_d (const ptrdiff_t ext_0, const doubl
 	return constructor_move_Vector_d_d(ext_0,true,data);
 }
 
+const struct const_Vector_d* constructor_copy_const_Vector_d_d (const ptrdiff_t ext_0, const double*const data_src)
+{
+	return (struct const_Vector_d*) constructor_copy_Vector_d_d(ext_0,data_src);
+}
+
 struct Vector_i* constructor_copy_Vector_i_i (const ptrdiff_t ext_0, const int*const data_src)
 {
 	int* data = malloc(ext_0 * sizeof *data); // keep
@@ -291,23 +296,23 @@ const struct const_Vector_d* constructor_sum_const_Vector_d_const_Matrix_d
 }
 
 struct Vector_d* constructor_mv_Vector_d
-	(const char trans_a_i, const double alpha, const double beta,
-	 const struct const_Matrix_d*const a, const struct const_Vector_d*const b)
+	(const char trans_a_i, const double alpha, const struct const_Matrix_d*const a,
+	 const struct const_Vector_d*const b)
 {
 	const MKL_INT m = ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 );
 
 	struct Vector_d* c = constructor_empty_Vector_d(m); // returned
 
-	mv_d(trans_a_i,alpha,beta,a,b,c);
+	mv_d(trans_a_i,alpha,0.0,a,b,c);
 
 	return c;
 }
 
 const struct const_Vector_d* constructor_mv_const_Vector_d
-	(const char trans_a_i, const double alpha, const double beta,
-	 const struct const_Matrix_d*const a, const struct const_Vector_d*const b)
+	(const char trans_a_i, const double alpha, const struct const_Matrix_d*const a,
+	 const struct const_Vector_d*const b)
 {
-	return (const struct const_Vector_d*) constructor_mv_Vector_d(trans_a_i,alpha,beta,a,b);
+	return (const struct const_Vector_d*) constructor_mv_Vector_d(trans_a_i,alpha,a,b);
 }
 
 struct Vector_d* constructor_sgesv_Vector_d (struct Matrix_d* A_i, struct Vector_d* B_i)

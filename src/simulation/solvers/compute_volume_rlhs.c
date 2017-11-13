@@ -129,7 +129,46 @@ void destructor_Flux_Ref (struct Flux_Ref* flux_ref)
 	free(flux_ref);
 }
 
-const struct Operator* get_operator__cv0_vs_vc__rlhs (const struct Solver_Volume* s_vol)
+struct Matrix_d* constructor_lhs_v_1
+	(const struct Flux_Ref* flux_r, const struct Solver_Volume* s_vol, const struct Simulation* sim)
+{
+	const ptrdiff_t d = sim->d;
+
+	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc__rlhs(s_vol);
+	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc(s_vol);
+
+	const ptrdiff_t ext_0 = tw1_vt_vc.data[0]->op_std->ext_0,
+	                ext_1 = tw1_vt_vc.data[0]->op_std->ext_1;
+
+	struct Matrix_d* tw1_r = constructor_empty_Matrix_d('R',ext_0,ext_1);                    // destructed
+	struct Matrix_d* lhs_l = constructor_empty_Matrix_d('R',ext_0,cv0_vs_vc->op_std->ext_1); // destructed
+	struct Matrix_d* lhs   = constructor_empty_Matrix_d('R',lhs_l->ext_0,lhs_l->ext_1);      // returned
+
+	const struct const_Multiarray_d* dfr_ds_Ma = flux_r->dfr_ds;
+	struct Vector_d dfr_ds = { .ext_0 = dfr_ds_Ma->extents[0], .owns_data = false, .data = NULL, };
+
+	const int n_eq = sim->test_case->n_eq,
+	          n_vr = sim->test_case->n_var;
+	for (int vr = 0; vr < n_vr; ++vr) {
+	for (int eq = 0; eq < n_eq; ++eq) {
+		set_to_value_Matrix_d(tw1_r,0.0);
+		for (int dim = 0; dim < d; ++dim) {
+			const ptrdiff_t ind =
+				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
+			dfr_ds.data = (double*)&dfr_ds_Ma->data[ind];
+			mm_diag_d('R',1.0,1.0,tw1_vt_vc.data[dim]->op_std,(struct const_Vector_d*)&dfr_ds,tw1_r,false);
+		}
+
+		mm_d('N','N',1.0,0.0,(struct const_Matrix_d*)tw1_r,cv0_vs_vc->op_std,lhs_l);
+		set_block_Matrix_d(lhs,(struct const_Matrix_d*)lhs_l,eq*lhs_l->ext_0,vr*lhs_l->ext_1,'i');
+	}}
+	destructor_Matrix_d(tw1_r);
+	destructor_Matrix_d(lhs_l);
+
+	return lhs;
+}
+
+const struct Operator* get_operator__cv0_vs_vc (const struct Solver_Volume* s_vol)
 {
 	const struct Volume* vol       = (struct Volume*) s_vol;
 	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
@@ -164,7 +203,7 @@ static const struct const_Multiarray_d* constructor_flux_ref
 static const struct const_Multiarray_d* constructor_sol_vc_interp
 	(const struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
-	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc__rlhs(s_vol);
+	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc(s_vol);
 
 	const struct const_Multiarray_d* s_coef = (const struct const_Multiarray_d*) s_vol->sol_coef;
 

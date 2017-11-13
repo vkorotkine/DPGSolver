@@ -13,24 +13,11 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__compute_source_rlhs_dg_h__INCLUDED
-#define DPG__compute_source_rlhs_dg_h__INCLUDED
+#ifndef DPG__compute_rlhs_h__INCLUDED
+#define DPG__compute_rlhs_h__INCLUDED
 /** \file
- *  \brief Provides functions used for computing the source contributions to the right-hand side (rhs) term of the DG
- *         scheme.
+ *  \brief Provides functions used for computing the general contributions to the right and left-hand side (rlhs) terms
+ *         of supported schemes.
  */
 
-struct Simulation;
-
-/** \brief Compute the source contributions to the rhs term for the DG scheme.
- *
- *  \warning Should not be used for non-linear sources.
- *
- *  Updates:
- *  - \ref DG_Solver_Volume::rhs.
- */
-void compute_source_rhs_dg
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
-#endif // DPG__compute_source_rlhs_dg_h__INCLUDED
+#endif // DPG__compute_rlhs_h__INCLUDED

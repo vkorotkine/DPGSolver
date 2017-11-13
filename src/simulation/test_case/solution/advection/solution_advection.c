@@ -57,12 +57,12 @@ void set_function_pointers_solution_advection (struct Test_Case* test_case, cons
 	if (strstr(sim->pde_spec,"peterson")) {
 		test_case->constructor_sol = constructor_const_sol_peterson;
 		test_case->set_sol         = set_sol_peterson;
-		test_case->compute_source  = compute_source_do_nothing;
+		test_case->compute_source_rhs = compute_source_rhs_do_nothing;
 		test_case->constructor_Error_CE = constructor_Error_CE_advection_all;
 	} else if (strcmp(sim->pde_spec,"demkowicz_dpg_ii") == 0) {
 		test_case->constructor_sol = constructor_const_sol_advection_default;
 		test_case->set_sol         = set_sol_advection_default;
-		test_case->compute_source  = compute_source_advection_default;
+		test_case->compute_source_rhs = compute_source_rhs_advection_default;
 // set a function pointer to a norm computing function.
 		test_case->constructor_Error_CE = constructor_Error_CE_advection_all;
 	} else {

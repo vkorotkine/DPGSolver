@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__compute_volume_rlhs_h__INCLUDED
 /** \file
  *  \brief Provides functions used for computing the volume contributions to the right and left-hand side (rlhs) terms
- *         of multiple schemes.
+ *         of supported schemes.
  */
 
 struct Flux_Input;
@@ -80,10 +80,18 @@ void destructor_Flux_Ref
 	(struct Flux_Ref* flux_ref ///< Standard.
 	);
 
+/** \brief Constructor for the lhs volume term of 1st order equations only.
+ *  \return See brief. */
+struct Matrix_d* constructor_lhs_v_1
+	(const struct Flux_Ref* flux_r,     ///< \ref Flux_Ref.
+	 const struct Solver_Volume* s_vol, ///< \ref Solver_Volume.
+	 const struct Simulation* sim       ///< \ref Simulation.
+	);
+
 /** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vs_vc operator.
  *  \return See brief. */
-const struct Operator* get_operator__cv0_vs_vc__rlhs
-	(const struct Solver_Volume* vol ///< The current volume.
+const struct Operator* get_operator__cv0_vs_vc
+	(const struct Solver_Volume* s_vol ///< The current volume.
 	);
 
 /** \brief Get the appropriate sub-range of the \ref Solver_Element::tw1_vt_vc operators.

@@ -29,15 +29,8 @@ struct Simulation;
 struct DG_Solver_Element {
 	const struct Solver_Element element; ///< Base \ref Solver_Element.
 
-	// Volume rlhs
-
 	// Face rlhs
 	const struct Multiarray_Operator* cv0_vs_fc[2];   ///< See notation in \ref element_operators.h.
-	const struct const_Multiarray_Vector_i* nc_fc[2]; ///< Node correspondence between 'f'ace 'c'ubature 's'traight.
-	const struct Multiarray_Operator* tw0_vs_fc[2];   ///< See notation in \ref element_operators.h.
-
-	// Source rhs
-	const struct Multiarray_Operator* tw0_vs_vc[2]; ///< See notation in \ref element_operators.h.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

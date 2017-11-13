@@ -57,12 +57,14 @@ typedef void (*set_sol_fptr)
 	);
 
 /** \brief Function pointer to the function setting the source contribution of the rhs term.
- *  \param sim    \ref Simulation.
- *  \param volume \ref Solver_Volume.
+ *  \param sim   \ref Simulation.
+ *  \param s_vol \ref Solver_Volume.
+ *  \param rhs   Memory in which to add the rhs contribution.
  */
-typedef void (*compute_source_fptr)
+typedef void (*compute_source_rhs_fptr)
 	(const struct Simulation* sim,
-	 struct Solver_Volume* volume
+	 const struct Solver_Volume* s_vol,
+	 struct Multiarray_d* rhs
 	);
 
 /// Container for members relating to the solution computation.
@@ -133,16 +135,30 @@ struct Multiarray_d* constructor_sol_v
 	 const char node_kind          ///< The kind of node. Options: 's'olution, 'c'ubature.
 	);
 
-/// \brief Function pointer to be used for \ref Test_Case::compute_source when there is no source term.
-void compute_source_do_nothing
-	(const struct Simulation* sim, ///< Defined for \ref compute_source_fptr.
-	 struct Solver_Volume* volume  ///< Defined for \ref compute_source_fptr.
+/// \brief Function pointer to be used for \ref Test_Case::compute_source_rhs when there is no source term.
+void compute_source_rhs_do_nothing
+	(const struct Simulation* sim,      ///< See brief.
+	 const struct Solver_Volume* s_vol, ///< See brief.
+	 struct Multiarray_d* rhs           ///< See brief.
 	);
 
 /// \brief Update \ref Solution_Container::sol based on the input solution values.
 void update_Solution_Container_sol
 	(struct Solution_Container*const sol_cont, ///< Defined for \ref set_sol_fptr.
 	 struct Multiarray_d*const sol             ///< The solution values.
+	);
+
+/** \brief Constructor for the xyz coordinates evaluated at the volume cubature nodes using interpolation.
+ *  \return See brief. */
+const struct const_Multiarray_d* constructor_xyz_vc_interp
+	(const struct Solver_Volume* s_vol, ///< The current volume.
+	 const struct Simulation* sim       ///< \ref Simulation.
+	);
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::tw0_vt_vc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__tw0_vt_vc
+	(const struct Solver_Volume* s_vol ///< The current volume.
 	);
 
 #endif // DPG__solution_h__INCLUDED

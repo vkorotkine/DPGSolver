@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 struct Solution_Container;
 struct Solver_Volume;
+struct Multiarray_d;
 
 /// \brief Function to be used for \ref Test_Case::set_sol for the default linear advection solution.
 void set_sol_advection_default
@@ -36,10 +37,11 @@ const struct const_Multiarray_d* constructor_const_sol_advection_default
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr.
 	);
 
-/// \brief Version of \ref compute_source_fptr for the default linear advection solution.
-void compute_source_advection_default
-	(const struct Simulation* sim, ///< See brief.
-	 struct Solver_Volume* volume  ///< See brief.
+/// \brief Version of \ref compute_source_rhs_fptr for the default linear advection solution.
+void compute_source_rhs_advection_default
+	(const struct Simulation* sim,      ///< See brief.
+	 const struct Solver_Volume* s_vol, ///< See brief.
+	 struct Multiarray_d* rhs           ///< See brief.
 	);
 
 #endif // DPG__solution_advection_default_h__INCLUDED

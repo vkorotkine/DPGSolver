@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "face.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <math.h>
 

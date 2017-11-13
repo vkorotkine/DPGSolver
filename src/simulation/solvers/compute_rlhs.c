@@ -15,38 +15,11 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "compute_volume_rlhs_dg.h"
-
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "macros.h"
-#include "definitions_intrusive.h"
-
-#include "volume_solver_dg.h"
-
-#include "intrusive.h"
-#include "simulation.h"
-#include "test_case.h"
+#include "compute_face_rlhs.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
-
-void compute_source_rhs_dg (const struct Simulation* sim)
-{
-	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
-
-	struct Test_Case* test_case = sim->test_case;
-
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		const struct Solver_Volume* s_vol       = (struct Solver_Volume*) curr;
-		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
-
-		test_case->compute_source_rhs(sim,s_vol,dg_s_vol->rhs);
-	}
-}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

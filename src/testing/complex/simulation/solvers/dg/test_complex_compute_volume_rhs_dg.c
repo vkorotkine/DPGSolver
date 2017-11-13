@@ -116,7 +116,7 @@ static const struct const_Multiarray_c* constructor_flux_ref_c
 static const struct const_Multiarray_c* constructor_sol_vc (struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
 	UNUSED(sim);
-	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc__rlhs(s_vol);
+	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc(s_vol);
 
 	struct Complex_DG_Solver_Volume* dg_s_vol = (struct Complex_DG_Solver_Volume*) s_vol;
 	const struct const_Multiarray_c* s_coef = (const struct const_Multiarray_c*) dg_s_vol->sol_coef;

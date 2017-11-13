@@ -38,6 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "compute_face_rlhs.h"
 #include "boundary_advection.h"
 #include "intrusive.h"
 #include "simulation.h"
@@ -129,7 +130,7 @@ void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Stor
 void permute_Multiarray_c_fc
 	(struct Multiarray_c* data, const char perm_layout, const int side_index_dest, const struct Solver_Face* s_face)
 {
-	const struct const_Vector_i* nc_fc = get_operator__nc_fc__dg(side_index_dest,s_face);
+	const struct const_Vector_i* nc_fc = get_operator__nc_fc(side_index_dest,s_face);
 	permute_Multiarray_c_V(data,nc_fc,perm_layout);
 }
 

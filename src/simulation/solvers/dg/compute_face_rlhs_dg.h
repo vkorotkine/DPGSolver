@@ -61,11 +61,4 @@ void compute_face_rlhs_dg
 	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
 	);
 
-/** \brief Get the pointer to the appropriate \ref DG_Solver_Element::tw0_vs_fc operator.
- *  \return See brief. */
-const struct Operator* get_operator__tw0_vs_fc__rlhs_dg
-	(const int side_index, ///< The index of the side of the face under consideration.
-	 struct Face* face     ///< The current \ref Face.
-	);
-
 #endif // DPG__compute_face_rlhs_dg_h__INCLUDED

@@ -92,6 +92,13 @@ struct Vector_d* constructor_copy_Vector_d_d
 	 const double*const data_src ///< The source data.
 	);
 
+/** \brief `const` version of \ref constructor_copy_Vector_d_d.
+ *  \return Standard. */
+const struct const_Vector_d* constructor_copy_const_Vector_d_d
+	(const ptrdiff_t ext_0,      ///< See brief.
+	 const double*const data_src ///< See brief.
+	);
+
 /** \brief Copy constructor for a \ref Vector_i\* from a `const int*`.
  *  \return Standard. */
 struct Vector_i* constructor_copy_Vector_i_i
@@ -227,7 +234,6 @@ const struct const_Vector_d* constructor_sum_const_Vector_d_const_Matrix_d
 struct Vector_d* constructor_mv_Vector_d
 	(const char trans_a_i,                ///< Defined for \ref mv_d.
 	 const double alpha,                  ///< Defined for \ref mv_d.
-	 const double beta,                   ///< Defined for \ref mv_d.
 	 const struct const_Matrix_d*const a, ///< Defined for \ref mv_d.
 	 const struct const_Vector_d*const b  ///< Defined for \ref mv_d.
 	);
@@ -237,7 +243,6 @@ struct Vector_d* constructor_mv_Vector_d
 const struct const_Vector_d* constructor_mv_const_Vector_d
 	(const char trans_a_i,                ///< Defined for \ref mv_d.
 	 const double alpha,                  ///< Defined for \ref mv_d.
-	 const double beta,                   ///< Defined for \ref mv_d.
 	 const struct const_Matrix_d*const a, ///< Defined for \ref mv_d.
 	 const struct const_Vector_d*const b  ///< Defined for \ref mv_d.
 	);

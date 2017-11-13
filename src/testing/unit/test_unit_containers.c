@@ -142,8 +142,8 @@ static void test_unit_matrix_mv (struct Test_Info*const test_info)
 
 	const struct const_Matrix_d* a_t = constructor_copy_transpose_const_Matrix_d(a,false); // destructed
 
-	struct Vector_d* c_N = constructor_mv_Vector_d('N',1.0,0.0,a,  b), // destructed
-	               * c_T = constructor_mv_Vector_d('T',1.0,0.0,a_t,b); // destructed
+	struct Vector_d* c_N = constructor_mv_Vector_d('N',1.0,a,  b), // destructed
+	               * c_T = constructor_mv_Vector_d('T',1.0,a_t,b); // destructed
 	destructor_const_Matrix_d(a);
 	destructor_const_Matrix_d(a_t);
 	destructor_const_Vector_d(b);

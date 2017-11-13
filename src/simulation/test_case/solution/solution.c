@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "face_solver.h"
 #include "element.h"
 #include "element_solution.h"
+#include "element_solver.h"
 #include "volume.h"
 #include "volume_solver.h"
 
@@ -51,6 +52,12 @@ static void set_initial_v_sg_coef
 /// \brief Set up the initial \ref Solver_Face::nf_coef.
 static void set_initial_f_nf_coef
 	(struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vg_vc operator.
+ *  \return See brief. */
+static const struct Operator* get_operator__cv0_vg_vc
+	(const struct Solver_Volume* s_vol ///< The current volume.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -211,10 +218,12 @@ UNUSED(sim);
 	return sol_v;
 }
 
-void compute_source_do_nothing (const struct Simulation* sim, struct Solver_Volume* volume)
+void compute_source_rhs_do_nothing
+	(const struct Simulation* sim, const struct Solver_Volume* s_vol, struct Multiarray_d* rhs)
 {
 	UNUSED(sim);
-	UNUSED(volume);
+	UNUSED(s_vol);
+	UNUSED(rhs);
 	return;
 }
 
@@ -239,6 +248,28 @@ void update_Solution_Container_sol (struct Solution_Container*const sol_cont, st
 	}
 }
 
+const struct const_Multiarray_d* constructor_xyz_vc_interp
+	(const struct Solver_Volume* s_vol, const struct Simulation* sim)
+{
+	const struct Operator* cv0_vg_vc = get_operator__cv0_vg_vc(s_vol);
+
+	const struct const_Multiarray_d* geom_coef = s_vol->geom_coef;
+
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	UNUSED(sim);
+	const char op_format = 'd';
+	return constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vg_vc,geom_coef,'C',op_format,geom_coef->order,NULL);
+}
+
+const struct Operator* get_operator__tw0_vt_vc (const struct Solver_Volume* s_vol)
+{
+	const struct Volume* vol       = (struct Volume*) s_vol;
+	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref,
+	          curved = vol->curved;
+	return get_Multiarray_Operator(e->tw0_vt_vc[curved],(ptrdiff_t[]){0,0,p,p});
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
@@ -312,6 +343,17 @@ static void set_initial_f_nf_coef (struct Simulation* sim)
 	destructor_Multiarray_d(sol_fs);
 
 	destructor_Flux_Input(flux_i);
+}
+
+static const struct Operator* get_operator__cv0_vg_vc (const struct Solver_Volume* s_vol)
+{
+	const struct Volume* vol       = (struct Volume*) s_vol;
+	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
+
+	const int p_o = s_vol->p_ref,
+	          curved = vol->curved,
+	          p_i = ( curved ? p_o : 1 );
+	return get_Multiarray_Operator(e->cv0_vg_vc[curved],(ptrdiff_t[]){0,0,p_o,p_i});
 }
 
 // Level 1 ********************************************************************************************************** //
