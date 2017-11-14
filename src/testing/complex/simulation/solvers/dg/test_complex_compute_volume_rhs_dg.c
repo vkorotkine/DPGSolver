@@ -150,7 +150,7 @@ static void destructor_Flux_Ref_c (struct Flux_Ref_c* flux_ref)
 static void compute_rhs_v_dg_c
 	(const struct Flux_Ref_c* flux_r, struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
-	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc__rlhs(s_vol);
+	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
 
 	struct Complex_DG_Solver_Volume* dg_s_volume = (struct Complex_DG_Solver_Volume*) s_vol;
 	const ptrdiff_t d = sim->d;

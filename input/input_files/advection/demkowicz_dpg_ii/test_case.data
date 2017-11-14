@@ -3,7 +3,8 @@
 solver_proc   200
 solver_type_i 201
 
-test_norm H1_upwind
+num_flux_1st upwind
+test_norm    H1_upwind
 
 exit_tol_i   1e-15
 exit_ratio_i 1e-3

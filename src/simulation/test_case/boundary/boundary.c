@@ -25,7 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
-#include "element_solver_dg.h"
+#include "element_solver.h"
 #include "face.h"
 #include "face_solver.h"
 #include "volume.h"
@@ -97,7 +97,7 @@ const struct Operator* get_operator__cv0_vs_fc__rlhs_dg (const struct Solver_Fac
 	struct Volume* volume          = face->neigh_info[side_index].volume;
 	struct Solver_Volume* s_volume = (struct Solver_Volume*) volume;
 
-	const struct DG_Solver_Element* e = (const struct DG_Solver_Element*) volume->element;
+	const struct Solver_Element* e = (const struct Solver_Element*) volume->element;
 
 	const int ind_lf   = face->neigh_info[side_index].ind_lf,
 	          ind_href = face->neigh_info[side_index].ind_href;

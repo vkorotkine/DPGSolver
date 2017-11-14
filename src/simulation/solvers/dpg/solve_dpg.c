@@ -36,6 +36,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/// \brief Increment the appropriate rows of nnz based on the off-diagonal terms.
+static void increment_nnz_off_diag
+	(struct Vector_i* nnz,            ///< Vector of 'n'umber of 'n'on-'z'ero entries per row.
+	 const struct Solver_Face* s_face ///< The current face.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void update_ind_dof_dpg (const struct Simulation* sim)
@@ -44,10 +50,15 @@ void update_ind_dof_dpg (const struct Simulation* sim)
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Solver_Face* s_face = (struct Solver_Face*) curr;
 
-		s_face->ind_dof = dof;
-
 		struct Multiarray_d* nf_coef = s_face->nf_coef;
-		dof += compute_size(nf_coef->order,nf_coef->extents);
+		const ptrdiff_t size = compute_size(nf_coef->order,nf_coef->extents);
+		if (size == 0) {
+			s_face->ind_dof = -1;
+			continue;
+		}
+
+		s_face->ind_dof = dof;
+		dof += size;
 	}
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
@@ -79,7 +90,10 @@ struct Vector_i* constructor_nnz_dpg (const struct Simulation* sim)
 
 	// Face contributions (Diagonal and Off-diagonal)
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		struct Face* face          = (struct Face*) curr;
+		struct Face* face = (struct Face*) curr;
+		if (face->boundary)
+			continue;
+
 		struct Solver_Face* s_face = (struct Solver_Face*) curr;
 
 		// Diagonal
@@ -88,24 +102,7 @@ struct Vector_i* constructor_nnz_dpg (const struct Simulation* sim)
 		increment_nnz(nnz,s_face->ind_dof,size_nf,size_nf);
 
 		// Off-diagonal
-		int ind_n = 0;
-		struct Solver_Volume* s_vol = (struct Solver_Volume*) face->neigh_info[ind_n].volume;
-		struct Multiarray_d* sol_coef = s_vol->sol_coef;
-		ptrdiff_t size_sol = compute_size(sol_coef->order,sol_coef->extents);
-
-		increment_nnz(nnz,s_face->ind_dof,size_nf,size_sol);
-		increment_nnz(nnz,s_vol->ind_dof,size_sol,size_nf);
-
-		if (face->boundary)
-			continue;
-
-		ind_n = 1;
-		s_vol = (struct Solver_Volume*) face->neigh_info[ind_n].volume;
-		sol_coef = s_vol->sol_coef;
-		size_sol = compute_size(sol_coef->order,sol_coef->extents);
-
-		increment_nnz(nnz,s_face->ind_dof,size_nf,size_sol);
-		increment_nnz(nnz,s_vol->ind_dof,size_sol,size_nf);
+		increment_nnz_off_diag(nnz,s_face);
 	}
 	return nnz;
 }
@@ -115,10 +112,6 @@ double compute_rlhs_dpg (const struct Simulation* sim, struct Solver_Storage_Imp
 //	zero_memory_volumes(sim);
 //	zero_memory_faces(sim);
 	compute_all_rlhs_dpg(sim,s_store_i);
-//	compute_face_rlhs_dpg(sim,s_store_i);
-//	compute_source_rhs_dpg(sim);
-
-//	fill_petsc_Vec_b_dpg(sim,s_store_i);
 
 EXIT_ADD_SUPPORT;
 return 0.0;
@@ -127,3 +120,71 @@ return 0.0;
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+/// \brief Increment the appropriate rows of nnz based on the volume off-diagonal terms.
+static void increment_nnz_off_diag_v
+	(struct Vector_i* nnz,            ///< Defined for \ref increment_nnz_off_diag.
+	 const int ind_neigh,             ///< The index of the neighbouring volume.
+	 const ptrdiff_t n_rows,          ///< The number of rows to increment.
+	 const struct Solver_Face* s_face ///< The current face.
+	);
+
+/// \brief Increment the appropriate rows of nnz based on the face off-diagonal terms.
+static void increment_nnz_off_diag_f
+	(struct Vector_i* nnz,            ///< Defined for \ref increment_nnz_off_diag.
+	 const int ind_neigh,             ///< The index of the neighbouring volume.
+	 const ptrdiff_t n_rows,          ///< The number of rows to increment.
+	 const struct Solver_Face* s_face ///< The current face.
+	);
+
+static void increment_nnz_off_diag (struct Vector_i* nnz, const struct Solver_Face* s_face)
+{
+	const struct Face* face = (struct Face*) s_face;
+	struct Multiarray_d* nf_coef = s_face->nf_coef;
+	const ptrdiff_t size_nf = compute_size(nf_coef->order,nf_coef->extents);
+
+	for (int n = 0; n < 2; ++n) {
+		if (n == 1 && face->boundary)
+			continue;
+
+		increment_nnz_off_diag_v(nnz,n,size_nf,s_face);
+		increment_nnz_off_diag_f(nnz,n,size_nf,s_face);
+	}
+}
+
+// Level 1 ********************************************************************************************************** //
+
+static void increment_nnz_off_diag_v
+	(struct Vector_i* nnz, const int ind_neigh, const ptrdiff_t n_rows, const struct Solver_Face* s_face)
+{
+	const struct Face* face           = (struct Face*) s_face;
+	const struct Solver_Volume* s_vol = (struct Solver_Volume*) face->neigh_info[ind_neigh].volume;
+	struct Multiarray_d* sol_coef = s_vol->sol_coef;
+	ptrdiff_t size_sol = compute_size(sol_coef->order,sol_coef->extents);
+
+	increment_nnz(nnz,s_face->ind_dof,n_rows,size_sol);
+	increment_nnz(nnz,s_vol->ind_dof,size_sol,n_rows);
+}
+
+static void increment_nnz_off_diag_f
+	(struct Vector_i* nnz, const int ind_neigh, const ptrdiff_t n_rows, const struct Solver_Face* s_face)
+{
+	const struct Face* face  = (struct Face*) s_face;
+	const struct Volume* vol = (struct Volume*) face->neigh_info[ind_neigh].volume;
+
+	for (int i = 0; i < NFMAX;    ++i) {
+	for (int j = 0; j < NSUBFMAX; ++j) {
+		const struct Face* face_n = vol->faces[i][j];
+		if (!face_n || face_n->boundary)
+			continue;
+
+		if (face == face_n)
+			continue;
+
+		const struct Solver_Face* s_face_n = (struct Solver_Face*) face_n;
+
+		struct Multiarray_d* nf_coef = s_face_n->nf_coef;
+		const ptrdiff_t size_nf_n = compute_size(nf_coef->order,nf_coef->extents);
+		increment_nnz(nnz,s_face->ind_dof,n_rows,size_nf_n);
+	}}
+}

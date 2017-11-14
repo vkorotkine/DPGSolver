@@ -22,14 +22,10 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "face_solver.h"
-#include "boundary.h"
 
 /// \brief Container for data relating to the DG solver faces.
 struct DG_Solver_Face {
 	struct Solver_Face face; ///< The base \ref Solver_Face.
-
-	/// Construct 'r'ight numerical flux input members at face cubature nodes as seen from the left volume.
-	constructor_Boundary_Value_fptr constructor_Boundary_Value_fcl;
 
 	// Members required for 2nd order PDE terms.
 

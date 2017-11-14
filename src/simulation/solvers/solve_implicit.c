@@ -110,8 +110,6 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit (const struc
 	const ptrdiff_t dof = compute_dof(sim);
 	update_ind_dof(sim);
 	struct Vector_i* nnz = constructor_nnz(sim); // destructed
-printf("c_ssi: %td\n",dof);
-print_Vector_i(nnz);
 
 	struct Solver_Storage_Implicit* s_store_i = calloc(1,sizeof *s_store_i); // free
 

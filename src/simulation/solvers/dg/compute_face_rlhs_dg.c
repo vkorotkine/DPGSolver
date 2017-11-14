@@ -29,7 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "face_solver_dg.h"
-#include "element_solver_dg.h"
+#include "element_solver.h"
 #include "volume.h"
 #include "volume_solver_dg.h"
 
@@ -97,19 +97,6 @@ static struct S_Params set_s_params
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Construct the data members of the \ref Numerical_Flux_Input container which are specific to the face under
- *         consideration. */
-void constructor_Numerical_Flux_Input_data
-	(struct Numerical_Flux_Input* num_flux_i, ///< \ref Numerical_Flux_Input.
-	 const struct Face* face,                 ///< \ref Face.
-	 const struct Simulation* sim             ///< \ref Simulation.
-	);
-
-/// \brief Destructor for the data members of the \ref Numerical_Flux_Input container.
-void destructor_Numerical_Flux_Input_data
-	(struct Numerical_Flux_Input* num_flux_i ///< \ref Numerical_Flux_Input.
-	);
-
 // Interface functions ********************************************************************************************** //
 
 void compute_face_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
@@ -123,10 +110,11 @@ void compute_face_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_I
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Face* face                = (struct Face*) curr;
+		struct Solver_Face* s_face       = (struct Solver_Face*) curr;
 		struct DG_Solver_Face* dg_s_face = (struct DG_Solver_Face*) curr;
 //printf("face: %d\n",face->index);
 
-		constructor_Numerical_Flux_Input_data(num_flux_i,face,sim); // destructed
+		constructor_Numerical_Flux_Input_data(num_flux_i,s_face,sim); // destructed
 //print_const_Multiarray_d(num_flux_i->bv_l.s);
 //print_const_Multiarray_d(num_flux_i->bv_r.s);
 
@@ -214,23 +202,6 @@ static struct S_Params set_s_params (const struct Simulation* sim)
 	return s_params;
 }
 
-void constructor_Numerical_Flux_Input_data
-	(struct Numerical_Flux_Input* num_flux_i, const struct Face* face, const struct Simulation* sim)
-{
-	struct Test_Case* test_case = sim->test_case;
-	struct Solver_Face* s_face       = (struct Solver_Face*) face;
-	struct DG_Solver_Face* dg_s_face = (struct DG_Solver_Face*) face;
-
-	test_case->constructor_Boundary_Value_Input_face_fcl(&num_flux_i->bv_l,s_face,sim);        // destructed
-	dg_s_face->constructor_Boundary_Value_fcl(&num_flux_i->bv_r,&num_flux_i->bv_l,s_face,sim); // destructed
-}
-
-void destructor_Numerical_Flux_Input_data (struct Numerical_Flux_Input* num_flux_i)
-{
-	destructor_Boundary_Value_Input(&num_flux_i->bv_l);
-	destructor_Boundary_Value(&num_flux_i->bv_r);
-}
-
 // Level 1 ********************************************************************************************************** //
 
 /// \brief Finalize the rhs term contribution from the \ref Face.
@@ -241,8 +212,8 @@ static void finalize_face_rhs_dg
 	 const struct Simulation* sim           ///< Defined for \ref compute_rlhs_fptr.
 	);
 
-/// \brief Finalize the lhs term contribution from the \ref Face.
-static void finalize_face_lhs
+/// \brief Finalize the lhs term contribution from the \ref Face for the dg scheme.
+static void finalize_lhs_f_dg
 	(const int side_index[2],                  /**< The indices of the affectee, affector, respectively. See the
 	                                            *   comments in \ref compute_face_rlhs_dg.h for the convention. */
 	 const struct Numerical_Flux* num_flux,    ///< Defined for \ref compute_rlhs_fptr.
@@ -301,9 +272,9 @@ static void compute_rlhs_1
 	/// See \ref compute_face_rlhs_dg.h for the `lhs_**` notation.
 	compute_rhs_f_dg(num_flux,dg_s_face,s_store_i,sim);
 
-	finalize_face_lhs((int[]){0,0},num_flux,dg_s_face,s_store_i); // lhs_ll
+	finalize_lhs_f_dg((int[]){0,0},num_flux,dg_s_face,s_store_i); // lhs_ll
 	if (!face->boundary) {
-		finalize_face_lhs((int[]){0,1},num_flux,dg_s_face,s_store_i); // lhs_lr
+		finalize_lhs_f_dg((int[]){0,1},num_flux,dg_s_face,s_store_i); // lhs_lr
 
 		for (int i = 0; i < 2; ++i) {
 			const struct Neigh_Info_NF* n_i = &num_flux->neigh_info[i];
@@ -311,8 +282,8 @@ static void compute_rlhs_1
 			scale_Multiarray_d((struct Multiarray_d*)n_i->dnnf_ds,-1.0); // Use "-ve" normal.
 		}
 
-		finalize_face_lhs((int[]){1,0},num_flux,dg_s_face,s_store_i); // lhs_rl
-		finalize_face_lhs((int[]){1,1},num_flux,dg_s_face,s_store_i); // lhs_rr
+		finalize_lhs_f_dg((int[]){1,0},num_flux,dg_s_face,s_store_i); // lhs_rl
+		finalize_lhs_f_dg((int[]){1,1},num_flux,dg_s_face,s_store_i); // lhs_rr
 	}
 }
 
@@ -337,72 +308,19 @@ UNUSED(sim);
 //print_Multiarray_d(dg_s_vol->rhs);
 }
 
-static void finalize_face_lhs
+static void finalize_lhs_f_dg
 	(const int side_index[2], const struct Numerical_Flux* num_flux, struct DG_Solver_Face* dg_s_face,
 	 struct Solver_Storage_Implicit* s_store_i)
 {
 	struct Face* face              = (struct Face*) dg_s_face;
 	struct Solver_Face* s_face     = (struct Solver_Face*) face;
-	struct Volume* vol[2]          = { face->neigh_info[side_index[0]].volume,
-	                                   face->neigh_info[side_index[1]].volume, };
-	struct Solver_Volume* s_vol[2] = { (struct Solver_Volume*) vol[0],
-	                                   (struct Solver_Volume*) vol[1], };
+	struct Solver_Volume* s_vol[2] = { (struct Solver_Volume*) face->neigh_info[side_index[0]].volume,
+	                                   (struct Solver_Volume*) face->neigh_info[side_index[1]].volume, };
 
-	const struct DG_Solver_Element* e[2] = { (struct DG_Solver_Element*) vol[0]->element,
-	                                         (struct DG_Solver_Element*) vol[1]->element, };
+	struct Matrix_d* lhs = constructor_lhs_f_1(side_index,num_flux,s_face); // destructed
 
-	const int ind_lf[2]   = { face->neigh_info[side_index[0]].ind_lf,   face->neigh_info[side_index[1]].ind_lf, },
-	          ind_href[2] = { face->neigh_info[side_index[0]].ind_href, face->neigh_info[side_index[1]].ind_href, };
-	const int p_v[2] = { s_vol[0]->p_ref, s_vol[1]->p_ref, },
-	          p_f = s_face->p_ref;
+	set_petsc_Mat_row_col(s_store_i,s_vol[side_index[1]],0,s_vol[side_index[0]],0);
+	add_to_petsc_Mat(s_store_i,(struct const_Matrix_d*)lhs);
 
-	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
-/// \todo clean-up.
-//	const struct Operator* tw0_vt_fc =
-//		get_Multiarray_Operator(e[0]->tw0_vt_fc[curved],(ptrdiff_t[]){ind_lf[0],ind_href[0],0,p_f,p_v[0]});
-	const struct Operator* tw0_vt_fc = get_operator__tw0_vt_fc(side_index[0],s_face);
-
-	const struct Operator* cv0_vs_fc_op =
-		get_Multiarray_Operator(e[1]->cv0_vs_fc[curved],(ptrdiff_t[]){ind_lf[1],ind_href[1],0,p_f,p_v[1]});
-
-	const struct const_Matrix_d* cv0_vs_fc = cv0_vs_fc_op->op_std;
-	bool need_free_cv0 = false;
-	if (side_index[0] != side_index[1]) {
-		need_free_cv0 = true;
-		cv0_vs_fc = constructor_copy_const_Matrix_d(cv0_vs_fc); // destructed
-		permute_Matrix_d_fc((struct Matrix_d*)cv0_vs_fc,'R',side_index[0],s_face);
-	}
-
-
-	const ptrdiff_t ext_0 = tw0_vt_fc->op_std->ext_0,
-	                ext_1 = tw0_vt_fc->op_std->ext_1;
-
-	struct Matrix_d* tw0_nf = constructor_empty_Matrix_d('R',ext_0,ext_1);            // destructed
-	struct Matrix_d* lhs    = constructor_empty_Matrix_d('R',ext_0,cv0_vs_fc->ext_1); // destructed
-	set_to_value_Matrix_d(tw0_nf,0.0);
-
-	const struct const_Multiarray_d* dnnf_ds_Ma = num_flux->neigh_info[side_index[1]].dnnf_ds;
-	struct Vector_d dnnf_ds = { .ext_0 = dnnf_ds_Ma->extents[0], .owns_data = false, .data = NULL, };
-
-	const int n_eq = dnnf_ds_Ma->extents[1],
-	          n_vr = dnnf_ds_Ma->extents[2];
-	for (int vr = 0; vr < n_vr; ++vr) {
-	for (int eq = 0; eq < n_eq; ++eq) {
-		const ptrdiff_t ind =
-			compute_index_sub_container(dnnf_ds_Ma->order,1,dnnf_ds_Ma->extents,(ptrdiff_t[]){eq,vr});
-		dnnf_ds.data = (double*)&dnnf_ds_Ma->data[ind];
-		mm_diag_d('R',1.0,0.0,tw0_vt_fc->op_std,(struct const_Vector_d*)&dnnf_ds,tw0_nf,false);
-
-		mm_d('N','N',-1.0,0.0,(struct const_Matrix_d*)tw0_nf,cv0_vs_fc,lhs);
-
-//printf("var, eq: %d %d\n",vr,eq);
-//print_Matrix_d(lhs);
-		set_petsc_Mat_row_col(s_store_i,s_vol[side_index[1]],eq,s_vol[side_index[0]],vr);
-		add_to_petsc_Mat(s_store_i,(struct const_Matrix_d*)lhs);
-	}}
-	destructor_Matrix_d(tw0_nf);
 	destructor_Matrix_d(lhs);
-
-	if (need_free_cv0)
-		destructor_const_Matrix_d(cv0_vs_fc);
 }

@@ -49,7 +49,10 @@ static void set_initial_v_sg_coef
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Set up the initial \ref Solver_Face::nf_coef.
+/** \brief Set up the initial \ref Solver_Face::nf_coef.
+ *  \note In order to allow for the general imposition of boundary conditions which are dependent on the internal
+ *        solution, it was decided to set normal flux unknowns on boundary faces based on the solution. This means that
+ *        there are no `nf_coef` terms on boundary faces. */
 static void set_initial_f_nf_coef
 	(struct Simulation* sim ///< \ref Simulation.
 	);
@@ -321,6 +324,11 @@ static void set_initial_f_nf_coef (struct Simulation* sim)
 	struct Solution_Container sol_cont =
 		{ .ce_type = 'f', .cv_type = 'v', .node_kind = 'f', .volume = NULL, .face = NULL, .sol = NULL, };
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		struct Face* face = (struct Face*) curr;
+		/// Boundary faces do not have normal flux unknowns.
+		if (face->boundary)
+			continue;
+
 		struct Solver_Face* s_face = (struct Solver_Face*) curr;
 
 		sol_cont.face = s_face;

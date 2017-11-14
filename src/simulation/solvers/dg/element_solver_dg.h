@@ -29,8 +29,7 @@ struct Simulation;
 struct DG_Solver_Element {
 	const struct Solver_Element element; ///< Base \ref Solver_Element.
 
-	// Face rlhs
-	const struct Multiarray_Operator* cv0_vs_fc[2];   ///< See notation in \ref element_operators.h.
+	// Nothing to add to Solver_Element.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 #include "face.h"
+#include "boundary.h"
 
 /// \brief Container for data relating to the solver faces.
 struct Solver_Face {
@@ -48,6 +49,9 @@ struct Solver_Face {
 	/** The determinant of the face geometry Jacobian evaluated at the face cubature nodes. See (eq. (B.6),
 	 *  \cite Zwanenburg2016) for the precise definition. */
 	const struct const_Multiarray_d*const jacobian_det_fc;
+
+	/// Construct 'r'ight numerical flux input members at face cubature nodes as seen from the left volume.
+	constructor_Boundary_Value_fptr constructor_Boundary_Value_fcl;
 };
 
 /// \brief Constructor for a derived \ref Solver_Face.

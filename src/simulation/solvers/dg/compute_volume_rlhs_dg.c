@@ -152,7 +152,7 @@ static void compute_rhs_v_dg
 	UNUSED(ssi);
 
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) dg_s_vol;
-	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc__rlhs(s_vol);
+	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
@@ -177,7 +177,7 @@ assert(sim->collocated == false); // Add support in future.
 	const char op_format = 'd';
 
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) dg_s_vol;
-	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc__rlhs(s_vol);
+	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
 
 	// rhs
 	for (ptrdiff_t dim = 0; dim < d; ++dim)

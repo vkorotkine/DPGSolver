@@ -159,14 +159,15 @@ static void zero_memory_volumes_local
 static void set_function_pointers_num_flux (const struct Simulation* sim)
 {
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		const struct DG_Solver_Face* dg_s_face     = (struct DG_Solver_Face*) curr;
+		const struct Solver_Face* s_face           = (struct Solver_Face*) curr;
+/// \todo move the function pointer to c_s_face.
 		struct Complex_DG_Solver_Face* c_dg_s_face = (struct Complex_DG_Solver_Face*) curr;
 
-		if (dg_s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_s_fcl_interp)
+		if (s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_s_fcl_interp)
 			c_dg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_s_fcl_interp;
-		else if (dg_s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_advection_inflow)
+		else if (s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_advection_inflow)
 			c_dg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_advection_inflow;
-		else if (dg_s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_advection_outflow)
+		else if (s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_advection_outflow)
 			c_dg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_advection_outflow;
 		else
 			EXIT_UNSUPPORTED;

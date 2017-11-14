@@ -63,7 +63,6 @@ void set_function_pointers_solution_advection (struct Test_Case* test_case, cons
 		test_case->constructor_sol = constructor_const_sol_advection_default;
 		test_case->set_sol         = set_sol_advection_default;
 		test_case->compute_source_rhs = compute_source_rhs_advection_default;
-// set a function pointer to a norm computing function.
 		test_case->constructor_Error_CE = constructor_Error_CE_advection_all;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
@@ -124,7 +123,8 @@ void read_data_advection (const char*const input_path, struct Sol_Data__Advectio
 void set_function_pointers_num_flux (struct Test_Case* test_case, const struct Simulation*const sim)
 {
 	switch (sim->method) {
-	case METHOD_DG:
+	case METHOD_DG: // fallthrough
+	case METHOD_DPG:
 		test_case->compute_Numerical_Flux = compute_Numerical_Flux_1;
 		switch (test_case->ind_num_flux[0]) {
 		case NUM_FLUX_UPWIND:
@@ -135,9 +135,6 @@ void set_function_pointers_num_flux (struct Test_Case* test_case, const struct S
 			EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
 			break;
 		}
-		break;
-	case METHOD_DPG:
-		; // Do nothing.
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);

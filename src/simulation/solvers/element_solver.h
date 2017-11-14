@@ -36,6 +36,7 @@ struct Solver_Element {
 	const struct const_Multiarray_Vector_d* w_vc[2]; ///< Weights for 'v'olume 'c'ubature.
 
 	// Face rlhs
+	const struct Multiarray_Operator* cv0_vs_fc[2];   ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* tw0_vt_fc[2];   ///< See notation in \ref element_operators.h.
 	const struct const_Multiarray_Vector_i* nc_fc[2]; ///< Node correspondence between 'f'ace 'c'ubature 's'traight.
 
