@@ -108,14 +108,13 @@ void compute_all_rlhs_dpg (const struct Simulation* sim, struct Solver_Storage_I
 		struct Solver_Volume* s_vol         = (struct Solver_Volume*) curr;
 		struct DPG_Solver_Volume* dpg_s_vol = (struct DPG_Solver_Volume*) curr;
 
-		struct Flux_Ref* flux_r = constructor_Flux_Ref_vol(&s_params.spvs,flux_i,s_vol,sim);
+		struct Flux_Ref* flux_r = constructor_Flux_Ref_vol(&s_params.spvs,flux_i,s_vol,sim); // destructed
 
 		const struct const_Matrix_d* norm_op = s_params.constructor_norm_op(dpg_s_vol,flux_r,sim); // destructed
 
 		s_params.compute_rlhs(norm_op,flux_r,dpg_s_vol,ssi,sim);
 		destructor_const_Matrix_d(norm_op);
 		destructor_Flux_Ref(flux_r);
-EXIT_UNSUPPORTED;
 	}
 	destructor_Flux_Input(flux_i);
 }
@@ -305,13 +304,13 @@ static void compute_rlhs_1
 	increment_rhs_source(rhs,s_vol,sim);
 
 //print_const_Matrix_d(norm_op);
-print_Matrix_d(lhs);
+//print_Matrix_d(lhs);
 //print_Multiarray_d(s_vol->sol_coef);
 //print_Vector_d(rhs);
 	const struct const_Matrix_d* optimal_test =
 		constructor_sysv_const_Matrix_d(norm_op,(struct const_Matrix_d*)lhs); // destructed
 
-print_const_Matrix_d(optimal_test);
+//print_const_Matrix_d(optimal_test);
 
 	const struct const_Matrix_d* lhs_opt =
 		constructor_mm_const_Matrix_d('T','N',1.0,optimal_test,(struct const_Matrix_d*)lhs,'R'); // destructed
@@ -322,14 +321,12 @@ print_const_Matrix_d(optimal_test);
 	destructor_Vector_d(rhs);
 	destructor_const_Matrix_d(optimal_test);
 
-print_const_Matrix_d(lhs_opt);
-print_const_Vector_d(rhs_opt);
+//print_const_Matrix_d(lhs_opt);
+//print_const_Vector_d(rhs_opt);
 	add_to_petsc_Mat_Vec_dpg(s_vol,rhs_opt,lhs_opt,ssi);
 
 	destructor_const_Matrix_d(lhs_opt);
 	destructor_const_Vector_d(rhs_opt);
-
-EXIT_UNSUPPORTED;
 }
 
 // Level 2 ********************************************************************************************************** //
@@ -410,11 +407,11 @@ static void increment_and_add_dof_rlhs_face_1
 	const ptrdiff_t n_dof_s  = (lhs->ext_1)/n_vr,
 	                n_dof_nf = compute_n_dof_nf(s_vol);
 	struct Matrix_d* lhs_add = constructor_empty_Matrix_d('R',lhs->ext_0,(n_dof_s+n_dof_nf)*n_vr); // moved
-set_to_value_Matrix_d(lhs_add,0.0);
+//set_to_value_Matrix_d(lhs_add,0.0);
 	set_block_Matrix_d(lhs_add,(struct const_Matrix_d*)lhs,0,0,'i');
 	destructor_Matrix_d(lhs);
 	lhs = lhs_add;
-print_Matrix_d(lhs);
+//print_Matrix_d(lhs);
 
 	struct Matrix_d rhs_M = { .layout = 'C', .ext_0 = ext_0, .ext_1 = n_eq, .owns_data = false, .data = rhs->data, };
 
@@ -431,7 +428,6 @@ print_Matrix_d(lhs);
 		else
 			increment_rlhs_boundary_face(dpg_s_vol,dpg_s_face,lhs,&rhs_M,sim);
 	}}
-EXIT_UNSUPPORTED;
 
 //print_Matrix_d(lhs);
 	*lhs_ptr = lhs;
@@ -476,6 +472,14 @@ static void scale_by_Jacobian
 /// \brief Increment the rhs terms with the contribution of the boundary face.
 static void increment_rhs_boundary_face
 	(struct Matrix_d* rhs,                  ///< Holds the rhs terms.
+	 const struct Numerical_Flux* num_flux, ///< \ref Numerical_Flux.
+	 const struct Solver_Face* s_face,      ///< The current \ref Solver_Face.
+	 const struct Simulation* sim           ///< \ref Simulation.
+	);
+
+/// \brief Increment the lhs terms with the contribution of the boundary face.
+static void increment_lhs_boundary_face
+	(struct Matrix_d* lhs,                  ///< Holds the lhs terms.
 	 const struct Numerical_Flux* num_flux, ///< \ref Numerical_Flux.
 	 const struct Solver_Face* s_face,      ///< The current \ref Solver_Face.
 	 const struct Simulation* sim           ///< \ref Simulation.
@@ -547,15 +551,17 @@ static void increment_rlhs_internal_face
 	struct Matrix_d nf_coef = interpret_Multiarray_as_Matrix_d(s_face->nf_coef);
 
 //print_Multiarray_d(s_face->nf_coef);
-	mm_d('N','N',1.0,1.0,(struct const_Matrix_d*)lhs_l,(struct const_Matrix_d*)&nf_coef,rhs);
+	mm_d('N','N',1.0,1.0,lhs_l,(struct const_Matrix_d*)&nf_coef,rhs);
 
 	const int n_eq = sim->test_case->n_eq,
 	          n_vr = sim->test_case->n_var;
 	const ptrdiff_t n_dof_test = (lhs->ext_0)/n_eq,
 	                n_dof_nf   = compute_n_dof_nf(s_vol);
 
+//printf("lhs_l\n");
+//print_const_Matrix_d(lhs_l);
 	for (int vr = 0; vr < n_vr; ++vr)
-		set_block_Matrix_d(lhs,(struct const_Matrix_d*)lhs_l,vr*n_dof_test,*ind_dof+vr*n_dof_nf,'i');
+		set_block_Matrix_d(lhs,lhs_l,vr*n_dof_test,*ind_dof+vr*n_dof_nf,'i');
 	destructor_const_Matrix_d(lhs_l);
 
 	*ind_dof += nf_coef.ext_0;
@@ -572,19 +578,16 @@ static void increment_rlhs_boundary_face
 
 	struct Numerical_Flux* num_flux = constructor_Numerical_Flux(num_flux_i); // destructed
 	destructor_Numerical_Flux_Input_data(num_flux_i);
+	destructor_Numerical_Flux_Input(num_flux_i);
 
 	scale_by_Jacobian(num_flux,s_face);
 
 	increment_rhs_boundary_face(rhs,num_flux,s_face,sim);
-//	increment_lhs_boundary_face();
-
+	increment_lhs_boundary_face(lhs,num_flux,s_face,sim);
 
 	destructor_Numerical_Flux(num_flux);
 
-	destructor_Numerical_Flux_Input(num_flux_i);
-
-	UNUSED(dpg_s_vol); UNUSED(dpg_s_face); UNUSED(lhs); UNUSED(rhs); UNUSED(sim);
-	EXIT_ADD_SUPPORT;
+	UNUSED(dpg_s_vol);
 }
 
 static const struct const_Vector_i* constructor_petsc_idxm_dpg
@@ -647,6 +650,22 @@ UNUSED(sim);
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
 	mm_NNC_Operator_Multiarray_d(-1.0,1.0,tw0_vt_fc,num_flux->nnf,&rhs_Ma,op_format,2,NULL,NULL);
+}
+
+static void increment_lhs_boundary_face
+	(struct Matrix_d* lhs, const struct Numerical_Flux* num_flux, const struct Solver_Face* s_face,
+	 const struct Simulation* sim)
+{
+	UNUSED(sim);
+	assert(((struct Face*)s_face)->boundary);
+
+	struct Matrix_d* lhs_ll = constructor_lhs_f_1((int[]){0,0},num_flux,s_face); // destructed
+
+	set_block_Matrix_d(lhs,(struct const_Matrix_d*)lhs_ll,0,0,'a');
+//printf("lhs\n");
+//print_Matrix_d(lhs_ll);
+//print_Matrix_d(lhs);
+	destructor_Matrix_d(lhs_ll);
 }
 
 static void set_idxm (int* ind_idxm, struct Vector_i* idxm, const int ind_dof, const struct Multiarray_d* coef)

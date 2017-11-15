@@ -299,10 +299,11 @@ static struct Vector_i* constructor_nnz (const struct Simulation* sim)
 
 // Level 1 ********************************************************************************************************** //
 
-/** \brief Check whether the pde under consideration is symmetric.
+/** \brief Check whether the matrix under consideration is symmetric based on \ref Simulation::method and
+ *         \ref Test_Case::pde_index.
  *  \return `true` if symmetric; `false` otherwise. */
 static bool check_symmetric
-	(const int pde_index ///< \ref Test_Case::pde_index
+	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
 static void output_petsc_mat_vec (Mat A, Vec b)
@@ -351,7 +352,7 @@ static KSP constructor_petsc_ksp (Mat A, const struct Simulation* sim)
 	KSPSetComputeSingularValues(ksp,PETSC_TRUE);
 	KSPGetPC(ksp,&pc);
 
-	const bool symmetric = check_symmetric(sim->test_case->pde_index);
+	const bool symmetric = check_symmetric(sim);
 	const int solver_type_i = sim->test_case->solver_type_i;
 	switch (solver_type_i) {
 	case SOLVER_I_DIRECT:
@@ -463,19 +464,30 @@ static bool check_pde_linear (const int pde_index)
 
 // Level 2 ********************************************************************************************************** //
 
-static bool check_symmetric (const int pde_index)
+static bool check_symmetric (const struct Simulation* sim)
 {
-	switch (pde_index) {
-	case PDE_POISSON:
+	switch (sim->method) {
+	case METHOD_DG: {
+		const int pde_index = sim->test_case->pde_index;
+		switch (pde_index) {
+		case PDE_POISSON:
+			return true;
+			break;
+		case PDE_ADVECTION:     // fallthrough
+		case PDE_EULER:         // fallthrough
+		case PDE_NAVIER_STOKES:
+			return false;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d.\n",pde_index);
+			break;
+		}
+		break;
+	} case METHOD_DPG:
 		return true;
 		break;
-	case PDE_ADVECTION:     // fallthrough
-	case PDE_EULER:         // fallthrough
-	case PDE_NAVIER_STOKES:
-		return false;
-		break;
 	default:
-		EXIT_ERROR("Unsupported: %d.\n",pde_index);
+		EXIT_ERROR("Unsupported: %d\n",sim->method);
 		break;
 	}
 }

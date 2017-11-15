@@ -55,7 +55,7 @@ void constructor_derived_Plotting_Element (struct Element* element_ptr, const st
 		break;
 	}
 
-	const int* p_ref = sim->p_s_v;
+	const int* p_ref = sim->p_ref;
 	const int n_p = p_ref[1]+1;
 
 	struct Plotting_Element* element = (struct Plotting_Element*) element_ptr;

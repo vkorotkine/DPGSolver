@@ -13,39 +13,30 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_complex_solve_dg_h__INCLUDED
-#define DPG__test_complex_solve_dg_h__INCLUDED
+#ifndef DPG__test_complex_solve_dpg_h__INCLUDED
+#define DPG__test_complex_solve_dpg_h__INCLUDED
 /** \file
- *  \brief Provides `complex` versions of functions defined in \ref solve_dg.h.
+ *  \brief Provides `complex` versions of functions defined in \ref solve_dpg.h.
  */
 
 struct Multiarray_c;
 struct Simulation;
 struct Solver_Storage_Implicit;
-struct Solver_Face;
 
 /// \brief Perturb the initial solution for the DG method.
-void perturb_solution_dg
+void perturb_solution_dpg
 	(const struct Simulation* sim ///< Defined for \ref perturb_solution_fptr.
 	);
 
 /// \brief Set the initial solution for the complex computational elements from the real solution for the DG scheme.
-void set_initial_solution_complex_dg
+void set_initial_solution_complex_dpg
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /// \brief Compute the lhs matrix using the complex step method for the DG scheme.
-void compute_lhs_cmplx_step_dg
+void compute_lhs_cmplx_step_dpg
 	(const struct Simulation* sim,       ///< \ref Simulation.
 	 struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
 	);
 
-/// \brief `complex` version of \ref permute_Multiarray_d_fc.
-void permute_Multiarray_c_fc
-	(struct Multiarray_c* data,       ///< See brief.
-	 const char perm_layout,          ///< See brief.
-	 const int side_index_dest,       ///< See brief.
-	 const struct Solver_Face* s_face ///< See brief.
-	);
-
-#endif // DPG__test_complex_solve_dg_h__INCLUDED
+#endif // DPG__test_complex_solve_dpg_h__INCLUDED

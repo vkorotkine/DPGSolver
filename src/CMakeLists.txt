@@ -29,6 +29,7 @@ include_directories(
 	simulation/solvers/dg
 	simulation/solvers/dg/complex
 	simulation/solvers/dpg
+	simulation/solvers/dpg/complex
 	simulation/solvers/numerical_flux
 	simulation/test_case
 	simulation/test_case/boundary

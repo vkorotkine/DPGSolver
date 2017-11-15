@@ -21,11 +21,19 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 struct Intrusive_List;
+struct Solver_Volume;
 
 /// \brief Version of \ref compute_volume_rlhs_dg computing only complex rhs terms.
 void compute_volume_rhs_dg_c
 	(const struct Simulation* sim,  ///< \ref Simulation.
 	 struct Intrusive_List* volumes ///< The list of volumes for which to compute the rhs term.
+	);
+
+/** \brief See \ref compute_volume_rlhs_dg.c.
+ *  \return Standard. */
+const struct const_Multiarray_c* constructor_sol_vc_dg_c
+	(const struct Solver_Volume* s_vol, ///< See brief.
+	 const struct Simulation* sim       ///< See brief.
 	);
 
 #endif // DPG__test_complex_compute_volume_rhs_dg_h__INCLUDED

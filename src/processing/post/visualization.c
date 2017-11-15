@@ -266,6 +266,7 @@ static void output_visualization_vtk_normals (const struct Simulation* sim)
 
 static void output_visualization_vtk_sol (const struct Simulation* sim)
 {
+/// \todo Add output for trace unknowns also if present.
 	assert(sim->elements->name == IL_ELEMENT_PLOTTING);
 
 	static char output_part[STRLEN_MAX] = { 0, };

@@ -42,6 +42,12 @@ static void increment_nnz_off_diag
 	 const struct Solver_Face* s_face ///< The current face.
 	);
 
+/** \brief Compute the maximum value of the rhs term.
+ *  \return See brief. */
+static double compute_max_rhs
+	(const struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void update_ind_dof_dpg (const struct Simulation* sim)
@@ -107,15 +113,10 @@ struct Vector_i* constructor_nnz_dpg (const struct Simulation* sim)
 	return nnz;
 }
 
-double compute_rlhs_dpg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
+double compute_rlhs_dpg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
 {
-//	zero_memory_volumes(sim);
-//	zero_memory_faces(sim);
-	compute_all_rlhs_dpg(sim,s_store_i);
-
-EXIT_ADD_SUPPORT;
-return 0.0;
-	//return compute_max_rhs(sim);
+	compute_all_rlhs_dpg(sim,ssi);
+	return compute_max_rhs(ssi);
 }
 
 // Static functions ************************************************************************************************* //
@@ -150,6 +151,13 @@ static void increment_nnz_off_diag (struct Vector_i* nnz, const struct Solver_Fa
 		increment_nnz_off_diag_v(nnz,n,size_nf,s_face);
 		increment_nnz_off_diag_f(nnz,n,size_nf,s_face);
 	}
+}
+
+static double compute_max_rhs (const struct Solver_Storage_Implicit* ssi)
+{
+	double max_rhs = 0.0;
+	VecNorm(ssi->b,NORM_INFINITY,&max_rhs);
+	return max_rhs;
 }
 
 // Level 1 ********************************************************************************************************** //

@@ -84,7 +84,7 @@ void compute_volume_rlhs_dg (const struct Simulation* sim, struct Solver_Storage
 		struct Solver_Volume* s_vol       = (struct Solver_Volume*) curr;
 		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
 
-		struct Flux_Ref* flux_r  = constructor_Flux_Ref_vol(&s_params.spvs,flux_i,s_vol,sim);
+		struct Flux_Ref* flux_r = constructor_Flux_Ref_vol(&s_params.spvs,flux_i,s_vol,sim);
 
 		// Compute the rhs (and optionally the lhs) terms.
 		s_params.compute_rlhs(flux_r,dg_s_vol,ssi,sim);

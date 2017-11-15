@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_integration.h"
 #include "test_support_math_functions.h"
 #include "test_complex_solve_dg.h"
+#include "test_complex_solve_dpg.h"
 
 #include "face.h"
 #include "element.h"
@@ -48,6 +49,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_grad_coef_dg.h"
 #include "compute_volume_rlhs_dg.h"
 #include "compute_face_rlhs_dg.h"
+#include "compute_all_rlhs_dpg.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -80,12 +82,12 @@ typedef void (*set_initial_solution_complex_fptr)
 	(const struct Simulation* sim
 	);
 
-/** \brief Function pointer to functions computing solution coefficient related terms.
+/** \brief Function pointer to functions computing global degree of freedom coefficient related terms.
  *
  *  \param sim       \ref Simulation.
  *  \param s_store_i \ref Solver_Storage_Implicit.
  */
-typedef void (*compute_sol_coef_fptr)
+typedef void (*compute_dof_coef_fptr)
 	(const struct Simulation* sim,
 	 struct Solver_Storage_Implicit* s_store_i
 	);
@@ -104,11 +106,12 @@ struct F_Ptrs_and_Data {
 	const int derived_comp_elem_cmplx_step;
 
 	compute_grad_coef_fptr compute_grad_coef;  ///< Solution gradient coefficients and related terms.
-	compute_sol_coef_fptr  compute_volume_lhs; ///< Solution coefficient terms contributed by the volume term.
-	compute_sol_coef_fptr  compute_face_lhs;   ///< Solution coefficient terms contributed by the face   term.
+	compute_dof_coef_fptr  compute_volume_lhs; ///< Solution coefficient terms contributed by the volume term.
+	compute_dof_coef_fptr  compute_face_lhs;   ///< Solution coefficient terms contributed by the face   term.
+	compute_dof_coef_fptr  compute_all_lhs;    ///< Solution coefficient terms contributed by the all    terms.
 
 	set_initial_solution_complex_fptr set_initial_solution_complex; ///< \ref set_initial_solution_complex_fptr.
-	compute_sol_coef_fptr compute_lhs_cmplx_step; ///< Compute the lhs terms using the complex step method.
+	compute_dof_coef_fptr compute_lhs_cmplx_step; ///< Compute the lhs terms using the complex step method.
 };
 
 /** \brief Constructor for a \ref F_Ptrs_and_Data container, set based on \ref Simulation::method.
@@ -225,6 +228,18 @@ static struct F_Ptrs_and_Data* constructor_F_Ptrs_and_Data (const struct Simulat
 		f_ptrs_data->set_initial_solution_complex = set_initial_solution_complex_dg;
 		f_ptrs_data->compute_lhs_cmplx_step       = compute_lhs_cmplx_step_dg;
 		break;
+	case METHOD_DPG:
+		f_ptrs_data->perturb_solution = perturb_solution_dpg;
+
+		const_cast_i(&f_ptrs_data->derived_elem,IL_ELEMENT_SOLVER_DPG);
+		const_cast_i(&f_ptrs_data->derived_comp_elem_analytical,IL_SOLVER_DPG);
+		const_cast_i(&f_ptrs_data->derived_comp_elem_cmplx_step,IL_SOLVER_DPG_COMPLEX);
+
+		f_ptrs_data->compute_all_lhs = compute_all_rlhs_dpg;
+
+		f_ptrs_data->set_initial_solution_complex = set_initial_solution_complex_dpg;
+		f_ptrs_data->compute_lhs_cmplx_step       = compute_lhs_cmplx_step_dpg;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;
@@ -242,19 +257,29 @@ static void compute_lhs_analytical
 	(struct Simulation* sim, struct Solver_Storage_Implicit* ssi, const struct F_Ptrs_and_Data* f_ptrs_data)
 {
 	constructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_analytical); // destructed
-	switch (CHECK_LIN) {
-	case CHECK_LIN_VOLUME:
-		f_ptrs_data->compute_volume_lhs(sim,ssi);
+	switch (sim->method) {
+	case METHOD_DG:
+		switch (CHECK_LIN) {
+		case CHECK_LIN_VOLUME:
+			f_ptrs_data->compute_volume_lhs(sim,ssi);
+			break;
+		case CHECK_LIN_FACE:
+			f_ptrs_data->compute_face_lhs(sim,ssi);
+			break;
+		case CHECK_LIN_ALL:
+			f_ptrs_data->compute_volume_lhs(sim,ssi);
+			f_ptrs_data->compute_face_lhs(sim,ssi);
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d.\n",CHECK_LIN);
+			break;
+		}
 		break;
-	case CHECK_LIN_FACE:
-		f_ptrs_data->compute_face_lhs(sim,ssi);
-		break;
-	case CHECK_LIN_ALL:
-		f_ptrs_data->compute_volume_lhs(sim,ssi);
-		f_ptrs_data->compute_face_lhs(sim,ssi);
+	case METHOD_DPG:
+		f_ptrs_data->compute_all_lhs(sim,ssi);
 		break;
 	default:
-		EXIT_ERROR("Unsupported: %d.\n",CHECK_LIN);
+		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;
 	}
 	destructor_derived_computational_elements(sim,IL_SOLVER);

@@ -59,8 +59,7 @@ struct Flux_Ref {
 
 // Interface functions ********************************************************************************************** //
 
-/** \brief Set the parameters of \ref S_Params_Volume_Structor.
- *  \return A statically allocated \ref S_Params container. */
+/// \brief Set the parameters of \ref S_Params_Volume_Structor.
 void set_S_Params_Volume_Structor
 	(struct S_Params_Volume_Structor* spvs, ///< \ref S_Params_Volume_Structor.
 	 const struct Simulation* sim           ///< \ref Simulation.

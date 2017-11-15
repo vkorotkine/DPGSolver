@@ -1,3 +1,3 @@
-/// Solution parameters for test case: advection/steady/peterson
+/// Solution parameters for test case: advection/demkowicz_dpg_ii
 
-b_adv   1.0 0.0 0.0
+b_adv   2.0 0.0 0.0

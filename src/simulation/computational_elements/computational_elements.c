@@ -24,16 +24,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_elements.h"
 #include "definitions_intrusive.h"
 
-#include "face.h"
-#include "face_solver.h"
-#include "face_solver_dg.h"
-#include "face_solver_dpg.h"
 #include "face_solver_dg_complex.h"
-#include "volume.h"
-#include "volume_solver.h"
-#include "volume_solver_dg.h"
-#include "volume_solver_dpg.h"
+#include "face_solver_dpg_complex.h"
 #include "volume_solver_dg_complex.h"
+#include "volume_solver_dpg_complex.h"
 
 #include "element.h"
 #include "geometry_element.h"
@@ -427,6 +421,18 @@ static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
 		de_info.constructor_derived_Volume = constructor_derived_Complex_DG_Solver_Volume;
 		de_info.constructor_derived_Face   = constructor_derived_Complex_DG_Solver_Face;
 		break;
+	case IL_SOLVER_DPG_COMPLEX:
+		assert(sim->volumes->name == IL_VOLUME_SOLVER_DPG);
+		assert(sim->faces->name   == IL_FACE_SOLVER_DPG);
+		de_info.list_name[0] = IL_VOLUME_SOLVER_DPG_COMPLEX;
+		de_info.list_name[1] = IL_FACE_SOLVER_DPG_COMPLEX;
+		de_info.sizeof_base[0] = sizeof(struct DPG_Solver_Volume);
+		de_info.sizeof_base[1] = sizeof(struct DPG_Solver_Face);
+		de_info.sizeof_derived[0] = sizeof(struct Complex_DPG_Solver_Volume);
+		de_info.sizeof_derived[1] = sizeof(struct Complex_DPG_Solver_Face);
+		de_info.constructor_derived_Volume = constructor_derived_Complex_DPG_Solver_Volume;
+		de_info.constructor_derived_Face   = constructor_derived_Complex_DPG_Solver_Face;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_category);
 		break;
@@ -479,6 +485,11 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 		assert(base_category == IL_SOLVER);
 		de_info.destructor_derived_Volume = destructor_derived_DG_Solver_Volume;
 		de_info.destructor_derived_Face   = destructor_derived_DG_Solver_Face;
+		break;
+	case IL_SOLVER_DPG:
+		assert(base_category == IL_SOLVER);
+		de_info.destructor_derived_Volume = destructor_derived_DPG_Solver_Volume;
+		de_info.destructor_derived_Face   = destructor_derived_DPG_Solver_Face;
 		break;
 	case IL_SOLVER_DG_COMPLEX:
 		assert(base_category == IL_SOLVER_DG);
@@ -677,6 +688,10 @@ static int get_list_category (const struct Simulation* sim)
 	case IL_VOLUME_SOLVER_DG:
 		assert(f_name == IL_FACE_SOLVER_DG);
 		ce_name = IL_SOLVER_DG;
+		break;
+	case IL_VOLUME_SOLVER_DPG:
+		assert(f_name == IL_FACE_SOLVER_DPG);
+		ce_name = IL_SOLVER_DPG;
 		break;
 	case IL_VOLUME_SOLVER_DG_COMPLEX:
 		assert(f_name == IL_FACE_SOLVER_DG_COMPLEX);

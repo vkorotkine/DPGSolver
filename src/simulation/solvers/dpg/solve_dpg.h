@@ -37,8 +37,8 @@ struct Vector_i* constructor_nnz_dpg
 /** \brief Version of \ref compute_rlhs for the dpg method.
  *  \return See brief. */
 double compute_rlhs_dpg
-	(const struct Simulation* sim,             ///< See brief.
-	 struct Solver_Storage_Implicit* s_store_i ///< See brief.
+	(const struct Simulation* sim,       ///< See brief.
+	 struct Solver_Storage_Implicit* ssi ///< See brief.
 	);
 
 #endif // DPG__solve_dpg_h__INCLUDED

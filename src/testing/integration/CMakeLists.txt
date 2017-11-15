@@ -22,7 +22,7 @@ set	(LIBS_DEPEND
 	 Test_Base
 	 Test_Support
 	 Test_Support_Intrusive
-	 Test_Complex_Solver_DG
+	 Test_Complex_Solvers
 	)
 
 set (LIB Test_Integration)

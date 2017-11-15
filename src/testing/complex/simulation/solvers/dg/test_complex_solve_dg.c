@@ -50,7 +50,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /** \brief Set the function pointers to the appropriate functions to compute values needed for the numerical flux
  *         computation for the \ref Complex_DG_Solver_Face\*s. */
-static void set_function_pointers_num_flux
+static void set_function_pointers_num_flux_dg
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
@@ -102,9 +102,9 @@ void set_initial_solution_complex_dg (const struct Simulation* sim)
 	}
 }
 
-void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
+void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
 {
-	set_function_pointers_num_flux(sim);
+	set_function_pointers_num_flux_dg(sim);
 
 	for (struct Intrusive_Link* curr_c = sim->volumes->first; curr_c; curr_c = curr_c->next) {
 		struct Volume* vol = (struct Volume*) curr_c;
@@ -119,12 +119,12 @@ void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Stor
 			compute_rhs_cmplx_step_dg(volumes_local,faces_local,sim);
 			sol_coef_c->data[col_l] -= CX_STEP*I;
 
-			set_col_lhs_cmplx_step_dg(col_l,(struct Solver_Volume*)curr_c,volumes_local,s_store_i);
+			set_col_lhs_cmplx_step_dg(col_l,(struct Solver_Volume*)curr_c,volumes_local,ssi);
 		}
 		destructor_IL(volumes_local);
 		destructor_IL(faces_local);
 	}
-	petsc_mat_vec_assemble(s_store_i);
+	petsc_mat_vec_assemble(ssi);
 }
 
 void permute_Multiarray_c_fc
@@ -156,11 +156,10 @@ static void zero_memory_volumes_local
 	(struct Intrusive_List* volumes_local ///< The list of local volumes.
 	);
 
-static void set_function_pointers_num_flux (const struct Simulation* sim)
+static void set_function_pointers_num_flux_dg (const struct Simulation* sim)
 {
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		const struct Solver_Face* s_face           = (struct Solver_Face*) curr;
-/// \todo move the function pointer to c_s_face.
 		struct Complex_DG_Solver_Face* c_dg_s_face = (struct Complex_DG_Solver_Face*) curr;
 
 		if (s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_s_fcl_interp)
