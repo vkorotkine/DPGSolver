@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_compute_face_rhs_dg.h"
 
 #include "test_complex_boundary.h"
+#include "test_complex_compute_face_rhs.h"
 #include "test_complex_numerical_flux.h"
 #include "test_complex_operators.h"
 #include "test_complex_solve_dg.h"
@@ -43,11 +44,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief `complex` version of \ref constructor_Numerical_Flux_Input_data.
-void constructor_Numerical_Flux_Input_c_data
-	(struct Numerical_Flux_Input_c* num_flux_i, ///< See brief.
-	 const struct Face* face,                   ///< See brief.
-	 const struct Simulation* sim               ///< See brief.
+/// \brief `complex` version of \ref constructor_Numerical_Flux_Input_data for the dg scheme.
+void constructor_Numerical_Flux_Input_c_data_dg
+	(struct Numerical_Flux_Input_c* num_flux_i,        ///< See brief.
+	 const struct Complex_DG_Solver_Face* c_dg_s_face, ///< See brief.
+	 const struct Simulation* sim                      ///< See brief.
 	);
 
 /// \brief `complex` version of \ref destructor_Numerical_Flux_Input_data.
@@ -81,9 +82,10 @@ void compute_face_rhs_dg_c (const struct Simulation* sim, struct Intrusive_List*
 	struct Numerical_Flux_Input_c* num_flux_i = constructor_Numerical_Flux_Input_c(sim); // destructed
 
 	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {
-		struct Face* face = (struct Face*) curr;
+		struct Face* face                          = (struct Face*) curr;
+		struct Complex_DG_Solver_Face* c_dg_s_face = (struct Complex_DG_Solver_Face*) curr;
 
-		constructor_Numerical_Flux_Input_c_data(num_flux_i,face,sim); // destructed
+		constructor_Numerical_Flux_Input_c_data_dg(num_flux_i,c_dg_s_face,sim); // destructed
 
 		struct Numerical_Flux_c* num_flux = constructor_Numerical_Flux_c(num_flux_i); // destructed
 		destructor_Numerical_Flux_Input_c_data(num_flux_i);
@@ -108,12 +110,12 @@ static void finalize_face_rhs_dg_c
 	 const struct Simulation* sim             ///< See brief.
 	);
 
-void constructor_Numerical_Flux_Input_c_data
-	(struct Numerical_Flux_Input_c* num_flux_i, const struct Face* face, const struct Simulation* sim)
+void constructor_Numerical_Flux_Input_c_data_dg
+	(struct Numerical_Flux_Input_c* num_flux_i, const struct Complex_DG_Solver_Face* c_dg_s_face,
+	const struct Simulation* sim)
 {
 	struct Complex_Test_Case* test_case = (struct Complex_Test_Case*) sim->test_case;
-	struct Solver_Face* s_face                 = (struct Solver_Face*) face;
-	struct Complex_DG_Solver_Face* c_dg_s_face = (struct Complex_DG_Solver_Face*) face;
+	struct Solver_Face* s_face = (struct Solver_Face*) c_dg_s_face;
 
 	test_case->constructor_Boundary_Value_Input_c_face_fcl(&num_flux_i->bv_l,s_face,sim);          // destructed
 	c_dg_s_face->constructor_Boundary_Value_c_fcl(&num_flux_i->bv_r,&num_flux_i->bv_l,s_face,sim); // destructed

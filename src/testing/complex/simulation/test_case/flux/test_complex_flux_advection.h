@@ -28,4 +28,10 @@ void compute_Flux_c_advection
 	 struct mutable_Flux_c* flux        ///< \ref Flux_c.
 	);
 
+/// \brief `complex` version of \ref compute_Flux_advection_jacobian.
+void compute_Flux_c_advection_jacobian
+	(const struct Flux_Input_c* flux_i, ///< \ref Flux_Input_c.
+	 struct mutable_Flux_c* flux        ///< \ref Flux_c.
+	);
+
 #endif // DPG__test_complex_flux_advection_h__INCLUDED

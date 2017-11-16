@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__complex_matrix_constructors_h__INCLUDED
 /** \file
  *  \brief Provides Matrix_\* constructors and destructors.
- *
- *  Matrices are 2D Multiarrays.
  */
 
 #include <stddef.h>
@@ -26,12 +24,27 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <complex.h>
 
 struct const_Matrix_d;
+struct const_Vector_d;
 
 // Default constructors ********************************************************************************************* //
 
 // Empty constructors *********************************************************************************************** //
 
+/** \brief Constructs an empty \ref Matrix_c\*.
+ *  \return Standard. */
+struct Matrix_c* constructor_empty_Matrix_c
+	(const char layout,     ///< Standard.
+	 const ptrdiff_t ext_0, ///< Standard.
+	 const ptrdiff_t ext_1  ///< Standard.
+	);
+
 // Copy constructors ************************************************************************************************ //
+
+/** \brief Copy constructor for a \ref Matrix_c\* from a \ref Matrix_c\*.
+ *  \return Standard. */
+struct Matrix_c* constructor_copy_Matrix_c
+	(const struct Matrix_c* src ///< The source matrix.
+	);
 
 /** \brief `const` version of \ref constructor_copy_Matrix_c_Matrix_d.
  *  \return See brief. */
@@ -62,6 +75,48 @@ const struct const_Matrix_c* constructor_move_const_Matrix_c_c
 	);
 
 // Special constructors ********************************************************************************************* //
+
+/** \brief `complex` version of \ref constructor_mm_Matrix_d (`double complex`, `double complex`).
+ *  \return See brief. */
+struct Matrix_c* constructor_mm_Matrix_cc
+	(const char trans_a_i,                ///< See brief.
+	 const char trans_b_i,                ///< See brief.
+	 const double alpha,                  ///< See brief.
+	 const struct const_Matrix_c*const a, ///< See brief.
+	 const struct const_Matrix_c*const b, ///< See brief.
+	 const char layout                    ///< See brief.
+	);
+
+/** \brief `const` version of \ref constructor_mm_Matrix_cc.
+ *  \return See brief.. */
+const struct const_Matrix_c* constructor_mm_const_Matrix_cc
+	(const char trans_a_i,                ///< See brief.
+	 const char trans_b_i,                ///< See brief.
+	 const double alpha,                  ///< See brief.
+	 const struct const_Matrix_c*const a, ///< See brief.
+	 const struct const_Matrix_c*const b, ///< See brief.
+	 const char layout                    ///< See brief.
+	);
+
+/** \brief `complex` version of \ref constructor_mm_diag_Matrix_d taking a \ref Vector_d input.
+ *  \return See brief. */
+struct Matrix_c* constructor_mm_diag_Matrix_c_d
+	(const double alpha,                  ///< See brief.
+	 const struct const_Matrix_c*const a, ///< See brief.
+	 const struct const_Vector_d*const b, ///< See brief.
+	 const char side,                     ///< See brief.
+	 const bool invert_diag               ///< See brief.
+	);
+
+/** \brief `const` version of \ref constructor_mm_diag_Matrix_c_d.
+ *  \return See brief. */
+const struct const_Matrix_c* constructor_mm_diag_const_Matrix_c_d
+	(const double alpha,                  ///< See brief.
+	 const struct const_Matrix_c*const a, ///< See brief.
+	 const struct const_Vector_d*const b, ///< See brief.
+	 const char side,                     ///< See brief.
+	 const bool invert_diag               ///< See brief.
+	);
 
 // Destructors ****************************************************************************************************** //
 

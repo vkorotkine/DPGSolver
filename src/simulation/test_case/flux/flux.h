@@ -74,9 +74,9 @@ struct Flux {
 
 /// \brief `mutable` version of \ref Flux.
 struct mutable_Flux {
-	struct Multiarray_d* f;     ///< Defined in \ref Flux.
-	struct Multiarray_d* df_ds; ///< Defined in \ref Flux.
-	struct Multiarray_d* df_dg; ///< Defined in \ref Flux.
+	struct Multiarray_d* f;     ///< See brief.
+	struct Multiarray_d* df_ds; ///< See brief.
+	struct Multiarray_d* df_dg; ///< See brief.
 };
 
 // Interface functions ********************************************************************************************** //
@@ -105,14 +105,14 @@ void destructor_Flux
 
 /// \brief Version of \ref compute_Flux_fptr for 1st order fluxes only.
 void compute_Flux_1
-	(const struct Flux_Input* flux_i, ///< Defined for \ref compute_Flux_fptr.
-	 struct mutable_Flux* flux        ///< Defined for \ref compute_Flux_fptr.
+	(const struct Flux_Input* flux_i, ///< See brief.
+	 struct mutable_Flux* flux        ///< See brief.
 	);
 
 /// \brief Version of \ref compute_Flux_fptr for 1st and 2nd order fluxes.
 void compute_Flux_12
-	(const struct Flux_Input* flux_i, ///< Defined for \ref compute_Flux_fptr.
-	 struct mutable_Flux* flux        ///< Defined for \ref compute_Flux_fptr.
+	(const struct Flux_Input* flux_i, ///< See brief.
+	 struct mutable_Flux* flux        ///< See brief.
 	);
 
 #endif // DPG__flux_h__INCLUDED

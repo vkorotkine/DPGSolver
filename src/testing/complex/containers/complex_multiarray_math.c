@@ -117,7 +117,7 @@ void mm_NNC_Multiarray_c
 		constructor_move_const_Matrix_c_c(b->layout,ext_0_b,ext_1,false,b->data); // destructed
 	struct Matrix_c* c_M = constructor_move_Matrix_c_c(c->layout,ext_0_c,ext_1,false,c->data); // destructed
 
-	mm_c('N','N',alpha,beta,a,b_M,c_M);
+	mm_dcc('N','N',alpha,beta,a,b_M,c_M);
 
 	destructor_const_Matrix_c(b_M);
 	destructor_Matrix_c(c_M);

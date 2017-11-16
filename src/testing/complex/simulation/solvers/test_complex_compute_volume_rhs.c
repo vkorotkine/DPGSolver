@@ -19,27 +19,19 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 #include "macros.h"
-#include "definitions_intrusive.h"
 
 #include "test_complex_compute_volume_rhs_dg.h"
+#include "test_complex_flux.h"
+#include "test_support_math_functions.h"
 
-#include "matrix.h"
+#include "complex_multiarray.h"
 #include "multiarray.h"
-#include "vector.h"
 
 #include "volume_solver.h"
-#include "element_solver.h"
 
-#include "flux.h"
-#include "intrusive.h"
-#include "math_functions.h"
-#include "multiarray_operator.h"
-#include "operator.h"
 #include "simulation.h"
-#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -77,6 +69,10 @@ struct Flux_Ref_c* constructor_Flux_Ref_vol_c
 void destructor_Flux_Ref_c (struct Flux_Ref_c* flux_ref)
 {
 	destructor_const_Multiarray_c(flux_ref->fr);
+	if (flux_ref->dfr_ds)
+		destructor_const_Multiarray_c(flux_ref->dfr_ds);
+	if (flux_ref->dfr_dg)
+		destructor_const_Multiarray_c(flux_ref->dfr_dg);
 	free(flux_ref);
 }
 
@@ -102,7 +98,9 @@ static struct Flux_Ref_c* constructor_Flux_Ref_c (const struct const_Multiarray_
 
 	struct Flux_Ref_c* flux_r = calloc(1,sizeof *flux_r); // returned
 
-	flux_r->fr = constructor_flux_ref_c(m,flux->f);
+	flux_r->fr     = ( flux->f     ? constructor_flux_ref_c(m,flux->f)     : NULL );
+	flux_r->dfr_ds = ( flux->df_ds ? constructor_flux_ref_c(m,flux->df_ds) : NULL );
+	flux_r->dfr_dg = ( flux->df_dg ? constructor_flux_ref_c(m,flux->df_dg) : NULL );
 
 	return flux_r;
 }

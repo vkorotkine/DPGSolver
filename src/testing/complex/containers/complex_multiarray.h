@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "complex_multiarray_print.h"
 
 struct const_Multiarray_d;
+struct Matrix_c;
 
 // Interface functions ********************************************************************************************** //
 
@@ -55,6 +56,12 @@ void set_to_value_Multiarray_c
 void set_Multiarray_c_Multiarray_d
 	(struct Multiarray_c* a,            ///< Multiarray with data to be set.
 	 const struct const_Multiarray_d* b ///< Multiarray from which to take data.
+	);
+
+/** \brief `complex` version of \ref interpret_Multiarray_as_Matrix_d.
+ *  \return See brief. */
+struct Matrix_c interpret_Multiarray_as_Matrix_c
+	(const struct Multiarray_c* a_Ma ///< The input multiarray.
 	);
 
 #endif // DPG__complex_multiarray_h__INCLUDED

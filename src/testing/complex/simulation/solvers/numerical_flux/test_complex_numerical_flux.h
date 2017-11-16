@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__test_complex_numerical_flux_h__INCLUDED
 /** \file
  *  \brief Provides `complex` versions of containers and functions defined in \ref numerical_flux.h.
- *
- *  As the complex functions are never used to compute the linearization terms, they are omitted from the containers.
  */
 
 struct Numerical_Flux_Input_c;
@@ -55,11 +53,23 @@ struct Numerical_Flux_Input_c {
 /// \brief `complex` version of \ref Numerical_Flux.
 struct Numerical_Flux_c {
 	const struct const_Multiarray_c* nnf; ///< See brief.
+
+	/// \brief See brief.
+	struct Neigh_Info_NF_c {
+		const struct const_Multiarray_c* dnnf_ds; ///< See brief.
+		const struct const_Multiarray_c* dnnf_dg; ///< See brief.
+	} neigh_info[2]; ///< See brief.
 };
 
 /// \brief `mutable` version of \ref Numerical_Flux_c.
 struct mutable_Numerical_Flux_c {
 	struct Multiarray_c* nnf; ///< See brief.
+
+	/// See brief.
+	struct m_Neigh_Info_NF_c {
+		struct Multiarray_c* dnnf_ds; ///< See brief.
+		struct Multiarray_c* dnnf_dg; ///< See brief.
+	} neigh_info[2]; ///< See brief.
 };
 
 // Interface functions ********************************************************************************************** //

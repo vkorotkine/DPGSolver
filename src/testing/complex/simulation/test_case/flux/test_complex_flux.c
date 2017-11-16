@@ -73,12 +73,15 @@ struct Flux_c* constructor_Flux_c (const struct Flux_Input_c* flux_i)
 	struct Flux_Input* flux_i_b = (struct Flux_Input*) flux_i;
 
 	const int d    = flux_i_b->d,
-	          n_eq = flux_i_b->n_eq;
+	          n_eq = flux_i_b->n_eq,
+	          n_vr = flux_i_b->n_var;
 	const ptrdiff_t n_n = ( flux_i->s != NULL ? flux_i->s->extents[0] : flux_i->g->extents[0] );
 
 	struct mutable_Flux_c* flux = calloc(1,sizeof *flux); // destructed
 
-	flux->f = constructor_zero_Multiarray_c('C',3,(ptrdiff_t[]){n_n,d,n_eq});
+	flux->f     = constructor_zero_Multiarray_c('C',3,(ptrdiff_t[]){n_n,d,n_eq});
+	flux->df_ds = constructor_zero_Multiarray_c('C',4,(ptrdiff_t[]){n_n,d,n_eq,n_vr});
+	flux->df_dg = constructor_zero_Multiarray_c('C',5,(ptrdiff_t[]){n_n,d,n_eq,n_vr,d});
 
 	flux_i->compute_Flux(flux_i,flux);
 
@@ -88,6 +91,8 @@ struct Flux_c* constructor_Flux_c (const struct Flux_Input_c* flux_i)
 void destructor_Flux_c (struct Flux_c* flux)
 {
 	destructor_const_Multiarray_c(flux->f);
+	destructor_const_Multiarray_c(flux->df_ds);
+	destructor_const_Multiarray_c(flux->df_dg);
 	free(flux);
 }
 
@@ -118,8 +123,9 @@ static void set_derived_Flux_Input_fptrs (struct Flux_Input_c* flux_i)
 		EXIT_UNSUPPORTED;
 
 	// compute_Flux_1st
+EXIT_ERROR("Add a flag for which function to use depending on sim->method.");
 	if (flux_i_b->compute_Flux_1st == compute_Flux_advection_jacobian)
-		flux_i->compute_Flux_1st = compute_Flux_c_advection;
+		flux_i->compute_Flux_1st = compute_Flux_c_advection_jacobian;
 	else if (flux_i_b->compute_Flux_1st == compute_Flux_euler_jacobian)
 		EXIT_ADD_SUPPORT;
 	else if (flux_i_b->compute_Flux_1st == NULL)

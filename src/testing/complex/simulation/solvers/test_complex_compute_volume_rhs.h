@@ -41,7 +41,9 @@ struct S_Params_Volume_Structor_c {
 
 /// \brief `complex` version of \ref Flux_Ref.
 struct Flux_Ref_c {
-	const struct const_Multiarray_c* fr; ///< See brief.
+	const struct const_Multiarray_c* fr;     ///< See brief.
+	const struct const_Multiarray_c* dfr_ds; ///< See brief.
+	const struct const_Multiarray_c* dfr_dg; ///< See brief.
 };
 
 // Interface functions ********************************************************************************************** //

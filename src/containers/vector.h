@@ -15,12 +15,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #ifndef DPG__vector_h__INCLUDED
 #define DPG__vector_h__INCLUDED
-/**	\file
- *	\brief Provides Vector_\* containers and related functions.
+/** \file
+ *  \brief Provides Vector_\* containers and related functions.
  *
- *	Potentially relevant comments may be found in \ref multiarray.h.
+ *  Potentially relevant comments may be found in \ref multiarray.h.
  *
- *	Vectors are 1D Multiarrays.
+ *  Vectors are 1D Multiarrays.
  */
 
 #include <stddef.h>
@@ -38,12 +38,12 @@ struct Vector_i {
 	int* data;      ///< Defined in \ref Multiarray_d.
 };
 
-/// \brief Vector (`const int`).
+/// \brief `const` version of \ref Vector_i.
 struct const_Vector_i {
-	const ptrdiff_t ext_0; ///< Defined in \ref Vector_i.
+	const ptrdiff_t ext_0; ///< See brief.
 
-	const bool owns_data; ///< Defined in \ref Vector_i.
-	const int*const data; ///< Defined in \ref Vector_i.
+	const bool owns_data; ///< See brief.
+	const int*const data; ///< See brief.
 };
 
 /// \brief Vector (`double`).
@@ -54,12 +54,12 @@ struct Vector_d {
 	double* data;   ///< Defined in \ref Multiarray_d.
 };
 
-/// \brief Vector (`const int`).
+/// \brief `const` version of \ref Vector_d.
 struct const_Vector_d {
-	const ptrdiff_t ext_0; ///< Defined in \ref Vector_i.
+	const ptrdiff_t ext_0; ///< See brief.
 
-	const bool owns_data;    ///< Defined in \ref Vector_i.
-	const double*const data; ///< Defined in \ref Vector_i.
+	const bool owns_data;    ///< See brief.
+	const double*const data; ///< See brief.
 };
 
 // Interface functions ********************************************************************************************** //

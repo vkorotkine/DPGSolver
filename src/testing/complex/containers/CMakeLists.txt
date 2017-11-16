@@ -7,6 +7,8 @@ set	(SOURCE
 	 complex_multiarray_constructors.c
 	 complex_multiarray_math.c
 	 complex_multiarray_print.c
+	 complex_vector.c
+	 complex_vector_constructors.c
 	)
 
 set	(LIBS_DEPEND

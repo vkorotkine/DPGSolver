@@ -29,7 +29,7 @@ void compute_volume_rhs_dg_c
 	 struct Intrusive_List* volumes ///< The list of volumes for which to compute the rhs term.
 	);
 
-/** \brief See \ref compute_volume_rlhs_dg.c.
+/** \brief See \ref constructor_sol_vc_interp.
  *  \return Standard. */
 const struct const_Multiarray_c* constructor_sol_vc_dg_c
 	(const struct Solver_Volume* s_vol, ///< See brief.

@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 struct Solver_Storage_Implicit;
+struct Solver_Volume;
 struct Complex_DPG_Solver_Volume;
 
 /// \brief Version of \ref compute_all_rlhs_dpg computing only complex rhs terms.
@@ -28,6 +29,13 @@ void compute_all_rhs_dpg_c
 	(const struct Complex_DPG_Solver_Volume* c_dpg_s_vol, ///< The \ref Complex_DPG_Solver_Volume.
 	 struct Solver_Storage_Implicit* ssi,                 ///< See brief.
 	 const struct Simulation* sim                         ///< See brief.
+	);
+
+/** \brief See \ref constructor_sol_vc_interp.
+ *  \return Standard. */
+const struct const_Multiarray_c* constructor_sol_vc_dpg_c
+	(const struct Solver_Volume* s_vol, ///< See brief.
+	 const struct Simulation* sim       ///< See brief.
 	);
 
 #endif // DPG__test_complex_compute_all_rhs_dpg_h__INCLUDED

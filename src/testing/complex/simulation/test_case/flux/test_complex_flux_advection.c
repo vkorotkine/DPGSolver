@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void compute_Flux_c_advection (const struct Flux_Input_c* flux_i, struct mutable_Flux_c* flux)
 {
+/// \todo Delete if unused.
 	struct Flux_Input* flux_i_b = (struct Flux_Input*) flux_i;
 
 	static bool need_input = true;
@@ -58,6 +59,48 @@ void compute_Flux_c_advection (const struct Flux_Input_c* flux_i, struct mutable
 		for (int dim = 0; dim < d; dim++) {
 			*F_ptr[dim] = b_adv[dim]*W[n];
 			F_ptr[dim]++;
+		}
+	}
+}
+
+void compute_Flux_c_advection_jacobian (const struct Flux_Input_c* flux_i, struct mutable_Flux_c* flux)
+{
+	struct Flux_Input* flux_i_b = (struct Flux_Input*) flux_i;
+
+	static bool need_input = true;
+	static struct Sol_Data__Advection sol_data;
+	if (need_input) {
+		need_input = false;
+		read_data_advection(flux_i_b->input_path,&sol_data);
+	}
+
+	int const d = flux_i_b->d;
+	const ptrdiff_t NnTotal = flux_i->s->extents[0];
+
+	double complex const *const W    = flux_i->s->data;
+	double complex       *const F    = flux->f->data;
+	double complex       *const dFdW = flux->df_ds->data;
+
+	assert(F    != NULL);
+	assert(dFdW != NULL);
+
+	// Store pointers to the arrays that the data will be written into. Note: using Neq == Nvar == 1.
+	double complex *F_ptr[d];
+	for (int dim = 0; dim < d; dim++)
+		F_ptr[dim] = &F[dim*NnTotal];
+
+	double complex *dFdW_ptr[d];
+	for (int dim = 0; dim < d; dim++)
+		dFdW_ptr[dim] = &dFdW[dim*NnTotal];
+
+	const double* b_adv = sol_data.b_adv;
+	for (int n = 0; n < NnTotal; n++) {
+		for (int dim = 0; dim < d; dim++) {
+			*F_ptr[dim] = b_adv[dim]*W[n];
+			F_ptr[dim]++;
+
+			*dFdW_ptr[dim] = b_adv[dim];
+			dFdW_ptr[dim]++;
 		}
 	}
 }

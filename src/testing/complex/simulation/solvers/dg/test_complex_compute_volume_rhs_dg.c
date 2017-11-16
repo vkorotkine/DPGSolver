@@ -25,7 +25,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_flux.h"
 #include "test_complex_operators.h"
 #include "test_complex_compute_volume_rhs.h"
-#include "test_support_math_functions.h"
 
 #include "volume_solver_dg_complex.h"
 
@@ -74,8 +73,8 @@ const struct const_Multiarray_c* constructor_sol_vc_dg_c
 	UNUSED(sim);
 	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc(s_vol);
 
-	struct Complex_DG_Solver_Volume* dg_s_vol = (struct Complex_DG_Solver_Volume*) s_vol;
-	const struct const_Multiarray_c* s_coef = (const struct const_Multiarray_c*) dg_s_vol->sol_coef;
+	struct Complex_DG_Solver_Volume* s_vol_c = (struct Complex_DG_Solver_Volume*) s_vol;
+	const struct const_Multiarray_c* s_coef = (const struct const_Multiarray_c*) s_vol_c->sol_coef;
 
 	return constructor_mm_NN1_Operator_const_Multiarray_c(cv0_vs_vc,s_coef,'C','d',s_coef->order,NULL);
 }

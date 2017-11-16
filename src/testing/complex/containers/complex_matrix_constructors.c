@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdlib.h>
 #include <assert.h>
+#include "mkl.h"
 
 #include "complex_matrix.h"
 #include "matrix.h"
@@ -36,7 +37,25 @@ static struct Matrix_c* constructor_copy_Matrix_c_Matrix_d
 
 // Empty constructors *********************************************************************************************** //
 
+struct Matrix_c* constructor_empty_Matrix_c (const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
+{
+	double complex* data = malloc(ext_0*ext_1 * sizeof *data); // keep
+	return constructor_move_Matrix_c_c(layout,ext_0,ext_1,true,data);
+}
+
 // Copy constructors ************************************************************************************************ //
+
+struct Matrix_c* constructor_copy_Matrix_c (const struct Matrix_c* src)
+{
+	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
+	const double complex*const data_src = src->data;
+
+	double complex* data = malloc(size * sizeof *data); // keep
+	for (ptrdiff_t i = 0; i < size; i++)
+		data[i] = data_src[i];
+
+	return constructor_move_Matrix_c_c(src->layout,src->ext_0,src->ext_1,true,data);
+}
 
 const struct const_Matrix_c* constructor_copy_const_Matrix_c_Matrix_d (const struct const_Matrix_d* src)
 {
@@ -68,6 +87,43 @@ const struct const_Matrix_c* constructor_move_const_Matrix_c_c
 }
 
 // Special constructors ********************************************************************************************* //
+
+struct Matrix_c* constructor_mm_Matrix_cc
+	(const char trans_a_i, const char trans_b_i, const double alpha,
+	 const struct const_Matrix_c*const a, const struct const_Matrix_c*const b, const char layout)
+{
+	const MKL_INT m = ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ),
+	              n = ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 );
+
+	struct Matrix_c* c = constructor_empty_Matrix_c(layout,m,n); // returned
+
+	mm_ccc(trans_a_i,trans_b_i,alpha,0.0,a,b,c);
+
+	return c;
+}
+
+const struct const_Matrix_c* constructor_mm_const_Matrix_cc
+	(const char trans_a_i, const char trans_b_i, const double alpha,
+	 const struct const_Matrix_c*const a, const struct const_Matrix_c*const b, const char layout)
+{
+	return (const struct const_Matrix_c*) constructor_mm_Matrix_cc(trans_a_i,trans_b_i,alpha,a,b,layout);
+}
+
+struct Matrix_c* constructor_mm_diag_Matrix_c_d
+	(const double alpha, const struct const_Matrix_c*const a, const struct const_Vector_d*const b, const char side,
+	 const bool invert_diag)
+{
+	struct Matrix_c* c = constructor_copy_Matrix_c((struct Matrix_c*)a);
+	scale_Matrix_c_by_Vector_d(side,alpha,c,b,invert_diag);
+	return c;
+}
+
+const struct const_Matrix_c* constructor_mm_diag_const_Matrix_c_d
+	(const double alpha, const struct const_Matrix_c*const a, const struct const_Vector_d*const b, const char side,
+	 const bool invert_diag)
+{
+	return (const struct const_Matrix_c*) constructor_mm_diag_Matrix_c_d(alpha,a,b,side,invert_diag);
+}
 
 // Destructors ****************************************************************************************************** //
 

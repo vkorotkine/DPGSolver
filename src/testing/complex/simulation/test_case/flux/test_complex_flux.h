@@ -53,12 +53,16 @@ struct Flux_Input_c {
 
 /// \brief `complex` version of \ref Flux.
 struct Flux_c {
-	const struct const_Multiarray_c* f; ///< Defined for \ref Flux.
+	const struct const_Multiarray_c* f;     ///< See brief.
+	const struct const_Multiarray_c* df_ds; ///< See brief.
+	const struct const_Multiarray_c* df_dg; ///< See brief.
 };
 
 /// \brief `mutable` version of \ref Flux_c.
 struct mutable_Flux_c {
-	struct Multiarray_c* f; ///< Defined in \ref Flux_c.
+	struct Multiarray_c* f;     ///< See brief.
+	struct Multiarray_c* df_ds; ///< See brief.
+	struct Multiarray_c* df_dg; ///< See brief.
 };
 
 // Interface functions ********************************************************************************************** //

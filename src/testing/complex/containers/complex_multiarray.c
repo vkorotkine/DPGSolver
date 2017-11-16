@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 
 #include "multiarray.h"
+#include "complex_matrix.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -54,6 +55,17 @@ void set_to_value_Multiarray_c (struct Multiarray_c*const a, const double comple
 const double complex* get_col_const_Multiarray_c (const ptrdiff_t col, const struct const_Multiarray_c* a)
 {
 	return (const double complex*) get_col_Multiarray_c(col,(struct Multiarray_c*)a);
+}
+
+struct Matrix_c interpret_Multiarray_as_Matrix_c (const struct Multiarray_c* a_Ma)
+{
+	assert(a_Ma->order == 2);
+	struct Matrix_c a =
+		{ .ext_0     = a_Ma->extents[0],
+		  .ext_1     = a_Ma->extents[1],
+		  .owns_data = false,
+		  .data      = a_Ma->data, };
+	return a;
 }
 
 // Static functions ************************************************************************************************* //

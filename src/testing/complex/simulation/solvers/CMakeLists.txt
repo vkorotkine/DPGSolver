@@ -3,6 +3,7 @@ add_subdirectory(dpg)
 add_subdirectory(numerical_flux)
 
 set	(SOURCE
+	 test_complex_compute_face_rhs.c
 	 test_complex_compute_volume_rhs.c
 	)
 

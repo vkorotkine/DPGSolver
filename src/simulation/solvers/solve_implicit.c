@@ -30,7 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_case.h"
 
 #include "computational_elements.h"
-#include "face.h"
+#include "face_solver.h"
 #include "volume_solver.h"
 
 #include "multiarray.h"
@@ -179,8 +179,8 @@ static void destructor_petsc_ksp
 	(KSP ksp ///< Standard.
 	);
 
-/// \brief Update the values of \ref Solver_Volume::sol_coef based on the computed increment.
-static void update_sol_coef
+/// \brief Update the values of coefficients based on the computed increment.
+static void update_coefs
 	(Vec x,                       ///< Petsc Vec holding the solution coefficient increments.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
@@ -240,7 +240,7 @@ static double implicit_step (const int i_step, const struct Simulation* sim)
 	KSPSolve(ksp,s_store_i->b,x);
 	destructor_Solver_Storage_Implicit(s_store_i);
 
-	update_sol_coef(x,sim);
+	update_coefs(x,sim);
 	destructor_petsc_x(x);
 
 	display_progress(sim->test_case,i_step,max_rhs,ksp);
@@ -304,6 +304,18 @@ static struct Vector_i* constructor_nnz (const struct Simulation* sim)
  *  \return `true` if symmetric; `false` otherwise. */
 static bool check_symmetric
 	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Update the values of \ref Solver_Volume::sol_coef based on the computed increment.
+static void update_coef_s_v
+	(Vec x,                       ///< Petsc Vec holding the solution coefficient increments.
+	 const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Update the values of \ref Solver_Face::nf_coef based on the computed increment.
+static void update_coef_nf_f
+	(Vec x,                       ///< Petsc Vec holding the solution coefficient increments.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 static void output_petsc_mat_vec (Mat A, Vec b)
@@ -397,29 +409,20 @@ static void destructor_petsc_ksp (KSP ksp)
 	KSPDestroy(&ksp);
 }
 
-
-static void update_sol_coef (Vec x, const struct Simulation* sim)
+static void update_coefs (Vec x, const struct Simulation* sim)
 {
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume* s_vol = (struct Solver_Volume*)curr;
-		const int ind_dof             = s_vol->ind_dof;
-		struct Multiarray_d* sol_coef = s_vol->sol_coef;
-
-		const int ni = compute_size(sol_coef->order,sol_coef->extents);
-
-		PetscInt ix[ni];
-		for (int i = 0; i < ni; ++i)
-			ix[i] = ind_dof+i;
-
-		PetscScalar y[ni];
-		VecGetValues(x,ni,ix,y);
-
-		const double alpha = 1.0;
-//		const double alpha = compute_underRelax(s_vol,y,sim);
-//		enforce_positivity_highorder(sol_coef);
-
-		for (int i = 0; i < ni; ++i)
-			sol_coef->data[i] += alpha*y[i];
+	switch (sim->method) {
+	case METHOD_DG:
+		update_coef_s_v(x,sim);
+		break;
+	case METHOD_DPG:
+		update_coef_s_v(x,sim);
+		update_coef_nf_f(x,sim);
+		assert(sim->test_case->has_2nd_order == false); // Add support.
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",sim->method);
+		break;
 	}
 }
 
@@ -464,6 +467,13 @@ static bool check_pde_linear (const int pde_index)
 
 // Level 2 ********************************************************************************************************** //
 
+/// \brief Update the input coefficients with the step stored in the PETSc Vec.
+static void update_coef
+	(const int ind_dof,              ///< The index of the first dof associated with the coefficients.
+	 struct Multiarray_d*const coef, ///< The coefficients to be updated.
+	 Vec x                           ///< The PETSc Vec holding the updates.
+	);
+
 static bool check_symmetric (const struct Simulation* sim)
 {
 	switch (sim->method) {
@@ -490,4 +500,40 @@ static bool check_symmetric (const struct Simulation* sim)
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
 		break;
 	}
+}
+
+static void update_coef_s_v (Vec x, const struct Simulation* sim)
+{
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* s_vol = (struct Solver_Volume*)curr;
+
+		update_coef(s_vol->ind_dof,s_vol->sol_coef,x);
+//		enforce_positivity_highorder(coef);
+	}
+}
+
+static void update_coef_nf_f (Vec x, const struct Simulation* sim)
+{
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		struct Solver_Face* s_face = (struct Solver_Face*)curr;
+
+		update_coef(s_face->ind_dof,s_face->nf_coef,x);
+	}
+}
+
+// Level 3 ********************************************************************************************************** //
+
+static void update_coef (const int ind_dof, struct Multiarray_d*const coef, Vec x)
+{
+		const int ni = compute_size(coef->order,coef->extents);
+
+		PetscInt ix[ni];
+		for (int i = 0; i < ni; ++i)
+			ix[i] = ind_dof+i;
+
+		PetscScalar y[ni];
+		VecGetValues(x,ni,ix,y);
+
+		for (int i = 0; i < ni; ++i)
+			coef->data[i] += y[i];
 }

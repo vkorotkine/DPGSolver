@@ -111,14 +111,14 @@ void destructor_Numerical_Flux
 
 /// \brief Version of \ref compute_Numerical_Flux_fptr for 1st order numerical fluxes only.
 void compute_Numerical_Flux_1
-	(const struct Numerical_Flux_Input* num_flux_i, ///< Defined for \ref compute_Numerical_Flux_fptr.
-	 struct mutable_Numerical_Flux* num_flux        ///< Defined for \ref compute_Numerical_Flux_fptr.
+	(const struct Numerical_Flux_Input* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux* num_flux        ///< See brief.
 	);
 
 /// \brief Version of \ref compute_Numerical_Flux_fptr for 1st and 2nd order numerical fluxes.
 void compute_Numerical_Flux_12
-	(const struct Numerical_Flux_Input* num_flux_i, ///< Defined for \ref compute_Numerical_Flux_fptr.
-	 struct mutable_Numerical_Flux* num_flux        ///< Defined for \ref compute_Numerical_Flux_fptr.
+	(const struct Numerical_Flux_Input* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux* num_flux        ///< See brief.
 	);
 
 #endif // DPG__numerical_flux_h__INCLUDED
