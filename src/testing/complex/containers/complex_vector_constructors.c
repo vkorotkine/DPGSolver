@@ -18,7 +18,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 #include <stdlib.h>
+#include "definitions_mkl.h"
+#include "mkl.h"
 
+#include "complex_matrix.h"
 #include "complex_vector.h"
 
 // Static function declarations ************************************************************************************* //
@@ -27,6 +30,13 @@ You should have received a copy of the GNU General Public License along with DPG
 // Default constructors ********************************************************************************************* //
 
 // Empty constructors *********************************************************************************************** //
+
+struct Vector_c* constructor_empty_Vector_c (const ptrdiff_t ext_0)
+{
+	double complex* data = malloc(ext_0 * sizeof *data); // keep
+
+	return constructor_move_Vector_c_c(ext_0,true,data);
+}
 
 // Zero constructors ************************************************************************************************ //
 
@@ -54,6 +64,26 @@ struct Vector_c* constructor_move_Vector_c_c (const ptrdiff_t ext_0, const bool 
 // Set constructors ************************************************************************************************* //
 
 // Special constructors ********************************************************************************************* //
+
+struct Vector_c* constructor_mv_Vector_c
+	(const char trans_a_i, const double alpha, const struct const_Matrix_c*const a,
+	 const struct const_Vector_c*const b)
+{
+	const MKL_INT m = ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 );
+
+	struct Vector_c* c = constructor_empty_Vector_c(m); // returned
+
+	mv_ccc(trans_a_i,alpha,0.0,a,b,c);
+
+	return c;
+}
+
+const struct const_Vector_c* constructor_mv_const_Vector_c
+	(const char trans_a_i, const double alpha, const struct const_Matrix_c*const a,
+	 const struct const_Vector_c*const b)
+{
+	return (const struct const_Vector_c*) constructor_mv_Vector_c(trans_a_i,alpha,a,b);
+}
 
 // Destructors ****************************************************************************************************** //
 

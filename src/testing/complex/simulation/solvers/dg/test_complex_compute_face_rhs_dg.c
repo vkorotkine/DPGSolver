@@ -51,11 +51,6 @@ void constructor_Numerical_Flux_Input_c_data_dg
 	 const struct Simulation* sim                      ///< See brief.
 	);
 
-/// \brief `complex` version of \ref destructor_Numerical_Flux_Input_data.
-void destructor_Numerical_Flux_Input_c_data
-	(struct Numerical_Flux_Input_c* num_flux_i ///< See brief.
-	);
-
 /// \brief `complex` version of \ref scale_by_Jacobian_e.
 static void scale_by_Jacobian_e_c
 	(const struct Numerical_Flux_c* num_flux, ///< See brief.
@@ -78,9 +73,7 @@ void compute_face_rhs_dg_c (const struct Simulation* sim, struct Intrusive_List*
 	assert(sim->faces->name    == IL_FACE_SOLVER_DG_COMPLEX);
 	assert(sim->volumes->name  == IL_VOLUME_SOLVER_DG_COMPLEX);
 
-	constructor_derived_Complex_Test_Case((struct Simulation*)sim); // destructed
 	struct Numerical_Flux_Input_c* num_flux_i = constructor_Numerical_Flux_Input_c(sim); // destructed
-
 	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {
 		struct Face* face                          = (struct Face*) curr;
 		struct Complex_DG_Solver_Face* c_dg_s_face = (struct Complex_DG_Solver_Face*) curr;
@@ -96,7 +89,6 @@ void compute_face_rhs_dg_c (const struct Simulation* sim, struct Intrusive_List*
 		destructor_Numerical_Flux_c(num_flux);
 	}
 	destructor_Numerical_Flux_Input_c(num_flux_i);
-	destructor_derived_Complex_Test_Case((struct Simulation*)sim);
 }
 
 // Static functions ************************************************************************************************* //
@@ -119,12 +111,6 @@ void constructor_Numerical_Flux_Input_c_data_dg
 
 	test_case->constructor_Boundary_Value_Input_c_face_fcl(&num_flux_i->bv_l,s_face,sim);          // destructed
 	c_dg_s_face->constructor_Boundary_Value_c_fcl(&num_flux_i->bv_r,&num_flux_i->bv_l,s_face,sim); // destructed
-}
-
-void destructor_Numerical_Flux_Input_c_data (struct Numerical_Flux_Input_c* num_flux_i)
-{
-	destructor_Boundary_Value_Input_c(&num_flux_i->bv_l);
-	destructor_Boundary_Value_c(&num_flux_i->bv_r);
 }
 
 static void scale_by_Jacobian_e_c

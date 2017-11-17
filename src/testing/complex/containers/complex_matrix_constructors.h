@@ -76,6 +76,20 @@ const struct const_Matrix_c* constructor_move_const_Matrix_c_c
 
 // Special constructors ********************************************************************************************* //
 
+/** \brief `complex` version of \ref constructor_sysv_Matrix_d.
+ *  \return Standard. */
+struct Matrix_c* constructor_sysv_Matrix_c
+	(struct Matrix_c* A_i, ///< See brief.
+	 struct Matrix_c* B_i  ///< See brief.
+	);
+
+/** \brief `const` version of constructor_sysv_Matrix_c.
+ *  \return See brief. */
+const struct const_Matrix_c* constructor_sysv_const_Matrix_c
+	(const struct const_Matrix_c* A_i, ///< See brief.
+	 const struct const_Matrix_c* B_i  ///< See brief.
+	);
+
 /** \brief `complex` version of \ref constructor_mm_Matrix_d (`double complex`, `double complex`).
  *  \return See brief. */
 struct Matrix_c* constructor_mm_Matrix_cc

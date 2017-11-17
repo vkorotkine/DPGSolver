@@ -44,4 +44,10 @@ void destructor_derived_Complex_Test_Case
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Check whether the `complex` Jacobians are being computed for the current method.
+ *  \return `true` if yes; `false` otherwise. */
+bool has_complex_Jacobians
+	(const int method ///< \ref Simulation::method
+	);
+
 #endif // DPG__test_complex_test_case_h__INCLUDED

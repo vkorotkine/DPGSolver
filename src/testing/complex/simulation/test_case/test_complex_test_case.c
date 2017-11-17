@@ -56,6 +56,21 @@ void destructor_derived_Complex_Test_Case (struct Simulation* sim)
 	sim->test_case = test_case_b;
 }
 
+bool has_complex_Jacobians (const int method)
+{
+	switch (method) {
+	case METHOD_DG:
+		return false;
+		break;
+	case METHOD_DPG:
+		return true;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",method);
+		break;
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

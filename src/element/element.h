@@ -183,7 +183,7 @@ int get_number_of_face_elements
  *  \return See brief. */
 int get_face_element_index_by_ind_lf
 	(const struct const_Element*const element, ///< \ref Element.
-	 const int lf                              ///< \ref Face::ind_lf.
+	 const int lf                              ///< \ref Face::Neigh_Info::ind_lf.
 	);
 
 #endif // DPG__element_h__INCLUDED

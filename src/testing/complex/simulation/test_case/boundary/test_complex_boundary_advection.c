@@ -54,6 +54,14 @@ void constructor_Boundary_Value_c_advection_inflow
 	const struct const_Multiarray_d* s = sim->test_case->constructor_sol(xyz,sim); // destructed
 	bv->s = constructor_copy_const_Multiarray_c_Multiarray_d(s); // destructed
 	destructor_const_Multiarray_d(s);
+
+	if (bv_i->has_complex_J) {
+		const ptrdiff_t n_n  = bv->s->extents[0],
+		                n_vr = bv->s->extents[1];
+		struct Multiarray_c* ds_ds = constructor_empty_Multiarray_c('C',3,(ptrdiff_t[]){n_n,n_vr,n_vr}); // moved
+		set_to_value_Multiarray_c(ds_ds,0.0);
+		bv->ds_ds = (const struct const_Multiarray_c*) ds_ds;
+	}
 }
 
 void constructor_Boundary_Value_c_advection_outflow
@@ -64,6 +72,14 @@ void constructor_Boundary_Value_c_advection_outflow
 	UNUSED(sim);
 
 	bv->s = constructor_copy_const_Multiarray_c(bv_i->s); // destructed
+
+	if (bv_i->has_complex_J) {
+		const ptrdiff_t n_n  = bv->s->extents[0],
+		                n_vr = bv->s->extents[1];
+		struct Multiarray_c* ds_ds = constructor_empty_Multiarray_c('C',3,(ptrdiff_t[]){n_n,n_vr,n_vr}); // moved
+		set_to_value_Multiarray_c(ds_ds,1.0);
+		bv->ds_ds = (const struct const_Multiarray_c*) ds_ds;
+	}
 }
 
 // Static functions ************************************************************************************************* //

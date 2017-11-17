@@ -67,7 +67,7 @@ if (0) {
 	test_print_warning(test_info,"Need to add tests for conservation.");
 
 	test_integration_advection(test_info);
-	test_integration_euler(test_info);
+//	test_integration_euler(test_info);
 
 	PetscFinalize();
 }

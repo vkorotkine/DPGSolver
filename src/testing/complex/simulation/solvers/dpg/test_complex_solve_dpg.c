@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_boundary_advection.h"
 #include "test_complex_compute_all_rhs_dpg.h"
 #include "test_support_multiarray.h"
+#include "test_complex_test_case.h"
 
 #include "face_solver_dpg_complex.h"
 #include "volume_solver_dpg_complex.h"
@@ -48,11 +49,18 @@ static void set_function_pointers_num_flux_dpg
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Compute the complex rhs terms for the dpg scheme.
-static void compute_rhs_cmplx_step_dpg
+/// \brief Compute the complex rhs terms associated with the input volume for the dpg scheme.
+static void compute_rhs_cmplx_step_dpg_volume
 	(const struct Complex_DPG_Solver_Volume* c_dpg_s_vol, ///< The \ref Complex_DPG_Solver_Volume.
 	 struct Solver_Storage_Implicit* ssi,                 ///< \ref Solver_Storage_Implicit.
 	 const struct Simulation* sim                         ///< \ref Simulation.
+	);
+
+/// \brief Compute the complex rhs terms associated with the input face for the dpg scheme.
+static void compute_rhs_cmplx_step_dpg_face
+	(const struct Complex_DPG_Solver_Face* c_dpg_s_face, ///< The \ref Complex_DPG_Solver_Face.
+	 struct Solver_Storage_Implicit* ssi,                ///< \ref Solver_Storage_Implicit.
+	 const struct Simulation* sim                        ///< \ref Simulation.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -93,28 +101,47 @@ void set_initial_solution_complex_dpg (const struct Simulation* sim)
 
 void compute_lhs_cmplx_step_dpg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
 {
+	/** As the use of `complex` PETSc Vec containers would require using a different build where **all** containers
+	 *  would be complex, it was decided to store the complex portion of the computed rhs term directly in the PETSc
+	 *  Mat for this case. */
+
 	set_function_pointers_num_flux_dpg(sim);
 
-	for (struct Intrusive_Link* curr_c = sim->volumes->first; curr_c; curr_c = curr_c->next) {
-		const struct Volume* vol                        = (struct Volume*) curr_c;
-		struct Complex_DPG_Solver_Volume* c_dpg_s_vol_c = (struct Complex_DPG_Solver_Volume*) curr_c;
+	constructor_derived_Complex_Test_Case((struct Simulation*)sim); // destructed
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Solver_Volume* s_vol               = (struct Solver_Volume*) curr;
+		struct Complex_DPG_Solver_Volume* c_dpg_s_vol_c = (struct Complex_DPG_Solver_Volume*) curr;
 		struct Multiarray_c* sol_coef_c = c_dpg_s_vol_c->sol_coef;
 		const ptrdiff_t n_col_l = compute_size(sol_coef_c->order,sol_coef_c->extents);
 		for (int col_l = 0; col_l < n_col_l; ++col_l) {
-			ssi->col = vol->index+col_l;
+			ssi->col = s_vol->ind_dof+col_l;
 
 			sol_coef_c->data[col_l] += CX_STEP*I;
-			compute_rhs_cmplx_step_dpg(c_dpg_s_vol_c,ssi,sim);
+			compute_rhs_cmplx_step_dpg_volume(c_dpg_s_vol_c,ssi,sim);
 			sol_coef_c->data[col_l] -= CX_STEP*I;
-
-//			set_col_lhs_cmplx_step_dg(col_l,(struct Solver_Volume*)curr_c,volumes_local,ssi);
-EXIT_UNSUPPORTED;
 		}
 	}
+
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		const struct Face* face                        = (struct Face*) curr;
+		if (face->boundary)
+			continue;
+
+		const struct Solver_Face* s_face               = (struct Solver_Face*) curr;
+		struct Complex_DPG_Solver_Face* c_dpg_s_face_c = (struct Complex_DPG_Solver_Face*) curr;
+		struct Multiarray_c* nf_coef_c = c_dpg_s_face_c->nf_coef;
+		const ptrdiff_t n_col_l = compute_size(nf_coef_c->order,nf_coef_c->extents);
+		for (int col_l = 0; col_l < n_col_l; ++col_l) {
+			ssi->col = s_face->ind_dof+col_l;
+
+			nf_coef_c->data[col_l] += CX_STEP*I;
+			compute_rhs_cmplx_step_dpg_face(c_dpg_s_face_c,ssi,sim);
+			nf_coef_c->data[col_l] -= CX_STEP*I;
+		}
+	}
+	destructor_derived_Complex_Test_Case((struct Simulation*)sim);
+
 	petsc_mat_vec_assemble(ssi);
-// comment about directly storing imaginary part of the rhs in the ssi Vec. A different PETSc build affecting **all**
-// containers would have to be used to support a complex Vector here.
-EXIT_UNSUPPORTED;
 }
 
 // Static functions ************************************************************************************************* //
@@ -137,9 +164,23 @@ static void set_function_pointers_num_flux_dpg (const struct Simulation* sim)
 	}
 }
 
-static void compute_rhs_cmplx_step_dpg
+static void compute_rhs_cmplx_step_dpg_volume
 	(const struct Complex_DPG_Solver_Volume* c_dpg_s_vol, struct Solver_Storage_Implicit* ssi,
 	 const struct Simulation* sim)
 {
 	compute_all_rhs_dpg_c(c_dpg_s_vol,ssi,sim);
+}
+
+static void compute_rhs_cmplx_step_dpg_face
+	(const struct Complex_DPG_Solver_Face* c_dpg_s_face, struct Solver_Storage_Implicit* ssi,
+	 const struct Simulation* sim)
+{
+	const struct Face* face = (struct Face*) c_dpg_s_face;
+	assert(!face->boundary);
+
+	for (int i = 0; i < 2; ++i) {
+		const struct Complex_DPG_Solver_Volume* c_dpg_s_vol =
+			(struct Complex_DPG_Solver_Volume*) face->neigh_info[i].volume;
+		compute_rhs_cmplx_step_dpg_volume(c_dpg_s_vol,ssi,sim);
+	}
 }

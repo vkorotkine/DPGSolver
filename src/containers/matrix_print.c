@@ -30,8 +30,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Check whether either of the matrix extents is zero.
  *  \return `true` if yes; `false` otherwise. */
 static bool check_Matrix_extents_zero
-	(const ptrdiff_t ext_0, ///< \ref First extent.
-	 const ptrdiff_t ext_1  ///< \ref Second extent.
+	(const ptrdiff_t ext_0, ///< First extent.
+	 const ptrdiff_t ext_1  ///< Second extent.
 	);
 
 // Interface functions ********************************************************************************************** //

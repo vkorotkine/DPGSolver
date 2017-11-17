@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \todo Clean-up (potentially template functions).
+ *  \todo Clean-up.
  */
 
 #include "test_complex_flux_advection.h"
@@ -31,7 +31,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void compute_Flux_c_advection (const struct Flux_Input_c* flux_i, struct mutable_Flux_c* flux)
 {
-/// \todo Delete if unused.
 	struct Flux_Input* flux_i_b = (struct Flux_Input*) flux_i;
 
 	static bool need_input = true;

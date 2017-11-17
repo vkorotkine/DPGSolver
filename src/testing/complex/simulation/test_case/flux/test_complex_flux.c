@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 
 #include "test_complex_flux_advection.h"
+#include "test_complex_test_case.h"
 
 #include "complex_multiarray.h"
 
@@ -55,6 +56,7 @@ struct Flux_Input_c* constructor_Flux_Input_c (const struct Simulation* sim)
 	memcpy(flux_i,flux_i_b,sizeof(struct Flux_Input)); // shallow copy of the base.
 	destructor_Flux_Input(flux_i_b);
 
+	const_cast_b(&flux_i->has_complex_J,has_complex_Jacobians(sim->method));
 	set_derived_Flux_Input_fptrs(flux_i);
 
 	return flux_i;
@@ -71,6 +73,8 @@ struct Flux_c* constructor_Flux_c (const struct Flux_Input_c* flux_i)
 	       (flux_i->g != NULL && flux_i->g->layout == 'C'));
 
 	struct Flux_Input* flux_i_b = (struct Flux_Input*) flux_i;
+	const bool* compute_member = flux_i_b->compute_member;
+	const bool has_c_J = flux_i->has_complex_J;
 
 	const int d    = flux_i_b->d,
 	          n_eq = flux_i_b->n_eq,
@@ -79,9 +83,12 @@ struct Flux_c* constructor_Flux_c (const struct Flux_Input_c* flux_i)
 
 	struct mutable_Flux_c* flux = calloc(1,sizeof *flux); // destructed
 
-	flux->f     = constructor_zero_Multiarray_c('C',3,(ptrdiff_t[]){n_n,d,n_eq});
-	flux->df_ds = constructor_zero_Multiarray_c('C',4,(ptrdiff_t[]){n_n,d,n_eq,n_vr});
-	flux->df_dg = constructor_zero_Multiarray_c('C',5,(ptrdiff_t[]){n_n,d,n_eq,n_vr,d});
+	flux->f     = (compute_member[0] ?
+		constructor_zero_Multiarray_c('C',3,(ptrdiff_t[]){n_n,d,n_eq})        : NULL); // destructed
+	flux->df_ds = ((compute_member[1] && has_c_J) ?
+		constructor_zero_Multiarray_c('C',4,(ptrdiff_t[]){n_n,d,n_eq,n_vr})   : NULL); // destructed
+	flux->df_dg = ((compute_member[2] && has_c_J) ?
+		constructor_zero_Multiarray_c('C',5,(ptrdiff_t[]){n_n,d,n_eq,n_vr,d}) : NULL); // destructed
 
 	flux_i->compute_Flux(flux_i,flux);
 
@@ -90,9 +97,12 @@ struct Flux_c* constructor_Flux_c (const struct Flux_Input_c* flux_i)
 
 void destructor_Flux_c (struct Flux_c* flux)
 {
-	destructor_const_Multiarray_c(flux->f);
-	destructor_const_Multiarray_c(flux->df_ds);
-	destructor_const_Multiarray_c(flux->df_dg);
+	if (flux->f != NULL)
+		destructor_const_Multiarray_c(flux->f);
+	if (flux->df_ds != NULL)
+		destructor_const_Multiarray_c(flux->df_ds);
+	if (flux->df_dg != NULL)
+		destructor_const_Multiarray_c(flux->df_dg);
 	free(flux);
 }
 
@@ -123,17 +133,28 @@ static void set_derived_Flux_Input_fptrs (struct Flux_Input_c* flux_i)
 		EXIT_UNSUPPORTED;
 
 	// compute_Flux_1st
-EXIT_ERROR("Add a flag for which function to use depending on sim->method.");
-	if (flux_i_b->compute_Flux_1st == compute_Flux_advection_jacobian)
-		flux_i->compute_Flux_1st = compute_Flux_c_advection_jacobian;
-	else if (flux_i_b->compute_Flux_1st == compute_Flux_euler_jacobian)
-		EXIT_ADD_SUPPORT;
-	else if (flux_i_b->compute_Flux_1st == NULL)
-		flux_i->compute_Flux_1st = NULL;
-	else
-		EXIT_UNSUPPORTED;
+	if (!flux_i->has_complex_J) {
+		if (flux_i_b->compute_Flux_1st == compute_Flux_advection_jacobian)
+			flux_i->compute_Flux_1st = compute_Flux_c_advection;
+		else if (flux_i_b->compute_Flux_1st == compute_Flux_euler_jacobian)
+			EXIT_ADD_SUPPORT;
+		else if (flux_i_b->compute_Flux_1st == NULL)
+			flux_i->compute_Flux_1st = NULL;
+		else
+			EXIT_UNSUPPORTED;
+	} else {
+		if (flux_i_b->compute_Flux_1st == compute_Flux_advection_jacobian)
+			flux_i->compute_Flux_1st = compute_Flux_c_advection_jacobian;
+		else if (flux_i_b->compute_Flux_1st == compute_Flux_euler_jacobian)
+			EXIT_ADD_SUPPORT;
+		else if (flux_i_b->compute_Flux_1st == NULL)
+			flux_i->compute_Flux_1st = NULL;
+		else
+			EXIT_UNSUPPORTED;
+	}
 
 	// compute_Flux_2nd
+// will also need to be in the `method` switch statement.
 	if (flux_i_b->compute_Flux_2nd == NULL)
 		flux_i->compute_Flux_2nd = NULL;
 	else

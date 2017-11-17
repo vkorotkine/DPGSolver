@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdlib.h>
 #include <assert.h>
+#include "definitions_mkl.h"
 #include "mkl.h"
 
 #include "complex_matrix.h"
@@ -87,6 +88,38 @@ const struct const_Matrix_c* constructor_move_const_Matrix_c_c
 }
 
 // Special constructors ********************************************************************************************* //
+
+struct Matrix_c* constructor_sysv_Matrix_c (struct Matrix_c* A_i, struct Matrix_c* B_i)
+{
+	assert(A_i->layout == B_i->layout); // Can be made flexible in future if necessary.
+	assert(A_i->ext_0 == A_i->ext_1);
+
+	// The source matrix is copied as the entries would otherwise be modified while solving the linear system.
+/// \todo check if only half of the A matrix needs to be copied.
+	struct Matrix_c* A = constructor_copy_Matrix_c(A_i); // destructed
+	struct Matrix_c* X = constructor_copy_Matrix_c(B_i); // returned
+
+	const int matrix_layout = ( A->layout == 'R' ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR );
+	const lapack_int n      = A->ext_0,
+	                 nrhs   = B_i->ext_1;
+	double complex* a       = A->data,
+	              * x       = X->data;
+	const lapack_int lda    = A->ext_0,
+	                 ldx    = ( matrix_layout == LAPACK_COL_MAJOR ? n : nrhs );
+	lapack_int ipiv[n];
+
+	const lapack_int info = LAPACKE_zsysv(matrix_layout,'U',n,nrhs,a,lda,ipiv,x,ldx);
+	assert(info == 0);
+
+	destructor_Matrix_c(A);
+	return X;
+}
+
+const struct const_Matrix_c* constructor_sysv_const_Matrix_c
+	(const struct const_Matrix_c* A_i, const struct const_Matrix_c* B_i)
+{
+	return (const struct const_Matrix_c*) constructor_sysv_Matrix_c((struct Matrix_c*)A_i,(struct Matrix_c*)B_i);
+}
 
 struct Matrix_c* constructor_mm_Matrix_cc
 	(const char trans_a_i, const char trans_b_i, const double alpha,

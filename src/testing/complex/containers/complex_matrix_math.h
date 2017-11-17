@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 
 struct Matrix_c;
+struct Vector_c;
 struct const_Vector_d;
 struct const_Matrix_d;
 struct const_Matrix_c;
@@ -32,6 +33,12 @@ struct const_Vector_c;
 void transpose_Matrix_c
 	(struct Matrix_c* a, ///< See brief.
 	 const bool mem_only ///< See brief.
+	);
+
+/// \brief `complex` version of \ref scale_Matrix_d.
+void scale_Matrix_c
+	(struct Matrix_c* a, ///< See brief.
+	 const double val    ///< See brief.
 	);
 
 /// \brief `complex` version of \ref permute_Matrix_d.
@@ -91,6 +98,16 @@ void mm_diag_c
 	 const struct const_Vector_c*const b, ///< See brief.
 	 struct Matrix_c* c,                  ///< See brief.
 	 const bool invert_diag               ///< See brief.
+	);
+
+/// \brief `complex` version of \ref mv_d (`double complex`, `double complex`, `double complex`).
+void mv_ccc
+	(const char trans_a_i,                ///< See brief.
+	 const double alpha,                  ///< See brief.
+	 const double beta,                   ///< See brief.
+	 const struct const_Matrix_c*const a, ///< See brief.
+	 const struct const_Vector_c*const b, ///< See brief.
+	 struct Vector_c*const c              ///< See brief.
 	);
 
 #endif // DPG__complex_matrix_math_h__INCLUDED

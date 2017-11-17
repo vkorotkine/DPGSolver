@@ -28,4 +28,10 @@ void compute_Numerical_Flux_c_advection_upwind
 	 struct mutable_Numerical_Flux_c* num_flux        ///< See brief.
 	);
 
+/// \brief `complex` version of \ref compute_Numerical_Flux_advection_upwind_jacobian.
+void compute_Numerical_Flux_c_advection_upwind_jacobian
+	(const struct Numerical_Flux_Input_c* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_c* num_flux        ///< See brief.
+	);
+
 #endif // DPG__test_complex_numerical_flux_advection_h__INCLUDED

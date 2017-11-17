@@ -143,7 +143,8 @@ static void compute_lhs_cmplx_step
 static void check_linearizations
 	(struct Test_Info*const test_info,                  ///< \ref Test_Info.
 	 const struct Integration_Test_Info* int_test_info, ///< \ref Integration_Test_Info.
-	 const struct Solver_Storage_Implicit* ssi[2]       ///< \ref Solver_Storage_Implicit for the various methods.
+	 const struct Solver_Storage_Implicit* ssi[2],      ///< \ref Solver_Storage_Implicit for the various methods.
+	 const struct Simulation* sim                       ///< \ref Simulation.
 	);
 
 /// \brief Output PETSc matrices to file for visualization.
@@ -191,7 +192,7 @@ void test_integration_linearization (struct Test_Info*const test_info, const cha
 	for (int i = 0; i < 2; ++i)
 		petsc_mat_vec_assemble(ssi[i]);
 
-	check_linearizations(test_info,int_test_info,(const struct Solver_Storage_Implicit**)ssi);
+	check_linearizations(test_info,int_test_info,(const struct Solver_Storage_Implicit**)ssi,sim);
 
 	for (int i = 0; i < 2; ++i)
 		destructor_Solver_Storage_Implicit(ssi[i]);
@@ -296,32 +297,31 @@ static void compute_lhs_cmplx_step
 	f_ptrs_data->set_initial_solution_complex(sim);
 	f_ptrs_data->compute_lhs_cmplx_step(sim,ssi);
 
-	destructor_derived_computational_elements(sim,IL_SOLVER_DG);
+	destructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_analytical);
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 }
 
 static void check_linearizations
 	(struct Test_Info*const test_info, const struct Integration_Test_Info* int_test_info,
-	 const struct Solver_Storage_Implicit* ssi[2])
+	 const struct Solver_Storage_Implicit* ssi[2], const struct Simulation* sim)
 {
 	bool pass        = true;
 	const double tol = 2e1*EPS;
 
 	const double diff = norm_diff_petsc_Mat(ssi[0]->A,ssi[1]->A);
-	if (diff > 2e1*EPS) {
+	if (diff > tol) {
 		pass = false;
 		printf("Failed difference: % .3e (tol = % .3e).\n",diff,tol);
 	}
 
-/// \todo Add check for symmetry.
-#if 0
+	if (check_symmetric(sim)) {
 		PetscBool symmetric = false;
 		MatIsSymmetric(ssi[0]->A,tol,&symmetric);
 		if (!symmetric) {
 			pass = false;
 			printf("Failed symmetric (tol = % .3e).\n",tol);
 		}
-#endif
+	}
 
 	char test_name[STRLEN_MAX];
 	sprintf(test_name,"%s%s","Linearization - ",int_test_info->ctrl_name);

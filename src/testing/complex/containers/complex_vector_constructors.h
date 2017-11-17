@@ -24,10 +24,17 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <complex.h>
 
 struct const_Vector_c;
+struct const_Matrix_c;
 
 // Default constructors ********************************************************************************************* //
 
 // Empty constructors *********************************************************************************************** //
+
+/** \brief `complex` version of \ref constructor_empty_Vector_d.
+ *  \return Standard. */
+struct Vector_c* constructor_empty_Vector_c
+	(const ptrdiff_t ext_0 ///< Defined in \ref Vector_d.
+	);
 
 // Zero constructors ************************************************************************************************ //
 
@@ -52,6 +59,24 @@ struct Vector_c* constructor_move_Vector_c_c
 // Set constructors ************************************************************************************************* //
 
 // Special constructors ********************************************************************************************* //
+
+/** \brief `complex` version of \ref constructor_mv_Vector_d.
+ *  \return Standard. */
+struct Vector_c* constructor_mv_Vector_c
+	(const char trans_a_i,                ///< See brief.
+	 const double alpha,                  ///< See brief.
+	 const struct const_Matrix_c*const a, ///< See brief.
+	 const struct const_Vector_c*const b  ///< See brief.
+	);
+
+/** \brief `const` version of \ref constructor_mv_Vector_c.
+ *  \return Standard. */
+const struct const_Vector_c* constructor_mv_const_Vector_c
+	(const char trans_a_i,                ///< See brief.
+	 const double alpha,                  ///< See brief.
+	 const struct const_Matrix_c*const a, ///< See brief.
+	 const struct const_Vector_c*const b  ///< See brief.
+	);
 
 // Destructors ****************************************************************************************************** //
 

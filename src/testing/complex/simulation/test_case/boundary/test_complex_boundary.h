@@ -45,6 +45,10 @@ typedef void (*constructor_Boundary_Value_Input_c_face_fptr)
 struct Boundary_Value_Input_c {
 	struct Boundary_Value_Input bv_i; ///< Base \ref Boundary_Value_Input.
 
+	const bool has_complex_J; ///< Flag for whether the `complex` Jacobian terms should be computed.
+
+	const int method; ///< \ref Simulation::method.
+
 	const struct const_Multiarray_c* s; ///< See brief.
 	const struct const_Multiarray_c* g; ///< See brief.
 };
@@ -53,6 +57,8 @@ struct Boundary_Value_Input_c {
 struct Boundary_Value_c {
 	const struct const_Multiarray_c* s; ///< See brief.
 	const struct const_Multiarray_c* g; ///< See brief.
+
+	const struct const_Multiarray_c* ds_ds; ///< See brief.
 };
 
 // Interface functions ********************************************************************************************** //

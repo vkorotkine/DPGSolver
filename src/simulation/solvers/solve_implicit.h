@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <stddef.h>
+#include <stdbool.h>
 
 struct Simulation;
 struct Vector_i;
@@ -51,6 +52,13 @@ void increment_nnz
 	 const ptrdiff_t ind_dof, ///< The index of the first degree of freedom for rows to be incremented.
 	 const ptrdiff_t n_row,   ///< The number of sequential rows to be incremented.
 	 const ptrdiff_t n_col    ///< The increment.
+	);
+
+/** \brief Check whether the matrix under consideration is symmetric based on \ref Simulation::method and
+ *         \ref Test_Case::pde_index.
+ *  \return `true` if symmetric; `false` otherwise. */
+bool check_symmetric
+	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
 #endif // DPG__solve_implicit_h__INCLUDED

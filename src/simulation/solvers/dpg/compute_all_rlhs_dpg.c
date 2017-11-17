@@ -90,6 +90,21 @@ static struct S_Params_DPG set_s_params_dpg
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Get the pointer to the appropriate \ref DPG_Solver_Element::cv0_ff_fc operator.
+ *  \return See brief. */
+static const struct Operator* get_operator__cv0_ff_fc
+	(const int side_index,                    ///< The index of the side of the face under consideration.
+	 const struct DPG_Solver_Face* dpg_s_face ///< The current face.
+	);
+
+/// \brief Set the values of the global indices corresponding to the current unknown.
+static void set_idxm
+	(int* ind_idxm,                  ///< Pointer to the index in `idxm`.
+	 struct Vector_i* idxm,          ///< Vector of global indices.
+	 const int ind_dof,              ///< Index of the first dof corresponding to the `coef`.
+	 const struct Multiarray_d* coef ///< Pointer to the coefficients under consideration.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void compute_all_rlhs_dpg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
@@ -130,20 +145,6 @@ struct Multiarray_Operator get_operator__cvt1_vt_vc__rlhs (const struct DPG_Solv
 	          curved = vol->curved;
 
 	return set_MO_from_MO(dpg_s_e->cvt1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
-}
-
-const struct Operator* get_operator__cv0_ff_fc (const int side_index, const struct DPG_Solver_Face* dpg_s_face)
-{
-	const struct Face* face            = (struct Face*) dpg_s_face;
-	const struct Solver_Face* s_face   = (struct Solver_Face*) dpg_s_face;
-	const struct Volume* vol           = face->neigh_info[side_index].volume;
-	const struct DPG_Solver_Element* e = (struct DPG_Solver_Element*) vol->element;
-
-	const int ind_e  = get_face_element_index(face),
-	          p_f    = s_face->p_ref;
-	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
-
-	return get_Multiarray_Operator(e->cv0_ff_fc[curved],(ptrdiff_t[]){ind_e,ind_e,0,0,p_f,p_f});
 }
 
 const struct const_Matrix_d* constructor_lhs_l_internal_face_dpg
@@ -201,6 +202,34 @@ ptrdiff_t compute_n_dof_nf (const struct Solver_Volume* s_vol)
 	return dof;
 }
 
+const struct const_Vector_i* constructor_petsc_idxm_dpg
+	(const ptrdiff_t n_dof, const struct Solver_Volume* s_vol)
+{
+	struct Vector_i* idxm = constructor_empty_Vector_i(n_dof); // returned
+	int ind_idxm = 0;
+
+	// volume (sol_coef, grad_coef)
+	set_idxm(&ind_idxm,idxm,s_vol->ind_dof,s_vol->sol_coef);
+	// grad_coef: To be done.
+
+	// face (nf_coef, sol_coef)
+	const struct Volume* vol = (struct Volume*) s_vol;
+	for (int i = 0; i < NFMAX;    ++i) {
+	for (int j = 0; j < NSUBFMAX; ++j) {
+		const struct Face* face = vol->faces[i][j];
+		if (!face)
+			continue;
+
+		const struct Solver_Face* s_face = (struct Solver_Face*) face;
+		set_idxm(&ind_idxm,idxm,s_face->ind_dof,s_face->nf_coef);
+		// sol_coef: To be done.
+	}}
+
+	assert(ind_idxm == n_dof);
+
+	return (struct const_Vector_i*) idxm;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -251,6 +280,32 @@ static struct S_Params_DPG set_s_params_dpg (const struct Simulation* sim)
 	}
 
 	return s_params;
+}
+
+static const struct Operator* get_operator__cv0_ff_fc (const int side_index, const struct DPG_Solver_Face* dpg_s_face)
+{
+	const struct Face* face            = (struct Face*) dpg_s_face;
+	const struct Solver_Face* s_face   = (struct Solver_Face*) dpg_s_face;
+	const struct Volume* vol           = face->neigh_info[side_index].volume;
+	const struct DPG_Solver_Element* e = (struct DPG_Solver_Element*) vol->element;
+
+	const int ind_e  = get_face_element_index(face),
+	          p_f    = s_face->p_ref;
+	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
+
+	return get_Multiarray_Operator(e->cv0_ff_fc[curved],(ptrdiff_t[]){ind_e,ind_e,0,0,p_f,p_f});
+}
+
+static void set_idxm (int* ind_idxm, struct Vector_i* idxm, const int ind_dof, const struct Multiarray_d* coef)
+{
+	if (coef == NULL)
+		return;
+
+	const ptrdiff_t size = compute_size(coef->order,coef->extents);
+	for (int i = 0; i < size; ++i) {
+		idxm->data[*ind_idxm] = ind_dof+i;
+		++*ind_idxm;
+	}
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -332,6 +387,7 @@ static const struct const_Matrix_d* constructor_norm_op__h1_upwind
 	const struct const_Matrix_d* n1 =
 		constructor_mm_const_Matrix_d('N','T',1.0,n1_l,(struct const_Matrix_d*)cvt1r,'R'); // destructed
 	destructor_const_Matrix_d(n1_l);
+	destructor_Matrix_d(cvt1r);
 
 	const struct const_Matrix_d* norm_op_H0 = dpg_s_vol->norm_op_H0;
 	assert(norm_op_H0->ext_0 == ext_0);
@@ -403,14 +459,6 @@ static void increment_rlhs_boundary_face
 	 struct Matrix_d* lhs,                      ///< The lhs matrix contribution for the current volume/faces.
 	 struct Matrix_d* rhs,                      ///< The rhs matrix contribution for the current volume/faces.
 	 const struct Simulation* sim               ///< \ref Simulation.
-	);
-
-/** \brief Constructor for the \ref Vector_i\* of indices of the global matrix in which to insert values for the current
- *         \ref Solver_Volume.
- *  \return See brief. */
-static const struct const_Vector_i* constructor_petsc_idxm_dpg
-	(const ptrdiff_t n_dof,            ///< The number of local degrees of freedom.
-	 const struct Solver_Volume* s_vol ///< The current volume.
 	);
 
 static struct Vector_d* constructor_rhs_v_1
@@ -531,51 +579,12 @@ static void increment_lhs_boundary_face
 	 const struct Simulation* sim           ///< \ref Simulation.
 	);
 
-/// \brief Set the values of the global indices corresponding to the current unknown.
-static void set_idxm
-	(int* ind_idxm,                  ///< Pointer to the index in `idxm`.
-	 struct Vector_i* idxm,          ///< Vector of global indices.
-	 const int ind_dof,              ///< Index of the first dof corresponding to the `coef`.
-	 const struct Multiarray_d* coef ///< Pointer to the coefficients under consideration.
-	);
-
 static void increment_rlhs_internal_face
 	(const struct DPG_Solver_Volume* dpg_s_vol, const struct DPG_Solver_Face* dpg_s_face, struct Matrix_d* lhs,
 	 struct Matrix_d* rhs, int* ind_dof, const struct Simulation* sim)
 {
 	/// As the rhs is **always** linear wrt the trace unknowns, the rhs and lhs are computed together.
 	const struct const_Matrix_d* lhs_l = constructor_lhs_l_internal_face_dpg(dpg_s_vol,dpg_s_face); // destructed
-
-/// \todo delete unused.
-/*	const struct Volume* vol          = (struct Volume*) dpg_s_vol;
-	const struct Solver_Volume* s_vol = (struct Solver_Volume*) dpg_s_vol;
-	const struct Face* face           = (struct Face*) dpg_s_face;
-	const struct Solver_Face* s_face  = (struct Solver_Face*) dpg_s_face;
-
-	const int side_index = compute_side_index_face(face,vol);
-//printf("%d %d %d\n",vol->index,face->index,side_index);
-	const struct Operator* tw0_vt_fc_op = get_operator__tw0_vt_fc(side_index,s_face),
-	                     * cv0_ff_fc_op = get_operator__cv0_ff_fc(side_index,dpg_s_face);
-
-	struct Matrix_d* cv0_ff_fc = constructor_copy_Matrix_d((struct Matrix_d*)cv0_ff_fc_op->op_std); // destructed
-
-	const struct const_Multiarray_d* j_det = s_face->jacobian_det_fc;
-	const struct const_Vector_d* j_det_V =
-		constructor_copy_const_Vector_d_d(compute_size(j_det->order,j_det->extents),j_det->data); // destructed
-	scale_Matrix_by_Vector_d('L',1.0,cv0_ff_fc,j_det_V,false);
-	destructor_const_Vector_d(j_det_V);
-
-	// Use "-ve" sign when looking from volume[0] as the face term was moved to the rhs of the equation. When looking
-	// from volume[1], the "-ve" sign is cancelled by the "-ve" sign of the inverted normal vector.
-	double alpha = -1.0;
-	if (side_index == 1) {
-		permute_Matrix_d_fc(cv0_ff_fc,'R',side_index,s_face);
-		alpha = 1.0;
-	}
-
-	const struct const_Matrix_d* lhs_l = constructor_mm_const_Matrix_d
-		('N','N',alpha,tw0_vt_fc_op->op_std,(struct const_Matrix_d*)cv0_ff_fc,'R'); // destructed
-	destructor_Matrix_d(cv0_ff_fc); */
 
 //print_const_Matrix_d(tw0_vt_fc_op->op_std);
 	const struct Solver_Face* s_face  = (struct Solver_Face*) dpg_s_face;
@@ -621,34 +630,6 @@ static void increment_rlhs_boundary_face
 	destructor_Numerical_Flux(num_flux);
 
 	UNUSED(dpg_s_vol);
-}
-
-static const struct const_Vector_i* constructor_petsc_idxm_dpg
-	(const ptrdiff_t n_dof, const struct Solver_Volume* s_vol)
-{
-	struct Vector_i* idxm = constructor_empty_Vector_i(n_dof); // returned
-	int ind_idxm = 0;
-
-	// volume (sol_coef, grad_coef)
-	set_idxm(&ind_idxm,idxm,s_vol->ind_dof,s_vol->sol_coef);
-	// grad_coef: To be done.
-
-	// face (nf_coef, sol_coef)
-	const struct Volume* vol = (struct Volume*) s_vol;
-	for (int i = 0; i < NFMAX;    ++i) {
-	for (int j = 0; j < NSUBFMAX; ++j) {
-		const struct Face* face = vol->faces[i][j];
-		if (!face)
-			continue;
-
-		const struct Solver_Face* s_face = (struct Solver_Face*) face;
-		set_idxm(&ind_idxm,idxm,s_face->ind_dof,s_face->nf_coef);
-		// sol_coef: To be done.
-	}}
-
-	assert(ind_idxm == n_dof);
-
-	return (struct const_Vector_i*) idxm;
 }
 
 // Level 4 ********************************************************************************************************** //
@@ -699,16 +680,4 @@ static void increment_lhs_boundary_face
 //print_Matrix_d(lhs_ll);
 //print_Matrix_d(lhs);
 	destructor_Matrix_d(lhs_ll);
-}
-
-static void set_idxm (int* ind_idxm, struct Vector_i* idxm, const int ind_dof, const struct Multiarray_d* coef)
-{
-	if (coef == NULL)
-		return;
-
-	const ptrdiff_t size = compute_size(coef->order,coef->extents);
-	for (int i = 0; i < size; ++i) {
-		idxm->data[*ind_idxm] = ind_dof+i;
-		++*ind_idxm;
-	}
 }

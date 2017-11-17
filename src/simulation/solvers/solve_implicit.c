@@ -148,6 +148,34 @@ void increment_nnz (struct Vector_i* nnz, const ptrdiff_t ind_dof, const ptrdiff
 		nnz->data[i] += n_col;
 }
 
+bool check_symmetric (const struct Simulation* sim)
+{
+	switch (sim->method) {
+	case METHOD_DG: {
+		const int pde_index = sim->test_case->pde_index;
+		switch (pde_index) {
+		case PDE_POISSON:
+			return true;
+			break;
+		case PDE_ADVECTION:     // fallthrough
+		case PDE_EULER:         // fallthrough
+		case PDE_NAVIER_STOKES:
+			return false;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d.\n",pde_index);
+			break;
+		}
+		break;
+	} case METHOD_DPG:
+		return true;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",sim->method);
+		break;
+	}
+}
+
 // Level 0 ********************************************************************************************************** //
 
 /// \brief Output the petsc Mat/Vec to a file for visualization.
@@ -298,13 +326,6 @@ static struct Vector_i* constructor_nnz (const struct Simulation* sim)
 }
 
 // Level 1 ********************************************************************************************************** //
-
-/** \brief Check whether the matrix under consideration is symmetric based on \ref Simulation::method and
- *         \ref Test_Case::pde_index.
- *  \return `true` if symmetric; `false` otherwise. */
-static bool check_symmetric
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
 
 /// \brief Update the values of \ref Solver_Volume::sol_coef based on the computed increment.
 static void update_coef_s_v
@@ -473,34 +494,6 @@ static void update_coef
 	 struct Multiarray_d*const coef, ///< The coefficients to be updated.
 	 Vec x                           ///< The PETSc Vec holding the updates.
 	);
-
-static bool check_symmetric (const struct Simulation* sim)
-{
-	switch (sim->method) {
-	case METHOD_DG: {
-		const int pde_index = sim->test_case->pde_index;
-		switch (pde_index) {
-		case PDE_POISSON:
-			return true;
-			break;
-		case PDE_ADVECTION:     // fallthrough
-		case PDE_EULER:         // fallthrough
-		case PDE_NAVIER_STOKES:
-			return false;
-			break;
-		default:
-			EXIT_ERROR("Unsupported: %d.\n",pde_index);
-			break;
-		}
-		break;
-	} case METHOD_DPG:
-		return true;
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",sim->method);
-		break;
-	}
-}
 
 static void update_coef_s_v (Vec x, const struct Simulation* sim)
 {

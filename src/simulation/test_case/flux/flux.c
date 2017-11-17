@@ -87,9 +87,12 @@ struct Flux* constructor_Flux (const struct Flux_Input* flux_i)
 
 	struct mutable_Flux* flux = calloc(1,sizeof *flux); // returned
 
-	flux->f     = (compute_member[0] ? constructor_zero_Multiarray_d('C',3,(ptrdiff_t[]){n_n,d,n_eq})        : NULL);
-	flux->df_ds = (compute_member[1] ? constructor_zero_Multiarray_d('C',4,(ptrdiff_t[]){n_n,d,n_eq,n_vr})   : NULL);
-	flux->df_dg = (compute_member[2] ? constructor_zero_Multiarray_d('C',5,(ptrdiff_t[]){n_n,d,n_eq,n_vr,d}) : NULL);
+	flux->f     = (compute_member[0] ?
+		constructor_zero_Multiarray_d('C',3,(ptrdiff_t[]){n_n,d,n_eq})        : NULL); // destructed
+	flux->df_ds = (compute_member[1] ?
+		constructor_zero_Multiarray_d('C',4,(ptrdiff_t[]){n_n,d,n_eq,n_vr})   : NULL); // destructed
+	flux->df_dg = (compute_member[2] ?
+		constructor_zero_Multiarray_d('C',5,(ptrdiff_t[]){n_n,d,n_eq,n_vr,d}) : NULL); // destructed
 
 	flux_i->compute_Flux(flux_i,flux);
 

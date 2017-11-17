@@ -20,10 +20,20 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 struct Numerical_Flux_Input_c;
+struct Numerical_Flux_c;
+struct Solver_Face;
 
 /// \brief `complex` version of \ref destructor_Numerical_Flux_Input_data.
 void destructor_Numerical_Flux_Input_c_data
 	(struct Numerical_Flux_Input_c* num_flux_i ///< See brief.
+	);
+
+/** \brief `complex` version of \ref constructor_lhs_f_1.
+ *  \return See brief. */
+struct Matrix_c* constructor_lhs_f_1_c
+	(const int side_index[2],                 ///< See brief.
+	 const struct Numerical_Flux_c* num_flux, ///< See brief.
+	 const struct Solver_Face* s_face         ///< See brief.
 	);
 
 #endif // DPG__test_complex_compute_face_rhs_h__INCLUDED

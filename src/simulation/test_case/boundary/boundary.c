@@ -58,6 +58,14 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp
 	bv_i->g       = NULL;
 }
 
+void destructor_Boundary_Value_Input (struct Boundary_Value_Input* bv_i)
+{
+	if (bv_i->s)
+		destructor_const_Multiarray_d(bv_i->s);
+	if (bv_i->g)
+		destructor_const_Multiarray_d(bv_i->g);
+}
+
 void constructor_Boundary_Value_s_fcl_interp
 	(struct Boundary_Value* bv, const struct Boundary_Value_Input* bv_i, const struct Solver_Face* face,
 	 const struct Simulation* sim)
@@ -71,14 +79,6 @@ void constructor_Boundary_Value_s_fcl_interp
 	bv->s     = (const struct const_Multiarray_d*)sol_r_fcr;
 	bv->g     = NULL;
 	bv->ds_ds = NULL;
-}
-
-void destructor_Boundary_Value_Input (struct Boundary_Value_Input* bv_i)
-{
-	if (bv_i->s)
-		destructor_const_Multiarray_d(bv_i->s);
-	if (bv_i->g)
-		destructor_const_Multiarray_d(bv_i->g);
 }
 
 void destructor_Boundary_Value (struct Boundary_Value* bv)

@@ -241,10 +241,10 @@ struct Vector_d* constructor_mv_Vector_d
 /** \brief `const` version of \ref constructor_mv_Vector_d.
  *  \return Standard. */
 const struct const_Vector_d* constructor_mv_const_Vector_d
-	(const char trans_a_i,                ///< Defined for \ref mv_d.
-	 const double alpha,                  ///< Defined for \ref mv_d.
-	 const struct const_Matrix_d*const a, ///< Defined for \ref mv_d.
-	 const struct const_Vector_d*const b  ///< Defined for \ref mv_d.
+	(const char trans_a_i,                ///< See brief.
+	 const double alpha,                  ///< See brief.
+	 const struct const_Matrix_d*const a, ///< See brief.
+	 const struct const_Vector_d*const b  ///< See brief.
 	);
 
 /** \brief Constructor for a \ref Vector_d\* from the solution of a linear system using [LAPACKE_dsgesv][dsgesv].

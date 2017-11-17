@@ -42,6 +42,8 @@ typedef void (*compute_Numerical_Flux_c_fptr)
 struct Numerical_Flux_Input_c {
 	struct Numerical_Flux_Input num_flux_i; ///< Base \ref Numerical_Flux_Input.
 
+	const bool has_complex_J; ///< Flag for whether the `complex` Jacobian terms should be computed.
+
 	struct Boundary_Value_Input_c bv_l; ///< See brief.
 	struct Boundary_Value_c       bv_r; ///< See brief.
 

@@ -90,6 +90,11 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp
 	 const struct Simulation* sim       ///< Defined for \ref constructor_Boundary_Value_Input_face_fptr.
 	);
 
+/// \brief Destructor for a \ref Boundary_Value_Input container.
+void destructor_Boundary_Value_Input
+	(struct Boundary_Value_Input* bv_i ///< Standard.
+	);
+
 /** \brief Version of \ref constructor_Boundary_Value_fptr interpolated from the right volume at the face cubature nodes
  *         as seen from the left volume.
  *  \return See brief. */
@@ -100,17 +105,12 @@ void constructor_Boundary_Value_s_fcl_interp
 	 const struct Simulation* sim             ///< Defined for \ref constructor_Boundary_Value_fptr.
 	);
 
-/// \brief Destructor for a \ref Boundary_Value_Input container.
-void destructor_Boundary_Value_Input
-	(struct Boundary_Value_Input* bv_i ///< Standard.
-	);
-
 /// \brief Destructor for a \ref Boundary_Value container.
 void destructor_Boundary_Value
 	(struct Boundary_Value* bv ///< Standard.
 	);
 
-/** \brief Get the pointer to the appropriate \ref DG_Solver_Element::cv0_vs_fc operator.
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vs_fc operator.
  *  \return See brief. */
 const struct Operator* get_operator__cv0_vs_fc__rlhs_dg
 	(const struct Solver_Face* s_face, ///< \ref Solver_Face.

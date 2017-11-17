@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_compute_volume_rhs_dg.h"
 #include "test_support_computational_elements.h"
 #include "test_support_multiarray.h"
+#include "test_complex_test_case.h"
 
 #include "face_solver_dg_complex.h"
 #include "volume_solver_dg_complex.h"
@@ -106,6 +107,7 @@ void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Stor
 {
 	set_function_pointers_num_flux_dg(sim);
 
+	constructor_derived_Complex_Test_Case((struct Simulation*)sim); // destructed
 	for (struct Intrusive_Link* curr_c = sim->volumes->first; curr_c; curr_c = curr_c->next) {
 		struct Volume* vol = (struct Volume*) curr_c;
 		struct Intrusive_List* volumes_local = constructor_Volumes_local(vol,sim);
@@ -124,6 +126,8 @@ void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Stor
 		destructor_IL(volumes_local);
 		destructor_IL(faces_local);
 	}
+	destructor_derived_Complex_Test_Case((struct Simulation*)sim);
+
 	petsc_mat_vec_assemble(ssi);
 }
 

@@ -46,6 +46,8 @@ struct Numerical_Flux_Input {
 	struct Boundary_Value_Input bv_l; ///< \ref Boundary_Value_Input container.
 	struct Boundary_Value       bv_r; ///< \ref Boundary_Value container.
 
+	const int method; ///< \ref Simulation::method.
+
 	const bool has_1st_order, ///< \ref Test_Case::has_1st_order.
 	           has_2nd_order; ///< \ref Test_Case::has_2nd_order.
 

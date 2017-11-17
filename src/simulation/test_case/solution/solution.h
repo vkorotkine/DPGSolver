@@ -116,7 +116,7 @@ const struct const_Multiarray_d* constructor_xyz_v
  *  \return See brief. */
 const struct const_Multiarray_d* constructor_xyz_f
 	(const struct Simulation* sim, ///< \ref Simulation.
-	 struct Solver_Face* face,     ///< \ref Solver_Face.
+	 struct Solver_Face* s_face,   ///< \ref Solver_Face.
 	 const char node_kind          ///< The kind of node. Options: 'f'lux, 't'race.
 	);
 

@@ -42,6 +42,8 @@ typedef void (*compute_Flux_c_fptr)
 struct Flux_Input_c {
 	struct Flux_Input flux_i; ///< Base \ref Flux_Input.
 
+	const bool has_complex_J; ///< Flag for whether the `complex` Jacobian terms should be computed.
+
 	const struct const_Multiarray_c* s;   ///< See brief.
 	const struct const_Multiarray_c* g;   ///< See brief.
 	const struct const_Multiarray_c* xyz; ///< See brief.

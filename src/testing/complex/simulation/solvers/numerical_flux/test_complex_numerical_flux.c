@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_numerical_flux_advection.h"
 #include "test_support_math_functions.h"
+#include "test_complex_test_case.h"
 
 #include "complex_multiarray.h"
 #include "multiarray.h"
@@ -71,6 +72,9 @@ struct Numerical_Flux_Input_c* constructor_Numerical_Flux_Input_c (const struct 
 	memcpy(num_flux_i,num_flux_i_b,sizeof(struct Numerical_Flux_Input)); // shallow copy of the base.
 	destructor_Numerical_Flux_Input(num_flux_i_b);
 
+	const_cast_b(&num_flux_i->has_complex_J,has_complex_Jacobians(sim->method));
+	const_cast_b(&num_flux_i->bv_l.has_complex_J,num_flux_i->has_complex_J);
+	const_cast_i(&num_flux_i->bv_l.method,sim->method);
 	set_derived_Numerical_Flux_Input_fptrs(num_flux_i);
 
 	return num_flux_i;
@@ -90,6 +94,9 @@ struct Numerical_Flux_c* constructor_Numerical_Flux_c (const struct Numerical_Fl
 
 	struct Numerical_Flux_Input* num_flux_i_b = (struct Numerical_Flux_Input*) num_flux_i;
 
+	const bool* c_m = num_flux_i_b->bv_l.compute_member;
+	const bool has_c_J = num_flux_i->has_complex_J;
+
 	const int d    = num_flux_i_b->bv_l.d,
 	          n_eq = num_flux_i_b->bv_l.n_eq,
 	          n_vr = num_flux_i_b->bv_l.n_var;
@@ -98,11 +105,13 @@ struct Numerical_Flux_c* constructor_Numerical_Flux_c (const struct Numerical_Fl
 
 	struct mutable_Numerical_Flux_c* num_flux = calloc(1,sizeof *num_flux); // free
 
-	num_flux->nnf = constructor_zero_Multiarray_c('C',2,(ptrdiff_t[]){n_n,n_eq}); // destructed
+	num_flux->nnf = (c_m[0] ? constructor_zero_Multiarray_c('C',2,(ptrdiff_t[]){n_n,n_eq}) : NULL); // destructed
 	for (int i = 0; i < 2; ++i) {
 		struct m_Neigh_Info_NF_c* n_i = &num_flux->neigh_info[i];
-		n_i->dnnf_ds = constructor_zero_Multiarray_c('C',3,(ptrdiff_t[]){n_n,n_eq,n_vr});   // destructed
-		n_i->dnnf_dg = constructor_zero_Multiarray_c('C',4,(ptrdiff_t[]){n_n,n_eq,n_vr,d}); // destructed
+		n_i->dnnf_ds = ((c_m[1] && has_c_J) ?
+			constructor_zero_Multiarray_c('C',3,(ptrdiff_t[]){n_n,n_eq,n_vr})   : NULL); // destructed
+		n_i->dnnf_dg = ((c_m[2] && has_c_J) ?
+			constructor_zero_Multiarray_c('C',4,(ptrdiff_t[]){n_n,n_eq,n_vr,d}) : NULL); // destructed
 	}
 
 	num_flux_i->compute_Numerical_Flux(num_flux_i,num_flux);
@@ -112,11 +121,14 @@ struct Numerical_Flux_c* constructor_Numerical_Flux_c (const struct Numerical_Fl
 
 void destructor_Numerical_Flux_c (struct Numerical_Flux_c* num_flux)
 {
-	destructor_const_Multiarray_c(num_flux->nnf);
+	if (num_flux->nnf != NULL)
+		destructor_const_Multiarray_c(num_flux->nnf);
 	for (int i = 0; i < 2; ++i) {
 		struct Neigh_Info_NF_c n_i = num_flux->neigh_info[i];
-		destructor_const_Multiarray_c(n_i.dnnf_ds);
-		destructor_const_Multiarray_c(n_i.dnnf_dg);
+		if (n_i.dnnf_ds != NULL)
+			destructor_const_Multiarray_c(n_i.dnnf_ds);
+		if (n_i.dnnf_dg != NULL)
+			destructor_const_Multiarray_c(n_i.dnnf_dg);
 	}
 	free(num_flux);
 }
@@ -153,17 +165,28 @@ static void set_derived_Numerical_Flux_Input_fptrs (struct Numerical_Flux_Input_
 		EXIT_UNSUPPORTED;
 
 	// compute_Numerical_Flux_1st
-EXIT_ERROR("Add a flag for which function to use depending on sim->method.");
-	if (num_flux_i_b->compute_Numerical_Flux_1st == compute_Numerical_Flux_advection_upwind_jacobian)
-		num_flux_i->compute_Numerical_Flux_1st = compute_Numerical_Flux_c_advection_upwind_jacobian;
-//	else if (num_flux_i_b->compute_Numerical_Flux_1st == compute_Numerical_Flux_euler_roe_pike_jacobian)
-//		num_flux_i->compute_Numerical_Flux_1st = compute_Numerical_Flux_c_euler_roe_pike_jacobian;
-	else if (num_flux_i_b->compute_Numerical_Flux_1st == NULL)
-		num_flux_i->compute_Numerical_Flux_1st = NULL;
-	else
-		EXIT_UNSUPPORTED;
+	if (!num_flux_i->has_complex_J) {
+		if (num_flux_i_b->compute_Numerical_Flux_1st == compute_Numerical_Flux_advection_upwind_jacobian)
+			num_flux_i->compute_Numerical_Flux_1st = compute_Numerical_Flux_c_advection_upwind;
+//		else if (num_flux_i_b->compute_Numerical_Flux_1st == compute_Numerical_Flux_euler_roe_pike_jacobian)
+//			num_flux_i->compute_Numerical_Flux_1st = compute_Numerical_Flux_c_euler_roe_pike;
+		else if (num_flux_i_b->compute_Numerical_Flux_1st == NULL)
+			num_flux_i->compute_Numerical_Flux_1st = NULL;
+		else
+			EXIT_UNSUPPORTED;
+	} else {
+		if (num_flux_i_b->compute_Numerical_Flux_1st == compute_Numerical_Flux_advection_upwind_jacobian)
+			num_flux_i->compute_Numerical_Flux_1st = compute_Numerical_Flux_c_advection_upwind_jacobian;
+//		else if (num_flux_i_b->compute_Numerical_Flux_1st == compute_Numerical_Flux_euler_roe_pike_jacobian)
+//			num_flux_i->compute_Numerical_Flux_1st = compute_Numerical_Flux_c_euler_roe_pike_jacobian;
+		else if (num_flux_i_b->compute_Numerical_Flux_1st == NULL)
+			num_flux_i->compute_Numerical_Flux_1st = NULL;
+		else
+			EXIT_UNSUPPORTED;
+	}
 
 	// compute_Numerical_Flux_2nd
+// will also need to be in the `method` switch statement.
 	if (num_flux_i_b->compute_Numerical_Flux_2nd == NULL)
 		num_flux_i->compute_Numerical_Flux_2nd = NULL;
 	else
@@ -176,11 +199,7 @@ static void combine_num_flux_boundary_c
 	struct Numerical_Flux_Input* num_flux_i_b = (struct Numerical_Flux_Input*) num_flux_i;
 
 	// Only performed for the linearized terms.
-	if (!(num_flux_i_b->bv_l.compute_member[1] == true || num_flux_i_b->bv_l.compute_member[2] == true))
-		return;
-
-	// Only performed if on a boundary.
-	if (num_flux_i_b->bv_r.ds_ds == NULL)
+	if (!num_flux_i->has_complex_J)
 		return;
 
 	struct Multiarray_c* dnnf_ds_l = num_flux->neigh_info[0].dnnf_ds;

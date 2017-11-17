@@ -496,6 +496,11 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 		de_info.destructor_derived_Volume = destructor_derived_Complex_DG_Solver_Volume;
 		de_info.destructor_derived_Face   = destructor_derived_Complex_DG_Solver_Face;
 		break;
+	case IL_SOLVER_DPG_COMPLEX:
+		assert(base_category == IL_SOLVER_DPG);
+		de_info.destructor_derived_Volume = destructor_derived_Complex_DPG_Solver_Volume;
+		de_info.destructor_derived_Face   = destructor_derived_Complex_DPG_Solver_Face;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_category);
 		break;
@@ -696,6 +701,10 @@ static int get_list_category (const struct Simulation* sim)
 	case IL_VOLUME_SOLVER_DG_COMPLEX:
 		assert(f_name == IL_FACE_SOLVER_DG_COMPLEX);
 		ce_name = IL_SOLVER_DG_COMPLEX;
+		break;
+	case IL_VOLUME_SOLVER_DPG_COMPLEX:
+		assert(f_name == IL_FACE_SOLVER_DPG_COMPLEX);
+		ce_name = IL_SOLVER_DPG_COMPLEX;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",v_name);

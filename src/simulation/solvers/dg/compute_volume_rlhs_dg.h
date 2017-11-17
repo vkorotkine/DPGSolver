@@ -31,8 +31,8 @@ struct Volume;
  *  - \ref DG_Solver_Volume::rhs.
  */
 void compute_volume_rlhs_dg
-	(const struct Simulation* sim,             ///< \ref Simulation.
-	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	(const struct Simulation* sim,       ///< \ref Simulation.
+	 struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
 	);
 
 #endif // DPG__compute_volume_rlhs_dg_h__INCLUDED

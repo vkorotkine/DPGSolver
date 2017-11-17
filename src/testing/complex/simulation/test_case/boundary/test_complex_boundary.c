@@ -27,9 +27,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "complex_multiarray.h"
 
-#include "element_solver_dg.h"
 #include "face_solver.h"
 #include "volume_solver_dg_complex.h"
+#include "volume_solver_dpg_complex.h"
 
 #include "multiarray_operator.h"
 #include "operator.h"
@@ -37,9 +37,17 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief `complex` version of \ref constructor_s_fc_interp.
+/** \brief `complex` version of \ref constructor_s_fc_interp for the dg scheme.
  *  \return See brief. */
-static const struct const_Multiarray_c* constructor_s_fc_interp_c
+static const struct const_Multiarray_c* constructor_s_fc_interp_c_dg
+	(const struct Solver_Face* face, ///< See brief.
+	 const struct Simulation* sim,   ///< See brief.
+	 const int side_index            ///< See brief.
+	);
+
+/** \brief `complex` version of \ref constructor_s_fc_interp for the dpg scheme.
+ *  \return See brief. */
+static const struct const_Multiarray_c* constructor_s_fc_interp_c_dpg
 	(const struct Solver_Face* face, ///< See brief.
 	 const struct Simulation* sim,   ///< See brief.
 	 const int side_index            ///< See brief.
@@ -55,8 +63,19 @@ void constructor_Boundary_Value_Input_c_face_s_fcl_interp
 	const int side_index = 0;
 	bv_i_b->normals = face->normals_fc;
 	bv_i_b->xyz     = face->xyz_fc;
-	bv_i->s         = constructor_s_fc_interp_c(face,sim,side_index);
-	bv_i->g         = NULL;
+	switch (bv_i->method) {
+	case METHOD_DG:
+		bv_i->s = constructor_s_fc_interp_c_dg(face,sim,side_index);
+		bv_i->g = NULL;
+		break;
+	case METHOD_DPG:
+		bv_i->s = constructor_s_fc_interp_c_dpg(face,sim,side_index);
+		bv_i->g = NULL;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",bv_i->method);
+		break;
+	}
 }
 
 void destructor_Boundary_Value_Input_c (struct Boundary_Value_Input_c* bv_i)
@@ -74,11 +93,23 @@ void constructor_Boundary_Value_c_s_fcl_interp
 	UNUSED(bv_i);
 	const int side_index = 1;
 
-	struct Multiarray_c* sol_r_fcr = (struct Multiarray_c*) constructor_s_fc_interp_c(face,sim,side_index);
+	struct Multiarray_c* sol_r_fcr = NULL;
+	switch (bv_i->method) {
+	case METHOD_DG:
+		sol_r_fcr = (struct Multiarray_c*) constructor_s_fc_interp_c_dg(face,sim,side_index);
+		break;
+	case METHOD_DPG:
+		sol_r_fcr = (struct Multiarray_c*) constructor_s_fc_interp_c_dpg(face,sim,side_index);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",bv_i->method);
+		break;
+	}
 	permute_Multiarray_c_fc(sol_r_fcr,'R',side_index,face);
 
-	bv->s = (const struct const_Multiarray_c*)sol_r_fcr;
-	bv->g = NULL;
+	bv->s     = (const struct const_Multiarray_c*)sol_r_fcr;
+	bv->g     = NULL;
+	bv->ds_ds = NULL;
 }
 
 void destructor_Boundary_Value_c (struct Boundary_Value_c* bv)
@@ -87,12 +118,14 @@ void destructor_Boundary_Value_c (struct Boundary_Value_c* bv)
 		destructor_const_Multiarray_c(bv->s);
 	if (bv->g)
 		destructor_const_Multiarray_c(bv->g);
+	if (bv->ds_ds)
+		destructor_const_Multiarray_c(bv->ds_ds);
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static const struct const_Multiarray_c* constructor_s_fc_interp_c
+static const struct const_Multiarray_c* constructor_s_fc_interp_c_dg
 	(const struct Solver_Face* s_face, const struct Simulation* sim, const int side_index)
 {
 	UNUSED(sim);
@@ -102,6 +135,20 @@ static const struct const_Multiarray_c* constructor_s_fc_interp_c
 
 	struct Complex_DG_Solver_Volume* c_dg_s_vol = (struct Complex_DG_Solver_Volume*) s_vol;
 	const struct const_Multiarray_c* s_coef = (const struct const_Multiarray_c*) c_dg_s_vol->sol_coef;
+
+	return constructor_mm_NN1_Operator_const_Multiarray_c(cv0_vs_fc,s_coef,'C','d',s_coef->order,NULL);
+}
+
+static const struct const_Multiarray_c* constructor_s_fc_interp_c_dpg
+	(const struct Solver_Face* s_face, const struct Simulation* sim, const int side_index)
+{
+	UNUSED(sim);
+	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc__rlhs_dg(s_face,side_index);
+
+	struct Solver_Volume* s_vol = (struct Solver_Volume*) ((struct Face*)s_face)->neigh_info[side_index].volume;
+
+	struct Complex_DPG_Solver_Volume* c_dpg_s_vol = (struct Complex_DPG_Solver_Volume*) s_vol;
+	const struct const_Multiarray_c* s_coef = (const struct const_Multiarray_c*) c_dpg_s_vol->sol_coef;
 
 	return constructor_mm_NN1_Operator_const_Multiarray_c(cv0_vs_fc,s_coef,'C','d',s_coef->order,NULL);
 }

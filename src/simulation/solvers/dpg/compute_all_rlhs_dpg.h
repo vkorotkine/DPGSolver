@@ -50,7 +50,15 @@ const struct const_Matrix_d* constructor_lhs_l_internal_face_dpg
 /** \brief Return the number of degrees of freedom for the \ref Solver_Face::nf_coef adjacent to the current volume.
  *  \return See brief. */
 ptrdiff_t compute_n_dof_nf
-	(const struct Solver_Volume* s_vol ///< \ref The current volume.
+	(const struct Solver_Volume* s_vol ///< The current volume.
+	);
+
+/** \brief Constructor for the \ref Vector_i\* of indices of the global matrix in which to insert values for the current
+ *         \ref Solver_Volume.
+ *  \return See brief. */
+const struct const_Vector_i* constructor_petsc_idxm_dpg
+	(const ptrdiff_t n_dof,            ///< The number of local degrees of freedom.
+	 const struct Solver_Volume* s_vol ///< The current volume.
 	);
 
 #endif // DPG__compute_all_rlhs_dpg_h__INCLUDED

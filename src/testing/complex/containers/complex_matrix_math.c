@@ -51,6 +51,13 @@ void transpose_Matrix_c (struct Matrix_c* a, const bool mem_only)
 	}
 }
 
+void scale_Matrix_c (struct Matrix_c* a, const double val)
+{
+	ptrdiff_t size = (a->ext_0)*(a->ext_1);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		a->data[i] *= val;
+}
+
 void permute_Matrix_c (struct Matrix_c* a, const ptrdiff_t* p)
 {
 	assert((a->layout == 'R') || a->layout == 'C');
@@ -192,7 +199,9 @@ void mm_diag_c
 	 const struct const_Vector_c*const b, struct Matrix_c* c, const bool invert_diag)
 {
 	assert(invert_diag == false); // can be made flexible.
-	assert(beta == 1.0);
+
+	if (beta != 1.0)
+		scale_Matrix_c(c,beta);
 
 	assert(a->ext_0 == c->ext_0);
 	assert(a->ext_1 == c->ext_1);
@@ -246,6 +255,29 @@ void mm_diag_c
 	} else {
 		EXIT_UNSUPPORTED;
 	}
+}
+
+void mv_ccc
+	(const char trans_a_i, const double alpha, const double beta,
+	 const struct const_Matrix_c*const a, const struct const_Vector_c*const b, struct Vector_c*const c)
+{
+	const CBLAS_LAYOUT    layout = ( a->layout == 'R' ? CBRM : CBCM );
+	const CBLAS_TRANSPOSE transa = ( trans_a_i == 'N' ? CBNT : CBT );
+
+	const MKL_INT m   = a->ext_0,
+	              n   = a->ext_1,
+	              lda = ( a->layout == 'R' ? a->ext_1 : a->ext_0 ),
+	              ldb = 1,
+	              ldc = 1;
+
+	assert(m > 0);
+	assert(n > 0);
+	assert(m == ( transa == CBNT ? c->ext_0 : b->ext_0 ));
+	assert(n == ( transa == CBNT ? b->ext_0 : c->ext_0 ));
+
+	const double complex alpha_c = alpha,
+	                     beta_c  = beta;
+	cblas_zgemv(layout,transa,m,n,&alpha_c,a->data,lda,b->data,ldb,&beta_c,c->data,ldc);
 }
 
 // Static functions ************************************************************************************************* //

@@ -67,6 +67,7 @@ void destructor_derived_Solution_Element (struct Element* element_ptr)
 
 	destructor_Multiarray2_Operator_conditional(element->cv0_vg_ff);
 	destructor_Multiarray2_Operator_conditional(element->cv0_vg_vf);
+	destructor_Multiarray2_Operator_conditional(element->vv0_vm_ff);
 	destructor_Multiarray_Operator_conditional(element->vc0_ff_ff);
 }
 
