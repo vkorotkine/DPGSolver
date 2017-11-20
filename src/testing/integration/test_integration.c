@@ -22,19 +22,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include "mpi.h"
-#include "petscsys.h"
 
 #include "macros.h"
 #include "definitions_alloc.h"
 #include "definitions_core.h"
 
 #include "test_base.h"
-#include "test_integration_advection.h"
-#include "test_integration_euler.h"
-#include "test_integration_fe_init.h"
-#include "test_integration_geometry.h"
-#include "test_integration_mesh.h"
 
 #include "const_cast.h"
 #include "file_processing.h"
@@ -43,34 +36,6 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
-
-void run_tests_integration (struct Test_Info*const test_info)
-{
-// Pass Petsc options file for these values in future? Note that this option file should likely not be used for all test
-// cases.
-	PetscInitialize(&test_info->nargc,&test_info->argv,PETSC_NULL,PETSC_NULL);
-
-	printf("\n\nRunning Integration Tests:\n");
-	printf("-------------------------------------------------------------------------------------------------\n\n");
-
-if (0) {
-	test_integration_mesh(test_info,"curved_2d_mixed.msh");
-	test_integration_mesh(test_info,"straight_2d_quad_periodic.msh");
-
-	test_integration_fe_init(test_info,"extern_mesh/TEST_curved_2d_mixed");
-	test_integration_fe_init(test_info,"extern_mesh/TEST_straight_2d_quad_periodic");
-
-	test_integration_geometry(test_info,"extern_mesh/TEST_straight_2d_quad_periodic");
-//	test_integration_geometry(test_info,"extern_mesh/TEST_curved_2d_mixed");
-}
-
-	test_print_warning(test_info,"Need to add tests for conservation.");
-
-	test_integration_advection(test_info);
-//	test_integration_euler(test_info);
-
-	PetscFinalize();
-}
 
 struct Integration_Test_Info* constructor_Integration_Test_Info (const char*const ctrl_name)
 {

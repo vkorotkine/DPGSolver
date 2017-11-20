@@ -66,7 +66,7 @@ static void test_unit_nodes_face_correspondence
 
 // Interface functions ********************************************************************************************** //
 
-/** \test Performs unit testing for the nodes.
+/** \test Performs unit testing for the nodes (\ref test_unit_nodes.c).
  *  \return 0 on success. */
 int main
 	(int nargc,  ///< Standard.

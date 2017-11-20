@@ -62,25 +62,6 @@ void expect_condition (const bool cond, const char* cond_str)
 	printf("\nTest Failure: %s.\n",cond_str);
 }
 
-void test_increment_and_print_name (struct Test_Info*const test_info, const bool pass, const char*const test_name)
-{
-	printf("%-80s ... ",test_name);
-
-	++test_info->n_test;
-
-	if (pass) {
-		++test_info->n_pass;
-		printf("Pass\n");
-	} else {
-		printf("Fail --- Fail --- Fail\n");
-	}
-}
-
-void test_increment_and_print (struct Test_Info*const test_info, const bool pass)
-{
-	test_increment_and_print_name(test_info,pass,test_info->name);
-}
-
 void test_print_warning (struct Test_Info*const test_info, const char*const warn_name)
 {
 	++test_info->n_warn;

@@ -48,11 +48,10 @@ The html documentation can be accessed by pointing a browser at `BUILD/doc/html/
 
 ### Running the Code
 
-Executable files running various configurations of the code are placed in `BUILD/bin`, and should be
-executed using the desired bash script in `BUILD/script_files`. For example, to run all tests with
-valgrind's memory leak detector enabled:
+Executable files running various configurations of the code are placed in `BUILD/bin`, and should be executed following
+the example in `$BUILD/script_files/quick.sh`. To run an executable with valgrind's memory leak detector enabled:
 ```sh
-BUILD/script_files$ sh test_all_memcheck.sh
+BUILD/script_files$ sh memcheck.sh
 ```
 
 ## Testing

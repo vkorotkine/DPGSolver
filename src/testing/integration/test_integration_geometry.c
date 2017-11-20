@@ -15,11 +15,10 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_integration_geometry.h"
-
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include "petscsys.h"
 
 #include "test_base.h"
 #include "test_support_intrusive.h"
@@ -45,14 +44,30 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Compare \ref Solver_Volume::geom_coef and \todo [ref here] Face::normal_f_i finite members with their expected values.
  *  \return `true` if tests passed. */
 static bool compare_members_geom
-	(struct Test_Info*const test_info, ///< Defined in \ref test_integration_mesh.
+	(struct Test_Info*const test_info, ///< \ref Test_Info.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 // Interface functions ********************************************************************************************** //
 
-void test_integration_geometry (struct Test_Info*const test_info, const char*const ctrl_name)
+/** \test Performs integration testing for the geometry initialization (\ref test_integration_geometry.c).
+ *  \return 0 on success.
+ *
+ *  Compares the following members with their expected values:
+ *  - \ref Solver_Face::normals_fc.
+ */
+int main
+	(int nargc,  ///< Standard.
+	 char** argv ///< Standard.
+	)
 {
+	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+
+	assert_condition_message(nargc == 2,"Invalid number of input arguments");
+	const char* ctrl_name = argv[1];
+
+	struct Test_Info test_info = { .n_warn = 0, };
+
 	struct Simulation*const sim = constructor_Simulation(ctrl_name); // destructed
 
 	constructor_derived_computational_elements(sim,IL_SOLVER);
@@ -62,16 +77,18 @@ void test_integration_geometry (struct Test_Info*const test_info, const char*con
 	output_visualization(sim,VIS_GEOM_VOLUMES);
 	output_visualization(sim,VIS_NORMALS);
 
-	const bool pass = compare_members_geom(test_info,sim);
+	const bool pass = compare_members_geom(&test_info,sim);
 
 	destructor_derived_computational_elements(sim,IL_BASE);
 
-	test_print_warning(test_info,"Not verifying satisfaction of free-stream preservation.");
-
-	sprintf(test_info->name,"%s%s","Geom initialization - ",extract_name(ctrl_name,false));
-	test_increment_and_print(test_info,pass);
+	test_print_warning(&test_info,"Not testing free-stream preservation.");
 
 	destructor_Simulation(sim);
+
+	assert_condition(pass);
+	output_warning_count(&test_info);
+
+	PetscFinalize();
 }
 
 // Static functions ************************************************************************************************* //
@@ -95,6 +112,7 @@ static void destructor_Geom_Test_Data
 
 static bool compare_members_geom (struct Test_Info*const test_info, const struct Simulation*const sim)
 {
+	UNUSED(test_info);
 	bool pass = true;
 
 	struct Geom_Test_Data* geom_test_data = constructor_Geom_Test_Data(sim); // destructed
@@ -107,7 +125,7 @@ static bool compare_members_geom (struct Test_Info*const test_info, const struct
 	{
 		if (!(curr && curr_test)) {
 			pass = false;
-			test_print_failure(test_info,"Faces (different number)");
+			expect_condition(pass,"Faces (different number)");
 			break;
 		}
 
@@ -115,8 +133,8 @@ static bool compare_members_geom (struct Test_Info*const test_info, const struct
 		                  * face_test = (struct Solver_Face*) curr_test;
 
 		if (diff_const_Multiarray_d(face->normals_fc,face_test->normals_fc,EPS) != 0) {
-			test_print_failure(test_info,"Face");
 			pass = false;
+			expect_condition(pass,"Face");
 
 			print_diff_const_Multiarray_d(face->normals_fc,face_test->normals_fc,EPS);
 		}

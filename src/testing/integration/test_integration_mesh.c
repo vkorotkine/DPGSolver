@@ -12,10 +12,8 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-/**	\file
+/** \file
  */
-
-#include "test_integration_mesh.h"
 
 #include <string.h>
 
@@ -53,27 +51,43 @@ static void destructor_Mesh_Input
 	);
 
 /** \brief Compare members of the \ref Mesh with expected values.
- *	\return 1 if tests passed. */
+ *  \return 1 if tests passed. */
 static bool compare_members_Mesh
-	(struct Test_Info*const test_info, ///< Defined in \ref test_integration_mesh.
+	(struct Test_Info*const test_info, ///< \ref Test_Info.
 	 const char*const mesh_name_full,  ///< Defined in \ref Mesh_Input.
 	 const struct Mesh*const mesh      ///< \ref Mesh.
 	);
 
 // Interface functions ********************************************************************************************** //
 
-void test_integration_mesh (struct Test_Info*const test_info, const char*const mesh_name)
+/** \test Performs integration testing for the mesh processing (\ref test_integration_mesh.c).
+ *  \return 0 on success.
+ *
+ *  Compares members of the following containers with their expected values:
+ *  - \ref Mesh_Data;
+ *  - \ref Mesh_Connectivity;
+ *  - \ref Mesh_Vertices.
+ */
+int main
+	(int nargc,  ///< Standard.
+	 char** argv ///< Standard.
+	)
 {
+	assert_condition_message(nargc == 2,"Invalid number of input arguments");
+	const char* mesh_name = argv[1];
+
+	struct Test_Info test_info = { .n_warn = 0, };
+
 	struct Mesh_Input* mesh_input = constructor_Mesh_Input(mesh_name); // destructed
 	struct Mesh* mesh             = constructor_Mesh(mesh_input,NULL); // destructed
 
-	const bool pass = compare_members_Mesh(test_info,mesh_input->mesh_name_full,mesh);
-
-	sprintf(test_info->name,"%s%s","Mesh - ",mesh_name);
-	test_increment_and_print(test_info,pass);
+	const bool pass = compare_members_Mesh(&test_info,mesh_input->mesh_name_full,mesh);
 
 	destructor_Mesh(mesh);
 	destructor_Mesh_Input(mesh_input);
+
+	assert_condition(pass);
+	output_warning_count(&test_info);
 }
 
 // Static functions ************************************************************************************************* //
@@ -97,7 +111,7 @@ struct Mesh_Test_Data {
 };
 
 /** \brief Set the members of the \ref Mesh_Input\*.
- *	\todo Check if `geom_spec` is being used and remove it if not. */
+ *  \todo Check if `geom_spec` is being used and remove it if not. */
 static void set_Mesh_Input
 	(struct Mesh_Input*const mesh_input, ///< \ref Mesh_Input.
 	 const int d,                        ///< Defined in \ref Mesh_Input.
@@ -154,7 +168,8 @@ static void destructor_Mesh_Input (struct Mesh_Input* mesh_input)
 static bool compare_members_Mesh
 	(struct Test_Info*const test_info, const char*const mesh_name_full, const struct Mesh*const mesh)
 {
-	bool pass = 1;
+	UNUSED(test_info);
+	bool pass = true;
 
 	struct Mesh_Test_Data* mesh_test_data = constructor_Mesh_Test_Data(mesh_name_full); // destructed
 
@@ -173,8 +188,8 @@ static bool compare_members_Mesh
 	    (diff_Multiarray_Vector_i(node_nums,mesh_test_data->node_nums) != 0)               ||
 	    (periodic_corr && diff_Matrix_i(periodic_corr,mesh_test_data->periodic_corr) != 0))
 	{
-		test_print_failure(test_info,"Mesh Data");
-		pass = 0;
+		pass = false;
+		expect_condition(pass,"mesh data");
 
 		print_diff_Vector_i(elem_per_dim,mesh_test_data->elem_per_dim);
 		print_diff_Matrix_d(nodes,mesh_test_data->nodes,NODETOL_MESH);
@@ -191,8 +206,8 @@ static bool compare_members_Mesh
 	if ((diff_Multiarray_Vector_i(v_to_v,mesh_test_data->v_to_v) != 0)   ||
 	    (diff_Multiarray_Vector_i(v_to_lf,mesh_test_data->v_to_lf) != 0))
 	{
-		test_print_failure(test_info,"Mesh Connectivity");
-		pass = 0;
+		pass = false;
+		expect_condition(pass,"mesh connectivity");
 
 		print_diff_Multiarray_Vector_i(v_to_v,mesh_test_data->v_to_v);
 		print_diff_Multiarray_Vector_i(v_to_lf,mesh_test_data->v_to_lf);
@@ -207,8 +222,8 @@ static bool compare_members_Mesh
 	    (diff_Vector_i(ve_boundary,mesh_test_data->ve_boundary) != 0) ||
 	    (diff_Multiarray_Vector_i(ve_bc,mesh_test_data->ve_bc) != 0))
 	{
-		test_print_failure(test_info,"Mesh Data");
-		pass = 0;
+		pass = false;
+		expect_condition(pass,"mesh vertices");
 
 		print_diff_Vector_i(ve_curved,mesh_test_data->ve_curved);
 		print_diff_Vector_i(ve_boundary,mesh_test_data->ve_boundary);

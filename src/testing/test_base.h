@@ -71,32 +71,17 @@ void expect_condition
 	 const char* cond_str ///< A string to be printed to the terminal if the condition is not satisfied.
 	);
 
-/** \brief Increment test counters and print pass/fail related information for the current test using the input test
- *         name. */
-/// \todo Delete if unused.
-void test_increment_and_print_name
-	(struct Test_Info*const test_info, ///< \ref Test_Info.
-	 const bool pass,                  ///< Flag for whether the test passed or failed.
-	 const char*const test_name        ///< The test name string.
-	);
-
-/// \brief Call \ref test_increment_and_print_name using \ref Test_Info::name as the test name.
-void test_increment_and_print
-	(struct Test_Info*const test_info, ///< \ref Test_Info.
-	 const bool pass                   ///< Flag for whether the test passed or failed.
-	);
-
 /// \brief Print a warning and increment \ref Test_Info::n_warn.
 void test_print_warning
 	(struct Test_Info*const test_info, ///< \ref Test_Info.
 	 const char*const warn_name        ///< The warning message string.
 	);
 
-/// \brief Print a failure message.
+/*/// \brief Print a failure message.
 void test_print_failure
 	(struct Test_Info*const test_info, ///< \ref Test_Info.
 	 const char*const fail_name        ///< The failure message string.
-	);
+	);*/
 
 /// \brief Output test related information.
 void output_test_info

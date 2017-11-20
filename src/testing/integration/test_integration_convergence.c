@@ -15,8 +15,6 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_integration_convergence.h"
-
 #include <assert.h>
 #include <string.h>
 #include <math.h>
@@ -61,8 +59,22 @@ static void check_convergence_orders
 
 // Interface functions ********************************************************************************************** //
 
-void test_integration_convergence (struct Test_Info*const test_info, const char*const ctrl_name)
+/** \test Performs integration testing for the solution convergence (\ref test_integration_convergence.c).
+ *  \return 0 on success (when the solution converges at the expected rate).
+ */
+int main
+	(int nargc,  ///< Standard.
+	 char** argv ///< Standard.
+	)
 {
+/// \todo Pass Petsc options file as third argument here (-> nargc == 3).
+	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+
+	assert_condition_message(nargc == 2,"Invalid number of input arguments");
+	const char* ctrl_name = argv[1];
+
+	struct Test_Info test_info = { .n_warn = 0, };
+
 	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name);
 
 	const int* p_ref  = int_test_info->p_ref,
@@ -95,8 +107,10 @@ void test_integration_convergence (struct Test_Info*const test_info, const char*
 		structor_simulation(&sim,'d',adapt_type,p,ml,p_prev,ml_prev,NULL);
 	}}
 
-	check_convergence_orders(test_info,int_test_info);
+	check_convergence_orders(&test_info,int_test_info);
 	destructor_Integration_Test_Info(int_test_info);
+
+	PetscFinalize();
 }
 
 // Static functions ************************************************************************************************* //
@@ -111,6 +125,7 @@ static int compute_n_err
 static void check_convergence_orders
 	(struct Test_Info*const test_info, const struct Integration_Test_Info* int_test_info)
 {
+	UNUSED(test_info);
 	struct Simulation* sim = constructor_Simulation(int_test_info->ctrl_name); // destructed
 	if (sim->mpi_rank) {
 		destructor_Simulation(sim);
@@ -205,9 +220,7 @@ static void check_convergence_orders
 
 	destructor_Multiarray_d(conv_orders);
 
-	char test_name[STRLEN_MAX];
-	sprintf(test_name,"%s%s","Conv Orders - ",int_test_info->ctrl_name);
-	test_increment_and_print_name(test_info,pass,test_name);
+	assert_condition(pass);
 }
 
 // Level 1 ********************************************************************************************************** //

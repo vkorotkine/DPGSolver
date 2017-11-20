@@ -15,9 +15,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_integration_fe_init.h"
-
 #include <string.h>
+#include "petscsys.h"
 
 #include "test_base.h"
 #include "test_support.h"
@@ -40,22 +39,41 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Compare members of the \ref Volume and \ref Face finite element lists with expected values.
  *  \return `true` if tests passed. */
 static bool compare_members_fe
-	(struct Test_Info*const test_info, ///< Defined in \ref test_integration_mesh.
+	(struct Test_Info*const test_info, ///< \ref Test_Info.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 // Interface functions ********************************************************************************************** //
 
-void test_integration_fe_init (struct Test_Info*const test_info, const char*const ctrl_name)
+/** \test Performs integration testing for the computational element initialization (\ref test_integration_fe_init.c).
+ *  \return 0 on success.
+ *
+ *  Compares members of the following containers with their expected values:
+ *  - \ref Volume;
+ *  - \ref Face.
+ */
+int main
+	(int nargc,  ///< Standard.
+	 char** argv ///< Standard.
+	)
 {
+	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+
+	assert_condition_message(nargc == 2,"Invalid number of input arguments");
+	const char* ctrl_name = argv[1];
+
+	struct Test_Info test_info = { .n_warn = 0, };
+
 	struct Simulation*const sim = constructor_Simulation(ctrl_name); // destructed
 
-	const bool pass = compare_members_fe(test_info,sim);
-
-	sprintf(test_info->name,"%s%s","FE initialization - ",extract_name(ctrl_name,false));
-	test_increment_and_print(test_info,pass);
+	const bool pass = compare_members_fe(&test_info,sim);
 
 	destructor_Simulation(sim);
+
+	assert_condition(pass);
+	output_warning_count(&test_info);
+
+	PetscFinalize();
 }
 
 // Static functions ************************************************************************************************* //
@@ -90,6 +108,7 @@ static bool compare_members_Face
 static bool compare_members_fe
 	(struct Test_Info*const test_info, const struct Simulation*const sim)
 {
+	UNUSED(test_info);
 	bool pass = true;
 
 	const char* data_name = set_data_file_name_integration(sim->ctrl_name_full,"fe");
@@ -103,7 +122,7 @@ static bool compare_members_fe
 	{
 		if (!(curr && curr_test)) {
 			pass = false;
-			test_print_failure(test_info,"Volumes (different number)");
+			expect_condition(pass,"Volumes (different number)");
 			break;
 		}
 
@@ -116,8 +135,8 @@ static bool compare_members_fe
 		    (diff_const_Multiarray_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH) != 0) ||
 		    (volume->element->type != volume_test->element->type))
 		{
-			test_print_failure(test_info,"Volume");
 			pass = false;
+			expect_condition(pass,"Volume");
 
 			printf("index: %d %d\n",volume->index,volume_test->index);
 
@@ -139,7 +158,7 @@ static bool compare_members_fe
 	{
 		if (!(curr && curr_test)) {
 			pass = false;
-			test_print_failure(test_info,"Faces (different number)");
+			expect_condition(pass,"Faces (different number)");
 			break;
 		}
 
@@ -147,8 +166,8 @@ static bool compare_members_fe
 		           * face_test = (struct Face*) curr_test;
 
 		if (!compare_members_Face(face,face_test,false)) {
-			test_print_failure(test_info,"Face");
 			pass = false;
+			expect_condition(pass,"Face");
 
 			compare_members_Face(face,face_test,true);
 		}

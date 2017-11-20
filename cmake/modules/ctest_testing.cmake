@@ -1,7 +1,6 @@
 # Provide commands required for ctest.
 
-# TODO: Potentially only enable testing for Debug.
-enable_testing()
+include(CTest) # Required to avoid errors along the lines of "Cannot find file: /path/to/DPGSolver/build/DartConfiguration.tcl"
 
 # Following the discussion in [this SO answer][https://stackoverflow.com/a/16163137/5983549], the `check` make target is
 # added below to force ctest to run with additional default parameters.
@@ -24,7 +23,7 @@ function(add_test_DPG test_exec)
 	if (n_extra_args EQUAL 0)
 		add_test(NAME ${test_exec} COMMAND ${test_exec} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 	elseif (n_extra_args EQUAL 1)
-		add_test(NAME ${test_exec}-${ARGV1} COMMAND ${test_exec} ${ARGV1} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+		add_test(NAME ${test_exec}___${ARGV1} COMMAND ${test_exec} ${ARGV1} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 	else ()
 		message(FATAL_ERROR "Invalid number of command line arguments." )
 	endif()

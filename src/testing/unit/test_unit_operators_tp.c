@@ -51,7 +51,7 @@ static void test_unit_apply_tp
 
 // Interface functions ********************************************************************************************** //
 
-/** \test Performs unit testing for tensor-product operators.
+/** \test Performs unit testing for tensor-product operators (\ref test_unit_operators_tp.c).
  *  \return 0 on success. */
 int main
 	(int nargc,  ///< Standard.
@@ -115,7 +115,7 @@ static void test_unit_construct_std_from_tp (struct Test_Info*const test_info, c
 		if (differences[0])
 			print_diff_const_Matrix_d(op_std_r,op_std_c,tol[0]);
 	}
-	test_increment_and_print(test_info,pass);
+	assert_condition(pass);
 
 	destructor_const_Matrix_d(op_std_r);
 	destructor_const_Matrix_d(op_std_c);
@@ -166,7 +166,7 @@ static void test_unit_apply_tp(struct Test_Info*const test_info, const char*cons
 		if (differences[1])
 			print_diff_const_Multiarray_d(c_r,c_tp,tol[1]);
 	}
-	test_increment_and_print(test_info,pass);
+	assert_condition(pass);
 
 	destructor_const_Multiarray_d(c_r);
 	destructor_const_Multiarray_d(c_std);

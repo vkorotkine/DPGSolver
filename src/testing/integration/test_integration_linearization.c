@@ -15,9 +15,10 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_integration_linearization.h"
+//#include "test_integration_linearization.h"
 
 #include <assert.h>
+#include "petscsys.h"
 
 #include "macros.h"
 #include "definitions_intrusive.h"
@@ -141,10 +142,9 @@ static void compute_lhs_cmplx_step
 
 /// \brief Check the linearizations computed with the various methods.
 static void check_linearizations
-	(struct Test_Info*const test_info,                  ///< \ref Test_Info.
-	 const struct Integration_Test_Info* int_test_info, ///< \ref Integration_Test_Info.
-	 const struct Solver_Storage_Implicit* ssi[2],      ///< \ref Solver_Storage_Implicit for the various methods.
-	 const struct Simulation* sim                       ///< \ref Simulation.
+	(struct Test_Info*const test_info,             ///< \ref Test_Info.
+	 const struct Solver_Storage_Implicit* ssi[2], ///< \ref Solver_Storage_Implicit for the various methods.
+	 const struct Simulation* sim                  ///< \ref Simulation.
 	);
 
 /// \brief Output PETSc matrices to file for visualization.
@@ -154,8 +154,31 @@ static void output_petsc_matrices
 
 // Interface functions ********************************************************************************************** //
 
-void test_integration_linearization (struct Test_Info*const test_info, const char*const ctrl_name)
+/** \test Performs integration testing for the solver linearization (\ref test_integration_linearization.c).
+ *  \return 0 on success (when the LHS matrices computed using complex step and exact linearization match).
+ *
+ *  The linearization is verified by comparing with the output when using the complex step method.
+ *
+ *  For second order equations, the verification of the linearization of the weak gradients is also performed. Note that
+ *  the volume rhs contributes off-diagonal terms to the global system matrix due to the use of the fully corrected
+ *  gradient.
+ *
+ * Details of the complex step method can be found in Squire et al. \cite Squire1998 and Martins et al.
+ * \cite Martins2003.
+ */
+int main
+	(int nargc,  ///< Standard.
+	 char** argv ///< Standard.
+	)
 {
+/// \todo Pass Petsc options file as third argument here (-> nargc == 3).
+	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+
+	assert_condition_message(nargc == 2,"Invalid number of input arguments");
+	const char* ctrl_name = argv[1];
+
+	struct Test_Info test_info = { .n_warn = 0, };
+
 	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name);
 
 	const int p  = int_test_info->p_ref[1],
@@ -192,7 +215,7 @@ void test_integration_linearization (struct Test_Info*const test_info, const cha
 	for (int i = 0; i < 2; ++i)
 		petsc_mat_vec_assemble(ssi[i]);
 
-	check_linearizations(test_info,int_test_info,(const struct Solver_Storage_Implicit**)ssi,sim);
+	check_linearizations(&test_info,(const struct Solver_Storage_Implicit**)ssi,sim);
 
 	for (int i = 0; i < 2; ++i)
 		destructor_Solver_Storage_Implicit(ssi[i]);
@@ -205,6 +228,8 @@ void test_integration_linearization (struct Test_Info*const test_info, const cha
 	structor_simulation(&sim,'d',adapt_type,p,ml,p,ml,NULL);
 
 	destructor_Integration_Test_Info(int_test_info);
+
+	PetscFinalize();
 }
 
 // Static functions ************************************************************************************************* //
@@ -302,16 +327,17 @@ static void compute_lhs_cmplx_step
 }
 
 static void check_linearizations
-	(struct Test_Info*const test_info, const struct Integration_Test_Info* int_test_info,
-	 const struct Solver_Storage_Implicit* ssi[2], const struct Simulation* sim)
+	(struct Test_Info*const test_info, const struct Solver_Storage_Implicit* ssi[2], const struct Simulation* sim)
 {
+	UNUSED(test_info);
 	bool pass        = true;
 	const double tol = 2e1*EPS;
 
 	const double diff = norm_diff_petsc_Mat(ssi[0]->A,ssi[1]->A);
 	if (diff > tol) {
 		pass = false;
-		printf("Failed difference: % .3e (tol = % .3e).\n",diff,tol);
+		printf("% .3e (tol = % .3e).\n",diff,tol);
+		expect_condition(pass,"difference");
 	}
 
 	if (check_symmetric(sim)) {
@@ -319,13 +345,12 @@ static void check_linearizations
 		MatIsSymmetric(ssi[0]->A,tol,&symmetric);
 		if (!symmetric) {
 			pass = false;
-			printf("Failed symmetric (tol = % .3e).\n",tol);
+			printf("tol = % .3e.\n",tol);
+			expect_condition(pass,"symmetric");
 		}
 	}
 
-	char test_name[STRLEN_MAX];
-	sprintf(test_name,"%s%s","Linearization - ",int_test_info->ctrl_name);
-	test_increment_and_print_name(test_info,pass,test_name);
+	assert_condition(pass);
 }
 
 static void output_petsc_matrices (const struct Solver_Storage_Implicit* ssi[2])

@@ -28,14 +28,13 @@ list	(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules"
 	                          "${PROJECT_SOURCE_DIR}/cmake/modules/petsc_additional"
 	)
 include(functions)
+include(ctest_testing)
 
 # There was a problem on macOS (CMake 3.9.3) where enabling BUILD_SHARED_LIBS led to differing function addresses in
 # different files.
 option(BUILD_SHARED_LIBS "Build the shared library" OFF)
 
 include_directories(src)
-
-include(testing)
 
 add_subdirectory(external)
 add_subdirectory(src)

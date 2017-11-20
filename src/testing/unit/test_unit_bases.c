@@ -64,7 +64,7 @@ static void test_unit_basis_tensor_product_bezier
 
 // Interface functions ********************************************************************************************** //
 
-/** \test Performs unit testing for the bases.
+/** \test Performs unit testing for the bases (\ref test_unit_bases.c).
  *  \return 0 on success. */
 int main
 	(int nargc,  ///< Standard.

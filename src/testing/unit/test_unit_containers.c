@@ -50,7 +50,7 @@ static void test_unit_matrix_mm_diag
 
 // Interface functions ********************************************************************************************** //
 
-/** \test Performs unit testing for the containers.
+/** \test Performs unit testing for the containers (\ref test_unit_containers.c).
  *  \return 0 on success. */
 int main
 	(int nargc,  ///< Standard.

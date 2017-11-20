@@ -36,14 +36,3 @@ add_subdirectory(complex)
 add_subdirectory(integration)
 add_subdirectory(support)
 add_subdirectory(unit)
-
-
-# Executable generation
-set	(LIBS_DEPEND
-	 Test_Base
-	 Test_Support
-	 Test_Integration
-	)
-
-add_executable(test_all main_test_all.c)
-target_link_libraries(test_all PRIVATE ${LIBS_DEPEND})
