@@ -19,7 +19,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 
 #include "test_base.h"
-#include "test_unit.h"
 #include "test_integration.h"
 
 /** \brief Provides the main interface to run **all** currently supported tests.
@@ -42,9 +41,6 @@ int main
 
 	printf("\nRunning All Tests:\n");
 	test_info.ts = clock();
-
-	if (run_tests.unit)
-		run_tests_unit(&test_info);
 
 	if (run_tests.integration)
 		run_tests_integration(&test_info);

@@ -34,14 +34,14 @@ software in directories in the default search path.
 
 Once the code has been successfully built, the available `make` targets can be seen using
 ```sh
-$ BUILD$ make help
+BUILD$ make help
 ```
 
 Of primary interest are the following:
 ```sh
-$ BUILD$ make        // Compile the code.
-$ BUILD$ make meshes // Generate the meshes.
-$ BUILD$ make doc    // Generate the Doxygen documentation.
+BUILD$ make        // Compile the code.
+BUILD$ make meshes // Generate the meshes.
+BUILD$ make doc    // Generate the Doxygen documentation.
 ```
 
 The html documentation can be accessed by pointing a browser at `BUILD/doc/html/index.html`.
@@ -53,6 +53,26 @@ executed using the desired bash script in `BUILD/script_files`. For example, to 
 valgrind's memory leak detector enabled:
 ```sh
 BUILD/script_files$ sh test_all_memcheck.sh
+```
+
+## Testing
+
+Testing can be performed using CMake's `ctest` functionality. After successfully compiling the project, all tests can be
+run by executing:
+```sh
+BUILD$ ctest (which is equivalent to BUILD$ make test)
+```
+
+An alternative make target is provided to run tests with --output-on-failure:
+```sh
+BUILD$ make check
+```
+
+Additional useful commands are:
+```sh
+BUILD$ ctest -N (List the tests that would be run but not actually run them)
+BUILD$ ctest -R <regex> (Run tests matching regular expression)
+BUILD$ ctest -V (Enable verbose output from tests)
 ```
 
 ## Code Description

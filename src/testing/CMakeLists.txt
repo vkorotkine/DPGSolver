@@ -42,7 +42,6 @@ add_subdirectory(unit)
 set	(LIBS_DEPEND
 	 Test_Base
 	 Test_Support
-	 Test_Unit 
 	 Test_Integration
 	)
 

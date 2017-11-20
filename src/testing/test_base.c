@@ -36,6 +36,32 @@ static char* set_file_name_base
 
 // Interface functions ********************************************************************************************** //
 
+void assert_condition (const bool cond)
+{
+	if (cond)
+		return;
+
+	fflush(stdout);
+	abort();
+}
+
+void assert_condition_message (const bool cond, const char* cond_str)
+{
+	if (cond)
+		return;
+
+	printf("\n\n%s\n\n\n",cond_str);
+	assert_condition(cond);
+}
+
+void expect_condition (const bool cond, const char* cond_str)
+{
+	if (cond)
+		return;
+
+	printf("\nTest Failure: %s.\n",cond_str);
+}
+
 void test_increment_and_print_name (struct Test_Info*const test_info, const bool pass, const char*const test_name)
 {
 	printf("%-80s ... ",test_name);
@@ -82,14 +108,18 @@ void output_test_info (struct Test_Info*const test_info)
 		printf("\n******** FAILED %d TEST(S) ********\n\n",n_fail);
 	} else {
 		printf("\nAll tests passed.\n\n");
+		output_warning_count(test_info);
+	}
+}
 
-		if (test_info->n_warn) {
-			if (test_info->n_warn == 1)
-				printf("1 warning was generated while running tests.\n");
-			else
-				printf("%d warnings were generated while running tests.\n",test_info->n_warn);
-			printf("Scroll through test passing list and verify that all is OK.\n\n");
-		}
+void output_warning_count (struct Test_Info*const test_info)
+{
+	if (test_info->n_warn) {
+		if (test_info->n_warn == 1)
+			printf("1 warning was generated.\n");
+		else
+			printf("%d warnings were generated.\n",test_info->n_warn);
+		printf("Scroll through test passing list and verify that all is OK.\n\n");
 	}
 }
 

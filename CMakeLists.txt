@@ -35,6 +35,8 @@ option(BUILD_SHARED_LIBS "Build the shared library" OFF)
 
 include_directories(src)
 
+include(testing)
+
 add_subdirectory(external)
 add_subdirectory(src)
 add_subdirectory(doc)

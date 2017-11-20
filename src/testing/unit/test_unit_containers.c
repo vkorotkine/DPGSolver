@@ -15,10 +15,10 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_unit_containers.h"
-
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "test_base.h"
 #include "test_support.h"
@@ -50,11 +50,27 @@ static void test_unit_matrix_mm_diag
 
 // Interface functions ********************************************************************************************** //
 
-void test_unit_containers (struct Test_Info*const test_info)
+/** \test Performs unit testing for the containers.
+ *  \return 0 on success. */
+int main
+	(int nargc,  ///< Standard.
+	 char** argv ///< Standard.
+	)
 {
-	test_unit_matrix_mm(test_info);
-	test_unit_matrix_mv(test_info);
-	test_unit_matrix_mm_diag(test_info);
+	assert_condition_message(nargc == 2,"Invalid number of input arguments");
+	const char* test_name = argv[1];
+
+	struct Test_Info test_info = { .n_warn = 0, };
+	if (strcmp(test_name,"matrix_mm") == 0)
+		test_unit_matrix_mm(&test_info);
+	else if (strcmp(test_name,"matrix_mv") == 0)
+		test_unit_matrix_mv(&test_info);
+	else if (strcmp(test_name,"matrix_mm_diag") == 0)
+		test_unit_matrix_mm_diag(&test_info);
+	else
+		EXIT_ERROR("Invalid test name: %s\n",test_name);
+
+	output_warning_count(&test_info);
 }
 
 // Static functions ************************************************************************************************* //
@@ -62,7 +78,7 @@ void test_unit_containers (struct Test_Info*const test_info)
 
 static void test_unit_matrix_mm (struct Test_Info*const test_info)
 {
-	sprintf(test_info->name,"%s","Containers - Matrix mm");
+	UNUSED(test_info);
 	bool pass = true;
 
 	const char*const file_name_full = set_data_file_name_unit("containers/matrix");
@@ -126,12 +142,12 @@ static void test_unit_matrix_mm (struct Test_Info*const test_info)
 	destructor_Matrix_d(c_NTC);
 	destructor_Matrix_d(c_TTC);
 
-	test_increment_and_print(test_info,pass);
+	assert_condition(pass);
 }
 
 static void test_unit_matrix_mv (struct Test_Info*const test_info)
 {
-	sprintf(test_info->name,"%s","Containers - Matrix mv");
+	UNUSED(test_info);
 	bool pass = true;
 
 	const char*const file_name_full = set_data_file_name_unit("containers/matrix");
@@ -161,12 +177,12 @@ static void test_unit_matrix_mv (struct Test_Info*const test_info)
 	destructor_Vector_d(c_N);
 	destructor_Vector_d(c_T);
 
-	test_increment_and_print(test_info,pass);
+	assert_condition(pass);
 }
 
 static void test_unit_matrix_mm_diag (struct Test_Info*const test_info)
 {
-	sprintf(test_info->name,"%s","Containers - Matrix mm diag");
+	UNUSED(test_info);
 	bool pass = true;
 
 	const char*const file_name_full = set_data_file_name_unit("containers/matrix");
@@ -218,5 +234,5 @@ static void test_unit_matrix_mm_diag (struct Test_Info*const test_info)
 	destructor_const_Matrix_d(cl_C);
 	destructor_const_Matrix_d(cr_C);
 
-	test_increment_and_print(test_info,pass);
+	assert_condition(pass);
 }

@@ -1,18 +1,35 @@
-set	(SOURCE
-	 test_unit.c
-	 test_unit_bases.c
-	 test_unit_containers.c
-	 test_unit_nodes.c
-	 test_unit_operators_tp.c
-	)
+set (LIBS_DEPEND Test_Base Test_Support)
 
-set	(LIBS_DEPEND
-	 Test_Base
-	 Test_Support
-	 Test_Support_Containers
-	 Test_Support_Element
-	)
+set (EXEC test_unit_containers)
+add_executable(${EXEC} ${EXEC}.c)
+target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
+add_test_DPG(${EXEC} "matrix_mm")
+add_test_DPG(${EXEC} "matrix_mv")
+add_test_DPG(${EXEC} "matrix_mm_diag")
 
-set (LIB Test_Unit)
-add_library(${LIB} ${SOURCE})
-target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
+set (EXEC test_unit_bases)
+add_executable(${EXEC} ${EXEC}.c)
+target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
+add_test_DPG(${EXEC} "tp_orthonormal")
+add_test_DPG(${EXEC} "si_orthonormal")
+add_test_DPG(${EXEC} "pyr_orthonormal")
+add_test_DPG(${EXEC} "tp_bezier")
+
+set (EXEC test_unit_nodes)
+add_executable(${EXEC} ${EXEC}.c)
+target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
+add_test_DPG(${EXEC} "tp")
+add_test_DPG(${EXEC} "si")
+add_test_DPG(${EXEC} "pyr")
+add_test_DPG(${EXEC} "plotting")
+add_test_DPG(${EXEC} "face_correspondence")
+
+set (EXEC test_unit_operators_tp)
+add_executable(${EXEC} ${EXEC}.c)
+target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
+add_test_DPG(${EXEC} "constructor_quad")
+add_test_DPG(${EXEC} "constructor_hex")
+add_test_DPG(${EXEC} "constructor_wedge")
+add_test_DPG(${EXEC} "apply_quad")
+add_test_DPG(${EXEC} "apply_hex")
+add_test_DPG(${EXEC} "apply_wedge")

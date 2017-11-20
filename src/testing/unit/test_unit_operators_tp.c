@@ -15,8 +15,6 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_unit_operators_tp.h"
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
@@ -53,15 +51,33 @@ static void test_unit_apply_tp
 
 // Interface functions ********************************************************************************************** //
 
-void test_unit_operators_tp (struct Test_Info*const test_info)
+/** \test Performs unit testing for tensor-product operators.
+ *  \return 0 on success. */
+int main
+	(int nargc,  ///< Standard.
+	 char** argv ///< Standard.
+	)
 {
-	test_unit_construct_std_from_tp(test_info,"quad");
-	test_unit_construct_std_from_tp(test_info,"hex");
-	test_unit_construct_std_from_tp(test_info,"wedge");
+	assert_condition_message(nargc == 2,"Invalid number of input arguments");
+	const char* test_name = argv[1];
 
-	test_unit_apply_tp(test_info,"quad");
-	test_unit_apply_tp(test_info,"hex");
-	test_unit_apply_tp(test_info,"wedge");
+	struct Test_Info test_info = { .n_warn = 0, };
+
+	if (strcmp(test_name,"constructor_quad") == 0)
+		test_unit_construct_std_from_tp(&test_info,"quad");
+	else if (strcmp(test_name,"constructor_hex") == 0)
+		test_unit_construct_std_from_tp(&test_info,"hex");
+	else if (strcmp(test_name,"constructor_wedge") == 0)
+		test_unit_construct_std_from_tp(&test_info,"wedge");
+	else if (strcmp(test_name,"apply_quad") == 0)
+		test_unit_apply_tp(&test_info,"quad");
+	else if (strcmp(test_name,"apply_hex") == 0)
+		test_unit_apply_tp(&test_info,"hex");
+	else if (strcmp(test_name,"apply_wedge") == 0)
+		test_unit_apply_tp(&test_info,"wedge");
+	else
+		EXIT_ERROR("Invalid test name: %s\n",test_name);
+	output_warning_count(&test_info);
 }
 
 // Static functions ************************************************************************************************* //

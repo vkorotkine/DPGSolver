@@ -15,8 +15,6 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_unit_nodes.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -68,15 +66,30 @@ static void test_unit_nodes_face_correspondence
 
 // Interface functions ********************************************************************************************** //
 
-void test_unit_nodes (struct Test_Info*const test_info)
+/** \test Performs unit testing for the nodes.
+ *  \return 0 on success. */
+int main
+	(int nargc,  ///< Standard.
+	 char** argv ///< Standard.
+	)
 {
-	test_print_warning(test_info,"Cubature strengths not currently being tested.");
+	assert_condition_message(nargc == 2,"Invalid number of input arguments");
+	const char* test_name = argv[1];
 
-	test_unit_nodes_tensor_product(test_info);
-	test_unit_nodes_simplex(test_info);
-	test_unit_nodes_pyramid(test_info);
-	test_unit_nodes_plotting(test_info);
-	test_unit_nodes_face_correspondence(test_info);
+	struct Test_Info test_info = { .n_warn = 0, };
+	if (strcmp(test_name,"tp") == 0)
+		test_unit_nodes_tensor_product(&test_info);
+	else if (strcmp(test_name,"si") == 0)
+		test_unit_nodes_simplex(&test_info);
+	else if (strcmp(test_name,"pyr") == 0)
+		test_unit_nodes_pyramid(&test_info);
+	else if (strcmp(test_name,"plotting") == 0)
+		test_unit_nodes_plotting(&test_info);
+	else if (strcmp(test_name,"face_correspondence") == 0)
+		test_unit_nodes_face_correspondence(&test_info);
+	else
+		EXIT_ERROR("Invalid test name: %s\n",test_name);
+	output_warning_count(&test_info);
 }
 
 // Static functions ************************************************************************************************* //
@@ -198,8 +211,6 @@ static void destructor_Nodes_FC_Data
 static void test_unit_nodes_tensor_product (struct Test_Info*const test_info)
 {
 	char* test_name = "nodes_tp";
-	sprintf(test_info->name,"%s%s","Nodes - ",test_name);
-
 	bool pass = true;
 
 	struct Nodes_Data_TP* nodes_data_r = constructor_Nodes_Data_TP('r',test_name), // destructed
@@ -229,8 +240,6 @@ static void test_unit_nodes_tensor_product (struct Test_Info*const test_info)
 	}
 
 	if (diff) {
-		test_print_failure(test_info,test_info->name);
-
 		pass = false;
 
 		if (differences[0])
@@ -258,14 +267,13 @@ static void test_unit_nodes_tensor_product (struct Test_Info*const test_info)
 	destructor_Nodes_Data_TP(nodes_data_r);
 	destructor_Nodes_Data_TP(nodes_data_c);
 
-	test_increment_and_print(test_info,pass);
+	test_print_warning(test_info,"Cubature strengths not currently being tested.");
+	assert_condition(pass);
 }
 
 static void test_unit_nodes_simplex (struct Test_Info*const test_info)
 {
 	char* test_name = "nodes_si";
-	sprintf(test_info->name,"%s%s","Nodes - ",test_name);
-
 	bool pass = true;
 
 	struct Nodes_Data_SI* nodes_data_r = constructor_Nodes_Data_SI('r',test_name), // destructed
@@ -310,14 +318,13 @@ static void test_unit_nodes_simplex (struct Test_Info*const test_info)
 	destructor_Nodes_Data_SI(nodes_data_r);
 	destructor_Nodes_Data_SI(nodes_data_c);
 
-	test_increment_and_print(test_info,pass);
+	test_print_warning(test_info,"Cubature strengths not currently being tested.");
+	assert_condition(pass);
 }
 
 static void test_unit_nodes_pyramid (struct Test_Info*const test_info)
 {
 	char* test_name = "nodes_pyr";
-	sprintf(test_info->name,"%s%s","Nodes - ",test_name);
-
 	bool pass = true;
 
 	struct Nodes_Data_PYR* nodes_data_r = constructor_Nodes_Data_PYR('r',test_name), // destructed
@@ -355,14 +362,14 @@ static void test_unit_nodes_pyramid (struct Test_Info*const test_info)
 	destructor_Nodes_Data_PYR(nodes_data_r);
 	destructor_Nodes_Data_PYR(nodes_data_c);
 
-	test_increment_and_print(test_info,pass);
+	test_print_warning(test_info,"Cubature strengths not currently being tested.");
+	assert_condition(pass);
 }
 
 static void test_unit_nodes_plotting (struct Test_Info*const test_info)
 {
+	UNUSED(test_info);
 	char* test_name = "nodes_plotting";
-	sprintf(test_info->name,"%s%s","Nodes - ",test_name);
-
 	bool pass = true;
 
 	struct Plotting_Nodes_Data* p_nodes_data_r = constructor_Plotting_Nodes_Data('r',test_name), // destructed
@@ -390,8 +397,6 @@ static void test_unit_nodes_plotting (struct Test_Info*const test_info)
 	}
 
 	if (diff) {
-		test_print_failure(test_info,test_info->name);
-
 		pass = false;
 
 		if (differences[0])
@@ -409,18 +414,16 @@ static void test_unit_nodes_plotting (struct Test_Info*const test_info)
 		if (differences[6])
 			print_diff_const_Plotting_Nodes(p_nodes_data_r->plt_pyr,  p_nodes_data_c->plt_pyr,  tol[6]);
 	}
-
 	destructor_Plotting_Nodes_Data(p_nodes_data_r);
 	destructor_Plotting_Nodes_Data(p_nodes_data_c);
 
-	test_increment_and_print(test_info,pass);
+	assert_condition(pass);
 }
 
 static void test_unit_nodes_face_correspondence (struct Test_Info*const test_info)
 {
+	UNUSED(test_info);
 	char* test_name = "nodes_correspondence";
-	sprintf(test_info->name,"%s%s","Nodes - ",test_name);
-
 	bool pass = true;
 
 	struct Nodes_FC_Data* nodes_fc_data_r = constructor_Nodes_FC_Data('r',test_name), // destructed
@@ -450,11 +453,10 @@ static void test_unit_nodes_face_correspondence (struct Test_Info*const test_inf
 		if (diffs[ind++]) print_diff_const_Multiarray_Vector_i(nodes_fc_data_r->tri_6,  nodes_fc_data_c->tri_6);
 		if (diffs[ind++]) print_diff_const_Multiarray_Vector_i(nodes_fc_data_r->tri_10, nodes_fc_data_c->tri_10);
 	}
-
 	destructor_Nodes_FC_Data(nodes_fc_data_r);
 	destructor_Nodes_FC_Data(nodes_fc_data_c);
 
-	test_increment_and_print(test_info,pass);
+	assert_condition(pass);
 }
 
 // Level 1 ********************************************************************************************************** //
