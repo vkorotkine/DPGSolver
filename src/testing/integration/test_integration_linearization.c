@@ -331,7 +331,7 @@ static void check_linearizations
 {
 	UNUSED(test_info);
 	bool pass        = true;
-	const double tol = 2e1*EPS;
+	const double tol = 3e1*EPS;
 
 	const double diff = norm_diff_petsc_Mat(ssi[0]->A,ssi[1]->A);
 	if (diff > tol) {

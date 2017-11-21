@@ -1,4 +1,4 @@
-Include "../Parameters.geo";
+Include "../parameters.geo";
 //MESH_LEVEL = 0; PDE_NAME = ADVECTION; GEOM_ADV = GEOM_ADV_XL;
 
 // Geometry Specification

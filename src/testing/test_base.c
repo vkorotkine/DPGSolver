@@ -71,28 +71,6 @@ void test_print_warning (struct Test_Info*const test_info, const char*const warn
 	printf("********************************************************************************************\n\n");
 }
 
-void test_print_failure (struct Test_Info*const test_info, const char*const fail_name)
-{
-	UNUSED(test_info);
-	printf("\n********************************************************************************************\n");
-	printf("Test Failure: %s\n",fail_name);
-	printf("********************************************************************************************\n\n");
-}
-
-void output_test_info (struct Test_Info*const test_info)
-{
-	printf("\n\nRan %d test(s) in %.4f seconds.\n",
-	       test_info->n_test,(test_info->te-test_info->ts)/(double)CLOCKS_PER_SEC);
-
-	int n_fail = test_info->n_test - test_info->n_pass;
-	if (n_fail) {
-		printf("\n******** FAILED %d TEST(S) ********\n\n",n_fail);
-	} else {
-		printf("\nAll tests passed.\n\n");
-		output_warning_count(test_info);
-	}
-}
-
 void output_warning_count (struct Test_Info*const test_info)
 {
 	if (test_info->n_warn) {

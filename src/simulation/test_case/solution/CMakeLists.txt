@@ -15,7 +15,10 @@ set	(LIBS_DEPEND
 	 Compute_Error
 	 Containers
 	 Element
+	 Flux
+	 Numerical_Flux
 	)
 
-add_library(Solution STATIC ${SOURCE})
-target_link_libraries(Solution PRIVATE ${LIBS_DEPEND})
+set(LIB Solution)
+add_library(${LIB} STATIC ${SOURCE})
+target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})

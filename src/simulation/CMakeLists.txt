@@ -16,5 +16,6 @@ set	(LIBS_DEPEND
 	 Test_Case
 	)
 
-add_library(Simulation ${SOURCE})
-target_link_libraries(Simulation PRIVATE ${LIBS_DEPEND})
+set(LIB Simulation)
+add_library(${LIB} STATIC ${SOURCE})
+target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})

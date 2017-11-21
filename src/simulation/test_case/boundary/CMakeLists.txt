@@ -8,5 +8,5 @@ set	(LIBS_DEPEND
 	)
 
 set (LIB Boundary)
-add_library(${LIB} ${SOURCE})
+add_library(${LIB} STATIC ${SOURCE})
 target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})

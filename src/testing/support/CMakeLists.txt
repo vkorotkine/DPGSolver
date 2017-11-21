@@ -8,21 +8,8 @@ set	(SOURCE
 	 test_support.c
 	)
 
-### TODO: Needs clean-up for the library dependencies.
 set	(LIBS_DEPEND
-	 ${GSL_LIBRARIES}
-	 Complex_Containers
-	 Computational_Elements
-	 Containers
-	 Element
-	 General
-	 Intrusive
-	 Test_Support_Containers
-	 Test_Support_Element
-	 Test_Support_General
-	 Test_Support_Intrusive
-	 Test_Support_Computational_Elements
 	)
 
-add_library(Test_Support ${SOURCE})
+add_library(Test_Support STATIC ${SOURCE})
 target_link_libraries(Test_Support PRIVATE ${LIBS_DEPEND})

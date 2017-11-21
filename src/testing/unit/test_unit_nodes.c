@@ -301,8 +301,6 @@ static void test_unit_nodes_simplex (struct Test_Info*const test_info)
 	}
 
 	if (diff) {
-		test_print_failure(test_info,test_info->name);
-
 		pass = false;
 
 		if (differences[0]) print_diff_const_Nodes(nodes_data_r->d2_p3_EQ, nodes_data_c->d2_p3_EQ, tol[0]);
@@ -350,8 +348,6 @@ static void test_unit_nodes_pyramid (struct Test_Info*const test_info)
 	}
 
 	if (diff) {
-		test_print_failure(test_info,test_info->name);
-
 		pass = false;
 
 		if (differences[0]) print_diff_const_Nodes(nodes_data_r->d3_p2_GL, nodes_data_c->d3_p2_GL, tol[0]);

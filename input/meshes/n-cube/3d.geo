@@ -1,4 +1,4 @@
-Include "../Parameters.geo";
+Include "../parameters.geo";
 //MeshLevel = 0; MeshType = PYR; MeshCurving = STRAIGHT; PDEName = POISSON;
 
 // Geometry Specification

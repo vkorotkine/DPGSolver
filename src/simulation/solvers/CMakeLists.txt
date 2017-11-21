@@ -3,7 +3,6 @@ add_subdirectory(dpg)
 add_subdirectory(numerical_flux)
 
 set	(SOURCE
-#	 compute_rlhs.c
 	 compute_face_rlhs.c
 	 compute_volume_rlhs.c
 	 element_solver.c
@@ -16,9 +15,10 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 ${PETSC_LIBRARIES}
-	 Computational_Elements
-	 Numerical_Flux
-	 Solution
+	 Complex_Containers
+#	 Computational_Elements
+#	 Numerical_Flux
+#	 Solution
 	 Solver_DG
 	 Solver_DPG
 	)

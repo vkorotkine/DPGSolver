@@ -9,7 +9,8 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
-	 ${PETSC_LIBRARIES}
+#	 ${PETSC_LIBRARIES}
+	 Solvers
 	)
 
 set (LIB Solver_DPG)

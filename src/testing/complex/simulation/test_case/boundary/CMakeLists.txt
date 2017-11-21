@@ -4,6 +4,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 Complex_Containers
 	 Test_Complex_Containers
 	 Test_Complex_Operators
 	 Test_Complex_Solver_DG

@@ -6,6 +6,7 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 Containers
+	 Test_Support
 	)
 
 set (LIB Test_Support_Containers)

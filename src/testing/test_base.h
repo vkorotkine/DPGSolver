@@ -77,17 +77,6 @@ void test_print_warning
 	 const char*const warn_name        ///< The warning message string.
 	);
 
-/*/// \brief Print a failure message.
-void test_print_failure
-	(struct Test_Info*const test_info, ///< \ref Test_Info.
-	 const char*const fail_name        ///< The failure message string.
-	);*/
-
-/// \brief Output test related information.
-void output_test_info
-	(struct Test_Info*const test_info ///< \ref Test_Info.
-	);
-
 /// \brief Output the warning count if warnings were generated.
 void output_warning_count
 	(struct Test_Info*const test_info ///< \ref Test_Info.

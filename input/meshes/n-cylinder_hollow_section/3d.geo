@@ -1,4 +1,4 @@
-Include "../Parameters.geo";
+Include "../parameters.geo";
 //MeshCurving = CURVED; MeshLevel = 0; MeshType = MIXED3D_HW; PDEName = EULER;
 
 // Geometry Specification

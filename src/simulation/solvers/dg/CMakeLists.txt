@@ -12,13 +12,13 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
-	 ${PETSC_LIBRARIES}
-	 Complex_Containers
-	 Containers
-	 Element
-	 Flux
-	 Numerical_Flux
-	 Solvers
+#	 ${PETSC_LIBRARIES}
+#	 Complex_Containers
+#	 Containers
+#	 Element
+#	 Flux
+#	 Numerical_Flux
+#	 Solvers
 	)
 
 set (LIB Solver_DG)
