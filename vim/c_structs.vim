@@ -41,6 +41,7 @@ syntax keyword Identifier DPG_Solver_Element
 
 syntax keyword Identifier Volume
 syntax keyword Identifier Solver_Volume
+syntax keyword Identifier Adaptive_Solver_Volume
 syntax keyword Identifier DG_Solver_Volume
 syntax keyword Identifier DPG_Solver_Volume
 syntax keyword Identifier Complex_DG_Solver_Volume
@@ -48,6 +49,7 @@ syntax keyword Identifier Complex_DPG_Solver_Volume
 
 syntax keyword Identifier Face
 syntax keyword Identifier Solver_Face
+syntax keyword Identifier Adaptive_Solver_Face
 syntax keyword Identifier DG_Solver_Face
 syntax keyword Identifier DPG_Solver_Face
 syntax keyword Identifier Complex_DG_Solver_Face

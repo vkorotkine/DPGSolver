@@ -127,7 +127,7 @@ const struct const_Nodes* constructor_const_Nodes_tp (const int d, const int p, 
 				r[i] = -1.0 + (2.0/p)*i;
 		}
 	} else {
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Unsupported: %d.\n",node_type);
 	}
 
 	const int ext_0 = pow(pp1,d);
@@ -505,6 +505,37 @@ constructor_Nodes_fptr get_constructor_Nodes_by_super_type (const int s_type)
 		return constructor_const_Nodes_pyr;
 	else
 		EXIT_UNSUPPORTED;
+}
+
+void print_Nodes_tol (const struct Nodes*const nodes, const double tol)
+{
+	printf("rst:\n");
+	print_Matrix_d_tol(nodes->rst,tol);
+
+	if (nodes->has_weights) {
+		printf("w:\n");
+		print_Vector_d_tol(nodes->w,tol);
+	}
+
+	if (nodes->has_symms) {
+		printf("symms:\n");
+		print_Vector_i(nodes->s);
+	}
+}
+
+void print_Nodes (const struct Nodes*const nodes)
+{
+	print_Nodes_tol(nodes,EPS);
+}
+
+void print_const_Nodes_tol (const struct const_Nodes*const nodes, const double tol)
+{
+	print_Nodes_tol((const struct Nodes*const)nodes,tol);
+}
+
+void print_const_Nodes (const struct const_Nodes*const nodes)
+{
+	print_Nodes((const struct Nodes*const)nodes);
 }
 
 // Static functions ************************************************************************************************* //

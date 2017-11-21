@@ -1,3 +1,4 @@
+add_subdirectory(adaptation)
 add_subdirectory(dg)
 add_subdirectory(dpg)
 add_subdirectory(numerical_flux)

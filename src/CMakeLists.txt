@@ -42,7 +42,6 @@ include_directories(
 	testing
 	)
 
-add_subdirectory(allocators)
 add_subdirectory(containers)
 add_subdirectory(element)
 add_subdirectory(general)

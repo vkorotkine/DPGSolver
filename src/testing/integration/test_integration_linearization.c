@@ -171,7 +171,6 @@ int main
 	 char** argv ///< Standard.
 	)
 {
-/// \todo Pass Petsc options file as third argument here (-> nargc == 3).
 	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
 
 	assert_condition_message(nargc == 2,"Invalid number of input arguments");
@@ -189,7 +188,6 @@ int main
 	struct Simulation* sim = NULL;
 	structor_simulation(&sim,'c',adapt_type,p,ml,p,ml,ctrl_name_curr); // destructed
 
-	constructor_derived_computational_elements(sim,IL_SOLVER); // destructed
 
 	set_up_solver_geometry(sim);
 	set_initial_solution(sim);
@@ -222,8 +220,6 @@ int main
 
 	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
 	destructor_derived_Elements(sim,IL_ELEMENT);
-
-	destructor_derived_computational_elements(sim,IL_BASE);
 
 	structor_simulation(&sim,'d',adapt_type,p,ml,p,ml,NULL);
 

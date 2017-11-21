@@ -276,12 +276,12 @@ struct Matrix_d* constructor_mm_Matrix_d
 /** \brief `const` version of \ref constructor_mm_Matrix_d.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_mm_const_Matrix_d
-	(const char trans_a_i,                ///< Defined for \ref constructor_mm_Matrix_d.
-	 const char trans_b_i,                ///< Defined for \ref constructor_mm_Matrix_d.
-	 const double alpha,                  ///< Defined for \ref constructor_mm_Matrix_d.
-	 const struct const_Matrix_d*const a, ///< Defined for \ref constructor_mm_Matrix_d.
-	 const struct const_Matrix_d*const b, ///< Defined for \ref constructor_mm_Matrix_d.
-	 const char layout                    ///< Defined for \ref constructor_mm_Matrix_d.
+	(const char trans_a_i,                ///< See brief.
+	 const char trans_b_i,                ///< See brief.
+	 const double alpha,                  ///< See brief.
+	 const struct const_Matrix_d*const a, ///< See brief.
+	 const struct const_Matrix_d*const b, ///< See brief.
+	 const char layout                    ///< See brief.
 	);
 
 /** \brief Constructor for a \ref Matrix_d\* from a matrix-matrix multiplication using default values.
@@ -342,11 +342,11 @@ struct Matrix_d* constructor_mm_diag_Matrix_d
 /** \brief `const` version of \ref constructor_mm_diag_Matrix_d.
  *  \return See brief. */
 const struct const_Matrix_d* constructor_mm_diag_const_Matrix_d
-	(const double alpha,                  ///< Defined for \ref constructor_mm_diag_Matrix_d.
-	 const struct const_Matrix_d*const a, ///< Defined for \ref constructor_mm_diag_Matrix_d.
-	 const struct const_Vector_d*const b, ///< Defined for \ref constructor_mm_diag_Matrix_d.
-	 const char side,                     ///< Defined for \ref constructor_mm_diag_Matrix_d.
-	 const bool invert_diag               ///< Defined for \ref constructor_mm_diag_Matrix_d.
+	(const double alpha,                  ///< See brief.
+	 const struct const_Matrix_d*const a, ///< See brief.
+	 const struct const_Vector_d*const b, ///< See brief.
+	 const char side,                     ///< See brief.
+	 const bool invert_diag               ///< See brief.
 	);
 
 /// \brief Set a \ref Matrix_d\* from a sub range of a \ref Multiarray_d\*.

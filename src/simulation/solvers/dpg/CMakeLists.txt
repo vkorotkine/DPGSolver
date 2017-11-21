@@ -9,7 +9,6 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
-#	 ${PETSC_LIBRARIES}
 	 Solvers
 	)
 

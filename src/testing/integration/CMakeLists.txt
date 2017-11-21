@@ -3,6 +3,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 Adaptation
 	 Simulation
 	)
 

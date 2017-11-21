@@ -26,9 +26,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_alloc.h"
 #include "definitions_core.h"
+#include "definitions_intrusive.h"
+#include "simulation/solvers/adaptation/definitions_adaptation.h"
 
 #include "test_base.h"
 
+#include "simulation/solvers/adaptation/adaptation.h"
+#include "simulation/computational_elements/computational_elements.h"
 #include "const_cast.h"
 #include "file_processing.h"
 #include "simulation.h"
@@ -79,17 +83,17 @@ void structor_simulation
 	case ADAPT_0:
 		if (mode == 'c') {
 			*sim = constructor_Simulation(ctrl_name); // destructed
+			constructor_derived_computational_elements(*sim,IL_SOLVER); // destructed
 		} else if (mode == 'd') {
+			destructor_derived_computational_elements(*sim,IL_BASE);
 			destructor_Simulation(*sim);
 		}
 		break;
 	case ADAPT_P:
-		EXIT_ADD_SUPPORT;
-		if (ml != ml_prev) {
+		if (ml != ml_prev)
 			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name);
-		} else {
-			; // p-adapt
-		}
+		else
+			adapt_hp(*sim,ADAPT_S_P_REFINE);
 		break;
 	case ADAPT_H:
 		EXIT_ADD_SUPPORT;
@@ -131,16 +135,16 @@ const char* set_file_name_curr (const int adapt_type, const int p, const int ml,
 		assert(!isdigit(index[4]));
 		break;
 	case ADAPT_P:
-		assert(strstr(file_name_curr,"__ml") == NULL);
-		index = strstr(file_name_curr,"__p");
-		index[3] = '0'+p;
-		assert(!isdigit(index[4]));
-		break;
-	case ADAPT_H:
 		assert(strstr(file_name_curr,"__p") == NULL);
 		index = strstr(file_name_curr,"__ml");
 		index[4] = '0'+ml;
 		assert(!isdigit(index[5]));
+		break;
+	case ADAPT_H:
+		assert(strstr(file_name_curr,"__ml") == NULL);
+		index = strstr(file_name_curr,"__p");
+		index[3] = '0'+p;
+		assert(!isdigit(index[4]));
 		break;
 	case ADAPT_HP:
 		assert(strstr(file_name_curr,"__ml") == NULL);

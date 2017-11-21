@@ -24,8 +24,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_elements.h"
 #include "definitions_intrusive.h"
 
+#include "simulation/solvers/adaptation/face_solver_adaptive.h"
 #include "face_solver_dg_complex.h"
 #include "face_solver_dpg_complex.h"
+#include "simulation/solvers/adaptation/volume_solver_adaptive.h"
 #include "volume_solver_dg_complex.h"
 #include "volume_solver_dpg_complex.h"
 
@@ -432,6 +434,18 @@ static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
 		de_info.sizeof_derived[1] = sizeof(struct Complex_DPG_Solver_Face);
 		de_info.constructor_derived_Volume = constructor_derived_Complex_DPG_Solver_Volume;
 		de_info.constructor_derived_Face   = constructor_derived_Complex_DPG_Solver_Face;
+		break;
+	case IL_SOLVER_ADAPTIVE:
+		assert(sim->volumes->name == IL_VOLUME_SOLVER);
+		assert(sim->faces->name   == IL_FACE_SOLVER);
+		de_info.list_name[0] = IL_VOLUME_SOLVER_ADAPTIVE;
+		de_info.list_name[1] = IL_FACE_SOLVER_ADAPTIVE;
+		de_info.sizeof_base[0] = sizeof(struct Solver_Volume);
+		de_info.sizeof_base[1] = sizeof(struct Solver_Face);
+		de_info.sizeof_derived[0] = sizeof(struct Adaptive_Solver_Volume);
+		de_info.sizeof_derived[1] = sizeof(struct Adaptive_Solver_Face);
+		de_info.constructor_derived_Volume = constructor_derived_Adaptive_Solver_Volume;
+		de_info.constructor_derived_Face   = constructor_derived_Adaptive_Solver_Face;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_category);

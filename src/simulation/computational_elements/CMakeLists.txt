@@ -5,6 +5,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 Adaptation
 	 Compute_Error
 	 Containers
 	 Element

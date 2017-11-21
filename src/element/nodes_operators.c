@@ -99,12 +99,12 @@ const struct const_Nodes* constructor_const_Nodes_h
 
 	// Always use the input to establish the dimension of the nodes as it is in bases of this dimension in which the
 	// nodes will be used.
-	const int d_i          = compute_d_nodes(op_io[OP_IND_I].ce,element->d),
-	          d_io         = compute_d_nodes(op_io[ind_io].ce,element->d),
-	          p_io         = compute_p_nodes(&op_io[ind_io],node_type_io,sim),
-	          ind_h_io     = op_io[ind_io].h_op,
-	          ind_ce_io    = op_io[ind_io].ce_op;
-	const char ce_io       = op_io[ind_io].ce;
+	const int d_i       = compute_d_nodes(op_io[OP_IND_I].ce,element->d),
+	          d_io      = compute_d_nodes(op_io[ind_io].ce,element->d),
+	          p_io      = compute_p_nodes(&op_io[ind_io],node_type_io,sim),
+	          ind_h_io  = op_io[ind_io].h_op,
+	          ind_ce_io = op_io[ind_io].ce_op;
+	const char ce_io    = op_io[ind_io].ce;
 
 	constructor_Nodes_fptr constructor_Nodes = get_constructor_Nodes_by_super_type(s_type_io);
 	constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type_io,"orthonormal");
@@ -298,11 +298,9 @@ static int compute_p_nodes (const struct Op_IO* op_io, const int node_type, cons
 		return compute_p_basis(op_io,sim);
 		break;
 	case 'c': {
-		const int cub_c_type = compute_cub_c_type(node_type,sim);
 		// Note that cubature order depends on the node_type (May be p_op or p_c_x*p_op+p_c_p).
-		// 2) Set based on the node_type
-
-		const int p_op  = op_io->p_op;
+		const int cub_c_type = compute_cub_c_type(node_type,sim),
+		          p_op       = op_io->p_op;
 		if (cub_c_type == CUB_C_COL) {
 			return p_op;
 		} else {
@@ -392,7 +390,7 @@ static int compute_node_type_std
 {
 	const char node_kind = op_io->kind,
 	           node_ce   = op_io->ce;
-	const int s_type = element->s_type;
+	const int s_type = compute_super_type_op(node_ce,op_io->h_op,element);
 	switch (node_kind) {
 	case 's': // fallthrough
 	case 'f': // fallthrough
@@ -409,9 +407,9 @@ static int compute_node_type_std
 			return NODES_EQ;
 		else
 			EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
-	case 'g': // fallthrough
-	case 'm':
+	case 'm': // fallthrough
 		assert(node_ce == 'v');
+	case 'g':
 		switch (s_type) {
 			case ST_TP:  return NODES_GLL; break;
 			case ST_SI:  return NODES_AO;  break;

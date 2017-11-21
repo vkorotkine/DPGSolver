@@ -267,7 +267,7 @@ static void set_sub_operator_info
 	const struct const_Vector_i* op_values =
 		constructor_move_const_Vector_Matrix_row_i(ind_values,values_op,false); // destructed
 
-	if (check_op_info_loss(op_values->data))
+	if (op_should_use_L2(op_values->data,op_io))
 		EXIT_ERROR("Ensure that all is working as expected.\n");
 		// Invalid condition in \ref set_ops_Md for j == OP_IND_H.
 

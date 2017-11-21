@@ -176,4 +176,26 @@ constructor_Nodes_fptr get_constructor_Nodes_by_super_type
 	(const int s_type ///< \ref Element::s_type.
 	);
 
+/// \brief Print a \ref Nodes container to the terminal displaying entries below the tolerance as 0.0.
+void print_Nodes_tol
+	(const struct Nodes*const nodes, ///< Standard.
+	 const double tol                ///< The tolerance.
+	);
+
+/// \brief `const` version of \ref print_Nodes_tol.
+void print_const_Nodes_tol
+	(const struct const_Nodes*const nodes, ///< See brief.
+	 const double tol                      ///< See brief.
+	);
+
+/// \brief Print a \ref Nodes container to the terminal calling \ref print_Nodes_tol with a default tolerance.
+void print_Nodes
+	(const struct Nodes*const nodes ///< Standard.
+	);
+
+/// \brief `const` version of \ref print_Nodes.
+void print_const_Nodes
+	(const struct const_Nodes*const nodes ///< See brief.
+	);
+
 #endif // DPG__nodes_h__INCLUDED

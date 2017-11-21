@@ -8,11 +8,9 @@
 #PBS -V
 #PBS -N pz
 
-# The executable to use
-EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_geometry
-
-# Command line arguments
-ARGV="extern_mesh/TEST_curved_2d_mixed"
+# Executable and command line arguments
+EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
+ARGV="advection/TEST_Advection_Peterson_DPG_TRI__ml0"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

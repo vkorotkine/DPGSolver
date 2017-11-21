@@ -105,8 +105,6 @@ struct Op_IO {
 	          p_op;  ///< The polynomial order index of the operator (**Not the order of the basis/cubature rule**).
 
 	const int s_type; ///< \ref Element::s_type.
-
-	const int p_rel; ///< The difference between the order of input operators and the operator indices.
 };
 
 /** Container for operator range related information.
@@ -194,10 +192,15 @@ int compute_p_basis
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Check if information can be lost while performing the operation.
- *  \return `true` if: `p_i > p_o` or `h_i > h_o`; `false` otherwise. */
-bool check_op_info_loss
-	(const int*const op_values ///< Values for the operator indices.
+/** \brief Check if the operator should use an L2 projection (as opposed to interpolation).
+ *  \return `true` if yes; `false` otherwise.
+ *
+ *  The L2 projection operators are used whenever information would be lost by performing an interpolation
+ *  (interpolating from a fine to a coarse space) and the output set of nodes forms a basis for a polynomial space.
+ */
+bool op_should_use_L2
+	(const int*const op_values, ///< Values for the operator indices.
+	 const struct Op_IO* op_io  ///< \ref Op_IO.
 	);
 
 /** \brief Constructor for a \ref Vector_i\* of indices for the current operator.
@@ -206,6 +209,14 @@ const struct const_Vector_i* constructor_indices_Vector_i
 	(const int ext_0_expected,     ///< The expected value of ext_0. May be set to '-1' if checking is not desired.
 	 const int* op_values,         ///< The operator values.
 	 const bool*const indices_skip ///< Indices to skip (if not NULL).
+	);
+
+/** \brief Compute the super type of the nodes based on the kind of operator.
+ *  \return See brief. */
+int compute_super_type_op
+	(const char ce,                      ///< \ref Op_IO::ce.
+	 const int h_op,                     ///< \ref Op_IO::h_op.
+	 const struct const_Element* element ///< \ref const_Element.
 	);
 
 #endif // DPG__element_operators_h__INCLUDED
