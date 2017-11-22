@@ -93,17 +93,11 @@ static void constructor_derived_Solution_Element_std (struct Element* element_pt
 	case METHOD_DG:
 		break; // Do nothing.
 	case METHOD_DPG:
-if (b_e->type == LINE) {
-	printf("\n\n\n***********Skipping LINE*************.\n\n\n");
-	return;
-}
 		e->cv0_vg_ff[0] = constructor_operators("cv0","vgs","ffA","H_1_P_1PPM1",b_e,sim); // destructed
-print_Multiarray_Operator(e->cv0_vg_ff[0]);
 		e->cv0_vg_ff[1] = constructor_operators("cv0","vgc","ffA","H_1_P_PM1",  b_e,sim); // destructed
 		e->vv0_vm_ff[0] = constructor_operators("vv0","vms","ffA","H_1_P_1PPM1",b_e,sim); // destructed
 		e->vv0_vm_ff[1] = constructor_operators("vv0","vmc","ffA","H_1_P_PM1",  b_e,sim); // destructed
 		e->vc0_ff_ff    = constructor_operators("vc0","ffA","ffA","H_1_P_PM0",  b_e,sim); // destructed
-EXIT_UNSUPPORTED;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);

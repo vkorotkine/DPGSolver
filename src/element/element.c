@@ -168,11 +168,12 @@ int compute_elem_type_sub_ce (const int e_type, const char ce, const int ind_ce)
 	switch (ce) {
 	case 'v':
 		switch (e_type) {
-		case LINE: // fallthrough
-		case TRI:  // fallthrough
-		case QUAD: // fallthrough
-		case TET:  // fallthrough
-		case HEX:  // fallthrough
+		case POINT: // fallthrough
+		case LINE:  // fallthrough
+		case TRI:   // fallthrough
+		case QUAD:  // fallthrough
+		case TET:   // fallthrough
+		case HEX:   // fallthrough
 		case WEDGE:
 			return e_type;
 		case PYR:

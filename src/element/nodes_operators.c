@@ -104,7 +104,6 @@ const struct const_Nodes* constructor_const_Nodes_h
 	          p_io      = compute_p_nodes(&op_io[ind_io],node_type_io,sim),
 	          ind_h_io  = op_io[ind_io].h_op,
 	          ind_ce_io = op_io[ind_io].ce_op;
-	const char ce_io    = op_io[ind_io].ce;
 
 	constructor_Nodes_fptr constructor_Nodes = get_constructor_Nodes_by_super_type(s_type_io);
 	constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type_io,"orthonormal");
@@ -144,8 +143,9 @@ const struct const_Nodes* constructor_const_Nodes_h
 	if ((ce_i == ce_o) || (ce_i == 'v')) { // ((vv || ff || ee) || (vf || ve))
 		// Compute the output rst coordinates by multiplying the barycentric coordinates of the nodes with the
 		// appropriate (sub)set of reference element vertices.
+		const char ce_n = (ce_i == ce_o ? 'v' : op_io[ind_io].ce);
 		const struct const_Matrix_d* rst_ve_io =
-			constructor_rst_ve(s_type_i,d_i,d_io,ind_h_io,ind_ce_io,ce_io,sim); // destructed
+			constructor_rst_ve(s_type_i,d_i,d_io,ind_h_io,ind_ce_io,ce_n,sim); // destructed
 		nodes->rst = constructor_mm_Matrix_d('N','N',1.0,cv0_vvs_vXX,rst_ve_io,'C'); // keep
 		destructor_const_Matrix_d(rst_ve_io);
 	} else if (ce_o == 'v') { // (fv || ev)
@@ -271,7 +271,7 @@ static int compute_node_type
 
 static int compute_d_nodes (const char ce, const int elem_d)
 {
-	assert(elem_d > 0);
+//	assert(elem_d > 0);
 
 	switch (ce) {
 		case 'v': return elem_d;              break;
@@ -408,7 +408,6 @@ static int compute_node_type_std
 		else
 			EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
 	case 'm': // fallthrough
-		assert(node_ce == 'v');
 	case 'g':
 		switch (s_type) {
 			case ST_TP:  return NODES_GLL; break;
