@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface for the \ref Adaptive_Solver_Face container and associated functions.
  */
 
-#include "simulation/solvers/face_solver.h"
+#include "face_solver.h"
 
 /// \brief Container for data relating to the adaptive solver faces.
 struct Adaptive_Solver_Face {

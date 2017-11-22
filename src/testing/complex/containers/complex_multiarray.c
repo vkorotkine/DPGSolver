@@ -61,7 +61,8 @@ struct Matrix_c interpret_Multiarray_as_Matrix_c (const struct Multiarray_c* a_M
 {
 	assert(a_Ma->order == 2);
 	struct Matrix_c a =
-		{ .ext_0     = a_Ma->extents[0],
+		{ .layout    = a_Ma->layout,
+		  .ext_0     = a_Ma->extents[0],
 		  .ext_1     = a_Ma->extents[1],
 		  .owns_data = false,
 		  .data      = a_Ma->data, };

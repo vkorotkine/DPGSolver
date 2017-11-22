@@ -18,8 +18,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver_adaptive.h"
 
 #include "macros.h"
+#include "definitions_adaptation.h"
 
-#include "simulation/simulation.h"
+#include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -27,15 +28,19 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void constructor_derived_Adaptive_Solver_Volume (struct Volume* volume_ptr, const struct Simulation* sim)
 {
-	struct Adaptive_Solver_Volume* a_s_volume = (struct Adaptive_Solver_Volume*) volume_ptr;
-	UNUSED(a_s_volume);
+	struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) volume_ptr;
+	struct Solver_Volume* s_vol            = (struct Solver_Volume*) volume_ptr;
+
+	a_s_vol->adapt_type = ADAPT_NONE;
+
+	a_s_vol->p_ref_prev = s_vol->p_ref;
 	UNUSED(sim);
 }
 
 void destructor_derived_Adaptive_Solver_Volume (struct Volume* volume_ptr)
 {
-	struct Adaptive_Solver_Volume* a_s_volume = (struct Adaptive_Solver_Volume*) volume_ptr;
-	UNUSED(a_s_volume);
+	struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) volume_ptr;
+	UNUSED(a_s_vol);
 }
 
 // Static functions ************************************************************************************************* //

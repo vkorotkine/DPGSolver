@@ -590,7 +590,6 @@ static void increment_rlhs_internal_face
 	const struct Solver_Face* s_face  = (struct Solver_Face*) dpg_s_face;
 	struct Matrix_d nf_coef = interpret_Multiarray_as_Matrix_d(s_face->nf_coef);
 
-//print_Multiarray_d(s_face->nf_coef);
 	mm_d('N','N',1.0,1.0,lhs_l,(struct const_Matrix_d*)&nf_coef,rhs);
 
 	const int n_eq = sim->test_case->n_eq,

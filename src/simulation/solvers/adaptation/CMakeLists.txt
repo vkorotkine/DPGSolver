@@ -1,6 +1,7 @@
 set	(SOURCE
 	 adaptation.c
 	 face_solver_adaptive.c
+	 element_adaptation.c
 	 volume_solver_adaptive.c
 	)
 

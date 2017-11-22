@@ -41,6 +41,7 @@ add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
 add_test_DPG(${EXEC} "advection/TEST_Advection_Demkowicz_DPGII_LINE__ml0__p1")
 add_test_DPG(${EXEC} "advection/TEST_Advection_Peterson_TRI__ml0__p1")
+add_test_DPG(${EXEC} "advection/TEST_Advection_Peterson_DPG_TRI__ml0")
 
 set (EXEC test_integration_convergence)
 set (LIBS_DEPEND ${LIBS_BASE} Simulation Test_Integration)

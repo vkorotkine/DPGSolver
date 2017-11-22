@@ -287,7 +287,8 @@ struct Matrix_d interpret_Multiarray_as_Matrix_d (const struct Multiarray_d* a_M
 {
 	assert(a_Ma->order == 2);
 	struct Matrix_d a =
-		{ .ext_0     = a_Ma->extents[0],
+		{ .layout    = a_Ma->layout,
+		  .ext_0     = a_Ma->extents[0],
 		  .ext_1     = a_Ma->extents[1],
 		  .owns_data = false,
 		  .data      = a_Ma->data, };

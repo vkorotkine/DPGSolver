@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver_dg_complex.h"
 #include "volume_solver_dpg_complex.h"
 
+#include "compute_face_rlhs.h"
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
@@ -129,7 +130,7 @@ static const struct const_Multiarray_c* constructor_s_fc_interp_c_dg
 	(const struct Solver_Face* s_face, const struct Simulation* sim, const int side_index)
 {
 	UNUSED(sim);
-	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc__rlhs_dg(s_face,side_index);
+	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc(side_index,s_face);
 
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) ((struct Face*)s_face)->neigh_info[side_index].volume;
 
@@ -143,7 +144,7 @@ static const struct const_Multiarray_c* constructor_s_fc_interp_c_dpg
 	(const struct Solver_Face* s_face, const struct Simulation* sim, const int side_index)
 {
 	UNUSED(sim);
-	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc__rlhs_dg(s_face,side_index);
+	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc(side_index,s_face);
 
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) ((struct Face*)s_face)->neigh_info[side_index].volume;
 

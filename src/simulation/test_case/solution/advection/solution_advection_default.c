@@ -62,17 +62,7 @@ static const struct const_Multiarray_d* constructor_source_advection_default
 
 void set_sol_advection_default (const struct Simulation* sim, struct Solution_Container sol_cont)
 {
-	const char ce_type   = sol_cont.ce_type,
-	           node_kind = sol_cont.node_kind;
-
-	const struct const_Multiarray_d* xyz = NULL;
-	if (ce_type == 'v')
-		xyz = constructor_xyz_v(sim,sol_cont.volume,node_kind); // destructed
-	else if (ce_type == 'f')
-		xyz = constructor_xyz_f(sim,sol_cont.face,node_kind); // destructed
-	else
-		EXIT_ERROR("Unsupported: %c\n",ce_type);
-
+	const struct const_Multiarray_d* xyz = constructor_xyz_sol(sim,&sol_cont); // destructed
 	struct Multiarray_d* sol = constructor_sol_advection_default(xyz,sim); // destructed
 	destructor_const_Multiarray_d(xyz);
 

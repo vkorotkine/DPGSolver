@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element_plotting.h"
 #include "element_solution.h"
 #include "element_error.h"
+#include "element_adaptation.h"
 #include "element_solver.h"
 #include "element_solver_dg.h"
 #include "element_solver_dpg.h"
@@ -515,6 +516,11 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 		de_info.destructor_derived_Volume = destructor_derived_Complex_DPG_Solver_Volume;
 		de_info.destructor_derived_Face   = destructor_derived_Complex_DPG_Solver_Face;
 		break;
+	case IL_SOLVER_ADAPTIVE:
+		assert(base_category == IL_SOLVER);
+		de_info.destructor_derived_Volume = destructor_derived_Adaptive_Solver_Volume;
+		de_info.destructor_derived_Face   = destructor_derived_Adaptive_Solver_Face;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_category);
 		break;
@@ -550,6 +556,12 @@ static struct Derived_Elements_Info get_c_Derived_Elements_Info (const int deriv
 		de_info.sizeof_base    = sizeof(struct Solution_Element);
 		de_info.sizeof_derived = sizeof(struct Error_Element);
 		de_info.constructor_derived_Element = constructor_derived_Error_Element;
+		break;
+	case IL_ELEMENT_ADAPTATION:
+		assert(sim->elements->name == IL_ELEMENT);
+		de_info.sizeof_base    = sizeof(struct Element);
+		de_info.sizeof_derived = sizeof(struct Adaptation_Element);
+		de_info.constructor_derived_Element = constructor_derived_Adaptation_Element;
 		break;
 	case IL_ELEMENT_SOLVER:
 		assert(sim->elements->name == IL_ELEMENT);
@@ -611,6 +623,10 @@ static struct Derived_Elements_Info get_d_Derived_Elements_Info (const int base_
 	case IL_ELEMENT_ERROR:
 		assert(base_name == IL_ELEMENT_SOLUTION);
 		de_info.destructor_derived_Element = destructor_derived_Error_Element;
+		break;
+	case IL_ELEMENT_ADAPTATION:
+		assert(base_name == IL_ELEMENT);
+		de_info.destructor_derived_Element = destructor_derived_Adaptation_Element;
 		break;
 	case IL_ELEMENT_SOLVER:
 		assert(base_name == IL_ELEMENT);
@@ -719,6 +735,10 @@ static int get_list_category (const struct Simulation* sim)
 	case IL_VOLUME_SOLVER_DPG_COMPLEX:
 		assert(f_name == IL_FACE_SOLVER_DPG_COMPLEX);
 		ce_name = IL_SOLVER_DPG_COMPLEX;
+		break;
+	case IL_VOLUME_SOLVER_ADAPTIVE:
+		assert(f_name == IL_FACE_SOLVER_ADAPTIVE);
+		ce_name = IL_SOLVER_ADAPTIVE;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",v_name);

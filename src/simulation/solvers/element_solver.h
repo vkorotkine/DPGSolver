@@ -17,15 +17,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__element_solver_h__INCLUDED
 /** \file
  *  \brief Provides the interface for the derived \ref Solver_Element container and associated functions.
- *
- *  \note `const` and non-`const` versions of \ref Solver_Element must have identical members and layout.
  */
 
 #include "element.h"
 
 struct Simulation;
 
-/// \brief Container for data relating to the dg solver element.
+/// \brief Container for data relating to the solver element.
 struct Solver_Element {
 	const struct const_Element element; ///< Base \ref const_Element.
 

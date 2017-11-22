@@ -41,16 +41,16 @@ struct Nodes {
 
 /// `const` version of \ref Nodes.
 struct const_Nodes {
-	const int p,         ///< Defined in \ref Nodes.
-	          node_type; ///< Defined in \ref Nodes.
+	const int p,         ///< See brief.
+	          node_type; ///< See brief.
 
-	const struct const_Matrix_d*const rst; ///< Defined in \ref Nodes.
+	const struct const_Matrix_d*const rst; ///< See brief.
 
-	const bool has_weights;              ///< Defined in \ref Nodes.
-	const struct const_Vector_d*const w; ///< Defined in \ref Nodes.
+	const bool has_weights;              ///< See brief.
+	const struct const_Vector_d*const w; ///< See brief.
 
-	const bool has_symms;           ///< Defined in \ref Nodes.
-	const struct const_Vector_i* s; ///< Defined in \ref Nodes.
+	const bool has_symms;           ///< See brief.
+	const struct const_Vector_i* s; ///< See brief.
 };
 
 /** \brief Function pointer to node constructor function.

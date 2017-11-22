@@ -30,17 +30,25 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 // Constructors ***************************************************************************************************** //
 
-const struct const_Multiarray_d* constructor_mm_NN1_Operator_const_Multiarray_d
-	(const struct Operator* op, const struct const_Multiarray_d* b, const char layout_c, const char op_format,
+struct Multiarray_d* constructor_mm_NN1_Operator_Multiarray_d
+	(const struct Operator* op, const struct Multiarray_d* b, const char layout_c, const char op_format,
 	 const int order_sub_ma, const ptrdiff_t* sub_inds_b)
 {
 	ptrdiff_t* extents = compute_extents_mm_MMa(op->op_std->ext_0,b->order,b->extents); // keep
 
 	struct Multiarray_d* c = constructor_empty_Multiarray_d_dyn_extents(layout_c,order_sub_ma,extents); // returned
 
-	mm_NN1_Operator_Multiarray_d(op,b,c,op_format,order_sub_ma,sub_inds_b,NULL);
+	mm_NN1_Operator_Multiarray_d(op,(struct const_Multiarray_d*)b,c,op_format,order_sub_ma,sub_inds_b,NULL);
 
-	return (const struct const_Multiarray_d*) c;
+	return c;
+}
+
+const struct const_Multiarray_d* constructor_mm_NN1_Operator_const_Multiarray_d
+	(const struct Operator* op, const struct const_Multiarray_d* b, const char layout_c, const char op_format,
+	 const int order_sub_ma, const ptrdiff_t* sub_inds_b)
+{
+	return (const struct const_Multiarray_d*) constructor_mm_NN1_Operator_Multiarray_d(
+		op,(struct Multiarray_d*)b,layout_c,op_format,order_sub_ma,sub_inds_b);
 }
 
 // Destructors ****************************************************************************************************** //

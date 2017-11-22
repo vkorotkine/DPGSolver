@@ -181,12 +181,14 @@ int main
 	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name);
 
 	const int p  = int_test_info->p_ref[1],
-	          ml = int_test_info->ml[1];
+	          ml = int_test_info->ml[1],
+	          p_prev  = p-1,
+	          ml_prev = ml-1;
 
 	const int adapt_type = int_test_info->adapt_type;
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,ctrl_name);
 	struct Simulation* sim = NULL;
-	structor_simulation(&sim,'c',adapt_type,p,ml,p,ml,ctrl_name_curr); // destructed
+	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr); // destructed
 
 
 	set_up_solver_geometry(sim);
@@ -221,7 +223,7 @@ int main
 	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
 	destructor_derived_Elements(sim,IL_ELEMENT);
 
-	structor_simulation(&sim,'d',adapt_type,p,ml,p,ml,NULL);
+	structor_simulation(&sim,'d',adapt_type,p,ml,p_prev,ml_prev,NULL);
 
 	destructor_Integration_Test_Info(int_test_info);
 

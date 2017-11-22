@@ -35,6 +35,7 @@ syntax keyword Identifier Geometry_Element
 syntax keyword Identifier Plotting_Element const_Plotting_Element
 syntax keyword Identifier Solution_Element
 syntax keyword Identifier Error_Element
+syntax keyword Identifier Adaptation_Element
 syntax keyword Identifier Solver_Element
 syntax keyword Identifier DG_Solver_Element
 syntax keyword Identifier DPG_Solver_Element

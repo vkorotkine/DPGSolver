@@ -110,11 +110,4 @@ void destructor_Boundary_Value
 	(struct Boundary_Value* bv ///< Standard.
 	);
 
-/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vs_fc operator.
- *  \return See brief. */
-const struct Operator* get_operator__cv0_vs_fc__rlhs_dg
-	(const struct Solver_Face* s_face, ///< \ref Solver_Face.
-	 const int side_index              ///< The index of the side of the face under consideration.
-	);
-
 #endif // DPG__boundary_h__INCLUDED

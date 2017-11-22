@@ -104,20 +104,12 @@ void set_sg_do_nothing
 	 struct Solution_Container sol_cont ///< Defined for \ref set_sol_fptr.
 	);
 
-/** \brief Contructor for a \ref const_Multiarray_d\* holding the xyz coordinates at volume nodes of input kind.
+/** \brief Contructor for a \ref const_Multiarray_d\* holding the xyz coordinates associated with the
+ *         \ref Solution_Container.
  *  \return See brief. */
-const struct const_Multiarray_d* constructor_xyz_v
+const struct const_Multiarray_d* constructor_xyz_sol
 	(const struct Simulation* sim, ///< \ref Simulation.
-	 struct Solver_Volume* volume, ///< \ref Solver_Volume.
-	 const char node_kind          ///< The kind of node. Options: 's'olution, 'c'ubature.
-	);
-
-/** \brief Contructor for a \ref const_Multiarray_d\* holding the xyz coordinates at face nodes of input kind.
- *  \return See brief. */
-const struct const_Multiarray_d* constructor_xyz_f
-	(const struct Simulation* sim, ///< \ref Simulation.
-	 struct Solver_Face* s_face,   ///< \ref Solver_Face.
-	 const char node_kind          ///< The kind of node. Options: 'f'lux, 't'race.
+	 const struct Solution_Container* sol_cont ///< \ref Solution_Container.
 	);
 
 /// \brief Compute the coefficients associated with the values of the volume solution.

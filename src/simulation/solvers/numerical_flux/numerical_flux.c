@@ -116,6 +116,7 @@ struct Numerical_Flux* constructor_Numerical_Flux (const struct Numerical_Flux_I
 		n_i->dnnf_dg = (c_m[2] ? constructor_zero_Multiarray_d('C',4,(ptrdiff_t[]){n_n,n_eq,n_vr,d}) : NULL); // destructed
 	}
 
+	assert(num_flux_i->bv_l.s->extents[0] == num_flux_i->bv_l.normals->extents[0]);
 	num_flux_i->compute_Numerical_Flux(num_flux_i,num_flux);
 
 	return (struct Numerical_Flux*) num_flux;

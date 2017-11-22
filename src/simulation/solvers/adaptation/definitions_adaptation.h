@@ -19,6 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the definitions relating to the adaptation functionality.
  */
 
+///\{ \name Flag for computational elements which should not be adapted.
+#define ADAPT_NONE 0
+///\}
+
 ///\{ \name Supported adaptation types for computational elements.
 #define ADAPT_P_REFINE 1
 #define ADAPT_P_COARSE 2

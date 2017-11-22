@@ -26,6 +26,7 @@ include_directories(
 	simulation/mesh
 	simulation/operators
 	simulation/solvers
+	simulation/solvers/adaptation
 	simulation/solvers/dg
 	simulation/solvers/dg/complex
 	simulation/solvers/dpg

@@ -19,11 +19,15 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface for the \ref Adaptive_Solver_Volume container and associated functions.
  */
 
-#include "simulation/solvers/volume_solver.h"
+#include "volume_solver.h"
 
 /// \brief Container for data relating to the adaptive solver volumes.
 struct Adaptive_Solver_Volume {
 	struct Solver_Volume volume; ///< The base \ref Solver_Volume.
+
+	int adapt_type; ///< The type of adaptation to use. Options: see \ref definitions_adaption.h.
+
+	int p_ref_prev; ///< The previous value of \ref Solver_Volume::p_ref.
 };
 
 /// \brief Constructor for a derived \ref Adaptive_Solver_Volume.

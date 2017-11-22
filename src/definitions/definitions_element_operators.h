@@ -76,9 +76,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Refinement (h) range options.
-#define OP_R_H_1  10 ///< Standard operator (no h-refinement) only.
-#define OP_R_H_CF 11 ///< Coarse to fine + Standard.
-#define OP_R_H_FC 12 ///< Fine to coarse.
+#define OP_R_H_1   10 ///< Standard operator (no h-refinement) only.
+#define OP_R_H_CF  11 ///< Coarse to fine + Standard.
+#define OP_R_H_FC  12 ///< Fine to coarse.
+#define OP_R_H_ALL 13 ///< All h-refinement operators.
 ///\}
 
 ///\{ \name Order (p) range options.

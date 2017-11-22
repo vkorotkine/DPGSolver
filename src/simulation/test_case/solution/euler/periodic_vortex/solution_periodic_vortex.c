@@ -59,12 +59,6 @@ struct Sol_Data__pv {
 	       con;      ///< A scaling constant.
 };
 
-/** \brief Return the statically allocated \ref Sol_Data__pv container.
- *  \return See brief. */
-static struct Sol_Data__pv get_sol_data
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
 /// \brief Read the required solution data into \ref Sol_Data__pv.
 static void read_data_periodic_vortex
 	(const char*const input_path,       ///< Defined in \ref fopen_input.
@@ -79,9 +73,8 @@ static void set_data_periodic_vortex
 /** \brief Return a \ref Multiarray_d\* container holding the solution values at the input coordinates.
  *  \return See brief. */
 static struct Multiarray_d* constructor_sol_periodic_vortex
-	(const struct Simulation* sim,         ///< Defined for \ref set_sol_periodic_vortex.
-	 const struct const_Multiarray_d* xyz, ///< xyz coordinates at which to evaluate the solution.
-	 const struct Sol_Data__pv* sol_data   ///< \ref Sol_Data__pv.
+	(const struct Simulation* sim,        ///< Defined for \ref set_sol_periodic_vortex.
+	 const struct const_Multiarray_d* xyz ///< xyz coordinates at which to evaluate the solution.
 	);
 
 /// \brief Set the centre xy coordinates of the periodic vortex at the given time.
@@ -96,15 +89,8 @@ void set_xy_c
 
 void set_sol_periodic_vortex (const struct Simulation* sim, struct Solution_Container sol_cont)
 {
-	const char ce_type   = sol_cont.ce_type,
-	           node_kind = sol_cont.node_kind;
-
-	assert(ce_type == 'v'); // Add support for faces if necessary.
-
-	const struct Sol_Data__pv sol_data = get_sol_data(sim);
-
-	const struct const_Multiarray_d* xyz = constructor_xyz_v(sim,sol_cont.volume,node_kind); // destructed
-	struct Multiarray_d* sol = constructor_sol_periodic_vortex(sim,xyz,&sol_data);           // destructed
+	const struct const_Multiarray_d* xyz = constructor_xyz_sol(sim,&sol_cont); // destructed
+	struct Multiarray_d* sol = constructor_sol_periodic_vortex(sim,xyz); // destructed
 	destructor_const_Multiarray_d(xyz);
 
 	update_Solution_Container_sol(&sol_cont,sol);
@@ -114,29 +100,22 @@ void set_sol_periodic_vortex (const struct Simulation* sim, struct Solution_Cont
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static struct Sol_Data__pv get_sol_data (const struct Simulation* sim)
-{
-	static bool need_input = true;
-
-	static struct Sol_Data__pv sol_data;
-	if (need_input) {
-		need_input = false;
-		read_data_periodic_vortex(sim->input_path,&sol_data);
-		set_data_periodic_vortex(&sol_data);
-	}
-
-	return sol_data;
-}
+/** \brief Return the statically allocated \ref Sol_Data__pv container.
+ *  \return See brief. */
+static struct Sol_Data__pv get_sol_data
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
 
 static struct Multiarray_d* constructor_sol_periodic_vortex
-	(const struct Simulation* sim, const struct const_Multiarray_d* xyz, const struct Sol_Data__pv* sol_data)
+	(const struct Simulation* sim, const struct const_Multiarray_d* xyz)
 {
 	assert(sim->d >= 2);
+	const struct Sol_Data__pv sol_data = get_sol_data(sim);
 
 	// Set the coordinates of the vortex centre depending on the time.
 	double x_c = 0.0,
 	       y_c = 0.0;
-	set_xy_c(&x_c,&y_c,sol_data,sim->test_case->time);
+	set_xy_c(&x_c,&y_c,&sol_data,sim->test_case->time);
 
 	// Compute the solution
 	const ptrdiff_t n_vs = xyz->extents[0],
@@ -154,12 +133,12 @@ static struct Multiarray_d* constructor_sol_periodic_vortex
 	      * v   = get_col_Multiarray_d(2,sol),
 	      * p   = get_col_Multiarray_d(n_var-1,sol);
 	for (int i = 0; i < n_vs; ++i) {
-		const double rho_inf = sol_data->rho_inf,
-		             u_inf   = sol_data->u_inf,
-		             v_inf   = sol_data->v_inf,
-		             p_inf   = sol_data->p_inf,
-		             r_v     = sol_data->r_v,
-		             con     = sol_data->con;
+		const double rho_inf = sol_data.rho_inf,
+		             u_inf   = sol_data.u_inf,
+		             v_inf   = sol_data.v_inf,
+		             p_inf   = sol_data.p_inf,
+		             r_v     = sol_data.r_v,
+		             con     = sol_data.con;
 
 		const double r2 = (pow(x[i]-x_c,2.0)+pow(y[i]-y_c,2.0))/(r_v*r_v);
 
@@ -255,3 +234,20 @@ static void set_data_periodic_vortex (struct Sol_Data__pv*const sol_data)
 
 	sol_data->con = 0.1*V_inf;
 }
+
+// Level 1 ********************************************************************************************************** //
+
+static struct Sol_Data__pv get_sol_data (const struct Simulation* sim)
+{
+	static bool need_input = true;
+
+	static struct Sol_Data__pv sol_data;
+	if (need_input) {
+		need_input = false;
+		read_data_periodic_vortex(sim->input_path,&sol_data);
+		set_data_periodic_vortex(&sol_data);
+	}
+
+	return sol_data;
+}
+

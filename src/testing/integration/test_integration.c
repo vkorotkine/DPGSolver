@@ -90,10 +90,12 @@ void structor_simulation
 		}
 		break;
 	case ADAPT_P:
-		if (ml != ml_prev)
+		if (ml != ml_prev) {
 			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name);
-		else
-			adapt_hp(*sim,ADAPT_S_P_REFINE);
+		} else {
+			if (mode == 'c')
+				adapt_hp(*sim,ADAPT_S_P_REFINE);
+		}
 		break;
 	case ADAPT_H:
 		EXIT_ADD_SUPPORT;

@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume.h"
 #include "volume_solver.h"
 
+#include "compute_face_rlhs.h"
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
@@ -91,30 +92,13 @@ void destructor_Boundary_Value (struct Boundary_Value* bv)
 		destructor_const_Multiarray_d(bv->ds_ds);
 }
 
-const struct Operator* get_operator__cv0_vs_fc__rlhs_dg (const struct Solver_Face* s_face, const int side_index)
-{
-	struct Face* face              = (struct Face*) s_face;
-	struct Volume* volume          = face->neigh_info[side_index].volume;
-	struct Solver_Volume* s_volume = (struct Solver_Volume*) volume;
-
-	const struct Solver_Element* e = (const struct Solver_Element*) volume->element;
-
-	const int ind_lf   = face->neigh_info[side_index].ind_lf,
-	          ind_href = face->neigh_info[side_index].ind_href;
-	const int p_v = s_volume->p_ref,
-	          p_f = s_face->p_ref;
-
-	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
-	return get_Multiarray_Operator(e->cv0_vs_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
 static const struct const_Multiarray_d* constructor_s_fc_interp
 	(const struct Solver_Face* s_face, const struct Simulation* sim, const int side_index)
 {
-	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc__rlhs_dg(s_face,side_index);
+	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc(side_index,s_face);
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	UNUSED(sim);

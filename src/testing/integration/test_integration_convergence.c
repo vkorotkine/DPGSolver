@@ -59,6 +59,7 @@ static void check_convergence_orders
 
 // Interface functions ********************************************************************************************** //
 
+#include "intrusive.h"
 /** \test Performs integration testing for the solution convergence (\ref test_integration_convergence.c).
  *  \return 0 on success (when the solution converges at the expected rate).
  */
@@ -80,11 +81,11 @@ int main
 	const int* p_ref  = int_test_info->p_ref,
 	         * ml_ref = int_test_info->ml;
 
+	struct Simulation* sim = NULL;
 	for (int ml = ml_ref[0], ml_prev = ml-1; ml <= ml_ref[1]; ++ml) {
 	for (int p = p_ref[0], p_prev = p-1; p <= p_ref[1]; ++p) {
 		const int adapt_type = int_test_info->adapt_type;
 		const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,ctrl_name);
-		struct Simulation* sim = NULL;
 		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr); // destructed
 
 		solve_for_solution(sim);

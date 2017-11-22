@@ -45,13 +45,8 @@ static struct Multiarray_d* constructor_sol_peterson
 
 void set_sol_peterson (const struct Simulation* sim, struct Solution_Container sol_cont)
 {
-	const char ce_type   = sol_cont.ce_type,
-	           node_kind = sol_cont.node_kind;
-
-	assert(ce_type == 'v'); // Add support for faces if necessary.
-
-	const struct const_Multiarray_d* xyz = constructor_xyz_v(sim,sol_cont.volume,node_kind); // destructed
-	struct Multiarray_d* sol             = constructor_sol_peterson(sim,xyz);                // destructed
+	const struct const_Multiarray_d* xyz = constructor_xyz_sol(sim,&sol_cont); // destructed
+	struct Multiarray_d* sol = constructor_sol_peterson(sim,xyz); // destructed
 	destructor_const_Multiarray_d(xyz);
 
 	update_Solution_Container_sol(&sol_cont,sol);

@@ -22,10 +22,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "gsl/gsl_math.h"
 
 #include "macros.h"
+#include "definitions_bases.h"
 #include "definitions_core.h"
 #include "definitions_element_operators.h"
 #include "definitions_elements.h"
-#include "definitions_bases.h"
+#include "definitions_h_ref.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -397,7 +398,7 @@ static const struct const_Multiarray_Matrix_d* constructor_op_MMd
 
 /// \brief Version of \ref set_operator_std for interpolation operators.
 static void set_operator_std_interp
-	(ptrdiff_t*const ind_values,                    ///< See brief.
+	(const ptrdiff_t ind_values,                    ///< See brief.
 	 const struct Operator_Info* op_info,           ///< See brief.
 	 const struct Simulation* sim,                  ///< See brief.
 	 const struct const_Multiarray_Matrix_d* op_ioN ///< Will hold the matrices of the standard operators.
@@ -405,7 +406,7 @@ static void set_operator_std_interp
 
 /// \brief Version of \ref set_operator_std for L2 projection operators.
 static void set_operator_std_L2
-	(ptrdiff_t*const ind_values,                    ///< See brief.
+	(const ptrdiff_t ind_values,                    ///< See brief.
 	 const struct Operator_Info* op_info,           ///< See brief.
 	 const struct Simulation* sim,                  ///< See brief.
 	 const struct const_Multiarray_Matrix_d* op_ioN ///< Will hold the matrices of the standard operators.
@@ -471,9 +472,9 @@ static void set_operator_std
 	const struct const_Multiarray_Matrix_d* op_ioN = constructor_op_MMd(false,n_op); // destructed
 
 	if (!op_should_use_L2(op_values,op_info->op_io))
-		set_operator_std_interp(ind_values,op_info,sim,op_ioN);
+		set_operator_std_interp(*ind_values,op_info,sim,op_ioN);
 	else
-		set_operator_std_L2(ind_values,op_info,sim,op_ioN);
+		set_operator_std_L2(*ind_values,op_info,sim,op_ioN);
 
 	ptrdiff_t ind_op = get_ind_op(op_info,op_values,op);
 	for (int i = 0; i < n_op; ++i)
@@ -672,6 +673,8 @@ static int convert_to_range (const char type_range, const char*const name_range)
 			return OP_R_H_CF;
 		else if (strstr(name_range,"H_FC"))
 			return OP_R_H_FC;
+		else if (strstr(name_range,"H_ALL"))
+			return OP_R_H_ALL;
 		else
 			EXIT_UNSUPPORTED;
 		break;
@@ -770,6 +773,11 @@ static void set_up_extents (struct Operator_Info* op_info)
 			push_back_Vector_i(extents_op,1,false,false);
 			push_back_Vector_i(extents_op,n_ref_max,false,false);
 			break;
+		} case OP_R_H_ALL: {
+			const int n_ref_max = get_n_ref_max(op_info);
+			push_back_Vector_i(extents_op,n_ref_max,false,false);
+			push_back_Vector_i(extents_op,n_ref_max,false,false);
+			break;
 		} default:
 			EXIT_UNSUPPORTED;
 			break;
@@ -862,15 +870,12 @@ static const struct const_Matrix_d* constructor_cv
 	 const struct Simulation* sim      ///< \ref Simulation.
 	);
 
-/** \brief Get the type of coarse to fine projection which is resulting in the usage of the L2 operator.
- *  \return 'h'-projection, 'p'-projection. */
-static char get_op_L2_type
-	(const int*const op_values ///< Values for the operator indices.
-	);
-
-/// \brief Update \ref Operator_Info::op_type such that the output is of type 'c'oefficient.
-static void update_op_type_Xc
-	(const int*const op_type ///< \ref Operator_Info::op_type.
+/** \brief Constructor for the \*c0_\*\*\*_\*\*\* operator from input to output computational element.
+ *  \return The required operator if required; `NULL` otherwise. */
+static const struct const_Multiarray_Matrix_d* constructor_op_Xc_ce_io
+	(const ptrdiff_t ind_values,          ///< Defined for \ref set_operator_std_L2.
+	 const struct Operator_Info* op_info, ///< Defined for \ref set_operator_std_L2.
+	 const struct Simulation* sim         ///< Defined for \ref set_operator_std_L2.
 	);
 
 /** \brief Construct the mass-type \ref const_Matrix_d\* with the given input operators.
@@ -878,13 +883,25 @@ static void update_op_type_Xc
 static const struct const_Matrix_d* constructor_mass
 	(const struct const_Matrix_d* cv0_l, ///< The 'l'eft  cv matrix (not transposed).
 	 const struct const_Matrix_d* cv0_r, ///< The 'r'ight cv matrix.
-	 const struct const_Vector_d* w      ///< The cubature weights.
+	 const struct const_Vector_d* w,     ///< The cubature weights.
+	 const double volume_ratio           ///< See \ref compute_volume_ratio.
 	);
 
 /** \brief Get the `char` representation of the output of \ref Operator_Info::op_type.
  *  \return 'c'oefficient or 'v'alue. */
 static char get_op_type_out
 	(const int op_type ///< \ref Operator_Info::op_type.
+	);
+
+/** \brief Compute the volume relative to the complete reference element.
+ *  \return See brief.
+ *
+ *  When nodes are given for a sub-region of the reference element, this ratio should be used to scale any integrals
+ *  computed as if the complete reference element was being used.
+ */
+static double compute_volume_ratio
+	(const int e_type, ///< \ref Element::type.
+	 const int ind_h   ///< \ref The h-refinement index.
 	);
 
 static int get_n_op (const int range_d, const int d)
@@ -901,10 +918,10 @@ static const struct const_Multiarray_Matrix_d* constructor_op_MMd (const bool ow
 }
 
 static void set_operator_std_interp
-	(ptrdiff_t*const ind_values, const struct Operator_Info* op_info, const struct Simulation* sim,
+	(const ptrdiff_t ind_values, const struct Operator_Info* op_info, const struct Simulation* sim,
 	 const struct const_Multiarray_Matrix_d* op_ioN)
 {
-	const int* op_values = get_row_const_Matrix_i(*ind_values,op_info->values_op);
+	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
 	const int n_op = compute_size(op_ioN->order,op_ioN->extents);
 
 	const struct const_Element* element = op_info->element;
@@ -997,151 +1014,126 @@ static void set_operator_std_interp
 }
 
 static void set_operator_std_L2
-	(ptrdiff_t*const ind_values, const struct Operator_Info* op_info, const struct Simulation* sim,
+	(const ptrdiff_t ind_values, const struct Operator_Info* op_info, const struct Simulation* sim,
 	 const struct const_Multiarray_Matrix_d* op_ioN)
 {
 	const struct Op_IO* op_io = op_info->op_io;
 
 	const char ce_i = op_io[OP_IND_I].ce,
 	           ce_o = op_io[OP_IND_O].ce;
+	// Add support if required.
+	assert((ce_i == 'v' && ce_o == 'v') || (ce_i == 'v' && ce_o == 'f') || (ce_i == 'f' && ce_o == 'f'));
 
-/// \todo separate function when usage is set.
-	if (ce_i == 'v' && ce_o == 'f') {
-		int* op_values = (int*) get_row_const_Matrix_i(*ind_values,op_info->values_op);
-//printf("%td\n",*ind_values);
+	const int n_op = compute_size(op_ioN->order,op_ioN->extents);
+	assert(n_op == 1); //< Should not have any differentiation operators here.
+
+//printf("%td\n",ind_values);
 //print_const_Matrix_i(op_info->values_op);
 
-		const char type_L2 = get_op_L2_type(op_values);
-		assert(type_L2 == 'p');
+	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
 
-		// Compute the interpolation operator from volume (p_i) to face (p_i).
-		const int op_type = op_info->op_type;
-		update_op_type_Xc(&op_info->op_type);
+	const int p_o = op_values[OP_IND_P+OP_IND_O],
+	          p_i = op_values[OP_IND_P+OP_IND_I];
 
-		const int p_i = op_values[OP_IND_P+OP_IND_I],
-		          p_o = op_values[OP_IND_P+OP_IND_O];
-		op_values[OP_IND_P+OP_IND_O] = p_i;
+	assert((OP_IND_O == 0) && (OP_IND_I == 1)); // Otherwise, swap op_io_*[0] and op_io_*[1] below.
+	const struct const_Element* e_op = op_info->element;
 
-		const char kind_i = op_io[OP_IND_I].kind,
-		           kind_o = op_io[OP_IND_O].kind;
-		const_cast_c(&op_io[OP_IND_O].kind,kind_i);
+	const int ind_ce = op_values[OP_IND_CE+OP_IND_O];
 
-		const char sc_i = op_io[OP_IND_I].sc,
-		           sc_o = op_io[OP_IND_O].sc;
-		const_cast_c(&op_io[OP_IND_O].sc,sc_i);
-/// \todo check if anything else should be modified.
+	assert(ce_o == 'v' || ce_o == 'f');
+	const struct const_Element* el = (ce_o == 'v' ? e_op : get_element_by_face(e_op,ind_ce) );
 
-		const int n_op = compute_size(op_ioN->order,op_ioN->extents);
-		assert(n_op == 1); // Should not have any differentiation operators here.
-		const struct const_Multiarray_Matrix_d* op_Xc_v_f = constructor_op_MMd(false,n_op); // destructed
-		set_operator_std_interp(ind_values,op_info,sim,op_Xc_v_f);
+	const int p_op_c   = GSL_MAX(p_o,p_i),
+	          s_type_o = el->s_type;
 
-		const_cast_i(&op_info->op_type,op_type);
-		op_values[OP_IND_P+OP_IND_O] = p_o;
-		const_cast_c(&op_io[OP_IND_O].kind,kind_o);
-		const_cast_c(&op_io[OP_IND_O].sc,sc_o);
+	constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type_o,"orthonormal");
 
+	// 'C'oarse
+	struct Op_IO op_io_C[2] = {
+		{.ce = 'v', .kind = 'c', .sc = op_io[OP_IND_O].sc, .h_op = 0, .p_op = p_op_c, .s_type = s_type_o, },
+		{.ce = 'v', .s_type = s_type_o, },
+	};
+	const struct const_Nodes* nodes_Cc = constructor_const_Nodes_h(OP_IND_O,op_io_C,el,sim); // destructed
 
+	const_cast_i(&op_io_C[OP_IND_O].p_op,p_o);
+	const_cast_c(&op_io_C[0].kind,op_io[OP_IND_O].kind);
+	const struct const_Nodes* nodes_Cb = constructor_const_Nodes_h(OP_IND_O,op_io_C,el,sim); // destructed
 
+	const int p_Cb = compute_p_basis(&op_io_C[OP_IND_O],sim);
+	const struct const_Matrix_d* cv0r_Cb_Cb = constructor_basis(p_Cb,nodes_Cb->rst);                  // dest.
+	const struct const_Matrix_d* cv0_Cb_Cb  = constructor_cv(nodes_Cb->rst,&op_io_C[OP_IND_O],sim);   // dest.
+	const struct const_Matrix_d* T_C        = constructor_sgesv_const_Matrix_d(cv0r_Cb_Cb,cv0_Cb_Cb); // dest.
+	destructor_const_Matrix_d(cv0r_Cb_Cb);
+	destructor_const_Nodes(nodes_Cb);
 
-		assert((OP_IND_O == 0) && (OP_IND_I == 1)); // Otherwise, swap op_io_*[0] and op_io_*[1] below.
-		const struct const_Element* element = op_info->element;
+	const struct const_Matrix_d* cv0r_Cb_Cc = constructor_basis(p_Cb,nodes_Cc->rst);              // destructed
+	const struct const_Matrix_d* cv0_Cb_Cc  = constructor_mm_NN1R_const_Matrix_d(cv0r_Cb_Cc,T_C); // destructed
+	destructor_const_Matrix_d(cv0r_Cb_Cc);
+	destructor_const_Matrix_d(T_C);
 
-		const int ind_ce   = op_values[OP_IND_CE+OP_IND_O],
-		          p_op_c   = GSL_MAX(p_o,p_i),
-		          s_type_o = compute_super_type_op(ce_o,0,element);
-
-		constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type_o,"orthonormal");
-
-		const struct const_Element* f_e = get_element_by_face(element,ind_ce);
-
-		// 'C'oarse
-		struct Op_IO op_io_C[2] = {
-			{.ce = 'v', .kind = 'c', .sc = sc_o, .h_op = 0, .p_op = p_op_c, .s_type = s_type_o, },
-			{.ce = 'v', .s_type = s_type_o, },
-		};
-		const struct const_Nodes* nodes_Cc = constructor_const_Nodes_h(OP_IND_O,op_io_C,f_e,sim); // destructed
-
-		const_cast_i(&op_io_C[OP_IND_O].p_op,p_o);
-		const_cast_c(&op_io_C[0].kind,kind_o);
-		const struct const_Nodes* nodes_Cb = constructor_const_Nodes_h(OP_IND_O,op_io_C,f_e,sim); // destructed
-
-		const int p_Cb = compute_p_basis(&op_io_C[OP_IND_O],sim);
-		const struct const_Matrix_d* cv0r_Cb_Cb = constructor_basis(p_Cb,nodes_Cb->rst);                  // dest.
-		const struct const_Matrix_d* cv0_Cb_Cb  = constructor_cv(nodes_Cb->rst,&op_io_C[OP_IND_O],sim);   // dest.
-		const struct const_Matrix_d* T_C        = constructor_sgesv_const_Matrix_d(cv0r_Cb_Cb,cv0_Cb_Cb); // dest.
-		destructor_const_Matrix_d(cv0r_Cb_Cb);
-		destructor_const_Nodes(nodes_Cb);
-
-		const struct const_Matrix_d* cv0r_Cb_Cc = constructor_basis(p_Cb,nodes_Cc->rst);              // destructed
-		const struct const_Matrix_d* cv0_Cb_Cc  = constructor_mm_NN1R_const_Matrix_d(cv0r_Cb_Cc,T_C); // destructed
-		destructor_const_Matrix_d(cv0r_Cb_Cc);
-		destructor_const_Matrix_d(T_C);
-
-// Possible simplification as mass_C is always identity in the reference basis?
-		const struct const_Matrix_d* mass_C = constructor_mass(cv0_Cb_Cc,cv0_Cb_Cc,nodes_Cc->w); // destructed
-		destructor_const_Nodes(nodes_Cc);
+	// Can possibly implement a simplification as mass_C is always identity in the reference basis.
+	const struct const_Matrix_d* mass_C = constructor_mass(cv0_Cb_Cc,cv0_Cb_Cc,nodes_Cc->w,1.0); // destructed
+	destructor_const_Nodes(nodes_Cc);
 
 
-		// 'F'ine
-		const int h_i = op_values[OP_IND_H+OP_IND_I];
-		struct Op_IO op_io_F[2] = {
-			{.ce = 'v', .kind = 'c', .sc = sc_i, .h_op = h_i, .p_op = p_op_c, .s_type = s_type_o, },
-			{.ce = 'v', .s_type = s_type_o, },
-		};
+	// 'F'ine
+	const int h_i = op_values[OP_IND_H+OP_IND_I];
+	struct Op_IO op_io_F[2] = {
+		{.ce = 'v', .kind = 'c', .sc = op_io[OP_IND_I].sc, .h_op = h_i, .p_op = p_op_c, .s_type = s_type_o, },
+		{.ce = 'v', .s_type = s_type_o, },
+	};
 
-		const struct const_Nodes* nodes_Fc = constructor_const_Nodes_h(OP_IND_O,op_io_F,f_e,sim); // destructed
-/// \todo Add the scaling for the fine to coarse transform to the Nodes struct or Nodes->w.
-assert(!(ce_i == 'v' && ce_o == 'v'));
+	const struct const_Nodes* nodes_Fc = constructor_const_Nodes_h(OP_IND_O,op_io_F,el,sim); // destructed
 
-		const_cast_i(&op_io_F[OP_IND_O].p_op,p_i);
-		const_cast_c(&op_io_F[0].kind,kind_i);
-		const struct const_Nodes* nodes_Fb = constructor_const_Nodes_h(OP_IND_O,op_io_F,f_e,sim); // destructed
+	const_cast_i(&op_io_F[OP_IND_O].p_op,p_i);
+	const_cast_c(&op_io_F[0].kind,op_io[OP_IND_I].kind);
+	const struct const_Nodes* nodes_Fb = constructor_const_Nodes_h(OP_IND_O,op_io_F,el,sim); // destructed
 
-		const int p_Fb = compute_p_basis(&op_io_F[OP_IND_O],sim);
-		const struct const_Matrix_d* cv0r_Fb_Fb = constructor_basis(p_Fb,nodes_Fb->rst);                  // dest.
-		const struct const_Matrix_d* cv0_Fb_Fb  = constructor_cv(nodes_Fb->rst,&op_io_F[OP_IND_O],sim);   // dest.
-		const struct const_Matrix_d* T_F        = constructor_sgesv_const_Matrix_d(cv0r_Fb_Fb,cv0_Fb_Fb); // dest.
-		destructor_const_Matrix_d(cv0r_Fb_Fb);
-		destructor_const_Matrix_d(cv0_Fb_Fb);
-		destructor_const_Nodes(nodes_Fb);
+	const int p_Fb = compute_p_basis(&op_io_F[OP_IND_O],sim);
+	const struct const_Matrix_d* cv0r_Fb_Fb = constructor_basis(p_Fb,nodes_Fb->rst);                  // dest.
+	const struct const_Matrix_d* cv0_Fb_Fb  = constructor_cv(nodes_Fb->rst,&op_io_F[OP_IND_O],sim);   // dest.
+	const struct const_Matrix_d* T_F        = constructor_sgesv_const_Matrix_d(cv0r_Fb_Fb,cv0_Fb_Fb); // dest.
+	destructor_const_Matrix_d(cv0r_Fb_Fb);
+	destructor_const_Matrix_d(cv0_Fb_Fb);
+	destructor_const_Nodes(nodes_Fb);
 
-		const struct const_Matrix_d* cv0r_Fb_Fc = constructor_basis(p_Fb,nodes_Fc->rst);              // destructed
-		const struct const_Matrix_d* cv0_Fb_Fc  = constructor_mm_NN1R_const_Matrix_d(cv0r_Fb_Fc,T_F); // destructed
-		destructor_const_Matrix_d(cv0r_Fb_Fc);
-		destructor_const_Matrix_d(T_F);
+	const struct const_Matrix_d* cv0r_Fb_Fc = constructor_basis(p_Fb,nodes_Fc->rst);              // destructed
+	const struct const_Matrix_d* cv0_Fb_Fc  = constructor_mm_NN1R_const_Matrix_d(cv0r_Fb_Fc,T_F); // destructed
+	destructor_const_Matrix_d(cv0r_Fb_Fc);
+	destructor_const_Matrix_d(T_F);
 
-		const struct const_Matrix_d* mass_F = constructor_mass(cv0_Cb_Cc,cv0_Fb_Fc,nodes_Fc->w); // destructed
-		destructor_const_Matrix_d(cv0_Cb_Cc);
-		destructor_const_Matrix_d(cv0_Fb_Fc);
-		destructor_const_Nodes(nodes_Fc);
+	const double v_ratio = compute_volume_ratio(el->type,h_i);
+	const struct const_Matrix_d* mass_F = constructor_mass(cv0_Cb_Cc,cv0_Fb_Fc,nodes_Fc->w,v_ratio); // destructed
+	destructor_const_Matrix_d(cv0_Cb_Cc);
+	destructor_const_Matrix_d(cv0_Fb_Fc);
+	destructor_const_Nodes(nodes_Fc);
 
-		const struct const_Matrix_d* op_cc = constructor_sgesv_const_Matrix_d(mass_C,mass_F); // destructed
-//print_const_Matrix_d(op_cc);
-		destructor_const_Matrix_d(mass_C);
-		destructor_const_Matrix_d(mass_F);
+	const struct const_Matrix_d* op_cc = constructor_sgesv_const_Matrix_d(mass_C,mass_F); // destructed
+	destructor_const_Matrix_d(mass_C);
+	destructor_const_Matrix_d(mass_F);
 
-//print_const_Multiarray_Matrix_d(op_Xc_v_f);
+	const struct const_Matrix_d* op_ic = NULL;
+	if (ce_i != ce_o) {
+		const struct const_Multiarray_Matrix_d* op_Xc_ce_io =
+			constructor_op_Xc_ce_io(ind_values,op_info,sim); // destructed
 
-		const struct const_Matrix_d* op_ic =
-			constructor_mm_NN1R_const_Matrix_d(op_cc,op_Xc_v_f->data[0]); // destructed/returned
-//print_const_Matrix_d(op_ic);
+		op_ic = constructor_mm_NN1R_const_Matrix_d(op_cc,op_Xc_ce_io->data[0]); // destructed/returned
 		destructor_const_Matrix_d(op_cc);
-		destructor_const_Multiarray_Matrix_d(op_Xc_v_f);
-
-		const struct const_Matrix_d* op_io = NULL;
-		if (get_op_type_out(op_info->op_type) == 'c') {
-			op_io = op_ic;
-		} else {
-			op_io = constructor_mm_NN1R_const_Matrix_d(cv0_Cb_Cb,op_ic); // moved
-			destructor_const_Matrix_d(op_ic);
-		}
-		destructor_const_Matrix_d(cv0_Cb_Cb);
-
-		const_constructor_move_const_Matrix_d(&op_ioN->data[0],op_io); // returned
+		destructor_const_Multiarray_Matrix_d(op_Xc_ce_io);
 	} else {
-		EXIT_ADD_SUPPORT;
+		op_ic = op_cc;
 	}
+
+	const struct const_Matrix_d* op_io_M = NULL;
+	if (get_op_type_out(op_info->op_type) == 'c') {
+		op_io_M = op_ic;
+	} else {
+		op_io_M = constructor_mm_NN1R_const_Matrix_d(cv0_Cb_Cb,op_ic); // moved
+		destructor_const_Matrix_d(op_ic);
+	}
+	destructor_const_Matrix_d(cv0_Cb_Cb);
+
+	const_constructor_move_const_Matrix_d(&op_ioN->data[0],op_io_M); // returned
 }
 
 static int get_n_ref_max (const struct Operator_Info* op_info)
@@ -1149,7 +1141,7 @@ static int get_n_ref_max (const struct Operator_Info* op_info)
 	// There are currently no h-adaptation operators for other `range_ce` values.
 	if (op_info->range_ce == OP_R_CE_VV)
 		return op_info->element->n_ref_max_v;
-	else if (op_info->range_ce == OP_R_CE_VF)
+	else if (op_info->range_ce == OP_R_CE_VF || op_info->range_ce == OP_R_CE_FF)
 		return op_info->element->n_ref_max_f;
 	EXIT_UNSUPPORTED;
 }
@@ -1247,6 +1239,9 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 				x_mm[1] = get_n_ref_max(op_info);
 			else if (var_io == 'o')
 				x_mm[1] = 1;
+			break;
+		case OP_R_H_ALL:
+			x_mm[1] = get_n_ref_max(op_info);
 			break;
 		default:
 			EXIT_UNSUPPORTED;
@@ -1367,6 +1362,17 @@ static ptrdiff_t get_ind_w
 
 // Level 2 ********************************************************************************************************** //
 
+/** \brief Get the type of coarse to fine projection which is resulting in the usage of the L2 operator.
+ *  \return 'h'-projection, 'p'-projection. */
+static char get_op_L2_type
+	(const int*const op_values ///< Values for the operator indices.
+	);
+
+/// \brief Update \ref Operator_Info::op_type such that the output is of type 'c'oefficient.
+static void update_op_type_Xc
+	(const int*const op_type ///< \ref Operator_Info::op_type.
+	);
+
 static const struct const_Matrix_d* constructor_cv
 	(const struct const_Matrix_d* rst, const struct Op_IO* op_io, const struct Simulation* sim)
 {
@@ -1400,6 +1406,131 @@ static const struct const_Matrix_d* constructor_cv
 	return cv;
 }
 
+static const struct const_Multiarray_Matrix_d* constructor_op_Xc_ce_io
+	(const ptrdiff_t ind_values, const struct Operator_Info* op_info, const struct Simulation* sim)
+{
+	const int n_op = 1;
+
+	int* op_values = (int*) get_row_const_Matrix_i(ind_values,op_info->values_op);
+	const struct Op_IO* op_io = op_info->op_io;
+
+	const char type_L2 = get_op_L2_type(op_values);
+
+	// Should only have a fine to coarse projection from different computational elements of type 'p'.
+	assert(type_L2 == 'p');
+
+	const int op_type = op_info->op_type;
+	update_op_type_Xc(&op_info->op_type);
+
+	const int p_i = op_values[OP_IND_P+OP_IND_I],
+	          p_o = op_values[OP_IND_P+OP_IND_O];
+	op_values[OP_IND_P+OP_IND_O] = p_i;
+
+	const char kind_i = op_io[OP_IND_I].kind,
+	           kind_o = op_io[OP_IND_O].kind;
+	const_cast_c(&op_io[OP_IND_O].kind,kind_i);
+
+	const char sc_i = op_io[OP_IND_I].sc,
+	           sc_o = op_io[OP_IND_O].sc;
+	const_cast_c(&op_io[OP_IND_O].sc,sc_i);
+
+	const struct const_Multiarray_Matrix_d* op_Xc_ce_io = constructor_op_MMd(false,n_op); // returned
+	set_operator_std_interp(ind_values,op_info,sim,op_Xc_ce_io);
+
+	const_cast_i(&op_info->op_type,op_type);
+	op_values[OP_IND_P+OP_IND_O] = p_o;
+	const_cast_c(&op_io[OP_IND_O].kind,kind_o);
+	const_cast_c(&op_io[OP_IND_O].sc,sc_o);
+
+	return op_Xc_ce_io;
+}
+
+static const struct const_Matrix_d* constructor_mass
+	(const struct const_Matrix_d* cv0_l, const struct const_Matrix_d* cv0_r, const struct const_Vector_d* w,
+	 const double volume_ratio)
+{
+	const struct const_Matrix_d* mass_r = constructor_mm_diag_const_Matrix_d(1.0,cv0_r,w,'L',false); // destructed
+
+	const struct const_Matrix_d* mass =
+		constructor_mm_const_Matrix_d('T','N',volume_ratio,cv0_l,mass_r,'R'); // returned
+	destructor_const_Matrix_d(mass_r);
+
+	return mass;
+}
+
+static char get_op_type_out (const int op_type)
+{
+	switch (op_type) {
+	case OP_T_CV: case OP_T_VV:
+		return 'v';
+		break;
+	case OP_T_CC: case OP_T_VC:
+		return 'c';
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",op_type);
+		break;
+	}
+}
+
+static double compute_volume_ratio (const int e_type, const int ind_h)
+{
+	if (ind_h == 0)
+		return 1.0;
+
+	switch (e_type) {
+	case LINE:
+		switch (ind_h) {
+		case H_LINE2_V0: case H_LINE2_V1:
+			return 0.5;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",ind_h);
+			break;
+		}
+		break;
+	case TRI:
+		switch (ind_h) {
+		case H_TRI4_V0: case H_TRI4_V1: case H_TRI4_V2: case H_TRI4_V3:
+			return 0.25;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",ind_h);
+			break;
+		}
+		break;
+	case TET:
+		EXIT_ADD_SUPPORT;
+		switch (ind_h) {
+//		case H_TET8_V0: case H_TET8_V1: case H_TET8_V2: case H_TET8_V3:
+//		case H_TET8_V4: case H_TET8_V5: case H_TET8_V6: case H_TET8_V7:
+//			return 0.125;
+//			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",ind_h);
+			break;
+		}
+		break;
+	case PYR:
+		switch (ind_h) {
+		case H_PYR10_V0: case H_PYR10_V1: case H_PYR10_V2: case H_PYR10_V3:
+		case H_PYR10_V4: case H_PYR10_V5: case H_PYR10_V6: case H_PYR10_V7:
+		case H_PYR10_V8: case H_PYR10_V9:
+			return 0.125;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",ind_h);
+			break;
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",e_type);
+		break;
+	}
+}
+
+// Level 3 ********************************************************************************************************** //
+
 static char get_op_L2_type (const int*const op_values)
 {
 	if (op_values[OP_IND_H+OP_IND_I] > op_values[OP_IND_H+OP_IND_O])
@@ -1425,30 +1556,4 @@ static void update_op_type_Xc (const int*const op_type)
 			break;
 	}
 	const_cast_i(op_type,op_type_mod);
-}
-
-static const struct const_Matrix_d* constructor_mass
-	(const struct const_Matrix_d* cv0_l, const struct const_Matrix_d* cv0_r, const struct const_Vector_d* w)
-{
-	const struct const_Matrix_d* mass_r = constructor_mm_diag_const_Matrix_d(1.0,cv0_r,w,'L',false); // destructed
-
-	const struct const_Matrix_d* mass = constructor_mm_const_Matrix_d('T','N',1.0,cv0_l,mass_r,'R'); // returned
-	destructor_const_Matrix_d(mass_r);
-
-	return mass;
-}
-
-static char get_op_type_out (const int op_type)
-{
-	switch (op_type) {
-	case OP_T_CV: case OP_T_VV:
-		return 'v';
-		break;
-	case OP_T_CC: case OP_T_VC:
-		return 'c';
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",op_type);
-		break;
-	}
 }
