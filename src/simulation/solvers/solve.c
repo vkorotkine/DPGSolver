@@ -122,6 +122,44 @@ ptrdiff_t compute_dof (const struct Simulation* sim)
 	return dof;
 }
 
+ptrdiff_t compute_dof_sol_1st (const struct Simulation* sim)
+{
+	ptrdiff_t dof = 0;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+		dof += compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents);
+	}
+	return dof;
+}
+
+ptrdiff_t compute_dof_schur (const char dof_type, const struct Simulation* sim)
+{
+	ptrdiff_t dof = 0;
+	switch (dof_type) {
+	case 'f':
+		dof += compute_dof_faces(sim);
+		break;
+	case 'v':
+		dof += compute_dof_volumes(sim);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",dof_type);
+		break;
+	}
+	return dof;
+}
+
+void update_ind_dof (const struct Simulation* sim)
+{
+	switch (sim->method) {
+	case METHOD_DG:  update_ind_dof_dg(sim);  break;
+	case METHOD_DPG: update_ind_dof_dpg(sim); break;
+	default:
+		EXIT_ERROR("Unsupported: %d.\n",sim->method);
+		break;
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

@@ -180,13 +180,13 @@ int main
 
 	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name);
 
-	const int p  = int_test_info->p_ref[1],
-	          ml = int_test_info->ml[1],
+	const int p  = int_test_info->p_ref[0],
+	          ml = int_test_info->ml[0],
 	          p_prev  = p-1,
 	          ml_prev = ml-1;
 
 	const int adapt_type = int_test_info->adapt_type;
-	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,ctrl_name);
+	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
 	struct Simulation* sim = NULL;
 	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr); // destructed
 

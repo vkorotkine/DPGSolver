@@ -30,9 +30,3 @@ geom_blending_si     szabo_babuska_gen
 p_ref    1 1
 
 fe_method 1
-
-
-# Testing variables
-
-ml_range_test 0 3
-p_range_test  1 2

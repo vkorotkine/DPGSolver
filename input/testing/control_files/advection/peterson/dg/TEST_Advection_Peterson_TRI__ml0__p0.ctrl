@@ -2,7 +2,7 @@ pde_name  advection
 pde_spec  steady/peterson
 
 geom_name n-cube
-geom_spec p2_YL
+geom_spec p0_YL
 
 dimension 2
 
@@ -10,7 +10,7 @@ mesh_generator   n-cube/2d_peterson.py
 mesh_format      gmsh
 mesh_domain      straight
 mesh_type        tri
-mesh_level       1 1
+mesh_level       0 0
 mesh_path        ../meshes/
 
 
@@ -27,12 +27,12 @@ geom_representation  isoparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_ref    2 2
+p_ref    0 0
 
 fe_method 1
 
 
 # Testing variables
 
-ml_range_test 0 3
-p_range_test  1 2
+ml_range_test 0 5
+p_range_test  0 3

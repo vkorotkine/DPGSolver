@@ -330,6 +330,8 @@ class Mesh_c:
 if __name__ == '__main__':
 	"""
 	Generate meshes and export in the gmsh format.
+
+	Reference: Richter(2008)-On the Order of Convergence of the Discontinuous Galerkin Method for Hyperbolic Equations
 	"""
 
 	project_src_dir = sys.argv[1]
@@ -337,17 +339,14 @@ if __name__ == '__main__':
 	mesh_name_full  = sys.argv[2]
 
 	NML   = 6
-	NP    = 2
+	NP    = 3
 
 	sigma = 0.0
-	for p in range(1,NP+1):
+	for p in range(0,NP+1):
 		mesh_name_full = re.sub("/p\d_","/p"+str(p)+"_",mesh_name_full)
-		if (p == 1):
-			sigma = 0.75
-		elif (p == 2):
-			sigma = 0.875
-		else:
-			EXIT
+
+		# The value of sigma is taken from (eq. (27), Richter(2008)).
+		sigma = (2.0*p+1.0)/(2.0*p+2.0)
 
 		for ML in range(0,NML):
 			mesh_name_full = re.sub("_ml\d.msh","_ml"+str(ML)+".msh",mesh_name_full)

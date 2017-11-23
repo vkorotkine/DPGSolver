@@ -39,5 +39,5 @@ fe_method 4
 
 # Testing variables
 
-ml_range_test 0 3
-p_range_test  1 1
+ml_range_test 0 4
+p_range_test  1 2

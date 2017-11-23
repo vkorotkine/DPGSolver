@@ -85,8 +85,11 @@ int main
 	for (int ml = ml_ref[0], ml_prev = ml-1; ml <= ml_ref[1]; ++ml) {
 	for (int p = p_ref[0], p_prev = p-1; p <= p_ref[1]; ++p) {
 		const int adapt_type = int_test_info->adapt_type;
-		const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,ctrl_name);
+		const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
 		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr); // destructed
+
+		if ((ml == ml_ref[0]) && (p == p_ref[0]))
+			const_cast_d(&int_test_info->conv_order_discount,sim->test_case->conv_order_discount);
 
 		solve_for_solution(sim);
 
@@ -120,6 +123,16 @@ static int compute_n_err
 	(const char* input_name ///< \ref fopen_sp_input_file :: name_part.
 	);
 
+/** \brief Return whether the convergence orders are in the expected range.
+ *  \return See brief. */
+static bool attained_expected_conv_orders
+	(const double discount,                            ///< Allowable discount from the expected conv. orders.
+	 const ptrdiff_t* extents_e,                       ///< The extents of the error data.
+	 const struct Multiarray_d* conv_orders,           ///< The container for the conv. order data.
+	 const struct Multiarray_i* exp_orders,            ///< The container of expected conv. order data.
+	 const struct Integration_Test_Info* int_test_info ///< \ref Integration_Test_Info.
+	);
+
 static void check_convergence_orders
 	(struct Test_Info*const test_info, const struct Integration_Test_Info* int_test_info)
 {
@@ -146,7 +159,7 @@ static void check_convergence_orders
 	         * ml_ref = int_test_info->ml;
 	for (int p = p_ref[0]; p <= p_ref[1]; ++p) {
 	for (int ml = ml_ref[0]; ml <= ml_ref[1]; ++ml) {
-		const char* input_name_curr = set_file_name_curr(ADAPT_0,p,ml,input_name);
+		const char* input_name_curr = set_file_name_curr(ADAPT_0,p,ml,true,input_name);
 
 		char line[STRLEN_MAX];
 		FILE* p_file = fopen_sp_input_file('p',input_name_curr,"txt",0); // closed
@@ -199,25 +212,20 @@ static void check_convergence_orders
 		print_Multiarray_d(conv_orders);
 	}
 
-	bool pass        = true;
-	const double tol = 0.125;
-
-	const int ml = ml_ref[1];
-	for (int p = p_ref[0]; p <= p_ref[1]; ++p) {
-	for (int n = 0; n < n_err; ++n) {
-		const ptrdiff_t ind_e = n*base_e + p*extents[0] + ml;
-		if (isnan(conv_orders->data[ind_e]) || (conv_orders->data[ind_e] < (ex_ord->data[ind_e]-tol))) {
-			pass = false;
-			break;
-		}
-	}}
+	const double disc = 0.125;
+	bool pass   = attained_expected_conv_orders(disc,extents,conv_orders,ex_ord,int_test_info);
+	bool pass_d = attained_expected_conv_orders(
+		disc+int_test_info->conv_order_discount,extents,conv_orders,ex_ord,int_test_info);
 
 	destructor_Multiarray_i(ex_ord);
 	destructor_Multiarray_d(l2_err);
 	destructor_Multiarray_d(h);
-
 	destructor_Multiarray_d(conv_orders);
 
+	if (pass_d && !pass) {
+		test_print_warning(test_info,"Only passing with the convergence order discount.");
+		pass = true;
+	}
 	assert_condition(pass);
 }
 
@@ -235,4 +243,27 @@ static int compute_n_err (const char* input_name)
 	fclose(p_file);
 
 	return n_err;
+}
+
+static bool attained_expected_conv_orders
+	(const double discount, const ptrdiff_t* extents_e, const struct Multiarray_d* conv_orders,
+	 const struct Multiarray_i* exp_orders, const struct Integration_Test_Info* int_test_info)
+{
+	bool pass = true;
+
+	const int* p_ref  = int_test_info->p_ref,
+	         * ml_ref = int_test_info->ml;
+	const int n_err   = extents_e[2];
+	const ptrdiff_t base_e = extents_e[0]*extents_e[1];
+
+	const int ml = ml_ref[1];
+	for (int p = p_ref[0]; p <= p_ref[1]; ++p) {
+	for (int n = 0; n < n_err; ++n) {
+		const ptrdiff_t ind_e = n*base_e + p*extents_e[0] + ml;
+		if (isnan(conv_orders->data[ind_e]) || (conv_orders->data[ind_e] < (exp_orders->data[ind_e]-discount))) {
+			pass = false;
+			break;
+		}
+	}}
+	return pass;
 }

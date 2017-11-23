@@ -54,7 +54,6 @@ struct Test_Case {
 
 	// Solver related parameters
 	char solver_method_curr;     ///< The current solver method. Options: 'e'xplicit, 'i'mplicit.
-	const bool display_progress; ///< Flag for whether the solver progress should be displayed (in stdout).
 
 	/// The type of solver procedure to be used for the simulation. Options: See definitions_test_case.h.
 	const int solver_proc;
@@ -66,6 +65,11 @@ struct Test_Case {
 	const double time_final; ///< The final time.
 	const double dt;         ///< The time increment at each stage of the explicit solve.
 
+	// Parameters for implicit simulations.
+	/** Flag for whether the Schur complement should be used for the global system solve. This option is available
+	 *  whenever it is possible for certain degrees of freedom to be statically condensed out of the global
+	 *  system. */
+	const bool use_schur_complement;
 
 	// Parameters for explicit/implicit simulations.
 	const int solver_type_i; ///< The implicit solver type. Options: See definitions_test_case.h.
@@ -117,6 +121,11 @@ struct Test_Case {
 	compute_source_rhs_fptr compute_source_rhs; ///< Function pointer to the rhs source computation function.
 
 	constructor_Error_CE_fptr constructor_Error_CE; ///< Function pointer to the function computing the error.
+
+	// Miscellaneous parameters
+	const bool display_progress; ///< Flag for whether the solver progress should be displayed (in stdout).
+
+	const double conv_order_discount; ///< Discount on the value of the convergence order required for optimality.
 };
 
 /** \brief Constructor for a \ref Test_Case.

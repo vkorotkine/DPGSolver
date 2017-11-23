@@ -69,4 +69,22 @@ ptrdiff_t compute_dof
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom of all of the \ref Solver_Volume::sol_coef's.
+ *  \return See brief. */
+ptrdiff_t compute_dof_sol_1st
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom for all dof of input type.
+ *  \return See brief. */
+ptrdiff_t compute_dof_schur
+	(const char dof_type,         ///< The type of dof. Options: 'v'olume, 'f'ace.
+	 const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Update \ref Solver_Volume::ind_dof and \ref Solver_Face::ind_dof.
+void update_ind_dof
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
 #endif // DPG__solve_h__INCLUDED

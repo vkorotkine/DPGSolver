@@ -102,6 +102,12 @@ static void set_string_associations_test_case
 static struct Test_Case_String_Inputs set_Test_Case_String_Inputs
 	();
 
+/// \brief Correct invalid \ref Test_Case parameters if present.
+static void correct_invalid_test_case_parameters
+	(struct Test_Case* test_case, ///< \ref Test_Case.
+	 const struct Simulation* sim ///< \ref Simulation.
+	);
+
 static void set_string_associations (struct Test_Case* test_case, const struct Simulation*const sim)
 {
 	// pde_index
@@ -187,10 +193,14 @@ static void read_test_case_parameters (struct Test_Case* test_case, const struct
 		if (strstr(line,"time_final")) read_skip_const_d(line,&test_case->time_final,1,false);
 		if (strstr(line,"time_step"))  read_skip_const_d(line,&test_case->dt,1,false);
 
-		if (strstr(line,"display_progress")) read_skip_const_b(line,&test_case->display_progress);
+		if (strstr(line,"use_schur_complement")) read_skip_const_b(line,&test_case->use_schur_complement);
+
+		if (strstr(line,"display_progress"))    read_skip_const_b(line,&test_case->display_progress);
+		if (strstr(line,"conv_order_discount")) read_skip_const_d(line,&test_case->conv_order_discount,1,false);
 	}
 	fclose(input_file);
 
+	correct_invalid_test_case_parameters(test_case,sim);
 	set_string_associations_test_case(test_case,&tcsi);
 
 	if (count_found != count_to_find)
@@ -231,4 +241,18 @@ static void set_string_associations_test_case (struct Test_Case* test_case, cons
 		const_cast_i(&test_case->ind_test_norm,TEST_NORM_H1_UPWIND);
 	else
 		const_cast_i(&test_case->ind_test_norm,TEST_NORM_INVALID);
+}
+
+static void correct_invalid_test_case_parameters (struct Test_Case* test_case, const struct Simulation* sim)
+{
+	switch (sim->method) {
+	case METHOD_DG:
+		const_cast_b(&test_case->use_schur_complement,false);
+		break;
+	case METHOD_DPG:
+		break; // Do nothing.
+	default:
+		EXIT_ERROR("Unsupported: %d\n",sim->method);
+		break;
+	}
 }

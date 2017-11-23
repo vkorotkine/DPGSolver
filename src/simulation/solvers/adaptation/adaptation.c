@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
+#include "solve.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -70,7 +71,8 @@ void adapt_hp (struct Simulation* sim, const int adapt_strategy)
 	// Don't forget to update ind_dof.
 
 	destructor_derived_computational_elements(sim,IL_SOLVER);
-EXIT_UNSUPPORTED;
+
+	update_ind_dof(sim);
 }
 
 // Static functions ************************************************************************************************* //
@@ -471,9 +473,11 @@ static void compute_projection_p_face (struct Adaptive_Solver_Face* a_s_face, co
 
 	const struct Multiarray_d* nf_coef_p = s_face->nf_coef;
 	if (compute_size(nf_coef_p->order,nf_coef_p->extents) > 0) {
-		const int p_i = a_s_face->p_ref_prev,
-			  p_o = s_face->p_ref;
-		const struct Operator* cc0_ff_ff = get_Multiarray_Operator(a_e->cc0_ff_ff,(ptrdiff_t[]){0,0,0,0,p_o,p_i});
+		const int ind_e = get_face_element_index(face),
+		          p_i   = a_s_face->p_ref_prev,
+		          p_o   = s_face->p_ref;
+		const struct Operator* cc0_ff_ff =
+			get_Multiarray_Operator(a_e->cc0_ff_ff,(ptrdiff_t[]){ind_e,ind_e,0,0,p_o,p_i});
 
 		// sim may be used to store a parameter establishing which type of operator to use for the computation.
 		UNUSED(sim);

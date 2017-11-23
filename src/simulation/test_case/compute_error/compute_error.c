@@ -119,7 +119,7 @@ struct Error_CE* constructor_Error_CE (struct Error_CE_Helper* e_ce_h, const str
 	// Construct Error_CE
 	struct Error_CE* error_ce = malloc(sizeof *error_ce); // returned
 
-	const_cast_ptrdiff(&error_ce->dof,compute_dof(sim));
+	const_cast_ptrdiff(&error_ce->dof,compute_dof_sol_1st(sim));
 	const_cast_d(&error_ce->domain_volume,e_ce_h->domain_volume);
 
 	error_ce->sol_L2 = (const struct const_Vector_d*) e_ce_h->sol_L2; // destructed
@@ -213,7 +213,21 @@ const char* compute_error_file_name (const struct Simulation* sim)
 	static char output_name[STRLEN_MAX];
 	sprintf(output_name,"%s%s%c%s%c%s%s",
 	        name_part,sim->pde_name,'/',sim->pde_spec,'/',"l2_errors__",extract_name(sim->ctrl_name_full,true));
+	correct_file_name_ml_p(sim->ml_p_curr[0],sim->ml_p_curr[1],output_name);
 	return output_name;
+}
+
+void correct_file_name_ml_p (const int ml, const int p, char*const file_name)
+{
+	int index = strlen(file_name);
+	if (ml >= 0 && strstr(file_name,"__ml") == NULL) {
+		assert(ml < 10);
+		index += sprintf(file_name+index,"%s%d","__ml",ml);
+	}
+	if (p >= 0 && strstr(file_name,"__p") == NULL) {
+		assert(p < 10);
+		index += sprintf(file_name+index,"%s%d","__p",p);
+	}
 }
 
 // Static functions ************************************************************************************************* //

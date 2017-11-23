@@ -130,4 +130,11 @@ const char* compute_error_file_name
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/// \brief Correct existing (add if missing) 'ml' and 'p' parameters of the file name if input values are valid.
+void correct_file_name_ml_p
+	(const int ml,        ///< The mesh level.
+	 const int p,         ///< The polynomial order.
+	 char*const file_name ///< The input file name.
+	);
+
 #endif // DPG__compute_error_h__INCLUDED

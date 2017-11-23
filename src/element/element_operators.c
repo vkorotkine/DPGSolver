@@ -686,8 +686,12 @@ static int convert_to_range (const char type_range, const char*const name_range)
 				return OP_R_P_1P;
 		else if (strstr(name_range,"P_1"))
 			return OP_R_P_1;
+		else if (strstr(name_range,"P_M1PM0"))
+			return OP_R_P_M1PM0;
 		else if (strstr(name_range,"P_PM0"))
 			return OP_R_P_PM0;
+		else if (strstr(name_range,"P_M1PM1"))
+			return OP_R_P_M1PM1;
 		else if (strstr(name_range,"P_PM1"))
 			return OP_R_P_PM1;
 		else if (strstr(name_range,"P_ALL"))
@@ -793,8 +797,10 @@ static void set_up_extents (struct Operator_Info* op_info)
 			push_back_Vector_i(extents_op,op_info->p_ref[1]+1,false,false);
 			push_back_Vector_i(extents_op,2,false,false);
 			break;
-		case OP_R_P_PM0: // fallthrough
-		case OP_R_P_PM1: // fallthrough
+		case OP_R_P_M1PM0: // fallthrough
+		case OP_R_P_PM0:   // fallthrough
+		case OP_R_P_M1PM1: // fallthrough
+		case OP_R_P_PM1:   // fallthrough
 		case OP_R_P_ALL:
 			push_back_Vector_i(extents_op,op_info->p_ref[1]+1,false,false);
 			push_back_Vector_i(extents_op,op_info->p_ref[1]+1,false,false);
@@ -1253,11 +1259,16 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 		assert(var_io == 'i');
 
 		switch (op_info->range_p) {
-		case OP_R_P_1: // fallthrough
-		case OP_R_P_1P:
+		case OP_R_P_1:  // fallthrough
+		case OP_R_P_1P: // fallthrough
 		case OP_R_P_1PPM1:
 			x_mm[0] = 1;
 			x_mm[1] = 1+1;
+			break;
+		case OP_R_P_M1PM0:
+		case OP_R_P_M1PM1:
+			x_mm[0] = GSL_MAX(op_info->p_ref[0],1);
+			x_mm[1] = op_info->p_ref[1]+1;
 			break;
 		case OP_R_P_PM0: // fallthrough
 		case OP_R_P_PM1: // fallthrough
@@ -1284,10 +1295,12 @@ static void compute_range_p_o (int p_o_mm[2], const struct Operator_Info* op_inf
 		p_o_mm[0] = 1;
 		p_o_mm[1] = 1+1;
 		break;
+	case OP_R_P_M1PM0: // fallthrough
 	case OP_R_P_PM0:
 		p_o_mm[0] = p_i;
 		p_o_mm[1] = p_i+1;
 		break;
+	case OP_R_P_M1PM1: // fallthrough
 	case OP_R_P_PM1:
 		p_o_mm[0] = GSL_MAX(p_i-1,p_ref[0]);
 		p_o_mm[1] = GSL_MIN(p_i+1,p_ref[1])+1;

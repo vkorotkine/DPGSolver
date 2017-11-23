@@ -151,8 +151,7 @@ const struct const_Nodes* constructor_const_Nodes_h
 	} else if (ce_o == 'v') { // (fv || ev)
 		nodes->rst = constructor_rst_proj(element->type,d_i,d_io,ind_h_io,ind_ce_io,ce_i,cv0_vvs_vXX,sim); // keep
 	} else { // (fe || ef)
-		printf("%c %c\n",ce_i,ce_o);
-		EXIT_ADD_SUPPORT;
+		EXIT_ERROR("Add support: %c %c\n",ce_i,ce_o);
 	}
 	destructor_const_Matrix_d(cv0_vvs_vXX);
 
@@ -395,18 +394,22 @@ static int compute_node_type_std
 	case 's': // fallthrough
 	case 'f': // fallthrough
 	case 't':
-		if (strcmp(sim->nodes_interp[s_type],"GL") == 0)
+		if (strcmp(sim->nodes_interp[s_type],"GL") == 0) {
 			return NODES_GL;
-		else if (strcmp(sim->nodes_interp[s_type],"GLL") == 0)
-			return NODES_GLL;
-		else if (strcmp(sim->nodes_interp[s_type],"AO") == 0)
+		} else if (strcmp(sim->nodes_interp[s_type],"GLL") == 0) {
+			if (op_io->p_op > 0)
+				return NODES_GLL;
+			else
+				return NODES_GL;
+		} else if (strcmp(sim->nodes_interp[s_type],"AO") == 0) {
 			return NODES_AO;
-		else if (strcmp(sim->nodes_interp[s_type],"WSH") == 0)
+		} else if (strcmp(sim->nodes_interp[s_type],"WSH") == 0) {
 			return NODES_WSH;
-		else if (strcmp(sim->nodes_interp[s_type],"EQ") == 0)
+		} else if (strcmp(sim->nodes_interp[s_type],"EQ") == 0) {
 			return NODES_EQ;
-		else
+		} else {
 			EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
+		}
 	case 'm': // fallthrough
 	case 'g':
 		switch (s_type) {

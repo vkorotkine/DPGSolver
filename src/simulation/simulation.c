@@ -175,6 +175,11 @@ int compute_adapt_type (const int p_ref[2], const int ml[2])
 	return -1;
 }
 
+void set_ml_p_curr (const int ml, const int p, struct Simulation* sim)
+{
+	const_cast_i1(sim->ml_p_curr,(int[]){ml,p},2);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -231,6 +236,8 @@ static void set_simulation_invalid (struct Simulation*const sim)
 	const_cast_i1(sim->p_c_x,(int[]){P_INVALID,P_INVALID},2);
 	const_cast_i1(sim->p_c_p,(int[]){P_INVALID,P_INVALID},2);
 	const_cast_i1(sim->p_t_p,(int[]){P_INVALID,P_INVALID},2);
+
+	set_ml_p_curr(-1,-1,sim);
 
 	const_cast_i(&sim->method,-1);
 

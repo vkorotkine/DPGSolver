@@ -39,6 +39,8 @@ struct Integration_Test_Info {
 	const int ml[2]; ///< The minimal and maximal mesh levels to be used for convergence order testing.
 
 	const int adapt_type; ///< Analogue of \ref Simulation::adapt_type.
+
+	const double conv_order_discount; ///< \ref Test_Case::conv_order_discount.
 };
 
 /// \brief Call integration test functions.
@@ -75,6 +77,7 @@ const char* set_file_name_curr
 	(const int adapt_type,      ///< \ref Integration_Test_Info::adapt_type.
 	 const int p,               ///< The order of the current simulation.
 	 const int ml,              ///< The mesh level of the current simulation.
+	 const bool add_missing,    ///< Flag to add missing 'ml' and 'p' parameters to the file name.
 	 const char*const file_name ///< The name of the file.
 	);
 

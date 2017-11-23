@@ -31,8 +31,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_base.h"
 
-#include "simulation/solvers/adaptation/adaptation.h"
-#include "simulation/computational_elements/computational_elements.h"
+#include "adaptation.h"
+#include "computational_elements.h"
+#include "compute_error.h"
 #include "const_cast.h"
 #include "file_processing.h"
 #include "simulation.h"
@@ -116,9 +117,13 @@ void structor_simulation
 		EXIT_ERROR("Unsupported: %d\n",adapt_type);
 		break;
 	}
+
+	if (mode == 'c')
+		set_ml_p_curr(ml,p,*sim);
 }
 
-const char* set_file_name_curr (const int adapt_type, const int p, const int ml, const char*const file_name)
+const char* set_file_name_curr
+	(const int adapt_type, const int p, const int ml, const bool add_missing, const char*const file_name)
 {
 	static char file_name_curr[STRLEN_MAX] = { 0, };
 	strcpy(file_name_curr,file_name);
@@ -129,6 +134,8 @@ const char* set_file_name_curr (const int adapt_type, const int p, const int ml,
 	char* index = NULL;
 	switch (adapt_type) {
 	case ADAPT_0:
+		if (add_missing)
+			correct_file_name_ml_p(ml,p,file_name_curr);
 		index = strstr(file_name_curr,"__ml");
 		index[4] = '0'+ml;
 		assert(!isdigit(index[5]));
@@ -162,4 +169,3 @@ const char* set_file_name_curr (const int adapt_type, const int p, const int ml,
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-

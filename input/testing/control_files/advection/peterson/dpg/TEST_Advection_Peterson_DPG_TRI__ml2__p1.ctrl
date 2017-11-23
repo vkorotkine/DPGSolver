@@ -1,0 +1,39 @@
+pde_name  advection
+pde_spec  steady/peterson
+
+geom_name n-cube
+geom_spec p1_YL
+
+dimension 2
+
+mesh_generator   n-cube/2d_peterson.py
+mesh_format      gmsh
+mesh_domain      straight
+mesh_type        tri
+mesh_level       2 2
+mesh_path        ../meshes/
+
+
+# Simulation variables
+
+interp_tp  GLL
+interp_si  WSH  // Not working when using AO for p > 1.
+interp_pyr GLL
+
+basis_geom  lagrange
+basis_sol   orthonormal
+
+geom_representation  superparametric
+geom_blending_tp     gordon_hall
+geom_blending_si     szabo_babuska_gen
+
+p_ref    1 1
+p_s_v_p  0
+p_s_f_p  1
+
+p_cub_x 2 2
+p_cub_p 2 2
+
+p_test_p 2 2
+
+fe_method 4

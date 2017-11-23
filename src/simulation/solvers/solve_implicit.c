@@ -73,11 +73,6 @@ static bool check_exit
 	 const double max_rhs               ///< The current maximum value of the rhs term.
 	);
 
-/// \brief Update \ref Solver_Volume::ind_dof and \ref Solver_Face::ind_dof.
-static void update_ind_dof
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
 /** \brief Constructor for a \ref Vector_i\* holding the 'n'umber of 'n'on-'z'ero entries in each row of the global
  *         system matrix.
  *  \return See brief. */
@@ -111,30 +106,30 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit (const struc
 	update_ind_dof(sim);
 	struct Vector_i* nnz = constructor_nnz(sim); // destructed
 
-	struct Solver_Storage_Implicit* s_store_i = calloc(1,sizeof *s_store_i); // free
+	struct Solver_Storage_Implicit* ssi = calloc(1,sizeof *ssi); // free
 
-	MatCreateSeqAIJ(MPI_COMM_WORLD,dof,dof,0,nnz->data,&s_store_i->A); // destructed
-	VecCreateSeq(MPI_COMM_WORLD,dof,&s_store_i->b);                    // destructed
+	MatCreateSeqAIJ(MPI_COMM_WORLD,dof,dof,0,nnz->data,&ssi->A); // destructed
+	VecCreateSeq(MPI_COMM_WORLD,dof,&ssi->b);                    // destructed
 
 	destructor_Vector_i(nnz);
 
-	return s_store_i;
+	return ssi;
 }
 
-void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* s_store_i)
+void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* ssi)
 {
-	MatDestroy(&s_store_i->A);
-	VecDestroy(&s_store_i->b);
+	MatDestroy(&ssi->A);
+	VecDestroy(&ssi->b);
 
-	free(s_store_i);
+	free(ssi);
 }
 
-void petsc_mat_vec_assemble (struct Solver_Storage_Implicit* s_store_i)
+void petsc_mat_vec_assemble (struct Solver_Storage_Implicit* ssi)
 {
-	MatAssemblyBegin(s_store_i->A,MAT_FINAL_ASSEMBLY);
-	MatAssemblyEnd(s_store_i->A,MAT_FINAL_ASSEMBLY);
-	VecAssemblyBegin(s_store_i->b);
-	VecAssemblyEnd(s_store_i->b);
+	MatAssemblyBegin(ssi->A,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(ssi->A,MAT_FINAL_ASSEMBLY);
+	VecAssemblyBegin(ssi->b);
+	VecAssemblyEnd(ssi->b);
 }
 
 void increment_nnz (struct Vector_i* nnz, const ptrdiff_t ind_dof, const ptrdiff_t n_row, const ptrdiff_t n_col)
@@ -180,8 +175,111 @@ bool check_symmetric (const struct Simulation* sim)
 
 /// \brief Output the petsc Mat/Vec to a file for visualization.
 static void output_petsc_mat_vec
-	(Mat A, ///< The petsc Mat.
-	 Vec b  ///< The petsc Vec.
+	(Mat A,                       ///< The petsc Mat.
+	 Vec b,                       ///< The petsc Vec.
+	 const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Solve the global system of equations and update the coefficients corresponding to the dof.
+static void solve_and_update
+	(const double max_rhs,                      ///< The maximum of the rhs terms.
+	 const int i_step,                          ///< Defined for \ref implicit_step.
+	 const struct Solver_Storage_Implicit* ssi, ///< \ref Solver_Storage_Implicit.
+	 const struct Simulation* sim               ///< \ref Simulation.
+	);
+
+/** \brief Check if the pde under consideration is linear.
+ *  \return `true` if yes; `false` otherwise. */
+static bool check_pde_linear
+	(const int pde_index ///< \ref Test_Case::pde_index.
+	);
+
+static void constructor_derived_elements_comp_elements (struct Simulation* sim)
+{
+	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER); // destructed
+	switch (sim->method) {
+	case METHOD_DG:
+		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
+		constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
+		break;
+	case METHOD_DPG:
+		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DPG);       // destructed
+		constructor_derived_computational_elements(sim,IL_SOLVER_DPG); // destructed
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",sim->method);
+		break;
+	}
+}
+
+static void destructor_derived_elements_comp_elements (struct Simulation* sim)
+{
+	destructor_derived_computational_elements(sim,IL_SOLVER);
+	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
+	destructor_derived_Elements(sim,IL_ELEMENT);
+}
+
+static double implicit_step (const int i_step, const struct Simulation* sim)
+{
+	struct Solver_Storage_Implicit* ssi = constructor_Solver_Storage_Implicit(sim); // destructed
+
+	const double max_rhs = compute_rlhs(sim,ssi);
+
+	petsc_mat_vec_assemble(ssi);
+	if (OUTPUT_PETSC_AB)
+		output_petsc_mat_vec(ssi->A,ssi->b,sim);
+
+	solve_and_update(max_rhs,i_step,ssi,sim);
+	destructor_Solver_Storage_Implicit(ssi);
+
+	return max_rhs;
+}
+
+static bool check_exit (const struct Test_Case* test_case, const double max_rhs)
+{
+	bool exit_now = false;
+
+	if (max_rhs < test_case->exit_tol_i) {
+		printf("Complete: max_rhs is below the exit tolerance.\n");
+		exit_now = true;
+	}
+
+	static double max_rhs0 = 0.0;
+	if (max_rhs0 == 0.0)
+		max_rhs0 = max_rhs;
+
+	if (max_rhs/max_rhs0 < test_case->exit_ratio_i) {
+		printf("Complete: max_rhs dropped by % .2e orders.\n",log10(max_rhs/max_rhs0));
+		exit_now = true;
+	}
+
+	if (check_pde_linear(test_case->pde_index))
+		exit_now = true;
+
+	return exit_now;
+}
+
+static struct Vector_i* constructor_nnz (const struct Simulation* sim)
+{
+	struct Vector_i* nnz = NULL;
+	switch (sim->method) {
+	case METHOD_DG:  nnz = constructor_nnz_dg(sim);  break;
+	case METHOD_DPG: nnz = constructor_nnz_dpg(sim); break;
+	default:
+		EXIT_ERROR("Unsupported: %d.\n",sim->method);
+		break;
+	}
+	return nnz;
+}
+
+// Level 1 ********************************************************************************************************** //
+
+#define N_SCHUR 4 ///< The number of sub-blocks extracted for the Schur complement.
+
+/// \brief Output the Schur complement petsc Mat sub-matrices to a file for visualization.
+static void output_petsc_mat_schur
+	(Mat A,                       ///< The petsc Mat.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /** \brief Constructor for the `x` petsc Vec in "Ax = b" which is initialized to `b`.
@@ -221,111 +319,98 @@ static void display_progress
 	 KSP ksp                            ///< Petsc `KSP` context.
 	);
 
-/** \brief Check if the pde under consideration is linear.
- *  \return `true` if yes; `false` otherwise. */
-static bool check_pde_linear
-	(const int pde_index ///< \ref Test_Case::pde_index.
+/** \brief Constructor for the Schur complement sub-matrices of the input matrix.
+ *  \return See brief. */
+static Mat* constructor_schur_sub_matrices
+	(Mat A,                       ///< The input PETSc Mat.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-static void constructor_derived_elements_comp_elements (struct Simulation* sim)
+/// \brief Destructor for the Schur complement sub-matrices.
+static void destructor_schur_sub_matrices
+	(Mat* submat ///< The sub-matrices.
+	);
+
+static void output_petsc_mat_vec (Mat A, Vec b, const struct Simulation* sim)
 {
-	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER); // destructed
-	switch (sim->method) {
-	case METHOD_DG:
-		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
-		constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
-		break;
-	case METHOD_DPG:
-		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DPG);       // destructed
-		constructor_derived_computational_elements(sim,IL_SOLVER_DPG); // destructed
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",sim->method);
-		break;
+	PetscViewer viewer;
+
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"A.m",&viewer);
+	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+	MatView(A,viewer);
+
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"b.m",&viewer);
+	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+	VecView(b,viewer);
+
+	PetscViewerDestroy(&viewer);
+
+	if (sim->test_case->use_schur_complement)
+		output_petsc_mat_schur(A,sim);
+
+	EXIT_ERROR("Disable outputting to continue");
+}
+
+static void solve_and_update
+	(const double max_rhs, const int i_step, const struct Solver_Storage_Implicit* ssi, const struct Simulation* sim)
+{
+	KSP ksp = NULL;
+	Vec x   = NULL;
+
+	const bool use_schur_complement = sim->test_case->use_schur_complement;
+	if (!use_schur_complement) {
+		x   = constructor_petsc_x(ssi->b);       // destructed
+		ksp = constructor_petsc_ksp(ssi->A,sim); // destructed
+		KSPSolve(ksp,ssi->b,x);
+	} else {
+		Mat* submat = constructor_schur_sub_matrices(ssi->A,sim); // destructed
+
+		PetscInt sub_nnz[N_SCHUR];
+		for (int i = 0; i < N_SCHUR; ++i) {
+			MatInfo matinfo;
+			MatGetInfo(submat[i],MAT_GLOBAL_MAX,&matinfo);
+
+			sub_nnz[i] = matinfo.nz_used;
+printf("%d\n",sub_nnz[i]);
+		}
+		const PetscReal fill = sub_nnz[3]/((PetscReal)(sub_nnz[0]+sub_nnz[1]+sub_nnz[2]));
+
+// fill - expected fill as ratio of nnz(D)/(nnz(A) + nnz(B)+nnz(C))
+		Mat D;
+		MatMatMatMult(submat[1],submat[3],submat[2],MAT_INITIAL_MATRIX,fill,&D); // destroyed
+
+		MatDestroy(&D);
+
+		destructor_schur_sub_matrices(submat);
+
+		EXIT_ADD_SUPPORT;
 	}
-}
-
-static void destructor_derived_elements_comp_elements (struct Simulation* sim)
-{
-	destructor_derived_computational_elements(sim,IL_SOLVER);
-	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
-	destructor_derived_Elements(sim,IL_ELEMENT);
-}
-
-static double implicit_step (const int i_step, const struct Simulation* sim)
-{
-	struct Solver_Storage_Implicit* s_store_i = constructor_Solver_Storage_Implicit(sim);
-
-	const double max_rhs = compute_rlhs(sim,s_store_i);
-
-	petsc_mat_vec_assemble(s_store_i);
-	if (OUTPUT_PETSC_AB)
-		output_petsc_mat_vec(s_store_i->A,s_store_i->b);
-
-	Vec x = constructor_petsc_x(s_store_i->b);
-
-	KSP ksp = constructor_petsc_ksp(s_store_i->A,sim);
-	KSPSolve(ksp,s_store_i->b,x);
-	destructor_Solver_Storage_Implicit(s_store_i);
 
 	update_coefs(x,sim);
 	destructor_petsc_x(x);
 
 	display_progress(sim->test_case,i_step,max_rhs,ksp);
 	destructor_petsc_ksp(ksp);
-
-	return max_rhs;
 }
 
-static bool check_exit (const struct Test_Case* test_case, const double max_rhs)
+static bool check_pde_linear (const int pde_index)
 {
-	bool exit_now = false;
-
-	if (max_rhs < test_case->exit_tol_i) {
-		printf("Complete: max_rhs is below the exit tolerance.\n");
-		exit_now = true;
-	}
-
-	static double max_rhs0 = 0.0;
-	if (max_rhs0 == 0.0)
-		max_rhs0 = max_rhs;
-
-	if (max_rhs/max_rhs0 < test_case->exit_ratio_i) {
-		printf("Complete: max_rhs dropped by % .2e orders.\n",log10(max_rhs/max_rhs0));
-		exit_now = true;
-	}
-
-	if (check_pde_linear(test_case->pde_index))
-		exit_now = true;
-
-	return exit_now;
-}
-
-static void update_ind_dof (const struct Simulation* sim)
-{
-	switch (sim->method) {
-	case METHOD_DG:  update_ind_dof_dg(sim);  break;
-	case METHOD_DPG: update_ind_dof_dpg(sim); break;
+	switch (pde_index) {
+	case PDE_ADVECTION: // fallthrough
+	case PDE_POISSON:
+		return true;
+		break;
+	case PDE_EULER: // fallthrough
+	case PDE_NAVIER_STOKES:
+		return false;
+		break;
 	default:
-		EXIT_ERROR("Unsupported: %d.\n",sim->method);
+		EXIT_ERROR("Unsupported: %d.\n",pde_index);
 		break;
 	}
 }
 
-static struct Vector_i* constructor_nnz (const struct Simulation* sim)
-{
-	struct Vector_i* nnz = NULL;
-	switch (sim->method) {
-	case METHOD_DG:  nnz = constructor_nnz_dg(sim);  break;
-	case METHOD_DPG: nnz = constructor_nnz_dpg(sim); break;
-	default:
-		EXIT_ERROR("Unsupported: %d.\n",sim->method);
-		break;
-	}
-	return nnz;
-}
-
-// Level 1 ********************************************************************************************************** //
+// Level 2 ********************************************************************************************************** //
 
 /// \brief Update the values of \ref Solver_Volume::sol_coef based on the computed increment.
 static void update_coef_s_v
@@ -339,19 +424,22 @@ static void update_coef_nf_f
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-static void output_petsc_mat_vec (Mat A, Vec b)
+static void output_petsc_mat_schur (Mat A, const struct Simulation* sim)
 {
+	Mat* submat = constructor_schur_sub_matrices(A,sim); // destructed
+
 	PetscViewer viewer;
+	for (int i = 0; i < N_SCHUR; ++i) {
+		char mat_name[STRLEN_MIN] = { 0, };
+		sprintf(mat_name,"%c%d%d%s",'A',i/2,i%2,".m");
 
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output.m",&viewer);
-	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
-	MatView(A,viewer);
-
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"vec_output.m",&viewer);
-	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
-	VecView(b,viewer);
-
+		PetscViewerASCIIOpen(PETSC_COMM_WORLD,mat_name,&viewer);
+		PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+		MatView(submat[i],viewer);
+	}
 	PetscViewerDestroy(&viewer);
+
+	destructor_schur_sub_matrices(submat);
 }
 
 static Vec constructor_petsc_x (Vec b)
@@ -469,24 +557,39 @@ static void display_progress (const struct Test_Case* test_case, const int i_ste
 	       i_step,iteration_ksp,emax/emin,reason,max_rhs,max_rhs0);
 }
 
-static bool check_pde_linear (const int pde_index)
+static Mat* constructor_schur_sub_matrices (Mat A, const struct Simulation* sim)
 {
-	switch (pde_index) {
-	case PDE_ADVECTION: // fallthrough
-	case PDE_POISSON:
-		return true;
-		break;
-	case PDE_EULER: // fallthrough
-	case PDE_NAVIER_STOKES:
-		return false;
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d.\n",pde_index);
-		break;
-	}
+	const ptrdiff_t dof_fv[2] = { compute_dof_schur('f',sim), compute_dof_schur('v',sim), };
+
+	PetscInt idx_f[dof_fv[0]];
+	for (int i = 0; i < dof_fv[0]; ++i)
+		idx_f[i] = i;
+
+	PetscInt idx_v[dof_fv[1]];
+	for (int i = 0; i < dof_fv[1]; ++i)
+		idx_v[i] = dof_fv[0]+i;
+
+	IS is_fv[2];
+	ISCreateGeneral(MPI_COMM_WORLD,dof_fv[0],idx_f,PETSC_USE_POINTER,&is_fv[0]);
+	ISCreateGeneral(MPI_COMM_WORLD,dof_fv[1],idx_v,PETSC_USE_POINTER,&is_fv[1]);
+
+	IS is_row[N_SCHUR] = { is_fv[0], is_fv[0], is_fv[1], is_fv[1], },
+	   is_col[N_SCHUR] = { is_fv[0], is_fv[1], is_fv[0], is_fv[1], };
+
+	Mat* submat;
+	MatCreateSubMatrices(A,N_SCHUR,is_row,is_col,MAT_INITIAL_MATRIX,&submat); // returned
+	ISDestroy(&is_fv[0]);
+	ISDestroy(&is_fv[1]);
+
+	return submat;
 }
 
-// Level 2 ********************************************************************************************************** //
+static void destructor_schur_sub_matrices (Mat* submat)
+{
+	MatDestroySubMatrices(N_SCHUR,&submat);
+}
+
+// Level 3 ********************************************************************************************************** //
 
 /// \brief Update the input coefficients with the step stored in the PETSc Vec.
 static void update_coef
@@ -514,7 +617,7 @@ static void update_coef_nf_f (Vec x, const struct Simulation* sim)
 	}
 }
 
-// Level 3 ********************************************************************************************************** //
+// Level 4 ********************************************************************************************************** //
 
 static void update_coef (const int ind_dof, struct Multiarray_d*const coef, Vec x)
 {

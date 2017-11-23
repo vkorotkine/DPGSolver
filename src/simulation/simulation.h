@@ -161,6 +161,8 @@ struct Simulation {
 	 *  differ. */
 	const int p_sg_f[2];
 
+	const int ml_p_curr[2]; ///< The current reference 'm'esh 'l'evel and 'p'olynomial order of the simulation.
+
 	/// Finite element method to be used. Options: 1 (DG), 2 (HDG), 3 (HDPG), 4 (DPG).
 	const int method;
 
@@ -235,6 +237,13 @@ void set_Simulation_elements
 int compute_adapt_type
 	(const int p_ref[2], ///< The array of minimal and maximal orders.
 	 const int ml[2]     ///< The array of minimal and maximal mesh levels.
+	);
+
+/// \brief Set \ref Simulation::ml_p_curr.
+void set_ml_p_curr
+	(const int ml,          ///< The mesh level.
+	 const int p,           ///< The polynomial order.
+	 struct Simulation* sim ///< \ref Simulation.
 	);
 
 #endif // DPG__Simulation_h__INCLUDED
