@@ -22,23 +22,28 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include "volume.h"
 
-/// \brief Container for data relating to the solver volumes.
+/** \brief Container for data relating to the solver volumes.
+ *  \note Certain members are declared `const` despite requiring modification for adaptive simulations. Only members
+ *        changing with every solver iteration are `mutable`.
+ */
 struct Solver_Volume {
 	struct Volume volume; ///< The base \ref Volume.
 
 	/// The index of the first degree of freedom (dof) of the volume in relation to the global dof.
-	ptrdiff_t ind_dof;
+	const ptrdiff_t ind_dof;
 
 	/// The reference order of the volume. Need not be equal to the order of the solution in the volume.
 	const int p_ref;
 
+	const int ml; ///< The mesh level of the volume.
+
 	/** The geometry coefficients of the volume in the \ref Simulation::basis_geom. For each of the supported
 	 *  \ref Simulation::domain_type options, geom_coef represents:
-	 *	- DOM_STRAIGHT: the projection of xyz_ve into the geometry basis of order 1.
-	 *	- DOM_CURVED:
-	 *		- straight volumes: [See DOM_STRAIGHT];
-	 *		- boundary volumes: the coefficients of the *blended* face geometry of order k_g.
-	 *	- DOM_PARAMETRIC: the coefficients of the mapped geometry of order k_g.
+	 *  - DOM_STRAIGHT: the projection of xyz_ve into the geometry basis of order 1.
+	 *  - DOM_CURVED:
+	 *  	- straight volumes: [See DOM_STRAIGHT];
+	 *  	- boundary volumes: the coefficients of the *blended* face geometry of order k_g.
+	 *  - DOM_PARAMETRIC: the coefficients of the mapped geometry of order k_g.
 	 */
 	const struct const_Multiarray_d*const geom_coef;
 

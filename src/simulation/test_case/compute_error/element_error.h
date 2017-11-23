@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__element_error_h__INCLUDED
 /** \file
  *  \brief Provides the interface for the derived \ref Error_Element container and associated functions.
- *
- *  \note `const` and non-`const` versions of must have identical members and layout.
  */
 
 #include "element_solution.h"

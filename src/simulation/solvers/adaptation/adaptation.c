@@ -19,11 +19,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 #include <stdlib.h>
+#include "gsl/gsl_math.h"
 
 #include "macros.h"
 #include "definitions_adaptation.h"
 #include "definitions_intrusive.h"
 
+#include "face_solver_adaptive.h"
 #include "element_adaptation.h"
 #include "volume_solver_adaptive.h"
 
@@ -51,6 +53,11 @@ static void adapt_hp_volumes
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
+/// \brief Perform hp adaptation of \ref Simulation::faces.
+static void adapt_hp_faces
+	(struct Simulation* sim ///< \ref Simulation.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void adapt_hp (struct Simulation* sim, const int adapt_strategy)
@@ -59,6 +66,8 @@ void adapt_hp (struct Simulation* sim, const int adapt_strategy)
 
 	mark_volumes_to_adapt(sim,adapt_strategy);
 	adapt_hp_volumes(sim);
+	adapt_hp_faces(sim);
+	// Don't forget to update ind_dof.
 
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 EXIT_UNSUPPORTED;
@@ -67,16 +76,34 @@ EXIT_UNSUPPORTED;
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/// \brief Update \ref Solver_Volume::p_ref.
-static void update_volume_p_ref
-	(struct Adaptive_Solver_Volume* a_s_vol, ///< \ref Adaptive_Solver_Volume.
-	 const struct Simulation* sim            ///< \ref Simulation.
+/// \brief Update hp adaptation related members of \ref Adaptive_Solver_Volume\*s.
+static void update_hp_members_volumes
+	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Project all \ref Solver_Volume solution-related data to the p-adaptved volume.
-static void compute_projection_p_volume
-	(struct Adaptive_Solver_Volume* a_s_vol, ///< \ref Adaptive_Solver_Volume.
-	 const struct Simulation* sim            ///< \ref Simulation.
+/// \brief Update hp adaptation related members of \ref Adaptive_Solver_Face\*s.
+static void update_hp_members_faces
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Update geometry for \ref Solver_Volume\*s.
+static void update_geometry_volumes
+	(struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Update geometry for \ref Solver_Face\*s.
+static void update_geometry_faces
+	(struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Project the solution for \ref Solver_Volume\*s.
+static void project_solution_volumes
+	(struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Project the solution for \ref Solver_Face\*s.
+static void project_solution_faces
+	(struct Simulation* sim ///< \ref Simulation.
 	);
 
 static void mark_volumes_to_adapt (const struct Simulation* sim, const int adapt_strategy)
@@ -96,15 +123,77 @@ static void mark_volumes_to_adapt (const struct Simulation* sim, const int adapt
 
 static void adapt_hp_volumes (struct Simulation* sim)
 {
-/// \todo Separate functions when usage is set.
-	// Update volume flags
+	update_hp_members_volumes(sim);
+	update_geometry_volumes(sim);
+	project_solution_volumes(sim);
+}
+
+static void adapt_hp_faces (struct Simulation* sim)
+{
+	update_hp_members_faces(sim);
+	update_geometry_faces(sim);
+	project_solution_faces(sim);
+}
+
+// Level 1 ********************************************************************************************************** //
+
+/// \brief Update \ref Solver_Volume::p_ref.
+static void update_volume_p_ref
+	(struct Adaptive_Solver_Volume* a_s_vol, ///< \ref Adaptive_Solver_Volume.
+	 const struct Simulation* sim            ///< \ref Simulation.
+	);
+
+/// \brief Update \ref Solver_Face::p_ref.
+static void update_face_p_ref
+	(struct Adaptive_Solver_Face* a_s_face, ///< \ref Adaptive_Solver_Face.
+	 const struct Simulation* sim           ///< \ref Simulation.
+	);
+
+/** \brief Get the index of the dominant volume.
+ *  \return See brief. */
+static int get_dominant_volume_index
+	(const struct Adaptive_Solver_Face* a_s_face ///< \ref Adaptive_Solver_Face.
+	);
+
+/// \brief Swap \ref Face::neigh_info members.
+static void swap_face_neigh
+	(struct Adaptive_Solver_Face* a_s_face ///< \ref Adaptive_Solver_Face.
+	);
+
+/** \brief Return whether one of the volumes neighbouring the current face was updated.
+ *  \return See brief. */
+static bool neighbours_were_updated
+	(const struct Adaptive_Solver_Face* a_s_face ///< \ref Adaptive_Solver_Face.
+	);
+
+/// \brief Set \ref Adaptive_Solver_Face::adapt_type.
+static void set_face_adapt_type
+	(struct Adaptive_Solver_Face* a_s_face ///< \ref Adaptive_Solver_Face.
+	);
+
+/// \brief Project all \ref Solver_Volume solution-related data to the p-adaptive volume.
+static void compute_projection_p_volume
+	(struct Adaptive_Solver_Volume* a_s_vol, ///< \ref Adaptive_Solver_Volume.
+	 const struct Simulation* sim            ///< \ref Simulation.
+	);
+
+/// \brief Project all \ref Solver_Face solution-related data to the p-adaptive face.
+static void compute_projection_p_face
+	(struct Adaptive_Solver_Face* a_s_face, ///< \ref Adaptive_Solver_Face.
+	 const struct Simulation* sim           ///< \ref Simulation.
+	);
+
+static void update_hp_members_volumes (const struct Simulation* sim)
+{
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) curr;
 
 		const int adapt_type = a_s_vol->adapt_type;
+		if (adapt_type == ADAPT_NONE)
+			continue;
+
+		a_s_vol->updated = true;
 		switch (adapt_type) {
-		case ADAPT_NONE:
-			break; // Do nothing.
 		case ADAPT_P_REFINE: // fallthrough
 		case ADAPT_P_COARSE:
 			update_volume_p_ref(a_s_vol,sim);
@@ -114,8 +203,39 @@ static void adapt_hp_volumes (struct Simulation* sim)
 			break;
 		}
 	}
+}
 
-	// Update volume geometry
+static void update_hp_members_faces (const struct Simulation* sim)
+{
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) curr;
+
+		if (!neighbours_were_updated(a_s_face))
+			continue;
+
+		set_face_adapt_type(a_s_face);
+		const int adapt_type = a_s_face->adapt_type;
+		if (adapt_type == ADAPT_NONE)
+			continue;
+
+		switch (adapt_type) {
+		case ADAPT_P_REFINE: // fallthrough
+		case ADAPT_P_COARSE:
+			update_face_p_ref(a_s_face,sim);
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",adapt_type);
+			break;
+		}
+
+		const int ind_dom_vol = get_dominant_volume_index(a_s_face);
+		if (ind_dom_vol == 1)
+			swap_face_neigh(a_s_face);
+	}
+}
+
+static void update_geometry_volumes (struct Simulation* sim)
+{
 	constructor_derived_Elements(sim,IL_ELEMENT_GEOMETRY);
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) curr;
@@ -137,8 +257,35 @@ static void adapt_hp_volumes (struct Simulation* sim)
 		}
 	}
 	destructor_derived_Elements(sim,IL_ELEMENT);
+}
 
-	// Project volume solution
+static void update_geometry_faces (struct Simulation* sim)
+{
+	constructor_derived_Elements(sim,IL_ELEMENT_GEOMETRY);
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) curr;
+		struct Solver_Face* s_face            = (struct Solver_Face*) curr;
+
+		const int adapt_type = a_s_face->adapt_type;
+		switch (adapt_type) {
+		case ADAPT_NONE:
+			break; // Do nothing.
+		case ADAPT_P_REFINE: // fallthrough
+		case ADAPT_P_COARSE:
+			compute_geometry_face(s_face,sim);
+			break;
+		case ADAPT_H_REFINE:
+			EXIT_ADD_SUPPORT; // Loop over child faces and set geometry.
+		default:
+			EXIT_ERROR("Unsupported: %d\n",adapt_type);
+			break;
+		}
+	}
+	destructor_derived_Elements(sim,IL_ELEMENT);
+}
+
+static void project_solution_volumes (struct Simulation* sim)
+{
 	constructor_derived_Elements(sim,IL_ELEMENT_ADAPTATION);
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) curr;
@@ -158,10 +305,32 @@ static void adapt_hp_volumes (struct Simulation* sim)
 
 	}
 	destructor_derived_Elements(sim,IL_ELEMENT);
-EXIT_UNSUPPORTED;
 }
 
-// Level 1 ********************************************************************************************************** //
+static void project_solution_faces (struct Simulation* sim)
+{
+	constructor_derived_Elements(sim,IL_ELEMENT_ADAPTATION);
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) curr;
+
+		const int adapt_type = a_s_face->adapt_type;
+		switch (adapt_type) {
+		case ADAPT_NONE:
+			break; // Do nothing.
+		case ADAPT_P_REFINE: // fallthrough
+		case ADAPT_P_COARSE:
+			compute_projection_p_face(a_s_face,sim);
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",adapt_type);
+			break;
+		}
+
+	}
+	destructor_derived_Elements(sim,IL_ELEMENT);
+}
+
+// Level 2 ********************************************************************************************************** //
 
 static void update_volume_p_ref (struct Adaptive_Solver_Volume* a_s_vol, const struct Simulation* sim)
 {
@@ -184,6 +353,90 @@ static void update_volume_p_ref (struct Adaptive_Solver_Volume* a_s_vol, const s
 	}
 }
 
+static void update_face_p_ref (struct Adaptive_Solver_Face* a_s_face, const struct Simulation* sim)
+{
+	const struct Face* face = (struct Face*) a_s_face;
+	const struct Solver_Face* s_face = (struct Solver_Face*) a_s_face;
+
+	const struct Solver_Volume* s_vol_l = (struct Solver_Volume*) face->neigh_info[0].volume;
+	if (face->boundary) {
+		const_cast_i(&s_face->p_ref,s_vol_l->p_ref);
+	} else {
+		const struct Solver_Volume* s_vol_r = (struct Solver_Volume*) face->neigh_info[1].volume;
+		const_cast_i(&s_face->p_ref,GSL_MAX(s_vol_l->p_ref,s_vol_r->p_ref));
+	}
+	assert(s_face->p_ref >= sim->p_ref[0]);
+	assert(s_face->p_ref <= sim->p_ref[1]);
+}
+
+static int get_dominant_volume_index (const struct Adaptive_Solver_Face* a_s_face)
+{
+	const struct Face* face = (struct Face*) a_s_face;
+
+	if (face->boundary) {
+		return 0;
+	} else {
+		const struct Solver_Volume* s_vol_l = (struct Solver_Volume*) face->neigh_info[0].volume;
+		const struct Solver_Volume* s_vol_r = (struct Solver_Volume*) face->neigh_info[1].volume;
+		if (s_vol_l->p_ref != s_vol_r->p_ref)
+			return (s_vol_l->p_ref > s_vol_r->p_ref ? 0 : 1);
+		else if (s_vol_l->ml != s_vol_r->ml)
+			return (s_vol_l->ml > s_vol_r->ml ? 0 : 1);
+		else
+			return 0;
+	}
+	EXIT_ERROR("Did not find the dominant volume index.");
+}
+
+static void swap_face_neigh (struct Adaptive_Solver_Face* a_s_face)
+{
+	UNUSED(a_s_face);
+	EXIT_ADD_SUPPORT;
+}
+
+static bool neighbours_were_updated (const struct Adaptive_Solver_Face* a_s_face)
+{
+	const struct Face* face = (struct Face*) a_s_face;
+
+	const struct Adaptive_Solver_Volume* a_s_vol_l = (struct Adaptive_Solver_Volume*) face->neigh_info[0].volume;
+
+	if (a_s_vol_l->updated == true)
+		return true;
+
+	if (!face->boundary) {
+		const struct Adaptive_Solver_Volume* a_s_vol_r =
+			(struct Adaptive_Solver_Volume*) face->neigh_info[1].volume;
+		if (a_s_vol_r->updated == true)
+			return true;
+	}
+	return false;
+}
+
+static void set_face_adapt_type (struct Adaptive_Solver_Face* a_s_face)
+{
+	const struct Face* face          = (struct Face*) a_s_face;
+
+	const int ind_dom_vol = get_dominant_volume_index(a_s_face);
+	const struct Adaptive_Solver_Volume* a_s_vol_d =
+		(struct Adaptive_Solver_Volume*) face->neigh_info[ind_dom_vol].volume;
+
+	if (!a_s_vol_d->updated)
+		a_s_face->adapt_type = ADAPT_NONE;
+
+	const struct Solver_Face* s_face    = (struct Solver_Face*) a_s_face;
+	const struct Solver_Volume* s_vol_d = (struct Solver_Volume*) a_s_vol_d;
+	if (s_vol_d->p_ref > s_face->p_ref)
+		a_s_face->adapt_type = ADAPT_P_REFINE;
+	else if (s_vol_d->p_ref < s_face->p_ref)
+		a_s_face->adapt_type = ADAPT_P_COARSE;
+	else if (s_vol_d->ml > s_face->ml)
+		a_s_face->adapt_type = ADAPT_H_REFINE;
+	else if (s_vol_d->ml < s_face->ml)
+		a_s_face->adapt_type = ADAPT_H_COARSE;
+	else
+		EXIT_ERROR("Did not find the adaptation type.");
+}
+
 static void compute_projection_p_volume (struct Adaptive_Solver_Volume* a_s_vol, const struct Simulation* sim)
 {
 	const struct Volume* vol    = (struct Volume*) a_s_vol;
@@ -202,8 +455,36 @@ static void compute_projection_p_volume (struct Adaptive_Solver_Volume* a_s_vol,
 	struct Multiarray_d* s_coef =
 		constructor_mm_NN1_Operator_Multiarray_d(cc0_vs_vs,s_coef_p,'C',op_format,s_coef_p->order,NULL); // moved
 
-print_const_Matrix_d(cc0_vs_vs->op_std);
-print_Multiarray_d(s_coef_p);
-print_Multiarray_d(s_coef);
-EXIT_UNSUPPORTED;
+	destructor_Multiarray_d((struct Multiarray_d*)s_coef_p);
+	s_vol->sol_coef = s_coef;
+
+	assert(compute_size(s_vol->grad_coef->order,s_vol->grad_coef->extents) == 0); // Add support for 2nd order.
+}
+
+#include "test_case.h"
+static void compute_projection_p_face (struct Adaptive_Solver_Face* a_s_face, const struct Simulation* sim)
+{
+	const struct Face* face    = (struct Face*) a_s_face;
+	struct Solver_Face* s_face = (struct Solver_Face*) a_s_face;
+	const struct Volume* vol   = face->neigh_info[0].volume;
+	const struct Adaptation_Element* a_e = (struct Adaptation_Element*) vol->element;
+
+	const struct Multiarray_d* nf_coef_p = s_face->nf_coef;
+	if (compute_size(nf_coef_p->order,nf_coef_p->extents) > 0) {
+		const int p_i = a_s_face->p_ref_prev,
+			  p_o = s_face->p_ref;
+		const struct Operator* cc0_ff_ff = get_Multiarray_Operator(a_e->cc0_ff_ff,(ptrdiff_t[]){0,0,0,0,p_o,p_i});
+
+		// sim may be used to store a parameter establishing which type of operator to use for the computation.
+		UNUSED(sim);
+		const char op_format = 'd';
+
+		struct Multiarray_d* nf_coef = constructor_mm_NN1_Operator_Multiarray_d(
+			cc0_ff_ff,nf_coef_p,'C',op_format,nf_coef_p->order,NULL); // moved
+
+		destructor_Multiarray_d((struct Multiarray_d*)nf_coef_p);
+		s_face->nf_coef = nf_coef;
+	}
+
+	assert(sim->test_case->has_2nd_order == false); // Add support for 2nd order. Remove include above.
 }

@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 
 #include "macros.h"
+#include "definitions_adaptation.h"
 
 #include "simulation.h"
 
@@ -30,7 +31,10 @@ You should have received a copy of the GNU General Public License along with DPG
 void constructor_derived_Adaptive_Solver_Face (struct Face* face_ptr, const struct Simulation* sim)
 {
 	struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) face_ptr;
-	UNUSED(a_s_face);
+	struct Solver_Face* s_face            = (struct Solver_Face*) face_ptr;
+
+	a_s_face->adapt_type = ADAPT_NONE;
+	a_s_face->p_ref_prev = s_face->p_ref;
 	UNUSED(sim);
 }
 

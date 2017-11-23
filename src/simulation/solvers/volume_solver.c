@@ -37,33 +37,34 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void constructor_derived_Solver_Volume (struct Volume* volume_ptr, const struct Simulation* sim)
 {
-	struct Solver_Volume* volume = (struct Solver_Volume*) volume_ptr;
+	struct Solver_Volume* s_vol = (struct Solver_Volume*) volume_ptr;
 
-	volume->ind_dof = -1;
-	const_cast_i(&volume->p_ref,sim->p_ref[0]);
-	const_constructor_move_Multiarray_d(&volume->geom_coef,constructor_default_Multiarray_d());
+	const_cast_ptrdiff(&s_vol->ind_dof,-1);
+	const_cast_i(&s_vol->p_ref,sim->p_ref[0]);
+	const_cast_i(&s_vol->ml,0);
+	const_constructor_move_Multiarray_d(&s_vol->geom_coef,constructor_default_Multiarray_d());
 
-	volume->sol_coef  = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0});   // destructed
-	volume->grad_coef = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}); // destructed
+	s_vol->sol_coef  = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0});   // destructed
+	s_vol->grad_coef = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}); // destructed
 
 	const_constructor_move_Multiarray_d(
-		&volume->metrics_vm,constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
+		&s_vol->metrics_vm,constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
 	const_constructor_move_Multiarray_d(
-		&volume->metrics_vc,constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
+		&s_vol->metrics_vc,constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
 	const_constructor_move_Multiarray_d(
-		&volume->jacobian_det_vc,constructor_empty_Multiarray_d('C',1,(ptrdiff_t[]){0})); // destructed
+		&s_vol->jacobian_det_vc,constructor_empty_Multiarray_d('C',1,(ptrdiff_t[]){0})); // destructed
 }
 
 void destructor_derived_Solver_Volume (struct Volume* volume_ptr)
 {
-	struct Solver_Volume* volume = (struct Solver_Volume*) volume_ptr;
+	struct Solver_Volume* s_vol = (struct Solver_Volume*) volume_ptr;
 
-	destructor_const_Multiarray_d(volume->geom_coef);
-	destructor_Multiarray_d(volume->sol_coef);
-	destructor_Multiarray_d(volume->grad_coef);
-	destructor_const_Multiarray_d(volume->metrics_vm);
-	destructor_const_Multiarray_d(volume->metrics_vc);
-	destructor_const_Multiarray_d(volume->jacobian_det_vc);
+	destructor_const_Multiarray_d(s_vol->geom_coef);
+	destructor_Multiarray_d(s_vol->sol_coef);
+	destructor_Multiarray_d(s_vol->grad_coef);
+	destructor_const_Multiarray_d(s_vol->metrics_vm);
+	destructor_const_Multiarray_d(s_vol->metrics_vc);
+	destructor_const_Multiarray_d(s_vol->jacobian_det_vc);
 }
 
 const struct const_Vector_d* get_operator__w_vc__s_e (const struct Solver_Volume* s_vol)

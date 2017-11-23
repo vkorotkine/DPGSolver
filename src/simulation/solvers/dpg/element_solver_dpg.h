@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__element_solver_dpg_h__INCLUDED
 /** \file
  *  \brief Provides the interface for the derived \ref DPG_Solver_Element container and associated functions.
- *
- *  \note `const` and non-`const` versions must have identical members and layout.
  */
 
 #include "element_solver.h"

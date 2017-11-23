@@ -52,18 +52,6 @@ typedef void (*compute_geom_coef_fptr)
 	 struct Solver_Volume*const s_vol
 	);
 
-/** \brief Compute the geometry of the \ref Solver_Face.
- *
- *  The following members are set:
- *  - Solver_Face::xyz_fc;
- *  - Solver_Face::n_fc;
- *  - Solver_Face::jacobian_det_fc.
- */
-static void compute_geometry_face
-	(struct Simulation* sim,  ///< \ref Simulation.
-	 struct Solver_Face* face ///< \ref Solver_Face.
-	);
-
 /// \brief Compute the face normal vectors at the nodes corresponding to the given face metrics.
 static void compute_normals
 	(const int ind_lf,                             ///< Defined for \ref compute_unit_normals_and_det.
@@ -97,6 +85,20 @@ static void compute_cofactors
 	 struct Multiarray_d* metrics         ///< Multiarray to be set to contain the metric terms.
 	);
 
+/** \brief Compute the face unit normal vectors at the nodes corresponding to the given face metrics.
+ *  The l^2 norm of the initially un-normalized normal vector at each of the nodes is stored in `jacobian_det`. This is
+ *  done in accordance with the definition (see (eq. (B.6), \cite Zwanenburg2016)).
+ */
+static void compute_unit_normals_and_det
+	(const int ind_lf,                             ///< \ref Face::Neigh_Info::ind_lf in \ref Face.
+	 const struct const_Multiarray_d* normals_ref, ///< \ref Element::normals.
+	 const struct const_Multiarray_d* metrics_f,   /**< \ref Solver_Volume::metrics_vm interpolated to the face
+	                                                *   nodes. */
+	 struct Multiarray_d* normals_f,               ///< \ref Multiarray_d\* in which to store the face normals.
+	 struct Multiarray_d* jacobian_det_f           /**< \ref Multiarray_d\* in which to store the face jacobian
+	                                                *   determinants. */
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void set_up_solver_geometry (struct Simulation* sim)
@@ -107,10 +109,10 @@ void set_up_solver_geometry (struct Simulation* sim)
 	constructor_derived_Elements(sim,IL_ELEMENT_GEOMETRY);
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
-		compute_geometry_volume((struct Solver_Volume*) curr,sim);
+		compute_geometry_volume((struct Solver_Volume*)curr,sim);
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
-		compute_geometry_face(sim,(struct Solver_Face*) curr);
+		compute_geometry_face((struct Solver_Face*)curr,sim);
 
 	destructor_derived_Elements(sim,IL_ELEMENT);
 }
@@ -178,42 +180,7 @@ void compute_geometry_volume (struct Solver_Volume* s_vol, const struct Simulati
 		ops.vv0_vm_vc,met_vm,(struct Multiarray_d*)s_vol->metrics_vc,op_format,met_vm->order,NULL,NULL);
 }
 
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-/** \brief Compute the face unit normal vectors at the nodes corresponding to the given face metrics.
- *  The l^2 norm of the initially un-normalized normal vector at each of the nodes is stored in `jacobian_det`. This is
- *  done in accordance with the definition (see (eq. (B.6), \cite Zwanenburg2016)).
- */
-static void compute_unit_normals_and_det
-	(const int ind_lf,                             ///< \ref Face::Neigh_Info::ind_lf in \ref Face.
-	 const struct const_Multiarray_d* normals_ref, ///< \ref Element::normals.
-	 const struct const_Multiarray_d* metrics_f,   /**< \ref Solver_Volume::metrics_vm interpolated to the face
-	                                                *   nodes. */
-	 struct Multiarray_d* normals_f,               ///< \ref Multiarray_d\* in which to store the face normals.
-	 struct Multiarray_d* jacobian_det_f           /**< \ref Multiarray_d\* in which to store the face jacobian
-	                                                *   determinants. */
-	);
-
-/// \brief Version of \ref compute_geom_coef_fptr for straight volumes.
-static void compute_geom_coef_straight
-	(const struct Simulation*const sim, ///< See brief.
-	 struct Solver_Volume*const s_vol   ///< See brief.
-	);
-
-/// \brief Version of \ref compute_geom_coef_fptr for curved volumes using blending.
-static void compute_geom_coef_curved
-	(const struct Simulation*const sim, ///< See brief.
-	 struct Solver_Volume*const s_vol   ///< See brief.
-	);
-
-/// \brief Version of \ref compute_geom_coef_fptr for curved volumes using the parametric mapping.
-static void compute_geom_coef_parametric
-	(const struct Simulation*const sim, ///< See brief.
-	 struct Solver_Volume*const s_vol   ///< See brief.
-	);
-
-static void compute_geometry_face (struct Simulation *sim, struct Solver_Face* face)
+void compute_geometry_face (struct Solver_Face* face, struct Simulation *sim)
 {
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	UNUSED(sim);
@@ -261,6 +228,27 @@ static void compute_geometry_face (struct Simulation *sim, struct Solver_Face* f
 
 	destructor_const_Multiarray_d(metrics_fc);
 }
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
+
+/// \brief Version of \ref compute_geom_coef_fptr for straight volumes.
+static void compute_geom_coef_straight
+	(const struct Simulation*const sim, ///< See brief.
+	 struct Solver_Volume*const s_vol   ///< See brief.
+	);
+
+/// \brief Version of \ref compute_geom_coef_fptr for curved volumes using blending.
+static void compute_geom_coef_curved
+	(const struct Simulation*const sim, ///< See brief.
+	 struct Solver_Volume*const s_vol   ///< See brief.
+	);
+
+/// \brief Version of \ref compute_geom_coef_fptr for curved volumes using the parametric mapping.
+static void compute_geom_coef_parametric
+	(const struct Simulation*const sim, ///< See brief.
+	 struct Solver_Volume*const s_vol   ///< See brief.
+	);
 
 static void compute_normals
 	(const int ind_lf, const struct const_Multiarray_d* normals_ref, const struct const_Multiarray_d* metrics_f,
@@ -436,8 +424,6 @@ static void compute_cofactors (struct const_Multiarray_d* jacobian, struct Multi
 	}
 }
 
-// Level 1 ********************************************************************************************************** //
-
 static void compute_unit_normals_and_det
 	(const int ind_lf, const struct const_Multiarray_d* normals_ref, const struct const_Multiarray_d* metrics_f,
 	 struct Multiarray_d* normals_f, struct Multiarray_d* jacobian_det_f)
@@ -445,6 +431,8 @@ static void compute_unit_normals_and_det
 	compute_normals(ind_lf,normals_ref,metrics_f,normals_f);
 	normalize_Multiarray_d(normals_f,"L2",true,jacobian_det_f);
 }
+
+// Level 1 ********************************************************************************************************** //
 
 static void compute_geom_coef_straight (const struct Simulation*const sim, struct Solver_Volume*const s_vol)
 {

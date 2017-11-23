@@ -28,6 +28,8 @@ struct Adaptive_Solver_Volume {
 	int adapt_type; ///< The type of adaptation to use. Options: see \ref definitions_adaption.h.
 
 	int p_ref_prev; ///< The previous value of \ref Solver_Volume::p_ref.
+
+	bool updated; ///< Flag for whether the volume was updated.
 };
 
 /// \brief Constructor for a derived \ref Adaptive_Solver_Volume.

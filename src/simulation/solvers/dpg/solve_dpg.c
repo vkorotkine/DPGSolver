@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "compute_all_rlhs_dpg.h"
+#include "const_cast.h"
 #include "intrusive.h"
 #include "simulation.h"
 #include "solve.h"
@@ -59,18 +60,18 @@ void update_ind_dof_dpg (const struct Simulation* sim)
 		struct Multiarray_d* nf_coef = s_face->nf_coef;
 		const ptrdiff_t size = compute_size(nf_coef->order,nf_coef->extents);
 		if (size == 0) {
-			s_face->ind_dof = -1;
+			const_cast_ptrdiff(&s_face->ind_dof,-1);
 			continue;
 		}
 
-		s_face->ind_dof = dof;
+		const_cast_ptrdiff(&s_face->ind_dof,dof);
 		dof += size;
 	}
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
 
-		s_vol->ind_dof = dof;
+		const_cast_ptrdiff(&s_vol->ind_dof,dof);
 
 		struct Multiarray_d* sol_coef = s_vol->sol_coef;
 		dof += compute_size(sol_coef->order,sol_coef->extents);

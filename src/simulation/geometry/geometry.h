@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 struct Intrusive_List;
 struct Solver_Volume;
+struct Solver_Face;
 struct Multiarray_d;
 struct const_Multiarray_d;
 
@@ -96,6 +97,18 @@ void compute_unit_normals
 void compute_geometry_volume
 	(struct Solver_Volume* s_vol, ///< \ref Solver_Volume.
 	 const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Compute the geometry of the \ref Solver_Face.
+ *
+ *  The following members are set:
+ *  - Solver_Face::xyz_fc;
+ *  - Solver_Face::n_fc;
+ *  - Solver_Face::jacobian_det_fc.
+ */
+void compute_geometry_face
+	(struct Solver_Face* face, ///< \ref Solver_Face.
+	 struct Simulation* sim    ///< \ref Simulation.
 	);
 
 #endif // DPG__geometry_h__INCLUDED

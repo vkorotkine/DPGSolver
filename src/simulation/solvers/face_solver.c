@@ -54,8 +54,9 @@ void constructor_derived_Solver_Face (struct Face* face_ptr, const struct Simula
 {
 	struct Solver_Face* s_face = (struct Solver_Face*) face_ptr;
 
-	s_face->ind_dof = -1;
+	const_cast_ptrdiff(&s_face->ind_dof,-1);
 	const_cast_i(&s_face->p_ref,sim->p_ref[0]);
+	const_cast_i(&s_face->ml,0);
 	const_cast_c(&s_face->cub_type,(check_for_curved_neigh((struct Face*)s_face) ? 'c' : 's'));
 
 	s_face->nf_coef = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){0,0});   // destructed
