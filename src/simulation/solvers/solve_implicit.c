@@ -276,9 +276,21 @@ static struct Vector_i* constructor_nnz (const struct Simulation* sim)
 
 #define N_SCHUR 4 ///< The number of sub-blocks extracted for the Schur complement.
 
-/// \brief Output the Schur complement petsc Mat sub-matrices to a file for visualization.
-static void output_petsc_mat_schur
+/// \brief Container for data relating to Schur complement of the input matrix and vector.
+struct Schur_Data {
+	/** The index sets corresponding to the two regions of the square matrix to be decomposed into the Schur
+	 *  complement components. Note that only two index sets are provided as the row and column sets are the same
+	 *  for symmetric matrices. */
+	IS is[2];
+
+	Mat* submat; ///< The array of sub-matrices.
+	Vec* subvec; ///< The array of sub-vectors.
+};
+
+/// \brief Output the Schur complement sub-matrices and sub-vectors to a file for visualization.
+static void output_petsc_schur
 	(Mat A,                       ///< The petsc Mat.
+	 Vec b,                       ///< The petsc Vec.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
@@ -319,16 +331,18 @@ static void display_progress
 	 KSP ksp                            ///< Petsc `KSP` context.
 	);
 
-/** \brief Constructor for the Schur complement sub-matrices of the input matrix.
+/** \brief Constructor for a \ref Schur_Data container.
  *  \return See brief. */
-static Mat* constructor_schur_sub_matrices
-	(Mat A,                       ///< The input PETSc Mat.
+static struct Schur_Data* constructor_Schur_Data
+	(Mat A,                       ///< The full PETSc Mat.
+	 Vec b,                       ///< The full PETSc Vec.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destructor for the Schur complement sub-matrices.
-static void destructor_schur_sub_matrices
-	(Mat* submat ///< The sub-matrices.
+/// \brief Destructor for a \ref Schur_Data container.
+static void destructor_Schur_Data
+	(Vec b,                        ///< The full PETSc Vec from which the sub-vectors were obtained.
+	 struct Schur_Data* schur_data ///< See brief.
 	);
 
 static void output_petsc_mat_vec (Mat A, Vec b, const struct Simulation* sim)
@@ -346,7 +360,7 @@ static void output_petsc_mat_vec (Mat A, Vec b, const struct Simulation* sim)
 	PetscViewerDestroy(&viewer);
 
 	if (sim->test_case->use_schur_complement)
-		output_petsc_mat_schur(A,sim);
+		output_petsc_schur(A,b,sim);
 
 	EXIT_ERROR("Disable outputting to continue");
 }
@@ -355,33 +369,60 @@ static void solve_and_update
 	(const double max_rhs, const int i_step, const struct Solver_Storage_Implicit* ssi, const struct Simulation* sim)
 {
 	KSP ksp = NULL;
-	Vec x   = NULL;
+	Vec x   = constructor_petsc_x(ssi->b); // destructed
 
 	const bool use_schur_complement = sim->test_case->use_schur_complement;
 	if (!use_schur_complement) {
-		x   = constructor_petsc_x(ssi->b);       // destructed
 		ksp = constructor_petsc_ksp(ssi->A,sim); // destructed
 		KSPSolve(ksp,ssi->b,x);
 	} else {
-		Mat* submat = constructor_schur_sub_matrices(ssi->A,sim); // destructed
+		struct Schur_Data* schur_data = constructor_Schur_Data(ssi->A,ssi->b,sim); // destructed
+		Mat A[2][2] = { { schur_data->submat[0], schur_data->submat[1], },
+		                { schur_data->submat[2], schur_data->submat[3], } };
+		Vec b[2] = { schur_data->subvec[0], schur_data->subvec[1], };
 
-		PetscInt sub_nnz[N_SCHUR];
-		for (int i = 0; i < N_SCHUR; ++i) {
-			MatInfo matinfo;
-			MatGetInfo(submat[i],MAT_GLOBAL_MAX,&matinfo);
+		const PetscReal fill = 1.0;
 
-			sub_nnz[i] = matinfo.nz_used;
-printf("%d\n",sub_nnz[i]);
-		}
-		const PetscReal fill = sub_nnz[3]/((PetscReal)(sub_nnz[0]+sub_nnz[1]+sub_nnz[2]));
+/// \todo Destroy as soon as no longer used.
+		Mat A_01_11i,
+		    A_01_11i_10;
+#if 1
+		MatMatMult(A[0][1], A[1][1],MAT_INITIAL_MATRIX,fill,&A_01_11i);    // destroyed
+		MatMatMult(A_01_11i,A[1][0],MAT_INITIAL_MATRIX,fill,&A_01_11i_10); // destroyed
+#else
+		/// \todo Run with '-info' petsc option and check that fill has the appropriate value.
+		MatMatMult(A[0][1], A[1][1],MAT_INITIAL_MATRIX,PETSC_DEFAULT,&A_01_11i);    // destroyed
+		MatMatMult(A_01_11i,A[1][0],MAT_INITIAL_MATRIX,PETSC_DEFAULT,&A_01_11i_10); // destroyed
+		UNUSED(fill);
+		EXIT_UNSUPPORTED;
+#endif
+		MatAXPY(A[0][0],-1.0,A_01_11i_10,SAME_NONZERO_PATTERN);
+		MatDestroy(&A_01_11i_10);
 
-// fill - expected fill as ratio of nnz(D)/(nnz(A) + nnz(B)+nnz(C))
-		Mat D;
-		MatMatMatMult(submat[1],submat[3],submat[2],MAT_INITIAL_MATRIX,fill,&D); // destroyed
+		MatMultAdd(A_01_11i,b[1],b[0],b[0]);
+		VecScale(b[0],-1.0);
 
-		MatDestroy(&D);
+		Vec x_sub[2];
+		for (int i = 0; i < 2; ++i)
+			VecGetSubVector(x,schur_data->is[i],&x_sub[i]); // restored
 
-		destructor_schur_sub_matrices(submat);
+		ksp = constructor_petsc_ksp(A[0][0],sim); // destructed
+		KSPSolve(ksp,b[0],x_sub[0]);
+
+		Mat A_11i_10;
+		MatMatMult(A[1][1],A[1][0],MAT_INITIAL_MATRIX,fill,&A_11i_10); // destroyed
+
+		MatMult(A_11i_10,x_sub[0],x_sub[1]);
+		VecScale(b[1],-1.0);
+		MatMultAdd(A[1][1],b[1],b[0],b[0]);
+
+		for (int i = 0; i < 2; ++i)
+			VecRestoreSubVector(x,schur_data->is[i],&x_sub[i]);
+
+		MatDestroy(&A_01_11i);
+		MatDestroy(&A_11i_10);
+
+		destructor_Schur_Data(ssi->b,schur_data);
 
 		EXIT_ADD_SUPPORT;
 	}
@@ -424,9 +465,10 @@ static void update_coef_nf_f
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-static void output_petsc_mat_schur (Mat A, const struct Simulation* sim)
+static void output_petsc_schur (Mat A, Vec b, const struct Simulation* sim)
 {
-	Mat* submat = constructor_schur_sub_matrices(A,sim); // destructed
+	struct Schur_Data* schur_data = constructor_Schur_Data(A,b,sim); // destructed
+	Mat* submat = schur_data->submat;
 
 	PetscViewer viewer;
 	for (int i = 0; i < N_SCHUR; ++i) {
@@ -439,7 +481,7 @@ static void output_petsc_mat_schur (Mat A, const struct Simulation* sim)
 	}
 	PetscViewerDestroy(&viewer);
 
-	destructor_schur_sub_matrices(submat);
+	destructor_Schur_Data(b,schur_data);
 }
 
 static Vec constructor_petsc_x (Vec b)
@@ -557,36 +599,45 @@ static void display_progress (const struct Test_Case* test_case, const int i_ste
 	       i_step,iteration_ksp,emax/emin,reason,max_rhs,max_rhs0);
 }
 
-static Mat* constructor_schur_sub_matrices (Mat A, const struct Simulation* sim)
+static struct Schur_Data* constructor_Schur_Data (Mat A, Vec b, const struct Simulation* sim)
 {
-	const ptrdiff_t dof_fv[2] = { compute_dof_schur('f',sim), compute_dof_schur('v',sim), };
+	const ptrdiff_t dof[2] = { compute_dof_schur('f',sim), compute_dof_schur('v',sim), };
 
-	PetscInt idx_f[dof_fv[0]];
-	for (int i = 0; i < dof_fv[0]; ++i)
+	PetscInt idx_f[dof[0]];
+	for (int i = 0; i < dof[0]; ++i)
 		idx_f[i] = i;
 
-	PetscInt idx_v[dof_fv[1]];
-	for (int i = 0; i < dof_fv[1]; ++i)
-		idx_v[i] = dof_fv[0]+i;
+	PetscInt idx_v[dof[1]];
+	for (int i = 0; i < dof[1]; ++i)
+		idx_v[i] = dof[0]+i;
 
-	IS is_fv[2];
-	ISCreateGeneral(MPI_COMM_WORLD,dof_fv[0],idx_f,PETSC_USE_POINTER,&is_fv[0]);
-	ISCreateGeneral(MPI_COMM_WORLD,dof_fv[1],idx_v,PETSC_USE_POINTER,&is_fv[1]);
+	IS is[2];
+	ISCreateGeneral(MPI_COMM_WORLD,dof[0],idx_f,PETSC_USE_POINTER,&is[0]); // destroyed
+	ISCreateGeneral(MPI_COMM_WORLD,dof[1],idx_v,PETSC_USE_POINTER,&is[1]); // destroyed
 
-	IS is_row[N_SCHUR] = { is_fv[0], is_fv[0], is_fv[1], is_fv[1], },
-	   is_col[N_SCHUR] = { is_fv[0], is_fv[1], is_fv[0], is_fv[1], };
+	IS is_row[N_SCHUR] = { is[0], is[0], is[1], is[1], },
+	   is_col[N_SCHUR] = { is[0], is[1], is[0], is[1], };
 
-	Mat* submat;
-	MatCreateSubMatrices(A,N_SCHUR,is_row,is_col,MAT_INITIAL_MATRIX,&submat); // returned
-	ISDestroy(&is_fv[0]);
-	ISDestroy(&is_fv[1]);
 
-	return submat;
+	struct Schur_Data* schur_data = malloc(sizeof *schur_data); // free
+
+	MatCreateSubMatrices(A,N_SCHUR,is_row,is_col,MAT_INITIAL_MATRIX,&schur_data->submat); // destroyed
+	for (int i = 0; i < 2; ++i) {
+		schur_data->is[i] = is[i];
+		VecGetSubVector(b,is[i],&schur_data->subvec[i]); // restored
+	}
+
+	return schur_data;
 }
 
-static void destructor_schur_sub_matrices (Mat* submat)
+static void destructor_Schur_Data (Vec b, struct Schur_Data* schur_data)
 {
-	MatDestroySubMatrices(N_SCHUR,&submat);
+	MatDestroySubMatrices(N_SCHUR,&schur_data->submat);
+	for (int i = 0; i < 2; ++i) {
+		VecRestoreSubVector(b,schur_data->is[i],&schur_data->subvec[i]);
+		ISDestroy(&schur_data->is[i]);
+	}
+	free(schur_data);
 }
 
 // Level 3 ********************************************************************************************************** //

@@ -1,0 +1,5 @@
+file(GLOB_RECURSE OPTIONS_FILES *.txt)
+foreach(options_name_full ${OPTIONS_FILES})
+	string(REPLACE "${CMAKE_SOURCE_DIR}" "" options_name ${options_name_full})
+	configure_file(${options_name_full} ${PROJECT_BINARY_DIR}${options_name} COPYONLY)
+endforeach()

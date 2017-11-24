@@ -33,6 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "compute_error.h"
 #include "const_cast.h"
+#include "core.h"
 #include "file_processing.h"
 #include "geometry.h"
 #include "simulation.h"
@@ -59,7 +60,6 @@ static void check_convergence_orders
 
 // Interface functions ********************************************************************************************** //
 
-#include "intrusive.h"
 /** \test Performs integration testing for the solution convergence (\ref test_integration_convergence.c).
  *  \return 0 on success (when the solution converges at the expected rate).
  */
@@ -68,10 +68,11 @@ int main
 	 char** argv ///< Standard.
 	)
 {
-/// \todo Pass Petsc options file as third argument here (-> nargc == 3).
-	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+	assert_condition_message(nargc == 3,"Invalid number of input arguments");
 
-	assert_condition_message(nargc == 2,"Invalid number of input arguments");
+	const char* petsc_options_name = set_petsc_options_name(argv[2]);
+	PetscInitialize(&nargc,&argv,petsc_options_name,PETSC_NULL);
+
 	const char* ctrl_name = argv[1];
 
 	struct Test_Info test_info = { .n_warn = 0, };

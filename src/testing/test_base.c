@@ -50,7 +50,7 @@ void assert_condition_message (const bool cond, const char* cond_str)
 	if (cond)
 		return;
 
-	printf("\n\n%s\n\n\n",cond_str);
+	printf("\n\nAssert condition: %s.\n\n\n",cond_str);
 	assert_condition(cond);
 }
 

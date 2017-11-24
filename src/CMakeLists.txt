@@ -50,3 +50,14 @@ add_subdirectory(intrusive)
 add_subdirectory(processing)
 add_subdirectory(simulation)
 add_subdirectory(testing)
+
+set	(SOURCE
+	 core.c
+	)
+
+set	(LIBS_DEPEND
+	)
+
+set(LIB Core)
+add_library(${LIB} STATIC ${SOURCE})
+target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})

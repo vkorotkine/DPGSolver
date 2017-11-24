@@ -10,16 +10,13 @@
 
 # Executable and command line arguments
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
-ARGV="advection/TEST_Advection_Peterson_TRI__ml0__p0"
+ARGV="advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml0__p1 petsc_options_empty"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"
 
 # Specify the name of the file where output should be placed (leave empty to use stdout)
 LOGFILE=""
-
-# Specify the path to the mpi executable (mpiexec)
-MPI_DIR=""
 
 VALGRIND_OPTS="valgrind \
                  --track-origins=yes \
@@ -32,6 +29,5 @@ VALGRIND_OPTS="valgrind \
 
 # DO NOT MODIFY ANYTHING BELOW THIS LINE
 
-#clear
-${MPI_DIR}mpiexec -n ${N_PROCS} ${VALGRIND_OPTS} ${EXECUTABLE} ${ARGV} ${LOGFILE}
-#${VALGRIND_OPTS} ${MPI_DIR}mpiexec -n ${N_PROCS} ${EXECUTABLE} ${ARGV} ${LOGFILE}
+@MPIEXEC@ -n ${N_PROCS} ${VALGRIND_OPTS} ${EXECUTABLE} ${ARGV} ${LOGFILE}
+#${VALGRIND_OPTS} @MPIEXEC@ -n ${N_PROCS} ${EXECUTABLE} ${ARGV} ${LOGFILE}

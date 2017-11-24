@@ -44,13 +44,13 @@ add_test_DPG(${EXEC} "advection/peterson/dg/TEST_Advection_Peterson_TRI__ml2__p3
 add_test_DPG(${EXEC} "advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml2__p3")
 
 set (EXEC test_integration_convergence)
-set (LIBS_DEPEND ${LIBS_BASE} Simulation Test_Integration)
+set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
-add_test_DPG(${EXEC} "advection/peterson/dg/TEST_Advection_Peterson_TRI__ml0__p0")
-add_test_DPG(${EXEC} "advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml0__p0")
-add_test_DPG(${EXEC} "advection/TEST_Advection_Demkowicz_DPGII_LINE__ml0__p1")
-add_test_DPG(${EXEC} "euler/TEST_Euler_PeriodicVortex_QUAD__ml0__p2")
+add_test_DPG(${EXEC} "advection/peterson/dg/TEST_Advection_Peterson_TRI__ml0__p0" "petsc_options_empty")
+add_test_DPG(${EXEC} "advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml0__p0" "petsc_options_empty")
+add_test_DPG(${EXEC} "advection/TEST_Advection_Demkowicz_DPGII_LINE__ml0__p1" "petsc_options_empty")
+add_test_DPG(${EXEC} "euler/TEST_Euler_PeriodicVortex_QUAD__ml0__p2" "petsc_options_empty")
 
 # Add tests:
 # - equivalence real/complex.
