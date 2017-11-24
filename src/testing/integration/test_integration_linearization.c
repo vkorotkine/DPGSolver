@@ -198,6 +198,7 @@ int main
 	f_ptrs_data->perturb_solution(sim);
 
 	sim->test_case->solver_method_curr = 'i';
+	const_cast_b(&sim->test_case->use_schur_complement,false); // Otherwise A analytical is modified.
 	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER);         // destructed
 	constructor_derived_Elements(sim,f_ptrs_data->derived_elem); // destructed
 
@@ -339,11 +340,12 @@ static void check_linearizations
 	}
 
 	if (check_symmetric(sim)) {
+		const double tol_symm = 1e3*EPS;
 		PetscBool symmetric = false;
-		MatIsSymmetric(ssi[0]->A,tol,&symmetric);
+		MatIsSymmetric(ssi[0]->A,tol_symm,&symmetric);
 		if (!symmetric) {
 			pass = false;
-			printf("tol = % .3e.\n",tol);
+			printf("tol = % .3e.\n",tol_symm);
 			expect_condition(pass,"symmetric");
 		}
 	}

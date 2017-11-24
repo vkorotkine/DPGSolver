@@ -104,9 +104,23 @@ static struct Multiarray_d* constructor_sol_advection_default_1d
 	 const struct Simulation* sim          ///< See brief.
 	);
 
+/** \brief 2d version of \ref constructor_sol_advection_default.
+ *  \return See brief. */
+static struct Multiarray_d* constructor_sol_advection_default_2d
+	(const struct const_Multiarray_d* xyz, ///< See brief.
+	 const struct Simulation* sim          ///< See brief.
+	);
+
 /** \brief 1d version of \ref constructor_source_advection_default.
  *  \return See brief. */
 static const struct const_Multiarray_d* constructor_source_advection_default_1d
+	(const struct const_Multiarray_d* xyz, ///< See brief.
+	 const struct Simulation* sim          ///< See brief.
+	);
+
+/** \brief 2d version of \ref constructor_source_advection_default.
+ *  \return See brief. */
+static const struct const_Multiarray_d* constructor_source_advection_default_2d
 	(const struct const_Multiarray_d* xyz, ///< See brief.
 	 const struct Simulation* sim          ///< See brief.
 	);
@@ -119,10 +133,11 @@ static struct Multiarray_d* constructor_sol_advection_default
 
 	if (!parameters_set) {
 		parameters_set = true;
-		if (sim->d == 1)
-			constructor_sol = constructor_sol_advection_default_1d;
-		else
-			EXIT_UNSUPPORTED;
+		switch (sim->d) {
+			case 1: constructor_sol = constructor_sol_advection_default_1d; break;
+			case 2: constructor_sol = constructor_sol_advection_default_2d; break;
+			default: EXIT_UNSUPPORTED; break;
+		}
 	}
 	return constructor_sol(xyz,sim);
 }
@@ -135,10 +150,11 @@ static const struct const_Multiarray_d* constructor_source_advection_default
 
 	if (!parameters_set) {
 		parameters_set = true;
-		if (sim->d == 1)
-			constructor_source = constructor_source_advection_default_1d;
-		else
-			EXIT_UNSUPPORTED;
+		switch (sim->d) {
+			case 1: constructor_source = constructor_source_advection_default_1d; break;
+			case 2: constructor_source = constructor_source_advection_default_2d; break;
+			default: EXIT_UNSUPPORTED; break;
+		}
 	}
 	return constructor_source(xyz,sim);
 }
@@ -149,7 +165,7 @@ static struct Multiarray_d* constructor_sol_advection_default_1d
 	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
 {
 	assert(sim->d == 1);
-	assert(xyz->extents[1] == 1);
+	assert(xyz->extents[1] == sim->d);
 
 	// Compute the solution
 	const ptrdiff_t n_vs = xyz->extents[0];
@@ -160,8 +176,33 @@ static struct Multiarray_d* constructor_sol_advection_default_1d
 	const double* x = get_col_const_Multiarray_d(0,xyz);
 
 	double* u = get_col_Multiarray_d(0,sol);
-	for (int i = 0; i < n_vs; ++i)
+	for (int i = 0; i < n_vs; ++i) {
 		u[i] = sin(SOURCE_M*x[i]+SOURCE_A);
+	}
+
+	return sol;
+}
+
+static struct Multiarray_d* constructor_sol_advection_default_2d
+	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
+{
+	assert(sim->d == 2);
+	assert(xyz->extents[1] == sim->d);
+
+	// Compute the solution
+	const ptrdiff_t n_vs = xyz->extents[0];
+	const int n_var = sim->test_case->n_var;
+
+	struct Multiarray_d* sol = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_vs,n_var}); // returned
+
+	const double* x = get_col_const_Multiarray_d(0,xyz),
+	            * y = get_col_const_Multiarray_d(1,xyz);
+
+	double* u = get_col_Multiarray_d(0,sol);
+	for (int i = 0; i < n_vs; ++i) {
+		u[i] = sin(SOURCE_M*x[i]+SOURCE_A)
+		     * sin(SOURCE_M*y[i]+SOURCE_A);
+	}
 
 	return sol;
 }
@@ -170,7 +211,7 @@ static const struct const_Multiarray_d* constructor_source_advection_default_1d
 	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
 {
 	assert(sim->d == 1);
-	assert(xyz->extents[1] == 1);
+	assert(xyz->extents[1] == sim->d);
 
 	static bool need_input = true;
 	static struct Sol_Data__Advection sol_data;
@@ -188,8 +229,40 @@ static const struct const_Multiarray_d* constructor_source_advection_default_1d
 
 	double* s = get_col_Multiarray_d(0,source);
 	const double* b_adv = sol_data.b_adv;
-	for (int i = 0; i < n_vs; ++i)
+	for (int i = 0; i < n_vs; ++i) {
 		s[i] = b_adv[0]*SOURCE_M*cos(SOURCE_M*x[i]+SOURCE_A);
+	}
+
+	return (struct const_Multiarray_d*)source;
+}
+
+static const struct const_Multiarray_d* constructor_source_advection_default_2d
+	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
+{
+	assert(sim->d == 2);
+	assert(xyz->extents[1] == sim->d);
+
+	static bool need_input = true;
+	static struct Sol_Data__Advection sol_data;
+	if (need_input) {
+		need_input = false;
+		read_data_advection(sim->input_path,&sol_data);
+	}
+
+	const ptrdiff_t n_vs = xyz->extents[0];
+	const int n_var = sim->test_case->n_var;
+
+	struct Multiarray_d* source = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_vs,n_var}); // returned
+
+	const double* x = get_col_const_Multiarray_d(0,xyz),
+	            * y = get_col_const_Multiarray_d(1,xyz);
+
+	double* s = get_col_Multiarray_d(0,source);
+	const double* b_adv = sol_data.b_adv;
+	for (int i = 0; i < n_vs; ++i) {
+		s[i] = b_adv[0]*SOURCE_M*cos(SOURCE_M*x[i]+SOURCE_A)*sin(SOURCE_M*y[i]+SOURCE_A)
+		     + b_adv[1]*SOURCE_M*sin(SOURCE_M*x[i]+SOURCE_A)*cos(SOURCE_M*y[i]+SOURCE_A);
+	}
 
 	return (struct const_Multiarray_d*)source;
 }

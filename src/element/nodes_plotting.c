@@ -91,7 +91,8 @@ const struct const_Plotting_Nodes* constructor_const_Plotting_Nodes (const int p
 	    n_edge   = -1,
 	    n_n_edge = -1;
 
-	plotting_element_info(&rst,&connect,&vtk_types,&connect_e,&n_n,&n_e,&d,&n_edge,&n_n_edge,p,e_type);
+	const int p_p = GSL_MAX(1,p);
+	plotting_element_info(&rst,&connect,&vtk_types,&connect_e,&n_n,&n_e,&d,&n_edge,&n_n_edge,p_p,e_type);
 
 	struct Plotting_Nodes* p_nodes = calloc(1,sizeof *p_nodes); // returned
 	struct Nodes* nodes = (struct Nodes*) p_nodes;

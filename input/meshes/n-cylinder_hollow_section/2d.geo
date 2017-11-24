@@ -1,12 +1,12 @@
 Include "../parameters.geo";
-//MESH_DOMAIN = PARAMETRIC; MESH_LEVEL = 0; MESH_TYPE = MIXED; PDE_NAME = EULER; PDE_SPEC = INTERNAL_SUPERSONICVORTEX;
+//mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = EULER; pde_spec = STEADY_SUPERSONIC_VORTEX;
 
 // Geometry Specification
-If (PDE_SPEC == INTERNAL_SUPERSONIC_VORTEX)
-	Include "../../input_files/euler/internal/supersonic_vortex/geometry_parameters.geo";
+If (pde_spec == STEADY_SUPERSONIC_VORTEX)
+	Include "../../input_files/euler/steady/supersonic_vortex/geometry_parameters.geo";
 EndIf
 
-If (MESH_DOMAIN == PARAMETRIC)
+If (mesh_domain == PARAMETRIC)
 	Point(1) = {r_i,0,0,lc};
 	Point(2) = {r_o,0,0,lc};
 	Point(3) = {0,r_i,0,lc};
@@ -21,7 +21,7 @@ If (MESH_DOMAIN == PARAMETRIC)
 	Line(1005) = {6,5};
 	Line(1006) = {6,2};
 	Line(1007) = {4,6};
-ElseIf (MESH_DOMAIN == CURVED)
+ElseIf (mesh_domain == CURVED)
 	Point(1) = {r_i,0,0,lc};
 	Point(2) = {r_o,0,0,lc};
 	Point(3) = {0,r_i,0,lc};
@@ -41,8 +41,8 @@ EndIf
 
 
 // Include something for aspect ratio: 1.0, 2.5, 5.0, 20.0
-Transfinite Line {1003:1006}      = 2*2^(MESH_LEVEL)+1 Using Progression 1;
-Transfinite Line {1001,1002,1007} = 2*2^(MESH_LEVEL)+1 Using Progression 1;
+Transfinite Line {1003:1006}      = 2*2^(mesh_level)+1 Using Progression 1;
+Transfinite Line {1001,1002,1007} = 2*2^(mesh_level)+1 Using Progression 1;
 
 
 Line Loop (4001) = {1007,1005,-1002,-1003};
@@ -54,9 +54,9 @@ Plane Surface(4002) = {4002};
 Transfinite Surface{4001} Left;
 Transfinite Surface{4002} Right;
 
-If (MESH_TYPE == MIXED)
+If (mesh_type == MIXED)
 	Recombine Surface{4002};
-ElseIf (MESH_TYPE == QUAD)
+ElseIf (mesh_type == QUAD)
 	Recombine Surface{4001,4002};
 EndIf
 
@@ -66,7 +66,7 @@ EndIf
 BC_Straight =   BC_STEP_SC;
 BC_Curved   = 2*BC_STEP_SC;
 
-If (PDE_NAME == EULER)
+If (pde_name == EULER)
 	Physical Line (1*BC_STEP_SC+BC_RIEMANN)  = {1001,1002};
 	Physical Line (2*BC_STEP_SC+BC_SLIPWALL) = {1003:1004};
 	Physical Line (3*BC_STEP_SC+BC_SLIPWALL) = {1005:1006};

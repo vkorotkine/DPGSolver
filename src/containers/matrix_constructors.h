@@ -168,6 +168,16 @@ void const_constructor_move_Matrix_i
 
 // Special constructors ********************************************************************************************* //
 
+/** \brief Constructor for a \ref Matrix_d\* which is a sub-block of the input matrix.
+ *  \return See brief. */
+struct Matrix_d* constructor_sub_block_Matrix_d
+	(const ptrdiff_t row0,      ///< Index of the first row in the source matrix.
+	 const ptrdiff_t col0,      ///< Index of the first col in the source matrix.
+	 const ptrdiff_t n_row,     ///< Number of rows of the sub-matrix.
+	 const ptrdiff_t n_col,     ///< Number of cols of the sub-matrix.
+	 const struct Matrix_d* src ///< The source matrix.
+	);
+
 /** \brief Constructor for a \ref const_Matrix_d\* from a subset of the input matrix.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_subset_const_Matrix_d

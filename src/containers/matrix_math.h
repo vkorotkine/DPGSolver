@@ -42,6 +42,14 @@ void transpose_Matrix_d
 	 const bool mem_only ///< Flag for whether only the memory should be transposed (with ext_0/ext_1 unchanged).
 	);
 
+/// \brief Invert a sub-block of the input \ref Matrix_d\*.
+void invert_sub_block_Matrix_d
+	(struct Matrix_d* a,   ///< The input matrix.
+	 const ptrdiff_t row0, ///< Index of the first row in the input matrix.
+	 const ptrdiff_t col0, ///< Index of the first col in the input matrix.
+	 const ptrdiff_t ext   ///< The number of rows/cols of the sub-matrix.
+	);
+
 /// \brief Scale the \ref Matrix_d\* by a constant value.
 void scale_Matrix_d
 	(struct Matrix_d* a, ///< The matrix.

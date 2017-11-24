@@ -66,6 +66,17 @@ void transpose_Matrix_d (struct Matrix_d* a, const bool mem_only)
 	}
 }
 
+void invert_sub_block_Matrix_d (struct Matrix_d* a, const ptrdiff_t row0, const ptrdiff_t col0, const ptrdiff_t ext)
+{
+	struct Matrix_d* a_sub = constructor_sub_block_Matrix_d(row0,col0,ext,ext,a); // destructed
+
+	struct Matrix_d* a_sub_inv = constructor_inverse_Matrix_d(a_sub); // destructed
+	destructor_Matrix_d(a_sub);
+
+	set_block_Matrix_d(a,(struct const_Matrix_d*)a_sub_inv,row0,col0,'i');
+	destructor_Matrix_d(a_sub_inv);
+}
+
 void scale_Matrix_d (struct Matrix_d* a, const double val)
 {
 	ptrdiff_t size = (a->ext_0)*(a->ext_1);

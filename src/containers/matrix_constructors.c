@@ -208,6 +208,29 @@ void const_constructor_move_Matrix_i (const struct const_Matrix_i*const* dest, s
 
 // Special constructors ********************************************************************************************* //
 
+struct Matrix_d* constructor_sub_block_Matrix_d
+	(const ptrdiff_t row0, const ptrdiff_t col0, const ptrdiff_t n_row, const ptrdiff_t n_col,
+	 const struct Matrix_d* src)
+{
+	const char layout = src->layout;
+
+	ptrdiff_t ext_0 = n_row,
+	          ext_1 = n_col;
+	double* data = malloc(n_row*n_col * sizeof *data); // keep
+	if (layout == 'R') {
+		double* data_ptr = data;
+		for (int i = 0; i < ext_0; ++i) {
+			const double* data_src = get_row_Matrix_d(row0+i,src)+col0;
+			for (int j = 0; j < ext_1; ++j)
+				*data_ptr++ = *data_src++;
+		}
+	} else {
+		EXIT_ADD_SUPPORT;
+	}
+	return constructor_move_Matrix_d_d(layout,ext_0,ext_1,true,data);
+}
+
+
 const struct const_Matrix_d* constructor_subset_const_Matrix_d
 	(const struct const_Matrix_d* src, const struct const_Vector_i* ind_subset)
 {

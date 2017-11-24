@@ -312,7 +312,7 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 		}
 		break;
 	case 'p': // plotting
-		return p_op;
+		return GSL_MAX(1,p_op);
 		break;
 	case 't': // test space
 		const_cast_c(&op_io->kind,'s');
@@ -361,7 +361,8 @@ bool op_should_use_L2 (const int*const op_values, const struct Op_IO* op_io)
 			// Do nothing.
 			break;
 		case 's': // fallthrough
-		case 'f':
+		case 'f': // fallthrough
+		case 'p':
 			return true;
 			break;
 		default:
@@ -1399,6 +1400,9 @@ static const struct const_Matrix_d* constructor_cv
 	case 'f': // fallthrough
 	case 't':
 		basis_type = get_basis_i_from_s(sim->basis_sol);
+		break;
+	case 'p':
+		basis_type = get_basis_i_from_s("lagrange");
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %c.\n",op_io->kind);

@@ -171,6 +171,17 @@ bool check_symmetric (const struct Simulation* sim)
 	}
 }
 
+void output_petsc_mat (Mat A, const char* file_name)
+{
+	PetscViewer viewer;
+
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD,file_name,&viewer);
+	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+	MatView(A,viewer);
+
+	PetscViewerDestroy(&viewer);
+}
+
 // Level 0 ********************************************************************************************************** //
 
 /// \brief Output the petsc Mat/Vec to a file for visualization.
@@ -223,6 +234,7 @@ static double implicit_step (const int i_step, const struct Simulation* sim)
 {
 	struct Solver_Storage_Implicit* ssi = constructor_Solver_Storage_Implicit(sim); // destructed
 
+	printf("\tCompute rlhs.\n");
 	const double max_rhs = compute_rlhs(sim,ssi);
 
 	petsc_mat_vec_assemble(ssi);
@@ -278,14 +290,22 @@ static struct Vector_i* constructor_nnz (const struct Simulation* sim)
 
 /// \brief Container for data relating to Schur complement of the input matrix and vector.
 struct Schur_Data {
+	PetscInt* idx[2]; ///< The indices to be stored in the index sets.
+
 	/** The index sets corresponding to the two regions of the square matrix to be decomposed into the Schur
 	 *  complement components. Note that only two index sets are provided as the row and column sets are the same
 	 *  for symmetric matrices. */
 	IS is[2];
 
-	Mat* submat; ///< The array of sub-matrices.
-	Vec* subvec; ///< The array of sub-vectors.
+	Mat* submat;   ///< The array of sub-matrices.
+	Vec subvec[2]; ///< The array of sub-vectors.
 };
+
+/// \brief Output a PETSc Vec to the file of given input name.
+static void output_petsc_vec
+	(Vec b,                ///< The PETSc Vec.
+	 const char* file_name ///< The file name.
+	);
 
 /// \brief Output the Schur complement sub-matrices and sub-vectors to a file for visualization.
 static void output_petsc_schur
@@ -347,17 +367,8 @@ static void destructor_Schur_Data
 
 static void output_petsc_mat_vec (Mat A, Vec b, const struct Simulation* sim)
 {
-	PetscViewer viewer;
-
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"A.m",&viewer);
-	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
-	MatView(A,viewer);
-
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"b.m",&viewer);
-	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
-	VecView(b,viewer);
-
-	PetscViewerDestroy(&viewer);
+	output_petsc_mat(A,"A.m");
+	output_petsc_vec(b,"b.m");
 
 	if (sim->test_case->use_schur_complement)
 		output_petsc_schur(A,b,sim);
@@ -373,58 +384,56 @@ static void solve_and_update
 
 	const bool use_schur_complement = sim->test_case->use_schur_complement;
 	if (!use_schur_complement) {
+		printf("\tKSP set up.\n");
 		ksp = constructor_petsc_ksp(ssi->A,sim); // destructed
+		printf("\tKSP solve.\n");
 		KSPSolve(ksp,ssi->b,x);
 	} else {
+		printf("\tCompute Schur.\n");
 		struct Schur_Data* schur_data = constructor_Schur_Data(ssi->A,ssi->b,sim); // destructed
 		Mat A[2][2] = { { schur_data->submat[0], schur_data->submat[1], },
 		                { schur_data->submat[2], schur_data->submat[3], } };
 		Vec b[2] = { schur_data->subvec[0], schur_data->subvec[1], };
 
-		const PetscReal fill = 1.0;
+		/// \todo Run with '-info' petsc option and check that fill has the appropriate value.
+		const double fill = 1.0;
 
-/// \todo Destroy as soon as no longer used.
 		Mat A_01_11i,
 		    A_01_11i_10;
-#if 1
+
 		MatMatMult(A[0][1], A[1][1],MAT_INITIAL_MATRIX,fill,&A_01_11i);    // destroyed
 		MatMatMult(A_01_11i,A[1][0],MAT_INITIAL_MATRIX,fill,&A_01_11i_10); // destroyed
-#else
-		/// \todo Run with '-info' petsc option and check that fill has the appropriate value.
-		MatMatMult(A[0][1], A[1][1],MAT_INITIAL_MATRIX,PETSC_DEFAULT,&A_01_11i);    // destroyed
-		MatMatMult(A_01_11i,A[1][0],MAT_INITIAL_MATRIX,PETSC_DEFAULT,&A_01_11i_10); // destroyed
-		UNUSED(fill);
-		EXIT_UNSUPPORTED;
-#endif
+
 		MatAXPY(A[0][0],-1.0,A_01_11i_10,SAME_NONZERO_PATTERN);
 		MatDestroy(&A_01_11i_10);
 
+		VecScale(b[1],-1.0);
 		MatMultAdd(A_01_11i,b[1],b[0],b[0]);
-		VecScale(b[0],-1.0);
+		MatDestroy(&A_01_11i);
+		VecScale(b[1],-1.0);
 
 		Vec x_sub[2];
 		for (int i = 0; i < 2; ++i)
 			VecGetSubVector(x,schur_data->is[i],&x_sub[i]); // restored
 
+		printf("\tKSP set up.\n");
 		ksp = constructor_petsc_ksp(A[0][0],sim); // destructed
+
+		printf("\tKSP solve.\n");
 		KSPSolve(ksp,b[0],x_sub[0]);
 
 		Mat A_11i_10;
 		MatMatMult(A[1][1],A[1][0],MAT_INITIAL_MATRIX,fill,&A_11i_10); // destroyed
 
 		MatMult(A_11i_10,x_sub[0],x_sub[1]);
-		VecScale(b[1],-1.0);
-		MatMultAdd(A[1][1],b[1],b[0],b[0]);
+		MatDestroy(&A_11i_10);
+		VecScale(x_sub[1],-1.0);
+		MatMultAdd(A[1][1],b[1],x_sub[1],x_sub[1]);
 
 		for (int i = 0; i < 2; ++i)
 			VecRestoreSubVector(x,schur_data->is[i],&x_sub[i]);
 
-		MatDestroy(&A_01_11i);
-		MatDestroy(&A_11i_10);
-
 		destructor_Schur_Data(ssi->b,schur_data);
-
-		EXIT_ADD_SUPPORT;
 	}
 
 	update_coefs(x,sim);
@@ -470,18 +479,24 @@ static void output_petsc_schur (Mat A, Vec b, const struct Simulation* sim)
 	struct Schur_Data* schur_data = constructor_Schur_Data(A,b,sim); // destructed
 	Mat* submat = schur_data->submat;
 
-	PetscViewer viewer;
 	for (int i = 0; i < N_SCHUR; ++i) {
 		char mat_name[STRLEN_MIN] = { 0, };
 		sprintf(mat_name,"%c%d%d%s",'A',i/2,i%2,".m");
-
-		PetscViewerASCIIOpen(PETSC_COMM_WORLD,mat_name,&viewer);
-		PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
-		MatView(submat[i],viewer);
+		output_petsc_mat(submat[i],mat_name);
 	}
-	PetscViewerDestroy(&viewer);
 
 	destructor_Schur_Data(b,schur_data);
+}
+
+static void output_petsc_vec (Vec b, const char* file_name)
+{
+	PetscViewer viewer;
+
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD,file_name,&viewer);
+	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
+	VecView(b,viewer);
+
+	PetscViewerDestroy(&viewer);
 }
 
 static Vec constructor_petsc_x (Vec b)
@@ -508,9 +523,9 @@ static KSP constructor_petsc_ksp (Mat A, const struct Simulation* sim)
 {
 	KSP ksp;
 	KSPCreate(MPI_COMM_WORLD,&ksp);
+	KSPSetFromOptions(ksp);
 
 	PC pc;
-
 	KSPSetOperators(ksp,A,A);
 	KSPSetComputeSingularValues(ksp,PETSC_TRUE);
 	KSPGetPC(ksp,&pc);
@@ -526,27 +541,8 @@ static KSP constructor_petsc_ksp (Mat A, const struct Simulation* sim)
 			PCSetType(pc,PCCHOLESKY);
 		break;
 	case SOLVER_I_ITER_DEF:
-/// \todo Modify the tolerance used here.
-		KSPSetTolerances(ksp,1e-15,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
-		KSPSetInitialGuessNonzero(ksp,PETSC_TRUE);
-
-		if (!symmetric) {
-#if 1
-			KSPSetType(ksp,KSPGMRES);
-			KSPGMRESSetOrthogonalization(ksp,KSPGMRESModifiedGramSchmidtOrthogonalization);
-			KSPGMRESSetRestart(ksp,60); // Default: 30
-			PCSetType(pc,PCILU);
-#else
-			KSPSetType(ksp,KSPRICHARDSON);
-			PCSetType(pc,PCSOR);
-			PCSORSetSymmetric(pc,SOR_SYMMETRIC_SWEEP);
-#endif
-		} else {
-			KSPSetType(ksp,KSPCG);
-			PCSetType(pc,PCILU);
-		}
-		PCFactorSetLevels(pc,1); // Cannot use MatOrdering with 0 fill
-		PCFactorSetMatOrderingType(pc,MATORDERINGRCM);
+/// \todo Potentially modify the tolerance used here based on the current residual value.
+//		KSPSetTolerances(ksp,1e-15,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
 		break;
 	}
 	KSPSetUp(ksp);
@@ -603,40 +599,34 @@ static struct Schur_Data* constructor_Schur_Data (Mat A, Vec b, const struct Sim
 {
 	const ptrdiff_t dof[2] = { compute_dof_schur('f',sim), compute_dof_schur('v',sim), };
 
-	PetscInt idx_f[dof[0]];
-	for (int i = 0; i < dof[0]; ++i)
-		idx_f[i] = i;
+	struct Schur_Data* schur_data = malloc(sizeof *schur_data); // free
 
-	PetscInt idx_v[dof[1]];
-	for (int i = 0; i < dof[1]; ++i)
-		idx_v[i] = dof[0]+i;
-
-	IS is[2];
-	ISCreateGeneral(MPI_COMM_WORLD,dof[0],idx_f,PETSC_USE_POINTER,&is[0]); // destroyed
-	ISCreateGeneral(MPI_COMM_WORLD,dof[1],idx_v,PETSC_USE_POINTER,&is[1]); // destroyed
+	PetscInt** idx = schur_data->idx;
+	IS* is = schur_data->is;
+	for (int i = 0; i < 2; ++i) {
+		idx[i] = malloc(dof[i] * sizeof *idx[i]); // free
+		const PetscInt dof_base = ( i == 0 ? 0 : dof[0] );
+		for (int j = 0; j < dof[i]; ++j)
+			idx[i][j] = dof_base+j;
+		ISCreateGeneral(MPI_COMM_WORLD,dof[i],idx[i],PETSC_USE_POINTER,&is[i]); // destroyed
+		VecGetSubVector(b,is[i],&schur_data->subvec[i]); // restored
+	}
 
 	IS is_row[N_SCHUR] = { is[0], is[0], is[1], is[1], },
 	   is_col[N_SCHUR] = { is[0], is[1], is[0], is[1], };
-
-
-	struct Schur_Data* schur_data = malloc(sizeof *schur_data); // free
-
 	MatCreateSubMatrices(A,N_SCHUR,is_row,is_col,MAT_INITIAL_MATRIX,&schur_data->submat); // destroyed
-	for (int i = 0; i < 2; ++i) {
-		schur_data->is[i] = is[i];
-		VecGetSubVector(b,is[i],&schur_data->subvec[i]); // restored
-	}
 
 	return schur_data;
 }
 
 static void destructor_Schur_Data (Vec b, struct Schur_Data* schur_data)
 {
-	MatDestroySubMatrices(N_SCHUR,&schur_data->submat);
 	for (int i = 0; i < 2; ++i) {
 		VecRestoreSubVector(b,schur_data->is[i],&schur_data->subvec[i]);
 		ISDestroy(&schur_data->is[i]);
+		free(schur_data->idx[i]);
 	}
+	MatDestroySubMatrices(N_SCHUR,&schur_data->submat);
 	free(schur_data);
 }
 

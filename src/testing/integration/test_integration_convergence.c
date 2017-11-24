@@ -54,8 +54,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Check the convergence orders of the errors for the simulations performed.
 static void check_convergence_orders
-	(struct Test_Info*const test_info,                 ///< \ref Test_Info.
-	 const struct Integration_Test_Info* int_test_info ///< \ref Integration_Test_Info.
+	(struct Test_Info*const test_info,                  ///< \ref Test_Info.
+	 const struct Integration_Test_Info* int_test_info, ///< \ref Integration_Test_Info.
+	 const struct Simulation* sim                       ///< \ref Simulation.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -106,10 +107,12 @@ int main
 
 		p_prev  = p;
 		ml_prev = ml;
+
+		if ((ml == ml_ref[1]) && (p == p_ref[1]))
+			check_convergence_orders(&test_info,int_test_info,sim);
+
 		structor_simulation(&sim,'d',adapt_type,p,ml,p_prev,ml_prev,NULL);
 	}}
-
-	check_convergence_orders(&test_info,int_test_info);
 	destructor_Integration_Test_Info(int_test_info);
 
 	PetscFinalize();
@@ -135,17 +138,14 @@ static bool attained_expected_conv_orders
 	);
 
 static void check_convergence_orders
-	(struct Test_Info*const test_info, const struct Integration_Test_Info* int_test_info)
+	(struct Test_Info*const test_info, const struct Integration_Test_Info* int_test_info,
+	 const struct Simulation* sim)
 {
 	UNUSED(test_info);
-	struct Simulation* sim = constructor_Simulation(int_test_info->ctrl_name); // destructed
-	if (sim->mpi_rank) {
-		destructor_Simulation(sim);
+	if (sim->mpi_rank)
 		return;
-	}
 
 	const char* input_name = compute_error_file_name(sim);
-	destructor_Simulation(sim);
 
 	const int n_err = compute_n_err(input_name);
 

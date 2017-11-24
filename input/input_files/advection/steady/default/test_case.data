@@ -1,0 +1,14 @@
+/// Solver parameters for test case: advection/steady/default
+
+solver_proc   200
+solver_type_i 202
+
+num_flux_1st upwind
+test_norm    H1_upwind
+
+use_schur_complement 1
+
+exit_tol_i   1e-15
+exit_ratio_i 1e-3
+
+display_progress 1

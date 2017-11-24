@@ -1,8 +1,5 @@
-// Copyright 2017 Philip Zwanenburg
-// MIT License (https://github.com/PhilipZwanenburg/DPGSolver/blob/master/LICENSE)
-
 /*
- *	The boundary condition definitions below **must** be the same as those in $(ROOT)/src/constants/constants_bc.h
+ * The boundary condition definitions below **must** be the same as those in $(ROOT)/src/constants/constants_bc.h
  */
 
 // Default characteristic length (Not used for transfinite meshes)
@@ -39,12 +36,12 @@ NAVIERSTOKES = 4;
 
 
 // PDE Specifiers
-STEADY_DEFAULT                  = 1;
-INTERNAL_SUPERSONIC_VORTEX      = 2;
-PERIODIC_PERIODIC_VORTEX        = 3;
-INTERNAL_SUBSONIC_GAUSSIAN_BUMP = 4;
-INTERNAL_PLANE_COUETTE          = 5;
-INTERNAL_TAYLOR_COUETTE         = 6;
+STEADY_DEFAULT                = 1;
+STEADY_SUPERSONIC_VORTEX      = 2;
+PERIODIC_PERIODIC_VORTEX      = 3;
+STEADY_SUBSONIC_GAUSSIAN_BUMP = 4;
+STEADY_PLANE_COUETTE          = 5;
+STEADY_TAYLOR_COUETTE         = 6;
 
 
 // GeomSpecifiers
@@ -59,6 +56,8 @@ GEOM_AR_3 = 3;
 
 GEOM_ADV_YL   = 1; // (ADV)ection (Y)-coord (L)eft
 GEOM_ADV_XL   = 2; // (ADV)ection (X)-coord (L)eft
+GEOM_ADV_XYL  = 3; // (ADV)ection (X)(Y)-coords (L)eft
+GEOM_ADV_XYZL = 4; // (ADV)ection (X)(Y)(Z)-coords (L)eft
 
 GEOM_2BEXP_0 = 0;
 GEOM_2BEXP_1 = 1;

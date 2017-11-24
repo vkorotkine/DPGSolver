@@ -145,7 +145,7 @@ static struct Mesh_Input* constructor_Mesh_Input (const char*const mesh_name)
 
 	if (strstr(mesh_name,"curved_2d_mixed.msh")) {
 		set_Mesh_Input(mesh_input,2,DOM_CURVED,true,mesh_name,"n-cylinder_hollow_section","",
-		               "../input_files/euler/internal/supersonic_vortex/");
+		               "../input_files/euler/steady/supersonic_vortex/");
 	} else if (strstr(mesh_name,"straight_2d_quad_periodic.msh")) {
 		set_Mesh_Input(mesh_input,2,DOM_STRAIGHT,false,mesh_name,"","","");
 	} else {

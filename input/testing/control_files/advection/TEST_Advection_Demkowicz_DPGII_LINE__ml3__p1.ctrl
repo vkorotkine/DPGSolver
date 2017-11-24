@@ -2,7 +2,7 @@ pde_name  advection
 pde_spec  demkowicz_dpg_ii
 
 geom_name n-cube
-geom_spec xl
+geom_spec x_l
 
 dimension 1
 

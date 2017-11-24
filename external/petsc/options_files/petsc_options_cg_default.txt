@@ -1,0 +1,4 @@
+-ksp_type cg
+-ksp_rtol 1.e-7
+-ksp_initial_guess_nonzero
+-pc_type icc

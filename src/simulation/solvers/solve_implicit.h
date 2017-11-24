@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 #include <stdbool.h>
+#include "petscmat.h"
 
 struct Simulation;
 struct Vector_i;
@@ -59,6 +60,12 @@ void increment_nnz
  *  \return `true` if symmetric; `false` otherwise. */
 bool check_symmetric
 	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Output a PETSc Mat to the file of given input name.
+void output_petsc_mat
+	(Mat A,                ///< The PETSc Mat.
+	 const char* file_name ///< The file name.
 	);
 
 #endif // DPG__solve_implicit_h__INCLUDED

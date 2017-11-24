@@ -333,12 +333,16 @@ static void increment_rhs_source
 	 const struct Simulation* sim       ///< Defined for \ref compute_rlhs_fptr.
 	);
 
-/// \brief Add entries from the current volume to Solver_Storage_Implicit::A and Solver_Storage_Implicit::b.
+/** \brief Add entries from the current volume to Solver_Storage_Implicit::A and Solver_Storage_Implicit::b.
+ *  \attention **When using the schur complement method to solve the global system, the block diagonal contributions are
+ *             inverted before being added to global system matrix.**
+ */
 static void add_to_petsc_Mat_Vec_dpg
 	(const struct Solver_Volume* s_vol,    ///< The current volume.
 	 const struct const_Vector_d* rhs_neg, ///< The 'neg'ated local 'r'ight-'h'and 's'ide vector.
 	 const struct const_Matrix_d* lhs,     ///< The local 'l'eft-'h'and 's'ide matrix.
-	 struct Solver_Storage_Implicit* ssi   ///< \ref Solver_Storage_Implicit.
+	 struct Solver_Storage_Implicit* ssi,  ///< \ref Solver_Storage_Implicit.
+	 const struct Simulation* sim          ///< \ref Simulation.
 	);
 
 static const struct const_Matrix_d* constructor_norm_op__h1_upwind
@@ -409,7 +413,7 @@ static void compute_rlhs_1
 	const struct Solver_Volume* s_vol = (struct Solver_Volume*) dpg_s_vol;
 
 	struct Vector_d* rhs = constructor_rhs_v_1(flux_r,s_vol,sim); // destructed
-	struct Matrix_d* lhs = constructor_lhs_v_1(flux_r,s_vol,sim);   // destructed
+	struct Matrix_d* lhs = constructor_lhs_v_1(flux_r,s_vol,sim); // destructed
 
 	increment_and_add_dof_rlhs_f_1(rhs,&lhs,dpg_s_vol,sim);
 	increment_rhs_source(rhs,s_vol,sim);
@@ -434,7 +438,7 @@ static void compute_rlhs_1
 
 //print_const_Matrix_d(lhs_opt);
 //print_const_Vector_d(rhs_opt);
-	add_to_petsc_Mat_Vec_dpg(s_vol,rhs_opt,lhs_opt,ssi);
+	add_to_petsc_Mat_Vec_dpg(s_vol,rhs_opt,lhs_opt,ssi,sim);
 
 	destructor_const_Matrix_d(lhs_opt);
 	destructor_const_Vector_d(rhs_opt);
@@ -540,7 +544,7 @@ static void increment_rhs_source
 
 static void add_to_petsc_Mat_Vec_dpg
 	(const struct Solver_Volume* s_vol, const struct const_Vector_d* rhs_neg, const struct const_Matrix_d* lhs,
-	 struct Solver_Storage_Implicit* ssi)
+	 struct Solver_Storage_Implicit* ssi, const struct Simulation* sim)
 {
 	assert(sizeof(int) == sizeof(PetscInt));
 	assert(sizeof(double) == sizeof(PetscScalar));
@@ -548,6 +552,13 @@ static void add_to_petsc_Mat_Vec_dpg
 	const ptrdiff_t ext_0 = rhs_neg->ext_0;
 
 	const struct const_Vector_i* idxm = constructor_petsc_idxm_dpg(ext_0,s_vol); // destructed.
+
+	if (sim->test_case->use_schur_complement) {
+		const ptrdiff_t dof_s = compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents),
+		                dof_g = compute_size(s_vol->grad_coef->order,s_vol->grad_coef->extents);
+		invert_sub_block_Matrix_d((struct Matrix_d*)lhs,0,0,dof_s);
+		assert(dof_g == 0); // Add support.
+	}
 
 	MatSetValues(ssi->A,ext_0,idxm->data,ext_0,idxm->data,lhs->data,ADD_VALUES);
 	VecSetValues(ssi->b,ext_0,idxm->data,rhs_neg->data,ADD_VALUES);

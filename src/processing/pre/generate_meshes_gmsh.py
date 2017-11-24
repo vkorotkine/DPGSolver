@@ -53,17 +53,17 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	# Required parameters
 
 	mesh_level = re.search(r"(^.*_ml)(\d+)(.*$)",mesh_name).group(2)
-	gmsh_setnumbers += " -setnumber MESH_LEVEL " + mesh_level
+	gmsh_setnumbers += " -setnumber mesh_level " + mesh_level
 
-	gmsh_setnumbers += " -setnumber PDE_NAME "
+	gmsh_setnumbers += " -setnumber pde_name "
 	var_names = ["advection","poisson","euler","navierstokes"]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
-	gmsh_setnumbers += " -setnumber MESH_DOMAIN "
+	gmsh_setnumbers += " -setnumber mesh_domain "
 	var_names = ["straight","curved","parametric"]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
-	gmsh_setnumbers += " -setnumber MESH_TYPE "
+	gmsh_setnumbers += " -setnumber mesh_type "
 	var_names = ["line","tri","quad","tet","hex","wedge","pyr","mixed"]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,1)
 
@@ -71,17 +71,21 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	# Additional spec parameters
 	gmsh_dummy = "-999"
 
-	gmsh_setnumbers += " -setnumber PDE_SPEC "
-	var_names = ["internal/supersonic_vortex",
+	gmsh_setnumbers += " -setnumber pde_spec "
+	var_names = ["steady/supersonic_vortex",
 	             "periodic/periodic_vortex",
 	            ]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
-	gmsh_setnumbers += " -setnumber GEOM_ADV "
-	if (mesh_name.find("/xl/") != -1):
-		gmsh_setnumbers += get_gmsh_number("Geom_Adv_xl",input_dir,0)
-	elif (mesh_name.find("/yl/") != -1):
-		gmsh_setnumbers += get_gmsh_number("Geom_Adv_yl",input_dir,0)
+	gmsh_setnumbers += " -setnumber geom_adv "
+	if (mesh_name.find("/xyz_L/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_adv_xyzl",input_dir,0)
+	elif (mesh_name.find("/xy_l/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_adv_xyl",input_dir,0)
+	elif (mesh_name.find("/x_l/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_adv_xl",input_dir,0)
+	elif (mesh_name.find("/y_l/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_adv_yl",input_dir,0)
 	else:
 		gmsh_setnumbers += gmsh_dummy;
 
