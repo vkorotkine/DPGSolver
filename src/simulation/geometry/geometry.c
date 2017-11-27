@@ -35,11 +35,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "face_solver.h"
 
 #include "const_cast.h"
-#include "geometry_element.h"
+#include "element_geometry.h"
 #include "intrusive.h"
 #include "operator.h"
 #include "multiarray_operator.h"
 #include "simulation.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -440,7 +441,7 @@ static void compute_geom_coef_straight (const struct Simulation*const sim, struc
 	destructor_const_Multiarray_d(s_vol->geom_coef);
 
 	if (strstr(sim->basis_geom,"lagrange") || strstr(sim->basis_geom,"bezier")) {
-		const_constructor_copy_Multiarray_d(&s_vol->geom_coef,vol->xyz_ve);
+		const_constructor_copy_Multiarray_d(&s_vol->geom_coef,vol->xyz_ve); // keep
 		if (s_vol->geom_coef->layout != 'C')
 			transpose_Multiarray_d((struct Multiarray_d*)s_vol->geom_coef,true);
 	} else if (strstr(sim->basis_geom,"nurbs")) {
@@ -471,7 +472,31 @@ EXIT_ERROR("Add support after output to paraview is working.");
 
 static void compute_geom_coef_parametric (const struct Simulation*const sim, struct Solver_Volume*const s_vol)
 {
-UNUSED(sim);
-UNUSED(s_vol);
-	EXIT_ADD_SUPPORT;
+	struct Volume* vol           = (struct Volume*) s_vol;
+	struct Geometry_Element* g_e = (struct Geometry_Element*) vol->element;
+
+	const bool curved = vol->curved;
+	const int p       = s_vol->p_ref;
+	assert(curved == true);
+	const struct Operator* vv0_vv_vg = get_Multiarray_Operator(g_e->vv0_vv_vg[curved],(ptrdiff_t[]){0,0,p,1});
+
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	UNUSED(sim);
+	const char op_format = 'd';
+
+	const struct const_Multiarray_d* xyz_ve = vol->xyz_ve;
+	const struct const_Multiarray_d* xyz_p =
+		constructor_mm_NN1_Operator_const_Multiarray_d(vv0_vv_vg,xyz_ve,'C',op_format,xyz_ve->order,NULL); // dest.
+
+	const struct const_Multiarray_d* xyz = sim->test_case->constructor_xyz(xyz_p,s_vol,sim); // destructed
+	destructor_const_Multiarray_d(xyz_p);
+
+/// \todo add setup_bezier_mesh: Likely make this a separate function.
+
+	const struct Operator* vc0_vgc_vgc = get_Multiarray_Operator(g_e->vc0_vgc_vgc,(ptrdiff_t[]){0,0,p,p});
+
+	destructor_const_Multiarray_d(s_vol->geom_coef);
+	const_constructor_move_const_Multiarray_d(&s_vol->geom_coef,
+		constructor_mm_NN1_Operator_const_Multiarray_d(vc0_vgc_vgc,xyz,'C',op_format,xyz->order,NULL)); // keep
+	destructor_const_Multiarray_d(xyz);
 }

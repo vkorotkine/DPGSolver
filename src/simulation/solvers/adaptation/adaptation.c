@@ -64,6 +64,11 @@ static void adapt_hp_faces
 void adapt_hp (struct Simulation* sim, const int adapt_strategy)
 {
 	constructor_derived_computational_elements(sim,IL_SOLVER_ADAPTIVE); // destructed
+/** \todo Remove the constructor/destructor of derived elements within the solver functions.
+ *  Likely directly derive the adaptive solver element at the start of the solve and include all required adaptation
+ *  operators in a single element. Or form an adaptive solver element from multiple other elements and access each
+ *  through the appropriate pointer.
+ */
 
 	mark_volumes_to_adapt(sim,adapt_strategy);
 	adapt_hp_volumes(sim);

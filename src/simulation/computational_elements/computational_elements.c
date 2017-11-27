@@ -32,7 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver_dpg_complex.h"
 
 #include "element.h"
-#include "geometry_element.h"
+#include "element_geometry.h"
 #include "element_plotting.h"
 #include "element_solution.h"
 #include "element_error.h"

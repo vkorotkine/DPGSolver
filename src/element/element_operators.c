@@ -287,7 +287,7 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 		const_cast_c(&op_io->kind,'g');
 
 		if (strcmp(sim->geom_rep,"isoparametric") == 0)
-			return p_s;
+			return GSL_MAX(p_s,1);
 		else if (strcmp(sim->geom_rep,"superparametric") == 0)
 			return p_s+1;
 		else if (strstr(sim->geom_rep,"fixed"))
@@ -311,10 +311,10 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 			break;
 		}
 		break;
-	case 'p': // plotting
+	} case 'p': // plotting
 		return GSL_MAX(1,p_op);
 		break;
-	case 't': // test space
+	case 't': { // test space
 		const_cast_c(&op_io->kind,'s');
 		const int p_s = compute_p_basis(op_io,sim);
 		const_cast_c(&op_io->kind,'t');
@@ -322,7 +322,10 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 		const int ind_p_t = ( op_sc == 's' ? 0 : 1 );
 		return p_s + sim->p_t_p[ind_p_t];
 		break;
-	} case 'c': // fallthrough
+	} case 'v': // vertex
+		return 1;
+		break;
+	case 'c': // fallthrough
 	default:
 		EXIT_ERROR("Unsupported: %c\n",nodes_kind);
 		break;
@@ -362,7 +365,8 @@ bool op_should_use_L2 (const int*const op_values, const struct Op_IO* op_io)
 			break;
 		case 's': // fallthrough
 		case 'f': // fallthrough
-		case 'p':
+		case 'p': // fallthrough
+		case 'g':
 			return true;
 			break;
 		default:
@@ -687,18 +691,14 @@ static int convert_to_range (const char type_range, const char*const name_range)
 				return OP_R_P_1P;
 		else if (strstr(name_range,"P_1"))
 			return OP_R_P_1;
-		else if (strstr(name_range,"P_M1PM0"))
-			return OP_R_P_M1PM0;
 		else if (strstr(name_range,"P_PM0"))
 			return OP_R_P_PM0;
-		else if (strstr(name_range,"P_M1PM1"))
-			return OP_R_P_M1PM1;
 		else if (strstr(name_range,"P_PM1"))
 			return OP_R_P_PM1;
 		else if (strstr(name_range,"P_ALL"))
 			return OP_R_P_ALL;
 		else
-			EXIT_UNSUPPORTED;
+			EXIT_ERROR("Unsupported: %s\n",name_range);
 		break;
 	default:
 		EXIT_UNSUPPORTED;
@@ -798,9 +798,7 @@ static void set_up_extents (struct Operator_Info* op_info)
 			push_back_Vector_i(extents_op,op_info->p_ref[1]+1,false,false);
 			push_back_Vector_i(extents_op,2,false,false);
 			break;
-		case OP_R_P_M1PM0: // fallthrough
 		case OP_R_P_PM0:   // fallthrough
-		case OP_R_P_M1PM1: // fallthrough
 		case OP_R_P_PM1:   // fallthrough
 		case OP_R_P_ALL:
 			push_back_Vector_i(extents_op,op_info->p_ref[1]+1,false,false);
@@ -1266,11 +1264,6 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 			x_mm[0] = 1;
 			x_mm[1] = 1+1;
 			break;
-		case OP_R_P_M1PM0:
-		case OP_R_P_M1PM1:
-			x_mm[0] = GSL_MAX(op_info->p_ref[0],1);
-			x_mm[1] = op_info->p_ref[1]+1;
-			break;
 		case OP_R_P_PM0: // fallthrough
 		case OP_R_P_PM1: // fallthrough
 		case OP_R_P_ALL:
@@ -1296,12 +1289,10 @@ static void compute_range_p_o (int p_o_mm[2], const struct Operator_Info* op_inf
 		p_o_mm[0] = 1;
 		p_o_mm[1] = 1+1;
 		break;
-	case OP_R_P_M1PM0: // fallthrough
 	case OP_R_P_PM0:
 		p_o_mm[0] = p_i;
 		p_o_mm[1] = p_i+1;
 		break;
-	case OP_R_P_M1PM1: // fallthrough
 	case OP_R_P_PM1:
 		p_o_mm[0] = GSL_MAX(p_i-1,p_ref[0]);
 		p_o_mm[1] = GSL_MIN(p_i+1,p_ref[1])+1;
@@ -1401,7 +1392,8 @@ static const struct const_Matrix_d* constructor_cv
 	case 't':
 		basis_type = get_basis_i_from_s(sim->basis_sol);
 		break;
-	case 'p':
+	case 'p': // fallthrough
+	case 'v':
 		basis_type = get_basis_i_from_s("lagrange");
 		break;
 	default:

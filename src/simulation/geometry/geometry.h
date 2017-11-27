@@ -26,6 +26,18 @@ struct Solver_Face;
 struct Multiarray_d;
 struct const_Multiarray_d;
 
+/** \brief Pointer to functions constructing the physical xyz coordinates from parametric/straight element coordinates.
+ *
+ *  \param xyz_i The input xyz coordinates.
+ *  \param s_vol \ref Solver_Volume.
+ *  \param sim   \ref Simulation.
+ */
+typedef const struct const_Multiarray_d* (*constructor_xyz_fptr)
+	(const struct const_Multiarray_d* xyz_i,
+	 const struct Solver_Volume* s_vol,
+	 const struct Simulation* sim
+	);
+
 /** \brief Set up the solver geometry:
  *  - \ref Solver_Volume::metrics_vm;
  *  - \ref Solver_Volume::metrics_vc;

@@ -13,8 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__geometry_element_h__INCLUDED
-#define DPG__geometry_element_h__INCLUDED
+#ifndef DPG__element_geometry_h__INCLUDED
+#define DPG__element_geometry_h__INCLUDED
 /** \file
  *  \brief Provides the interface for the derived \ref Geometry_Element container and associated functions.
  */
@@ -27,7 +27,8 @@ struct Simulation;
 struct Geometry_Element {
 	const struct const_Element element; ///< Base \ref const_Element.
 
-	const struct Multiarray_Operator* vc0_vgc_vgc; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_vv_vg[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vc0_vgc_vgc;  ///< See notation in \ref element_operators.h.
 
 	const struct Multiarray_Operator* cv1_vg_vc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv1_vg_vm[2]; ///< See notation in \ref element_operators.h.
@@ -61,4 +62,4 @@ void destructor_derived_Geometry_Element
 	(struct Element* element ///< Standard.
 	);
 
-#endif // DPG__geometry_element_h__INCLUDED
+#endif // DPG__element_geometry_h__INCLUDED

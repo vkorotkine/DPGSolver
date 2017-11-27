@@ -6,7 +6,7 @@ set	(SOURCE
 	 advection/peterson/solution_peterson.c
 	 euler/solution_euler.c
 	 euler/periodic_vortex/solution_periodic_vortex.c
-#	 supersonic_vortex/solution_supersonic_vortex.c
+	 euler/supersonic_vortex/solution_supersonic_vortex.c
 	)
 
 set	(LIBS_DEPEND

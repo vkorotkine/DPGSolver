@@ -1,2 +1,6 @@
 /// Solution parameters for test case: euler/internal/supersonic_vortex
 
+r_i   1.0
+m_i   2.25
+rho_i 1.0
+V_i   2.25

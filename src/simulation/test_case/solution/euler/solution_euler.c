@@ -32,10 +32,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_error_euler.h"
 #include "const_cast.h"
 #include "flux_euler.h"
+#include "geometry.h"
+#include "geometry_parametric.h"
 #include "numerical_flux_euler.h"
 #include "simulation.h"
 #include "solution.h"
 #include "periodic_vortex/solution_periodic_vortex.h"
+#include "supersonic_vortex/solution_supersonic_vortex.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -46,15 +49,16 @@ void set_function_pointers_solution_euler (struct Test_Case* test_case, const st
 {
 	test_case->set_grad = set_sg_do_nothing;
 	if (strstr(sim->pde_spec,"periodic_vortex")) {
-		test_case->constructor_sol = constructor_const_sol_invalid;
-		test_case->set_sol         = set_sol_periodic_vortex;
-		test_case->compute_source_rhs = compute_source_rhs_do_nothing;
+		test_case->constructor_sol      = constructor_const_sol_invalid;
+		test_case->set_sol              = set_sol_periodic_vortex;
+		test_case->compute_source_rhs   = compute_source_rhs_do_nothing;
 		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
 	} else if (strstr(sim->pde_spec,"supersonic_vortex")) {
-//		test_case->set_sol_v = set_sol_v_supersonic_vortex;
-//		test_case->set_sol_f = set_sol_f_supersonic_vortex;
-//		test_case->compute_source = compute_source_do_nothing;
-//		test_case->compute_errors = compute_errors_euler_all;
+		test_case->constructor_xyz      = constructor_xyz_cylinder_parametric;
+		test_case->constructor_sol      = constructor_const_sol_supersonic_vortex;
+		test_case->set_sol              = set_sol_supersonic_vortex;
+		test_case->compute_source_rhs   = compute_source_rhs_do_nothing;
+		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}

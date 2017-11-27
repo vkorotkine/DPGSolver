@@ -20,19 +20,19 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 struct Simulation;
-struct Solver_Volume;
-struct Solver_Face;
+struct Solution_Container;
 
-/// \brief \todo update this.
-void set_sol_coef_v_supersonic_vortex
-	(const struct Simulation* sim, ///< \todo update this.
-	 struct Solver_Volume* volume  ///< \todo update this.
+/// \brief Function to be used for \ref Test_Case::set_sol for the supersonic vortex test case.
+void set_sol_supersonic_vortex
+	(const struct Simulation* sim,      ///< Defined for \ref set_sol_fptr.
+	 struct Solution_Container sol_cont ///< Defined for \ref set_sol_fptr.
 	);
 
-/// \brief \todo update this.
-void set_sol_coef_f_supersonic_vortex
-	(const struct Simulation* sim, ///< \todo update this.
-	 struct Solver_Face* face      ///< \todo update this.
+/** \brief Function to be used for \ref Test_Case::constructor_sol for the supersonic vortex solution.
+ *  \return See brief. */
+const struct const_Multiarray_d* constructor_const_sol_supersonic_vortex
+	(const struct const_Multiarray_d* xyz, ///< Defined for \ref constructor_sol_fptr.
+	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr.
 	);
 
 #endif // DPG__solution_supersonic_vortex_h__INCLUDED

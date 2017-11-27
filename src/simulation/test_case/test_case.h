@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \todo Potentially make a special header for function pointers to limit the dependency generation here.
 #include "flux.h"
+#include "geometry.h"
 #include "numerical_flux.h"
 #include "solution.h"
 #include "compute_error.h"
@@ -50,10 +51,14 @@ struct Test_Case {
 	set_sol_fptr set_sol;  ///< Function pointer to the function used to set data relating to the solution.
 	set_sol_fptr set_grad; ///< Function pointer to the function used to set data relating to the solution gradients.
 
+	/** Pointer to function constructing the physical xyz coordinates from either parametric space or from straight to
+	 *  curved elements. */
+	constructor_xyz_fptr constructor_xyz;
+
 	constructor_sol_fptr constructor_sol; ///< Function pointer to the function used to construct the solution.
 
 	// Solver related parameters
-	char solver_method_curr;     ///< The current solver method. Options: 'e'xplicit, 'i'mplicit.
+	char solver_method_curr; ///< The current solver method. Options: 'e'xplicit, 'i'mplicit.
 
 	/// The type of solver procedure to be used for the simulation. Options: See definitions_test_case.h.
 	const int solver_proc;

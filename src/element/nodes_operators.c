@@ -249,7 +249,8 @@ static int compute_node_type
 	case 'f': // fallthrough
 	case 't': // fallthrough
 	case 'g': // fallthrough
-	case 'm':
+	case 'm': // fallthrough
+	case 'v':
 		return compute_node_type_std(op_io,element,sim);
 		break;
 	case 'p':
@@ -317,7 +318,10 @@ static int compute_p_nodes (const struct Op_IO* op_io, const int node_type, cons
 				EXIT_UNSUPPORTED;
 		}
 		break;
-	} default:
+	} case 'v':
+		return 1;
+		break;
+	default:
 		EXIT_ERROR("Unsupported: %c\n",node_kind);
 		break;
 	}
@@ -410,6 +414,9 @@ static int compute_node_type_std
 		} else {
 			EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
 		}
+	case 'v':
+		assert(op_io->p_op == 1);
+		// fallthrough
 	case 'm': // fallthrough
 	case 'g':
 		switch (s_type) {

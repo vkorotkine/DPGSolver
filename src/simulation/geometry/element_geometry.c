@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 /// \file
 
-#include "geometry_element.h"
+#include "element_geometry.h"
 
 #include <assert.h>
 #include <string.h>
@@ -66,6 +66,7 @@ void constructor_derived_Geometry_Element (struct Element* element_ptr, const st
 void destructor_derived_Geometry_Element (struct Element* element_ptr)
 {
 	struct Geometry_Element* element = (struct Geometry_Element*) element_ptr;
+	destructor_Multiarray2_Operator(element->vv0_vv_vg);
 	destructor_Multiarray_Operator(element->vc0_vgc_vgc);
 
 	destructor_Multiarray2_Operator(element->cv1_vg_vc);
@@ -95,24 +96,26 @@ static void constructor_derived_Geometry_Element_std (struct Element* element_pt
 
 	struct const_Element* b_e = (struct const_Element*)element;
 
-	element->vc0_vgc_vgc = constructor_operators("vc0","vgc","vgc","H_1_P_M1PM0",b_e,sim); // destructed
+	element->vv0_vv_vg[0] = constructor_operators("vv0","vvA","vgs","H_1_P_1P", b_e,sim); // destructed
+	element->vv0_vv_vg[1] = constructor_operators("vv0","vvA","vgc","H_1_P_1P", b_e,sim); // destructed
+	element->vc0_vgc_vgc  = constructor_operators("vc0","vgc","vgc","H_1_P_PM0",b_e,sim); // destructed
 
-	element->cv1_vg_vc[0] = constructor_operators("cv1","vgs","vcs","H_1_P_1P",   b_e,sim); // destructed
-	element->cv1_vg_vc[1] = constructor_operators("cv1","vgc","vcc","H_1_P_M1PM0",b_e,sim); // destructed
-	element->cv1_vg_vm[0] = constructor_operators("cv1","vgs","vms","H_1_P_1",    b_e,sim); // destructed
-	element->cv1_vg_vm[1] = constructor_operators("cv1","vgc","vmc","H_1_P_M1PM0",b_e,sim); // destructed
-	element->vv0_vm_vc[0] = constructor_operators("vv0","vms","vcs","H_1_P_1P",   b_e,sim); // destructed
-	element->vv0_vm_vc[1] = constructor_operators("vv0","vmc","vcc","H_1_P_M1PM0",b_e,sim); // destructed
+	element->cv1_vg_vc[0] = constructor_operators("cv1","vgs","vcs","H_1_P_1P", b_e,sim); // destructed
+	element->cv1_vg_vc[1] = constructor_operators("cv1","vgc","vcc","H_1_P_PM0",b_e,sim); // destructed
+	element->cv1_vg_vm[0] = constructor_operators("cv1","vgs","vms","H_1_P_1",  b_e,sim); // destructed
+	element->cv1_vg_vm[1] = constructor_operators("cv1","vgc","vmc","H_1_P_PM0",b_e,sim); // destructed
+	element->vv0_vm_vc[0] = constructor_operators("vv0","vms","vcs","H_1_P_1P", b_e,sim); // destructed
+	element->vv0_vm_vc[1] = constructor_operators("vv0","vmc","vcc","H_1_P_PM0",b_e,sim); // destructed
 
-	element->cv0_vgs_fc[0] = constructor_operators("cv0","vgs","fcs","H_1_P_1P",   b_e,sim); // destructed
-	element->cv0_vgs_fc[1] = constructor_operators("cv0","vgs","fcc","H_1_P_1P",   b_e,sim); // destructed
-	element->cv0_vgc_fc[0] = constructor_operators("cv0","vgc","fcs","H_1_P_M1PM1",b_e,sim); // destructed
-	element->cv0_vgc_fc[1] = constructor_operators("cv0","vgc","fcc","H_1_P_M1PM1",b_e,sim); // destructed
+	element->cv0_vgs_fc[0] = constructor_operators("cv0","vgs","fcs","H_1_P_1P", b_e,sim); // destructed
+	element->cv0_vgs_fc[1] = constructor_operators("cv0","vgs","fcc","H_1_P_1P", b_e,sim); // destructed
+	element->cv0_vgc_fc[0] = constructor_operators("cv0","vgc","fcs","H_1_P_PM1",b_e,sim); // destructed
+	element->cv0_vgc_fc[1] = constructor_operators("cv0","vgc","fcc","H_1_P_PM1",b_e,sim); // destructed
 
-	element->vv0_vms_fc[0] = constructor_operators("vv0","vms","fcs","H_1_P_1P",   b_e,sim); // destructed
-	element->vv0_vms_fc[1] = constructor_operators("vv0","vms","fcc","H_1_P_1P",   b_e,sim); // destructed
-	element->vv0_vmc_fc[0] = constructor_operators("vv0","vmc","fcs","H_1_P_M1PM1",b_e,sim); // destructed
-	element->vv0_vmc_fc[1] = constructor_operators("vv0","vmc","fcc","H_1_P_M1PM1",b_e,sim); // destructed
+	element->vv0_vms_fc[0] = constructor_operators("vv0","vms","fcs","H_1_P_1P", b_e,sim); // destructed
+	element->vv0_vms_fc[1] = constructor_operators("vv0","vms","fcc","H_1_P_1P", b_e,sim); // destructed
+	element->vv0_vmc_fc[0] = constructor_operators("vv0","vmc","fcs","H_1_P_PM1",b_e,sim); // destructed
+	element->vv0_vmc_fc[1] = constructor_operators("vv0","vmc","fcc","H_1_P_PM1",b_e,sim); // destructed
 }
 
 static void constructor_derived_Geometry_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
@@ -142,26 +145,32 @@ static void constructor_derived_Geometry_Element_tp (struct Element* element_ptr
 		s_e[i]->vv0_vmc_vcs = constructor_operators("vv0","vmc","vcs","H_1_P_PM1",bs_e[i],sim); // destructed
 	}
 
+	set_operators_tp(&ops_tp,s_e[0]->vv0_vv_vg[0],NULL,s_e[1]->vv0_vv_vg[0],NULL);
+	element->vv0_vv_vg[0] = constructor_operators_tp("vv0","vvA","vgs","H_1_P_1P",b_e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,s_e[0]->vv0_vv_vg[1],NULL,s_e[1]->vv0_vv_vg[1],NULL);
+	element->vv0_vv_vg[1] = constructor_operators_tp("vv0","vvA","vgc","H_1_P_1P",b_e,sim,&ops_tp); // destructed
+
 	set_operators_tp(&ops_tp,s_e[0]->vc0_vgc_vgc,NULL,s_e[1]->vc0_vgc_vgc,NULL);
-	element->vc0_vgc_vgc = constructor_operators_tp("vc0","vgc","vgc","H_1_P_M1PM0",b_e,sim,&ops_tp); // destructed
+	element->vc0_vgc_vgc = constructor_operators_tp("vc0","vgc","vgc","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vc[0],s_e[0]->cv1_vg_vc[0],s_e[1]->cv0_vg_vc[0],s_e[1]->cv1_vg_vc[0]);
 	element->cv1_vg_vc[0] = constructor_operators_tp("cv1","vgs","vcs","H_1_P_1P",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vc[1],s_e[0]->cv1_vg_vc[1],s_e[1]->cv0_vg_vc[1],s_e[1]->cv1_vg_vc[1]);
-	element->cv1_vg_vc[1] = constructor_operators_tp("cv1","vgs","vcc","H_1_P_M1PM0",b_e,sim,&ops_tp); // destructed
+	element->cv1_vg_vc[1] = constructor_operators_tp("cv1","vgs","vcc","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vm[0],s_e[0]->cv1_vg_vm[0],s_e[1]->cv0_vg_vm[0],s_e[1]->cv1_vg_vm[0]);
 	element->cv1_vg_vm[0] = constructor_operators_tp("cv1","vgs","vms","H_1_P_1",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vm[1],s_e[0]->cv1_vg_vm[1],s_e[1]->cv0_vg_vm[1],s_e[1]->cv1_vg_vm[1]);
-	element->cv1_vg_vm[1] = constructor_operators_tp("cv1","vgs","vmc","H_1_P_M1PM0",b_e,sim,&ops_tp); // destructed
+	element->cv1_vg_vm[1] = constructor_operators_tp("cv1","vgs","vmc","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->vv0_vm_vc[0],NULL,s_e[1]->vv0_vm_vc[0],NULL);
 	element->vv0_vm_vc[0] = constructor_operators_tp("vv0","vms","vcs","H_1_P_1P", b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->vv0_vm_vc[1],NULL,s_e[1]->vv0_vm_vc[1],NULL);
-	element->vv0_vm_vc[1] = constructor_operators_tp("vv0","vmc","vcc","H_1_P_M1PM0",b_e,sim,&ops_tp); // destructed
+	element->vv0_vm_vc[1] = constructor_operators_tp("vv0","vmc","vcc","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vc[0],s_e[0]->cv0_vgs_fc[0],s_e[1]->cv0_vg_vc[0],s_e[1]->cv0_vgs_fc[0]);
 	element->cv0_vgs_fc[0] = constructor_operators_tp("cv0","vgs","fcs","H_1_P_1P",b_e,sim,&ops_tp); // destructed
@@ -170,10 +179,10 @@ static void constructor_derived_Geometry_Element_tp (struct Element* element_ptr
 	element->cv0_vgs_fc[1] = constructor_operators_tp("cv0","vgs","fcc","H_1_P_1P",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vgc_vcs,s_e[0]->cv0_vgc_fc[0],s_e[1]->cv0_vgc_vcs,s_e[1]->cv0_vgc_fc[0]);
-	element->cv0_vgc_fc[0] = constructor_operators_tp("cv0","vgc","fcs","H_1_P_M1PM1",b_e,sim,&ops_tp); // destructed
+	element->cv0_vgc_fc[0] = constructor_operators_tp("cv0","vgc","fcs","H_1_P_PM1",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vc[1],s_e[0]->cv0_vgc_fc[1],s_e[1]->cv0_vg_vc[1],s_e[1]->cv0_vgc_fc[1]);
-	element->cv0_vgc_fc[1] = constructor_operators_tp("cv0","vgc","fcc","H_1_P_M1PM1",b_e,sim,&ops_tp); // destructed
+	element->cv0_vgc_fc[1] = constructor_operators_tp("cv0","vgc","fcc","H_1_P_PM1",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->vv0_vm_vc[0],s_e[0]->vv0_vms_fc[0],s_e[1]->vv0_vm_vc[0],s_e[1]->vv0_vms_fc[0]);
 	element->vv0_vms_fc[0] = constructor_operators_tp("vv0","vms","fcs","H_1_P_1P",b_e,sim,&ops_tp); // destructed
@@ -182,8 +191,8 @@ static void constructor_derived_Geometry_Element_tp (struct Element* element_ptr
 	element->vv0_vms_fc[1] = constructor_operators_tp("vv0","vms","fcc","H_1_P_1P",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->vv0_vmc_vcs,s_e[0]->vv0_vmc_fc[0],s_e[1]->vv0_vmc_vcs,s_e[1]->vv0_vmc_fc[0]);
-	element->vv0_vmc_fc[0] = constructor_operators_tp("vv0","vmc","fcs","H_1_P_M1PM1",b_e,sim,&ops_tp); // destructed
+	element->vv0_vmc_fc[0] = constructor_operators_tp("vv0","vmc","fcs","H_1_P_PM1",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->vv0_vm_vc[1],s_e[0]->vv0_vmc_fc[1],s_e[1]->vv0_vm_vc[1],s_e[1]->vv0_vmc_fc[1]);
-	element->vv0_vmc_fc[1] = constructor_operators_tp("vv0","vmc","fcc","H_1_P_M1PM1",b_e,sim,&ops_tp); // destructed
+	element->vv0_vmc_fc[1] = constructor_operators_tp("vv0","vmc","fcc","H_1_P_PM1",b_e,sim,&ops_tp); // destructed
 }

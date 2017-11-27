@@ -1,6 +1,7 @@
 set	(SOURCE
+	 element_geometry.c
 	 geometry.c
-	 geometry_element.c
+	 geometry_parametric.c
 	)
 
 set	(LIBS_DEPEND

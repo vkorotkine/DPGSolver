@@ -10,7 +10,7 @@
 
 # Executable and command line arguments
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
-ARGV="advection/default/TEST_Advection_Default_DPG_TRI__ml0 petsc_options_cg_ilu1"
+ARGV="euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DPG_ParametricMixed2D__ml0 petsc_options_empty"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

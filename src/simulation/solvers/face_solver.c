@@ -126,17 +126,21 @@ static void set_function_pointers_num_flux (struct Solver_Face* s_face, const st
 
 // Level 1 ********************************************************************************************************** //
 
-/** \brief Set the function pointers to the appropriate functions to compute boundary values needed for the numerical
- *         flux computation. */
+/// \brief Version of \ref set_function_pointers_num_flux_bc for the linear advection equation.
 static void set_function_pointers_num_flux_bc_advection
-	(struct Solver_Face* s_face,  ///< Defined for \ref set_function_pointers_num_flux.
-	 const struct Simulation* sim ///< Defined for \ref set_function_pointers_num_flux.
+	(struct Solver_Face* s_face ///< See brief.
+	);
+
+/// \brief Version of \ref set_function_pointers_num_flux_bc for the Euler equations.
+static void set_function_pointers_num_flux_bc_euler
+	(struct Solver_Face* s_face ///< See brief.
 	);
 
 static void set_function_pointers_num_flux_bc (struct Solver_Face* s_face, const struct Simulation* sim)
 {
 	switch (sim->test_case->pde_index) {
-	case PDE_ADVECTION: set_function_pointers_num_flux_bc_advection(s_face,sim); break;
+	case PDE_ADVECTION: set_function_pointers_num_flux_bc_advection(s_face); break;
+	case PDE_EULER:     set_function_pointers_num_flux_bc_euler(s_face);     break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->test_case->pde_index);
 		break;
@@ -146,10 +150,10 @@ static void set_function_pointers_num_flux_bc (struct Solver_Face* s_face, const
 // Level 2 ********************************************************************************************************** //
 
 #include "boundary_advection.h"
+#include "boundary_euler.h"
 
-static void set_function_pointers_num_flux_bc_advection (struct Solver_Face* s_face, const struct Simulation* sim)
+static void set_function_pointers_num_flux_bc_advection (struct Solver_Face* s_face)
 {
-UNUSED(sim);
 	const struct Face* face = (struct Face*) s_face;
 
 	const int bc = face->bc % BC_STEP_SC;
@@ -159,6 +163,24 @@ UNUSED(sim);
 		break;
 	case BC_OUTFLOW:
 		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_advection_outflow;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",face->bc);
+		break;
+	}
+}
+
+static void set_function_pointers_num_flux_bc_euler (struct Solver_Face* s_face)
+{
+	const struct Face* face = (struct Face*) s_face;
+
+	const int bc = face->bc % BC_STEP_SC;
+	switch (bc) {
+	case BC_RIEMANN:
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_euler_riemann;
+		break;
+	case BC_SLIPWALL:
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_euler_slipwall;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",face->bc);

@@ -1,6 +1,7 @@
 set	(SOURCE
 	 boundary.c
 	 boundary_advection.c
+	 boundary_euler.c
 	)
 
 set	(LIBS_DEPEND
