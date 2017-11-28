@@ -16,9 +16,9 @@ function(add_and_include_directory dir_name)
 endfunction()
 
 
-# Configure file_name.hpp.in files with cmake defines.
-function(configure_file_hpp_in file_path file_name)
-	set(ENV{PROJECT_ADDED_CMAKE_HPP} "YES")
+# Configure file_name.h.in files with cmake defines.
+function(configure_file_h_in file_path file_name)
+	set(ENV{PROJECT_ADDED_CMAKE_H} "YES")
 
 	# Obtain file name without `.in` extension
 	string(REGEX MATCH "[a-z_]+.[a-z]+" file_name_strip_in ${file_name})
@@ -35,8 +35,8 @@ endfunction()
 
 
 # Add include paths for cmake generated header files (if necessary).
-function(set_include_directories)
-	if ($ENV{PROJECT_ADDED_CMAKE_HPP})
+function(add_include_directories)
+	if ($ENV{PROJECT_ADDED_CMAKE_H})
 		include_directories("$ENV{PROJECT_BUILD_INCLUDE_DIR}")
 	endif()
 endfunction()

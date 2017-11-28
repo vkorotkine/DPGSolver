@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "mpi.h"
 
 #include "macros.h"
+#include "definitions_core.h"
 #include "definitions_intrusive.h"
 
 #include "multiarray.h"
@@ -137,7 +138,7 @@ struct Error_CE_Helper* constructor_Error_CE_Helper (const struct Simulation* si
 {
 	struct Error_CE_Helper* e_ce_h = malloc(sizeof * e_ce_h); // destructed
 
-	const_cast_i(&e_ce_h->d,sim->d);
+	const_cast_i(&e_ce_h->d,DIM);
 	const_cast_i(&e_ce_h->n_out,n_out);
 	e_ce_h->domain_order = -1;
 	e_ce_h->domain_volume = compute_domain_volume(sim);
@@ -293,7 +294,7 @@ static void output_errors_sp (const char sp_type, const struct Error_CE* error_c
 		fprintf(sp_file,"\n\n");
 
 		fprintf(sp_file,"%-14s%s\n","h",error_ce->header_spec);
-		fprintf(sp_file,"%-14.4e",1.0/pow(error_ce->dof,1.0/(sim->d)));
+		fprintf(sp_file,"%-14.4e",1.0/pow(error_ce->dof,1.0/DIM));
 	} else if (sp_type == 's') {
 		fprintf(sp_file,"%-10s%-14s%s\n","dof","vol",error_ce->header_spec);
 		fprintf(sp_file,"%-10td%-14.4e",error_ce->dof,error_ce->domain_volume);

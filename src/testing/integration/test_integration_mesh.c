@@ -149,7 +149,7 @@ static struct Mesh_Input* constructor_Mesh_Input (const char*const mesh_name)
 	} else if (strstr(mesh_name,"straight_2d_quad_periodic.msh")) {
 		set_Mesh_Input(mesh_input,2,DOM_STRAIGHT,false,mesh_name,"","","");
 	} else {
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Unsupported: %s\n",mesh_name);
 	}
 
 	return mesh_input;

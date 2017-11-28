@@ -32,12 +32,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+#define NEQ  NEQ_EULER  ///< Number of equations.
+#define NVAR NVAR_EULER ///< Number of variables.
+
 // Interface functions ********************************************************************************************** //
 
 void compute_Flux_euler (const struct Flux_Input* flux_i, struct mutable_Flux* flux)
 {
-	int const d   = flux_i->d,
-	          Neq = d+2;
 	const ptrdiff_t NnTotal = flux_i->s->extents[0];
 
 	double const *const W = flux_i->s->data;
@@ -45,15 +46,15 @@ void compute_Flux_euler (const struct Flux_Input* flux_i, struct mutable_Flux* f
 
 	double const *rho_ptr  = &W[NnTotal*0],
 	             *rhou_ptr = &W[NnTotal*1],
-	             *E_ptr    = &W[NnTotal*(d+1)];
+	             *E_ptr    = &W[NnTotal*(DIM+1)];
 
-	double *F_ptr[d*Neq];
-	for (int eq = 0; eq < Neq; eq++)  {
-	for (int dim = 0; dim < d; dim++) {
-		F_ptr[eq*d+dim] = &F[(eq*d+dim)*NnTotal];
+	double *F_ptr[DIM*NEQ];
+	for (int eq = 0; eq < NEQ; eq++)  {
+	for (int dim = 0; dim < DIM; dim++) {
+		F_ptr[eq*DIM+dim] = &F[(eq*DIM+dim)*NnTotal];
 	}}
 
-	if (d == 3) {
+	if (DIM == 3) {
 		double const *rhov_ptr = &W[NnTotal*2],
 		             *rhow_ptr = &W[NnTotal*3];
 
@@ -96,7 +97,7 @@ void compute_Flux_euler (const struct Flux_Input* flux_i, struct mutable_Flux* f
 			*F_ptr[IndF++]++ += (E+p)*v;
 			*F_ptr[IndF++]++ += (E+p)*w;
 		}
-	} else if (d == 2) {
+	} else if (DIM == 2) {
 		double const *rhov_ptr = &W[NnTotal*2];
 
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
@@ -127,7 +128,7 @@ void compute_Flux_euler (const struct Flux_Input* flux_i, struct mutable_Flux* f
 			*F_ptr[IndF++]++ += (E+p)*u;
 			*F_ptr[IndF++]++ += (E+p)*v;
 		}
-	} else if (d == 1) {
+	} else if (DIM == 1) {
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
 			double const rho  = *rho_ptr++,
 			             rhou = *rhou_ptr++,
@@ -152,8 +153,6 @@ void compute_Flux_euler (const struct Flux_Input* flux_i, struct mutable_Flux* f
 
 void compute_Flux_euler_jacobian (const struct Flux_Input* flux_i, struct mutable_Flux* flux)
 {
-	int const d   = flux_i->d,
-	          Neq = d+2;
 	const ptrdiff_t NnTotal = flux_i->s->extents[0];
 
 	double const *const W    = flux_i->s->data;
@@ -161,32 +160,30 @@ void compute_Flux_euler_jacobian (const struct Flux_Input* flux_i, struct mutabl
 	double       *const dFdW = flux->df_ds->data;
 
 	// Standard datatypes
-	int i, n, eq, var, dim, iMax, Nvar, InddFdW;
-	double       rho, u, v, w, u2, uv, uw, v2, vw, w2, V2, E, p, H, alpha, beta, *dFdW_ptr[DMAX*Neq*Neq];
+	int i, n, eq, var, dim, iMax, InddFdW;
+	double       rho, u, v, w, u2, uv, uw, v2, vw, w2, V2, E, p, H, alpha, beta, *dFdW_ptr[DMAX*NEQ*NEQ];
 	const double *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr;
-
-	Nvar    = Neq;
 
 	rho_ptr  = &W[NnTotal*0];
 	rhou_ptr = &W[NnTotal*1];
-	E_ptr    = &W[NnTotal*(d+1)];
+	E_ptr    = &W[NnTotal*(DIM+1)];
 
 	// Store pointers to the arrays that the data will be written into.
-	double *F_ptr[DMAX*Neq];
+	double *F_ptr[DMAX*NEQ];
 	if (F != NULL) {
-		for (eq = 0; eq < Neq; eq++) {
-		for (dim = 0; dim < d; dim++) {
-			F_ptr[eq*DMAX+dim] = &F[(eq*d+dim)*NnTotal];
+		for (eq = 0; eq < NEQ; eq++) {
+		for (dim = 0; dim < DIM; dim++) {
+			F_ptr[eq*DMAX+dim] = &F[(eq*DIM+dim)*NnTotal];
 		}}
 	}
 
-	for (eq = 0; eq < Neq; eq++) {
-	for (var = 0; var < Nvar; var++) {
-	for (dim = 0; dim < d; dim++) {
-		dFdW_ptr[(eq*Nvar+var)*DMAX+dim] = &dFdW[((eq*Nvar+var)*d+dim)*NnTotal];
+	for (eq = 0; eq < NEQ; eq++) {
+	for (var = 0; var < NVAR; var++) {
+	for (dim = 0; dim < DIM; dim++) {
+		dFdW_ptr[(eq*NVAR+var)*DMAX+dim] = &dFdW[((eq*NVAR+var)*DIM+dim)*NnTotal];
 	}}}
 
-	if (d == 3) {
+	if (DIM == 3) {
 		rhov_ptr = &W[NnTotal*2];
 		rhow_ptr = &W[NnTotal*3];
 
@@ -242,7 +239,7 @@ void compute_Flux_euler_jacobian (const struct Flux_Input* flux_i, struct mutabl
 				*F_ptr[IndF++] += (E+p)*v;
 				*F_ptr[IndF++] += (E+p)*w;
 
-				for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
+				for (i = 0, iMax = NEQ*DMAX; i < iMax; i++)
 					F_ptr[i]++;
 			}
 
@@ -378,13 +375,12 @@ void compute_Flux_euler_jacobian (const struct Flux_Input* flux_i, struct mutabl
 			*dFdW_ptr[InddFdW++] +=  GAMMA*w;
 
 			rho_ptr++; rhou_ptr++; rhov_ptr++; rhow_ptr++; E_ptr++;
-			for (i = 0, iMax = Neq*Nvar*DMAX; i < iMax; i++)
+			for (i = 0, iMax = NEQ*NVAR*DMAX; i < iMax; i++)
 				dFdW_ptr[i]++;
 		}
-	} else if (d == 2) {
+	} else if (DIM == 2) {
 
 		rhov_ptr = &W[NnTotal*2];
-
 		for (n = 0; n < NnTotal; n++) {
 
 			rho = *rho_ptr;
@@ -427,7 +423,7 @@ void compute_Flux_euler_jacobian (const struct Flux_Input* flux_i, struct mutabl
 				*F_ptr[IndF++] += (E+p)*u;
 				*F_ptr[IndF++] += (E+p)*v;
 
-				for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
+				for (i = 0, iMax = NEQ*DMAX; i < iMax; i++)
 					F_ptr[i]++;
 			}
 
@@ -517,10 +513,10 @@ void compute_Flux_euler_jacobian (const struct Flux_Input* flux_i, struct mutabl
 
 			rho_ptr++; rhou_ptr++; rhov_ptr++; E_ptr++;
 
-			for (i = 0, iMax = Neq*Nvar*DMAX; i < iMax; i++)
+			for (i = 0, iMax = NEQ*NVAR*DMAX; i < iMax; i++)
 				dFdW_ptr[i]++;
 		}
-	} else if (d == 1) {
+	} else if (DIM == 1) {
 		for (n = 0; n < NnTotal; n++) {
 			rho = *rho_ptr;
 			double const rhou = *rhou_ptr;
@@ -550,7 +546,7 @@ void compute_Flux_euler_jacobian (const struct Flux_Input* flux_i, struct mutabl
 				*F_ptr[IndF++] += (E+p)*u;
 				IndF += 2;
 
-				for (i = 0, iMax = Neq*DMAX; i < iMax; i++)
+				for (i = 0, iMax = NEQ*DMAX; i < iMax; i++)
 					F_ptr[i]++;
 			}
 
@@ -594,7 +590,7 @@ void compute_Flux_euler_jacobian (const struct Flux_Input* flux_i, struct mutabl
 			*dFdW_ptr[InddFdW++] +=  GAMMA*u;
 
 			rho_ptr++; rhou_ptr++; E_ptr++;
-			for (i = 0, iMax = Neq*Nvar*DMAX; i < iMax; i++)
+			for (i = 0, iMax = NEQ*NVAR*DMAX; i < iMax; i++)
 				dFdW_ptr[i]++;
 		}
 	}

@@ -29,6 +29,7 @@ list	(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/modules"
 	)
 include(functions)
 include(ctest_testing)
+include(multidimensional_builds)
 
 # There was a problem on macOS (CMake 3.9.3) where enabling BUILD_SHARED_LIBS led to differing function addresses in
 # different files.

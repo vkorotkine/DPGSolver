@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <math.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 
 #include "element_error.h"
 #include "volume.h"
@@ -44,8 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Return a statically allocated `char*` holding the specific header for all of the Euler variables.
  *  \return See brief. */
 static const char* compute_header_spec_euler_all
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
+	();
 
 /// \brief Add the computed and exact entropy to the solution data Multiarray.
 static void add_entropy
@@ -57,11 +57,10 @@ static void add_entropy
 
 struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 {
-	const int d     = sim->d;
-	const int n_out = d+2+1;
+	const int n_out = DIM+2+1;
 
 	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
-	e_ce_h->header_spec = compute_header_spec_euler_all(sim);
+	e_ce_h->header_spec = compute_header_spec_euler_all();
 
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
@@ -87,14 +86,14 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static const char* compute_header_spec_euler_all (const struct Simulation* sim)
+static const char* compute_header_spec_euler_all ( )
 {
 	static char header_spec[STRLEN_MAX];
 
 	int index = sprintf(header_spec,"%-14s%-14s","L2rho","L2u");
-	if (sim->d >= 2)
+	if (DIM >= 2)
 		index += sprintf(header_spec+index,"%-14s","L2v");
-	if (sim->d >= 3)
+	if (DIM >= 3)
 		index += sprintf(header_spec+index,"%-14s","L2w");
 	sprintf(header_spec+index,"%-14s%-14s","L2p","L2s");
 

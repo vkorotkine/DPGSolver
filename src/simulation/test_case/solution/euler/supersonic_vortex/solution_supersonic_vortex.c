@@ -89,12 +89,12 @@ static struct Sol_Data__sv get_sol_data
 static struct Multiarray_d* constructor_sol_supersonic_vortex
 	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
 {
-	assert(sim->d >= 2);
+	assert(DIM >= 2);
 	const struct Sol_Data__sv sol_data = get_sol_data(sim);
 
 	// Compute the solution
-	const ptrdiff_t n_n = xyz->extents[0],
-	                d   = xyz->extents[1];
+	const ptrdiff_t n_n = xyz->extents[0];
+	assert(DIM == xyz->extents[1]);
 
 	const double* x = get_col_const_Multiarray_d(0,xyz),
 	            * y = get_col_const_Multiarray_d(1,xyz);
@@ -123,7 +123,7 @@ static struct Multiarray_d* constructor_sol_supersonic_vortex
 		p[i]   = pow(rho[i],GAMMA)/GAMMA;
 	}
 
-	if (d == 3) {
+	if (DIM == 3) {
 		double* w = get_col_Multiarray_d(3,sol);
 		for (int i = 0; i < n_n; ++i)
 			w[i] = 0.0;

@@ -27,6 +27,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+#define NEQ 1 ///< Number of equations.
+
 // Interface functions ********************************************************************************************** //
 
 void compute_Flux_c_advection (const struct Flux_Input_c* flux_i, struct mutable_Flux_c* flux)
@@ -40,22 +42,20 @@ void compute_Flux_c_advection (const struct Flux_Input_c* flux_i, struct mutable
 		read_data_advection(flux_i_b->input_path,&sol_data);
 	}
 
-	int const d   = flux_i_b->d,
-	          Neq = 1;
 	const ptrdiff_t NnTotal = flux_i->s->extents[0];
 
 	double complex const *const W = flux_i->s->data;
 	double complex       *const F = flux->f->data;
 
-	double complex *F_ptr[d*Neq];
-	for (int eq = 0; eq < Neq; eq++)  {
-	for (int dim = 0; dim < d; dim++) {
-		F_ptr[eq*d+dim] = &F[(eq*d+dim)*NnTotal];
+	double complex *F_ptr[DIM*NEQ];
+	for (int eq = 0; eq < NEQ; eq++)  {
+	for (int dim = 0; dim < DIM; dim++) {
+		F_ptr[eq*DIM+dim] = &F[(eq*DIM+dim)*NnTotal];
 	}}
 
 	const double* b_adv = sol_data.b_adv;
 	for (int n = 0; n < NnTotal; n++) {
-		for (int dim = 0; dim < d; dim++) {
+		for (int dim = 0; dim < DIM; dim++) {
 			*F_ptr[dim] = b_adv[dim]*W[n];
 			F_ptr[dim]++;
 		}
@@ -73,7 +73,6 @@ void compute_Flux_c_advection_jacobian (const struct Flux_Input_c* flux_i, struc
 		read_data_advection(flux_i_b->input_path,&sol_data);
 	}
 
-	int const d = flux_i_b->d;
 	const ptrdiff_t NnTotal = flux_i->s->extents[0];
 
 	double complex const *const W    = flux_i->s->data;
@@ -83,18 +82,18 @@ void compute_Flux_c_advection_jacobian (const struct Flux_Input_c* flux_i, struc
 	assert(F    != NULL);
 	assert(dFdW != NULL);
 
-	// Store pointers to the arrays that the data will be written into. Note: using Neq == Nvar == 1.
-	double complex *F_ptr[d];
-	for (int dim = 0; dim < d; dim++)
+	// Store pointers to the arrays that the data will be written into. Note: using NEQ == Nvar == 1.
+	double complex *F_ptr[DIM];
+	for (int dim = 0; dim < DIM; dim++)
 		F_ptr[dim] = &F[dim*NnTotal];
 
-	double complex *dFdW_ptr[d];
-	for (int dim = 0; dim < d; dim++)
+	double complex *dFdW_ptr[DIM];
+	for (int dim = 0; dim < DIM; dim++)
 		dFdW_ptr[dim] = &dFdW[dim*NnTotal];
 
 	const double* b_adv = sol_data.b_adv;
 	for (int n = 0; n < NnTotal; n++) {
-		for (int dim = 0; dim < d; dim++) {
+		for (int dim = 0; dim < DIM; dim++) {
 			*F_ptr[dim] = b_adv[dim]*W[n];
 			F_ptr[dim]++;
 

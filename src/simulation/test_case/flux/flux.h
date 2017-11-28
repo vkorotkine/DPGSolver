@@ -48,8 +48,7 @@ struct Flux_Input {
 	const char* input_path;     ///< Pointer to \ref Simulation::input_path.
 	const bool* compute_member; ///< Array of flags for which of the \ref Flux members should be computed.
 
-	const int d,     ///< \ref Simulation::d.
-	          n_eq,  ///< \ref Test_Case::n_eq.
+	const int n_eq,  ///< \ref Test_Case::n_eq.
 	          n_var; ///< \ref Test_Case::n_var.
 
 	const bool has_1st_order, ///< \ref Test_Case::has_1st_order.

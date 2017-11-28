@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <string.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 #include "definitions_tol.h"
 
 #include "multiarray.h"
@@ -66,7 +67,7 @@ const struct const_Multiarray_d* constructor_const_sol_peterson
 static struct Multiarray_d* constructor_sol_peterson
 	(const struct Simulation* sim, const struct const_Multiarray_d* xyz)
 {
-	assert(sim->d == 2);
+	assert(DIM == 2);
 
 	const struct Sol_Data__Advection sol_data = get_sol_data_advection(sim);
 

@@ -18,10 +18,10 @@ The code has been succesfully built in the following environments:
 
 ### Build using CMake
 
-An out-of-source build can be performed using the [sample scripts](cmake/run) by executing the
-appropriate bash script. For example, to configure for the debug build using gcc:
+An out-of-source build must be performed using the [sample scripts](cmake/run) by executing the
+appropriate bash script. For example, to configure for the debug build for macOS:
 ```sh
-$ ROOT/cmake/run$ sh gcc_debug.sh
+$ ROOT/cmake/run$ sh macOS_gcc_debug.sh
 ```
 
 **A customized script file may be required** if CMake is unable to locate required software which
@@ -29,6 +29,8 @@ you are sure is installed; CMake will exit with an error if required software is
 recommended to use a standard package manager for installing missing software whenever possible
 (e.g. `apt` on ubuntu and `homebrew` on macOS) to limit package conflicts and place installed
 software in directories in the default search path.
+
+Three separate build directories are generated based on the supported problem dimensions in which the code can be run.
 
 ### Compile using Make
 
@@ -55,6 +57,9 @@ BUILD/script_files$ sh memcheck.sh
 ```
 
 ## Testing
+
+**Note: In order to run all of the available tests, the code must be compiled in all of the dimension-dependent build
+directories.**
 
 Testing can be performed using CMake's `ctest` functionality. After successfully compiling the project, all tests can be
 run by executing:

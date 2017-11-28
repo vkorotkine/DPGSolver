@@ -44,22 +44,21 @@ void compute_Flux_advection (const struct Flux_Input* flux_i, struct mutable_Flu
 		read_data_advection(flux_i->input_path,&sol_data);
 	}
 
-	int const d   = flux_i->d,
-	          Neq = 1;
+	int const Neq = 1;
 	const ptrdiff_t NnTotal = flux_i->s->extents[0];
 
 	double const *const W = flux_i->s->data;
 	double       *const F = flux->f->data;
 
-	double *F_ptr[d*Neq];
+	double *F_ptr[DIM*Neq];
 	for (int eq = 0; eq < Neq; eq++)  {
-	for (int dim = 0; dim < d; dim++) {
-		F_ptr[eq*d+dim] = &F[(eq*d+dim)*NnTotal];
+	for (int dim = 0; dim < DIM; dim++) {
+		F_ptr[eq*DIM+dim] = &F[(eq*DIM+dim)*NnTotal];
 	}}
 
 	const double* b_adv = sol_data.b_adv;
 	for (int n = 0; n < NnTotal; n++) {
-		for (int dim = 0; dim < d; dim++) {
+		for (int dim = 0; dim < DIM; dim++) {
 			*F_ptr[dim] = b_adv[dim]*W[n];
 			F_ptr[dim]++;
 		}
@@ -75,7 +74,6 @@ void compute_Flux_advection_jacobian (const struct Flux_Input* flux_i, struct mu
 		read_data_advection(flux_i->input_path,&sol_data);
 	}
 
-	int const d = flux_i->d;
 	const ptrdiff_t NnTotal = flux_i->s->extents[0];
 
 	double const *const W    = flux_i->s->data;
@@ -83,26 +81,26 @@ void compute_Flux_advection_jacobian (const struct Flux_Input* flux_i, struct mu
 	double       *const dFdW = flux->df_ds->data;
 
 	// Store pointers to the arrays that the data will be written into. Note: using Neq == Nvar == 1.
-	double *F_ptr[d];
+	double *F_ptr[DIM];
 	if (F != NULL) {
-		for (int dim = 0; dim < d; dim++)
+		for (int dim = 0; dim < DIM; dim++)
 			F_ptr[dim] = &F[dim*NnTotal];
 	}
 
-	double *dFdW_ptr[d];
-	for (int dim = 0; dim < d; dim++)
+	double *dFdW_ptr[DIM];
+	for (int dim = 0; dim < DIM; dim++)
 		dFdW_ptr[dim] = &dFdW[dim*NnTotal];
 
 	const double* b_adv = sol_data.b_adv;
 	for (int n = 0; n < NnTotal; n++) {
 		if (F != NULL) {
-			for (int dim = 0; dim < d; dim++) {
+			for (int dim = 0; dim < DIM; dim++) {
 				*F_ptr[dim] = b_adv[dim]*W[n];
 				F_ptr[dim]++;
 			}
 		}
 
-		for (int dim = 0; dim < d; dim++) {
+		for (int dim = 0; dim < DIM; dim++) {
 			*dFdW_ptr[dim] = b_adv[dim];
 			dFdW_ptr[dim]++;
 		}

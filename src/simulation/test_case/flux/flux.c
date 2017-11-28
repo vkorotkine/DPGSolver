@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdio.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 
 #include "multiarray.h"
 
@@ -40,7 +41,6 @@ struct Flux_Input* constructor_Flux_Input (const struct Simulation* sim)
 	const_cast_c1(&flux_i->input_path,sim->input_path);
 
 	struct Test_Case* test_case = sim->test_case;
-	const_cast_i(&flux_i->d,sim->d);
 	const_cast_i(&flux_i->n_eq,test_case->n_eq);
 	const_cast_i(&flux_i->n_var,test_case->n_var);
 
@@ -80,19 +80,18 @@ struct Flux* constructor_Flux (const struct Flux_Input* flux_i)
 	const bool* compute_member = flux_i->compute_member;
 	assert(compute_member[0] || compute_member[1] || compute_member[2]);
 
-	const int d    = flux_i->d,
-	          n_eq = flux_i->n_eq,
+	const int n_eq = flux_i->n_eq,
 	          n_vr = flux_i->n_var;
 	const ptrdiff_t n_n = ( flux_i->s != NULL ? flux_i->s->extents[0] : flux_i->g->extents[0] );
 
 	struct mutable_Flux* flux = calloc(1,sizeof *flux); // returned
 
 	flux->f     = (compute_member[0] ?
-		constructor_zero_Multiarray_d('C',3,(ptrdiff_t[]){n_n,d,n_eq})        : NULL); // destructed
+		constructor_zero_Multiarray_d('C',3,(ptrdiff_t[]){n_n,DIM,n_eq})          : NULL); // destructed
 	flux->df_ds = (compute_member[1] ?
-		constructor_zero_Multiarray_d('C',4,(ptrdiff_t[]){n_n,d,n_eq,n_vr})   : NULL); // destructed
+		constructor_zero_Multiarray_d('C',4,(ptrdiff_t[]){n_n,DIM,n_eq,n_vr})     : NULL); // destructed
 	flux->df_dg = (compute_member[2] ?
-		constructor_zero_Multiarray_d('C',5,(ptrdiff_t[]){n_n,d,n_eq,n_vr,d}) : NULL); // destructed
+		constructor_zero_Multiarray_d('C',5,(ptrdiff_t[]){n_n,DIM,n_eq,n_vr,DIM}) : NULL); // destructed
 
 	flux_i->compute_Flux(flux_i,flux);
 

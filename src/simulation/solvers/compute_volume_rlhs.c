@@ -132,8 +132,6 @@ void destructor_Flux_Ref (struct Flux_Ref* flux_ref)
 struct Matrix_d* constructor_lhs_v_1
 	(const struct Flux_Ref* flux_r, const struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
-	const ptrdiff_t d = sim->d;
-
 	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
 	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc(s_vol);
 
@@ -152,7 +150,7 @@ struct Matrix_d* constructor_lhs_v_1
 	for (int vr = 0; vr < n_vr; ++vr) {
 	for (int eq = 0; eq < n_eq; ++eq) {
 		set_to_value_Matrix_d(tw1_r,0.0);
-		for (int dim = 0; dim < d; ++dim) {
+		for (int dim = 0; dim < DIM; ++dim) {
 			const ptrdiff_t ind =
 				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
 			dfr_ds.data = (double*)&dfr_ds_Ma->data[ind];
@@ -265,16 +263,16 @@ static const struct const_Multiarray_d* constructor_flux_ref
 	struct Multiarray_d* fr = constructor_zero_Multiarray_d('C',order,extents); // returned
 
 	const int n_n   = extents[0];
-	const int d     = extents[order-1];
-	const int n_col = compute_size(order,extents)/(n_n*d);
+	const int n_col = compute_size(order,extents)/(n_n*DIM);
+	assert(extents[order-1] == DIM);
 
 	int ind_f = 0;
 	for (int col = 0; col < n_col; ++col) {
-		for (int dim0 = 0; dim0 < d; ++dim0) {
+		for (int dim0 = 0; dim0 < DIM; ++dim0) {
 			const int ind_fr = (ind_f+dim0*n_col);
-			for (int dim1 = 0; dim1 < d; ++dim1) {
-				const int ind_m  = dim0*d+dim1;
-				const int ind_fp = (ind_f*d)+dim1;
+			for (int dim1 = 0; dim1 < DIM; ++dim1) {
+				const int ind_m  = dim0*DIM+dim1,
+				          ind_fp = (ind_f*DIM)+dim1;
 				z_yxpz(n_n,get_col_const_Multiarray_d(ind_fp,f),
 				           get_col_const_Multiarray_d(ind_m,m),
 				           get_col_Multiarray_d(ind_fr,fr));

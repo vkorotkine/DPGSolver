@@ -15,18 +15,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #ifndef DPG__definitions_core_h__INCLUDED
 #define DPG__definitions_core_h__INCLUDED
-/**	\file
- *	\brief Provides the definitions of core constants.
+/** \file
+ *  \brief Provides the definitions of core constants.
  */
 
+/// \todo Potentially remove DMAX.
 ///\{ \name The maximum number of dimensions
 #define DMAX 3
-///\}
-
-///\{ \name The number of variables for the Euler/Navier-Stokes equations in each dimension.
-#define NVAR1D 3
-#define NVAR2D 4
-#define NVAR3D 5
 ///\}
 
 ///\{ \name Supported adaptation options.
@@ -35,5 +30,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define ADAPT_H  2
 #define ADAPT_HP 3
 ///\}
+
+#define DIM @BUILD_DIM@ ///< 'DIM'ension of this build. Must be passed as a CMake -D parameter.
+
+#define NVAR_EULER (DIM+2) ///< 'N'umber of 'VAR'iables for the Euler/Navier-Stokes equations.
+#define NEQ_EULER  (DIM+2) ///< 'N'umber of 'EQ'uations for the Euler/Navier-Stokes equations.
 
 #endif // DPG__definitions_core_h__INCLUDED

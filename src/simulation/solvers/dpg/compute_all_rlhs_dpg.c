@@ -224,6 +224,7 @@ const struct const_Vector_i* constructor_petsc_idxm_dpg
 		set_idxm(&ind_idxm,idxm,s_face->ind_dof,s_face->nf_coef);
 		// sol_coef: To be done.
 	}}
+printf("n_dof %td\n",n_dof);
 
 	assert(ind_idxm == n_dof);
 
@@ -302,6 +303,7 @@ static void set_idxm (int* ind_idxm, struct Vector_i* idxm, const int ind_dof, c
 		return;
 
 	const ptrdiff_t size = compute_size(coef->order,coef->extents);
+printf("size: %td\n",size);
 	for (int i = 0; i < size; ++i) {
 		idxm->data[*ind_idxm] = ind_dof+i;
 		++*ind_idxm;
@@ -348,8 +350,7 @@ static void add_to_petsc_Mat_Vec_dpg
 static const struct const_Matrix_d* constructor_norm_op__h1_upwind
 	(const struct DPG_Solver_Volume* dpg_s_vol, const struct Flux_Ref* flux_r, const struct Simulation* sim)
 {
-	const int d    = sim->d,
-	          n_eq = sim->test_case->n_eq,
+	const int n_eq = sim->test_case->n_eq,
 	          n_vr = sim->test_case->n_var;
 
 	const struct Multiarray_Operator cvt1_vt_vc = get_operator__cvt1_vt_vc__rlhs(dpg_s_vol);
@@ -366,7 +367,7 @@ static const struct const_Matrix_d* constructor_norm_op__h1_upwind
 	for (int vr = 0; vr < n_vr; ++vr) {
 	for (int eq = 0; eq < n_eq; ++eq) {
 		set_to_value_Matrix_d(cvt1r_l,0.0);
-		for (int dim = 0; dim < d; ++dim) {
+		for (int dim = 0; dim < DIM; ++dim) {
 			const ptrdiff_t ind =
 				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
 			dfr_ds.data = (double*)&dfr_ds_Ma->data[ind];
@@ -468,8 +469,7 @@ static void increment_rlhs_boundary_face
 static struct Vector_d* constructor_rhs_v_1
 	(const struct Flux_Ref* flux_r, const struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
-	const int d    = sim->d,
-	          n_eq = sim->test_case->n_eq;
+	const int n_eq = sim->test_case->n_eq;
 
 	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
 
@@ -483,7 +483,7 @@ static struct Vector_d* constructor_rhs_v_1
 	ptrdiff_t extents[2] = { ext_0, n_eq, };
 	struct Multiarray_d rhs_Ma =
 		{ .layout = 'C', .order = 2, .extents = extents, .owns_data = false, .data = rhs->data, };
-	for (ptrdiff_t dim = 0; dim < d; ++dim)
+	for (ptrdiff_t dim = 0; dim < DIM; ++dim)
 		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vt_vc.data[dim],flux_r->fr,&rhs_Ma,op_format,2,&dim,NULL);
 
 	return rhs;

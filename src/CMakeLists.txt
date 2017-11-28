@@ -42,6 +42,9 @@ include_directories(
 	simulation/test_case/solution/euler
 	testing
 	)
+configure_file_h_in(${PROJECT_SOURCE_DIR}/src/ definitions_core.h.in)
+
+add_include_directories()
 
 add_subdirectory(containers)
 add_subdirectory(element)

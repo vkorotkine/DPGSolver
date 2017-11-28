@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 #include "definitions_intrusive.h"
 
 #include "test_complex_flux.h"
@@ -85,10 +86,10 @@ const struct const_Multiarray_c* constructor_sol_vc_dg_c
 static void compute_rhs_v_dg_c
 	(const struct Flux_Ref_c* flux_r, struct Complex_DG_Solver_Volume* dg_s_vol, const struct Simulation* sim)
 {
+	UNUSED(sim);
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) dg_s_vol;
 	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
 
-	const ptrdiff_t d = sim->d;
-	for (ptrdiff_t dim = 0; dim < d; ++dim)
+	for (ptrdiff_t dim = 0; dim < DIM; ++dim)
 		mm_NNC_Operator_Multiarray_c(1.0,1.0,tw1_vt_vc.data[dim],flux_r->fr,dg_s_vol->rhs,'d',2,&dim,NULL);
 }

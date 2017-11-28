@@ -98,7 +98,7 @@ void set_xy_c
 static struct Multiarray_d* constructor_sol_periodic_vortex
 	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
 {
-	assert(sim->d >= 2);
+	assert(DIM >= 2);
 	const struct Sol_Data__pv sol_data = get_sol_data(sim);
 
 	// Set the coordinates of the vortex centre depending on the time.
@@ -107,8 +107,8 @@ static struct Multiarray_d* constructor_sol_periodic_vortex
 	set_xy_c(&x_c,&y_c,&sol_data,sim->test_case->time);
 
 	// Compute the solution
-	const ptrdiff_t n_n = xyz->extents[0],
-	                d   = xyz->extents[1];
+	const ptrdiff_t n_n = xyz->extents[0];
+	assert(DIM == xyz->extents[1]);
 
 	const double* x = get_col_const_Multiarray_d(0,xyz),
 	            * y = get_col_const_Multiarray_d(1,xyz);
@@ -137,7 +137,7 @@ static struct Multiarray_d* constructor_sol_periodic_vortex
 		p[i]   = p_inf - rho_inf*(con*con)/(2*r_v*r_v)*exp(-r2);
 	}
 
-	if (d == 3) {
+	if (DIM == 3) {
 		double* w = get_col_Multiarray_d(3,sol);
 		for (int i = 0; i < n_n; ++i)
 			w[i] = 0.0;

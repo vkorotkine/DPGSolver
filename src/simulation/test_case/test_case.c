@@ -125,6 +125,7 @@ static void set_string_associations (struct Test_Case* test_case, const struct S
 
 static void set_pde_related (struct Test_Case* test_case, const struct Simulation* sim)
 {
+	UNUSED(sim);
 	switch (test_case->pde_index) {
 	case PDE_ADVECTION:
 		const_cast_i(&test_case->n_var,1);
@@ -139,14 +140,14 @@ static void set_pde_related (struct Test_Case* test_case, const struct Simulatio
 		const_cast_bool(&test_case->has_2nd_order,true);
 		break;
 	case PDE_EULER:
-		const_cast_i(&test_case->n_var,sim->d+2);
-		const_cast_i(&test_case->n_eq,sim->d+2);
+		const_cast_i(&test_case->n_var,DIM+2);
+		const_cast_i(&test_case->n_eq,DIM+2);
 		const_cast_bool(&test_case->has_1st_order,true);
 		const_cast_bool(&test_case->has_2nd_order,false);
 		break;
 	case PDE_NAVIER_STOKES:
-		const_cast_i(&test_case->n_var,sim->d+2);
-		const_cast_i(&test_case->n_eq,sim->d+2);
+		const_cast_i(&test_case->n_var,DIM+2);
+		const_cast_i(&test_case->n_eq,DIM+2);
 		const_cast_bool(&test_case->has_1st_order,true);
 		const_cast_bool(&test_case->has_2nd_order,true);
 		break;

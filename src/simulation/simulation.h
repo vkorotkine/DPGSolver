@@ -48,8 +48,6 @@ struct Simulation {
 	const char geom_name[STRLEN_MAX]; ///< Name of the base geometry to be used for the domain.
 	const char geom_spec[STRLEN_MAX]; ///< Additional specifications for the geometry.
 
-	const int d; ///< Dimension.
-
 	/** The type of domain.
 	 *  Options:
 	 *  	- Straight: All volumes have a geometry order of 1 (affine for simplicies).

@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <string.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 
 #include "test_complex_flux_advection.h"
 #include "test_complex_test_case.h"
@@ -76,19 +77,18 @@ struct Flux_c* constructor_Flux_c (const struct Flux_Input_c* flux_i)
 	const bool* compute_member = flux_i_b->compute_member;
 	const bool has_c_J = flux_i->has_complex_J;
 
-	const int d    = flux_i_b->d,
-	          n_eq = flux_i_b->n_eq,
+	const int n_eq = flux_i_b->n_eq,
 	          n_vr = flux_i_b->n_var;
 	const ptrdiff_t n_n = ( flux_i->s != NULL ? flux_i->s->extents[0] : flux_i->g->extents[0] );
 
 	struct mutable_Flux_c* flux = calloc(1,sizeof *flux); // destructed
 
 	flux->f     = (compute_member[0] ?
-		constructor_zero_Multiarray_c('C',3,(ptrdiff_t[]){n_n,d,n_eq})        : NULL); // destructed
+		constructor_zero_Multiarray_c('C',3,(ptrdiff_t[]){n_n,DIM,n_eq})          : NULL); // destructed
 	flux->df_ds = ((compute_member[1] && has_c_J) ?
-		constructor_zero_Multiarray_c('C',4,(ptrdiff_t[]){n_n,d,n_eq,n_vr})   : NULL); // destructed
+		constructor_zero_Multiarray_c('C',4,(ptrdiff_t[]){n_n,DIM,n_eq,n_vr})     : NULL); // destructed
 	flux->df_dg = ((compute_member[2] && has_c_J) ?
-		constructor_zero_Multiarray_c('C',5,(ptrdiff_t[]){n_n,d,n_eq,n_vr,d}) : NULL); // destructed
+		constructor_zero_Multiarray_c('C',5,(ptrdiff_t[]){n_n,DIM,n_eq,n_vr,DIM}) : NULL); // destructed
 
 	flux_i->compute_Flux(flux_i,flux);
 

@@ -149,6 +149,7 @@ static void compute_rhs_v_dg
 	(const struct Flux_Ref* flux_r, struct DG_Solver_Volume* dg_s_vol, struct Solver_Storage_Implicit* ssi,
 	 const struct Simulation* sim)
 {
+	UNUSED(sim);
 	UNUSED(ssi);
 
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) dg_s_vol;
@@ -156,9 +157,7 @@ static void compute_rhs_v_dg
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
-
-	const ptrdiff_t d = sim->d;
-	for (ptrdiff_t dim = 0; dim < d; ++dim)
+	for (ptrdiff_t dim = 0; dim < DIM; ++dim)
 		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vt_vc.data[dim],flux_r->fr,dg_s_vol->rhs,op_format,2,&dim,NULL);
 }
 
@@ -171,8 +170,6 @@ static void compute_rlhs_1
 // residual Jacobian. Add it just before adding the contribution to the petsc mat. Also add for face terms and RHS
 // terms (volume, face, source or simply the complete rhs).
 assert(sim->collocated == false); // Add support in future.
-	const ptrdiff_t d = sim->d;
-
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
 
@@ -180,7 +177,7 @@ assert(sim->collocated == false); // Add support in future.
 	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
 
 	// rhs
-	for (ptrdiff_t dim = 0; dim < d; ++dim)
+	for (ptrdiff_t dim = 0; dim < DIM; ++dim)
 		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vt_vc.data[dim],flux_r->fr,dg_s_vol->rhs,op_format,2,&dim,NULL);
 //print_Multiarray_d(dg_s_vol->rhs);
 

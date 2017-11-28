@@ -62,7 +62,7 @@ struct Numerical_Flux_Input* constructor_Numerical_Flux_Input (const struct Simu
 	const_cast_b(&num_flux_i->has_1st_order,test_case->has_1st_order);
 	const_cast_b(&num_flux_i->has_2nd_order,test_case->has_2nd_order);
 
-	const_cast_i(&num_flux_i->bv_l.d,sim->d);
+	const_cast_i(&num_flux_i->bv_l.d,DIM);
 	const_cast_i(&num_flux_i->bv_l.n_eq,test_case->n_eq);
 	const_cast_i(&num_flux_i->bv_l.n_var,test_case->n_var);
 

@@ -21,8 +21,11 @@ TOOLCHAIN_FILE=gcc.cmake
 
 # End Modifiable parameters ************************************************** #
 
-
-mkdir -p ${BUILD_DIR} && cd ${BUILD_DIR}
-cmake -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
-      -D CMAKE_TOOLCHAIN_FILE=${TOP_DIR}/cmake/toolchains/${TOOLCHAIN_FILE} \
-      ${TOP_DIR}
+for dim in `seq 1 3`; do
+	BUILD_DIR_D=${BUILD_DIR}_${dim}D
+	mkdir -p ${BUILD_DIR_D} && cd ${BUILD_DIR_D}
+	cmake -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
+	      -D CMAKE_TOOLCHAIN_FILE=${TOP_DIR}/cmake/toolchains/${TOOLCHAIN_FILE} \
+	      -D BUILD_DIM=${dim} \
+	      ${TOP_DIR}
+done

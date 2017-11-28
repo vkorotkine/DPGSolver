@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__core_h__INCLUDED
 #define DPG__core_h__INCLUDED
 /** \file
- *  \todo Provides core functions.
+ *  Provides core functions.
  */
 
 /** \brief Return a statically allocated `char*` holding the name of the PETSc options file with full path.

@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "gsl/gsl_math.h"
 
 #include "macros.h"
+#include "definitions_core.h"
 #include "definitions_nodes.h"
 #include "definitions_element_operators.h"
 
@@ -432,7 +433,7 @@ static int compute_node_type_std
 			return NODES_GL;
 			break;
 		case ST_SI:
-			switch (sim->d) {
+			switch (DIM) {
 			case 2:
 				switch (node_ce) {
 					case 'v': return NODES_WV; break;
@@ -450,7 +451,7 @@ static int compute_node_type_std
 				}
 				break;
 			default:
-				EXIT_ERROR("Unsupported: %d\n",sim->d); break;
+				EXIT_ERROR("Unsupported: %d\n",DIM); break;
 				break;
 			}
 			break;
@@ -499,7 +500,7 @@ static int compute_node_type_collocated
 			if (strcmp(sim->nodes_interp[s_type],"WSH") != 0)
 				EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
 
-			switch (sim->d) {
+			switch (DIM) {
 			case 2:
 				switch (node_ce) {
 					case 'v': return NODES_WSH; break;

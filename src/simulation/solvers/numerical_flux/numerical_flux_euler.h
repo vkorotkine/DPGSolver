@@ -40,4 +40,12 @@ void compute_Numerical_Flux_euler_roe_pike
 	 struct mutable_Numerical_Flux* num_flux        ///< Defined for \ref compute_Numerical_Flux_fptr.
 	);
 
+/** \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes and Jacobians using the Roe-Pike
+ *         scheme.
+ *  See comments for \ref compute_Numerical_Flux_euler_roe_pike. */
+void compute_Numerical_Flux_euler_roe_pike_jacobian
+	(const struct Numerical_Flux_Input* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux* num_flux        ///< See brief.
+	);
+
 #endif // DPG__numerical_flux_euler_h__INCLUDED

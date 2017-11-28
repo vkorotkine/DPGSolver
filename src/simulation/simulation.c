@@ -95,7 +95,7 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 	set_simulation_mpi(sim);
 	set_simulation_core(sim,ctrl_name);
 
-	set_Simulation_elements(sim,constructor_Elements(sim->d)); // destructed
+	set_Simulation_elements(sim,constructor_Elements(DIM)); // destructed
 
 	check_necessary_simulation_parameters(sim);
 	set_simulation_default(sim);
@@ -146,7 +146,7 @@ const char* set_ctrl_name_full (const char*const ctrl_name)
 struct Mesh_Input set_Mesh_Input (const struct Simulation*const sim)
 {
 	struct Mesh_Input mesh_input =
-		{ .d                = sim->d,
+		{ .d                = DIM,
 		  .domain_type      = sim->domain_type,
 		  .mesh_unrealistic = sim->mesh_unrealistic,
 		  .mesh_name_full   = sim->mesh_name_full,
@@ -260,6 +260,8 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 	sim->ctrl_name_full = set_ctrl_name_full(ctrl_name);
 	FILE *ctrl_file = fopen_checked(sim->ctrl_name_full);
 
+	int d = -1;
+
 	// Read information
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),ctrl_file)) {
@@ -268,7 +270,7 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"geom_name")) read_skip_const_c_1(line,sim->geom_name);
 		if (strstr(line,"geom_spec")) read_skip_const_c_1(line,sim->geom_spec);
 
-		if (strstr(line,"dimension"))        read_skip_const_i_1(line,1,&sim->d,1);
+		if (strstr(line,"dimension"))        read_skip_const_i_1(line,1,&d,1);
 		if (strstr(line,"mesh_level"))       read_skip_const_i_1(line,1,sim->ml,2);
 		if (strstr(line,"mesh_unrealistic")) read_skip_const_b(line,&sim->mesh_unrealistic);
 
@@ -298,6 +300,9 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"collocated")) read_skip_const_b(line,&sim->collocated);
 	}
 	fclose(ctrl_file);
+
+	if (d != DIM)
+		EXIT_ERROR("Using executable of incorrect dimension (%d (mesh) != %d (exec)).\n",d,DIM);
 
 	set_mesh_parameters(sim);
 	set_input_path(sim);

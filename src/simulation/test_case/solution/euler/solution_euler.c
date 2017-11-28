@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <math.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 #include "definitions_test_case.h"
 
 #include "multiarray.h"
@@ -42,6 +43,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
+
+#define NEQ  NEQ_EULER  ///< Number of equations.
+#define NVAR NVAR_EULER ///< Number of variables.
 
 // Interface functions ********************************************************************************************** //
 
@@ -80,7 +84,7 @@ void set_function_pointers_solution_euler (struct Test_Case* test_case, const st
 	switch (test_case->ind_num_flux[0]) {
 	case NUM_FLUX_ROE_PIKE:
 		test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_euler_roe_pike;
-//		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_euler_roe_pike_jacobian;
+		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_euler_roe_pike_jacobian;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
@@ -95,45 +99,30 @@ void convert_variables (struct Multiarray_d* vars, const char type_i, const char
 	assert(type_i != type_o);
 	assert(vars->layout == 'C');
 
-	const ptrdiff_t ext_0 = vars->extents[0],
-	                n_var = vars->extents[1];
+	const ptrdiff_t ext_0 = vars->extents[0];
 
-	const ptrdiff_t d = n_var-2;
+	assert(vars->extents[1] == NVAR);
 
 	switch (type_i) {
 	case 'p': {
 		double* rho = get_col_Multiarray_d(0,vars),
-		      * u   = get_col_Multiarray_d(1,vars),
-		      * v   = (d > 1 ? get_col_Multiarray_d(2,vars) : NULL),
-		      * w   = (d > 2 ? get_col_Multiarray_d(3,vars) : NULL),
-		      * p   = get_col_Multiarray_d(n_var-1,vars);
+		      * p   = get_col_Multiarray_d(NVAR-1,vars),
+		      * E   = p;
 
-		double* rhou = u,
-		      * rhov = v,
-		      * rhow = w,
-		      * E    = p;
+		double* uvw[DMAX] = {            get_col_Multiarray_d(1,vars),
+		                      (DIM > 1 ? get_col_Multiarray_d(2,vars) : NULL),
+		                      (DIM > 2 ? get_col_Multiarray_d(3,vars) : NULL), };
+
+		double* rhouvw[DMAX] = { uvw[0], uvw[1], uvw[2], };
 		switch (type_o) {
 		case 'c':
 			for (ptrdiff_t i = 0; i < ext_0; ++i) {
 				double V2 = 0.0;
-				switch (d) {
-				case 3:
-					V2 += w[i]*w[i];
-					rhow[i] = rho[i]*w[i];
-					// fallthrough
-				case 2:
-					V2 += v[i]*v[i];
-					rhov[i] = rho[i]*v[i];
-					// fallthrough
-				case 1:
-					V2 += u[i]*u[i];
-					rhou[i] = rho[i]*u[i];
-					E[i] = p[i]/GM1 + 0.5*rho[i]*V2;
-					break;
-				default:
-					EXIT_ERROR("Unsupported: %td\n",d);
-					break;
+				for (int d = 0; d < DIM; ++d) {
+					V2 += uvw[d][i]*uvw[d][i];
+					rhouvw[d][i] = rho[i]*uvw[d][i];
 				}
+				E[i] = p[i]/GM1 + 0.5*rho[i]*V2;
 			}
 			break;
 		case 'p':
@@ -145,39 +134,25 @@ void convert_variables (struct Multiarray_d* vars, const char type_i, const char
 		}
 		break;
 	} case 'c': {
-		double* rho  = get_col_Multiarray_d(0,vars),
-		      * rhou = get_col_Multiarray_d(1,vars),
-		      * rhov = (d > 1 ? get_col_Multiarray_d(2,vars) : NULL),
-		      * rhow = (d > 2 ? get_col_Multiarray_d(3,vars) : NULL),
-		      * E    = get_col_Multiarray_d(n_var-1,vars);
+		double* rho = get_col_Multiarray_d(0,vars),
+		      * p   = get_col_Multiarray_d(NVAR-1,vars),
+		      * E   = p;
 
-		double* u = rhou,
-		      * v = rhov,
-		      * w = rhow,
-		      * p = E;
+		double* uvw[DMAX] = {            get_col_Multiarray_d(1,vars),
+		                      (DIM > 1 ? get_col_Multiarray_d(2,vars) : NULL),
+		                      (DIM > 2 ? get_col_Multiarray_d(3,vars) : NULL), };
+
+		double* rhouvw[DMAX] = { uvw[0], uvw[1], uvw[2], };
 		switch (type_o) {
 		case 'p':
 			for (ptrdiff_t i = 0; i < ext_0; ++i) {
 				const double rho_inv = 1.0/rho[i];
 				double rho2V2 = 0.0;
-				switch (d) {
-				case 3:
-					rho2V2 += rhow[i]*rhow[i];
-					w[i] = rhow[i]*rho_inv;
-					// fallthrough
-				case 2:
-					rho2V2 += rhov[i]*rhov[i];
-					v[i] = rhov[i]*rho_inv;
-					// fallthrough
-				case 1:
-					rho2V2 += rhou[i]*rhou[i];
-					u[i] = rhou[i]*rho_inv;
-					p[i] = GM1*(E[i]-0.5*rho2V2*rho_inv);
-					break;
-				default:
-					EXIT_ERROR("Unsupported: %td\n",d);
-					break;
+				for (int d = 0; d < DIM; ++d) {
+					rho2V2 += rhouvw[d][i]*rhouvw[d][i];
+					uvw[d][i] = rhouvw[d][i]*rho_inv;
 				}
+				p[i] = GM1*(E[i]-0.5*rho2V2*rho_inv);
 			}
 			break;
 		case 'c':

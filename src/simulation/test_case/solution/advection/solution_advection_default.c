@@ -133,7 +133,7 @@ static struct Multiarray_d* constructor_sol_advection_default
 
 	if (!parameters_set) {
 		parameters_set = true;
-		switch (sim->d) {
+		switch (DIM) {
 			case 1: constructor_sol = constructor_sol_advection_default_1d; break;
 			case 2: constructor_sol = constructor_sol_advection_default_2d; break;
 			default: EXIT_UNSUPPORTED; break;
@@ -150,7 +150,7 @@ static const struct const_Multiarray_d* constructor_source_advection_default
 
 	if (!parameters_set) {
 		parameters_set = true;
-		switch (sim->d) {
+		switch (DIM) {
 			case 1: constructor_source = constructor_source_advection_default_1d; break;
 			case 2: constructor_source = constructor_source_advection_default_2d; break;
 			default: EXIT_UNSUPPORTED; break;
@@ -164,8 +164,8 @@ static const struct const_Multiarray_d* constructor_source_advection_default
 static struct Multiarray_d* constructor_sol_advection_default_1d
 	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
 {
-	assert(sim->d == 1);
-	assert(xyz->extents[1] == sim->d);
+	assert(DIM == 1);
+	assert(xyz->extents[1] == DIM);
 
 	// Compute the solution
 	const ptrdiff_t n_vs = xyz->extents[0];
@@ -186,8 +186,8 @@ static struct Multiarray_d* constructor_sol_advection_default_1d
 static struct Multiarray_d* constructor_sol_advection_default_2d
 	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
 {
-	assert(sim->d == 2);
-	assert(xyz->extents[1] == sim->d);
+	assert(DIM == 2);
+	assert(xyz->extents[1] == DIM);
 
 	// Compute the solution
 	const ptrdiff_t n_vs = xyz->extents[0];
@@ -210,8 +210,8 @@ static struct Multiarray_d* constructor_sol_advection_default_2d
 static const struct const_Multiarray_d* constructor_source_advection_default_1d
 	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
 {
-	assert(sim->d == 1);
-	assert(xyz->extents[1] == sim->d);
+	assert(DIM == 1);
+	assert(xyz->extents[1] == DIM);
 
 	static bool need_input = true;
 	static struct Sol_Data__Advection sol_data;
@@ -239,8 +239,8 @@ static const struct const_Multiarray_d* constructor_source_advection_default_1d
 static const struct const_Multiarray_d* constructor_source_advection_default_2d
 	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
 {
-	assert(sim->d == 2);
-	assert(xyz->extents[1] == sim->d);
+	assert(DIM == 2);
+	assert(xyz->extents[1] == DIM);
 
 	static bool need_input = true;
 	static struct Sol_Data__Advection sol_data;

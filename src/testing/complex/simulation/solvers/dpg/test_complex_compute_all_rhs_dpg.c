@@ -237,8 +237,7 @@ static const struct const_Matrix_c* constructor_norm_op__h1_upwind_c
 	(const struct Complex_DPG_Solver_Volume* c_dpg_s_vol, const struct Flux_Ref_c* flux_r,
 	 const struct Simulation* sim)
 {
-	const int d    = sim->d,
-	          n_eq = sim->test_case->n_eq,
+	const int n_eq = sim->test_case->n_eq,
 	          n_vr = sim->test_case->n_var;
 
 	struct DPG_Solver_Volume* dpg_s_vol = (struct DPG_Solver_Volume*) c_dpg_s_vol;
@@ -256,7 +255,7 @@ static const struct const_Matrix_c* constructor_norm_op__h1_upwind_c
 	for (int vr = 0; vr < n_vr; ++vr) {
 	for (int eq = 0; eq < n_eq; ++eq) {
 		set_to_value_Matrix_c(cvt1r_l,0.0);
-		for (int dim = 0; dim < d; ++dim) {
+		for (int dim = 0; dim < DIM; ++dim) {
 			const ptrdiff_t ind =
 				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
 			dfr_ds.data = (double complex*)&dfr_ds_Ma->data[ind];
@@ -299,8 +298,7 @@ static const struct const_Matrix_c* constructor_norm_op__h1_upwind_c
 static struct Vector_c* constructor_rhs_v_1_c
 	(const struct Flux_Ref_c* flux_r, const struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
-	const int d    = sim->d,
-	          n_eq = sim->test_case->n_eq;
+	const int n_eq = sim->test_case->n_eq;
 
 	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
 
@@ -314,7 +312,7 @@ static struct Vector_c* constructor_rhs_v_1_c
 	ptrdiff_t extents[2] = { ext_0, n_eq, };
 	struct Multiarray_c rhs_Ma =
 		{ .layout = 'C', .order = 2, .extents = extents, .owns_data = false, .data = rhs->data, };
-	for (ptrdiff_t dim = 0; dim < d; ++dim)
+	for (ptrdiff_t dim = 0; dim < DIM; ++dim)
 		mm_NNC_Operator_Multiarray_c(1.0,1.0,tw1_vt_vc.data[dim],flux_r->fr,&rhs_Ma,op_format,2,&dim,NULL);
 
 	return rhs;
@@ -323,8 +321,6 @@ static struct Vector_c* constructor_rhs_v_1_c
 struct Matrix_c* constructor_lhs_v_1_c
 	(const struct Flux_Ref_c* flux_r, const struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
-	const ptrdiff_t d = sim->d;
-
 	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
 	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc(s_vol);
 
@@ -343,7 +339,7 @@ struct Matrix_c* constructor_lhs_v_1_c
 	for (int vr = 0; vr < n_vr; ++vr) {
 	for (int eq = 0; eq < n_eq; ++eq) {
 		set_to_value_Matrix_c(tw1_r,0.0);
-		for (int dim = 0; dim < d; ++dim) {
+		for (int dim = 0; dim < DIM; ++dim) {
 			const ptrdiff_t ind =
 				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
 			dfr_ds.data = (double complex*)&dfr_ds_Ma->data[ind];
