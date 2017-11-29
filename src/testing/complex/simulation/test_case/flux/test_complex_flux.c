@@ -136,8 +136,8 @@ static void set_derived_Flux_Input_fptrs (struct Flux_Input_c* flux_i)
 	if (!flux_i->has_complex_J) {
 		if (flux_i_b->compute_Flux_1st == compute_Flux_advection_jacobian)
 			flux_i->compute_Flux_1st = compute_Flux_c_advection;
-		else if (flux_i_b->compute_Flux_1st == compute_Flux_euler_jacobian)
-			EXIT_ADD_SUPPORT;
+//		else if (flux_i_b->compute_Flux_1st == compute_Flux_euler_jacobian)
+//			flux_i->compute_Flux_1st = compute_Flux_c_euler;
 		else if (flux_i_b->compute_Flux_1st == NULL)
 			flux_i->compute_Flux_1st = NULL;
 		else
@@ -145,8 +145,8 @@ static void set_derived_Flux_Input_fptrs (struct Flux_Input_c* flux_i)
 	} else {
 		if (flux_i_b->compute_Flux_1st == compute_Flux_advection_jacobian)
 			flux_i->compute_Flux_1st = compute_Flux_c_advection_jacobian;
-		else if (flux_i_b->compute_Flux_1st == compute_Flux_euler_jacobian)
-			EXIT_ADD_SUPPORT;
+//		else if (flux_i_b->compute_Flux_1st == compute_Flux_euler_jacobian)
+//			flux_i->compute_Flux_1st = compute_Flux_c_euler_jacobian;
 		else if (flux_i_b->compute_Flux_1st == NULL)
 			flux_i->compute_Flux_1st = NULL;
 		else

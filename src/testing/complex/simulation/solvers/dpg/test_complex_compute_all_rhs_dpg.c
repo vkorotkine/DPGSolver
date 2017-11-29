@@ -377,7 +377,7 @@ static void increment_and_add_dof_rlhs_f_1_c
 
 	struct Matrix_c rhs_M = { .layout = 'C', .ext_0 = ext_0, .ext_1 = n_eq, .owns_data = false, .data = rhs->data, };
 
-	int ind_dof = n_vr*n_dof_s;
+	int ind_dof = (int)(n_vr*n_dof_s);
 	for (int i = 0; i < NFMAX;    ++i) {
 	for (int j = 0; j < NSUBFMAX; ++j) {
 		const struct Face* face = vol->faces[i][j];
@@ -404,7 +404,7 @@ static void add_to_petsc_Mat_dpg_c
 	for (int i = 0; i < ext_0; ++i)
 		rhs_c_data[i] = cimag((-rhs_neg->data[i])/CX_STEP);
 
-	MatSetValues(ssi->A,ext_0,idxm->data,1,&ssi->col,rhs_c_data,ADD_VALUES);
+	MatSetValues(ssi->A,(PetscInt)ext_0,idxm->data,1,&ssi->col,rhs_c_data,ADD_VALUES);
 
 	destructor_const_Vector_i(idxm);
 }

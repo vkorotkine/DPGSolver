@@ -58,9 +58,9 @@ const struct const_Matrix_d* constructor_basis_tp_orthonormal (const int p_b, co
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
-	                pp1 = p_b+1,
+	const int d   = (int)rst->ext_1,
+	          pp1 = p_b+1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
 	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('R',n_n,n_b); // returned
@@ -92,12 +92,13 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
-	                pp1 = p_b+1,
+	const int d   = (int)rst->ext_1,
+	          pp1 = p_b+1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
-	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
 
 	double* grad_phi_data[d];
 	for (int dim = 0; dim < d; ++dim) {
@@ -149,8 +150,8 @@ const struct const_Matrix_d* constructor_basis_si_orthonormal (const int p_b, co
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
+	const int d   = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_SI);
 
 	assert(!(d < 2 || d > 3));
@@ -188,8 +189,8 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
+	const int d   = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_SI);
 
 	assert(!(d < 2 || d > 3));
@@ -199,7 +200,8 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal
 	            *const b = get_col_const_Matrix_d(1,abc),
 	            *const c = ( d > 2 ? get_col_const_Matrix_d(2,abc) : NULL);
 
-	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
 
 	double* grad_phi_data[d];
 	for (int dim = 0; dim < d; ++dim) {
@@ -335,8 +337,8 @@ const struct const_Matrix_d* constructor_basis_pyr_orthonormal (const int p_b, c
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_PYR);
 
 	assert(d == 3);
@@ -372,8 +374,8 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_PYR);
 
 	assert(d == 3);
@@ -383,7 +385,8 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal
 	            *const b = get_col_const_Matrix_d(1,abc),
 	            *const c = get_col_const_Matrix_d(2,abc);
 
-	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
 
 	double* grad_phi_data[d];
 	for (int dim = 0; dim < d; ++dim) {
@@ -472,9 +475,9 @@ const struct const_Matrix_d* constructor_basis_tp_bezier (const int p_b, const s
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
-	                pp1 = p_b+1,
+	const int d   = (int)rst->ext_1,
+	          pp1 = p_b+1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
 	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('R',n_n,n_b); // returned
@@ -502,12 +505,13 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
-	                pp1 = p_b+1,
+	const int d   = (int)rst->ext_1,
+	          pp1 = p_b+1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
-	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
 
 	double* grad_phi_data[d];
 	for (int dim = 0; dim < d; ++dim) {
@@ -558,11 +562,11 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
 ptrdiff_t compute_n_basis (const int d, const int p_b, const int super_type)
 {
 	if (super_type == ST_TP)
-		return pow(p_b+1,d);
+		return (ptrdiff_t)pow(p_b+1,d);
 	else if (super_type == ST_SI)
-		return round(gsl_sf_fact(d+p_b)/(gsl_sf_fact(d)*gsl_sf_fact(p_b)));
+		return (ptrdiff_t)round(gsl_sf_fact((unsigned)(d+p_b))/(gsl_sf_fact((unsigned)d)*gsl_sf_fact((unsigned)p_b)));
 	else if (super_type == ST_PYR)
-		return round(1.0/6.0*((p_b+1)*(p_b+2)*(2*p_b+3)));
+		return (ptrdiff_t)round(1.0/6.0*((p_b+1)*(p_b+2)*(2*p_b+3)));
 	else
 		EXIT_UNSUPPORTED;
 }
@@ -576,7 +580,7 @@ const struct const_Matrix_d* constructor_abc_from_rst_si (const struct const_Mat
 
 	assert(!(d < 2 || d > 3));
 
-	double* abc_d = malloc(n_n*d * sizeof *abc_d); // moved
+	double* abc_d = malloc((size_t)(n_n*d) * sizeof *abc_d); // moved
 	struct Matrix_d* abc = constructor_move_Matrix_d_d('C',n_n,d,true,abc_d); // returned
 
 	const double*const r = get_col_const_Matrix_d(0,rst),
@@ -617,7 +621,7 @@ const struct const_Matrix_d* constructor_abc_from_rst_pyr (const struct const_Ma
 
 	assert(d == 3);
 
-	double* abc_d = malloc(n_n*d * sizeof *abc_d); // moved
+	double* abc_d = malloc((size_t)(n_n*d) * sizeof *abc_d); // moved
 	struct Matrix_d* abc = constructor_move_Matrix_d_d('C',n_n,d,true,abc_d); // returned
 
 	const double*const r = get_col_const_Matrix_d(0,rst),

@@ -1,6 +1,7 @@
 set	(SOURCE
 	 test_complex_boundary.c
 	 test_complex_boundary_advection.c
+	 test_complex_boundary_euler.c
 	)
 
 set	(LIBS_DEPEND

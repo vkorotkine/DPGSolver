@@ -40,7 +40,7 @@ static struct Matrix_c* constructor_copy_Matrix_c_Matrix_d
 
 struct Matrix_c* constructor_empty_Matrix_c (const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
 {
-	double complex* data = malloc(ext_0*ext_1 * sizeof *data); // keep
+	double complex* data = malloc((size_t)(ext_0*ext_1) * sizeof *data); // keep
 	return constructor_move_Matrix_c_c(layout,ext_0,ext_1,true,data);
 }
 
@@ -51,7 +51,7 @@ struct Matrix_c* constructor_copy_Matrix_c (const struct Matrix_c* src)
 	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
 	const double complex*const data_src = src->data;
 
-	double complex* data = malloc(size * sizeof *data); // keep
+	double complex* data = malloc((size_t)size * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < size; i++)
 		data[i] = data_src[i];
 
@@ -100,11 +100,11 @@ struct Matrix_c* constructor_sysv_Matrix_c (struct Matrix_c* A_i, struct Matrix_
 	struct Matrix_c* X = constructor_copy_Matrix_c(B_i); // returned
 
 	const int matrix_layout = ( A->layout == 'R' ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR );
-	const lapack_int n      = A->ext_0,
-	                 nrhs   = B_i->ext_1;
+	const lapack_int n      = (lapack_int)A->ext_0,
+	                 nrhs   = (lapack_int)B_i->ext_1;
 	double complex* a       = A->data,
 	              * x       = X->data;
-	const lapack_int lda    = A->ext_0,
+	const lapack_int lda    = (lapack_int)A->ext_0,
 	                 ldx    = ( matrix_layout == LAPACK_COL_MAJOR ? n : nrhs );
 	lapack_int ipiv[n];
 
@@ -125,8 +125,8 @@ struct Matrix_c* constructor_mm_Matrix_cc
 	(const char trans_a_i, const char trans_b_i, const double alpha,
 	 const struct const_Matrix_c*const a, const struct const_Matrix_c*const b, const char layout)
 {
-	const MKL_INT m = ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ),
-	              n = ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 );
+	const MKL_INT m = (MKL_INT)( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ),
+	              n = (MKL_INT)( trans_b_i == 'N' ? b->ext_1 : b->ext_0 );
 
 	struct Matrix_c* c = constructor_empty_Matrix_c(layout,m,n); // returned
 
@@ -182,8 +182,8 @@ static struct Matrix_c* constructor_copy_Matrix_c_Matrix_d (struct Matrix_d* src
 	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
 	const double*const data_src = src->data;
 
-	double complex* data = calloc(size , sizeof *data); // keep
-//	double complex* data = malloc(size * sizeof *data); // keep
+	double complex* data = calloc((size_t)size , sizeof *data); // keep
+//	double complex* data = malloc((size_t)size * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < size; i++)
 		data[i] = data_src[i];
 

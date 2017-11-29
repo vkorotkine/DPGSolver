@@ -352,7 +352,7 @@ UNUSED(sim);
 	else if (node_kind == 'c')
 		cv0_vg_vX = get_Multiarray_Operator(element->cv0_vg_vc[curved],(ptrdiff_t[]){0,0,p_o,p_i});
 
-	const int n_vs = cv0_vg_vX->op_std->ext_0;
+	const int n_vs = (int)cv0_vg_vX->op_std->ext_0;
 
 	const struct const_Multiarray_d*const geom_coef = volume->geom_coef;
 	struct Multiarray_d* xyz_v = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_vs,d}); // returned
@@ -385,7 +385,7 @@ static const struct const_Multiarray_d* constructor_xyz_f
 		EXIT_ADD_SUPPORT;
 
 	const int d    = ((struct const_Element*)e)->d,
-	          n_fs = cv0_vg_fX->op_std->ext_0;
+	          n_fs = (int)cv0_vg_fX->op_std->ext_0;
 
 	struct Multiarray_d* xyz_f = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_fs,d}); // returned
 
@@ -430,9 +430,9 @@ static const struct const_Multiarray_d* constructor_nf
 	assert(flux->extents[1] == normals->extents[1]);
 	assert(flux->layout == normals->layout);
 
-	const int n_n  = flux->extents[0],
-	          d    = flux->extents[1],
-	          n_eq = flux->extents[2];
+	const int n_n  = (int)flux->extents[0],
+	          d    = (int)flux->extents[1],
+	          n_eq = (int)flux->extents[2];
 
 	struct Multiarray_d* nf = constructor_zero_Multiarray_d('C',2,(ptrdiff_t[]){n_n,n_eq}); // returned
 

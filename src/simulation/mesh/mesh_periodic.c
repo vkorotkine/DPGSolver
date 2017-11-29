@@ -101,8 +101,8 @@ void correct_f_ve_for_periodic (const struct Mesh_Data*const mesh_data, struct C
 	if (mesh_data->periodic_corr == NULL)
 		return;
 
-	const ptrdiff_t d       = conn_info->d,
-	                ind_pfe = get_first_volume_index(conn_info->elem_per_dim,d-1),
+	const int d = conn_info->d;
+	const ptrdiff_t ind_pfe = get_first_volume_index(conn_info->elem_per_dim,d-1),
 	                n_pfe   = conn_info->elem_per_dim->data[d-1];
 
 	const ptrdiff_t n_pf = count_periodic_faces(ind_pfe,n_pfe,mesh_data->elem_tags);
@@ -161,7 +161,7 @@ static struct Periodic_Face_Info* constructor_Periodic_Face_Info (const ptrdiff_
 
 	pf_info->n_pf = n_pf;
 
-	struct Periodic_Face** p_faces = malloc(n_pf * sizeof *p_faces); // keep
+	struct Periodic_Face** p_faces = malloc((size_t)n_pf * sizeof *p_faces); // keep
 	for (ptrdiff_t i = 0; i < n_pf; ++i)
 		p_faces[i] = constructor_Periodic_Face();
 
@@ -259,12 +259,12 @@ static void substitute_m_for_s (struct Multiarray_Vector_i*const f_ve, struct Pe
 	                         * pf_info_s = pf_info[1];
 
 	// Form the list of pointers to the slave node_nums.
-	struct Vector_i** f_ve_slave = malloc(n_pf * sizeof *f_ve_slave); // free
+	struct Vector_i** f_ve_slave = malloc((size_t)n_pf * sizeof *f_ve_slave); // free
 
 	const ptrdiff_t nitems = compute_size(f_ve->order,f_ve->extents);
 	for (ptrdiff_t i = 0; i < n_pf; ++i) {
 		struct Vector_i*const*const slave =
-			bsearch(&pf_info_s->p_faces[i]->node_nums,f_ve->data,nitems,sizeof(f_ve->data[0]),cmp_Vector_i);
+			bsearch(&pf_info_s->p_faces[i]->node_nums,f_ve->data,(size_t)nitems,sizeof(f_ve->data[0]),cmp_Vector_i);
 
 		if (slave == NULL)
 			EXIT_ERROR("Did not find the slave periodic face in the list");
@@ -358,7 +358,7 @@ static void set_pf_centr
 static void sort_pf_info (struct Periodic_Face_Info* pf_info[N_MS])
 {
 	for (int i = 0; i < N_MS; ++i)
-		qsort(pf_info[i]->p_faces,pf_info[i]->n_pf,sizeof(pf_info[i]->p_faces[0]),cmp_Periodic_Face);
+		qsort(pf_info[i]->p_faces,(size_t)pf_info[i]->n_pf,sizeof(pf_info[i]->p_faces[0]),cmp_Periodic_Face);
 }
 
 // Level 2 ********************************************************************************************************** //

@@ -98,7 +98,7 @@ void set_block_Matrix_c
 	assert(row0+ext_0 <= a->ext_0);
 	assert(col0+ext_1 <= a->ext_1);
 
-	for (int i = 0, row = row0; i < ext_0; ++i, ++row) {
+	for (int i = 0, row = (int)row0; i < ext_0; ++i, ++row) {
 		const double complex*const data_as = get_row_const_Matrix_c(i,a_sub);
 
 		double complex* data_a = get_row_Matrix_c(row,a);

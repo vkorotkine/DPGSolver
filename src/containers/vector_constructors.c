@@ -59,7 +59,7 @@ struct Vector_i* constructor_default_Vector_i ()
 
 struct Vector_i** constructor_default_Vector_i_2 (const ptrdiff_t n_dest)
 {
-	struct Vector_i** dest = malloc(n_dest * sizeof *dest); // returned;
+	struct Vector_i** dest = malloc((size_t)n_dest * sizeof *dest); // returned;
 
 	for (ptrdiff_t n = 0; n < n_dest; n++)
 		dest[n] = constructor_default_Vector_i();
@@ -71,14 +71,14 @@ struct Vector_i** constructor_default_Vector_i_2 (const ptrdiff_t n_dest)
 
 struct Vector_d* constructor_empty_Vector_d (const ptrdiff_t ext_0)
 {
-	double* data = malloc(ext_0 * sizeof *data); // keep
+	double* data = malloc((size_t)ext_0 * sizeof *data); // keep
 
 	return constructor_move_Vector_d_d(ext_0,true,data);
 }
 
 struct Vector_i* constructor_empty_Vector_i (const ptrdiff_t ext_0)
 {
-	int* data = malloc(ext_0 * sizeof *data); // keep
+	int* data = malloc((size_t)ext_0 * sizeof *data); // keep
 
 	return constructor_move_Vector_i_i(ext_0,true,data);
 }
@@ -87,14 +87,14 @@ struct Vector_i* constructor_empty_Vector_i (const ptrdiff_t ext_0)
 
 struct Vector_i* constructor_zero_Vector_i (const ptrdiff_t ext_0)
 {
-	int* data = calloc(ext_0 , sizeof *data); // keep
+	int* data = calloc((size_t)ext_0 , sizeof *data); // keep
 
 	return constructor_move_Vector_i_i(ext_0,true,data);
 }
 
 struct Vector_d* constructor_zero_Vector_d (const ptrdiff_t ext_0)
 {
-	double* data = calloc(ext_0 , sizeof *data); // keep
+	double* data = calloc((size_t)ext_0 , sizeof *data); // keep
 	return constructor_move_Vector_d_d(ext_0,true,data);
 }
 
@@ -105,7 +105,7 @@ struct Vector_i* constructor_copy_Vector_i (const struct Vector_i*const src)
 	const ptrdiff_t ext_0 = src->ext_0;
 	const int*const data_src = src->data;
 
-	int* data = malloc(ext_0 * sizeof *data); // keep
+	int* data = malloc((size_t)ext_0 * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < ext_0; i++)
 		data[i] = data_src[i];
 
@@ -114,7 +114,7 @@ struct Vector_i* constructor_copy_Vector_i (const struct Vector_i*const src)
 
 struct Vector_d* constructor_copy_Vector_d_d (const ptrdiff_t ext_0, const double*const data_src)
 {
-	double* data = malloc(ext_0 * sizeof *data); // keep
+	double* data = malloc((size_t)ext_0 * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < ext_0; i++)
 		data[i] = data_src[i];
 
@@ -128,7 +128,7 @@ const struct const_Vector_d* constructor_copy_const_Vector_d_d (const ptrdiff_t 
 
 struct Vector_i* constructor_copy_Vector_i_i (const ptrdiff_t ext_0, const int*const data_src)
 {
-	int* data = malloc(ext_0 * sizeof *data); // keep
+	int* data = malloc((size_t)ext_0 * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < ext_0; i++)
 		data[i] = data_src[i];
 
@@ -229,7 +229,7 @@ struct Vector_d* constructor_inverse_Vector_d (const struct const_Vector_d* src)
 	const ptrdiff_t ext_0 = src->ext_0;
 	const double*const data_src = src->data;
 
-	double* data = malloc(ext_0 * sizeof *data); // keep
+	double* data = malloc((size_t)ext_0 * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < ext_0; i++) {
 		assert(data_src[i] != 0.0);
 		data[i] = 1.0/data_src[i];
@@ -250,7 +250,7 @@ const struct const_Vector_d* constructor_dot_mult_const_Vector_d
 
 	const ptrdiff_t ext_0     = a->ext_0,
 	                ext_0_rep = n_repeated*ext_0;
-	double* data_c = malloc(ext_0_rep * sizeof *data_c); // moved
+	double* data_c = malloc((size_t)ext_0_rep * sizeof *data_c); // moved
 
 	for (ptrdiff_t i = 0; i < ext_0; ++i)
 		data_c[i] = a->data[i]*b->data[i];
@@ -299,7 +299,7 @@ struct Vector_d* constructor_mv_Vector_d
 	(const char trans_a_i, const double alpha, const struct const_Matrix_d*const a,
 	 const struct const_Vector_d*const b)
 {
-	const MKL_INT m = ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 );
+	const MKL_INT m = (MKL_INT) ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 );
 
 	struct Vector_d* c = constructor_empty_Vector_d(m); // returned
 
@@ -324,12 +324,12 @@ struct Vector_d* constructor_sgesv_Vector_d (struct Matrix_d* A_i, struct Vector
 	struct Vector_d* X = constructor_empty_Vector_d(B_i->ext_0); // returned;
 
 	const int matrix_layout = ( A->layout == 'R' ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR );
-	const lapack_int n      = A->ext_0,
+	const lapack_int n      = (lapack_int) A->ext_0,
 	                 nrhs   = 1;
 	double* a               = A->data,
 	      * b               = B_i->data,
 	      * x               = X->data;
-	const lapack_int lda    = A->ext_0,
+	const lapack_int lda    = (lapack_int) A->ext_0,
 	                 ldb    = ( matrix_layout == LAPACK_COL_MAJOR ? n : nrhs ),
 	                 ldx    = ldb;
 	lapack_int ipiv[n],

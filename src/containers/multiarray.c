@@ -163,15 +163,15 @@ struct Vector_i* sort_Multiarray_Vector_i (struct Multiarray_Vector_i* a, const 
 	// sort the Vectors
 	int* ordering_i = NULL;
 	if (!return_indices) {
-		qsort(a->data,size,sizeof(a->data[0]),cmp_Vector_i);
+		qsort(a->data,(size_t)size,sizeof(a->data[0]),cmp_Vector_i);
 	} else {
 		struct Vector_i_indexed** a_indexed = constructor_move_Vector_i_indexed(size,a->data); // destructed
 
-		qsort(a_indexed,size,sizeof(a_indexed[0]),cmp_Vector_i_indexed);
+		qsort(a_indexed,(size_t)size,sizeof(a_indexed[0]),cmp_Vector_i_indexed);
 
-		ordering_i = malloc(size * sizeof *ordering_i); // keep
+		ordering_i = malloc((size_t)size * sizeof *ordering_i); // keep
 		for (ptrdiff_t i = 0; i < size; ++i)
-			ordering_i[i] = a_indexed[i]->index;
+			ordering_i[i] = (int)a_indexed[i]->index;
 
 		reorder_Multiarray_Vector_i(a,ordering_i);
 
@@ -187,7 +187,7 @@ struct Vector_i* collapse_Multiarray_Vector_i (const struct Multiarray_Vector_i*
 {
 	const ptrdiff_t n_entries = compute_total_entries(src);
 
-	int*const data = malloc(n_entries * sizeof *data); // keep
+	int*const data = malloc((size_t)n_entries * sizeof *data); // keep
 
 	ptrdiff_t ind_d = 0;
 	const ptrdiff_t size = compute_size(src->order,src->extents);
@@ -256,7 +256,7 @@ void resize_Multiarray_d (struct Multiarray_d* a, const int order, const ptrdiff
 	for (int i = 0; i < order; ++i)
 		a->extents[i] = extents[i];
 
-	a->data = realloc(a->data,compute_size(order,extents) * sizeof *a->data);
+	a->data = realloc(a->data,(size_t)compute_size(order,extents) * sizeof *a->data);
 }
 
 const struct const_Vector_i* get_const_Multiarray_Vector_i
@@ -301,7 +301,7 @@ struct Matrix_d interpret_Multiarray_as_Matrix_d (const struct Multiarray_d* a_M
 static struct Vector_i_indexed** constructor_move_Vector_i_indexed
 	(const ptrdiff_t size, struct Vector_i** data)
 {
-	struct Vector_i_indexed** dest = malloc(size * sizeof *dest); // returned
+	struct Vector_i_indexed** dest = malloc((size_t)size * sizeof *dest); // returned
 
 	for (ptrdiff_t i = 0; i < size; i++) {
 		dest[i] = calloc(1,sizeof *dest[i]); // keep

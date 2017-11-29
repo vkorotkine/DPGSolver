@@ -202,7 +202,7 @@ static void update_v_to_lf_bc
 static struct Conn_info* constructor_Conn_info
 	(const struct Mesh_Data*const mesh_data, const struct const_Intrusive_List*const elements)
 {
-	const ptrdiff_t d = mesh_data->nodes->ext_1;
+	const int d = (int)mesh_data->nodes->ext_1;
 
 	const struct const_Vector_i*const elem_per_dim = mesh_data->elem_per_dim;
 
@@ -238,8 +238,8 @@ static void compute_f_ve
 	(const struct Mesh_Data*const mesh_data, const struct const_Intrusive_List*const elements,
 	 struct Conn_info* conn_info)
 {
-	const ptrdiff_t d     = conn_info->d,
-	                ind_v = get_first_volume_index(conn_info->elem_per_dim,d),
+	const int d = conn_info->d;
+	const ptrdiff_t ind_v = get_first_volume_index(conn_info->elem_per_dim,d),
 	                n_v   = conn_info->elem_per_dim->data[d];
 
 	struct const_Vector_i* volume_types = conn_info->volume_types;
@@ -279,12 +279,12 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 	struct Vector_i* v_n_lf = conn_info->v_n_lf;
 
 	// Store global volume and local face indices corresponding to each global face (reordered).
-	int* ind_v_i  = malloc(n_f * sizeof *ind_v_i);  // moved
-	int* ind_lf_i = malloc(n_f * sizeof *ind_lf_i); // moved
+	int* ind_v_i  = malloc((size_t)n_f * sizeof *ind_v_i);  // moved
+	int* ind_lf_i = malloc((size_t)n_f * sizeof *ind_lf_i); // moved
 
-	for (ptrdiff_t ind_vf = 0, v = 0; v < n_v; ++v) {
+	for (int ind_vf = 0, v = 0; v < n_v; ++v) {
 		const ptrdiff_t lf_max = v_n_lf->data[v];
-		for (ptrdiff_t lf = 0; lf < lf_max; ++lf) {
+		for (int lf = 0; lf < lf_max; ++lf) {
 			ind_v_i[ind_vf]  = v;
 			ind_lf_i[ind_vf] = lf;
 			++ind_vf;
@@ -298,8 +298,8 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 	reorder_Vector_i(ind_lf_V,ind_f_ve_V->data);
 
 	// Compute v_to_v and v_to_lf
-	int* v_to_v_i  = malloc(n_f * sizeof *v_to_v_i);  // free
-	int* v_to_lf_i = malloc(n_f * sizeof *v_to_lf_i); // free
+	int* v_to_v_i  = malloc((size_t)n_f * sizeof *v_to_v_i);  // free
+	int* v_to_lf_i = malloc((size_t)n_f * sizeof *v_to_lf_i); // free
 
 	struct Multiarray_Vector_i* f_ve = conn_info->f_ve;
 	const int*const ind_f_ve_i = ind_f_ve_V->data;
@@ -338,8 +338,8 @@ static void add_bc_info
 	(const struct Mesh_Data*const mesh_data, const struct Conn_info*const conn_info,
 	 struct Mesh_Connectivity_l*const mesh_conn_l)
 {
-	const ptrdiff_t d       = conn_info->d,
-	                ind_pfe = get_first_volume_index(conn_info->elem_per_dim,d-1),
+	const int d = conn_info->d;
+	const ptrdiff_t ind_pfe = get_first_volume_index(conn_info->elem_per_dim,d-1),
 	                n_pfe   = conn_info->elem_per_dim->data[d-1],
 	                n_bf    = count_boundary_faces(ind_pfe,n_pfe,mesh_data->elem_tags);
 
@@ -383,7 +383,7 @@ static void add_bc_info
 
 		f_curr->node_nums = f_ve_V[n];
 		struct Boundary_Face*const*const bf_curr =
-			bsearch(&f_curr,bf_info->b_faces,n_bf,sizeof(bf_info->b_faces[0]),cmp_Boundary_Face);
+			bsearch(&f_curr,bf_info->b_faces,(size_t)n_bf,sizeof(bf_info->b_faces[0]),cmp_Boundary_Face);
 
 		v_to_lf_i[f] = (*bf_curr)->bc;
 	}
@@ -440,7 +440,7 @@ static struct Boundary_Face_Info* constructor_Boundary_Face_Info (const ptrdiff_
 {
 	struct Boundary_Face_Info* bf_info = calloc(1,sizeof *bf_info); // returned
 
-	struct Boundary_Face** b_faces = malloc(n_bf * sizeof *b_faces); // keep
+	struct Boundary_Face** b_faces = malloc((size_t)n_bf * sizeof *b_faces); // keep
 	for (ptrdiff_t i = 0; i < n_bf; ++i)
 		b_faces[i] = constructor_Boundary_Face(); // destructed
 
@@ -569,7 +569,7 @@ static void destructor_Boundary_Face (struct Boundary_Face* bf)
 
 static struct Boundary_Face** constructor_b_faces (const ptrdiff_t n_bf, struct Boundary_Face**const src)
 {
-	struct Boundary_Face** dest = malloc(n_bf * sizeof *dest); // free
+	struct Boundary_Face** dest = malloc((size_t)n_bf * sizeof *dest); // free
 	for (ptrdiff_t i = 0; i < n_bf; ++i)
 		dest[i] = constructor_empty_Boundary_Face(src[i]); // destructed
 

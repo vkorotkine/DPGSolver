@@ -83,7 +83,7 @@ static struct Multiarray_c* constructor_move_Multiarray_c_dyn_extents
 static struct Multiarray_c* constructor_empty_Multiarray_c_dyn_extents
 	(const char layout, const int order, const ptrdiff_t*const extents)
 {
-	double complex* data = malloc(compute_size(order,extents) * sizeof *data); // keep
+	double complex* data = malloc((size_t)compute_size(order,extents) * sizeof *data); // keep
 	return constructor_move_Multiarray_c_dyn_extents(layout,order,(ptrdiff_t*)extents,true,data);
 }
 

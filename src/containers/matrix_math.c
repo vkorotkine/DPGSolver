@@ -53,9 +53,9 @@ double compute_norm_Matrix_d_row
 void transpose_Matrix_d (struct Matrix_d* a, const bool mem_only)
 {
 	if (a->layout == 'R')
-		mkl_dimatcopy(a->layout,'T',a->ext_0,a->ext_1,1.0,a->data,a->ext_1,a->ext_0);
+		mkl_dimatcopy(a->layout,'T',(size_t)a->ext_0,(size_t)a->ext_1,1.0,a->data,(size_t)a->ext_1,(size_t)a->ext_0);
 	else if (a->layout == 'C')
-		mkl_dimatcopy(a->layout,'T',a->ext_0,a->ext_1,1.0,a->data,a->ext_0,a->ext_1);
+		mkl_dimatcopy(a->layout,'T',(size_t)a->ext_0,(size_t)a->ext_1,1.0,a->data,(size_t)a->ext_0,(size_t)a->ext_1);
 
 	if (mem_only) {
 		swap_layout(&a->layout);
@@ -96,19 +96,19 @@ void permute_Matrix_d (struct Matrix_d* a, const ptrdiff_t* p)
 	// It seems like gsl_permute_matrix naturally permutes the columns of a row-major stored matrix from the right.
 	// Thus, transposition is required for permutation of row-major from the left/column-major from the right.
 	if (a->layout == 'R') {
-		const int n_p = a->ext_0;
+		const int n_p = (int)a->ext_0;
 
 		size_t perm_st[n_p];
 		for (int i = 0; i < n_p; ++i)
-			perm_st[i] = p[i];
+			perm_st[i] = (size_t)p[i];
 
-		const gsl_permutation perm = { .size = n_p, .data = perm_st, };
+		const gsl_permutation perm = { .size = (size_t)n_p, .data = perm_st, };
 
 		transpose_Matrix_d(a,false);
 		gsl_matrix A =
-			{ .size1 = a->ext_0,
-			  .size2 = a->ext_1,
-			  .tda   = a->ext_1,
+			{ .size1 = (size_t)a->ext_0,
+			  .size2 = (size_t)a->ext_1,
+			  .tda   = (size_t)a->ext_1,
 			  .data  = a->data,
 			  .block = NULL,
 			  .owner = 0, };
@@ -116,19 +116,19 @@ void permute_Matrix_d (struct Matrix_d* a, const ptrdiff_t* p)
 		gsl_permute_matrix(&perm,&A);
 		transpose_Matrix_d(a,false);
 	} else {
-		const int n_p = a->ext_1;
+		const int n_p = (int)a->ext_1;
 
 		size_t perm_st[n_p];
 		for (int i = 0; i < n_p; ++i)
-			perm_st[i] = p[i];
+			perm_st[i] = (size_t)p[i];
 
-		const gsl_permutation perm = { .size = n_p, .data = perm_st, };
+		const gsl_permutation perm = { .size = (size_t)n_p, .data = perm_st, };
 
 		transpose_Matrix_d(a,true);
 		gsl_matrix A =
-			{ .size1 = a->ext_0,
-			  .size2 = a->ext_1,
-			  .tda   = a->ext_1, /// \todo Ensure that this is correct.
+			{ .size1 = (size_t)a->ext_0,
+			  .size2 = (size_t)a->ext_1,
+			  .tda   = (size_t)a->ext_1, /// \todo Ensure that this is correct.
 			  .data  = a->data,
 			  .block = NULL,
 			  .owner = 0, };
@@ -157,12 +157,12 @@ void mm_d
 	const CBLAS_LAYOUT    layout = ( c->layout == 'R' ? CBRM : CBCM );
 	const CBLAS_TRANSPOSE transa = ( (c->layout == a->layout) == (trans_a_i == 'N') ? CBNT : CBT ),
 	                      transb = ( (c->layout == b->layout) == (trans_b_i == 'N') ? CBNT : CBT );
-	const MKL_INT m   = c->ext_0,
-	              n   = c->ext_1,
-	              k   = ( trans_a_i == 'N' ? a->ext_1 : a->ext_0 ),
-	              lda = ( a->layout == 'R' ? a->ext_1 : a->ext_0 ),
-	              ldb = ( b->layout == 'R' ? b->ext_1 : b->ext_0 ),
-	              ldc = ( c->layout == 'R' ? c->ext_1 : c->ext_0 );
+	const MKL_INT m   = (MKL_INT) c->ext_0,
+	              n   = (MKL_INT) c->ext_1,
+	              k   = (MKL_INT) ( trans_a_i == 'N' ? a->ext_1 : a->ext_0 ),
+	              lda = (MKL_INT) ( a->layout == 'R' ? a->ext_1 : a->ext_0 ),
+	              ldb = (MKL_INT) ( b->layout == 'R' ? b->ext_1 : b->ext_0 ),
+	              ldc = (MKL_INT) ( c->layout == 'R' ? c->ext_1 : c->ext_0 );
 
 	assert(m == ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ));
 	assert(n == ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 ));
@@ -179,9 +179,9 @@ void mv_d
 	const CBLAS_TRANSPOSE transa = ( trans_a_i == 'N' ? CBNT : CBT );
 
 	/// \note Unlike the \ref mm_d function, m and n here represent the dimensions of A and not op(A).
-	const MKL_INT m   = a->ext_0,
-	              n   = a->ext_1,
-	              lda = ( a->layout == 'R' ? a->ext_1 : a->ext_0 ),
+	const MKL_INT m   = (MKL_INT) a->ext_0,
+	              n   = (MKL_INT) a->ext_1,
+	              lda = (MKL_INT) ( a->layout == 'R' ? a->ext_1 : a->ext_0 ),
 	              ldb = 1,
 	              ldc = 1;
 

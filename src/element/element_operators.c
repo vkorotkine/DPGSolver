@@ -171,7 +171,7 @@ UNUSED(p_ref);
 	// Add an additional index for the possible permutations
 	const ptrdiff_t len_e = e_o->ext_0+1;
 	struct Vector_i* e_o_p1 = constructor_empty_Vector_i(len_e); // destructed
-	e_o_p1->data[0] = get_n_perm_corr(f_element->d,f_element->s_type);
+	e_o_p1->data[0] = (int)get_n_perm_corr(f_element->d,f_element->s_type);
 	for (int i = 0; i < len_e-1; i++)
 		e_o_p1->data[i+1] = e_o->data[i];
 
@@ -927,7 +927,7 @@ static void set_operator_std_interp
 	 const struct const_Multiarray_Matrix_d* op_ioN)
 {
 	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
-	const int n_op = compute_size(op_ioN->order,op_ioN->extents);
+	const int n_op = (int)compute_size(op_ioN->order,op_ioN->extents);
 
 	const struct const_Element* element = op_info->element;
 
@@ -1029,7 +1029,7 @@ static void set_operator_std_L2
 	// Add support if required.
 	assert((ce_i == 'v' && ce_o == 'v') || (ce_i == 'v' && ce_o == 'f') || (ce_i == 'f' && ce_o == 'f'));
 
-	const int n_op = compute_size(op_ioN->order,op_ioN->extents);
+	const int n_op = (int)compute_size(op_ioN->order,op_ioN->extents);
 	assert(n_op == 1); //< Should not have any differentiation operators here.
 
 //printf("%td\n",ind_values);
@@ -1332,7 +1332,7 @@ static void set_current_op_io (const struct Operator_Info* op_info, const int* o
 static ptrdiff_t get_ind_op
 	(const struct Operator_Info* op_info, const int* op_values, const struct Multiarray_Operator* op)
 {
-	const int order_op = op_info->extents_op->ext_0;
+	const int order_op = (int)op_info->extents_op->ext_0;
 	const struct const_Vector_i* indices_op = constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
 
 	ptrdiff_t ind_op = compute_index_sub_container_pi(op->order,0,op->extents,indices_op->data);
@@ -1344,7 +1344,7 @@ static ptrdiff_t get_ind_op
 static ptrdiff_t get_ind_nc
 	(const struct Operator_Info* op_info, const int* op_values, const struct const_Multiarray_Vector_i* nc)
 {
-	const int order_op = op_info->extents_op->ext_0;
+	const int order_op = (int)op_info->extents_op->ext_0;
 	const struct const_Vector_i* indices_op = constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
 
 	ptrdiff_t ind_nc = compute_index_sub_container_pi(nc->order,1,nc->extents,indices_op->data);
@@ -1356,7 +1356,7 @@ static ptrdiff_t get_ind_nc
 static ptrdiff_t get_ind_w
 	(const struct Operator_Info* op_info, const int* op_values, const struct const_Multiarray_Vector_d* w)
 {
-	const int order_op = op_info->extents_op->ext_0;
+	const int order_op = (int)op_info->extents_op->ext_0;
 	const struct const_Vector_i* indices_op = constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
 
 	ptrdiff_t ind_w = compute_index_sub_container_pi(w->order,0,w->extents,indices_op->data);

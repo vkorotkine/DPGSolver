@@ -22,6 +22,7 @@ include_directories(
 	complex/simulation/test_case
 	complex/simulation/test_case/boundary
 	complex/simulation/test_case/flux
+	complex/simulation/test_case/solution
 	integration
 	support
 	support/containers

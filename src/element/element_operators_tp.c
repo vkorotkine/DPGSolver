@@ -110,9 +110,9 @@ const struct Multiarray_Operator* constructor_operators_tp
 			  .s_type    = element->s_type,
 			  .sub_op_Md = { NULL, NULL, NULL, }, };
 
-		set_sub_operator_info(&sub_op_info,op_info,ops_tp,row);
+		set_sub_operator_info(&sub_op_info,op_info,ops_tp,(int)row);
 
-		const int order_op = op_info->extents_op->ext_0;
+		const int order_op = (int)op_info->extents_op->ext_0;
 		const int* op_values = get_row_const_Matrix_i(row,op_info->values_op);
 		const struct const_Vector_i* indices_op =
 			constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
@@ -143,7 +143,7 @@ const struct const_Matrix_d* constructor_op_std (const struct const_Multiarray_M
 	 *  - remove the redundant permutation between rs and rst for hex operators (i.e. {1,0,2} -> {2,0,1} directly).
 	 */
 	assert(ops_tp->order == 1);
-	const int d_op = compute_size(ops_tp->order,ops_tp->extents);
+	const int d_op = (int)compute_size(ops_tp->order,ops_tp->extents);
 	assert(2 <= d_op);
 	assert(d_op <= DMAX);
 
@@ -387,7 +387,7 @@ static void set_ops_Md
 	for (int i = 0; i < d; ++i) {
 		const int* op_values = get_row_Matrix_i(i,sub_op_values);
 		const struct const_Vector_i* inds_op = constructor_indices_Vector_i(-1,op_values,NULL); // destructed
-		const int ind_sub_op = compute_index_sub_container_pi(op_MO[i]->order,0,op_MO[i]->extents,inds_op->data);
+		const int ind_sub_op = (int)compute_index_sub_container_pi(op_MO[i]->order,0,op_MO[i]->extents,inds_op->data);
 		destructor_const_Vector_i(inds_op);
 
 		op_Md[i] = op_MO[i]->data[ind_sub_op]->op_std;

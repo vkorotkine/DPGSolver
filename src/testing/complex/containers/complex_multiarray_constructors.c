@@ -67,7 +67,7 @@ struct Multiarray_c* constructor_copy_Multiarray_c_Multiarray_d
 struct Multiarray_c* constructor_empty_Multiarray_c_dyn_extents
 	(const char layout, const int order, const ptrdiff_t*const extents)
 {
-	double complex* data = malloc(compute_size(order,extents) * sizeof *data); // keep
+	double complex* data = malloc((size_t)compute_size(order,extents) * sizeof *data); // keep
 	return constructor_move_Multiarray_c_dyn_extents(layout,order,(ptrdiff_t*)extents,true,data);
 }
 
@@ -141,14 +141,14 @@ static struct Multiarray_c* constructor_move_Multiarray_c_dyn_extents
 struct Multiarray_c* constructor_zero_Multiarray_c_dyn_extents
 	(const char layout, const int order, const ptrdiff_t*const extents)
 {
-	double complex* data = calloc(compute_size(order,extents) , sizeof *data); // keep
+	double complex* data = calloc((size_t)compute_size(order,extents) , sizeof *data); // keep
 	return constructor_move_Multiarray_c_dyn_extents(layout,order,(ptrdiff_t*)extents,true,data);
 }
 
 struct Multiarray_c* constructor_copy_Multiarray_c (struct Multiarray_c* src)
 {
 	const ptrdiff_t size = compute_size(src->order,src->extents);
-	double complex* data = malloc(size * sizeof *data); // moved
+	double complex* data = malloc((size_t)size * sizeof *data); // moved
 	for (int i = 0; i < size; ++i)
 		data[i] = src->data[i];
 
@@ -158,7 +158,7 @@ struct Multiarray_c* constructor_copy_Multiarray_c (struct Multiarray_c* src)
 struct Multiarray_c* constructor_copy_Multiarray_c_Multiarray_d (struct Multiarray_d* src)
 {
 	const ptrdiff_t size = compute_size(src->order,src->extents);
-	double complex* data = malloc(size * sizeof *data); // moved
+	double complex* data = malloc((size_t)size * sizeof *data); // moved
 	for (int i = 0; i < size; ++i)
 		data[i] = src->data[i];
 

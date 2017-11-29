@@ -29,6 +29,7 @@
 
 
 */
+#include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -95,8 +96,8 @@ jac_zeros_gj(double *z, const int Q, double alpha, double beta)
 int
 jac_weights_gj(double *z, double *w, const int Q, const double alpha, const double beta, double *ws)
 {
-
-    double coef = pow(2.0, alpha+beta+1.0) * (gsl_sf_gamma(alpha+Q+1.0) / gsl_sf_fact(Q) ) *
+    assert(Q >= 0);
+    double coef = pow(2.0, alpha+beta+1.0) * (gsl_sf_gamma(alpha+Q+1.0) / gsl_sf_fact((unsigned int)Q) ) *
 	(gsl_sf_gamma(beta + Q + 1.0) / gsl_sf_gamma(alpha+beta+Q+1.0));
     double ww, x;
     int i;
@@ -144,7 +145,8 @@ jac_diffmat_gj(double *z, double *D, const int Q, double alpha, double beta, dou
     int mem_allocated=0;
     if (ws==NULL)
     {
-	jac_deriv = (double *) malloc(3*Q*sizeof(double));
+	assert(Q >= 0);
+	jac_deriv = (double *) malloc((unsigned long)Q*3*sizeof(double));
 	if (!jac_deriv) return GSL_ENOMEM;
 
 	mem_allocated = 1;
@@ -241,7 +243,8 @@ jac_zeros_glj(double *z, const int Q, double alpha, double beta)
 int
 jac_weights_glj(double *z, double *w, const int Q, double alpha, double beta, double *ws)
 {
-    double coef = pow(2.0, alpha+beta+1.0)/(Q-1) * (gsl_sf_gamma(alpha+Q) / gsl_sf_fact(Q-1) ) *
+    assert(Q > 0);
+    double coef = pow(2.0, alpha+beta+1.0)/(Q-1) * (gsl_sf_gamma(alpha+Q) / gsl_sf_fact((unsigned int)(Q-1)) ) *
 	(gsl_sf_gamma(beta + Q) / gsl_sf_gamma(alpha+beta+Q+1.0));
     double *ww, *x;
     int i;
@@ -284,7 +287,8 @@ jac_diffmat_glj(double *z, double *D, const int Q, double alpha, double beta, do
     int mem_allocated=0;
     if (ws==NULL)
     {
-	pqd = (double *) malloc(3*Q*sizeof(double));
+	assert(Q >= 0);
+	pqd = (double *) malloc((unsigned long)Q*3*sizeof(double));
 	if (!pqd) return GSL_ENOMEM;
 
 	mem_allocated = 1;
@@ -398,8 +402,8 @@ jac_zeros_grjm(double *z, const int Q, double alpha, double beta)
 int
 jac_weights_grjm(double *z, double *w, const int Q, double alpha, double beta, double *ws)
 {
-
-    double coef = pow(2.0, alpha+beta)/(beta+Q) * (gsl_sf_gamma(alpha+Q) / gsl_sf_fact(Q-1) ) *
+    assert(Q > 0);
+    double coef = pow(2.0, alpha+beta)/(beta+Q) * (gsl_sf_gamma(alpha+Q) / gsl_sf_fact((unsigned int)(Q-1)) ) *
 	(gsl_sf_gamma(beta + Q) / gsl_sf_gamma(alpha+beta+Q+1.0));
     double *ww, *x;
     register int i;
@@ -441,7 +445,8 @@ int jac_diffmat_grjm(double *z, double *D, const int Q, double alpha, double bet
     int mem_allocated=0;
     if (ws==NULL)
     {
-	pqd = (double *) malloc(3*Q*sizeof(double));
+	assert(Q > 0);
+	pqd = (double *) malloc((unsigned)Q*3*sizeof(double));
 	if (!pqd) return GSL_ENOMEM;
 
 	mem_allocated = 1;
@@ -547,8 +552,8 @@ jac_zeros_grjp(double *z, const int Q, double alpha, double beta)
 int
 jac_weights_grjp(double *z, double *w, const int Q, double alpha, double beta, double *ws)
 {
-
-    double coef = pow(2.0, alpha+beta)/(alpha+Q) * (gsl_sf_gamma(alpha+Q) / gsl_sf_fact(Q-1) ) *
+	assert(Q > 0);
+    double coef = pow(2.0, alpha+beta)/(alpha+Q) * (gsl_sf_gamma(alpha+Q) / gsl_sf_fact((unsigned)Q-1) ) *
 	(gsl_sf_gamma(beta + Q) / gsl_sf_gamma(alpha+beta+Q+1.0));
     double *ww, *x;
     register int i;
@@ -588,7 +593,8 @@ jac_diffmat_grjp(double *z, double *D, const int Q, double alpha, double beta, d
     int mem_allocated=0;
     if (ws==NULL)
     {
-	pqd = (double *) malloc(3*Q*sizeof(double));
+	    assert(Q >= 0);
+	pqd = (double *) malloc((unsigned)Q*3*sizeof(double));
 	if (!pqd) return GSL_ENOMEM;
 
 	mem_allocated = 1;
@@ -608,7 +614,8 @@ UNUSED(pnm2);
     for (i = 0; i < Q-1; ++i)
 	pqd[i] *= (1 - z[i]);
 
-    pqd[Q-1] = - gsl_sf_gamma(Q+alpha+1.0)/gsl_sf_fact(Q-1) / gsl_sf_gamma(alpha+2.0);
+    assert(Q > 0);
+    pqd[Q-1] = - gsl_sf_gamma(Q+alpha+1.0)/gsl_sf_fact((unsigned)Q-1) / gsl_sf_gamma(alpha+2.0);
 
     for (i = 0; i < Q; ++i)
 	for (j = 0; j < Q; ++j)

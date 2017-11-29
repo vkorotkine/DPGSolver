@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_boundary.h"
 #include "test_complex_boundary_advection.h"
+#include "test_complex_boundary_euler.h"
 #include "test_complex_compute_face_rhs_dg.h"
 #include "test_complex_compute_volume_rhs_dg.h"
 #include "test_support_computational_elements.h"
@@ -41,6 +42,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "compute_face_rlhs.h"
 #include "boundary_advection.h"
+#include "boundary_euler.h"
 #include "intrusive.h"
 #include "simulation.h"
 #include "solve.h"
@@ -172,6 +174,10 @@ static void set_function_pointers_num_flux_dg (const struct Simulation* sim)
 			c_dg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_advection_inflow;
 		else if (s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_advection_outflow)
 			c_dg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_advection_outflow;
+		else if (s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_euler_riemann)
+			c_dg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_euler_riemann;
+		else if (s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_euler_slipwall)
+			c_dg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_euler_slipwall;
 		else
 			EXIT_UNSUPPORTED;
 	}
@@ -232,14 +238,14 @@ static void set_col_lhs_cmplx_step_dg
 	(const int col_l, const struct Solver_Volume* s_vol_c, struct Intrusive_List* volumes_local,
 	 struct Solver_Storage_Implicit* ssi)
 {
-	ssi->col = s_vol_c->ind_dof+col_l;
+	ssi->col = (int)s_vol_c->ind_dof+col_l;
 
 	for (struct Intrusive_Link* curr_r = volumes_local->first; curr_r; curr_r = curr_r->next) {
 		struct Solver_Volume* s_vol_r = (struct Solver_Volume*) curr_r;
 		if ((CHECK_LIN == CHECK_LIN_VOLUME) && (s_vol_r->ind_dof != s_vol_c->ind_dof))
 			continue;
 
-		ssi->row = s_vol_r->ind_dof+0;
+		ssi->row = (int)s_vol_r->ind_dof+0;
 
 		struct Complex_DG_Solver_Volume* c_dg_s_vol_r = (struct Complex_DG_Solver_Volume*) curr_r;
 		struct Multiarray_c* sol_coef_r = c_dg_s_vol_r->sol_coef;
@@ -256,7 +262,7 @@ static void set_col_lhs_cmplx_step_dg
 		for (int i = 0; i < ext_0; ++i)
 			vv[i] = cimag(rhs_r->data[i])/CX_STEP;
 
-		MatSetValues(ssi->A,ext_0,idxm,1,idxn,vv,ADD_VALUES);
+		MatSetValues(ssi->A,(PetscInt)ext_0,idxm,1,idxn,vv,ADD_VALUES);
 	}
 }
 

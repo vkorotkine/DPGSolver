@@ -16,21 +16,24 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \todo Clean-up.
  */
 
-#include "test_complex_flux_advection.h"
+/*#include "test_complex_flux_advection.h"
 
 #include <assert.h>
 
 #include "complex_multiarray_minimal.h"
 
 #include "test_complex_flux.h"
-#include "solution_advection.h"
+#include "solution_advection.h"*/
 
 // Static function declarations ************************************************************************************* //
 
-#define NEQ 1 ///< Number of equations.
-
 // Interface functions ********************************************************************************************** //
 
+#include "templates_double_complex.h"
+#include "flux_templates_c.h"
+#include "flux_advection_T.c"
+
+#if 0
 void compute_Flux_c_advection (const struct Flux_Input_c* flux_i, struct mutable_Flux_c* flux)
 {
 	struct Flux_Input* flux_i_b = (struct Flux_Input*) flux_i;
@@ -102,6 +105,7 @@ void compute_Flux_c_advection_jacobian (const struct Flux_Input_c* flux_i, struc
 		}
 	}
 }
+#endif
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

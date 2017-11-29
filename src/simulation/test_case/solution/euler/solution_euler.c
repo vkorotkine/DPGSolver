@@ -49,6 +49,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
+#include "templates_double.h"
+#include "solution_templates.h"
+#include "solution_euler_T.c"
+
 void set_function_pointers_solution_euler (struct Test_Case* test_case, const struct Simulation*const sim)
 {
 	test_case->set_grad = set_sg_do_nothing;
@@ -94,6 +98,7 @@ void set_function_pointers_solution_euler (struct Test_Case* test_case, const st
 	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_s_fcl_interp;
 }
 
+#if 0
 void convert_variables (struct Multiarray_d* vars, const char type_i, const char type_o)
 {
 	assert(type_i != type_o);
@@ -168,6 +173,7 @@ void convert_variables (struct Multiarray_d* vars, const char type_i, const char
 		break;
 	}
 }
+#endif
 
 void compute_entropy (struct Multiarray_d* s, const struct const_Multiarray_d* vars, const char var_type)
 {

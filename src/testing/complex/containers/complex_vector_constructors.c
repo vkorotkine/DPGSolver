@@ -33,7 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Vector_c* constructor_empty_Vector_c (const ptrdiff_t ext_0)
 {
-	double complex* data = malloc(ext_0 * sizeof *data); // keep
+	double complex* data = malloc((size_t)ext_0 * sizeof *data); // keep
 
 	return constructor_move_Vector_c_c(ext_0,true,data);
 }
@@ -42,7 +42,7 @@ struct Vector_c* constructor_empty_Vector_c (const ptrdiff_t ext_0)
 
 struct Vector_c* constructor_zero_Vector_c (const ptrdiff_t ext_0)
 {
-	double complex* data = calloc(ext_0 , sizeof *data); // keep
+	double complex* data = calloc((size_t)ext_0 , sizeof *data); // keep
 	return constructor_move_Vector_c_c(ext_0,true,data);
 }
 
@@ -69,7 +69,7 @@ struct Vector_c* constructor_mv_Vector_c
 	(const char trans_a_i, const double alpha, const struct const_Matrix_c*const a,
 	 const struct const_Vector_c*const b)
 {
-	const MKL_INT m = ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 );
+	const MKL_INT m = (MKL_INT)( trans_a_i == 'N' ? a->ext_0 : a->ext_1 );
 
 	struct Vector_c* c = constructor_empty_Vector_c(m); // returned
 

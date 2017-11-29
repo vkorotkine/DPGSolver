@@ -125,9 +125,9 @@ static const struct const_Multiarray_c* constructor_flux_ref_c
 
 	struct Multiarray_c* fr = constructor_zero_Multiarray_c('C',order,extents); // returned
 
-	const int n_n   = extents[0];
-	const int d     = extents[order-1];
-	const int n_col = compute_size(order,extents)/(n_n*d);
+	const int n_n   = (int)extents[0];
+	const int d     = (int)extents[order-1];
+	const int n_col = (int)compute_size(order,extents)/(n_n*d);
 
 	int ind_f = 0;
 	for (int col = 0; col < n_col; ++col) {

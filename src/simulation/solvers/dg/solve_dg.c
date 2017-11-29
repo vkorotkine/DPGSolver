@@ -150,8 +150,8 @@ void set_petsc_Mat_row_col
 	(struct Solver_Storage_Implicit*const s_store_i, const struct Solver_Volume* v_l, const int eq,
 	 const struct Solver_Volume* v_r, const int vr)
 {
-	s_store_i->row = v_l->ind_dof+v_l->sol_coef->extents[0]*eq;
-	s_store_i->col = v_r->ind_dof+v_r->sol_coef->extents[0]*vr;
+	s_store_i->row = (int)(v_l->ind_dof+v_l->sol_coef->extents[0]*eq);
+	s_store_i->col = (int)(v_r->ind_dof+v_r->sol_coef->extents[0]*vr);
 }
 
 void add_to_petsc_Mat (const struct Solver_Storage_Implicit*const s_store_i, const struct const_Matrix_d* lhs)
@@ -169,7 +169,7 @@ void add_to_petsc_Mat (const struct Solver_Storage_Implicit*const s_store_i, con
 		idxn[i] = s_store_i->col+i;
 
 	const PetscScalar*const vv = lhs->data;
-	MatSetValues(s_store_i->A,ext_0,idxm,ext_1,idxn,vv,ADD_VALUES);
+	MatSetValues(s_store_i->A,(PetscInt)ext_0,idxm,(PetscInt)ext_1,idxn,vv,ADD_VALUES);
 }
 
 // Static functions ************************************************************************************************* //
@@ -227,10 +227,10 @@ static double compute_max_rhs (const struct Simulation* sim)
 static void fill_petsc_Vec_b_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
 {
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		const int ind_dof        = ((struct Solver_Volume*)curr)->ind_dof;
+		const int ind_dof        = (int)((struct Solver_Volume*)curr)->ind_dof;
 		struct Multiarray_d* rhs = ((struct DG_Solver_Volume*)curr)->rhs;
 
-		const int ni = compute_size(rhs->order,rhs->extents);
+		const int ni = (int)compute_size(rhs->order,rhs->extents);
 
 		PetscInt    ix[ni];
 		PetscScalar y[ni];

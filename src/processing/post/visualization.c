@@ -639,7 +639,7 @@ void fprint_const_Multiarray_Vector_i_offsets (FILE* file, const int n_tab, cons
 	struct Vector_i* a_V = constructor_empty_Vector_i(size); // destructed
 	ptrdiff_t sum = 0;
 	for (ptrdiff_t i = 0; i < size; ++i) {
-		a_V->data[i] = sum + a->data[i]->ext_0;
+		a_V->data[i] = (int)(sum + a->data[i]->ext_0);
 		sum = a_V->data[i];
 	}
 	fprint_Vector_i(file,n_tab,a_V);

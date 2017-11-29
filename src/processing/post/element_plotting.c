@@ -60,7 +60,7 @@ void constructor_derived_Plotting_Element (struct Element* element_ptr, const st
 
 	struct Plotting_Element* element = (struct Plotting_Element*) element_ptr;
 	element->n_p = n_p;
-	element->p_nodes = calloc(n_p , sizeof *element->p_nodes); // free
+	element->p_nodes = calloc((size_t)n_p , sizeof *element->p_nodes); // free
 	for (int i = p_ref[0]; i <= p_ref[1]; ++i)
 		element->p_nodes[i] = constructor_const_Plotting_Nodes(i,element_ptr->type); // destructed
 }

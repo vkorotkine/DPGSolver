@@ -90,7 +90,7 @@ struct Intrusive_List* constructor_Volumes (struct Simulation*const sim, const s
 	const struct const_Multiarray_Vector_i*const v_to_lf = mesh->mesh_conn->v_to_lf;
 
 	const ptrdiff_t n_v = compute_size(v_to_lf->order,v_to_lf->extents);
-	for (ptrdiff_t v = 0; v < n_v; ++v) {
+	for (int v = 0; v < n_v; ++v) {
 		const ptrdiff_t ind_v = v + mesh->mesh_data->ind_v;
 		struct Volume_mesh_info vol_mi =
 			{ .elem_type = elem_types->data[ind_v],
@@ -120,7 +120,7 @@ bool check_ve_condition
 	 const struct const_Vector_i*const ve_condition, const struct const_Multiarray_Vector_i*const ve_bc,
 	 const bool curved_only)
 {
-	const int n_lf = compute_size(f_ve->order,f_ve->extents);
+	const int n_lf = (int)compute_size(f_ve->order,f_ve->extents);
 	for (int lf = 0; lf < n_lf; ++lf) {
 		const struct const_Vector_i*const f_ve_f = f_ve->data[lf];
 
@@ -128,7 +128,7 @@ bool check_ve_condition
 
 		const struct const_Vector_i* ve_bc_V = NULL;
 
-		const int n_ve_f = f_ve_f->ext_0;
+		const int n_ve_f = (int)f_ve_f->ext_0;
 		for (int ve = 0; ve < n_ve_f; ++ve) {
 			const int ind_ve = ve_inds->data[f_ve_f->data[ve]];
 			if (ve_condition->data[ind_ve]) {

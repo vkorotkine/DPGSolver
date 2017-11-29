@@ -113,8 +113,8 @@ const struct const_Matrix_d* constructor_basis_tp_orthonormal_def (const int p_b
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
 	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('R',n_n,n_b); // returned
@@ -167,11 +167,12 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal_de
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
-	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
 
 	double* grad_phi_data[d];
 	for (int dim = 0; dim < d; ++dim) {
@@ -254,8 +255,8 @@ const struct const_Matrix_d* constructor_basis_si_orthonormal_def (const int p_b
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_SI);
 
 	const struct const_Matrix_d*const abc = constructor_abc_from_rst_si(rst); // destructed
@@ -436,8 +437,8 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal_de
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_SI);
 
 	const struct const_Matrix_d*const abc = constructor_abc_from_rst_si(rst); // destructed
@@ -445,7 +446,8 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal_de
 	            *const b = get_col_const_Matrix_d(1,abc),
 	            *const c = ( d > 2 ? get_col_const_Matrix_d(2,abc) : NULL);
 
-	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
 
 	double* grad_phi_data[d];
 	for (int dim = 0; dim < d; ++dim) {
@@ -571,8 +573,8 @@ const struct const_Matrix_d* constructor_basis_pyr_orthonormal_def
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_PYR);
 
 	const struct const_Matrix_d*const abc = constructor_abc_from_rst_pyr(rst); // destructed
@@ -691,8 +693,8 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal_d
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_PYR);
 
 	const struct const_Matrix_d*const abc = constructor_abc_from_rst_pyr(rst); // destructed
@@ -700,7 +702,8 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal_d
 	            *const b = get_col_const_Matrix_d(1,abc),
 	            *const c = get_col_const_Matrix_d(2,abc);
 
-	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
 
 	double* grad_phi_data[d];
 	for (int dim = 0; dim < d; ++dim) {
@@ -967,8 +970,8 @@ const struct const_Matrix_d* constructor_basis_tp_bezier_def (const int p_b, con
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
 	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('R',n_n,n_b); // returned
@@ -1046,11 +1049,12 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier_def
 {
 	assert(rst->layout == 'C');
 
-	const ptrdiff_t d   = rst->ext_1,
-	                n_n = rst->ext_0,
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
-	struct Multiarray_Matrix_d* grad_phi_rst = constructor_empty_Multiarray_Matrix_d(false,1,&d); // returned
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
 
 	double* grad_phi_data[d];
 	for (int dim = 0; dim < d; ++dim) {
@@ -1407,7 +1411,7 @@ static double poly_rst (const double r, const double s, const double t, const in
 
 	double result = 1;
 	for (int dim = 0; dim < d; ++dim) {
-		gsl_poly_eval_derivs(c[dim],len[dim],rst[dim],dc,n_der);
+		gsl_poly_eval_derivs(c[dim],(size_t)len[dim],rst[dim],dc,n_der);
 		const int ind_dc = ( dim+1 != derivative_index ? 0 : 1);
 		result *= dc[ind_dc];
 	}

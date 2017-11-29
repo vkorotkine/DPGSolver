@@ -134,7 +134,7 @@ static struct Mesh_Vertices_l set_up_mesh_vertices
 		const struct const_Vector_i*const v_to_v_V  = v_to_v->data[v],
 		                           *const v_to_lf_V = v_to_lf->data[v];
 
-		const int lf_max = v_to_v_V->ext_0;
+		const int lf_max = (int) v_to_v_V->ext_0;
 		for (int lf = 0; lf < lf_max; ++lf) {
 			const int v_to_lf_i = v_to_lf_V->data[lf];
 			if (v_to_lf_i < BC_STEP_SC)

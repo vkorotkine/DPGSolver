@@ -83,8 +83,8 @@ void set_ops_tp_n_rows_cols
 
 	for (int i = 0; i < DMAX; ++i) {
 		if (i < size && ops_tp->data[i]) {
-			n_rows_sub[i] = ops_tp->data[i]->ext_0;
-			n_cols_sub[i] = ops_tp->data[i]->ext_1;
+			n_rows_sub[i] = (int)ops_tp->data[i]->ext_0;
+			n_cols_sub[i] = (int)ops_tp->data[i]->ext_1;
 		} else {
 			n_rows_sub[i] = 1;
 			n_cols_sub[i] = 1;

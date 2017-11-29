@@ -90,7 +90,7 @@ struct Intrusive_List* constructor_Faces (struct Simulation*const sim, const str
 	const struct const_Multiarray_Vector_i*const v_to_v  = mesh->mesh_conn->v_to_v,
 	                                      *const v_to_lf = mesh->mesh_conn->v_to_lf;
 
-	struct Volume** volume_array = malloc(sim->n_v * sizeof *volume_array); // free
+	struct Volume** volume_array = malloc((size_t)sim->n_v * sizeof *volume_array); // free
 
 	ptrdiff_t ind_v = 0;
 	for (const struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
@@ -107,7 +107,7 @@ struct Intrusive_List* constructor_Faces (struct Simulation*const sim, const str
 		const struct const_Vector_i*const v_to_v_V = v_to_v->data[v];
 
 		const ptrdiff_t ind_v = v + mesh->mesh_data->ind_v;
-		const int lf_max = v_to_v_V->ext_0;
+		const int lf_max = (int)v_to_v_V->ext_0;
 		for (int lf = 0; lf < lf_max; ++lf) {
 			if (volume->faces[lf][0] != NULL) // Already found this face.
 				continue;
@@ -128,7 +128,7 @@ struct Intrusive_List* constructor_Faces (struct Simulation*const sim, const str
 				                     .volume = volume_n, },
 				};
 
-			push_back_IL(faces,(struct Intrusive_Link*) constructor_Face(sim,mesh,&face_mi,n_f));
+			push_back_IL(faces,(struct Intrusive_Link*) constructor_Face(sim,mesh,&face_mi,(int)n_f));
 
 			destructor_const_Vector_i(ve_inds);
 
@@ -374,7 +374,7 @@ static void set_ind_ord (struct Neigh_Info neigh_info[2], const struct const_Mat
 	int n_possible = 0;
 	int* matches_possible_i;
 
-	const int n_ve = vert_corr->matches_R_to_L->ext_0;
+	const int n_ve = (int)vert_corr->matches_R_to_L->ext_0;
 	if (n_ve == 2) { // LINE
 		n_possible = LINE_N_PERM;
 		matches_possible_i = (int[]) { 0,1, 1,0, };
@@ -509,7 +509,7 @@ struct Vector_i* constructor_matches_Vector_i_Matrix_d
 	for (ptrdiff_t i = 0; i < ext_0; ++i) {
 		dest->data[i] = -1;
 		const double*const data_m = get_row_const_Matrix_d(i,xyz_m);
-		for (ptrdiff_t i2 = 0; i2 < ext_0; ++i2) {
+		for (int i2 = 0; i2 < ext_0; ++i2) {
 			const double*const data_s = get_row_const_Matrix_d(i2,xyz_s);
 
 			double diff = 0.0;

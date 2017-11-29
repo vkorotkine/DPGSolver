@@ -47,7 +47,7 @@ const struct const_Matrix_d* constructor_default_const_Matrix_d ()
 
 struct Matrix_d* constructor_empty_Matrix_d (const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
 {
-	double* data = malloc(ext_0*ext_1 * sizeof *data); // keep
+	double* data = malloc((size_t)(ext_0*ext_1) * sizeof *data); // keep
 	struct Matrix_d* a = constructor_move_Matrix_d_d(layout,ext_0,ext_1,true,data); // returned
 
 	return a;
@@ -55,7 +55,7 @@ struct Matrix_d* constructor_empty_Matrix_d (const char layout, const ptrdiff_t 
 
 struct Matrix_i* constructor_empty_Matrix_i (const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
 {
-	int* data = malloc(ext_0*ext_1 * sizeof *data); // keep
+	int* data = malloc((size_t)(ext_0*ext_1) * sizeof *data); // keep
 	struct Matrix_i* a = constructor_move_Matrix_i_i(layout,ext_0,ext_1,true,data); // returned
 
 	return a;
@@ -68,7 +68,7 @@ struct Matrix_i* constructor_copy_Matrix_i_i
 {
 	const ptrdiff_t size = ext_0*ext_1;
 
-	int* data = malloc(size * sizeof *data); // keep
+	int* data = malloc((size_t)size * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < size; i++)
 		data[i] = data_src[i];
 
@@ -80,7 +80,7 @@ struct Matrix_d* constructor_copy_Matrix_d_d
 {
 	const ptrdiff_t size = ext_0*ext_1;
 
-	double* data = malloc(size * sizeof *data); // keep
+	double* data = malloc((size_t)size * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < size; i++)
 		data[i] = data_src[i];
 
@@ -98,7 +98,7 @@ struct Matrix_d* constructor_copy_Matrix_d (const struct Matrix_d* src)
 	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
 	const double*const data_src = src->data;
 
-	double* data = malloc(size * sizeof *data); // keep
+	double* data = malloc((size_t)size * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < size; i++)
 		data[i] = data_src[i];
 
@@ -119,7 +119,7 @@ const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
 	                j_max = ( layout == 'R' ? src->ext_1 : src->ext_0 ),
 	                size  = i_max * j_max;
 
-	double* data = malloc(size * sizeof *data); // keep
+	double* data = malloc((size_t)size * sizeof *data); // keep
 	ptrdiff_t ind = 0;
 	for (ptrdiff_t i = 0; i < i_max; ++i) {
 		for (ptrdiff_t j = 0; j < j_max; ++j) {
@@ -147,7 +147,7 @@ const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
 void const_constructor_copy_Matrix_d (const struct const_Matrix_d*const* dest, const struct const_Matrix_d*const src)
 {
 	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
-	double* data = malloc(size * sizeof *data); // keep
+	double* data = malloc((size_t)size * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < size; ++i)
 		data[i] = src->data[i];
 
@@ -216,7 +216,7 @@ struct Matrix_d* constructor_sub_block_Matrix_d
 
 	ptrdiff_t ext_0 = n_row,
 	          ext_1 = n_col;
-	double* data = malloc(n_row*n_col * sizeof *data); // keep
+	double* data = malloc((size_t)(n_row*n_col) * sizeof *data); // keep
 	if (layout == 'R') {
 		double* data_ptr = data;
 		for (int i = 0; i < ext_0; ++i) {
@@ -242,7 +242,7 @@ const struct const_Matrix_d* constructor_subset_const_Matrix_d
 		ext_0 = ind_subset->ext_0,
 		ext_1 = src->ext_1;
 
-		data = malloc(ext_0*ext_1 * sizeof *data); // keep
+		data = malloc((size_t)(ext_0*ext_1) * sizeof *data); // keep
 		double* data_ptr = data;
 		for (int i = 0; i < ext_0; ++i) {
 			const double* data_src = get_row_const_Matrix_d(ind_subset->data[i],src);
@@ -308,7 +308,7 @@ struct Matrix_d* constructor_diagonal_Matrix_d_d (const char layout, const ptrdi
 {
 	const ptrdiff_t size = ext_0*ext_0;
 
-	double* data = calloc(size , sizeof *data); // moved
+	double* data = calloc((size_t)size , sizeof *data); // moved
 	for (ptrdiff_t i = 0, ind = 0; i < size; i += ext_0+1, ++ind)
 		data[i] = val;
 
@@ -333,14 +333,14 @@ struct Matrix_d* constructor_inverse_Matrix_d (struct Matrix_d* src)
 	struct Matrix_d* X = constructor_empty_Matrix_d(src->layout,src->ext_0,src->ext_1); // returned;
 
 	const int matrix_layout = ( A->layout == 'R' ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR );
-	const lapack_int n      = A->ext_0,
-	                 nrhs   = A->ext_0;
+	const lapack_int n      = (lapack_int)A->ext_0,
+	                 nrhs   = (lapack_int)A->ext_0;
 	double* a               = A->data,
 	      * b               = B->data,
 	      * x               = X->data;
-	const lapack_int lda    = A->ext_0,
-	                 ldb    = A->ext_0,
-	                 ldx    = A->ext_0;
+	const lapack_int lda    = (lapack_int)A->ext_0,
+	                 ldb    = (lapack_int)A->ext_0,
+	                 ldx    = (lapack_int)A->ext_0;
 	lapack_int ipiv[n],
 	           iter         = 0;
 
@@ -367,12 +367,12 @@ struct Matrix_d* constructor_sgesv_Matrix_d (struct Matrix_d* A_i, struct Matrix
 	struct Matrix_d* X = constructor_empty_Matrix_d(A_i->layout,A_i->ext_0,B_i->ext_1); // returned;
 
 	const int matrix_layout = ( A->layout == 'R' ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR );
-	const lapack_int n      = A->ext_0,
-	                 nrhs   = B_i->ext_1;
+	const lapack_int n      = (lapack_int)A->ext_0,
+	                 nrhs   = (lapack_int)B_i->ext_1;
 	double* a               = A->data,
 	      * b               = B_i->data,
 	      * x               = X->data;
-	const lapack_int lda    = A->ext_0,
+	const lapack_int lda    = (lapack_int)A->ext_0,
 	                 ldb    = ( matrix_layout == LAPACK_COL_MAJOR ? n : nrhs ),
 	                 ldx    = ldb;
 	lapack_int ipiv[n],
@@ -402,11 +402,11 @@ struct Matrix_d* constructor_sysv_Matrix_d (struct Matrix_d* A_i, struct Matrix_
 	struct Matrix_d* X = constructor_copy_Matrix_d(B_i); // returned
 
 	const int matrix_layout = ( A->layout == 'R' ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR );
-	const lapack_int n      = A->ext_0,
-	                 nrhs   = B_i->ext_1;
+	const lapack_int n      = (lapack_int)A->ext_0,
+	                 nrhs   = (lapack_int)B_i->ext_1;
 	double* a               = A->data,
 	      * x               = X->data;
-	const lapack_int lda    = A->ext_0,
+	const lapack_int lda    = (lapack_int)A->ext_0,
 	                 ldx    = ( matrix_layout == LAPACK_COL_MAJOR ? n : nrhs );
 	lapack_int ipiv[n];
 
@@ -427,8 +427,8 @@ struct Matrix_d* constructor_mm_Matrix_d
 	(const char trans_a_i, const char trans_b_i, const double alpha,
 	 const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, const char layout)
 {
-	const MKL_INT m = ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ),
-	              n = ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 );
+	const MKL_INT m = (MKL_INT) ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ),
+	              n = (MKL_INT) ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 );
 
 	struct Matrix_d* c = constructor_empty_Matrix_d(layout,m,n); // returned
 

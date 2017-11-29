@@ -115,7 +115,7 @@ double binomial_coef (const int num, const int den)
 {
 	assert(num >= den);
 
-	return gsl_sf_fact(num)/(gsl_sf_fact(num-den)*gsl_sf_fact(den));
+	return gsl_sf_fact((unsigned)num)/(gsl_sf_fact((unsigned)(num-den))*gsl_sf_fact((unsigned)den));
 }
 
 void z_yxpz (const int n, const double* x, const double* y, double* z)
@@ -130,6 +130,6 @@ void z_yxpz (const int n, const double* x, const double* y, double* z)
 double compute_jacobi_normalization (const int n, const double a, const double b)
 {
 	const double scale = pow(2.0,a+b+1.0)/(2.0*n+a+b+1.0)
-	                    *gsl_sf_gamma(n+a+1.0)*gsl_sf_gamma(n+b+1.0)/(gsl_sf_fact(n)*gsl_sf_gamma(n+a+b+1.0));
+	                    *gsl_sf_gamma(n+a+1.0)*gsl_sf_gamma(n+b+1.0)/(gsl_sf_fact((unsigned)n)*gsl_sf_gamma(n+a+b+1.0));
 	return 1.0/sqrt(scale);
 }

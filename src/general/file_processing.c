@@ -362,7 +362,7 @@ char* extract_name (const char*const name_full, const bool extension_present)
 
 	bool found_extension = false;
 	int ind = 0;
-	for (int i = strlen(name_full)-1; i >= 0; --i) {
+	for (int i = (int)strlen(name_full)-1; i >= 0; --i) {
 		const char token = name_full[i];
 		if (token == '/') {
 			beg = &name_full[i+1];

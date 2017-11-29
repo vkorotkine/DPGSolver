@@ -175,7 +175,7 @@ struct Multiarray_d* constructor_file_Multiarray_d (FILE* data_file, const bool 
 	ptrdiff_t ext_0 = extents[0],
 	          ext_1 = extents[1];
 
-	double* data = malloc(size * sizeof *data); // keep
+	double* data = malloc((size_t)size * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < ext_0; ++i) {
 		if (fgets(line,sizeof(line),data_file) != NULL) {};
 

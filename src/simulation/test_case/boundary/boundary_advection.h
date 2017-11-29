@@ -27,19 +27,19 @@ struct Simulation;
 /** \brief Version of \ref constructor_Boundary_Value_fptr computing members using the inflow (boundary) values.
  *  \return See brief. */
 void constructor_Boundary_Value_advection_inflow
-	(struct Boundary_Value* bv,               ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Boundary_Value_Input* bv_i, ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Solver_Face* face,          ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Simulation* sim             ///< Defined for \ref constructor_Boundary_Value_fptr.
+	(struct Boundary_Value* bv,               ///< See brief.
+	 const struct Boundary_Value_Input* bv_i, ///< See brief.
+	 const struct Solver_Face* face,          ///< See brief.
+	 const struct Simulation* sim             ///< See brief.
 	);
 
 /** \brief Version of \ref constructor_Boundary_Value_fptr computing members using the outflow (extrapolated) values.
  *  \return See brief. */
 void constructor_Boundary_Value_advection_outflow
-	(struct Boundary_Value* bv,               ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Boundary_Value_Input* bv_i, ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Solver_Face* face,          ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Simulation* sim             ///< Defined for \ref constructor_Boundary_Value_fptr.
+	(struct Boundary_Value* bv,               ///< See brief.
+	 const struct Boundary_Value_Input* bv_i, ///< See brief.
+	 const struct Solver_Face* face,          ///< See brief.
+	 const struct Simulation* sim             ///< See brief.
 	);
 
 #endif // DPG__boundary_advection_h__INCLUDED

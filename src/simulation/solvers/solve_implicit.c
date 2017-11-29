@@ -108,8 +108,8 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit (const struc
 
 	struct Solver_Storage_Implicit* ssi = calloc(1,sizeof *ssi); // free
 
-	MatCreateSeqAIJ(MPI_COMM_WORLD,dof,dof,0,nnz->data,&ssi->A); // destructed
-	VecCreateSeq(MPI_COMM_WORLD,dof,&ssi->b);                    // destructed
+	MatCreateSeqAIJ(MPI_COMM_WORLD,(PetscInt)dof,(PetscInt)dof,0,nnz->data,&ssi->A); // destructed
+	VecCreateSeq(MPI_COMM_WORLD,(PetscInt)dof,&ssi->b);                              // destructed
 
 	destructor_Vector_i(nnz);
 
@@ -604,11 +604,11 @@ static struct Schur_Data* constructor_Schur_Data (Mat A, Vec b, const struct Sim
 	PetscInt** idx = schur_data->idx;
 	IS* is = schur_data->is;
 	for (int i = 0; i < 2; ++i) {
-		idx[i] = malloc(dof[i] * sizeof *idx[i]); // free
-		const PetscInt dof_base = ( i == 0 ? 0 : dof[0] );
+		idx[i] = malloc((size_t)dof[i] * sizeof *idx[i]); // free
+		const PetscInt dof_base = (PetscInt)( i == 0 ? 0 : dof[0] );
 		for (int j = 0; j < dof[i]; ++j)
 			idx[i][j] = dof_base+j;
-		ISCreateGeneral(MPI_COMM_WORLD,dof[i],idx[i],PETSC_USE_POINTER,&is[i]); // destroyed
+		ISCreateGeneral(MPI_COMM_WORLD,(PetscInt)dof[i],idx[i],PETSC_USE_POINTER,&is[i]); // destroyed
 		VecGetSubVector(b,is[i],&schur_data->subvec[i]); // restored
 	}
 
@@ -644,7 +644,7 @@ static void update_coef_s_v (Vec x, const struct Simulation* sim)
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume* s_vol = (struct Solver_Volume*)curr;
 
-		update_coef(s_vol->ind_dof,s_vol->sol_coef,x);
+		update_coef((int)s_vol->ind_dof,s_vol->sol_coef,x);
 //		enforce_positivity_highorder(coef);
 	}
 }
@@ -654,7 +654,7 @@ static void update_coef_nf_f (Vec x, const struct Simulation* sim)
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Solver_Face* s_face = (struct Solver_Face*)curr;
 
-		update_coef(s_face->ind_dof,s_face->nf_coef,x);
+		update_coef((int)s_face->ind_dof,s_face->nf_coef,x);
 	}
 }
 
@@ -662,7 +662,7 @@ static void update_coef_nf_f (Vec x, const struct Simulation* sim)
 
 static void update_coef (const int ind_dof, struct Multiarray_d*const coef, Vec x)
 {
-		const int ni = compute_size(coef->order,coef->extents);
+		const int ni = (int)compute_size(coef->order,coef->extents);
 
 		PetscInt ix[ni];
 		for (int i = 0; i < ni; ++i)

@@ -81,7 +81,7 @@ const struct Multiarray_Operator* constructor_empty_Multiarray_Operator_V
 	for (ptrdiff_t i = 0; i < order; ++i)
 		extents_i[i] = extents_i_V->data[i];
 
-	return constructor_empty_Multiarray_Operator(order,extents_i);
+	return constructor_empty_Multiarray_Operator((int)order,extents_i);
 }
 
 const struct Multiarray_Operator* constructor_empty_Multiarray_Operator
@@ -90,7 +90,7 @@ const struct Multiarray_Operator* constructor_empty_Multiarray_Operator
 	ptrdiff_t*const extents = allocate_and_set_extents(order,extents_i); // keep
 
 	const ptrdiff_t size = compute_size(order,extents);
-	struct Operator** data = calloc(size , sizeof *data); // keep
+	struct Operator** data = calloc((size_t)size , sizeof *data); // keep
 	for (int i = 0; i < size; ++i)
 		data[i] = calloc(1,sizeof *data[i]); // keep
 

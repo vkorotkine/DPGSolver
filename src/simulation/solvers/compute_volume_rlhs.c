@@ -262,8 +262,8 @@ static const struct const_Multiarray_d* constructor_flux_ref
 
 	struct Multiarray_d* fr = constructor_zero_Multiarray_d('C',order,extents); // returned
 
-	const int n_n   = extents[0];
-	const int n_col = compute_size(order,extents)/(n_n*DIM);
+	const int n_n   = (int)extents[0];
+	const int n_col = (int)compute_size(order,extents)/(n_n*DIM);
 	assert(extents[order-1] == DIM);
 
 	int ind_f = 0;

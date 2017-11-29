@@ -167,9 +167,9 @@ static void combine_num_flux_boundary
 	const struct const_Multiarray_d* dnnf_ds_r = (struct const_Multiarray_d*) num_flux->neigh_info[1].dnnf_ds,
 	                               * ds_ds     = num_flux_i->bv_r.ds_ds;
 
-	const int n_n  = dnnf_ds_l->extents[0],
-	          n_eq = dnnf_ds_l->extents[1],
-	          n_vr = dnnf_ds_l->extents[2];
+	const int n_n  = (int)dnnf_ds_l->extents[0],
+	          n_eq = (int)dnnf_ds_l->extents[1],
+	          n_vr = (int)dnnf_ds_l->extents[2];
 
 	for (int eq = 0; eq < n_eq; ++eq) {
 	for (int vr_l = 0; vr_l < n_vr; ++vr_l) {

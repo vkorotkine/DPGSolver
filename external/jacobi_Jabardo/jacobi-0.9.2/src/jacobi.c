@@ -447,7 +447,7 @@ jac_jacobi_array (int np, const double *x, int n, double * result_array,
     int mem_allocated=0;
     if (ws==NULL)
     {
-	pnm1 = (double *) malloc(2*np*sizeof(double));
+	pnm1 = (double *) malloc(2*(unsigned)np*sizeof(double));
 	if (!pnm1) return GSL_ENOMEM;
 
 	mem_allocated = 1;

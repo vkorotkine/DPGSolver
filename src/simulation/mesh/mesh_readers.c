@@ -399,7 +399,7 @@ static void skip_periodic_entity (FILE* file, char**const line, const int line_s
 	if (fgets(*line,line_size,file) != NULL) {};
 	ptrdiff_t n_skip = strtol(*line,&endptr,10);
 
-	skip_lines_ptr(file,line,line_size,n_skip);
+	skip_lines_ptr(file,line,line_size,(int)n_skip);
 }
 
 // Level 3 ********************************************************************************************************** //

@@ -204,7 +204,7 @@ void set_block_Matrix_d
 	assert(row0+ext_0 <= a->ext_0);
 	assert(col0+ext_1 <= a->ext_1);
 
-	for (int i = 0, row = row0; i < ext_0; ++i, ++row) {
+	for (int i = 0, row = (int)row0; i < ext_0; ++i, ++row) {
 		const double*const data_as = get_row_const_Matrix_d(i,a_sub);
 
 		double* data_a = get_row_Matrix_d(row,a);

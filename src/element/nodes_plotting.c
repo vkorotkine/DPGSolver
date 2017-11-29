@@ -99,7 +99,7 @@ const struct const_Plotting_Nodes* constructor_const_Plotting_Nodes (const int p
 
 	nodes->rst = constructor_move_Matrix_d_d('C',n_n,d,true,rst); // destructed
 
-	struct Vector_i** data_conn = malloc(n_e * sizeof *data_conn); // keep
+	struct Vector_i** data_conn = malloc((size_t)n_e * sizeof *data_conn); // keep
 	for (int i = 0; i < n_e; ++i) {
 		const int n_conn = get_vtk_n_corners(vtk_types[i]);
 		data_conn[i] = constructor_empty_Vector_i(n_conn); // keep
@@ -112,7 +112,7 @@ const struct const_Plotting_Nodes* constructor_const_Plotting_Nodes (const int p
 	exts_conn[0] = n_e;
 	p_nodes->connect = constructor_move_Multiarray_Vector_i_dyn_extents(1,exts_conn,true,data_conn); // destructed
 
-	struct Vector_i** data_conn_e = malloc(n_edge * sizeof *data_conn_e); // keep
+	struct Vector_i** data_conn_e = malloc((size_t)n_edge * sizeof *data_conn_e); // keep
 	for (int i = 0; i < n_edge; ++i) {
 		data_conn_e[i] = constructor_empty_Vector_i(n_n_edge); // keep
 		for (int j = 0; j < n_n_edge; ++j)
@@ -220,7 +220,7 @@ static void plotting_element_info
 	Ne = get_n_e_type(e_type);
 	const int NnEdge = ( e_type == LINE ? 1 : P+1 );
 
-	connect_eOut = calloc(Ne*NnEdge , sizeof *connect_eOut); // keep
+	connect_eOut = calloc((size_t)(Ne*NnEdge) , sizeof *connect_eOut); // keep
 
 	if (e_type == LINE || e_type == QUAD || e_type == HEX) {
 		int Indc,
@@ -237,18 +237,18 @@ static void plotting_element_info
 		else if (e_type == HEX)  d = 3;
 
 		N = P+1;
-		n_nOut = pow(N,d);
-		n_eOut = pow(P,d);
+		n_nOut = (int)pow(N,d);
+		n_eOut = (int)pow(P,d);
 
 		u1 = 1;
 		sd = d;
 		sP = P;
 
-		r      = malloc(N       * sizeof *r);      // free
-		rstOut = malloc(n_nOut*d * sizeof *rstOut); // keep
+		r      = malloc((size_t)N       * sizeof *r);      // free
+		rstOut = malloc((size_t)(n_nOut*d) * sizeof *rstOut); // keep
 
-		connectOut  = calloc(n_eOut*8 , sizeof *connectOut); // keep
-		typesOut    = malloc(n_eOut   * sizeof *typesOut);   // keep
+		connectOut  = calloc((size_t)n_eOut*8 , sizeof *connectOut); // keep
+		typesOut    = malloc((size_t)n_eOut   * sizeof *typesOut);   // keep
 
 		const struct const_Nodes* nodes = constructor_const_Nodes_tp(d,P,NODES_PLOT); // destructed
 		for (i = 0; i < n_nOut*d; i++)
@@ -257,7 +257,7 @@ static void plotting_element_info
 
 		free(r);
 
-		N2 = pow(N,2);
+		N2 = (int)pow(N,2);
 
 		Indc = 0;
 		for (k = 0, kMax = GSL_MAX(sP*GSL_MIN(sd-2,1),1); k < kMax; k++) {
@@ -272,7 +272,7 @@ static void plotting_element_info
 					for (l = 0; l < 4; l++)             nHEX[l] = nQUAD[l] + N2*k;
 					for (l = 4, m = 0; l < 8; l++, m++) nHEX[l] = nQUAD[m] + N2*(k+1);
 
-					for (l = 0, lMax = pow(2,d); l < lMax; l++)
+					for (l = 0, lMax = (int)pow(2,d); l < lMax; l++)
 						connectOut[Indc*8+l] = nHEX[l];
 					Indc++;
 				}
@@ -341,7 +341,7 @@ static void plotting_element_info
 	} else if (e_type == TRI) {
 		d = 2;
 		Nc = 3;
-		n_nOut = 1.0/2.0*(P+1)*(P+2);
+		n_nOut = (int)(1.0/2.0*(P+1)*(P+2));
 		n_eOut = 0;
 		for (i = 0; i < P; i++)
 			n_eOut += 2*i+1;
@@ -349,8 +349,8 @@ static void plotting_element_info
 		int iStart;
 		double rst_V[Nc*d], BCoords[n_nOut*Nc];
 
-		connectOut = calloc(n_eOut*8 , sizeof *connectOut); // keep
-		typesOut   = malloc(n_eOut   * sizeof *typesOut); // keep
+		connectOut = calloc((size_t)n_eOut*8 , sizeof *connectOut); // keep
+		typesOut   = malloc((size_t)n_eOut   * sizeof *typesOut); // keep
 
 		// Determine barycentric coordinates of equally spaced nodes
 		row = 0;
@@ -441,7 +441,7 @@ static void plotting_element_info
 	} else if (e_type == TET) {
 		d = 3;
 		Nc = 4;
-		n_nOut = 1.0/6.0*(P+1)*(P+2)*(P+3);
+		n_nOut = (int)(1.0/6.0*(P+1)*(P+2)*(P+3));
 		n_eOut = 0;
 		for (i = 1; i <= P; i++) {
 			// Regular TETs
@@ -459,8 +459,8 @@ static void plotting_element_info
 
 		double BCoords[n_nOut*Nc], rst_V[Nc*d];
 
-		connectOut = calloc(n_eOut*8 , sizeof *connectOut); // keep
-		typesOut   = malloc(n_eOut   * sizeof *typesOut); // keep
+		connectOut = calloc((size_t)n_eOut*8 , sizeof *connectOut); // keep
+		typesOut   = malloc((size_t)n_eOut   * sizeof *typesOut); // keep
 
 		// Determine barycentric coordinates of equally spaced nodes
 		row = 0;
@@ -617,10 +617,10 @@ static void plotting_element_info
 			switch (i) {
 				case 0:  j0 = 0;             jS = 1;             jC = 1; break;
 				case 1:  j0 = 0;             jS = N;             jC = 1; break;
-				case 2:  j0 = 0;             jS = N*(N+1)/2.0;   jC = N; break;
+				case 2:  j0 = 0;             jS = (N*(N+1))/2;   jC = N; break;
 				case 3:  j0 = P;             jS = P;             jC = 1; break;
-				case 4:  j0 = P;             jS = N*(N+1)/2.0-1; jC = N; break;
-				case 5:  j0 = N*(N+1)/2.0-1; jS = P*N/2.0;       jC = P; break;
+				case 4:  j0 = P;             jS = (N*(N+1))/2-1; jC = N; break;
+				case 5:  j0 = (N*(N+1))/2-1; jS = (P*N)/2;       jC = P; break;
 				default:
 					printf("Error: Unsupported.\n"), EXIT_MSG; break;
 			}
@@ -663,9 +663,9 @@ static void plotting_element_info
 
 		n_nOut = n_n_TRI*n_n_LINE;
 
-		rstOut     = malloc(n_nOut*d * sizeof *rstOut);     // keep
-		connectOut = calloc(n_eOut*8 , sizeof *connectOut); // keep
-		typesOut   = malloc(n_eOut   * sizeof *typesOut);   // keep
+		rstOut     = malloc((size_t)(n_nOut*d) * sizeof *rstOut);     // keep
+		connectOut = calloc((size_t)n_eOut*8 , sizeof *connectOut); // keep
+		typesOut   = malloc((size_t)n_eOut   * sizeof *typesOut);   // keep
 
 		row = 0;
 		for (j = 0; j < n_n_LINE; j++) {
@@ -698,12 +698,12 @@ static void plotting_element_info
 				case 0:  j0 = P;               jS = P;  jC = 1; break;
 				case 1:  j0 = 0;               jS = N;  jC = 1; break;
 				case 2:  j0 = 0;               jS = 1;  jC = 1; break;
-				case 3:  j0 = N*(N+1)/2.0*P+P; jS = P;  jC = 1; break;
-				case 4:  j0 = N*(N+1)/2.0*P;   jS = N;  jC = 1; break;
-				case 5:  j0 = N*(N+1)/2.0*P;   jS = 1;  jC = 1; break;
-				case 6:  j0 = 0;               jS = N*(N+1)/2.0; jC = 0; break;
-				case 7:  j0 = 1;               jS = N*(N+1)/2.0; jC = 0; break;
-				case 8:  j0 = 2;               jS = N*(N+1)/2.0; jC = 0; break;
+				case 3:  j0 = (N*(N+1))/2*P+P; jS = P;  jC = 1; break;
+				case 4:  j0 = (N*(N+1))/2*P;   jS = N;  jC = 1; break;
+				case 5:  j0 = (N*(N+1))/2*P;   jS = 1;  jC = 1; break;
+				case 6:  j0 = 0;               jS = (N*(N+1))/2; jC = 0; break;
+				case 7:  j0 = 1;               jS = (N*(N+1))/2; jC = 0; break;
+				case 8:  j0 = 2;               jS = (N*(N+1))/2; jC = 0; break;
 				default:
 					printf("Error: Unsupported.\n"), EXIT_MSG; break;
 			}
@@ -739,22 +739,22 @@ static void plotting_element_info
 
 		n_nOut = 0;
 		for (i = 1, iMax = P+1; i <= iMax; i++)
-			n_nOut += pow(i,2);
+			n_nOut += (int)pow(i,2);
 
 		n_eOut = 0;
 		for (i = P; i ; i--) {
-			n_eOut += pow(i,2);
+			n_eOut += (int)pow(i,2);
 			n_eOut += 2*i*(i-1);
-			n_eOut += pow(i-1,2);
+			n_eOut += (int)pow(i-1,2);
 		}
 
 		double *rst_QUAD;
 		int n_n_QUAD, NE_QUAD, tmp_i,
 		             *connect_QUAD, *dummy_types, *dummy_connect_e;
 
-		rstOut     = malloc(n_nOut*d * sizeof *rstOut);     // keep
-		connectOut = calloc(n_eOut*8 , sizeof *connectOut); // keep
-		typesOut   = malloc(n_eOut   * sizeof *typesOut);   // keep
+		rstOut     = malloc((size_t)(n_nOut*d) * sizeof *rstOut);     // keep
+		connectOut = calloc((size_t)n_eOut*8 , sizeof *connectOut); // keep
+		typesOut   = malloc((size_t)n_eOut   * sizeof *typesOut);   // keep
 
 		row = 0;
 		for (i = P; i ; i--) {
@@ -832,7 +832,7 @@ static void plotting_element_info
 		row = 0;
 		for (i = P; i ; i--) {
 			// Regular PYRs
-			for (j = 0, jMax = pow(i,2); j < jMax; j++) {
+			for (j = 0, jMax = (int)pow(i,2); j < jMax; j++) {
 				typesOut[row] = 14;
 				row++;
 			}
@@ -844,7 +844,7 @@ static void plotting_element_info
 			}
 
 			// Inverted PYRs
-			for (j = 0, jMax = pow(i-1,2); j < jMax; j++) {
+			for (j = 0, jMax = (int)pow(i-1,2); j < jMax; j++) {
 				typesOut[row] = 14;
 				row++;
 			}

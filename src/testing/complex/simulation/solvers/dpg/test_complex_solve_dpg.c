@@ -114,7 +114,7 @@ void compute_lhs_cmplx_step_dpg (const struct Simulation* sim, struct Solver_Sto
 		struct Multiarray_c* sol_coef_c = c_dpg_s_vol_c->sol_coef;
 		const ptrdiff_t n_col_l = compute_size(sol_coef_c->order,sol_coef_c->extents);
 		for (int col_l = 0; col_l < n_col_l; ++col_l) {
-			ssi->col = s_vol->ind_dof+col_l;
+			ssi->col = (int)s_vol->ind_dof+col_l;
 
 			sol_coef_c->data[col_l] += CX_STEP*I;
 			compute_rhs_cmplx_step_dpg_volume(c_dpg_s_vol_c,ssi,sim);
@@ -132,7 +132,7 @@ void compute_lhs_cmplx_step_dpg (const struct Simulation* sim, struct Solver_Sto
 		struct Multiarray_c* nf_coef_c = c_dpg_s_face_c->nf_coef;
 		const ptrdiff_t n_col_l = compute_size(nf_coef_c->order,nf_coef_c->extents);
 		for (int col_l = 0; col_l < n_col_l; ++col_l) {
-			ssi->col = s_face->ind_dof+col_l;
+			ssi->col = (int)s_face->ind_dof+col_l;
 
 			nf_coef_c->data[col_l] += CX_STEP*I;
 			compute_rhs_cmplx_step_dpg_face(c_dpg_s_face_c,ssi,sim);

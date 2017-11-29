@@ -219,7 +219,7 @@ const char* compute_error_file_name (const struct Simulation* sim)
 
 void correct_file_name_ml_p (const int ml, const int p, char*const file_name)
 {
-	int index = strlen(file_name);
+	int index = (int)strlen(file_name);
 	if (ml >= 0 && strstr(file_name,"__ml") == NULL) {
 		assert(ml < 10);
 		index += sprintf(file_name+index,"%s%d","__ml",ml);
@@ -337,7 +337,7 @@ static void output_errors_global (const struct Error_CE* error_ce, const struct 
 		domain_volume_g += domain_volume;
 
 		double sol_L2[n_out];
-		read_skip_d_1(line,2,sol_L2,n_out);
+		read_skip_d_1(line,2,sol_L2,(int)n_out);
 		for (int i = 0; i < sol_L2_g->ext_0; ++i)
 			sol_L2_g->data[i] += sol_L2[i]*sol_L2[i]*domain_volume;
 

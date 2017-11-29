@@ -127,8 +127,8 @@ struct Matrix_d* constructor_lhs_f_1
 
 	const ptrdiff_t ext_0 = tw0_vt_fc->op_std->ext_0,
 	                ext_1 = tw0_vt_fc->op_std->ext_1;
-	const int n_eq = dnnf_ds_Ma->extents[1],
-	          n_vr = dnnf_ds_Ma->extents[2];
+	const int n_eq = (int)dnnf_ds_Ma->extents[1],
+	          n_vr = (int)dnnf_ds_Ma->extents[2];
 
 	struct Matrix_d* tw0_nf = constructor_empty_Matrix_d('R',ext_0,ext_1);                         // destructed
 	struct Matrix_d* lhs_l  = constructor_empty_Matrix_d('R',ext_0,cv0_vs_fc->ext_1);              // destructed

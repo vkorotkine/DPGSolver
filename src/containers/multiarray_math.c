@@ -214,7 +214,7 @@ void reinterpret_const_Matrix_as_Multiarray_d
 
 ptrdiff_t* compute_extents_mm_MMa (const ptrdiff_t ext_0, const int order, const ptrdiff_t* extents_i)
 {
-	ptrdiff_t* extents = malloc(order * sizeof *extents); // returned
+	ptrdiff_t* extents = malloc((size_t)order * sizeof *extents); // returned
 
 	extents[0] = ext_0;
 	for (int i = 1; i < order; ++i)

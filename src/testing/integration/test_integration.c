@@ -137,22 +137,22 @@ const char* set_file_name_curr
 		if (add_missing)
 			correct_file_name_ml_p(ml,p,file_name_curr);
 		index = strstr(file_name_curr,"__ml");
-		index[4] = '0'+ml;
+		index[4] = (char)('0'+ml);
 		assert(!isdigit(index[5]));
 		index = strstr(file_name_curr,"__p");
-		index[3] = '0'+p;
+		index[3] = (char)('0'+p);
 		assert(!isdigit(index[4]));
 		break;
 	case ADAPT_P:
 		assert(strstr(file_name_curr,"__p") == NULL);
 		index = strstr(file_name_curr,"__ml");
-		index[4] = '0'+ml;
+		index[4] = (char)('0'+ml);
 		assert(!isdigit(index[5]));
 		break;
 	case ADAPT_H:
 		assert(strstr(file_name_curr,"__ml") == NULL);
 		index = strstr(file_name_curr,"__p");
-		index[3] = '0'+p;
+		index[3] = (char)('0'+p);
 		assert(!isdigit(index[4]));
 		break;
 	case ADAPT_HP:

@@ -209,7 +209,7 @@ const struct const_Vector_i* constructor_petsc_idxm_dpg
 	int ind_idxm = 0;
 
 	// volume (sol_coef, grad_coef)
-	set_idxm(&ind_idxm,idxm,s_vol->ind_dof,s_vol->sol_coef);
+	set_idxm(&ind_idxm,idxm,(int)s_vol->ind_dof,s_vol->sol_coef);
 	// grad_coef: To be done.
 
 	// face (nf_coef, sol_coef)
@@ -221,7 +221,7 @@ const struct const_Vector_i* constructor_petsc_idxm_dpg
 			continue;
 
 		const struct Solver_Face* s_face = (struct Solver_Face*) face;
-		set_idxm(&ind_idxm,idxm,s_face->ind_dof,s_face->nf_coef);
+		set_idxm(&ind_idxm,idxm,(int)s_face->ind_dof,s_face->nf_coef);
 		// sol_coef: To be done.
 	}}
 	assert(ind_idxm == n_dof);
@@ -511,7 +511,7 @@ static void increment_and_add_dof_rlhs_f_1
 	struct Matrix_d rhs_M =
 		{ .layout = 'C', .ext_0 = (rhs->ext_0)/n_eq, .ext_1 = n_eq, .owns_data = false, .data = rhs->data, };
 
-	int ind_dof = n_vr*n_dof_s;
+	int ind_dof = (int)(n_vr*n_dof_s);
 	for (int i = 0; i < NFMAX;    ++i) {
 	for (int j = 0; j < NSUBFMAX; ++j) {
 		const struct Face* face = vol->faces[i][j];
@@ -558,8 +558,8 @@ static void add_to_petsc_Mat_Vec_dpg
 		assert(dof_g == 0); // Add support.
 	}
 
-	MatSetValues(ssi->A,ext_0,idxm->data,ext_0,idxm->data,lhs->data,ADD_VALUES);
-	VecSetValues(ssi->b,ext_0,idxm->data,rhs_neg->data,ADD_VALUES);
+	MatSetValues(ssi->A,(PetscInt)ext_0,idxm->data,(PetscInt)ext_0,idxm->data,lhs->data,ADD_VALUES);
+	VecSetValues(ssi->b,(PetscInt)ext_0,idxm->data,rhs_neg->data,ADD_VALUES);
 
 	destructor_const_Vector_i(idxm);
 }

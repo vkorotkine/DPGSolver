@@ -254,7 +254,7 @@ static bool attained_expected_conv_orders
 
 	const int* p_ref  = int_test_info->p_ref,
 	         * ml_ref = int_test_info->ml;
-	const int n_err   = extents_e[2];
+	const int n_err   = (int)extents_e[2];
 	const ptrdiff_t base_e = extents_e[0]*extents_e[1];
 
 	const int ml = ml_ref[1];

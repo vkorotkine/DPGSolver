@@ -1,16 +1,16 @@
 /* jacobi.c
  * Copyright (C) 2006 Paulo José Saiz Jabardo
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or (at
  * your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but
  * WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
@@ -38,14 +38,14 @@
 jac_quadrature *
 jac_quadrature_alloc(int nq)
 {
-  
+
   if (nq < 1)
     {
       GSL_ERROR_NULL("The number of quadrature points should be at least 1", GSL_EINVAL);
     }
 
 
-  void *mem_block = malloc(sizeof(jac_quadrature) + (2*nq+nq*nq)*sizeof(double));
+  void *mem_block = malloc(sizeof(jac_quadrature) + (unsigned)(2*nq+nq*nq)*sizeof(double));
 
   if (mem_block == NULL)
     {
@@ -62,11 +62,11 @@ jac_quadrature_alloc(int nq)
   quad->np = 0;
   quad->Imat = NULL;
   quad->xp = NULL;
-  
-  
+
+
   return quad;
-  
-  
+
+
 }
 
 /**
@@ -75,18 +75,18 @@ jac_quadrature_alloc(int nq)
 
   \param quad A jac_quadrature structure allocated with jac_quadrature_alloc
  */
-void 
+void
 jac_quadrature_free(jac_quadrature *quad)
 {
 
   jac_interpmat_free(quad);
   free(quad);
-  
+
 }
 
 
-  
-  
+
+
 /**
    This function calculates the quadrature nodes weights and derivative matrix
    and stores the data on a previously allocated jac_quadrature structure.
@@ -97,15 +97,15 @@ jac_quadrature_free(jac_quadrature *quad)
    \param b Beta weight
    \param ws Workspace 3*quad->Q long used in calculations. If it is null, memory is allocated and at the end released
    \return AN error code or GSL_SUCCESS
-   
+
 */
-int 
+int
 jac_quadrature_zwd(jac_quadrature *quad, enum jac_quad_type qtype, double a, double b, double *ws)
 {
   int allocated = 0;
   if (ws == NULL){
     // Try to allocate the workspace:
-    ws = (double *) malloc(3*quad->Q);
+    ws = (double *) malloc(3*(unsigned)quad->Q);
     if (ws == NULL)
       {
 	GSL_ERROR("Could not allocate workspace memory", GSL_ENOMEM);
@@ -203,7 +203,7 @@ jac_quadrature_zwd(jac_quadrature *quad, enum jac_quad_type qtype, double a, dou
 
 
 /**
-   Allocates memory for interpolation matrix for a jac_quadrature structure. 
+   Allocates memory for interpolation matrix for a jac_quadrature structure.
    It also copies the interpolation points.
 
    \param quad A previously allocated jac_quadrature structure
@@ -211,7 +211,7 @@ jac_quadrature_zwd(jac_quadrature *quad, enum jac_quad_type qtype, double a, dou
    \param xp Interpolation points
    \return Error code or GSL_SUCCESS
  */
-int 
+int
 jac_interpmat_alloc(jac_quadrature *quad, int npoints, double *xp)
 {
   if (npoints < 1)
@@ -220,7 +220,7 @@ jac_interpmat_alloc(jac_quadrature *quad, int npoints, double *xp)
     }
 
   // Allocate memory for the interpolation matrix and points
-  quad->xp = (double *) malloc( sizeof(double) * (npoints + npoints*quad->Q));
+  quad->xp = (double *) malloc( sizeof(double) * (unsigned)(npoints + npoints*quad->Q));
   if (!quad->xp)
     {
       GSL_ERROR("Memory for interpolation matrix could not be allocated", GSL_ENOMEM);
@@ -230,11 +230,11 @@ jac_interpmat_alloc(jac_quadrature *quad, int npoints, double *xp)
   int i;
   for (i = 0; i < npoints; ++i)
     quad->xp[i] = xp[i];
-  
 
-  
+
+
   int err=0;
-  
+
   quad->np = npoints;
 
   switch (quad->type)
@@ -292,19 +292,19 @@ jac_interpmat_free(jac_quadrature *quad)
   \param f Value of function at quadrature points
   \return \f$\int_{-1}^{1} f(x) dx \approx \sum_{i=0}^{Q-1} w_i f(x_i)\f$
  */
-double 
+double
 jac_integrate(jac_quadrature *quad, double *f)
 {
     double sum = cblas_ddot(quad->Q, quad->w, 1, f, 1);
     return sum;
 }
-    
+
 
 /** Calculates the derivative of a function known at quadrature points given the derivative matrix
     The derivative matrix should have been calculated before using one of the functions jac_**_diffmat.
 
     The derivative is calculated according to the following equation:
-    
+
     \f[
        \left.\frac{du(x)}{dx}\right|_{x=x_i} = \sum_{j=0}^{Q-1} D_{ij} u(x_j)
     \f]
@@ -315,10 +315,10 @@ jac_integrate(jac_quadrature *quad, double *f)
     \f]
 
      where \f$h_j(x)\f$ is the Lagrange polynomial through the jth quadrature node
-     
+
  \param quad A structure containing quadrature information
  \param f Value of function at quadrature points
- \param d The Estimated derivative at quadrature points: 
+ \param d The Estimated derivative at quadrature points:
  \return GSL_SUCCESS if everything was ok. Otherwise return an error code
  */
 int
@@ -345,7 +345,7 @@ jac_differentiate(jac_quadrature *quad, double *f, double *d)
    \param f Value of function at quadrature points
    \param fout Interpolated values
    \return GSL_SUCCESS if everything was ok. Otherwise return an error code
-   
+
 */
 int
 jac_interpolate(jac_quadrature *quad, double *f, double *fout)
@@ -355,8 +355,8 @@ jac_interpolate(jac_quadrature *quad, double *f, double *fout)
       // No interpolation data
       GSL_ERROR("No interpolation info was setup", GSL_EINVAL);
     }
-  
+
   cblas_dgemv(CblasRowMajor, CblasNoTrans, quad->np, quad->Q, 1.0, quad->Imat, quad->Q, f,1, 0.0, fout, 1);
   return GSL_SUCCESS;
 }
-    
+

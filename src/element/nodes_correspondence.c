@@ -128,7 +128,7 @@ static const struct const_Vector_i* constructor_face_corr
 			; // Do nothing
 			break;
 		case 1:
-			reverse_entries(Nn,&fc_data[0]);
+			reverse_entries((int)Nn,&fc_data[0]);
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %d.\n",ind_perm);
@@ -137,7 +137,7 @@ static const struct const_Vector_i* constructor_face_corr
 		break;
 	case 2:
 		if (e_type == QUAD) {
-			int sqrtNn = sqrt(Nn);
+			int sqrtNn = (int)sqrt(Nn);
 
 			switch(ind_perm) {
 			case 0: case 1: case 2: case 3:
@@ -202,7 +202,7 @@ static const struct const_Vector_i* constructor_face_corr
 					break;
 				case 3: case 4: case 5:
 					for (i = 0; i < Nn; i++) {
-						iInd = i*Nn;
+						iInd = (int)(i*Nn);
 						for (j = 0; j < Nn; j++) {
 							DY[iInd+j] = fabs(rst[Nn+i]-rst[Nn+j]);
 						}
@@ -213,7 +213,7 @@ static const struct const_Vector_i* constructor_face_corr
 
 					for (i = 0; i < Nn; i++) {
 						if (!Foundn[i]) {
-							iInd = i*Nn;
+							iInd = (int)(i*Nn);
 							kMax = 0;
 							for (j = 0; j < Nn; j++) {
 								if (!Foundn[j] && i != j && DY[iInd+j] < 10*EPS)

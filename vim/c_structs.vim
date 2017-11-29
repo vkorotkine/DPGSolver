@@ -4,6 +4,7 @@
 
 " To see the available colour groups: `:highlight`.
 
+syntax keyword Type MKL_INT
 syntax keyword Type lapack_int
 syntax keyword Type PetscInt PetscScalar PetscReal Vec Mat KSP PC IS
 
@@ -24,7 +25,6 @@ syntax keyword Special Multiarray_Vector_i const_Multiarray_Vector_i
 syntax keyword Special Multiarray_Vector_d const_Multiarray_Vector_d
 syntax keyword Special Multiarray_Matrix_d const_Multiarray_Matrix_d
 syntax keyword Special Multiarray_Operator Operator
-syntax keyword Special Multiarray_c
 
 syntax keyword Special Intrusive_List const_Intrusive_List
 syntax keyword Special Intrusive_Link const_Intrusive_Link
@@ -55,3 +55,11 @@ syntax keyword Identifier DG_Solver_Face
 syntax keyword Identifier DPG_Solver_Face
 syntax keyword Identifier Complex_DG_Solver_Face
 syntax keyword Identifier Complex_DPG_Solver_Face
+
+
+
+syntax keyword Type Type
+syntax keyword Special Vector_T const_Vector_T
+syntax keyword Special Matrix_T const_Matrix_T
+syntax keyword Special Multiarray_T const_Multiarray_T
+syntax keyword Special Multiarray_R const_Multiarray_R

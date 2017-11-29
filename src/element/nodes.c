@@ -130,10 +130,10 @@ const struct const_Nodes* constructor_const_Nodes_tp (const int d, const int p, 
 		EXIT_ERROR("Unsupported: %d.\n",node_type);
 	}
 
-	const int ext_0 = pow(pp1,d);
+	const int ext_0 = (int)pow(pp1,d);
 	double* rst = NULL;
 	if (has_nodes) {
-		rst = malloc(ext_0*d * sizeof *rst); // keep
+		rst = malloc((size_t)(ext_0*d) * sizeof *rst); // keep
 
 		int row = 0;
 		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
@@ -153,7 +153,7 @@ const struct const_Nodes* constructor_const_Nodes_tp (const int d, const int p, 
 
 	double* w = NULL;
 	if (has_weights) {
-		w = malloc(ext_0 * sizeof *w); // keep
+		w = malloc((size_t)ext_0 * sizeof *w); // keep
 
 		int row = 0;
 		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
@@ -295,18 +295,18 @@ const struct const_Nodes* constructor_const_Nodes_pyr (const int d, const int p,
 	// Read header
 	if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 		strings = StringRead;
-		Ngroups = strtol(strings,&stringe,10); strings = stringe;
-		Nsymms  = strtol(strings,&stringe,10); strings = stringe;
+		Ngroups = (int)strtol(strings,&stringe,10); strings = stringe;
+		Nsymms  = (int)strtol(strings,&stringe,10); strings = stringe;
 	}
 
-	symms_count  = malloc(Nsymms * sizeof *symms_count);  // free
-	symms_Nperms = malloc(Nsymms * sizeof *symms_Nperms); // free
+	symms_count  = malloc((size_t)Nsymms * sizeof *symms_count);  // free
+	symms_Nperms = malloc((size_t)Nsymms * sizeof *symms_Nperms); // free
 
 	for (i = 0; i < Nsymms; ++i) {
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 			strings = StringRead;
-			symms_count[i]  = strtol(strings,&stringe,10); strings = stringe;
-			symms_Nperms[i] = strtol(strings,&stringe,10); strings = stringe;
+			symms_count[i]  = (int)strtol(strings,&stringe,10); strings = stringe;
+			symms_Nperms[i] = (int)strtol(strings,&stringe,10); strings = stringe;
 		}
 	}
 
@@ -316,7 +316,7 @@ const struct const_Nodes* constructor_const_Nodes_pyr (const int d, const int p,
 		}
 	}
 
-	BCoords = malloc(Ngroups*Nc * sizeof * BCoords); // free
+	BCoords = malloc((size_t)(Ngroups*Nc) * sizeof * BCoords); // free
 
 	for (i = 0; i < Ngroups; ++i) {
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
@@ -336,7 +336,7 @@ const struct const_Nodes* constructor_const_Nodes_pyr (const int d, const int p,
 		}
 
 		free(w_read);
-		w_read = malloc(Ngroups * sizeof *w_read); // free
+		w_read = malloc((size_t)Ngroups * sizeof *w_read); // free
 
 		for (i = 0; i < Ngroups; ++i) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
@@ -360,9 +360,9 @@ const struct const_Nodes* constructor_const_Nodes_pyr (const int d, const int p,
 	}
 
 	if (has_weights)
-		wOut = malloc(NnOut * sizeof *wOut); // free/keep (conditional return_w)
+		wOut = malloc((size_t)NnOut * sizeof *wOut); // free/keep (conditional return_w)
 
-	BCoords_complete = malloc(NnOut*Nc * sizeof *BCoords_complete); // free
+	BCoords_complete = malloc((size_t)(NnOut*Nc) * sizeof *BCoords_complete); // free
 
 	IndB = 0; IndBC = 0;
 	GroupCount = 0;
@@ -610,18 +610,18 @@ static const struct const_Nodes* constructor_const_Nodes_tri (const int p, const
 	// Read header
 	if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 		strings = StringRead;
-		Ngroups = strtol(strings,&stringe,10); strings = stringe;
-		Nsymms  = strtol(strings,&stringe,10); strings = stringe;
+		Ngroups = (int)strtol(strings,&stringe,10); strings = stringe;
+		Nsymms  = (int)strtol(strings,&stringe,10); strings = stringe;
 	}
 
-	symms_count  = malloc(Nsymms * sizeof *symms_count);  // free
-	symms_Nperms = malloc(Nsymms * sizeof *symms_Nperms); // free
+	symms_count  = malloc((size_t)Nsymms * sizeof *symms_count);  // free
+	symms_Nperms = malloc((size_t)Nsymms * sizeof *symms_Nperms); // free
 
 	for (i = 0; i < Nsymms; ++i) {
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 			strings = StringRead;
-			symms_count[i]  = strtol(strings,&stringe,10); strings = stringe;
-			symms_Nperms[i] = strtol(strings,&stringe,10); strings = stringe;
+			symms_count[i]  = (int)strtol(strings,&stringe,10); strings = stringe;
+			symms_Nperms[i] = (int)strtol(strings,&stringe,10); strings = stringe;
 		}
 	}
 
@@ -631,7 +631,7 @@ static const struct const_Nodes* constructor_const_Nodes_tri (const int p, const
 		}
 	}
 
-	BCoords = malloc(Ngroups*Nc * sizeof * BCoords); // free
+	BCoords = malloc((size_t)(Ngroups*Nc) * sizeof * BCoords); // free
 
 	for (i = 0; i < Ngroups; ++i) {
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
@@ -651,7 +651,7 @@ static const struct const_Nodes* constructor_const_Nodes_tri (const int p, const
 		}
 
 		free(w_read);
-		w_read = malloc(Ngroups * sizeof *w_read); // free
+		w_read = malloc((size_t)Ngroups * sizeof *w_read); // free
 
 		for (i = 0; i < Ngroups; ++i) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
@@ -671,9 +671,9 @@ static const struct const_Nodes* constructor_const_Nodes_tri (const int p, const
 		NnOut += symms_count[i]*symms_Nperms[i];
 
 	if (has_weights)
-		wOut = malloc(NnOut * sizeof *wOut); // free/keep (conditional return_w)
+		wOut = malloc((size_t)NnOut * sizeof *wOut); // free/keep (conditional return_w)
 
-	BCoords_complete = malloc(NnOut*Nc * sizeof *BCoords_complete); // free
+	BCoords_complete = malloc((size_t)(NnOut*Nc) * sizeof *BCoords_complete); // free
 
 	IndB = 0; IndBC = 0;
 	GroupCount = 0;
@@ -716,7 +716,7 @@ static const struct const_Nodes* constructor_const_Nodes_tri (const int p, const
 	for (i = 0; i < 2; i++)
 		NsOut += symms31[i];
 
-	int* symmsOut = malloc(NsOut * sizeof *symmsOut); // moved
+	int* symmsOut = malloc((size_t)NsOut * sizeof *symmsOut); // moved
 	k = 0;
 	for (i = 0; i < 2; i++) {
 	for (j = 0; jMax = symms31[i], j < jMax; j++) {
@@ -833,18 +833,18 @@ static const struct const_Nodes* constructor_const_Nodes_tet (const int p, const
 	// Read header
 	if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 		strings = StringRead;
-		Ngroups = strtol(strings,&stringe,10); strings = stringe;
-		Nsymms  = strtol(strings,&stringe,10); strings = stringe;
+		Ngroups = (int)strtol(strings,&stringe,10); strings = stringe;
+		Nsymms  = (int)strtol(strings,&stringe,10); strings = stringe;
 	}
 
-	symms_count  = malloc(Nsymms * sizeof *symms_count);  // free
-	symms_Nperms = malloc(Nsymms * sizeof *symms_Nperms); // free
+	symms_count  = malloc((size_t)Nsymms * sizeof *symms_count);  // free
+	symms_Nperms = malloc((size_t)Nsymms * sizeof *symms_Nperms); // free
 
 	for (i = 0; i < Nsymms; ++i) {
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
 			strings = StringRead;
-			symms_count[i]  = strtol(strings,&stringe,10); strings = stringe;
-			symms_Nperms[i] = strtol(strings,&stringe,10); strings = stringe;
+			symms_count[i]  = (int)strtol(strings,&stringe,10); strings = stringe;
+			symms_Nperms[i] = (int)strtol(strings,&stringe,10); strings = stringe;
 		}
 	}
 
@@ -854,7 +854,7 @@ static const struct const_Nodes* constructor_const_Nodes_tet (const int p, const
 		}
 	}
 
-	BCoords = malloc(Ngroups*Nc * sizeof * BCoords); // free
+	BCoords = malloc((size_t)(Ngroups*Nc) * sizeof * BCoords); // free
 
 	for (i = 0; i < Ngroups; ++i) {
 		if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
@@ -873,7 +873,7 @@ static const struct const_Nodes* constructor_const_Nodes_tet (const int p, const
 			}
 		}
 
-		w_read = malloc(Ngroups * sizeof *w_read); // free
+		w_read = malloc((size_t)Ngroups * sizeof *w_read); // free
 
 		for (i = 0; i < Ngroups; ++i) {
 			if (fscanf(fID,"%[^\n]\n",StringRead) == 1) {
@@ -897,9 +897,9 @@ static const struct const_Nodes* constructor_const_Nodes_tet (const int p, const
 	}
 
 	if (has_weights)
-		wOut = malloc(NnOut * sizeof *wOut); // free/keep (conditional return_w)
+		wOut = malloc((size_t)NnOut * sizeof *wOut); // free/keep (conditional return_w)
 
-	BCoords_complete = malloc(NnOut*Nc * sizeof *BCoords_complete); // free
+	BCoords_complete = malloc((size_t)(NnOut*Nc) * sizeof *BCoords_complete); // free
 
 	IndB = 0; IndBC = 0;
 	GroupCount = 0;

@@ -37,7 +37,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ptrdiff_t* allocate_and_set_extents (const int order, const ptrdiff_t*const extents_i)
 {
-	ptrdiff_t* extents = malloc(order * sizeof *extents); // returned
+	ptrdiff_t* extents = malloc((size_t)order * sizeof *extents); // returned
 
 	for (ptrdiff_t i = 0; i < order; i++)
 		extents[i] = extents_i[i];
@@ -79,7 +79,7 @@ struct Multiarray_d* constructor_empty_Multiarray_d
 struct Multiarray_d* constructor_empty_Multiarray_d_dyn_extents
 	(const char layout, const int order, const ptrdiff_t*const extents)
 {
-	double* data = malloc(compute_size(order,extents) * sizeof *data); // keep
+	double* data = malloc((size_t)compute_size(order,extents) * sizeof *data); // keep
 
 	return constructor_move_Multiarray_d_dyn_extents(layout,order,(ptrdiff_t*)extents,true,data);
 }
@@ -93,7 +93,7 @@ struct Multiarray_Vector_i* constructor_empty_Multiarray_Vector_i
 	if (alloc_V)
 		data = constructor_default_Vector_i_2(compute_size(order,extents)); // keep
 	else
-		data = calloc(1,compute_size(order,extents) * sizeof *data); // keep
+		data = calloc(1,(size_t)compute_size(order,extents) * sizeof *data); // keep
 
 	return constructor_move_Multiarray_Vector_i_dyn_extents(order,extents,true,data);
 }
@@ -113,7 +113,7 @@ const struct const_Multiarray_Vector_i* constructor_empty_const_Multiarray_Vecto
 	for (ptrdiff_t i = 0; i < order; ++i)
 		extents_i[i] = extents_i_V->data[i];
 
-	return constructor_empty_const_Multiarray_Vector_i(alloc_V,order,extents_i);
+	return constructor_empty_const_Multiarray_Vector_i(alloc_V,(int)order,extents_i);
 }
 
 struct Multiarray_Vector_d* constructor_empty_Multiarray_Vector_d
@@ -125,7 +125,7 @@ struct Multiarray_Vector_d* constructor_empty_Multiarray_Vector_d
 	if (alloc_V)
 		EXIT_ADD_SUPPORT;
 	else
-		data = calloc(1,compute_size(order,extents) * sizeof *data); // keep
+		data = calloc(1,(size_t)compute_size(order,extents) * sizeof *data); // keep
 
 	return constructor_move_Multiarray_Vector_d_dyn_extents(order,extents,true,data);
 }
@@ -145,7 +145,7 @@ const struct const_Multiarray_Vector_d* constructor_empty_const_Multiarray_Vecto
 	for (ptrdiff_t i = 0; i < order; ++i)
 		extents_i[i] = extents_i_V->data[i];
 
-	return constructor_empty_const_Multiarray_Vector_d(alloc_V,order,extents_i);
+	return constructor_empty_const_Multiarray_Vector_d(alloc_V,(int)order,extents_i);
 }
 
 struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d
@@ -157,7 +157,7 @@ struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d
 	if (alloc_M)
 		EXIT_ADD_SUPPORT;
 	else
-		data = calloc(compute_size(order,extents) , sizeof *data); // keep
+		data = calloc((size_t)compute_size(order,extents) , sizeof *data); // keep
 
 	return constructor_move_Multiarray_Matrix_d_dyn_extents(order,extents,true,data);
 }
@@ -178,7 +178,7 @@ struct Multiarray_Matrix_d* constructor_empty_Multiarray_Matrix_d_V
 	for (ptrdiff_t i = 0; i < order; ++i)
 		extents_i[i] = extents_i_V->data[i];
 
-	return constructor_empty_Multiarray_Matrix_d(alloc_M,order,extents_i);
+	return constructor_empty_Multiarray_Matrix_d(alloc_M,(int)order,extents_i);
 }
 
 const struct const_Multiarray_Matrix_d* constructor_empty_const_Multiarray_Matrix_d_V
@@ -199,7 +199,7 @@ struct Multiarray_i* constructor_zero_Multiarray_i
 struct Multiarray_i* constructor_zero_Multiarray_i_dyn_extents
 	(const char layout, const int order, const ptrdiff_t*const extents_i)
 {
-	int* data = calloc(compute_size(order,extents_i) , sizeof *data); // keep
+	int* data = calloc((size_t)compute_size(order,extents_i) , sizeof *data); // keep
 	return constructor_move_Multiarray_i_dyn_extents(layout,order,(ptrdiff_t*)extents_i,true,data);
 }
 
@@ -213,7 +213,7 @@ struct Multiarray_d* constructor_zero_Multiarray_d
 struct Multiarray_d* constructor_zero_Multiarray_d_dyn_extents
 	(const char layout, const int order, const ptrdiff_t*const extents_i)
 {
-	double* data = calloc(compute_size(order,extents_i) , sizeof *data); // keep
+	double* data = calloc((size_t)compute_size(order,extents_i) , sizeof *data); // keep
 	return constructor_move_Multiarray_d_dyn_extents(layout,order,(ptrdiff_t*)extents_i,true,data);
 }
 
@@ -235,7 +235,7 @@ struct Multiarray_Vector_i* constructor_copy_Multiarray_Vector_i_i
 struct Multiarray_d* constructor_copy_Multiarray_d (struct Multiarray_d* src)
 {
 	const ptrdiff_t size = compute_size(src->order,src->extents);
-	double* data = malloc(size * sizeof *data); // moved
+	double* data = malloc((size_t)size * sizeof *data); // moved
 	for (int i = 0; i < size; ++i)
 		data[i] = src->data[i];
 
@@ -251,7 +251,7 @@ void const_constructor_copy_Multiarray_d
 	(const struct const_Multiarray_d*const* dest, const struct const_Multiarray_d*const src)
 {
 	const ptrdiff_t size = compute_size(src->order,src->extents);
-	double* data = malloc(size * sizeof *data); // keep
+	double* data = malloc((size_t)size * sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < size; ++i)
 		data[i] = src->data[i];
 
@@ -541,7 +541,7 @@ const struct const_Multiarray_d* constructor_mm_tp_NN1C_const_Multiarray_d
 		c_rst = c_rs;
 	}
 
-	ptrdiff_t* extents_o = malloc(order_i * sizeof *extents_o); // keep
+	ptrdiff_t* extents_o = malloc((size_t)order_i * sizeof *extents_o); // keep
 	extents_o[0] = n_rows_sub[0]*n_rows_sub[1]*n_rows_sub[2];
 	for (int i = 1; i < order_i; ++i)
 		extents_o[i] = extents_i[i];

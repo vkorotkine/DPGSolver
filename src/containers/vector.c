@@ -59,7 +59,7 @@ void resize_Vector_i (struct Vector_i*const a, const ptrdiff_t ext_0)
 		return;
 
 	const int* data_i = a->data;
-	a->data = malloc(size_o * sizeof *(a->data)); // keep
+	a->data = malloc((size_t)size_o * sizeof *(a->data)); // keep
 	if (size_i != 0) {
 		for (ptrdiff_t i = 0; i < size_i; i++)
 			a->data[i] = data_i[i];
@@ -98,7 +98,7 @@ void set_to_value_Vector_d (struct Vector_d*const a, const double val)
 void sort_Vector_i (struct Vector_i* a)
 {
 	const ptrdiff_t size = a->ext_0;
-	qsort(a->data,size,sizeof(a->data[0]),cmp_i);
+	qsort(a->data,(size_t)size,sizeof(a->data[0]),cmp_i);
 }
 
 int sum_Vector_i (const struct Vector_i* a)
@@ -221,7 +221,7 @@ bool find_val_Vector_i (const struct const_Vector_i*const src, const int val, co
 			}
 		}
 	} else {
-		const int* ind_ptr = bsearch(&val,src->data,src->ext_0,sizeof(src->data[0]),cmp_i);
+		const int* ind_ptr = bsearch(&val,src->data,(size_t)src->ext_0,sizeof(src->data[0]),cmp_i);
 		if (ind_ptr)
 			found = true;
 	}
