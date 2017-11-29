@@ -138,7 +138,6 @@ struct Error_CE_Helper* constructor_Error_CE_Helper (const struct Simulation* si
 {
 	struct Error_CE_Helper* e_ce_h = malloc(sizeof * e_ce_h); // destructed
 
-	const_cast_i(&e_ce_h->d,DIM);
 	const_cast_i(&e_ce_h->n_out,n_out);
 	e_ce_h->domain_order = -1;
 	e_ce_h->domain_volume = compute_domain_volume(sim);

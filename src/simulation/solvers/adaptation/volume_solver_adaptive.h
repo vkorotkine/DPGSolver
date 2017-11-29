@@ -25,7 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Adaptive_Solver_Volume {
 	struct Solver_Volume volume; ///< The base \ref Solver_Volume.
 
-	int adapt_type; ///< The type of adaptation to use. Options: see \ref definitions_adaption.h.
+	int adapt_type; ///< The type of adaptation to use. Options: see \ref definitions_adaptation.h.
 
 	int p_ref_prev; ///< The previous value of \ref Solver_Volume::p_ref.
 

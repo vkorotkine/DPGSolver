@@ -48,7 +48,6 @@ struct Error_CE {
 
 /// Container holding information used to construct the \ref Error_CE container.
 struct Error_CE_Helper {
-	const int d;          ///< \ref Simulation::d.
 	const int n_out;      ///< The number of output error variables.
 	int domain_order;     ///< Polynomial order of computational elements in the domain.
 	double domain_volume; ///< \ref Error_CE::domain_volume.

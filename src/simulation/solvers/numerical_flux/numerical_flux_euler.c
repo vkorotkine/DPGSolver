@@ -1028,8 +1028,6 @@ void compute_Numerical_Flux_euler_roe_pike_jacobian
 			double const l1L     = VnL-c;
 			double       l1      = Vn-c,
 			             sign_l1 = 1.0;
-printf("nfe: %f\n",l1L);
-printf("%f\n",l1);
 			if (fabs(l1L) < fabs(l1)) {
 				case_l1 = 0;
 				if (l1L < 0.0)

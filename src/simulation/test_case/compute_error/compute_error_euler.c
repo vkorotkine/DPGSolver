@@ -102,8 +102,7 @@ static const char* compute_header_spec_euler_all ( )
 
 static void add_entropy (const struct Error_CE_Helper* e_ce_h, struct Error_CE_Data* e_ce_d)
 {
-	const int d     = e_ce_h->d,
-	          n_out = e_ce_h->n_out;
+	const int n_out = e_ce_h->n_out;
 	struct Multiarray_d* s = constructor_move_Multiarray_d_d('C',2,(ptrdiff_t[]){0,1},false,NULL); // destructed
 
 	s->extents[0] = e_ce_h->s_vol[0]->jacobian_det_vc->extents[0];
@@ -112,8 +111,8 @@ static void add_entropy (const struct Error_CE_Helper* e_ce_h, struct Error_CE_D
 
 		resize_Multiarray_d(sol,sol->order,(ptrdiff_t[]){sol->extents[0],n_out});
 
-		sol->extents[1] = d+2;
-		s->data = get_col_Multiarray_d(d+2,sol);
+		sol->extents[1] = DIM+2;
+		s->data = get_col_Multiarray_d(DIM+2,sol);
 		compute_entropy(s,(const struct const_Multiarray_d*)sol,'p');
 		sol->extents[1] = n_out;
 	}

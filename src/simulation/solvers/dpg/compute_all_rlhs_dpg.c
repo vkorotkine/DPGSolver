@@ -194,7 +194,7 @@ ptrdiff_t compute_n_dof_nf (const struct Solver_Volume* s_vol)
 			continue;
 
 		const struct Solver_Face* s_face = (struct Solver_Face*) face;
-		const ptrdiff_t size = compute_size(s_face->nf_coef->order,s_face->nf_coef->extents);
+		const ptrdiff_t size = s_face->nf_coef->extents[0];
 		dof += size;
 
 		assert((size > 0) || (face->boundary));
@@ -224,8 +224,6 @@ const struct const_Vector_i* constructor_petsc_idxm_dpg
 		set_idxm(&ind_idxm,idxm,s_face->ind_dof,s_face->nf_coef);
 		// sol_coef: To be done.
 	}}
-printf("n_dof %td\n",n_dof);
-
 	assert(ind_idxm == n_dof);
 
 	return (struct const_Vector_i*) idxm;
@@ -303,7 +301,6 @@ static void set_idxm (int* ind_idxm, struct Vector_i* idxm, const int ind_dof, c
 		return;
 
 	const ptrdiff_t size = compute_size(coef->order,coef->extents);
-printf("size: %td\n",size);
 	for (int i = 0; i < size; ++i) {
 		idxm->data[*ind_idxm] = ind_dof+i;
 		++*ind_idxm;
@@ -418,6 +415,7 @@ static void compute_rlhs_1
 
 	increment_and_add_dof_rlhs_f_1(rhs,&lhs,dpg_s_vol,sim);
 	increment_rhs_source(rhs,s_vol,sim);
+//EXIT_UNSUPPORTED;
 
 //print_const_Matrix_d(norm_op);
 //print_Matrix_d(lhs);
@@ -500,18 +498,18 @@ static void increment_and_add_dof_rlhs_f_1
 
 	const int n_eq = sim->test_case->n_eq,
 	          n_vr = sim->test_case->n_var;
-	const ptrdiff_t ext_0 = (rhs->ext_0)/n_eq;
 
 	const ptrdiff_t n_dof_s  = (lhs->ext_1)/n_vr,
 	                n_dof_nf = compute_n_dof_nf(s_vol);
 	struct Matrix_d* lhs_add = constructor_empty_Matrix_d('R',lhs->ext_0,(n_dof_s+n_dof_nf)*n_vr); // moved
-//set_to_value_Matrix_d(lhs_add,0.0);
+	set_to_value_Matrix_d(lhs_add,0.0);
 	set_block_Matrix_d(lhs_add,(struct const_Matrix_d*)lhs,0,0,'i');
 	destructor_Matrix_d(lhs);
 	lhs = lhs_add;
 //print_Matrix_d(lhs);
 
-	struct Matrix_d rhs_M = { .layout = 'C', .ext_0 = ext_0, .ext_1 = n_eq, .owns_data = false, .data = rhs->data, };
+	struct Matrix_d rhs_M =
+		{ .layout = 'C', .ext_0 = (rhs->ext_0)/n_eq, .ext_1 = n_eq, .owns_data = false, .data = rhs->data, };
 
 	int ind_dof = n_vr*n_dof_s;
 	for (int i = 0; i < NFMAX;    ++i) {
@@ -606,17 +604,14 @@ static void increment_rlhs_internal_face
 	const int n_eq = sim->test_case->n_eq,
 	          n_vr = sim->test_case->n_var;
 
-	const struct Solver_Volume* s_vol = (struct Solver_Volume*) dpg_s_vol;
 	const ptrdiff_t n_dof_test = (lhs->ext_0)/n_eq,
-	                n_dof_nf   = compute_n_dof_nf(s_vol);
+	                n_dof_nf   = nf_coef.ext_0;
 
-//printf("lhs_l\n");
-//print_const_Matrix_d(lhs_l);
-	for (int vr = 0; vr < n_vr; ++vr)
-		set_block_Matrix_d(lhs,lhs_l,vr*n_dof_test,*ind_dof+vr*n_dof_nf,'i');
+	for (int vr = 0; vr < n_vr; ++vr) {
+		set_block_Matrix_d(lhs,lhs_l,vr*n_dof_test,*ind_dof,'i');
+		*ind_dof += n_dof_nf;
+	}
 	destructor_const_Matrix_d(lhs_l);
-
-	*ind_dof += nf_coef.ext_0;
 }
 
 static void increment_rlhs_boundary_face

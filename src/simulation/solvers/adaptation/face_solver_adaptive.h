@@ -25,7 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Adaptive_Solver_Face {
 	struct Solver_Face face; ///< The base \ref Solver_Face.
 
-	int adapt_type; ///< The type of adaptation to use. Options: see \ref definitions_adaption.h.
+	int adapt_type; ///< The type of adaptation to use. Options: see \ref definitions_adaptation.h.
 
 	int p_ref_prev; ///< The previous value of \ref Solver_Face::p_ref.
 };

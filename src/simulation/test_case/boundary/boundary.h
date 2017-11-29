@@ -60,8 +60,7 @@ struct Boundary_Value_Input {
 	const char* input_path;     ///< Pointer to \ref Simulation::input_path.
 	const bool* compute_member; ///< Flags for which of the \ref Boundary_Value members should be computed.
 
-	const int d,     ///< \ref Simulation::d.
-	          n_eq,  ///< \ref Test_Case::n_eq.
+	const int n_eq,  ///< \ref Test_Case::n_eq.
 	          n_var; ///< \ref Test_Case::n_var.
 
 	const struct const_Multiarray_d* normals; ///< The unit normal vector components.

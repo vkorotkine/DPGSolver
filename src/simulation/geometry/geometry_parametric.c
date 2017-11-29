@@ -29,7 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-#define PI_OVER_4 PI/4.0
+#define PI_OVER_4 PI/4.0 ///< Pi divided by 4.
 
 // Interface functions ********************************************************************************************** //
 

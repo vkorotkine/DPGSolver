@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdlib.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 #include "definitions_test_case.h"
 
 #include "test_complex_numerical_flux.h"
@@ -51,7 +52,6 @@ void compute_Numerical_Flux_c_advection_upwind
 		read_data_advection(num_flux_i_b->bv_l.input_path,&sol_data);
 	}
 
-	int const d   = num_flux_i_b->bv_l.d;
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
 	double const *const nL = bv_l_b->normals->data;
@@ -64,8 +64,8 @@ void compute_Numerical_Flux_c_advection_upwind
 	const double* b_adv = sol_data.b_adv;
 	for (int n = 0; n < NnTotal; n++) {
 		double b_dot_n = 0.0;
-		for (int dim = 0; dim < d; dim++)
-			b_dot_n += b_adv[dim]*nL[n*d+dim];
+		for (int dim = 0; dim < DIM; dim++)
+			b_dot_n += b_adv[dim]*nL[n*DIM+dim];
 
 		if (b_dot_n >= 0.0)
 			nFluxNum[n] = b_dot_n*WL[n];
@@ -87,7 +87,6 @@ void compute_Numerical_Flux_c_advection_upwind_jacobian
 		read_data_advection(num_flux_i_b->bv_l.input_path,&sol_data);
 	}
 
-	int const d   = num_flux_i_b->bv_l.d;
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
 	double const *const nL = bv_l_b->normals->data;
@@ -105,8 +104,8 @@ void compute_Numerical_Flux_c_advection_upwind_jacobian
 	const double* b_adv = sol_data.b_adv;
 	for (int n = 0; n < NnTotal; n++) {
 		double b_dot_n = 0.0;
-		for (int dim = 0; dim < d; dim++)
-			b_dot_n += b_adv[dim]*nL[n*d+dim];
+		for (int dim = 0; dim < DIM; dim++)
+			b_dot_n += b_adv[dim]*nL[n*DIM+dim];
 
 		if (b_dot_n >= 0.0) {
 			nFluxNum[n]     = b_dot_n*WL[n];

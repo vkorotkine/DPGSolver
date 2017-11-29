@@ -906,7 +906,7 @@ static char get_op_type_out
  */
 static double compute_volume_ratio
 	(const int e_type, ///< \ref Element::type.
-	 const int ind_h   ///< \ref The h-refinement index.
+	 const int ind_h   ///< The h-refinement index.
 	);
 
 static int get_n_op (const int range_d, const int d)

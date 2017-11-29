@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <string.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 
 #include "test_complex_numerical_flux_advection.h"
 #include "test_support_math_functions.h"
@@ -97,8 +98,7 @@ struct Numerical_Flux_c* constructor_Numerical_Flux_c (const struct Numerical_Fl
 	const bool* c_m = num_flux_i_b->bv_l.compute_member;
 	const bool has_c_J = num_flux_i->has_complex_J;
 
-	const int d    = num_flux_i_b->bv_l.d,
-	          n_eq = num_flux_i_b->bv_l.n_eq,
+	const int n_eq = num_flux_i_b->bv_l.n_eq,
 	          n_vr = num_flux_i_b->bv_l.n_var;
 	const ptrdiff_t n_n = ( num_flux_i->bv_l.s != NULL ? num_flux_i->bv_l.s->extents[0]
 	                                                   : num_flux_i->bv_l.g->extents[0] );
@@ -111,7 +111,7 @@ struct Numerical_Flux_c* constructor_Numerical_Flux_c (const struct Numerical_Fl
 		n_i->dnnf_ds = ((c_m[1] && has_c_J) ?
 			constructor_zero_Multiarray_c('C',3,(ptrdiff_t[]){n_n,n_eq,n_vr})   : NULL); // destructed
 		n_i->dnnf_dg = ((c_m[2] && has_c_J) ?
-			constructor_zero_Multiarray_c('C',4,(ptrdiff_t[]){n_n,n_eq,n_vr,d}) : NULL); // destructed
+			constructor_zero_Multiarray_c('C',4,(ptrdiff_t[]){n_n,n_eq,n_vr,DIM}) : NULL); // destructed
 	}
 
 	num_flux_i->compute_Numerical_Flux(num_flux_i,num_flux);

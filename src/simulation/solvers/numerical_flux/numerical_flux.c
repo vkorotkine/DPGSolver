@@ -62,7 +62,6 @@ struct Numerical_Flux_Input* constructor_Numerical_Flux_Input (const struct Simu
 	const_cast_b(&num_flux_i->has_1st_order,test_case->has_1st_order);
 	const_cast_b(&num_flux_i->has_2nd_order,test_case->has_2nd_order);
 
-	const_cast_i(&num_flux_i->bv_l.d,DIM);
 	const_cast_i(&num_flux_i->bv_l.n_eq,test_case->n_eq);
 	const_cast_i(&num_flux_i->bv_l.n_var,test_case->n_var);
 
@@ -101,8 +100,7 @@ struct Numerical_Flux* constructor_Numerical_Flux (const struct Numerical_Flux_I
 	const bool* c_m = num_flux_i->bv_l.compute_member;
 	assert(c_m[0] || c_m[1] || c_m[2]);
 
-	const int d    = num_flux_i->bv_l.d,
-	          n_eq = num_flux_i->bv_l.n_eq,
+	const int n_eq = num_flux_i->bv_l.n_eq,
 	          n_vr = num_flux_i->bv_l.n_var;
 	const ptrdiff_t n_n = ( num_flux_i->bv_l.s != NULL ? num_flux_i->bv_l.s->extents[0]
 	                                                   : num_flux_i->bv_l.g->extents[0] );
@@ -113,7 +111,7 @@ struct Numerical_Flux* constructor_Numerical_Flux (const struct Numerical_Flux_I
 	for (int i = 0; i < 2; ++i) {
 		struct m_Neigh_Info_NF* n_i = &num_flux->neigh_info[i];
 		n_i->dnnf_ds = (c_m[1] ? constructor_zero_Multiarray_d('C',3,(ptrdiff_t[]){n_n,n_eq,n_vr})   : NULL); // destructed
-		n_i->dnnf_dg = (c_m[2] ? constructor_zero_Multiarray_d('C',4,(ptrdiff_t[]){n_n,n_eq,n_vr,d}) : NULL); // destructed
+		n_i->dnnf_dg = (c_m[2] ? constructor_zero_Multiarray_d('C',4,(ptrdiff_t[]){n_n,n_eq,n_vr,DIM}) : NULL); // destructed
 	}
 
 	assert(num_flux_i->bv_l.s->extents[0] == num_flux_i->bv_l.normals->extents[0]);

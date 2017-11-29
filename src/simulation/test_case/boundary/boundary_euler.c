@@ -104,21 +104,21 @@ void constructor_Boundary_Value_euler_riemann
 
 	const double*const rho_l = get_col_const_Multiarray_d(0,sol_l),
 	            *const u_l   = get_col_const_Multiarray_d(1,sol_l),
-		      *const v_l   = (DIM > 1 ? get_col_const_Multiarray_d(2,sol_l) : NULL),
-		      *const w_l   = (DIM > 2 ? get_col_const_Multiarray_d(3,sol_l) : NULL),
-		      *const p_l   = get_col_const_Multiarray_d(NVAR-1,sol_l),
+	            *const v_l   = (DIM > 1 ? get_col_const_Multiarray_d(2,sol_l) : NULL),
+	            *const w_l   = (DIM > 2 ? get_col_const_Multiarray_d(3,sol_l) : NULL),
+	            *const p_l   = get_col_const_Multiarray_d(NVAR-1,sol_l),
 
 	            *const rho_r = get_col_const_Multiarray_d(0,sol_r),
 	            *const u_r   = get_col_const_Multiarray_d(1,sol_r),
-		      *const v_r   = (DIM > 1 ? get_col_const_Multiarray_d(2,sol_r) : NULL),
-		      *const w_r   = (DIM > 2 ? get_col_const_Multiarray_d(3,sol_r) : NULL),
-		      *const p_r   = get_col_const_Multiarray_d(NVAR-1,sol_r);
+	            *const v_r   = (DIM > 1 ? get_col_const_Multiarray_d(2,sol_r) : NULL),
+	            *const w_r   = (DIM > 2 ? get_col_const_Multiarray_d(3,sol_r) : NULL),
+	            *const p_r   = get_col_const_Multiarray_d(NVAR-1,sol_r);
 
 	double*const rho = get_col_Multiarray_d(0,sol),
 	      *const u   = get_col_Multiarray_d(1,sol),
-		*const v   = (DIM > 1 ? get_col_Multiarray_d(2,sol) : NULL),
-		*const w   = (DIM > 2 ? get_col_Multiarray_d(3,sol) : NULL),
-		*const p   = get_col_Multiarray_d(NVAR-1,sol);
+	      *const v   = (DIM > 1 ? get_col_Multiarray_d(2,sol) : NULL),
+	      *const w   = (DIM > 2 ? get_col_Multiarray_d(3,sol) : NULL),
+	      *const p   = get_col_Multiarray_d(NVAR-1,sol);
 
 	for (int n = 0; n < n_n; n++) {
 		const double uvw_l[] = { u_l[n], (DIM > 1 ? v_l[n] : 0.0), (DIM > 2 ? w_l[n] : 0.0), },
@@ -164,15 +164,314 @@ void constructor_Boundary_Value_euler_riemann
 			p[n] = 1.0/GAMMA*c*c*rho[n];
 		}
 	}
+
+	if (c_m[1] == true) {
+
+	struct Multiarray_d* ds_ds = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_n,NVAR,NVAR}); // keep
+
+	// Standard datatypes
+	unsigned int i, iMax, n, eq, var, InddWdW;
+	double       rhoL, rhoL_inv, uL, vL, wL, V2L, pL, rhoR, uR, vR, wR, pR,
+	             cL, RL, VnL, cR, RR, VnR, c, Vn,
+	             n1, n2, n3;
+	const double *n_ptr;
+
+	// silence
+	n2 = n3 = 0.0;
+
+	n_ptr = normals->data;
+
+	double *ds_ds_ptr[NEQ*NEQ];
+	for (int ind = 0, vr_r = 0; vr_r < NVAR; vr_r++) {
+	for (int vr_l = 0; vr_l < NVAR; vr_l++) {
+		ds_ds_ptr[ind++] = &ds_ds->data[n_n*(vr_l+NVAR*vr_r)];
+	}}
+
+	for (n = 0; n < n_n; n++) {
+		InddWdW = 0;
+
+		// Inner VOLUME
+		rhoL     = rho_l[n];
+		rhoL_inv = 1.0/rhoL;
+
+		uL = u_l[n];
+		vL = ( DIM > 1 ? v_l[n] : 0.0 );
+		wL = ( DIM > 2 ? w_l[n] : 0.0 );
+		pL = p_l[n];
+
+		V2L = uL*uL+vL*vL+wL*wL;
+
+		n1 = *n_ptr++;
+		if      (DIM == 3) { n2 = *n_ptr++; n3 = *n_ptr++; }
+		else if (DIM == 2) { n2 = *n_ptr++; n3 = 0.0;      }
+		else if (DIM == 1) { n2 = 0.0;      n3 = 0.0;      }
+
+		VnL = uL*n1+vL*n2+wL*n3;
+
+		// Outer VOLUME
+		rhoR = rho_r[n];
+		uR   = u_r[n];
+		vR   = ( DIM > 1 ? v_r[n] : 0.0 );
+		wR   = ( DIM > 2 ? w_r[n] : 0.0 );
+		pR   = p_r[n];
+
+		VnR = n1*uR+n2*vR+n3*wR;
+
+		cL = sqrt(GAMMA*pL/rhoL);
+		cR = sqrt(GAMMA*pR/rhoR);
+
+		// Riemann invariants
+		RL = VnL + 2.0/GM1*cL;
+		RR = VnR - 2.0/GM1*cR;
+
+		Vn = 0.5*(RL+RR);
+		c  = 0.25*GM1*(RL-RR);
+
+		if (fabs(Vn) >= c) { // Supersonic
+			if (Vn < 0.0) { // Inlet
+//printf("j: Sup Inlet\n");
+				for (var = 0; var < NVAR; var++) {
+				for (eq = 0; eq < NEQ; eq++) {
+					*ds_ds_ptr[InddWdW++] = 0.0;
+				}}
+			} else { // Outlet
+//printf("j: Sup Outlet\n");
+				for (var = 0; var < NVAR; var++) {
+				for (eq = 0; eq < NEQ; eq++) {
+					if (var != eq)
+						*ds_ds_ptr[InddWdW++] = 0.0;
+					else
+						*ds_ds_ptr[InddWdW++] = 1.0;
+				}}
+			}
+		} else { // Subsonic
+			double dcLdW, rho, u, v, w, V2, ut, vt, wt, un, vn, wn, cnst1, drhodW, dudW, dvdW, dwdW, dpdW,
+			       drhoLdW[NVAR], duLdW[NVAR], dvLdW[NVAR], dwLdW[NVAR], dpLdW[NVAR],
+			       dVnLdW[NVAR], dRLdW[NVAR], dcdW[NVAR];
+
+			// silence
+			un = vn = wn = 0.0;
+
+			if (DIM == 3) {
+				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0; drhoLdW[4] = 0.0;
+				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = -wL; dpLdW[4]   = 1.0;
+
+				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;      duLdW[4] = 0.0;
+				dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;      dvLdW[4] = 0.0;
+				dwLdW[0] = -wL*rhoL_inv; dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = rhoL_inv; dwLdW[4] = 0.0;
+
+				for (var = 0; var < NVAR; var++) {
+					dpLdW[var] *= GM1;
+					dVnLdW[var] = duLdW[var]*n1 + dvLdW[var]*n2 + dwLdW[var]*n3;
+				}
+
+				un = Vn*n1;
+				vn = Vn*n2;
+				wn = Vn*n3;
+			} else if (DIM == 2) {
+				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0;
+				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = 1.0;
+
+				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;
+				dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;
+
+				for (var = 0; var < NVAR; var++) {
+					dpLdW[var] *= GM1;
+					dVnLdW[var] = duLdW[var]*n1 + dvLdW[var]*n2;
+				}
+
+				un = Vn*n1;
+				vn = Vn*n2;
+			} else if (DIM == 1) {
+				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0;
+				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = 1.0;
+
+				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;
+
+				for (var = 0; var < NVAR; var++) {
+					dpLdW[var] *= GM1;
+					dVnLdW[var] = duLdW[var]*n1;
+				}
+
+				un = Vn*n1;
+			}
+
+			for (var = 0; var < NVAR; var++) {
+				dcLdW      = 0.5*GAMMA/(cL*rhoL*rhoL)*(dpLdW[var]*rhoL-pL*drhoLdW[var]);
+				dRLdW[var] = dVnLdW[var] + 2.0/GM1*dcLdW;
+				dcdW[var]  = 0.25*GM1*dRLdW[var];
+			}
+
+			if (Vn < 0.0) { // Inlet
+//printf("j: Sub Inlet\n");
+				double sR;
+
+				sR  = sqrt(pR/pow(rhoR,GAMMA));
+				if (DIM == 3) {
+					for (var = 0; var < NVAR; var++) {
+						drhodW = pow(GAMMA,-1.0/GM1)*2.0/(GM1*sR)*pow(c/sR,-GM3/GM1)*dcdW[var];
+
+						rho = pow(c*c/(GAMMA*sR*sR),1.0/GM1);
+
+						ut = uR - VnR*n1;
+						vt = vR - VnR*n2;
+						wt = wR - VnR*n3;
+
+						u = un + ut;
+						v = vn + vt;
+						w = wn + wt;
+						V2 = u*u+v*v+w*w;
+
+						dudW = 0.5*dRLdW[var]*n1;
+						dvdW = 0.5*dRLdW[var]*n2;
+						dwdW = 0.5*dRLdW[var]*n3;
+						dpdW = (2.0*c*dcdW[var]*rho+c*c*drhodW)/GAMMA;
+
+						*ds_ds_ptr[InddWdW++] = drhodW;
+						*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
+						*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
+						*ds_ds_ptr[InddWdW++] = drhodW*w + rho*dwdW;
+						*ds_ds_ptr[InddWdW++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW+w*dwdW));
+					}
+				} else if (DIM == 2) {
+					for (var = 0; var < NVAR; var++) {
+						drhodW = pow(GAMMA,-1.0/GM1)*2.0/(GM1*sR)*pow(c/sR,-GM3/GM1)*dcdW[var];
+
+						rho = pow(c*c/(GAMMA*sR*sR),1.0/GM1);
+
+						ut = uR - VnR*n1;
+						vt = vR - VnR*n2;
+
+						u = un + ut;
+						v = vn + vt;
+						V2 = u*u+v*v;
+
+						dudW = 0.5*dRLdW[var]*n1;
+						dvdW = 0.5*dRLdW[var]*n2;
+						dpdW = (2.0*c*dcdW[var]*rho+c*c*drhodW)/GAMMA;
+
+						*ds_ds_ptr[InddWdW++] = drhodW;
+						*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
+						*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
+						*ds_ds_ptr[InddWdW++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW));
+					}
+				} else if (DIM == 1) {
+					for (var = 0; var < NVAR; var++) {
+						drhodW = pow(GAMMA,-1.0/GM1)*2.0/(GM1*sR)*pow(c/sR,-GM3/GM1)*dcdW[var];
+
+						rho = pow(c*c/(GAMMA*sR*sR),1.0/GM1);
+
+						ut = uR - VnR*n1;
+						u  = un + ut;
+						V2 = u*u;
+
+						dudW = 0.5*dRLdW[var]*n1;
+						dpdW = (2.0*c*dcdW[var]*rho+c*c*drhodW)/GAMMA;
+
+						*ds_ds_ptr[InddWdW++] = drhodW;
+						*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
+						*ds_ds_ptr[InddWdW++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW));
+					}
+				}
+			} else { // Outlet
+//printf("j: Sub Outlet\n");
+				double sL, dsLdW;
+
+				sL  = sqrt(pL/pow(rhoL,GAMMA));
+				if (DIM == 3) {
+					for (var = 0; var < NVAR; var++) {
+						dsLdW = 0.5*sqrt(pow(rhoL,GAMMA)/pL)/pow(rhoL,2.0*GAMMA)*
+								(dpLdW[var]*pow(rhoL,GAMMA)-GAMMA*pL*pow(rhoL,GM1)*drhoLdW[var]);
+
+						drhodW = pow(GAMMA,-1.0/GM1)*2.0/GM1*pow(c,-GM3/GM1)*
+								 pow(sL,-(GAMMA+1.0)/GM1)*(dcdW[var]*sL-c*dsLdW);
+
+						rho = pow(c*c/(GAMMA*sL*sL),1.0/GM1);
+
+						ut = uL - VnL*n1;
+						vt = vL - VnL*n2;
+						wt = wL - VnL*n3;
+
+						u = un + ut;
+						v = vn + vt;
+						w = wn + wt;
+						V2 = u*u+v*v+w*w;
+
+						cnst1 = 0.5*dRLdW[var]-dVnLdW[var];
+						dudW = duLdW[var]+n1*cnst1;
+						dvdW = dvLdW[var]+n2*cnst1;
+						dwdW = dwLdW[var]+n3*cnst1;
+						dpdW = (2.0*c*dcdW[var]*rho+c*c*drhodW)/GAMMA;
+
+						*ds_ds_ptr[InddWdW++] = drhodW;
+						*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
+						*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
+						*ds_ds_ptr[InddWdW++] = drhodW*w + rho*dwdW;
+						*ds_ds_ptr[InddWdW++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW+w*dwdW));
+					}
+				} else if (DIM == 2) {
+					for (var = 0; var < NVAR; var++) {
+						dsLdW = 0.5*sqrt(pow(rhoL,GAMMA)/pL)/pow(rhoL,2.0*GAMMA)*
+								(dpLdW[var]*pow(rhoL,GAMMA)-GAMMA*pL*pow(rhoL,GM1)*drhoLdW[var]);
+
+						drhodW = pow(GAMMA,-1.0/GM1)*2.0/GM1*pow(c,-GM3/GM1)*
+								 pow(sL,-(GAMMA+1.0)/GM1)*(dcdW[var]*sL-c*dsLdW);
+
+						rho = pow(c*c/(GAMMA*sL*sL),1.0/GM1);
+
+						ut = uL - VnL*n1;
+						vt = vL - VnL*n2;
+
+						u = un + ut;
+						v = vn + vt;
+						V2 = u*u+v*v;
+
+						cnst1 = 0.5*dRLdW[var]-dVnLdW[var];
+						dudW = duLdW[var]+n1*cnst1;
+						dvdW = dvLdW[var]+n2*cnst1;
+						dpdW = (2.0*c*dcdW[var]*rho+c*c*drhodW)/GAMMA;
+
+						*ds_ds_ptr[InddWdW++] = drhodW;
+						*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
+						*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
+						*ds_ds_ptr[InddWdW++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW));
+					}
+				} else if (DIM == 1) {
+					for (var = 0; var < NVAR; var++) {
+						dsLdW = 0.5*sqrt(pow(rhoL,GAMMA)/pL)/pow(rhoL,2.0*GAMMA)*
+								(dpLdW[var]*pow(rhoL,GAMMA)-GAMMA*pL*pow(rhoL,GM1)*drhoLdW[var]);
+
+						drhodW = pow(GAMMA,-1.0/GM1)*2.0/GM1*pow(c,-GM3/GM1)*
+								 pow(sL,-(GAMMA+1.0)/GM1)*(dcdW[var]*sL-c*dsLdW);
+
+						rho = pow(c*c/(GAMMA*sL*sL),1.0/GM1);
+
+						ut = uL - VnL*n1;
+						u = un + ut;
+						V2 = u*u;
+
+						cnst1 = 0.5*dRLdW[var]-dVnLdW[var];
+						dudW = duLdW[var]+n1*cnst1;
+						dpdW = (2.0*c*dcdW[var]*rho+c*c*drhodW)/GAMMA;
+
+						*ds_ds_ptr[InddWdW++] = drhodW;
+						*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
+						*ds_ds_ptr[InddWdW++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW));
+					}
+				}
+			}
+		}
+		for (i = 0, iMax = NEQ*NVAR; i < iMax; i++)
+			ds_ds_ptr[i]++;
+	}
+	bv->ds_ds = (const struct const_Multiarray_d*) ds_ds;
+	}
 	convert_variables(sol,'p','c');
 	bv->s = (struct const_Multiarray_d*)sol;
 
 	convert_variables((struct Multiarray_d*)sol_l,'p','c');
 	destructor_const_Multiarray_d(sol_r);
 
-	if (c_m[1] == true) {
-		EXIT_ADD_SUPPORT;
-	}
 	assert(c_m[2] == false);
 }
 
@@ -188,21 +487,28 @@ void constructor_Boundary_Value_euler_slipwall
 
 	const struct const_Multiarray_d* sol_l = bv_i->s;
 
-	const double*const rhou_l = get_col_const_Multiarray_d(1,sol_l),
-		      *const rhov_l = (DIM > 1 ? get_col_const_Multiarray_d(2,sol_l) : NULL),
-		      *const rhow_l = (DIM > 2 ? get_col_const_Multiarray_d(3,sol_l) : NULL);
+	const double*const rho_l  = get_col_const_Multiarray_d(0,sol_l),
+	            *const rhou_l = get_col_const_Multiarray_d(1,sol_l),
+	            *const rhov_l = (DIM > 1 ? get_col_const_Multiarray_d(2,sol_l) : NULL),
+	            *const rhow_l = (DIM > 2 ? get_col_const_Multiarray_d(3,sol_l) : NULL),
+	            *const E_l    = get_col_const_Multiarray_d(NVAR-1,sol_l);
 
 	const ptrdiff_t n_n = sol_l->extents[0];
 	struct Multiarray_d* sol = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_n,NVAR}); // keep
 
-	double*const rhou = get_col_Multiarray_d(1,sol),
-		*const rhov = (DIM > 1 ? get_col_Multiarray_d(2,sol) : NULL),
-		*const rhow = (DIM > 2 ? get_col_Multiarray_d(3,sol) : NULL);
+	double*const rho  = get_col_Multiarray_d(0,sol),
+	      *const rhou = get_col_Multiarray_d(1,sol),
+	      *const rhov = (DIM > 1 ? get_col_Multiarray_d(2,sol) : NULL),
+	      *const rhow = (DIM > 2 ? get_col_Multiarray_d(3,sol) : NULL),
+	      *const E    = get_col_Multiarray_d(NVAR-1,sol);
 
 	const struct const_Multiarray_d* normals = bv_i->normals;
 	assert(normals->layout == 'R');
 
 	for (int n = 0; n < n_n; n++) {
+		rho[n] = rho_l[n];
+		E[n]   = E_l[n];
+
 		const double* data_n = get_row_const_Multiarray_d(n,normals);
 		const double rhouvw_l[] = { rhou_l[n], (DIM > 1 ? rhov_l[n] : 0.0), (DIM > 2 ? rhow_l[n] : 0.0), };
 		const double rhoVn_l = compute_Vn(data_n,rhouvw_l);
@@ -216,9 +522,9 @@ void constructor_Boundary_Value_euler_slipwall
 		struct Multiarray_d* ds_ds = constructor_empty_Multiarray_d('C',3,(ptrdiff_t[]){n_n,NVAR,NVAR}); // keep
 
 		double *ds_ds_ptr[NEQ*NEQ];
-		for (int eq  = 0; eq  < NEQ;  eq++)  {
-		for (int var = 0; var < NVAR; var++) {
-			ds_ds_ptr[eq*NVAR+var] = &ds_ds->data[(eq*NVAR+var)*n_n];
+		for (int ind = 0, vr_r = 0; vr_r < NVAR; vr_r++) {
+		for (int vr_l = 0; vr_l < NVAR; vr_l++) {
+			ds_ds_ptr[ind++] = &ds_ds->data[n_n*(vr_l+NVAR*vr_r)];
 		}}
 		const double* n_ptr = get_row_const_Multiarray_d(0,normals);
 
@@ -327,9 +633,16 @@ void constructor_Boundary_Value_euler_slipwall
 					ds_ds_ptr[i]++;
 			}
 		}
+		bv->ds_ds = (const struct const_Multiarray_d*) ds_ds;
 	}
 	assert(c_m[2] == false);
 }
+
+
+
+/// \note Alternate order in updated code (Fastest on var_l, then var_r).
+
+
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
