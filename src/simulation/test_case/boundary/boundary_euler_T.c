@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the common templated Euler boundary condition functions.
+ *  \brief Provides the templated Euler boundary condition functions.
  *  \todo clean-up.
  */
 

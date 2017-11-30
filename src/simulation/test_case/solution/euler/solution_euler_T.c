@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the common templated Euler solution functions.
+ *  \brief Provides the templated Euler solution functions.
  */
 
 #include <assert.h>

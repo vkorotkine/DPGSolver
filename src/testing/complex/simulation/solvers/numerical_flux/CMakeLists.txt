@@ -1,6 +1,7 @@
 set	(SOURCE
 	 test_complex_numerical_flux.c
 	 test_complex_numerical_flux_advection.c
+	 test_complex_numerical_flux_euler.c
 	)
 
 set	(LIBS_DEPEND

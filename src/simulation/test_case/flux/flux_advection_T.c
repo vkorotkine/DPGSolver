@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the common templated linear advection flux functions.
+ *  \brief Provides the templated linear advection flux functions.
  *  \todo Clean-up.
  */
 
@@ -30,7 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void compute_Flux_advection (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
+void compute_Flux_advection_T (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
 {
 	struct Flux_Input_R* flux_i_r = (struct Flux_Input_R*) flux_i;
 
@@ -61,13 +61,15 @@ void compute_Flux_advection (const struct Flux_Input_T* flux_i, struct mutable_F
 	}
 }
 
-void compute_Flux_advection_jacobian (const struct Flux_Input* flux_i, struct mutable_Flux* flux)
+void compute_Flux_advection_jacobian_T (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
 {
+	struct Flux_Input_R* flux_i_r = (struct Flux_Input_R*) flux_i;
+
 	static bool need_input = true;
 	static struct Sol_Data__Advection sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(flux_i->input_path,&sol_data);
+		read_data_advection(flux_i_r->input_path,&sol_data);
 	}
 
 	const ptrdiff_t NnTotal = flux_i->s->extents[0];

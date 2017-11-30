@@ -15,14 +15,16 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include "test_complex_flux.h"
+#include "complex_multiarray_minimal.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-#include "templates_double.h"
-#include "boundary_templates.h"
-#include "numerical_flux_templates.h"
-#include "numerical_flux_euler_T.c"
+#include "templates_double_complex.h"
+#include "flux_templates_c.h"
+#include "flux_euler_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
