@@ -216,9 +216,9 @@ static struct Volume* constructor_Volume
 
 	const_cast_const_Element(&volume->element,get_element_by_type(sim->elements,vol_mi->elem_type));
 
-	const_cast_bool(&volume->boundary,
+	const_cast_b(&volume->boundary,
 	                check_if_boundary_v(vol_mi->to_lf,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
-	const_cast_bool(&volume->curved,
+	const_cast_b(&volume->curved,
 	                check_if_curved_v(sim->domain_type,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
 
 	return volume;

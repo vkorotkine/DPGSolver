@@ -31,16 +31,11 @@ void set_function_pointers_solution_euler
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
-/** \brief Convert between support variable types.
- *
- *  Supported types include:
- *  - 'p'rimitive:    [rho u v w p].
- *  - 'c'onservative: [rho*[1 u v w] E]; E = p/(GAMMA-1) + 0.5*rho*V^2.
- */
+/// \brief `double` version of \ref convert_variables_T.
 void convert_variables
-	(struct Multiarray_d* vars, ///< The container holding the data.
-	 const char type_i,         ///< The input variable type.
-	 const char type_o          ///< The output variable type.
+	(struct Multiarray_d* vars, ///< See brief.
+	 const char type_i,         ///< See brief.
+	 const char type_o          ///< See brief.
 	);
 
 /// \brief Compute the entropy measure: s = p/pow(rho,GAMMA).

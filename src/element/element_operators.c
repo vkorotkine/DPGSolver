@@ -236,7 +236,7 @@ struct Operator_Info* constructor_Operator_Info
 	const_cast_i(&op_info->range_h, ranges[2]);
 	const_cast_i(&op_info->range_p, ranges[3]);
 
-	const_cast_i1(op_info->p_ref,sim->p_ref,2);
+	const_cast_i_n(op_info->p_ref,sim->p_ref,2);
 	set_up_extents(op_info);
 	set_up_values_op(op_info);
 
@@ -992,7 +992,7 @@ static void set_operator_std_interp
 		}
 		destructor_const_Matrix_d(cv0_oo);
 	} else {
-		const_cast_bool(&op_cvN->owns_data,false);
+		const_cast_b(&op_cvN->owns_data,false);
 		for (int i = 0; i < n_op; ++i)
 			const_constructor_move_const_Matrix_d(&op_coN->data[i],op_cvN->data[i]); // destructed
 	}
@@ -1010,7 +1010,7 @@ static void set_operator_std_interp
 		}
 		destructor_const_Matrix_d(inv_cv0_ii);
 	} else {
-		const_cast_bool(&op_coN->owns_data,false);
+		const_cast_b(&op_coN->owns_data,false);
 		for (int i = 0; i < n_op; ++i)
 			const_constructor_move_const_Matrix_d(&op_ioN->data[i],op_coN->data[i]); // returned
 	}

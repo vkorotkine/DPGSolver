@@ -12,67 +12,47 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-/// \file
+/** \file
+ */
 
-#include "const_cast.h"
+// Static function declarations ************************************************************************************* //
 
-// Standard data types ********************************************************************************************** //
+// Interface functions ********************************************************************************************** //
 
-void const_cast_i (const int* dest, const int src)
-{
-	*(int*) dest = src;
-}
+// char
+#include "templates_type_c.h"
+#include "templates_const_cast_c.h"
+#include "const_cast_T.c"
+#include "undef_templates_type.h"
+#include "undef_templates_const_cast.h"
 
-void const_cast_i1 (const int* dest, const int* src, const int n_src)
-{
-	for (int i = 0; i < n_src; ++i)
-		const_cast_i(&dest[i],src[i]);
-}
+// int
+#include "templates_type_i.h"
+#include "templates_const_cast_i.h"
+#include "const_cast_T.c"
+#include "undef_templates_type.h"
+#include "undef_templates_const_cast.h"
 
-void const_cast_ptrdiff (const ptrdiff_t* dest, const ptrdiff_t src)
-{
-	*(ptrdiff_t*) dest = src;
-}
+// double
+#include "templates_type_d.h"
+#include "templates_const_cast_d.h"
+#include "const_cast_T.c"
+#include "undef_templates_type.h"
+#include "undef_templates_const_cast.h"
 
-void const_cast_bool (const bool* dest, const bool src)
-{
-	const_cast_b(dest,src);
-}
+// ptrdiff_t
+#include "templates_type_p.h"
+#include "templates_const_cast_p.h"
+#include "const_cast_T.c"
+#include "undef_templates_type.h"
+#include "undef_templates_const_cast.h"
 
-void const_cast_b (const bool* dest, const bool src)
-{
-	*(bool*) dest = src;
-}
+// bool
+#include "templates_type_b.h"
+#include "templates_const_cast_b.h"
+#include "const_cast_T.c"
+#include "undef_templates_type.h"
+#include "undef_templates_const_cast.h"
 
-void const_cast_b1 (const bool* dest, const bool* src, const int n_src)
-{
-	for (int i = 0; i < n_src; ++i)
-		const_cast_bool(&dest[i],src[i]);
-}
-
-void const_cast_c (const char* dest, const char src)
-{
-	*(char*) dest = src;
-}
-
-void const_cast_c1 (const char*const* dest, const char*const src)
-{
-	*(char**) dest = (char*) src;
-}
-
-void const_cast_d (const double* dest, const double src)
-{
-	*(double*) dest = src;
-}
-
-void const_cast_d1 (const double*const* dest, const double*const src)
-{
-	*(double**) dest = (double*) src;
-}
-
-void const_cast_void1 (const void*const* dest, const void*const src)
-{
-	*(void**) dest = (void*) src;
-}
-
-// Custom data types ************************************************************************************************ //
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //

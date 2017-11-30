@@ -29,7 +29,17 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void convert_variables_T (struct Multiarray_T* vars, const char type_i, const char type_o)
+/** \brief Convert between supported variable types.
+ *
+ *  Supported types include:
+ *  - 'p'rimitive:    [rho u v w p].
+ *  - 'c'onservative: [rho*[1 u v w] E]; E = p/(GAMMA-1) + 0.5*rho*V^2.
+ */
+void convert_variables_T
+	(struct Multiarray_T* vars, ///< The container holding the data.
+	 const char type_i,         ///< The input variable type.
+	 const char type_o          ///< The output variable type.
+	)
 {
 	assert(type_i != type_o);
 	assert(vars->layout == 'C');

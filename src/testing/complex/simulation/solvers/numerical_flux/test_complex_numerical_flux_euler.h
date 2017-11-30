@@ -22,20 +22,20 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Numerical_Flux_Input_c;
 struct mutable_Numerical_Flux_c;
 
-/// \brief `complex` version of \ref compute_Numerical_Flux_euler_lax_friedrichs.
+/// \brief `complex` version of \ref compute_Numerical_Flux_T_euler_lax_friedrichs.
 void compute_Numerical_Flux_c_euler_lax_friedrichs
 	(const struct Numerical_Flux_Input_c* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_c* num_flux        ///< See brief.
 	);
 
-/// \brief `complex` version of \ref compute_Numerical_Flux_euler_roe_pike.
-void compute_Numerical_Flux_euler_roe_pike
+/// \brief `complex` version of \ref compute_Numerical_Flux_T_euler_roe_pike.
+void compute_Numerical_Flux_c_euler_roe_pike
 	(const struct Numerical_Flux_Input_c* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_c* num_flux        ///< See brief.
 	);
 
-/// \brief `complex` version of \ref compute_Numerical_Flux_euler_roe_pike_jacobian.
-void compute_Numerical_Flux_euler_roe_pike_jacobian
+/// \brief `complex` version of \ref compute_Numerical_Flux_T_euler_roe_pike_jacobian.
+void compute_Numerical_Flux_c_euler_roe_pike_jacobian
 	(const struct Numerical_Flux_Input_c* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_c* num_flux        ///< See brief.
 	);

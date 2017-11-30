@@ -47,7 +47,6 @@ set (EXEC test_integration_convergence)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
-message("exec: ${EXEC}")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dg/TEST_Advection_Peterson_TRI__ml0__p0" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml0__p0" "petsc_options_cg_ilu1") # Incomplete Cholesky was slower than LU.
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/TEST_Advection_Demkowicz_DPGII_LINE__ml0__p1" "petsc_options_cg_default")

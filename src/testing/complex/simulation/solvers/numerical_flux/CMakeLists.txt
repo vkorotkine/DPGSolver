@@ -6,6 +6,7 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 Numerical_Flux
+	 Test_Complex_General
 	 Test_Complex_Containers
 	)
 

@@ -22,13 +22,13 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Numerical_Flux_Input_c;
 struct mutable_Numerical_Flux_c;
 
-/// \brief `complex` version of \ref compute_Numerical_Flux_advection_upwind.
+/// \brief `complex` version of \ref compute_Numerical_Flux_T_advection_upwind.
 void compute_Numerical_Flux_c_advection_upwind
 	(const struct Numerical_Flux_Input_c* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_c* num_flux        ///< See brief.
 	);
 
-/// \brief `complex` version of \ref compute_Numerical_Flux_advection_upwind_jacobian.
+/// \brief `complex` version of \ref compute_Numerical_Flux_T_advection_upwind_jacobian.
 void compute_Numerical_Flux_c_advection_upwind_jacobian
 	(const struct Numerical_Flux_Input_c* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_c* num_flux        ///< See brief.

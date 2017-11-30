@@ -124,7 +124,7 @@ const struct Multiarray_Operator* constructor_operators_tp
 			&op->data[ind_op]->ops_tp,constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d})); // keep
 
 		// Sub-operators are always owned by sub-elements.
-		const_cast_bool(&op->data[ind_op]->ops_tp->owns_data,false);
+		const_cast_b(&op->data[ind_op]->ops_tp->owns_data,false);
 		for (int i = 0; i < d; ++i)
 			const_constructor_move_const_Matrix_d(&op->data[ind_op]->ops_tp->data[i],sub_op_info.sub_op_Md[i]);
 	}

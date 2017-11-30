@@ -13,8 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__flux_templates_h__INCLUDED
-#define DPG__flux_templates_h__INCLUDED
+#ifndef DPG__templates_flux_h__INCLUDED
+#define DPG__templates_flux_h__INCLUDED
 /** \file
  *  \brief Provides the macro definitions used for c-style templating related to the real flux functions.
  */
@@ -23,10 +23,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define Flux_Input_R   Flux_Input   ///< Real Flux_Input parameter.
 #define mutable_Flux_T mutable_Flux ///< mutable_Flux parameter.
 
-#define compute_Flux_advection_T          compute_Flux_advection          ///< Standard.
-#define compute_Flux_advection_jacobian_T compute_Flux_advection_jacobian ///< Standard.
+#define compute_Flux_T_advection          compute_Flux_advection          ///< Standard.
+#define compute_Flux_T_advection_jacobian compute_Flux_advection_jacobian ///< Standard.
 
-#define compute_Flux_euler_T          compute_Flux_euler          ///< Standard.
-#define compute_Flux_euler_jacobian_T compute_Flux_euler_jacobian ///< Standard.
+#define compute_Flux_T_euler          compute_Flux_euler          ///< Standard.
+#define compute_Flux_T_euler_jacobian compute_Flux_euler_jacobian ///< Standard.
 
-#endif // DPG__flux_templates_h__INCLUDED
+#endif // DPG__templates_flux_h__INCLUDED

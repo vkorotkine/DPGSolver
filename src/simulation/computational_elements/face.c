@@ -239,8 +239,8 @@ static struct Face* constructor_Face
 
 	const int ind_lf = face_mi->neigh_info[1].ind_lf;
 
-	const_cast_bool(&face->boundary,check_if_boundary_f(ind_lf,face->element->f_ve,face_mi->ve_inds,mesh_vert));
-	const_cast_bool(&face->curved,
+	const_cast_b(&face->boundary,check_if_boundary_f(ind_lf,face->element->f_ve,face_mi->ve_inds,mesh_vert));
+	const_cast_b(&face->curved,
 	                check_if_curved_f(ind_lf,sim->domain_type,face->element->f_ve,face_mi->ve_inds,mesh_vert));
 	const_cast_i(&face->bc,( ind_lf > BC_STEP_SC ? ind_lf : -1 ));
 

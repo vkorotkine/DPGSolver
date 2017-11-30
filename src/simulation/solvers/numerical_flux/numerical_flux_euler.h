@@ -22,27 +22,19 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Numerical_Flux_Input;
 struct mutable_Numerical_Flux;
 
-/** \brief Compute the numerical fluxes using the Lax-Friedrichs scheme.
- *  The implementation was copied from that of [Hesthaven et al.'s Nodal DG code][hest_lf].
- *
- *  <!-- References: -->
- *  [hest_lf]: https://github.com/tcew/nodal-dg/blob/master/Codes1.1/CFD2D/EulerLF2D.m
- */
+/// \brief `double` version of \ref compute_Numerical_Flux_T_euler_lax_friedrichs.
 void compute_Numerical_Flux_euler_lax_friedrichs
-	(const struct Numerical_Flux_Input* num_flux_i, ///< Defined for \ref compute_Numerical_Flux_fptr.
-	 struct mutable_Numerical_Flux* num_flux        ///< Defined for \ref compute_Numerical_Flux_fptr.
+	(const struct Numerical_Flux_Input* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux* num_flux        ///< See brief.
 	);
 
-/** \brief Compute the numerical fluxes using the Roe-Pike scheme.
- *  The implementation is based off of that explained in (Ch. 11.3, \cite Toro2009). */
+/// \brief `double` version of \ref compute_Numerical_Flux_T_euler_roe_pike.
 void compute_Numerical_Flux_euler_roe_pike
-	(const struct Numerical_Flux_Input* num_flux_i, ///< Defined for \ref compute_Numerical_Flux_fptr.
-	 struct mutable_Numerical_Flux* num_flux        ///< Defined for \ref compute_Numerical_Flux_fptr.
+	(const struct Numerical_Flux_Input* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux* num_flux        ///< See brief.
 	);
 
-/** \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes and Jacobians using the Roe-Pike
- *         scheme.
- *  See comments for \ref compute_Numerical_Flux_euler_roe_pike. */
+/// \brief `double` version of \ref compute_Numerical_Flux_T_euler_roe_pike_jacobian.
 void compute_Numerical_Flux_euler_roe_pike_jacobian
 	(const struct Numerical_Flux_Input* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux* num_flux        ///< See brief.

@@ -13,14 +13,14 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__solution_templates_c_h__INCLUDED
-#define DPG__solution_templates_c_h__INCLUDED
+#ifndef DPG__templates_const_cast_p_h__INCLUDED
+#define DPG__templates_const_cast_p_h__INCLUDED
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the complex solution functions.
- *
- *  See \ref solution_templates.h for description of parameters.
+ *  \brief Provides the macro definitions used for c-style templating related to the real const cast functions.
  */
 
-#define convert_variables_T convert_variables_c ///< Standard.
+#define const_cast_T   const_cast_ptrdiff   ///< Standard.
+#define const_cast_T_n const_cast_ptrdiff_n ///< Standard.
+#define const_cast_T1  const_cast_ptrdiff1  ///< Standard.
 
-#endif // DPG__solution_templates_c_h__INCLUDED
+#endif // DPG__templates_const_cast_p_h__INCLUDED

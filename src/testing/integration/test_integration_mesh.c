@@ -243,7 +243,7 @@ static void set_Mesh_Input
 {
 	const_cast_i(&mesh_input->d,d);
 	const_cast_i(&mesh_input->domain_type,domain_type);
-	const_cast_bool(&mesh_input->mesh_unrealistic,mesh_unrealistic);
+	const_cast_b(&mesh_input->mesh_unrealistic,mesh_unrealistic);
 
 	char* mesh_name_full = (char*) mesh_input->mesh_name_full;
 	strcpy(mesh_name_full,"../testing/integration/mesh/");

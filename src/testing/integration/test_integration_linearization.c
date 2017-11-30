@@ -55,7 +55,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 ///\{ \name Flag for whether PETSc Matrices should be output to files.
-#define OUTPUT_PETSC_MATRICES false
+#define OUTPUT_PETSC_MATRICES true
 ///\}
 
 /** \brief Function pointer to functions perturbing the solution to ensure that all terms in the linearization are
@@ -229,6 +229,7 @@ int main
 	destructor_Integration_Test_Info(int_test_info);
 
 	PetscFinalize();
+	OUTPUT_SUCCESS;
 }
 
 // Static functions ************************************************************************************************* //
@@ -357,10 +358,10 @@ static void output_petsc_matrices (const struct Solver_Storage_Implicit* ssi[2])
 {
 	PetscViewer viewer;
 
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output0.m",&viewer);
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output_analytical.m",&viewer);
 	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
 	MatView(ssi[0]->A,viewer);
-	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output1.m",&viewer);
+	PetscViewerASCIIOpen(PETSC_COMM_WORLD,"mat_output_cmplx_step.m",&viewer);
 	PetscViewerPushFormat(viewer,PETSC_VIEWER_ASCII_MATLAB);
 	MatView(ssi[1]->A,viewer);
 

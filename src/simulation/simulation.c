@@ -177,7 +177,7 @@ int compute_adapt_type (const int p_ref[2], const int ml[2])
 
 void set_ml_p_curr (const int ml, const int p, struct Simulation* sim)
 {
-	const_cast_i1(sim->ml_p_curr,(int[]){ml,p},2);
+	const_cast_i_n(sim->ml_p_curr,(int[]){ml,p},2);
 }
 
 // Static functions ************************************************************************************************* //
@@ -223,25 +223,25 @@ static void set_simulation_invalid (struct Simulation*const sim)
 	const_cast_c(sim->basis_sol,0);
 	const_cast_c(sim->geom_rep,0);
 
-	const_cast_i1(sim->p_ref,(int[]){P_INVALID,P_INVALID},2);
-	const_cast_i1(sim->p_s_v,(int[]){P_INVALID,P_INVALID},2);
-	const_cast_i1(sim->p_s_f,(int[]){P_INVALID,P_INVALID},2);
-	const_cast_i1(sim->p_sg_v,(int[]){P_INVALID,P_INVALID},2);
-	const_cast_i1(sim->p_sg_f,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i_n(sim->p_ref,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i_n(sim->p_s_v,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i_n(sim->p_s_f,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i_n(sim->p_sg_v,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i_n(sim->p_sg_f,(int[]){P_INVALID,P_INVALID},2);
 
 	const_cast_i(&sim->p_s_v_p,P_INVALID);
 	const_cast_i(&sim->p_s_f_p,P_INVALID);
 	const_cast_i(&sim->p_sg_v_p,P_INVALID);
 	const_cast_i(&sim->p_sg_f_p,P_INVALID);
-	const_cast_i1(sim->p_c_x,(int[]){P_INVALID,P_INVALID},2);
-	const_cast_i1(sim->p_c_p,(int[]){P_INVALID,P_INVALID},2);
-	const_cast_i1(sim->p_t_p,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i_n(sim->p_c_x,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i_n(sim->p_c_p,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i_n(sim->p_t_p,(int[]){P_INVALID,P_INVALID},2);
 
 	set_ml_p_curr(-1,-1,sim);
 
 	const_cast_i(&sim->method,-1);
 
-	const_cast_bool(&sim->collocated,false);
+	const_cast_b(&sim->collocated,false);
 }
 
 static void set_simulation_mpi (struct Simulation*const sim)

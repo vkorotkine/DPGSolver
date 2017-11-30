@@ -40,36 +40,28 @@ static struct Multiarray_c* constructor_move_Multiarray_c_dyn_extents
 
 /** \brief Same as \ref constructor_empty_Multiarray_c_dyn_extents but with data calloc'ed.
  *  \return Standard. */
-struct Multiarray_c* constructor_zero_Multiarray_c_dyn_extents
+static struct Multiarray_c* constructor_zero_Multiarray_c_dyn_extents
 	(const char layout,            ///< Defined in \ref Multiarray_d.
 	 const int order,              ///< Defined in \ref Multiarray_d.
 	 const ptrdiff_t*const extents ///< Defined in \ref Multiarray_d.
 	);
 
-/** \brief Copy constructor for a \ref Multiarray_c\* from a \ref Multiarray_c\*.
- *  \return Standard. */
-struct Multiarray_c* constructor_copy_Multiarray_c
-	(struct Multiarray_c* src ///< Source.
-	);
-
 /** \brief Copy constructor for a \ref Multiarray_c\* from a \ref Multiarray_d\*.
  *  \return Standard. */
-struct Multiarray_c* constructor_copy_Multiarray_c_Multiarray_d
+static struct Multiarray_c* constructor_copy_Multiarray_c_Multiarray_d
 	(struct Multiarray_d* src ///< Source.
 	);
 
 // Interface functions ********************************************************************************************** //
 
+#include "templates_type_dc.h"
+#include "templates_multiarray_c.h"
+#include "templates_multiarray_constructors_c.h"
+#include "multiarray_constructors_T.c"
+
 // Default constructors ********************************************************************************************* //
 
 // Empty constructors *********************************************************************************************** //
-
-struct Multiarray_c* constructor_empty_Multiarray_c_dyn_extents
-	(const char layout, const int order, const ptrdiff_t*const extents)
-{
-	double complex* data = malloc((size_t)compute_size(order,extents) * sizeof *data); // keep
-	return constructor_move_Multiarray_c_dyn_extents(layout,order,(ptrdiff_t*)extents,true,data);
-}
 
 // Zero constructors ************************************************************************************************ //
 
@@ -82,12 +74,6 @@ struct Multiarray_c* constructor_zero_Multiarray_c
 
 // Copy constructors ************************************************************************************************ //
 
-const struct const_Multiarray_c* constructor_copy_const_Multiarray_c
-	(const struct const_Multiarray_c* src)
-{
-	return (struct const_Multiarray_c*) constructor_copy_Multiarray_c((struct Multiarray_c*)src);
-}
-
 const struct const_Multiarray_c* constructor_copy_const_Multiarray_c_Multiarray_d
 	(const struct const_Multiarray_d* src)
 {
@@ -96,66 +82,21 @@ const struct const_Multiarray_c* constructor_copy_const_Multiarray_c_Multiarray_
 
 // Move constructors ************************************************************************************************ //
 
-struct Multiarray_c* constructor_move_Multiarray_c_c
-	(const char layout, const int order, const ptrdiff_t*const extents_i, const bool owns_data,
-	 double complex*const data)
-{
-	ptrdiff_t*const extents = allocate_and_set_extents(order,extents_i); // keep
-	return constructor_move_Multiarray_c_dyn_extents(layout,order,extents,owns_data,data);
-}
-
-const struct const_Multiarray_c* constructor_move_const_Multiarray_c_c
-	(const char layout, const int order, const ptrdiff_t*const extents_i, const bool owns_data,
-	 const double complex*const data)
-{
-	return (const struct const_Multiarray_c*)
-		constructor_move_Multiarray_c_c(layout,order,extents_i,owns_data,(double complex*)data);
-}
-
 // Special constructors ********************************************************************************************* //
 
 // Destructors ****************************************************************************************************** //
 
-void destructor_const_Multiarray_c (const struct const_Multiarray_c* a)
-{
-	destructor_Multiarray_c((struct Multiarray_c*)a);
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static struct Multiarray_c* constructor_move_Multiarray_c_dyn_extents
-	(const char layout, const int order, ptrdiff_t*const extents, const bool owns_data, double complex*const data)
-{
-	struct Multiarray_c* dest = calloc(1,sizeof *dest); // returned
-
-	dest->layout    = layout;
-	dest->order     = order;
-	dest->extents   = extents;
-	dest->owns_data = owns_data;
-	dest->data      = data;
-
-	return dest;
-}
-
-struct Multiarray_c* constructor_zero_Multiarray_c_dyn_extents
+static struct Multiarray_c* constructor_zero_Multiarray_c_dyn_extents
 	(const char layout, const int order, const ptrdiff_t*const extents)
 {
 	double complex* data = calloc((size_t)compute_size(order,extents) , sizeof *data); // keep
 	return constructor_move_Multiarray_c_dyn_extents(layout,order,(ptrdiff_t*)extents,true,data);
 }
 
-struct Multiarray_c* constructor_copy_Multiarray_c (struct Multiarray_c* src)
-{
-	const ptrdiff_t size = compute_size(src->order,src->extents);
-	double complex* data = malloc((size_t)size * sizeof *data); // moved
-	for (int i = 0; i < size; ++i)
-		data[i] = src->data[i];
-
-	return constructor_move_Multiarray_c_c(src->layout,src->order,src->extents,true,data);
-}
-
-struct Multiarray_c* constructor_copy_Multiarray_c_Multiarray_d (struct Multiarray_d* src)
+static struct Multiarray_c* constructor_copy_Multiarray_c_Multiarray_d (struct Multiarray_d* src)
 {
 	const ptrdiff_t size = compute_size(src->order,src->extents);
 	double complex* data = malloc((size_t)size * sizeof *data); // moved

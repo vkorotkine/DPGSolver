@@ -30,7 +30,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void compute_Flux_advection_T (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
+/// \brief Version of \ref compute_Flux_fptr computing the fluxes for the linear advection equation.
+void compute_Flux_T_advection
+	(const struct Flux_Input_T* flux_i, ///< See brief.
+	 struct mutable_Flux_T* flux        ///< See brief.
+	)
 {
 	struct Flux_Input_R* flux_i_r = (struct Flux_Input_R*) flux_i;
 
@@ -61,7 +65,11 @@ void compute_Flux_advection_T (const struct Flux_Input_T* flux_i, struct mutable
 	}
 }
 
-void compute_Flux_advection_jacobian_T (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
+/// \brief Version of \ref compute_Flux_fptr computing the fluxes and Jacobians for the linear advection equation.
+void compute_Flux_T_advection_jacobian
+	(const struct Flux_Input_T* flux_i, ///< See brief.
+	 struct mutable_Flux_T* flux        ///< See brief.
+	)
 {
 	struct Flux_Input_R* flux_i_r = (struct Flux_Input_R*) flux_i;
 

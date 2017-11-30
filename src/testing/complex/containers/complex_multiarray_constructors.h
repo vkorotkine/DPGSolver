@@ -54,7 +54,7 @@ struct Multiarray_c* constructor_zero_Multiarray_c
 
 // Copy constructors ************************************************************************************************ //
 
-/** \brief `const` version of \ref constructor_copy_Multiarray_c.
+/** \brief `complex` version of \ref constructor_copy_const_Multiarray_T.
  *  \return Standard. */
 const struct const_Multiarray_c* constructor_copy_const_Multiarray_c
 	(const struct const_Multiarray_c* src ///< See brief.

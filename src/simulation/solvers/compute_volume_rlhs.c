@@ -112,6 +112,7 @@ struct Flux_Ref* constructor_Flux_Ref_vol
 
 	// Compute the reference fluxes (and optionally their Jacobians) at the volume cubature nodes.
 	struct Flux_Ref* flux_r = constructor_Flux_Ref(s_vol->metrics_vc,flux);
+//print_const_Multiarray_d(flux_r->fr);
 //print_const_Multiarray_d(flux_r->dfr_ds);
 	destructor_Flux(flux);
 
@@ -158,7 +159,12 @@ struct Matrix_d* constructor_lhs_v_1
 		}
 
 		mm_d('N','N',1.0,0.0,(struct const_Matrix_d*)tw1_r,cv0_vs_vc->op_std,lhs_l);
-		set_block_Matrix_d(lhs,(struct const_Matrix_d*)lhs_l,eq*lhs_l->ext_0,vr*lhs_l->ext_1,'i');
+//printf("%d %d\n",vr,eq);
+//print_Matrix_d(lhs_l);
+
+/// \todo swap eq/vr.
+//		set_block_Matrix_d(lhs,(struct const_Matrix_d*)lhs_l,eq*lhs_l->ext_0,vr*lhs_l->ext_1,'i');
+		set_block_Matrix_d(lhs,(struct const_Matrix_d*)lhs_l,vr*lhs_l->ext_0,eq*lhs_l->ext_1,'i');
 	}}
 	destructor_Matrix_d(tw1_r);
 	destructor_Matrix_d(lhs_l);

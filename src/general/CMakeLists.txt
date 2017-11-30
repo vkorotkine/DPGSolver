@@ -9,5 +9,5 @@ set	(LIBS_DEPEND
 	 Jacobi_GSL
 	)
 
-add_library(General ${SOURCE})
+add_library(General STATIC ${SOURCE})
 target_link_libraries(General PRIVATE ${LIBS_DEPEND})

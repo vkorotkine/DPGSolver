@@ -24,8 +24,7 @@ struct Boundary_Value_c;
 struct Solver_Face;
 struct Simulation;
 
-/** \brief `complex` version of \ref constructor_Boundary_Value_euler_riemann.
- *  \return See brief. */
+/// \brief `complex` version of \ref constructor_Boundary_Value_T_euler_riemann.
 void constructor_Boundary_Value_c_euler_riemann
 	(struct Boundary_Value_c* bv,               ///< See brief.
 	 const struct Boundary_Value_Input_c* bv_i, ///< See brief.
@@ -33,8 +32,7 @@ void constructor_Boundary_Value_c_euler_riemann
 	 const struct Simulation* sim               ///< See brief.
 	);
 
-/** \brief `complex` version of \ref constructor_Boundary_Value_euler_slipwall.
- *  \return See brief. */
+/// \brief `complex` version of \ref constructor_Boundary_Value_T_euler_slipwall.
 void constructor_Boundary_Value_c_euler_slipwall
 	(struct Boundary_Value_c* bv,               ///< See brief.
 	 const struct Boundary_Value_Input_c* bv_i, ///< See brief.

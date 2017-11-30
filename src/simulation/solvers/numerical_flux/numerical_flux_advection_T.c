@@ -30,8 +30,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void compute_Numerical_Flux_advection_upwind_T
-	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
+/// \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes as the upwind values.
+void compute_Numerical_Flux_T_advection_upwind
+	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
+	)
 {
 	static bool need_input = true;
 	static struct Sol_Data__Advection sol_data;
@@ -64,8 +67,12 @@ void compute_Numerical_Flux_advection_upwind_T
 	}
 }
 
-void compute_Numerical_Flux_advection_upwind_jacobian_T
-	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
+/** \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes and Jacobians as the upwind
+ *         values. */
+void compute_Numerical_Flux_T_advection_upwind_jacobian
+	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
+	)
 {
 	static bool need_input = true;
 	static struct Sol_Data__Advection sol_data;

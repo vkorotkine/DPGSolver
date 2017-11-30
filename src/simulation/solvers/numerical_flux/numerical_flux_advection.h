@@ -22,16 +22,16 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Numerical_Flux_Input;
 struct mutable_Numerical_Flux;
 
-/// \brief Compute the numerical fluxes as the upwind values.
+/// \brief `double` version of \ref compute_Numerical_Flux_T_advection_upwind.
 void compute_Numerical_Flux_advection_upwind
-	(const struct Numerical_Flux_Input* num_flux_i, ///< Defined for \ref compute_Numerical_Flux_fptr.
-	 struct mutable_Numerical_Flux* num_flux        ///< Defined for \ref compute_Numerical_Flux_fptr.
+	(const struct Numerical_Flux_Input* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux* num_flux        ///< See brief.
 	);
 
-/// \brief Compute the numerical fluxes and Jacobians as the upwind values.
+/// \brief `double` version of \ref compute_Numerical_Flux_T_advection_upwind_jacobian.
 void compute_Numerical_Flux_advection_upwind_jacobian
-	(const struct Numerical_Flux_Input* num_flux_i, ///< Defined for \ref compute_Numerical_Flux_fptr.
-	 struct mutable_Numerical_Flux* num_flux        ///< Defined for \ref compute_Numerical_Flux_fptr.
+	(const struct Numerical_Flux_Input* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux* num_flux        ///< See brief.
 	);
 
 #endif // DPG__numerical_flux_advection_h__INCLUDED

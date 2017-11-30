@@ -22,16 +22,16 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Flux_Input;
 struct mutable_Flux;
 
-/// \brief Compute the fluxes for the linear advection equation.
+/// \brief `double` version of \ref compute_Flux_T_advection.
 void compute_Flux_advection
-	(const struct Flux_Input* flux_i, ///< \ref Flux_Input.
-	 struct mutable_Flux* flux        ///< \ref Flux.
+	(const struct Flux_Input* flux_i, ///< See brief.
+	 struct mutable_Flux* flux        ///< See brief.
 	);
 
-/// \brief Compute the fluxes (and optionally the flux Jacobians) for the linear advection equation.
+/// \brief `double` version of \ref compute_Flux_T_advection_jacobian.
 void compute_Flux_advection_jacobian
-	(const struct Flux_Input* flux_i, ///< \ref Flux_Input.
-	 struct mutable_Flux* flux        ///< \ref Flux.
+	(const struct Flux_Input* flux_i, ///< See brief.
+	 struct mutable_Flux* flux        ///< See brief.
 	);
 
 #endif // DPG__flux_advection_h__INCLUDED

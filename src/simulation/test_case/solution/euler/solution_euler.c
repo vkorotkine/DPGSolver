@@ -49,8 +49,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-#include "templates_double.h"
-#include "solution_templates.h"
+#include "templates_type_d.h"
+
+#include "templates_multiarray_d.h"
+#include "templates_solution.h"
+
 #include "solution_euler_T.c"
 
 void set_function_pointers_solution_euler (struct Test_Case* test_case, const struct Simulation*const sim)
@@ -97,83 +100,6 @@ void set_function_pointers_solution_euler (struct Test_Case* test_case, const st
 
 	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_s_fcl_interp;
 }
-
-#if 0
-void convert_variables (struct Multiarray_d* vars, const char type_i, const char type_o)
-{
-	assert(type_i != type_o);
-	assert(vars->layout == 'C');
-
-	const ptrdiff_t ext_0 = vars->extents[0];
-
-	assert(vars->extents[1] == NVAR);
-
-	switch (type_i) {
-	case 'p': {
-		double* rho = get_col_Multiarray_d(0,vars),
-		      * p   = get_col_Multiarray_d(NVAR-1,vars),
-		      * E   = p;
-
-		double* uvw[DMAX] = {            get_col_Multiarray_d(1,vars),
-		                      (DIM > 1 ? get_col_Multiarray_d(2,vars) : NULL),
-		                      (DIM > 2 ? get_col_Multiarray_d(3,vars) : NULL), };
-
-		double* rhouvw[DMAX] = { uvw[0], uvw[1], uvw[2], };
-		switch (type_o) {
-		case 'c':
-			for (ptrdiff_t i = 0; i < ext_0; ++i) {
-				double V2 = 0.0;
-				for (int d = 0; d < DIM; ++d) {
-					V2 += uvw[d][i]*uvw[d][i];
-					rhouvw[d][i] = rho[i]*uvw[d][i];
-				}
-				E[i] = p[i]/GM1 + 0.5*rho[i]*V2;
-			}
-			break;
-		case 'p':
-			return;
-			break;
-		default:
-			EXIT_ERROR("Unsupported: %c\n",type_o);
-			break;
-		}
-		break;
-	} case 'c': {
-		double* rho = get_col_Multiarray_d(0,vars),
-		      * p   = get_col_Multiarray_d(NVAR-1,vars),
-		      * E   = p;
-
-		double* uvw[DMAX] = {            get_col_Multiarray_d(1,vars),
-		                      (DIM > 1 ? get_col_Multiarray_d(2,vars) : NULL),
-		                      (DIM > 2 ? get_col_Multiarray_d(3,vars) : NULL), };
-
-		double* rhouvw[DMAX] = { uvw[0], uvw[1], uvw[2], };
-		switch (type_o) {
-		case 'p':
-			for (ptrdiff_t i = 0; i < ext_0; ++i) {
-				const double rho_inv = 1.0/rho[i];
-				double rho2V2 = 0.0;
-				for (int d = 0; d < DIM; ++d) {
-					rho2V2 += rhouvw[d][i]*rhouvw[d][i];
-					uvw[d][i] = rhouvw[d][i]*rho_inv;
-				}
-				p[i] = GM1*(E[i]-0.5*rho2V2*rho_inv);
-			}
-			break;
-		case 'c':
-			return;
-			break;
-		default:
-			EXIT_ERROR("Unsupported: %c\n",type_o);
-			break;
-		}
-		break;
-	} default:
-		EXIT_ERROR("Unsupported: %c\n",type_i);
-		break;
-	}
-}
-#endif
 
 void compute_entropy (struct Multiarray_d* s, const struct const_Multiarray_d* vars, const char var_type)
 {

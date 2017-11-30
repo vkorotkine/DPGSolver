@@ -13,22 +13,22 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__boundary_templates_c_h__INCLUDED
-#define DPG__boundary_templates_c_h__INCLUDED
+#ifndef DPG__templates_boundary_c_h__INCLUDED
+#define DPG__templates_boundary_c_h__INCLUDED
 /** \file
  *  \brief Provides the macro definitions used for c-style templating related to the complex boundary functions.
  *
- *  See \ref boundary_templates.h for description of parameters.
+ *  See \ref templates_boundary.h for description of parameters.
  */
 
 #define Boundary_Value_T Boundary_Value_c             ///< See brief.
 #define Boundary_Value_Input_T Boundary_Value_Input_c ///< See brief.
 #define Boundary_Value_Input_R Boundary_Value_Input   ///< See brief.
 
-#define constructor_Boundary_Value_advection_inflow_T constructor_Boundary_Value_c_advection_inflow   ///< See brief.
-#define constructor_Boundary_Value_advection_outflow_T constructor_Boundary_Value_c_advection_outflow ///< See brief.
+#define constructor_Boundary_Value_T_advection_inflow constructor_Boundary_Value_c_advection_inflow   ///< See brief.
+#define constructor_Boundary_Value_T_advection_outflow constructor_Boundary_Value_c_advection_outflow ///< See brief.
 
-#define constructor_Boundary_Value_euler_riemann_T constructor_Boundary_Value_c_euler_riemann   ///< See brief.
-#define constructor_Boundary_Value_euler_slipwall_T constructor_Boundary_Value_c_euler_slipwall ///< See brief.
+#define constructor_Boundary_Value_T_euler_riemann constructor_Boundary_Value_c_euler_riemann   ///< See brief.
+#define constructor_Boundary_Value_T_euler_slipwall constructor_Boundary_Value_c_euler_slipwall ///< See brief.
 
-#endif // DPG__boundary_templates_c_h__INCLUDED
+#endif // DPG__templates_boundary_c_h__INCLUDED

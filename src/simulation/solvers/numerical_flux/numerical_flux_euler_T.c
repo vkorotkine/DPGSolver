@@ -40,8 +40,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void compute_Numerical_Flux_euler_lax_friedrichs_T
-	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
+/** \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes using the Lax-Friedrichs method.
+ *  The implementation was copied from that of [Hesthaven et al.'s Nodal DG code][hest_lf].
+ *
+ *  <!-- References: -->
+ *  [hest_lf]: https://github.com/tcew/nodal-dg/blob/master/Codes1.1/CFD2D/EulerLF2D.m
+ */
+void compute_Numerical_Flux_T_euler_lax_friedrichs
+	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
+	)
 {
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
@@ -63,11 +71,11 @@ void compute_Numerical_Flux_euler_lax_friedrichs_T
 
 	double const *n_ptr = nL;
 
-	struct Flux_Input* flux_i = malloc(sizeof *flux_i); // free
-	flux_i->s = constructor_move_const_Multiarray_d_d('C',2,(ptrdiff_t[]){1,NEQ},false,NULL); // destructed
+	struct Flux_Input_T* flux_i = malloc(sizeof *flux_i); // free
+	flux_i->s = constructor_move_const_Multiarray_T_T('C',2,(ptrdiff_t[]){1,NEQ},false,NULL); // destructed
 
-	struct mutable_Flux flux;
-	flux.f = constructor_move_Multiarray_d_d('C',3,(ptrdiff_t[]){1,DIM,NEQ},false,NULL); // destructed
+	struct mutable_Flux_T flux;
+	flux.f = constructor_move_Multiarray_T_T('C',3,(ptrdiff_t[]){1,DIM,NEQ},false,NULL); // destructed
 
 	Type *nF_ptr[NEQ];
 	for (int eq = 0; eq < NEQ; eq++)
@@ -132,9 +140,9 @@ void compute_Numerical_Flux_euler_lax_friedrichs_T
 
 			Type WLn[] = {rhoL, rhouL, rhovL, rhowL, EL},
 			     FLn[NEQ*DIM];
-			const_cast_d1(&flux_i->s->data,WLn);
+			const_cast_T1(&flux_i->s->data,WLn);
 			flux.f->data   = FLn;
-			compute_Flux_euler(flux_i,&flux);
+			compute_Flux_T_euler(flux_i,&flux);
 
 			Type const *FL1_ptr = FLn,
 			           *FL2_ptr = FL1_ptr+1,
@@ -142,9 +150,9 @@ void compute_Numerical_Flux_euler_lax_friedrichs_T
 
 			Type WRn[] = {rhoR, rhouR, rhovR, rhowR, ER},
 			     FRn[NEQ*DIM];
-			const_cast_d1(&flux_i->s->data,WRn);
+			const_cast_T1(&flux_i->s->data,WRn);
 			flux.f->data   = FRn;
-			compute_Flux_euler(flux_i,&flux);
+			compute_Flux_T_euler(flux_i,&flux);
 
 			Type const *FR1_ptr = FRn,
 			           *FR2_ptr = FR1_ptr+1,
@@ -214,18 +222,18 @@ void compute_Numerical_Flux_euler_lax_friedrichs_T
 
 			Type WLn[] = {rhoL, rhouL, rhovL, EL},
 			     FLn[NEQ*DIM];
-			const_cast_d1(&flux_i->s->data,WLn);
+			const_cast_T1(&flux_i->s->data,WLn);
 			flux.f->data   = FLn;
-			compute_Flux_euler(flux_i,&flux);
+			compute_Flux_T_euler(flux_i,&flux);
 
 			Type const *FL1_ptr = FLn,
 			           *FL2_ptr = FL1_ptr+1;
 
 			Type WRn[] = {rhoR, rhouR, rhovR, ER},
 			     FRn[NEQ*DIM];
-			const_cast_d1(&flux_i->s->data,WRn);
+			const_cast_T1(&flux_i->s->data,WRn);
 			flux.f->data   = FRn;
-			compute_Flux_euler(flux_i,&flux);
+			compute_Flux_T_euler(flux_i,&flux);
 
 			Type const *FR1_ptr = FRn,
 			           *FR2_ptr = FR1_ptr+1;
@@ -282,17 +290,17 @@ void compute_Numerical_Flux_euler_lax_friedrichs_T
 
 			Type WLn[] = {rhoL, rhouL, EL},
 			     FLn[NEQ*DIM];
-			const_cast_d1(&flux_i->s->data,WLn);
+			const_cast_T1(&flux_i->s->data,WLn);
 			flux.f->data   = FLn;
-			compute_Flux_euler(flux_i,&flux);
+			compute_Flux_T_euler(flux_i,&flux);
 
 			Type const *FL1_ptr = FLn;
 
 			Type WRn[] = {rhoR, rhouR, ER},
 			     FRn[NEQ*DIM];
-			const_cast_d1(&flux_i->s->data,WRn);
+			const_cast_T1(&flux_i->s->data,WRn);
 			flux.f->data   = FRn;
-			compute_Flux_euler(flux_i,&flux);
+			compute_Flux_T_euler(flux_i,&flux);
 
 			Type const *FR1_ptr = FRn;
 
@@ -304,19 +312,24 @@ void compute_Numerical_Flux_euler_lax_friedrichs_T
 			}
 		}
 	}
-	destructor_const_Multiarray_d(flux_i->s);
-	destructor_Multiarray_d(flux.f);
+	destructor_const_Multiarray_T(flux_i->s);
+	destructor_Multiarray_T(flux.f);
 	free(flux_i);
 }
 
-void compute_Numerical_Flux_euler_roe_pike
-	(const struct Numerical_Flux_Input* num_flux_i, struct mutable_Numerical_Flux* num_flux)
+/** \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes using the Roe-Pike method.
+ *  The implementation is based off of that explained in (Ch. 11.3, \cite Toro2009). */
+void compute_Numerical_Flux_T_euler_roe_pike
+	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
+	)
 {
 	/// The simple entropy fix is taken from (eq. (35), \cite Qu2015).
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->bv_l.normals->data;
+	struct Boundary_Value_Input_R* bv_l_r = (struct Boundary_Value_Input_R*) &num_flux_i->bv_l;
+	double const *const nL = bv_l_r->normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
@@ -400,9 +413,9 @@ void compute_Numerical_Flux_euler_roe_pike
 			           c   = sqrt_T(c2);
 
 			// Compute eigenvalues (with entropy fix)
-			Type const l1   = GSL_MIN(fabs(Vn-c),fabs(VnL-c)),
-			           l234 = fabs(Vn),
-			           l5   = GSL_MAX(fabs(Vn+c),fabs(VnR+c));
+			Type const l1   = GSL_MIN(abs_T(Vn-c),abs_T(VnL-c)),
+			           l234 = abs_T(Vn),
+			           l5   = GSL_MAX(abs_T(Vn+c),abs_T(VnR+c));
 
 			Type const drho  = rhoR-rhoL,
 			           drhou = rhoR*uR-rhoL*uL,
@@ -498,9 +511,9 @@ void compute_Numerical_Flux_euler_roe_pike
 			           c   = sqrt_T(c2);
 
 			// Compute eigenvalues (with entropy fix)
-			Type const l1   = GSL_MIN(fabs(Vn-c),fabs(VnL-c)),
-			           l234 = fabs(Vn),
-			           l5   = GSL_MAX(fabs(Vn+c),fabs(VnR+c));
+			Type const l1   = GSL_MIN(abs_T(Vn-c),abs_T(VnL-c)),
+			           l234 = abs_T(Vn),
+			           l5   = GSL_MAX(abs_T(Vn+c),abs_T(VnR+c));
 
 			Type const drho  = rhoR-rhoL,
 			           drhou = rhoR*uR-rhoL*uL,
@@ -582,9 +595,9 @@ void compute_Numerical_Flux_euler_roe_pike
 			           c   = sqrt_T(c2);
 
 			// Compute eigenvalues (with entropy fix)
-			Type const l1   = GSL_MIN(fabs(Vn-c),fabs(VnL-c)),
-			           l234 = fabs(Vn),
-			           l5   = GSL_MAX(fabs(Vn+c),fabs(VnR+c));
+			Type const l1   = GSL_MIN(abs_T(Vn-c),abs_T(VnL-c)),
+			           l234 = abs_T(Vn),
+			           l5   = GSL_MAX(abs_T(Vn+c),abs_T(VnR+c));
 
 			Type const drho  = rhoR-rhoL,
 			           drhou = rhoR*uR-rhoL*uL,
@@ -620,14 +633,20 @@ void compute_Numerical_Flux_euler_roe_pike
 	}
 }
 
-void compute_Numerical_Flux_euler_roe_pike_jacobian
-	(const struct Numerical_Flux_Input* num_flux_i, struct mutable_Numerical_Flux* num_flux)
+/** \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes and Jacobians using the Roe-Pike
+ *         method.
+ *  See comments for \ref compute_Numerical_Flux_euler_roe_pike. */
+void compute_Numerical_Flux_T_euler_roe_pike_jacobian
+	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
+	)
 {
 	/// The simple entropy fix is taken from (eq. (35), \cite Qu2015).
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->bv_l.normals->data;
+	struct Boundary_Value_Input_R* bv_l_r = (struct Boundary_Value_Input_R*) &num_flux_i->bv_l;
+	double const *const nL = bv_l_r->normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
@@ -737,7 +756,7 @@ void compute_Numerical_Flux_euler_roe_pike_jacobian
 			Type const l1L     = VnL-c;
 			Type       l1      = Vn-c,
 			           sign_l1 = 1.0;
-			if (fabs(l1L) < fabs(l1)) {
+			if (abs_T(l1L) < abs_T(l1)) {
 				case_l1 = 0;
 				if (real_T(l1L) < 0.0)
 					sign_l1 = -1.0;
@@ -753,7 +772,7 @@ void compute_Numerical_Flux_euler_roe_pike_jacobian
 			Type const l5R     = VnR+c;
 			Type       l5      = Vn+c,
 			           sign_l5 = 1.0;
-			if (fabs(l5R) > fabs(l5)) {
+			if (abs_T(l5R) > abs_T(l5)) {
 				case_l5 = 0;
 				if (real_T(l5R) < 0.0)
 					sign_l5 = -1.0;
@@ -1027,7 +1046,7 @@ void compute_Numerical_Flux_euler_roe_pike_jacobian
 			Type const l1L     = VnL-c;
 			Type       l1      = Vn-c,
 			           sign_l1 = 1.0;
-			if (fabs(l1L) < fabs(l1)) {
+			if (abs_T(l1L) < abs_T(l1)) {
 				case_l1 = 0;
 				if (real_T(l1L) < 0.0)
 					sign_l1 = -1.0;
@@ -1043,7 +1062,7 @@ void compute_Numerical_Flux_euler_roe_pike_jacobian
 			Type const l5R     = VnR+c;
 			Type       l5      = Vn+c,
 			           sign_l5 = 1.0;
-			if (fabs(l5R) > fabs(l5)) {
+			if (abs_T(l5R) > abs_T(l5)) {
 				case_l5 = 0;
 				if (real_T(l5R) < 0.0)
 					sign_l5 = -1.0;
@@ -1291,7 +1310,7 @@ void compute_Numerical_Flux_euler_roe_pike_jacobian
 			Type const l1L     = VnL-c;
 			Type       l1      = Vn-c,
 			           sign_l1 = 1.0;
-			if (fabs(l1L) < fabs(l1)) {
+			if (abs_T(l1L) < abs_T(l1)) {
 				case_l1 = 0;
 				if (real_T(l1L) < 0.0)
 					sign_l1 = -1.0;
@@ -1307,7 +1326,7 @@ void compute_Numerical_Flux_euler_roe_pike_jacobian
 			Type const l5R     = VnR+c;
 			Type       l5      = Vn+c,
 			           sign_l5 = 1.0;
-			if (fabs(l5R) > fabs(l5)) {
+			if (abs_T(l5R) > abs_T(l5)) {
 				case_l5 = 0;
 				if (real_T(l5R) < 0.0)
 					sign_l5 = -1.0;

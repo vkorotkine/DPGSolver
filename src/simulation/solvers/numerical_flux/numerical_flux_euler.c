@@ -19,9 +19,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-#include "templates_double.h"
-#include "boundary_templates.h"
-#include "numerical_flux_templates.h"
+#include "templates_type_d.h"
+
+#include "templates_boundary.h"
+#include "templates_const_cast_d.h"
+#include "templates_flux.h"
+#include "templates_math_d.h"
+#include "templates_multiarray_d.h"
+#include "templates_numerical_flux.h"
+
 #include "numerical_flux_euler_T.c"
 
 // Static functions ************************************************************************************************* //

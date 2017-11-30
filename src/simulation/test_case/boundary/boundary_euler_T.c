@@ -29,9 +29,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "boundary.h"
 
 #include "simulation.h"
-#ifdef TYPE_REAL
+#if TYPE_RC == TYPE_REAL
 	#include "solution_euler.h"
-#elif TYPE_COMPLEX
+#elif TYPE_RC == TYPE_COMPLEX
 	#include "test_complex_solution_euler.h"
 #endif
 #include "test_case.h"
@@ -83,9 +83,15 @@ static void compute_opposite_normal_uvw
 
 // Interface functions ********************************************************************************************** //
 
-void constructor_Boundary_Value_euler_riemann_T
-	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face* face,
-	 const struct Simulation* sim)
+/** \brief Version of \ref constructor_Boundary_Value_fptr computing members using the Riemann invariant values.
+ *  Reference: (Section 2.2, \cite Carlson2011); note the typo in eq. (14).
+ */
+void constructor_Boundary_Value_T_euler_riemann
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face* face,            ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
+	)
 {
 	UNUSED(face);
 	struct Boundary_Value_Input_R* bv_i_r = (struct Boundary_Value_Input_R*) bv_i;
@@ -479,9 +485,16 @@ void constructor_Boundary_Value_euler_riemann_T
 	assert(c_m[2] == false);
 }
 
-void constructor_Boundary_Value_euler_slipwall_T
-	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face* face,
-	 const struct Simulation* sim)
+/** \brief Version of \ref constructor_Boundary_Value_fptr computing members using the slip wall values.
+ *  The slip wall boundary condition sets the ghost state density and total energy equal to the internal values and uses
+ *  the opposite normal velocity.
+ */
+void constructor_Boundary_Value_T_euler_slipwall
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face* face,            ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
+	)
 {
 	UNUSED(face);
 	UNUSED(sim);

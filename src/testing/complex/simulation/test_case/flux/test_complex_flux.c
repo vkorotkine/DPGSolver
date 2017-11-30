@@ -155,7 +155,7 @@ static void set_derived_Flux_Input_fptrs (struct Flux_Input_c* flux_i)
 	}
 
 	// compute_Flux_2nd
-// will also need to be in the `method` switch statement.
+// will also need to be in the `has_complex_J` switch statement.
 	if (flux_i_b->compute_Flux_2nd == NULL)
 		flux_i->compute_Flux_2nd = NULL;
 	else

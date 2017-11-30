@@ -44,14 +44,13 @@ void increment_counter (const int order, const ptrdiff_t*const extents, ptrdiff_
 	const ptrdiff_t*const extents_tail = &extents[2];
 
 	for (int i = 0; i < order-2; ++i) {
+		++counter[i];
 		if (counter[i] == extents_tail[i]) {
 			counter[i] = 0;
 			continue;
 		}
-		++counter[i];
 		return;
 	}
-	EXIT_ERROR("Counter greater than extents.");
 }
 
 void print_Multiarray_Vector_i (const struct Multiarray_Vector_i*const a)

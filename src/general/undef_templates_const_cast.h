@@ -13,12 +13,10 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__solution_templates_h__INCLUDED
-#define DPG__solution_templates_h__INCLUDED
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the real solution functions.
+ *  \brief Undefine macro definitions for c-style templated relating to const cast functions.
  */
 
-#define convert_variables_T convert_variables ///< Standard.
-
-#endif // DPG__solution_templates_h__INCLUDED
+#undef const_cast_T
+#undef const_cast_T_n
+#undef const_cast_T1

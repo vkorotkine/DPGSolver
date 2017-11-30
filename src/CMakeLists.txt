@@ -21,6 +21,7 @@ include_directories(
 	intrusive
 	processing/post
 	simulation
+	templates
 	simulation/computational_elements
 	simulation/geometry
 	simulation/mesh

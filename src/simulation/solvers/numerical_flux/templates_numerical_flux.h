@@ -13,8 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__numerical_flux_templates_h__INCLUDED
-#define DPG__numerical_flux_templates_h__INCLUDED
+#ifndef DPG__templates_numerical_flux_h__INCLUDED
+#define DPG__templates_numerical_flux_h__INCLUDED
 /** \file
  *  \brief Provides the macro definitions used for c-style templating related to the real numerical flux functions.
  */
@@ -23,12 +23,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define Numerical_Flux_Input_R   Numerical_Flux_Input   ///< Real Numerical_Flux_Input parameter.
 #define mutable_Numerical_Flux_T mutable_Numerical_Flux ///< mutable_Numerical_Flux parameter.
 
-#define compute_Numerical_Flux_advection_upwind_T          compute_Numerical_Flux_advection_upwind          ///< Standard.
-#define compute_Numerical_Flux_advection_upwind_jacobian_T compute_Numerical_Flux_advection_upwind_jacobian ///< Standard.
+#define compute_Numerical_Flux_T_advection_upwind          compute_Numerical_Flux_advection_upwind          ///< Standard.
+#define compute_Numerical_Flux_T_advection_upwind_jacobian compute_Numerical_Flux_advection_upwind_jacobian ///< Standard.
 
-#define compute_Numerical_Flux_euler_lax_friedrichs_T          compute_Numerical_Flux_euler_lax_friedrichs          ///< Standard.
-#define compute_Numerical_Flux_euler_lax_friedrichs_jacobian_T compute_Numerical_Flux_euler_lax_friedrichs_jacobian ///< Standard.
-#define compute_Numerical_Flux_euler_roe_pike_T                compute_Numerical_Flux_euler_roe_pike                ///< Standard.
-#define compute_Numerical_Flux_euler_roe_pike_jacobian_T       compute_Numerical_Flux_euler_roe_pike_jacobian       ///< Standard.
+#define compute_Numerical_Flux_T_euler_lax_friedrichs          compute_Numerical_Flux_euler_lax_friedrichs          ///< Standard.
+#define compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian compute_Numerical_Flux_euler_lax_friedrichs_jacobian ///< Standard.
+#define compute_Numerical_Flux_T_euler_roe_pike                compute_Numerical_Flux_euler_roe_pike                ///< Standard.
+#define compute_Numerical_Flux_T_euler_roe_pike_jacobian       compute_Numerical_Flux_euler_roe_pike_jacobian       ///< Standard.
 
-#endif // DPG__numerical_flux_templates_h__INCLUDED
+#endif // DPG__templates_numerical_flux_h__INCLUDED

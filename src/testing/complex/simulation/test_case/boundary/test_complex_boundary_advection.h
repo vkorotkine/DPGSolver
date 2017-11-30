@@ -24,8 +24,7 @@ struct Boundary_Value_c;
 struct Solver_Face;
 struct Simulation;
 
-/** \brief `complex` version of \ref constructor_Boundary_Value_advection_inflow.
- *  \return See brief. */
+/// \brief `complex` version of \ref constructor_Boundary_Value_T_advection_inflow.
 void constructor_Boundary_Value_c_advection_inflow
 	(struct Boundary_Value_c* bv,               ///< See brief.
 	 const struct Boundary_Value_Input_c* bv_i, ///< See brief.
@@ -33,8 +32,7 @@ void constructor_Boundary_Value_c_advection_inflow
 	 const struct Simulation* sim               ///< See brief.
 	);
 
-/** \brief `complex` version of \ref constructor_Boundary_Value_advection_outflow.
- *  \return See brief. */
+/// \brief `complex` version of \ref constructor_Boundary_Value_T_advection_outflow.
 void constructor_Boundary_Value_c_advection_outflow
 	(struct Boundary_Value_c* bv,               ///< See brief.
 	 const struct Boundary_Value_Input_c* bv_i, ///< See brief.

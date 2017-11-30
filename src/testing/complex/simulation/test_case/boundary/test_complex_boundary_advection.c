@@ -22,8 +22,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-#include "templates_double_complex.h"
-#include "boundary_templates_c.h"
+#include "templates_type_dc.h"
+
+#include "templates_boundary_c.h"
+#include "templates_multiarray_c.h"
+
 #include "boundary_advection_T.c"
 
 // Static functions ************************************************************************************************* //

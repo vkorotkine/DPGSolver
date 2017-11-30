@@ -36,3 +36,14 @@ int const*const p = NULL; // avoid
   properly handled by CMake for compiling (i.e. CMake *will* search for implicit includes).
 - This [discussion](http://stackoverflow.com/questions/1804486/should-i-use-include-in-headers)
   motivates these recommendations.
+
+### Templating
+
+Several functions in the code are templated such that they can operate on both real and complex data types. In this
+case, the various function definitions are performed at compile time by including the templated function `.c` file in
+the appropriate non-templated `.c` file *after* including appropriate header files providing the necessary macro
+expansions. In the interest of readability, the individual function declarations are however be repeated for each of the
+template types in the corresponding header files.
+
+Relevant comments for documentation should be associated with the templated function and all specializations should
+refer to the general function.

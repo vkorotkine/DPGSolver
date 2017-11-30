@@ -40,4 +40,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define UNUSED(x) (void)(x)
 ///\}
 
+///\{ \name Macro to output on successful termination.
+#define OUTPUT_SUCCESS ({printf("Successful termination.\n");})
+///\}
+
 #endif // DPG__macros_h__INCLUDED

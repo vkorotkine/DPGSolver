@@ -22,56 +22,13 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Flux_Input;
 struct mutable_Flux;
 
-/** \brief Compute the fluxes for the Euler equations.
- *
- *  Euler fluxes (eq, dim):
- *  \f[
- *  f =
- *  \begin{bmatrix}
- *  	\rho u & \rho v & \rho w \\
- *  	\rho u^2 + p & \rho uv & \rho uw \\
- *  	\rho vu & \rho v^2 + p & \rho vw \\
- *  	\rho wu & \rho wv & \rho w^2 + p \\
- *  	(E+p)u & (E+p)v & (E+p)w \\
- *  \end{bmatrix}
- *  \f]
- */
+/// \brief `double` version of \ref compute_Flux_T_euler.
 void compute_Flux_euler
 	(const struct Flux_Input* flux_i, ///< \ref Flux_Input.
 	 struct mutable_Flux* flux        ///< \ref Flux.
 	);
 
-/** \brief Compute the fluxes (and optionally the flux Jacobians) for the Euler equations.
- *
- *  Euler flux Jacobians (eq, var, dim):
- *  \f[
- *  \frac{df}{ds} =
- *  \begin{bmatrix}
- *  \begin{bmatrix}
- *  	 0                          &  1               &  0               &  0               & 0        \\
- *  	-u^2+\frac{\gamma-1}{2}V^2  & -(\gamma-3)u     & -(\gamma-1)v     & -(\gamma-1)w     & \gamma-1 \\
- *  	-uv                         &  v               &  u               &  0               & 0        \\
- *  	-uw                         &  w               &  0               &  u               & 0        \\
- *  	 u(\frac{\gamma-1}{2}V^2-H) &  H-(\gamma-1)u^2 & -(\gamma-1)uv    & -(\gamma-1)uw    & \gamma u \\
- *  \end{bmatrix},
- *  \begin{bmatrix}
- *  	 0                          &  0               &  1               &  0               & 0        \\
- *  	-uv                         &  v               &  u               &  0               & 0        \\
- *  	-v^2+\frac{\gamma-1}{2}V^2  & -(\gamma-1)u     & -(\gamma-3)v     & -(\gamma-1)w     & \gamma-1 \\
- *  	-vw                         &  0               &  w               &  v               & 0        \\
- *  	 v(\frac{\gamma-1}{2}V^2-H) & -(\gamma-1)uv    &  H-(\gamma-1)v^2 & -(\gamma-1)vw    & \gamma v \\
- *  \end{bmatrix},
- *  \begin{bmatrix}
- *  	 0                          &  0               &  0               &  1               & 0        \\
- *  	-uw                         &  w               &  0               &  u               & 0        \\
- *  	-vw                         &  0               &  w               &  v               & 0        \\
- *  	-w^2+\frac{\gamma-1}{2}V^2  & -(\gamma-1)u     & -(\gamma-1)v     & -(\gamma-3)w     & \gamma-1 \\
- *  	 w(\frac{\gamma-1}{2}V^2-H) & -(\gamma-1)uw    & -(\gamma-1)vw    &  H-(\gamma-1)w^2 & \gamma w \\
- *  \end{bmatrix},
- *  \end{bmatrix}
- *  \f]
- *
- */
+/// \brief `double` version of \ref compute_Flux_T_euler_jacobian.
 void compute_Flux_euler_jacobian
 	(const struct Flux_Input* flux_i, ///< \ref Flux_Input.
 	 struct mutable_Flux* flux        ///< \ref Flux.

@@ -16,90 +16,61 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__const_cast_h__INCLUDED
 #define DPG__const_cast_h__INCLUDED
 /** \file
- *  \brief Provides functions for casting to const lvalues for standard datatypes.
+ *  \brief Provides functions for casting to `const` lvalues for standard datatypes.
  *
- *  Variables with standard datatypes with higher levels of dereferencing than 0 should be placed in Multiarray
- *  containers. Const cast functions are thus not provided for higher levels of dereferencing.
- *
- *  The function naming convention is: const_cast_{0}
- *	- {0} : Datatype.
- *		- Options: i, ptrdiff, bool, const_Element.
+ *  \note These functions should only be used for dynamically allocated `const` variables.
  */
 
 #include <stddef.h>
 #include <stdbool.h>
 
-// Standard data types ********************************************************************************************** //
-
-/// \brief Cast from `int` to `const int`.
-void const_cast_i
-	(const int* dest, ///< Destination.
-	 const int src    ///< Source.
-	);
-
-/// \brief Cast from `int*` to `const int*`.
-void const_cast_i1
-	(const int* dest, ///< Destination.
-	 const int* src,  ///< Source.
-	 const int n_src  ///< Number of entries in `src`.
-	);
-
-/// \brief Cast from `ptrdiff_t` to `const ptrdiff_t`.
-void const_cast_ptrdiff
-	(const ptrdiff_t* dest, ///< Destination.
-	 const ptrdiff_t src    ///< Source.
-	);
-
-/// \brief To be deprecated version of \ref const_cast_bool.
-/// \todo \deprecated Remove this.
-void const_cast_bool
-	(const bool* dest, ///< Destination.
-	 const bool src    ///< Source.
-	);
-
-/// \brief Cast from `bool` to `const bool`.
-void const_cast_b
-	(const bool* dest, ///< Destination.
-	 const bool src    ///< Source.
-	);
-
-/// \brief Cast from `bool*` to `const bool*`.
-void const_cast_b1
-	(const bool* dest, ///< Destination.
-	 const bool* src,  ///< Source.
-	 const int n_src   ///< Number of entries in `src`.
-	);
-
-/// \brief Cast from `char` to `const char`.
+/// \brief `char` version of \ref const_cast_T.
 void const_cast_c
-	(const char* dest, ///< Destination.
-	 const char src    ///< Source.
+	(const char* dest, ///< See brief.
+	 const char src    ///< See brief.
 	);
 
-/// \brief Cast from `char*` to `const char*const`.
+/// \brief `char` version of \ref const_cast_T1.
 void const_cast_c1
-	(const char*const* dest, ///< Destination.
-	 const char*const  src   ///< Source.
+	(const char*const* dest, ///< See brief.
+	 const char*const  src   ///< See brief.
 	);
 
-/// \brief Cast from `double` to `const double`.
+/// \brief `int` version of \ref const_cast_T.
+void const_cast_i
+	(const int* dest, ///< See brief.
+	 const int src    ///< See brief.
+	);
+
+/// \brief `int` version of \ref const_cast_T_n.
+void const_cast_i_n
+	(const int* dest, ///< See brief.
+	 const int* src,  ///< See brief.
+	 const int n_src  ///< See brief.
+	);
+
+/// \brief `double` version of \ref const_cast_T.
 void const_cast_d
-	(const double* dest, ///< Destination.
-	 const double src    ///< Source.
+	(const double* dest, ///< See brief.
+	 const double src    ///< See brief.
 	);
 
-/// \brief Cast from `double*` to `const double*const`.
+/// \brief `double` version of \ref const_cast_T1.
 void const_cast_d1
-	(const double*const* dest, ///< Destination.
-	 const double*const  src   ///< Source.
+	(const double*const* dest, ///< See brief.
+	 const double*const  src   ///< See brief.
 	);
 
-/// \brief Cast from `void*` to `const void*const`.
-void const_cast_void1
-	(const void*const* dest, ///< Destination.
-	 const void*const  src   ///< Source.
+/// \brief `ptrdiff_t` version of \ref const_cast_T.
+void const_cast_ptrdiff
+	(const ptrdiff_t* dest, ///< See brief.
+	 const ptrdiff_t src    ///< See brief.
 	);
 
-// Custom data types ************************************************************************************************ //
+/// \brief `bool` version of \ref const_cast_T.
+void const_cast_b
+	(const bool* dest, ///< See brief.
+	 const bool src    ///< See brief.
+	);
 
 #endif // DPG__const_cast_h__INCLUDED

@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 
 #include "test_complex_numerical_flux_advection.h"
+#include "test_complex_numerical_flux_euler.h"
 #include "test_support_math_functions.h"
 #include "test_complex_test_case.h"
 
@@ -42,6 +43,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "math_functions.h"
 #include "multiarray_operator.h"
 #include "numerical_flux_advection.h"
+#include "numerical_flux_euler.h"
 #include "operator.h"
 #include "simulation.h"
 #include "solve_dg.h"
@@ -171,8 +173,8 @@ static void set_derived_Numerical_Flux_Input_fptrs (struct Numerical_Flux_Input_
 	if (!num_flux_i->has_complex_J) {
 		if (num_flux_i_b->compute_Numerical_Flux_1st == compute_Numerical_Flux_advection_upwind_jacobian)
 			num_flux_i->compute_Numerical_Flux_1st = compute_Numerical_Flux_c_advection_upwind;
-//		else if (num_flux_i_b->compute_Numerical_Flux_1st == compute_Numerical_Flux_euler_roe_pike_jacobian)
-//			num_flux_i->compute_Numerical_Flux_1st = compute_Numerical_Flux_c_euler_roe_pike;
+		else if (num_flux_i_b->compute_Numerical_Flux_1st == compute_Numerical_Flux_euler_roe_pike_jacobian)
+			num_flux_i->compute_Numerical_Flux_1st = compute_Numerical_Flux_c_euler_roe_pike;
 		else if (num_flux_i_b->compute_Numerical_Flux_1st == NULL)
 			num_flux_i->compute_Numerical_Flux_1st = NULL;
 		else
@@ -180,8 +182,8 @@ static void set_derived_Numerical_Flux_Input_fptrs (struct Numerical_Flux_Input_
 	} else {
 		if (num_flux_i_b->compute_Numerical_Flux_1st == compute_Numerical_Flux_advection_upwind_jacobian)
 			num_flux_i->compute_Numerical_Flux_1st = compute_Numerical_Flux_c_advection_upwind_jacobian;
-//		else if (num_flux_i_b->compute_Numerical_Flux_1st == compute_Numerical_Flux_euler_roe_pike_jacobian)
-//			num_flux_i->compute_Numerical_Flux_1st = compute_Numerical_Flux_c_euler_roe_pike_jacobian;
+		else if (num_flux_i_b->compute_Numerical_Flux_1st == compute_Numerical_Flux_euler_roe_pike_jacobian)
+			num_flux_i->compute_Numerical_Flux_1st = compute_Numerical_Flux_c_euler_roe_pike_jacobian;
 		else if (num_flux_i_b->compute_Numerical_Flux_1st == NULL)
 			num_flux_i->compute_Numerical_Flux_1st = NULL;
 		else

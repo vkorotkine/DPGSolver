@@ -28,6 +28,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
+#include "templates_type_dc.h"
+#include "templates_multiarray_c.h"
+#include "multiarray_T.c"
+
 void set_Multiarray_c_Multiarray_d (struct Multiarray_c* a, const struct const_Multiarray_d* b)
 {
 	const ptrdiff_t size = compute_size(a->order,a->extents);
@@ -35,26 +39,6 @@ void set_Multiarray_c_Multiarray_d (struct Multiarray_c* a, const struct const_M
 
 	for (int i = 0; i < size; ++i)
 		a->data[i] = b->data[i];
-}
-
-double complex* get_col_Multiarray_c (const ptrdiff_t col, struct Multiarray_c* a)
-{
-	assert(a->layout == 'C');
-
-	const ptrdiff_t ext_0 = a->extents[0];
-	return &a->data[col*ext_0];
-}
-
-void set_to_value_Multiarray_c (struct Multiarray_c*const a, const double complex val)
-{
-	const ptrdiff_t size = compute_size(a->order,a->extents);
-	for (ptrdiff_t i = 0; i < size; ++i)
-		a->data[i] = val;
-}
-
-const double complex* get_col_const_Multiarray_c (const ptrdiff_t col, const struct const_Multiarray_c* a)
-{
-	return (const double complex*) get_col_Multiarray_c(col,(struct Multiarray_c*)a);
 }
 
 struct Matrix_c interpret_Multiarray_as_Matrix_c (const struct Multiarray_c* a_Ma)

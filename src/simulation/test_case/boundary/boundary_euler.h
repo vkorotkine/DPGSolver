@@ -24,11 +24,7 @@ struct Boundary_Value;
 struct Solver_Face;
 struct Simulation;
 
-/** \brief Version of \ref constructor_Boundary_Value_fptr computing members using the Riemann invariant values.
- *  \return See brief.
- *
- *  Reference: (Section 2.2, \cite Carlson2011); note the typo in eq. (14).
- */
+/// \brief `double` version of \ref constructor_Boundary_Value_T_euler_riemann.
 void constructor_Boundary_Value_euler_riemann
 	(struct Boundary_Value* bv,               ///< See brief.
 	 const struct Boundary_Value_Input* bv_i, ///< See brief.
@@ -36,12 +32,7 @@ void constructor_Boundary_Value_euler_riemann
 	 const struct Simulation* sim             ///< See brief.
 	);
 
-/** \brief Version of \ref constructor_Boundary_Value_fptr computing members using the slip wall values.
- *  \return See brief.
- *
- *  The slip wall boundary condition sets the ghost state density and total energy equal to the internal values and uses
- *  the opposite normal velocity.
- */
+/// \brief `double` version of \ref constructor_Boundary_Value_T_euler_slipwall.
 void constructor_Boundary_Value_euler_slipwall
 	(struct Boundary_Value* bv,               ///< See brief.
 	 const struct Boundary_Value_Input* bv_i, ///< See brief.

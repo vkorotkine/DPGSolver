@@ -19,8 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-#include "templates_double.h"
-#include "flux_templates.h"
+#include "templates_type_d.h"
+#include "templates_flux.h"
 #include "flux_advection_T.c"
 
 // Static functions ************************************************************************************************* //

@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the common static templated boundary condition functions.
+ *  \brief Provides the static templated boundary condition functions.
  */
 
 #include "boundary.h"
@@ -26,9 +26,9 @@ static bool* get_compute_member
 {
 	static bool c_m[] = { true, false, false, };
 
-#ifdef TYPE_REAL
+#if TYPE_RC == TYPE_REAL
 	if (1) {
-#elif TYPE_COMPLEX
+#elif TYPE_RC == TYPE_COMPLEX
 	if (bv_i->has_complex_J) {
 #endif
 		struct Boundary_Value_Input_R* bv_i_r = (struct Boundary_Value_Input_R*) bv_i;
@@ -36,19 +36,21 @@ static bool* get_compute_member
 			c_m[i] = bv_i_r->compute_member[i];
 	}
 
+	/// Statically allocated 'c'ompute_'m'ember array.
 	return c_m;
 }
 
-/// \brief Constructor for the solution on the boundary.
+/** \brief Constructor for the Multiarray_\* holding the solution at the given xyz coordinates.
+ *  \return See brief. */
 static const struct const_Multiarray_T* constructor_sol_bv
 	(const struct const_Multiarray_d* xyz, ///< xyz coordinates.
 	 const struct Simulation* sim          ///< \ref Simulation.
 	)
 {
 	const struct const_Multiarray_d* s = sim->test_case->constructor_sol(xyz,sim); // keep/destructed
-#ifdef TYPE_REAL
+#if TYPE_RC == TYPE_REAL
 	return s;
-#elif TYPE_COMPLEX
+#elif TYPE_RC == TYPE_COMPLEX
 	const struct const_Multiarray_c* s_c = constructor_copy_const_Multiarray_c_Multiarray_d(s); // keep
 	destructor_const_Multiarray_d(s);
 	return s_c;

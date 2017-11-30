@@ -130,26 +130,26 @@ static void set_pde_related (struct Test_Case* test_case, const struct Simulatio
 	case PDE_ADVECTION:
 		const_cast_i(&test_case->n_var,1);
 		const_cast_i(&test_case->n_eq,1);
-		const_cast_bool(&test_case->has_1st_order,true);
-		const_cast_bool(&test_case->has_2nd_order,false);
+		const_cast_b(&test_case->has_1st_order,true);
+		const_cast_b(&test_case->has_2nd_order,false);
 		break;
 	case PDE_POISSON:
 		const_cast_i(&test_case->n_var,1);
 		const_cast_i(&test_case->n_eq,1);
-		const_cast_bool(&test_case->has_1st_order,false);
-		const_cast_bool(&test_case->has_2nd_order,true);
+		const_cast_b(&test_case->has_1st_order,false);
+		const_cast_b(&test_case->has_2nd_order,true);
 		break;
 	case PDE_EULER:
 		const_cast_i(&test_case->n_var,DIM+2);
 		const_cast_i(&test_case->n_eq,DIM+2);
-		const_cast_bool(&test_case->has_1st_order,true);
-		const_cast_bool(&test_case->has_2nd_order,false);
+		const_cast_b(&test_case->has_1st_order,true);
+		const_cast_b(&test_case->has_2nd_order,false);
 		break;
 	case PDE_NAVIER_STOKES:
 		const_cast_i(&test_case->n_var,DIM+2);
 		const_cast_i(&test_case->n_eq,DIM+2);
-		const_cast_bool(&test_case->has_1st_order,true);
-		const_cast_bool(&test_case->has_2nd_order,true);
+		const_cast_b(&test_case->has_1st_order,true);
+		const_cast_b(&test_case->has_2nd_order,true);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);

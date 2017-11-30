@@ -24,8 +24,7 @@ struct Boundary_Value;
 struct Solver_Face;
 struct Simulation;
 
-/** \brief Version of \ref constructor_Boundary_Value_fptr computing members using the inflow (boundary) values.
- *  \return See brief. */
+/// \brief `double` version of \ref constructor_Boundary_Value_T_advection_inflow.
 void constructor_Boundary_Value_advection_inflow
 	(struct Boundary_Value* bv,               ///< See brief.
 	 const struct Boundary_Value_Input* bv_i, ///< See brief.
@@ -33,8 +32,7 @@ void constructor_Boundary_Value_advection_inflow
 	 const struct Simulation* sim             ///< See brief.
 	);
 
-/** \brief Version of \ref constructor_Boundary_Value_fptr computing members using the outflow (extrapolated) values.
- *  \return See brief. */
+/// \brief `double` version of \ref constructor_Boundary_Value_T_advection_outflow.
 void constructor_Boundary_Value_advection_outflow
 	(struct Boundary_Value* bv,               ///< See brief.
 	 const struct Boundary_Value_Input* bv_i, ///< See brief.

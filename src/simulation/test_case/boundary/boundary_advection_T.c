@@ -34,9 +34,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void constructor_Boundary_Value_advection_inflow_T
-	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face* face,
-	 const struct Simulation* sim)
+/// \brief Version of \ref constructor_Boundary_Value_fptr computing members using the inflow (boundary) values.
+void constructor_Boundary_Value_T_advection_inflow
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face* face,            ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
+	)
 {
 	UNUSED(face);
 	struct Boundary_Value_Input_R* bv_i_r = (struct Boundary_Value_Input_R*) bv_i;
@@ -68,9 +72,13 @@ void constructor_Boundary_Value_advection_inflow_T
 	assert(c_m[2] == false);
 }
 
-void constructor_Boundary_Value_advection_outflow_T
-	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face* face,
-	 const struct Simulation* sim)
+/// \brief Version of \ref constructor_Boundary_Value_fptr computing members using the outflow (extrapolated) values.
+void constructor_Boundary_Value_T_advection_outflow
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face* face,            ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
+	)
 {
 	UNUSED(face);
 	UNUSED(sim);

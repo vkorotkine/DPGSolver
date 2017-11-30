@@ -16,15 +16,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__solution_euler_c_h__INCLUDED
 #define DPG__solution_euler_c_h__INCLUDED
 /** \file
- *  \brief Provides functions relating to the Euler solutions.
+ *  \brief Provides `complex` versions of containers and functions defined in \ref solution_euler.h.
  */
-
-struct Test_Case;
-struct Simulation;
 
 struct Multiarray_c;
 
-/// \brief `complex` version of \ref convert_variables.
+/// \brief `complex` version of \ref convert_variables_T.
 void convert_variables_c
 	(struct Multiarray_c* vars, ///< See brief.
 	 const char type_i,         ///< See brief.
