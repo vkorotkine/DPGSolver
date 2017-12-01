@@ -105,7 +105,7 @@ static void constructor_derived_Geometry_Element_std (struct Element* element_pt
 	element->cv1_vg_vm[0] = constructor_operators("cv1","vgs","vms","H_1_P_1",  b_e,sim); // destructed
 	element->cv1_vg_vm[1] = constructor_operators("cv1","vgc","vmc","H_1_P_PM0",b_e,sim); // destructed
 	element->vv0_vm_vc[0] = constructor_operators("vv0","vms","vcs","H_1_P_1P", b_e,sim); // destructed
-	element->vv0_vm_vc[1] = constructor_operators("vv0","vmc","vcc","H_1_P_PM0",b_e,sim); // destructed
+	element->vv0_vm_vc[1] = constructor_operators("vv0","vmc","vcc","H_1_P_PM1",b_e,sim); // destructed
 
 	element->cv0_vgs_fc[0] = constructor_operators("cv0","vgs","fcs","H_1_P_1P", b_e,sim); // destructed
 	element->cv0_vgs_fc[1] = constructor_operators("cv0","vgs","fcc","H_1_P_1P", b_e,sim); // destructed

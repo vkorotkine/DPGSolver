@@ -670,7 +670,7 @@ UNUSED(sim);
 	const char op_format = 'd';
 	mm_NNC_Operator_Multiarray_d(-1.0,1.0,tw0_vt_fc,num_flux->nnf,&rhs_Ma,op_format,2,NULL,NULL);
 }
-
+#if 1
 static void increment_lhs_boundary_face
 	(struct Matrix_d* lhs, const struct Numerical_Flux* num_flux, const struct Solver_Face* s_face,
 	 const struct Simulation* sim)
@@ -686,3 +686,4 @@ static void increment_lhs_boundary_face
 //print_Matrix_d(lhs);
 	destructor_Matrix_d(lhs_ll);
 }
+#endif

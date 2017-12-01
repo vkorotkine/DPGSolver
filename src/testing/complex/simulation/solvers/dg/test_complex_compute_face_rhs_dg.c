@@ -79,15 +79,26 @@ void compute_face_rhs_dg_c (const struct Simulation* sim, struct Intrusive_List*
 		struct Complex_DG_Solver_Face* c_dg_s_face = (struct Complex_DG_Solver_Face*) curr;
 
 		constructor_Numerical_Flux_Input_c_data_dg(num_flux_i,c_dg_s_face,sim); // destructed
+#if 0
+print_const_Multiarray_c(num_flux_i->bv_l.s);
+print_const_Multiarray_c(num_flux_i->bv_r.s);
+#endif
 
 		struct Numerical_Flux_c* num_flux = constructor_Numerical_Flux_c(num_flux_i); // destructed
+#if 0
+print_const_Multiarray_c(num_flux->nnf);
+#endif
 		destructor_Numerical_Flux_Input_c_data(num_flux_i);
 
 		scale_by_Jacobian_e_c(num_flux,face,sim);
+#if 0
+print_const_Multiarray_c(num_flux->nnf);
+#endif
 
 		compute_rhs_f_dg_c(num_flux,face,sim);
 		destructor_Numerical_Flux_c(num_flux);
 	}
+//EXIT_UNSUPPORTED;
 	destructor_Numerical_Flux_Input_c(num_flux_i);
 }
 

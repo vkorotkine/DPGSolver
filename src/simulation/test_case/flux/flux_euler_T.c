@@ -224,10 +224,13 @@ void compute_Flux_T_euler_jacobian
 		}}
 	}
 
-	for (eq = 0; eq < NEQ; eq++) {
+	// Note: dFdW is ordered by [node, dim, eq, var] but is set by [node,dim,var,eq] below.
 	for (var = 0; var < NVAR; var++) {
+	for (eq = 0; eq < NEQ; eq++) {
 	for (dim = 0; dim < DIM; dim++) {
-		dFdW_ptr[(eq*NVAR+var)*DMAX+dim] = &dFdW[((eq*NVAR+var)*DIM+dim)*NnTotal];
+		const int ind_dm = dim+DMAX*(var+NVAR*(eq)),
+		          ind_d  = dim+DIM*(eq+NEQ*(var));
+		dFdW_ptr[ind_dm] = &dFdW[NnTotal*ind_d];
 	}}}
 
 	if (DIM == 3) {

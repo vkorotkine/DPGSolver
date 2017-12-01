@@ -83,7 +83,7 @@ void compute_volume_rlhs_dg (const struct Simulation* sim, struct Solver_Storage
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume* s_vol       = (struct Solver_Volume*) curr;
 		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
-printf("%d\n",((struct Volume*)s_vol)->index);
+//printf("%d %td\n",((struct Volume*)s_vol)->index,s_vol->ind_dof);
 
 		struct Flux_Ref* flux_r = constructor_Flux_Ref_vol(&s_params.spvs,flux_i,s_vol,sim);
 

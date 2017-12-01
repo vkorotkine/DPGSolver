@@ -26,16 +26,22 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Constructor for a derived \ref Solution_Element using the standard operators.
+/// \brief \ref constructor_derived_Solution_Element constructing the standard operators.
 static void constructor_derived_Solution_Element_std
-	(struct Element* element,     ///< Defined for \ref constructor_derived_Solution_Element.
-	 const struct Simulation* sim ///< Defined for \ref constructor_derived_Solution_Element.
+	(struct Element* element_ptr, ///< See brief.
+	 const struct Simulation* sim ///< See brief.
 	);
 
-/// \brief Constructor for a derived \ref Solution_Element using the tensor-product of sub-element operators.
+/// \brief \ref constructor_derived_Solution_Element constructing the tensor-product of sub-element operators.
 static void constructor_derived_Solution_Element_tp
-	(struct Element* element,     ///< Defined for \ref constructor_derived_Solution_Element.
-	 const struct Simulation* sim ///< Defined for \ref constructor_derived_Solution_Element.
+	(struct Element* element_ptr, ///< See brief.
+	 const struct Simulation* sim ///< See brief.
+	);
+
+/// \brief \ref constructor_derived_Solution_Element constructing the common operators.
+static void constructor_derived_Solution_Element_common
+	(struct Element* element_ptr, ///< See brief.
+	 const struct Simulation* sim ///< See brief.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -53,6 +59,7 @@ void constructor_derived_Solution_Element (struct Element* element_ptr, const st
 		EXIT_UNSUPPORTED;
 		break;
 	}
+	constructor_derived_Solution_Element_common(element_ptr,sim);
 }
 
 void destructor_derived_Solution_Element (struct Element* element_ptr)
@@ -66,9 +73,11 @@ void destructor_derived_Solution_Element (struct Element* element_ptr)
 	destructor_Multiarray_Operator(element->vc0_vs_vs);
 
 	destructor_Multiarray2_Operator_conditional(element->cv0_vg_ff);
-	destructor_Multiarray2_Operator_conditional(element->cv0_vg_vf);
 	destructor_Multiarray2_Operator_conditional(element->vv0_vm_ff);
 	destructor_Multiarray_Operator_conditional(element->vc0_ff_ff);
+
+	destructor_Multiarray2_Operator_conditional(element->cv0_vg_vf);
+	destructor_Multiarray2_Operator_conditional(element->vv0_vm_vf);
 }
 
 // Static functions ************************************************************************************************* //
@@ -97,7 +106,6 @@ static void constructor_derived_Solution_Element_std (struct Element* element_pt
 		e->cv0_vg_ff[1] = constructor_operators("cv0","vgc","ffA","H_1_P_PM1",  b_e,sim); // destructed
 		e->vv0_vm_ff[0] = constructor_operators("vv0","vms","ffA","H_1_P_1PPM1",b_e,sim); // destructed
 		e->vv0_vm_ff[1] = constructor_operators("vv0","vmc","ffA","H_1_P_PM1",  b_e,sim); // destructed
-		e->vc0_ff_ff    = constructor_operators("vc0","ffA","ffA","H_1_P_PM0",  b_e,sim); // destructed
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
@@ -148,11 +156,43 @@ static void constructor_derived_Solution_Element_tp (struct Element* element_ptr
 			if (s_e[i]->cv0_vg_vf[0] != NULL)
 				continue;
 
-			s_e[i]->cv0_vg_vf[0] = constructor_operators("cv0","vgs","vfA","H_1_P_1PPM1",b_e,sim); // destructed
-			s_e[i]->cv0_vg_vf[1] = constructor_operators("cv0","vgc","vfA","H_1_P_PM1",b_e,sim); // destructed
+			s_e[i]->cv0_vg_vf[0] = constructor_operators("cv0","vgs","vfA","H_1_P_1PPM1",bs_e[i],sim); // dest.
+			s_e[i]->cv0_vg_vf[1] = constructor_operators("cv0","vgc","vfA","H_1_P_PM1",  bs_e[i],sim); // dest.
+
+			s_e[i]->vv0_vm_vf[0] = constructor_operators("vv0","vms","vfA","H_1_P_1PPM1",bs_e[i],sim); // dest.
+			s_e[i]->vv0_vm_vf[1] = constructor_operators("vv0","vmc","vfA","H_1_P_PM1",  bs_e[i],sim); // dest.
 		}
-		EXIT_ADD_SUPPORT;
-		/// \todo Add necessary operators.
+
+		set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vf[0],s_e[0]->cv0_vg_ff[0],s_e[1]->cv0_vg_vf[0],s_e[1]->cv0_vg_ff[0]);
+		e->cv0_vg_ff[0] = constructor_operators_tp("cv0","vgs","ffA","H_1_P_1PPM1",b_e,sim,&ops_tp); // destructed
+
+		set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vf[1],s_e[0]->cv0_vg_ff[1],s_e[1]->cv0_vg_vf[1],s_e[1]->cv0_vg_ff[1]);
+		e->cv0_vg_ff[1] = constructor_operators_tp("cv0","vgc","ffA","H_1_P_PM1",b_e,sim,&ops_tp); // destructed
+
+		set_operators_tp(&ops_tp,s_e[0]->vv0_vm_vf[0],s_e[0]->vv0_vm_ff[0],s_e[1]->vv0_vm_vf[0],s_e[1]->vv0_vm_ff[0]);
+		e->vv0_vm_ff[0] = constructor_operators_tp("vv0","vms","ffA","H_1_P_1PPM1",b_e,sim,&ops_tp); // destructed
+
+		set_operators_tp(&ops_tp,s_e[0]->vv0_vm_vf[1],s_e[0]->vv0_vm_ff[1],s_e[1]->vv0_vm_vf[1],s_e[1]->vv0_vm_ff[1]);
+		e->vv0_vm_ff[1] = constructor_operators_tp("vv0","vmc","ffA","H_1_P_PM1",b_e,sim,&ops_tp); // destructed
+
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",sim->method);
+		break;
+	}
+}
+
+static void constructor_derived_Solution_Element_common (struct Element* element_ptr, const struct Simulation* sim)
+{
+	struct Solution_Element* e = (struct Solution_Element*) element_ptr;
+
+	struct const_Element* b_e = (struct const_Element*)e;
+
+	switch (sim->method) {
+	case METHOD_DG:
+		break; // Do nothing.
+	case METHOD_DPG:
+		e->vc0_ff_ff = constructor_operators("vc0","ffA","ffA","H_1_P_PM0",b_e,sim); // destructed
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);

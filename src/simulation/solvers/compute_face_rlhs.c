@@ -147,8 +147,10 @@ struct Matrix_d* constructor_lhs_f_1
 		mm_d('N','N',-1.0,0.0,(struct const_Matrix_d*)tw0_nf,cv0_vs_fc,lhs_l);
 
 		set_block_Matrix_d(lhs,(struct const_Matrix_d*)lhs_l,eq*lhs_l->ext_0,vr*lhs_l->ext_1,'i');
-//printf("var, eq: %d %d\n",vr,eq);
-//print_Matrix_d(lhs_l);
+#if 0
+printf("eq,var: %d %d\n",eq,vr);
+print_Matrix_d(lhs_l);
+#endif
 	}}
 	destructor_Matrix_d(tw0_nf);
 	destructor_Matrix_d(lhs_l);

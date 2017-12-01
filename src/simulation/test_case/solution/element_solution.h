@@ -40,6 +40,7 @@ struct Solution_Element {
 
 	// Tensor-product sub-operators.
 	const struct Multiarray_Operator* cv0_vg_vf[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_vm_vf[2]; ///< See notation in \ref element_operators.h.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

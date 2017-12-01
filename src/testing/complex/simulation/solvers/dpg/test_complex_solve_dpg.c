@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_boundary.h"
 #include "test_complex_boundary_advection.h"
+#include "test_complex_boundary_euler.h"
 #include "test_complex_compute_all_rhs_dpg.h"
 #include "test_support_multiarray.h"
 #include "test_complex_test_case.h"
@@ -36,6 +37,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "boundary_advection.h"
+#include "boundary_euler.h"
 #include "intrusive.h"
 #include "simulation.h"
 #include "solve.h"
@@ -159,6 +161,10 @@ static void set_function_pointers_num_flux_dpg (const struct Simulation* sim)
 			c_dpg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_advection_inflow;
 		else if (s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_advection_outflow)
 			c_dpg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_advection_outflow;
+		else if (s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_euler_riemann)
+			c_dpg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_euler_riemann;
+		else if (s_face->constructor_Boundary_Value_fcl == constructor_Boundary_Value_euler_slipwall)
+			c_dpg_s_face->constructor_Boundary_Value_c_fcl = constructor_Boundary_Value_c_euler_slipwall;
 		else
 			EXIT_UNSUPPORTED;
 	}

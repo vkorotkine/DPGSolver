@@ -38,6 +38,20 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NEQ  NEQ_EULER  ///< Number of equations.
 #define NVAR NVAR_EULER ///< Number of variables.
 
+/** \brief Return the positive minimum value of the two inputs.
+ *  \return See brief. */
+static Type min_abs_T
+	(const Type a, ///< First value in the comparison.
+	 const Type b  ///< Second value in the comparison.
+	);
+
+/** \brief Return the positive maximum value of the two inputs.
+ *  \return See brief. */
+static Type max_abs_T
+	(const Type a, ///< First value in the comparison.
+	 const Type b  ///< Second value in the comparison.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 /** \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes using the Lax-Friedrichs method.
@@ -413,9 +427,9 @@ void compute_Numerical_Flux_T_euler_roe_pike
 			           c   = sqrt_T(c2);
 
 			// Compute eigenvalues (with entropy fix)
-			Type const l1   = GSL_MIN(abs_T(Vn-c),abs_T(VnL-c)),
-			           l234 = abs_T(Vn),
-			           l5   = GSL_MAX(abs_T(Vn+c),abs_T(VnR+c));
+			const Type l1   = min_abs_T(VnL-c,Vn-c),
+			           l5   = max_abs_T(VnR+c,Vn+c),
+			           l234 = ( real_T(Vn) > 0.0 ? Vn : -Vn );
 
 			Type const drho  = rhoR-rhoL,
 			           drhou = rhoR*uR-rhoL*uL,
@@ -496,7 +510,6 @@ void compute_Numerical_Flux_T_euler_roe_pike
 
 			           pR  = GM1*(ER-0.5*rhoR*V2R),
 			           HR  = (ER+pR)*rhoR_inv;
-
 			// Roe-averaged states
 			Type const r   = sqrt_T(rhoR/rhoL),
 			           rP1 = r+1.0,
@@ -511,9 +524,9 @@ void compute_Numerical_Flux_T_euler_roe_pike
 			           c   = sqrt_T(c2);
 
 			// Compute eigenvalues (with entropy fix)
-			Type const l1   = GSL_MIN(abs_T(Vn-c),abs_T(VnL-c)),
-			           l234 = abs_T(Vn),
-			           l5   = GSL_MAX(abs_T(Vn+c),abs_T(VnR+c));
+			const Type l1   = min_abs_T(VnL-c,Vn-c),
+			           l5   = max_abs_T(VnR+c,Vn+c),
+			           l234 = ( real_T(Vn) > 0.0 ? Vn : -Vn );
 
 			Type const drho  = rhoR-rhoL,
 			           drhou = rhoR*uR-rhoL*uL,
@@ -595,9 +608,9 @@ void compute_Numerical_Flux_T_euler_roe_pike
 			           c   = sqrt_T(c2);
 
 			// Compute eigenvalues (with entropy fix)
-			Type const l1   = GSL_MIN(abs_T(Vn-c),abs_T(VnL-c)),
-			           l234 = abs_T(Vn),
-			           l5   = GSL_MAX(abs_T(Vn+c),abs_T(VnR+c));
+			const Type l1   = min_abs_T(VnL-c,Vn-c),
+			           l5   = max_abs_T(VnR+c,Vn+c),
+			           l234 = ( real_T(Vn) > 0.0 ? Vn : -Vn );
 
 			Type const drho  = rhoR-rhoL,
 			           drhou = rhoR*uR-rhoL*uL,
@@ -671,17 +684,18 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 			nF_ptr[eq] = &nFluxNum[eq*NnTotal];
 	}
 
+	// Note: dnFdW*_ptr are ordered by [node, eq, var] but are set by [node,var,eq] below.
 	Type *dnFdWL_ptr[NEQ*NEQ];
 	for (int eq = 0; eq < NEQ; eq++) {
 	for (int var = 0; var < NVAR; var++) {
-		dnFdWL_ptr[eq*NVAR+var] = &dnFdWL[(eq*NVAR+var)*NnTotal];
+		dnFdWL_ptr[eq*NVAR+var] = &dnFdWL[(eq+var*NVAR)*NnTotal];
 	}}
 
 	Type *dnFdWR_ptr[NEQ*NEQ];
 	if (dnFdWR != NULL) {
 		for (int eq = 0; eq < NEQ; eq++) {
 		for (int var = 0; var < NVAR; var++) {
-			dnFdWR_ptr[eq*NVAR+var] = &dnFdWR[(eq*NVAR+var)*NnTotal];
+			dnFdWR_ptr[eq*NVAR+var] = &dnFdWR[(eq+var*NVAR)*NnTotal];
 		}}
 	}
 
@@ -1510,3 +1524,19 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static Type min_abs_T (const Type a, const Type b)
+{
+	Type c = ( abs_T(a) < abs_T(b) ? a : b );
+	if (real_T(c) < 0.0)
+		c *= -1.0;
+	return c;
+}
+
+static Type max_abs_T (const Type a, const Type b)
+{
+	Type c = ( abs_T(a) > abs_T(b) ? a : b );
+	if (real_T(c) < 0.0)
+		c *= -1.0;
+	return c;
+}

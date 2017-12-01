@@ -529,7 +529,7 @@ static void increment_rhs_boundary_face_c
 	const struct Operator* tw0_vt_fc = get_operator__tw0_vt_fc(0,s_face);
 	mm_NNC_Operator_Multiarray_c(-1.0,1.0,tw0_vt_fc,num_flux->nnf,&rhs_Ma,'d',2,NULL,NULL);
 }
-
+#if 1
 static void increment_lhs_boundary_face_c
 	(struct Matrix_c* lhs, const struct Numerical_Flux_c* num_flux, const struct Solver_Face* s_face,
 	 const struct Simulation* sim)
@@ -542,3 +542,4 @@ static void increment_lhs_boundary_face_c
 	set_block_Matrix_c(lhs,(struct const_Matrix_c*)lhs_ll,0,0,'a');
 	destructor_Matrix_c(lhs_ll);
 }
+#endif

@@ -115,25 +115,32 @@ void compute_face_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_I
 //printf("face: %d\n",face->index);
 
 		constructor_Numerical_Flux_Input_data(num_flux_i,s_face,sim); // destructed
-//print_const_Multiarray_d(num_flux_i->bv_l.s);
-//print_const_Multiarray_d(num_flux_i->bv_r.s);
+#if 0
+print_const_Multiarray_d(num_flux_i->bv_l.s);
+print_const_Multiarray_d(num_flux_i->bv_r.s);
+#endif
 
 		struct Numerical_Flux* num_flux = constructor_Numerical_Flux(num_flux_i); // destructed
 		destructor_Numerical_Flux_Input_data(num_flux_i);
-//print_const_Multiarray_d(num_flux->nnf);
-//print_const_Multiarray_d(num_flux->neigh_info[0].dnnf_ds);
-//if (!face->boundary)
-//	print_const_Multiarray_d(num_flux->neigh_info[1].dnnf_ds);
+#if 0
+print_const_Multiarray_d(num_flux->nnf);
+print_const_Multiarray_d(num_flux->neigh_info[0].dnnf_ds);
+if (!face->boundary)
+	print_const_Multiarray_d(num_flux->neigh_info[1].dnnf_ds);
+#endif
 
 		s_params.scale_by_Jacobian(num_flux,face,sim);
-//print_const_Multiarray_d(num_flux->nnf);
-//print_const_Multiarray_d(num_flux->neigh_info[0].dnnf_ds);
-//if (!face->boundary)
-//	print_const_Multiarray_d(num_flux->neigh_info[1].dnnf_ds);
+#if 0
+print_const_Multiarray_d(num_flux->nnf);
+print_const_Multiarray_d(num_flux->neigh_info[0].dnnf_ds);
+if (!face->boundary)
+	print_const_Multiarray_d(num_flux->neigh_info[1].dnnf_ds);
+#endif
 		s_params.compute_rlhs(num_flux,dg_s_face,s_store_i,sim);
 		destructor_Numerical_Flux(num_flux);
 //if (face->index == 2)
 //break;
+//EXIT_UNSUPPORTED;
 	}
 //EXIT_UNSUPPORTED;
 	destructor_Numerical_Flux_Input(num_flux_i);
@@ -273,7 +280,9 @@ static void compute_rlhs_1
 	compute_rhs_f_dg(num_flux,dg_s_face,s_store_i,sim);
 
 	finalize_lhs_f_dg((int[]){0,0},num_flux,dg_s_face,s_store_i); // lhs_ll
+//EXIT_UNSUPPORTED;
 	if (!face->boundary) {
+//printf("\n\n\n");
 		finalize_lhs_f_dg((int[]){0,1},num_flux,dg_s_face,s_store_i); // lhs_lr
 
 		for (int i = 0; i < 2; ++i) {
@@ -284,6 +293,7 @@ static void compute_rlhs_1
 
 		finalize_lhs_f_dg((int[]){1,0},num_flux,dg_s_face,s_store_i); // lhs_rl
 		finalize_lhs_f_dg((int[]){1,1},num_flux,dg_s_face,s_store_i); // lhs_rr
+//EXIT_UNSUPPORTED;
 	}
 }
 
@@ -314,12 +324,13 @@ static void finalize_lhs_f_dg
 {
 	struct Face* face              = (struct Face*) dg_s_face;
 	struct Solver_Face* s_face     = (struct Solver_Face*) face;
-	struct Solver_Volume* s_vol[2] = { (struct Solver_Volume*) face->neigh_info[side_index[0]].volume,
-	                                   (struct Solver_Volume*) face->neigh_info[side_index[1]].volume, };
 
 	struct Matrix_d* lhs = constructor_lhs_f_1(side_index,num_flux,s_face); // destructed
 
-	set_petsc_Mat_row_col(s_store_i,s_vol[side_index[1]],0,s_vol[side_index[0]],0);
+	struct Solver_Volume* s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
+	                                   (struct Solver_Volume*) face->neigh_info[1].volume, };
+//printf("%td %td\n",s_vol[side_index[0]]->ind_dof,s_vol[side_index[1]]->ind_dof);
+	set_petsc_Mat_row_col(s_store_i,s_vol[side_index[0]],0,s_vol[side_index[1]],0);
 	add_to_petsc_Mat(s_store_i,(struct const_Matrix_d*)lhs);
 
 	destructor_Matrix_d(lhs);

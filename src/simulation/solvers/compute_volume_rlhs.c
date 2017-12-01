@@ -69,8 +69,12 @@ static void destructor_sol_vc_col
  *  \return See brief.
  *
  *  This function constructs the reference fluxes by multiplying the fluxes with the appropriate metric terms as
- *  specified by Zwanenburg et al. (eq. (B.3), \cite Zwanenburg2016). The memory layout of the reference flux terms
- *  (nodes,dim,eq) was chosen such that terms are grouped by dimension, allowing for differentiation operators to be
+ *  specified by Zwanenburg et al. (eq. (B.3), \cite Zwanenburg2016).
+ *
+ *  The memory layout of the reference flux and reference flux Jacobian terms is that of the corresponding physical flux
+ *  terms with the second extent (dim) moved to the last extent. For example:
+ *  - df_ds: (nodes,dim,eq,var) -> dfr_ds: (nodes,eq,var,dim).
+ *  This memory layout was chosen such that terms are grouped by dimension, allowing for differentiation operators to be
  *  applied efficiently; note that **this is not the same ordering as that used for the physical flux**. Please consult
  *  \ref compute_geometry_volume for the ordering of the metric terms if desired.
  */
@@ -115,6 +119,7 @@ struct Flux_Ref* constructor_Flux_Ref_vol
 //print_const_Multiarray_d(flux_r->fr);
 //print_const_Multiarray_d(flux_r->dfr_ds);
 	destructor_Flux(flux);
+//EXIT_UNSUPPORTED;
 
 	return flux_r;
 }
@@ -161,10 +166,7 @@ struct Matrix_d* constructor_lhs_v_1
 		mm_d('N','N',1.0,0.0,(struct const_Matrix_d*)tw1_r,cv0_vs_vc->op_std,lhs_l);
 //printf("%d %d\n",vr,eq);
 //print_Matrix_d(lhs_l);
-
-/// \todo swap eq/vr.
-//		set_block_Matrix_d(lhs,(struct const_Matrix_d*)lhs_l,eq*lhs_l->ext_0,vr*lhs_l->ext_1,'i');
-		set_block_Matrix_d(lhs,(struct const_Matrix_d*)lhs_l,vr*lhs_l->ext_0,eq*lhs_l->ext_1,'i');
+		set_block_Matrix_d(lhs,(struct const_Matrix_d*)lhs_l,eq*lhs_l->ext_0,vr*lhs_l->ext_1,'i');
 	}}
 	destructor_Matrix_d(tw1_r);
 	destructor_Matrix_d(lhs_l);

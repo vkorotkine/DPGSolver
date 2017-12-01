@@ -94,11 +94,7 @@ const struct Multiarray_Operator* constructor_operators_tp
 	struct Operator_Info* op_info =
 		constructor_Operator_Info(name_type,name_in,name_out,name_range,element,sim); // destructed
 
-	const struct Op_IO* op_io = op_info->op_io;
-
-	const char ce_i = op_io[OP_IND_I].ce;
-
-	assert(ce_i == 'v'); // May potentially be made flexible in future.
+//	assert(op_info->op_io[OP_IND_I].ce == 'v'); // May potentially be made flexible in future.
 	const int d = element->d;
 
 	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator_V(op_info->extents_op); // returned
