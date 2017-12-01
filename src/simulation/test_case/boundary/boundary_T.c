@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Get the compute_member array for the current boundary value computation.
  *  \return Statically allocated array of flags. */
 static bool* get_compute_member
-	(const struct Boundary_Value_Input_T* bv_i ///< \ref Boundary_Value_Input_T.
+	(const struct Boundary_Value_Input_T* bv_i ///< \ref Boundary_Value_Input.
 	)
 {
 	static bool c_m[] = { true, false, false, };

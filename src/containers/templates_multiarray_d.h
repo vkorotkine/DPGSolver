@@ -21,16 +21,23 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "templates_multiarray_constructors_d.h"
+#include "templates_multiarray_math_d.h"
 
-#define Multiarray_T       Multiarray_d       ///< Multiarray_\*.
-#define Multiarray_R       Multiarray_d       ///< Real Multiarray_\*.
-#define const_Multiarray_T const_Multiarray_d ///< const_Multiarray_\*.
-#define const_Multiarray_R const_Multiarray_d ///< Real const_Multiarray_\*.
+///\{ \name Data types
+#define Multiarray_T       Multiarray_d
+#define Multiarray_R       Multiarray_d       ///< 'R'eal.
+#define const_Multiarray_T const_Multiarray_d
+#define const_Multiarray_R const_Multiarray_d ///< 'R'eal.
+///\}
 
+///\{ \name Function names
+#define set_to_value_Multiarray_T  set_to_value_Multiarray_d
 
-#define set_to_value_Multiarray_T  set_to_value_Multiarray_d  ///< Standard.
+#define get_col_const_Multiarray_T get_col_const_Multiarray_d
+#define get_col_Multiarray_T       get_col_Multiarray_d
 
-#define get_col_const_Multiarray_T get_col_const_Multiarray_d ///< Standard.
-#define get_col_Multiarray_T       get_col_Multiarray_d       ///< Standard.
+#define interpret_Multiarray_as_Matrix_T interpret_Multiarray_as_Matrix_d
+#define interpret_const_Multiarray_as_Vector_R interpret_const_Multiarray_as_Vector_d
+///\}
 
 #endif // DPG__templates_multiarray_d_h__INCLUDED

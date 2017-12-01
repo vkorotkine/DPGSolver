@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the real solution functions.
  */
 
-#define convert_variables_T convert_variables ///< Standard.
+///\{ \name Function names
+#define convert_variables_T convert_variables
+///\}
 
 #endif // DPG__templates_solution_h__INCLUDED

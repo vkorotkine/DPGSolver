@@ -19,9 +19,11 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the `double complex` math functions.
  */
 
-#define abs_T  cabs  ///< Standard.
-#define real_T creal ///< Standard.
-#define sqrt_T csqrt ///< Standard.
-#define pow_T  cpow  ///< Standard.
+///\{ \name Function names
+#define abs_T  cabs  
+#define real_T creal 
+#define sqrt_T csqrt 
+#define pow_T  cpow  
+///\}
 
 #endif // DPG__templates_math_c_h__INCLUDED

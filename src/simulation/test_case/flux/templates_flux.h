@@ -19,14 +19,18 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the real flux functions.
  */
 
-#define Flux_Input_T   Flux_Input   ///< Flux_Input parameter.
-#define Flux_Input_R   Flux_Input   ///< Real Flux_Input parameter.
-#define mutable_Flux_T mutable_Flux ///< mutable_Flux parameter.
+///\{ \name Data types
+#define Flux_Input_T   Flux_Input
+#define Flux_Input_R   Flux_Input   ///< 'R'eal.
+#define mutable_Flux_T mutable_Flux
+///\}
 
-#define compute_Flux_T_advection          compute_Flux_advection          ///< Standard.
-#define compute_Flux_T_advection_jacobian compute_Flux_advection_jacobian ///< Standard.
+///\{ \name Function names
+#define compute_Flux_T_advection          compute_Flux_advection          
+#define compute_Flux_T_advection_jacobian compute_Flux_advection_jacobian 
 
-#define compute_Flux_T_euler          compute_Flux_euler          ///< Standard.
-#define compute_Flux_T_euler_jacobian compute_Flux_euler_jacobian ///< Standard.
+#define compute_Flux_T_euler          compute_Flux_euler          
+#define compute_Flux_T_euler_jacobian compute_Flux_euler_jacobian 
+///\}
 
 #endif // DPG__templates_flux_h__INCLUDED

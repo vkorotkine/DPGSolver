@@ -13,16 +13,24 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__templates_solution_c_h__INCLUDED
-#define DPG__templates_solution_c_h__INCLUDED
+#ifndef DPG__templates_vector_d_h__INCLUDED
+#define DPG__templates_vector_d_h__INCLUDED
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the complex solution functions.
- *
- *  See \ref templates_solution.h for description of parameters.
+ *  \brief Provides the macro definitions used for c-style templating related to the `double` vector
+ *         containers/functions.
  */
 
-///\{ \name Function names
-#define convert_variables_T convert_variables_c
+//#include "templates_vector_constructors_d.h"
+
+///\{ \name Data types
+#define Vector_T       Vector_d
+#define Vector_R       Vector_d       ///< 'R'eal.
+#define const_Vector_T const_Vector_d
+#define const_Vector_R const_Vector_d ///< 'R'eal.
 ///\}
 
-#endif // DPG__templates_solution_c_h__INCLUDED
+///\{ \name Function names
+
+///\}
+
+#endif // DPG__templates_vector_d_h__INCLUDED

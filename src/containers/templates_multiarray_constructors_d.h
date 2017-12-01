@@ -16,21 +16,23 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__templates_multiarray_constructors_d_h__INCLUDED
 #define DPG__templates_multiarray_constructors_d_h__INCLUDED
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` multiarray
- *         containers/functions.
+ *  \brief Provides the macro definitions used for c-style templating related to the `double` multiarray constructor
+ *         functions.
  */
 
-#define constructor_empty_Multiarray_T             constructor_empty_Multiarray_d             ///< Standard.
-#define constructor_empty_Multiarray_T_dyn_extents constructor_empty_Multiarray_d_dyn_extents ///< Standard.
+///\{ \name Function names
+#define constructor_empty_Multiarray_T             constructor_empty_Multiarray_d
+#define constructor_empty_Multiarray_T_dyn_extents constructor_empty_Multiarray_d_dyn_extents
 
-#define constructor_copy_Multiarray_T       constructor_copy_Multiarray_d       ///< Standard.
-#define constructor_copy_const_Multiarray_T constructor_copy_const_Multiarray_d ///< Standard.
+#define constructor_copy_Multiarray_T       constructor_copy_Multiarray_d
+#define constructor_copy_const_Multiarray_T constructor_copy_const_Multiarray_d
 
-#define constructor_move_Multiarray_T_T constructor_move_Multiarray_d_d                     ///< Standard.
-#define constructor_move_const_Multiarray_T_T constructor_move_const_Multiarray_d_d         ///< Standard.
-#define constructor_move_Multiarray_T_dyn_extents constructor_move_Multiarray_d_dyn_extents ///< Standard.
+#define constructor_move_Multiarray_T_T constructor_move_Multiarray_d_d
+#define constructor_move_const_Multiarray_T_T constructor_move_const_Multiarray_d_d
+#define constructor_move_Multiarray_T_dyn_extents constructor_move_Multiarray_d_dyn_extents
 
-#define destructor_Multiarray_T       destructor_Multiarray_d       ///< Standard.
-#define destructor_const_Multiarray_T destructor_const_Multiarray_d ///< Standard.
+#define destructor_Multiarray_T       destructor_Multiarray_d
+#define destructor_const_Multiarray_T destructor_const_Multiarray_d
+///\}
 
 #endif // DPG__templates_multiarray_constructors_d_h__INCLUDED

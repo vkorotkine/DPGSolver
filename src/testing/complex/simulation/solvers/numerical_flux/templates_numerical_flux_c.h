@@ -19,16 +19,28 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the real numerical flux functions.
  */
 
-#define Numerical_Flux_Input_T   Numerical_Flux_Input_c   ///< Numerical_Flux_Input parameter.
-#define Numerical_Flux_Input_R   Numerical_Flux_Input     ///< Real Numerical_Flux_Input parameter.
-#define mutable_Numerical_Flux_T mutable_Numerical_Flux_c ///< mutable_Numerical_Flux parameter.
+///\{ \name Data types
+#define Numerical_Flux_Input_T   Numerical_Flux_Input_c
+#define Numerical_Flux_Input_R   Numerical_Flux_Input     ///< 'R'eal.
+#define mutable_Numerical_Flux_T mutable_Numerical_Flux_c
+#define Numerical_Flux_T         Numerical_Flux_c
+///\}
 
-#define compute_Numerical_Flux_T_advection_upwind          compute_Numerical_Flux_c_advection_upwind          ///< Standard.
-#define compute_Numerical_Flux_T_advection_upwind_jacobian compute_Numerical_Flux_c_advection_upwind_jacobian ///< Standard.
+///\{ \name Function names
+#define constructor_Numerical_Flux_Input_T     constructor_Numerical_Flux_Input_c
+#define destructor_Numerical_Flux_Input_T      destructor_Numerical_Flux_Input_c
+#define destructor_Numerical_Flux_Input_data_T destructor_Numerical_Flux_Input_c_data
 
-#define compute_Numerical_Flux_T_euler_lax_friedrichs          compute_Numerical_Flux_c_euler_lax_friedrichs          ///< Standard.
-#define compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian compute_Numerical_Flux_c_euler_lax_friedrichs_jacobian ///< Standard.
-#define compute_Numerical_Flux_T_euler_roe_pike                compute_Numerical_Flux_c_euler_roe_pike                ///< Standard.
-#define compute_Numerical_Flux_T_euler_roe_pike_jacobian       compute_Numerical_Flux_c_euler_roe_pike_jacobian       ///< Standard.
+#define constructor_Numerical_Flux_T constructor_Numerical_Flux_c
+#define destructor_Numerical_Flux_T  destructor_Numerical_Flux_c
+
+#define compute_Numerical_Flux_T_advection_upwind          compute_Numerical_Flux_c_advection_upwind          
+#define compute_Numerical_Flux_T_advection_upwind_jacobian compute_Numerical_Flux_c_advection_upwind_jacobian 
+
+#define compute_Numerical_Flux_T_euler_lax_friedrichs          compute_Numerical_Flux_c_euler_lax_friedrichs          
+#define compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian compute_Numerical_Flux_c_euler_lax_friedrichs_jacobian 
+#define compute_Numerical_Flux_T_euler_roe_pike                compute_Numerical_Flux_c_euler_roe_pike                
+#define compute_Numerical_Flux_T_euler_roe_pike_jacobian       compute_Numerical_Flux_c_euler_roe_pike_jacobian       
+///\}
 
 #endif // DPG__templates_numerical_flux_c_h__INCLUDED

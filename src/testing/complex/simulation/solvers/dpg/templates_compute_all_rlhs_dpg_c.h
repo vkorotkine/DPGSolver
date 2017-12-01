@@ -13,16 +13,14 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__templates_solution_c_h__INCLUDED
-#define DPG__templates_solution_c_h__INCLUDED
+#ifndef DPG__templates_compute_all_rlhs_dpg_c_h__INCLUDED
+#define DPG__templates_compute_all_rlhs_dpg_c_h__INCLUDED
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the complex solution functions.
- *
- *  See \ref templates_solution.h for description of parameters.
+ *  \brief Provides the macro definitions used for c-style templating related to the `double complex` dpg rlhs computing
+ *         functions.
  */
 
 ///\{ \name Function names
-#define convert_variables_T convert_variables_c
 ///\}
 
-#endif // DPG__templates_solution_c_h__INCLUDED
+#endif // DPG__templates_compute_all_rlhs_dpg_c_h__INCLUDED

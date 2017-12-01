@@ -21,14 +21,18 @@ You should have received a copy of the GNU General Public License along with DPG
  *  See \ref templates_boundary.h for description of parameters.
  */
 
-#define Boundary_Value_T Boundary_Value_c             ///< See brief.
-#define Boundary_Value_Input_T Boundary_Value_Input_c ///< See brief.
-#define Boundary_Value_Input_R Boundary_Value_Input   ///< See brief.
+///\{ \name Data types
+#define Boundary_Value_T Boundary_Value_c
+#define Boundary_Value_Input_T Boundary_Value_Input_c
+#define Boundary_Value_Input_R Boundary_Value_Input   ///< 'R'eal.
+///\}
 
-#define constructor_Boundary_Value_T_advection_inflow constructor_Boundary_Value_c_advection_inflow   ///< See brief.
-#define constructor_Boundary_Value_T_advection_outflow constructor_Boundary_Value_c_advection_outflow ///< See brief.
+///\{ \name Function names
+#define constructor_Boundary_Value_T_advection_inflow constructor_Boundary_Value_c_advection_inflow
+#define constructor_Boundary_Value_T_advection_outflow constructor_Boundary_Value_c_advection_outflow
 
-#define constructor_Boundary_Value_T_euler_riemann constructor_Boundary_Value_c_euler_riemann   ///< See brief.
-#define constructor_Boundary_Value_T_euler_slipwall constructor_Boundary_Value_c_euler_slipwall ///< See brief.
+#define constructor_Boundary_Value_T_euler_riemann constructor_Boundary_Value_c_euler_riemann
+#define constructor_Boundary_Value_T_euler_slipwall constructor_Boundary_Value_c_euler_slipwall 
+///\}
 
 #endif // DPG__templates_boundary_c_h__INCLUDED

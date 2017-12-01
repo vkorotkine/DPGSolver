@@ -19,8 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the real const cast functions.
  */
 
-#define const_cast_T   const_cast_ptrdiff   ///< Standard.
-#define const_cast_T_n const_cast_ptrdiff_n ///< Standard.
-#define const_cast_T1  const_cast_ptrdiff1  ///< Standard.
+///\{ \name Function names
+#define const_cast_T   const_cast_ptrdiff   
+#define const_cast_T_n const_cast_ptrdiff_n 
+#define const_cast_T1  const_cast_ptrdiff1  
+///\}
 
 #endif // DPG__templates_const_cast_p_h__INCLUDED

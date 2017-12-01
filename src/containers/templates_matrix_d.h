@@ -13,16 +13,26 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__templates_solution_c_h__INCLUDED
-#define DPG__templates_solution_c_h__INCLUDED
+#ifndef DPG__templates_matrix_d_h__INCLUDED
+#define DPG__templates_matrix_d_h__INCLUDED
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the complex solution functions.
- *
- *  See \ref templates_solution.h for description of parameters.
+ *  \brief Provides the macro definitions used for c-style templating related to the `double` matrix
+ *         containers/functions.
  */
 
-///\{ \name Function names
-#define convert_variables_T convert_variables_c
+#include "templates_matrix_constructors_d.h"
+#include "templates_matrix_math_d.h"
+
+///\{ \name Data types
+#define Matrix_T       Matrix_d
+#define Matrix_R       Matrix_d       ///< 'R'eal.
+#define const_Matrix_T const_Matrix_d
+#define const_Matrix_R const_Matrix_d ///< 'R'eal.
 ///\}
 
-#endif // DPG__templates_solution_c_h__INCLUDED
+///\{ \name Function names
+#define set_block_Matrix_T   set_block_Matrix_d
+#define set_block_Matrix_T_R set_block_Matrix_d ///< \todo name change (add _d).
+///\}
+
+#endif // DPG__templates_matrix_d_h__INCLUDED
