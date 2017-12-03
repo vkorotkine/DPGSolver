@@ -17,8 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *         containers/functions.
  */
 
-//#include "def_templates_matrix_constructors_i.h"
-//#include "def_templates_matrix_math_i.h"
+#include "def_templates_matrix_constructors_i.h"
+#include "def_templates_matrix_print_i.h"
 
 ///\{ \name Data types
 #define Matrix_T       Matrix_i
@@ -50,5 +50,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_col_to_val_Matrix_T set_col_to_val_Matrix_i
 
 #define set_block_Matrix_T   set_block_Matrix_i
-#define set_block_Matrix_T_R set_block_Matrix_i ///< \todo name change (add _i).
+#define set_block_Matrix_T_R set_block_Matrix_i
 ///\}

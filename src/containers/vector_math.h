@@ -16,20 +16,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__vector_math_h__INCLUDED
 #define DPG__vector_math_h__INCLUDED
 /** \file
- *  \brief Provides Vector_\* math functions.
+ *  \brief Provides real Vector_\* math functions.
  */
 
-struct Vector_d;
-
-/// \brief Invert each of the entries of the input \ref Vector_d\*.
-void invert_Vector_d
-	(struct Vector_d* a ///< Input vector.
-	);
-
-/// \brief Add to a \ref Vector_d\*.
-void add_to_Vector_d_d
-	(struct Vector_d* a, ///< To be added to.
-	 const double* b     ///< Data to add.
-	);
+#include "def_templates_type_d.h"
+#include "def_templates_vector_d.h"
+#include "vector_math_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_vector.h"
 
 #endif // DPG__vector_math_h__INCLUDED

@@ -16,4 +16,5 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the `int` data type.
  */
 
-#define Type int ///< Type parameter.
+#define Type int    ///< Type parameter.
+#define Real double ///< Real type parameter.

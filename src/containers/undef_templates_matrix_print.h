@@ -13,18 +13,12 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templated relating to templates_matrix_math_\*.h.
+ *  \brief Undefine macro definitions for c-style templated relating to templates_matrix_print_\*.h.
  */
 
-#undef compute_norm_Matrix_T_row
-#undef transpose_Matrix_T
-#undef invert_sub_block_Matrix_T
-#undef scale_Matrix_T
-#undef permute_Matrix_T
-#undef permute_Matrix_T_V
-#undef mm_RTT
-#undef mm_T
-#undef mv_T
-#undef scale_Matrix_by_Vector_T
-#undef mm_diag_T
-#undef reinterpret_const_Matrix_T
+#undef check_Matrix_extents_zero_T
+
+#undef print_Matrix_T_tol
+#undef print_const_Matrix_T_tol
+#undef print_Matrix_T
+#undef print_const_Matrix_T

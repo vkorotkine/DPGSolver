@@ -17,15 +17,33 @@ You should have received a copy of the GNU General Public License along with DPG
  *         containers/functions.
  */
 
-//#include "def_templates_vector_constructors_d.h"
+#include "def_templates_vector_constructors_d.h"
+#include "def_templates_vector_math_d.h"
+#include "def_templates_vector_print_d.h"
 
 ///\{ \name Data types
 #define Vector_T       Vector_d
-#define Vector_R       Vector_d
 #define const_Vector_T const_Vector_d
+#define Vector_R       Vector_d
 #define const_Vector_R const_Vector_d
 ///\}
 
 ///\{ \name Function names
+#define cmp_T cmp_d
 
+#define reorder_Vector_T            reorder_Vector_d
+#define resize_Vector_T             resize_Vector_d
+#define set_to_zero_Vector_T        set_to_zero_Vector_d
+#define set_to_data_Vector_T        set_to_data_Vector_d
+#define set_to_value_Vector_T       set_to_value_Vector_d
+#define sort_Vector_T               sort_Vector_d
+#define sum_Vector_T                sum_Vector_d
+#define prod_Vector_T               prod_Vector_d
+#define prod_const_Vector_T         prod_const_Vector_d
+#define check_equal_Vector_T        check_equal_Vector_d
+#define check_equal_Vector_T_T      check_equal_Vector_d_d
+#define cmp_Vector_T                cmp_Vector_d
+#define copy_data_Vector_T_Vector_T copy_data_Vector_d_Vector_d
+#define push_back_Vector_T          push_back_Vector_d
+#define find_val_Vector_T           find_val_Vector_d
 ///\}

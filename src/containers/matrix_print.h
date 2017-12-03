@@ -16,44 +16,19 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__matrix_print_h__INCLUDED
 #define DPG__matrix_print_h__INCLUDED
 /** \file
- *  \brief Provides Matrix_\* printing functions.
+ *  \brief Provides real Matrix_\* printing functions.
  */
 
-struct Matrix_d;
-struct Matrix_i;
-struct const_Matrix_d;
-struct const_Matrix_i;
+#include "def_templates_type_d.h"
+#include "def_templates_matrix_d.h"
+#include "matrix_print_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
 
-/// \brief Print a \ref Matrix_T\* to the terminal displaying entries below the tolerance as 0.0.
-void print_Matrix_d_tol
-	(const struct Matrix_d*const a, ///< Standard.
-	 const double tol               ///< The tolerance.
-	);
-
-/// \brief `const` version of \ref print_Matrix_d_tol.
-void print_const_Matrix_d_tol
-	(const struct const_Matrix_d*const a, ///< See brief.
-	 const double tol                     ///< See brief.
-	);
-
-/// \brief Print a \ref Matrix_T\* calling \ref print_Matrix_d_tol with a default tolerance.
-void print_Matrix_d
-	(const struct Matrix_d*const a ///< Defined for \ref print_Matrix_d_tol.
-	);
-
-/// \brief `const` version of \ref print_Matrix_d.
-void print_const_Matrix_d
-	(const struct const_Matrix_d*const a ///< Defined for \ref print_Matrix_d.
-	);
-
-/// \brief Print a \ref Matrix_T\* to the terminal.
-void print_Matrix_i
-	(const struct Matrix_i*const a ///< Standard.
-	);
-
-/// \brief Print a \ref const_Matrix_T\* to the terminal.
-void print_const_Matrix_i
-	(const struct const_Matrix_i*const a ///< Standard.
-	);
+#include "def_templates_type_i.h"
+#include "def_templates_matrix_i.h"
+#include "matrix_print_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
 
 #endif // DPG__matrix_print_h__INCLUDED

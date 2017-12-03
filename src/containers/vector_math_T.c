@@ -15,34 +15,31 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "matrix_math.h"
+#include "vector_math.h"
 
 #include <assert.h>
-#include <string.h>
-#include <math.h>
-#include "mkl.h"
-#include "gsl/gsl_permute_matrix_double.h"
 
-#include "macros.h"
-#include "definitions_mkl.h"
-
-#include "matrix.h"
-#include "multiarray.h"
 #include "vector.h"
-
-#include "const_cast.h"
-
-// Templated functions ********************************************************************************************** //
-
-#include "def_templates_type_d.h"
-#include "def_templates_matrix_d.h"
-#include "matrix_math_T.c"
-#include "undef_templates_type.h"
-#include "undef_templates_matrix.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
+
+void invert_Vector_T (struct Vector_T* a)
+{
+	const ptrdiff_t ext_0 = a->ext_0;
+	for (ptrdiff_t i = 0; i < ext_0; ++i) {
+		assert(a->data[i] != 0.0);
+		a->data[i] = 1.0/(a->data[i]);
+	}
+}
+
+void add_to_Vector_T_T (struct Vector_T* a, const Type* b)
+{
+	const ptrdiff_t ext_0 = a->ext_0;
+	for (ptrdiff_t i = 0; i < ext_0; ++i)
+		a->data[i] += b[i];
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

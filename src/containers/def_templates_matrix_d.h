@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_matrix_constructors_d.h"
 #include "def_templates_matrix_math_d.h"
+#include "def_templates_matrix_print_d.h"
 
 ///\{ \name Data types
 #define Matrix_T       Matrix_d

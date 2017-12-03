@@ -21,25 +21,17 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "vector.h"
 
+// Templated functions ********************************************************************************************** //
+
+#include "def_templates_type_d.h"
+#include "def_templates_vector_d.h"
+#include "vector_math_T.c"
+#include "undef_templates_type.h"
+#include "undef_templates_vector.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
-
-void invert_Vector_d (struct Vector_d* a)
-{
-	const ptrdiff_t ext_0 = a->ext_0;
-	for (ptrdiff_t i = 0; i < ext_0; ++i) {
-		assert(a->data[i] != 0.0);
-		a->data[i] = 1.0/(a->data[i]);
-	}
-}
-
-void add_to_Vector_d_d (struct Vector_d* a, const double* b)
-{
-	const ptrdiff_t ext_0 = a->ext_0;
-	for (ptrdiff_t i = 0; i < ext_0; ++i)
-		a->data[i] += b[i];
-}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

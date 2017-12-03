@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "undef_templates_matrix_constructors.h"
 #include "undef_templates_matrix_math.h"
+#include "undef_templates_matrix_print.h"
 
 #undef Matrix_T
 #undef Matrix_R

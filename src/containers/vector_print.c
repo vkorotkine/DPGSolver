@@ -24,77 +24,23 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "vector.h"
 
+// Templated functions ********************************************************************************************** //
+
+#include "def_templates_type_d.h"
+#include "def_templates_vector_d.h"
+#include "vector_print_T.c"
+#include "undef_templates_type.h"
+#include "undef_templates_vector.h"
+
+#include "def_templates_type_i.h"
+#include "def_templates_vector_i.h"
+#include "vector_print_T.c"
+#include "undef_templates_type.h"
+#include "undef_templates_vector.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
-
-void print_Vector_i (const struct Vector_i*const a)
-{
-	const ptrdiff_t ext = a->ext_0;
-
-	const int* data = a->data;
-
-	for (ptrdiff_t i = 0; i < ext; i++) {
-		printf("% 12d ",*data++);
-		if (!((i+1)%8))
-			printf("\n");
-	}
-	printf("\n\n");
-}
-
-void print_const_Vector_i (const struct const_Vector_i*const a)
-{
-	struct Vector_i* local = constructor_move_Vector_i_i(a->ext_0,false,(int*)a->data); // free
-	print_Vector_i(local);
-	free(local);
-}
-
-void print_Vector_d_tol (const struct Vector_d*const a, const double tol)
-{
-	const ptrdiff_t ext = a->ext_0;
-
-	const double* data = a->data;
-
-	for (ptrdiff_t i = 0; i < ext; i++) {
-		const double val = *data++;
-		printf("% .4e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
-		if (!((i+1)%8))
-			printf("\n");
-	}
-	printf("\n\n");
-}
-
-void print_const_Vector_d_tol (const struct const_Vector_d*const a, const double tol)
-{
-	print_Vector_d_tol((struct Vector_d*)a,tol);
-}
-
-void print_Vector_d (const struct Vector_d*const a)
-{
-	print_Vector_d_tol(a,EPS);
-}
-
-void print_const_Vector_d (const struct const_Vector_d*const a)
-{
-	print_Vector_d((const struct Vector_d*)a);
-}
-
-void fprint_const_Vector_i (FILE* file, const int n_tab, const struct const_Vector_i* a)
-{
-	for (int i = 0; i < n_tab; ++i)
-		fprintf(file,"\t");
-
-	const ptrdiff_t ext_0 = a->ext_0;
-	for (ptrdiff_t i = 0; i < ext_0; ++i)
-		fprintf(file," % 3d",a->data[i]);
-
-	fprintf(file,"\n");
-}
-
-void fprint_Vector_i (FILE* file, const int n_tab, struct Vector_i* a)
-{
-	fprint_const_Vector_i(file,n_tab,(const struct const_Vector_i*)a);
-}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

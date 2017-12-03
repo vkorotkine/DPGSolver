@@ -37,7 +37,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Mark unused variables.
-#define UNUSED(x) (void)(x)
+#define UNUSED(x)       (void)(x)
+#define MAYBE_UNUSED(x) (void)(x)
 ///\}
 
 ///\{ \name Macro to output on successful termination.

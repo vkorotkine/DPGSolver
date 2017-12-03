@@ -1,0 +1,42 @@
+/* {{{
+This file is part of DPGSolver.
+
+DPGSolver is free software: you can redistribute it and/or modify it under the terms of the GNU
+General Public License as published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+
+DPGSolver is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
+Public License for more details.
+
+You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
+<http://www.gnu.org/licenses/>.
+}}} */
+/** \file
+ *  \brief Provides Matrix_\* printing functions.
+ */
+
+struct Matrix_T;
+struct const_Matrix_T;
+
+/// \brief Print a \ref Matrix_T\* to the terminal displaying entries below the tolerance as 0.0.
+void print_Matrix_T_tol
+	(const struct Matrix_T*const a, ///< Standard.
+	 const Real tol                 ///< The tolerance.
+	);
+
+/// \brief `const` version of \ref print_Matrix_T_tol.
+void print_const_Matrix_T_tol
+	(const struct const_Matrix_T*const a, ///< See brief.
+	 const Real tol                       ///< See brief.
+	);
+
+/// \brief Print a \ref Matrix_T\* calling \ref print_Matrix_T_tol with a default tolerance.
+void print_Matrix_T
+	(const struct Matrix_T*const a ///< Defined for \ref print_Matrix_T_tol.
+	);
+
+/// \brief `const` version of \ref print_Matrix_T.
+void print_const_Matrix_T
+	(const struct const_Matrix_T*const a ///< Defined for \ref print_Matrix_T.
+	);
