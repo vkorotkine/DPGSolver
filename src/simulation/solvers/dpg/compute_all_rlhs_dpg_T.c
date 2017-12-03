@@ -19,6 +19,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/// \brief Increment and add dof for the rhs and lhs with the face contributions from 1st order equations.
+static void increment_and_add_dof_rlhs_f_1_T
+	(struct Vector_T* rhs,                      ///< Holds the values of the rhs.
+	 struct Matrix_T** lhs_ptr,                 ///< Pointer to the matrix holding the values of the lhs.
+	 const struct DPG_Solver_Volume* dpg_s_vol, ///< \ref DPG_Solver_Volume.
+	 const struct Simulation* sim               ///< \ref Simulation.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 // Static functions ************************************************************************************************* //
@@ -43,12 +51,11 @@ static void increment_rlhs_boundary_face_T
 	 const struct Simulation* sim               ///< \ref Simulation.
 	);
 
-#if TYPE_RC == TYPE_REAL
-static void increment_and_add_dof_rlhs_f_1
-	(struct Vector_d* rhs, struct Matrix_d** lhs_ptr, const struct DPG_Solver_Volume* dpg_s_vol,
+static void increment_and_add_dof_rlhs_f_1_T
+	(struct Vector_T* rhs, struct Matrix_T** lhs_ptr, const struct DPG_Solver_Volume* dpg_s_vol,
 	 const struct Simulation* sim)
 {
-	struct Matrix_d* lhs = *lhs_ptr;
+	struct Matrix_T* lhs = *lhs_ptr;
 
 	const struct Volume* vol          = (struct Volume*) dpg_s_vol;
 	const struct Solver_Volume* s_vol = (struct Solver_Volume*) dpg_s_vol;
@@ -58,24 +65,10 @@ static void increment_and_add_dof_rlhs_f_1
 
 	const ptrdiff_t n_dof_s  = (lhs->ext_1)/n_vr,
 	                n_dof_nf = compute_n_dof_nf(s_vol);
+#if TYPE_RC == TYPE_REAL
 	struct Matrix_d* lhs_add = constructor_empty_Matrix_d('R',lhs->ext_0,(n_dof_s+n_dof_nf)*n_vr); // moved
 	set_to_value_Matrix_d(lhs_add,0.0);
 #elif TYPE_RC == TYPE_COMPLEX
-static void increment_and_add_dof_rlhs_f_1_c
-	(struct Vector_c* rhs, struct Matrix_c** lhs_ptr, const struct DPG_Solver_Volume* dpg_s_vol,
-	 const struct Simulation* sim)
-{
-	struct Matrix_c* lhs = *lhs_ptr;
-
-	const struct Volume* vol          = (struct Volume*) dpg_s_vol;
-	const struct Solver_Volume* s_vol = (struct Solver_Volume*) dpg_s_vol;
-
-	const int n_eq = sim->test_case->n_eq,
-	          n_vr = sim->test_case->n_var;
-//	const ptrdiff_t ext_0 = (rhs->ext_0)/n_eq;
-
-	const ptrdiff_t n_dof_s  = (lhs->ext_1)/n_vr,
-	                n_dof_nf = compute_n_dof_nf(s_vol);
 	struct Matrix_c* lhs_add = constructor_empty_Matrix_c('R',lhs->ext_0,(n_dof_s+n_dof_nf)*n_vr); // moved
 #endif
 	set_block_Matrix_T(lhs_add,(struct const_Matrix_T*)lhs,0,0,'i');

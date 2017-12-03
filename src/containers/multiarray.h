@@ -313,7 +313,7 @@ struct const_Vector_d interpret_const_Multiarray_as_Vector_d
 	(const struct const_Multiarray_d* a_Ma ///< The input multiarray.
 	);
 
-/** \brief Return a copy of a stack allocated \ref Matrix_d holding the data of the input multiarray of order 2.
+/** \brief Return a copy of a stack allocated \ref Matrix_T holding the data of the input multiarray of order 2.
  *  \return See brief. */
 struct Matrix_d interpret_Multiarray_as_Matrix_d
 	(const struct Multiarray_d* a_Ma ///< The input multiarray.

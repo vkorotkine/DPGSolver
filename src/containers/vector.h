@@ -32,7 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Vector (`int`).
 struct Vector_i {
-	ptrdiff_t ext_0; ///< Defined in \ref Matrix_d.
+	ptrdiff_t ext_0; ///< Defined in \ref Matrix_T.
 
 	bool owns_data; ///< Defined in \ref Multiarray_d.
 	int* data;      ///< Defined in \ref Multiarray_d.
@@ -48,7 +48,7 @@ struct const_Vector_i {
 
 /// \brief Vector (`double`).
 struct Vector_d {
-	ptrdiff_t ext_0; ///< Defined in \ref Matrix_d.
+	ptrdiff_t ext_0; ///< Defined in \ref Matrix_T.
 
 	bool owns_data; ///< Defined in \ref Multiarray_d.
 	double* data;   ///< Defined in \ref Multiarray_d.

@@ -71,8 +71,8 @@ static ptrdiff_t compute_total_entries
 
 // Interface functions ********************************************************************************************** //
 
-#include "templates_type_d.h"
-#include "templates_multiarray_d.h"
+#include "def_templates_type_d.h"
+#include "def_templates_multiarray_d.h"
 #include "multiarray_T.c"
 
 ptrdiff_t compute_size (const int order, const ptrdiff_t*const extents)

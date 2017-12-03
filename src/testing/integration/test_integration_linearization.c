@@ -205,8 +205,8 @@ int main
 	struct Solver_Storage_Implicit* ssi[2] = { constructor_Solver_Storage_Implicit(sim),
 	                                           constructor_Solver_Storage_Implicit(sim), }; // destructed
 
-	compute_lhs_analytical(sim,ssi[0],f_ptrs_data);
 	compute_lhs_cmplx_step(sim,ssi[1],f_ptrs_data);
+	compute_lhs_analytical(sim,ssi[0],f_ptrs_data);
 
 	if (OUTPUT_PETSC_MATRICES)
 		output_petsc_matrices((const struct Solver_Storage_Implicit**)ssi);

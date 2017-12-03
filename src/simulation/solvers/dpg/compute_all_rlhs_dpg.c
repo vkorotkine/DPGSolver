@@ -48,16 +48,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-#include "templates_type_d.h"
+#include "def_templates_type_d.h"
 
-#include "templates_matrix_d.h"
-#include "templates_multiarray_d.h"
-#include "templates_vector_d.h"
+#include "def_templates_matrix_d.h"
+#include "def_templates_multiarray_d.h"
+#include "def_templates_vector_d.h"
 
-#include "templates_compute_all_rlhs_dpg_d.h"
-#include "templates_compute_face_rlhs_d.h"
-#include "templates_multiarray_operator_d.h"
-#include "templates_numerical_flux.h"
+#include "def_templates_compute_all_rlhs_dpg_d.h"
+#include "def_templates_compute_face_rlhs_d.h"
+#include "def_templates_multiarray_operator_d.h"
+#include "def_templates_numerical_flux.h"
 
 #include "compute_all_rlhs_dpg_T.c"
 
@@ -328,14 +328,6 @@ static struct Vector_d* constructor_rhs_v_1
 	(const struct Flux_Ref* flux_r,     ///< Defined for \ref compute_rlhs_fptr.
 	 const struct Solver_Volume* s_vol, ///< Defined for \ref compute_rlhs_fptr.
 	 const struct Simulation* sim       ///< Defined for \ref compute_rlhs_fptr.
-	);
-
-/// \brief Increment and add dof for the rhs and lhs with the face contributions from 1st order equations.
-static void increment_and_add_dof_rlhs_f_1
-	(struct Vector_d* rhs,                      ///< Holds the values of the rhs.
-	 struct Matrix_d** lhs_ptr,                 ///< Pointer to the matrix holding the values of the lhs.
-	 const struct DPG_Solver_Volume* dpg_s_vol, ///< \ref DPG_Solver_Volume.
-	 const struct Simulation* sim               ///< \ref Simulation.
 	);
 
 /// \brief Increment the rhs terms with the source contribution.

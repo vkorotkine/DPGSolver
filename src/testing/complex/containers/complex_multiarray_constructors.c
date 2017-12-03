@@ -54,9 +54,9 @@ static struct Multiarray_c* constructor_copy_Multiarray_c_Multiarray_d
 
 // Interface functions ********************************************************************************************** //
 
-#include "templates_type_dc.h"
-#include "templates_multiarray_c.h"
-#include "templates_multiarray_constructors_c.h"
+#include "def_templates_type_dc.h"
+#include "def_templates_multiarray_c.h"
+#include "def_templates_multiarray_constructors_c.h"
 #include "multiarray_constructors_T.c"
 
 // Default constructors ********************************************************************************************* //

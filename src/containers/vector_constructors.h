@@ -139,7 +139,7 @@ struct const_Vector_i* constructor_move_const_Vector_i_i
 	 const int*const data   ///< Standard.
 	);
 
-/** \brief Move constructor for a \ref const_Vector_i\* from a row of a \ref const_Matrix_i\*.
+/** \brief Move constructor for a \ref const_Vector_i\* from a row of a \ref const_Matrix_T\*.
  *  \return Standard. */
 const struct const_Vector_i* constructor_move_const_Vector_Matrix_row_i
 	(const int row,                    ///< The row index.
@@ -147,7 +147,7 @@ const struct const_Vector_i* constructor_move_const_Vector_Matrix_row_i
 	 const int owns_data               ///< Standard.
 	);
 
-/** \brief Move constructor for a \ref Vector_d\* from a \ref Matrix_d\*.
+/** \brief Move constructor for a \ref Vector_d\* from a \ref Matrix_T\*.
  *  \return Standard. */
 struct Vector_d* constructor_move_Vector_d_Matrix_d
 	(struct Matrix_d* src ///< The source matrix.
@@ -265,7 +265,7 @@ const struct const_Vector_d* constructor_sgesv_const_Vector_d
 	 const struct const_Vector_d* B_i  ///< The RHS input vector B.
 	);
 
-/// \brief Set a \ref Vector_d\* from a sub range of a \ref Matrix_d\*.
+/// \brief Set a \ref Vector_d\* from a sub range of a \ref Matrix_T\*.
 void set_Vector_from_Matrix_d
 	(struct Vector_d* dest,            ///< The destination.
 	 struct Matrix_d* src,             ///< The source.

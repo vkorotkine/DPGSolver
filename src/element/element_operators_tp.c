@@ -245,7 +245,7 @@ static void set_ops_MO
 
 /// \brief Set the the input `op_Md[DMAX]` to point to the appropriate matrices in `op_MO[DMAX]`.
 static void set_ops_Md
-	(const struct const_Matrix_d* op_Md[DMAX],      ///< The array of \ref Matrix_d operators.
+	(const struct const_Matrix_d* op_Md[DMAX],      ///< The array of \ref Matrix_T operators.
 	 const struct Multiarray_Operator* op_MO[DMAX], ///< The array of \ref Multiarray_Matrix_d operators.
 	 const struct const_Vector_i* op_values,        ///< The index values of the current operator.
 	 const struct Operator_Info* op_info,           ///< \ref Sub_Operator_Info.

@@ -61,16 +61,16 @@ static void constructor_Numerical_Flux_Input_c_data_dpg
 	 const struct Simulation* sim                       ///< See brief.
 	);
 
-#include "templates_type_dc.h"
+#include "def_templates_type_dc.h"
 
-#include "templates_matrix_c.h"
-#include "templates_multiarray_c.h"
-#include "templates_vector_c.h"
+#include "def_templates_matrix_c.h"
+#include "def_templates_multiarray_c.h"
+#include "def_templates_vector_c.h"
 
-#include "templates_compute_all_rlhs_dpg_c.h"
-#include "templates_compute_face_rlhs_c.h"
-#include "templates_multiarray_operator_c.h"
-#include "templates_numerical_flux_c.h"
+#include "def_templates_compute_all_rlhs_dpg_c.h"
+#include "def_templates_compute_face_rlhs_c.h"
+#include "def_templates_multiarray_operator_c.h"
+#include "def_templates_numerical_flux_c.h"
 
 #include "compute_all_rlhs_dpg_T.c"
 
@@ -175,14 +175,6 @@ struct Matrix_c* constructor_lhs_v_1_c
 	(const struct Flux_Ref_c* flux_r,   ///< See brief.
 	 const struct Solver_Volume* s_vol, ///< See brief.
 	 const struct Simulation* sim       ///< See brief.
-	);
-
-/// \brief `complex` version of \ref increment_and_add_dof_rlhs_f_1.
-static void increment_and_add_dof_rlhs_f_1_c
-	(struct Vector_c* rhs,                      ///< See brief.
-	 struct Matrix_c** lhs_ptr,                 ///< See brief.
-	 const struct DPG_Solver_Volume* dpg_s_vol, ///< See brief.
-	 const struct Simulation* sim               ///< See brief.
 	);
 
 /** \brief Version of \ref add_to_petsc_Mat_Vec_dpg setting a single column of Solver_Storage_Implicit::A to the values

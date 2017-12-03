@@ -34,17 +34,17 @@ struct const_Multiarray_Matrix_d;
 
 // Default constructors ********************************************************************************************* //
 
-/** \brief Constructor for a default \ref Matrix_d\*.
+/** \brief Constructor for a default \ref Matrix_T\*.
  *  \return Standard. */
 struct Matrix_d* constructor_default_Matrix_d ();
 
-/** \brief Constructor for a default \ref const_Matrix_d\*.
+/** \brief Constructor for a default \ref const_Matrix_T\*.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_default_const_Matrix_d ();
 
 // Empty constructors *********************************************************************************************** //
 
-/** \brief Constructs an empty \ref Matrix_d\*.
+/** \brief Constructs an empty \ref Matrix_T\*.
  *  \return Standard. */
 struct Matrix_d* constructor_empty_Matrix_d
 	(const char layout,     ///< Standard.
@@ -52,7 +52,7 @@ struct Matrix_d* constructor_empty_Matrix_d
 	 const ptrdiff_t ext_1  ///< Standard.
 	);
 
-/** \brief Constructs an empty \ref Matrix_i\*.
+/** \brief Constructs an empty \ref Matrix_T\*.
  *  \return Standard. */
 struct Matrix_i* constructor_empty_Matrix_i
 	(const char layout,     ///< Standard.
@@ -62,19 +62,19 @@ struct Matrix_i* constructor_empty_Matrix_i
 
 // Copy constructors ************************************************************************************************ //
 
-/** \brief Copy constructor for a \ref Matrix_d\* from a \ref Matrix_d\*.
+/** \brief Copy constructor for a \ref Matrix_T\* from a \ref Matrix_T\*.
  *  \return Standard. */
 struct Matrix_d* constructor_copy_Matrix_d
 	(const struct Matrix_d* src ///< The source matrix.
 	);
 
-/** \brief Copy constructor for a \ref const_Matrix_d\* from a \ref const_Matrix_d\*.
+/** \brief Copy constructor for a \ref const_Matrix_T\* from a \ref const_Matrix_T\*.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_copy_const_Matrix_d
 	(const struct const_Matrix_d* src ///< The source matrix.
 	);
 
-/** \brief Copy constructor for a \ref Matrix_i\* from a `const int*`.
+/** \brief Copy constructor for a \ref Matrix_T\* from a `const int*`.
  *  \return Standard. */
 struct Matrix_i* constructor_copy_Matrix_i_i
 	(const char layout,       ///< Standard.
@@ -83,7 +83,7 @@ struct Matrix_i* constructor_copy_Matrix_i_i
 	 const int*const data_src ///< The source data.
 	);
 
-/** \brief Copy constructor for a \ref Matrix_d\* from a `const double*`.
+/** \brief Copy constructor for a \ref Matrix_T\* from a `const double*`.
  *  \return Standard. */
 struct Matrix_d* constructor_copy_Matrix_d_d
 	(const char layout,          ///< Standard.
@@ -101,14 +101,14 @@ const struct const_Matrix_d* constructor_copy_const_Matrix_d_d
 	 const double*const data_src ///< Defined for \ref constructor_copy_Matrix_d_d.
 	);
 
-/** \brief Copy constructor for a \ref const_Matrix_d\* from a partial number of rows/columns of another.
+/** \brief Copy constructor for a \ref const_Matrix_T\* from a partial number of rows/columns of another.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_copy_extract_const_Matrix_d
 	(const struct const_Matrix_d*const src,    ///< The source Matrix.
 	 const struct const_Vector_i*const indices ///< The indices of the rows/columns to copy.
 	);
 
-/** \brief Copy constructor for a `const` \ref const_Matrix_d\* from a `const` \ref const_Matrix_d\*.
+/** \brief Copy constructor for a `const` \ref const_Matrix_T\* from a `const` \ref const_Matrix_T\*.
  *  \return Standard. */
 void const_constructor_copy_Matrix_d
 	(const struct const_Matrix_d*const* dest, ///< Destination.
@@ -117,7 +117,7 @@ void const_constructor_copy_Matrix_d
 
 // Move constructors ************************************************************************************************ //
 
-/** \brief Move constructor for a \ref Matrix_d\* from a `double*`.
+/** \brief Move constructor for a \ref Matrix_T\* from a `double*`.
  *  \return Standard. */
 struct Matrix_d* constructor_move_Matrix_d_d
 	(const char layout,     ///< Standard.
@@ -137,7 +137,7 @@ const struct const_Matrix_d* constructor_move_const_Matrix_d_d
 	 const double*const data ///< Defined for \ref constructor_move_Matrix_d_d.
 	);
 
-/** \brief Move constructor for a \ref Matrix_i\* from a `int*`.
+/** \brief Move constructor for a \ref Matrix_T\* from a `int*`.
  *  \return Standard. */
 struct Matrix_i* constructor_move_Matrix_i_i
 	(const char layout,     ///< Standard.
@@ -147,19 +147,19 @@ struct Matrix_i* constructor_move_Matrix_i_i
 	 int*const data         ///< Standard.
 	);
 
-/// \brief Move Constructor for a `const` \ref const_Matrix_d `*const` from a \ref Matrix_d\*.
+/// \brief Move Constructor for a `const` \ref const_Matrix_T `*const` from a \ref Matrix_T\*.
 void const_constructor_move_Matrix_d
 	(const struct const_Matrix_d*const* dest, ///< Destination.
 	 struct Matrix_d* src                     ///< Source.
 	);
 
-/// \brief Move Constructor for a `const` \ref const_Matrix_d `*const` from a \ref const_Matrix_d\*.
+/// \brief Move Constructor for a `const` \ref const_Matrix_T `*const` from a \ref const_Matrix_T\*.
 void const_constructor_move_const_Matrix_d
 	(const struct const_Matrix_d*const* dest, ///< Destination.
 	 const struct const_Matrix_d* src         ///< Source.
 	);
 
-/** \brief Move Constructor for a `const` \ref const_Matrix_i `*const`.
+/** \brief Move Constructor for a `const` \ref const_Matrix_T `*const`.
  *  \return Standard. */
 void const_constructor_move_Matrix_i
 	(const struct const_Matrix_i*const* dest, ///< Destination.
@@ -168,7 +168,7 @@ void const_constructor_move_Matrix_i
 
 // Special constructors ********************************************************************************************* //
 
-/** \brief Constructor for a \ref Matrix_d\* which is a sub-block of the input matrix.
+/** \brief Constructor for a \ref Matrix_T\* which is a sub-block of the input matrix.
  *  \return See brief. */
 struct Matrix_d* constructor_sub_block_Matrix_d
 	(const ptrdiff_t row0,      ///< Index of the first row in the source matrix.
@@ -178,21 +178,21 @@ struct Matrix_d* constructor_sub_block_Matrix_d
 	 const struct Matrix_d* src ///< The source matrix.
 	);
 
-/** \brief Constructor for a \ref const_Matrix_d\* from a subset of the input matrix.
+/** \brief Constructor for a \ref const_Matrix_T\* from a subset of the input matrix.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_subset_const_Matrix_d
 	(const struct const_Matrix_d* src,       ///< The source matrix.
 	 const struct const_Vector_i* ind_subset ///< The indices of the subset matrix.
 	);
 
-/** \brief Constructor for a \ref Matrix_d\* as a copy of the transpose of the input matrix.
+/** \brief Constructor for a \ref Matrix_T\* as a copy of the transpose of the input matrix.
  *  \return Standard. */
 struct Matrix_d* constructor_copy_transpose_Matrix_d
 	(struct Matrix_d* a, ///< The input matrix.
 	 const bool mem_only ///< Defined for \ref transpose_Matrix_d.
 	);
 
-/** \brief Constructor for a block diagonal \ref const_Matrix_d\* with blocks set to the input matrix.
+/** \brief Constructor for a block diagonal \ref const_Matrix_T\* with blocks set to the input matrix.
  *  \return Standard.
  *
  *  \note The input matrix need not be square.
@@ -202,7 +202,7 @@ const struct const_Matrix_d* constructor_block_diagonal_const_Matrix_d
 	 const ptrdiff_t n_blocks            ///< The number of blocks in the output.
 	);
 
-/** \brief Constructor for a diagonal \ref Matrix_d\* with entries set to the input value.
+/** \brief Constructor for a diagonal \ref Matrix_T\* with entries set to the input value.
  *  \return Standard. */
 struct Matrix_d* constructor_diagonal_Matrix_d_d
 	(const char layout,     ///< Standard.
@@ -210,7 +210,7 @@ struct Matrix_d* constructor_diagonal_Matrix_d_d
 	 const double val       ///< The value.
 	);
 
-/** \brief Constructor for an identity \ref Matrix_d\*.
+/** \brief Constructor for an identity \ref Matrix_T\*.
  *  \return Standard. */
 struct Matrix_d* constructor_identity_Matrix_d
 	(const char layout,    ///< Standard.
@@ -224,7 +224,7 @@ const struct const_Matrix_d* constructor_identity_const_Matrix_d
 	 const ptrdiff_t ext_0 ///< The dimensions of the square matrix.
 	);
 
-/** \brief Constructor for the inverse of the input \ref Matrix_d\*.
+/** \brief Constructor for the inverse of the input \ref Matrix_T\*.
  *  \return Standard. */
 struct Matrix_d* constructor_inverse_Matrix_d
 	(struct Matrix_d* src ///< The source matrix.
@@ -236,7 +236,7 @@ const struct const_Matrix_d* constructor_inverse_const_Matrix_d
 	(const struct const_Matrix_d* src ///< Defined for \ref constructor_inverse_Matrix_d.
 	);
 
-/** \brief Constructor for a \ref Matrix_d\* from the solution of a linear system using [LAPACKE_dsgesv][dsgesv].
+/** \brief Constructor for a \ref Matrix_T\* from the solution of a linear system using [LAPACKE_dsgesv][dsgesv].
  *  \return Standard.
  *
  *  <!-- References: -->
@@ -254,7 +254,7 @@ const struct const_Matrix_d* constructor_sgesv_const_Matrix_d
 	 const struct const_Matrix_d* B_i  ///< Defined for \ref constructor_sgesv_Matrix_d.
 	);
 
-/** \brief Constructor for a \ref Matrix_d\* from the solution of a linear system using [LAPACKE_dsysv][dsysv].
+/** \brief Constructor for a \ref Matrix_T\* from the solution of a linear system using [LAPACKE_dsysv][dsysv].
  *  \return Standard.
  *
  *  <!-- References: -->
@@ -272,7 +272,7 @@ const struct const_Matrix_d* constructor_sysv_const_Matrix_d
 	 const struct const_Matrix_d* B_i  ///< Defined for \ref constructor_sysv_Matrix_d.
 	);
 
-/** \brief Constructor for a \ref Matrix_d\* from a matrix-matrix multiplication.
+/** \brief Constructor for a \ref Matrix_T\* from a matrix-matrix multiplication.
  *  \return Standard. */
 struct Matrix_d* constructor_mm_Matrix_d
 	(const char trans_a_i,                ///< Defined for \ref mm_d.
@@ -280,7 +280,7 @@ struct Matrix_d* constructor_mm_Matrix_d
 	 const double alpha,                  ///< Defined for \ref mm_d.
 	 const struct const_Matrix_d*const a, ///< Defined for \ref mm_d.
 	 const struct const_Matrix_d*const b, ///< Defined for \ref mm_d.
-	 const char layout                    ///< The `layout` of the constructed \ref Matrix_d.
+	 const char layout                    ///< The `layout` of the constructed \ref Matrix_T.
 	);
 
 /** \brief `const` version of \ref constructor_mm_Matrix_d.
@@ -294,7 +294,7 @@ const struct const_Matrix_d* constructor_mm_const_Matrix_d
 	 const char layout                    ///< See brief.
 	);
 
-/** \brief Constructor for a \ref Matrix_d\* from a matrix-matrix multiplication using default values.
+/** \brief Constructor for a \ref Matrix_T\* from a matrix-matrix multiplication using default values.
  *
  *  Defaults:
  *	- `trans_a_i = 'N'`;
@@ -315,7 +315,7 @@ const struct const_Matrix_d* constructor_mm_NN1R_const_Matrix_d
 	 const struct const_Matrix_d*const b  ///< Defined for \ref constructor_mm_NN1R_Matrix_d.
 	);
 
-/** \brief Constructor for a \ref Matrix_d\* from a matrix-matrix multiplication using default values.
+/** \brief Constructor for a \ref Matrix_T\* from a matrix-matrix multiplication using default values.
  *
  *  Defaults:
  *	- `trans_a_i = 'N'`;
@@ -336,7 +336,7 @@ const struct const_Matrix_d* constructor_mm_NN1C_const_Matrix_d
 	 const struct const_Matrix_d*const b  ///< Defined for \ref constructor_mm_NN1C_Matrix_d.
 	);
 
-/** \brief Constructor for a \ref Matrix_d\* from a matrix-diagonal matrix multiplication.
+/** \brief Constructor for a \ref Matrix_T\* from a matrix-diagonal matrix multiplication.
  *  \return Standard.
  *
  *  The diagonal matrix is input as a vector and may be applied either from the left or the right.
@@ -359,7 +359,7 @@ const struct const_Matrix_d* constructor_mm_diag_const_Matrix_d
 	 const bool invert_diag               ///< See brief.
 	);
 
-/// \brief Set a \ref Matrix_d\* from a sub range of a \ref Multiarray_d\*.
+/// \brief Set a \ref Matrix_T\* from a sub range of a \ref Multiarray_d\*.
 void set_Matrix_from_Multiarray_d
 	(struct Matrix_d* dest,            ///< The destination.
 	 struct Multiarray_d* src,         ///< The source.
@@ -373,7 +373,7 @@ void set_const_Matrix_from_Multiarray_d
 	 const ptrdiff_t*const sub_indices     ///< Defined for \ref set_Matrix_from_Multiarray_d.
 	);
 
-/// \brief Set a \ref Matrix_d\* from an entry of a \ref Multiarray_Matrix_d\*.
+/// \brief Set a \ref Matrix_T\* from an entry of a \ref Multiarray_Matrix_d\*.
 void set_Matrix_from_Multiarray_Matrix_d
 	(struct Matrix_d* dest,            ///< The destination.
 	 struct Multiarray_Matrix_d* src,  ///< The source.
@@ -389,22 +389,22 @@ void set_const_Matrix_from_Multiarray_Matrix_d
 
 // Destructors ****************************************************************************************************** //
 
-/// \brief Destructs a \ref Matrix_d\*.
+/// \brief Destructs a \ref Matrix_T\*.
 void destructor_Matrix_d
 	(struct Matrix_d* a ///< Standard.
 	);
 
-/// \brief Destructs a \ref const_Matrix_d\*.
+/// \brief Destructs a \ref const_Matrix_T\*.
 void destructor_const_Matrix_d
 	(const struct const_Matrix_d* a ///< Standard.
 	);
 
-/// \brief Destructs a \ref Matrix_i\*.
+/// \brief Destructs a \ref Matrix_T\*.
 void destructor_Matrix_i
 	(struct Matrix_i* a ///< Standard.
 	);
 
-/// \brief Destructs a \ref const_Matrix_i\*.
+/// \brief Destructs a \ref const_Matrix_T\*.
 void destructor_const_Matrix_i
 	(const struct const_Matrix_i* a ///< Standard.
 	);

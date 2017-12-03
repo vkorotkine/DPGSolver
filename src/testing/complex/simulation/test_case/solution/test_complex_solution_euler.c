@@ -21,10 +21,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-#include "templates_type_dc.h"
+#include "def_templates_type_dc.h"
 
-#include "templates_multiarray_c.h"
-#include "templates_solution_c.h"
+#include "def_templates_multiarray_c.h"
+#include "def_templates_solution_c.h"
 
 #include "solution_euler_T.c"
 

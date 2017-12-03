@@ -22,9 +22,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-#include "templates_type_dc.h"
+#include "def_templates_type_dc.h"
 
-#include "templates_flux_c.h"
+#include "def_templates_flux_c.h"
 
 #include "flux_advection_T.c"
 

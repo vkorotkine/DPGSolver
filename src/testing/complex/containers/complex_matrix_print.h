@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__complex_matrix_print_h__INCLUDED
 #define DPG__complex_matrix_print_h__INCLUDED
 /** \file
- *  \brief Provides \ref Matrix_c printing functions.
+ *  \brief Provides \ref Matrix_T printing functions.
  */
 
 struct Matrix_c;

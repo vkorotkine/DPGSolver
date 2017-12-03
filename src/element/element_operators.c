@@ -883,7 +883,7 @@ static const struct const_Multiarray_Matrix_d* constructor_op_Xc_ce_io
 	 const struct Simulation* sim         ///< Defined for \ref set_operator_std_L2.
 	);
 
-/** \brief Construct the mass-type \ref const_Matrix_d\* with the given input operators.
+/** \brief Construct the mass-type \ref const_Matrix_T\* with the given input operators.
  *  \return See brief. */
 static const struct const_Matrix_d* constructor_mass
 	(const struct const_Matrix_d* cv0_l, ///< The 'l'eft  cv matrix (not transposed).

@@ -22,8 +22,8 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 
 // double complex
-#include "templates_type_dc.h"
-#include "templates_const_cast_dc.h"
+#include "def_templates_type_dc.h"
+#include "def_templates_const_cast_dc.h"
 #include "const_cast_T.c"
 #include "undef_templates_type.h"
 #include "undef_templates_const_cast.h"

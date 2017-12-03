@@ -27,7 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Copy constructor for a \ref Matrix_c\* from a \ref Matrix_d\*.
+/** \brief Copy constructor for a \ref Matrix_T\* from a \ref Matrix_T\*.
  *  \return See brief. */
 static struct Matrix_c* constructor_copy_Matrix_c_Matrix_d
 	(struct Matrix_d* src ///< The source matrix.

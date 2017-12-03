@@ -126,7 +126,7 @@ void destructor_Mesh_Data (struct Mesh_Data* mesh_data)
 // Level 0 ********************************************************************************************************** //
 
 /** \brief Read the nodes (xyz coordinates) from the mesh file.
- *	\return A \ref Matrix_d\* containing the \ref Mesh_Data::nodes.
+ *	\return A \ref Matrix_T\* containing the \ref Mesh_Data::nodes.
  */
 static struct Matrix_d* read_nodes
 	(FILE* mesh_file, ///< The mesh file.
@@ -141,7 +141,7 @@ static struct Element_Data* read_elements
 	);
 
 /** \brief Reads periodic entity data.
- *	\return A \ref Matrix_i\* containing the \ref Mesh_Data::periodic_corr.
+ *	\return A \ref Matrix_T\* containing the \ref Mesh_Data::periodic_corr.
  *
  *	The use of `line_ptr` in the code below is required for passing the address of the `char[]` line to a `char**` as
  *	explained in [this SO answer][multidim_arrays].
@@ -206,7 +206,7 @@ static struct Vector_i* count_elements_per_dim (const struct const_Vector_i*cons
 
 // Level 1 ********************************************************************************************************** //
 
-/** \brief Fill one row of the nodes \ref Matrix_d.
+/** \brief Fill one row of the nodes \ref Matrix_T.
  *	Note that the first entry of the line is the node index and is discarded.
  */
 static void fill_nodes

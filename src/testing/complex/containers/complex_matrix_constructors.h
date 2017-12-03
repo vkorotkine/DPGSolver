@@ -30,7 +30,7 @@ struct const_Vector_d;
 
 // Empty constructors *********************************************************************************************** //
 
-/** \brief Constructs an empty \ref Matrix_c\*.
+/** \brief Constructs an empty \ref Matrix_T\*.
  *  \return Standard. */
 struct Matrix_c* constructor_empty_Matrix_c
 	(const char layout,     ///< Standard.
@@ -40,7 +40,7 @@ struct Matrix_c* constructor_empty_Matrix_c
 
 // Copy constructors ************************************************************************************************ //
 
-/** \brief Copy constructor for a \ref Matrix_c\* from a \ref Matrix_c\*.
+/** \brief Copy constructor for a \ref Matrix_T\* from a \ref Matrix_T\*.
  *  \return Standard. */
 struct Matrix_c* constructor_copy_Matrix_c
 	(const struct Matrix_c* src ///< The source matrix.

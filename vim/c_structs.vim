@@ -65,3 +65,5 @@ syntax keyword Special Matrix_T const_Matrix_T
 syntax keyword Special Matrix_R const_Matrix_R
 syntax keyword Special Multiarray_T const_Multiarray_T
 syntax keyword Special Multiarray_R const_Multiarray_R
+
+syntax keyword Special Matrix_CSR_T const_Matrix_CSR_T

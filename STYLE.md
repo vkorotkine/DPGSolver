@@ -39,11 +39,13 @@ int const*const p = NULL; // avoid
 
 ### Templating
 
-Several functions in the code are templated such that they can operate on both real and complex data types. In this
-case, the various function definitions are performed at compile time by including the templated function `.c` file in
-the appropriate non-templated `.c` file *after* including appropriate header files providing the necessary macro
-expansions. In the interest of readability, the individual function declarations are however be repeated for each of the
-template types in the corresponding header files.
+Several functions in the code are templated such that they may be used for multiple data types
+(integer, floating-point, complex floating-point), eliminating significant code duplication. In
+these cases, the various function declarations/definitions are set by including the templated files
+(`*_T.h` and `*_T.c`) with specialized definition (`def_*`) and undefinition (`undef_*`) macro files
+in the associated header/implementation files.
 
-Relevant comments for documentation should be associated with the templated function and all specializations should
-refer to the general function.
+While this greatly reduces redundant code, it results in potential confusion when specialized
+versions of the functions are called in the code despite their declarations not explicitly appearing
+in any header file. Thus, it is recommended to search the documentation for function names *without*
+the trailing specialization indicator (i.e. function_name`_*`).

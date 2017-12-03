@@ -361,7 +361,7 @@ const struct const_Multiarray_d* constructor_move_const_Multiarray_d_dyn_extents
 	 const double*const data  ///< Defined for \ref constructor_move_Multiarray_d_dyn_extents.
 	);
 
-/** \brief Move constructor for a \ref Multiarray_d\* from a \ref Matrix_d\*.
+/** \brief Move constructor for a \ref Multiarray_d\* from a \ref Matrix_T\*.
  *  \return Standard. */
 struct Multiarray_d* constructor_move_Multiarray_d_Matrix_d
 	(struct Matrix_d* src ///< The source matrix.

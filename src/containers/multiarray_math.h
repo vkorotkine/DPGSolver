@@ -122,7 +122,7 @@ ptrdiff_t* compute_extents_mm_MMa
 	 const ptrdiff_t* extents_i ///< The input extents. Used to set all but the first entry.
 	);
 
-/// \brief Reinterpret the \ref const_Multiarray_d\* as a \ref const_Matrix_d\* having the given input extents.
+/// \brief Reinterpret the \ref const_Multiarray_d\* as a \ref const_Matrix_T\* having the given input extents.
 void reinterpret_const_Multiarray_as_Matrix_d
 	(const struct const_Multiarray_d* a, ///< The multiarray.
 	 const struct const_Matrix_d* a_M,   ///< The matrix.
@@ -130,7 +130,7 @@ void reinterpret_const_Multiarray_as_Matrix_d
 	 const ptrdiff_t ext_1               ///< The value of `ext_1` for the matrix.
 	);
 
-/// \brief Reinterpret the \ref const_Matrix_d\* as a \ref const_Multiarray_d\* having the given input order/extents.
+/// \brief Reinterpret the \ref const_Matrix_T\* as a \ref const_Multiarray_d\* having the given input order/extents.
 void reinterpret_const_Matrix_as_Multiarray_d
 	(const struct const_Matrix_d* a_M,   ///< The matrix.
 	 const struct const_Multiarray_d* a, ///< The multiarray.

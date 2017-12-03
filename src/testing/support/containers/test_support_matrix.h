@@ -27,35 +27,35 @@ struct const_Matrix_d;
 
 // Constructor functions ******************************************************************************************** //
 
-/** \brief Constructor for a \ref Matrix_i\* from data in the input file of the given name.
+/** \brief Constructor for a \ref Matrix_T\* from data in the input file of the given name.
  *  \return Standard. */
 struct Matrix_i* constructor_file_name_Matrix_i
 	(const char*const var_name,      ///< The name of the variable to be read in from the file.
 	 const char*const file_name_full ///< The name of the file (including the full path).
 	);
 
-/** \brief Constructor for a \ref Matrix_d\* from data in the input file of the given name.
+/** \brief Constructor for a \ref Matrix_T\* from data in the input file of the given name.
  *  \return Standard. */
 struct Matrix_d* constructor_file_name_Matrix_d
 	(const char*const var_name,      ///< The name of the variable to be read in from the file.
 	 const char*const file_name_full ///< The name of the file (including the full path).
 	);
 
-/** \brief Constructor for a \ref const_Matrix_d\* from data in the input file of the given name.
+/** \brief Constructor for a \ref const_Matrix_T\* from data in the input file of the given name.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_file_name_const_Matrix_d
 	(const char*const var_name,      ///< The name of the variable to be read in from the file.
 	 const char*const file_name_full ///< The name of the file (including the full path).
 	);
 
-/** \brief Constructor for a \ref Matrix_i\* from the current line in the input file.
+/** \brief Constructor for a \ref Matrix_T\* from the current line in the input file.
  *  \return Standard. */
 struct Matrix_i* constructor_file_Matrix_i
 	(FILE* data_file,           ///< The pointer to the file from which to read the data.
 	 const bool check_container ///< Flag for whether the container type should be checked.
 	);
 
-/** \brief Constructor for a \ref Matrix_d\* from the current line in the input file.
+/** \brief Constructor for a \ref Matrix_T\* from the current line in the input file.
  *  \return Standard. */
 struct Matrix_d* constructor_file_Matrix_d
 	(FILE* data_file,           ///< The pointer to the file from which to read the data.
@@ -90,14 +90,14 @@ void scale_const_Matrix_by_Vector_d
 
 // Difference functions ********************************************************************************************* //
 
-/** \brief Check the difference between entries in the input \ref Matrix_i\*s.
+/** \brief Check the difference between entries in the input \ref Matrix_T\*s.
  *  \return The `true` if inputs differ; `false` otherwise. */
 bool diff_Matrix_i
 	(const struct Matrix_i*const a, ///< Input 0.
 	 const struct Matrix_i*const b  ///< Input 1.
 	);
 
-/** \brief Check the relative difference between entries in the input \ref Matrix_d\*s up to the input tolerance.
+/** \brief Check the relative difference between entries in the input \ref Matrix_T\*s up to the input tolerance.
  *  \return The `true` if inputs differ; `false` otherwise. */
 bool diff_Matrix_d
 	(const struct Matrix_d*const a, ///< Input 0.
@@ -115,13 +115,13 @@ bool diff_const_Matrix_d
 
 // Printing functions *********************************************************************************************** //
 
-/// \brief Print the difference of the input \ref Matrix_i\*s.
+/// \brief Print the difference of the input \ref Matrix_T\*s.
 void print_diff_Matrix_i
 	(const struct Matrix_i*const a, ///< Input 0.
 	 const struct Matrix_i*const b  ///< Input 1.
 	);
 
-/// \brief Print the relative difference of the input \ref Matrix_d\*s, outputting 0 if less than the tolerance.
+/// \brief Print the relative difference of the input \ref Matrix_T\*s, outputting 0 if less than the tolerance.
 void print_diff_Matrix_d
 	(const struct Matrix_d*const a, ///< Input 0.
 	 const struct Matrix_d*const b, ///< Input 1.
