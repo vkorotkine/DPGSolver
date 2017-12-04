@@ -42,13 +42,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #define reorder_Multiarray_Vector_T       reorder_Multiarray_Vector_d
 #define compute_total_entries             compute_total_entries_d
 
-#define get_row_Multiarray_T       get_row_Multiarray_d
-#define get_row_const_Multiarray_T get_row_const_Multiarray_d
-#define get_col_Multiarray_T       get_col_Multiarray_d
-#define get_col_const_Multiarray_T get_col_const_Multiarray_d
-#define set_to_value_Multiarray_T  set_to_value_Multiarray_d
-#define set_Multiarray_Vector_T_T  set_Multiarray_Vector_d_d
-#define set_Multiarray_T           set_Multiarray_d
+#define get_row_Multiarray_T          get_row_Multiarray_d
+#define get_row_const_Multiarray_T    get_row_const_Multiarray_d
+#define get_col_Multiarray_T          get_col_Multiarray_d
+#define get_col_const_Multiarray_T    get_col_const_Multiarray_d
+#define set_to_value_Multiarray_T     set_to_value_Multiarray_d
+#define set_Multiarray_Vector_T_T     set_Multiarray_Vector_d_d
+#define set_Multiarray_T              set_Multiarray_d
+#define set_Multiarray_T_Multiarray_R set_Multiarray_d_Multiarray_d
 
 #define sort_Multiarray_Vector_T               sort_Multiarray_Vector_d
 #define collapse_Multiarray_Vector_T           collapse_Multiarray_Vector_d

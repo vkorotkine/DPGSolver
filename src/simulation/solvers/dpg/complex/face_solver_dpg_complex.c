@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
-#include "complex_multiarray_minimal.h"
+#include "complex_multiarray.h"
 #include "multiarray.h"
 
 #include "simulation.h"

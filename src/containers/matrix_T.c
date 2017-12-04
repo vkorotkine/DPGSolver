@@ -168,7 +168,16 @@ void set_block_Matrix_T
 			set_value(&data_a[j],data_as[j]);
 	}
 }
-
+#if TYPE_RC == TYPE_COMPLEX
+void set_block_Matrix_T_R
+	(struct Matrix_T* a, const struct const_Matrix_R* a_sub, const ptrdiff_t row0, const ptrdiff_t col0,
+	 const char set_type)
+{
+	const struct const_Matrix_T*const a_sub_c = constructor_copy_const_Matrix_T_Matrix_R(a_sub); // destructed
+	set_block_Matrix_T(a,a_sub_c,row0,col0,set_type);
+	destructor_const_Matrix_T(a_sub_c);
+}
+#endif
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

@@ -18,6 +18,51 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name Function names
+#define constructor_default_Matrix_T       constructor_default_Matrix_c
+#define constructor_default_const_Matrix_T constructor_default_const_Matrix_c
+
+#define constructor_empty_Matrix_T constructor_empty_Matrix_c
+
+#define constructor_copy_Matrix_T_T             constructor_copy_Matrix_c_c
+#define constructor_copy_const_Matrix_T_T       constructor_copy_const_Matrix_c_c
+#define constructor_copy_Matrix_T               constructor_copy_Matrix_c
+#define constructor_copy_const_Matrix_T         constructor_copy_const_Matrix_c
+#define constructor_copy_extract_const_Matrix_T constructor_copy_extract_const_Matrix_c
+#define const_constructor_copy_Matrix_T         const_constructor_copy_Matrix_c
+#define constructor_copy_Matrix_T_Matrix_R       constructor_copy_Matrix_c_Matrix_c
+#define constructor_copy_const_Matrix_T_Matrix_R constructor_copy_const_Matrix_c_Matrix_c
+
+#define constructor_move_Matrix_T_T           constructor_move_Matrix_c_c
+#define constructor_move_const_Matrix_T_T     constructor_move_const_Matrix_c_c
+#define const_constructor_move_Matrix_T       const_constructor_move_Matrix_c
+#define const_constructor_move_const_Matrix_T const_constructor_move_const_Matrix_c
+
+#define constructor_sub_block_Matrix_T            constructor_sub_block_Matrix_c
+#define constructor_subset_const_Matrix_T         constructor_subset_const_Matrix_c
+#define constructor_copy_transpose_Matrix_T       constructor_copy_transpose_Matrix_c
+#define constructor_block_diagonal_const_Matrix_T constructor_block_diagonal_const_Matrix_c
+#define constructor_diagonal_Matrix_T_T           constructor_diagonal_Matrix_c_c
+#define constructor_identity_Matrix_T             constructor_identity_Matrix_c
+#define constructor_identity_const_Matrix_T       constructor_identity_const_Matrix_c
+#define constructor_inverse_Matrix_T              constructor_inverse_Matrix_c
+#define constructor_inverse_const_Matrix_T        constructor_inverse_const_Matrix_c
+#define constructor_sgesv_Matrix_T                constructor_sgesv_Matrix_c
+#define constructor_sgesv_const_Matrix_T          constructor_sgesv_const_Matrix_c
+#define constructor_sysv_Matrix_T                 constructor_sysv_Matrix_c
+#define constructor_sysv_const_Matrix_T           constructor_sysv_const_Matrix_c
+#define constructor_mm_Matrix_T                   constructor_mm_Matrix_c
+#define constructor_mm_const_Matrix_T             constructor_mm_const_Matrix_c
+#define constructor_mm_NN1R_Matrix_T              constructor_mm_NN1R_Matrix_c
+#define constructor_mm_NN1R_const_Matrix_T        constructor_mm_NN1R_const_Matrix_c
+#define constructor_mm_NN1C_Matrix_T              constructor_mm_NN1C_Matrix_c
+#define constructor_mm_NN1C_const_Matrix_T        constructor_mm_NN1C_const_Matrix_c
+#define constructor_mm_diag_Matrix_T_R            constructor_mm_diag_Matrix_c_d
+#define constructor_mm_diag_const_Matrix_T_R      constructor_mm_diag_const_Matrix_c_d
+#define set_Matrix_from_Multiarray_T              set_Matrix_from_Multiarray_c
+#define set_const_Matrix_from_Multiarray_T        set_const_Matrix_from_Multiarray_c
+#define set_Matrix_from_Multiarray_Matrix_T       set_Matrix_from_Multiarray_Matrix_c
+#define set_const_Matrix_from_Multiarray_Matrix_T set_const_Matrix_from_Multiarray_Matrix_c
+
 #define destructor_Matrix_T       destructor_Matrix_c
 #define destructor_const_Matrix_T destructor_const_Matrix_c
 ///\}

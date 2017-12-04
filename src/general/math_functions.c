@@ -81,6 +81,23 @@ double norm_d (const ptrdiff_t n_entries, const double*const data, const char*co
 	EXIT_UNSUPPORTED;
 }
 
+double complex norm_c (const ptrdiff_t n_entries, const double complex*const data, const char*const norm_type)
+{
+	double complex norm = 0.0;
+	if (strcmp(norm_type,"L2") == 0) {
+		for (ptrdiff_t i = 0; i < n_entries; ++i)
+			norm += data[i]*data[i];
+		return csqrt(norm);
+	} else if (strcmp(norm_type,"Inf") == 0) {
+		for (ptrdiff_t i = 0; i < n_entries; ++i) {
+			if (cabs(data[i]) > cabs(norm))
+				norm = cabs(data[i]);
+		}
+		return norm;
+	}
+	EXIT_UNSUPPORTED;
+}
+
 double norm_diff_d
 	(const ptrdiff_t n_entries, const double*const data_0, const double*const data_1, const char*const norm_type)
 {

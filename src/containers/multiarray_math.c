@@ -17,19 +17,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray_math.h"
 
-#include <assert.h>
-
-#include "macros.h"
-
 #include "matrix.h"
 #include "multiarray.h"
 #include "vector.h"
 
 #include "math_functions.h"
 
-// Static function declarations ************************************************************************************* //
-
-// Interface functions ********************************************************************************************** //
+// Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
 #include "def_templates_matrix_d.h"
@@ -40,6 +34,21 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
+
+// Static function declarations ************************************************************************************* //
+
+// Interface functions ********************************************************************************************** //
+
+ptrdiff_t* compute_extents_mm_MMa (const ptrdiff_t ext_0, const int order, const ptrdiff_t* extents_i)
+{
+	ptrdiff_t* extents = malloc((size_t)order * sizeof *extents); // returned
+
+	extents[0] = ext_0;
+	for (int i = 1; i < order; ++i)
+		extents[i] = extents_i[i];
+
+	return extents;
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

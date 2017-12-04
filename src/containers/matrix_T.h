@@ -170,3 +170,13 @@ void set_block_Matrix_T
 	 const ptrdiff_t col0,               ///< The index of the first column where the sub-block should be placed.
 	 const char set_type                 ///< The type of setting to use. Options: 'i'nsert, 'a'dd.
 	);
+#if TYPE_RC == TYPE_COMPLEX
+/// \brief Version of \ref set_block_Matrix_T with a real input.
+void set_block_Matrix_T_R
+	(struct Matrix_T* a,                 ///< See brief.
+	 const struct const_Matrix_R* a_sub, ///< See brief.
+	 const ptrdiff_t row0,               ///< See brief.
+	 const ptrdiff_t col0,               ///< See brief.
+	 const char set_type                 ///< See brief.
+	);
+#endif

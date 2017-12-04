@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct const_Multiarray_d;
 struct Multiarray_d;
+struct const_Multiarray_Matrix_c;
 
 /// Container holding the operator matrices in various formats.
 struct Operator {
@@ -94,6 +95,13 @@ void set_ops_tp_n_rows_cols
 	(int n_rows_sub[DMAX],                          ///< The number of rows of each sub-operator.
 	 int n_cols_sub[DMAX],                          ///< The number of columns of each sub-operator.
 	 const struct const_Multiarray_Matrix_d* ops_tp ///< The tensor-product operators.
+	);
+
+/// \brief Set the input arrays to hold the number of rows and columns of the tensor-product operators.
+void set_ops_tp_n_rows_cols_c
+	(int n_rows_sub[DMAX],                          ///< The number of rows of each sub-operator.
+	 int n_cols_sub[DMAX],                          ///< The number of columns of each sub-operator.
+	 const struct const_Multiarray_Matrix_c* ops_tp ///< The tensor-product operators.
 	);
 
 // Math functions *************************************************************************************************** //

@@ -42,6 +42,8 @@ include_directories(
 	simulation/test_case/solution/advection
 	simulation/test_case/solution/euler
 	testing
+	testing/complex/containers # Remove in future.
+	testing/complex/templates  # Remove in future.
 	)
 configure_file_h_in(${PROJECT_SOURCE_DIR}/src/ definitions_core.h.in)
 

@@ -19,17 +19,14 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides \ref Multiarray_c printing functions.
  */
 
-struct Multiarray_c;
-struct const_Multiarray_c;
-
-/// \brief `complex` version of \ref print_Multiarray_c.
-void print_Multiarray_c
-	(const struct Multiarray_c*const a ///< See brief.
-	);
-
-/// \brief `const` version of \ref print_Multiarray_c.
-void print_const_Multiarray_c
-	(const struct const_Multiarray_c*const a ///< See brief.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_matrix_c.h"
+#include "def_templates_multiarray_c.h"
+#include "def_templates_vector_c.h"
+#include "multiarray_print_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
 
 #endif // DPG__complex_multiarray_print_h__INCLUDED

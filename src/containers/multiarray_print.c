@@ -17,16 +17,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray_print.h"
 
-#include <assert.h>
-
-#include "macros.h"
-#include "definitions_tol.h"
-
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
-
-// Static function declarations ************************************************************************************* //
 
 // Templated functions ********************************************************************************************** //
 
@@ -49,6 +42,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
+
+// Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 

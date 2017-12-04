@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides Matrix_\* printing functions.
  */
 
+#include <complex.h>
+
 struct Matrix_T;
 struct const_Matrix_T;
 
@@ -40,3 +42,15 @@ void print_Matrix_T
 void print_const_Matrix_T
 	(const struct const_Matrix_T*const a ///< Defined for \ref print_Matrix_T.
 	);
+
+#if TYPE_RC == TYPE_COMPLEX
+/// \brief Print a real value to the terminal with default format.
+void print_real
+	(const double complex val ///< The complex value.
+	);
+
+/// \brief Print an imaginary value to the terminal with default format.
+void print_imag
+	(const double complex val ///< The complex value.
+	);
+#endif

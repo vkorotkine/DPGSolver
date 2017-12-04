@@ -175,7 +175,7 @@ void scale_const_Matrix_by_Vector_d
 	(const char side, const double alpha, const struct const_Matrix_d*const a, const struct const_Vector_d*const b,
 	 const bool invert_diag)
 {
-	scale_Matrix_by_Vector_d(side,alpha,(struct Matrix_d*)a,b,invert_diag);
+	scale_Matrix_d_by_Vector_d(side,alpha,(struct Matrix_d*)a,b,invert_diag);
 }
 
 // Difference functions ********************************************************************************************* //

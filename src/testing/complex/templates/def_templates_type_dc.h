@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the `double complex` data type.
  */
 
+#include <complex.h>
 #include "definitions_templates_type.h"
 
 #define Type double complex  ///< Type parameter.

@@ -22,7 +22,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Data types
 #define Multiarray_T       Multiarray_i
+#define Multiarray_R       Multiarray_d
 #define const_Multiarray_T const_Multiarray_i
+#define const_Multiarray_R const_Multiarray_d
 
 #define Multiarray_Vector_T       Multiarray_Vector_i
 #define const_Multiarray_Vector_T const_Multiarray_Vector_i
@@ -39,13 +41,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #define reorder_Multiarray_Vector_T       reorder_Multiarray_Vector_i
 #define compute_total_entries             compute_total_entries_i
 
-#define get_row_Multiarray_T       get_row_Multiarray_i
-#define get_row_const_Multiarray_T get_row_const_Multiarray_i
-#define get_col_Multiarray_T       get_col_Multiarray_i
-#define get_col_const_Multiarray_T get_col_const_Multiarray_i
-#define set_to_value_Multiarray_T  set_to_value_Multiarray_i
-#define set_Multiarray_Vector_T_T  set_Multiarray_Vector_i_i
-#define set_Multiarray_T           set_Multiarray_i
+#define get_row_Multiarray_T          get_row_Multiarray_i
+#define get_row_const_Multiarray_T    get_row_const_Multiarray_i
+#define get_col_Multiarray_T          get_col_Multiarray_i
+#define get_col_const_Multiarray_T    get_col_const_Multiarray_i
+#define set_to_value_Multiarray_T     set_to_value_Multiarray_i
+#define set_Multiarray_Vector_T_T     set_Multiarray_Vector_i_i
+#define set_Multiarray_T              set_Multiarray_i
+#define set_Multiarray_T_Multiarray_R set_Multiarray_i_Multiarray_d
 
 #define sort_Multiarray_Vector_T               sort_Multiarray_Vector_i
 #define collapse_Multiarray_Vector_T           collapse_Multiarray_Vector_i

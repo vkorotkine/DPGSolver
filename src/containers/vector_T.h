@@ -23,10 +23,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "vector_constructors.h"
-#include "vector_math.h"
-#include "vector_print.h"
-
 /// \brief Templated Vector.
 struct Vector_T {
 	ptrdiff_t ext_0; ///< Defined in \ref Matrix_T.

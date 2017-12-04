@@ -15,17 +15,17 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "matrix_print.h"
-
 #include <stdio.h>
 #include <math.h>
 
 #include "macros.h"
 #include "definitions_tol.h"
 
-#include "matrix.h"
-
 // Static function declarations ************************************************************************************* //
+
+///\{ \name The number of decimal places to display.
+#define N_DEC 4
+///\}
 
 /** \brief Check whether either of the matrix extents is zero.
  *  \return `true` if yes; `false` otherwise. */
@@ -39,8 +39,6 @@ static bool check_Matrix_extents_zero_T
 void print_Matrix_T_tol (const struct Matrix_T*const a, const Real tol)
 {
 	MAYBE_UNUSED(tol);
-	const int n_dec = 4; // Number of places after the decimal.
-
 	const ptrdiff_t ext_0 = a->ext_0,
 	                ext_1 = a->ext_1;
 
@@ -51,8 +49,8 @@ void print_Matrix_T_tol (const struct Matrix_T*const a, const Real tol)
 
 	char format_d[10];
 	char format_i[10];
-	sprintf(format_d,"%s%de%s","% .",n_dec," ");
-	sprintf(format_i,"%s%dd%s","% ",n_dec+7," ");
+	sprintf(format_d,"%s%de%s","% .",N_DEC," ");
+	sprintf(format_i,"%s%dd%s","% ",N_DEC+7," ");
 
 	switch (a->layout) {
 	case 'R':
@@ -60,10 +58,15 @@ void print_Matrix_T_tol (const struct Matrix_T*const a, const Real tol)
 			for (ptrdiff_t j = 0; j < ext_1; j++) {
 				const Type val = *data++;
 #ifdef TYPE_RC
+	#if TYPE_RC == TYPE_REAL
 				if (isnan(val) || (fabs(val) > tol))
 					printf(format_d,val);
 				else
 					printf(format_i,0);
+	#elif TYPE_RC == TYPE_COMPLEX
+				print_real(val);
+				print_imag(val);
+	#endif
 #else
 				printf(format_i,val);
 #endif
@@ -77,10 +80,15 @@ void print_Matrix_T_tol (const struct Matrix_T*const a, const Real tol)
 			for (ptrdiff_t j = 0; j < ext_1; j++) {
 				const Type val = data[i+ext_0*j];
 #ifdef TYPE_RC
+	#if TYPE_RC == TYPE_REAL
 				if (isnan(val) || (fabs(val) > tol))
 					printf(format_d,val);
 				else
 					printf(format_i,0);
+	#elif TYPE_RC == TYPE_COMPLEX
+				print_real(val);
+				print_imag(val);
+	#endif
 #else
 				printf(format_i,val);
 #endif
@@ -110,12 +118,58 @@ void print_const_Matrix_T (const struct const_Matrix_T*const a)
 	print_Matrix_T((const struct Matrix_T*)a);
 }
 
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
 static bool check_Matrix_extents_zero_T (const ptrdiff_t ext_0, const ptrdiff_t ext_1)
 {
 	if (ext_0 == 0 || ext_1 == 0)
 		return true;
 	return false;
 }
+#if TYPE_RC == TYPE_COMPLEX
+void print_real (const double complex val)
+{
+	static char format_d[10],
+	            format_i[10];
+
+	static bool format_set = false;
+	if (!format_set) {
+		format_set = true;
+		sprintf(format_d,"%s%de","% .",N_DEC);
+		sprintf(format_i,"%s%dd","% ",N_DEC+7);
+	}
+
+	static const double tol = EPS;
+	const double val_r = creal(val);
+	if (isnan(val_r) || (fabs(val_r) > tol))
+		printf(format_d,val_r);
+	else
+		printf(format_i,0);
+}
+
+void print_imag (const double complex val)
+{
+	static char format_dp[10],
+	            format_dm[10],
+	            format_ip[10];
+
+	static bool format_set = false;
+	if (!format_set) {
+		format_set = true;
+		sprintf(format_dp,"%s%de%s","+%.",N_DEC,"i ");
+		sprintf(format_dm,"%s%de%s","% .",N_DEC,"i ");
+		sprintf(format_ip,"%s%dd%s","+% ",N_DEC+6,"i ");
+	}
+
+	static const double tol_i = EPS*EPS*EPS;
+	const double val_i = cimag(val);
+	if (isnan(val_i) || (fabs(val_i) > tol_i)) {
+		if (val_i >= 0.0)
+			printf(format_dp,val_i);
+		else
+			printf(format_dm,val_i);
+	} else {
+		printf(format_ip,0);
+	}
+}
+#endif
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //

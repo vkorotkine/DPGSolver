@@ -21,13 +21,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 
-struct Multiarray_d;
-struct Multiarray_Matrix_d;
+struct Matrix_R;
+struct Multiarray_T;
+struct Multiarray_Matrix_T;
+struct const_Vector_R;
+struct const_Vector_T;
 struct const_Vector_i;
-struct const_Vector_d;
 struct const_Matrix_T;
-struct const_Multiarray_d;
-struct const_Multiarray_Matrix_d;
+struct const_Matrix_R;
+struct const_Multiarray_T;
+struct const_Multiarray_Matrix_T;
 
 // Default constructors ********************************************************************************************* //
 
@@ -70,6 +73,18 @@ struct Matrix_T* constructor_copy_Matrix_T_T
 	 const ptrdiff_t ext_0,      ///< Standard.
 	 const ptrdiff_t ext_1,      ///< Standard.
 	 const Type*const data_src ///< The source data.
+	);
+
+/** \brief Copy constructor for a \ref Matrix_T\* from a \ref Matrix_R\*.
+ *  \return See brief. */
+struct Matrix_T* constructor_copy_Matrix_T_Matrix_R
+	(struct Matrix_R* src ///< The source matrix.
+	);
+
+/** \brief `const` version of \ref constructor_copy_Matrix_T_Matrix_R.
+ *  \return See brief. */
+const struct const_Matrix_T* constructor_copy_const_Matrix_T_Matrix_R
+	(const struct const_Matrix_R* src ///< See brief.
 	);
 
 /** \brief `const` version of \ref constructor_copy_Matrix_T_T.
@@ -299,55 +314,55 @@ const struct const_Matrix_T* constructor_mm_NN1C_const_Matrix_T
 	 const struct const_Matrix_T*const b  ///< Defined for \ref constructor_mm_NN1C_Matrix_T.
 	);
 
-/** \brief Constructor for a \ref Matrix_T\* from a matrix-diagonal matrix multiplication.
+/** \brief Constructor for a \ref Matrix_T\* from a matrix-diagonal matrix multiplication taking a \ref Vector_R input.
  *  \return Standard.
  *
  *  The diagonal matrix is input as a vector and may be applied either from the left or the right.
  */
-struct Matrix_T* constructor_mm_diag_Matrix_T
+struct Matrix_T* constructor_mm_diag_Matrix_T_R
 	(const Real alpha,                  ///< Defined for \ref mm_d.
 	 const struct const_Matrix_T*const a, ///< Input matrix to be multiplied by the diagonal.
-	 const struct const_Vector_d*const b, ///< Vector storing the entries of the diagonal matrix.
+	 const struct const_Vector_R*const b, ///< Vector storing the entries of the diagonal matrix.
 	 const char side,                     ///< The side from which to apply the diagonal matrix.
-	 const bool invert_diag               ///< Defined for \ref scale_Matrix_by_Vector_d.
+	 const bool invert_diag               ///< Defined for \ref scale_Matrix_by_Vector_R.
 	);
 
-/** \brief `const` version of \ref constructor_mm_diag_Matrix_T.
+/** \brief `const` version of \ref constructor_mm_diag_Matrix_T_R.
  *  \return See brief. */
-const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T
+const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T_R
 	(const Real alpha,                  ///< See brief.
 	 const struct const_Matrix_T*const a, ///< See brief.
-	 const struct const_Vector_d*const b, ///< See brief.
+	 const struct const_Vector_R*const b, ///< See brief.
 	 const char side,                     ///< See brief.
 	 const bool invert_diag               ///< See brief.
 	);
 
-/// \brief Set a \ref Matrix_T\* from a sub range of a \ref Multiarray_d\*.
-void set_Matrix_from_Multiarray_d
+/// \brief Set a \ref Matrix_T\* from a sub range of a \ref Multiarray_T\*.
+void set_Matrix_from_Multiarray_T
 	(struct Matrix_T* dest,            ///< The destination.
-	 struct Multiarray_d* src,         ///< The source.
+	 struct Multiarray_T* src,         ///< The source.
 	 const ptrdiff_t*const sub_indices ///< The sub-indices used to specify which part of the source to extract.
 	);
 
-/// \brief `const` version of \ref set_Matrix_from_Multiarray_d.
-void set_const_Matrix_from_Multiarray_d
-	(const struct const_Matrix_T* dest,    ///< Defined for \ref set_Matrix_from_Multiarray_d.
-	 const struct const_Multiarray_d* src, ///< Defined for \ref set_Matrix_from_Multiarray_d.
-	 const ptrdiff_t*const sub_indices     ///< Defined for \ref set_Matrix_from_Multiarray_d.
+/// \brief `const` version of \ref set_Matrix_from_Multiarray_T.
+void set_const_Matrix_from_Multiarray_T
+	(const struct const_Matrix_T* dest,    ///< Defined for \ref set_Matrix_from_Multiarray_T.
+	 const struct const_Multiarray_T* src, ///< Defined for \ref set_Matrix_from_Multiarray_T.
+	 const ptrdiff_t*const sub_indices     ///< Defined for \ref set_Matrix_from_Multiarray_T.
 	);
 
-/// \brief Set a \ref Matrix_T\* from an entry of a \ref Multiarray_Matrix_d\*.
-void set_Matrix_from_Multiarray_Matrix_d
+/// \brief Set a \ref Matrix_T\* from an entry of a \ref Multiarray_Matrix_T\*.
+void set_Matrix_from_Multiarray_Matrix_T
 	(struct Matrix_T* dest,            ///< The destination.
-	 struct Multiarray_Matrix_d* src,  ///< The source.
+	 struct Multiarray_Matrix_T* src,  ///< The source.
 	 const ptrdiff_t*const sub_indices ///< The sub-indices used to specify which part of the source to extract.
 	);
 
-/// \brief `const` version of \ref set_Matrix_from_Multiarray_Matrix_d.
-void set_const_Matrix_from_Multiarray_Matrix_d
-	(const struct const_Matrix_T* dest,           ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
-	 const struct const_Multiarray_Matrix_d* src, ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
-	 const ptrdiff_t*const sub_indices            ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_d.
+/// \brief `const` version of \ref set_Matrix_from_Multiarray_Matrix_T.
+void set_const_Matrix_from_Multiarray_Matrix_T
+	(const struct const_Matrix_T* dest,           ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_T.
+	 const struct const_Multiarray_Matrix_T* src, ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_T.
+	 const ptrdiff_t*const sub_indices            ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_T.
 	);
 #endif
 // Destructors ****************************************************************************************************** //

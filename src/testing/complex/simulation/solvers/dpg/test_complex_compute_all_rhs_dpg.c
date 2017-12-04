@@ -271,7 +271,7 @@ static const struct const_Matrix_c* constructor_norm_op__h1_upwind_c
 	destructor_const_Vector_d(wJ_vc);
 
 	const struct const_Matrix_c* n1 =
-		constructor_mm_const_Matrix_cc('N','T',1.0,n1_l,(struct const_Matrix_c*)cvt1r,'R'); // destructed
+		constructor_mm_const_Matrix_c('N','T',1.0,n1_l,(struct const_Matrix_c*)cvt1r,'R'); // destructed
 	destructor_const_Matrix_c(n1_l);
 	destructor_Matrix_c(cvt1r);
 

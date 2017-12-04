@@ -16,5 +16,6 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Undefine macro definitions for c-style templated relating to templates_vector_math_\*.h.
  */
 
+#undef invert_Vector_R
 #undef invert_Vector_T
 #undef add_to_Vector_T_T

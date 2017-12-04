@@ -15,6 +15,12 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include <stdlib.h>
+#include <assert.h>
+
+#include "macros.h"
+#include "definitions_core.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -111,7 +117,7 @@ const struct const_Multiarray_Matrix_T* constructor_empty_const_Multiarray_Matri
 
 
 struct Multiarray_Matrix_T* constructor_empty_Multiarray_Matrix_T_V
-	(const bool alloc_M, const struct const_Vector_T*const extents_i_V)
+	(const bool alloc_M, const struct const_Vector_i*const extents_i_V)
 {
 	const ptrdiff_t order = extents_i_V->ext_0;
 
@@ -123,7 +129,7 @@ struct Multiarray_Matrix_T* constructor_empty_Multiarray_Matrix_T_V
 }
 
 const struct const_Multiarray_Matrix_T* constructor_empty_const_Multiarray_Matrix_T_V
-	(const bool alloc_M, const struct const_Vector_T*const extents_i_V)
+	(const bool alloc_M, const struct const_Vector_i*const extents_i_V)
 {
 	return (const struct const_Multiarray_Matrix_T*) constructor_empty_Multiarray_Matrix_T_V(alloc_M,extents_i_V);
 }
@@ -185,7 +191,23 @@ void const_constructor_copy_Multiarray_T
 	struct Multiarray_T* dest_m = constructor_move_Multiarray_T_T(src->layout,src->order,src->extents,true,data);
 	const_constructor_move_Multiarray_T(dest,dest_m);
 }
+#if TYPE_RC == TYPE_COMPLEX
+struct Multiarray_T* constructor_copy_Multiarray_T_Multiarray_R (struct Multiarray_R* src)
+{
+	const ptrdiff_t size = compute_size(src->order,src->extents);
+	Type* data = malloc((size_t)size * sizeof *data); // moved
+	for (int i = 0; i < size; ++i)
+		data[i] = src->data[i];
 
+	return constructor_move_Multiarray_T_T(src->layout,src->order,src->extents,true,data);
+}
+
+const struct const_Multiarray_T* constructor_copy_const_Multiarray_T_Multiarray_R
+	(const struct const_Multiarray_R* src)
+{
+	return (struct const_Multiarray_T*) constructor_copy_Multiarray_T_Multiarray_R((struct Multiarray_R*)src);
+}
+#endif
 // Move constructors ************************************************************************************************ //
 
 struct Multiarray_T* constructor_move_Multiarray_T_T
@@ -303,7 +325,7 @@ const struct const_Multiarray_T* constructor_MaM1_V_const_Multiarray_T
 		const struct const_Matrix_T*const A_M = A->data[i];
 		set_Vector_from_Multiarray_T(&dest_V,dest,&i);
 
-		mv_d(trans_a,alpha,beta,A_M,b,&dest_V);
+		mv_T(trans_a,alpha,beta,A_M,b,&dest_V);
 	}
 	return (const struct const_Multiarray_T*) dest;
 }
@@ -327,7 +349,7 @@ void set_const_Multiarray_Matrix_from_Multiarray_Matrix_T
 }
 
 struct Multiarray_T* constructor_mm_NN1C_Multiarray_T
-	(const struct const_Matrix_T*const a, const struct const_Multiarray_T*const b)
+	(const struct const_Matrix_R*const a, const struct const_Multiarray_T*const b)
 {
 	const char layout  = 'C';
 	const int order    = b->order;
@@ -335,13 +357,13 @@ struct Multiarray_T* constructor_mm_NN1C_Multiarray_T
 
 	struct Multiarray_T* c = constructor_empty_Multiarray_T_dyn_extents(layout,order,extents); // returned
 
-	mm_NN1C_Multiarray_d(a,b,c);
+	mm_NN1C_Multiarray_T(a,b,c);
 
 	return c;
 }
 
 const struct const_Multiarray_T* constructor_mm_NN1C_const_Multiarray_T
-	(const struct const_Matrix_T*const a, const struct const_Multiarray_T*const b)
+	(const struct const_Matrix_R*const a, const struct const_Multiarray_T*const b)
 {
 	return (const struct const_Multiarray_T*) constructor_mm_NN1C_Multiarray_T(a,b);
 }
@@ -369,7 +391,12 @@ const struct const_Multiarray_T* constructor_mm_tp_NN1C_const_Multiarray_T
 
 	int n_rows_sub[DMAX] = { 0, 0, 0, },
 	    n_cols_sub[DMAX] = { 0, 0, 0, };
+/// \todo remove after templating operators.c
+#if TYPE_RC == TYPE_REAL
 	set_ops_tp_n_rows_cols(n_rows_sub,n_cols_sub,a_tp);
+#elif TYPE_RC == TYPE_COMPLEX
+	set_ops_tp_n_rows_cols_c(n_rows_sub,n_cols_sub,a_tp);
+#endif
 
 	const int order_i          = b->order;
 	const ptrdiff_t* extents_i = b->extents;
@@ -385,7 +412,7 @@ const struct const_Multiarray_T* constructor_mm_tp_NN1C_const_Multiarray_T
 	assert(sub_op != NULL);
 
 	const struct const_Matrix_T* b_M = constructor_default_const_Matrix_T(); // destructed
-	reinterpret_const_Multiarray_as_Matrix_d(b,b_M,n_cols_sub[0],n_cols_sub[1]*n_cols_sub[2]*ext_1_Ma);
+	reinterpret_const_Multiarray_as_Matrix_T(b,b_M,n_cols_sub[0],n_cols_sub[1]*n_cols_sub[2]*ext_1_Ma);
 
 	const struct const_Matrix_T* c_r = constructor_mm_NN1C_const_Matrix_T(sub_op,b_M); // destructed/moved
 	destructor_const_Matrix_T(b_M);
@@ -435,7 +462,7 @@ const struct const_Multiarray_T* constructor_mm_tp_NN1C_const_Multiarray_T
 		extents_o[i] = extents_i[i];
 
 	const struct const_Multiarray_T* c = constructor_default_const_Multiarray_T(); // returned
-	reinterpret_const_Matrix_as_Multiarray_d(c_rst,c,order_i,extents_o);
+	reinterpret_const_Matrix_as_Multiarray_T(c_rst,c,order_i,extents_o);
 
 	const_cast_b(&c_rst->owns_data,false);
 	destructor_const_Matrix_T(c_rst);

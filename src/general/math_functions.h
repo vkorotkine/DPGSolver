@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <complex.h>
 
 /** \brief Evaluates an orthonormalized Jacobi polynomial on the standard unit interval ([-1,1]).
  *  \return See brief. */
@@ -53,6 +54,14 @@ bool equal_d
 double norm_d
 	(const ptrdiff_t n_entries, ///< The number of entries.
 	 const double*const data,   ///< The data.
+	 const char*const norm_type ///< The norm type. Options: "L2", "Inf".
+	);
+
+/** \brief Computes the norm of the input `double complex*` data with the specified norm type.
+ *  \return See brief. */
+double complex norm_c
+	(const ptrdiff_t n_entries, ///< The number of entries.
+	 const double complex*const data,   ///< The data.
 	 const char*const norm_type ///< The norm type. Options: "L2", "Inf".
 	);
 

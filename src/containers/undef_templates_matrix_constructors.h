@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Undefine macro definitions for c-style templated relating to templates_matrix_constructors_\*.h.
  */
 
+
+
 #undef constructor_default_Matrix_T
 #undef constructor_default_const_Matrix_T
 
@@ -27,6 +29,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_copy_const_Matrix_T
 #undef constructor_copy_extract_const_Matrix_T
 #undef const_constructor_copy_Matrix_T
+#undef constructor_copy_Matrix_T_Matrix_R
+#undef constructor_copy_const_Matrix_T_Matrix_R
 
 #undef constructor_move_Matrix_T_T
 #undef constructor_move_const_Matrix_T_T
@@ -52,10 +56,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_mm_NN1R_const_Matrix_T
 #undef constructor_mm_NN1C_Matrix_T
 #undef constructor_mm_NN1C_const_Matrix_T
-#undef constructor_mm_diag_Matrix_T
-#undef constructor_mm_diag_const_Matrix_T
-#undef set_Matrix_from_Multiarray_d
-#undef set_const_Matrix_from_Multiarray_d
+#undef constructor_mm_diag_Matrix_T_R
+#undef constructor_mm_diag_const_Matrix_T_R
+#undef set_Matrix_from_Multiarray_T
+#undef set_const_Matrix_from_Multiarray_T
 #undef set_Matrix_from_Multiarray_Matrix_T
 #undef set_const_Matrix_from_Multiarray_Matrix_T
 

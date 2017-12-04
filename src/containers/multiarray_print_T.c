@@ -15,16 +15,10 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "multiarray_print.h"
-
 #include <assert.h>
 
 #include "macros.h"
 #include "definitions_tol.h"
-
-#include "multiarray.h"
-#include "matrix.h"
-#include "vector.h"
 
 // Static function declarations ************************************************************************************* //
 

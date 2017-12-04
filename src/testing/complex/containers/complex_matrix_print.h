@@ -19,17 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides \ref Matrix_T printing functions.
  */
 
-struct Matrix_c;
-struct const_Matrix_c;
-
-/// \brief `complex` version of \ref print_Matrix_d.
-void print_Matrix_c
-	(const struct Matrix_c*const a ///< See brief.
-	);
-
-/// \brief `const` version of \ref print_Matrix_c.
-void print_const_Matrix_c
-	(const struct const_Matrix_c*const a ///< See brief.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_matrix_c.h"
+#include "matrix_print_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
 
 #endif // DPG__complex_matrix_print_h__INCLUDED

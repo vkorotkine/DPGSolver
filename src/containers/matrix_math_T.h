@@ -20,14 +20,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 
 struct Matrix_T;
-struct Vector_d;
+struct Vector_T;
+struct const_Matrix_R;
 struct const_Matrix_T;
-struct const_Vector_d;
 struct const_Vector_i;
+struct const_Vector_R;
+struct const_Vector_T;
 
 /** \brief Compute the norm of the specified row of the input \ref Matrix_T.
  *  \return See brief. */
-double compute_norm_Matrix_T_row
+Type compute_norm_Matrix_T_row
 	(const ptrdiff_t row,           ///< The row.
 	 const struct Matrix_T*const a, ///< The input matrix.
 	 const char*const norm_type     ///< The norm type.
@@ -50,7 +52,7 @@ void invert_sub_block_Matrix_T
 /// \brief Scale the \ref Matrix_T\* by a constant value.
 void scale_Matrix_T
 	(struct Matrix_T* a, ///< The matrix.
-	 const double val    ///< The value by which to scale.
+	 const Type val    ///< The value by which to scale.
 	);
 
 /** \brief Permute the the input matrix according to the input permutation.
@@ -72,7 +74,7 @@ void permute_Matrix_T_V
 	 const struct const_Vector_i* p_V ///< Vector of permutation indices.
 	);
 
-/** \brief Compute the (m)atrix-(m)atrix multiplication of input `double` matrices.
+/** \brief Compute the (m)atrix-(m)atrix multiplication of input `Type` matrices.
  *
  *  Computes: c = alpha*op(a)*op(b)+beta*c using the [cblas_dgemm function][cblas_dgemm] for the computation.
  *
@@ -84,14 +86,36 @@ void permute_Matrix_T_V
 void mm_T
 	(const char trans_a_i,                ///< Operator for input `a`. Options: 'N'o transpose, 'T'ranspose.
 	 const char trans_b_i,                ///< Operator for input `b`. Options: 'N'o transpose, 'T'ranspose.
-	 const Real alpha,                  ///< Multiplicative constant.
-	 const Real beta,                   ///< Multiplicative constant.
+	 const Type alpha,                  ///< Multiplicative constant.
+	 const Type beta,                   ///< Multiplicative constant.
 	 const struct const_Matrix_T*const a, ///< Input \ref const_Matrix_T\* `a`.
 	 const struct const_Matrix_T*const b, ///< Input \ref const_Matrix_T\* `b`.
 	 struct Matrix_T*const c              ///< Input \ref Matrix_T\* `c`.
 	);
+#if TYPE_RC == TYPE_COMPLEX
+/// \brief `complex` version of \ref mm_d (`Real`, `Type`, `Type`).
+void mm_RTT
+	(const char trans_a_i,                ///< See brief.
+	 const char trans_b_i,                ///< See brief.
+	 const Type alpha,                  ///< See brief.
+	 const Type beta,                   ///< See brief.
+	 const struct const_Matrix_R*const a, ///< See brief.
+	 const struct const_Matrix_T*const b, ///< See brief.
+	 struct Matrix_T*const c              ///< See brief.
+	);
 
-/** \brief Compute the (m)atrix-(v)ector multiplication of input `double` containers.
+/// \brief `complex` version of \ref mm_d (`Type`, `Real`, `Type`).
+void mm_TRT
+	(const char trans_a_i,                ///< See brief.
+	 const char trans_b_i,                ///< See brief.
+	 const Type alpha,                  ///< See brief.
+	 const Type beta,                   ///< See brief.
+	 const struct const_Matrix_T*const a, ///< See brief.
+	 const struct const_Matrix_R*const b, ///< See brief.
+	 struct Matrix_T*const c              ///< See brief.
+	);
+#endif
+/** \brief Compute the (m)atrix-(v)ector multiplication of input `Type` containers.
  *
  *  Computes: c = alpha*op(a)*b+beta*c using the [cblas_dgemv function][cblas_dgemv] for the computation.
  *
@@ -105,11 +129,11 @@ void mm_T
  */
 void mv_T
 	(const char trans_a_i,                ///< Operator for input `a`. Options: 'N'o transpose, 'T'ranspose.
-	 const Real alpha,                  ///< Multiplicative constant.
-	 const Real beta,                   ///< Multiplicative constant.
+	 const Type alpha,                  ///< Multiplicative constant.
+	 const Type beta,                   ///< Multiplicative constant.
 	 const struct const_Matrix_T*const a, ///< Input \ref const_Matrix_T\* `a`.
-	 const struct const_Vector_d*const b, ///< Input \ref const_Vector_d\* `b`.
-	 struct Vector_d*const c              ///< Input \ref Vector_d\* `c`.
+	 const struct const_Vector_T*const b, ///< Input \ref const_Vector_T\* `b`.
+	 struct Vector_T*const c              ///< Input \ref Vector_T\* `c`.
 	);
 
 /** \brief Computes the matrix-"matrix" multiplication of a matrix with a vector interpreted as a diagonal matrix
@@ -120,11 +144,11 @@ void mv_T
  *  else if (side == 'R')
  *  	computes: A = alpha*A*diag(b).
  */
-void scale_Matrix_by_Vector_T
+void scale_Matrix_T_by_Vector_R
 	(const char side,                     ///< The side from which to apply the vector as a diagonal matrix.
 	 const Real alpha,                  ///< Multiplicative constant.
 	 struct Matrix_T*const a,             ///< Input \ref Matrix_T\*.
-	 const struct const_Vector_d*const b, ///< Input \ref const_Vector_d\*.
+	 const struct const_Vector_R*const b, ///< Input \ref const_Vector_T\*.
 	 const bool invert_diag               /**< Flag for whether the diagonal entries should be inverted before
 	                                       *   application. */
 	);
@@ -141,8 +165,8 @@ void mm_diag_T
 	(const char side,                     ///< The side from which to apply the vector as a diagonal matrix.
 	 const Real alpha,                  ///< Multiplicative constant.
 	 const Real beta,                   ///< Multiplicative constant.
-	 const struct const_Matrix_T*const a, ///< Input \ref const_Matrix_T\*.
-	 const struct const_Vector_d*const b, ///< Input \ref const_Vector_d\*.
+	 const struct const_Matrix_R*const a, ///< Input \ref const_Matrix_T\*.
+	 const struct const_Vector_T*const b, ///< Input \ref const_Vector_T\*.
 	 struct Matrix_T* c,                  ///< Input \ref Matrix_T\*.
 	 const bool invert_diag               /**< Flag for whether the diagonal entries should be inverted before
 	                                       *   application. */

@@ -17,12 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray_constructors.h"
 
-#include <stdlib.h>
-#include <assert.h>
-
-#include "macros.h"
-#include "definitions_core.h"
-
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
@@ -30,9 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "const_cast.h"
 #include "operator.h"
 
-// Static function declarations ************************************************************************************* //
-
-// Interface functions ********************************************************************************************** //
+// Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
 #include "def_templates_matrix_d.h"
@@ -54,6 +46,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
 
+// Static function declarations ************************************************************************************* //
+
+// Interface functions ********************************************************************************************** //
+
 ptrdiff_t* allocate_and_set_extents (const int order, const ptrdiff_t*const extents_i)
 {
 	ptrdiff_t* extents = malloc((size_t)order * sizeof *extents); // returned
@@ -63,3 +59,6 @@ ptrdiff_t* allocate_and_set_extents (const int order, const ptrdiff_t*const exte
 
 	return extents;
 }
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //

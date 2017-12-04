@@ -16,13 +16,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "vector_constructors.h"
 
-#include <assert.h>
-#include <string.h>
-#include "mkl.h"
-
-#include "macros.h"
-#include "definitions_mkl.h"
-
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
@@ -31,18 +24,22 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "def_templates_matrix_d.h"
+#include "def_templates_multiarray_d.h"
 #include "def_templates_vector_d.h"
 #include "vector_constructors_T.c"
 #include "undef_templates_type.h"
 #include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
 
 #include "def_templates_type_i.h"
 #include "def_templates_matrix_i.h"
+#include "def_templates_multiarray_i.h"
 #include "def_templates_vector_i.h"
 #include "vector_constructors_T.c"
 #include "undef_templates_type.h"
 #include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
 
 // Static function declarations ************************************************************************************* //

@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the definitions relating to MKL library function calls.
  */
 
+#include <complex.h>
+
 ///\{ \name MKL layout parameters.
 #define CBRM CblasRowMajor
 #define CBCM CblasColMajor

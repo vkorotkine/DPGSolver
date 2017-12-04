@@ -26,7 +26,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define normalize_Multiarray_T                   normalize_Multiarray_d
 #define permute_Multiarray_T                     permute_Multiarray_d
 #define permute_Multiarray_T_V                   permute_Multiarray_d_V
-#define scale_Multiarray_by_Vector_T             scale_Multiarray_by_Vector_d
 #define scale_Multiarray_T_by_Vector_R           scale_Multiarray_by_Vector_d
 #define subtract_in_place_Multiarray_T           subtract_in_place_Multiarray_d
 #define mm_NNC_Multiarray_T                      mm_NNC_Multiarray_d

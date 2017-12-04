@@ -20,10 +20,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 
 struct Matrix_T;
-struct Multiarray_d;
+struct Multiarray_T;
 struct const_Vector_T;
 struct const_Matrix_T;
-struct const_Multiarray_d;
+struct const_Multiarray_T;
 
 // Default constructors ********************************************************************************************* //
 
@@ -124,18 +124,18 @@ void const_constructor_move_const_Vector_T
 	);
 
 // Set constructors ************************************************************************************************* //
-
-/** \brief Constructor for a \ref Vector_T\* from a sub range of a \ref Multiarray_d\*.
+#ifdef TYPE_RC
+/** \brief Constructor for a \ref Vector_T\* from a sub range of a \ref Multiarray_T\*.
  *  \return Standard. */
 struct Vector_T* constructor_set_Vector_T_Multiarray_T
-	(struct Multiarray_d* src,         ///< The source.
+	(struct Multiarray_T* src,         ///< The source.
 	 const ptrdiff_t*const sub_indices ///< The sub-indices used to specify which part of the source to extract.
 	);
 
-/** \brief `const` version of \ref constructor_set_Vector_T_Multiarray_d.
+/** \brief `const` version of \ref constructor_set_Vector_T_Multiarray_T.
  *  \return Standard. */
 const struct const_Vector_T* constructor_set_const_Vector_T_Multiarray_T
-	(const struct const_Multiarray_d* src, ///< Defined for \ref constructor_set_Vector_T_Multiarray_T.
+	(const struct const_Multiarray_T* src, ///< Defined for \ref constructor_set_Vector_T_Multiarray_T.
 	 const ptrdiff_t*const sub_indices     ///< Defined for \ref constructor_set_Vector_T_Multiarray_T.
 	);
 
@@ -225,20 +225,20 @@ void set_const_Vector_from_Matrix_T
 	 const ptrdiff_t*const sub_indices  ///< Defined for \ref set_Vector_from_Matrix_T.
 	);
 
-/// \brief Set a \ref Vector_T\* from a sub range of a \ref Multiarray_d\*.
+/// \brief Set a \ref Vector_T\* from a sub range of a \ref Multiarray_T\*.
 void set_Vector_from_Multiarray_T
 	(struct Vector_T* dest,            ///< The destination.
-	 struct Multiarray_d* src,         ///< The source.
+	 struct Multiarray_T* src,         ///< The source.
 	 const ptrdiff_t*const sub_indices ///< The sub-indices used to specify which part of the source to extract.
 	);
 
 /// \brief `const` version of \ref set_Vector_from_Multiarray_T.
 void set_const_Vector_from_Multiarray_T
 	(const struct const_Vector_T* dest,    ///< Defined for \ref set_Vector_from_Multiarray_T.
-	 const struct const_Multiarray_d* src, ///< Defined for \ref set_Vector_from_Multiarray_T.
+	 const struct const_Multiarray_T* src, ///< Defined for \ref set_Vector_from_Multiarray_T.
 	 const ptrdiff_t*const sub_indices     ///< Defined for \ref set_Vector_from_Multiarray_T.
 	);
-
+#endif
 // Destructors ****************************************************************************************************** //
 
 /// \brief Destructs a \ref Vector_T\*.

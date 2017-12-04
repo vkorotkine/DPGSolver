@@ -514,7 +514,7 @@ static void set_operator_solver
 	for (int i = 0; i < n_op; ++i) {
 		struct Matrix_d* op_std = (struct Matrix_d*) op->data[ind_op+i]->op_std;
 		transpose_Matrix_d(op_std,false);
-		scale_Matrix_by_Vector_d('R',1.0,op_std,nodes_o->w,false);
+		scale_Matrix_d_by_Vector_d('R',1.0,op_std,nodes_o->w,false);
 	}
 	destructor_const_Nodes(nodes_o);
 
@@ -529,7 +529,7 @@ static void set_operator_solver
 
 		for (int i = 0; i < n_op; ++i) {
 			struct Matrix_d* op_std = (struct Matrix_d*) op->data[ind_op+i]->op_std;
-			scale_Matrix_by_Vector_d('L',1.0,op_std,nodes_i->w,true);
+			scale_Matrix_d_by_Vector_d('L',1.0,op_std,nodes_i->w,true);
 		}
 		destructor_const_Nodes(nodes_i);
 	}

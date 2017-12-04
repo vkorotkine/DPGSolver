@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_matrix_constructors_c.h"
 #include "def_templates_matrix_math_c.h"
+#include "def_templates_matrix_print_c.h"
 
 ///\{ \name Data types
 #define Matrix_T       Matrix_c
@@ -39,6 +40,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_row_const_Matrix_T   get_row_const_Matrix_c
 #define get_col_Matrix_T         get_col_Matrix_c
 #define get_col_const_Matrix_T   get_col_const_Matrix_c
+#define get_row_Matrix_R         get_row_Matrix_d
+#define get_row_const_Matrix_R   get_row_const_Matrix_d
+#define get_col_Matrix_R         get_col_Matrix_d
+#define get_col_const_Matrix_R   get_col_const_Matrix_d
 #define get_slice_Matrix_T       get_slice_Matrix_c
 #define get_slice_const_Matrix_T get_slice_const_Matrix_c
 #define get_val_Matrix_T         get_val_Matrix_c

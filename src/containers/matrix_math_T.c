@@ -15,6 +15,18 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include <assert.h>
+#include <string.h>
+#include <math.h>
+#include "definitions_mkl.h"
+#include "mkl.h"
+#include "gsl/gsl_permute_matrix_double.h"
+#include "gsl/gsl_permute_matrix_complex_double.h"
+
+#include "macros.h"
+
+#include "const_cast.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -29,7 +41,7 @@ Type compute_norm_Matrix_T_row
 	if (strstr(norm_type,"L2")) {
 		for (ptrdiff_t i = 0; i < i_max; ++i)
 			norm += data[i]*data[i];
-		return sqrt(norm);
+		return sqrt_T(norm);
 	}
 	EXIT_UNSUPPORTED;
 }
@@ -37,9 +49,9 @@ Type compute_norm_Matrix_T_row
 void transpose_Matrix_T (struct Matrix_T* a, const bool mem_only)
 {
 	if (a->layout == 'R')
-		mkl_dimatcopy(a->layout,'T',(size_t)a->ext_0,(size_t)a->ext_1,1.0,a->data,(size_t)a->ext_1,(size_t)a->ext_0);
+		mkl_Timatcopy(a->layout,'T',(size_t)a->ext_0,(size_t)a->ext_1,1.0,a->data,(size_t)a->ext_1,(size_t)a->ext_0);
 	else if (a->layout == 'C')
-		mkl_dimatcopy(a->layout,'T',(size_t)a->ext_0,(size_t)a->ext_1,1.0,a->data,(size_t)a->ext_0,(size_t)a->ext_1);
+		mkl_Timatcopy(a->layout,'T',(size_t)a->ext_0,(size_t)a->ext_1,1.0,a->data,(size_t)a->ext_0,(size_t)a->ext_1);
 
 	if (mem_only) {
 		swap_layout(&a->layout);
@@ -89,15 +101,15 @@ void permute_Matrix_T (struct Matrix_T* a, const ptrdiff_t* p)
 		const gsl_permutation perm = { .size = (size_t)n_p, .data = perm_st, };
 
 		transpose_Matrix_T(a,false);
-		gsl_matrix A =
+		gsl_matrix_T A =
 			{ .size1 = (size_t)a->ext_0,
 			  .size2 = (size_t)a->ext_1,
 			  .tda   = (size_t)a->ext_1,
-			  .data  = a->data,
+			  .data  = (Real*)a->data,
 			  .block = NULL,
 			  .owner = 0, };
 
-		gsl_permute_matrix(&perm,&A);
+		gsl_permute_matrix_T(&perm,&A);
 		transpose_Matrix_T(a,false);
 	} else {
 		const int n_p = (int)a->ext_1;
@@ -109,15 +121,15 @@ void permute_Matrix_T (struct Matrix_T* a, const ptrdiff_t* p)
 		const gsl_permutation perm = { .size = (size_t)n_p, .data = perm_st, };
 
 		transpose_Matrix_T(a,true);
-		gsl_matrix A =
+		gsl_matrix_T A =
 			{ .size1 = (size_t)a->ext_0,
 			  .size2 = (size_t)a->ext_1,
 			  .tda   = (size_t)a->ext_1, /// \todo Ensure that this is correct.
-			  .data  = a->data,
+			  .data  = (Real*)a->data,
 			  .block = NULL,
 			  .owner = 0, };
 
-		gsl_permute_matrix(&perm,&A);
+		gsl_permute_matrix_T(&perm,&A);
 		transpose_Matrix_T(a,true);
 	}
 }
@@ -135,7 +147,7 @@ void permute_Matrix_T_V (struct Matrix_T* a, const struct const_Vector_i* p_V)
 }
 
 void mm_T
-	(const char trans_a_i, const char trans_b_i, const Real alpha, const Real beta,
+	(const char trans_a_i, const char trans_b_i, const Type alpha, const Type beta,
 	 const struct const_Matrix_T*const a, const struct const_Matrix_T*const b, struct Matrix_T*const c)
 {
 	const CBLAS_LAYOUT    layout = ( c->layout == 'R' ? CBRM : CBCM );
@@ -152,12 +164,34 @@ void mm_T
 	assert(n == ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 ));
 	assert(k == ( trans_b_i == 'N' ? b->ext_0 : b->ext_1 ));
 
+#if TYPE_RC == TYPE_REAL
 	cblas_dgemm(layout,transa,transb,m,n,k,alpha,a->data,lda,b->data,ldb,beta,c->data,ldc);
+#elif TYPE_RC == TYPE_COMPLEX
+	cblas_zgemm(layout,transa,transb,m,n,k,&alpha,a->data,lda,b->data,ldb,&beta,c->data,ldc);
+#endif
+}
+#if TYPE_RC == TYPE_COMPLEX
+void mm_RTT
+	(const char trans_a_i, const char trans_b_i, const Type alpha, const Type beta,
+	 const struct const_Matrix_R*const a, const struct const_Matrix_T*const b, struct Matrix_T*const c)
+{
+	const struct const_Matrix_T*const a_c = constructor_copy_const_Matrix_T_Matrix_R(a); // destructed
+	mm_T(trans_a_i,trans_b_i,alpha,beta,a_c,b,c);
+	destructor_const_Matrix_T(a_c);
 }
 
+void mm_TRT
+	(const char trans_a_i, const char trans_b_i, const Type alpha, const Type beta,
+	 const struct const_Matrix_T*const a, const struct const_Matrix_R*const b, struct Matrix_T*const c)
+{
+	const struct const_Matrix_T*const b_c = constructor_copy_const_Matrix_T_Matrix_R(b); // destructed
+	mm_T(trans_a_i,trans_b_i,alpha,beta,a,b_c,c);
+	destructor_const_Matrix_T(b_c);
+}
+#endif
 void mv_T
-	(const char trans_a_i, const Real alpha, const Real beta,
-	 const struct const_Matrix_T*const a, const struct const_Vector_d*const b, struct Vector_d*const c)
+	(const char trans_a_i, const Type alpha, const Type beta,
+	 const struct const_Matrix_T*const a, const struct const_Vector_T*const b, struct Vector_T*const c)
 {
 	const CBLAS_LAYOUT    layout = ( a->layout == 'R' ? CBRM : CBCM );
 	const CBLAS_TRANSPOSE transa = ( trans_a_i == 'N' ? CBNT : CBT );
@@ -174,15 +208,19 @@ void mv_T
 	assert(m == ( transa == CBNT ? c->ext_0 : b->ext_0 ));
 	assert(n == ( transa == CBNT ? b->ext_0 : c->ext_0 ));
 
+#if TYPE_RC == TYPE_REAL
 	cblas_dgemv(layout,transa,m,n,alpha,a->data,lda,b->data,ldb,beta,c->data,ldc);
+#elif TYPE_RC == TYPE_COMPLEX
+	cblas_zgemv(layout,transa,m,n,&alpha,a->data,lda,b->data,ldb,&beta,c->data,ldc);
+#endif
 }
 
-void scale_Matrix_by_Vector_T
-	(const char side, const Real alpha, struct Matrix_T*const a, const struct const_Vector_d*const b,
+void scale_Matrix_T_by_Vector_R
+	(const char side, const Real alpha, struct Matrix_T*const a, const struct const_Vector_R*const b,
 	 const bool invert_diag)
 {
 	if (invert_diag)
-		invert_Vector_d((struct Vector_d*)b);
+		invert_Vector_R((struct Vector_R*)b);
 
 	if (alpha != 1.0)
 		scale_Matrix_T(a,alpha);
@@ -200,7 +238,7 @@ void scale_Matrix_by_Vector_T
 		}
 
 		for (ptrdiff_t row = 0; row < n_row; ++row) {
-			const Type val = b->data[row];
+			const Real val = b->data[row];
 			Type* data_row = get_row_Matrix_T(row,a);
 			for (ptrdiff_t col = 0; col < n_col; ++col)
 				*data_row++ *= val;
@@ -214,7 +252,7 @@ void scale_Matrix_by_Vector_T
 		}
 
 		for (ptrdiff_t col = 0; col < n_col; ++col) {
-			const Type val = b->data[col];
+			const Real val = b->data[col];
 			Type* data_col = get_col_Matrix_T(col,a);
 			for (ptrdiff_t row = 0; row < n_row; ++row)
 				*data_col++ *= val;
@@ -225,19 +263,19 @@ void scale_Matrix_by_Vector_T
 	if (transpose_a)
 		transpose_Matrix_T(a,true);
 	if (invert_diag)
-		invert_Vector_d((struct Vector_d*)b);
+		invert_Vector_R((struct Vector_R*)b);
 }
 
 void mm_diag_T
-	(const char side, const Real alpha, const Real beta, const struct const_Matrix_T*const a,
-	 const struct const_Vector_d*const b, struct Matrix_T* c, const bool invert_diag)
+	(const char side, const Real alpha, const Real beta, const struct const_Matrix_R*const a,
+	 const struct const_Vector_T*const b, struct Matrix_T* c, const bool invert_diag)
 {
 	assert(a->ext_0 == c->ext_0);
 	assert(a->ext_1 == c->ext_1);
 	assert(a->layout == c->layout);
 
 	if (invert_diag)
-		invert_Vector_d((struct Vector_d*)b);
+		invert_Vector_T((struct Vector_T*)b);
 
 	if (beta != 1.0)
 		scale_Matrix_T(c,beta);
@@ -251,14 +289,14 @@ void mm_diag_T
 		if (a->layout == 'R') {
 			for (ptrdiff_t row = 0; row < n_row; ++row) {
 				const Type val = b->data[row];
-				const Type* data_a = get_row_const_Matrix_T(row,a);
+				const Real* data_a = get_row_const_Matrix_R(row,a);
 				Type* data_c       = get_row_Matrix_T(row,c);
 				for (ptrdiff_t col = 0; col < n_col; ++col)
 					data_c[col] += alpha*data_a[col]*val;
 			}
 		} else if (a->layout == 'C') {
 			for (ptrdiff_t col = 0; col < n_col; ++col) {
-				const Type* data_a = get_col_const_Matrix_T(col,a);
+				const Real* data_a = get_col_const_Matrix_R(col,a);
 				Type* data_c       = get_col_Matrix_T(col,c);
 				for (ptrdiff_t row = 0; row < n_row; ++row) {
 					const Type val = b->data[row];
@@ -271,7 +309,7 @@ void mm_diag_T
 
 		if (a->layout == 'R') {
 			for (ptrdiff_t row = 0; row < n_row; ++row) {
-				const Type* data_a = get_row_const_Matrix_T(row,a);
+				const Real* data_a = get_row_const_Matrix_R(row,a);
 				Type* data_c       = get_row_Matrix_T(row,c);
 				for (ptrdiff_t col = 0; col < n_col; ++col) {
 					const Type val = b->data[col];
@@ -281,7 +319,7 @@ void mm_diag_T
 		} else if (a->layout == 'C') {
 			for (ptrdiff_t col = 0; col < n_col; ++col) {
 				const Type val = b->data[col];
-				const Type* data_a = get_col_const_Matrix_T(col,a);
+				const Real* data_a = get_col_const_Matrix_R(col,a);
 				Type* data_c       = get_col_Matrix_T(col,c);
 				for (ptrdiff_t row = 0; row < n_row; ++row)
 					data_c[row] += alpha*data_a[row]*val;
@@ -292,7 +330,7 @@ void mm_diag_T
 	}
 
 	if (invert_diag)
-		invert_Vector_d((struct Vector_d*)b);
+		invert_Vector_T((struct Vector_T*)b);
 }
 
 void reinterpret_const_Matrix_T (const struct const_Matrix_T* a, const ptrdiff_t ext_0, const ptrdiff_t ext_1)

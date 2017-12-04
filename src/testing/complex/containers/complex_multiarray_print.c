@@ -24,56 +24,24 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "complex_matrix.h"
 #include "complex_multiarray.h"
+#include "complex_vector.h"
 #include "multiarray.h"
+
+// Templated functions ********************************************************************************************** //
+
+#include "def_templates_type_dc.h"
+#include "def_templates_matrix_c.h"
+#include "def_templates_multiarray_c.h"
+#include "def_templates_vector_c.h"
+#include "multiarray_print_T.c"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
-
-void print_Multiarray_c (const struct Multiarray_c*const a)
-{
-	const int order               = a->order;
-	const ptrdiff_t*const extents = a->extents;
-
-	print_Multiarray_extents(order,extents);
-
-	if (order == 1) {
-		EXIT_ADD_SUPPORT;
-	} else if (order == 2) {
-		struct Matrix_c* a_M =
-			constructor_move_Matrix_c_c(a->layout,extents[0],extents[1],false,a->data); // destructed
-		print_Matrix_c(a_M);
-		destructor_Matrix_c(a_M);
-	} else if (order > 2) {
-		struct Matrix_c* a_M =
-			constructor_move_Matrix_c_c(a->layout,extents[0],extents[1],false,NULL); // destructed
-
-		const ptrdiff_t size_tail = compute_size(order-2,&extents[2]);
-
-		ptrdiff_t counter[order-2];
-		for (ptrdiff_t i = 0; i < order-2; ++i)
-			counter[i] = 0;
-
-		for (ptrdiff_t i = 0; i < size_tail; ++i) {
-			print_Multiarray_counter(order,counter);
-
-			const ptrdiff_t ind_M = compute_index_sub_matrix(order,extents,counter);
-			a_M->data = &a->data[ind_M];
-			print_Matrix_c(a_M);
-
-			increment_counter(order,extents,counter);
-		}
-		destructor_Matrix_c(a_M);
-	} else {
-		EXIT_ERROR("Unsupported: %d\n",order);
-	}
-	printf("\n");
-}
-
-void print_const_Multiarray_c (const struct const_Multiarray_c*const a)
-{
-	print_Multiarray_c((const struct Multiarray_c*)a);
-}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

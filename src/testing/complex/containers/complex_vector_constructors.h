@@ -19,75 +19,14 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides Vector_\* constructors and destructors.
  */
 
-#include <stddef.h>
-#include <stdbool.h>
-#include <complex.h>
-
-struct const_Vector_c;
-struct const_Matrix_c;
-
-// Default constructors ********************************************************************************************* //
-
-// Empty constructors *********************************************************************************************** //
-
-/** \brief `complex` version of \ref constructor_empty_Vector_d.
- *  \return Standard. */
-struct Vector_c* constructor_empty_Vector_c
-	(const ptrdiff_t ext_0 ///< Defined in \ref Vector_d.
-	);
-
-// Zero constructors ************************************************************************************************ //
-
-/** \brief `complex` version of \ref constructor_zero_Vector_d.
- *  \return Standard. */
-struct Vector_c* constructor_zero_Vector_c
-	(const ptrdiff_t ext_0 ///< See brief.
-	);
-
-// Copy constructors ************************************************************************************************ //
-
-// Move constructors ************************************************************************************************ //
-
-/** \brief `complex` version of \ref constructor_move_Vector_d_d.
- *  \return Standard. */
-struct Vector_c* constructor_move_Vector_c_c
-	(const ptrdiff_t ext_0,    ///< See brief.
-	 const bool owns_data,     ///< See brief.
-	 double complex*const data ///< See brief.
-	);
-
-// Set constructors ************************************************************************************************* //
-
-// Special constructors ********************************************************************************************* //
-
-/** \brief `complex` version of \ref constructor_mv_Vector_d.
- *  \return Standard. */
-struct Vector_c* constructor_mv_Vector_c
-	(const char trans_a_i,                ///< See brief.
-	 const double alpha,                  ///< See brief.
-	 const struct const_Matrix_c*const a, ///< See brief.
-	 const struct const_Vector_c*const b  ///< See brief.
-	);
-
-/** \brief `const` version of \ref constructor_mv_Vector_c.
- *  \return Standard. */
-const struct const_Vector_c* constructor_mv_const_Vector_c
-	(const char trans_a_i,                ///< See brief.
-	 const double alpha,                  ///< See brief.
-	 const struct const_Matrix_c*const a, ///< See brief.
-	 const struct const_Vector_c*const b  ///< See brief.
-	);
-
-// Destructors ****************************************************************************************************** //
-
-/// \brief Destructs a \ref Vector_c\*.
-void destructor_Vector_c
-	(struct Vector_c* a ///< Standard.
-	);
-
-/// \brief Destructs a \ref const_Vector_c\*.
-void destructor_const_Vector_c
-	(const struct const_Vector_c* a ///< Standard.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_matrix_c.h"
+#include "def_templates_multiarray_c.h"
+#include "def_templates_vector_c.h"
+#include "vector_constructors_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
 
 #endif // DPG__complex_vector_constructors_h__INCLUDED

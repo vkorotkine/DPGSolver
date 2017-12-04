@@ -17,6 +17,27 @@ You should have received a copy of the GNU General Public License along with DPG
  *         functions.
  */
 
+///\{ \name External container/function names
+#define gsl_matrix_T gsl_matrix_complex
+
+#define gsl_permute_matrix_T gsl_permute_matrix_complex
+#define mkl_Timatcopy        mkl_zimatcopy
+#define LAPACKE_Tsysv        LAPACKE_zsysv
+#define LAPACKE_Tsgesv       LAPACKE_zcgesv
+///\}
+
 ///\{ \name Function names
-#define mm_RTT mm_dcc
+#define compute_norm_Matrix_T_row  compute_norm_Matrix_c_row
+#define transpose_Matrix_T         transpose_Matrix_c
+#define invert_sub_block_Matrix_T  invert_sub_block_Matrix_c
+#define scale_Matrix_T             scale_Matrix_c
+#define permute_Matrix_T           permute_Matrix_c
+#define permute_Matrix_T_V         permute_Matrix_c_V
+#define mm_T                       mm_c
+#define mm_RTT                     mm_dcc
+#define mm_TRT                     mm_cdc
+#define mv_T                       mv_c
+#define scale_Matrix_T_by_Vector_R scale_Matrix_c_by_Vector_d
+#define mm_diag_T                  mm_diag_c
+#define reinterpret_const_Matrix_T reinterpret_const_Matrix_c
 ///\}

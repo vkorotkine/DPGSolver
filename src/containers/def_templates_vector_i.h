@@ -23,6 +23,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Data types
 #define Vector_T       Vector_i
 #define const_Vector_T const_Vector_i
+#define Vector_R       Vector_d
+#define const_Vector_R const_Vector_d
 ///\}
 
 ///\{ \name Function names

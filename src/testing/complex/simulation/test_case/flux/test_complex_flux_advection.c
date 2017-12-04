@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "test_complex_flux.h"
-#include "complex_multiarray_minimal.h"
+#include "complex_multiarray.h"
 
 // Static function declarations ************************************************************************************* //
 

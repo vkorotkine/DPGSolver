@@ -36,6 +36,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef get_row_const_Matrix_T
 #undef get_col_Matrix_T
 #undef get_col_const_Matrix_T
+#undef get_row_Matrix_R
+#undef get_row_const_Matrix_R
+#undef get_col_Matrix_R
+#undef get_col_const_Matrix_R
 #undef get_slice_Matrix_T
 #undef get_slice_const_Matrix_T
 #undef get_val_Matrix_T

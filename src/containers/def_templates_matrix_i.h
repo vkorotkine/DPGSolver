@@ -22,9 +22,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Data types
 #define Matrix_T       Matrix_i
-#define Matrix_R       Matrix_i
+#define Matrix_R       Matrix_d
 #define const_Matrix_T const_Matrix_i
-#define const_Matrix_R const_Matrix_i
+#define const_Matrix_R const_Matrix_d
 
 #define Matrix_CSR_T       Matrix_CSR_i
 #define const_Matrix_CSR_T const_Matrix_CSR_i
@@ -39,6 +39,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_row_const_Matrix_T   get_row_const_Matrix_i
 #define get_col_Matrix_T         get_col_Matrix_i
 #define get_col_const_Matrix_T   get_col_const_Matrix_i
+#define get_row_Matrix_R         get_row_Matrix_i
+#define get_row_const_Matrix_R   get_row_const_Matrix_i
+#define get_col_Matrix_R         get_col_Matrix_i
+#define get_col_const_Matrix_R   get_col_const_Matrix_i
 #define get_slice_Matrix_T       get_slice_Matrix_i
 #define get_slice_const_Matrix_T get_slice_const_Matrix_i
 #define get_val_Matrix_T         get_val_Matrix_i

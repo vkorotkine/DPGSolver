@@ -47,6 +47,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_to_value_Multiarray_T
 #undef set_Multiarray_Vector_T_T
 #undef set_Multiarray_T
+#undef set_Multiarray_T_Multiarray_R
 
 #undef sort_Multiarray_Vector_T
 #undef collapse_Multiarray_Vector_T

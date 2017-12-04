@@ -14,8 +14,6 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 /// \file
 
-#include "vector_print.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -23,7 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_tol.h"
 
-#include "vector.h"
+#include "matrix_print_T.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -39,7 +37,12 @@ void print_Vector_T_tol (const struct Vector_T*const a, const Real tol)
 	for (ptrdiff_t i = 0; i < ext; i++) {
 #ifdef TYPE_RC
 		const Type val = *data++;
+	#if TYPE_RC == TYPE_REAL
 		printf("% .4e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
+	#elif TYPE_RC == TYPE_COMPLEX
+		print_real(val);
+		print_imag(val);
+	#endif
 #else
 		printf("% 12d ",*data++);
 #endif

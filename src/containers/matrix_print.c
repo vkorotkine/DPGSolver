@@ -17,12 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "matrix_print.h"
 
-#include <stdio.h>
-#include <math.h>
-
-#include "macros.h"
-#include "definitions_tol.h"
-
 #include "matrix.h"
 
 // Templated functions ********************************************************************************************** //

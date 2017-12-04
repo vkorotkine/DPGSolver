@@ -23,12 +23,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define constructor_empty_Matrix_T constructor_empty_Matrix_d
 
-#define constructor_copy_Matrix_T_T             constructor_copy_Matrix_d_d
-#define constructor_copy_const_Matrix_T_T       constructor_copy_const_Matrix_d_d
-#define constructor_copy_Matrix_T               constructor_copy_Matrix_d
-#define constructor_copy_const_Matrix_T         constructor_copy_const_Matrix_d
-#define constructor_copy_extract_const_Matrix_T constructor_copy_extract_const_Matrix_d
-#define const_constructor_copy_Matrix_T         const_constructor_copy_Matrix_d
+#define constructor_copy_Matrix_T_T              constructor_copy_Matrix_d_d
+#define constructor_copy_const_Matrix_T_T        constructor_copy_const_Matrix_d_d
+#define constructor_copy_Matrix_T                constructor_copy_Matrix_d
+#define constructor_copy_const_Matrix_T          constructor_copy_const_Matrix_d
+#define constructor_copy_extract_const_Matrix_T  constructor_copy_extract_const_Matrix_d
+#define const_constructor_copy_Matrix_T          const_constructor_copy_Matrix_d
+#define constructor_copy_Matrix_T_Matrix_R       constructor_copy_Matrix_d_Matrix_d
+#define constructor_copy_const_Matrix_T_Matrix_R constructor_copy_const_Matrix_d_Matrix_d
 
 #define constructor_move_Matrix_T_T           constructor_move_Matrix_d_d
 #define constructor_move_const_Matrix_T_T     constructor_move_const_Matrix_d_d
@@ -54,10 +56,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_mm_NN1R_const_Matrix_T        constructor_mm_NN1R_const_Matrix_d
 #define constructor_mm_NN1C_Matrix_T              constructor_mm_NN1C_Matrix_d
 #define constructor_mm_NN1C_const_Matrix_T        constructor_mm_NN1C_const_Matrix_d
-#define constructor_mm_diag_Matrix_T              constructor_mm_diag_Matrix_d
-#define constructor_mm_diag_const_Matrix_T        constructor_mm_diag_const_Matrix_d
-#define set_Matrix_from_Multiarray_d              set_Matrix_from_Multiarray_d
-#define set_const_Matrix_from_Multiarray_d        set_const_Matrix_from_Multiarray_d
+#define constructor_mm_diag_Matrix_T_R            constructor_mm_diag_Matrix_d
+#define constructor_mm_diag_const_Matrix_T_R      constructor_mm_diag_const_Matrix_d
+#define set_Matrix_from_Multiarray_T              set_Matrix_from_Multiarray_d
+#define set_const_Matrix_from_Multiarray_T        set_const_Matrix_from_Multiarray_d
 #define set_Matrix_from_Multiarray_Matrix_T       set_Matrix_from_Multiarray_Matrix_d
 #define set_const_Matrix_from_Multiarray_Matrix_T set_const_Matrix_from_Multiarray_Matrix_d
 

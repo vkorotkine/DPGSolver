@@ -18,5 +18,20 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name Function names
-#define scale_Multiarray_T_by_Vector_R scale_Multiarray_c_by_Vector_d
+#define reinterpret_Multiarray_as_Matrix_T reinterpret_Multiarray_as_Matrix_c
+#define reinterpret_Matrix_as_Multiarray_T reinterpret_Matrix_as_Multiarray_c
+
+#define transpose_Multiarray_T                   transpose_Multiarray_c
+#define scale_Multiarray_T                       scale_Multiarray_c
+#define normalize_Multiarray_T                   normalize_Multiarray_c
+#define permute_Multiarray_T                     permute_Multiarray_c
+#define permute_Multiarray_T_V                   permute_Multiarray_c_V
+#define scale_Multiarray_T_by_Vector_R           scale_Multiarray_c_by_Vector_d
+#define subtract_in_place_Multiarray_T           subtract_in_place_Multiarray_c
+#define mm_NNC_Multiarray_T                      mm_NNC_Multiarray_c
+#define mm_NN1C_Multiarray_T                     mm_NN1C_Multiarray_c
+#define mm_NN1C_overwrite_Multiarray_T           mm_NN1C_overwrite_Multiarray_c
+#define reinterpret_const_Multiarray_as_Matrix_T reinterpret_const_Multiarray_as_Matrix_c
+#define reinterpret_const_Matrix_as_Multiarray_T reinterpret_const_Matrix_as_Multiarray_c
+#define compute_extents_mm_MMa                   compute_extents_mm_MMa
 ///\}

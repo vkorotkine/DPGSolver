@@ -16,13 +16,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "vector.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
-
-#include "macros.h"
-
 #include "multiarray.h"
 #include "matrix.h"
 

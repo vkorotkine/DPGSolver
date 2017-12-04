@@ -16,12 +16,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "vector_print.h"
 
-#include "definitions_tol.h"
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-
 #include "vector.h"
 
 // Templated functions ********************************************************************************************** //

@@ -177,7 +177,7 @@ const struct const_Matrix_d* constructor_lhs_l_internal_face_dpg
 	const struct const_Multiarray_d* j_det = s_face->jacobian_det_fc;
 	const struct const_Vector_d* j_det_V =
 		constructor_copy_const_Vector_d_d(compute_size(j_det->order,j_det->extents),j_det->data); // destructed
-	scale_Matrix_by_Vector_d('L',1.0,cv0_ff_fc,j_det_V,false);
+	scale_Matrix_d_by_Vector_d('L',1.0,cv0_ff_fc,j_det_V,false);
 	destructor_const_Vector_d(j_det_V);
 
 	// Use "-ve" sign when looking from volume[0] as the face term was moved to the rhs of the equation. When looking

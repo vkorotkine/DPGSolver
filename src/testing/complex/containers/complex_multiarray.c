@@ -17,41 +17,24 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "complex_multiarray.h"
 
-#include <assert.h>
-
-#include "macros.h"
-
 #include "multiarray.h"
+#include "vector.h"
 #include "complex_matrix.h"
+#include "complex_vector.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_dc.h"
+#include "def_templates_matrix_c.h"
 #include "def_templates_multiarray_c.h"
+#include "def_templates_vector_c.h"
 #include "multiarray_T.c"
-
-void set_Multiarray_c_Multiarray_d (struct Multiarray_c* a, const struct const_Multiarray_d* b)
-{
-	const ptrdiff_t size = compute_size(a->order,a->extents);
-	assert(size == compute_size(b->order,b->extents));
-
-	for (int i = 0; i < size; ++i)
-		a->data[i] = b->data[i];
-}
-
-struct Matrix_c interpret_Multiarray_as_Matrix_c (const struct Multiarray_c* a_Ma)
-{
-	assert(a_Ma->order == 2);
-	struct Matrix_c a =
-		{ .layout    = a_Ma->layout,
-		  .ext_0     = a_Ma->extents[0],
-		  .ext_1     = a_Ma->extents[1],
-		  .owns_data = false,
-		  .data      = a_Ma->data, };
-	return a;
-}
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

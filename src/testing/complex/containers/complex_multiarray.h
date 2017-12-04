@@ -21,47 +21,19 @@ You should have received a copy of the GNU General Public License along with DPG
  *  See \ref multiarray.h and \ref complex_multiarray.h for potentially relevant comments.
  */
 
-#include "complex_multiarray_minimal.h"
-
 #include "complex_multiarray_constructors.h"
 #include "complex_multiarray_math.h"
 #include "complex_multiarray_print.h"
 
-struct const_Multiarray_d;
-struct Matrix_c;
 
-// Interface functions ********************************************************************************************** //
-
-/** \brief `complex` version of \ref get_col_Multiarray_d.
- *  \return See brief. */
-double complex* get_col_Multiarray_c
-	(const ptrdiff_t col,   ///< See brief.
-	 struct Multiarray_c* a ///< See brief.
-	);
-
-/** \brief `const` version of \ref get_col_Multiarray_c.
- *  \return See brief. */
-const double complex* get_col_const_Multiarray_c
-	(const ptrdiff_t col,               ///< See brief.
-	 const struct const_Multiarray_c* a ///< See brief.
-	);
-
-/// \brief `complex` version of \ref set_to_value_Multiarray_d.
-void set_to_value_Multiarray_c
-	(struct Multiarray_c*const a, ///< See brief.
-	 const double complex val     ///< See brief.
-	);
-
-/// \brief Set the data of the \ref Multiarray_c\* container from that of the \ref Multiarray_d\* container.
-void set_Multiarray_c_Multiarray_d
-	(struct Multiarray_c* a,            ///< Multiarray with data to be set.
-	 const struct const_Multiarray_d* b ///< Multiarray from which to take data.
-	);
-
-/** \brief `complex` version of \ref interpret_Multiarray_as_Matrix_d.
- *  \return See brief. */
-struct Matrix_c interpret_Multiarray_as_Matrix_c
-	(const struct Multiarray_c* a_Ma ///< The input multiarray.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_matrix_c.h"
+#include "def_templates_multiarray_c.h"
+#include "def_templates_vector_c.h"
+#include "multiarray_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
 
 #endif // DPG__complex_multiarray_h__INCLUDED

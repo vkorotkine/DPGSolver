@@ -20,16 +20,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 
 struct Vector_T;
-struct Vector_T;
 struct Matrix_T;
+struct Multiarray_R;
 struct Multiarray_Vector_T;
 struct Multiarray_Matrix_T;
+struct const_Vector_i;
 struct const_Vector_T;
-struct const_Vector_T;
+struct const_Matrix_R;
 struct const_Matrix_T;
+struct const_Multiarray_R;
 struct const_Multiarray_T;
-struct const_Multiarray_T;
-struct const_Multiarray_Vector_T;
 struct const_Multiarray_Vector_T;
 struct const_Multiarray_Matrix_T;
 
@@ -137,14 +137,14 @@ const struct const_Multiarray_Matrix_T* constructor_empty_const_Multiarray_Matri
  *  \return Standard. */
 struct Multiarray_Matrix_T* constructor_empty_Multiarray_Matrix_T_V
 	(const bool alloc_M,                           ///< Defined for \ref constructor_empty_Multiarray_Matrix_T.
-	 const struct const_Vector_T*const extents_i_V ///< The input extents in vector format.
+	 const struct const_Vector_i*const extents_i_V ///< The input extents in vector format.
 	);
 
 /** \brief `const` version of \ref constructor_empty_Multiarray_Matrix_T_V.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_T* constructor_empty_const_Multiarray_Matrix_T_V
 	(const bool alloc_M,                           ///< Defined for \ref constructor_empty_Multiarray_Matrix_T.
-	 const struct const_Vector_T*const extents_i_V ///< The input extents in vector format.
+	 const struct const_Vector_i*const extents_i_V ///< The input extents in vector format.
 	);
 
 // Zero constructors ************************************************************************************************ //
@@ -197,7 +197,19 @@ void const_constructor_copy_Multiarray_T
 	(const struct const_Multiarray_T*const* dest, ///< Destination.
 	 const struct const_Multiarray_T*const src    ///< Source.
 	);
+#if TYPE_RC == TYPE_COMPLEX
+/** \brief Copy constructor for a \ref Multiarray_T\* from a \ref Multiarray_R\*.
+ *  \return Standard. */
+struct Multiarray_T* constructor_copy_Multiarray_T_Multiarray_R
+	(struct Multiarray_R* src ///< Source.
+	);
 
+/** \brief `const` version of \ref constructor_copy_Multiarray_T_Multiarray_R.
+ *  \return Standard. */
+const struct const_Multiarray_T* constructor_copy_const_Multiarray_T_Multiarray_R
+	(const struct const_Multiarray_R* src ///< See brief.
+	);
+#endif
 // Move constructors ************************************************************************************************ //
 
 /** \brief Move constructor for a \ref Multiarray_T\* from a `Type*`.
@@ -336,14 +348,14 @@ void set_const_Multiarray_Matrix_from_Multiarray_Matrix_T
  *  See comments in \ref constructor_mm_NN1C_Matrix_T for the preset matrix-matrix multiplication parameters.
  */
 struct Multiarray_T* constructor_mm_NN1C_Multiarray_T
-	(const struct const_Matrix_T*const a,    ///< Defined for \ref mm_d.
+	(const struct const_Matrix_R*const a,    ///< Defined for \ref mm_d.
 	 const struct const_Multiarray_T*const b ///< Input `b` in multiarray format.
 	);
 
 /** \brief `const` version of \ref constructor_mm_NN1C_Multiarray_T.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_mm_NN1C_const_Multiarray_T
-	(const struct const_Matrix_T*const a,    ///< Defined for \ref  constructor_mm_NN1C_Multiarray_T.
+	(const struct const_Matrix_R*const a,    ///< Defined for \ref  constructor_mm_NN1C_Multiarray_T.
 	 const struct const_Multiarray_T*const b ///< Defined for \ref  constructor_mm_NN1C_Multiarray_T.
 	);
 

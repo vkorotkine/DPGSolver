@@ -21,29 +21,16 @@ You should have received a copy of the GNU General Public License along with DPG
  *  Potentially relevant comments may be found in \ref vector.h.
  */
 
-#include <stddef.h>
-#include <stdbool.h>
-#include <complex.h>
-
 #include "complex_vector_constructors.h"
-//#include "complex_vector_math.h"
-//#include "complex_vector_print.h"
+#include "complex_vector_math.h"
+#include "complex_vector_print.h"
 
-/// \brief `complex` version of \ref Vector_d.
-struct Vector_c {
-	ptrdiff_t ext_0; ///< See brief.
 
-	bool owns_data;       ///< See brief.
-	double complex* data; ///< See brief.
-};
-
-/// \brief `const` version of \ref Vector_c.
-struct const_Vector_c {
-	const ptrdiff_t ext_0; ///< See brief.
-
-	const bool owns_data;            ///< See brief.
-	const double complex*const data; ///< See brief.
-};
+#include "def_templates_type_dc.h"
+#include "def_templates_vector_c.h"
+#include "vector_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_vector.h"
 
 // Interface functions ********************************************************************************************** //
 

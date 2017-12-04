@@ -14,18 +14,12 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 /// \file
 
-#include "vector_constructors.h"
-
 #include <assert.h>
 #include <string.h>
+#include "definitions_mkl.h"
 #include "mkl.h"
 
 #include "macros.h"
-#include "definitions_mkl.h"
-
-#include "multiarray.h"
-#include "matrix.h"
-#include "vector.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -148,19 +142,19 @@ void const_constructor_move_const_Vector_T
 
 // Set constructors ************************************************************************************************* //
 #ifdef TYPE_RC
-struct Vector_T* constructor_set_Vector_T_Multiarray_T (struct Multiarray_d* src, const ptrdiff_t* sub_indices)
+struct Vector_T* constructor_set_Vector_T_Multiarray_T (struct Multiarray_T* src, const ptrdiff_t* sub_indices)
 {
 	struct Vector_T* dest = constructor_default_Vector_T(); // returned
-	set_Vector_from_Multiarray_d(dest,src,sub_indices);
+	set_Vector_from_Multiarray_T(dest,src,sub_indices);
 
 	return dest;
 }
 
 const struct const_Vector_T* constructor_set_const_Vector_T_Multiarray_T
-	(const struct const_Multiarray_d* src, const ptrdiff_t* sub_indices)
+	(const struct const_Multiarray_T* src, const ptrdiff_t* sub_indices)
 {
 	return (const struct const_Vector_T*)
-		constructor_set_Vector_T_Multiarray_T((struct Multiarray_d*)src,sub_indices);
+		constructor_set_Vector_T_Multiarray_T((struct Multiarray_T*)src,sub_indices);
 }
 
 // Special constructors ********************************************************************************************* //
@@ -243,7 +237,7 @@ struct Vector_T* constructor_mv_Vector_T
 
 	struct Vector_T* c = constructor_empty_Vector_T(m); // returned
 
-	mv_d(trans_a_i,alpha,0.0,a,b,c);
+	mv_T(trans_a_i,alpha,0.0,a,b,c);
 
 	return c;
 }
@@ -275,7 +269,7 @@ struct Vector_T* constructor_sgesv_Vector_T (struct Matrix_T* A_i, struct Vector
 	lapack_int ipiv[n],
 	           iter         = 0;
 
-	const int info = LAPACKE_dsgesv(matrix_layout,n,nrhs,a,lda,ipiv,b,ldb,x,ldx,&iter);
+	const int info = LAPACKE_Tsgesv(matrix_layout,n,nrhs,a,lda,ipiv,b,ldb,x,ldx,&iter);
 	assert(info == 0);
 
 	destructor_Matrix_T(A);
@@ -306,7 +300,7 @@ void set_const_Vector_from_Matrix_T
 	set_Vector_from_Matrix_T((struct Vector_T*)dest,(struct Matrix_T*)src,sub_indices);
 }
 
-void set_Vector_from_Multiarray_T (struct Vector_T* dest, struct Multiarray_d* src, const ptrdiff_t*const sub_indices)
+void set_Vector_from_Multiarray_T (struct Vector_T* dest, struct Multiarray_T* src, const ptrdiff_t*const sub_indices)
 {
 	dest->owns_data = false;
 	dest->ext_0 = src->extents[0];
@@ -314,9 +308,9 @@ void set_Vector_from_Multiarray_T (struct Vector_T* dest, struct Multiarray_d* s
 }
 
 void set_const_Vector_from_Multiarray_T
-	(const struct const_Vector_T* dest, const struct const_Multiarray_d* src, const ptrdiff_t*const sub_indices)
+	(const struct const_Vector_T* dest, const struct const_Multiarray_T* src, const ptrdiff_t*const sub_indices)
 {
-	set_Vector_from_Multiarray_T((struct Vector_T*)dest,(struct Multiarray_d*)src,sub_indices);
+	set_Vector_from_Multiarray_T((struct Vector_T*)dest,(struct Multiarray_T*)src,sub_indices);
 }
 #endif
 // Destructors ****************************************************************************************************** //

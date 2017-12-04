@@ -19,9 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 
-#include "multiarray_constructors.h"
-#include "multiarray_math.h"
-#include "multiarray_print.h"
+struct const_Vector_R;
 
 /// \brief Templated Multiarray.
 struct Multiarray_T {
@@ -129,6 +127,12 @@ void set_Multiarray_Vector_T_T
 void set_Multiarray_T
 	(struct Multiarray_T* a_o,            ///< Output multiarray.
 	 const struct const_Multiarray_T* a_i ///< Input multiarray.
+	);
+
+/// \brief Set the data of the \ref Multiarray_T\* container from that of the \ref Multiarray_R\* container.
+void set_Multiarray_T_Multiarray_R
+	(struct Multiarray_T* a,            ///< Multiarray with data to be set.
+	 const struct const_Multiarray_R* b ///< Multiarray from which to take data.
 	);
 
 /** \brief Sort the data of the \ref Multiarray_Vector_T\*.

@@ -33,14 +33,5 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void set_block_Matrix_c_d
-	(struct Matrix_c* a, const struct const_Matrix_d* a_sub, const ptrdiff_t row0, const ptrdiff_t col0,
-	 const char set_type)
-{
-	const struct const_Matrix_c*const a_sub_c = constructor_copy_const_Matrix_c_Matrix_d(a_sub); // destructed
-	set_block_Matrix_c(a,a_sub_c,row0,col0,set_type);
-	destructor_const_Matrix_c(a_sub_c);
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

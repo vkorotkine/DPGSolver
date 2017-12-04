@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides real Multiarray_\* math functions.
  */
 
+#include <stddef.h>
+
 #include "def_templates_type_d.h"
 #include "def_templates_matrix_d.h"
 #include "def_templates_multiarray_d.h"
@@ -28,5 +30,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
+
+/** \brief Compute the extents of the output multiarray from a matrix-multiarray multiplication.
+ *  \return Dynamically allocated extents. */
+ptrdiff_t* compute_extents_mm_MMa
+	(const ptrdiff_t ext_0,     ///< The value of `extents[0]`.
+	 const int order,           ///< Defined in \ref Multiarray_T.
+	 const ptrdiff_t* extents_i ///< The input extents. Used to set all but the first entry.
+	);
 
 #endif // DPG__multiarray_math_h__INCLUDED

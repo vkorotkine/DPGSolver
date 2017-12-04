@@ -17,15 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "matrix_math.h"
 
-#include <assert.h>
-#include <string.h>
-#include <math.h>
-#include "mkl.h"
-#include "gsl/gsl_permute_matrix_double.h"
-
-#include "macros.h"
-#include "definitions_mkl.h"
-
 #include "matrix.h"
 #include "multiarray.h"
 #include "vector.h"
@@ -35,10 +26,14 @@ You should have received a copy of the GNU General Public License along with DPG
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
+#include "def_templates_math_d.h"
 #include "def_templates_matrix_d.h"
+#include "def_templates_vector_d.h"
 #include "matrix_math_T.c"
 #include "undef_templates_type.h"
+#include "undef_templates_math.h"
 #include "undef_templates_matrix.h"
+#include "undef_templates_vector.h"
 
 // Static function declarations ************************************************************************************* //
 

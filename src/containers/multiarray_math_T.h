@@ -20,8 +20,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 
 struct Multiarray_T;
-struct const_Vector_T;
 struct const_Vector_i;
+struct const_Vector_R;
+struct const_Vector_T;
+struct const_Matrix_R;
 struct const_Matrix_T;
 struct const_Multiarray_T;
 
@@ -59,13 +61,13 @@ void permute_Multiarray_T_V
 	 const char perm_layout            ///< Defined for \ref permute_Multiarray_T.
 	);
 
-/// \brief Call \ref scale_Matrix_by_Vector_T after interpreting the multiarray as a matrix.
-void scale_Multiarray_by_Vector_T
-	(const char side,                     ///< Defined for \ref scale_Matrix_by_Vector_T.
-	 const Real alpha,                  ///< Defined for \ref scale_Matrix_by_Vector_T.
-	 struct Multiarray_T*const a,         ///< Defined for \ref scale_Matrix_by_Vector_T.
-	 const struct const_Vector_T*const b, ///< Defined for \ref scale_Matrix_by_Vector_T.
-	 const bool invert_diag               ///< Defined for \ref scale_Matrix_by_Vector_T.
+/// \brief Call \ref scale_Matrix_T_by_Vector_R after interpreting the multiarray as a matrix.
+void scale_Multiarray_T_by_Vector_R
+	(const char side,                     ///< See brief.
+	 const Real alpha,                    ///< See brief.
+	 struct Multiarray_T*const a,         ///< See brief.
+	 const struct const_Vector_R*const b, ///< See brief.
+	 const bool invert_diag               ///< See brief.
 	);
 
 /// \brief Subtract the 2nd from the 1st multiarray in-place.
@@ -87,7 +89,7 @@ void subtract_in_place_Multiarray_T
 void mm_NNC_Multiarray_T
 	(const Real alpha,                      ///< Defined for \ref mm_T.
 	 const Real beta,                       ///< Defined for \ref mm_T.
-	 const struct const_Matrix_T*const a,     ///< Defined for \ref mm_T.
+	 const struct const_Matrix_R*const a,     ///< Defined for \ref mm_T.
 	 const struct const_Multiarray_T*const b, ///< Input `b`.
 	 struct Multiarray_T*const c              ///< Output `c`.
 	);
@@ -99,7 +101,7 @@ void mm_NNC_Multiarray_T
  *  See comments in \ref constructor_mm_NN1C_Matrix_T for the preset matrix-matrix multiplication parameters.
  */
 void mm_NN1C_Multiarray_T
-	(const struct const_Matrix_T*const a,     ///< Defined for \ref mm_T.
+	(const struct const_Matrix_R*const a,     ///< Defined for \ref mm_T.
 	 const struct const_Multiarray_T*const b, ///< Input `b`.
 	 struct Multiarray_T*const c              ///< Output `c`.
 	);
@@ -107,16 +109,8 @@ void mm_NN1C_Multiarray_T
 /** \brief Similar to \ref mm_NN1C_Multiarray_T but where the input `b` is overwritten by the result.
  *  See comments in \ref constructor_mm_NN1C_Matrix_T for the preset matrix-matrix multiplication parameters. */
 void mm_NN1C_overwrite_Multiarray_T
-	(const struct const_Matrix_T*const a, ///< Defined for \ref mm_T.
+	(const struct const_Matrix_R*const a, ///< Defined for \ref mm_T.
 	 struct Multiarray_T** b              ///< Input/Output `b`.
-	);
-
-/** \brief Compute the extents of the output multiarray from a matrix-multiarray multiplication.
- *  \return Dynamically allocated extents. */
-ptrdiff_t* compute_extents_mm_MMa
-	(const ptrdiff_t ext_0,     ///< The value of `extents[0]`.
-	 const int order,           ///< Defined in \ref Multiarray_T.
-	 const ptrdiff_t* extents_i ///< The input extents. Used to set all but the first entry.
 	);
 
 /// \brief Reinterpret the \ref const_Multiarray_T\* as a \ref const_Matrix_T\* having the given input extents.

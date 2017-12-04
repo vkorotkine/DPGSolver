@@ -15,17 +15,9 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "multiarray_math.h"
-
 #include <assert.h>
 
 #include "macros.h"
-
-#include "matrix.h"
-#include "multiarray.h"
-#include "vector.h"
-
-#include "math_functions.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -89,7 +81,12 @@ void normalize_Multiarray_T
 		Type* norm_data = a_norms->data;
 		for (ptrdiff_t i = 0; i < n_vals; ++i) {
 			Type* a_row = get_row_Multiarray_T(i,a);
+/// \todo delete after templating math_functions.c
+#if TYPE_RC == TYPE_REAL
 			norm_data[i] = norm_d(n_entries,a_row,norm_type);
+#elif TYPE_RC == TYPE_COMPLEX
+			norm_data[i] = norm_c(n_entries,a_row,norm_type);
+#endif
 			for (ptrdiff_t j = 0; j < n_entries; ++j)
 				a_row[j] /= norm_data[i];
 		}
@@ -97,7 +94,11 @@ void normalize_Multiarray_T
 		Type norm_data = 0.0;
 		for (ptrdiff_t i = 0; i < n_vals; ++i) {
 			Type* a_row = get_row_Multiarray_T(i,a);
+#if TYPE_RC == TYPE_REAL
 			norm_data = norm_d(n_entries,a_row,norm_type);
+#elif TYPE_RC == TYPE_COMPLEX
+			norm_data = norm_c(n_entries,a_row,norm_type);
+#endif
 			for (ptrdiff_t j = 0; j < n_entries; ++j)
 				a_row[j] /= norm_data;
 		}
@@ -136,15 +137,15 @@ void permute_Multiarray_T_V (struct Multiarray_T* a, const struct const_Vector_i
 	permute_Multiarray_T(a,p,perm_layout);
 }
 
-void scale_Multiarray_by_Vector_T
-	(const char side, const Real alpha, struct Multiarray_T*const a, const struct const_Vector_T*const b,
+void scale_Multiarray_T_by_Vector_R
+	(const char side, const Real alpha, struct Multiarray_T*const a, const struct const_Vector_R*const b,
 	 const bool invert_diag)
 {
 	const ptrdiff_t ext_0 = a->extents[0],
 	                ext_1 = compute_size(a->order,a->extents)/ext_0;
 	struct Matrix_T a_M;
 	reinterpret_Multiarray_as_Matrix_T(a,&a_M,ext_0,ext_1);
-	scale_Matrix_by_Vector_T(side,alpha,&a_M,b,invert_diag);
+	scale_Matrix_T_by_Vector_R(side,alpha,&a_M,b,invert_diag);
 }
 
 void subtract_in_place_Multiarray_T (struct Multiarray_T* a, const struct const_Multiarray_T* b)
@@ -157,7 +158,7 @@ void subtract_in_place_Multiarray_T (struct Multiarray_T* a, const struct const_
 }
 
 void mm_NNC_Multiarray_T
-	(const Real alpha, const Real beta, const struct const_Matrix_T*const a,
+	(const Real alpha, const Real beta, const struct const_Matrix_R*const a,
 	 const struct const_Multiarray_T*const b, struct Multiarray_T*const c)
 {
 	const char layout = 'C';
@@ -180,19 +181,19 @@ void mm_NNC_Multiarray_T
 		constructor_move_const_Matrix_T_T(b->layout,ext_0_b,ext_1,false,b->data); // destructed
 	struct Matrix_T* c_M = constructor_move_Matrix_T_T(c->layout,ext_0_c,ext_1,false,c->data); // destructed
 
-	mm_T('N','N',alpha,beta,a,b_M,c_M);
+	mm_RTT('N','N',alpha,beta,a,b_M,c_M);
 
 	destructor_const_Matrix_T(b_M);
 	destructor_Matrix_T(c_M);
 }
 
 void mm_NN1C_Multiarray_T
-	(const struct const_Matrix_T*const a, const struct const_Multiarray_T*const b, struct Multiarray_T*const c)
+	(const struct const_Matrix_R*const a, const struct const_Multiarray_T*const b, struct Multiarray_T*const c)
 {
 	mm_NNC_Multiarray_T(1.0,0.0,a,b,c);
 }
 
-void mm_NN1C_overwrite_Multiarray_T (const struct const_Matrix_T*const a, struct Multiarray_T** b)
+void mm_NN1C_overwrite_Multiarray_T (const struct const_Matrix_R*const a, struct Multiarray_T** b)
 {
 	struct Multiarray_T* c = constructor_mm_NN1C_Multiarray_T(a,(struct const_Multiarray_T*)*b); // keep
 	destructor_Multiarray_T(*b);
@@ -210,17 +211,6 @@ void reinterpret_const_Matrix_as_Multiarray_T
 	(const struct const_Matrix_T* a_M, const struct const_Multiarray_T* a, const int order, const ptrdiff_t* extents)
 {
 	reinterpret_Matrix_as_Multiarray_T((struct Matrix_T*)a_M,(struct Multiarray_T*)a,order,(ptrdiff_t*)extents);
-}
-
-ptrdiff_t* compute_extents_mm_MMa (const ptrdiff_t ext_0, const int order, const ptrdiff_t* extents_i)
-{
-	ptrdiff_t* extents = malloc((size_t)order * sizeof *extents); // returned
-
-	extents[0] = ext_0;
-	for (int i = 1; i < order; ++i)
-		extents[i] = extents_i[i];
-
-	return extents;
 }
 
 // Static functions ************************************************************************************************* //

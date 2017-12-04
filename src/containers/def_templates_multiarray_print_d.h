@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `int` multiarray print
+ *  \brief Provides the macro definitions used for c-style templating related to the `double` multiarray print
  *         functions.
  */
 

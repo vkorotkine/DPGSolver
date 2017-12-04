@@ -14,17 +14,12 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 /// \file
 
-#include "vector.h"
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
 
 #include "macros.h"
-
-#include "multiarray.h"
-#include "matrix.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -165,10 +160,17 @@ int cmp_Vector_T (const void *a, const void *b)
 	         *const data_b = (*ib)->data;
 
 	for (ptrdiff_t i = 0; i < size_a; ++i) {
+#if TYPE_RC == TYPE_COMPLEX
+		if (creal(data_a[i]) > creal(data_b[i]))
+			return 1;
+		else if (creal(data_a[i]) < creal(data_b[i]))
+			return -1;
+#else
 		if (data_a[i] > data_b[i])
 			return 1;
 		else if (data_a[i] < data_b[i])
 			return -1;
+#endif
 	}
 	return 0;
 }
@@ -226,5 +228,5 @@ bool find_val_Vector_T (const struct const_Vector_T*const src, const Type val, c
 
 static int cmp_T (const void *a, const void *b)
 {
-	return (Type) ( *(Type*)a - *(Type*)b );
+	return (int) ( *(Type*)a - *(Type*)b );
 }

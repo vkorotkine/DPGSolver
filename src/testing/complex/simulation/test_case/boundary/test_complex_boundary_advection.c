@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_boundary.h"
 #include "complex_multiarray.h"
+#include "multiarray.h"
 
 // Static function declarations ************************************************************************************* //
 

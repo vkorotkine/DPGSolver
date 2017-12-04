@@ -22,6 +22,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 #include "definitions_tol.h"
 
+#include "complex_multiarray.h"
+#include "complex_matrix.h"
 #include "multiarray.h"
 #include "matrix.h"
 
@@ -76,6 +78,24 @@ void destructor_mutable_Operator (struct mutable_Operator* op)
 
 void set_ops_tp_n_rows_cols
 	(int n_rows_sub[DMAX], int n_cols_sub[DMAX], const struct const_Multiarray_Matrix_d* ops_tp)
+{
+	const ptrdiff_t size = compute_size(ops_tp->order,ops_tp->extents);
+	assert(2 <= size);
+	assert(size <= DMAX);
+
+	for (int i = 0; i < DMAX; ++i) {
+		if (i < size && ops_tp->data[i]) {
+			n_rows_sub[i] = (int)ops_tp->data[i]->ext_0;
+			n_cols_sub[i] = (int)ops_tp->data[i]->ext_1;
+		} else {
+			n_rows_sub[i] = 1;
+			n_cols_sub[i] = 1;
+		}
+	}
+}
+
+void set_ops_tp_n_rows_cols_c
+	(int n_rows_sub[DMAX], int n_cols_sub[DMAX], const struct const_Multiarray_Matrix_c* ops_tp)
 {
 	const ptrdiff_t size = compute_size(ops_tp->order,ops_tp->extents);
 	assert(2 <= size);

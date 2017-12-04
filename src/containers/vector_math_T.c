@@ -15,16 +15,21 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "vector_math.h"
-
 #include <assert.h>
-
-#include "vector.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
+void invert_Vector_R (struct Vector_R* a)
+{
+	const ptrdiff_t ext_0 = a->ext_0;
+	for (ptrdiff_t i = 0; i < ext_0; ++i) {
+		assert(a->data[i] != 0.0);
+		a->data[i] = 1.0/(a->data[i]);
+	}
+}
+#if TYPE_RC == TYPE_COMPLEX
 void invert_Vector_T (struct Vector_T* a)
 {
 	const ptrdiff_t ext_0 = a->ext_0;
@@ -33,7 +38,7 @@ void invert_Vector_T (struct Vector_T* a)
 		a->data[i] = 1.0/(a->data[i]);
 	}
 }
-
+#endif
 void add_to_Vector_T_T (struct Vector_T* a, const Type* b)
 {
 	const ptrdiff_t ext_0 = a->ext_0;

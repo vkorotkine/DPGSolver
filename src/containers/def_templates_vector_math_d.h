@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name Function names
+#define invert_Vector_R   invert_Vector_d
 #define invert_Vector_T   invert_Vector_d
 #define add_to_Vector_T_T add_to_Vector_d_d
 ///\}

@@ -15,7 +15,9 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-struct Multiarray_Vector_T;
+#include <assert.h>
+
+#include "macros.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -122,6 +124,15 @@ void set_Multiarray_T (struct Multiarray_T* a_o, const struct const_Multiarray_T
 	const ptrdiff_t size = compute_size(a_i->order,a_i->extents);
 	for (ptrdiff_t i = 0; i < size; ++i)
 		a_o->data[i] = a_i->data[i];
+}
+
+void set_Multiarray_T_Multiarray_R (struct Multiarray_T* a, const struct const_Multiarray_R* b)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+	assert(size == compute_size(b->order,b->extents));
+
+	for (int i = 0; i < size; ++i)
+		a->data[i] = (Type)b->data[i];
 }
 
 struct Vector_i* sort_Multiarray_Vector_T (struct Multiarray_Vector_T* a, const bool return_indices)
@@ -274,10 +285,17 @@ static int cmp_Vector_T_indexed (const void *a, const void *b)
 	          *const data_b = (*ib)->vector->data;
 
 	for (ptrdiff_t i = 0; i < size_a; ++i) {
+#if TYPE_RC == TYPE_COMPLEX
+		if (creal(data_a[i]) > creal(data_b[i]))
+			return 1;
+		else if (creal(data_a[i]) < creal(data_b[i]))
+			return -1;
+#else
 		if (data_a[i] > data_b[i])
 			return 1;
 		else if (data_a[i] < data_b[i])
 			return -1;
+#endif
 	}
 	return 0;
 }

@@ -15,18 +15,12 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-/*#include "matrix_constructors.h"
-
 #include <stdlib.h>
 #include <assert.h>
+#include "definitions_mkl.h"
 #include "mkl.h"
 
 #include "macros.h"
-#include "definitions_mkl.h"
-
-#include "multiarray.h"
-#include "matrix.h"
-#include "vector.h"*/
 
 // Static function declarations ************************************************************************************* //
 
@@ -83,6 +77,23 @@ struct Matrix_T* constructor_copy_Matrix_T (const struct Matrix_T* src)
 		data[i] = data_src[i];
 
 	return constructor_move_Matrix_T_T(src->layout,src->ext_0,src->ext_1,true,data);
+}
+
+struct Matrix_T* constructor_copy_Matrix_T_Matrix_R (struct Matrix_R* src)
+{
+	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
+	const Real*const data_src = src->data;
+
+	Type* data = calloc((size_t)size , sizeof *data); // keep
+	for (ptrdiff_t i = 0; i < size; i++)
+		data[i] = (Type)data_src[i];
+
+	return constructor_move_Matrix_T_T(src->layout,src->ext_0,src->ext_1,true,data);
+}
+
+const struct const_Matrix_T* constructor_copy_const_Matrix_T_Matrix_R (const struct const_Matrix_R* src)
+{
+	return (struct const_Matrix_T*) constructor_copy_Matrix_T_Matrix_R((struct Matrix_R*)src);
 }
 
 const struct const_Matrix_T* constructor_copy_const_Matrix_T (const struct const_Matrix_T*const src)
@@ -220,7 +231,7 @@ const struct const_Matrix_T* constructor_subset_const_Matrix_T
 struct Matrix_T* constructor_copy_transpose_Matrix_T (struct Matrix_T* a, const bool mem_only)
 {
 	struct Matrix_T* a_t = constructor_copy_Matrix_T(a); // returned
-	transpose_Matrix_d(a_t,mem_only);
+	transpose_Matrix_T(a_t,mem_only);
 
 	return a_t;
 }
@@ -293,7 +304,7 @@ struct Matrix_T* constructor_inverse_Matrix_T (struct Matrix_T* src)
 	lapack_int ipiv[n],
 	           iter         = 0;
 
-	const int info = LAPACKE_dsgesv(matrix_layout,n,nrhs,a,lda,ipiv,b,ldb,x,ldx,&iter);
+	const int info = LAPACKE_Tsgesv(matrix_layout,n,nrhs,a,lda,ipiv,b,ldb,x,ldx,&iter);
 	assert(info == 0);
 
 	destructor_Matrix_T(A);
@@ -327,7 +338,7 @@ struct Matrix_T* constructor_sgesv_Matrix_T (struct Matrix_T* A_i, struct Matrix
 	lapack_int ipiv[n],
 	           iter         = 0;
 
-	const int info = LAPACKE_dsgesv(matrix_layout,n,nrhs,a,lda,ipiv,b,ldb,x,ldx,&iter);
+	const int info = LAPACKE_Tsgesv(matrix_layout,n,nrhs,a,lda,ipiv,b,ldb,x,ldx,&iter);
 	assert(info == 0);
 
 	destructor_Matrix_T(A);
@@ -359,7 +370,7 @@ struct Matrix_T* constructor_sysv_Matrix_T (struct Matrix_T* A_i, struct Matrix_
 	                 ldx    = ( matrix_layout == LAPACK_COL_MAJOR ? n : nrhs );
 	lapack_int ipiv[n];
 
-	const lapack_int info = LAPACKE_dsysv(matrix_layout,'U',n,nrhs,a,lda,ipiv,x,ldx);
+	const lapack_int info = LAPACKE_Tsysv(matrix_layout,'U',n,nrhs,a,lda,ipiv,x,ldx);
 	assert(info == 0);
 
 	destructor_Matrix_T(A);
@@ -381,7 +392,7 @@ struct Matrix_T* constructor_mm_Matrix_T
 
 	struct Matrix_T* c = constructor_empty_Matrix_T(layout,m,n); // returned
 
-	mm_d(trans_a_i,trans_b_i,alpha,0.0,a,b,c);
+	mm_T(trans_a_i,trans_b_i,alpha,0.0,a,b,c);
 
 	return c;
 }
@@ -417,23 +428,23 @@ const struct const_Matrix_T* constructor_mm_NN1C_const_Matrix_T
 	return (const struct const_Matrix_T*) constructor_mm_NN1C_Matrix_T(a,b);
 }
 
-struct Matrix_T* constructor_mm_diag_Matrix_T
-	(const Real alpha, const struct const_Matrix_T*const a, const struct const_Vector_d*const b, const char side,
+struct Matrix_T* constructor_mm_diag_Matrix_T_R
+	(const Real alpha, const struct const_Matrix_T*const a, const struct const_Vector_R*const b, const char side,
 	 const bool invert_diag)
 {
 	struct Matrix_T* c = constructor_copy_Matrix_T((struct Matrix_T*)a);
-	scale_Matrix_by_Vector_d(side,alpha,c,b,invert_diag);
+	scale_Matrix_T_by_Vector_R(side,alpha,c,b,invert_diag);
 	return c;
 }
 
-const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T
-	(const Real alpha, const struct const_Matrix_T*const a, const struct const_Vector_d*const b, const char side,
+const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T_R
+	(const Real alpha, const struct const_Matrix_T*const a, const struct const_Vector_R*const b, const char side,
 	 const bool invert_diag)
 {
-	return (const struct const_Matrix_T*) constructor_mm_diag_Matrix_T(alpha,a,b,side,invert_diag);
+	return (const struct const_Matrix_T*) constructor_mm_diag_Matrix_T_R(alpha,a,b,side,invert_diag);
 }
 
-void set_Matrix_from_Multiarray_d (struct Matrix_T* dest, struct Multiarray_d* src, const ptrdiff_t*const sub_indices)
+void set_Matrix_from_Multiarray_T (struct Matrix_T* dest, struct Multiarray_T* src, const ptrdiff_t*const sub_indices)
 {
 	dest->layout    = src->layout;
 	dest->owns_data = false;
@@ -442,14 +453,14 @@ void set_Matrix_from_Multiarray_d (struct Matrix_T* dest, struct Multiarray_d* s
 	dest->data      = &src->data[compute_index_sub_container(src->order,2,src->extents,sub_indices)];
 }
 
-void set_const_Matrix_from_Multiarray_d
-	(const struct const_Matrix_T* dest, const struct const_Multiarray_d* src, const ptrdiff_t*const sub_indices)
+void set_const_Matrix_from_Multiarray_T
+	(const struct const_Matrix_T* dest, const struct const_Multiarray_T* src, const ptrdiff_t*const sub_indices)
 {
-	set_Matrix_from_Multiarray_d((struct Matrix_T*)dest,(struct Multiarray_d*)src,sub_indices);
+	set_Matrix_from_Multiarray_T((struct Matrix_T*)dest,(struct Multiarray_T*)src,sub_indices);
 }
 
 void set_Matrix_from_Multiarray_Matrix_T
-	(struct Matrix_T* dest, struct Multiarray_Matrix_d* src, const ptrdiff_t*const sub_indices)
+	(struct Matrix_T* dest, struct Multiarray_Matrix_T* src, const ptrdiff_t*const sub_indices)
 {
 	struct Matrix_T* src_M = src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
 
@@ -461,10 +472,10 @@ void set_Matrix_from_Multiarray_Matrix_T
 }
 
 void set_const_Matrix_from_Multiarray_Matrix_T
-	(const struct const_Matrix_T* dest, const struct const_Multiarray_Matrix_d* src,
+	(const struct const_Matrix_T* dest, const struct const_Multiarray_Matrix_T* src,
 	 const ptrdiff_t*const sub_indices)
 {
-	set_Matrix_from_Multiarray_Matrix_T((struct Matrix_T*)dest,(struct Multiarray_Matrix_d*)src,sub_indices);
+	set_Matrix_from_Multiarray_Matrix_T((struct Matrix_T*)dest,(struct Multiarray_Matrix_T*)src,sub_indices);
 }
 #endif
 // Destructors ****************************************************************************************************** //

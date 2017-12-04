@@ -17,15 +17,33 @@ You should have received a copy of the GNU General Public License along with DPG
  *         containers/functions.
  */
 
-//#include "def_templates_vector_constructors_c.h"
+#include "def_templates_vector_constructors_c.h"
+#include "def_templates_vector_math_c.h"
+#include "def_templates_vector_print_c.h"
 
 ///\{ \name Data types
 #define Vector_T       Vector_c
-#define Vector_R       Vector_d       ///< 'R'eal.
+#define Vector_R       Vector_d
 #define const_Vector_T const_Vector_c
-#define const_Vector_R const_Vector_d ///< 'R'eal.
+#define const_Vector_R const_Vector_d
 ///\}
 
 ///\{ \name Function names
+#define cmp_T cmp_c
 
+#define reorder_Vector_T            reorder_Vector_c
+#define resize_Vector_T             resize_Vector_c
+#define set_to_zero_Vector_T        set_to_zero_Vector_c
+#define set_to_data_Vector_T        set_to_data_Vector_c
+#define set_to_value_Vector_T       set_to_value_Vector_c
+#define sort_Vector_T               sort_Vector_c
+#define sum_Vector_T                sum_Vector_c
+#define prod_Vector_T               prod_Vector_c
+#define prod_const_Vector_T         prod_const_Vector_c
+#define check_equal_Vector_T        check_equal_Vector_c
+#define check_equal_Vector_T_T      check_equal_Vector_c_c
+#define cmp_Vector_T                cmp_Vector_c
+#define copy_data_Vector_T_Vector_T copy_data_Vector_c_Vector_c
+#define push_back_Vector_T          push_back_Vector_c
+#define find_val_Vector_T           find_val_Vector_c
 ///\}
