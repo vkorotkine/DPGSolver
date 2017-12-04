@@ -20,18 +20,26 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <stddef.h>
-#include <stdio.h>
 
-struct Multiarray_i;
-struct Multiarray_d;
-struct Multiarray_Vector_i;
-struct Multiarray_Vector_d;
-struct Multiarray_Matrix_d;
-struct const_Vector_i;
-struct const_Multiarray_d;
-struct const_Multiarray_Vector_i;
-struct const_Multiarray_Vector_d;
-struct const_Multiarray_Matrix_d;
+#include "def_templates_type_d.h"
+#include "def_templates_matrix_d.h"
+#include "def_templates_multiarray_d.h"
+#include "def_templates_vector_d.h"
+#include "multiarray_print_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "def_templates_type_i.h"
+#include "def_templates_matrix_i.h"
+#include "def_templates_multiarray_i.h"
+#include "def_templates_vector_i.h"
+#include "multiarray_print_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
 
 /// \brief Print the counter for the indices of order > 2 when printing sub-Matrices of the Multiarray.
 void print_Multiarray_counter
@@ -46,86 +54,10 @@ void increment_counter
 	 ptrdiff_t*const counter        ///< The counter for the indices of order > 2.
 	);
 
-/// \brief Print a \ref Multiarray_Vector_i\* to the terminal.
-void print_Multiarray_Vector_i
-	(const struct Multiarray_Vector_i*const a ///< Standard.
-	);
-
-/// \brief `const` version of \ref print_Multiarray_Vector_i.
-void print_const_Multiarray_Vector_i
-	(const struct const_Multiarray_Vector_i*const a ///< Defined for \ref print_Multiarray_Vector_i.
-	);
-
-/// \brief Print a \ref Multiarray_Vector_d\* to the terminal.
-void print_Multiarray_Vector_d
-	(const struct Multiarray_Vector_d*const a ///< Standard.
-	);
-
-/// \brief `const` version of \ref print_Multiarray_Vector_d.
-void print_const_Multiarray_Vector_d
-	(const struct const_Multiarray_Vector_d*const a ///< Defined for \ref print_Multiarray_Vector_d.
-	);
-
-/// \brief Print a \ref Multiarray_i\* to the terminal.
-void print_Multiarray_i
-	(const struct Multiarray_i*const a ///< Standard.
-	);
-
-/// \brief Print a \ref Multiarray_d\* to the terminal displaying entries below the tolerance as 0.0.
-void print_Multiarray_d_tol
-	(const struct Multiarray_d*const a, ///< Standard.
-	 const double tol                   ///< The tolerance.
-	);
-
-/// \brief `const` version of \ref print_Multiarray_d_tol.
-void print_const_Multiarray_d_tol
-	(const struct const_Multiarray_d*const a, ///< Defined for \ref print_Multiarray_d.
-	 const double tol                         ///< Defined for \ref print_Multiarray_d.
-	);
-
-/// \brief Print a \ref Multiarray_Matrix_d\* to the terminal displaying entries below the tolerance as 0.0.
-void print_Multiarray_Matrix_d_tol
-	(const struct Multiarray_Matrix_d*const a, ///< Standard.
-	 const double tol                          ///< The tolerance.
-	);
-
-/// \brief `const` version of \ref print_Multiarray_Matrix_d_tol.
-void print_const_Multiarray_Matrix_d_tol
-	(const struct const_Multiarray_Matrix_d*const a, ///< Defined for \ref print_Multiarray_Matrix_d.
-	 const double tol                                ///< Defined for \ref print_Multiarray_Matrix_d.
-	);
-
-/// \brief Print a \ref Multiarray_d\* calling \ref print_Multiarray_d_tol with a default tolerance.
-void print_Multiarray_d
-	(const struct Multiarray_d*const a ///< Defined for \ref print_Multiarray_d_tol.
-	);
-
-/// \brief `const` version of \ref print_Multiarray_d.
-void print_const_Multiarray_d
-	(const struct const_Multiarray_d*const a ///< Defined for \ref print_Multiarray_d.
-	);
-
-/// \brief Print a \ref Multiarray_Matrix_d\* calling \ref print_Multiarray_d_tol with a default tolerance.
-void print_Multiarray_Matrix_d
-	(const struct Multiarray_Matrix_d*const a ///< Defined for \ref print_Multiarray_Matrix_d_tol.
-	);
-
-/// \brief `const` version of \ref print_Multiarray_Matrix_d.
-void print_const_Multiarray_Matrix_d
-	(const struct const_Multiarray_Matrix_d*const a ///< Defined for \ref print_Multiarray_Matrix_d.
-	);
-
 /// \brief Print the extents of the Multiarray.
 void print_Multiarray_extents
 	(const int order,              ///< Defined in \ref Multiarray_d.
 	 const ptrdiff_t*const extents ///< Defined in \ref Multiarray_d.
-	);
-
-/// \brief Print a \ref const_Multiarray_Vector_i to a file with the input number of tabs before each row.
-void fprint_const_Multiarray_Vector_i
-	(FILE* file,                               ///< The file.
-	 const int n_tab,                          ///< The number of tabs.
-	 const struct const_Multiarray_Vector_i* a ///< Standard.
 	);
 
 #endif // DPG__multiarray_print_h__INCLUDED

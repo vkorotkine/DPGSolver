@@ -13,13 +13,18 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` vector print
- *         functions.
+ *  \brief Undefine macro definitions for c-style templated relating to templates_multiarray_print_\*.h.
  */
 
-///\{ \name Function names
-#define print_Vector_T_tol       print_Vector_d_tol
-#define print_const_Vector_T_tol print_const_Vector_d_tol
-#define print_Vector_T           print_Vector_d
-#define print_const_Vector_T     print_const_Vector_d
-///\}
+#undef print_Multiarray_Vector_T
+#undef print_const_Multiarray_Vector_T
+#undef print_Multiarray_T_tol
+#undef print_const_Multiarray_T_tol
+#undef print_Multiarray_Matrix_T_tol
+#undef print_const_Multiarray_Matrix_T_tol
+#undef print_Multiarray_T
+#undef print_const_Multiarray_T
+#undef print_Multiarray_Matrix_T
+#undef print_const_Multiarray_Matrix_T
+
+#undef fprint_const_Multiarray_Vector_T

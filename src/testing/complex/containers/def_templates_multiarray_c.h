@@ -22,9 +22,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Data types
 #define Multiarray_T       Multiarray_c
-#define Multiarray_R       Multiarray_d       ///< 'R'eal.
-#define const_Multiarray_T const_Multiarray_c ///<
-#define const_Multiarray_R const_Multiarray_d ///<'R'eal.
+#define Multiarray_R       Multiarray_d
+#define const_Multiarray_T const_Multiarray_c
+#define const_Multiarray_R const_Multiarray_d
 ///\}
 
 ///\{ \name Function names

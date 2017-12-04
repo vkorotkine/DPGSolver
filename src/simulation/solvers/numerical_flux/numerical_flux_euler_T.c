@@ -26,8 +26,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 #include "definitions_test_case.h"
 
-#include "multiarray.h"
-
 #include "const_cast.h"
 #include "flux.h"
 #include "flux_euler.h"

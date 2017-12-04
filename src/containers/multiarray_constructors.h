@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__multiarray_constructors_h__INCLUDED
 #define DPG__multiarray_constructors_h__INCLUDED
 /** \file
- *  \brief Provides Multiarray_\* constructors and destructors.
+ *  \brief Provides real Multiarray_\* constructors and destructors.
  *
  *  \section s1_Multi_con Naming Convention
  *
@@ -89,15 +89,34 @@ struct const_Multiarray_Vector_i;
 struct const_Multiarray_Vector_d;
 struct const_Multiarray_Matrix_d;
 
-// Helper functions ************************************************************************************************* //
+#include "def_templates_type_d.h"
+#include "def_templates_matrix_d.h"
+#include "def_templates_multiarray_d.h"
+#include "def_templates_vector_d.h"
+#include "multiarray_constructors_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
 
-/**	\brief Allocated and set the `extents` for a `Multiarray_*`.
- *	\return See brief. */
+#include "def_templates_type_i.h"
+#include "def_templates_matrix_i.h"
+#include "def_templates_multiarray_i.h"
+#include "def_templates_vector_i.h"
+#include "multiarray_constructors_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+/** \brief Allocated and set the `extents` for a `Multiarray_*`.
+ *  \return See brief. */
 ptrdiff_t* allocate_and_set_extents
 	(const int order,                ///< Defined in \ref Multiarray_d.
 	 const ptrdiff_t*const extents_i ///< The input extents.
 	);
 
+#if 0
 // Default constructors ********************************************************************************************* //
 
 /** \brief Constructor for a default \ref Multiarray_d\*.
@@ -532,5 +551,6 @@ void destructor_const_Multiarray_Matrix_d
 void destructor_const_Multiarray2_Matrix_d
 	(const struct const_Multiarray_Matrix_d* a[2] ///< Standard.
 	);
+#endif
 
 #endif // DPG__multiarray_constructors_h__INCLUDED

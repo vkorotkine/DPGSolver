@@ -19,8 +19,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
-#include "multiarray.h"
-
 #include "flux.h"
 #include "solution_advection.h"
 

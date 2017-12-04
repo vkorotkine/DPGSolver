@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__multiarray_h__INCLUDED
 #define DPG__multiarray_h__INCLUDED
 /** \file
- *  \brief Provides Multiarray_\* containers and related functions.
+ *  \brief Provides real Multiarray_\* containers and related functions.
  *
  *  \section s1_Multi General
  *
@@ -71,105 +71,26 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray_math.h"
 #include "multiarray_print.h"
 
-/// \brief Multiarray (`int`).
-struct Multiarray_i {
-	char layout; ///< The layout may be 'R'ow or 'C'olumn major.
 
-	int order;          ///< Number of dimensions.
-	ptrdiff_t* extents; ///< Size of array in each dimension.
+#include "def_templates_type_i.h"
+#include "def_templates_matrix_i.h"
+#include "def_templates_multiarray_i.h"
+#include "def_templates_vector_i.h"
+#include "multiarray_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
 
-	bool owns_data; /**< Flag for whether the data should be freed in the destructor. This would be false if a move
-	                     constructor was used. */
-	int* data; ///< The data.
-};
-
-/// \brief Multiarray (`const int`).
-struct const_Multiarray_i {
-	const char layout; ///< Defined in \ref Multiarray_i.
-
-	const int order;               ///< Defined in \ref Multiarray_i.
-	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_i.
-
-	const bool owns_data; ///< Defined in \ref Multiarray_i.
-	const int*const data; ///< Defined in \ref Multiarray_i.
-};
-
-/// \brief Multiarray (`double`).
-struct Multiarray_d {
-	char layout; ///< The layout may be 'R'ow or 'C'olumn major.
-
-	int order;          ///< Number of dimensions.
-	ptrdiff_t* extents; ///< Size of array in each dimension.
-
-	bool owns_data; /**< Flag for whether the data should be freed in the destructor. This would be false if a move
-	                     constructor was used. */
-	double* data; ///< The data.
-};
-
-/// \brief Multiarray (`const double`).
-struct const_Multiarray_d {
-	const char layout; ///< Defined in \ref Multiarray_d.
-
-	const int order;               ///< Defined in \ref Multiarray_d.
-	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
-
-	const bool owns_data;    ///< Defined in \ref Multiarray_d.
-	const double*const data; ///< Defined in \ref Multiarray_d.
-};
-
-/// \brief Multiarray (`Vector_i*`).
-struct Multiarray_Vector_i {
-	int order;          ///< Defined in \ref Multiarray_d.
-	ptrdiff_t* extents; ///< Defined in \ref Multiarray_d.
-
-	bool owns_data;         ///< Defined in \ref Multiarray_d.
-	struct Vector_i** data; ///< Defined in \ref Multiarray_d.
-};
-
-/// \brief Multiarray (`const Vector_i*`).
-struct const_Multiarray_Vector_i {
-	const int order;               ///< Defined in \ref Multiarray_d.
-	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
-
-	const bool owns_data;                         ///< Defined in \ref Multiarray_d.
-	const struct const_Vector_i*const*const data; ///< Defined in \ref Multiarray_d.
-};
-
-/// \brief Multiarray (`Vector_d*`).
-struct Multiarray_Vector_d {
-	int order;          ///< Defined in \ref Multiarray_d.
-	ptrdiff_t* extents; ///< Defined in \ref Multiarray_d.
-
-	bool owns_data;         ///< Defined in \ref Multiarray_d.
-	struct Vector_d** data; ///< Defined in \ref Multiarray_d.
-};
-
-/// \brief Multiarray (`const Vector_d*`).
-struct const_Multiarray_Vector_d {
-	const int order;               ///< Defined in \ref Multiarray_d.
-	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
-
-	const bool owns_data;                         ///< Defined in \ref Multiarray_d.
-	const struct const_Vector_d*const*const data; ///< Defined in \ref Multiarray_d.
-};
-
-/// \brief Multiarray (`Matrix_d*`).
-struct Multiarray_Matrix_d {
-	int order;          ///< Defined in \ref Multiarray_d.
-	ptrdiff_t* extents; ///< Defined in \ref Multiarray_d.
-
-	bool owns_data;         ///< Defined in \ref Multiarray_d.
-	struct Matrix_d** data; ///< Defined in \ref Multiarray_d.
-};
-
-/// \brief Multiarray (`const_Matrix_d*`).
-struct const_Multiarray_Matrix_d {
-	const int order;               ///< Defined in \ref Multiarray_d.
-	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
-
-	const bool owns_data;                         ///< Defined in \ref Multiarray_d.
-	const struct const_Matrix_d*const*const data; ///< Defined in \ref Multiarray_d.
-};
+#include "def_templates_type_d.h"
+#include "def_templates_matrix_d.h"
+#include "def_templates_multiarray_d.h"
+#include "def_templates_vector_d.h"
+#include "multiarray_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
 
 // Interface functions ********************************************************************************************** //
 
@@ -187,67 +108,6 @@ bool check_equal_order_extents
 	 const int order_2,               ///< The 2nd order.
 	 const ptrdiff_t*const extents_1, ///< The 1st extents.
 	 const ptrdiff_t*const extents_2  ///< The 2nd extents.
-	);
-
-/** \brief Get pointer to row of row-major \ref Multiarray_d\* of order 2.
- *  \return Pointer to the first entry of the row. */
-double* get_row_Multiarray_d
-	(const ptrdiff_t row,         ///< Desired row.
-	 const struct Multiarray_d* a ///< Multiarray.
-	);
-
-/** \brief `const` version of \ref get_row_Multiarray_d.
- *  \return See brief. */
-const double* get_row_const_Multiarray_d
-	(const ptrdiff_t row,               ///< Defined for \ref get_row_Multiarray_d.
-	 const struct const_Multiarray_d* a ///< Defined for \ref get_row_Multiarray_d.
-	);
-
-/** \brief Get pointer to col of col-major \ref Multiarray_d\*.
- *  \return See brief. */
-double* get_col_Multiarray_d
-	(const ptrdiff_t col,   ///< Desired column.
-	 struct Multiarray_d* a ///< Multiarray.
-	);
-
-/** \brief `const` version of \ref get_col_Multiarray_d.
- *  \return See brief. */
-const double* get_col_const_Multiarray_d
-	(const ptrdiff_t col,               ///< Defined for \ref get_col_Multiarray_d.
-	 const struct const_Multiarray_d* a ///< Defined for \ref get_col_Multiarray_d.
-	);
-
-/// \brief Set all data entries to the input value.
-void set_to_value_Multiarray_d
-	(struct Multiarray_d*const a, ///< Standard.
-	 const double val             ///< The value.
-	);
-
-/// \brief Set the values of the \ref Multiarray_Vector_i based on the input `int*` data.
-void set_Multiarray_Vector_i_i
-	(struct Multiarray_Vector_i* a, ///< Standard.
-	 const int* data_V,             ///< Input data for the Vectors.
-	 const int*const ext_V          ///< Defined in \ref constructor_copy_Multiarray_Vector_i_i.
-	);
-
-/// \brief Set the values of the output \ref Multiarray_d to those of the input \ref Multiarray_d.
-void set_Multiarray_d
-	(struct Multiarray_d* a_o,            ///< Output multiarray.
-	 const struct const_Multiarray_d* a_i ///< Input multiarray.
-	);
-
-/** \brief Sort the data of the \ref Multiarray_Vector_i\*.
- *  \return Optionally return indices or `NULL`.
- */
-struct Vector_i* sort_Multiarray_Vector_i
-	(struct Multiarray_Vector_i* a, ///< Standard.
-	 const bool return_indices      ///< Flag for whether the indices should also be returned.
-	);
-
-/** \brief Collapse a \ref Multiarray_Vector_i\* into a \ref Vector_i\* with copied data.
- *  \return The \ref Vector_i\*. */
-struct Vector_i* collapse_Multiarray_Vector_i
-	(const struct Multiarray_Vector_i*const src ///< The source.
 	);
 
 /** \brief Compute the index of the data of the sub-Vector based on the sub-indices.
@@ -284,39 +144,6 @@ ptrdiff_t compute_index_sub_container_pi
 	 const int order_o,             ///< Defined for \ref compute_index_sub_container.
 	 const ptrdiff_t*const extents, ///< Defined for \ref compute_index_sub_container.
 	 const int*const sub_indices    ///< Defined for \ref compute_index_sub_container.
-	);
-
-/// \brief Resize a \ref Multiarray_d\*, clearing any existing data entries.
-void resize_Multiarray_d
-	(struct Multiarray_d* a,  ///< The multiarray.
-	 const int order,         ///< Defined in \ref Multiarray_d.
-	 const ptrdiff_t* extents ///< Defined in \ref Multiarray_d.
-	);
-
-/** \brief Get a pointer to a \ref const_Vector_i\* from a sub range of a \ref const_Multiarray_Vector_i\*.
- *  \return See brief. */
-const struct const_Vector_i* get_const_Multiarray_Vector_i
-	(const struct const_Multiarray_Vector_i* src, ///< The source.
-	 const ptrdiff_t*const sub_indices            ///< The sub-indices specifying which part of the source to extract.
-	);
-
-/** \brief Get a pointer to a \ref const_Vector_d\* from a sub range of a \ref const_Multiarray_Vector_d\*.
- *  \return See brief. */
-const struct const_Vector_d* get_const_Multiarray_Vector_d
-	(const struct const_Multiarray_Vector_d* src, ///< The source.
-	 const ptrdiff_t*const sub_indices            ///< The sub-indices specifying which part of the source to extract.
-	);
-
-/** \brief Return a copy of a stack allocated \ref const_Vector_d holding the data of the input multiarray of order 1.
- *  \return See brief. */
-struct const_Vector_d interpret_const_Multiarray_as_Vector_d
-	(const struct const_Multiarray_d* a_Ma ///< The input multiarray.
-	);
-
-/** \brief Return a copy of a stack allocated \ref Matrix_T holding the data of the input multiarray of order 2.
- *  \return See brief. */
-struct Matrix_d interpret_Multiarray_as_Matrix_d
-	(const struct Multiarray_d* a_Ma ///< The input multiarray.
 	);
 
 #endif // DPG__multiarray_h__INCLUDED

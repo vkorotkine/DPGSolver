@@ -18,5 +18,21 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name Function names
-#define scale_Multiarray_T_by_Vector_R scale_Multiarray_by_Vector_d ///< \todo name change (add _d).
+#define reinterpret_Multiarray_as_Matrix_T reinterpret_Multiarray_as_Matrix_d
+#define reinterpret_Matrix_as_Multiarray_T reinterpret_Matrix_as_Multiarray_d
+
+#define transpose_Multiarray_T                   transpose_Multiarray_d
+#define scale_Multiarray_T                       scale_Multiarray_d
+#define normalize_Multiarray_T                   normalize_Multiarray_d
+#define permute_Multiarray_T                     permute_Multiarray_d
+#define permute_Multiarray_T_V                   permute_Multiarray_d_V
+#define scale_Multiarray_by_Vector_T             scale_Multiarray_by_Vector_d
+#define scale_Multiarray_T_by_Vector_R           scale_Multiarray_by_Vector_d
+#define subtract_in_place_Multiarray_T           subtract_in_place_Multiarray_d
+#define mm_NNC_Multiarray_T                      mm_NNC_Multiarray_d
+#define mm_NN1C_Multiarray_T                     mm_NN1C_Multiarray_d
+#define mm_NN1C_overwrite_Multiarray_T           mm_NN1C_overwrite_Multiarray_d
+#define reinterpret_const_Multiarray_as_Matrix_T reinterpret_const_Multiarray_as_Matrix_d
+#define reinterpret_const_Matrix_as_Multiarray_T reinterpret_const_Matrix_as_Multiarray_d
+#define compute_extents_mm_MMa                   compute_extents_mm_MMa
 ///\}
