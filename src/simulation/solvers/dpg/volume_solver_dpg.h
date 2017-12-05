@@ -16,29 +16,23 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__volume_solver_dpg_h__INCLUDED
 #define DPG__volume_solver_dpg_h__INCLUDED
 /** \file
- *  \brief Provides the interface for the \ref DPG_Solver_Volume container and associated functions.
- *
- *  These volumes are needed by the 'D'iscontinuous 'P'etrov 'G'alerkin solver functions.
+ *  \brief Provides the interface for the real \ref DPG_Solver_Volume container and associated functions.
  */
 
 #include "volume_solver.h"
 
-/// \brief Container for data relating to the DPG solver volumes.
-struct DPG_Solver_Volume {
-	struct Solver_Volume volume; ///< The base \ref Solver_Volume.
-
-	const struct const_Matrix_d* norm_op_H0; ///< The H0 (L2) norm operator.
-};
-
-/// \brief Constructor for a derived \ref DPG_Solver_Volume.
-void constructor_derived_DPG_Solver_Volume
-	(struct Volume* volume_ptr,   ///< Pointer to the volume.
-	 const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/// \brief Destructor for a derived \ref DPG_Solver_Volume.
-void destructor_derived_DPG_Solver_Volume
-	(struct Volume* volume_ptr ///< Pointer to the volume.
-	);
+#include "def_templates_type_d.h"
+#include "def_templates_matrix_d.h"
+#include "def_templates_multiarray_d.h"
+#include "def_templates_vector_d.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_volume_solver_dpg.h"
+#include "volume_solver_dpg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dpg.h"
 
 #endif // DPG__volume_solver_dpg_h__INCLUDED

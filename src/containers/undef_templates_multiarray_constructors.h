@@ -68,3 +68,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef destructor_Multiarray_Matrix_T
 #undef destructor_const_Multiarray_Matrix_T
 #undef destructor_const_Multiarray2_Matrix_T
+
+
+#undef constructor_empty_Multiarray_R
+#undef destructor_const_Multiarray_R

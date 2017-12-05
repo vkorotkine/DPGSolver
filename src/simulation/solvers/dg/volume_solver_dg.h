@@ -16,36 +16,23 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__volume_solver_dg_h__INCLUDED
 #define DPG__volume_solver_dg_h__INCLUDED
 /** \file
- *  \brief Provides the interface for the \ref DG_Solver_Volume container and associated functions.
- *
- *  These volumes are needed by the 'D'iscontinuous 'G'alerkin solver functions.
+ *  \brief Provides the interface for the real \ref DG_Solver_Volume container and associated functions.
  */
 
 #include "volume_solver.h"
 
-/// \brief Container for data relating to the DG solver volumes.
-struct DG_Solver_Volume {
-	struct Solver_Volume volume; ///< The base \ref Solver_Volume.
-
-	struct Multiarray_d* sol_coef_p; ///< The coefficients of the solution at a previous Runge-Kutta stage.
-	struct Multiarray_d* rhs;        ///< The rhs terms.
-
-	// Terms required for explicit runs.
-	const struct const_Matrix_d* m_inv; ///< The inverse mass matrix.
-
-	// Terms required for 2nd order PDE terms.
-	struct Multiarray_d* grad_coef_v; ///< The volume contribution to the solution gradient coefficients.
-};
-
-/// \brief Constructor for a derived \ref DG_Solver_Volume.
-void constructor_derived_DG_Solver_Volume
-	(struct Volume* volume_ptr,   ///< Pointer to the volume.
-	 const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/// \brief Destructor for a derived \ref DG_Solver_Volume.
-void destructor_derived_DG_Solver_Volume
-	(struct Volume* volume_ptr ///< Pointer to the volume.
-	);
+#include "def_templates_type_d.h"
+#include "def_templates_matrix_d.h"
+#include "def_templates_multiarray_d.h"
+#include "def_templates_vector_d.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_volume_solver_dg.h"
+#include "volume_solver_dg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dg.h"
 
 #endif // DPG__volume_solver_dg_h__INCLUDED

@@ -17,13 +17,18 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include "boundary.h"
+
+#include "simulation.h"
+#include "test_case.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
 
-#include "def_templates_boundary.h"
+#include "def_templates_boundary_d.h"
 #include "def_templates_multiarray_d.h"
 
 #include "boundary_advection_T.c"

@@ -42,20 +42,20 @@ syntax keyword Identifier DG_Solver_Element
 syntax keyword Identifier DPG_Solver_Element
 
 syntax keyword Identifier Volume
-syntax keyword Identifier Solver_Volume
-syntax keyword Identifier Adaptive_Solver_Volume
-syntax keyword Identifier DG_Solver_Volume
-syntax keyword Identifier DPG_Solver_Volume
+syntax keyword Identifier Solver_Volume_T         Solver_Volume     Solver_Volume_c
+syntax keyword Identifier DG_Solver_Volume_T   DG_Solver_Volume  DG_Solver_Volume_c
+syntax keyword Identifier DPG_Solver_Volume_T DPG_Solver_Volume DPG_Solver_Volume_c
 syntax keyword Identifier Complex_DG_Solver_Volume
 syntax keyword Identifier Complex_DPG_Solver_Volume
+syntax keyword Identifier Adaptive_Solver_Volume
 
 syntax keyword Identifier Face
-syntax keyword Identifier Solver_Face
-syntax keyword Identifier Adaptive_Solver_Face
-syntax keyword Identifier DG_Solver_Face
-syntax keyword Identifier DPG_Solver_Face
+syntax keyword Identifier Solver_Face_T         Solver_Face     Solver_Face_c
+syntax keyword Identifier DG_Solver_Face_T   DG_Solver_Face  DG_Solver_Face_c
+syntax keyword Identifier DPG_Solver_Face_T DPG_Solver_Face DPG_Solver_Face_c
 syntax keyword Identifier Complex_DG_Solver_Face
 syntax keyword Identifier Complex_DPG_Solver_Face
+syntax keyword Identifier Adaptive_Solver_Face
 
 
 

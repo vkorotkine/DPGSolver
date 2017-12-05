@@ -13,8 +13,10 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` operator functions.
+ *  \brief Provides the macro definitions used for c-style templating related to the operator functions.
  */
+
+#if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
 #define constructor_mm_NN1_Operator_Multiarray_T       constructor_mm_NN1_Operator_Multiarray_d
@@ -26,3 +28,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #define mm_NN1C_Operator_Multiarray_T mm_NN1C_Operator_Multiarray_d
 #define mm_NN1_Operator_Multiarray_T  mm_NN1_Operator_Multiarray_d
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+#endif
+
+
+#define constructor_mm_NN1_Operator_Multiarray_R       constructor_mm_NN1_Operator_Multiarray_d
+#define constructor_mm_NN1_Operator_const_Multiarray_R constructor_mm_NN1_Operator_const_Multiarray_d
+
+#define mm_NN1C_Operator_Multiarray_R mm_NN1C_Operator_Multiarray_d

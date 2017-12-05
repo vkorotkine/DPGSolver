@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 
-
+///\{ \name Function names
 #undef constructor_default_Matrix_T
 #undef constructor_default_const_Matrix_T
 
@@ -65,3 +65,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef destructor_Matrix_T
 #undef destructor_const_Matrix_T
+///\}
+
+///\{ \name Function aliases
+#undef constructor_inverse_const_Matrix_R
+#undef constructor_mm_const_Matrix_R
+#undef constructor_mm_diag_const_Matrix_R
+
+#undef destructor_const_Matrix_R
+///\}

@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Undefine macro definitions for c-style templating relating to def_templates_vector_constructors_\*.h.
  */
 
+
+///\{ \name Function names
 #undef constructor_default_Vector_T
 #undef constructor_default_const_Vector_T
 #undef constructor_default_Vector_T_2
@@ -54,3 +56,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef destructor_Vector_T
 #undef destructor_const_Vector_T
+///\}
+
+///\{ \name Function aliases
+#undef constructor_dot_mult_const_Vector_R
+
+#undef destructor_const_Vector_R
+///\}

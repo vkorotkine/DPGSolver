@@ -42,7 +42,7 @@ void scale_Multiarray_T
 /// \brief Normalize the primary extents of a \ref Multiarray_T\*, optionally storing the value of the norms.
 void normalize_Multiarray_T
 	(struct Multiarray_T* a,      ///< Multiarray to be normalized.
-	 const char*const norm_type,  ///< Defined for \ref norm_d.
+	 const char*const norm_type,  ///< Defined for \ref norm_T.
 	 const bool store_norms,      ///< Flag for whether norm values should be stored.
 	 struct Multiarray_T* a_norms ///< Multiarray in which to store the norms if enabled.
 	);

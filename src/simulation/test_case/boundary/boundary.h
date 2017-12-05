@@ -19,94 +19,16 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides containers and functions relating to boundary conditions of the supported PDEs.
  */
 
-#include <stdbool.h>
-
-struct Boundary_Value_Input;
-struct Boundary_Value;
-struct Solver_Face;
-struct Simulation;
-
-/** \brief Function pointer to functions constructing the face-specific members \ref Boundary_Value_Input.
- *  \return Standard.
- *
- *  \param bv_i   \ref Boundary_Value_Input.
- *  \param s_face \ref Solver_Face.
- *  \param sim    \ref Simulation.
- */
-typedef void (*constructor_Boundary_Value_Input_face_fptr)
-	(struct Boundary_Value_Input* bv_i,
-	 const struct Solver_Face* s_face,
-	 const struct Simulation* sim
-	);
-
-/** \brief Function pointer to functions constructing the members \ref Boundary_Value either from the right volume or by
- *         calling a boundary condition function.
- *  \return Standard.
- *
- *  \param bv     \ref Boundary_Value.
- *  \param bv_i   \ref Boundary_Value_Input.
- *  \param s_face \ref Solver_Face.
- *  \param sim    \ref Simulation.
- */
-typedef void (*constructor_Boundary_Value_fptr)
-	(struct Boundary_Value* bv,
-	 const struct Boundary_Value_Input* bv_i,
-	 const struct Solver_Face* s_face,
-	 const struct Simulation* sim
-	);
-
-/// \brief Container holding data used for computing the boundary condition values and their Jacobians.
-struct Boundary_Value_Input {
-	const char* input_path;     ///< Pointer to \ref Simulation::input_path.
-	const bool* compute_member; ///< Flags for which of the \ref Boundary_Value members should be computed.
-
-	const int n_eq,  ///< \ref Test_Case::n_eq.
-	          n_var; ///< \ref Test_Case::n_var.
-
-	const struct const_Multiarray_d* normals; ///< The unit normal vector components.
-	const struct const_Multiarray_d* xyz;     ///< The xyz coordinates.
-
-	const struct const_Multiarray_d* s; ///< The solution variables.
-	const struct const_Multiarray_d* g; ///< The solution gradient variables.
-};
-
-/// \brief Container storing the boundary condition values and their Jacobians.
-struct Boundary_Value {
-	const struct const_Multiarray_d* s; ///< The solution variables values on the boundary.
-	const struct const_Multiarray_d* g; ///< The solution gradient variables values on the boundary.
-
-	const struct const_Multiarray_d* ds_ds; ///< The Jacobian of the boundary solution wrt the solution.
-};
-
-// Interface functions ********************************************************************************************** //
-
-/** \brief Version of \ref constructor_Boundary_Value_Input_face_fptr constructing only the solution using members from
- *         the face and interpolated from the left volume at the face cubature nodes as seen from the left volume.
- *  \return See brief. */
-void constructor_Boundary_Value_Input_face_s_fcl_interp
-	(struct Boundary_Value_Input* bv_i, ///< Defined for \ref constructor_Boundary_Value_Input_face_fptr.
-	 const struct Solver_Face* face,    ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Simulation* sim       ///< Defined for \ref constructor_Boundary_Value_Input_face_fptr.
-	);
-
-/// \brief Destructor for a \ref Boundary_Value_Input container.
-void destructor_Boundary_Value_Input
-	(struct Boundary_Value_Input* bv_i ///< Standard.
-	);
-
-/** \brief Version of \ref constructor_Boundary_Value_fptr interpolated from the right volume at the face cubature nodes
- *         as seen from the left volume.
- *  \return See brief. */
-void constructor_Boundary_Value_s_fcl_interp
-	(struct Boundary_Value* bv,               ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Boundary_Value_Input* bv_i, ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Solver_Face* face,          ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Simulation* sim             ///< Defined for \ref constructor_Boundary_Value_fptr.
-	);
-
-/// \brief Destructor for a \ref Boundary_Value container.
-void destructor_Boundary_Value
-	(struct Boundary_Value* bv ///< Standard.
-	);
+#include "def_templates_type_d.h"
+#include "def_templates_multiarray_d.h"
+#include "def_templates_boundary_d.h"
+#include "def_templates_operators_d.h"
+#include "def_templates_face_solver.h"
+#include "boundary_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_operators.h"
+#include "undef_templates_face_solver.h"
 
 #endif // DPG__boundary_h__INCLUDED

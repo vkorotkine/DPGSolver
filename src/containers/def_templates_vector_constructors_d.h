@@ -57,3 +57,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Vector_T       destructor_Vector_d
 #define destructor_const_Vector_T destructor_const_Vector_d
 ///\}
+
+///\{ \name Function aliases
+#define constructor_dot_mult_const_Vector_R           constructor_dot_mult_const_Vector_d
+
+#define destructor_const_Vector_R destructor_const_Vector_d
+///\}

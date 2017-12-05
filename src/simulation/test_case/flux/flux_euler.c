@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include "flux.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //

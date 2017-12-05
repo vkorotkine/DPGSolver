@@ -66,3 +66,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Matrix_T       destructor_Matrix_d
 #define destructor_const_Matrix_T destructor_const_Matrix_d
 ///\}
+
+///\{ \name Function aliases
+#define constructor_inverse_const_Matrix_R        constructor_inverse_const_Matrix_d
+#define constructor_mm_const_Matrix_R             constructor_mm_const_Matrix_d
+#define constructor_mm_diag_const_Matrix_R        constructor_mm_diag_const_Matrix_d
+
+#define destructor_const_Matrix_R destructor_const_Matrix_d
+///\}

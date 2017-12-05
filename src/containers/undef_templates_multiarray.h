@@ -56,3 +56,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef interpret_const_Multiarray_as_Vector_T
 #undef interpret_const_Multiarray_as_Vector_R
 #undef interpret_Multiarray_as_Matrix_T
+
+
+#undef get_col_const_Multiarray_R

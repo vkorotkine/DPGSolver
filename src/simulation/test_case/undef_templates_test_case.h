@@ -12,20 +12,23 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the real boundary functions.
+ *  \brief Undefine macro definitions for c-style templated containers/functions relating to \ref Test_Cast_T.
  */
 
 ///\{ \name Data types
-#define Boundary_Value_T Boundary_Value
-#define Boundary_Value_Input_T Boundary_Value_Input
-#define Boundary_Value_Input_R Boundary_Value_Input
+#undef Test_Case_T
 ///\}
 
 ///\{ \name Function names
-#define constructor_Boundary_Value_T_advection_inflow constructor_Boundary_Value_advection_inflow
-#define constructor_Boundary_Value_T_advection_outflow constructor_Boundary_Value_advection_outflow
+#undef set_string_associations_T
+#undef set_pde_related_T
+#undef set_function_pointers_T
+#undef read_test_case_parameters_T
+#undef set_string_associations_test_case_T
+#undef correct_invalid_test_case_parameters_T
 
-#define constructor_Boundary_Value_T_euler_riemann constructor_Boundary_Value_euler_riemann
-#define constructor_Boundary_Value_T_euler_slipwall constructor_Boundary_Value_euler_slipwall
+#undef constructor_Test_Case_T
+#undef destructor_Test_Case_T
 ///\}

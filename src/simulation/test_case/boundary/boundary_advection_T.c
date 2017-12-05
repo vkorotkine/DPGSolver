@@ -21,14 +21,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_mesh.h"
 
-#include "boundary.h"
-
-#include "simulation.h"
-#include "test_case.h"
-
 // Static function declarations ************************************************************************************* //
 
-#include "boundary_T.c"
+#include "boundary_pde_T.c"
 
 // Interface functions ********************************************************************************************** //
 

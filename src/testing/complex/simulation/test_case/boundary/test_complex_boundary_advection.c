@@ -19,6 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "complex_multiarray.h"
 #include "multiarray.h"
 
+#include "flux.h"
+#include "simulation.h"
+#include "test_case.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //

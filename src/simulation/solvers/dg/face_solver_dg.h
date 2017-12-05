@@ -16,32 +16,19 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__face_solver_dg_h__INCLUDED
 #define DPG__face_solver_dg_h__INCLUDED
 /** \file
- *  \brief Provides the interface for the \ref DG_Solver_Face container and associated functions.
+ *  \brief Provides the interface for the real \ref DG_Solver_Face container and associated functions.
  *
  *  These faces are needed by the 'D'iscontinuous 'G'alerkin solver functions.
  */
 
 #include "face_solver.h"
 
-/// \brief Container for data relating to the DG solver faces.
-struct DG_Solver_Face {
-	struct Solver_Face face; ///< The base \ref Solver_Face.
-
-	// Members required for 2nd order PDE terms.
-
-	/// The face contributions to the solution gradient coefficients in each of the neighbouring volumes.
-	struct Multiarray_d* grad_coef_f[2];
-};
-
-/// \brief Constructor for a derived \ref DG_Solver_Face.
-void constructor_derived_DG_Solver_Face
-	(struct Face* face_ptr,       ///< Pointer to the face.
-	 const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/// \brief Destructor for a derived \ref DG_Solver_Face.
-void destructor_derived_DG_Solver_Face
-	(struct Face* face_ptr ///< Pointer to the face.
-	);
+#include "def_templates_type_d.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_face_solver_dg.h"
+#include "face_solver_dg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_dg.h"
 
 #endif // DPG__face_solver_dg_h__INCLUDED

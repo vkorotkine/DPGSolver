@@ -17,9 +17,6 @@ set	(SOURCE
 set	(LIBS_DEPEND
 	 ${PETSC_LIBRARIES}
 	 Complex_Containers
-#	 Computational_Elements
-#	 Numerical_Flux
-#	 Solution
 	 Solver_DG
 	 Solver_DPG
 	)

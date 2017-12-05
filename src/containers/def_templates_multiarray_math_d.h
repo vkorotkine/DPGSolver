@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *         functions.
  */
 
+#if TYPE_RC == TYPE_REAL
+
 ///\{ \name Function names
 #define reinterpret_Multiarray_as_Matrix_T reinterpret_Multiarray_as_Matrix_d
 #define reinterpret_Matrix_as_Multiarray_T reinterpret_Matrix_as_Multiarray_d
@@ -35,3 +37,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define reinterpret_const_Matrix_as_Multiarray_T reinterpret_const_Matrix_as_Multiarray_d
 #define compute_extents_mm_MMa                   compute_extents_mm_MMa
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+#endif
+
+#define transpose_Multiarray_R transpose_Multiarray_d

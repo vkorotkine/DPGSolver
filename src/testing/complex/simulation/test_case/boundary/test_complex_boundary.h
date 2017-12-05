@@ -19,6 +19,18 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of containers and functions defined in \ref boundary.h.
  */
 
+#if 0
+#include "def_templates_type_dc.h"
+#include "def_templates_multiarray_c.h"
+#include "def_templates_boundary_c.h"
+#include "def_templates_operators_c.h"
+#include "boundary_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_operators.h"
+
+#else
 #include <stdbool.h>
 #include "boundary.h"
 #include "complex_boundary.h"
@@ -89,5 +101,6 @@ void constructor_Boundary_Value_c_s_fcl_interp
 void destructor_Boundary_Value_c
 	(struct Boundary_Value_c* bv ///< Standard.
 	);
+#endif
 
 #endif // DPG__test_complex_boundary_h__INCLUDED

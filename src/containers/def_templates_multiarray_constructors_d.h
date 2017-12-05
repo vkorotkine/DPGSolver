@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *         functions.
  */
 
+#if TYPE_RC == TYPE_REAL
+
 ///\{ \name Function names
 #define constructor_default_Multiarray_T              constructor_default_Multiarray_d
 #define constructor_default_const_Multiarray_T        constructor_default_const_Multiarray_d
@@ -71,3 +73,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_const_Multiarray_Matrix_T  destructor_const_Multiarray_Matrix_d
 #define destructor_const_Multiarray2_Matrix_T destructor_const_Multiarray2_Matrix_d
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+#endif
+
+
+#define constructor_empty_Multiarray_R constructor_empty_Multiarray_d
+#define destructor_const_Multiarray_R  destructor_const_Multiarray_d

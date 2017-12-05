@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray_math_d.h"
 #include "def_templates_multiarray_print_d.h"
 
+#if TYPE_RC == TYPE_REAL
+
 ///\{ \name Data types
 #define Multiarray_T       Multiarray_d
 #define Multiarray_R       Multiarray_d
@@ -59,3 +61,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define interpret_const_Multiarray_as_Vector_R interpret_const_Multiarray_as_Vector_d
 #define interpret_Multiarray_as_Matrix_T       interpret_Multiarray_as_Matrix_d
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+#endif
+
+#define get_col_const_Multiarray_R    get_col_const_Multiarray_d

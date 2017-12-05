@@ -16,27 +16,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__face_solver_dpg_h__INCLUDED
 #define DPG__face_solver_dpg_h__INCLUDED
 /** \file
- *  \brief Provides the interface for the \ref DPG_Solver_Face container and associated functions.
- *
- *  These faces are needed by the 'D'iscontinuous 'P'etrov 'G'alerkin solver functions.
+ *  \brief Provides the interface for the real \ref DPG_Solver_Face container and associated functions.
  */
 
 #include "face_solver.h"
 
-/// \brief Container for data relating to the DPG solver faces.
-struct DPG_Solver_Face {
-	struct Solver_Face face; ///< The base \ref Solver_Face.
-};
+#include "def_templates_type_d.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_face_solver_dpg.h"
+#include "face_solver_dpg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_dpg.h"
 
-/// \brief Constructor for a derived \ref DPG_Solver_Face.
-void constructor_derived_DPG_Solver_Face
-	(struct Face* face_ptr,       ///< Pointer to the face.
-	 const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/// \brief Destructor for a derived \ref DPG_Solver_Face.
-void destructor_derived_DPG_Solver_Face
-	(struct Face* face_ptr ///< Pointer to the face.
-	);
 
 #endif // DPG__face_solver_dpg_h__INCLUDED

@@ -24,19 +24,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 #include "definitions_test_case.h"
 
-#include "boundary.h"
-
-#include "simulation.h"
-#if TYPE_RC == TYPE_REAL
-	#include "solution_euler.h"
-#elif TYPE_RC == TYPE_COMPLEX
-	#include "test_complex_solution_euler.h"
-#endif
-#include "test_case.h"
-
 // Static function declarations ************************************************************************************* //
 
-#include "boundary_T.c"
+#include "boundary_pde_T.c"
 
 #define NEQ  NEQ_EULER  ///< Number of equations.
 #define NVAR NVAR_EULER ///< Number of variables.

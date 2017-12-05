@@ -36,6 +36,19 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "operator.h"
 #include "simulation.h"
 
+// Templated functions ********************************************************************************************** //
+#if 0
+#include "def_templates_type_dc.h"
+#include "def_templates_multiarray_c.h"
+#include "def_templates_boundary_c.h"
+#include "def_templates_operators_c.h"
+#include "boundary_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_operators.h"
+
+#else
 // Static function declarations ************************************************************************************* //
 
 /** \brief `complex` version of \ref constructor_s_fc_interp for the dg scheme.
@@ -153,3 +166,4 @@ static const struct const_Multiarray_c* constructor_s_fc_interp_c_dpg
 
 	return constructor_mm_NN1_Operator_const_Multiarray_c(cv0_vs_fc,s_coef,'C','d',s_coef->order,NULL);
 }
+#endif

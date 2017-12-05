@@ -24,3 +24,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef mm_NNC_Operator_Multiarray_T
 #undef mm_NN1C_Operator_Multiarray_T
 #undef mm_NN1_Operator_Multiarray_T
+
+
+#undef constructor_mm_NN1_Operator_Multiarray_R
+#undef constructor_mm_NN1_Operator_const_Multiarray_R
+
+#undef mm_NN1C_Operator_Multiarray_R
