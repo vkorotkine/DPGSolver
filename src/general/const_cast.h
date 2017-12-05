@@ -21,56 +21,34 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \note These functions should only be used for dynamically allocated `const` variables.
  */
 
-#include <stddef.h>
-#include <stdbool.h>
+#include "def_templates_type_c.h"
+#include "def_templates_const_cast_c.h"
+#include "const_cast_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_const_cast.h"
 
-/// \brief `char` version of \ref const_cast_T.
-void const_cast_c
-	(const char* dest, ///< See brief.
-	 const char src    ///< See brief.
-	);
+#include "def_templates_type_i.h"
+#include "def_templates_const_cast_i.h"
+#include "const_cast_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_const_cast.h"
 
-/// \brief `char` version of \ref const_cast_T1.
-void const_cast_c1
-	(const char*const* dest, ///< See brief.
-	 const char*const  src   ///< See brief.
-	);
+#include "def_templates_type_d.h"
+#include "def_templates_const_cast_d.h"
+#include "const_cast_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_const_cast.h"
 
-/// \brief `int` version of \ref const_cast_T.
-void const_cast_i
-	(const int* dest, ///< See brief.
-	 const int src    ///< See brief.
-	);
+#include "def_templates_type_p.h"
+#include "def_templates_const_cast_p.h"
+#include "const_cast_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_const_cast.h"
 
-/// \brief `int` version of \ref const_cast_T_n.
-void const_cast_i_n
-	(const int* dest, ///< See brief.
-	 const int* src,  ///< See brief.
-	 const int n_src  ///< See brief.
-	);
-
-/// \brief `double` version of \ref const_cast_T.
-void const_cast_d
-	(const double* dest, ///< See brief.
-	 const double src    ///< See brief.
-	);
-
-/// \brief `double` version of \ref const_cast_T1.
-void const_cast_d1
-	(const double*const* dest, ///< See brief.
-	 const double*const  src   ///< See brief.
-	);
-
-/// \brief `ptrdiff_t` version of \ref const_cast_T.
-void const_cast_ptrdiff
-	(const ptrdiff_t* dest, ///< See brief.
-	 const ptrdiff_t src    ///< See brief.
-	);
-
-/// \brief `bool` version of \ref const_cast_T.
-void const_cast_b
-	(const bool* dest, ///< See brief.
-	 const bool src    ///< See brief.
-	);
+#include "def_templates_type_b.h"
+#include "def_templates_const_cast_b.h"
+#include "const_cast_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_const_cast.h"
 
 #endif // DPG__const_cast_h__INCLUDED

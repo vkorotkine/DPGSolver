@@ -34,7 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Constructor for a \ref const_Vector_i holding the face correspondence indices for the input permutation
+/** \brief Constructor for a \ref const_Vector_T holding the face correspondence indices for the input permutation
  *         index.
  *  \return See brief. */
 static const struct const_Vector_i* constructor_face_corr
@@ -137,7 +137,7 @@ static const struct const_Vector_i* constructor_face_corr
 		break;
 	case 2:
 		if (e_type == QUAD) {
-			int sqrtNn = (int)sqrt(Nn);
+			int sqrtNn = (int)sqrt((double)Nn);
 
 			switch(ind_perm) {
 			case 0: case 1: case 2: case 3:

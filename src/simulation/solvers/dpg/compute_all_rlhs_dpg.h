@@ -53,7 +53,7 @@ ptrdiff_t compute_n_dof_nf
 	(const struct Solver_Volume* s_vol ///< The current volume.
 	);
 
-/** \brief Constructor for the \ref Vector_i\* of indices of the global matrix in which to insert values for the current
+/** \brief Constructor for the \ref Vector_T\* of indices of the global matrix in which to insert values for the current
  *         \ref Solver_Volume.
  *  \return See brief. */
 const struct const_Vector_i* constructor_petsc_idxm_dpg

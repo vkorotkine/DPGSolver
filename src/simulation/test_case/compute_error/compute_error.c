@@ -239,7 +239,7 @@ static double compute_volume
 	(const struct Solver_Volume* s_vol ///< \ref Solver_Volume.
 	);
 
-/** \brief Constructor for a \ref const_Vector_d\* holding the cubature weights multiplied by the Jacobian determinants.
+/** \brief Constructor for a \ref const_Vector_T\* holding the cubature weights multiplied by the Jacobian determinants.
  *  \return See brief. */
 static const struct const_Vector_d* constructor_w_detJ
 	(const struct Solver_Volume* s_vol ///< \ref Solver_Volume.
@@ -293,7 +293,7 @@ static void output_errors_sp (const char sp_type, const struct Error_CE* error_c
 		fprintf(sp_file,"\n\n");
 
 		fprintf(sp_file,"%-14s%s\n","h",error_ce->header_spec);
-		fprintf(sp_file,"%-14.4e",1.0/pow(error_ce->dof,1.0/DIM));
+		fprintf(sp_file,"%-14.4e",1.0/pow((double)error_ce->dof,1.0/DIM));
 	} else if (sp_type == 's') {
 		fprintf(sp_file,"%-10s%-14s%s\n","dof","vol",error_ce->header_spec);
 		fprintf(sp_file,"%-10td%-14.4e",error_ce->dof,error_ce->domain_volume);

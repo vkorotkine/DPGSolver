@@ -73,7 +73,7 @@ static bool check_exit
 	 const double max_rhs               ///< The current maximum value of the rhs term.
 	);
 
-/** \brief Constructor for a \ref Vector_i\* holding the 'n'umber of 'n'on-'z'ero entries in each row of the global
+/** \brief Constructor for a \ref Vector_T\* holding the 'n'umber of 'n'on-'z'ero entries in each row of the global
  *         system matrix.
  *  \return See brief. */
 static struct Vector_i* constructor_nnz
@@ -140,7 +140,7 @@ void increment_nnz (struct Vector_i* nnz, const ptrdiff_t ind_dof, const ptrdiff
 	assert(i_max <= nnz->ext_0);
 
 	for (ptrdiff_t i = ind_dof; i < i_max; ++i)
-		nnz->data[i] += n_col;
+		nnz->data[i] += (int)n_col;
 }
 
 bool check_symmetric (const struct Simulation* sim)

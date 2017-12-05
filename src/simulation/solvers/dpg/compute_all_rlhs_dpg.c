@@ -322,7 +322,7 @@ static void set_idxm (int* ind_idxm, struct Vector_i* idxm, const int ind_dof, c
 
 // Level 1 ********************************************************************************************************** //
 
-/** \brief Constructor for the rhs \ref Vector_d with volume contributions from 1st order equations included.
+/** \brief Constructor for the rhs \ref Vector_T with volume contributions from 1st order equations included.
  *  \return See brief. */
 static struct Vector_d* constructor_rhs_v_1
 	(const struct Flux_Ref* flux_r,     ///< Defined for \ref compute_rlhs_fptr.

@@ -21,9 +21,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
-#include "numerical_flux.h"
-#include "solution_advection.h"
-
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //

@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templated relating to templates_vector_math_\*.h.
+ *  \brief Undefine macro definitions for c-style templating relating to def_templates_vector_math_\*.h.
  */
 
 #undef invert_Vector_R

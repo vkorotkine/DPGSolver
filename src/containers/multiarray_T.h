@@ -129,7 +129,7 @@ void set_Multiarray_T
 	 const struct const_Multiarray_T* a_i ///< Input multiarray.
 	);
 
-/// \brief Set the data of the \ref Multiarray_T\* container from that of the \ref Multiarray_R\* container.
+/// \brief Set the data of the \ref Multiarray_T\* container from that of the \ref Multiarray_T\* container.
 void set_Multiarray_T_Multiarray_R
 	(struct Multiarray_T* a,            ///< Multiarray with data to be set.
 	 const struct const_Multiarray_R* b ///< Multiarray from which to take data.

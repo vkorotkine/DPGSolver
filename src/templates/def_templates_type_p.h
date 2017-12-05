@@ -16,4 +16,6 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the `ptrdiff_t` data type.
  */
 
+#include <stddef.h>
+
 #define Type ptrdiff_t ///< Type parameter.

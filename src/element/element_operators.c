@@ -393,11 +393,11 @@ static int get_n_op
 	 const int d        ///< The dimension of the element for which operators are being constructed.
 	);
 
-/** \brief Constructor for a \ref Multiarray_Matrix_d\* of order 1 with `owns_data = false` to hold locally computed
+/** \brief Constructor for a \ref Multiarray_Matrix_T\* of order 1 with `owns_data = false` to hold locally computed
  *         operators.
  *  \return See brief. */
 static const struct const_Multiarray_Matrix_d* constructor_op_MMd
-	(const bool owns_data, ///< Defined in \ref Multiarray_Matrix_d.
+	(const bool owns_data, ///< Defined in \ref Multiarray_Matrix_T.
 	 const ptrdiff_t ext_0 ///< The size of the single extent.
 	);
 

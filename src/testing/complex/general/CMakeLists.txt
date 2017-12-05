@@ -1,5 +1,6 @@
 set	(SOURCE
 	 test_complex_const_cast.c
+	 test_complex_math_functions.c
 	)
 
 set	(LIBS_DEPEND

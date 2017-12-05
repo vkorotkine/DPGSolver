@@ -781,11 +781,11 @@ static void plotting_element_info
 		for (layer = P; layer; layer--) {
 			lBs = 0;
 			for (i = P; i > layer; i--)
-				lBs += pow(i+1,2);
+				lBs += (int)pow(i+1,2);
 
 			lTs = 0;
 			for (i = P; i > (layer-1); i--)
-				lTs += pow(i+1,2);
+				lTs += (int)pow(i+1,2);
 
 			// Regular PYRs
 			for (j = 0; j < layer; j++) {

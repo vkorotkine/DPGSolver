@@ -63,7 +63,7 @@ static const struct Operator* get_operator__cv0_vg_vc
 	(const struct Solver_Volume* s_vol ///< The current volume.
 	);
 
-/** \brief Contructor for a \ref const_Multiarray_d\* holding the xyz coordinates at volume nodes of input kind.
+/** \brief Contructor for a \ref const_Multiarray_T\* holding the xyz coordinates at volume nodes of input kind.
  *  \return See brief. */
 static const struct const_Multiarray_d* constructor_xyz_v
 	(const struct Simulation* sim, ///< \ref Simulation.
@@ -71,7 +71,7 @@ static const struct const_Multiarray_d* constructor_xyz_v
 	 const char node_kind          ///< The kind of node. Options: 's'olution, 'c'ubature.
 	);
 
-/** \brief Contructor for a \ref const_Multiarray_d\* holding the xyz coordinates at face nodes of input kind.
+/** \brief Contructor for a \ref const_Multiarray_T\* holding the xyz coordinates at face nodes of input kind.
  *  \return See brief. */
 static const struct const_Multiarray_d* constructor_xyz_f
 	(const struct Simulation* sim, ///< \ref Simulation.

@@ -99,18 +99,18 @@ Type sum_Vector_T (const struct Vector_T* a)
 	return sum;
 }
 
-ptrdiff_t prod_Vector_T (const struct Vector_T* a)
+Type prod_Vector_T (const struct Vector_T* a)
 {
 	const ptrdiff_t i_max = a->ext_0;
 
-	ptrdiff_t prod = 1;
+	Type prod = 1;
 	for (ptrdiff_t i = 0; i < i_max; ++i)
 		prod *= a->data[i];
 
 	return prod;
 }
 
-ptrdiff_t prod_const_Vector_T (const struct const_Vector_T* a)
+Type prod_const_Vector_T (const struct const_Vector_T* a)
 {
 	return prod_Vector_T ((const struct Vector_T*)a);
 }

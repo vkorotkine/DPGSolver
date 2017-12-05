@@ -97,8 +97,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Computes the `size`, which is the product of the `extents`.
  *  \return See brief. */
 ptrdiff_t compute_size
-	(const int order,              ///< \ref Multiarray_d::order.
-	 const ptrdiff_t*const extents ///< \ref Multiarray_d::extents.
+	(const int order,              ///< \ref Multiarray_T::order.
+	 const ptrdiff_t*const extents ///< \ref Multiarray_T::extents.
 	);
 
 /** \brief Check that the orders and extents are equal.
@@ -114,8 +114,8 @@ bool check_equal_order_extents
  *  \deprecated Replace with \ref compute_index_sub_container.
  *  \return See brief. */
 ptrdiff_t compute_index_sub_vector
-	(const int order,                  ///< Defined in \ref Multiarray_d.
-	 const ptrdiff_t*const extents,    ///< Defined in \ref Multiarray_d.
+	(const int order,                  ///< Defined in \ref Multiarray_T.
+	 const ptrdiff_t*const extents,    ///< Defined in \ref Multiarray_T.
 	 const ptrdiff_t*const sub_indices ///< The sub indices for the entries of order > 1.
 	);
 
@@ -123,8 +123,8 @@ ptrdiff_t compute_index_sub_vector
  *  \deprecated Replace with \ref compute_index_sub_container.
  *  \return See brief. */
 ptrdiff_t compute_index_sub_matrix
-	(const int order,                  ///< Defined in \ref Multiarray_d.
-	 const ptrdiff_t*const extents,    ///< Defined in \ref Multiarray_d.
+	(const int order,                  ///< Defined in \ref Multiarray_T.
+	 const ptrdiff_t*const extents,    ///< Defined in \ref Multiarray_T.
 	 const ptrdiff_t*const sub_indices ///< The sub indices for the entries of order > 2.
 	);
 

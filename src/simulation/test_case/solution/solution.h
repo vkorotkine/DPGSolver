@@ -26,7 +26,7 @@ struct Solver_Face;
 struct Solution_Container;
 
 /** \brief Function pointer to a function which constructs the solution given the input xyz coordinates.
- *  \return A \ref const_Multiarray_d\* container holding the solution.
+ *  \return A \ref const_Multiarray_T\* container holding the solution.
  *
  *  \param xyz Input xyz coordinates.
  *  \param sim \ref Simulation.
@@ -104,7 +104,7 @@ void set_sg_do_nothing
 	 struct Solution_Container sol_cont ///< Defined for \ref set_sol_fptr.
 	);
 
-/** \brief Contructor for a \ref const_Multiarray_d\* holding the xyz coordinates associated with the
+/** \brief Contructor for a \ref const_Multiarray_T\* holding the xyz coordinates associated with the
  *         \ref Solution_Container.
  *  \return See brief. */
 const struct const_Multiarray_d* constructor_xyz_sol
@@ -119,7 +119,7 @@ void compute_coef_from_val_vs
 	 struct Multiarray_d* sol_coef             ///< To hold the solution coefficients.
 	);
 
-/** \brief Contructor for a \ref Multiarray_d\* holding the solution at volume nodes of input kind.
+/** \brief Contructor for a \ref Multiarray_T\* holding the solution at volume nodes of input kind.
  *  \return See brief. */
 struct Multiarray_d* constructor_sol_v
 	(const struct Simulation* sim, ///< \ref Simulation.

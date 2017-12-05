@@ -81,12 +81,7 @@ void normalize_Multiarray_T
 		Type* norm_data = a_norms->data;
 		for (ptrdiff_t i = 0; i < n_vals; ++i) {
 			Type* a_row = get_row_Multiarray_T(i,a);
-/// \todo delete after templating math_functions.c
-#if TYPE_RC == TYPE_REAL
-			norm_data[i] = norm_d(n_entries,a_row,norm_type);
-#elif TYPE_RC == TYPE_COMPLEX
-			norm_data[i] = norm_c(n_entries,a_row,norm_type);
-#endif
+			norm_data[i] = norm_T(n_entries,a_row,norm_type);
 			for (ptrdiff_t j = 0; j < n_entries; ++j)
 				a_row[j] /= norm_data[i];
 		}
@@ -94,11 +89,7 @@ void normalize_Multiarray_T
 		Type norm_data = 0.0;
 		for (ptrdiff_t i = 0; i < n_vals; ++i) {
 			Type* a_row = get_row_Multiarray_T(i,a);
-#if TYPE_RC == TYPE_REAL
-			norm_data = norm_d(n_entries,a_row,norm_type);
-#elif TYPE_RC == TYPE_COMPLEX
-			norm_data = norm_c(n_entries,a_row,norm_type);
-#endif
+			norm_data = norm_T(n_entries,a_row,norm_type);
 			for (ptrdiff_t j = 0; j < n_entries; ++j)
 				a_row[j] /= norm_data;
 		}

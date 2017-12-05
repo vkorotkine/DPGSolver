@@ -411,7 +411,7 @@ static int check_face_for_periodicity
 	(const struct const_Matrix_d*const xyz_ve[2] ///< Defined in \ref set_ind_ord.
 	);
 
-/** \brief Constructor for a \ref Vector_i\* holding the indices of the matches between the input xyz coordinate
+/** \brief Constructor for a \ref Vector_T\* holding the indices of the matches between the input xyz coordinate
  *         matrices.
  *  \return Standard.
  *
@@ -474,7 +474,7 @@ static int check_face_for_periodicity (const struct const_Matrix_d*const xyz_ve[
 	for (int i = 0; i < 2; ++i) {
 		centroid[i] = constructor_sum_Vector_d_const_Matrix_d('C',xyz_ve[i]); // destructed
 		for (int dim = 0; dim < d; ++dim)
-			centroid[i]->data[dim] /= n_ve;
+			centroid[i]->data[dim] /= (double)n_ve;
 	}
 
 	int bc = 0;

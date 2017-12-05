@@ -75,7 +75,7 @@ struct Matrix_T* constructor_copy_Matrix_T_T
 	 const Type*const data_src ///< The source data.
 	);
 
-/** \brief Copy constructor for a \ref Matrix_T\* from a \ref Matrix_R\*.
+/** \brief Copy constructor for a \ref Matrix_T\* from a \ref Matrix_T\*.
  *  \return See brief. */
 struct Matrix_T* constructor_copy_Matrix_T_Matrix_R
 	(struct Matrix_R* src ///< The source matrix.
@@ -253,11 +253,11 @@ const struct const_Matrix_T* constructor_sysv_const_Matrix_T
 /** \brief Constructor for a \ref Matrix_T\* from a matrix-matrix multiplication.
  *  \return Standard. */
 struct Matrix_T* constructor_mm_Matrix_T
-	(const char trans_a_i,                ///< Defined for \ref mm_d.
-	 const char trans_b_i,                ///< Defined for \ref mm_d.
-	 const Real alpha,                  ///< Defined for \ref mm_d.
-	 const struct const_Matrix_T*const a, ///< Defined for \ref mm_d.
-	 const struct const_Matrix_T*const b, ///< Defined for \ref mm_d.
+	(const char trans_a_i,                ///< Defined for \ref mm_T.
+	 const char trans_b_i,                ///< Defined for \ref mm_T.
+	 const Real alpha,                  ///< Defined for \ref mm_T.
+	 const struct const_Matrix_T*const a, ///< Defined for \ref mm_T.
+	 const struct const_Matrix_T*const b, ///< Defined for \ref mm_T.
 	 const char layout                    ///< The `layout` of the constructed \ref Matrix_T.
 	);
 
@@ -282,8 +282,8 @@ const struct const_Matrix_T* constructor_mm_const_Matrix_T
  *
  *  \return Standard. */
 struct Matrix_T* constructor_mm_NN1R_Matrix_T
-	(const struct const_Matrix_T*const a, ///< Defined for \ref mm_d.
-	 const struct const_Matrix_T*const b  ///< Defined for \ref mm_d.
+	(const struct const_Matrix_T*const a, ///< Defined for \ref mm_T.
+	 const struct const_Matrix_T*const b  ///< Defined for \ref mm_T.
 	);
 
 /** \brief `const` version of \ref constructor_mm_NN1R_Matrix_T.
@@ -303,8 +303,8 @@ const struct const_Matrix_T* constructor_mm_NN1R_const_Matrix_T
  *
  *  \return Standard. */
 struct Matrix_T* constructor_mm_NN1C_Matrix_T
-	(const struct const_Matrix_T*const a, ///< Defined for \ref mm_d.
-	 const struct const_Matrix_T*const b  ///< Defined for \ref mm_d.
+	(const struct const_Matrix_T*const a, ///< Defined for \ref mm_T.
+	 const struct const_Matrix_T*const b  ///< Defined for \ref mm_T.
 	);
 
 /** \brief `const` version of \ref constructor_mm_NN1C_Matrix_T.
@@ -314,13 +314,13 @@ const struct const_Matrix_T* constructor_mm_NN1C_const_Matrix_T
 	 const struct const_Matrix_T*const b  ///< Defined for \ref constructor_mm_NN1C_Matrix_T.
 	);
 
-/** \brief Constructor for a \ref Matrix_T\* from a matrix-diagonal matrix multiplication taking a \ref Vector_R input.
+/** \brief Constructor for a \ref Matrix_T\* from a matrix-diagonal matrix multiplication taking a \ref Vector_T input.
  *  \return Standard.
  *
  *  The diagonal matrix is input as a vector and may be applied either from the left or the right.
  */
 struct Matrix_T* constructor_mm_diag_Matrix_T_R
-	(const Real alpha,                  ///< Defined for \ref mm_d.
+	(const Real alpha,                  ///< Defined for \ref mm_T.
 	 const struct const_Matrix_T*const a, ///< Input matrix to be multiplied by the diagonal.
 	 const struct const_Vector_R*const b, ///< Vector storing the entries of the diagonal matrix.
 	 const char side,                     ///< The side from which to apply the diagonal matrix.

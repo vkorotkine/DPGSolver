@@ -15,6 +15,8 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 Containers
+	 Test_Complex_General
+	 Test_Complex_Operators
 	)
 
 set (LIB Test_Complex_Containers)

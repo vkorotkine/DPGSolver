@@ -198,7 +198,7 @@ void const_constructor_copy_Multiarray_T
 	 const struct const_Multiarray_T*const src    ///< Source.
 	);
 #if TYPE_RC == TYPE_COMPLEX
-/** \brief Copy constructor for a \ref Multiarray_T\* from a \ref Multiarray_R\*.
+/** \brief Copy constructor for a \ref Multiarray_T\* from a \ref Multiarray_T\*.
  *  \return Standard. */
 struct Multiarray_T* constructor_copy_Multiarray_T_Multiarray_R
 	(struct Multiarray_R* src ///< Source.
@@ -317,11 +317,11 @@ void const_constructor_move_Multiarray_Matrix_T
  */
 const struct const_Multiarray_T* constructor_MaM1_V_const_Multiarray_T
 	(const char layout,                              ///< The layout of the output Multiarray.
-	 const char trans_a,                             ///< Defined for \ref mv_d.
-	 const Real alpha,                               ///< Defined for \ref mv_d.
-	 const Real beta,                                ///< Defined for \ref mv_d.
-	 const struct const_Multiarray_Matrix_T*const A, ///< Defined for \ref mv_d.
-	 const struct const_Vector_T* b                  ///< Defined for \ref mv_d.
+	 const char trans_a,                             ///< Defined for \ref mv_T.
+	 const Real alpha,                               ///< Defined for \ref mv_T.
+	 const Real beta,                                ///< Defined for \ref mv_T.
+	 const struct const_Multiarray_Matrix_T*const A, ///< Defined for \ref mv_T.
+	 const struct const_Vector_T* b                  ///< Defined for \ref mv_T.
 	);
 
 /// \brief Set a \ref Multiarray_Matrix_T\* from a sub range of a \ref Multiarray_Matrix_T\*.
@@ -345,10 +345,10 @@ void set_const_Multiarray_Matrix_from_Multiarray_Matrix_T
  *  \return The result of the mm function call with the same number of columns as the reinterpreted input.
  *
  *  The first extent **must** be equal to `ext_1` of the `a` matrix.
- *  See comments in \ref constructor_mm_NN1C_Matrix_T for the preset matrix-matrix multiplication parameters.
+ *  See comments in constructor_mm_NN1C_Matrix_T for the preset matrix-matrix multiplication parameters.
  */
 struct Multiarray_T* constructor_mm_NN1C_Multiarray_T
-	(const struct const_Matrix_R*const a,    ///< Defined for \ref mm_d.
+	(const struct const_Matrix_R*const a,    ///< Defined for \ref mm_T.
 	 const struct const_Multiarray_T*const b ///< Input `b` in multiarray format.
 	);
 
@@ -359,25 +359,10 @@ const struct const_Multiarray_T* constructor_mm_NN1C_const_Multiarray_T
 	 const struct const_Multiarray_T*const b ///< Defined for \ref  constructor_mm_NN1C_Multiarray_T.
 	);
 
-/** \brief Constructor for a \ref const_Multiarray_T\* using a matrix-matrix multiplication, interpreting the input
- *         multiarray as a matrix with the appropriate extents.
- *  \return The result of the mm function call with the same number of columns as the reinterpreted input.
- *
- *  The first extent **must** be equal to `ext_1` of the `a` matrix.
- *  See comments in \ref constructor_mm_NN1C_Matrix_T for the preset matrix-matrix multiplication parameters, excluding
- *  the layout.
- */
-/// \todo Remove if unused.
-/*const struct const_Multiarray_T* constructor_mm_NN1_const_Multiarray_T
-	(const struct const_Matrix_T*const a,     ///< Defined for \ref mm_d.
-	 const struct const_Multiarray_T*const b, ///< Input `b` in multiarray format.
-	 const char layout_c                      ///< The desired layout for the output.
-	);*/
-
 /** \brief Constructor for a \ref const_Multiarray_T\* by applying sub-operator matrices along each direction.
  *  \return Standard.
  *
- *  See comments in \ref constructor_mm_NN1C_Matrix_T for the preset matrix-matrix multiplication parameters.
+ *  See comments in constructor_mm_NN1C_Matrix_T for the preset matrix-matrix multiplication parameters.
  *
  *  The value of `b->extents[0]` must be equal to the product of `ext_1` of the matrices in `a_tp`. If the input `b` has
  *  an order greater than 1, the output of this function can be interpreted as the sub-operators being applied to each

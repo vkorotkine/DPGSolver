@@ -30,7 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "const_cast.h"
-#include "operator.h"
+#include "test_complex_operators.h"
 
 // Templated functions ********************************************************************************************** //
 
@@ -38,11 +38,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_matrix_c.h"
 #include "def_templates_multiarray_c.h"
 #include "def_templates_vector_c.h"
+#include "def_templates_operators_c.h"
 #include "multiarray_constructors_T.c"
 #include "undef_templates_type.h"
 #include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
+#include "undef_templates_operators.h"
 
 // Static function declarations ************************************************************************************* //
 

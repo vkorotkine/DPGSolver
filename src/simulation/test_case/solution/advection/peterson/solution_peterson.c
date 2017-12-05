@@ -35,7 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Return a \ref Multiarray_d\* container holding the solution values at the input coordinates.
+/** \brief Return a \ref Multiarray_T\* container holding the solution values at the input coordinates.
  *  \return See brief. */
 static struct Multiarray_d* constructor_sol_peterson
 	(const struct Simulation* sim,        ///< Defined for \ref set_sol_peterson.

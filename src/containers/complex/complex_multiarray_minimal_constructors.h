@@ -28,11 +28,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Empty constructors *********************************************************************************************** //
 
-/** \brief Constructor for an empty \ref Multiarray_d\*.
+/** \brief Constructor for an empty \ref Multiarray_T\*.
  *  \return Standard. */
 struct Multiarray_c* constructor_empty_Multiarray_c
-	(const char layout,              ///< Defined in \ref Multiarray_d.
-	 const int order,                ///< Defined in \ref Multiarray_d.
+	(const char layout,              ///< Defined in \ref Multiarray_T.
+	 const int order,                ///< Defined in \ref Multiarray_T.
 	 const ptrdiff_t*const extents_i ///< The input extents.
 	);
 

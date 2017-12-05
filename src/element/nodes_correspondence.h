@@ -29,7 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define QUAD_N_PERM  8
 ///\}
 
-/** \brief Constructor for \ref const_Multiarray_Vector_i\* container holding the correspondence between node
+/** \brief Constructor for \ref const_Multiarray_Vector_T\* container holding the correspondence between node
  *         permutations on the same face as seen from the two neighbouring volumes.
  *  \return See brief.
  *

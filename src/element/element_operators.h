@@ -125,7 +125,7 @@ struct Operator_Info {
 
 	const int p_ref[2]; ///< Reference polynomial orders from \ref Simulation.
 
-	/// The extents of the associated \ref Multiarray_Matrix_d\* of operators.
+	/// The extents of the associated \ref Multiarray_Matrix_T\* of operators.
 	const struct const_Vector_i* extents_op;
 
 	const struct const_Matrix_i* values_op; ///< The values of d, f, h, p_in, and p_out for each operator.
@@ -146,7 +146,7 @@ const struct Multiarray_Operator* constructor_operators
 	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 
-/** \brief Constructor for a \ref const_Multiarray_Vector_i\* of 'n'ode 'c'orrespondence vectors.
+/** \brief Constructor for a \ref const_Multiarray_Vector_T\* of 'n'ode 'c'orrespondence vectors.
  *  \return See brief. */
 const struct const_Multiarray_Vector_i* constructor_operators_nc
 	(const int ind_f_elem,                ///< Index of \ref Element::face_element.
@@ -158,7 +158,7 @@ const struct const_Multiarray_Vector_i* constructor_operators_nc
 	 const struct Simulation* sim         ///< Defined for \ref constructor_operators.
 	);
 
-/** \brief Constructor for a \ref const_Multiarray_Vector_d\* of cubature 'w'eight vectors.
+/** \brief Constructor for a \ref const_Multiarray_Vector_T\* of cubature 'w'eight vectors.
  *  \return See brief. */
 const struct const_Multiarray_Vector_d* constructor_operators_w
 	(const char*const name_in,            ///< Defined for \ref constructor_operators.
@@ -203,7 +203,7 @@ bool op_should_use_L2
 	 const struct Op_IO* op_io  ///< \ref Op_IO.
 	);
 
-/** \brief Constructor for a \ref Vector_i\* of indices for the current operator.
+/** \brief Constructor for a \ref Vector_T\* of indices for the current operator.
  *  \return See brief. */
 const struct const_Vector_i* constructor_indices_Vector_i
 	(const int ext_0_expected,     ///< The expected value of ext_0. May be set to '-1' if checking is not desired.

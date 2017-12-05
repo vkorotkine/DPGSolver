@@ -25,7 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
-#include "math_functions.h"
+#include "test_complex_math_functions.h"
 
 // Templated functions ********************************************************************************************** //
 
@@ -33,11 +33,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_matrix_c.h"
 #include "def_templates_multiarray_c.h"
 #include "def_templates_vector_c.h"
+#include "def_templates_math_functions_c.h"
 #include "multiarray_math_T.c"
 #include "undef_templates_type.h"
 #include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
+#include "undef_templates_math_functions.h"
 
 // Static function declarations ************************************************************************************* //
 

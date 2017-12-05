@@ -25,8 +25,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
-#include "const_cast.h"
-
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -196,7 +194,7 @@ void mv_T
 	const CBLAS_LAYOUT    layout = ( a->layout == 'R' ? CBRM : CBCM );
 	const CBLAS_TRANSPOSE transa = ( trans_a_i == 'N' ? CBNT : CBT );
 
-	/// \note Unlike the \ref mm_d function, m and n here represent the dimensions of A and not op(A).
+	/// \note Unlike the \ref mm_T function, m and n here represent the dimensions of A and not op(A).
 	const MKL_INT m   = (MKL_INT) a->ext_0,
 	              n   = (MKL_INT) a->ext_1,
 	              lda = (MKL_INT) ( a->layout == 'R' ? a->ext_1 : a->ext_0 ),

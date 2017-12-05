@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templated relating to templates_matrix_print_\*.h.
+ *  \brief Undefine macro definitions for c-style templating relating to def_templates_vector_print_\*.h.
  */
 
 #undef print_Vector_T_tol
@@ -23,4 +23,3 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef fprint_const_Vector_T
 #undef fprint_Vector_T
-///\}

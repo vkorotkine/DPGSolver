@@ -85,13 +85,13 @@ Type sum_Vector_T
 
 /** \brief See return.
  *  \return The product of the components of the \ref Vector_T\*. */
-ptrdiff_t prod_Vector_T
+Type prod_Vector_T
 	(const struct Vector_T* a ///< Standard.
 	);
 
 /** \brief `const` version of \ref prod_Vector_T.
  *  \return See brief. */
-ptrdiff_t prod_const_Vector_T
+Type prod_const_Vector_T
 	(const struct const_Vector_T* a ///< Standard.
 	);
 

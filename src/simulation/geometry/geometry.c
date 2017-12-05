@@ -95,8 +95,8 @@ static void compute_unit_normals_and_det
 	 const struct const_Multiarray_d* normals_ref, ///< \ref Element::normals.
 	 const struct const_Multiarray_d* metrics_f,   /**< \ref Solver_Volume::metrics_vm interpolated to the face
 	                                                *   nodes. */
-	 struct Multiarray_d* normals_f,               ///< \ref Multiarray_d\* in which to store the face normals.
-	 struct Multiarray_d* jacobian_det_f           /**< \ref Multiarray_d\* in which to store the face jacobian
+	 struct Multiarray_d* normals_f,               ///< \ref Multiarray_T\* in which to store the face normals.
+	 struct Multiarray_d* jacobian_det_f           /**< \ref Multiarray_T\* in which to store the face jacobian
 	                                                *   determinants. */
 	);
 

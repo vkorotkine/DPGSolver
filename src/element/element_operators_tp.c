@@ -236,7 +236,7 @@ const struct const_Matrix_d* constructor_op_std (const struct const_Multiarray_M
  *  'special' operator (the second operator for the sub-element).
  */
 static void set_ops_MO
-	(const struct Multiarray_Operator* op_MO[DMAX], ///< The array of \ref Multiarray_Matrix_d operators.
+	(const struct Multiarray_Operator* op_MO[DMAX], ///< The array of \ref Multiarray_Matrix_T operators.
 	 bool* spec_indices,                            ///< The array of indices for the special operators.
 	 const struct Operators_TP* ops_tp,             ///< \ref Operators_TP.
 	 const struct const_Vector_i* op_values,        ///< The index values of the current operator.
@@ -246,7 +246,7 @@ static void set_ops_MO
 /// \brief Set the the input `op_Md[DMAX]` to point to the appropriate matrices in `op_MO[DMAX]`.
 static void set_ops_Md
 	(const struct const_Matrix_d* op_Md[DMAX],      ///< The array of \ref Matrix_T operators.
-	 const struct Multiarray_Operator* op_MO[DMAX], ///< The array of \ref Multiarray_Matrix_d operators.
+	 const struct Multiarray_Operator* op_MO[DMAX], ///< The array of \ref Multiarray_Matrix_T operators.
 	 const struct const_Vector_i* op_values,        ///< The index values of the current operator.
 	 const struct Operator_Info* op_info,           ///< \ref Sub_Operator_Info.
 	 const bool* spec_indices                       ///< Defined for \ref set_ops_MO.

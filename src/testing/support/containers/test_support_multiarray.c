@@ -41,8 +41,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// Container for partial members of the Multiarray.
 struct Multiarray_Partial {
-	int       order;                ///< Defined in \ref Multiarray_d.
-	ptrdiff_t extents[EXTENTS_MAX]; ///< Defined in \ref Multiarray_d.
+	int       order;                ///< Defined in \ref Multiarray_T.
+	ptrdiff_t extents[EXTENTS_MAX]; ///< Defined in \ref Multiarray_T.
 };
 
 /** \brief Obtain the order and extents of the Multiarray.
@@ -51,7 +51,7 @@ struct Multiarray_Partial read_order_extents
 	(FILE* data_file ///< The file containing the data.
 	);
 
-/** \brief Constructor for a \ref Multiarray_Matrix_d\* as read from a file.
+/** \brief Constructor for a \ref Multiarray_Matrix_T\* as read from a file.
  *  \return Standard. */
 static struct Multiarray_Matrix_d* constructor_file_Multiarray_Matrix_d
 	(FILE* data_file ///< The file containing the data.

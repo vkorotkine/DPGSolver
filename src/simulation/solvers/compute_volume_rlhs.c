@@ -199,7 +199,7 @@ struct Multiarray_Operator get_operator__tw1_vt_vc (const struct Solver_Volume* 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Constructor for a \ref const_Multiarray_d\* of reference flux from physical flux.
+/** \brief Constructor for a \ref const_Multiarray_T\* of reference flux from physical flux.
  *  \return See brief. */
 static const struct const_Multiarray_d* constructor_flux_ref
 	(const struct const_Multiarray_d* m, ///< Defined for \ref constructor_Flux_Ref.

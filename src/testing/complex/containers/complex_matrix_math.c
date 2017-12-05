@@ -22,6 +22,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
+#include "const_cast.h"
+
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_dc.h"

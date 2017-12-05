@@ -56,7 +56,7 @@ double compute_rlhs_dg
  *         face cubature nodes of the opposite volume. */
 void permute_Multiarray_d_fc
 	(struct Multiarray_d* data,       ///< The data to be permuted.
-	 const char perm_layout,          ///< Defined for \ref permute_Multiarray_d_V.
+	 const char perm_layout,          ///< Defined for \ref permute_Multiarray_T_V.
 	 const int side_index_dest,       ///< The side index of the destination.
 	 const struct Solver_Face* s_face ///< \ref Solver_Face.
 	);

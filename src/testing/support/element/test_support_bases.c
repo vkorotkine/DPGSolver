@@ -1399,7 +1399,7 @@ static double poly_rst (const double r, const double s, const double t, const in
 	assert((0 <= derivative_index) && (derivative_index <= 3));
 
 	const int d     = 3;
-	const int n_der = 2;
+	const size_t n_der = 2;
 
 	const double rst[]  = { r, s, t, };
 	const int len[]     = { 3, 3, 3, };

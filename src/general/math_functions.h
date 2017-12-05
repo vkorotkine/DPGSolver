@@ -21,7 +21,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <complex.h>
+
+#include "def_templates_type_d.h"
+#include "def_templates_math_functions_d.h"
+#include "def_templates_math_d.h"
+#include "math_functions_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_math_functions.h"
+#include "undef_templates_math.h"
 
 /** \brief Evaluates an orthonormalized Jacobi polynomial on the standard unit interval ([-1,1]).
  *  \return See brief. */
@@ -41,59 +48,11 @@ double jac_djacobi_normalized
 	 const double b  ///< Defined for \ref jac_jacobi_normalized.
 	);
 
-/** \brief Compares input values for approximate equality using the relative infinity norm.
- *  \return `true` if the difference is less than the tolerance. */
-bool equal_d
-	(const double x0, ///< Input 0.
-	 const double x1, ///< Input 1.
-	 const double tol ///< The tolerance.
-	);
-
-/** \brief Computes the norm of the input `double*` data with the specified norm type.
- *  \return See brief. */
-double norm_d
-	(const ptrdiff_t n_entries, ///< The number of entries.
-	 const double*const data,   ///< The data.
-	 const char*const norm_type ///< The norm type. Options: "L2", "Inf".
-	);
-
-/** \brief Computes the norm of the input `double complex*` data with the specified norm type.
- *  \return See brief. */
-double complex norm_c
-	(const ptrdiff_t n_entries, ///< The number of entries.
-	 const double complex*const data,   ///< The data.
-	 const char*const norm_type ///< The norm type. Options: "L2", "Inf".
-	);
-
-/** \brief Computes the relative norm of the difference between the input `double*` data with the specified norm type.
- *  \return See brief. */
-double norm_diff_d
-	(const ptrdiff_t n_entries, ///< The number of entries.
-	 const double*const data_0, ///< The data for input 0.
-	 const double*const data_1, ///< The data for input 1.
-	 const char*const norm_type ///< The norm type. Options: "Inf".
-	);
-
-/** \brief Compute the maximum absolute value of the two inputs and return it.
- *  \return See brief. */
-double max_abs_d
-	(const double a, ///< Input 0.
-	 const double b  ///< Input 1.
-	);
-
 /** \brief Compute the binomial coefficient.
  *  \return See brief. */
 double binomial_coef
 	(const int num, ///< The numerator.
 	 const int den  ///< The denominator.
-	);
-
-/// \brief Variation on the axpy (BLAS 1) function: z = y*x + z.
-void z_yxpz
-	(const int n,     ///< The number of entries.
-	 const double* x, ///< Input x.
-	 const double* y, ///< Input y.
-	 double* z        ///< Location to store the sum.
 	);
 
 #endif // DPG__math_functions_h__INCLUDED

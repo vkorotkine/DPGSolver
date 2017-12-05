@@ -35,14 +35,14 @@ struct const_Multiarray_d;
 
 /// \brief Multiarray (`double complex`).
 struct Multiarray_c {
-	char layout; ///< Defined in \ref Multiarray_d.
+	char layout; ///< Defined in \ref Multiarray_T.
 
-	int order;          ///< Defined in \ref Multiarray_d.
-	ptrdiff_t* extents; ///< Defined in \ref Multiarray_d.
+	int order;          ///< Defined in \ref Multiarray_T.
+	ptrdiff_t* extents; ///< Defined in \ref Multiarray_T.
 
-	bool owns_data; ///< Defined in \ref Multiarray_d.
+	bool owns_data; ///< Defined in \ref Multiarray_T.
 
-	double complex* data; ///< Defined in \ref Multiarray_d.
+	double complex* data; ///< Defined in \ref Multiarray_T.
 };
 
 /// \brief `const` version of \ref Multiarray_c.

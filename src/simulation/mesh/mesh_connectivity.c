@@ -184,7 +184,7 @@ static void reorder_b_faces
 	);
 
 /** \brief Comparison function for std::bsearch between \ref Boundary_Face\*\* `a` and `b`.
- *	\return The \ref cmp_Vector_i of the `node_nums` of `a` and `b`.
+ *	\return The \ref cmp_Vector_T of the `node_nums` of `a` and `b`.
  *
  *	\note Input Vectors must be have sorted data.
  */

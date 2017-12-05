@@ -108,7 +108,7 @@ struct const_Multiarray_Matrix_T;
 /** \brief Allocated and set the `extents` for a `Multiarray_*`.
  *  \return See brief. */
 ptrdiff_t* allocate_and_set_extents
-	(const int order,                ///< Defined in \ref Multiarray_d.
+	(const int order,                ///< Defined in \ref Multiarray_T.
 	 const ptrdiff_t*const extents_i ///< The input extents.
 	);
 

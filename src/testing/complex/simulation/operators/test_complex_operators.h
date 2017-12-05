@@ -19,33 +19,14 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` version of functions related to the \ref Operator\* container.
  */
 
-#include <stddef.h>
+#include "operator.h"
 
-struct Operator;
-struct Multiarray_c;
-
-/** \brief `complex` version of \ref constructor_mm_NN1_Operator_const_Multiarray_d.
- *  \return See brief. */
-const struct const_Multiarray_c* constructor_mm_NN1_Operator_const_Multiarray_c
-	(const struct Operator* op,          ///< Defined for \ref constructor_mm_NN1_Operator_const_Multiarray_d.
-	 const struct const_Multiarray_c* b, ///< Defined for \ref constructor_mm_NN1_Operator_const_Multiarray_d.
-	 const char layout_c,                ///< Defined for \ref constructor_mm_NN1_Operator_const_Multiarray_d.
-	 const char op_format,               ///< Defined for \ref constructor_mm_NN1_Operator_const_Multiarray_d.
-	 const int order_sub_ma,             ///< Defined for \ref constructor_mm_NN1_Operator_const_Multiarray_d.
-	 const ptrdiff_t* sub_inds_b         ///< Defined for \ref constructor_mm_NN1_Operator_const_Multiarray_d.
-	);
-
-/// \brief `complex` version of \ref mm_NNC_Operator_Multiarray_d.
-void mm_NNC_Operator_Multiarray_c
-	(const double alpha,                 ///< See brief.
-	 const double beta,                  ///< See brief.
-	 const struct Operator* op,          ///< See brief.
-	 const struct const_Multiarray_c* b, ///< See brief.
-	 struct Multiarray_c* c,             ///< See brief.
-	 const char op_format,               ///< See brief.
-	 const int order_sub_ma,             ///< See brief.
-	 const ptrdiff_t* sub_inds_b,        ///< See brief.
-	 const ptrdiff_t* sub_inds_c         ///< See brief.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_multiarray_c.h"
+#include "def_templates_operators_c.h"
+#include "operator_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_operators.h"
 
 #endif // DPG__test_complex_operators_h__INCLUDED

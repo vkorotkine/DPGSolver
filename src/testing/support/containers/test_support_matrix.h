@@ -62,28 +62,28 @@ struct Matrix_d* constructor_file_Matrix_d
 	 const bool check_container ///< Flag for whether the container type should be checked.
 	);
 
-/** \brief `const` version of \ref constructor_copy_transpose_Matrix_d.
+/** \brief `const` version of constructor_copy_transpose_Matrix_T.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_copy_transpose_const_Matrix_d
 	(const struct const_Matrix_d* a, ///< The input matrix.
-	 const bool mem_only             ///< Defined for \ref transpose_Matrix_d.
+	 const bool mem_only             ///< Defined for \ref transpose_Matrix_T.
 	);
 
 // Math functions *************************************************************************************************** //
 
-/// \brief `const` version of \ref transpose_Matrix_d.
+/// \brief `const` version of \ref transpose_Matrix_T.
 void transpose_const_Matrix_d
-	(const struct const_Matrix_d* a, ///< Defined for \ref transpose_Matrix_d.
-	 const bool mem_only             ///< Defined for \ref transpose_Matrix_d.
+	(const struct const_Matrix_d* a, ///< Defined for \ref transpose_Matrix_T.
+	 const bool mem_only             ///< Defined for \ref transpose_Matrix_T.
 	);
 
-/// \brief `const` version of \ref scale_Matrix_by_Vector_d.
+/// \brief `const` version of \ref scale_Matrix_T_by_Vector_R.
 void scale_const_Matrix_by_Vector_d
-	(const char side,                     ///< Defined for \ref scale_Matrix_by_Vector_d.
-	 const double alpha,                  ///< Defined for \ref scale_Matrix_by_Vector_d.
-	 const struct const_Matrix_d*const a, ///< Defined for \ref scale_Matrix_by_Vector_d.
-	 const struct const_Vector_d*const b, ///< Defined for \ref scale_Matrix_by_Vector_d.
-	 const bool invert_diag               ///< Defined for \ref scale_Matrix_by_Vector_d.
+	(const char side,                     ///< See brief.
+	 const double alpha,                  ///< See brief.
+	 const struct const_Matrix_d*const a, ///< See brief.
+	 const struct const_Vector_d*const b, ///< See brief.
+	 const bool invert_diag               ///< See brief.
 	);
 
 // Math functions *************************************************************************************************** //

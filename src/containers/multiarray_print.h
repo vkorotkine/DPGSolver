@@ -43,21 +43,21 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Print the counter for the indices of order > 2 when printing sub-Matrices of the Multiarray.
 void print_Multiarray_counter
-	(const int order,              ///< Defined in \ref Multiarray_d.
+	(const int order,              ///< Defined in \ref Multiarray_T.
 	 const ptrdiff_t*const counter ///< The counter for the indices of order > 2.
 	);
 
 /// \brief Increment the counter for the indicies of order > 2 by 1.
 void increment_counter
-	(const int order,               ///< Defined in \ref Multiarray_d.
-	 const ptrdiff_t*const extents, ///< Defined in \ref Multiarray_d.
+	(const int order,               ///< Defined in \ref Multiarray_T.
+	 const ptrdiff_t*const extents, ///< Defined in \ref Multiarray_T.
 	 ptrdiff_t*const counter        ///< The counter for the indices of order > 2.
 	);
 
 /// \brief Print the extents of the Multiarray.
 void print_Multiarray_extents
-	(const int order,              ///< Defined in \ref Multiarray_d.
-	 const ptrdiff_t*const extents ///< Defined in \ref Multiarray_d.
+	(const int order,              ///< Defined in \ref Multiarray_T.
+	 const ptrdiff_t*const extents ///< Defined in \ref Multiarray_T.
 	);
 
 #endif // DPG__multiarray_print_h__INCLUDED

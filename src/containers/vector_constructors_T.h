@@ -178,10 +178,10 @@ const struct const_Vector_T* constructor_sum_const_Vector_T_const_Matrix_T
 /** \brief Constructor for a \ref Vector_T\* from a matrix-vector multiplication.
  *  \return Standard. */
 struct Vector_T* constructor_mv_Vector_T
-	(const char trans_a_i,                ///< Defined for \ref mv_d.
-	 const Real alpha,                  ///< Defined for \ref mv_d.
-	 const struct const_Matrix_T*const a, ///< Defined for \ref mv_d.
-	 const struct const_Vector_T*const b  ///< Defined for \ref mv_d.
+	(const char trans_a_i,                ///< Defined for \ref mv_T.
+	 const Real alpha,                  ///< Defined for \ref mv_T.
+	 const struct const_Matrix_T*const a, ///< Defined for \ref mv_T.
+	 const struct const_Vector_T*const b  ///< Defined for \ref mv_T.
 	);
 
 /** \brief `const` version of \ref constructor_mv_Vector_T.

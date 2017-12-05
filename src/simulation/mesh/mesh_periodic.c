@@ -352,7 +352,7 @@ static void set_pf_centr
 	}
 
 	for (int i = 0; i < DMAX-1; ++i)
-		centr[i] /= n_max;
+		centr[i] /= (double)n_max;
 }
 
 static void sort_pf_info (struct Periodic_Face_Info* pf_info[N_MS])

@@ -141,7 +141,7 @@ static void increment_rlhs_internal_face_T
 	                n_dof_nf   = nf_coef.ext_0;
 	for (int vr = 0; vr < n_vr; ++vr) {
 		set_block_Matrix_T_R(lhs,lhs_l,vr*n_dof_test,*ind_dof,'i');
-		*ind_dof += n_dof_nf;
+		*ind_dof += (int)n_dof_nf;
 	}
 	destructor_const_Matrix_d(lhs_l);
 }

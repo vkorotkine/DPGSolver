@@ -26,10 +26,10 @@ struct const_Vector_i;
 
 /// Container holding the multiarray of operators in various formats.
 struct Multiarray_Operator {
-	const int order;               ///< Defined in \ref Multiarray_d.
-	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_d.
+	const int order;               ///< Defined in \ref Multiarray_T.
+	const ptrdiff_t*const extents; ///< Defined in \ref Multiarray_T.
 
-	const bool owns_data;                   ///< Defined in \ref Multiarray_d.
+	const bool owns_data;                   ///< Defined in \ref Multiarray_T.
 	const struct Operator*const*const data; ///< The array of pointers to \ref Operator containers.
 };
 
@@ -49,7 +49,7 @@ const struct Multiarray_Operator* constructor_empty_Multiarray_Operator
 	 const ptrdiff_t*const extents_i ///< The input extents.
 	);
 
-/** \brief Constructor for an empty \ref Multiarray_Operator\* with extents input as a \ref const_Vector_i\*.
+/** \brief Constructor for an empty \ref Multiarray_Operator\* with extents input as a \ref const_Vector_T\*.
  *  \return Standard. */
 const struct Multiarray_Operator* constructor_empty_Multiarray_Operator_V
 	(const struct const_Vector_i*const extents_i_V ///< The input extents in vector format.

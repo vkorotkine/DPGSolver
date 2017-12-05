@@ -28,6 +28,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_tol.h"
 
+// Templated functions ********************************************************************************************** //
+
+#include "def_templates_type_d.h"
+#include "def_templates_math_functions_d.h"
+#include "def_templates_math_d.h"
+#include "math_functions_T.c"
+#include "undef_templates_type.h"
+#include "undef_templates_math_functions.h"
+#include "undef_templates_math.h"
+
 // Static function declarations ************************************************************************************* //
 
 /** \brief Compute the normalization for the Jacobi polynomials such that they are orthonormal.
@@ -56,89 +66,11 @@ double jac_djacobi_normalized (const double x, const int n, const double a, cons
 	return compute_jacobi_normalization(n,a,b)*jac_djacobi(x,n,a,b);
 }
 
-bool equal_d (const double x0, const double x1, const double tol)
-{
-	if ((fabs(x0) < tol && fabs(x0-x1) < tol) ||
-	    (fabs((x0-x1)/x0) < tol))
-		return true;
-	return false;
-}
-
-double norm_d (const ptrdiff_t n_entries, const double*const data, const char*const norm_type)
-{
-	double norm = 0.0;
-	if (strcmp(norm_type,"L2") == 0) {
-		for (ptrdiff_t i = 0; i < n_entries; ++i)
-			norm += data[i]*data[i];
-		return sqrt(norm);
-	} else if (strcmp(norm_type,"Inf") == 0) {
-		for (ptrdiff_t i = 0; i < n_entries; ++i) {
-			if (fabs(data[i]) > norm)
-				norm = fabs(data[i]);
-		}
-		return norm;
-	}
-	EXIT_UNSUPPORTED;
-}
-
-double complex norm_c (const ptrdiff_t n_entries, const double complex*const data, const char*const norm_type)
-{
-	double complex norm = 0.0;
-	if (strcmp(norm_type,"L2") == 0) {
-		for (ptrdiff_t i = 0; i < n_entries; ++i)
-			norm += data[i]*data[i];
-		return csqrt(norm);
-	} else if (strcmp(norm_type,"Inf") == 0) {
-		for (ptrdiff_t i = 0; i < n_entries; ++i) {
-			if (cabs(data[i]) > cabs(norm))
-				norm = cabs(data[i]);
-		}
-		return norm;
-	}
-	EXIT_UNSUPPORTED;
-}
-
-double norm_diff_d
-	(const ptrdiff_t n_entries, const double*const data_0, const double*const data_1, const char*const norm_type)
-{
-	double norm_num = 0.0,
-	       norm_den = 0.0;
-
-	if (strstr(norm_type,"Inf")) {
-		for (ptrdiff_t i = 0; i < n_entries; ++i) {
-			const double diff = fabs(data_0[i]-data_1[i]);
-			if (diff > norm_num)
-				norm_num = diff;
-
-			const double max = max_abs_d(data_0[i],data_1[i]);
-			if (max > norm_den)
-				norm_den = max;
-		}
-	} else {
-		EXIT_UNSUPPORTED;
-	}
-
-	return ( fabs(norm_den) > 1e2*EPS ? norm_num/norm_den : norm_num );
-}
-
-double max_abs_d (const double a, const double b)
-{
-	const double a_abs = fabs(a),
-	             b_abs = fabs(b);
-	return ( a_abs > b_abs ? a_abs : b_abs );
-}
-
 double binomial_coef (const int num, const int den)
 {
 	assert(num >= den);
 
 	return gsl_sf_fact((unsigned)num)/(gsl_sf_fact((unsigned)(num-den))*gsl_sf_fact((unsigned)den));
-}
-
-void z_yxpz (const int n, const double* x, const double* y, double* z)
-{
-	for (int i = 0; i < n; ++i)
-		z[i] += y[i]*x[i];
 }
 
 // Static functions ************************************************************************************************* //

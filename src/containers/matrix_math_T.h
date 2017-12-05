@@ -93,7 +93,7 @@ void mm_T
 	 struct Matrix_T*const c              ///< Input \ref Matrix_T\* `c`.
 	);
 #if TYPE_RC == TYPE_COMPLEX
-/// \brief `complex` version of \ref mm_d (`Real`, `Type`, `Type`).
+/// \brief `complex` version of \ref mm_T (`Real`, `Type`, `Type`).
 void mm_RTT
 	(const char trans_a_i,                ///< See brief.
 	 const char trans_b_i,                ///< See brief.
@@ -104,7 +104,7 @@ void mm_RTT
 	 struct Matrix_T*const c              ///< See brief.
 	);
 
-/// \brief `complex` version of \ref mm_d (`Type`, `Real`, `Type`).
+/// \brief `complex` version of \ref mm_T (`Type`, `Real`, `Type`).
 void mm_TRT
 	(const char trans_a_i,                ///< See brief.
 	 const char trans_b_i,                ///< See brief.

@@ -19,35 +19,30 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-// char
 #include "def_templates_type_c.h"
 #include "def_templates_const_cast_c.h"
 #include "const_cast_T.c"
 #include "undef_templates_type.h"
 #include "undef_templates_const_cast.h"
 
-// int
 #include "def_templates_type_i.h"
 #include "def_templates_const_cast_i.h"
 #include "const_cast_T.c"
 #include "undef_templates_type.h"
 #include "undef_templates_const_cast.h"
 
-// double
 #include "def_templates_type_d.h"
 #include "def_templates_const_cast_d.h"
 #include "const_cast_T.c"
 #include "undef_templates_type.h"
 #include "undef_templates_const_cast.h"
 
-// ptrdiff_t
 #include "def_templates_type_p.h"
 #include "def_templates_const_cast_p.h"
 #include "const_cast_T.c"
 #include "undef_templates_type.h"
 #include "undef_templates_const_cast.h"
 
-// bool
 #include "def_templates_type_b.h"
 #include "def_templates_const_cast_b.h"
 #include "const_cast_T.c"

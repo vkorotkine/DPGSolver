@@ -329,8 +329,8 @@ static void output_visualization_vtk_sol (const struct Simulation* sim)
 
 // Level 2 ********************************************************************************************************** //
 
-/** \brief Print the array of cummulative sum of `ext_0` of the \ref Vector_i\*s of the input
- *         \ref const_Multiarray_Vector_i to a file with the input number of tabs before each row. */
+/** \brief Print the array of cummulative sum of `ext_0` of the \ref Vector_T\*s of the input
+ *         \ref const_Multiarray_Vector_T to a file with the input number of tabs before each row. */
 void fprint_const_Multiarray_Vector_i_offsets
 	(FILE* file,                               ///< The file.
 	 const int n_tab,                          ///< The number of tabs.
@@ -573,7 +573,7 @@ static void fprint_vtk_piece_sol
 
 // Level 3 ********************************************************************************************************** //
 
-/** \brief Print a \ref const_Multiarray_d to a file with the input number of tabs before each row, and padding rows
+/** \brief Print a \ref const_Multiarray_T to a file with the input number of tabs before each row, and padding rows
  *         with zeroes until they have 3 entries. */
 void fprint_const_Multiarray_d_vtk_point
 	(FILE* file,                         ///< The file.

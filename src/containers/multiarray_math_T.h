@@ -98,7 +98,7 @@ void mm_NNC_Multiarray_T
  *         a matrix with the appropriate extents, asserting that the input multiarrays have column-major layout.
  *
  *  The first extent **must** be equal to `ext_1` of the `a` matrix.
- *  See comments in \ref constructor_mm_NN1C_Matrix_T for the preset matrix-matrix multiplication parameters.
+ *  See comments in constructor_mm_NN1C_Matrix_T for the preset matrix-matrix multiplication parameters.
  */
 void mm_NN1C_Multiarray_T
 	(const struct const_Matrix_R*const a,     ///< Defined for \ref mm_T.
@@ -106,8 +106,7 @@ void mm_NN1C_Multiarray_T
 	 struct Multiarray_T*const c              ///< Output `c`.
 	);
 
-/** \brief Similar to \ref mm_NN1C_Multiarray_T but where the input `b` is overwritten by the result.
- *  See comments in \ref constructor_mm_NN1C_Matrix_T for the preset matrix-matrix multiplication parameters. */
+/// \brief Similar to \ref mm_NN1C_Multiarray_T but where the input `b` is overwritten by the result.
 void mm_NN1C_overwrite_Multiarray_T
 	(const struct const_Matrix_R*const a, ///< Defined for \ref mm_T.
 	 struct Multiarray_T** b              ///< Input/Output `b`.

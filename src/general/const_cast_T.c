@@ -15,37 +15,22 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "const_cast.h"
-
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-/// \brief Cast a single variable of input type to a variable of `const` input type.
-void const_cast_T
-	(const Type* dest, ///< Destination.
-	 const Type src    ///< Source.
-	)
+void const_cast_T (const Type* dest, const Type src)
 {
 	*(Type*) dest = src;
 }
 
-/// \brief Cast `n` variables of input type to a variable of `const` input type.
-void const_cast_T_n
-	(const Type* dest, ///< Destination.
-	 const Type* src,  ///< Source.
-	 const int n       ///< The number of variables.
-	)
+void const_cast_T_n (const Type* dest, const Type* src, const int n)
 {
 	for (int i = 0; i < n; ++i)
 		const_cast_T(&dest[i],src[i]);
 }
 
-/// \brief Cast a single pointer of input type to a `const` pointer of `const` input type.
-void const_cast_T1
-	(const Type*const* dest, ///< Destination.
-	 const Type*const src    ///< Source.
-	)
+void const_cast_T1 (const Type*const* dest, const Type*const src)
 {
 	*(Type**) dest = (Type*) src;
 }

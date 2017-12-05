@@ -28,7 +28,7 @@ struct const_Multiarray_Matrix_d;
 
 // Constructor functions ******************************************************************************************** //
 
-/** \brief Constructor for a \ref Multiarray_d\* from data in the input file of the given name.
+/** \brief Constructor for a \ref Multiarray_T\* from data in the input file of the given name.
  *  \return Standard. */
 struct Multiarray_d* constructor_file_name_Multiarray_d
 	(const char*const var_name,      ///< The name of the variable to be read in from the file.
@@ -42,7 +42,7 @@ const struct const_Multiarray_d* constructor_file_name_const_Multiarray_d
 	 const char*const file_name_full ///< The name of the file (including the full path).
 	);
 
-/** \brief Constructor for a \ref Multiarray_Vector_i\* from data in the input file of the given name.
+/** \brief Constructor for a \ref Multiarray_Vector_T\* from data in the input file of the given name.
  *  \return Standard. */
 struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
 	(const char*const var_name,      ///< The name of the variable to be read in from the file.
@@ -56,21 +56,21 @@ const struct const_Multiarray_Vector_i* constructor_file_name_const_Multiarray_V
 	 const char*const file_name_full ///< Defined for \ref constructor_file_name_Multiarray_Vector_i.
 	);
 
-/** \brief Constructor for a \ref const_Multiarray_Matrix_d\* from data in the input file of the given name.
+/** \brief Constructor for a \ref const_Multiarray_Matrix_T\* from data in the input file of the given name.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_file_name_const_Multiarray_Matrix_d
 	(const char*const var_name,      ///< The name of the variable to be read in from the file.
 	 const char*const file_name_full ///< The name of the file (including the full path).
 	);
 
-/** \brief Constructor for a \ref Multiarray_d\* from the current line in the input file.
+/** \brief Constructor for a \ref Multiarray_T\* from the current line in the input file.
  *  \return Standard. */
 struct Multiarray_d* constructor_file_Multiarray_d
 	(FILE* data_file,           ///< The pointer to the file from which to read the data.
 	 const bool check_container ///< Flag for whether the container type should be checked.
 	);
 
-/** \brief Constructor for a \ref Multiarray_Vector_i\* as read from a file.
+/** \brief Constructor for a \ref Multiarray_Vector_T\* as read from a file.
  *  \return Standard. */
 struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i
 	(FILE* data_file ///< The file containing the data.
@@ -78,7 +78,7 @@ struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i
 
 // Difference functions ********************************************************************************************* //
 
-/** \brief Check the difference between entries in the input \ref Multiarray_Vector_i\*s.
+/** \brief Check the difference between entries in the input \ref Multiarray_Vector_T\*s.
  *  \return The `true` if inputs differ; `false` otherwise. */
 bool diff_Multiarray_Vector_i
 	(const struct Multiarray_Vector_i*const a, ///< Input 0.
@@ -92,7 +92,7 @@ bool diff_const_Multiarray_Vector_i
 	 const struct const_Multiarray_Vector_i*const b  ///< Input 1.
 	);
 
-/** \brief Check the relative difference between entries in the input \ref Multiarray_d\*s up to the input tolerance.
+/** \brief Check the relative difference between entries in the input \ref Multiarray_T\*s up to the input tolerance.
  *  \return The `true` if inputs differ; `false` otherwise. */
 bool diff_Multiarray_d
 	(const struct Multiarray_d*const a, ///< Input 0.
@@ -108,7 +108,7 @@ bool diff_const_Multiarray_d
 	 const double tol                         ///< Defined for \ref diff_Multiarray_d.
 	);
 
-/** \brief Check the relative difference between entries in the input \ref Multiarray_Matrix_d\*s up to the input
+/** \brief Check the relative difference between entries in the input \ref Multiarray_Matrix_T\*s up to the input
  *         tolerance.
  *  \return The `true` if inputs differ; `false` otherwise. */
 bool diff_Multiarray_Matrix_d
@@ -127,7 +127,7 @@ bool diff_const_Multiarray_Matrix_d
 
 // Printing functions *********************************************************************************************** //
 
-/// \brief Print the difference of the input \ref Multiarray_Vector_i\*s.
+/// \brief Print the difference of the input \ref Multiarray_Vector_T\*s.
 void print_diff_Multiarray_Vector_i
 	(const struct Multiarray_Vector_i*const a, ///< Input 0.
 	 const struct Multiarray_Vector_i*const b  ///< Input 1.
@@ -139,7 +139,7 @@ void print_diff_const_Multiarray_Vector_i
 	 const struct const_Multiarray_Vector_i*const b  ///< Defined for \ref print_diff_Multiarray_Vector_i.
 	);
 
-/// \brief Print the relative difference of the input \ref Multiarray_d\*s, outputting 0 if less than the tolerance.
+/// \brief Print the relative difference of the input \ref Multiarray_T\*s, outputting 0 if less than the tolerance.
 void print_diff_Multiarray_d
 	(const struct Multiarray_d*const a, ///< Input 0.
 	 const struct Multiarray_d*const b, ///< Input 1.
@@ -153,7 +153,7 @@ void print_diff_const_Multiarray_d
 	 const double tol                         ///< The tolerance.
 	);
 
-/** \brief Print the relative difference of the input \ref Multiarray_Matrix_d\*s, outputting 0 if less than the
+/** \brief Print the relative difference of the input \ref Multiarray_Matrix_T\*s, outputting 0 if less than the
  *         tolerance. */
 void print_diff_Multiarray_Matrix_d
 	(const struct Multiarray_Matrix_d*const a, ///< Input 0.
@@ -170,7 +170,7 @@ void print_diff_const_Multiarray_Matrix_d
 
 // Math functions *************************************************************************************************** //
 
-/// \brief Perturb the data of the input \ref Multiarray_d\* container.
+/// \brief Perturb the data of the input \ref Multiarray_T\* container.
 void perturb_Multiarray_d
 	(struct Multiarray_d* a, ///< Input multiarray.
 	 const double da         ///< Permutation magnitude.

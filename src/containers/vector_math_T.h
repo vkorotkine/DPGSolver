@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Vector_T;
 struct Vector_R;
 
-/// \brief Invert each of the entries of the input \ref Vector_R\*.
+/// \brief Invert each of the entries of the input \ref Vector_T\*.
 void invert_Vector_R
 	(struct Vector_R* a ///< Input vector.
 	);

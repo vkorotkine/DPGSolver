@@ -314,8 +314,8 @@ const struct const_Multiarray_T* constructor_MaM1_V_const_Multiarray_T
 {
 	assert(A->order == 1);
 
-	const ptrdiff_t order = 2,
-	                ext_0 = A->data[0]->ext_0,
+	const int order = 2;
+	const ptrdiff_t ext_0 = A->data[0]->ext_0,
 	                ext_1 = compute_size(A->order,A->extents);
 
 	struct Multiarray_T* dest = constructor_empty_Multiarray_T(layout,order,(ptrdiff_t[]){ext_0,ext_1}); // returned
@@ -391,12 +391,7 @@ const struct const_Multiarray_T* constructor_mm_tp_NN1C_const_Multiarray_T
 
 	int n_rows_sub[DMAX] = { 0, 0, 0, },
 	    n_cols_sub[DMAX] = { 0, 0, 0, };
-/// \todo remove after templating operators.c
-#if TYPE_RC == TYPE_REAL
-	set_ops_tp_n_rows_cols(n_rows_sub,n_cols_sub,a_tp);
-#elif TYPE_RC == TYPE_COMPLEX
-	set_ops_tp_n_rows_cols_c(n_rows_sub,n_cols_sub,a_tp);
-#endif
+	set_ops_tp_n_rows_cols_T(n_rows_sub,n_cols_sub,a_tp);
 
 	const int order_i          = b->order;
 	const ptrdiff_t* extents_i = b->extents;
