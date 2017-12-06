@@ -13,13 +13,25 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` math functions.
+ *  \brief Provides the macro definitions used for c-style templating related to the vector math functions.
  */
 
+#if TYPE_RC == TYPE_REAL
+
 ///\{ \name Function names
-#define equal_T     equal_d
-#define norm_T      norm_d
-#define norm_diff_T norm_diff_d
-#define max_abs_T   max_abs_d
-#define z_yxpz_T    z_yxpz
+#define invert_Vector_T   invert_Vector_d
+#define add_to_Vector_T_T add_to_Vector_d_d
+///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define invert_Vector_T   invert_Vector_c
+#define add_to_Vector_T_T add_to_Vector_c_c
+///\}
+
+#endif
+
+///\{ \name Function names
+#define invert_Vector_R   invert_Vector_d
 ///\}

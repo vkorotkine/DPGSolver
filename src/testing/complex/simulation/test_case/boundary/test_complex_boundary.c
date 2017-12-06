@@ -39,7 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Templated functions ********************************************************************************************** //
 #if 0
 #include "def_templates_type_dc.h"
-#include "def_templates_multiarray_c.h"
+#include "def_templates_multiarray.h"
 #include "def_templates_boundary_c.h"
 #include "def_templates_operators_c.h"
 #include "boundary_T.h"

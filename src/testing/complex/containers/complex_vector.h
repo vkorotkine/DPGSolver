@@ -27,11 +27,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 
 #include "def_templates_type_dc.h"
-#include "def_templates_vector_c.h"
+#include "def_templates_vector.h"
 #include "vector_T.h"
 #include "undef_templates_type.h"
 #include "undef_templates_vector.h"
-
-// Interface functions ********************************************************************************************** //
 
 #endif // DPG__complex_vector_h__INCLUDED

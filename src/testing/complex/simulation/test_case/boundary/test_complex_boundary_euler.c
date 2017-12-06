@@ -31,8 +31,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_type_dc.h"
 
 #include "def_templates_boundary_c.h"
-#include "def_templates_math_c.h"
-#include "def_templates_multiarray_c.h"
+#include "def_templates_math_functions.h"
+#include "def_templates_multiarray.h"
 #include "def_templates_solution_c.h"
 
 #include "boundary_euler_T.c"

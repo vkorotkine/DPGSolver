@@ -27,7 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 
 #include "def_templates_type_dc.h"
-#include "def_templates_matrix_c.h"
+#include "def_templates_matrix.h"
 #include "matrix_T.h"
 #include "undef_templates_type.h"
 #include "undef_templates_matrix.h"

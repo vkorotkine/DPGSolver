@@ -16,16 +16,12 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Undefine macro definitions for c-style templating relating to def_templates_matrix_math_\*.h.
  */
 
-
-
 #undef gsl_matrix_T
 
 #undef gsl_permute_matrix_T
 #undef mkl_Timatcopy
 #undef LAPACKE_Tsysv
 #undef LAPACKE_Tsgesv
-
-
 
 #undef compute_norm_Matrix_T_row
 #undef transpose_Matrix_T
@@ -40,3 +36,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef scale_Matrix_T_by_Vector_R
 #undef mm_diag_T
 #undef reinterpret_const_Matrix_T
+
+
+#undef scale_Matrix_R_by_Vector_R

@@ -13,12 +13,41 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double complex` math functions.
+ *  \brief Provides the macro definitions used for c-style templating related to the math functions.
  */
 
+#if TYPE_RC == TYPE_REAL
+
+///\{ \name Aliases for std library functions
+#define abs_T  fabs
+#define real_T
+#define sqrt_T sqrt
+#define pow_T  pow
+///\}
+
 ///\{ \name Function names
+#define equal_T     equal_d
+#define norm_T      norm_d
+#define norm_diff_T norm_diff_d
+#define max_abs_T   max_abs_d
+#define z_yxpz_T    z_yxpz
+///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Aliases for std library functions
 #define abs_T  cabs
 #define real_T creal
 #define sqrt_T csqrt
 #define pow_T  cpow
 ///\}
+
+///\{ \name Function names
+#define equal_T     equal_c
+#define norm_T      norm_c
+#define norm_diff_T norm_diff_c
+#define max_abs_T   max_abs_c
+#define z_yxpz_T    z_yxpz_c
+///\}
+
+#endif

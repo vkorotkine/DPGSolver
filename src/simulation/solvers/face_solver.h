@@ -23,7 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "boundary.h"
 
 #include "def_templates_type_d.h"
-#include "def_templates_multiarray_d.h"
+#include "def_templates_multiarray.h"
 #include "def_templates_boundary_d.h"
 #include "def_templates_face_solver.h"
 #include "face_solver_T.h"

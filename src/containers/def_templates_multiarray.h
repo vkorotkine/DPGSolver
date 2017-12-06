@@ -13,19 +13,56 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double complex` multiarray
- *         containers/functions.
+ *  \brief Provides the macro definitions used for c-style templating related to the multiarray containers/functions.
  */
 
-#include "def_templates_multiarray_constructors_c.h"
-#include "def_templates_multiarray_math_c.h"
-#include "def_templates_multiarray_print_c.h"
+#include "def_templates_multiarray_constructors.h"
+#include "def_templates_multiarray_math.h"
+#include "def_templates_multiarray_print.h"
+
+#if TYPE_RC == TYPE_REAL
+
+///\{ \name Data types
+#define Multiarray_T       Multiarray_d
+#define const_Multiarray_T const_Multiarray_d
+
+#define Multiarray_Vector_T       Multiarray_Vector_d
+#define const_Multiarray_Vector_T const_Multiarray_Vector_d
+#define Multiarray_Matrix_T       Multiarray_Matrix_d
+#define const_Multiarray_Matrix_T const_Multiarray_Matrix_d
+///\}
+
+///\{ \name Function names
+#define Vector_T_indexed Vector_d_indexed
+
+#define constructor_move_Vector_T_indexed constructor_move_Vector_d_indexed
+#define destructor_Vector_T_indexed       destructor_Vector_d_indexed
+#define cmp_Vector_T_indexed              cmp_Vector_d_indexed
+#define reorder_Multiarray_Vector_T       reorder_Multiarray_Vector_d
+#define compute_total_entries             compute_total_entries_d
+
+#define get_row_Multiarray_T          get_row_Multiarray_d
+#define get_row_const_Multiarray_T    get_row_const_Multiarray_d
+#define get_col_Multiarray_T          get_col_Multiarray_d
+#define get_col_const_Multiarray_T    get_col_const_Multiarray_d
+#define set_to_value_Multiarray_T     set_to_value_Multiarray_d
+#define set_Multiarray_Vector_T_T     set_Multiarray_Vector_d_d
+#define set_Multiarray_T              set_Multiarray_d
+#define set_Multiarray_T_Multiarray_R set_Multiarray_d_Multiarray_d
+
+#define sort_Multiarray_Vector_T               sort_Multiarray_Vector_d
+#define collapse_Multiarray_Vector_T           collapse_Multiarray_Vector_d
+#define resize_Multiarray_T                    resize_Multiarray_d
+#define get_const_Multiarray_Vector_T          get_const_Multiarray_Vector_d
+#define interpret_const_Multiarray_as_Vector_T interpret_const_Multiarray_as_Vector_d
+#define interpret_Multiarray_as_Matrix_T       interpret_Multiarray_as_Matrix_d
+///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Data types
 #define Multiarray_T       Multiarray_c
-#define Multiarray_R       Multiarray_d
 #define const_Multiarray_T const_Multiarray_c
-#define const_Multiarray_R const_Multiarray_d
 
 #define Multiarray_Vector_T       Multiarray_Vector_c
 #define const_Multiarray_Vector_T const_Multiarray_Vector_c
@@ -56,6 +93,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #define resize_Multiarray_T                    resize_Multiarray_c
 #define get_const_Multiarray_Vector_T          get_const_Multiarray_Vector_c
 #define interpret_const_Multiarray_as_Vector_T interpret_const_Multiarray_as_Vector_c
-#define interpret_const_Multiarray_as_Vector_R interpret_const_Multiarray_as_Vector_d
 #define interpret_Multiarray_as_Matrix_T       interpret_Multiarray_as_Matrix_c
+///\}
+
+#endif
+
+///\{ \name Real Data types/Function names
+#define Multiarray_R       Multiarray_d
+#define const_Multiarray_R const_Multiarray_d
+
+#define get_col_const_Multiarray_R    get_col_const_Multiarray_d
+#define interpret_const_Multiarray_as_Vector_R interpret_const_Multiarray_as_Vector_d
 ///\}

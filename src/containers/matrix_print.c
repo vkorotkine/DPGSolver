@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "def_templates_matrix_d.h"
+#include "def_templates_matrix.h"
 #include "matrix_print_T.c"
 #include "undef_templates_type.h"
 #include "undef_templates_matrix.h"

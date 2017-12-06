@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 
 /** \file
- *  \brief Undefine macro definitions for c-style templated relating to const cast functions.
+ *  \brief Undefine macro definitions for c-style templating relating to const cast functions.
  */
 
 #undef const_cast_T

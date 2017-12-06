@@ -12,10 +12,14 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
 /** \file
- *  \brief Undefine macro definitions for c-style templated relating to math functions.
+ *  \brief Undefine macro definitions for c-style templating relating to math functions.
  */
+
+#undef abs_T
+#undef real_T
+#undef sqrt_T
+#undef pow_T
 
 #undef equal_T
 #undef norm_T

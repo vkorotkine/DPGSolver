@@ -13,9 +13,10 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` multiarray print
- *         functions.
+ *  \brief Provides the macro definitions used for c-style templating related to the multiarray print functions.
  */
+
+#if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
 #define print_Multiarray_Vector_T           print_Multiarray_Vector_d
@@ -29,3 +30,20 @@ You should have received a copy of the GNU General Public License along with DPG
 #define print_Multiarray_Matrix_T           print_Multiarray_Matrix_d
 #define print_const_Multiarray_Matrix_T     print_const_Multiarray_Matrix_d
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define print_Multiarray_Vector_T           print_Multiarray_Vector_c
+#define print_const_Multiarray_Vector_T     print_const_Multiarray_Vector_c
+#define print_Multiarray_T_tol              print_Multiarray_c_tol
+#define print_const_Multiarray_T_tol        print_const_Multiarray_c_tol
+#define print_Multiarray_Matrix_T_tol       print_Multiarray_Matrix_c_tol
+#define print_const_Multiarray_Matrix_T_tol print_const_Multiarray_Matrix_c_tol
+#define print_Multiarray_T                  print_Multiarray_c
+#define print_const_Multiarray_T            print_const_Multiarray_c
+#define print_Multiarray_Matrix_T           print_Multiarray_Matrix_c
+#define print_const_Multiarray_Matrix_T     print_const_Multiarray_Matrix_c
+///\}
+
+#endif

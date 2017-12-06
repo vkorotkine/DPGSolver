@@ -13,13 +13,10 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` vector print
- *         functions.
+ *  \brief Undefine macro definitions for c-style templating relating to the dg solver functions.
  */
 
-///\{ \name Function names
-#define print_Vector_T_tol       print_Vector_c_tol
-#define print_const_Vector_T_tol print_const_Vector_c_tol
-#define print_Vector_T           print_Vector_c
-#define print_const_Vector_T     print_const_Vector_c
-///\}
+#undef update_ind_dof_dg_T
+#undef permute_Multiarray_T_fc
+
+#undef zero_memory_volumes_T

@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 
 /** \file
- *  \brief Undefine macro definitions for c-style templated relating to data types.
+ *  \brief Undefine macro definitions for c-style templating relating to data types.
  */
 
 #undef Type

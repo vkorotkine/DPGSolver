@@ -21,9 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_matrix_print.h"
 
 #undef Matrix_T
-#undef Matrix_R
 #undef const_Matrix_T
-#undef const_Matrix_R
 
 #undef Matrix_CSR_T
 #undef const_Matrix_CSR_T
@@ -36,10 +34,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef get_row_const_Matrix_T
 #undef get_col_Matrix_T
 #undef get_col_const_Matrix_T
-#undef get_row_Matrix_R
-#undef get_row_const_Matrix_R
-#undef get_col_Matrix_R
-#undef get_col_const_Matrix_R
 #undef get_slice_Matrix_T
 #undef get_slice_const_Matrix_T
 #undef get_val_Matrix_T
@@ -52,3 +46,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef set_block_Matrix_T
 #undef set_block_Matrix_T_R
+
+
+#undef Matrix_R
+#undef const_Matrix_R
+
+#undef get_row_Matrix_R
+#undef get_row_const_Matrix_R
+#undef get_col_Matrix_R
+#undef get_col_const_Matrix_R

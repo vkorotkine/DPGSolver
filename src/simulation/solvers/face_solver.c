@@ -37,7 +37,7 @@ bool check_for_curved_neigh
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "def_templates_multiarray_d.h"
+#include "def_templates_multiarray.h"
 #include "def_templates_boundary_d.h"
 #include "def_templates_face_solver.h"
 #include "face_solver_T.c"

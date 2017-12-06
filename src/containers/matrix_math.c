@@ -26,12 +26,12 @@ You should have received a copy of the GNU General Public License along with DPG
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "def_templates_math_d.h"
-#include "def_templates_matrix_d.h"
-#include "def_templates_vector_d.h"
+#include "def_templates_math_functions.h"
+#include "def_templates_matrix.h"
+#include "def_templates_vector.h"
 #include "matrix_math_T.c"
 #include "undef_templates_type.h"
-#include "undef_templates_math.h"
+#include "undef_templates_math_functions.h"
 #include "undef_templates_matrix.h"
 #include "undef_templates_vector.h"
 

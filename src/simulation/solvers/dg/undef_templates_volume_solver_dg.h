@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 
 /** \file
- *  \brief Undefine macro definitions for c-style templated relating to \ref DG_Solver_Volume containers/functions.
+ *  \brief Undefine macro definitions for c-style templating relating to \ref DG_Solver_Volume containers/functions.
  */
 
 ///\{ \name Data types

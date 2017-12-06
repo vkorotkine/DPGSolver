@@ -22,9 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 
 #undef Multiarray_T
-#undef Multiarray_R
 #undef const_Multiarray_T
-#undef const_Multiarray_R
 
 #undef Multiarray_Vector_T
 #undef const_Multiarray_Vector_T
@@ -54,8 +52,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef resize_Multiarray_T
 #undef get_const_Multiarray_Vector_T
 #undef interpret_const_Multiarray_as_Vector_T
-#undef interpret_const_Multiarray_as_Vector_R
 #undef interpret_Multiarray_as_Matrix_T
 
 
+#undef Multiarray_R
+#undef const_Multiarray_R
+
 #undef get_col_const_Multiarray_R
+
+#undef interpret_const_Multiarray_as_Vector_R

@@ -158,7 +158,7 @@ static bool is_face_neighbour
 	);
 
 /// \brief Set the memory of the rhs terms to zero for the local volumes.
-static void zero_memory_volumes_local
+static void zero_memory_volumes
 	(struct Intrusive_List* volumes_local ///< The list of local volumes.
 	);
 
@@ -216,7 +216,7 @@ struct Intrusive_List* constructor_Faces_local (const struct Volume* vol, const 
 static void compute_rhs_cmplx_step_dg
 	(struct Intrusive_List* volumes_local, struct Intrusive_List* faces_local, const struct Simulation* sim)
 {
-	zero_memory_volumes_local(volumes_local);
+	zero_memory_volumes(volumes_local);
 	switch (CHECK_LIN) {
 	case CHECK_LIN_VOLUME:
 		compute_volume_rhs_dg_c(sim,volumes_local);
@@ -301,7 +301,7 @@ static bool is_face_neighbour (const struct Face* face, const struct Volume* vol
 	return false;
 }
 
-static void zero_memory_volumes_local (struct Intrusive_List* volumes_local)
+static void zero_memory_volumes (struct Intrusive_List* volumes_local)
 {
 	for (struct Intrusive_Link* curr = volumes_local->first; curr; curr = curr->next)
 		set_to_value_Multiarray_c(((struct Complex_DG_Solver_Volume*)curr)->rhs,0.0);

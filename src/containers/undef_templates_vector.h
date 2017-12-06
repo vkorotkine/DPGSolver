@@ -23,7 +23,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef Vector_T
 #undef const_Vector_T
 
-
 #undef cmp_T
 
 #undef reorder_Vector_T
@@ -41,3 +40,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef copy_data_Vector_T_Vector_T
 #undef push_back_Vector_T
 #undef find_val_Vector_T
+
+
+#undef Vector_R
+#undef const_Vector_R

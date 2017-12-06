@@ -20,18 +20,24 @@ You should have received a copy of the GNU General Public License along with DPG
  *         method.
  */
 
-struct Matrix_d;
 struct const_Matrix_d;
-struct Multiarray_d;
-struct Solver_Face;
 struct Solver_Volume;
 struct Simulation;
 struct Solver_Storage_Implicit;
 
-/// \brief Version of \ref update_ind_dof for the dg method.
-void update_ind_dof_dg
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
+#include "def_templates_type_d.h"
+#include "def_templates_solver_dg.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_volume_solver_dg.h"
+#include "def_templates_multiarray.h"
+#include "solve_dg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solver_dg.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dg.h"
+#include "undef_templates_multiarray.h"
 
 /** \brief Version of \ref constructor_nnz for the dg method.
  *  \return See brief. */
@@ -50,15 +56,6 @@ double compute_rhs_dg
 double compute_rlhs_dg
 	(const struct Simulation* sim,             ///< \ref Simulation.
 	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
-	);
-
-/** \brief Permute the input multiarray such that its ordering is such that it is in the reference coordinates of the
- *         face cubature nodes of the opposite volume. */
-void permute_Multiarray_d_fc
-	(struct Multiarray_d* data,       ///< The data to be permuted.
-	 const char perm_layout,          ///< Defined for \ref permute_Multiarray_T_V.
-	 const int side_index_dest,       ///< The side index of the destination.
-	 const struct Solver_Face* s_face ///< \ref Solver_Face.
 	);
 
 /** \brief Set the values of \ref Solver_Storage_Implicit::row and Solver_Storage_Implicit::col based on the current

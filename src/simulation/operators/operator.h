@@ -43,7 +43,7 @@ struct mutable_Operator {
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "def_templates_multiarray_d.h"
+#include "def_templates_multiarray.h"
 #include "def_templates_operators_d.h"
 #include "operator_T.h"
 #include "undef_templates_type.h"

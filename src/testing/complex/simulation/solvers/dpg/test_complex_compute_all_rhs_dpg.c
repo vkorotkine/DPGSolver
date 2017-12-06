@@ -63,16 +63,16 @@ static void constructor_Numerical_Flux_Input_c_data_dpg
 
 #include "def_templates_type_dc.h"
 
-#include "def_templates_matrix_c.h"
-#include "def_templates_multiarray_c.h"
-#include "def_templates_vector_c.h"
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
 
 #include "def_templates_compute_all_rlhs_dpg_c.h"
 #include "def_templates_compute_face_rlhs_c.h"
 #include "def_templates_multiarray_operator_c.h"
 #include "def_templates_numerical_flux_c.h"
 
-#include "compute_all_rlhs_dpg_T.c"
+#include "compute_all_rlhs_dpg_T_prev.c"
 
 /** \brief See \ref constructor_norm_op_fptr.
  *
@@ -118,6 +118,7 @@ void compute_all_rhs_dpg_c
 
 	/** \note Linearized terms are required for the computation of optimal test functions, even if only computing rhs
 	 *        terms. */
+/// \todo Will likely need to use Test_Case_T.
 	assert(sim->test_case->solver_method_curr == 'i');
 
 	struct Flux_Input_c* flux_i = constructor_Flux_Input_c(sim); // destructed

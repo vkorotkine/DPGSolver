@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templated relating to rlhs computing functions for the dg volumes.
+ *  \brief Undefine macro definitions for c-style templating relating to rlhs computing functions for the dg volumes.
  */
 
 ///\{ \name Data types

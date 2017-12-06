@@ -13,9 +13,10 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` matrix print
- *         functions.
+ *  \brief Provides the macro definitions used for c-style templating related to the matrix print functions.
  */
+
+#if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
 #define check_Matrix_extents_zero_T check_Matrix_extents_zero_d
@@ -25,3 +26,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #define print_Matrix_T           print_Matrix_d
 #define print_const_Matrix_T     print_const_Matrix_d
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define check_Matrix_extents_zero_T check_Matrix_extents_zero_c
+
+#define print_Matrix_T_tol       print_Matrix_c_tol
+#define print_const_Matrix_T_tol print_const_Matrix_c_tol
+#define print_Matrix_T           print_Matrix_c
+#define print_const_Matrix_T     print_const_Matrix_c
+///\}
+
+#endif

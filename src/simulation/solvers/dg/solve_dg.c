@@ -76,19 +76,8 @@ static void fill_petsc_Vec_b_dg
 
 // Interface functions ********************************************************************************************** //
 
-void update_ind_dof_dg (const struct Simulation* sim)
-{
-	ptrdiff_t dof = 0;
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-
-		const_cast_ptrdiff(&s_vol->ind_dof,dof);
-
-		struct Multiarray_d* sol_coef = s_vol->sol_coef;
-		dof += compute_size(sol_coef->order,sol_coef->extents);
-	}
-	assert(dof == compute_dof(sim));
-}
+#include "def_templates_type_d.h"
+#include "solve_dg_T.c"
 
 struct Vector_i* constructor_nnz_dg (const struct Simulation* sim)
 {
@@ -139,13 +128,6 @@ double compute_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Impl
 	return compute_max_rhs(sim);
 }
 
-void permute_Multiarray_d_fc
-	(struct Multiarray_d* data, const char perm_layout, const int side_index_dest, const struct Solver_Face* s_face)
-{
-	const struct const_Vector_i* nc_fc = get_operator__nc_fc(side_index_dest,s_face);
-	permute_Multiarray_d_V(data,nc_fc,perm_layout);
-}
-
 void set_petsc_Mat_row_col
 	(struct Solver_Storage_Implicit*const s_store_i, const struct Solver_Volume* v_l, const int eq,
 	 const struct Solver_Volume* v_r, const int vr)
@@ -175,11 +157,6 @@ void add_to_petsc_Mat (const struct Solver_Storage_Implicit*const s_store_i, con
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/// \brief Set the memory of the rhs and lhs (if applicable) terms to zero for the volumes.
-static void zero_memory_volumes
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
 /// \brief Version of \ref scale_rhs_by_m_inv used for non-collocated runs.
 static void scale_rhs_by_m_inv_std
 	(const struct Simulation* sim ///< \ref Simulation.
@@ -192,7 +169,7 @@ static void scale_rhs_by_m_inv_col
 
 static void compute_rlhs_common_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
 {
-	zero_memory_volumes(sim);
+	zero_memory_volumes(sim->volumes);
 	compute_grad_coef_dg(sim);
 	compute_volume_rlhs_dg(sim,s_store_i);
 	compute_face_rlhs_dg(sim,s_store_i);
@@ -245,12 +222,6 @@ static void fill_petsc_Vec_b_dg (const struct Simulation* sim, struct Solver_Sto
 }
 
 // Level 1 ********************************************************************************************************** //
-
-static void zero_memory_volumes (const struct Simulation* sim)
-{
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
-		set_to_value_Multiarray_d(((struct DG_Solver_Volume*)curr)->rhs,0.0);
-}
 
 static void scale_rhs_by_m_inv_std (const struct Simulation* sim)
 {

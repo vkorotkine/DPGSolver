@@ -13,9 +13,10 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` vector print
- *         functions.
+ *  \brief Provides the macro definitions used for c-style templating related to the vector print functions.
  */
+
+#if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
 #define print_Vector_T_tol       print_Vector_d_tol
@@ -23,3 +24,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #define print_Vector_T           print_Vector_d
 #define print_const_Vector_T     print_const_Vector_d
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define print_Vector_T_tol       print_Vector_c_tol
+#define print_const_Vector_T_tol print_const_Vector_c_tol
+#define print_Vector_T           print_Vector_c
+#define print_const_Vector_T     print_const_Vector_c
+///\}
+
+#endif

@@ -13,19 +13,45 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double complex` vector
- *         containers/functions.
+ *  \brief Provides the macro definitions used for c-style templating related to the vector containers/functions.
  */
 
-#include "def_templates_vector_constructors_c.h"
-#include "def_templates_vector_math_c.h"
-#include "def_templates_vector_print_c.h"
+#include "def_templates_vector_constructors.h"
+#include "def_templates_vector_math.h"
+#include "def_templates_vector_print.h"
+
+#if TYPE_RC == TYPE_REAL
+
+///\{ \name Data types
+#define Vector_T       Vector_d
+#define const_Vector_T const_Vector_d
+///\}
+
+///\{ \name Function names
+#define cmp_T cmp_d
+
+#define reorder_Vector_T            reorder_Vector_d
+#define resize_Vector_T             resize_Vector_d
+#define set_to_zero_Vector_T        set_to_zero_Vector_d
+#define set_to_data_Vector_T        set_to_data_Vector_d
+#define set_to_value_Vector_T       set_to_value_Vector_d
+#define sort_Vector_T               sort_Vector_d
+#define sum_Vector_T                sum_Vector_d
+#define prod_Vector_T               prod_Vector_d
+#define prod_const_Vector_T         prod_const_Vector_d
+#define check_equal_Vector_T        check_equal_Vector_d
+#define check_equal_Vector_T_T      check_equal_Vector_d_d
+#define cmp_Vector_T                cmp_Vector_d
+#define copy_data_Vector_T_Vector_T copy_data_Vector_d_Vector_d
+#define push_back_Vector_T          push_back_Vector_d
+#define find_val_Vector_T           find_val_Vector_d
+///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Data types
 #define Vector_T       Vector_c
-#define Vector_R       Vector_d
 #define const_Vector_T const_Vector_c
-#define const_Vector_R const_Vector_d
 ///\}
 
 ///\{ \name Function names
@@ -46,4 +72,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define copy_data_Vector_T_Vector_T copy_data_Vector_c_Vector_c
 #define push_back_Vector_T          push_back_Vector_c
 #define find_val_Vector_T           find_val_Vector_c
+///\}
+
+#endif
+
+///\{ \name Function names
+#define Vector_R       Vector_d
+#define const_Vector_R const_Vector_d
 ///\}
