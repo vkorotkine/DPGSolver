@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_flux.h"
 #include "def_templates_math_functions.h"
 #include "def_templates_operators_d.h"
+#include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -139,8 +140,9 @@ struct Matrix_T* constructor_lhs_v_1_T
 
 	const ptrdiff_t ext_0 = tw1_vt_vc.data[0]->op_std->ext_0,
 	                ext_1 = tw1_vt_vc.data[0]->op_std->ext_1;
-	const int n_eq = sim->test_case->n_eq,
-	          n_vr = sim->test_case->n_var;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_eq = test_case->n_eq,
+	          n_vr = test_case->n_var;
 
 	struct Matrix_T* tw1_r = constructor_empty_Matrix_T('R',ext_0,ext_1);                         // destructed
 	struct Matrix_T* lhs_l = constructor_empty_Matrix_T('R',ext_0,cv0_vs_vc->op_std->ext_1);      // destructed

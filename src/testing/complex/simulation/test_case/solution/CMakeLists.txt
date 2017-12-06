@@ -1,4 +1,5 @@
 set	(SOURCE
+	 test_complex_solution.c
 	 test_complex_solution_euler.c
 	)
 

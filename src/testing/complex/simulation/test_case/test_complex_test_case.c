@@ -15,70 +15,43 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include "test_complex_solution.h"
 #include "test_complex_test_case.h"
 
-#include <assert.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "macros.h"
-
 #include "simulation.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Set the function pointer members of \ref Test_Case.
-static void set_function_pointers
-	(struct Complex_Test_Case* test_case,     ///< \ref Complex_Test_Case.
-	 const struct Test_Case*const test_case_b ///< \ref Test_Case.
-	);
-
 // Interface functions ********************************************************************************************** //
 
-void constructor_derived_Complex_Test_Case (struct Simulation* sim)
+#include "def_templates_type_dc.h"
+#include "test_case_T.c"
+
+void convert_to_Test_Case_rc (struct Simulation* sim, const char type_rc_o)
 {
-	struct Complex_Test_Case* test_case = calloc(1,sizeof *test_case); // free
+	struct Test_Case_rc* test_case_rc = sim->test_case_rc;
 
-	memcpy(test_case,sim->test_case,sizeof(struct Test_Case)); // shallow copy of the base.
+	switch (type_rc_o) {
+	case 'c':
+		assert(test_case_rc->is_real == true);
+		destructor_Test_Case(test_case_rc->tc);
 
-	set_function_pointers(test_case,sim->test_case);
-
-	destructor_Test_Case(sim->test_case);
-	sim->test_case = (struct Test_Case*) test_case;
-}
-
-void destructor_derived_Complex_Test_Case (struct Simulation* sim)
-{
-	struct Test_Case* test_case_b = calloc(1,sizeof *test_case_b); // moved
-	memcpy(test_case_b,sim->test_case,sizeof(struct Test_Case)); // shallow copy of the base.
-
-	free((void*)sim->test_case);
-	sim->test_case = test_case_b;
-}
-
-bool has_complex_Jacobians (const int method)
-{
-	switch (method) {
-	case METHOD_DG:
-		return false;
+		const_cast_b(&test_case_rc->is_real,false);
+		test_case_c->tc = (void*)constructor_Test_Case_c(sim); // keep
 		break;
-	case METHOD_DPG:
-		return true;
+	case 'r':
+		assert(test_case_rc->is_real == false);
+		destructor_Test_Case_c(test_case_rc->tc);
+
+		const_cast_b(&test_case_rc->is_real,true);
+		test_case_c->tc = (void*)constructor_Test_Case(sim); // keep
 		break;
 	default:
-		EXIT_ERROR("Unsupported: %d\n",method);
+		EXIT_ERROR("Unsupported: %c.\n",type_rc_o);
 		break;
 	}
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static void set_function_pointers (struct Complex_Test_Case* test_case, const struct Test_Case*const test_case_b)
-{
-	// Boundary_Value_Input
-	if (test_case_b->constructor_Boundary_Value_Input_face_fcl == constructor_Boundary_Value_Input_face_s_fcl_interp)
-		test_case->constructor_Boundary_Value_Input_c_face_fcl = constructor_Boundary_Value_Input_c_face_s_fcl_interp;
-	else
-		EXIT_UNSUPPORTED;
-}

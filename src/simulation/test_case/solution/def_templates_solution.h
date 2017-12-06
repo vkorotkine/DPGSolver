@@ -58,4 +58,42 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+///\{ \name Data types
+#define Solution_Container_T Solution_Container_c
+///\}
+
+///\{ \name Function pointers
+#define constructor_sol_fptr_T         constructor_sol_fptr_c
+#define mutable_constructor_sol_fptr_T mutable_constructor_sol_fptr_c
+#define set_sol_fptr_T                 set_sol_fptr_c
+#define compute_source_rhs_fptr_T      compute_source_rhs_fptr_c
+///\}
+
+///\{ \name Function names
+#define constructor_const_sol_invalid_T constructor_const_sol_invalid_c
+#define set_initial_solution_T          set_initial_solution_c
+#define set_sg_do_nothing_T             set_sg_do_nothing_c
+#define constructor_xyz_sol_T           constructor_xyz_sol_c
+#define compute_coef_from_val_vs_T      compute_coef_from_val_vs_c
+#define constructor_sol_v_T             constructor_sol_v_c
+#define compute_source_rhs_do_nothing_T compute_source_rhs_do_nothing_c
+#define update_Solution_Container_sol_T update_Solution_Container_sol_c
+#define constructor_xyz_vc_interp_T     constructor_xyz_vc_interp_c
+#define get_operator__tw0_vt_vc_T       get_operator__tw0_vt_vc_c
+
+#define set_initial_v_sg_coef_T    set_initial_v_sg_coef_c
+#define set_initial_f_nf_coef_T    set_initial_f_nf_coef_c
+#define get_operator__cv0_vg_vc_T  get_operator__cv0_vg_vc_c
+#define constructor_xyz_v_T        constructor_xyz_v_c
+#define constructor_xyz_f_T        constructor_xyz_f_c
+#define constructor_normals_ff_T   constructor_normals_ff_c
+#define constructor_nf_T           constructor_nf_c
+#define compute_coef_from_val_ff_T compute_coef_from_val_ff_c
+#define constructor_metrics_ff_T   constructor_metrics_ff_c
+///\}
+
+///\{ \name Function names (pde specific)
+#define convert_variables_T convert_variables_c
+///\}
+
 #endif

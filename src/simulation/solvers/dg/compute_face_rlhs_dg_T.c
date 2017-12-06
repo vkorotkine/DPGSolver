@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_numerical_flux.h"
 #include "def_templates_operators_d.h"
+#include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -154,7 +155,7 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 {
 	struct S_Params_T s_params;
 
-	struct Test_Case* test_case = sim->test_case;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	switch (test_case->solver_method_curr) {
 	case 'e':
 		s_params.scale_by_Jacobian = scale_by_Jacobian_e_T;

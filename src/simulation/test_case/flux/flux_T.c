@@ -22,6 +22,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_core.h"
 
+
+#include "def_templates_test_case.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -32,7 +35,7 @@ struct Flux_Input_T* constructor_Flux_Input_T (const struct Simulation* sim)
 
 	const_cast_c1(&flux_i->input_path,sim->input_path);
 
-	struct Test_Case* test_case = sim->test_case;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const_cast_i(&flux_i->n_eq,test_case->n_eq);
 	const_cast_i(&flux_i->n_var,test_case->n_var);
 

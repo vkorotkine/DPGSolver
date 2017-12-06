@@ -275,13 +275,15 @@ static void output_visualization_vtk_sol (const struct Simulation* sim)
 
 	const char*const output_name = set_output_name(VIS_SOFTWARE_PARAVIEW,output_part);
 
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+
 	static char* extension_part = "vtu";
 	if (sim->mpi_rank == 0) {
 		FILE* p_file = fopen_sp_output_file('p',output_name,extension_part,sim->mpi_rank); // closed
 
 		fprint_vtk_header_footer(p_file,true,'h',"UnstructuredGrid");
 
-		fprint_vtk_piece_sol(p_file,'p','s',NULL,NULL,NULL,sim->test_case->pde_index);
+		fprint_vtk_piece_sol(p_file,'p','s',NULL,NULL,NULL,test_case->pde_index);
 
 		for (int i = 0; i < sim->mpi_size; ++i)
 			fprintf(p_file,"<Piece Source=\"%s_%d.vtu\"/>\n",extract_name(output_part,false),i);
@@ -316,8 +318,8 @@ static void output_visualization_vtk_sol (const struct Simulation* sim)
 		const struct const_Multiarray_d* sol_p =
 			constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vs_vp,s_coef,'C','d',s_coef->order,NULL); // destructed
 
-		fprint_vtk_piece_sol(s_file,'s','s',xyz_p,sol_p,element->p_nodes[p],sim->test_case->pde_index);
-		fprint_vtk_piece_sol(s_file,'s','e',NULL,NULL,NULL,sim->test_case->pde_index);
+		fprint_vtk_piece_sol(s_file,'s','s',xyz_p,sol_p,element->p_nodes[p],test_case->pde_index);
+		fprint_vtk_piece_sol(s_file,'s','e',NULL,NULL,NULL,test_case->pde_index);
 
 		destructor_const_Multiarray_d(xyz_p);
 		destructor_const_Multiarray_d(sol_p);

@@ -16,6 +16,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the static templated boundary condition functions.
  */
 
+#include "def_templates_solution.h"
+#include "def_templates_test_case.h"
+
 /** \brief Get the compute_member array for the current boundary value computation.
  *  \return Statically allocated array of flags. */
 static bool* get_compute_member
@@ -45,11 +48,12 @@ static const struct const_Multiarray_T* constructor_sol_bv
 	 const struct Simulation* sim          ///< \ref Simulation.
 	)
 {
-	const struct const_Multiarray_d* s = sim->test_case->constructor_sol(xyz,sim); // keep/destructed
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const struct const_Multiarray_T* s = test_case->constructor_sol(xyz,sim); // keep/destructed
 #if TYPE_RC == TYPE_REAL
 	return s;
 #elif TYPE_RC == TYPE_COMPLEX
-	const struct const_Multiarray_c* s_c = constructor_copy_const_Multiarray_c_Multiarray_d(s); // keep
+	const struct const_Multiarray_T* s_c = constructor_copy_const_Multiarray_c_Multiarray_d(s); // keep
 	destructor_const_Multiarray_d(s);
 	return s_c;
 #endif

@@ -36,12 +36,20 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
-/// \todo modify to use complex types.
 ///\{ \name Data types
-#define Test_Case_T Test_Case
+#define Test_Case_T Test_Case_c
 ///\}
 
 ///\{ \name Function names
+#define set_string_associations_T              set_string_associations_c
+#define set_pde_related_T                      set_pde_related_c
+#define set_function_pointers_T                set_function_pointers_c
+#define read_test_case_parameters_T            read_test_case_parameters_c
+#define set_string_associations_test_case_T    set_string_associations_test_case_c
+#define correct_invalid_test_case_parameters_T correct_invalid_test_case_parameters_c
+
+#define constructor_Test_Case_T constructor_Test_Case_c
+#define destructor_Test_Case_T  destructor_Test_Case_c
 ///\}
 
 #endif

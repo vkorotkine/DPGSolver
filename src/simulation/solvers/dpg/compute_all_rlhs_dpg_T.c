@@ -225,7 +225,7 @@ static struct S_Params_DPG_T set_s_params_dpg_T (const struct Simulation* sim)
 
 	set_S_Params_Volume_Structor(&s_params.spvs,sim);
 
-	struct Test_Case_T* test_case = sim->test_case;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	switch (test_case->solver_method_curr) {
 	case 'i':
 		if (test_case->has_1st_order && !test_case->has_2nd_order)
@@ -306,8 +306,9 @@ static void increment_rhs_source_T
 static const struct const_Matrix_T* constructor_norm_op__h1_upwind_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct Flux_Ref* flux_r, const struct Simulation* sim)
 {
-	const int n_eq = sim->test_case->n_eq,
-	          n_vr = sim->test_case->n_var;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_eq = test_case->n_eq,
+	          n_vr = test_case->n_var;
 
 	const struct Multiarray_Operator cvt1_vt_vc = get_operator__cvt1_vt_vc__rlhs_T(dpg_s_vol);
 
@@ -429,7 +430,8 @@ static void increment_rlhs_boundary_face_T
 static struct Vector_T* constructor_rhs_v_1_T
 	(const struct Flux_Ref* flux_r, const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
 {
-	const int n_eq = sim->test_case->n_eq;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_eq = test_case->n_eq;
 
 	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
 
@@ -458,8 +460,9 @@ static void increment_and_add_dof_rlhs_f_1_T
 	const struct Volume* vol          = (struct Volume*) dpg_s_vol;
 	const struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) dpg_s_vol;
 
-	const int n_eq = sim->test_case->n_eq,
-	          n_vr = sim->test_case->n_var;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_eq = test_case->n_eq,
+	          n_vr = test_case->n_var;
 
 	const ptrdiff_t n_dof_s  = (lhs->ext_1)/n_vr,
 	                n_dof_nf = compute_n_dof_nf_T(s_vol);
@@ -492,12 +495,13 @@ static void increment_and_add_dof_rlhs_f_1_T
 static void increment_rhs_source_T
 	(struct Vector_T* rhs, const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
 {
-	const int n_eq = sim->test_case->n_eq;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_eq = test_case->n_eq;
+
 	ptrdiff_t extents[2] = { (rhs->ext_0)/n_eq, n_eq, };
 	struct Multiarray_T rhs_Ma =
 		{ .layout = 'C', .order = 2, .extents = extents, .owns_data = rhs->owns_data, .data = rhs->data };
 
-	struct Test_Case_T* test_case = sim->test_case;
 	test_case->compute_source_rhs(sim,s_vol,&rhs_Ma);
 }
 
@@ -540,8 +544,9 @@ static void increment_rlhs_internal_face_T
 	struct Matrix_T nf_coef = interpret_Multiarray_as_Matrix_T(s_face->nf_coef);
 	mm_RTT('N','N',1.0,1.0,lhs_l,(struct const_Matrix_T*)&nf_coef,rhs);
 
-	const int n_eq = sim->test_case->n_eq,
-	          n_vr = sim->test_case->n_var;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_eq = test_case->n_eq,
+	          n_vr = test_case->n_var;
 
 	const ptrdiff_t n_dof_test = (lhs->ext_0)/n_eq,
 	                n_dof_nf   = nf_coef.ext_0;

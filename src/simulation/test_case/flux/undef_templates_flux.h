@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Data types
 #undef Flux_Input_T
+#undef Flux_T
 #undef mutable_Flux_T
 ///\}
 

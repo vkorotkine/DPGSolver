@@ -19,9 +19,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Data types
 #undef Numerical_Flux_Input_T
-#undef Numerical_Flux_Input_R
 #undef mutable_Numerical_Flux_T
 #undef Numerical_Flux_T
+
+#undef Neigh_Info_NF_T
+#undef m_Neigh_Info_NF_T
 ///\}
 
 ///\{ \name Function pointers
@@ -49,3 +51,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_Numerical_Flux_T_euler_roe_pike
 #undef compute_Numerical_Flux_T_euler_roe_pike_jacobian
 ///\}
+
+#undef Numerical_Flux_Input_R

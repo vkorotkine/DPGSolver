@@ -65,7 +65,7 @@ void solve_for_solution (struct Simulation* sim)
 	set_up_solver_geometry(sim);
 	set_initial_solution(sim);
 
-	const struct Test_Case* test_case = sim->test_case;
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	switch (test_case->solver_proc) {
 	case SOLVER_E:
 		solve_explicit(sim);
@@ -78,7 +78,7 @@ void solve_for_solution (struct Simulation* sim)
 		solve_implicit(sim);
 		break;
 	default:
-		EXIT_ERROR("Unsupported: %d\n",sim->test_case->solver_proc);
+		EXIT_ERROR("Unsupported: %d\n",test_case->solver_proc);
 		break;
 	}
 }

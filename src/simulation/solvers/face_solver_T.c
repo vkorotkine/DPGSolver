@@ -22,6 +22,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_case.h"
 #include "definitions_bc.h"
 
+
+#include "def_templates_test_case.h"
+
 // Static function declarations ************************************************************************************* //
 
 /** \brief Set the function pointers to the appropriate functions to compute values needed for the numerical flux
@@ -79,11 +82,11 @@ static void set_function_pointers_num_flux_T (struct Solver_Face_T* s_face, cons
 {
 	const struct Face* face = (struct Face*) s_face;
 	if (!face->boundary) {
-		struct Test_Case* test_case = sim->test_case;
+		struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 		switch (test_case->pde_index) {
 		case PDE_ADVECTION:
 		case PDE_EULER:
-			s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_s_fcl_interp;
+			s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_s_fcl_interp_T;
 			break;
 		case PDE_POISSON:
 			EXIT_UNSUPPORTED;
@@ -114,11 +117,12 @@ static void set_function_pointers_num_flux_bc_euler_T
 
 static void set_function_pointers_num_flux_bc_T (struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
-	switch (sim->test_case->pde_index) {
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	switch (test_case->pde_index) {
 	case PDE_ADVECTION: set_function_pointers_num_flux_bc_advection_T(s_face); break;
 	case PDE_EULER:     set_function_pointers_num_flux_bc_euler_T(s_face);     break;
 	default:
-		EXIT_ERROR("Unsupported: %d\n",sim->test_case->pde_index);
+		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
 		break;
 	}
 }

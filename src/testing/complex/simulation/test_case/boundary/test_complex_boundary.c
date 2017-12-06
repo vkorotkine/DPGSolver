@@ -15,6 +15,11 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#if 1
+#include "def_templates_type_dc.h"
+#include "boundary_T.c"
+
+#else
 #include "test_complex_boundary.h"
 
 #include "test_complex_operators.h"
@@ -37,18 +42,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "simulation.h"
 
 // Templated functions ********************************************************************************************** //
-#if 0
-#include "def_templates_type_dc.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_boundary_c.h"
-#include "def_templates_operators_c.h"
-#include "boundary_T.h"
-#include "undef_templates_type.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_boundary.h"
-#include "undef_templates_operators.h"
-
-#else
 // Static function declarations ************************************************************************************* //
 
 /** \brief `complex` version of \ref constructor_s_fc_interp for the dg scheme.

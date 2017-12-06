@@ -84,18 +84,19 @@ static struct Vector_i* constructor_nnz
 
 void solve_implicit (struct Simulation* sim)
 {
-	sim->test_case->solver_method_curr = 'i';
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	test_case->solver_method_curr = 'i';
 
 	constructor_derived_elements_comp_elements(sim); // destructed
 	for (int i_step = 0; ; ++i_step) {
 		const double max_rhs = implicit_step(i_step,sim);
 
-		if (check_exit(sim->test_case,max_rhs))
+		if (check_exit(test_case,max_rhs))
 			break;
 	}
 	destructor_derived_elements_comp_elements(sim);
 
-	sim->test_case->solver_method_curr = 0;
+	test_case->solver_method_curr = 0;
 }
 
 struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit (const struct Simulation* sim)
@@ -147,7 +148,8 @@ bool check_symmetric (const struct Simulation* sim)
 {
 	switch (sim->method) {
 	case METHOD_DG: {
-		const int pde_index = sim->test_case->pde_index;
+		struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+		const int pde_index = test_case->pde_index;
 		switch (pde_index) {
 		case PDE_POISSON:
 			return true;
@@ -370,7 +372,8 @@ static void output_petsc_mat_vec (Mat A, Vec b, const struct Simulation* sim)
 	output_petsc_mat(A,"A.m");
 	output_petsc_vec(b,"b.m");
 
-	if (sim->test_case->use_schur_complement)
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	if (test_case->use_schur_complement)
 		output_petsc_schur(A,b,sim);
 
 	EXIT_ERROR("Disable outputting to continue");
@@ -382,7 +385,8 @@ static void solve_and_update
 	KSP ksp = NULL;
 	Vec x   = constructor_petsc_x(ssi->b); // destructed
 
-	const bool use_schur_complement = sim->test_case->use_schur_complement;
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	const bool use_schur_complement = test_case->use_schur_complement;
 	if (!use_schur_complement) {
 		printf("\tKSP set up.\n");
 		ksp = constructor_petsc_ksp(ssi->A,sim); // destructed
@@ -439,7 +443,7 @@ static void solve_and_update
 	update_coefs(x,sim);
 	destructor_petsc_x(x);
 
-	display_progress(sim->test_case,i_step,max_rhs,ksp);
+	display_progress(test_case,i_step,max_rhs,ksp);
 	destructor_petsc_ksp(ksp);
 }
 
@@ -530,8 +534,10 @@ static KSP constructor_petsc_ksp (Mat A, const struct Simulation* sim)
 	KSPSetComputeSingularValues(ksp,PETSC_TRUE);
 	KSPGetPC(ksp,&pc);
 
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+
 	const bool symmetric = check_symmetric(sim);
-	const int solver_type_i = sim->test_case->solver_type_i;
+	const int solver_type_i = test_case->solver_type_i;
 	switch (solver_type_i) {
 	case SOLVER_I_DIRECT:
 		KSPSetType(ksp,KSPPREONLY);
@@ -565,7 +571,7 @@ static void update_coefs (Vec x, const struct Simulation* sim)
 	case METHOD_DPG:
 		update_coef_s_v(x,sim);
 		update_coef_nf_f(x,sim);
-		assert(sim->test_case->has_2nd_order == false); // Add support.
+		assert(((struct Test_Case*)sim->test_case_rc->tc)->has_2nd_order == false); // Add support.
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);

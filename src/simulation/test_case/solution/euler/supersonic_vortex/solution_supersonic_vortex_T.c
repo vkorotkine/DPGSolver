@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_solution_euler.h"
 
 #include "def_templates_multiarray.h"
+#include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -75,7 +76,8 @@ static struct Multiarray_T* constructor_sol_supersonic_vortex
 	const Real* x = get_col_const_Multiarray_R(0,xyz),
 	          * y = get_col_const_Multiarray_R(1,xyz);
 
-	const int n_var = sim->test_case->n_var;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_var = test_case->n_var;
 
 	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,n_var}); // returned
 

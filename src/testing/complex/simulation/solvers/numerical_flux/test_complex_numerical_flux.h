@@ -19,6 +19,19 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of containers and functions defined in \ref numerical_flux.h.
  */
 
+#include "test_complex_boundary.h"
+
+#include "def_templates_type_dc.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_boundary_d.h"
+#include "def_templates_numerical_flux.h"
+#include "numerical_flux_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_numerical_flux.h"
+
+#if 0
 struct Numerical_Flux_Input_c;
 struct mutable_Numerical_Flux_c;
 struct Simulation;
@@ -109,5 +122,6 @@ void compute_Numerical_Flux_c_12
 	(const struct Numerical_Flux_Input_c* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_c* num_flux        ///< See brief.
 	);
+#endif
 
 #endif // DPG__test_complex_numerical_flux_h__INCLUDED

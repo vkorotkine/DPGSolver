@@ -64,7 +64,8 @@ void compute_all_rlhs_dpg (const struct Simulation* sim, struct Solver_Storage_I
 
 	/** \note Linearized terms are required for the computation of optimal test functions, even if only computing rhs
 	 *        terms. */
-	assert(sim->test_case->solver_method_curr == 'i');
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	assert(test_case->solver_method_curr == 'i');
 
 	struct S_Params_DPG s_params = set_s_params_dpg(sim);
 	struct Flux_Input* flux_i = constructor_Flux_Input(sim); // destructed
@@ -100,7 +101,8 @@ static void add_to_petsc_Mat_Vec_dpg
 
 	const struct const_Vector_i* idxm = constructor_petsc_idxm_dpg(ext_0,s_vol); // destructed.
 
-	if (sim->test_case->use_schur_complement) {
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	if (test_case->use_schur_complement) {
 		const ptrdiff_t dof_s = compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents),
 		                dof_g = compute_size(s_vol->grad_coef->order,s_vol->grad_coef->extents);
 		invert_sub_block_Matrix_d((struct Matrix_d*)lhs,0,0,dof_s);

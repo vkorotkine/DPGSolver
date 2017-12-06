@@ -19,35 +19,32 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` version of container(s) and functions defined in \ref test_case.h.
  */
 
-#include <stdbool.h>
+#include "test_complex_flux.h"
+//#include "test_complex_geometry.h"
+#include "test_complex_numerical_flux.h"
+#include "test_complex_solution.h"
+#include "compute_error.h"
 
-#include "test_case.h"
-#include "test_complex_boundary.h"
+#include "def_templates_type_dc.h"
+#include "def_templates_boundary_d.h"
+#include "def_templates_flux.h"
+#include "def_templates_numerical_flux.h"
+#include "def_templates_solution.h"
+#include "def_templates_test_case.h"
+#include "test_case_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_test_case.h"
 
 struct Simulation;
 
-/// \brief Derived `complex` version of \ref Test_Case.
-struct Complex_Test_Case {
-	struct Test_Case test_case; ///< Base \ref Test_Case.
-
-	constructor_Boundary_Value_Input_c_face_fptr constructor_Boundary_Value_Input_c_face_fcl; ///< See brief.
-};
-
-/** \brief Constructor for a derived \ref Complex_Test_Case.
- *  \return See brief. */
-void constructor_derived_Complex_Test_Case
-	(struct Simulation* sim ///< \ref Simulation.
-	);
-
-/// \brief Destructor for a \ref Complex_Test_Case.
-void destructor_derived_Complex_Test_Case
-	(struct Simulation* sim ///< \ref Simulation.
-	);
-
-/** \brief Check whether the `complex` Jacobians are being computed for the current method.
- *  \return `true` if yes; `false` otherwise. */
-bool has_complex_Jacobians
-	(const int method ///< \ref Simulation::method
+/// \brief Convert a \ref Test_Case_T from `real` to `complex` or vice versa.
+void convert_to_Test_Case_c
+	(struct Simulation* sim, ///< \ref Simulation.
+	 const char type_rc_o    ///< The output 'r'eal/'c'omplex type.
 	);
 
 #endif // DPG__test_complex_test_case_h__INCLUDED

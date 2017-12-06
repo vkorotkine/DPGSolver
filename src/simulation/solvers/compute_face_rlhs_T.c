@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_vector.h"
 
 #include "def_templates_numerical_flux.h"
+#include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -93,7 +94,7 @@ const struct const_Vector_i* get_operator__nc_fc_T (const int side_index_dest, c
 void constructor_Numerical_Flux_Input_data_T
 	(struct Numerical_Flux_Input* num_flux_i, const struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
-	struct Test_Case* test_case = sim->test_case;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 
 	test_case->constructor_Boundary_Value_Input_face_fcl(&num_flux_i->bv_l,s_face,sim);     // destructed
 	s_face->constructor_Boundary_Value_fcl(&num_flux_i->bv_r,&num_flux_i->bv_l,s_face,sim); // destructed

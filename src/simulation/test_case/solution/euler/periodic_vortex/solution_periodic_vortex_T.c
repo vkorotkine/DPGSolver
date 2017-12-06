@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_solution_euler.h"
 
 #include "def_templates_multiarray.h"
+#include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -62,8 +63,9 @@ static struct Multiarray_T* constructor_sol_periodic_vortex_T
 
 	// Set the coordinates of the vortex centre depending on the time.
 	Real x_c = 0.0,
-	       y_c = 0.0;
-	set_xy_c(&x_c,&y_c,&sol_data,sim->test_case->time);
+	     y_c = 0.0;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	set_xy_c(&x_c,&y_c,&sol_data,test_case->time);
 
 	// Compute the solution
 	const ptrdiff_t n_n = xyz->extents[0];
@@ -72,7 +74,7 @@ static struct Multiarray_T* constructor_sol_periodic_vortex_T
 	const Real* x = get_col_const_Multiarray_R(0,xyz),
 	          * y = get_col_const_Multiarray_R(1,xyz);
 
-	const int n_var = sim->test_case->n_var;
+	const int n_var = test_case->n_var;
 
 	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,n_var}); // returned
 

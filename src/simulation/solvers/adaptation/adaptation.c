@@ -495,5 +495,5 @@ static void compute_projection_p_face (struct Adaptive_Solver_Face* a_s_face, co
 		s_face->nf_coef = nf_coef;
 	}
 
-	assert(sim->test_case->has_2nd_order == false); // Add support for 2nd order. Remove include above.
+	assert(((struct Test_Case*)sim->test_case_rc->tc)->has_2nd_order == false); // Add support. Remove include above.
 }

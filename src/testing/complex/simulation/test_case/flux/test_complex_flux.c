@@ -49,7 +49,9 @@ static void set_derived_Flux_Input_fptrs
 
 struct Flux_Input_c* constructor_Flux_Input_c (const struct Simulation* sim)
 {
-	assert(sim->test_case->solver_method_curr == 'i');
+	EXIT_DEPRECATED;
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	assert(test_case->solver_method_curr == 'i');
 
 	struct Flux_Input* flux_i_b = constructor_Flux_Input(sim); // destructed.
 

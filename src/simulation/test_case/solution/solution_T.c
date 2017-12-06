@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_volume_solver.h"
 #include "def_templates_face_solver.h"
 #include "def_templates_solution.h"
+#include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -257,10 +258,11 @@ static void set_initial_v_sg_coef_T (struct Simulation* sim)
 
 		sol_cont.volume = s_vol;
 		sol_cont.sol = s_vol->sol_coef;
-		sim->test_case->set_sol(sim,sol_cont);
+		struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+		test_case->set_sol(sim,sol_cont);
 
 		sol_cont.sol = s_vol->grad_coef;
-		sim->test_case->set_grad(sim,sol_cont);
+		test_case->set_grad(sim,sol_cont);
 	}
 }
 
@@ -268,9 +270,10 @@ static void set_initial_f_nf_coef_T (struct Simulation* sim)
 {
 	struct Multiarray_T* sol_fs = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0}); // destructed
 
-	sim->test_case->solver_method_curr = 'e';
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	test_case->solver_method_curr = 'e';
 	struct Flux_Input* flux_i = constructor_Flux_Input(sim); // destructed
-	sim->test_case->solver_method_curr = '0';
+	test_case->solver_method_curr = '0';
 
 	struct Solution_Container sol_cont =
 		{ .ce_type = 'f', .cv_type = 'v', .node_kind = 'f', .volume = NULL, .face = NULL, .sol = NULL, };
@@ -284,7 +287,7 @@ static void set_initial_f_nf_coef_T (struct Simulation* sim)
 
 		sol_cont.face = s_face;
 		sol_cont.sol  = sol_fs;
-		sim->test_case->set_sol(sim,sol_cont);
+		test_case->set_sol(sim,sol_cont);
 
 		flux_i->s = (struct const_Multiarray_T*)sol_fs;
 

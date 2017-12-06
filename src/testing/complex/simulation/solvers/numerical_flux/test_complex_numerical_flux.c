@@ -15,6 +15,31 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include "multiarray.h"
+
+#include "const_cast.h"
+#include "simulation.h"
+#include "test_case.h"
+
+#include "complex_multiarray.h"
+
+#include "test_complex_math_functions.h"
+#include "test_complex_numerical_flux.h"
+#include "test_complex_test_case.h"
+
+// Static function declarations ************************************************************************************* //
+
+// Interface functions ********************************************************************************************** //
+
+#include "def_templates_type_dc.h"
+#include "numerical_flux_T.c"
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
+
+
+/// \todo Delete
+# if 0
 #include "test_complex_numerical_flux.h"
 
 #include <assert.h>
@@ -66,7 +91,9 @@ static void combine_num_flux_boundary_c
 
 struct Numerical_Flux_Input_c* constructor_Numerical_Flux_Input_c (const struct Simulation* sim)
 {
-	assert(sim->test_case->solver_method_curr == 'i');
+	EXIT_DEPRECATED;
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	assert(test_case->solver_method_curr == 'i');
 
 	struct Numerical_Flux_Input* num_flux_i_b = constructor_Numerical_Flux_Input(sim); // destructed.
 
@@ -235,3 +262,4 @@ static void combine_num_flux_boundary_c
 
 	assert(num_flux_i_b->bv_l.compute_member[2] == false); // Add support for this in future.
 }
+#endif

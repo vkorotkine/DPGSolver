@@ -104,7 +104,7 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 
 	set_S_Params_Volume_Structor(&s_params.spvs,sim);
 
-	struct Test_Case_T* test_case = sim->test_case;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	switch (test_case->solver_method_curr) {
 	case 'e':
 		s_params.compute_rlhs = compute_rhs_v_dg_T;

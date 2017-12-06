@@ -24,6 +24,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_dpg.h"
 #include "definitions_test_case.h"
 
+
+#include "def_templates_test_case.h"
+
+#include "def_templates_flux.h"
+
 // Static function declarations ************************************************************************************* //
 
 /// \brief Set associations between `char*` and `int` variables.
@@ -74,6 +79,19 @@ void destructor_Test_Case_T (const struct Test_Case_T* test_case)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+/// Container for input strings which are to be subsequently converted to integer parameters.
+struct Test_Case_String_Inputs {
+	char num_flux_1st[STRLEN_MIN]; ///< The name of the 1st order numerical flux scheme to be used.
+	char num_flux_2nd[STRLEN_MIN]; ///< The name of the 2nd order numerical flux scheme to be used.
+
+	char test_norm[STRLEN_MIN]; ///< The name of the norm to use for the optimal test function computation.
+};
+
+/** \brief Return a statically allocated \ref Test_Case_String_Inputs container which zero-initialized members.
+ *  \return See brief. */
+static struct Test_Case_String_Inputs set_Test_Case_String_Inputs
+	();
 
 /// \brief Set the string association relating to the \ref Test_Case_T input parameters.
 static void set_string_associations_test_case_T
@@ -188,6 +206,17 @@ static void read_test_case_parameters_T (struct Test_Case_T* test_case, const st
 }
 
 // Level 1 ********************************************************************************************************** //
+
+static struct Test_Case_String_Inputs set_Test_Case_String_Inputs ()
+{
+	assert(sizeof(struct Test_Case_String_Inputs) == 3*STRLEN_MIN*sizeof(char));
+
+	struct Test_Case_String_Inputs tcsi;
+	tcsi.num_flux_1st[0] = 0;
+	tcsi.num_flux_2nd[0] = 0;
+	tcsi.test_norm[0] = 0;
+	return tcsi;
+}
 
 static void set_string_associations_test_case_T (struct Test_Case_T* test_case, const struct Test_Case_String_Inputs* tcsi)
 {

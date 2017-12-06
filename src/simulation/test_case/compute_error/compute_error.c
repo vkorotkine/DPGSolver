@@ -99,7 +99,8 @@ void output_error (const struct Simulation* sim)
 	constructor_derived_Elements((struct Simulation*)sim,IL_ELEMENT_SOLUTION);
 	constructor_derived_Elements((struct Simulation*)sim,IL_ELEMENT_ERROR);
 
-	struct Error_CE* error_ce = sim->test_case->constructor_Error_CE(sim);
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	struct Error_CE* error_ce = test_case->constructor_Error_CE(sim);
 
 	output_errors_sp('s',error_ce,sim);
 	output_errors_global(error_ce,sim);
@@ -180,7 +181,8 @@ struct Error_CE_Data* constructor_Error_CE_Data
 
 	e_ce_h->sol_cont->sol    = e_ce_d->sol[1];
 	e_ce_h->sol_cont->volume = e_ce_h->s_vol[1];
-	sim->test_case->set_sol(sim,*(e_ce_h->sol_cont));
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	test_case->set_sol(sim,*(e_ce_h->sol_cont));
 
 	return e_ce_d;
 }

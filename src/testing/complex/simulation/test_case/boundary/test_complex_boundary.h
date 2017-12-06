@@ -19,16 +19,19 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of containers and functions defined in \ref boundary.h.
  */
 
-#if 0
+#if 1
+
 #include "def_templates_type_dc.h"
 #include "def_templates_multiarray.h"
-#include "def_templates_boundary_c.h"
-#include "def_templates_operators_c.h"
+#include "def_templates_boundary_d.h"
+#include "def_templates_operators_d.h"
+#include "def_templates_face_solver.h"
 #include "boundary_T.h"
 #include "undef_templates_type.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_boundary.h"
 #include "undef_templates_operators.h"
+#include "undef_templates_face_solver.h"
 
 #else
 #include <stdbool.h>

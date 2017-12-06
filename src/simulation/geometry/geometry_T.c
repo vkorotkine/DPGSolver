@@ -32,6 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_multiarray.h"
 #include "def_templates_operators_d.h"
+#include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -452,7 +453,8 @@ static void compute_geom_coef_parametric_T (const struct Simulation*const sim, s
 	const struct const_Multiarray_R* xyz_p =
 		constructor_mm_NN1_Operator_const_Multiarray_R(vv0_vv_vg,xyz_ve,'C',op_format,xyz_ve->order,NULL); // dest.
 
-	const struct const_Multiarray_R* xyz = sim->test_case->constructor_xyz(xyz_p,s_vol,sim); // destructed
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const struct const_Multiarray_R* xyz = test_case->constructor_xyz(xyz_p,s_vol,sim); // destructed
 	destructor_const_Multiarray_R(xyz_p);
 
 /// \todo add setup_bezier_mesh: Likely make this a separate function.

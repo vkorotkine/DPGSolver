@@ -32,13 +32,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+#include "def_templates_type_d.h"
+#include "def_templates_test_case.h"
+
 // Interface functions ********************************************************************************************** //
 
 void compute_source_rhs_dg (const struct Simulation* sim)
 {
 	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
 
-	struct Test_Case* test_case = sim->test_case;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		const struct Solver_Volume* s_vol       = (struct Solver_Volume*) curr;

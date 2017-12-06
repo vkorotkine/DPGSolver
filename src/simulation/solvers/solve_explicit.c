@@ -79,14 +79,14 @@ void solve_explicit (struct Simulation* sim)
 {
 	assert(sim->method == METHOD_DG); // Can be made flexible in future.
 
-	sim->test_case->solver_method_curr = 'e';
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	test_case->solver_method_curr = 'e';
 	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER);       // destructed
 	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
 	constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
 
 	time_step_fptr time_step = set_time_step(sim);
 
-	struct Test_Case* test_case = sim->test_case;
 	const double time_final = test_case->time_final;
 	double dt = test_case->dt;
 	assert(time_final > 0.0);
@@ -111,7 +111,7 @@ void solve_explicit (struct Simulation* sim)
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
 	destructor_derived_Elements(sim,IL_ELEMENT);
-	sim->test_case->solver_method_curr = 0;
+	test_case->solver_method_curr = 0;
 }
 
 // Static functions ************************************************************************************************* //
@@ -146,7 +146,7 @@ static double time_step_ls_rk_54
 
 static time_step_fptr set_time_step (const struct Simulation* sim)
 {
-	const struct Test_Case* test_case = sim->test_case;
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	assert((test_case->solver_proc == SOLVER_E) || (test_case->solver_proc == SOLVER_EI));
 
 	switch (test_case->solver_type_e) {

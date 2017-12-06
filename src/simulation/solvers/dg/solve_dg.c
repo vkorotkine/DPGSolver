@@ -178,8 +178,9 @@ static void compute_rlhs_common_dg (const struct Simulation* sim, struct Solver_
 
 static void scale_rhs_by_m_inv (const struct Simulation* sim)
 {
-	assert((sim->test_case->solver_proc == SOLVER_E) ||
-	       (sim->test_case->solver_proc == SOLVER_EI));
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	assert((test_case->solver_proc == SOLVER_E) ||
+	       (test_case->solver_proc == SOLVER_EI));
 
 	if (!sim->collocated)
 		scale_rhs_by_m_inv_std(sim);

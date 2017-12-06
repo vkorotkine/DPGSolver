@@ -109,7 +109,7 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 
 	destructor_Mesh(mesh);
 
-	sim->test_case = constructor_Test_Case(sim);
+	sim->test_case_rc = constructor_Test_Case_rc_real(sim);
 
 	return sim;
 }
@@ -124,7 +124,7 @@ void destructor_Simulation (struct Simulation* sim)
 	destructor_Volumes(sim->volumes);
 	destructor_Faces(sim->faces);
 
-	destructor_Test_Case(sim->test_case);
+	destructor_Test_Case_rc_real(sim->test_case_rc);
 
 	free(sim);
 }

@@ -25,37 +25,29 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// Container for input strings which are to be subsequently converted to integer parameters.
-struct Test_Case_String_Inputs {
-	char num_flux_1st[STRLEN_MIN]; ///< The name of the 1st order numerical flux scheme to be used.
-	char num_flux_2nd[STRLEN_MIN]; ///< The name of the 2nd order numerical flux scheme to be used.
-
-	char test_norm[STRLEN_MIN]; ///< The name of the norm to use for the optimal test function computation.
-};
-
-/** \brief Return a statically allocated \ref Test_Case_String_Inputs container which zero-initialized members.
- *  \return See brief. */
-static struct Test_Case_String_Inputs set_Test_Case_String_Inputs
-	();
-
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "def_templates_flux.h"
-#include "def_templates_test_case.h"
 #include "test_case_T.c"
+
+struct Test_Case_rc* constructor_Test_Case_rc_real (const struct Simulation* sim)
+{
+	struct Test_Case_rc* test_case_rc = malloc(sizeof *test_case_rc); // free
+
+	const_cast_b(&test_case_rc->is_real,true);
+	test_case_rc->tc = (void*)constructor_Test_Case(sim); // destructed
+
+	return test_case_rc;
+}
+
+void destructor_Test_Case_rc_real (struct Test_Case_rc* test_case_rc)
+{
+	assert(test_case_rc->is_real);
+
+	destructor_Test_Case(test_case_rc->tc);
+	free(test_case_rc);
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static struct Test_Case_String_Inputs set_Test_Case_String_Inputs ()
-{
-	assert(sizeof(struct Test_Case_String_Inputs) == 3*STRLEN_MIN*sizeof(char));
-
-	struct Test_Case_String_Inputs tcsi;
-	tcsi.num_flux_1st[0] = 0;
-	tcsi.num_flux_2nd[0] = 0;
-	tcsi.test_norm[0] = 0;
-	return tcsi;
-}
 

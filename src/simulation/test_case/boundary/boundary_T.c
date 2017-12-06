@@ -21,6 +21,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
+#include "def_templates_boundary_d.h"
+
+#include "def_templates_multiarray.h"
+
+#include "def_templates_face_solver.h"
+
+#include "def_templates_operators_d.h"
+
 // Static function declarations ************************************************************************************* //
 
 /** \brief Constructor for the solution interpolating from the neighbouring volume to the face cubature nodes.

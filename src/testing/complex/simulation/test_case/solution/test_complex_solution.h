@@ -13,26 +13,22 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__numerical_flux_h__INCLUDED
-#define DPG__numerical_flux_h__INCLUDED
+#ifndef DPG__test_complex_solution_h__INCLUDED
+#define DPG__test_complex_solution_h__INCLUDED
 /** \file
- *  \brief Provides real containers and functions relating to the supported numerical fluxes.
+ *  \brief Provides the interface to functions used for solution specification (initialization).
  */
 
-#include "boundary.h"
-
-///\{ \name The maximum number of outputs from the numerical flux functions.
-#define MAX_NUM_FLUX_OUT 3 ///< See the members of \ref Numerical_Flux.
-///\}
-
-#include "def_templates_type_d.h"
-#include "def_templates_numerical_flux.h"
+#include "def_templates_type_dc.h"
+#include "def_templates_solution.h"
 #include "def_templates_multiarray.h"
-#include "def_templates_boundary_d.h"
-#include "numerical_flux_T.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_volume_solver.h"
+#include "solution_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_numerical_flux.h"
+#include "undef_templates_solution.h"
 #include "undef_templates_multiarray.h"
-#include "undef_templates_boundary.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
 
-#endif // DPG__numerical_flux_h__INCLUDED
+#endif // DPG__test_complex_solution_h__INCLUDED

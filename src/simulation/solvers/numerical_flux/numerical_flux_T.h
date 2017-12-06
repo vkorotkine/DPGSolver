@@ -59,13 +59,13 @@ struct Numerical_Flux_T {
 	const struct const_Multiarray_T* nnf; ///< The normal numerical fluxes.
 
 	/// \brief Container for information from either side of the face.
-	struct Neigh_Info_NF {
+	struct Neigh_Info_NF_T {
 		/// The Jacobian of the normal numerical fluxes wrt the solution variables.
 		const struct const_Multiarray_T* dnnf_ds;
 
 		/// The Jacobian of the normal numerical fluxes wrt the solution gradient variables.
 		const struct const_Multiarray_T* dnnf_dg;
-	} neigh_info[2]; ///< \ref Neigh_Info_NF.
+	} neigh_info[2]; ///< \ref Neigh_Info_NF_T.
 };
 
 /// \brief `mutable` version of \ref Numerical_Flux_T.
@@ -73,7 +73,7 @@ struct mutable_Numerical_Flux_T {
 	struct Multiarray_T* nnf; ///< Defined in \ref Numerical_Flux_T.
 
 	/// Defined in \ref Numerical_Flux_T.
-	struct m_Neigh_Info_NF {
+	struct m_Neigh_Info_NF_T {
 		struct Multiarray_T* dnnf_ds; ///< Defined in \ref Numerical_Flux_T.
 		struct Multiarray_T* dnnf_dg; ///< Defined in \ref Numerical_Flux_T.
 	} neigh_info[2]; ///< Defined in \ref Numerical_Flux_T.

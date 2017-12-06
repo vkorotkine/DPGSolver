@@ -20,9 +20,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Data types
 #define Numerical_Flux_Input_T   Numerical_Flux_Input
-#define Numerical_Flux_Input_R   Numerical_Flux_Input
 #define mutable_Numerical_Flux_T mutable_Numerical_Flux
 #define Numerical_Flux_T         Numerical_Flux
+
+#define Neigh_Info_NF_T   Neigh_Info_NF
+#define m_Neigh_Info_NF_T m_Neigh_Info_NF
 ///\}
 
 ///\{ \name Function pointers
@@ -53,4 +55,44 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+
+///\{ \name Data types
+#define Numerical_Flux_Input_T   Numerical_Flux_Input_c
+#define mutable_Numerical_Flux_T mutable_Numerical_Flux_c
+#define Numerical_Flux_T         Numerical_Flux_c
+
+#define Neigh_Info_NF_T   Neigh_Info_NF_c
+#define m_Neigh_Info_NF_T m_Neigh_Info_NF_c
+///\}
+
+///\{ \name Function pointers
+#define compute_Numerical_Flux_fptr_T compute_Numerical_Flux_fptr_c
+///\}
+
+///\{ \name Function names
+#define constructor_Numerical_Flux_Input_T     constructor_Numerical_Flux_Input_c
+#define destructor_Numerical_Flux_Input_T      destructor_Numerical_Flux_Input_c
+#define destructor_Numerical_Flux_Input_data_T destructor_Numerical_Flux_Input_c_data
+
+#define constructor_Numerical_Flux_T constructor_Numerical_Flux_c
+#define destructor_Numerical_Flux_T  destructor_Numerical_Flux_c
+
+#define compute_Numerical_Flux_1_T compute_Numerical_Flux_1_c
+#define compute_Numerical_Flux_12_T compute_Numerical_Flux_12_c
+///\}
+
+///\{ \name Function names (pde specific)
+#define compute_Numerical_Flux_T_advection_upwind          compute_Numerical_Flux_c_advection_upwind
+#define compute_Numerical_Flux_T_advection_upwind_jacobian compute_Numerical_Flux_c_advection_upwind_jacobian
+
+#define compute_Numerical_Flux_T_euler_lax_friedrichs          compute_Numerical_Flux_c_euler_lax_friedrichs
+#define compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian compute_Numerical_Flux_c_euler_lax_friedrichs_jacobian
+#define compute_Numerical_Flux_T_euler_roe_pike                compute_Numerical_Flux_c_euler_roe_pike
+#define compute_Numerical_Flux_T_euler_roe_pike_jacobian       compute_Numerical_Flux_c_euler_roe_pike_jacobian
+///\}
+
 #endif
+
+///\{ \name Real Data types/Function names
+#define Numerical_Flux_Input_R   Numerical_Flux_Input
+///\}

@@ -20,11 +20,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdio.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 
+
+#include "def_templates_numerical_flux.h"
 
 #include "def_templates_multiarray.h"
+
 #include "def_templates_boundary_d.h"
-#include "def_templates_numerical_flux.h"
+#include "def_templates_math_functions.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -44,7 +48,7 @@ struct Numerical_Flux_Input_T* constructor_Numerical_Flux_Input_T (const struct 
 
 	const_cast_c1(&num_flux_i->bv_l.input_path,sim->input_path);
 
-	struct Test_Case_T* test_case = sim->test_case;
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const_cast_i(&num_flux_i->method,sim->method);
 	const_cast_b(&num_flux_i->has_1st_order,test_case->has_1st_order);
 	const_cast_b(&num_flux_i->has_2nd_order,test_case->has_2nd_order);
@@ -96,7 +100,7 @@ struct Numerical_Flux_T* constructor_Numerical_Flux_T (const struct Numerical_Fl
 
 	num_flux->nnf = (c_m[0] ? constructor_zero_Multiarray_T('C',2,(ptrdiff_t[]){n_n,n_eq}) : NULL); // destructed
 	for (int i = 0; i < 2; ++i) {
-		struct m_Neigh_Info_NF* n_i = &num_flux->neigh_info[i];
+		struct m_Neigh_Info_NF_T* n_i = &num_flux->neigh_info[i];
 		n_i->dnnf_ds = (c_m[1] ? constructor_zero_Multiarray_T('C',3,(ptrdiff_t[]){n_n,n_eq,n_vr})   : NULL); // destructed
 		n_i->dnnf_dg = (c_m[2] ? constructor_zero_Multiarray_T('C',4,(ptrdiff_t[]){n_n,n_eq,n_vr,DIM}) : NULL); // destructed
 	}
@@ -111,9 +115,8 @@ void destructor_Numerical_Flux_T (struct Numerical_Flux_T* num_flux)
 {
 	if (num_flux->nnf != NULL)
 		destructor_const_Multiarray_T(num_flux->nnf);
-
 	for (int i = 0; i < 2; ++i) {
-		struct Neigh_Info_NF n_i = num_flux->neigh_info[i];
+		struct Neigh_Info_NF_T n_i = num_flux->neigh_info[i];
 		if (n_i.dnnf_ds != NULL)
 			destructor_const_Multiarray_T(n_i.dnnf_ds);
 		if (n_i.dnnf_dg != NULL)
@@ -166,9 +169,9 @@ static void combine_num_flux_boundary_T
 		for (int vr_r = 0; vr_r < n_vr; ++vr_r) {
 			const int ind_dnnf_ds_r = eq+vr_r*n_eq;
 			const int ind_ds_ds     = vr_l+vr_r*n_vr;
-			z_yxpz(n_n,get_col_const_Multiarray_T(ind_dnnf_ds_r,dnnf_ds_r),
-			           get_col_const_Multiarray_T(ind_ds_ds,ds_ds),
-			           get_col_Multiarray_T(ind_dnnf_ds_l,dnnf_ds_l));
+			z_yxpz_T(n_n,get_col_const_Multiarray_T(ind_dnnf_ds_r,dnnf_ds_r),
+			             get_col_const_Multiarray_T(ind_ds_ds,ds_ds),
+			             get_col_Multiarray_T(ind_dnnf_ds_l,dnnf_ds_l));
 		}
 	}}
 

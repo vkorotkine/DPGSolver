@@ -39,4 +39,25 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_solution.h"
 #include "undef_templates_test_case.h"
 
+/** \brief Container providing an additional layer of dereferencing to either a 'r'eal or 'c'omplex \ref Test_Case_T.
+ *  This container is provided so that \ref Simulation does not need to be templated.
+ */
+struct Test_Case_rc {
+	const bool is_real; ///< Flag for whether \ref Test_Case_rc::test_case is real (as opposed to complex).
+
+	void* tc; ///< Pointer to the \ref Test_Case_T.
+};
+
+/** \brief Constructor for a real \ref Test_Case_rc.
+ *  \return See brief. */
+struct Test_Case_rc* constructor_Test_Case_rc_real
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Destructor for a real \ref Test_Case_rc.
+void destructor_Test_Case_rc_real
+	(struct Test_Case_rc* test_case_rc ///< \ref Test_Case_rc.
+	);
+
+
 #endif // DPG__test_case_h__INCLUDED

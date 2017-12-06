@@ -15,14 +15,23 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "compute_grad_coef_dg.h"
+#include "solution.h"
 
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "multiarray.h"
+#include "matrix.h"
 
-#include "macros.h"
+#include "computational_elements.h"
+#include "face_solver.h"
+#include "element.h"
+#include "element_solution.h"
+#include "element_solver.h"
+#include "volume.h"
+#include "volume_solver.h"
 
+#include "flux.h"
+#include "geometry.h"
+#include "multiarray_operator.h"
+#include "operator.h"
 #include "simulation.h"
 #include "test_case.h"
 
@@ -30,15 +39,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void compute_grad_coef_dg (const struct Simulation* sim)
-{
-	UNUSED(sim);
-//	if (!sim->test_case->has_2nd_order)
-//		return;
-
-	EXIT_ADD_SUPPORT;
-}
+#include "def_templates_type_dc.h"
+#include "solution_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
