@@ -102,6 +102,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define Multiarray_R       Multiarray_d
 #define const_Multiarray_R const_Multiarray_d
 
+#define get_row_const_Multiarray_R    get_row_const_Multiarray_d
+#define get_col_Multiarray_R          get_col_Multiarray_d
 #define get_col_const_Multiarray_R    get_col_const_Multiarray_d
+#define set_to_value_Multiarray_R     set_to_value_Multiarray_d
+
+#define resize_Multiarray_R                    resize_Multiarray_d
 #define interpret_const_Multiarray_as_Vector_R interpret_const_Multiarray_as_Vector_d
 ///\}

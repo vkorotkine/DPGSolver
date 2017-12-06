@@ -19,20 +19,14 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to functions used to set the solution for the peterson test case.
  */
 
-struct Simulation;
-struct Solution_Container;
-
-/// \brief Function to be used for \ref Test_Case::set_sol for the peterson test case.
-void set_sol_peterson
-	(const struct Simulation* sim,      ///< Defined for \ref set_sol_fptr.
-	 struct Solution_Container sol_cont ///< Defined for \ref set_sol_fptr.
-	);
-
-/** \brief Function to be used for \ref Test_Case::constructor_sol for the peterson test case.
- *  \return See brief. */
-const struct const_Multiarray_d* constructor_const_sol_peterson
-	(const struct const_Multiarray_d* xyz, ///< Defined for \ref constructor_sol_fptr.
-	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr.
-	);
+#include "def_templates_type_d.h"
+#include "def_templates_solution.h"
+#include "def_templates_solution_advection.h"
+#include "def_templates_multiarray.h"
+#include "solution_peterson_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_advection.h"
+#include "undef_templates_multiarray.h"
 
 #endif // DPG__solution_peterson_h__INCLUDED

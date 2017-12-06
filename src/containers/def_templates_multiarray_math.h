@@ -62,4 +62,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define transpose_Multiarray_R transpose_Multiarray_d
+#define normalize_Multiarray_R                   normalize_Multiarray_d
+#define permute_Multiarray_R                     permute_Multiarray_d
 ///\}

@@ -18,7 +18,6 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name Data types
-#undef Boundary_Value_Input_R
 #undef Boundary_Value_Input_T
 #undef Boundary_Value_T
 ///\}
@@ -30,7 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_s_fc_interp_T
 ///\}
 
-///\{ \name Function names
+///\{ \name Function names (general)
 #undef constructor_Boundary_Value_Input_face_s_fcl_interp_T
 #undef destructor_Boundary_Value_Input_T
 #undef constructor_Boundary_Value_s_fcl_interp_T
@@ -44,3 +43,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_Boundary_Value_T_euler_riemann
 #undef constructor_Boundary_Value_T_euler_slipwall
 ///\}
+
+#undef Boundary_Value_Input_R

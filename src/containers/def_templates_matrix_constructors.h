@@ -124,6 +124,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Real Data types/Function names
 #define constructor_copy_Matrix_R                constructor_copy_Matrix_d
+#define constructor_copy_const_Matrix_R          constructor_copy_const_Matrix_d
 
 #define constructor_inverse_const_Matrix_R        constructor_inverse_const_Matrix_d
 #define constructor_mm_const_Matrix_R             constructor_mm_const_Matrix_d

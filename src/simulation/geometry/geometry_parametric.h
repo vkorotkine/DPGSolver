@@ -16,21 +16,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__geometry_parametric_h__INCLUDED
 #define DPG__geometry_parametric_h__INCLUDED
 /** \file
- *  \brief Provides the interface to functions used for parametric geometry processing.
+ *  \brief Provides the interface to real functions used for parametric geometry processing.
  */
 
-struct Solver_Volume;
-struct Simulation;
+#include "def_templates_type_d.h"
+#include "def_templates_geometry_parametric.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_multiarray.h"
+#include "geometry_parametric_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_geometry_parametric.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_multiarray.h"
 
-/** \brief Version of \ref constructor_xyz_fptr for the parametric cylinder.
- *  \return See brief.
- *
- *  Uses \f$ r-\theta \f$ parametrization to transform from square to circular sections.
- */
-const struct const_Multiarray_d* constructor_xyz_cylinder_parametric
-	(const struct const_Multiarray_d* xyz_i, ///< See brief.
-	 const struct Solver_Volume* s_vol,      ///< See brief.
-	 const struct Simulation* sim            ///< See brief.
-	);
 
 #endif // DPG__geometry_parametric_h__INCLUDED

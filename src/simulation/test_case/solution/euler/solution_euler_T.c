@@ -22,6 +22,17 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 #include "definitions_test_case.h"
 
+#include "def_templates_solution_euler.h"
+
+#include "def_templates_multiarray.h"
+
+#include "def_templates_boundary_d.h"
+#include "def_templates_flux.h"
+#include "def_templates_geometry.h"
+#include "def_templates_numerical_flux.h"
+#include "def_templates_solution.h"
+#include "def_templates_test_case.h"
+
 // Static function declarations ************************************************************************************* //
 
 #define NEQ  NEQ_EULER  ///< Number of equations.
@@ -29,17 +40,52 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-/** \brief Convert between supported variable types.
- *
- *  Supported types include:
- *  - 'p'rimitive:    [rho u v w p].
- *  - 'c'onservative: [rho*[1 u v w] E]; E = p/(GAMMA-1) + 0.5*rho*V^2.
- */
-void convert_variables_T
-	(struct Multiarray_T* vars, ///< The container holding the data.
-	 const char type_i,         ///< The input variable type.
-	 const char type_o          ///< The output variable type.
-	)
+void set_function_pointers_solution_euler (struct Test_Case_T* test_case, const struct Simulation*const sim)
+{
+	test_case->set_grad = set_sg_do_nothing_T;
+	if (strstr(sim->pde_spec,"periodic_vortex")) {
+		test_case->constructor_sol      = constructor_const_sol_invalid_T;
+		test_case->set_sol              = set_sol_periodic_vortex_T;
+		test_case->compute_source_rhs   = compute_source_rhs_do_nothing_T;
+		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
+	} else if (strstr(sim->pde_spec,"supersonic_vortex")) {
+		test_case->constructor_xyz      = constructor_xyz_cylinder_parametric_T;
+		test_case->constructor_sol      = constructor_const_sol_supersonic_vortex_T;
+		test_case->set_sol              = set_sol_supersonic_vortex_T;
+		test_case->compute_source_rhs   = compute_source_rhs_do_nothing_T;
+		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
+	} else {
+		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
+	}
+
+	const bool* flux_comp_mem_e = (bool[]){1,0,0},
+	          * flux_comp_mem_i = (bool[]){1,1,0};
+	for (int i = 0; i < MAX_NUM_FLUX_OUT; ++i) {
+		const_cast_b(&test_case->flux_comp_mem_e[i],flux_comp_mem_e[i]);
+		const_cast_b(&test_case->flux_comp_mem_i[i],flux_comp_mem_i[i]);
+	}
+
+	test_case->compute_Flux = compute_Flux_1_T;
+	test_case->compute_Flux_e[0] = compute_Flux_T_euler;
+	test_case->compute_Flux_e[1] = NULL;
+	test_case->compute_Flux_i[0] = compute_Flux_T_euler_jacobian;
+	test_case->compute_Flux_i[1] = NULL;
+
+	test_case->compute_Numerical_Flux = compute_Numerical_Flux_1_T;
+	switch (test_case->ind_num_flux[0]) {
+	case NUM_FLUX_ROE_PIKE:
+		test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_T_euler_roe_pike;
+		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_T_euler_roe_pike_jacobian;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
+		break;
+	}
+
+	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_s_fcl_interp_T;
+}
+
+void convert_variables_T (struct Multiarray_T* vars, const char type_i, const char type_o)
 {
 	assert(type_i != type_o);
 	assert(vars->layout == 'C');

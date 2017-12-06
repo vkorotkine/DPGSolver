@@ -1,33 +1,4 @@
-
 Petsc Solver Updates
-1) Assemble LHS terms directly in Petsc Mat
-	- Remove memory initialization for LHS terms.
-2) Assemble HDG complete and Schur complement matrix as in [Petsc ex70](http://www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex70.c.html)
-	- Compare cost of MatMatMult with direct assembly if assembly dominates solver cost.
-
-
-LHS changes:
-1) Move memory allocation (calloc) to relevant compute_* functions (remove in update_VOLUME/FACE functions)
-2) Free memory as soon as it is no longer needed during compute_RLHS stage (Including freeing Qhat_What**)
-
-
-Code refactoring:
-
-1) The `Simulation` struct
-
-- Make a default ctrl file with all possible inputs but only require relevant parameters in individual ctrl files.
-	- Initialized from parameters in the ctrl file.
-	- Additional members:
-		- Elements, Volumes, Faces (pointer to head)
-			- These are structs holding information common to derived structs
-		- Test case
-			- This should have most of the data currently set in init_test_case_parameters().
-			- This should include function pointers relevant to the case under consideration.
-
-A `simulation` is then passed around the code as the substitute for the current global variables. Various submodules
-then derive from the `simulation`:
-	- solver:simulation
-		- adaptation:solver
-			- For adaptation, update values of the base volume/face, then construct new derived volume/face, then add
-			  any remaining data from the derived parent.
-	- post-processing:simulation
+1) Compare assembly of Schur complement matrix as in
+   [Petsc ex70](http://www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex70.c.html) with direct assembly
+   if this is found to dominate solver cost.

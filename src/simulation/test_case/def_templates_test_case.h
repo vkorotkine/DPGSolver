@@ -36,4 +36,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+/// \todo modify to use complex types.
+///\{ \name Data types
+#define Test_Case_T Test_Case
+///\}
+
+///\{ \name Function names
+///\}
+
 #endif
+

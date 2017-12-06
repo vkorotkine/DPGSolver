@@ -16,27 +16,21 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__solution_euler_h__INCLUDED
 #define DPG__solution_euler_h__INCLUDED
 /** \file
- *  \brief Provides functions relating to the Euler solutions.
+ *  \brief Provides real functions relating to the Euler solutions.
  */
 
-struct Test_Case;
-struct Simulation;
+#include "def_templates_type_d.h"
+#include "def_templates_solution_euler.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_test_case.h"
+#include "solution_euler_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solution_euler.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_test_case.h"
 
 struct Multiarray_d;
 struct const_Multiarray_d;
-
-/// \brief Set the solution function pointer members of an Euler \ref Test_Case.
-void set_function_pointers_solution_euler
-	(struct Test_Case* test_case,      ///< \ref Test_Case.
-	 const struct Simulation*const sim ///< \ref Simulation.
-	);
-
-/// \brief `double` version of \ref convert_variables_T.
-void convert_variables
-	(struct Multiarray_d* vars, ///< See brief.
-	 const char type_i,         ///< See brief.
-	 const char type_o          ///< See brief.
-	);
 
 /// \brief Compute the entropy measure: s = p/pow(rho,GAMMA).
 void compute_entropy

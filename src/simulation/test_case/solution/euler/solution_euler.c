@@ -44,62 +44,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-#define NEQ  NEQ_EULER  ///< Number of equations.
-#define NVAR NVAR_EULER ///< Number of variables.
-
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-
-#include "def_templates_multiarray.h"
-#include "def_templates_solution.h"
-
 #include "solution_euler_T.c"
-
-void set_function_pointers_solution_euler (struct Test_Case* test_case, const struct Simulation*const sim)
-{
-	test_case->set_grad = set_sg_do_nothing;
-	if (strstr(sim->pde_spec,"periodic_vortex")) {
-		test_case->constructor_sol      = constructor_const_sol_invalid;
-		test_case->set_sol              = set_sol_periodic_vortex;
-		test_case->compute_source_rhs   = compute_source_rhs_do_nothing;
-		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
-	} else if (strstr(sim->pde_spec,"supersonic_vortex")) {
-		test_case->constructor_xyz      = constructor_xyz_cylinder_parametric;
-		test_case->constructor_sol      = constructor_const_sol_supersonic_vortex;
-		test_case->set_sol              = set_sol_supersonic_vortex;
-		test_case->compute_source_rhs   = compute_source_rhs_do_nothing;
-		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
-	} else {
-		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
-	}
-
-	const bool* flux_comp_mem_e = (bool[]){1,0,0},
-	          * flux_comp_mem_i = (bool[]){1,1,0};
-	for (int i = 0; i < MAX_NUM_FLUX_OUT; ++i) {
-		const_cast_b(&test_case->flux_comp_mem_e[i],flux_comp_mem_e[i]);
-		const_cast_b(&test_case->flux_comp_mem_i[i],flux_comp_mem_i[i]);
-	}
-
-	test_case->compute_Flux = compute_Flux_1;
-	test_case->compute_Flux_e[0] = compute_Flux_euler;
-	test_case->compute_Flux_e[1] = NULL;
-	test_case->compute_Flux_i[0] = compute_Flux_euler_jacobian;
-	test_case->compute_Flux_i[1] = NULL;
-
-	test_case->compute_Numerical_Flux = compute_Numerical_Flux_1;
-	switch (test_case->ind_num_flux[0]) {
-	case NUM_FLUX_ROE_PIKE:
-		test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_euler_roe_pike;
-		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_euler_roe_pike_jacobian;
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
-		break;
-	}
-
-	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_s_fcl_interp;
-}
 
 void compute_entropy (struct Multiarray_d* s, const struct const_Multiarray_d* vars, const char var_type)
 {

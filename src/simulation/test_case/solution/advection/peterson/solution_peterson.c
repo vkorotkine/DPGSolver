@@ -17,14 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "solution_peterson.h"
 
-#include <assert.h>
-#include <math.h>
-#include <string.h>
-
-#include "macros.h"
-#include "definitions_core.h"
-#include "definitions_tol.h"
-
 #include "multiarray.h"
 
 #include "file_processing.h"
@@ -35,57 +27,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Return a \ref Multiarray_T\* container holding the solution values at the input coordinates.
- *  \return See brief. */
-static struct Multiarray_d* constructor_sol_peterson
-	(const struct Simulation* sim,        ///< Defined for \ref set_sol_peterson.
-	 const struct const_Multiarray_d* xyz ///< xyz coordinates at which to evaluate the solution.
-	);
-
 // Interface functions ********************************************************************************************** //
 
-void set_sol_peterson (const struct Simulation* sim, struct Solution_Container sol_cont)
-{
-	const struct const_Multiarray_d* xyz = constructor_xyz_sol(sim,&sol_cont); // destructed
-	struct Multiarray_d* sol = constructor_sol_peterson(sim,xyz); // destructed
-	destructor_const_Multiarray_d(xyz);
-
-	update_Solution_Container_sol(&sol_cont,sol);
-	destructor_Multiarray_d(sol);
-}
-
-const struct const_Multiarray_d* constructor_const_sol_peterson
-	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
-{
-	struct Multiarray_d* sol = constructor_sol_peterson(sim,xyz); // returned
-	return (const struct const_Multiarray_d*) sol;
-}
+#include "def_templates_type_d.h"
+#include "solution_peterson_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static struct Multiarray_d* constructor_sol_peterson
-	(const struct Simulation* sim, const struct const_Multiarray_d* xyz)
-{
-	assert(DIM == 2);
-
-	const struct Sol_Data__Advection sol_data = get_sol_data_advection(sim);
-
-	// Compute the solution
-	const ptrdiff_t n_vs = xyz->extents[0];
-	const int n_var = sim->test_case->n_var;
-
-	struct Multiarray_d* sol = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_vs,n_var}); // returned
-
-	const double* b_adv = sol_data.b_adv;
-	assert((b_adv[0] == 0.0) && (b_adv[1] == 1.0)); /* Can be made flexible in future but solution below must be
-	                                                 * modified. */
-
-	const double* x = get_col_const_Multiarray_d(0,xyz);
-
-	double* u = get_col_Multiarray_d(0,sol);
-	for (int i = 0; i < n_vs; ++i)
-		u[i] = sin(2.15*x[i]+0.23);
-
-	return sol;
-}

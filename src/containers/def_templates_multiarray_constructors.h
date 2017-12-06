@@ -132,5 +132,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define constructor_empty_Multiarray_R constructor_empty_Multiarray_d
-#define destructor_const_Multiarray_R  destructor_const_Multiarray_d
+
+#define const_constructor_copy_Multiarray_R    const_constructor_copy_Multiarray_d
+
+#define const_constructor_move_const_Multiarray_R        const_constructor_move_const_Multiarray_d
+
+#define destructor_Multiarray_R               destructor_Multiarray_d
+#define destructor_const_Multiarray_R         destructor_const_Multiarray_d
 ///\}

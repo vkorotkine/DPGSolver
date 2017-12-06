@@ -20,7 +20,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Data types
 #define Flux_Input_T   Flux_Input
-#define Flux_Input_R   Flux_Input ///< \todo Delete when no longer used.
 #define Flux_T         Flux
 #define mutable_Flux_T mutable_Flux
 ///\}
@@ -48,4 +47,35 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+///\{ \name Data types
+#define Flux_Input_T   Flux_Input_c
+#define Flux_T         Flux_c
+#define mutable_Flux_T mutable_Flux_c
+///\}
+
+///\{ \name Function pointers
+#define compute_Flux_fptr_T compute_Flux_c_fptr
+///\}
+
+///\{ \name Function names
+#define constructor_Flux_Input_T constructor_Flux_Input_c
+#define destructor_Flux_Input_T  destructor_Flux_Input_c
+#define constructor_Flux_T       constructor_Flux_c
+#define destructor_Flux_T        destructor_Flux_c
+#define compute_Flux_1_T         compute_Flux_c_1
+#define compute_Flux_12_T        compute_Flux_c_12
+///\}
+
+///\{ \name Function names (pde_specific)
+#define compute_Flux_T_advection          compute_Flux_c_advection
+#define compute_Flux_T_advection_jacobian compute_Flux_c_advection_jacobian
+
+#define compute_Flux_T_euler          compute_Flux_c_euler
+#define compute_Flux_T_euler_jacobian compute_Flux_c_euler_jacobian
+///\}
+
 #endif
+
+///\{ \name Real Data types/Function names
+#define Flux_Input_R   Flux_Input
+///\}

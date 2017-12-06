@@ -16,24 +16,25 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__solution_advection_h__INCLUDED
 #define DPG__solution_advection_h__INCLUDED
 /** \file
- *  \brief Provides functions relating to the linear Advection solutions.
+ *  \brief Provides real functions relating to the linear Advection solutions.
  */
 
-#include "definitions_core.h"
+#include "def_templates_type_d.h"
+#include "def_templates_solution_advection.h"
+#include "def_templates_test_case.h"
+#include "solution_advection_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solution_advection.h"
+#include "undef_templates_test_case.h"
 
-struct Test_Case;
+
+#include "definitions_core.h"
 struct Simulation;
 
 /// \brief Container for solution data relating to linear advection solutions.
 struct Sol_Data__Advection {
 	double b_adv[DMAX]; ///< The constant advection velocity vector.
 };
-
-/// \brief Set the solution function pointer members of an Euler \ref Test_Case.
-void set_function_pointers_solution_advection
-	(struct Test_Case* test_case,      ///< \ref Test_Case.
-	 const struct Simulation*const sim ///< \ref Simulation.
-	);
 
 /** \brief Return the statically allocated \ref Sol_Data__Advection container.
  *  \return See brief. */

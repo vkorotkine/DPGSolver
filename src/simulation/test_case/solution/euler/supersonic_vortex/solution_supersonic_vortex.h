@@ -16,23 +16,17 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__solution_supersonic_vortex_h__INCLUDED
 #define DPG__solution_supersonic_vortex_h__INCLUDED
 /** \file
- *  \brief Provides the interface to functions used to set the solution for the supersonic vortex test case.
+ *  \brief Provides the interface to real functions used to set the solution for the supersonic vortex test case.
  */
 
-struct Simulation;
-struct Solution_Container;
-
-/// \brief Function to be used for \ref Test_Case::set_sol for the supersonic vortex test case.
-void set_sol_supersonic_vortex
-	(const struct Simulation* sim,      ///< Defined for \ref set_sol_fptr.
-	 struct Solution_Container sol_cont ///< Defined for \ref set_sol_fptr.
-	);
-
-/** \brief Function to be used for \ref Test_Case::constructor_sol for the supersonic vortex solution.
- *  \return See brief. */
-const struct const_Multiarray_d* constructor_const_sol_supersonic_vortex
-	(const struct const_Multiarray_d* xyz, ///< Defined for \ref constructor_sol_fptr.
-	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr.
-	);
+#include "def_templates_type_d.h"
+#include "def_templates_solution.h"
+#include "def_templates_solution_euler.h"
+#include "def_templates_multiarray.h"
+#include "solution_supersonic_vortex_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_euler.h"
+#include "undef_templates_multiarray.h"
 
 #endif // DPG__solution_supersonic_vortex_h__INCLUDED
