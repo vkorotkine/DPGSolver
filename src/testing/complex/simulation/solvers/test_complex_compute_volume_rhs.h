@@ -19,47 +19,18 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of functions defined in \ref compute_volume_rlhs.h.
  */
 
-struct Flux_Input_c;
-struct Simulation;
-struct Solver_Volume;
-
-/** \brief `complex` version of \ref constructor_sol_vc_fptr.
- *  \return Standard.
- *
- *  \param s_vol The current volume.
- *  \param sim   \ref Simulation.
- */
-typedef const struct const_Multiarray_c* (*constructor_sol_vc_c_fptr)
-	(const struct Solver_Volume* s_vol,
-	 const struct Simulation* sim
-	);
-
-/// \brief `complex` version of \ref S_Params_Volume_Structor.
-struct S_Params_Volume_Structor_c {
-	constructor_sol_vc_c_fptr constructor_sol_vc; ///< Pointer to the appropriate function.
-};
-
-/// \brief `complex` version of \ref Flux_Ref.
-struct Flux_Ref_c {
-	const struct const_Multiarray_c* fr;     ///< See brief.
-	const struct const_Multiarray_c* dfr_ds; ///< See brief.
-	const struct const_Multiarray_c* dfr_dg; ///< See brief.
-};
-
-// Interface functions ********************************************************************************************** //
-
-/** \brief `complex` version of \ref constructor_Flux_Ref_vol.
- *  \return See brief. */
-struct Flux_Ref_c* constructor_Flux_Ref_vol_c
-	(const struct S_Params_Volume_Structor_c* spvs, ///< \ref S_Params_Volume_Structor.
-	 struct Flux_Input_c* flux_i,                   ///< \ref Flux_Input.
-	 const struct Solver_Volume* s_vol,             ///< \ref Solver_Volume.
-	 const struct Simulation* sim                   ///< \ref Simulation.
-	);
-
-/// \brief `complex` version of \ref destructor_Flux_Ref.
-void destructor_Flux_Ref_c
-	(struct Flux_Ref_c* flux_ref ///< See brief.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_compute_volume_rlhs.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_flux.h"
+#include "compute_volume_rlhs_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_compute_volume_rlhs.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_flux.h"
 
 #endif // DPG__test_complex_compute_volume_rhs_h__INCLUDED

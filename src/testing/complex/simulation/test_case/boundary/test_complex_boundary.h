@@ -19,8 +19,6 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of containers and functions defined in \ref boundary.h.
  */
 
-#if 1
-
 #include "def_templates_type_dc.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_boundary.h"
@@ -32,78 +30,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_boundary.h"
 #include "undef_templates_operators.h"
 #include "undef_templates_face_solver.h"
-
-#else
-#include <stdbool.h>
-#include "boundary.h"
-#include "complex_boundary.h"
-
-struct Boundary_Value_Input_c;
-struct Boundary_Value_c;
-struct Solver_Face;
-struct Simulation;
-
-/** \brief `complex` version of \ref constructor_Boundary_Value_Input_face_fptr.
- *  \return Standard.
- *
- *  \param bv_i   See brief.
- *  \param s_face See brief.
- *  \param sim    See brief.
- */
-typedef void (*constructor_Boundary_Value_Input_c_face_fptr)
-	(struct Boundary_Value_Input_c* bv_i,
-	 const struct Solver_Face* s_face,
-	 const struct Simulation* sim
-	);
-
-/// \brief Derived `complex` version of \ref Boundary_Value_Input.
-struct Boundary_Value_Input_c {
-	struct Boundary_Value_Input bv_i; ///< Base \ref Boundary_Value_Input.
-
-	const bool has_complex_J; ///< Flag for whether the `complex` Jacobian terms should be computed.
-
-	const int method; ///< \ref Simulation::method.
-
-	const struct const_Multiarray_c* s; ///< See brief.
-	const struct const_Multiarray_c* g; ///< See brief.
-};
-
-/// \brief `complex` version of \ref Boundary_Value.
-struct Boundary_Value_c {
-	const struct const_Multiarray_c* s; ///< See brief.
-	const struct const_Multiarray_c* g; ///< See brief.
-
-	const struct const_Multiarray_c* ds_ds; ///< See brief.
-};
-
-// Interface functions ********************************************************************************************** //
-
-/** \brief `complex` version of \ref constructor_Boundary_Value_Input_face_s_fcl_interp.
- *  \return See brief. */
-void constructor_Boundary_Value_Input_c_face_s_fcl_interp
-	(struct Boundary_Value_Input_c* bv_i, ///< See brief.
-	 const struct Solver_Face* face,      ///< See brief.
-	 const struct Simulation* sim         ///< See brief.
-	);
-
-/// \brief Destructor for a \ref Boundary_Value_Input_c container.
-void destructor_Boundary_Value_Input_c
-	(struct Boundary_Value_Input_c* bv_i ///< Standard.
-	);
-
-/** \brief `complex` version of \ref constructor_Boundary_Value_s_fcl_interp.
- *  \return See brief. */
-void constructor_Boundary_Value_c_s_fcl_interp
-	(struct Boundary_Value_c* bv,               ///< See brief.
-	 const struct Boundary_Value_Input_c* bv_i, ///< See brief.
-	 const struct Solver_Face* face,            ///< See brief.
-	 const struct Simulation* sim               ///< See brief.
-	);
-
-/// \brief Destructor for a \ref Boundary_Value_c container.
-void destructor_Boundary_Value_c
-	(struct Boundary_Value_c* bv ///< Standard.
-	);
-#endif
 
 #endif // DPG__test_complex_boundary_h__INCLUDED

@@ -13,20 +13,26 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_complex_solution_euler_h__INCLUDED
-#define DPG__test_complex_solution_euler_h__INCLUDED
+#ifndef DPG__test_complex_volume_solver_dpg_h__INCLUDED
+#define DPG__test_complex_volume_solver_dpg_h__INCLUDED
 /** \file
- *  \brief Provides complex functions relating to the Euler solutions.
+ *  \brief Provides the interface for the complex \ref DPG_Solver_Volume container and associated functions.
  */
 
-#include "def_templates_type_dc.h"
-#include "def_templates_solution_euler.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_test_case.h"
-#include "solution_euler_T.h"
-#include "undef_templates_type.h"
-#include "undef_templates_solution_euler.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_test_case.h"
+#include "test_complex_volume_solver.h"
 
-#endif // DPG__test_complex_solution_euler_h__INCLUDED
+#include "def_templates_type_dc.h"
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_volume_solver_dpg.h"
+#include "volume_solver_dpg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dpg.h"
+
+#endif // DPG__test_complex_volume_solver_dpg_h__INCLUDED

@@ -28,8 +28,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define IL_SOLVER              1010
 #define IL_SOLVER_DG           1011
 #define IL_SOLVER_DPG          1012
-#define IL_SOLVER_DG_COMPLEX   1021
-#define IL_SOLVER_DPG_COMPLEX  1022
 #define IL_SOLVER_ADAPTIVE     1030
 ///\}
 
@@ -51,8 +49,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define IL_VOLUME_SOLVER             210
 #define IL_VOLUME_SOLVER_DG          211
 #define IL_VOLUME_SOLVER_DPG         212
-#define IL_VOLUME_SOLVER_DG_COMPLEX  221
-#define IL_VOLUME_SOLVER_DPG_COMPLEX 222
 #define IL_VOLUME_SOLVER_ADAPTIVE    230
 ///\}
 
@@ -61,8 +57,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define IL_FACE_SOLVER              310
 #define IL_FACE_SOLVER_DG           311
 #define IL_FACE_SOLVER_DPG          312
-#define IL_FACE_SOLVER_DG_COMPLEX   321
-#define IL_FACE_SOLVER_DPG_COMPLEX  322
 #define IL_FACE_SOLVER_ADAPTIVE     330
 ///\}
 

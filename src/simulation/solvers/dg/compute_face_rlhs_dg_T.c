@@ -32,8 +32,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_face_solver_dg.h"
 #include "def_templates_volume_solver_dg.h"
 
+#include "def_templates_compute_face_rlhs.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_operators.h"
+#include "def_templates_solve_dg.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -86,7 +88,8 @@ static struct S_Params_T set_s_params_T
 
 // Interface functions ********************************************************************************************** //
 
-void compute_face_rlhs_dg_T (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
+void compute_face_rlhs_dg_T
+	(const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i, struct Intrusive_List* faces)
 {
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
 	assert(sim->faces->name    == IL_FACE_SOLVER_DG);
@@ -95,20 +98,20 @@ void compute_face_rlhs_dg_T (const struct Simulation* sim, struct Solver_Storage
 	struct S_Params_T s_params = set_s_params_T(sim);
 	struct Numerical_Flux_Input_T* num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
 
-	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {
 		struct Face* face                  = (struct Face*) curr;
 		struct Solver_Face_T* s_face       = (struct Solver_Face_T*) curr;
 		struct DG_Solver_Face_T* dg_s_face = (struct DG_Solver_Face_T*) curr;
 //printf("face: %d\n",face->index);
 
-		constructor_Numerical_Flux_Input_data(num_flux_i,s_face,sim); // destructed
+		constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed
 #if 0
 print_const_Multiarray_T(num_flux_i->bv_l.s);
 print_const_Multiarray_T(num_flux_i->bv_r.s);
 #endif
 
 		struct Numerical_Flux_T* num_flux = constructor_Numerical_Flux_T(num_flux_i); // destructed
-		destructor_Numerical_Flux_Input_data(num_flux_i);
+		destructor_Numerical_Flux_Input_data_T(num_flux_i);
 #if 0
 print_const_Multiarray_T(num_flux->nnf);
 print_const_Multiarray_T(num_flux->neigh_info[0].dnnf_ds);
@@ -139,14 +142,14 @@ if (!face->boundary)
 /// \brief Scale \ref Numerical_Flux_T::nnf by the face Jacobian (i.e. only the explicit term).
 static void scale_by_Jacobian_e_T
 	(const struct Numerical_Flux_T* num_flux, ///< Defined for \ref scale_by_Jacobian_fptr_T.
-	 struct Face* face,                     ///< Defined for \ref scale_by_Jacobian_fptr_T.
-	 const struct Simulation* sim           ///< Defined for \ref scale_by_Jacobian_fptr_T.
+	 struct Face* face,                       ///< Defined for \ref scale_by_Jacobian_fptr_T.
+	 const struct Simulation* sim             ///< Defined for \ref scale_by_Jacobian_fptr_T.
 	);
 
 /// \brief Compute only the rhs term.
 static void compute_rhs_f_dg_T
-	(const struct Numerical_Flux_T* num_flux,     ///< Defined for \ref compute_rlhs_fptr_T.
-	 struct DG_Solver_Face_T* dg_s_face,          ///< Defined for \ref compute_rlhs_fptr_T.
+	(const struct Numerical_Flux_T* num_flux,   ///< Defined for \ref compute_rlhs_fptr_T.
+	 struct DG_Solver_Face_T* dg_s_face,        ///< Defined for \ref compute_rlhs_fptr_T.
 	 struct Solver_Storage_Implicit* s_store_i, ///< Defined for \ref compute_rlhs_fptr_T.
 	 const struct Simulation* sim               ///< Defined for \ref compute_rlhs_fptr_T.
 	);
@@ -176,7 +179,7 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 		break;
 #endif
 	default:
-		EXIT_ERROR("Unsupported: %c\n",test_case->solver_method_curr);
+		EXIT_ERROR("Unsupported: %c (type_rc: %d)\n",test_case->solver_method_curr,TYPE_RC);
 		break;
 	}
 
@@ -187,10 +190,10 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 
 /// \brief Finalize the rhs term contribution from the \ref Face.
 static void finalize_face_rhs_dg_T
-	(const int side_index,                  ///< The index of the side of the face under consideration.
+	(const int side_index,                    ///< The index of the side of the face under consideration.
 	 const struct Numerical_Flux_T* num_flux, ///< Defined for \ref compute_rlhs_fptr_T.
 	 struct DG_Solver_Face_T* dg_s_face,      ///< Defined for \ref compute_rlhs_fptr_T.
-	 const struct Simulation* sim           ///< Defined for \ref compute_rlhs_fptr_T.
+	 const struct Simulation* sim             ///< Defined for \ref compute_rlhs_fptr_T.
 	);
 
 static void scale_by_Jacobian_e_T (const struct Numerical_Flux_T* num_flux, struct Face* face, const struct Simulation* sim)
@@ -199,7 +202,7 @@ UNUSED(sim);
 	struct Solver_Face_T* s_face = (struct Solver_Face_T*)face;
 
 	const struct const_Vector_R jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
-	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_T*)num_flux->nnf,&jacobian_det_fc,false);
+	scale_Multiarray_T_by_Vector_R('L',1.0,(struct Multiarray_T*)num_flux->nnf,&jacobian_det_fc,false);
 }
 
 static void compute_rhs_f_dg_T
@@ -212,7 +215,7 @@ static void compute_rhs_f_dg_T
 	const struct Face* face = (struct Face*) dg_s_face;
 	finalize_face_rhs_dg_T(0,num_flux,dg_s_face,sim);
 	if (!face->boundary) {
-		permute_Multiarray_d_fc((struct Multiarray_T*)num_flux->nnf,'R',1,(struct Solver_Face_T*)face);
+		permute_Multiarray_T_fc((struct Multiarray_T*)num_flux->nnf,'R',1,(struct Solver_Face_T*)face);
 // Can remove both of the scalings (here and and finalize_face_rhs_dg_T).
 		scale_Multiarray_T((struct Multiarray_T*)num_flux->nnf,-1.0); // Use "-ve" normal.
 		finalize_face_rhs_dg_T(1,num_flux,dg_s_face,sim);
@@ -225,9 +228,10 @@ static void finalize_face_rhs_dg_T
 	(const int side_index, const struct Numerical_Flux_T* num_flux, struct DG_Solver_Face_T* dg_s_face,
 	 const struct Simulation* sim)
 {
-	const struct Face* face          = (struct Face*) dg_s_face;
+	const struct Face* face            = (struct Face*) dg_s_face;
 	const struct Solver_Face_T* s_face = (struct Solver_Face_T*) face;
-	const struct Operator* tw0_vt_fc = get_operator__tw0_vt_fc(side_index,s_face);
+
+	const struct Operator* tw0_vt_fc = get_operator__tw0_vt_fc_T(side_index,s_face);
 
 UNUSED(sim);
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
@@ -239,4 +243,3 @@ UNUSED(sim);
 	mm_NNC_Operator_Multiarray_T(-1.0,1.0,tw0_vt_fc,num_flux->nnf,dg_s_vol->rhs,op_format,2,NULL,NULL);
 //print_Multiarray_T(dg_s_vol->rhs);
 }
-

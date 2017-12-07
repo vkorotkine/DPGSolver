@@ -13,10 +13,20 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` dpg rlhs computing
+ *  \brief Provides the macro definitions used for c-style templating related to the dpg rlhs computing
  *         functions.
  */
+
+#if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
 #define increment_and_add_dof_rlhs_f_1_T increment_and_add_dof_rlhs_f_1
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define increment_and_add_dof_rlhs_f_1_T increment_and_add_dof_rlhs_f_1_c
+///\}
+
+#endif

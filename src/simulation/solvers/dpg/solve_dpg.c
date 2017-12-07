@@ -117,7 +117,7 @@ struct Vector_i* constructor_nnz_dpg (const struct Simulation* sim)
 
 double compute_rlhs_dpg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
 {
-	compute_all_rlhs_dpg(sim,ssi);
+	compute_all_rlhs_dpg(sim,ssi,sim->volumes);
 	return compute_max_rhs(ssi);
 }
 

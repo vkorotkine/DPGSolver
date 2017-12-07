@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdio.h>
 #include <stdbool.h>
 
+struct Multiarray_c;
 struct Multiarray_Matrix_d;
 struct const_Multiarray_d;
 struct const_Multiarray_Matrix_d;
@@ -170,9 +171,9 @@ void print_diff_const_Multiarray_Matrix_d
 
 // Math functions *************************************************************************************************** //
 
-/// \brief Perturb the data of the input \ref Multiarray_T\* container.
-void perturb_Multiarray_d
-	(struct Multiarray_d* a, ///< Input multiarray.
+/// \brief Perturb the data of the input `complex` \ref Multiarray_T\* container.
+void perturb_Multiarray_c
+	(struct Multiarray_c* a, ///< Input multiarray.
 	 const double da         ///< Permutation magnitude.
 	);
 

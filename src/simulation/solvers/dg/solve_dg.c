@@ -171,8 +171,8 @@ static void compute_rlhs_common_dg (const struct Simulation* sim, struct Solver_
 {
 	zero_memory_volumes(sim->volumes);
 	compute_grad_coef_dg(sim);
-	compute_volume_rlhs_dg(sim,s_store_i);
-	compute_face_rlhs_dg(sim,s_store_i);
+	compute_volume_rlhs_dg(sim,s_store_i,sim->volumes);
+	compute_face_rlhs_dg(sim,s_store_i,sim->faces);
 	compute_source_rhs_dg(sim);
 }
 

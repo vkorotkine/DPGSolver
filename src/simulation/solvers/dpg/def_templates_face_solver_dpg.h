@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` \ref DPG_Solver_Face
+ *  \brief Provides the macro definitions used for c-style templating related to the \ref DPG_Solver_Face
  *         containers/functions.
  */
 
@@ -29,4 +29,14 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Data types
+#define DPG_Solver_Face_T DPG_Solver_Face_c
+///\}
+
+///\{ \name Function names
+#define constructor_derived_DPG_Solver_Face_T constructor_derived_DPG_Solver_Face_c
+#define destructor_derived_DPG_Solver_Face_T  destructor_derived_DPG_Solver_Face_c
+///\}
+
 #endif

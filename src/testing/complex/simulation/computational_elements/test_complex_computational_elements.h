@@ -12,11 +12,18 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__test_complex_computational_elements_h__INCLUDED
+#define DPG__test_complex_computational_elements_h__INCLUDED
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double complex` dpg rlhs computing
- *         functions.
+ *  \brief Provides real general functions related to the \ref Volume and \ref Face computational elements
+ *         and their derived types.
  */
 
-///\{ \name Function names
-#define increment_and_add_dof_rlhs_f_1_T increment_and_add_dof_rlhs_f_1_c
-///\}
+#include "def_templates_type_dc.h"
+#include "def_templates_computational_elements.h"
+#include "computational_elements_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_computational_elements.h"
+
+#endif // DPG__test_complex_computational_elements_h__INCLUDED

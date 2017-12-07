@@ -34,7 +34,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define constructor_Numerical_Flux_Input_T     constructor_Numerical_Flux_Input
 #define destructor_Numerical_Flux_Input_T      destructor_Numerical_Flux_Input
-#define destructor_Numerical_Flux_Input_data_T destructor_Numerical_Flux_Input_data
 
 #define constructor_Numerical_Flux_T constructor_Numerical_Flux
 #define destructor_Numerical_Flux_T  destructor_Numerical_Flux
@@ -71,7 +70,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define constructor_Numerical_Flux_Input_T     constructor_Numerical_Flux_Input_c
 #define destructor_Numerical_Flux_Input_T      destructor_Numerical_Flux_Input_c
-#define destructor_Numerical_Flux_Input_data_T destructor_Numerical_Flux_Input_c_data
 
 #define constructor_Numerical_Flux_T constructor_Numerical_Flux_c
 #define destructor_Numerical_Flux_T  destructor_Numerical_Flux_c

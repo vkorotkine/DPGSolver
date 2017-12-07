@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *         of supported schemes.
  */
 
+struct Matrix_R;
 struct Matrix_T;
 struct Solver_Face_T;
 struct Numerical_Flux_Input_T;
@@ -45,7 +46,15 @@ void permute_Matrix_T_fc
 	 const int side_index_dest,         ///< The side index of the destination.
 	 const struct Solver_Face_T* s_face ///< \ref Solver_Face_T.
 	);
-
+#if TYPE_RC == TYPE_COMPLEX
+/// \brief Version of \ref permute_Matrix_T_fc taking a real input matrix.
+void permute_Matrix_R_fc
+	(struct Matrix_R* data,             ///< See brief.
+	 const char perm_layout,            ///< See brief.
+	 const int side_index_dest,         ///< See brief.
+	 const struct Solver_Face_T* s_face ///< See brief.
+	);
+#endif
 /** \brief Get the pointer to the appropriate \ref Solver_Element::nc_fc \ref const_Vector_T\*.
  *  \return See brief. */
 const struct const_Vector_i* get_operator__nc_fc_T

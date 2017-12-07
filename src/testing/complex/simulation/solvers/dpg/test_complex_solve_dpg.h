@@ -28,11 +28,6 @@ void perturb_solution_dpg
 	(const struct Simulation* sim ///< Defined for \ref perturb_solution_fptr.
 	);
 
-/// \brief Set the initial solution for the complex computational elements from the real solution for the DG scheme.
-void set_initial_solution_complex_dpg
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
 /// \brief Compute the lhs matrix using the complex step method for the DG scheme.
 void compute_lhs_cmplx_step_dpg
 	(const struct Simulation* sim,       ///< \ref Simulation.

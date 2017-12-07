@@ -75,6 +75,17 @@ void permute_Matrix_T_fc
 	const struct const_Vector_i* nc_fc = get_operator__nc_fc_T(side_index_dest,s_face);
 	permute_Matrix_T_V(data,nc_fc);
 }
+#if TYPE_RC == TYPE_COMPLEX
+void permute_Matrix_R_fc
+	(struct Matrix_R* data, const char perm_layout, const int side_index_dest, const struct Solver_Face_T* s_face)
+{
+	assert(perm_layout == 'R');
+	assert(data->layout == 'R');
+
+	const struct const_Vector_i* nc_fc = get_operator__nc_fc_T(side_index_dest,s_face);
+	permute_Matrix_R_V(data,nc_fc);
+}
+#endif
 
 const struct const_Vector_i* get_operator__nc_fc_T (const int side_index_dest, const struct Solver_Face_T* s_face)
 {

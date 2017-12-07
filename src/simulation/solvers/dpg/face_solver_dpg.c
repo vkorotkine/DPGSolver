@@ -24,8 +24,6 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "def_templates_face_solver.h"
-#include "def_templates_face_solver_dpg.h"
 #include "face_solver_dpg_T.c"
 
 // Static functions ************************************************************************************************* //

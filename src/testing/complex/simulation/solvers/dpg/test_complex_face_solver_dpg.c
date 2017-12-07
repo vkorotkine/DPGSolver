@@ -13,10 +13,18 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double complex` face rlhs
- *         computing functions.
  */
 
-///\{ \name Function names
-#define constructor_lhs_f_1_T constructor_lhs_f_1_c
-///\}
+#include "test_complex_face_solver_dpg.h"
+
+#include "simulation.h"
+
+// Static function declarations ************************************************************************************* //
+
+// Interface functions ********************************************************************************************** //
+
+#include "def_templates_type_dc.h"
+#include "face_solver_dpg_T.c"
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //

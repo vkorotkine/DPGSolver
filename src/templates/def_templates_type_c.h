@@ -16,4 +16,6 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the `char` data type.
  */
 
+#include "definitions_templates_type.h"
+
 #define Type char ///< Type parameter.

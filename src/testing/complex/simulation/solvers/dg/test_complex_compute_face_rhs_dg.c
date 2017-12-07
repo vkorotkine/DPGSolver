@@ -13,7 +13,6 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \todo Attempt to template these functions.
  */
 
 #include "test_complex_compute_face_rhs_dg.h"
@@ -30,8 +29,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_intrusive.h"
 
-#include "face_solver_dg_complex.h"
-#include "volume_solver_dg_complex.h"
+#include "test_complex_face_solver_dg.h"
+#include "test_complex_volume_solver_dg.h"
 
 #include "complex_multiarray.h"
 #include "multiarray.h"
@@ -41,124 +40,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_face_rlhs_dg.h"
 #include "intrusive.h"
 #include "simulation.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief `complex` version of \ref constructor_Numerical_Flux_Input_data for the dg scheme.
-void constructor_Numerical_Flux_Input_c_data_dg
-	(struct Numerical_Flux_Input_c* num_flux_i,        ///< See brief.
-	 const struct Complex_DG_Solver_Face* c_dg_s_face, ///< See brief.
-	 const struct Simulation* sim                      ///< See brief.
-	);
-
-/// \brief `complex` version of \ref scale_by_Jacobian_e.
-static void scale_by_Jacobian_e_c
-	(const struct Numerical_Flux_c* num_flux, ///< See brief.
-	 struct Face* face,                       ///< See brief.
-	 const struct Simulation* sim             ///< See brief.
-	);
-
-/// \brief `complex` version of \ref compute_rhs_f_dg.
-static void compute_rhs_f_dg_c
-	(const struct Numerical_Flux_c* num_flux, ///< See brief.
-	 struct Face* face,                       ///< See brief.
-	 const struct Simulation* sim             ///< See brief.
-	);
-
 // Interface functions ********************************************************************************************** //
 
-void compute_face_rhs_dg_c (const struct Simulation* sim, struct Intrusive_List* faces)
-{
-	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
-	assert(sim->faces->name    == IL_FACE_SOLVER_DG_COMPLEX);
-	assert(sim->volumes->name  == IL_VOLUME_SOLVER_DG_COMPLEX);
+#include "def_templates_type_dc.h"
+#include "compute_face_rlhs_dg_T.c"
 
-	struct Numerical_Flux_Input_c* num_flux_i = constructor_Numerical_Flux_Input_c(sim); // destructed
-	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {
-		struct Face* face                          = (struct Face*) curr;
-		struct Complex_DG_Solver_Face* c_dg_s_face = (struct Complex_DG_Solver_Face*) curr;
-
-		constructor_Numerical_Flux_Input_c_data_dg(num_flux_i,c_dg_s_face,sim); // destructed
-#if 0
-print_const_Multiarray_c(num_flux_i->bv_l.s);
-print_const_Multiarray_c(num_flux_i->bv_r.s);
-#endif
-
-		struct Numerical_Flux_c* num_flux = constructor_Numerical_Flux_c(num_flux_i); // destructed
-#if 0
-print_const_Multiarray_c(num_flux->nnf);
-#endif
-		destructor_Numerical_Flux_Input_c_data(num_flux_i);
-
-		scale_by_Jacobian_e_c(num_flux,face,sim);
-#if 0
-print_const_Multiarray_c(num_flux->nnf);
-#endif
-
-		compute_rhs_f_dg_c(num_flux,face,sim);
-		destructor_Numerical_Flux_c(num_flux);
-	}
-//EXIT_UNSUPPORTED;
-	destructor_Numerical_Flux_Input_c(num_flux_i);
-}
-
-// Static functions ************************************************************************************************* //
+// Static function ************************************************************************************************** //
 // Level 0 ********************************************************************************************************** //
-
-/// \brief `complex` version of \ref finalize_face_rhs_dg.
-static void finalize_face_rhs_dg_c
-	(const int side_index,                    ///< See brief.
-	 const struct Numerical_Flux_c* num_flux, ///< See brief.
-	 struct Face* face,                       ///< See brief.
-	 const struct Simulation* sim             ///< See brief.
-	);
-
-void constructor_Numerical_Flux_Input_c_data_dg
-	(struct Numerical_Flux_Input_c* num_flux_i, const struct Complex_DG_Solver_Face* c_dg_s_face,
-	const struct Simulation* sim)
-{
-	struct Complex_Test_Case* test_case = (struct Complex_Test_Case*) sim->test_case;
-	struct Solver_Face* s_face = (struct Solver_Face*) c_dg_s_face;
-
-	test_case->constructor_Boundary_Value_Input_c_face_fcl(&num_flux_i->bv_l,s_face,sim);          // destructed
-	c_dg_s_face->constructor_Boundary_Value_c_fcl(&num_flux_i->bv_r,&num_flux_i->bv_l,s_face,sim); // destructed
-}
-
-static void scale_by_Jacobian_e_c
-	(const struct Numerical_Flux_c* num_flux, struct Face* face, const struct Simulation* sim)
-{
-	UNUSED(sim);
-	struct Solver_Face* s_face = (struct Solver_Face*)face;
-
-	const struct const_Vector_d jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
-	scale_Multiarray_c_by_Vector_d('L',1.0,(struct Multiarray_c*)num_flux->nnf,&jacobian_det_fc,false);
-}
-
-static void compute_rhs_f_dg_c
-	(const struct Numerical_Flux_c* num_flux, struct Face* face, const struct Simulation* sim)
-{
-	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
-
-	finalize_face_rhs_dg_c(0,num_flux,face,sim);
-	if (!face->boundary) {
-		permute_Multiarray_c_fc((struct Multiarray_c*)num_flux->nnf,'R',1,(struct Solver_Face*)face);
-
-		scale_Multiarray_c((struct Multiarray_c*)num_flux->nnf,-1.0);
-		finalize_face_rhs_dg_c(1,num_flux,face,sim);
-	}
-}
-
-// Level 1 ********************************************************************************************************** //
-
-static void finalize_face_rhs_dg_c
-	(const int side_index, const struct Numerical_Flux_c* num_flux, struct Face* face, const struct Simulation* sim)
-{
-	UNUSED(sim);
-	const struct Solver_Face* s_face = (struct Solver_Face*) face;
-	const struct Operator* tw0_vt_fc = get_operator__tw0_vt_fc(side_index,s_face);
-
-	struct Complex_DG_Solver_Volume* c_dg_s_vol =
-		(struct Complex_DG_Solver_Volume*) face->neigh_info[side_index].volume;
-
-	mm_NNC_Operator_Multiarray_c(-1.0,1.0,tw0_vt_fc,num_flux->nnf,c_dg_s_vol->rhs,'d',2,NULL,NULL);
-}

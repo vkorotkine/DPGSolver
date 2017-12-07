@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_volume_solver_dpg.h"
+
 // Static function declarations ************************************************************************************* //
 
 /** \brief Constructor for the H0 norm operator of the input volume.
@@ -54,7 +60,7 @@ const struct const_Matrix_R* constructor_norm_op_H0 (const struct DPG_Solver_Vol
 	const int p      = s_vol->p_ref,
 	          curved = vol->curved;
 	const struct Operator* cv0_vt_vc = get_Multiarray_Operator(dpg_s_e->cv0_vt_vc[curved],(ptrdiff_t[]){0,0,p,p});
-	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e(s_vol);
+	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
 
 	const struct const_Vector_R jacobian_det_vc = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
 	const struct const_Vector_R* wJ_vc = constructor_dot_mult_const_Vector_R(w_vc,&jacobian_det_vc,1); // destructed

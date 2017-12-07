@@ -18,16 +18,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
-///\{ \name Data types
-///\}
-
-///\{ \name Function pointers
-///\}
-
 ///\{ \name Function names
 #define get_operator__tw0_vt_fc_T               get_operator__tw0_vt_fc
 #define get_operator__cv0_vs_fc_T               get_operator__cv0_vs_fc
 #define permute_Matrix_T_fc                     permute_Matrix_d_fc
+#define permute_Matrix_R_fc                     permute_Matrix_d_fc
 #define get_operator__nc_fc_T                   get_operator__nc_fc
 #define constructor_Numerical_Flux_Input_data_T constructor_Numerical_Flux_Input_data
 #define destructor_Numerical_Flux_Input_data_T  destructor_Numerical_Flux_Input_data
@@ -36,5 +31,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+///\{ \name Function names
+#define get_operator__tw0_vt_fc_T               get_operator__tw0_vt_fc_c
+#define get_operator__cv0_vs_fc_T               get_operator__cv0_vs_fc_c
+#define permute_Matrix_T_fc                     permute_Matrix_c_fc
+#define permute_Matrix_R_fc                     permute_Matrix_d_fc_c
+#define get_operator__nc_fc_T                   get_operator__nc_fc_c
+#define constructor_Numerical_Flux_Input_data_T constructor_Numerical_Flux_Input_data_c
+#define destructor_Numerical_Flux_Input_data_T  destructor_Numerical_Flux_Input_data_c
+#define constructor_lhs_f_1_T                   constructor_lhs_f_1_c
+///\}
 
 #endif

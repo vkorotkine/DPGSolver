@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver.h"
 
 #include "file_processing.h"
+#include "math_functions.h"
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
@@ -35,7 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "solution_supersonic_vortex_T.c"
+#include "supersonic_vortex/solution_supersonic_vortex_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

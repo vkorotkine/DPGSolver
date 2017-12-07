@@ -12,23 +12,15 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
 /** \file
  *  \brief Undefine macro definitions for c-style templating relating to face rlhs computing functions.
  */
 
-///\{ \name Data types
-///\}
-
-///\{ \name Function pointers
-///\}
-
-///\{ \name Function names
 #undef get_operator__tw0_vt_fc_T
 #undef get_operator__cv0_vs_fc_T
 #undef permute_Matrix_T_fc
+#undef permute_Matrix_R_fc
 #undef get_operator__nc_fc_T
 #undef constructor_Numerical_Flux_Input_data_T
 #undef destructor_Numerical_Flux_Input_data_T
 #undef constructor_lhs_f_1_T
-///\}

@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to templated functions used to set the solution for the supersonic vortex test case.
  */
 
+struct const_Multiarray_R;
+struct const_Multiarray_T;
 struct Simulation;
 struct Solution_Container_T;
 

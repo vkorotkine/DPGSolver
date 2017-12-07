@@ -158,10 +158,10 @@ struct Matrix_T* constructor_lhs_v_1_T
 			const ptrdiff_t ind =
 				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
 			dfr_ds.data = (Type*)&dfr_ds_Ma->data[ind];
-			mm_diag_d('R',1.0,1.0,tw1_vt_vc.data[dim]->op_std,(struct const_Vector_T*)&dfr_ds,tw1_r,false);
+			mm_diag_T('R',1.0,1.0,tw1_vt_vc.data[dim]->op_std,(struct const_Vector_T*)&dfr_ds,tw1_r,false);
 		}
 
-		mm_T('N','N',1.0,0.0,(struct const_Matrix_T*)tw1_r,cv0_vs_vc->op_std,lhs_l);
+		mm_TRT('N','N',1.0,0.0,(struct const_Matrix_T*)tw1_r,cv0_vs_vc->op_std,lhs_l);
 //printf("%d %d\n",vr,eq);
 //print_Matrix_T(lhs_l);
 		set_block_Matrix_T(lhs,(struct const_Matrix_T*)lhs_l,eq*lhs_l->ext_0,vr*lhs_l->ext_1,'i');
@@ -279,9 +279,9 @@ static const struct const_Multiarray_T* constructor_flux_ref_T
 			for (int dim1 = 0; dim1 < DIM; ++dim1) {
 				const int ind_m  = dim0*DIM+dim1,
 				          ind_fp = (ind_f*DIM)+dim1;
-				z_yxpz_T(n_n,get_col_const_Multiarray_T(ind_fp,f),
-				             get_col_const_Multiarray_R(ind_m,m),
-				             get_col_Multiarray_T(ind_fr,fr));
+				z_yxpz_RTT(n_n,get_col_const_Multiarray_R(ind_m,m),
+				               get_col_const_Multiarray_T(ind_fp,f),
+				               get_col_Multiarray_T(ind_fr,fr));
 			}
 		}
 		++ind_f;

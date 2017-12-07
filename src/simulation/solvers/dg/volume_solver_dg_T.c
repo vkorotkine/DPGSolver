@@ -20,7 +20,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_test_case.h"
 
-
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_volume_solver_dg.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -39,7 +43,7 @@ static struct Needed_Members set_needed_members
 
 /** \brief Constructor for the inverse mass matrix of the input volume.
  *  \return See brief. */
-static const struct const_Matrix_T* constructor_inverse_mass
+static const struct const_Matrix_R* constructor_inverse_mass
 	(const struct DG_Solver_Volume_T* volume ///< \ref DG_Solver_Volume.
 	);
 
@@ -137,7 +141,7 @@ static const struct const_Matrix_R* constructor_mass (const struct Solver_Volume
 	const int p      = s_vol->p_ref,
 	          curved = vol->curved;
 	const struct Operator* cv0_vs_vc = get_Multiarray_Operator(s_e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
-	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e(s_vol);
+	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
 
 	const struct const_Vector_R jacobian_det_vc = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
 	const struct const_Vector_R* wJ_vc = constructor_dot_mult_const_Vector_R(w_vc,&jacobian_det_vc,1); // destructed

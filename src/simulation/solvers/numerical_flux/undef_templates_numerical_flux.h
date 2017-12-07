@@ -32,7 +32,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #undef constructor_Numerical_Flux_Input_T
 #undef destructor_Numerical_Flux_Input_T
-#undef destructor_Numerical_Flux_Input_data_T
 
 #undef constructor_Numerical_Flux_T
 #undef destructor_Numerical_Flux_T

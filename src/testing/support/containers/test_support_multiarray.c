@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_alloc.h"
 
+#include "complex_multiarray.h"
 #include "multiarray.h"
 
 #include "file_processing.h"
@@ -385,7 +386,7 @@ void print_diff_const_Multiarray_Matrix_d
 
 // Math functions *************************************************************************************************** //
 
-void perturb_Multiarray_d (struct Multiarray_d* a, const double da)
+void perturb_Multiarray_c (struct Multiarray_c* a, const double da)
 {
 	const ptrdiff_t size = compute_size(a->order,a->extents);
 	for (int i = 0; i < size; ++i)

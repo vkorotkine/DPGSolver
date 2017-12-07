@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_volume_solver.h"
 #include "def_templates_volume_solver_dg.h"
 
+#include "def_templates_compute_volume_rlhs.h"
 #include "def_templates_flux.h"
 #include "def_templates_test_case.h"
 #include "def_templates_operators.h"
@@ -36,13 +37,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /** \brief Function pointer to the function used to evaluate the rhs (and optionally lhs) terms.
  *
- *  \param flux_r   \ref Flux_Ref.
+ *  \param flux_r   \ref Flux_Ref_T.
  *  \param dg_s_vol \ref DG_Solver_Volume_T.
  *  \param ssi      \ref Solver_Storage_Implicit.
  *  \param sim      \ref Simulation.
  */
 typedef void (*compute_rlhs_dg_fptr_T)
-	(const struct Flux_Ref* flux_r,
+	(const struct Flux_Ref_T* flux_r,
 	 struct DG_Solver_Volume_T* dg_s_vol,
 	 struct Solver_Storage_Implicit* ssi,
 	 const struct Simulation* sim
@@ -50,7 +51,7 @@ typedef void (*compute_rlhs_dg_fptr_T)
 
 /// \brief Container for solver-related parameters.
 struct S_Params_T {
-	struct S_Params_Volume_Structor spvs; ///< \ref S_Params_Volume_Structor.
+	struct S_Params_Volume_Structor_T spvs; ///< \ref S_Params_Volume_Structor_T.
 
 	compute_rlhs_dg_fptr_T compute_rlhs; ///< Pointer to the appropriate function.
 };
@@ -63,7 +64,8 @@ static struct S_Params_T set_s_params_T
 
 // Interface functions ********************************************************************************************** //
 
-void compute_volume_rlhs_dg_T (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
+void compute_volume_rlhs_dg_T
+	(const struct Simulation* sim, struct Solver_Storage_Implicit* ssi, struct Intrusive_List* volumes)
 {
 	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
@@ -71,16 +73,16 @@ void compute_volume_rlhs_dg_T (const struct Simulation* sim, struct Solver_Stora
 	struct S_Params_T s_params = set_s_params_T(sim);
 	struct Flux_Input_T* flux_i = constructor_Flux_Input_T(sim); // destructed
 
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume_T* s_vol       = (struct Solver_Volume_T*) curr;
 		struct DG_Solver_Volume_T* dg_s_vol = (struct DG_Solver_Volume_T*) curr;
 //printf("%d %td\n",((struct Volume*)s_vol)->index,s_vol->ind_dof);
 
-		struct Flux_Ref* flux_r = constructor_Flux_Ref_vol(&s_params.spvs,flux_i,s_vol,sim);
+		struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_T(&s_params.spvs,flux_i,s_vol,sim);
 
 		// Compute the rhs (and optionally the lhs) terms.
 		s_params.compute_rlhs(flux_r,dg_s_vol,ssi,sim);
-		destructor_Flux_Ref(flux_r);
+		destructor_Flux_Ref_T(flux_r);
 //EXIT_UNSUPPORTED;
 	}
 	destructor_Flux_Input_T(flux_i);
@@ -92,7 +94,7 @@ void compute_volume_rlhs_dg_T (const struct Simulation* sim, struct Solver_Stora
 
 /// \brief Version of \ref compute_rlhs_dg_fptr_T computing only the rhs term.
 static void compute_rhs_v_dg_T
-	(const struct Flux_Ref* flux_r,       ///< See brief.
+	(const struct Flux_Ref_T* flux_r,       ///< See brief.
 	 struct DG_Solver_Volume_T* dg_s_vol,   ///< See brief.
 	 struct Solver_Storage_Implicit* ssi, ///< See brief.
 	 const struct Simulation* sim         ///< See brief.
@@ -102,7 +104,7 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 {
 	struct S_Params_T s_params;
 
-	set_S_Params_Volume_Structor(&s_params.spvs,sim);
+	set_S_Params_Volume_Structor_T(&s_params.spvs,sim);
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	switch (test_case->solver_method_curr) {
@@ -122,7 +124,7 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 		break;
 #endif
 	default:
-		EXIT_ERROR("Unsupported: %c\n",test_case->solver_method_curr);
+		EXIT_ERROR("Unsupported: %c (type_rc: %d)\n",test_case->solver_method_curr,TYPE_RC);
 		break;
 	}
 
@@ -132,14 +134,14 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 // Level 1 ********************************************************************************************************** //
 
 static void compute_rhs_v_dg_T
-	(const struct Flux_Ref* flux_r, struct DG_Solver_Volume_T* dg_s_vol, struct Solver_Storage_Implicit* ssi,
+	(const struct Flux_Ref_T* flux_r, struct DG_Solver_Volume_T* dg_s_vol, struct Solver_Storage_Implicit* ssi,
 	 const struct Simulation* sim)
 {
 	UNUSED(sim);
 	UNUSED(ssi);
 
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) dg_s_vol;
-	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
+	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc_T(s_vol);
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';

@@ -17,10 +17,15 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
 
 #include "macros.h"
 #include "definitions_core.h"
 #include "definitions_test_case.h"
+
 
 #include "def_templates_solution_euler.h"
 
@@ -40,7 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void set_function_pointers_solution_euler (struct Test_Case_T* test_case, const struct Simulation*const sim)
+void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
 	test_case->set_grad = set_sg_do_nothing_T;
 	if (strstr(sim->pde_spec,"periodic_vortex")) {

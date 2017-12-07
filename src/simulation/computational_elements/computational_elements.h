@@ -16,33 +16,19 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__computational_elements_h__INCLUDED
 #define DPG__computational_elements_h__INCLUDED
 /** \file
- *  \brief Provides general functions related to the \ref Volume and \ref Face computational elements and their derived
- *         types.
+ *  \brief Provides real general functions related to the \ref Volume and \ref Face computational elements
+ *         and their derived types.
  */
+
+#include "def_templates_type_d.h"
+#include "def_templates_computational_elements.h"
+#include "computational_elements_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_computational_elements.h"
 
 #include <stddef.h>
 
 struct Simulation;
-struct Mesh;
-
-/** \brief Construct derived \ref Volume and \ref Face computational element lists.
- *  \ref Simulation::volumes and \ref Simulation::faces are set to point to the newly created lists.
- */
-void constructor_derived_computational_elements
-	(struct Simulation* sim,    ///< \ref Simulation.
-	 const int derived_category /**< The computational element list category.
-	                             *   Options: see \ref definitions_intrusive.h. */
-	);
-
-/** \brief Destructor for derived \ref Volume and \ref Face computational element lists.
- *  The appropriate portion of the derived list members are shallow copied to the base list and the derived lists are
- *  then destructed.
- */
-void destructor_derived_computational_elements
-	(struct Simulation* sim, ///< \ref Simulation.
-	 const int base_category /**< The derived computational element list category.
-	                          *   Options: see \ref definitions_intrusive.h. */
-	);
 
 /** \brief Constructor for a list of derived \ref Element\*s.
  *  \ref Simulation::elements is set to point to the newly created list.

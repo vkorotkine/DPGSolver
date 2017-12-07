@@ -56,37 +56,6 @@ static void add_to_petsc_Mat_Vec_dpg
 #include "def_templates_type_d.h"
 #include "compute_all_rlhs_dpg_T.c"
 
-void compute_all_rlhs_dpg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
-{
-	assert(sim->volumes->name == IL_VOLUME_SOLVER_DPG);
-	assert(sim->faces->name == IL_FACE_SOLVER_DPG);
-	assert(sim->elements->name == IL_ELEMENT_SOLVER_DPG);
-
-	/** \note Linearized terms are required for the computation of optimal test functions, even if only computing rhs
-	 *        terms. */
-	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
-	assert(test_case->solver_method_curr == 'i');
-
-	struct S_Params_DPG s_params = set_s_params_dpg(sim);
-	struct Flux_Input* flux_i = constructor_Flux_Input(sim); // destructed
-
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-//struct Volume*        vol   = (struct Volume*) curr;
-//printf("v_ind: %d\n",vol->index);
-		struct Solver_Volume* s_vol         = (struct Solver_Volume*) curr;
-		struct DPG_Solver_Volume* dpg_s_vol = (struct DPG_Solver_Volume*) curr;
-
-		struct Flux_Ref* flux_r = constructor_Flux_Ref_vol(&s_params.spvs,flux_i,s_vol,sim); // destructed
-
-		const struct const_Matrix_d* norm_op = s_params.constructor_norm_op(dpg_s_vol,flux_r,sim); // destructed
-
-		s_params.compute_rlhs(norm_op,flux_r,dpg_s_vol,ssi,sim);
-		destructor_const_Matrix_d(norm_op);
-		destructor_Flux_Ref(flux_r);
-	}
-	destructor_Flux_Input(flux_i);
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

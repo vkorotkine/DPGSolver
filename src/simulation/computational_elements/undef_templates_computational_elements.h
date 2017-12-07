@@ -13,10 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double complex` multiarray
- *         operator functions.
+ *  \brief Undefine macro definitions for c-style templating relating to def_templates_computational_elements.h.
  */
 
-///\{ \name Function names
-#define mm_NNC_Operator_Multiarray_T mm_NNC_Operator_Multiarray_c
-///\}
+#undef constructor_derived_computational_elements_T
+#undef destructor_derived_computational_elements_T

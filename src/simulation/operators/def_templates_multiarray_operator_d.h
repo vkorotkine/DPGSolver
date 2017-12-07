@@ -17,6 +17,16 @@ You should have received a copy of the GNU General Public License along with DPG
  *         functions.
  */
 
+#if TYPE_RC == TYPE_REAL
+
 ///\{ \name Function names
 #define mm_NNC_Operator_Multiarray_T mm_NNC_Operator_Multiarray_d
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define mm_NNC_Operator_Multiarray_T mm_NNC_Operator_Multiarray_c
+///\}
+
+#endif

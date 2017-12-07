@@ -19,21 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of functions defined in \ref compute_volume_rlhs_dg.h.
  */
 
-struct Simulation;
-struct Intrusive_List;
-struct Solver_Volume;
-
-/// \brief Version of \ref compute_volume_rlhs_dg computing only complex rhs terms.
-void compute_volume_rhs_dg_c
-	(const struct Simulation* sim,  ///< \ref Simulation.
-	 struct Intrusive_List* volumes ///< The list of volumes for which to compute the rhs term.
-	);
-
-/** \brief See \ref constructor_sol_vc_interp.
- *  \return Standard. */
-const struct const_Multiarray_c* constructor_sol_vc_dg_c
-	(const struct Solver_Volume* s_vol, ///< See brief.
-	 const struct Simulation* sim       ///< See brief.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_compute_volume_rlhs_dg.h"
+#include "compute_volume_rlhs_dg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_compute_volume_rlhs_dg.h"
 
 #endif // DPG__test_complex_compute_volume_rhs_dg_h__INCLUDED

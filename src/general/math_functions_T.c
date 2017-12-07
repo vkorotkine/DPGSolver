@@ -93,6 +93,12 @@ void z_yxpz_T (const int n, const Type* x, const Type* y, Type* z)
 	for (int i = 0; i < n; ++i)
 		z[i] += y[i]*x[i];
 }
-
+#if TYPE_RC == TYPE_COMPLEX
+void z_yxpz_RTT (const int n, const Real* x, const Type* y, Type* z)
+{
+	for (int i = 0; i < n; ++i)
+		z[i] += y[i]*x[i];
+}
+#endif
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

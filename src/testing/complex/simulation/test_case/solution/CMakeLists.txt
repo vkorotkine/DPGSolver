@@ -1,6 +1,5 @@
 set	(SOURCE
 	 test_complex_solution.c
-	 test_complex_solution_euler.c
 	 advection/test_complex_solution_advection.c
 	 advection/test_complex_solution_advection_default.c
 	 advection/peterson/test_complex_solution_peterson.c

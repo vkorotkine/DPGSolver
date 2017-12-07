@@ -30,6 +30,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_solution_euler.h"
 
 #include "def_templates_multiarray.h"
+
+#include "def_templates_math_functions.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -50,13 +52,13 @@ const struct const_Multiarray_T* constructor_const_sol_supersonic_vortex
 	return (const struct const_Multiarray_T*) sol;
 }
 
-void set_sol_supersonic_vortex (const struct Simulation* sim, struct Solution_Container sol_cont)
+void set_sol_supersonic_vortex (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
-	const struct const_Multiarray_R* xyz = constructor_xyz_sol(sim,&sol_cont); // destructed
+	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_supersonic_vortex(xyz,sim); // destructed
 	destructor_const_Multiarray_R(xyz);
 
-	update_Solution_Container_sol(&sol_cont,sol);
+	update_Solution_Container_sol_T(&sol_cont,sol);
 	destructor_Multiarray_T(sol);
 }
 
@@ -113,7 +115,7 @@ static struct Multiarray_T* constructor_sol_supersonic_vortex
 		rho[i] = rho_i*pow(1.0+0.5*GM1*m_i*m_i*(1.0-pow(r_i/r,2.0)),1.0/GM1);
 		u[i]   = -sin(t)*Vt;
 		v[i]   =  cos(t)*Vt;
-		p[i]   = pow(rho[i],GAMMA)/GAMMA;
+		p[i]   = pow_T(rho[i],GAMMA)/GAMMA;
 	}
 
 	if (DIM == 3) {

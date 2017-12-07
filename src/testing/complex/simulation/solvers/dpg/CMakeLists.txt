@@ -1,6 +1,8 @@
 set	(SOURCE
 	 test_complex_compute_all_rhs_dpg.c
 	 test_complex_solve_dpg.c
+	 test_complex_face_solver_dpg.c
+	 test_complex_volume_solver_dpg.c
 	)
 
 set	(LIBS_DEPEND

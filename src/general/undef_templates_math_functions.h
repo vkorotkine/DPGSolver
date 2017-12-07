@@ -26,3 +26,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef norm_diff_T
 #undef max_abs_T
 #undef z_yxpz_T
+#undef z_yxpz_RTT

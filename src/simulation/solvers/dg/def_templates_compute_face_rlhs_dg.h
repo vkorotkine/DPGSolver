@@ -40,4 +40,25 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Data types
+#define Num_Flux_T Num_Flux_c
+#define S_Params_T S_Params_c
+///\}
+
+///\{ \name Function pointers
+#define scale_by_Jacobian_fptr_T scale_by_Jacobian_fptr_c
+#define compute_rlhs_fptr_T      compute_rlhs_fptr_c
+///\}
+
+///\{ \name Function names
+#define compute_face_rlhs_dg_T compute_face_rlhs_dg_c
+
+#define set_s_params_T        set_s_params_c
+#define scale_by_Jacobian_e_T scale_by_Jacobian_e_c
+#define compute_rhs_f_dg_T    compute_rhs_f_dg_c
+
+#define finalize_face_rhs_dg_T finalize_face_rhs_dg_c
+///\}
+
 #endif

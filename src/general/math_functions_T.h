@@ -59,3 +59,12 @@ void z_yxpz_T
 	 const Type* y, ///< Input y.
 	 Type* z        ///< Location to store the sum.
 	);
+
+/// \brief Version of \ref z_yxpz_T with input types: `Real`, `Type`, `Type`.
+void z_yxpz_RTT
+	(const int n,   ///< The number of entries.
+	 const Real* x, ///< Input x.
+	 const Type* y, ///< Input y.
+	 Type* z        ///< Location to store the sum.
+	);
+

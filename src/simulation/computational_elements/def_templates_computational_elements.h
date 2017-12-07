@@ -13,16 +13,21 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double complex` operator functions.
+ *  \brief Provides the macro definitions used for c-style templating related to the computational elements.
  */
 
+#if TYPE_RC == TYPE_REAL
+
 ///\{ \name Function names
-#define constructor_mm_NN1_Operator_Multiarray_T       constructor_mm_NN1_Operator_Multiarray_c
-#define constructor_mm_NN1_Operator_const_Multiarray_T constructor_mm_NN1_Operator_const_Multiarray_c
-
-#define set_ops_tp_n_rows_cols_T set_ops_tp_n_rows_cols_c
-
-#define mm_NNC_Operator_Multiarray_T  mm_NNC_Operator_Multiarray_c
-#define mm_NN1C_Operator_Multiarray_T mm_NN1C_Operator_Multiarray_c
-#define mm_NN1_Operator_Multiarray_T  mm_NN1_Operator_Multiarray_c
+#define constructor_derived_computational_elements_T constructor_derived_computational_elements
+#define destructor_derived_computational_elements_T  destructor_derived_computational_elements
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define constructor_derived_computational_elements_T constructor_derived_computational_elements_c
+#define destructor_derived_computational_elements_T  destructor_derived_computational_elements_c
+///\}
+
+#endif

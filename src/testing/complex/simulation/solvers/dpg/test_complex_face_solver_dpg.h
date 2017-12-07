@@ -12,11 +12,22 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__test_complex_face_solver_dpg_h__INCLUDED
+#define DPG__test_complex_face_solver_dpg_h__INCLUDED
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` face rlhs computing
- *         functions.
+ *  \brief Provides the interface for the real \ref DPG_Solver_Face container and associated functions.
  */
 
-///\{ \name Function names
-#define constructor_lhs_f_1_T constructor_lhs_f_1
-///\}
+#include "test_complex_face_solver.h"
+
+#include "def_templates_type_dc.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_face_solver_dpg.h"
+#include "face_solver_dpg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_dpg.h"
+
+
+#endif // DPG__test_complex_face_solver_dpg_h__INCLUDED

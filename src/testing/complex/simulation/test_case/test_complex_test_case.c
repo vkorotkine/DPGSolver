@@ -17,12 +17,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_test_case.h"
 
-#include "test_complex_solution.h"
-#include "test_complex_test_case.h"
-
 #include "const_cast.h"
+#include "file_processing.h"
 #include "simulation.h"
 #include "test_case.h"
+
+#include "test_complex_solution.h"
+#include "test_complex_solution_advection.h"
+#include "test_complex_solution_euler.h"
+#include "test_complex_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -41,14 +44,14 @@ void convert_to_Test_Case_rc (struct Simulation* sim, const char type_rc_o)
 		destructor_Test_Case(test_case_rc->tc);
 
 		const_cast_b(&test_case_rc->is_real,false);
-		test_case_c->tc = (void*)constructor_Test_Case_c(sim); // keep
+		test_case_rc->tc = (void*)constructor_Test_Case_c(sim); // keep
 		break;
 	case 'r':
 		assert(test_case_rc->is_real == false);
 		destructor_Test_Case_c(test_case_rc->tc);
 
 		const_cast_b(&test_case_rc->is_real,true);
-		test_case_c->tc = (void*)constructor_Test_Case(sim); // keep
+		test_case_rc->tc = (void*)constructor_Test_Case(sim); // keep
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %c.\n",type_rc_o);

@@ -46,5 +46,30 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+///\{ \name Data types
+#define S_Params_Volume_Structor_T S_Params_Volume_Structor_c
+#define Flux_Ref_T                 Flux_Ref_c
+///\}
+
+///\{ \name Function pointers
+#define constructor_sol_vc_fptr_T constructor_sol_vc_fptr_c
+#define destructor_sol_vc_fptr_T  destructor_sol_vc_fptr_c
+///\}
+
+///\{ \name Function names
+#define set_S_Params_Volume_Structor_T set_S_Params_Volume_Structor_c
+#define constructor_Flux_Ref_vol_T     constructor_Flux_Ref_vol_c
+#define destructor_Flux_Ref_T          destructor_Flux_Ref_c
+#define constructor_lhs_v_1_T          constructor_lhs_v_1_c
+#define get_operator__cv0_vs_vc_T      get_operator__cv0_vs_vc_c
+#define get_operator__tw1_vt_vc_T      get_operator__tw1_vt_vc_c
+
+#define constructor_sol_vc_interp_T constructor_sol_vc_interp_c
+#define constructor_sol_vc_col_T    constructor_sol_vc_col_c
+#define destructor_sol_vc_interp_T  destructor_sol_vc_interp_c
+#define destructor_sol_vc_col_T     destructor_sol_vc_col_c
+#define constructor_Flux_Ref_T      constructor_Flux_Ref_c
+#define constructor_flux_ref_T      constructor_flux_ref_c
+///\}
 
 #endif

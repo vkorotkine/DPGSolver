@@ -18,8 +18,6 @@ You should have received a copy of the GNU General Public License along with DPG
  *  These volumes are needed by the 'D'iscontinuous 'P'etrov 'G'alerkin solver functions.
  */
 
-#include "volume_solver.h"
-
 /// \brief Container for data relating to the DPG solver volumes.
 struct DPG_Solver_Volume_T {
 	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume.

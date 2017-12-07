@@ -38,7 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
-#include "def_templates_operators_c.h"
+#include "def_templates_operators.h"
 #include "multiarray_constructors_T.c"
 
 // Static function declarations ************************************************************************************* //

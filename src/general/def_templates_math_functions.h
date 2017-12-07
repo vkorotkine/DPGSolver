@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define norm_diff_T norm_diff_d
 #define max_abs_T   max_abs_d
 #define z_yxpz_T    z_yxpz
+#define z_yxpz_RTT  z_yxpz
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -48,6 +49,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define norm_diff_T norm_diff_c
 #define max_abs_T   max_abs_c
 #define z_yxpz_T    z_yxpz_c
+#define z_yxpz_RTT  z_yxpz_dcc
 ///\}
 
 #endif

@@ -17,5 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <stdbool.h>
+#include "definitions_templates_type.h"
 
 #define Type bool ///< Type parameter.

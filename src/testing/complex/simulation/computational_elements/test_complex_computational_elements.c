@@ -15,42 +15,23 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "volume_solver_dg_complex.h"
+#include "test_complex_computational_elements.h"
 
-#include "macros.h"
+#include "test_complex_face_solver_dg.h"
+#include "test_complex_face_solver_dpg.h"
+#include "test_complex_volume_solver_dg.h"
+#include "test_complex_volume_solver_dpg.h"
 
-#include "volume.h"
-#include "volume_solver.h"
-
-#include "complex_multiarray.h"
-#include "multiarray.h"
-
+#include "computational_elements.h"
+#include "intrusive.h"
 #include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-void constructor_derived_Complex_DG_Solver_Volume (struct Volume* volume_ptr, const struct Simulation* sim)
-{
-	UNUSED(sim);
-	struct Solver_Volume* s_volume          = (struct Solver_Volume*) volume_ptr;
-	struct Complex_DG_Solver_Volume* volume = (struct Complex_DG_Solver_Volume*) volume_ptr;
-
-	const int order = s_volume->sol_coef->order;
-	ptrdiff_t* extents = s_volume->sol_coef->extents;
-
-	volume->sol_coef = constructor_empty_Multiarray_c('C',order,extents); // destructed
-	volume->rhs      = constructor_empty_Multiarray_c('C',order,extents); // destructed
-}
-
-void destructor_derived_Complex_DG_Solver_Volume (struct Volume* volume_ptr)
-{
-	struct Complex_DG_Solver_Volume* volume = (struct Complex_DG_Solver_Volume*) volume_ptr;
-
-	destructor_Multiarray_c(volume->sol_coef);
-	destructor_Multiarray_c(volume->rhs);
-}
+#include "def_templates_type_dc.h"
+#include "computational_elements_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the dpg rlhs computing functions.
  */
 
+#if TYPE_RC == TYPE_REAL
+
 ///\{ \name Data types
 #define S_Params_DPG_T S_Params_DPG
 ///\}
@@ -46,3 +48,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define increment_rhs_boundary_face_T    increment_rhs_boundary_face
 #define increment_lhs_boundary_face_T    increment_lhs_boundary_face
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+#endif

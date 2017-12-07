@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 struct Solver_Storage_Implicit;
-struct Volume;
+struct Intrusive_List;
 
 /** \brief Compute the volume contributions to the rhs (and optionally lhs) terms for the DG scheme.
  *
@@ -28,6 +28,7 @@ struct Volume;
  *  - \ref DG_Solver_Volume::rhs.
  */
 void compute_volume_rlhs_dg_T
-	(const struct Simulation* sim,       ///< \ref Simulation.
-	 struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
+	(const struct Simulation* sim,        ///< \ref Simulation.
+	 struct Solver_Storage_Implicit* ssi, ///< \ref Solver_Storage_Implicit.
+	 struct Intrusive_List* volumes       ///< The list of volumes.
 	);

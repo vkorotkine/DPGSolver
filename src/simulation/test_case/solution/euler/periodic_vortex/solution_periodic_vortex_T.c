@@ -44,7 +44,7 @@ static struct Multiarray_T* constructor_sol_periodic_vortex_T
 
 void set_sol_periodic_vortex (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
-	const struct const_Multiarray_R* xyz = constructor_xyz_sol(sim,&sol_cont); // destructed
+	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_periodic_vortex_T(xyz,sim); // destructed
 	destructor_const_Multiarray_R(xyz);
 

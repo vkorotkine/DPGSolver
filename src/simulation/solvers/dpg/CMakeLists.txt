@@ -1,6 +1,4 @@
 set	(SOURCE
-	 complex/face_solver_dpg_complex.c
-	 complex/volume_solver_dpg_complex.c
 	 compute_all_rlhs_dpg.c
 	 face_solver_dpg.c
 	 element_solver_dpg.c

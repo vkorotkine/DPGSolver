@@ -37,7 +37,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_vector.h"
 
 #include "def_templates_compute_all_rlhs_dpg_d.h"
-#include "def_templates_compute_face_rlhs_d.h"
+#include "def_templates_compute_face_rlhs.h"
+#include "def_templates_compute_volume_rlhs.h"
+#include "def_templates_flux.h"
 #include "def_templates_multiarray_operator_d.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_test_case.h"
@@ -47,26 +49,26 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Function pointer to functions constructing the norm operator used to evaluate the optimal test functions.
  *
  *  \param dpg_s_vol The current volume.
- *  \param flux_r    \ref Flux_Ref.
+ *  \param flux_r    \ref Flux_Ref_T.
  *  \param sim       \ref Simulation.
  */
 typedef const struct const_Matrix_T* (*constructor_norm_op_fptr_T)
 	(const struct DPG_Solver_Volume_T* dpg_s_vol,
-	 const struct Flux_Ref* flux_r,
+	 const struct Flux_Ref_T* flux_r,
 	 const struct Simulation* sim
 	);
 
 /** \brief Pointer to functions computing rhs and lhs terms for the dpg solver.
  *
  *  \param norm_op   The dpg norm operator.
- *  \param flux_r    \ref Flux_Ref.
+ *  \param flux_r    \ref Flux_Ref_T.
  *  \param dpg_s_vol Pointer to the current volume.
  *  \param ssi       \ref Solver_Storage_Implicit.
  *  \param sim       \ref Simulation.
  */
 typedef void (*compute_rlhs_fptr_T)
 	(const struct const_Matrix_T* norm_op,
-	 const struct Flux_Ref* flux_r,
+	 const struct Flux_Ref_T* flux_r,
 	 const struct DPG_Solver_Volume_T* dpg_s_vol,
 	 struct Solver_Storage_Implicit* ssi,
 	 const struct Simulation* sim
@@ -74,7 +76,7 @@ typedef void (*compute_rlhs_fptr_T)
 
 /// \brief Container for solver-related parameters.
 struct S_Params_DPG_T {
-	struct S_Params_Volume_Structor spvs; ///< \ref S_Params_Volume_Structor.
+	struct S_Params_Volume_Structor_T spvs; ///< \ref S_Params_Volume_Structor.
 
 	constructor_norm_op_fptr_T constructor_norm_op; ///< Pointer to the appropriate function.
 	compute_rlhs_fptr_T compute_rlhs;               ///< Pointer to the appropriate function.
@@ -103,6 +105,39 @@ static void set_idxm_T
 
 // Interface functions ********************************************************************************************** //
 
+void compute_all_rlhs_dpg_T
+	(const struct Simulation* sim, struct Solver_Storage_Implicit* ssi, struct Intrusive_List* volumes)
+{
+	assert((sim->test_case_rc->is_real) || (ssi == NULL && volumes->first->next == NULL));
+	assert(sim->volumes->name == IL_VOLUME_SOLVER_DPG);
+	assert(sim->faces->name == IL_FACE_SOLVER_DPG);
+	assert(sim->elements->name == IL_ELEMENT_SOLVER_DPG);
+
+	/** \note Linearized terms are required for the computation of optimal test functions, even if only computing rhs
+	 *        terms. */
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	assert(test_case->solver_method_curr == 'i');
+
+	struct S_Params_DPG_T s_params = set_s_params_dpg_T(sim);
+	struct Flux_Input_T* flux_i = constructor_Flux_Input_T(sim); // destructed
+
+	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
+//struct Volume*        vol   = (struct Volume*) curr;
+//printf("v_ind: %d\n",vol->index);
+		struct Solver_Volume_T* s_vol         = (struct Solver_Volume_T*) curr;
+		struct DPG_Solver_Volume_T* dpg_s_vol = (struct DPG_Solver_Volume_T*) curr;
+
+		struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_T(&s_params.spvs,flux_i,s_vol,sim); // destructed
+
+		const struct const_Matrix_T* norm_op = s_params.constructor_norm_op(dpg_s_vol,flux_r,sim); // destructed
+
+		s_params.compute_rlhs(norm_op,flux_r,dpg_s_vol,ssi,sim);
+		destructor_const_Matrix_T(norm_op);
+		destructor_Flux_Ref_T(flux_r);
+	}
+	destructor_Flux_Input_T(flux_i);
+}
+
 struct Multiarray_Operator get_operator__cvt1_vt_vc__rlhs_T (const struct DPG_Solver_Volume_T* dpg_s_vol)
 {
 	struct Volume* vol            = (struct Volume*) dpg_s_vol;
@@ -125,7 +160,7 @@ const struct const_Matrix_R* constructor_lhs_l_internal_face_dpg_T
 
 	const int side_index = compute_side_index_face(face,vol);
 //printf("%d %d %d\n",vol->index,face->index,side_index);
-	const struct Operator* tw0_vt_fc_op = get_operator__tw0_vt_fc(side_index,s_face),
+	const struct Operator* tw0_vt_fc_op = get_operator__tw0_vt_fc_T(side_index,s_face),
 	                     * cv0_ff_fc_op = get_operator__cv0_ff_fc_T(side_index,dpg_s_face);
 
 	struct Matrix_R* cv0_ff_fc = constructor_copy_Matrix_R((struct Matrix_R*)cv0_ff_fc_op->op_std); // destructed
@@ -138,10 +173,9 @@ const struct const_Matrix_R* constructor_lhs_l_internal_face_dpg_T
 
 	// Use "-ve" sign when looking from volume[0] as the face term was moved to the rhs of the equation. When looking
 	// from volume[1], the "-ve" sign is cancelled by the "-ve" sign of the inverted normal vector.
-	double alpha = -1.0;
+	Real alpha = -1.0;
 	if (side_index == 1) {
-//		permute_Matrix_R_fc(cv0_ff_fc,'R',side_index,s_face);
-		permute_Matrix_d_fc(cv0_ff_fc,'R',side_index,s_face);
+		permute_Matrix_R_fc(cv0_ff_fc,'R',side_index,s_face);
 		alpha = 1.0;
 	}
 
@@ -205,7 +239,7 @@ const struct const_Vector_i* constructor_petsc_idxm_dpg_T
 /// \brief Version of \ref compute_rlhs_fptr computing rhs and lhs terms for 1st order equations only.
 static void compute_rlhs_1_T
 	(const struct const_Matrix_T* norm_op,      ///< See brief.
-	 const struct Flux_Ref* flux_r,             ///< See brief.
+	 const struct Flux_Ref_T* flux_r,             ///< See brief.
 	 const struct DPG_Solver_Volume_T* dpg_s_vol, ///< See brief.
 	 struct Solver_Storage_Implicit* ssi,       ///< See brief.
 	 const struct Simulation* sim               ///< See brief.
@@ -215,7 +249,7 @@ static void compute_rlhs_1_T
  *  \return See brief. */
 static const struct const_Matrix_T* constructor_norm_op__h1_upwind_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, ///< See brief.
-	 const struct Flux_Ref* flux_r,             ///< See brief.
+	 const struct Flux_Ref_T* flux_r,             ///< See brief.
 	 const struct Simulation* sim                 ///< See brief.
 	);
 
@@ -223,7 +257,7 @@ static struct S_Params_DPG_T set_s_params_dpg_T (const struct Simulation* sim)
 {
 	struct S_Params_DPG_T s_params;
 
-	set_S_Params_Volume_Structor(&s_params.spvs,sim);
+	set_S_Params_Volume_Structor_T(&s_params.spvs,sim);
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	switch (test_case->solver_method_curr) {
@@ -237,7 +271,9 @@ static struct S_Params_DPG_T set_s_params_dpg_T (const struct Simulation* sim)
 		else
 			EXIT_ERROR("Unsupported: %d %d\n",test_case->has_1st_order,test_case->has_2nd_order);
 		break;
+#if TYPE_RC == TYPE_REAL
 	case 'e': // fallthrough
+#endif
 	default:
 		EXIT_ERROR("Unsupported: %c\n",test_case->solver_method_curr);
 		break;
@@ -283,7 +319,7 @@ static void set_idxm_T (int* ind_idxm, struct Vector_i* idxm, const int ind_dof,
 /** \brief Constructor for the rhs \ref Vector_T with volume contributions from 1st order equations included.
  *  \return See brief. */
 static struct Vector_T* constructor_rhs_v_1_T
-	(const struct Flux_Ref* flux_r,     ///< Defined for \ref compute_rlhs_fptr_T.
+	(const struct Flux_Ref_T* flux_r,     ///< Defined for \ref compute_rlhs_fptr_T.
 	 const struct Solver_Volume_T* s_vol, ///< Defined for \ref compute_rlhs_fptr_T.
 	 const struct Simulation* sim       ///< Defined for \ref compute_rlhs_fptr_T.
 	);
@@ -304,7 +340,7 @@ static void increment_rhs_source_T
 	);
 
 static const struct const_Matrix_T* constructor_norm_op__h1_upwind_T
-	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct Flux_Ref* flux_r, const struct Simulation* sim)
+	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct Flux_Ref_T* flux_r, const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const int n_eq = test_case->n_eq,
@@ -327,7 +363,7 @@ static const struct const_Matrix_T* constructor_norm_op__h1_upwind_T
 		for (int dim = 0; dim < DIM; ++dim) {
 			const ptrdiff_t ind =
 				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
-			dfr_ds.data = (double*)&dfr_ds_Ma->data[ind];
+			dfr_ds.data = (Type*)&dfr_ds_Ma->data[ind];
 			mm_diag_T('R',1.0,1.0,cvt1_vt_vc.data[dim]->op_std,(struct const_Vector_T*)&dfr_ds,cvt1r_l,false);
 		}
 		set_block_Matrix_T(cvt1r,(struct const_Matrix_T*)cvt1r_l,eq*ext_0,vr*ext_1,'i');
@@ -335,7 +371,7 @@ static const struct const_Matrix_T* constructor_norm_op__h1_upwind_T
 	destructor_Matrix_T(cvt1r_l);
 
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) dpg_s_vol;
-	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e(s_vol);
+	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
 	const struct const_Vector_R J_vc  = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
 
 	const struct const_Vector_R* J_inv_vc = constructor_inverse_const_Vector_R(&J_vc);               // destructed
@@ -358,20 +394,20 @@ static const struct const_Matrix_T* constructor_norm_op__h1_upwind_T
 
 	set_block_Matrix_T(norm_op,n1,0,0,'i');
 	for (int eq = 0; eq < n_eq; ++eq)
-		set_block_Matrix_T(norm_op,norm_op_H0,eq*ext_0,eq*ext_0,'a');
+		set_block_Matrix_T_R(norm_op,norm_op_H0,eq*ext_0,eq*ext_0,'a');
 	destructor_const_Matrix_T(n1);
 
 	return (struct const_Matrix_T*) norm_op;
 }
 
 static void compute_rlhs_1_T
-	(const struct const_Matrix_T* norm_op, const struct Flux_Ref* flux_r, const struct DPG_Solver_Volume_T* dpg_s_vol,
+	(const struct const_Matrix_T* norm_op, const struct Flux_Ref_T* flux_r, const struct DPG_Solver_Volume_T* dpg_s_vol,
 	 struct Solver_Storage_Implicit* ssi, const struct Simulation* sim)
 {
 	const struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) dpg_s_vol;
 
 	struct Vector_T* rhs = constructor_rhs_v_1_T(flux_r,s_vol,sim); // destructed
-	struct Matrix_T* lhs = constructor_lhs_v_1(flux_r,s_vol,sim); // destructed
+	struct Matrix_T* lhs = constructor_lhs_v_1_T(flux_r,s_vol,sim); // destructed
 
 	increment_and_add_dof_rlhs_f_1_T(rhs,&lhs,dpg_s_vol,sim);
 	increment_rhs_source_T(rhs,s_vol,sim);
@@ -428,12 +464,12 @@ static void increment_rlhs_boundary_face_T
 	);
 
 static struct Vector_T* constructor_rhs_v_1_T
-	(const struct Flux_Ref* flux_r, const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
+	(const struct Flux_Ref_T* flux_r, const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const int n_eq = test_case->n_eq;
 
-	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
+	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc_T(s_vol);
 
 	const ptrdiff_t ext_0 = tw1_vt_vc.data[0]->op_std->ext_0;
 
@@ -536,11 +572,7 @@ static void increment_rlhs_internal_face_T
 	/// As the rhs is **always** linear wrt the trace unknowns, the rhs and lhs are computed together.
 	const struct const_Matrix_R* lhs_l = constructor_lhs_l_internal_face_dpg_T(dpg_s_vol,dpg_s_face); // destructed
 //print_const_Matrix_d(tw0_vt_fc_op->op_std);
-#if TYPE_RC == TYPE_COMPLEX
-	const struct Complex_DPG_Solver_Face* s_face = (struct Complex_DPG_Solver_Face*) dpg_s_face;
-#elif TYPE_RC == TYPE_REAL
 	const struct Solver_Face_T* s_face  = (struct Solver_Face_T*) dpg_s_face;
-#endif
 	struct Matrix_T nf_coef = interpret_Multiarray_as_Matrix_T(s_face->nf_coef);
 	mm_RTT('N','N',1.0,1.0,lhs_l,(struct const_Matrix_T*)&nf_coef,rhs);
 
@@ -565,12 +597,8 @@ static void increment_rlhs_boundary_face_T
 	struct Numerical_Flux_Input_T* num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
 
 	const struct Solver_Face_T* s_face = (struct Solver_Face_T*) dpg_s_face;
-#if TYPE_RC == TYPE_COMPLEX
-	const struct Complex_DPG_Solver_Face* c_dpg_s_face = (struct Complex_DPG_Solver_Face*) dpg_s_face;
-	constructor_Numerical_Flux_Input_c_data_dpg(num_flux_i,c_dpg_s_face,sim); // destructed
-#elif TYPE_RC == TYPE_REAL
-	constructor_Numerical_Flux_Input_data(num_flux_i,s_face,sim); // destructed
-#endif
+	constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed
+
 	struct Numerical_Flux_T* num_flux = constructor_Numerical_Flux_T(num_flux_i); // destructed
 	destructor_Numerical_Flux_Input_data_T(num_flux_i);
 	destructor_Numerical_Flux_Input_T(num_flux_i);
@@ -610,7 +638,7 @@ static void increment_rhs_boundary_face_T
 	struct Multiarray_T rhs_Ma =
 		{ .layout = 'C', .order = 2, .extents = extents, .owns_data = false, .data = rhs->data, };
 
-	const struct Operator* tw0_vt_fc = get_operator__tw0_vt_fc(0,s_face);
+	const struct Operator* tw0_vt_fc = get_operator__tw0_vt_fc_T(0,s_face);
 
 	UNUSED(sim);
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.

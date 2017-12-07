@@ -14,7 +14,6 @@ include_directories(${PETSC_INCLUDES})
 include_directories(
 	allocators
 	containers
-	containers/complex
 	definitions
 	element
 	general
@@ -29,21 +28,16 @@ include_directories(
 	simulation/solvers
 	simulation/solvers/adaptation
 	simulation/solvers/dg
-	simulation/solvers/dg/complex
 	simulation/solvers/dpg
-	simulation/solvers/dpg/complex
 	simulation/solvers/numerical_flux
 	simulation/test_case
 	simulation/test_case/boundary
-	simulation/test_case/boundary/complex
 	simulation/test_case/compute_error
 	simulation/test_case/flux
 	simulation/test_case/solution
 	simulation/test_case/solution/advection
 	simulation/test_case/solution/euler
 	testing
-	testing/complex/containers # Remove in future.
-	testing/complex/templates  # Remove in future.
 	)
 configure_file_h_in(${PROJECT_SOURCE_DIR}/src/ definitions_core.h.in)
 

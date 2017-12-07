@@ -15,35 +15,30 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "face_solver_dg_complex.h"
-
-#include "macros.h"
-
-#include "face.h"
-#include "face_solver.h"
+#include "test_complex_volume_solver_dg.h"
 
 #include "complex_multiarray.h"
-#include "multiarray.h"
+#include "test_complex_test_case.h"
 
+#include "element_solver_dg.h"
+#include "volume.h"
+#include "volume_solver.h"
+
+#include "matrix.h"
+#include "multiarray.h"
+#include "vector.h"
+
+#include "multiarray_operator.h"
+#include "operator.h"
 #include "simulation.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-void constructor_derived_Complex_DG_Solver_Face (struct Face* face_ptr, const struct Simulation* sim)
-{
-	UNUSED(sim);
-	UNUSED(face_ptr);
-
-	// Function pointer(s) are set as part of the complex solver functions such that test functions are not exposed
-	// to the main code.
-}
-
-void destructor_derived_Complex_DG_Solver_Face (struct Face* face_ptr)
-{
-	UNUSED(face_ptr);
-}
+#include "def_templates_type_dc.h"
+#include "volume_solver_dg_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

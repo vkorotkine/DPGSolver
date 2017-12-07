@@ -15,40 +15,24 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "volume_solver_dpg_complex.h"
+#include "test_complex_volume_solver_dpg.h"
 
-#include "macros.h"
+#include "element_solver_dpg.h"
 
-#include "volume.h"
-#include "volume_solver.h"
-
-#include "complex_multiarray.h"
+#include "matrix.h"
 #include "multiarray.h"
+#include "vector.h"
 
+#include "multiarray_operator.h"
+#include "operator.h"
 #include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-void constructor_derived_Complex_DPG_Solver_Volume (struct Volume* volume_ptr, const struct Simulation* sim)
-{
-	UNUSED(sim);
-	const struct Solver_Volume* s_vol             = (struct Solver_Volume*) volume_ptr;
-	struct Complex_DPG_Solver_Volume* c_dpg_s_vol = (struct Complex_DPG_Solver_Volume*) volume_ptr;
-
-	const int order = s_vol->sol_coef->order;
-	ptrdiff_t* extents = s_vol->sol_coef->extents;
-
-	c_dpg_s_vol->sol_coef = constructor_empty_Multiarray_c('C',order,extents); // destructed
-}
-
-void destructor_derived_Complex_DPG_Solver_Volume (struct Volume* volume_ptr)
-{
-	struct Complex_DPG_Solver_Volume* c_dpg_s_vol = (struct Complex_DPG_Solver_Volume*) volume_ptr;
-
-	destructor_Multiarray_c(c_dpg_s_vol->sol_coef);
-}
+#include "def_templates_type_dc.h"
+#include "volume_solver_dpg_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
