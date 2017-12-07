@@ -16,8 +16,20 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the `double` const cast functions.
  */
 
+#if TYPE_RC == TYPE_REAL
+
 ///\{ \name Function names
 #define const_cast_T   const_cast_d
 #define const_cast_T_n const_cast_d_n
 #define const_cast_T1  const_cast_d1
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define const_cast_T   const_cast_dc
+#define const_cast_T_n const_cast_dc_n
+#define const_cast_T1  const_cast_dc1
+///\}
+
+#endif

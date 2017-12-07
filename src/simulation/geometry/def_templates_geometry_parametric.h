@@ -24,5 +24,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+///\{ \name Function names
+#define constructor_xyz_cylinder_parametric_T constructor_xyz_cylinder_parametric_c
+///\}
 
 #endif

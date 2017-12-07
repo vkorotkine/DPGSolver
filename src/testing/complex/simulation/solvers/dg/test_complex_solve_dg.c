@@ -107,6 +107,8 @@ void set_initial_solution_complex_dg (const struct Simulation* sim)
 
 void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
 {
+	assert(sim->test_case->solver_method_curr == 'e'); // Should not be computing Jacobian terms.
+
 	set_function_pointers_num_flux_dg(sim);
 
 	constructor_derived_Complex_Test_Case((struct Simulation*)sim); // destructed

@@ -24,9 +24,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 #include "definitions_test_case.h"
 
-// Static function declarations ************************************************************************************* //
 
+#include "def_templates_boundary.h"
 #include "boundary_pde_T.c"
+
+#include "def_templates_multiarray.h"
+
+#include "def_templates_face_solver.h"
+
+#include "def_templates_math_functions.h"
+#include "def_templates_solution.h"
+
+// Static function declarations ************************************************************************************* //
 
 #define NEQ  NEQ_EULER  ///< Number of equations.
 #define NVAR NVAR_EULER ///< Number of variables.
@@ -71,27 +80,19 @@ static void compute_opposite_normal_uvw
 
 // Interface functions ********************************************************************************************** //
 
-/** \brief Version of \ref constructor_Boundary_Value_fptr computing members using the Riemann invariant values.
- *  Reference: (Section 2.2, \cite Carlson2011); note the typo in eq. (14).
- */
 void constructor_Boundary_Value_T_euler_riemann
-	(struct Boundary_Value_T* bv,               ///< See brief.
-	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
-	 const struct Solver_Face* face,            ///< See brief.
-	 const struct Simulation* sim               ///< See brief.
-	)
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
+	 const struct Simulation* sim)
 {
 	UNUSED(face);
-	struct Boundary_Value_Input_R* bv_i_r = (struct Boundary_Value_Input_R*) bv_i;
-
-	const bool* c_m = get_compute_member(bv_i);
+	const bool* c_m = bv_i->compute_member;
 	assert(c_m[0] == true);
 
-	const struct const_Multiarray_d* xyz = bv_i_r->xyz;
+	const struct const_Multiarray_d* xyz = bv_i->xyz;
 	const struct const_Multiarray_T* sol_l = bv_i->s;
 	const struct const_Multiarray_T* sol_r = constructor_sol_bv(xyz,sim); // destructed
 
-	const struct const_Multiarray_d* normals = bv_i_r->normals;
+	const struct const_Multiarray_d* normals = bv_i->normals;
 	assert(normals->layout == 'R');
 
 	convert_variables_T((struct Multiarray_T*)sol_l,'c','p');
@@ -473,20 +474,13 @@ void constructor_Boundary_Value_T_euler_riemann
 	assert(c_m[2] == false);
 }
 
-/** \brief Version of \ref constructor_Boundary_Value_fptr computing members using the slip wall values.
- *  The slip wall boundary condition sets the ghost state density and total energy equal to the internal values and uses
- *  the opposite normal velocity.
- */
 void constructor_Boundary_Value_T_euler_slipwall
-	(struct Boundary_Value_T* bv,               ///< See brief.
-	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
-	 const struct Solver_Face* face,            ///< See brief.
-	 const struct Simulation* sim               ///< See brief.
-	)
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
+	 const struct Simulation* sim)
 {
 	UNUSED(face);
 	UNUSED(sim);
-	const bool* c_m = get_compute_member(bv_i);
+	const bool* c_m = bv_i->compute_member;
 	assert(c_m[0] == true);
 
 	const struct const_Multiarray_T* sol_l = bv_i->s;
@@ -506,8 +500,7 @@ void constructor_Boundary_Value_T_euler_slipwall
 	    *const rhow = (DIM > 2 ? get_col_Multiarray_T(3,sol) : NULL),
 	    *const E    = get_col_Multiarray_T(NVAR-1,sol);
 
-	struct Boundary_Value_Input_R* bv_i_r = (struct Boundary_Value_Input_R*) bv_i;
-	const struct const_Multiarray_d* normals = bv_i_r->normals;
+	const struct const_Multiarray_d* normals = bv_i->normals;
 	assert(normals->layout == 'R');
 
 	for (int n = 0; n < n_n; n++) {

@@ -5,10 +5,11 @@ add_subdirectory(numerical_flux)
 set	(SOURCE
 	 test_complex_compute_face_rhs.c
 	 test_complex_compute_volume_rhs.c
+	 test_complex_face_solver.c
+	 test_complex_volume_solver.c
 	)
 
 set	(LIBS_DEPEND
-#	 Test_Complex_Numerical_Flux
 	 Test_Complex_Solver_DG
 	 Test_Complex_Solver_DPG
 	)

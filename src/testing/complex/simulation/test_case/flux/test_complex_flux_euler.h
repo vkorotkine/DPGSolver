@@ -19,19 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of containers and functions defined in \ref flux_euler.h.
  */
 
-struct Flux_Input_c;
-struct mutable_Flux_;
-
-/// \brief `complex` version of \ref compute_Flux_euler.
-void compute_Flux_c_euler
-	(const struct Flux_Input_c* flux_i, ///< See brief.
-	 struct mutable_Flux_c* flux        ///< See brief.
-	);
-
-/// \brief `complex` version of \ref compute_Flux_euler_jacobian
-void compute_Flux_c_euler_jacobian
-	(const struct Flux_Input_c* flux_i, ///< See brief.
-	 struct mutable_Flux_c* flux        ///< See brief.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_flux.h"
+#include "flux_euler_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_flux.h"
 
 #endif // DPG__test_complex_flux_euler_h__INCLUDED

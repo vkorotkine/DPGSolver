@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include "boundary_advection.h"
+#include "boundary_euler.h"
 #include "const_cast.h"
 #include "geometry.h"
 #include "simulation.h"
@@ -28,32 +30,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Checks if one of the neighbouring volumes to the current face is curved.
- *  \return `true` if curved volume is found; `false` otherwise. */
-bool check_for_curved_neigh
-	(struct Face* face ///< \ref Face.
-	);
-
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_boundary_d.h"
-#include "def_templates_face_solver.h"
 #include "face_solver_T.c"
-#include "undef_templates_type.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_boundary.h"
-#include "undef_templates_face_solver.h"
 
 // Interface functions ********************************************************************************************** //
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-bool check_for_curved_neigh (struct Face* face)
-{
-	if (face->neigh_info[0].volume->curved || (face->neigh_info[1].volume && face->neigh_info[1].volume->curved))
-		return true;
-	return false;
-}

@@ -15,6 +15,7 @@ target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
 include_directories(
 	complex/containers
 	complex/general
+	complex/simulation/geometry
 	complex/simulation/operators
 	complex/simulation/solvers
 	complex/simulation/solvers/dg
@@ -24,6 +25,8 @@ include_directories(
 	complex/simulation/test_case/boundary
 	complex/simulation/test_case/flux
 	complex/simulation/test_case/solution
+	complex/simulation/test_case/solution/advection
+	complex/simulation/test_case/solution/euler
 	complex/templates
 	integration
 	support

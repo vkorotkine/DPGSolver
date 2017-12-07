@@ -26,8 +26,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_error.h"
 
 #include "def_templates_type_d.h"
-#include "def_templates_boundary_d.h"
+#include "def_templates_boundary.h"
 #include "def_templates_flux.h"
+#include "def_templates_geometry.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_solution.h"
 #include "def_templates_test_case.h"
@@ -35,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_type.h"
 #include "undef_templates_boundary.h"
 #include "undef_templates_flux.h"
+#include "undef_templates_geometry.h"
 #include "undef_templates_numerical_flux.h"
 #include "undef_templates_solution.h"
 #include "undef_templates_test_case.h"

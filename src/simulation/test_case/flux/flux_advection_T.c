@@ -19,25 +19,21 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
+#include "def_templates_flux.h"
+
 // Static function declarations ************************************************************************************* //
 
 #define NEQ 1 ///< Number of equations.
 
 // Interface functions ********************************************************************************************** //
 
-/// \brief Version of \ref compute_Flux_fptr computing the fluxes for the linear advection equation.
-void compute_Flux_T_advection
-	(const struct Flux_Input_T* flux_i, ///< See brief.
-	 struct mutable_Flux_T* flux        ///< See brief.
-	)
+void compute_Flux_T_advection (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
 {
-	struct Flux_Input_R* flux_i_r = (struct Flux_Input_R*) flux_i;
-
 	static bool need_input = true;
 	static struct Sol_Data__Advection sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(flux_i_r->input_path,&sol_data);
+		read_data_advection(flux_i->input_path,&sol_data);
 	}
 
 	const ptrdiff_t NnTotal = flux_i->s->extents[0];
@@ -60,19 +56,13 @@ void compute_Flux_T_advection
 	}
 }
 
-/// \brief Version of \ref compute_Flux_fptr computing the fluxes and Jacobians for the linear advection equation.
-void compute_Flux_T_advection_jacobian
-	(const struct Flux_Input_T* flux_i, ///< See brief.
-	 struct mutable_Flux_T* flux        ///< See brief.
-	)
+void compute_Flux_T_advection_jacobian (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
 {
-	struct Flux_Input_R* flux_i_r = (struct Flux_Input_R*) flux_i;
-
 	static bool need_input = true;
 	static struct Sol_Data__Advection sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(flux_i_r->input_path,&sol_data);
+		read_data_advection(flux_i->input_path,&sol_data);
 	}
 
 	const ptrdiff_t NnTotal = flux_i->s->extents[0];

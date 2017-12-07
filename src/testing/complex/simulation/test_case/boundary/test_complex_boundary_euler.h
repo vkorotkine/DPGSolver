@@ -19,25 +19,12 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of containers and functions defined in \ref boundary_euler.h.
  */
 
-struct Boundary_Value_Input_c;
-struct Boundary_Value_c;
-struct Solver_Face;
-struct Simulation;
-
-/// \brief `complex` version of \ref constructor_Boundary_Value_T_euler_riemann.
-void constructor_Boundary_Value_c_euler_riemann
-	(struct Boundary_Value_c* bv,               ///< See brief.
-	 const struct Boundary_Value_Input_c* bv_i, ///< See brief.
-	 const struct Solver_Face* face,            ///< See brief.
-	 const struct Simulation* sim               ///< See brief.
-	);
-
-/// \brief `complex` version of \ref constructor_Boundary_Value_T_euler_slipwall.
-void constructor_Boundary_Value_c_euler_slipwall
-	(struct Boundary_Value_c* bv,               ///< See brief.
-	 const struct Boundary_Value_Input_c* bv_i, ///< See brief.
-	 const struct Solver_Face* face,            ///< See brief.
-	 const struct Simulation* sim               ///< See brief.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_boundary.h"
+#include "def_templates_face_solver.h"
+#include "boundary_euler_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_face_solver.h"
 
 #endif // DPG__test_complex_boundary_euler_h__INCLUDED

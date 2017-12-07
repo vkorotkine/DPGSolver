@@ -27,7 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_multiarray.h"
 
-#include "def_templates_boundary_d.h"
+#include "def_templates_boundary.h"
 #include "def_templates_math_functions.h"
 #include "def_templates_test_case.h"
 

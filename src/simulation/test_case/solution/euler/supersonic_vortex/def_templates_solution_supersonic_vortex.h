@@ -26,4 +26,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+///\{ \name Function names
+#define set_sol_supersonic_vortex_T               set_sol_supersonic_vortex_c
+#define constructor_const_sol_supersonic_vortex_T constructor_const_sol_supersonic_vortex_c
+///\}
+
 #endif

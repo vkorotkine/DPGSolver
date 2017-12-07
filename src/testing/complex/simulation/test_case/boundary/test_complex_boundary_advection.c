@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include "test_complex_boundary_advection.h"
+
 #include "test_complex_boundary.h"
 #include "complex_multiarray.h"
 #include "multiarray.h"
@@ -23,15 +25,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "simulation.h"
 #include "test_case.h"
 
+#include "test_complex_test_case.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_dc.h"
-
-#include "def_templates_boundary_c.h"
-#include "def_templates_multiarray.h"
-
 #include "boundary_advection_T.c"
 
 // Static functions ************************************************************************************************* //

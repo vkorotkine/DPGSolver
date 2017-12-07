@@ -22,6 +22,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 #include "definitions_tol.h"
 
+
+#include "def_templates_operators.h"
+
+#include "def_templates_multiarray.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //

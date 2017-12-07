@@ -25,4 +25,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+///\{ \name Function names
+#define set_sol_periodic_vortex_T set_sol_periodic_vortex_c
+///\}
+
 #endif

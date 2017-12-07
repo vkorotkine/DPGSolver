@@ -12,7 +12,6 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
 /** \file
  *  \brief Undefine macro definitions for c-style templating relating to numerical flux containers/functions.
  */
@@ -51,5 +50,3 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_Numerical_Flux_T_euler_roe_pike
 #undef compute_Numerical_Flux_T_euler_roe_pike_jacobian
 ///\}
-
-#undef Numerical_Flux_Input_R

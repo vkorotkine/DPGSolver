@@ -35,6 +35,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "simulation.h"
 #include "test_case.h"
 
+
+#include "test_complex_face_solver.h"
+#include "test_complex_volume_solver.h"
+
+#include "complex_multiarray.h"
+
+#include "test_complex_boundary.h"
+#include "test_complex_flux.h"
+#include "test_complex_operators.h"
+#include "test_complex_solution.h"
+#include "test_complex_test_case.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //

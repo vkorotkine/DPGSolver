@@ -32,11 +32,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-///\{ \name Constants used for the definition of the solution.
-#define SOURCE_M 2.15 ///< 'M'ultiplication constant.
-#define SOURCE_A 0.23 ///< 'A'ddition constant.
-///\}
-
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"

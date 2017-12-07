@@ -13,12 +13,12 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the interface to functions used to solve for the solution using the 'd'iscontinuous 'g'alerkin
- *         method.
+ *  \brief Provides the interface to templated functions used to solve for the solution using the
+ *         'd'iscontinuous 'g'alerkin method.
  */
 
-struct Multiarray_d;
-struct Solver_Face;
+struct Multiarray_T;
+struct Solver_Face_T;
 struct Simulation;
 
 /// \brief Version of \ref update_ind_dof for the dg method.

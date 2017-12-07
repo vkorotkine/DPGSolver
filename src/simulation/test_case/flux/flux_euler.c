@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include "flux_euler.h"
+
 #include "multiarray.h"
 
 #include "flux.h"
@@ -24,7 +26,6 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "def_templates_flux.h"
 #include "flux_euler_T.c"
 
 // Static functions ************************************************************************************************* //

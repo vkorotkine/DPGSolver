@@ -23,11 +23,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_intrusive.h"
 
 
-#include "def_templates_multiarray.h"
-#include "def_templates_operators_d.h"
-#include "def_templates_volume_solver.h"
-#include "def_templates_face_solver.h"
 #include "def_templates_solution.h"
+
+#include "def_templates_multiarray.h"
+
+#include "def_templates_face_solver.h"
+#include "def_templates_volume_solver.h"
+
+#include "def_templates_flux.h"
+#include "def_templates_operators.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -101,7 +105,7 @@ void set_initial_solution_T (struct Simulation* sim)
 	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
-void set_sg_do_nothing_T (const struct Simulation* sim, struct Solution_Container sol_cont)
+void set_sg_do_nothing_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
 	UNUSED(sim);
 	UNUSED(sol_cont);
@@ -109,7 +113,7 @@ void set_sg_do_nothing_T (const struct Simulation* sim, struct Solution_Containe
 }
 
 const struct const_Multiarray_R* constructor_xyz_sol_T
-	(const struct Simulation* sim, const struct Solution_Container* sol_cont)
+	(const struct Simulation* sim, const struct Solution_Container_T* sol_cont)
 {
 	const char ce_type   = sol_cont->ce_type,
 	           node_kind = sol_cont->node_kind;
@@ -182,7 +186,7 @@ void compute_source_rhs_do_nothing_T
 	return;
 }
 
-void update_Solution_Container_sol_T (struct Solution_Container*const sol_cont, struct Multiarray_T*const sol)
+void update_Solution_Container_sol_T (struct Solution_Container_T*const sol_cont, struct Multiarray_T*const sol)
 {
 	const char cv_type = sol_cont->cv_type;
 
@@ -197,7 +201,7 @@ void update_Solution_Container_sol_T (struct Solution_Container*const sol_cont, 
 		sol->owns_data = false;
 	} else if (cv_type == 'c') {
 		assert(sol_cont->node_kind == 's');
-		compute_coef_from_val_vs(sol_cont->volume,(struct const_Multiarray_T*)sol,sol_cont->sol);
+		compute_coef_from_val_vs_T(sol_cont->volume,(struct const_Multiarray_T*)sol,sol_cont->sol);
 	} else {
 		EXIT_ERROR("Unsupported: %c\n",cv_type);
 	}
@@ -251,7 +255,7 @@ void compute_coef_from_val_ff_T
 
 static void set_initial_v_sg_coef_T (struct Simulation* sim)
 {
-	struct Solution_Container sol_cont =
+	struct Solution_Container_T sol_cont =
 		{ .ce_type = 'v', .cv_type = 'c', .node_kind = 's', .volume = NULL, .face = NULL, .sol = NULL, };
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
@@ -272,10 +276,10 @@ static void set_initial_f_nf_coef_T (struct Simulation* sim)
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	test_case->solver_method_curr = 'e';
-	struct Flux_Input* flux_i = constructor_Flux_Input(sim); // destructed
+	struct Flux_Input_T* flux_i = constructor_Flux_Input_T(sim); // destructed
 	test_case->solver_method_curr = '0';
 
-	struct Solution_Container sol_cont =
+	struct Solution_Container_T sol_cont =
 		{ .ce_type = 'f', .cv_type = 'v', .node_kind = 'f', .volume = NULL, .face = NULL, .sol = NULL, };
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Face* face = (struct Face*) curr;
@@ -291,12 +295,12 @@ static void set_initial_f_nf_coef_T (struct Simulation* sim)
 
 		flux_i->s = (struct const_Multiarray_T*)sol_fs;
 
-		struct Flux* flux = constructor_Flux(flux_i);
+		struct Flux_T* flux = constructor_Flux_T(flux_i);
 
 		const struct const_Multiarray_R* normals_ff = constructor_normals_ff_T(s_face); // destructed
 
 		const struct const_Multiarray_T* nff = constructor_nf_T(flux->f,normals_ff); // destructed
-		destructor_Flux(flux);
+		destructor_Flux_T(flux);
 		destructor_const_Multiarray_R(normals_ff);
 
 		compute_coef_from_val_ff_T(s_face,nff,s_face->nf_coef);
@@ -304,7 +308,7 @@ static void set_initial_f_nf_coef_T (struct Simulation* sim)
 	}
 	destructor_Multiarray_T(sol_fs);
 
-	destructor_Flux_Input(flux_i);
+	destructor_Flux_Input_T(flux_i);
 }
 
 static const struct Operator* get_operator__cv0_vg_vc_T (const struct Solver_Volume_T* s_vol)

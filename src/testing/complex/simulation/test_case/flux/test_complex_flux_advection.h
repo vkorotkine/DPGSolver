@@ -19,19 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of containers and functions defined in \ref flux_advection.h.
  */
 
-struct Flux_Input_c;
-struct mutable_Flux_c;
-
-/// \brief `complex` version of \ref compute_Flux_advection.
-void compute_Flux_c_advection
-	(const struct Flux_Input_c* flux_i, ///< \ref Flux_Input_c.
-	 struct mutable_Flux_c* flux        ///< \ref Flux_c.
-	);
-
-/// \brief `complex` version of \ref compute_Flux_advection_jacobian.
-void compute_Flux_c_advection_jacobian
-	(const struct Flux_Input_c* flux_i, ///< \ref Flux_Input_c.
-	 struct mutable_Flux_c* flux        ///< \ref Flux_c.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_flux.h"
+#include "flux_advection_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_flux.h"
 
 #endif // DPG__test_complex_flux_advection_h__INCLUDED

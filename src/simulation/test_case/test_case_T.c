@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <string.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 #include "definitions_dpg.h"
 #include "definitions_test_case.h"
 
@@ -28,6 +29,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_test_case.h"
 
 #include "def_templates_flux.h"
+#include "def_templates_solution_advection.h"
+#include "def_templates_solution_euler.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -157,9 +160,9 @@ static void set_pde_related_T (struct Test_Case_T* test_case, const struct Simul
 static void set_function_pointers_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
 	switch (test_case->pde_index) {
-		case PDE_ADVECTION:     set_function_pointers_solution_advection(test_case,sim);     break;
+		case PDE_ADVECTION:     set_function_pointers_solution_advection_T(test_case,sim);     break;
 //		case PDE_POISSON:       set_function_pointers_solution_poisson(test_case,sim);       break;
-		case PDE_EULER:         set_function_pointers_solution_euler(test_case,sim);         break;
+		case PDE_EULER:         set_function_pointers_solution_euler_T(test_case,sim);         break;
 //		case PDE_NAVIER_STOKES: set_function_pointers_solution_navier_stokes(test_case,sim); break;
 		default: EXIT_ERROR("Unsupported: %d\n",test_case->pde_index); break;
 	}

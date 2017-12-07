@@ -16,22 +16,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__flux_euler_h__INCLUDED
 #define DPG__flux_euler_h__INCLUDED
 /** \file
- *  \brief Provides functions relating to euler fluxes.
+ *  \brief Provides real functions relating to euler fluxes.
  */
 
-struct Flux_Input;
-struct mutable_Flux;
-
-/// \brief `double` version of \ref compute_Flux_T_euler.
-void compute_Flux_euler
-	(const struct Flux_Input* flux_i, ///< \ref Flux_Input.
-	 struct mutable_Flux* flux        ///< \ref Flux.
-	);
-
-/// \brief `double` version of \ref compute_Flux_T_euler_jacobian.
-void compute_Flux_euler_jacobian
-	(const struct Flux_Input* flux_i, ///< \ref Flux_Input.
-	 struct mutable_Flux* flux        ///< \ref Flux.
-	);
+#include "def_templates_type_d.h"
+#include "def_templates_flux.h"
+#include "flux_euler_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_flux.h"
 
 #endif // DPG__flux_euler_h__INCLUDED

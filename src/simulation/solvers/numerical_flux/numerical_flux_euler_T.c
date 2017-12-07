@@ -26,6 +26,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 #include "definitions_test_case.h"
 
+
+#include "def_templates_numerical_flux.h"
+
+#include "def_templates_multiarray.h"
+
+#include "def_templates_boundary.h"
+#include "def_templates_const_cast_d.h"
+#include "def_templates_flux.h"
+#include "def_templates_math_functions.h"
+
 // Static function declarations ************************************************************************************* //
 
 #define NEQ  NEQ_EULER  ///< Number of equations.
@@ -60,8 +70,7 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 {
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	struct Boundary_Value_Input_R* bv_l_r = (struct Boundary_Value_Input_R*) &num_flux_i->bv_l;
-	double const *const nL = bv_l_r->normals->data;
+	double const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
@@ -335,8 +344,7 @@ void compute_Numerical_Flux_T_euler_roe_pike
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	struct Boundary_Value_Input_R* bv_l_r = (struct Boundary_Value_Input_R*) &num_flux_i->bv_l;
-	double const *const nL = bv_l_r->normals->data;
+	double const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
@@ -651,8 +659,7 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	struct Boundary_Value_Input_R* bv_l_r = (struct Boundary_Value_Input_R*) &num_flux_i->bv_l;
-	double const *const nL = bv_l_r->normals->data;
+	double const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;

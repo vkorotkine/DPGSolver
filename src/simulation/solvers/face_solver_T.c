@@ -22,10 +22,20 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_case.h"
 #include "definitions_bc.h"
 
+#include "def_templates_face_solver.h"
 
+#include "def_templates_multiarray.h"
+
+#include "def_templates_boundary.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
+
+/** \brief Checks if one of the neighbouring volumes to the current face is curved.
+ *  \return `true` if curved volume is found; `false` otherwise. */
+bool check_for_curved_neigh
+	(struct Face* face ///< \ref Face.
+	);
 
 /** \brief Set the function pointers to the appropriate functions to compute values needed for the numerical flux
  *         computation. */
@@ -78,6 +88,13 @@ static void set_function_pointers_num_flux_bc_T
 	 const struct Simulation* sim ///< Defined for \ref set_function_pointers_num_flux.
 	);
 
+bool check_for_curved_neigh (struct Face* face)
+{
+	if (face->neigh_info[0].volume->curved || (face->neigh_info[1].volume && face->neigh_info[1].volume->curved))
+		return true;
+	return false;
+}
+
 static void set_function_pointers_num_flux_T (struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
 	const struct Face* face = (struct Face*) s_face;
@@ -128,9 +145,6 @@ static void set_function_pointers_num_flux_bc_T (struct Solver_Face_T* s_face, c
 }
 
 // Level 2 ********************************************************************************************************** //
-
-#include "boundary_advection.h"
-#include "boundary_euler.h"
 
 static void set_function_pointers_num_flux_bc_advection_T (struct Solver_Face_T* s_face)
 {

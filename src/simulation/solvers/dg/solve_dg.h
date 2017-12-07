@@ -20,24 +20,20 @@ You should have received a copy of the GNU General Public License along with DPG
  *         method.
  */
 
+#include "def_templates_type_d.h"
+#include "def_templates_solve_dg.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_multiarray.h"
+#include "solve_dg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solve_dg.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_multiarray.h"
+
 struct const_Matrix_d;
 struct Solver_Volume;
 struct Simulation;
 struct Solver_Storage_Implicit;
-
-#include "def_templates_type_d.h"
-#include "def_templates_solver_dg.h"
-#include "def_templates_face_solver.h"
-#include "def_templates_volume_solver.h"
-#include "def_templates_volume_solver_dg.h"
-#include "def_templates_multiarray.h"
-#include "solve_dg_T.h"
-#include "undef_templates_type.h"
-#include "undef_templates_solver_dg.h"
-#include "undef_templates_face_solver.h"
-#include "undef_templates_volume_solver.h"
-#include "undef_templates_volume_solver_dg.h"
-#include "undef_templates_multiarray.h"
 
 /** \brief Version of \ref constructor_nnz for the dg method.
  *  \return See brief. */

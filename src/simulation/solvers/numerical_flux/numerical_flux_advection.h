@@ -16,22 +16,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__numerical_flux_advection_h__INCLUDED
 #define DPG__numerical_flux_advection_h__INCLUDED
 /** \file
- *  \brief Provides functions relating to linear advection numerical fluxes.
+ *  \brief Provides real functions relating to linear advection numerical fluxes.
  */
 
-struct Numerical_Flux_Input;
-struct mutable_Numerical_Flux;
-
-/// \brief `double` version of \ref compute_Numerical_Flux_T_advection_upwind.
-void compute_Numerical_Flux_advection_upwind
-	(const struct Numerical_Flux_Input* num_flux_i, ///< See brief.
-	 struct mutable_Numerical_Flux* num_flux        ///< See brief.
-	);
-
-/// \brief `double` version of \ref compute_Numerical_Flux_T_advection_upwind_jacobian.
-void compute_Numerical_Flux_advection_upwind_jacobian
-	(const struct Numerical_Flux_Input* num_flux_i, ///< See brief.
-	 struct mutable_Numerical_Flux* num_flux        ///< See brief.
-	);
+#include "def_templates_type_d.h"
+#include "def_templates_numerical_flux.h"
+#include "numerical_flux_advection_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_numerical_flux.h"
 
 #endif // DPG__numerical_flux_advection_h__INCLUDED

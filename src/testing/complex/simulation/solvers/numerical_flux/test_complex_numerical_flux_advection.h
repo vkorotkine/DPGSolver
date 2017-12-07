@@ -19,19 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of functions defined in \ref numerical_flux_advection.h.
  */
 
-struct Numerical_Flux_Input_c;
-struct mutable_Numerical_Flux_c;
-
-/// \brief `complex` version of \ref compute_Numerical_Flux_T_advection_upwind.
-void compute_Numerical_Flux_c_advection_upwind
-	(const struct Numerical_Flux_Input_c* num_flux_i, ///< See brief.
-	 struct mutable_Numerical_Flux_c* num_flux        ///< See brief.
-	);
-
-/// \brief `complex` version of \ref compute_Numerical_Flux_T_advection_upwind_jacobian.
-void compute_Numerical_Flux_c_advection_upwind_jacobian
-	(const struct Numerical_Flux_Input_c* num_flux_i, ///< See brief.
-	 struct mutable_Numerical_Flux_c* num_flux        ///< See brief.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_numerical_flux.h"
+#include "numerical_flux_advection_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_numerical_flux.h"
 
 #endif // DPG__test_complex_numerical_flux_advection_h__INCLUDED

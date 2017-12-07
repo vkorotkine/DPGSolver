@@ -35,12 +35,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief See return.
- *  \return The permutation required for conversion to the standard Jacobian ordering from the transposed ordering. */
-static const ptrdiff_t* set_jacobian_permutation
-	(const int d ///< The dimension
-	);
-
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
@@ -48,24 +42,3 @@ static const ptrdiff_t* set_jacobian_permutation
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static const ptrdiff_t* set_jacobian_permutation (const int d)
-{
-	switch (d) {
-	case 1:
-		return NULL;
-		break;
-	case 2: {
-		static const ptrdiff_t perm_2d[] = { 0, 2, 1, 3, };
-		return perm_2d;
-		break;
-	} case 3: {
-		static const ptrdiff_t perm_3d[] = { 0, 3, 6, 1, 4, 7, 2, 5, 8, };
-		return perm_3d;
-		break;
-	} default:
-		EXIT_ERROR("Unsupported: %d\n",d);
-		break;
-	}
-	return NULL;
-}

@@ -23,7 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_case.h"
 
 
-#include "def_templates_solver_dg.h"
+#include "def_templates_solve_dg.h"
 
 #include "def_templates_face_solver.h"
 #include "def_templates_volume_solver.h"

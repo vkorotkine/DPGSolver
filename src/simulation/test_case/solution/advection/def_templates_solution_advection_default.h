@@ -27,4 +27,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+///\{ \name Function names
+#define set_sol_advection_default_T               set_sol_advection_default_c
+#define constructor_const_sol_advection_default_T constructor_const_sol_advection_default_c
+#define compute_source_rhs_advection_default_T    compute_source_rhs_advection_default_c
+///\}
+
 #endif

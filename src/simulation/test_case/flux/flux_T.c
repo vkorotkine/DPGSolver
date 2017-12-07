@@ -23,6 +23,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 
 
+#include "def_templates_flux.h"
+
+#include "def_templates_multiarray.h"
+
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //

@@ -16,28 +16,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__boundary_euler_h__INCLUDED
 #define DPG__boundary_euler_h__INCLUDED
 /** \file
- *  \brief Provides containers and functions relating to boundary conditions for the Euler equation.
+ *  \brief Provides real containers and functions relating to boundary conditions for the Euler equation.
  */
 
-struct Boundary_Value_Input;
-struct Boundary_Value;
-struct Solver_Face;
-struct Simulation;
-
-/// \brief `double` version of \ref constructor_Boundary_Value_T_euler_riemann.
-void constructor_Boundary_Value_euler_riemann
-	(struct Boundary_Value* bv,               ///< See brief.
-	 const struct Boundary_Value_Input* bv_i, ///< See brief.
-	 const struct Solver_Face* face,          ///< See brief.
-	 const struct Simulation* sim             ///< See brief.
-	);
-
-/// \brief `double` version of \ref constructor_Boundary_Value_T_euler_slipwall.
-void constructor_Boundary_Value_euler_slipwall
-	(struct Boundary_Value* bv,               ///< See brief.
-	 const struct Boundary_Value_Input* bv_i, ///< See brief.
-	 const struct Solver_Face* face,          ///< See brief.
-	 const struct Simulation* sim             ///< See brief.
-	);
+#include "def_templates_type_d.h"
+#include "def_templates_boundary.h"
+#include "def_templates_face_solver.h"
+#include "boundary_euler_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_face_solver.h"
 
 #endif // DPG__boundary_euler_h__INCLUDED

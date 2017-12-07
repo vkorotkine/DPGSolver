@@ -44,7 +44,7 @@ struct mutable_Operator {
 
 #include "def_templates_type_d.h"
 #include "def_templates_multiarray.h"
-#include "def_templates_operators_d.h"
+#include "def_templates_operators.h"
 #include "operator_T.h"
 #include "undef_templates_type.h"
 #include "undef_templates_multiarray.h"

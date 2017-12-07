@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include "boundary.h"
+
 #include "multiarray.h"
 
 #include "element_solver.h"

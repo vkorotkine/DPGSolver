@@ -15,9 +15,12 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include "test_complex_test_case.h"
+
 #include "test_complex_solution.h"
 #include "test_complex_test_case.h"
 
+#include "const_cast.h"
 #include "simulation.h"
 #include "test_case.h"
 

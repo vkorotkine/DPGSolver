@@ -63,6 +63,21 @@ void set_sol_supersonic_vortex (const struct Simulation* sim, struct Solution_Co
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+/// \brief Container for solution data relating to 's'upersonic 'v'ortex.
+struct Sol_Data__sv {
+	// Read parameters
+	double r_i,   ///< The 'r'adius of the 'i'nternal cylinder.
+	       m_i,   ///< The 'm'ach number at the 'i'nternal cylinder face.
+	       rho_i, ///< The density (\f$ rho \f$) at the 'i'nternal cylinder face.
+	       V_i;   ///< The magnitude of the 'V'elocity at the 'i'nternal cylinder face.
+};
+
+/** \brief Return the statically allocated \ref Sol_Data__sv container.
+ *  \return See brief. */
+static struct Sol_Data__sv get_sol_data
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
 static struct Multiarray_T* constructor_sol_supersonic_vortex
 	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
 {
@@ -109,4 +124,47 @@ static struct Multiarray_T* constructor_sol_supersonic_vortex
 	convert_variables_T(sol,'p','c');
 
 	return sol;
+}
+
+// Level 1 ********************************************************************************************************** //
+
+/// \brief Read the required solution data into \ref Sol_Data__sv.
+static void read_data_supersonic_vortex
+	(const char*const input_path,       ///< Defined in \ref fopen_input.
+	 struct Sol_Data__sv*const sol_data ///< \ref Sol_Data__sv.
+	);
+
+static struct Sol_Data__sv get_sol_data (const struct Simulation* sim)
+{
+	static bool need_input = true;
+
+	static struct Sol_Data__sv sol_data;
+	if (need_input) {
+		need_input = false;
+		read_data_supersonic_vortex(sim->input_path,&sol_data);
+	}
+
+	return sol_data;
+}
+
+// Level 2 ********************************************************************************************************** //
+
+static void read_data_supersonic_vortex (const char*const input_path, struct Sol_Data__sv*const sol_data)
+{
+	const int count_to_find = 4;
+
+	FILE* input_file = fopen_input(input_path,'s'); // closed
+
+	int count_found = 0;
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_string_count_d("r_i",  &count_found,line,&sol_data->r_i);
+		read_skip_string_count_d("m_i",  &count_found,line,&sol_data->m_i);
+		read_skip_string_count_d("rho_i",&count_found,line,&sol_data->rho_i);
+		read_skip_string_count_d("V_i",  &count_found,line,&sol_data->V_i);
+	}
+	fclose(input_file);
+
+	if (count_found != count_to_find)
+		EXIT_ERROR("Did not find the required number of variables");
 }

@@ -30,7 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_flux.h"
 #include "def_templates_test_case.h"
-#include "def_templates_operators_d.h"
+#include "def_templates_operators.h"
 
 // Static function declarations ************************************************************************************* //
 

@@ -27,7 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_solution_advection.h"
 
-#include "def_templates_boundary_d.h"
+#include "def_templates_boundary.h"
 #include "def_templates_flux.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_solution.h"
@@ -85,7 +85,7 @@ void set_function_pointers_num_flux_T (struct Test_Case_T* test_case, const stru
 	switch (sim->method) {
 	case METHOD_DG: // fallthrough
 	case METHOD_DPG:
-		test_case->compute_Numerical_Flux = compute_Numerical_Flux_1;
+		test_case->compute_Numerical_Flux = compute_Numerical_Flux_1_T;
 		switch (test_case->ind_num_flux[0]) {
 		case NUM_FLUX_UPWIND:
 			test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_T_advection_upwind;

@@ -29,4 +29,14 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Data types
+#define Solver_Face_T Solver_Face_c
+///\}
+
+///\{ \name Function names
+#define constructor_derived_Solver_Face_T constructor_derived_Solver_Face_c
+#define destructor_derived_Solver_Face_T  destructor_derived_Solver_Face_c
+///\}
+
 #endif

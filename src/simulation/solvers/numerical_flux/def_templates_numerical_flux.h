@@ -55,7 +55,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
-
 ///\{ \name Data types
 #define Numerical_Flux_Input_T   Numerical_Flux_Input_c
 #define mutable_Numerical_Flux_T mutable_Numerical_Flux_c
@@ -92,7 +91,3 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 #endif
-
-///\{ \name Real Data types/Function names
-#define Numerical_Flux_Input_R   Numerical_Flux_Input
-///\}

@@ -82,9 +82,9 @@ struct Boundary_Value_T {
  *         the face and interpolated from the left volume at the face cubature nodes as seen from the left volume.
  *  \return See brief. */
 void constructor_Boundary_Value_Input_face_s_fcl_interp_T
-	(struct Boundary_Value_Input_T* bv_i, ///< Defined for \ref constructor_Boundary_Value_Input_face_fptr.
-	 const struct Solver_Face_T* face,      ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Simulation* sim         ///< Defined for \ref constructor_Boundary_Value_Input_face_fptr.
+	(struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face_T* s_face,  ///< See brief.
+	 const struct Simulation* sim         ///< See brief.
 	);
 
 /// \brief Destructor for a \ref Boundary_Value_Input container.
@@ -96,10 +96,10 @@ void destructor_Boundary_Value_Input_T
  *         as seen from the left volume.
  *  \return See brief. */
 void constructor_Boundary_Value_s_fcl_interp_T
-	(struct Boundary_Value_T* bv,               ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Boundary_Value_Input_T* bv_i, ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Solver_Face_T* face,            ///< Defined for \ref constructor_Boundary_Value_fptr.
-	 const struct Simulation* sim               ///< Defined for \ref constructor_Boundary_Value_fptr.
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face_T* s_face,        ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
 	);
 
 /// \brief Destructor for a \ref Boundary_Value container.

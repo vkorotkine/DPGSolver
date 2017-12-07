@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include "test_complex_numerical_flux_advection.h"
+
 #include "test_complex_numerical_flux.h"
 #include "complex_multiarray.h"
 #include "multiarray.h"
@@ -26,10 +28,6 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_dc.h"
-
-#include "def_templates_boundary_c.h"
-#include "def_templates_numerical_flux_c.h"
-
 #include "numerical_flux_advection_T.c"
 
 // Static functions ************************************************************************************************* //

@@ -43,7 +43,7 @@ struct Test_Case_T {
 
 	/** Pointer to function constructing the physical xyz coordinates from either parametric space or from straight to
 	 *  curved elements. */
-	constructor_xyz_fptr constructor_xyz;
+	constructor_xyz_fptr_T constructor_xyz;
 
 	constructor_sol_fptr_T constructor_sol; ///< Function pointer to the function used to construct the solution.
 

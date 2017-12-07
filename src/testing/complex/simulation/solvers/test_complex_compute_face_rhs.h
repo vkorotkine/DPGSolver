@@ -19,21 +19,16 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of functions defined in \ref compute_face_rlhs.h.
  */
 
-struct Numerical_Flux_Input_c;
-struct Numerical_Flux_c;
-struct Solver_Face;
-
-/// \brief `complex` version of \ref destructor_Numerical_Flux_Input_data.
-void destructor_Numerical_Flux_Input_c_data
-	(struct Numerical_Flux_Input_c* num_flux_i ///< See brief.
-	);
-
-/** \brief `complex` version of \ref constructor_lhs_f_1.
- *  \return See brief. */
-struct Matrix_c* constructor_lhs_f_1_c
-	(const int side_index[2],                 ///< See brief.
-	 const struct Numerical_Flux_c* num_flux, ///< See brief.
-	 const struct Solver_Face* s_face         ///< See brief.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_compute_face_rlhs.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_matrix.h"
+#include "def_templates_numerical_flux.h"
+#include "compute_face_rlhs_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_compute_face_rlhs.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_numerical_flux.h"
 
 #endif // DPG__test_complex_compute_face_rhs_h__INCLUDED

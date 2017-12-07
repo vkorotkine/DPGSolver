@@ -21,28 +21,28 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
+
+#include "def_templates_numerical_flux.h"
+
+#include "def_templates_boundary.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-/// \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes as the upwind values.
 void compute_Numerical_Flux_T_advection_upwind
-	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
-	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
-	)
+	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {
 	static bool need_input = true;
 	static struct Sol_Data__Advection sol_data;
 	if (need_input) {
 		need_input = false;
-		struct Numerical_Flux_Input_R* num_flux_i_r = (struct Numerical_Flux_Input_R*) num_flux_i;
-		read_data_advection(num_flux_i_r->bv_l.input_path,&sol_data);
+		read_data_advection(num_flux_i->bv_l.input_path,&sol_data);
 	}
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	struct Boundary_Value_Input_R* bv_l_r = (struct Boundary_Value_Input_R*) &num_flux_i->bv_l;
-	double const *const nL = bv_l_r->normals->data;
+	double const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
@@ -62,25 +62,20 @@ void compute_Numerical_Flux_T_advection_upwind
 	}
 }
 
-/** \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes and Jacobians as the upwind
- *         values. */
 void compute_Numerical_Flux_T_advection_upwind_jacobian
-	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
-	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
+	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux
 	)
 {
 	static bool need_input = true;
 	static struct Sol_Data__Advection sol_data;
 	if (need_input) {
 		need_input = false;
-		struct Numerical_Flux_Input_R* num_flux_i_r = (struct Numerical_Flux_Input_R*) num_flux_i;
-		read_data_advection(num_flux_i_r->bv_l.input_path,&sol_data);
+		read_data_advection(num_flux_i->bv_l.input_path,&sol_data);
 	}
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	struct Boundary_Value_Input_R* bv_l_r = (struct Boundary_Value_Input_R*) &num_flux_i->bv_l;
-	double const *const nL = bv_l_r->normals->data;
+	double const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;

@@ -30,10 +30,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_multiarray.h"
 
-#include "def_templates_operators_d.h"
+#include "def_templates_operators.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
+
+///\{ \name Constants used for the definition of the solution.
+#define SOURCE_M 2.15 ///< 'M'ultiplication constant.
+#define SOURCE_A 0.23 ///< 'A'ddition constant.
+///\}
 
 /** \brief Version of \ref constructor_sol_fptr used for the default linear advection test cases.
  *  \return See brief. */
@@ -53,7 +58,7 @@ static const struct const_Multiarray_T* constructor_source_advection_default_T
 
 void set_sol_advection_default_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
-	const struct const_Multiarray_R* xyz = constructor_xyz_sol(sim,&sol_cont); // destructed
+	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_advection_default_T(xyz,sim); // destructed
 	destructor_const_Multiarray_R(xyz);
 
@@ -69,18 +74,18 @@ const struct const_Multiarray_T* constructor_const_sol_advection_default_T
 }
 
 void compute_source_rhs_advection_default_T
-	(const struct Simulation* sim, const struct Solver_Volume* s_vol, struct Multiarray_T* rhs)
+	(const struct Simulation* sim, const struct Solver_Volume_T* s_vol, struct Multiarray_T* rhs)
 {
-	const struct const_Multiarray_R* xyz_vc    = constructor_xyz_vc_interp(s_vol,sim);             // destructed
+	const struct const_Multiarray_R* xyz_vc    = constructor_xyz_vc_interp_T(s_vol,sim);             // destructed
 	const struct const_Multiarray_T* source_vc = constructor_source_advection_default_T(xyz_vc,sim); // destructed
 	destructor_const_Multiarray_R(xyz_vc);
 
 	const struct const_Vector_d j_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
-	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_T*)source_vc,&j_det_vc,false);
+	scale_Multiarray_T_by_Vector_R('L',1.0,(struct Multiarray_T*)source_vc,&j_det_vc,false);
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
-	const struct Operator* tw0_vt_vc = get_operator__tw0_vt_vc(s_vol);
+	const struct Operator* tw0_vt_vc = get_operator__tw0_vt_vc_T(s_vol);
 	mm_NNC_Operator_Multiarray_T(1.0,1.0,tw0_vt_vc,source_vc,rhs,op_format,2,NULL,NULL);
 	destructor_const_Multiarray_T(source_vc);
 }
@@ -120,7 +125,7 @@ static struct Multiarray_T* constructor_sol_advection_default_T
 	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
 {
 	static bool parameters_set = false;
-	static mutable_constructor_sol_fptr constructor_sol = NULL;
+	static mutable_constructor_sol_fptr_T constructor_sol = NULL;
 
 	if (!parameters_set) {
 		parameters_set = true;
@@ -137,7 +142,7 @@ static const struct const_Multiarray_T* constructor_source_advection_default_T
 	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
 {
 	static bool parameters_set = false;
-	static constructor_sol_fptr constructor_source = NULL;
+	static constructor_sol_fptr_T constructor_source = NULL;
 
 	if (!parameters_set) {
 		parameters_set = true;

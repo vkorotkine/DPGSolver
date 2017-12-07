@@ -31,10 +31,23 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+///\{ \name Function names
+#define constructor_mm_NN1_Operator_Multiarray_T       constructor_mm_NN1_Operator_Multiarray_c
+#define constructor_mm_NN1_Operator_const_Multiarray_T constructor_mm_NN1_Operator_const_Multiarray_c
+
+#define set_ops_tp_n_rows_cols_T set_ops_tp_n_rows_cols_c
+
+#define mm_NNC_Operator_Multiarray_T  mm_NNC_Operator_Multiarray_c
+#define mm_NN1C_Operator_Multiarray_T mm_NN1C_Operator_Multiarray_c
+#define mm_NN1_Operator_Multiarray_T  mm_NN1_Operator_Multiarray_c
+///\}
+
 #endif
 
 
+///\{ \name Real Data types/Function names
 #define constructor_mm_NN1_Operator_Multiarray_R       constructor_mm_NN1_Operator_Multiarray_d
 #define constructor_mm_NN1_Operator_const_Multiarray_R constructor_mm_NN1_Operator_const_Multiarray_d
 
 #define mm_NN1C_Operator_Multiarray_R mm_NN1C_Operator_Multiarray_d
+///\}

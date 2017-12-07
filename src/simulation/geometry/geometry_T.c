@@ -31,7 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_volume_solver.h"
 
 #include "def_templates_multiarray.h"
-#include "def_templates_operators_d.h"
+#include "def_templates_operators.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -58,6 +58,12 @@ static void compute_normals_T
 static compute_geom_coef_fptr_T set_fptr_geom_coef_T
 	(const int domain_type,   ///< \ref Simulation::domain_type.
 	 const bool volume_curved ///< \ref Volume::curved.
+	);
+
+/** \brief See return.
+ *  \return The permutation required for conversion to the standard Jacobian ordering from the transposed ordering. */
+static const ptrdiff_t* set_jacobian_permutation
+	(const int d ///< The dimension
 	);
 
 /// \brief Compute the determinant of the geometry mapping Jacobian.
@@ -286,6 +292,27 @@ static compute_geom_coef_fptr_T set_fptr_geom_coef_T (const int domain_type, con
 	}
 
 	EXIT_ERROR("Unsupported domain_type: %d\n",domain_type);
+}
+
+static const ptrdiff_t* set_jacobian_permutation (const int d)
+{
+	switch (d) {
+	case 1:
+		return NULL;
+		break;
+	case 2: {
+		static const ptrdiff_t perm_2d[] = { 0, 2, 1, 3, };
+		return perm_2d;
+		break;
+	} case 3: {
+		static const ptrdiff_t perm_3d[] = { 0, 3, 6, 1, 4, 7, 2, 5, 8, };
+		return perm_3d;
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %d\n",d);
+		break;
+	}
+	return NULL;
 }
 
 static void compute_detJV_T (struct const_Multiarray_R* jacobian, struct Multiarray_R* jacobian_det)

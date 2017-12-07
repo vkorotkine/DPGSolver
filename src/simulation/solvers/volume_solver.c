@@ -29,8 +29,6 @@ You should have received a copy of the GNU General Public License along with DPG
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_volume_solver.h"
 #include "volume_solver_T.c"
 
 // Static function declarations ************************************************************************************* //

@@ -21,26 +21,26 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_mesh.h"
 
-// Static function declarations ************************************************************************************* //
 
+#include "def_templates_boundary.h"
 #include "boundary_pde_T.c"
+
+#include "def_templates_multiarray.h"
+
+#include "def_templates_face_solver.h"
+
+// Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-/// \brief Version of \ref constructor_Boundary_Value_fptr computing members using the inflow (boundary) values.
 void constructor_Boundary_Value_T_advection_inflow
-	(struct Boundary_Value_T* bv,               ///< See brief.
-	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
-	 const struct Solver_Face* face,            ///< See brief.
-	 const struct Simulation* sim               ///< See brief.
-	)
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
+	 const struct Simulation* sim)
 {
 	UNUSED(face);
-	struct Boundary_Value_Input_R* bv_i_r = (struct Boundary_Value_Input_R*) bv_i;
-
 	const struct const_Multiarray_d* xyz = NULL;
 	if (sim->domain_type == DOM_STRAIGHT) {
-		xyz = bv_i_r->xyz;
+		xyz = bv_i->xyz;
 	} else {
 		/* Boundary values computed by evaluating the exact solution must be applied on the exact boundary which
 		 * requires a correction of the boundary node coordinates. Otherwise, the approximate domain is being
@@ -50,7 +50,7 @@ void constructor_Boundary_Value_T_advection_inflow
 		 */
 		EXIT_ADD_SUPPORT;
 	}
-	const bool* c_m = get_compute_member(bv_i);
+	const bool* c_m = bv_i->compute_member;
 
 	assert(c_m[0] == true);
 	bv->s = constructor_sol_bv(xyz,sim); // keep
@@ -65,18 +65,14 @@ void constructor_Boundary_Value_T_advection_inflow
 	assert(c_m[2] == false);
 }
 
-/// \brief Version of \ref constructor_Boundary_Value_fptr computing members using the outflow (extrapolated) values.
 void constructor_Boundary_Value_T_advection_outflow
-	(struct Boundary_Value_T* bv,               ///< See brief.
-	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
-	 const struct Solver_Face* face,            ///< See brief.
-	 const struct Simulation* sim               ///< See brief.
-	)
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
+	 const struct Simulation* sim)
 {
 	UNUSED(face);
 	UNUSED(sim);
 
-	const bool* c_m = get_compute_member(bv_i);
+	const bool* c_m = bv_i->compute_member;
 
 	assert(c_m[0] == true);
 	bv->s = constructor_copy_const_Multiarray_T(bv_i->s); // keep

@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` boundary
+ *  \brief Provides the macro definitions used for c-style templating related to the boundary
  *         containers/functions.
  */
 
@@ -76,7 +76,3 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 #endif
-
-///\{ \name Real Data types/Function names
-#define Boundary_Value_Input_R Boundary_Value_Input
-///\}

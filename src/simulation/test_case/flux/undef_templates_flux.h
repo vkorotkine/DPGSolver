@@ -43,5 +43,3 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_Flux_T_euler
 #undef compute_Flux_T_euler_jacobian
 ///\}
-
-#undef Flux_Input_R

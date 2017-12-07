@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the `double` \ref Solver_Volume
+ *  \brief Provides the macro definitions used for c-style templating related to the \ref Solver_Volume
  *         containers/functions.
  */
 
@@ -30,4 +30,15 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Data types
+#define Solver_Volume_T Solver_Volume_c
+///\}
+
+///\{ \name Function names
+#define constructor_derived_Solver_Volume_T constructor_derived_Solver_Volume_c
+#define destructor_derived_Solver_Volume_T  destructor_derived_Solver_Volume_c
+#define get_operator__w_vc__s_e_T           get_operator__w_vc__s_e_c
+///\}
+
 #endif

@@ -20,6 +20,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_intrusive.h"
 
+
+#include "def_templates_volume_solver.h"
+
+#include "def_templates_multiarray.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //

@@ -75,7 +75,3 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 #endif
-
-///\{ \name Real Data types/Function names
-#define Flux_Input_R   Flux_Input
-///\}

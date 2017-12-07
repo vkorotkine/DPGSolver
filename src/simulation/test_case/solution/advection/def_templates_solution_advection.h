@@ -22,18 +22,18 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
-///\{ \name Data types
-///\}
-
 ///\{ \name Function names
 #define set_function_pointers_solution_advection_T set_function_pointers_solution_advection
 
 #define set_function_pointers_num_flux_T set_function_pointers_num_flux
 ///\}
 
-///\{ \name Function names (pde specific)
-///\}
-
 #elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define set_function_pointers_solution_advection_T set_function_pointers_solution_advection_c
+
+#define set_function_pointers_num_flux_T set_function_pointers_num_flux_c
+///\}
 
 #endif

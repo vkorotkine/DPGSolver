@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include "boundary_advection.h"
+
 #include "multiarray.h"
 
 #include "boundary.h"
@@ -27,10 +29,6 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-
-#include "def_templates_boundary_d.h"
-#include "def_templates_multiarray.h"
-
 #include "boundary_advection_T.c"
 
 // Static functions ************************************************************************************************* //

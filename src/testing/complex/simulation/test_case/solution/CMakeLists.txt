@@ -1,6 +1,12 @@
 set	(SOURCE
 	 test_complex_solution.c
 	 test_complex_solution_euler.c
+	 advection/test_complex_solution_advection.c
+	 advection/test_complex_solution_advection_default.c
+	 advection/peterson/test_complex_solution_peterson.c
+	 euler/test_complex_solution_euler.c
+	 euler/periodic_vortex/test_complex_solution_periodic_vortex.c
+	 euler/supersonic_vortex/test_complex_solution_supersonic_vortex.c
 	)
 
 set	(LIBS_DEPEND

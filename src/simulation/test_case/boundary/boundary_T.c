@@ -21,13 +21,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
-#include "def_templates_boundary_d.h"
+#include "def_templates_boundary.h"
 
 #include "def_templates_multiarray.h"
 
 #include "def_templates_face_solver.h"
+#include "def_templates_volume_solver.h"
 
-#include "def_templates_operators_d.h"
+#include "def_templates_compute_face_rlhs.h"
+#include "def_templates_operators.h"
+#include "def_templates_solve_dg.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -35,19 +38,19 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \return See brief. */
 static const struct const_Multiarray_T* constructor_s_fc_interp_T
 	(const struct Solver_Face_T* face, ///< Defined for \ref constructor_Boundary_Value_Input_face_s_fcl_interp_T.
-	 const struct Simulation* sim,   ///< Defined for \ref constructor_Boundary_Value_Input_face_s_fcl_interp_T.
-	 const int side_index            ///< The index of the side of the face under consideration.
+	 const struct Simulation* sim,     ///< Defined for \ref constructor_Boundary_Value_Input_face_s_fcl_interp_T.
+	 const int side_index              ///< The index of the side of the face under consideration.
 	);
 
 // Interface functions ********************************************************************************************** //
 
 void constructor_Boundary_Value_Input_face_s_fcl_interp_T
-	(struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face, const struct Simulation* sim)
+	(struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
 	const int side_index = 0;
-	bv_i->normals = face->normals_fc;
-	bv_i->xyz     = face->xyz_fc;
-	bv_i->s       = constructor_s_fc_interp_T(face,sim,side_index);
+	bv_i->normals = s_face->normals_fc;
+	bv_i->xyz     = s_face->xyz_fc;
+	bv_i->s       = constructor_s_fc_interp_T(s_face,sim,side_index);
 	bv_i->g       = NULL;
 }
 
@@ -60,19 +63,14 @@ void destructor_Boundary_Value_Input_T (struct Boundary_Value_Input_T* bv_i)
 }
 
 void constructor_Boundary_Value_s_fcl_interp_T
-	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* s_face,
 	 const struct Simulation* sim)
 {
 	UNUSED(bv_i);
 	const int side_index = 1;
 
-	struct Multiarray_T* sol_r_fcr = (struct Multiarray_T*) constructor_s_fc_interp_T(face,sim,side_index);
-/// \todo update after templating.
-#if TYPE_RC == TYPE_REAL
-	permute_Multiarray_d_fc(sol_r_fcr,'R',side_index,face);
-#elif TYPE_RC == TYPE_COMPLEX
-	permute_Multiarray_c_fc(sol_r_fcr,'R',side_index,face);
-#endif
+	struct Multiarray_T* sol_r_fcr = (struct Multiarray_T*) constructor_s_fc_interp_T(s_face,sim,side_index);
+	permute_Multiarray_T_fc(sol_r_fcr,'R',side_index,s_face);
 
 	bv->s     = (const struct const_Multiarray_T*)sol_r_fcr;
 	bv->g     = NULL;
@@ -92,16 +90,16 @@ void destructor_Boundary_Value_T (struct Boundary_Value_T* bv)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static const struct const_Multiarray_T* constructor_s_fc_interp
+static const struct const_Multiarray_T* constructor_s_fc_interp_T
 	(const struct Solver_Face_T* s_face, const struct Simulation* sim, const int side_index)
 {
-	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc(side_index,s_face);
+	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc_T(side_index,s_face);
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	UNUSED(sim);
 	const char op_format = 'd';
 
-	struct Solver_Volume* s_volume = (struct Solver_Volume*) ((struct Face*)s_face)->neigh_info[side_index].volume;
+	struct Solver_Volume_T* s_volume = (struct Solver_Volume_T*) ((struct Face*)s_face)->neigh_info[side_index].volume;
 
 	const struct const_Multiarray_T* s_coef = (const struct const_Multiarray_T*) s_volume->sol_coef;
 

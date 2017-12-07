@@ -20,9 +20,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
-///\{ \name Data types
-///\}
-
 ///\{ \name Function pointers
 #define constructor_xyz_fptr_T constructor_xyz_fptr
 
@@ -38,5 +35,17 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+///\{ \name Function pointers
+#define constructor_xyz_fptr_T constructor_xyz_fptr_c
+
+#define compute_geom_coef_fptr_T compute_geom_coef_fptr_c
+///\}
+
+///\{ \name Function names
+#define set_up_solver_geometry_T  set_up_solver_geometry_c
+#define compute_unit_normals_T    compute_unit_normals_c
+#define compute_geometry_volume_T compute_geometry_volume_c
+#define compute_geometry_face_T   compute_geometry_face_c
+///\}
 
 #endif
