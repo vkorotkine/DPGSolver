@@ -73,13 +73,6 @@ static bool check_exit
 	 const double max_rhs               ///< The current maximum value of the rhs term.
 	);
 
-/** \brief Constructor for a \ref Vector_T\* holding the 'n'umber of 'n'on-'z'ero entries in each row of the global
- *         system matrix.
- *  \return See brief. */
-static struct Vector_i* constructor_nnz
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
 // Interface functions ********************************************************************************************** //
 
 void solve_implicit (struct Simulation* sim)
@@ -97,51 +90,6 @@ void solve_implicit (struct Simulation* sim)
 	destructor_derived_elements_comp_elements(sim);
 
 	test_case->solver_method_curr = 0;
-}
-
-struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit (const struct Simulation* sim)
-{
-	assert(sizeof(PetscInt) == sizeof(int)); // Ensure that all is working correctly if this is removed.
-
-	const ptrdiff_t dof = compute_dof(sim);
-	update_ind_dof(sim);
-	struct Vector_i* nnz = constructor_nnz(sim); // destructed
-
-	struct Solver_Storage_Implicit* ssi = calloc(1,sizeof *ssi); // free
-
-	MatCreateSeqAIJ(MPI_COMM_WORLD,(PetscInt)dof,(PetscInt)dof,0,nnz->data,&ssi->A); // destructed
-	VecCreateSeq(MPI_COMM_WORLD,(PetscInt)dof,&ssi->b);                              // destructed
-
-	destructor_Vector_i(nnz);
-
-	return ssi;
-}
-
-void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* ssi)
-{
-	MatDestroy(&ssi->A);
-	VecDestroy(&ssi->b);
-
-	free(ssi);
-}
-
-void petsc_mat_vec_assemble (struct Solver_Storage_Implicit* ssi)
-{
-	MatAssemblyBegin(ssi->A,MAT_FINAL_ASSEMBLY);
-	MatAssemblyEnd(ssi->A,MAT_FINAL_ASSEMBLY);
-	VecAssemblyBegin(ssi->b);
-	VecAssemblyEnd(ssi->b);
-}
-
-void increment_nnz (struct Vector_i* nnz, const ptrdiff_t ind_dof, const ptrdiff_t n_row, const ptrdiff_t n_col)
-{
-	assert(ind_dof >= 0);
-
-	const ptrdiff_t i_max = ind_dof+n_row;
-	assert(i_max <= nnz->ext_0);
-
-	for (ptrdiff_t i = ind_dof; i < i_max; ++i)
-		nnz->data[i] += (int)n_col;
 }
 
 bool check_symmetric (const struct Simulation* sim)
@@ -271,19 +219,6 @@ static bool check_exit (const struct Test_Case* test_case, const double max_rhs)
 		exit_now = true;
 
 	return exit_now;
-}
-
-static struct Vector_i* constructor_nnz (const struct Simulation* sim)
-{
-	struct Vector_i* nnz = NULL;
-	switch (sim->method) {
-	case METHOD_DG:  nnz = constructor_nnz_dg(sim);  break;
-	case METHOD_DPG: nnz = constructor_nnz_dpg(sim); break;
-	default:
-		EXIT_ERROR("Unsupported: %d.\n",sim->method);
-		break;
-	}
-	return nnz;
 }
 
 // Level 1 ********************************************************************************************************** //

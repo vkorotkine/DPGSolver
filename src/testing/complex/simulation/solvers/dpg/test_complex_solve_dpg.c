@@ -38,16 +38,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_integration.h"
 
 #include "multiarray.h"
+#include "vector.h"
 
 #include "face_solver_dpg.h"
 #include "volume_solver_dpg.h"
 
-#include "boundary_advection.h"
-#include "boundary_euler.h"
+#include "const_cast.h"
 #include "intrusive.h"
 #include "simulation.h"
 #include "solve.h"
-#include "solve_implicit.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -67,6 +66,9 @@ static void compute_rhs_cmplx_step_dpg_face
 	);
 
 // Interface functions ********************************************************************************************** //
+
+#include "def_templates_type_dc.h"
+#include "solve_dpg_T.c"
 
 void perturb_solution_dpg (const struct Simulation* sim)
 {
@@ -152,6 +154,8 @@ static void compute_rhs_cmplx_step_dpg_volume
 	struct Intrusive_Link* curr = (struct Intrusive_Link*) dpg_s_vol;
 
 	const size_t sizeof_base = sizeof(struct DPG_Solver_Volume_c);
+
+	// A copy is required such that the link in the global list is not modified.
 	push_back_IL(volumes_local,constructor_copied_Intrusive_Link(curr,sizeof_base,sizeof_base));
 
 	compute_all_rhs_dpg_c(sim,ssi,volumes_local);

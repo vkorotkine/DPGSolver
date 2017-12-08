@@ -169,10 +169,10 @@ int get_face_element_index (const struct Face*const face)
 
 int compute_side_index_face (const struct Face* face, const struct Volume* vol)
 {
-	if (face->neigh_info[0].volume == vol) {
+	if (face->neigh_info[0].volume->index == vol->index) {
 		return 0;
 	} else {
-		assert(face->neigh_info[1].volume == vol);
+		assert(face->neigh_info[1].volume->index == vol->index);
 		return 1;
 	}
 	EXIT_ERROR("Did not find the volume.\n");

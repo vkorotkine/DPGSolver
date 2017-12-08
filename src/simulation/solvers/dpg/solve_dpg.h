@@ -20,19 +20,14 @@ You should have received a copy of the GNU General Public License along with DPG
  *         'g'alerkin method.
  */
 
+#include "def_templates_type_d.h"
+#include "def_templates_solve_dpg.h"
+#include "solve_dpg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solve_dpg.h"
+
 struct Simulation;
 struct Solver_Storage_Implicit;
-
-/// \brief Update \ref Solver_Volume::ind_dof and \ref Solver_Face::ind_dof for the dg method.
-void update_ind_dof_dpg
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/** \brief Version of \ref constructor_nnz for the dpg method.
- *  \return See brief. */
-struct Vector_i* constructor_nnz_dpg
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
 
 /** \brief Version of \ref compute_rlhs for the dpg method.
  *  \return See brief. */

@@ -16,14 +16,20 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__solve_h__INCLUDED
 #define DPG__solve_h__INCLUDED
 /** \file
- *  \brief Provides the interface to functions used to solve for the solution.
+ *  \brief Provides the interface to real functions used to solve for the solution.
  */
 
-#include <stddef.h>
+#include "def_templates_type_d.h"
+#include "def_templates_solve.h"
+#include "solve_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solve.h"
+
 #include "petscmat.h"
 #include "petscvec.h"
 
 struct Simulation;
+struct Vector_i;
 
 /// \brief Container holding members relating to memory storage for the implicit solver.
 struct Solver_Storage_Implicit {
@@ -63,10 +69,22 @@ double compute_rlhs
 	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
 	);
 
-/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom.
- *  \return See brief. */
-ptrdiff_t compute_dof
-	(const struct Simulation* sim ///< \ref Simulation.
+/// \brief Destructor for a \ref Solver_Storage_Implicit container.
+void destructor_Solver_Storage_Implicit
+	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	);
+
+/// \brief Increment the corresponding rows of `nnz` by the input number of columns.
+void increment_nnz
+	(struct Vector_i* nnz,    ///< Holds the number of non-zero entries for each row.
+	 const ptrdiff_t ind_dof, ///< The index of the first degree of freedom for rows to be incremented.
+	 const ptrdiff_t n_row,   ///< The number of sequential rows to be incremented.
+	 const ptrdiff_t n_col    ///< The increment.
+	);
+
+/// \brief Assemble \ref Solver_Storage_Implicit::A and \ref Solver_Storage_Implicit::b.
+void petsc_mat_vec_assemble
+	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
 	);
 
 /** \brief Compute the number of 'd'egrees 'o'f 'f'reedom of all of the \ref Solver_Volume::sol_coef's.
@@ -80,11 +98,6 @@ ptrdiff_t compute_dof_sol_1st
 ptrdiff_t compute_dof_schur
 	(const char dof_type,         ///< The type of dof. Options: 'v'olume, 'f'ace.
 	 const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/// \brief Update \ref Solver_Volume::ind_dof and \ref Solver_Face::ind_dof.
-void update_ind_dof
-	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
 #endif // DPG__solve_h__INCLUDED

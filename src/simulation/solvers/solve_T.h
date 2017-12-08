@@ -13,20 +13,26 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the interface to functions used to solve for the solution using the 'd'iscontinuous 'p'etrov
- *         'g'alerkin method.
+ *  \brief Provides the interface to templated functions used to solve for the solution.
  */
 
-struct Simulation;
-struct Solver_Storage_Implicit;
+#include <stddef.h>
 
-/// \brief Update \ref Solver_Volume::ind_dof and \ref Solver_Face::ind_dof for the dg method.
-void update_ind_dof_dpg_T
+struct Simulation;
+
+/** \brief Constructor for a \ref Solver_Storage_Implicit container.
+ *  \return See brief. */
+struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Version of \ref constructor_nnz for the dpg method.
+/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom.
  *  \return See brief. */
-struct Vector_i* constructor_nnz_dpg_T
+ptrdiff_t compute_dof_T
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Update \ref Solver_Volume::ind_dof and \ref Solver_Face::ind_dof.
+void update_ind_dof_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);

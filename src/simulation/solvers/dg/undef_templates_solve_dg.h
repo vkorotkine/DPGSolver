@@ -18,5 +18,4 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef update_ind_dof_dg_T
 #undef permute_Multiarray_T_fc
-
-#undef zero_memory_volumes_T
+#undef constructor_nnz_dg_T

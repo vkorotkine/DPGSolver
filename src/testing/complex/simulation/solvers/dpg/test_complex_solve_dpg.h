@@ -12,12 +12,15 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
-#ifndef DPG__test_complex_solve_dpg_h__INCLUDED
-#define DPG__test_complex_solve_dpg_h__INCLUDED
 /** \file
  *  \brief Provides `complex` versions of functions defined in \ref solve_dpg.h.
  */
+
+#include "def_templates_type_dc.h"
+#include "def_templates_solve_dpg.h"
+#include "solve_dpg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solve_dpg.h"
 
 struct Simulation;
 struct Solver_Storage_Implicit;
@@ -32,5 +35,3 @@ void compute_lhs_cmplx_step_dpg
 	(const struct Simulation* sim,       ///< \ref Simulation.
 	 struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
 	);
-
-#endif // DPG__test_complex_solve_dpg_h__INCLUDED

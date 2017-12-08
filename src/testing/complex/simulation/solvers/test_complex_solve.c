@@ -15,51 +15,31 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "solve_dpg.h"
+#include "test_complex_solve.h"
 
-#include <assert.h>
+#include "complex_multiarray.h"
 
-#include "macros.h"
+#include "test_complex_face_solver.h"
+#include "test_complex_volume_solver.h"
 
-#include "face_solver.h"
-#include "volume_solver.h"
+#include "test_complex_solve_dg.h"
+#include "test_complex_solve_dpg.h"
+
+
+#include "solve.h"
 
 #include "multiarray.h"
 #include "vector.h"
 
-#include "compute_all_rlhs_dpg.h"
-#include "const_cast.h"
 #include "intrusive.h"
 #include "simulation.h"
-#include "solve.h"
-#include "solve_implicit.h"
-#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Compute the maximum value of the rhs term.
- *  \return See brief. */
-static double compute_max_rhs
-	(const struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
-	);
-
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_d.h"
-#include "solve_dpg_T.c"
-
-double compute_rlhs_dpg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
-{
-	compute_all_rlhs_dpg(sim,ssi,sim->volumes);
-	return compute_max_rhs(ssi);
-}
+#include "def_templates_type_dc.h"
+#include "solve_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static double compute_max_rhs (const struct Solver_Storage_Implicit* ssi)
-{
-	double max_rhs = 0.0;
-	VecNorm(ssi->b,NORM_INFINITY,&max_rhs);
-	return max_rhs;
-}

@@ -13,20 +13,9 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the interface to functions used to solve for the solution using the 'd'iscontinuous 'p'etrov
- *         'g'alerkin method.
+ *  \brief Undefine macro definitions for c-style templating relating to general solve functions.
  */
 
-struct Simulation;
-struct Solver_Storage_Implicit;
-
-/// \brief Update \ref Solver_Volume::ind_dof and \ref Solver_Face::ind_dof for the dg method.
-void update_ind_dof_dpg_T
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/** \brief Version of \ref constructor_nnz for the dpg method.
- *  \return See brief. */
-struct Vector_i* constructor_nnz_dpg_T
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
+#undef compute_dof_T
+#undef update_ind_dof_T
+#undef constructor_Solver_Storage_Implicit_T

@@ -30,11 +30,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Intrusive_List* constructor_empty_IL (const int list_name, struct Intrusive_List* base)
 {
-/*	if ((list_name == IL_ELEMENT) || (list_name == IL_VOLUME) || (list_name == IL_FACE))
-		assert(base == NULL);
-	else
-		assert(base != NULL); */
-
 	struct Intrusive_List* lst = calloc(1,sizeof *lst); // keep
 
 	lst->first = NULL;

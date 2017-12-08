@@ -52,7 +52,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \param flux_r    \ref Flux_Ref_T.
  *  \param sim       \ref Simulation.
  */
-typedef const struct const_Matrix_T* (*constructor_norm_op_fptr_T)
+typedef const struct const_Matrix_T* (*constructor_norm_op_fptr)
 	(const struct DPG_Solver_Volume_T* dpg_s_vol,
 	 const struct Flux_Ref_T* flux_r,
 	 const struct Simulation* sim
@@ -78,7 +78,7 @@ typedef void (*compute_rlhs_fptr_T)
 struct S_Params_DPG_T {
 	struct S_Params_Volume_Structor_T spvs; ///< \ref S_Params_Volume_Structor.
 
-	constructor_norm_op_fptr_T constructor_norm_op; ///< Pointer to the appropriate function.
+	constructor_norm_op_fptr constructor_norm_op; ///< Pointer to the appropriate function.
 	compute_rlhs_fptr_T compute_rlhs;               ///< Pointer to the appropriate function.
 };
 
@@ -245,7 +245,7 @@ static void compute_rlhs_1_T
 	 const struct Simulation* sim               ///< See brief.
 	);
 
-/** \brief Version of \ref constructor_norm_op_fptr_T; see comments for \ref TEST_NORM_H1_UPWIND.
+/** \brief Version of \ref constructor_norm_op_fptr; see comments for \ref TEST_NORM_H1_UPWIND.
  *  \return See brief. */
 static const struct const_Matrix_T* constructor_norm_op__h1_upwind_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, ///< See brief.
@@ -325,7 +325,7 @@ static struct Vector_T* constructor_rhs_v_1_T
 	);
 
 /// \brief Increment and add dof for the rhs and lhs with the face contributions from 1st order equations.
-static void increment_and_add_dof_rlhs_f_1_T
+static void increment_and_add_dof_rlhs_f_1
 	(struct Vector_T* rhs,                      ///< Holds the values of the rhs.
 	 struct Matrix_T** lhs_ptr,                 ///< Pointer to the matrix holding the values of the lhs.
 	 const struct DPG_Solver_Volume_T* dpg_s_vol, ///< \ref DPG_Solver_Volume_T.
@@ -409,7 +409,7 @@ static void compute_rlhs_1_T
 	struct Vector_T* rhs = constructor_rhs_v_1_T(flux_r,s_vol,sim); // destructed
 	struct Matrix_T* lhs = constructor_lhs_v_1_T(flux_r,s_vol,sim); // destructed
 
-	increment_and_add_dof_rlhs_f_1_T(rhs,&lhs,dpg_s_vol,sim);
+	increment_and_add_dof_rlhs_f_1(rhs,&lhs,dpg_s_vol,sim);
 	increment_rhs_source_T(rhs,s_vol,sim);
 //EXIT_UNSUPPORTED;
 
@@ -487,7 +487,7 @@ static struct Vector_T* constructor_rhs_v_1_T
 	return rhs;
 }
 
-static void increment_and_add_dof_rlhs_f_1_T
+static void increment_and_add_dof_rlhs_f_1
 	(struct Vector_T* rhs, struct Matrix_T** lhs_ptr, const struct DPG_Solver_Volume_T* dpg_s_vol,
 	 const struct Simulation* sim)
 {

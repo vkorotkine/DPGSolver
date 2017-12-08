@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_computational_elements.h"
 #include "test_complex_geometry.h"
 #include "test_complex_solution.h"
+#include "test_complex_solve.h"
 #include "test_complex_solve_dg.h"
 #include "test_complex_solve_dpg.h"
 #include "test_complex_test_case.h"
@@ -217,8 +218,7 @@ int main
 		if (i == 0) {
 			set_up_solver_geometry(sim);
 			set_initial_solution(sim);
-			for (int j = 0; j < 2; ++j)
-				ssi[j] = constructor_Solver_Storage_Implicit(sim); // destructed
+			ssi[i] = constructor_Solver_Storage_Implicit(sim); // destructed
 
 			struct Test_Case* test_case = (struct Test_Case*) sim->test_case_rc->tc;
 			test_case->solver_method_curr = 'i';
@@ -231,6 +231,7 @@ int main
 
 			set_up_solver_geometry_c(sim);
 			set_initial_solution_c(sim);
+			ssi[i] = constructor_Solver_Storage_Implicit_c(sim); // destructed
 
 			struct Test_Case_c* test_case = (struct Test_Case_c*) sim->test_case_rc->tc;
 			test_case->solver_method_curr = f_ptrs_data->solver_method_cmplx;
@@ -364,7 +365,7 @@ static void check_linearizations
 {
 	UNUSED(test_info);
 	bool pass        = true;
-	const double tol = 3e1*EPS;
+	const double tol = 5e-12;
 
 	const double diff = norm_diff_petsc_Mat(ssi[0]->A,ssi[1]->A);
 	if (diff > tol) {
@@ -374,7 +375,7 @@ static void check_linearizations
 	}
 
 	if (check_symmetric(sim)) {
-		const double tol_symm = 1e3*EPS;
+		const double tol_symm = 1e-12;
 		PetscBool symmetric = false;
 		MatIsSymmetric(ssi[0]->A,tol_symm,&symmetric);
 		if (!symmetric) {

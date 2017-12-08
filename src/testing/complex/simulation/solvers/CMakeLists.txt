@@ -6,6 +6,7 @@ set	(SOURCE
 	 test_complex_compute_face_rhs.c
 	 test_complex_compute_volume_rhs.c
 	 test_complex_face_solver.c
+	 test_complex_solve.c
 	 test_complex_volume_solver.c
 	)
 

@@ -12,16 +12,9 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to \ref DPG_Solver_Volume containers/functions.
+ *  \brief Undefine macro definitions for c-style templating relating to the dpg solver functions.
  */
 
-///\{ \name Data types
-#undef DPG_Solver_Volume_T
-///\}
-
-///\{ \name Function names
-#undef constructor_derived_DPG_Solver_Volume_T
-#undef destructor_derived_DPG_Solver_Volume_T
-///\}
+#undef update_ind_dof_dpg_T
+#undef constructor_nnz_dpg_T

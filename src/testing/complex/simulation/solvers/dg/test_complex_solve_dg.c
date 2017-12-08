@@ -44,15 +44,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "volume_solver_dg.h"
 
-#include "boundary_advection.h"
-#include "boundary_euler.h"
 #include "compute_face_rlhs.h"
 #include "const_cast.h"
 #include "intrusive.h"
 #include "simulation.h"
 #include "solve.h"
 #include "solve_dg.h"
-#include "solve_implicit.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -158,6 +155,7 @@ struct Intrusive_List* constructor_Volumes_local (const struct Volume* vol, cons
 		if (!is_volume_neighbour((struct Volume*)curr,vol))
 			continue;
 
+		// A copy is required such that the link in the global list is not modified.
 		push_back_IL(volumes,constructor_copied_Intrusive_Link(curr,sizeof_base,sizeof_base));
 	}
 
@@ -173,6 +171,7 @@ struct Intrusive_List* constructor_Faces_local (const struct Volume* vol, const 
 		if (!is_face_neighbour((struct Face*)curr,vol))
 			continue;
 
+		// A copy is required such that the link in the global list is not modified.
 		push_back_IL(faces,constructor_copied_Intrusive_Link(curr,sizeof_base,sizeof_base));
 	}
 
@@ -182,7 +181,7 @@ struct Intrusive_List* constructor_Faces_local (const struct Volume* vol, const 
 static void compute_rhs_cmplx_step_dg
 	(struct Intrusive_List* volumes_local, struct Intrusive_List* faces_local, const struct Simulation* sim)
 {
-	zero_memory_volumes_c(volumes_local);
+	zero_memory_volumes(volumes_local);
 	switch (CHECK_LIN) {
 	case CHECK_LIN_VOLUME:
 		compute_volume_rlhs_dg_c(sim,NULL,volumes_local);

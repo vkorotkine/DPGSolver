@@ -24,35 +24,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "petscmat.h"
 
 struct Simulation;
+struct Solver_Storage_Implicit;
 struct Vector_i;
 
 /// \brief Solve for the solution using an implicit solver.
 void solve_implicit
 	(struct Simulation* sim ///< \ref Simulation.
-	);
-
-/** \brief Constructor for a \ref Solver_Storage_Implicit container.
- *  \return See brief. */
-struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/// \brief Destructor for a \ref Solver_Storage_Implicit container.
-void destructor_Solver_Storage_Implicit
-	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
-	);
-
-/// \brief Assemble \ref Solver_Storage_Implicit::A and \ref Solver_Storage_Implicit::b.
-void petsc_mat_vec_assemble
-	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
-	);
-
-/// \brief Increment the corresponding rows of `nnz` by the input number of columns.
-void increment_nnz
-	(struct Vector_i* nnz,    ///< Holds the number of non-zero entries for each row.
-	 const ptrdiff_t ind_dof, ///< The index of the first degree of freedom for rows to be incremented.
-	 const ptrdiff_t n_row,   ///< The number of sequential rows to be incremented.
-	 const ptrdiff_t n_col    ///< The increment.
 	);
 
 /** \brief Check whether the matrix under consideration is symmetric based on \ref Simulation::method and

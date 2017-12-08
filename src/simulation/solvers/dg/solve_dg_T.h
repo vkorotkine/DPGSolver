@@ -26,6 +26,12 @@ void update_ind_dof_dg_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Version of \ref constructor_nnz for the dg method.
+ *  \return See brief. */
+struct Vector_i* constructor_nnz_dg_T
+	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
 /** \brief Permute the input multiarray such that its ordering is such that it is in the reference coordinates of the
  *         face cubature nodes of the opposite volume. */
 void permute_Multiarray_T_fc

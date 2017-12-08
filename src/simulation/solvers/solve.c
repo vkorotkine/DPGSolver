@@ -22,13 +22,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdio.h>
 
 #include "macros.h"
-#include "definitions_test_case.h"
 #include "definitions_intrusive.h"
 
 #include "face_solver.h"
 #include "volume_solver.h"
 
 #include "multiarray.h"
+#include "vector.h"
 
 #include "geometry.h"
 #include "intrusive.h"
@@ -43,19 +43,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom in the volume computational elements.
- *  \return See brief. */
-static ptrdiff_t compute_dof_volumes
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom in the face computational elements.
- *  \return See brief. */
-static ptrdiff_t compute_dof_faces
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
 // Interface functions ********************************************************************************************** //
+
+#include "def_templates_type_d.h"
+#include "solve_T.c"
 
 void solve_for_solution (struct Simulation* sim)
 {
@@ -113,13 +104,31 @@ double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implici
 	return max_rhs;
 }
 
-ptrdiff_t compute_dof (const struct Simulation* sim)
+void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* ssi)
 {
-	assert((sim->method == METHOD_DG) || (sim->method == METHOD_DPG)); // Ensure that all is working correctly if modified.
-	ptrdiff_t dof = 0;
-	dof += compute_dof_volumes(sim);
-	dof += compute_dof_faces(sim);
-	return dof;
+	MatDestroy(&ssi->A);
+	VecDestroy(&ssi->b);
+
+	free(ssi);
+}
+
+void increment_nnz (struct Vector_i* nnz, const ptrdiff_t ind_dof, const ptrdiff_t n_row, const ptrdiff_t n_col)
+{
+	assert(ind_dof >= 0);
+
+	const ptrdiff_t i_max = ind_dof+n_row;
+	assert(i_max <= nnz->ext_0);
+
+	for (ptrdiff_t i = ind_dof; i < i_max; ++i)
+		nnz->data[i] += (int)n_col;
+}
+
+void petsc_mat_vec_assemble (struct Solver_Storage_Implicit* ssi)
+{
+	MatAssemblyBegin(ssi->A,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(ssi->A,MAT_FINAL_ASSEMBLY);
+	VecAssemblyBegin(ssi->b);
+	VecAssemblyEnd(ssi->b);
 }
 
 ptrdiff_t compute_dof_sol_1st (const struct Simulation* sim)
@@ -149,36 +158,5 @@ ptrdiff_t compute_dof_schur (const char dof_type, const struct Simulation* sim)
 	return dof;
 }
 
-void update_ind_dof (const struct Simulation* sim)
-{
-	switch (sim->method) {
-	case METHOD_DG:  update_ind_dof_dg(sim);  break;
-	case METHOD_DPG: update_ind_dof_dpg(sim); break;
-	default:
-		EXIT_ERROR("Unsupported: %d.\n",sim->method);
-		break;
-	}
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static ptrdiff_t compute_dof_volumes (const struct Simulation* sim)
-{
-	ptrdiff_t dof = 0;
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-		dof += compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents);
-	}
-	return dof;
-}
-
-static ptrdiff_t compute_dof_faces (const struct Simulation* sim)
-{
-	ptrdiff_t dof = 0;
-	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		struct Solver_Face* s_face = (struct Solver_Face*) curr;
-		dof += compute_size(s_face->nf_coef->order,s_face->nf_coef->extents);
-	}
-	return dof;
-}
