@@ -46,6 +46,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+#define DEBUGGING 1
+
 /** \brief Function pointer to functions constructing the norm operator used to evaluate the optimal test functions.
  *
  *  \param dpg_s_vol The current volume.
@@ -108,7 +110,6 @@ static void set_idxm_T
 void compute_all_rlhs_dpg_T
 	(const struct Simulation* sim, struct Solver_Storage_Implicit* ssi, struct Intrusive_List* volumes)
 {
-	assert((sim->test_case_rc->is_real) || (volumes->first->next == NULL));
 	assert(sim->volumes->name == IL_VOLUME_SOLVER_DPG);
 	assert(sim->faces->name == IL_FACE_SOLVER_DPG);
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_DPG);
@@ -151,11 +152,12 @@ struct Multiarray_Operator get_operator__cvt1_vt_vc__rlhs_T (const struct DPG_So
 	return set_MO_from_MO(dpg_s_e->cvt1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 }
 
+/// \todo make static
 const struct const_Matrix_R* constructor_lhs_l_internal_face_dpg_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct DPG_Solver_Face_T* dpg_s_face)
 {
-	const struct Volume* vol         = (struct Volume*) dpg_s_vol;
-	const struct Face* face          = (struct Face*) dpg_s_face;
+	const struct Volume* vol           = (struct Volume*) dpg_s_vol;
+	const struct Face* face            = (struct Face*) dpg_s_face;
 	const struct Solver_Face_T* s_face = (struct Solver_Face_T*) dpg_s_face;
 
 	const int side_index = compute_side_index_face(face,vol);
@@ -423,6 +425,9 @@ static void compute_rlhs_1_T
 //print_const_Matrix_T(optimal_test);
 	const struct const_Vector_T* rhs_opt =
 		constructor_mv_const_Vector_T('T',-1.0,optimal_test,(struct const_Vector_T*)rhs); // destructed
+#ifdef DEBUGGING
+print_const_Vector_T(rhs_opt);
+#endif
 	destructor_Vector_T(rhs);
 
 //print_const_Vector_T(rhs_opt);
@@ -492,8 +497,12 @@ static void increment_and_add_dof_rlhs_f_1
 	 const struct Simulation* sim)
 {
 	struct Matrix_T* lhs = *lhs_ptr;
+#ifdef DEBUGGING
+print_Vector_T(rhs);
+set_to_value_Matrix_T(lhs,0.0);
+#endif
 
-	const struct Volume* vol          = (struct Volume*) dpg_s_vol;
+	const struct Volume* vol            = (struct Volume*) dpg_s_vol;
 	const struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) dpg_s_vol;
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
@@ -569,6 +578,9 @@ static void increment_rlhs_internal_face_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct DPG_Solver_Face_T* dpg_s_face, struct Matrix_T* lhs,
 	 struct Matrix_T* rhs, int* ind_dof, const struct Simulation* sim)
 {
+#ifdef DEBUGGING
+return;
+#endif
 	/// As the rhs is **always** linear wrt the trace unknowns, the rhs and lhs are computed together.
 	const struct const_Matrix_R* lhs_l = constructor_lhs_l_internal_face_dpg_T(dpg_s_vol,dpg_s_face); // destructed
 //print_const_Matrix_d(tw0_vt_fc_op->op_std);
@@ -593,6 +605,9 @@ static void increment_rlhs_boundary_face_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct DPG_Solver_Face_T* dpg_s_face, struct Matrix_T* lhs,
 	 struct Matrix_T* rhs, const struct Simulation* sim)
 {
+#ifdef DEBUGGING
+return;
+#endif
 	UNUSED(dpg_s_vol);
 	struct Numerical_Flux_Input_T* num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
 
@@ -634,6 +649,8 @@ static void increment_rhs_boundary_face_T
 	(struct Matrix_T* rhs, const struct Numerical_Flux_T* num_flux, const struct Solver_Face_T* s_face,
 	 const struct Simulation* sim)
 {
+	assert(((struct Face*)s_face)->boundary);
+
 	ptrdiff_t extents[2] = { rhs->ext_0, rhs->ext_1, };
 	struct Multiarray_T rhs_Ma =
 		{ .layout = 'C', .order = 2, .extents = extents, .owns_data = false, .data = rhs->data, };

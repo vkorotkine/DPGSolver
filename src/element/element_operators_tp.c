@@ -263,10 +263,6 @@ static void set_sub_operator_info
 	const struct const_Vector_i* op_values =
 		constructor_move_const_Vector_Matrix_row_i(ind_values,values_op,false); // destructed
 
-	if (op_should_use_L2(op_values->data,op_io))
-		EXIT_ERROR("Ensure that all is working as expected.\n");
-		// Invalid condition in \ref set_ops_Md for j == OP_IND_H.
-
 	// See comments in \ref element_operators_tp.h
 	assert((op_values->data[OP_IND_D] == OP_INVALID_IND) ||
 	       (op_values->data[OP_IND_CE] == OP_INVALID_IND && op_values->data[OP_IND_CE+1] == OP_INVALID_IND));

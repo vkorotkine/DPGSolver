@@ -51,18 +51,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Compute the complex rhs terms associated with the input volume for the dpg scheme.
-static void compute_rhs_cmplx_step_dpg_volume
-	(const struct DPG_Solver_Volume_c* dpg_s_vol, ///< The \ref DPG_Solver_Volume_c.
-	 struct Solver_Storage_Implicit* ssi,           ///< \ref Solver_Storage_Implicit.
-	 const struct Simulation* sim                   ///< \ref Simulation.
+/** \brief Constructor for the list of \ref Volume\*s including only the current volume.
+ *  \return Standard. */
+static struct Intrusive_List* constructor_Volumes_local_v
+	(const struct Volume* vol ///< The \ref Volume.
 	);
 
-/// \brief Compute the complex rhs terms associated with the input face for the dpg scheme.
-static void compute_rhs_cmplx_step_dpg_face
-	(const struct DPG_Solver_Face_c* dpg_s_face, ///< The \ref DPG_Solver_Face_c.
-	 struct Solver_Storage_Implicit* ssi,          ///< \ref Solver_Storage_Implicit.
-	 const struct Simulation* sim                  ///< \ref Simulation.
+/** \brief Constructor for the list of \ref Volume\*s including only the volumes neighbouring the current face.
+ *  \return Standard. */
+static struct Intrusive_List* constructor_Volumes_local_f
+	(const struct Face* face ///< The \ref Face.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -110,17 +108,21 @@ void compute_lhs_cmplx_step_dpg (const struct Simulation* sim, struct Solver_Sto
 	 *  Mat for this case. */
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		const struct Solver_Volume_c* s_vol   = (struct Solver_Volume_c*) curr;
-		struct DPG_Solver_Volume_c* dpg_s_vol = (struct DPG_Solver_Volume_c*) curr;
+		struct Volume* vol = (struct Volume*) curr;
+		struct Intrusive_List* volumes_local = constructor_Volumes_local_v(vol); // destructed
+
+		const struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*) curr;
 		struct Multiarray_c* sol_coef_c = s_vol->sol_coef;
 		const ptrdiff_t n_col_l = compute_size(sol_coef_c->order,sol_coef_c->extents);
 		for (int col_l = 0; col_l < n_col_l; ++col_l) {
 			ssi->col = (int)s_vol->ind_dof+col_l;
+printf(" vol: %d %d\n",col_l,ssi->col);
 
 			sol_coef_c->data[col_l] += CX_STEP*I;
-			compute_rhs_cmplx_step_dpg_volume(dpg_s_vol,ssi,sim);
+			compute_all_rhs_dpg_c(sim,ssi,volumes_local);
 			sol_coef_c->data[col_l] -= CX_STEP*I;
 		}
+		destructor_IL(volumes_local);
 	}
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
@@ -128,17 +130,20 @@ void compute_lhs_cmplx_step_dpg (const struct Simulation* sim, struct Solver_Sto
 		if (face->boundary)
 			continue;
 
-		const struct Solver_Face_c* s_face   = (struct Solver_Face_c*) curr;
-		struct DPG_Solver_Face_c* dpg_s_face = (struct DPG_Solver_Face_c*) curr;
+		struct Intrusive_List* volumes_local = constructor_Volumes_local_f(face); // destructed
+
+		const struct Solver_Face_c* s_face = (struct Solver_Face_c*) curr;
 		struct Multiarray_c* nf_coef_c = s_face->nf_coef;
 		const ptrdiff_t n_col_l = compute_size(nf_coef_c->order,nf_coef_c->extents);
 		for (int col_l = 0; col_l < n_col_l; ++col_l) {
 			ssi->col = (int)s_face->ind_dof+col_l;
+printf("face: %d %d\n",col_l,ssi->col);
 
 			nf_coef_c->data[col_l] += CX_STEP*I;
-			compute_rhs_cmplx_step_dpg_face(dpg_s_face,ssi,sim);
+			compute_all_rhs_dpg_c(sim,ssi,volumes_local);
 			nf_coef_c->data[col_l] -= CX_STEP*I;
 		}
+		destructor_IL(volumes_local);
 	}
 	petsc_mat_vec_assemble(ssi);
 }
@@ -146,31 +151,32 @@ void compute_lhs_cmplx_step_dpg (const struct Simulation* sim, struct Solver_Sto
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static void compute_rhs_cmplx_step_dpg_volume
-	(const struct DPG_Solver_Volume_c* dpg_s_vol, struct Solver_Storage_Implicit* ssi,
-	 const struct Simulation* sim)
+static struct Intrusive_List* constructor_Volumes_local_v (const struct Volume* vol)
 {
-	struct Intrusive_List* volumes_local = constructor_empty_IL(IL_VOLUME_SOLVER_DPG,NULL); // destructed
-	struct Intrusive_Link* curr = (struct Intrusive_Link*) dpg_s_vol;
+	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME_SOLVER_DPG,NULL); // returned
 
 	const size_t sizeof_base = sizeof(struct DPG_Solver_Volume_c);
+	struct Intrusive_Link* curr = (struct Intrusive_Link*) vol;
 
 	// A copy is required such that the link in the global list is not modified.
-	push_back_IL(volumes_local,constructor_copied_Intrusive_Link(curr,sizeof_base,sizeof_base));
+	push_back_IL(volumes,constructor_copied_Intrusive_Link(curr,sizeof_base,sizeof_base));
 
-	compute_all_rhs_dpg_c(sim,ssi,volumes_local);
-	destructor_IL(volumes_local);
+	return volumes;
 }
 
-static void compute_rhs_cmplx_step_dpg_face
-	(const struct DPG_Solver_Face_c* dpg_s_face, struct Solver_Storage_Implicit* ssi,
-	 const struct Simulation* sim)
+static struct Intrusive_List* constructor_Volumes_local_f (const struct Face* face)
 {
-	const struct Face* face = (struct Face*) dpg_s_face;
 	assert(!face->boundary);
 
+	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME_SOLVER_DPG,NULL); // returned
+
+	const size_t sizeof_base = sizeof(struct DPG_Solver_Volume_c);
 	for (int i = 0; i < 2; ++i) {
-		const struct DPG_Solver_Volume_c* dpg_s_vol = (struct DPG_Solver_Volume_c*) face->neigh_info[i].volume;
-		compute_rhs_cmplx_step_dpg_volume(dpg_s_vol,ssi,sim);
+		struct Intrusive_Link* curr = (struct Intrusive_Link*) face->neigh_info[i].volume;
+
+		// A copy is required such that the link in the global list is not modified.
+		push_back_IL(volumes,constructor_copied_Intrusive_Link(curr,sizeof_base,sizeof_base));
 	}
+
+	return volumes;
 }

@@ -60,7 +60,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 ///\{ \name Flag for whether PETSc Matrices should be output to files.
-#define OUTPUT_PETSC_MATRICES false
+#define OUTPUT_PETSC_MATRICES true
 ///\}
 
 /** \brief Function pointer to functions perturbing the solution to ensure that all terms in the linearization are
@@ -365,7 +365,7 @@ static void check_linearizations
 {
 	UNUSED(test_info);
 	bool pass        = true;
-	const double tol = 5e-12;
+	const double tol = 1e-13;
 
 	const double diff = norm_diff_petsc_Mat(ssi[0]->A,ssi[1]->A);
 	if (diff > tol) {
@@ -376,11 +376,12 @@ static void check_linearizations
 
 	if (check_symmetric(sim)) {
 		const double tol_symm = 1e-12;
-		PetscBool symmetric = false;
-		MatIsSymmetric(ssi[0]->A,tol_symm,&symmetric);
-		if (!symmetric) {
+		PetscBool symmetric[2] = { false, false, };
+		for (int i = 0; i < 2; ++i)
+			MatIsSymmetric(ssi[i]->A,tol_symm,&symmetric[i]);
+		if (!(symmetric[0] && symmetric[1])) {
 			pass = false;
-			printf("tol = % .3e.\n",tol_symm);
+			printf("symm: %d %d (tol = % .3e).\n",symmetric[0],symmetric[1],tol_symm);
 			expect_condition(pass,"symmetric");
 		}
 	}

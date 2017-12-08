@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = EULER; pde_spec = STEADY_SUPERSONIC_VORTEX;
+mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = EULER; pde_spec = STEADY_SUPERSONIC_VORTEX;
 
 // Geometry Specification
 If (pde_spec == STEADY_SUPERSONIC_VORTEX)
@@ -41,8 +41,8 @@ EndIf
 
 
 // Include something for aspect ratio: 1.0, 2.5, 5.0, 20.0
-Transfinite Line {1003:1006}      = 2*2^(mesh_level)+1 Using Progression 1;
-Transfinite Line {1001,1002,1007} = 2*2^(mesh_level)+1 Using Progression 1;
+Transfinite Line {1003:1006}      = 2^(mesh_level)+1 Using Progression 1;
+Transfinite Line {1001,1002,1007} = 2^(mesh_level)+1 Using Progression 1;
 
 
 Line Loop (4001) = {1007,1005,-1002,-1003};

@@ -56,14 +56,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /** \brief Constructor for the list of \ref Volume\*s adjacent to (and including) the current volume.
  *  \return Standard. */
-struct Intrusive_List* constructor_Volumes_local
+static struct Intrusive_List* constructor_Volumes_local
 	(const struct Volume* vol,    ///< The centre \ref Volume.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /** \brief Constructor for the list of \ref Face\*s adjacent to the current volume.
  *  \return Standard. */
-struct Intrusive_List* constructor_Faces_local
+static struct Intrusive_List* constructor_Faces_local
 	(const struct Volume* vol,    ///< The centre \ref Volume.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
@@ -146,7 +146,7 @@ static bool is_face_neighbour
 	 const struct Volume* vol_curr ///< The current volume.
 	);
 
-struct Intrusive_List* constructor_Volumes_local (const struct Volume* vol, const struct Simulation* sim)
+static struct Intrusive_List* constructor_Volumes_local (const struct Volume* vol, const struct Simulation* sim)
 {
 	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME_SOLVER_DG,NULL);
 
@@ -162,7 +162,7 @@ struct Intrusive_List* constructor_Volumes_local (const struct Volume* vol, cons
 	return volumes;
 }
 
-struct Intrusive_List* constructor_Faces_local (const struct Volume* vol, const struct Simulation* sim)
+static struct Intrusive_List* constructor_Faces_local (const struct Volume* vol, const struct Simulation* sim)
 {
 	struct Intrusive_List* faces = constructor_empty_IL(IL_FACE_SOLVER_DG,NULL);
 
