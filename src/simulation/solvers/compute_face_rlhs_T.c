@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
 
+#include "def_templates_boundary.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_test_case.h"
 
@@ -103,7 +104,8 @@ const struct const_Vector_i* get_operator__nc_fc_T (const int side_index_dest, c
 }
 
 void constructor_Numerical_Flux_Input_data_T
-	(struct Numerical_Flux_Input* num_flux_i, const struct Solver_Face_T* s_face, const struct Simulation* sim)
+	(struct Numerical_Flux_Input_T* num_flux_i, const struct Solver_Face_T* s_face,
+	 const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 
@@ -111,14 +113,14 @@ void constructor_Numerical_Flux_Input_data_T
 	s_face->constructor_Boundary_Value_fcl(&num_flux_i->bv_r,&num_flux_i->bv_l,s_face,sim); // destructed
 }
 
-void destructor_Numerical_Flux_Input_data_T (struct Numerical_Flux_Input* num_flux_i)
+void destructor_Numerical_Flux_Input_data_T (struct Numerical_Flux_Input_T* num_flux_i)
 {
-	destructor_Boundary_Value_Input(&num_flux_i->bv_l);
-	destructor_Boundary_Value(&num_flux_i->bv_r);
+	destructor_Boundary_Value_Input_T(&num_flux_i->bv_l);
+	destructor_Boundary_Value_T(&num_flux_i->bv_r);
 }
 
 struct Matrix_T* constructor_lhs_f_1_T
-	(const int side_index[2], const struct Numerical_Flux* num_flux, const struct Solver_Face_T* s_face)
+	(const int side_index[2], const struct Numerical_Flux_T* num_flux, const struct Solver_Face_T* s_face)
 {
 	const struct Operator* tw0_vt_fc    = get_operator__tw0_vt_fc_T(side_index[0],s_face);
 	const struct Operator* cv0_vs_fc_op = get_operator__cv0_vs_fc_T(side_index[1],s_face);
@@ -128,7 +130,7 @@ struct Matrix_T* constructor_lhs_f_1_T
 	if (side_index[0] != side_index[1]) {
 		need_free_cv0 = true;
 		cv0_vs_fc = constructor_copy_const_Matrix_R(cv0_vs_fc); // destructed
-		permute_Matrix_T_fc((struct Matrix_R*)cv0_vs_fc,'R',side_index[0],s_face);
+		permute_Matrix_R_fc((struct Matrix_R*)cv0_vs_fc,'R',side_index[0],s_face);
 	}
 
 	const struct const_Multiarray_T* dnnf_ds_Ma = num_flux->neigh_info[side_index[1]].dnnf_ds;
@@ -149,10 +151,10 @@ struct Matrix_T* constructor_lhs_f_1_T
 	for (int eq = 0; eq < n_eq; ++eq) {
 		const ptrdiff_t ind =
 			compute_index_sub_container(dnnf_ds_Ma->order,1,dnnf_ds_Ma->extents,(ptrdiff_t[]){eq,vr});
-		dnnf_ds.data = (double*)&dnnf_ds_Ma->data[ind];
+		dnnf_ds.data = (Type*)&dnnf_ds_Ma->data[ind];
 		mm_diag_T('R',1.0,0.0,tw0_vt_fc->op_std,(struct const_Vector_T*)&dnnf_ds,tw0_nf,false);
 
-		mm_T('N','N',-1.0,0.0,(struct const_Matrix_T*)tw0_nf,cv0_vs_fc,lhs_l);
+		mm_TRT('N','N',-1.0,0.0,(struct const_Matrix_T*)tw0_nf,cv0_vs_fc,lhs_l);
 
 		set_block_Matrix_T(lhs,(struct const_Matrix_T*)lhs_l,eq*lhs_l->ext_0,vr*lhs_l->ext_1,'i');
 #if 0

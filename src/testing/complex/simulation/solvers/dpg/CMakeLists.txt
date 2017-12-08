@@ -6,16 +6,9 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
-	 Complex_Containers
-	 Test_Complex_Boundary
-	 Test_Complex_Containers
-	 Test_Complex_Flux
-	 Test_Complex_Numerical_Flux
-	 Test_Complex_Operators
-	 Test_Complex_Solvers
-	 Test_Complex_Test_Case
 	 Test_Support_Containers
-	 Test_Support_General
+	 Test_Support_Computational_Elements
+	 Test_Complex_Solvers
 	)
 
 set (LIB Test_Complex_Solver_DPG)

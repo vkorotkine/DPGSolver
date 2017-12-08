@@ -106,7 +106,7 @@ struct Flux_Ref_T* constructor_Flux_Ref_vol_T
 //print_const_Multiarray_T(flux_i->s);
 
 	// Compute the fluxes (and optionally their Jacobians) at the volume cubature nodes.
-	struct Flux_T* flux = constructor_Flux(flux_i);
+	struct Flux_T* flux = constructor_Flux_T(flux_i);
 	spvs->destructor_sol_vc(flux_i->s);
 //print_const_Multiarray_T(flux->f);
 //print_const_Multiarray_T(flux->df_ds);
@@ -115,7 +115,7 @@ struct Flux_Ref_T* constructor_Flux_Ref_vol_T
 	struct Flux_Ref_T* flux_r = constructor_Flux_Ref_T(s_vol->metrics_vc,flux);
 //print_const_Multiarray_T(flux_r->fr);
 //print_const_Multiarray_T(flux_r->dfr_ds);
-	destructor_Flux(flux);
+	destructor_Flux_T(flux);
 //EXIT_UNSUPPORTED;
 
 	return flux_r;
@@ -207,7 +207,7 @@ static const struct const_Multiarray_T* constructor_flux_ref_T
 static const struct const_Multiarray_T* constructor_sol_vc_interp_T
 	(const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
 {
-	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc(s_vol);
+	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc_T(s_vol);
 
 	const struct const_Multiarray_T* s_coef = (const struct const_Multiarray_T*) s_vol->sol_coef;
 

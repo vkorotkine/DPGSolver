@@ -19,11 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of functions defined in \ref solve_dpg.h.
  */
 
-struct Multiarray_c;
 struct Simulation;
 struct Solver_Storage_Implicit;
 
-/// \brief Perturb the initial solution for the DG method.
+/// \brief Perturb the initial solution for the DPG method.
 void perturb_solution_dpg
 	(const struct Simulation* sim ///< Defined for \ref perturb_solution_fptr.
 	);

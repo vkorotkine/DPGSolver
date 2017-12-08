@@ -45,14 +45,14 @@ static struct Multiarray_T* constructor_sol_supersonic_vortex
 
 // Interface functions ********************************************************************************************** //
 
-const struct const_Multiarray_T* constructor_const_sol_supersonic_vortex
+const struct const_Multiarray_T* constructor_const_sol_supersonic_vortex_T
 	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
 {
 	struct Multiarray_T* sol = constructor_sol_supersonic_vortex(xyz,sim); // returned
 	return (const struct const_Multiarray_T*) sol;
 }
 
-void set_sol_supersonic_vortex (const struct Simulation* sim, struct Solution_Container_T sol_cont)
+void set_sol_supersonic_vortex_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
 	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_supersonic_vortex(xyz,sim); // destructed

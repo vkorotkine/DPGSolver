@@ -42,7 +42,7 @@ static struct Multiarray_T* constructor_sol_periodic_vortex_T
 
 // Interface functions ********************************************************************************************** //
 
-void set_sol_periodic_vortex (const struct Simulation* sim, struct Solution_Container_T sol_cont)
+void set_sol_periodic_vortex_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
 	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_periodic_vortex_T(xyz,sim); // destructed
@@ -80,7 +80,7 @@ static struct Sol_Data__pv get_sol_data
 	);
 
 /// \brief Set the centre xy coordinates of the periodic vortex at the given time.
-void set_xy_c
+static void set_xy_c
 	(double* x_c,                         ///< The x-coordinate of the vortex centre.
 	 double* y_c,                         ///< The y-coordinate of the vortex centre.
 	 const struct Sol_Data__pv* sol_data, ///< \ref Sol_Data__pv.
@@ -167,7 +167,7 @@ static struct Sol_Data__pv get_sol_data (const struct Simulation* sim)
 	return sol_data;
 }
 
-void set_xy_c (double* x_c, double* y_c, const struct Sol_Data__pv* sol_data, const double time)
+static void set_xy_c (double* x_c, double* y_c, const struct Sol_Data__pv* sol_data, const double time)
 {
 	const double theta    = sol_data->theta;
 	const double period_l = sol_data->period_l;

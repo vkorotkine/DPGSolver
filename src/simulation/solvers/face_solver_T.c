@@ -33,7 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /** \brief Checks if one of the neighbouring volumes to the current face is curved.
  *  \return `true` if curved volume is found; `false` otherwise. */
-bool check_for_curved_neigh
+static bool check_for_curved_neigh
 	(struct Face* face ///< \ref Face.
 	);
 
@@ -57,12 +57,12 @@ void constructor_derived_Solver_Face_T (struct Face* face_ptr, const struct Simu
 
 	s_face->nf_coef = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0});   // destructed
 
-	const_constructor_move_Multiarray_T(
-		&s_face->xyz_fc,constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0}));        // destructed
-	const_constructor_move_Multiarray_T(
-		&s_face->normals_fc,constructor_empty_Multiarray_T('R',2,(ptrdiff_t[]){0,0}));    // destructed
-	const_constructor_move_Multiarray_T(
-		&s_face->jacobian_det_fc,constructor_empty_Multiarray_T('C',1,(ptrdiff_t[]){0})); // destructed
+	const_constructor_move_Multiarray_R(
+		&s_face->xyz_fc,constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){0,0}));        // destructed
+	const_constructor_move_Multiarray_R(
+		&s_face->normals_fc,constructor_empty_Multiarray_R('R',2,(ptrdiff_t[]){0,0}));    // destructed
+	const_constructor_move_Multiarray_R(
+		&s_face->jacobian_det_fc,constructor_empty_Multiarray_R('C',1,(ptrdiff_t[]){0})); // destructed
 
 	set_function_pointers_num_flux_T(s_face,sim);
 }
@@ -73,9 +73,9 @@ void destructor_derived_Solver_Face_T (struct Face* face_ptr)
 
 	destructor_Multiarray_T(face->nf_coef);
 
-	destructor_const_Multiarray_T(face->xyz_fc);
-	destructor_const_Multiarray_T(face->normals_fc);
-	destructor_const_Multiarray_T(face->jacobian_det_fc);
+	destructor_const_Multiarray_R(face->xyz_fc);
+	destructor_const_Multiarray_R(face->normals_fc);
+	destructor_const_Multiarray_R(face->jacobian_det_fc);
 }
 
 // Static functions ************************************************************************************************* //
@@ -88,7 +88,7 @@ static void set_function_pointers_num_flux_bc_T
 	 const struct Simulation* sim ///< Defined for \ref set_function_pointers_num_flux.
 	);
 
-bool check_for_curved_neigh (struct Face* face)
+static bool check_for_curved_neigh (struct Face* face)
 {
 	if (face->neigh_info[0].volume->curved || (face->neigh_info[1].volume && face->neigh_info[1].volume->curved))
 		return true;
@@ -153,10 +153,10 @@ static void set_function_pointers_num_flux_bc_advection_T (struct Solver_Face_T*
 	const int bc = face->bc % BC_STEP_SC;
 	switch (bc) {
 	case BC_INFLOW:
-		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_advection_inflow;
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_advection_inflow;
 		break;
 	case BC_OUTFLOW:
-		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_advection_outflow;
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_advection_outflow;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",face->bc);
@@ -171,10 +171,10 @@ static void set_function_pointers_num_flux_bc_euler_T (struct Solver_Face_T* s_f
 	const int bc = face->bc % BC_STEP_SC;
 	switch (bc) {
 	case BC_RIEMANN:
-		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_euler_riemann;
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_euler_riemann;
 		break;
 	case BC_SLIPWALL:
-		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_euler_slipwall;
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_euler_slipwall;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",face->bc);

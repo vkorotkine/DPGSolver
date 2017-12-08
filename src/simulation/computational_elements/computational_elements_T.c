@@ -232,7 +232,6 @@ static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
 	struct Derived_Comp_Elements_Info de_info;
 
 	switch (derived_category) {
-#if TYPE_RC == TYPE_REAL
 	case IL_SOLVER:
 		assert(sim->volumes->name == IL_VOLUME);
 		assert(sim->faces->name   == IL_FACE);
@@ -245,19 +244,6 @@ static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
 		de_info.constructor_derived_Volume = constructor_derived_Solver_Volume_T;
 		de_info.constructor_derived_Face   = constructor_derived_Solver_Face_T;
 		break;
-	case IL_SOLVER_ADAPTIVE:
-		assert(sim->volumes->name == IL_VOLUME_SOLVER);
-		assert(sim->faces->name   == IL_FACE_SOLVER);
-		de_info.list_name[0] = IL_VOLUME_SOLVER_ADAPTIVE;
-		de_info.list_name[1] = IL_FACE_SOLVER_ADAPTIVE;
-		de_info.sizeof_base[0] = sizeof(struct Solver_Volume_T);
-		de_info.sizeof_base[1] = sizeof(struct Solver_Face_T);
-		de_info.sizeof_derived[0] = sizeof(struct Adaptive_Solver_Volume);
-		de_info.sizeof_derived[1] = sizeof(struct Adaptive_Solver_Face);
-		de_info.constructor_derived_Volume = constructor_derived_Adaptive_Solver_Volume;
-		de_info.constructor_derived_Face   = constructor_derived_Adaptive_Solver_Face;
-		break;
-#endif
 	case IL_SOLVER_DG:
 		assert(sim->volumes->name == IL_VOLUME_SOLVER);
 		assert(sim->faces->name   == IL_FACE_SOLVER);
@@ -282,6 +268,20 @@ static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
 		de_info.constructor_derived_Volume = constructor_derived_DPG_Solver_Volume_T;
 		de_info.constructor_derived_Face   = constructor_derived_DPG_Solver_Face_T;
 		break;
+#if TYPE_RC == TYPE_REAL
+	case IL_SOLVER_ADAPTIVE:
+		assert(sim->volumes->name == IL_VOLUME_SOLVER);
+		assert(sim->faces->name   == IL_FACE_SOLVER);
+		de_info.list_name[0] = IL_VOLUME_SOLVER_ADAPTIVE;
+		de_info.list_name[1] = IL_FACE_SOLVER_ADAPTIVE;
+		de_info.sizeof_base[0] = sizeof(struct Solver_Volume_T);
+		de_info.sizeof_base[1] = sizeof(struct Solver_Face_T);
+		de_info.sizeof_derived[0] = sizeof(struct Adaptive_Solver_Volume);
+		de_info.sizeof_derived[1] = sizeof(struct Adaptive_Solver_Face);
+		de_info.constructor_derived_Volume = constructor_derived_Adaptive_Solver_Volume;
+		de_info.constructor_derived_Face   = constructor_derived_Adaptive_Solver_Face;
+		break;
+#endif
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_category);
 		break;
@@ -328,18 +328,11 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 	}
 
 	switch (derived_category) {
-#if TYPE_RC == TYPE_REAL
 	case IL_SOLVER:
 		assert(base_category == IL_BASE);
 		de_info.destructor_derived_Volume = destructor_derived_Solver_Volume_T;
 		de_info.destructor_derived_Face   = destructor_derived_Solver_Face_T;
 		break;
-	case IL_SOLVER_ADAPTIVE:
-		assert(base_category == IL_SOLVER);
-		de_info.destructor_derived_Volume = destructor_derived_Adaptive_Solver_Volume;
-		de_info.destructor_derived_Face   = destructor_derived_Adaptive_Solver_Face;
-		break;
-#endif
 	case IL_SOLVER_DG:
 		assert(base_category == IL_SOLVER);
 		de_info.destructor_derived_Volume = destructor_derived_DG_Solver_Volume_T;
@@ -350,6 +343,13 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 		de_info.destructor_derived_Volume = destructor_derived_DPG_Solver_Volume_T;
 		de_info.destructor_derived_Face   = destructor_derived_DPG_Solver_Face_T;
 		break;
+#if TYPE_RC == TYPE_REAL
+	case IL_SOLVER_ADAPTIVE:
+		assert(base_category == IL_SOLVER);
+		de_info.destructor_derived_Volume = destructor_derived_Adaptive_Solver_Volume;
+		de_info.destructor_derived_Face   = destructor_derived_Adaptive_Solver_Face;
+		break;
+#endif
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_category);
 		break;

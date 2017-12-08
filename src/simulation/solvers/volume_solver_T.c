@@ -36,32 +36,32 @@ void constructor_derived_Solver_Volume_T (struct Volume* volume_ptr, const struc
 	const_cast_ptrdiff(&s_vol->ind_dof,-1);
 	const_cast_i(&s_vol->p_ref,sim->p_ref[0]);
 	const_cast_i(&s_vol->ml,0);
-	const_constructor_move_Multiarray_T(&s_vol->geom_coef,constructor_default_Multiarray_T());
+	const_constructor_move_Multiarray_R(&s_vol->geom_coef,constructor_default_Multiarray_R());
 
 	s_vol->sol_coef  = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0});   // destructed
 	s_vol->grad_coef = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // destructed
 
-	const_constructor_move_Multiarray_T(
-		&s_vol->metrics_vm,constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
-	const_constructor_move_Multiarray_T(
-		&s_vol->metrics_vc,constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
-	const_constructor_move_Multiarray_T(
-		&s_vol->jacobian_det_vc,constructor_empty_Multiarray_T('C',1,(ptrdiff_t[]){0})); // destructed
+	const_constructor_move_Multiarray_R(
+		&s_vol->metrics_vm,constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
+	const_constructor_move_Multiarray_R(
+		&s_vol->metrics_vc,constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
+	const_constructor_move_Multiarray_R(
+		&s_vol->jacobian_det_vc,constructor_empty_Multiarray_R('C',1,(ptrdiff_t[]){0})); // destructed
 }
 
-void destructor_derived_Solver_Volume (struct Volume* volume_ptr)
+void destructor_derived_Solver_Volume_T (struct Volume* volume_ptr)
 {
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) volume_ptr;
 
-	destructor_const_Multiarray_T(s_vol->geom_coef);
+	destructor_const_Multiarray_R(s_vol->geom_coef);
 	destructor_Multiarray_T(s_vol->sol_coef);
 	destructor_Multiarray_T(s_vol->grad_coef);
-	destructor_const_Multiarray_T(s_vol->metrics_vm);
-	destructor_const_Multiarray_T(s_vol->metrics_vc);
-	destructor_const_Multiarray_T(s_vol->jacobian_det_vc);
+	destructor_const_Multiarray_R(s_vol->metrics_vm);
+	destructor_const_Multiarray_R(s_vol->metrics_vc);
+	destructor_const_Multiarray_R(s_vol->jacobian_det_vc);
 }
 
-const struct const_Vector_d* get_operator__w_vc__s_e (const struct Solver_Volume_T* s_vol)
+const struct const_Vector_d* get_operator__w_vc__s_e_T (const struct Solver_Volume_T* s_vol)
 {
 	struct Volume* vol               = (struct Volume*) s_vol;
 	const struct Solver_Element* s_e = (struct Solver_Element*) vol->element;

@@ -5,10 +5,10 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
-	 Complex_Containers
 	 Test_Complex_Containers
 	 Test_Complex_Operators
-	 Test_Complex_Solver_DG
+	 Test_Complex_Solution
+	 Test_Complex_Solvers
 	)
 
 set (LIB Test_Complex_Boundary)

@@ -31,4 +31,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define CX_STEP 1e-30
 ///\}
 
+///\{ \name Maximum magnitude of the perturbation to use for the initial solution.
+#define MAX_PERTURB 1e-5
+///\}
+
 #endif // DPG__definitions_test_integration_h__INCLUDED

@@ -9,6 +9,9 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 Test_Complex_Flux
+	 Test_Complex_Geometry
+	 Test_Complex_Numerical_Flux
 	)
 
 set(LIB Test_Complex_Solution)

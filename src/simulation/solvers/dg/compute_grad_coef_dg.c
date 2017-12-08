@@ -32,9 +32,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void compute_grad_coef_dg (const struct Simulation* sim)
 {
-	UNUSED(sim);
-//	if (!sim->test_case->has_2nd_order)
-//		return;
+	struct Test_Case* test_case = (struct Test_Case*) sim->test_case_rc->tc;
+	if (!test_case->has_2nd_order)
+		return;
 
 	EXIT_ADD_SUPPORT;
 }

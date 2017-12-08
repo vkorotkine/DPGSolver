@@ -108,7 +108,7 @@ static void set_idxm_T
 void compute_all_rlhs_dpg_T
 	(const struct Simulation* sim, struct Solver_Storage_Implicit* ssi, struct Intrusive_List* volumes)
 {
-	assert((sim->test_case_rc->is_real) || (ssi == NULL && volumes->first->next == NULL));
+	assert((sim->test_case_rc->is_real) || (volumes->first->next == NULL));
 	assert(sim->volumes->name == IL_VOLUME_SOLVER_DPG);
 	assert(sim->faces->name == IL_FACE_SOLVER_DPG);
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_DPG);

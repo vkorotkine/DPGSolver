@@ -61,14 +61,15 @@ void destructor_Integration_Test_Info
 
 /// \brief 'Con'/'De'strucor for a \ref Simulation depending on `adapt_type`.
 void structor_simulation
-	(struct Simulation** sim,   ///< Pointer to the \ref Simulation.
-	 const char mode,           ///< Mode of operation. Options: 'c'onstructor, 'd'estructor.
-	 const int adapt_type,      ///< \ref Integration_Test_Info::adapt_type.
-	 const int p,               ///< The order of the current simulation.
-	 const int ml,              ///< The mesh level of the current simulation.
-	 const int p_prev,          ///< The order of the previous simulation.
-	 const int ml_prev,         ///< The mesh level of the previous simulation.
-	 const char*const ctrl_name ///< The name of the control file (used for \ref constructor_Simulation).
+	(struct Simulation** sim,    ///< Pointer to the \ref Simulation.
+	 const char mode,            ///< Mode of operation. Options: 'c'onstructor, 'd'estructor.
+	 const int adapt_type,       ///< \ref Integration_Test_Info::adapt_type.
+	 const int p,                ///< The order of the current simulation.
+	 const int ml,               ///< The mesh level of the current simulation.
+	 const int p_prev,           ///< The order of the previous simulation.
+	 const int ml_prev,          ///< The mesh level of the previous simulation.
+	 const char*const ctrl_name, ///< The name of the control file (used for \ref constructor_Simulation).
+	 const char type_rc          ///< The 'r'eal/'c'omplex type of the simulation.
 	);
 
 /** \brief Set the name of the current file to be used based on the adaptation type, order and mesh level.

@@ -29,10 +29,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_face_solver.h"
 #include "undef_templates_multiarray.h"
 
-struct Multiarray_c;
 struct Simulation;
 struct Solver_Storage_Implicit;
-struct Solver_Face;
 
 /// \brief Perturb the initial solution for the DG method.
 void perturb_solution_dg

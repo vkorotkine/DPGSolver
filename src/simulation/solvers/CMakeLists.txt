@@ -16,7 +16,6 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 ${PETSC_LIBRARIES}
-	 Complex_Containers
 	 Solver_DG
 	 Solver_DPG
 	)

@@ -19,24 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides several standard math functions.
  */
 
-#include <complex.h>
 #include "petscmat.h"
-
-/// \brief Variation on the axpy (BLAS 1) function: z = y*x + z (`double`, `double complex`, `double complex`).
-void z_yxpz_dcc
-	(const int n,             ///< The number of entries.
-	 const double* x,         ///< Input x.
-	 const double complex* y, ///< Input y.
-	 double complex* z        ///< Location to store the sum.
-	);
-
-/// \brief Variation on the axpy (BLAS 1) function: z = y*x + z (`double complex`, `double complex`, `double complex`).
-void z_yxpz_ccc
-	(const int n,             ///< The number of entries.
-	 const double complex* x, ///< Input x.
-	 const double complex* y, ///< Input y.
-	 double complex* z        ///< Location to store the sum.
-	);
 
 /** \brief Computes the relative norm of the difference between the input `Mat` using the infinity norm.
  *  \return See brief. */

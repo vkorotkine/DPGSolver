@@ -84,14 +84,17 @@ int main
 	         * ml_ref = int_test_info->ml;
 
 	struct Simulation* sim = NULL;
+	const char type_rc = 'r';
 	for (int ml = ml_ref[0], ml_prev = ml-1; ml <= ml_ref[1]; ++ml) {
 	for (int p = p_ref[0], p_prev = p-1; p <= p_ref[1]; ++p) {
 		const int adapt_type = int_test_info->adapt_type;
 		const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
-		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr); // destructed
+		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc); // destructed
 
-		if ((ml == ml_ref[0]) && (p == p_ref[0]))
-			const_cast_d(&int_test_info->conv_order_discount,sim->test_case->conv_order_discount);
+		if ((ml == ml_ref[0]) && (p == p_ref[0])) {
+			struct Test_Case* test_case = (struct Test_Case*) sim->test_case_rc->tc;
+			const_cast_d(&int_test_info->conv_order_discount,test_case->conv_order_discount);
+		}
 
 		solve_for_solution(sim);
 
@@ -111,7 +114,7 @@ int main
 		if ((ml == ml_ref[1]) && (p == p_ref[1]))
 			check_convergence_orders(&test_info,int_test_info,sim);
 
-		structor_simulation(&sim,'d',adapt_type,p,ml,p_prev,ml_prev,NULL);
+		structor_simulation(&sim,'d',adapt_type,p,ml,p_prev,ml_prev,NULL,type_rc);
 	}}
 	destructor_Integration_Test_Info(int_test_info);
 

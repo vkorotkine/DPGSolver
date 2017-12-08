@@ -41,7 +41,7 @@ static struct Multiarray_T* constructor_sol_peterson
 
 // Interface functions ********************************************************************************************** //
 
-void set_sol_peterson (const struct Simulation* sim, struct Solution_Container_T sol_cont)
+void set_sol_peterson_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
 	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_peterson(sim,xyz); // destructed
@@ -51,7 +51,7 @@ void set_sol_peterson (const struct Simulation* sim, struct Solution_Container_T
 	destructor_Multiarray_T(sol);
 }
 
-const struct const_Multiarray_T* constructor_const_sol_peterson
+const struct const_Multiarray_T* constructor_const_sol_peterson_T
 	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
 {
 	struct Multiarray_T* sol = constructor_sol_peterson(sim,xyz); // returned

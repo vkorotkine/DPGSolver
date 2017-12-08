@@ -5,6 +5,7 @@ set	(SOURCE
 set	(LIBS_DEPEND
 	 Adaptation
 	 Simulation
+	 Test_Complex_Computational_Elements
 	)
 
 set (LIB Test_Integration)
@@ -36,7 +37,15 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_straight_2d_quad_pe
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_curved_2d_mixed")
 
 set (EXEC test_integration_linearization)
-set (LIBS_DEPEND ${LIBS_BASE} Simulation Test_Complex_Solvers Test_Integration)
+set (LIBS_DEPEND ${LIBS_BASE} 
+     Simulation 
+     Test_Integration 
+     Test_Complex_Geometry
+     Test_Support_General
+     Test_Complex_Solution
+     Test_Complex_Solvers
+     Test_Complex_Test_Case
+    )
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/TEST_Advection_Demkowicz_DPGII_LINE__ml2__p2")

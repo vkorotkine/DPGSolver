@@ -32,6 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_boundary.h"
 #include "test_complex_boundary_advection.h"
 #include "test_complex_boundary_euler.h"
+#include "test_complex_compute_face_rhs.h"
 #include "test_complex_compute_face_rhs_dg.h"
 #include "test_complex_compute_volume_rhs_dg.h"
 #include "test_support_computational_elements.h"
@@ -41,9 +42,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
-#include "compute_face_rlhs.h"
+#include "volume_solver_dg.h"
+
 #include "boundary_advection.h"
 #include "boundary_euler.h"
+#include "compute_face_rlhs.h"
+#include "const_cast.h"
 #include "intrusive.h"
 #include "simulation.h"
 #include "solve.h"
@@ -85,10 +89,19 @@ static void set_col_lhs_cmplx_step_dg
 
 // Interface functions ********************************************************************************************** //
 
+#include "def_templates_type_dc.h"
+#include "solve_dg_T.c"
+
 void perturb_solution_dg (const struct Simulation* sim)
 {
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
-		perturb_Multiarray_c(((struct Solver_Volume_c*)curr)->sol_coef,1e-5);
+/// \todo template this but as part of test_complex_solve_dg_T such that functions are not accessible to the main code.
+	if (sim->test_case_rc->is_real) {
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
+			perturb_Multiarray_d(((struct Solver_Volume*)curr)->sol_coef,MAX_PERTURB);
+	} else {
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
+			perturb_Multiarray_c(((struct Solver_Volume_c*)curr)->sol_coef,MAX_PERTURB);
+	}
 }
 
 void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
@@ -136,11 +149,6 @@ static bool is_face_neighbour
 	 const struct Volume* vol_curr ///< The current volume.
 	);
 
-/// \brief Set the memory of the rhs terms to zero for the local volumes.
-static void zero_memory_volumes
-	(struct Intrusive_List* volumes_local ///< The list of local volumes.
-	);
-
 struct Intrusive_List* constructor_Volumes_local (const struct Volume* vol, const struct Simulation* sim)
 {
 	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME_SOLVER_DG,NULL);
@@ -174,7 +182,7 @@ struct Intrusive_List* constructor_Faces_local (const struct Volume* vol, const 
 static void compute_rhs_cmplx_step_dg
 	(struct Intrusive_List* volumes_local, struct Intrusive_List* faces_local, const struct Simulation* sim)
 {
-	zero_memory_volumes(volumes_local);
+	zero_memory_volumes_c(volumes_local);
 	switch (CHECK_LIN) {
 	case CHECK_LIN_VOLUME:
 		compute_volume_rlhs_dg_c(sim,NULL,volumes_local);
@@ -257,10 +265,4 @@ static bool is_face_neighbour (const struct Face* face, const struct Volume* vol
 			return true;
 	}}
 	return false;
-}
-
-static void zero_memory_volumes (struct Intrusive_List* volumes_local)
-{
-	for (struct Intrusive_Link* curr = volumes_local->first; curr; curr = curr->next)
-		set_to_value_Multiarray_c(((struct DG_Solver_Volume_c*)curr)->rhs,0.0);
 }

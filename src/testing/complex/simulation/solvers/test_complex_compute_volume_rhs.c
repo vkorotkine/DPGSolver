@@ -17,21 +17,28 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_compute_volume_rhs.h"
 
-#include <assert.h>
-#include <stdlib.h>
+#include "complex_matrix.h"
+#include "complex_multiarray.h"
+#include "complex_vector.h"
 
-#include "macros.h"
+#include "test_complex_face_solver.h"
+#include "test_complex_volume_solver.h"
 
 #include "test_complex_compute_volume_rhs_dg.h"
 #include "test_complex_flux.h"
-#include "test_support_math_functions.h"
+#include "test_complex_math_functions.h"
+#include "test_complex_operators.h"
+#include "test_complex_test_case.h"
 
-#include "complex_multiarray.h"
+#include "matrix.h"
 #include "multiarray.h"
 
-#include "volume_solver.h"
+#include "element_solver.h"
 
+#include "multiarray_operator.h"
+#include "operator.h"
 #include "simulation.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 

@@ -36,18 +36,6 @@ static bool additional_values_are_zero
 
 // Interface functions ********************************************************************************************** //
 
-void z_yxpz_dcc (const int n, const double* x, const double complex* y, double complex* z)
-{
-	for (int i = 0; i < n; ++i)
-		z[i] += y[i]*x[i];
-}
-
-void z_yxpz_ccc (const int n, const double complex* x, const double complex* y, double complex* z)
-{
-	for (int i = 0; i < n; ++i)
-		z[i] += y[i]*x[i];
-}
-
 double norm_diff_petsc_Mat (Mat A0, Mat A1)
 {
 	PetscInt m[2] = { 0, 0, },

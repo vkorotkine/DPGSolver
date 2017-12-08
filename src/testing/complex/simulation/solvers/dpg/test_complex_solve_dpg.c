@@ -39,6 +39,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include "face_solver_dpg.h"
+#include "volume_solver_dpg.h"
+
 #include "boundary_advection.h"
 #include "boundary_euler.h"
 #include "intrusive.h"
@@ -67,18 +70,33 @@ static void compute_rhs_cmplx_step_dpg_face
 
 void perturb_solution_dpg (const struct Simulation* sim)
 {
-	struct Test_Case_c* test_case = (struct Test_Case_c*) sim->test_case_rc->tc;
-	assert(test_case->has_2nd_order == false); // Add support.
+/// \todo template this but as part of test_complex_solve_dpg_T such that functions are not accessible to the main code.
+	if (sim->test_case_rc->is_real) {
+		struct Test_Case* test_case = (struct Test_Case*) sim->test_case_rc->tc;
+		assert(test_case->has_2nd_order == false); // Add support.
 
-EXIT_ADD_SUPPORT; // Ensure that the real and complex solutions are receiving the same perturbation.
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*) curr;
-		perturb_Multiarray_c(s_vol->sol_coef,1e-5);
-	}
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+			struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+			perturb_Multiarray_d(s_vol->sol_coef,MAX_PERTURB);
+		}
 
-	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		struct Solver_Face_c* s_face = (struct Solver_Face_c*) curr;
-		perturb_Multiarray_c(s_face->nf_coef,1e-5);
+		for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+			struct Solver_Face* s_face = (struct Solver_Face*) curr;
+			perturb_Multiarray_d(s_face->nf_coef,MAX_PERTURB);
+		}
+	} else {
+		struct Test_Case_c* test_case = (struct Test_Case_c*) sim->test_case_rc->tc;
+		assert(test_case->has_2nd_order == false); // Add support.
+
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+			struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*) curr;
+			perturb_Multiarray_c(s_vol->sol_coef,MAX_PERTURB);
+		}
+
+		for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+			struct Solver_Face_c* s_face = (struct Solver_Face_c*) curr;
+			perturb_Multiarray_c(s_face->nf_coef,MAX_PERTURB);
+		}
 	}
 }
 

@@ -13,6 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
+ *  \todo Delete if unused.
  */
 
 #include "solve_dpg.h"

@@ -45,7 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 
 /// \brief Convert a \ref Test_Case_T from `real` to `complex` or vice versa.
-void convert_to_Test_Case_c
+void convert_to_Test_Case_rc
 	(struct Simulation* sim, ///< \ref Simulation.
 	 const char type_rc_o    ///< The output 'r'eal/'c'omplex type.
 	);

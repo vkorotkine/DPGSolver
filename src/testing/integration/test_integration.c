@@ -33,6 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "adaptation.h"
 #include "computational_elements.h"
+#include "test_complex_computational_elements.h"
 #include "compute_error.h"
 #include "const_cast.h"
 #include "file_processing.h"
@@ -76,23 +77,32 @@ void destructor_Integration_Test_Info (struct Integration_Test_Info* int_test_in
 
 void structor_simulation
 	(struct Simulation** sim, const char mode, const int adapt_type, const int p, const int ml, const int p_prev,
-	 const int ml_prev, const char*const ctrl_name)
+	 const int ml_prev, const char*const ctrl_name, const char type_rc)
 {
 	assert(mode == 'c' || mode == 'd');
+	assert(type_rc == 'r' || type_rc == 'c');
 
 	switch (adapt_type) {
 	case ADAPT_0:
 		if (mode == 'c') {
 			*sim = constructor_Simulation(ctrl_name); // destructed
-			constructor_derived_computational_elements(*sim,IL_SOLVER); // destructed
+			switch (type_rc) {
+				case 'r': constructor_derived_computational_elements(*sim,IL_SOLVER);   break; // dest.
+				case 'c': constructor_derived_computational_elements_c(*sim,IL_SOLVER); break; // dest.
+				default: EXIT_ERROR("Unsupported: %c\n",type_rc); break;
+			}
 		} else if (mode == 'd') {
-			destructor_derived_computational_elements(*sim,IL_BASE);
+			switch (type_rc) {
+				case 'r': destructor_derived_computational_elements(*sim,IL_BASE);   break; // dest.
+				case 'c': destructor_derived_computational_elements_c(*sim,IL_BASE); break; // dest.
+				default: EXIT_ERROR("Unsupported: %c\n",type_rc); break;
+			}
 			destructor_Simulation(*sim);
 		}
 		break;
 	case ADAPT_P:
 		if (ml != ml_prev) {
-			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name);
+			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
 		} else {
 			if (mode == 'c')
 				adapt_hp(*sim,ADAPT_S_P_REFINE);
@@ -101,7 +111,7 @@ void structor_simulation
 	case ADAPT_H:
 		EXIT_ADD_SUPPORT;
 		if (p != p_prev) {
-			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name);
+			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
 		} else {
 			; // h-adapt
 		}

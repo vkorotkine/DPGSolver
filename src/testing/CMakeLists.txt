@@ -15,6 +15,7 @@ target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
 include_directories(
 	complex/containers
 	complex/general
+	complex/simulation/computational_elements
 	complex/simulation/geometry
 	complex/simulation/operators
 	complex/simulation/solvers

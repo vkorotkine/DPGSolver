@@ -3,6 +3,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
+	 Test_Complex_Solvers
 	)
 
 set(LIB Test_Complex_Computational_Elements)

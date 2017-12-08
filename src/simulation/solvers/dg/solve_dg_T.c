@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_solve_dg.h"
 
+#include "def_templates_compute_face_rlhs.h"
 #include "def_templates_face_solver.h"
 #include "def_templates_volume_solver.h"
 #include "def_templates_volume_solver_dg.h"
@@ -58,7 +59,7 @@ void permute_Multiarray_T_fc
 	(struct Multiarray_T* data, const char perm_layout, const int side_index_dest,
 	 const struct Solver_Face_T* s_face)
 {
-	const struct const_Vector_i* nc_fc = get_operator__nc_fc(side_index_dest,s_face);
+	const struct const_Vector_i* nc_fc = get_operator__nc_fc_T(side_index_dest,s_face);
 	permute_Multiarray_T_V(data,nc_fc,perm_layout);
 }
 

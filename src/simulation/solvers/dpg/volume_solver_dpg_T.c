@@ -27,7 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /** \brief Constructor for the H0 norm operator of the input volume.
  *  \return See brief. */
-const struct const_Matrix_R* constructor_norm_op_H0
+static const struct const_Matrix_R* constructor_norm_op_H0
 	(const struct DPG_Solver_Volume_T* dpg_s_vol ///< \ref DPG_Solver_Volume.
 	);
 
@@ -51,7 +51,7 @@ void destructor_derived_DPG_Solver_Volume_T (struct Volume* volume_ptr)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-const struct const_Matrix_R* constructor_norm_op_H0 (const struct DPG_Solver_Volume_T* dpg_s_vol)
+static const struct const_Matrix_R* constructor_norm_op_H0 (const struct DPG_Solver_Volume_T* dpg_s_vol)
 {
 	struct Volume* vol                       = (struct Volume*) dpg_s_vol;
 	struct Solver_Volume_T* s_vol            = (struct Solver_Volume_T*) dpg_s_vol;

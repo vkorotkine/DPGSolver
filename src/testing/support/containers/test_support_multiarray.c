@@ -386,8 +386,21 @@ void print_diff_const_Multiarray_Matrix_d
 
 // Math functions *************************************************************************************************** //
 
+///\{ \name Seed for (not so) random number perturbation.
+#define RAND_SEED 314
+///\}
+
+void perturb_Multiarray_d (struct Multiarray_d* a, const double da)
+{
+	srand(RAND_SEED);
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+	for (int i = 0; i < size; ++i)
+		a->data[i] += da*(((double) rand())/((double) RAND_MAX+1));
+}
+
 void perturb_Multiarray_c (struct Multiarray_c* a, const double da)
 {
+	srand(RAND_SEED);
 	const ptrdiff_t size = compute_size(a->order,a->extents);
 	for (int i = 0; i < size; ++i)
 		a->data[i] += da*(((double) rand())/((double) RAND_MAX+1));

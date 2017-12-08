@@ -28,8 +28,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_base.h"
 #include "test_integration.h"
 #include "test_support_math_functions.h"
+#include "test_complex_computational_elements.h"
+#include "test_complex_geometry.h"
+#include "test_complex_solution.h"
 #include "test_complex_solve_dg.h"
 #include "test_complex_solve_dpg.h"
+#include "test_complex_test_case.h"
 
 #include "face.h"
 #include "element.h"
@@ -85,34 +89,47 @@ typedef void (*set_initial_solution_complex_fptr)
 
 /** \brief Function pointer to functions computing global degree of freedom coefficient related terms.
  *
- *  \param sim       \ref Simulation.
- *  \param s_store_i \ref Solver_Storage_Implicit.
+ *  \param sim        \ref Simulation.
+ *  \param ssi        \ref Solver_Storage_Implicit.
+ *  \param comp_elems The list of volumes/faces.
  */
 typedef void (*compute_dof_coef_fptr)
 	(const struct Simulation* sim,
-	 struct Solver_Storage_Implicit* s_store_i
+	 struct Solver_Storage_Implicit* ssi,
+	 struct Intrusive_List* comp_elems
+	);
+
+/** \brief Function pointer to functions computing the complex step linearization.
+ *
+ *  \param sim \ref Simulation.
+ *  \param ssi \ref Solver_Storage_Implicit.
+ */
+typedef void (*compute_cmplx_step_fptr)
+	(const struct Simulation* sim,
+	 struct Solver_Storage_Implicit* ssi
 	);
 
 /// \brief Container for function pointers and data relating to the functions computing the linearization components.
 struct F_Ptrs_and_Data {
+
+	/** The solver method to be used for the complex step rhs evaluation. Note that some methods require Jacobians
+	 *  even when only the rhs terms are being evaluated. */
+	const char solver_method_cmplx;
+
 	perturb_solution_fptr perturb_solution; ///< \ref perturb_solution_fptr.
 
-	/// `derived_name` from \ref constructor_derived_Elements.
-	const int derived_elem;
+	/// `derived_name` from \ref constructor_derived_Elements for the method under consideration.
+	const int derived_elem_method;
 
-	/// `derived_category` from \ref constructor_derived_computational_elements for the analytical contributions.
-	const int derived_comp_elem_analytical;
-
-	/// `derived_category` from \ref constructor_derived_computational_elements for the complex step contributions.
-	const int derived_comp_elem_cmplx_step;
+	/// `derived_category` from \ref constructor_derived_computational_elements for the method under consideration.
+	const int derived_comp_elem_method;
 
 	compute_grad_coef_fptr compute_grad_coef;  ///< Solution gradient coefficients and related terms.
 	compute_dof_coef_fptr  compute_volume_lhs; ///< Solution coefficient terms contributed by the volume term.
 	compute_dof_coef_fptr  compute_face_lhs;   ///< Solution coefficient terms contributed by the face   term.
 	compute_dof_coef_fptr  compute_all_lhs;    ///< Solution coefficient terms contributed by the all    terms.
 
-	set_initial_solution_complex_fptr set_initial_solution_complex; ///< \ref set_initial_solution_complex_fptr.
-	compute_dof_coef_fptr compute_lhs_cmplx_step; ///< Compute the lhs terms using the complex step method.
+	compute_cmplx_step_fptr compute_lhs_cmplx_step; ///< Compute the lhs terms using the complex step method.
 };
 
 /** \brief Constructor for a \ref F_Ptrs_and_Data container, set based on \ref Simulation::method.
@@ -187,44 +204,56 @@ int main
 
 	const int adapt_type = int_test_info->adapt_type;
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
-	struct Simulation* sim = NULL;
-	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr); // destructed
 
+	struct Solver_Storage_Implicit* ssi[2] = { NULL, NULL, };
+	for (int i = 0; i < 2; ++i) {
+		const char type_rc = ( i == 0 ? 'r' : 'c' );
 
-	set_up_solver_geometry(sim);
-	set_initial_solution(sim);
+		struct Simulation* sim = NULL;
+		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc); // destructed
 
-	struct F_Ptrs_and_Data* f_ptrs_data = constructor_F_Ptrs_and_Data(sim); // destructed
-	f_ptrs_data->perturb_solution(sim);
+		struct F_Ptrs_and_Data* f_ptrs_data = constructor_F_Ptrs_and_Data(sim); // destructed
 
-	sim->test_case->solver_method_curr = 'i';
-	const_cast_b(&sim->test_case->use_schur_complement,false); // Otherwise A analytical is modified.
-	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER);         // destructed
-	constructor_derived_Elements(sim,f_ptrs_data->derived_elem); // destructed
+		if (i == 0) {
+			set_up_solver_geometry(sim);
+			set_initial_solution(sim);
+			for (int j = 0; j < 2; ++j)
+				ssi[j] = constructor_Solver_Storage_Implicit(sim); // destructed
 
-	struct Solver_Storage_Implicit* ssi[2] = { constructor_Solver_Storage_Implicit(sim),
-	                                           constructor_Solver_Storage_Implicit(sim), }; // destructed
+			struct Test_Case* test_case = (struct Test_Case*) sim->test_case_rc->tc;
+			test_case->solver_method_curr = 'i';
+			const_cast_b(&test_case->use_schur_complement,false); // Otherwise A is modified.
 
-	compute_lhs_cmplx_step(sim,ssi[1],f_ptrs_data);
-	compute_lhs_analytical(sim,ssi[0],f_ptrs_data);
+			f_ptrs_data->perturb_solution(sim);
+			compute_lhs_analytical(sim,ssi[i],f_ptrs_data);
+		} else {
+			convert_to_Test_Case_rc(sim,'c');
 
-	if (OUTPUT_PETSC_MATRICES)
-		output_petsc_matrices((const struct Solver_Storage_Implicit**)ssi);
+			set_up_solver_geometry_c(sim);
+			set_initial_solution_c(sim);
 
-	destructor_F_Ptrs_and_Data(f_ptrs_data);
+			struct Test_Case_c* test_case = (struct Test_Case_c*) sim->test_case_rc->tc;
+			test_case->solver_method_curr = f_ptrs_data->solver_method_cmplx;
 
-	for (int i = 0; i < 2; ++i)
+			f_ptrs_data->perturb_solution(sim);
+			compute_lhs_cmplx_step(sim,ssi[i],f_ptrs_data);
+
+			convert_to_Test_Case_rc(sim,'r');
+		}
 		petsc_mat_vec_assemble(ssi[i]);
 
-	check_linearizations(&test_info,(const struct Solver_Storage_Implicit**)ssi,sim);
+		destructor_F_Ptrs_and_Data(f_ptrs_data);
 
-	for (int i = 0; i < 2; ++i)
-		destructor_Solver_Storage_Implicit(ssi[i]);
+		if (i != 0) {
+			if (OUTPUT_PETSC_MATRICES)
+				output_petsc_matrices((const struct Solver_Storage_Implicit**)ssi);
 
-	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
-	destructor_derived_Elements(sim,IL_ELEMENT);
-
-	structor_simulation(&sim,'d',adapt_type,p,ml,p_prev,ml_prev,NULL);
+			check_linearizations(&test_info,(const struct Solver_Storage_Implicit**)ssi,sim);
+			for (int j = 0; j < 2; ++j)
+				destructor_Solver_Storage_Implicit(ssi[j]);
+		}
+		structor_simulation(&sim,'d',adapt_type,p,ml,p_prev,ml_prev,NULL,type_rc);
+	}
 
 	destructor_Integration_Test_Info(int_test_info);
 
@@ -235,36 +264,41 @@ int main
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+/// \brief 'Con'/'De'structor for derived solver elements of the appropriate type.
+static void structor_derived_Elements
+	(struct Simulation* sim,                    ///< \ref Simulation.
+	 const struct F_Ptrs_and_Data* f_ptrs_data, ///< \ref F_Ptrs_and_Data.
+	 const char mode                            ///< Mode of operation. Options: 'c'onstructor, 'd'estructor.
+	);
+
 static struct F_Ptrs_and_Data* constructor_F_Ptrs_and_Data (const struct Simulation* sim)
 {
 	struct F_Ptrs_and_Data* f_ptrs_data = malloc(sizeof *f_ptrs_data); // destructed
 
 	switch (sim->method) {
 	case METHOD_DG:
+		const_cast_c(&f_ptrs_data->solver_method_cmplx,'e');
 		f_ptrs_data->perturb_solution = perturb_solution_dg;
 
-		const_cast_i(&f_ptrs_data->derived_elem,IL_ELEMENT_SOLVER_DG);
-		const_cast_i(&f_ptrs_data->derived_comp_elem_analytical,IL_SOLVER_DG);
-		const_cast_i(&f_ptrs_data->derived_comp_elem_cmplx_step,IL_SOLVER_DG_COMPLEX);
+		const_cast_i(&f_ptrs_data->derived_elem_method,IL_ELEMENT_SOLVER_DG);
+		const_cast_i(&f_ptrs_data->derived_comp_elem_method,IL_SOLVER_DG);
 
 		f_ptrs_data->compute_grad_coef  = compute_grad_coef_dg;
 		f_ptrs_data->compute_volume_lhs = compute_volume_rlhs_dg;
 		f_ptrs_data->compute_face_lhs   = compute_face_rlhs_dg;
 
-		f_ptrs_data->set_initial_solution_complex = set_initial_solution_complex_dg;
-		f_ptrs_data->compute_lhs_cmplx_step       = compute_lhs_cmplx_step_dg;
+		f_ptrs_data->compute_lhs_cmplx_step = compute_lhs_cmplx_step_dg;
 		break;
 	case METHOD_DPG:
+		const_cast_c(&f_ptrs_data->solver_method_cmplx,'i'); // Jacobians are required.
 		f_ptrs_data->perturb_solution = perturb_solution_dpg;
 
-		const_cast_i(&f_ptrs_data->derived_elem,IL_ELEMENT_SOLVER_DPG);
-		const_cast_i(&f_ptrs_data->derived_comp_elem_analytical,IL_SOLVER_DPG);
-		const_cast_i(&f_ptrs_data->derived_comp_elem_cmplx_step,IL_SOLVER_DPG_COMPLEX);
+		const_cast_i(&f_ptrs_data->derived_elem_method,IL_ELEMENT_SOLVER_DPG);
+		const_cast_i(&f_ptrs_data->derived_comp_elem_method,IL_SOLVER_DPG);
 
 		f_ptrs_data->compute_all_lhs = compute_all_rlhs_dpg;
 
-		f_ptrs_data->set_initial_solution_complex = set_initial_solution_complex_dpg;
-		f_ptrs_data->compute_lhs_cmplx_step       = compute_lhs_cmplx_step_dpg;
+		f_ptrs_data->compute_lhs_cmplx_step = compute_lhs_cmplx_step_dpg;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
@@ -282,19 +316,20 @@ static void destructor_F_Ptrs_and_Data (struct F_Ptrs_and_Data* f_ptrs_data)
 static void compute_lhs_analytical
 	(struct Simulation* sim, struct Solver_Storage_Implicit* ssi, const struct F_Ptrs_and_Data* f_ptrs_data)
 {
-	constructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_analytical); // destructed
+	structor_derived_Elements(sim,f_ptrs_data,'c'); // destructed
+	constructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_method); // destructed
 	switch (sim->method) {
 	case METHOD_DG:
 		switch (CHECK_LIN) {
 		case CHECK_LIN_VOLUME:
-			f_ptrs_data->compute_volume_lhs(sim,ssi);
+			f_ptrs_data->compute_volume_lhs(sim,ssi,sim->volumes);
 			break;
 		case CHECK_LIN_FACE:
-			f_ptrs_data->compute_face_lhs(sim,ssi);
+			f_ptrs_data->compute_face_lhs(sim,ssi,sim->faces);
 			break;
 		case CHECK_LIN_ALL:
-			f_ptrs_data->compute_volume_lhs(sim,ssi);
-			f_ptrs_data->compute_face_lhs(sim,ssi);
+			f_ptrs_data->compute_volume_lhs(sim,ssi,sim->volumes);
+			f_ptrs_data->compute_face_lhs(sim,ssi,sim->faces);
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %d.\n",CHECK_LIN);
@@ -302,12 +337,13 @@ static void compute_lhs_analytical
 		}
 		break;
 	case METHOD_DPG:
-		f_ptrs_data->compute_all_lhs(sim,ssi);
+		f_ptrs_data->compute_all_lhs(sim,ssi,sim->volumes);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;
 	}
+	structor_derived_Elements(sim,f_ptrs_data,'d');
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 
 	petsc_mat_vec_assemble(ssi);
@@ -316,14 +352,11 @@ static void compute_lhs_analytical
 static void compute_lhs_cmplx_step
 	(struct Simulation* sim, struct Solver_Storage_Implicit* ssi, const struct F_Ptrs_and_Data* f_ptrs_data)
 {
-	constructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_analytical); // destructed
-	constructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_cmplx_step); // destructed
-
-	f_ptrs_data->set_initial_solution_complex(sim);
+	structor_derived_Elements(sim,f_ptrs_data,'c'); // destructed
+	constructor_derived_computational_elements_c(sim,f_ptrs_data->derived_comp_elem_method); // destructed
 	f_ptrs_data->compute_lhs_cmplx_step(sim,ssi);
-
-	destructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_analytical);
-	destructor_derived_computational_elements(sim,IL_SOLVER);
+	structor_derived_Elements(sim,f_ptrs_data,'d');
+	destructor_derived_computational_elements_c(sim,IL_SOLVER);
 }
 
 static void check_linearizations
@@ -366,4 +399,26 @@ static void output_petsc_matrices (const struct Solver_Storage_Implicit* ssi[2])
 	MatView(ssi[1]->A,viewer);
 
 	PetscViewerDestroy(&viewer);
+}
+
+// Level 1 ********************************************************************************************************** //
+
+static void structor_derived_Elements
+	(struct Simulation* sim, const struct F_Ptrs_and_Data* f_ptrs_data, const char mode)
+{
+	assert(mode == 'c' || mode == 'd');
+
+	switch (mode) {
+	case 'c':
+		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER);                // destructed
+		constructor_derived_Elements(sim,f_ptrs_data->derived_elem_method); // destructed
+		break;
+	case 'd':
+		destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
+		destructor_derived_Elements(sim,IL_ELEMENT);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %c",mode);
+		break;
+	}
 }

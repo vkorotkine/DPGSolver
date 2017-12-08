@@ -70,10 +70,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef destructor_const_Multiarray2_Matrix_T
 
 
+#undef constructor_default_Multiarray_R
+
 #undef constructor_empty_Multiarray_R
 
 #undef const_constructor_copy_Multiarray_R
 
+#undef const_constructor_move_Multiarray_R
 #undef const_constructor_move_const_Multiarray_R
 
 #undef destructor_Multiarray_R

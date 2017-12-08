@@ -17,13 +17,17 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_geometry.h"
 
+#include "test_complex_face_solver.h"
+#include "test_complex_volume_solver.h"
+
+#include "test_complex_test_case.h"
+
+
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
 
 #include "computational_elements.h"
-#include "volume_solver.h"
-#include "face_solver.h"
 
 #include "const_cast.h"
 #include "element_geometry.h"
@@ -37,7 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_d.h"
+#include "def_templates_type_dc.h"
 #include "geometry_T.c"
 
 // Static functions ************************************************************************************************* //

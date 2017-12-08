@@ -18,8 +18,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_face_rlhs.h"
 
 #include "face_solver.h"
-#include "element_solver.h"
 #include "volume_solver.h"
+#include "element_solver.h"
 
 #include "matrix.h"
 #include "multiarray.h"
