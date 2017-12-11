@@ -46,7 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-#define DEBUGGING 1
+//#define DEBUGGING
 
 /** \brief Function pointer to functions constructing the norm operator used to evaluate the optimal test functions.
  *
@@ -497,10 +497,6 @@ static void increment_and_add_dof_rlhs_f_1
 	 const struct Simulation* sim)
 {
 	struct Matrix_T* lhs = *lhs_ptr;
-#ifdef DEBUGGING
-print_Vector_T(rhs);
-set_to_value_Matrix_T(lhs,0.0);
-#endif
 
 	const struct Volume* vol            = (struct Volume*) dpg_s_vol;
 	const struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) dpg_s_vol;
@@ -511,6 +507,7 @@ set_to_value_Matrix_T(lhs,0.0);
 
 	const ptrdiff_t n_dof_s  = (lhs->ext_1)/n_vr,
 	                n_dof_nf = compute_n_dof_nf_T(s_vol);
+/// \todo change to constructor_zero_Matrix_T.
 	struct Matrix_T* lhs_add = constructor_empty_Matrix_T('R',lhs->ext_0,(n_dof_s+n_dof_nf)*n_vr); // moved
 	set_to_value_Matrix_T(lhs_add,0.0);
 	set_block_Matrix_T(lhs_add,(struct const_Matrix_T*)lhs,0,0,'i');

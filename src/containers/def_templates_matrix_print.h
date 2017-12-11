@@ -39,3 +39,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 #endif
+
+///\{ \name Real Data types/Function names
+#define print_Matrix_R           print_Matrix_d
+#define print_const_Matrix_R     print_const_Matrix_d
+///\}

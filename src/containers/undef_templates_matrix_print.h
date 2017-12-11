@@ -22,3 +22,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef print_const_Matrix_T_tol
 #undef print_Matrix_T
 #undef print_const_Matrix_T
+
+#undef print_Matrix_R
+#undef print_const_Matrix_R
