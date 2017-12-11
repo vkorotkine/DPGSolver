@@ -46,7 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-//#define DEBUGGING
+#define DEBUGGING
 
 /** \brief Function pointer to functions constructing the norm operator used to evaluate the optimal test functions.
  *
@@ -413,32 +413,42 @@ static void compute_rlhs_1_T
 
 	increment_and_add_dof_rlhs_f_1(rhs,&lhs,dpg_s_vol,sim);
 	increment_rhs_source_T(rhs,s_vol,sim);
-//EXIT_UNSUPPORTED;
+if (0) { // OK (lhs is linearization of rhs)
+printf("\n\nlhs/rhs\n");
+print_Matrix_T(lhs);
+print_Vector_T(rhs);
+}
 
 //print_const_Matrix_T(norm_op);
 //print_Matrix_T(lhs);
 //print_Multiarray_T(s_vol->sol_coef);
 //print_Vector_T(rhs);
+norm_op = constructor_identity_const_Matrix_T('R',norm_op->ext_0);
 	const struct const_Matrix_T* optimal_test =
 		constructor_sysv_const_Matrix_T(norm_op,(struct const_Matrix_T*)lhs); // destructed
 
-//print_const_Matrix_T(optimal_test);
 	const struct const_Vector_T* rhs_opt =
 		constructor_mv_const_Vector_T('T',-1.0,optimal_test,(struct const_Vector_T*)rhs); // destructed
-#ifdef DEBUGGING
-print_const_Vector_T(rhs_opt);
-#endif
 	destructor_Vector_T(rhs);
 
 //print_const_Vector_T(rhs_opt);
 #if TYPE_RC == TYPE_REAL
 	const struct const_Matrix_T* lhs_opt =
 		constructor_mm_const_Matrix_T('T','N',1.0,optimal_test,(struct const_Matrix_T*)lhs,'R'); // destructed
+if (1) {
+printf("\n\nlhs/rhs opt (real)\n");
+print_const_Matrix_T(lhs_opt);
+print_const_Vector_T(rhs_opt);
+}
 
 //print_const_Matrix_T(lhs_opt);
 	add_to_petsc_Mat_Vec_dpg(s_vol,rhs_opt,lhs_opt,ssi,sim);
 	destructor_const_Matrix_T(lhs_opt);
 #elif TYPE_RC == TYPE_COMPLEX
+if (1) {
+printf("\n\nrhs opt (imag)\n");
+print_const_Vector_T(rhs_opt);
+}
 	add_to_petsc_Mat_dpg_c(s_vol,rhs_opt,ssi);
 #endif
 	destructor_Matrix_T(lhs);
@@ -575,9 +585,6 @@ static void increment_rlhs_internal_face_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct DPG_Solver_Face_T* dpg_s_face, struct Matrix_T* lhs,
 	 struct Matrix_T* rhs, int* ind_dof, const struct Simulation* sim)
 {
-#ifdef DEBUGGING
-return;
-#endif
 	/// As the rhs is **always** linear wrt the trace unknowns, the rhs and lhs are computed together.
 	const struct const_Matrix_R* lhs_l = constructor_lhs_l_internal_face_dpg_T(dpg_s_vol,dpg_s_face); // destructed
 //print_const_Matrix_d(tw0_vt_fc_op->op_std);
@@ -603,7 +610,7 @@ static void increment_rlhs_boundary_face_T
 	 struct Matrix_T* rhs, const struct Simulation* sim)
 {
 #ifdef DEBUGGING
-return;
+//return;
 #endif
 	UNUSED(dpg_s_vol);
 	struct Numerical_Flux_Input_T* num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed

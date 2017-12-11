@@ -38,7 +38,7 @@ void print_Vector_T_tol (const struct Vector_T*const a, const Real tol)
 #ifdef TYPE_RC
 		const Type val = *data++;
 	#if TYPE_RC == TYPE_REAL
-		printf("% .4e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
+		printf("% .10e ",( (isnan(val) || (fabs(val) > tol)) ? val : 0.0 ));
 	#elif TYPE_RC == TYPE_COMPLEX
 		print_real(val);
 		print_imag(val);
@@ -47,7 +47,7 @@ void print_Vector_T_tol (const struct Vector_T*const a, const Real tol)
 		printf("% 12d ",*data++);
 #endif
 		if (!((i+1)%8))
-			printf("\n");
+			printf(" ...\n");
 	}
 	printf("\n\n");
 }

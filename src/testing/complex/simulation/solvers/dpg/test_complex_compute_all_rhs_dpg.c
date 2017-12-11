@@ -82,6 +82,16 @@ static void add_to_petsc_Mat_dpg_c
 	PetscScalar rhs_c_data[ext_0];
 	for (int i = 0; i < ext_0; ++i)
 		rhs_c_data[i] = cimag((-rhs_neg->data[i])/CX_STEP);
+if (0) {
+struct const_Vector_d rhs_c = { .ext_0 = ext_0, .data = rhs_c_data, };
+print_const_Vector_i(idxm);
+print_const_Vector_d(&rhs_c);
+double rhs_data[ext_0];
+for (int i = 0; i < ext_0; ++i)
+	rhs_data[i] = creal((-rhs_neg->data[i]));
+struct const_Vector_d rhs_r = { .ext_0 = ext_0, .data = rhs_data, };
+print_const_Vector_d(&rhs_r);
+}
 
 	MatSetValues(ssi->A,(PetscInt)ext_0,idxm->data,1,&ssi->col,rhs_c_data,ADD_VALUES);
 
