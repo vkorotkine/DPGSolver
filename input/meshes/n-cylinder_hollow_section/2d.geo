@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = EULER; pde_spec = STEADY_SUPERSONIC_VORTEX;
+//mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = EULER; pde_spec = STEADY_SUPERSONIC_VORTEX;
 
 // Geometry Specification
 If (pde_spec == STEADY_SUPERSONIC_VORTEX)

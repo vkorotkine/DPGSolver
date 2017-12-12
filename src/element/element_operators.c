@@ -132,6 +132,21 @@ static void transpose_operators
 	(struct Multiarray_Operator* op ///< Multiarray of operators.
 	);
 
+/** \brief Return the names of the basis types to use for the constructor in \ref constructor_operators_bt.
+ *  \return See brief. */
+static const int* get_basis_types
+	(const char* name_type,       ///< \ref Defined for \ref constructor_operators_bt.
+	 const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Return the index of the operator currently being set.
+ *  \return See brief. */
+static ptrdiff_t get_ind_op
+	(const struct Operator_Info* op_info, ///< \ref Operator_Info.
+	 const int* op_values,                ///< One line of values of \ref Operator_Info::values_op.
+	 const struct Multiarray_Operator* op ///< Defined for \ref set_operator_fptr.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 const struct Multiarray_Operator* constructor_operators
@@ -204,6 +219,48 @@ UNUSED(p_ref);
 	destructor_Operator_Info(op_info);
 
 	return w;
+}
+
+const struct Multiarray_Operator* constructor_operators_bt
+	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
+	 const struct const_Element* element, const struct Simulation* sim)
+{
+	struct Operator_Info* op_info =
+		constructor_Operator_Info(name_type,name_in,name_out,name_range,element,sim); // destructed
+	assert(op_info->range_d == OP_R_D_0);
+
+	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator_V(op_info->extents_op); // returned
+
+	const int* basis_type = get_basis_types(name_type,sim);
+
+	const ptrdiff_t row_max = op_info->values_op->ext_0;
+	for (ptrdiff_t row = 0; row < row_max; ++row) {
+		const struct Op_IO* op_io = op_info->op_io;
+		const int s_type = op_io[OP_IND_I].s_type;
+		constructor_basis_fptr constructor_basis[2]
+			= { get_constructor_basis_by_super_type_i(s_type,basis_type[0]),
+			    get_constructor_basis_by_super_type_i(s_type,basis_type[1]), };
+
+		const struct const_Nodes* nodes = constructor_const_Nodes_h(OP_IND_I,op_io,op_info->element,sim); // dest.
+
+		const int p_basis = compute_p_basis(op_io,sim);
+// use constructor_cv here.
+		const struct const_Matrix_d* cv_i = constructor_basis[0](p_basis,nodes->rst); // destructed
+
+		const struct const_Matrix_d* cv_o = constructor_basis[1](p_basis,nodes->rst); // destructed
+		destructor_const_Nodes(nodes);
+
+		const struct const_Matrix_d* op_io0 = constructor_sgesv_const_Matrix_d(cv_o,cv_i); // moved
+		destructor_const_Matrix_d(cv_i);
+		destructor_const_Matrix_d(cv_o);
+
+		const int* op_values = get_row_const_Matrix_i(row,op_info->values_op);
+		ptrdiff_t ind_op = get_ind_op(op_info,op_values,op);
+		const_constructor_move_const_Matrix_d(&op->data[ind_op]->op_std,op_io0);
+	}
+	destructor_Operator_Info(op_info);
+
+	return op;
 }
 
 struct Operator_Info* constructor_Operator_Info
@@ -442,14 +499,6 @@ static void compute_range_p_o
 static void set_current_op_io
 	(const struct Operator_Info* op_info, ///< \ref Operator_Info.
 	 const int* op_values                 ///< One line of values of \ref Operator_Info::values_op.
-	);
-
-/** \brief Return the index of the operator currently being set.
- *  \return See brief. */
-static ptrdiff_t get_ind_op
-	(const struct Operator_Info* op_info, ///< \ref Operator_Info.
-	 const int* op_values,                ///< One line of values of \ref Operator_Info::values_op.
-	 const struct Multiarray_Operator* op ///< Defined for \ref set_operator_fptr.
 	);
 
 /** \brief Return the index of the node correspondence sub multiarray currently being set.
@@ -840,12 +889,15 @@ static void set_up_values_op (struct Operator_Info* op_info)
 		for (int p_o = p_o_mm[0]; p_o < p_o_mm[1]; ++p_o) {
 		for (int h_i = h_i_mm[0]; h_i < h_i_mm[1]; ++h_i) {
 		for (int h_o = h_o_mm[0]; h_o < h_o_mm[1]; ++h_o) {
-		for (int ce_i = ce_i_mm[0]; ce_i < ce_i_mm[1]; ++ce_i) {
-		for (int ce_o = ce_o_mm[0]; ce_o < ce_o_mm[1]; ++ce_o) {
-		for (int d = d_mm[0]; d < d_mm[1]; ++d) {
-			set_row_Matrix_i(row,values,(int[]){d,ce_o,ce_i,h_o,h_i,p_o,p_i});
-			++row;
-		}}}}}}
+			if (!(h_o == 0 || h_i == 0))
+				continue;
+			for (int ce_i = ce_i_mm[0]; ce_i < ce_i_mm[1]; ++ce_i) {
+			for (int ce_o = ce_o_mm[0]; ce_o < ce_o_mm[1]; ++ce_o) {
+			for (int d = d_mm[0]; d < d_mm[1]; ++d) {
+				set_row_Matrix_i(row,values,(int[]){d,ce_o,ce_i,h_o,h_i,p_o,p_i});
+				++row;
+			}}}
+		}}}
 	}
 	values->ext_0 = row;
 
@@ -865,6 +917,33 @@ static void transpose_operators (struct Multiarray_Operator* op)
 	}
 }
 
+static const int* get_basis_types (const char* name_type, const struct Simulation* sim)
+{
+	static int basis_type[2] = { -1, -1, };
+	if (strstr(name_type,"SB")) {
+		basis_type[0] = get_basis_i_from_s(sim->basis_sol);
+		basis_type[1] = BASIS_BEZIER;
+	} else if (strstr(name_type,"BS")) {
+		basis_type[0] = BASIS_BEZIER;
+		basis_type[1] = get_basis_i_from_s(sim->basis_sol);
+	} else {
+		EXIT_ADD_SUPPORT;
+	}
+	return basis_type;
+}
+
+static ptrdiff_t get_ind_op
+	(const struct Operator_Info* op_info, const int* op_values, const struct Multiarray_Operator* op)
+{
+	const int order_op = (int)op_info->extents_op->ext_0;
+	const struct const_Vector_i* indices_op = constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
+
+	ptrdiff_t ind_op = compute_index_sub_container_pi(op->order,0,op->extents,indices_op->data);
+	destructor_const_Vector_i(indices_op);
+
+	return ind_op;
+}
+
 // Level 1 ********************************************************************************************************** //
 
 /** \brief Constructor for the coefficient to value operator, selecting the operator basis based on `kind`.
@@ -872,7 +951,8 @@ static void transpose_operators (struct Multiarray_Operator* op)
 static const struct const_Matrix_d* constructor_cv
 	(const struct const_Matrix_d* rst, ///< The rst coordinates.
 	 const struct Op_IO* op_io,        ///< \ref Op_IO.
-	 const struct Simulation* sim      ///< \ref Simulation.
+	 const struct Simulation* sim,     ///< \ref Simulation.
+	 const int basis_type_i            ///< May be set to hold the input basis type.
 	);
 
 /** \brief Constructor for the \*c0_\*\*\*_\*\*\* operator from input to output computational element.
@@ -961,8 +1041,8 @@ static void set_operator_std_interp
 	 * op_cvN == op_cvNr*T_i (Corollary 2.2, \cite Zwanenburg2016). */
 	const struct const_Nodes* nodes_i = constructor_const_Nodes_h(OP_IND_I,op_io,element,sim); // destructed
 
-	const struct const_Matrix_d* cv0r_ii = constructor_basis(p_i,nodes_i->rst);               // destructed
-	const struct const_Matrix_d* cv0_ii  = constructor_cv(nodes_i->rst,&op_io[OP_IND_I],sim); // destructed
+	const struct const_Matrix_d* cv0r_ii = constructor_basis(p_i,nodes_i->rst);                 // destructed
+	const struct const_Matrix_d* cv0_ii  = constructor_cv(nodes_i->rst,&op_io[OP_IND_I],sim,0); // destructed
 	destructor_const_Nodes(nodes_i);
 
 	const struct const_Matrix_d* T_i = constructor_sgesv_const_Matrix_d(cv0r_ii,cv0_ii); // destructed
@@ -983,7 +1063,7 @@ static void set_operator_std_interp
 	 * op_coN == inv_cv0_oo*op_cvN   <=>   op_coN = sgesv(cv0_oo,op_cvN). */
 	const struct const_Multiarray_Matrix_d* op_coN = constructor_op_MMd(true,n_op);  // destructed
 	if (op_type == OP_T_CC || op_type == OP_T_VC) {
-		const struct const_Matrix_d* cv0_oo = constructor_cv(nodes_o->rst,&op_io[OP_IND_O],sim); // destructed
+		const struct const_Matrix_d* cv0_oo = constructor_cv(nodes_o->rst,&op_io[OP_IND_O],sim,0); // destructed
 
 		for (int i = 0; i < n_op; ++i) {
 			const struct const_Matrix_d* cv0 = op_cvN->data[i];
@@ -1066,7 +1146,7 @@ static void set_operator_std_L2
 
 	const int p_Cb = compute_p_basis(&op_io_C[OP_IND_O],sim);
 	const struct const_Matrix_d* cv0r_Cb_Cb = constructor_basis(p_Cb,nodes_Cb->rst);                  // dest.
-	const struct const_Matrix_d* cv0_Cb_Cb  = constructor_cv(nodes_Cb->rst,&op_io_C[OP_IND_O],sim);   // dest.
+	const struct const_Matrix_d* cv0_Cb_Cb  = constructor_cv(nodes_Cb->rst,&op_io_C[OP_IND_O],sim,0); // dest.
 	const struct const_Matrix_d* T_C        = constructor_sgesv_const_Matrix_d(cv0r_Cb_Cb,cv0_Cb_Cb); // dest.
 	destructor_const_Matrix_d(cv0r_Cb_Cb);
 	destructor_const_Nodes(nodes_Cb);
@@ -1096,7 +1176,7 @@ static void set_operator_std_L2
 
 	const int p_Fb = compute_p_basis(&op_io_F[OP_IND_O],sim);
 	const struct const_Matrix_d* cv0r_Fb_Fb = constructor_basis(p_Fb,nodes_Fb->rst);                  // dest.
-	const struct const_Matrix_d* cv0_Fb_Fb  = constructor_cv(nodes_Fb->rst,&op_io_F[OP_IND_O],sim);   // dest.
+	const struct const_Matrix_d* cv0_Fb_Fb  = constructor_cv(nodes_Fb->rst,&op_io_F[OP_IND_O],sim,0); // dest.
 	const struct const_Matrix_d* T_F        = constructor_sgesv_const_Matrix_d(cv0r_Fb_Fb,cv0_Fb_Fb); // dest.
 	destructor_const_Matrix_d(cv0r_Fb_Fb);
 	destructor_const_Matrix_d(cv0_Fb_Fb);
@@ -1329,18 +1409,6 @@ static void set_current_op_io (const struct Operator_Info* op_info, const int* o
 	}
 }
 
-static ptrdiff_t get_ind_op
-	(const struct Operator_Info* op_info, const int* op_values, const struct Multiarray_Operator* op)
-{
-	const int order_op = (int)op_info->extents_op->ext_0;
-	const struct const_Vector_i* indices_op = constructor_indices_Vector_i(order_op,op_values,NULL); // destructed
-
-	ptrdiff_t ind_op = compute_index_sub_container_pi(op->order,0,op->extents,indices_op->data);
-	destructor_const_Vector_i(indices_op);
-
-	return ind_op;
-}
-
 static ptrdiff_t get_ind_nc
 	(const struct Operator_Info* op_info, const int* op_values, const struct const_Multiarray_Vector_i* nc)
 {
@@ -1379,25 +1447,33 @@ static void update_op_type_Xc
 	);
 
 static const struct const_Matrix_d* constructor_cv
-	(const struct const_Matrix_d* rst, const struct Op_IO* op_io, const struct Simulation* sim)
+	(const struct const_Matrix_d* rst, const struct Op_IO* op_io, const struct Simulation* sim,
+	 const int basis_type_i)
 {
 	int basis_type = -1;
-	switch (op_io->kind) {
-	case 'g': // fallthrough
-	case 'm':
-		basis_type = get_basis_i_from_s(sim->basis_geom);
-		break;
-	case 's': // fallthrough
-	case 'f': // fallthrough
-	case 't':
-		basis_type = get_basis_i_from_s(sim->basis_sol);
-		break;
-	case 'p': // fallthrough
-	case 'v':
-		basis_type = get_basis_i_from_s("lagrange");
+	switch (basis_type_i) {
+	case BASIS_ORTHO: case BASIS_LAGRANGE: case BASIS_BEZIER:
+		basis_type = basis_type_i;
 		break;
 	default:
-		EXIT_ERROR("Unsupported: %c.\n",op_io->kind);
+		switch (op_io->kind) {
+		case 'g': // fallthrough
+		case 'm':
+			basis_type = get_basis_i_from_s(sim->basis_geom);
+			break;
+		case 's': // fallthrough
+		case 'f': // fallthrough
+		case 't':
+			basis_type = get_basis_i_from_s(sim->basis_sol);
+			break;
+		case 'p': // fallthrough
+		case 'v':
+			basis_type = get_basis_i_from_s("lagrange");
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %c.\n",op_io->kind);
+			break;
+		}
 		break;
 	}
 

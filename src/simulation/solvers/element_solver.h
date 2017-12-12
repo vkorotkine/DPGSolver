@@ -41,6 +41,10 @@ struct Solver_Element {
 	// Source rhs
 	const struct Multiarray_Operator* cv0_vg_vc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* tw0_vt_vc[2]; ///< See notation in \ref element_operators.h.
+
+	// Positivity preservation
+	const struct Multiarray_Operator* ccSB0_vs_vs; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* ccBS0_vs_vs; ///< See notation in \ref element_operators.h.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

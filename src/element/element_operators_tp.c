@@ -41,7 +41,7 @@ struct Sub_Operator_Info {
 	const int d;      ///< The dimension of the input.
 	const int s_type; ///< The \ref Element::s_type for which the operator is being constructed.
 
-	const struct const_Matrix_d* sub_op_Md[DMAX]; ///< The array of matrix sub-operators.
+	const struct const_Matrix_d* sub_op_Md[DIM]; ///< The array of matrix sub-operators.
 };
 
 /// \brief Constructor standard operators from the tensor-product sub-operators.
@@ -104,7 +104,7 @@ const struct Multiarray_Operator* constructor_operators_tp
 		struct Sub_Operator_Info sub_op_info =
 			{ .d         = element->d,
 			  .s_type    = element->s_type,
-			  .sub_op_Md = { NULL, NULL, NULL, }, };
+			  .sub_op_Md = { NULL, }, };
 
 		set_sub_operator_info(&sub_op_info,op_info,ops_tp,(int)row);
 
@@ -141,7 +141,6 @@ const struct const_Matrix_d* constructor_op_std (const struct const_Multiarray_M
 	assert(ops_tp->order == 1);
 	const int d_op = (int)compute_size(ops_tp->order,ops_tp->extents);
 	assert(2 <= d_op);
-	assert(d_op <= DMAX);
 
 	int n_rows_sub[DMAX] = { 0, 0, 0, },
 	    n_cols_sub[DMAX] = { 0, 0, 0, };
@@ -230,23 +229,23 @@ const struct const_Matrix_d* constructor_op_std (const struct const_Multiarray_M
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Set the input `op_MO[DMAX]` to point to the appropriate operators from `ops_tp`.
+/** \brief Set the input `op_MO[DIM]` to point to the appropriate operators from `ops_tp`.
  *
  *  `spec_indices` can be interpreted as the direction(s) (n-Cube: r,s,t; wedge: rs,NULL,t) in which to use the
  *  'special' operator (the second operator for the sub-element).
  */
 static void set_ops_MO
-	(const struct Multiarray_Operator* op_MO[DMAX], ///< The array of \ref Multiarray_Matrix_T operators.
+	(const struct Multiarray_Operator* op_MO[DIM], ///< The array of \ref Multiarray_Matrix_T operators.
 	 bool* spec_indices,                            ///< The array of indices for the special operators.
 	 const struct Operators_TP* ops_tp,             ///< \ref Operators_TP.
 	 const struct const_Vector_i* op_values,        ///< The index values of the current operator.
 	 const struct Operator_Info* op_info            ///< \ref Sub_Operator_Info.
 	);
 
-/// \brief Set the the input `op_Md[DMAX]` to point to the appropriate matrices in `op_MO[DMAX]`.
+/// \brief Set the the input `op_Md[DIM]` to point to the appropriate matrices in `op_MO[DIM]`.
 static void set_ops_Md
-	(const struct const_Matrix_d* op_Md[DMAX],      ///< The array of \ref Matrix_T operators.
-	 const struct Multiarray_Operator* op_MO[DMAX], ///< The array of \ref Multiarray_Matrix_T operators.
+	(const struct const_Matrix_d* op_Md[DIM],      ///< The array of \ref Matrix_T operators.
+	 const struct Multiarray_Operator* op_MO[DIM], ///< The array of \ref Multiarray_Matrix_T operators.
 	 const struct const_Vector_i* op_values,        ///< The index values of the current operator.
 	 const struct Operator_Info* op_info,           ///< \ref Sub_Operator_Info.
 	 const bool* spec_indices                       ///< Defined for \ref set_ops_MO.
@@ -329,15 +328,24 @@ static void set_sub_op_values
 	 const bool* spec_indices                ///< Defined for \ref set_ops_MO.
 	);
 
+/** \brief Same as \ref constructor_indices_Vector_i but with a correction for h-adaptation sub-operator indices.
+ *  \return See brief. */
+const struct const_Vector_i* constructor_sub_indices_Vector_i
+	(const int ext_0_expected,           ///< See brief.
+	 const int* op_values,               ///< See brief.
+	 const bool*const indices_skip,      ///< See brief.
+	 const int d,                        ///< The dimension of the sub-operator under consideration.
+	 const struct Operator_Info* op_info ///< \ref Operator_Info.
+	);
+
 static void set_ops_MO
-	(const struct Multiarray_Operator* op_MO[DMAX], bool* spec_indices, const struct Operators_TP* ops_tp,
+	(const struct Multiarray_Operator* op_MO[DIM], bool* spec_indices, const struct Operators_TP* ops_tp,
 	 const struct const_Vector_i* op_values, const struct Operator_Info* op_info)
 {
 	const int op_val_d    = op_values->data[OP_IND_D];
 	const int op_val_ce_o = op_values->data[OP_IND_CE+OP_IND_O];
 	const int s_type      = op_info->element->s_type;
 
-	assert(DMAX == 3);
 	assert((op_val_d == OP_INVALID_IND) || (op_val_ce_o == OP_INVALID_IND));
 	assert((s_type == ST_TP) || (s_type == ST_WEDGE));
 
@@ -346,7 +354,7 @@ static void set_ops_MO
 	set_spec_indices_diff(spec_indices,op_val_d,s_type);
 	set_spec_indices_ce(spec_indices,op_val_ce_o,op_info);
 
-	for (int i = 0; i < DMAX; ++i) {
+	for (int i = 0; i < DIM; ++i) {
 		const int ind_op_tp = ind_ops_tp[i];
 		if (ind_op_tp != OP_INVALID_IND) {
 			if (!spec_indices[i])
@@ -360,11 +368,9 @@ static void set_ops_MO
 }
 
 static void set_ops_Md
-	(const struct const_Matrix_d* op_Md[DMAX], const struct Multiarray_Operator* op_MO[DMAX],
+	(const struct const_Matrix_d* op_Md[DIM], const struct Multiarray_Operator* op_MO[DIM],
 	 const struct const_Vector_i* op_values, const struct Operator_Info* op_info, const bool* spec_indices)
 {
-	assert(op_values->data[OP_IND_H+OP_IND_I] == 0); // Not valid for fine to coarse (i.e. if info_loss == true)
-
 	const int d = op_info->element->d;
 	struct Matrix_i* sub_op_values = constructor_empty_Matrix_i('R',d,OP_ORDER_MAX); // destructed
 	set_to_value_Matrix_i(sub_op_values,OP_INVALID_IND);
@@ -378,7 +384,8 @@ static void set_ops_Md
 
 	for (int i = 0; i < d; ++i) {
 		const int* op_values = get_row_Matrix_i(i,sub_op_values);
-		const struct const_Vector_i* inds_op = constructor_indices_Vector_i(-1,op_values,NULL); // destructed
+		const struct const_Vector_i* inds_op =
+			constructor_sub_indices_Vector_i(-1,op_values,NULL,i,op_info); // destructed
 		const int ind_sub_op = (int)compute_index_sub_container_pi(op_MO[i]->order,0,op_MO[i]->extents,inds_op->data);
 		destructor_const_Vector_i(inds_op);
 
@@ -413,13 +420,22 @@ static void set_sub_op_values_wedge
 	 const bool* spec_indices                ///< Defined for \ref set_sub_op_values.
 	);
 
+/** \brief Correct the sub-operator index value for h-adaptation.
+ *  \return the index corresponding to the correct sub-operator. */
+int correct_sub_op_index
+	(const int ind,   ///< The input index.
+	 const int d,     ///< The dimension under consideration.
+	 const int etype, ///< The type of the element.
+	 const char ce_o  ///< The output computational element type.
+	);
+
 static void set_spec_indices_diff (bool* spec_indices, const int op_val_d, const int s_type)
 {
 	if (op_val_d == OP_INVALID_IND)
 		return;
 
 	assert(op_val_d >= 0);
-	assert(op_val_d < DMAX);
+	assert(op_val_d < DIM);
 
 	int ind_spec = -1;
 	switch (s_type) {
@@ -564,6 +580,34 @@ static void set_sub_op_values
 		case WEDGE: set_sub_op_values_wedge(sub_op_values,op_values,op_info,spec_indices); break;
 		default:    EXIT_ERROR("Unsupported: %d\n",op_info->element->type);   break;
 	}
+}
+
+const struct const_Vector_i* constructor_sub_indices_Vector_i
+	(const int ext_0_expected, const int* op_values, const bool*const indices_skip, const int d,
+	 const struct Operator_Info* op_info)
+{
+	const struct Op_IO* op_io = op_info->op_io;
+	assert(op_io[OP_IND_I].ce == 'v'); // Required in order to obtain the correct sub-operator index.
+
+	struct Vector_i* indices = ( ext_0_expected == -1 ? constructor_empty_Vector_i(OP_ORDER_MAX)
+	                                                  : constructor_empty_Vector_i(ext_0_expected) ); // returned
+	int* data = indices->data;
+
+	int ind = 0;
+	for (int i = 0; i < OP_ORDER_MAX; ++i) {
+		const int op_val = ((i == OP_IND_H+OP_IND_I || i == OP_IND_H+OP_IND_O)
+			? correct_sub_op_index(op_values[i],d,op_info->element->type,op_io[OP_IND_O].ce)
+			: op_values[i] );
+		if (!(indices_skip && indices_skip[i]) && op_values[i] != OP_INVALID_IND)
+			data[ind++] = op_val;
+	}
+
+	if (ext_0_expected == -1)
+		indices->ext_0 = ind;
+	else
+		assert(ind == ext_0_expected);
+
+	return (const struct const_Vector_i*)indices;
 }
 
 // Level 2 ********************************************************************************************************** //
@@ -731,6 +775,53 @@ UNUSED(sub_op_values);
 UNUSED(op_values);
 UNUSED(op_info);
 UNUSED(spec_indices);
+}
+
+int correct_sub_op_index (const int ind, const int d, const int etype, const char ce_o)
+{
+	int* ind_sub = NULL;
+	switch (etype) {
+	case QUAD:
+		if (ce_o == 'v') {
+			switch (ind) {
+				case H_QUAD1_V0: ind_sub = (int[]) { H_LINE1_V0, H_LINE1_V0, }; break;
+
+				case H_QUAD4_V0: ind_sub = (int[]) { H_LINE2_V0, H_LINE2_V0, }; break;
+				case H_QUAD4_V1: ind_sub = (int[]) { H_LINE2_V1, H_LINE2_V0, }; break;
+				case H_QUAD4_V2: ind_sub = (int[]) { H_LINE2_V0, H_LINE2_V1, }; break;
+				case H_QUAD4_V3: ind_sub = (int[]) { H_LINE2_V1, H_LINE2_V1, }; break;
+			}
+		} else if (ce_o == 'f') {
+			switch (ind) {
+				case H_QUAD1_F0: ind_sub = (int[]) { H_LINE1_F0, H_LINE1_V0, }; break;
+				case H_QUAD1_F1: ind_sub = (int[]) { H_LINE1_F1, H_LINE1_V0, }; break;
+				case H_QUAD1_F2: ind_sub = (int[]) { H_LINE1_V0, H_LINE1_F0, }; break;
+				case H_QUAD1_F3: ind_sub = (int[]) { H_LINE1_V0, H_LINE1_F1, }; break;
+
+				case H_QUAD4_F00: ind_sub = (int[]) { H_LINE1_F0, H_LINE2_V0, }; break;
+				case H_QUAD4_F01: ind_sub = (int[]) { H_LINE1_F0, H_LINE2_V1, }; break;
+				case H_QUAD4_F10: ind_sub = (int[]) { H_LINE1_F1, H_LINE2_V0, }; break;
+				case H_QUAD4_F11: ind_sub = (int[]) { H_LINE1_F1, H_LINE2_V1, }; break;
+				case H_QUAD4_F20: ind_sub = (int[]) { H_LINE2_V0, H_LINE1_F0, }; break;
+				case H_QUAD4_F21: ind_sub = (int[]) { H_LINE2_V1, H_LINE1_F0, }; break;
+				case H_QUAD4_F30: ind_sub = (int[]) { H_LINE2_V0, H_LINE1_F1, }; break;
+				case H_QUAD4_F31: ind_sub = (int[]) { H_LINE2_V1, H_LINE1_F1, }; break;
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+		break;
+	case HEX:
+		EXIT_ADD_SUPPORT;
+		break;
+	case WEDGE:
+		EXIT_ADD_SUPPORT;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",etype);
+		break;
+	}
+	return ind_sub[d];
 }
 
 // Level 3 ********************************************************************************************************** //

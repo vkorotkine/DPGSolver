@@ -176,7 +176,8 @@ static void read_test_case_parameters_T (struct Test_Case_T* test_case, const st
 
 	struct Test_Case_String_Inputs tcsi = set_Test_Case_String_Inputs();
 
-	int count_found = 0;
+	int count_found = 0,
+	    count_tmp = 0;
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),input_file)) {
 		if (strstr(line,"solver_proc")) {
@@ -198,6 +199,11 @@ static void read_test_case_parameters_T (struct Test_Case_T* test_case, const st
 
 		if (strstr(line,"display_progress"))    read_skip_const_b(line,&test_case->display_progress);
 		if (strstr(line,"conv_order_discount")) read_skip_const_d(line,&test_case->conv_order_discount,1,false);
+
+		read_skip_string_count_const_d("exit_tol_e",  &count_tmp,line,&test_case->exit_tol_e);
+		read_skip_string_count_const_d("exit_ratio_e",&count_tmp,line,&test_case->exit_ratio_e);
+		read_skip_string_count_const_d("exit_tol_i",  &count_tmp,line,&test_case->exit_tol_i);
+		read_skip_string_count_const_d("exit_ratio_i",&count_tmp,line,&test_case->exit_ratio_i);
 	}
 	fclose(input_file);
 

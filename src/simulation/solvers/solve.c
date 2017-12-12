@@ -104,6 +104,13 @@ double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implici
 	return max_rhs;
 }
 
+void enforce_positivity_highorder (struct Solver_Volume* s_vol, const struct Simulation* sim)
+{
+	UNUSED(s_vol);
+	UNUSED(sim);
+	EXIT_ADD_SUPPORT;
+}
+
 void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* ssi)
 {
 	MatDestroy(&ssi->A);

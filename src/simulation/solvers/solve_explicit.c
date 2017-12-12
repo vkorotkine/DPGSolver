@@ -201,7 +201,7 @@ static bool check_exit (const struct Test_Case* test_case, const double max_rhs,
 		}
 
 		if (max_rhs/max_rhs0 < test_case->exit_ratio_e) {
-			printf("Complete: max_rhs dropped by % .2e orders.\n",log10(max_rhs/max_rhs0));
+			printf("Complete: max_rhs dropped by % .2e orders.\n",log10(max_rhs0/max_rhs));
 			exit_now = true;
 		}
 		break;

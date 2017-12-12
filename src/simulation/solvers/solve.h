@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 struct Vector_i;
+struct Solver_Volume;
 
 /// \brief Container holding members relating to memory storage for the implicit solver.
 struct Solver_Storage_Implicit {
@@ -67,6 +68,15 @@ double compute_rhs
 double compute_rlhs
 	(const struct Simulation* sim,             ///< \ref Simulation.
 	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	);
+
+/** \brief Enforce physical constraints on the unknowns if required.
+ *  This routine guarantees that the density and pressure are everywhere positive within the volume using a
+ *  transformation to the Bezier basis (whose basis functions are positive everywhere) and then applying a scaling to
+ *  the Bezier basis coefficients. */
+void enforce_positivity_highorder
+	(struct Solver_Volume* s_vol, ///< \ref Solver_Volume_T.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /// \brief Destructor for a \ref Solver_Storage_Implicit container.

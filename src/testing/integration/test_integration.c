@@ -65,6 +65,9 @@ struct Integration_Test_Info* constructor_Integration_Test_Info (const char*cons
 	}
 	fclose(ctrl_file);
 
+	assert(p_ref_ctrl[0] == int_test_info->p_ref[0]);
+	assert(ml_ctrl[0] == int_test_info->ml[0]);
+
 	const_cast_i(&int_test_info->adapt_type,compute_adapt_type(p_ref_ctrl,ml_ctrl));
 
 	return int_test_info;

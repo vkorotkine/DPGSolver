@@ -107,32 +107,6 @@ void compute_lhs_cmplx_step_dpg (const struct Simulation* sim, struct Solver_Sto
 	 *  would be complex, it was decided to store the complex portion of the computed rhs term directly in the PETSc
 	 *  Mat for this case. */
 
-#define TESTING
-#ifdef TESTING
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Volume* vol = (struct Volume*) curr;
-		struct Intrusive_List* volumes_local = constructor_Volumes_local_v(vol); // destructed
-//volumes_local = sim->volumes;
-
-		const struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*) curr;
-		struct Multiarray_c* sol_coef_c = s_vol->sol_coef;
-		const ptrdiff_t n_col_l = compute_size(sol_coef_c->order,sol_coef_c->extents);
-		for (int col_l = 0; col_l < n_col_l; ++col_l) {
-			ssi->col = (int)s_vol->ind_dof+col_l;
-printf(" vol: %d %d\n",col_l,ssi->col);
-if (col_l < 1)
-	continue;
-
-//			sol_coef_c->data[col_l] += CX_STEP*I;
-			sol_coef_c->data[col_l] += 1e-8;
-			compute_all_rhs_dpg_c(sim,ssi,volumes_local);
-EXIT_UNSUPPORTED;
-			sol_coef_c->data[col_l] -= CX_STEP*I;
-		}
-		destructor_IL(volumes_local);
-	}
-#endif
-
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Volume* vol = (struct Volume*) curr;
 		struct Intrusive_List* volumes_local = constructor_Volumes_local_v(vol); // destructed

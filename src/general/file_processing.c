@@ -305,6 +305,12 @@ void read_skip_string_count_d (const char*const str_search, int*const count, cha
 	read_skip_d(line_i,var,1,false);
 }
 
+void read_skip_string_count_const_d
+	(const char*const str_search, int*const count, char*const line_i, const double*const var)
+{
+	read_skip_string_count_d(str_search,count,line_i,(double*)var);
+}
+
 void read_skip_file_const_b (const char*const var_name, FILE* file, const bool*const var)
 {
 	char line[STRLEN_MAX];

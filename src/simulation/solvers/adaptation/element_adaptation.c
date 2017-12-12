@@ -60,7 +60,7 @@ void destructor_derived_Adaptation_Element (struct Element* element_ptr)
 	struct Adaptation_Element* a_e = (struct Adaptation_Element*) element_ptr;
 
 	destructor_Multiarray_Operator(a_e->cc0_vs_vs);
-	destructor_Multiarray_Operator(a_e->cc0_ff_ff);
+	destructor_Multiarray_Operator_conditional(a_e->cc0_ff_ff);
 }
 
 // Static functions ************************************************************************************************* //

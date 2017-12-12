@@ -76,7 +76,7 @@ void compute_volume_rlhs_dg_T
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume_T* s_vol       = (struct Solver_Volume_T*) curr;
 		struct DG_Solver_Volume_T* dg_s_vol = (struct DG_Solver_Volume_T*) curr;
-//printf("%d %td\n",((struct Volume*)s_vol)->index,s_vol->ind_dof);
+//printf("%d %td %d\n",((struct Volume*)s_vol)->index,s_vol->ind_dof,s_vol->p_ref);
 
 		struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_T(&s_params.spvs,flux_i,s_vol,sim);
 

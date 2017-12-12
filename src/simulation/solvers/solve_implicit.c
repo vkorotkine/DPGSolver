@@ -211,7 +211,7 @@ static bool check_exit (const struct Test_Case* test_case, const double max_rhs)
 		max_rhs0 = max_rhs;
 
 	if (max_rhs/max_rhs0 < test_case->exit_ratio_i) {
-		printf("Complete: max_rhs dropped by % .2e orders.\n",log10(max_rhs/max_rhs0));
+		printf("Complete: max_rhs dropped by % .2e orders.\n",log10(max_rhs0/max_rhs));
 		exit_now = true;
 	}
 
@@ -586,7 +586,7 @@ static void update_coef_s_v (Vec x, const struct Simulation* sim)
 		struct Solver_Volume* s_vol = (struct Solver_Volume*)curr;
 
 		update_coef((int)s_vol->ind_dof,s_vol->sol_coef,x);
-//		enforce_positivity_highorder(coef);
+		enforce_positivity_highorder(s_vol,sim);
 	}
 }
 

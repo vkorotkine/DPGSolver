@@ -21,12 +21,14 @@ You should have received a copy of the GNU General Public License along with DPG
  *  Operator names take the general form: [type][0](7)_[1][2][3]_[4][5][6] where entries in [square brackets] are
  *  required and those in (round brackets) are optional:
  *  - type:
- *  	- cv(t): coefficients to values
- *  	- cc(t): coefficients to coefficients
- *  	- vv(t): values       to values
- *  	- vc(t): values       to coefficients
+ *  	- cv(t):       coefficients to values
+ *  	- cc(i)(o)(t): coefficients to coefficients
+ *  	- vv(t):       values       to values
+ *  	- vc(t):       values       to coefficients
  *  	- tw: 't'est basis solver operator with 'w'eights.
  *  (t): Optional 't'ranspose.
+ *  (i): Optional 'i'nput basis. Options: 'S'olution, 'B'ezier.
+ *  (o): Optional 'o'output basis. Options: 'S'olution, 'B'ezier.
  *  \note For collocated schemes, `tw` operators also include premultiplication by the inverse weights.
  *  - [0]:   value for the order of differentiation (0 for no differentiation).
  *  - [1/4]: character denoting the type of computational element (ce):
@@ -167,6 +169,17 @@ const struct const_Multiarray_Vector_d* constructor_operators_w
 	 const int p_ref[2],                  ///< Defined for \ref constructor_operators.
 	 const struct const_Element* element, ///< Defined for \ref constructor_operators.
 	 const struct Simulation* sim         ///< Defined for \ref constructor_operators.
+	);
+
+/** \brief Constructor for a \ref Multiarray_Operator\* of operators for 'b'asis 't'ransformation.
+ *  \return Standard. */
+const struct Multiarray_Operator* constructor_operators_bt
+	(const char*const name_type,          ///< The name of the operator type (including differentiation index).
+	 const char*const name_in,            ///< The name of the operator input.
+	 const char*const name_out,           ///< The name of the operator output.
+	 const char*const name_range,         ///< The name of the operator range.
+	 const struct const_Element* element, ///< \ref const_Element.
+	 const struct Simulation* sim         ///< \ref Simulation.
 	);
 
 /** \brief Constructor for the \ref Operator_Info\* having the given inputs.

@@ -83,6 +83,9 @@ void destructor_derived_Solver_Element (struct Element* element_ptr)
 
 	destructor_Multiarray2_Operator(s_e->cv0_vg_vc);
 	destructor_Multiarray2_Operator(s_e->tw0_vt_vc);
+
+	destructor_Multiarray_Operator(s_e->ccSB0_vs_vs);
+	destructor_Multiarray_Operator(s_e->ccBS0_vs_vs);
 }
 
 // Static functions ************************************************************************************************* //
@@ -109,6 +112,9 @@ static void constructor_derived_Solver_Element_std (struct Element* element_ptr,
 	s_e->cv0_vg_vc[1] = constructor_operators("cv0","vgc","vcc","H_1_P_PM0", e,sim); // destructed
 	s_e->tw0_vt_vc[0] = constructor_operators("tw0","vtA","vcs","H_CF_P_PM1",e,sim); // destructed
 	s_e->tw0_vt_vc[1] = constructor_operators("tw0","vtA","vcc","H_CF_P_PM1",e,sim); // destructed
+
+	s_e->ccSB0_vs_vs = constructor_operators_bt("ccSB0","vsA","vsA","H_1_P_PM0",e,sim); // destructed
+	s_e->ccBS0_vs_vs = constructor_operators_bt("ccBS0","vsA","vsA","H_1_P_PM0",e,sim); // destructed
 }
 
 static void constructor_derived_Solver_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
@@ -158,6 +164,13 @@ static void constructor_derived_Solver_Element_tp (struct Element* element_ptr, 
 
 	set_operators_tp(&ops_tp,s_se[0]->tw0_vt_vc[1],NULL,s_se[1]->tw0_vt_vc[1],NULL);
 	s_e->tw0_vt_vc[1] = constructor_operators_tp("tw0","vsA","vcc","H_1_P_PM0",e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,s_se[0]->ccSB0_vs_vs,NULL,s_se[1]->ccSB0_vs_vs,NULL);
+	s_e->ccSB0_vs_vs = constructor_operators_tp("ccSB0","vsA","vsA","H_1_P_PM0",e,sim,&ops_tp); // destructed
+EXIT_UNSUPPORTED; // Ensure that all is working correctly.
+
+	set_operators_tp(&ops_tp,s_se[0]->ccBS0_vs_vs,NULL,s_se[1]->ccBS0_vs_vs,NULL);
+	s_e->ccBS0_vs_vs = constructor_operators_tp("ccBS0","vsA","vsA","H_1_P_PM0",e,sim,&ops_tp); // destructed
 }
 
 static void constructor_derived_Solver_Element_common (struct Element* element_ptr, const struct Simulation* sim)

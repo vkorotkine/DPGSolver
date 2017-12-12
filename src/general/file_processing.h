@@ -232,6 +232,14 @@ void read_skip_string_count_d
 	 double*const var             ///< Variable in which to store the data.
 	);
 
+/// \brief `const` version of \ref read_skip_string_count_d.
+void read_skip_string_count_const_d
+	(const char*const str_search, ///< See brief.
+	 int*const count,             ///< See brief.
+	 char*const line_i,           ///< See brief.
+	 const double*const var       ///< See brief.
+	);
+
 // Setting/Getting file names *************************************************************************************** //
 
 /// \brief Append `src` (char*) to `dest` with optional forward slash ('\').
