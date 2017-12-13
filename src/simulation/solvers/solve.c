@@ -106,7 +106,10 @@ double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implici
 
 void enforce_positivity_highorder (struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
-	UNUSED(s_vol);
+	const struct Volume* vol = (struct Volume*) s_vol;
+	const struct Solver_Element* s_e = (struct Solver_Element*) vol->element;
+
+	UNUSED(s_e);
 	UNUSED(sim);
 	EXIT_ADD_SUPPORT;
 }

@@ -24,6 +24,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Function pointer to basis constructor function.
  *  \param p_b The order of the basis.
  *  \param rst The nodes at which the basis functions are evaluated.
+ *
+ *  The dimension of the basis functions is determined according to the dimension of the input nodes.
  */
 typedef const struct const_Matrix_d* (*constructor_basis_fptr)
 	(const int p_b,
@@ -136,6 +138,22 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
 	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
+/** \brief Version of \ref constructor_basis_fptr for the simplex bezier basis (see section 10.1
+ *         \cite Prautzsch2002).
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_basis_si_bezier
+	(const int p_b,                        ///< See brief.
+	 const struct const_Matrix_d*const rst ///< See brief.
+	);
+
+/** \brief Version of \ref constructor_grad_basis_fptr for the simplex bezier basis (see section 10.5
+ *         \cite Prautzsch2002).
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier
+	(const int p_b,                        ///< See brief.
+	 const struct const_Matrix_d*const rst ///< See brief.
+	);
+
 // Helper functions ************************************************************************************************* //
 
 /** \brief Compute the number of basis functions for the given element type.
@@ -153,6 +171,15 @@ ptrdiff_t compute_n_basis
  *  instead of the bi-unit right simplices.
  */
 const struct const_Matrix_d* constructor_abc_from_rst_si
+	(const struct const_Matrix_d*const rst ///< The input coordinates on the reference simplex.
+	);
+
+/** \brief Constructor for simplex barycentric coordinates from rst coordinates.
+ *  \return Standard.
+ *
+ *  \todo Add reference to Szabo-Babuska(1991).
+ */
+const struct const_Matrix_d* constructor_bcoords_from_rst_si
 	(const struct const_Matrix_d*const rst ///< The input coordinates on the reference simplex.
 	);
 

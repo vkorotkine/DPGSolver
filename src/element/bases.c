@@ -557,6 +557,57 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
 	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
 }
 
+// Simplex Bezier *************************************************************************************************** //
+
+const struct const_Matrix_d* constructor_basis_si_bezier (const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const int d   = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_SI);
+
+	assert(!(d < 2 || d > 3));
+
+	const struct const_Matrix_d*const bcoords = constructor_bcoords_from_rst_si(rst); // destructed
+	const double*const u = get_col_const_Matrix_d(0,bcoords),
+	            *const v = get_col_const_Matrix_d(1,bcoords),
+	            *const w = get_col_const_Matrix_d(2,bcoords),
+	            *const x = ( d > 2 ? get_col_const_Matrix_d(3,bcoords) : NULL);
+
+	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('R',n_n,n_b); // returned
+	double* phi_data = phi_rst->data;
+
+	for (int n = 0; n < n_n; ++n) {
+	for (int i = 0, i_max = p_b;             i <= i_max; i++) {
+	for (int j = 0, j_max = p_b-i;           j <= j_max; j++) {
+	for (int k = 0, k_max = p_b-i-j;         k <= k_max; k++) {
+	for (int l = 0, l_max = (d-2)*(p_b-i-j-k); l <= l_max; l++) {
+		const int sum = i+j+k+l;
+		if (sum != p_b)
+			continue;
+
+		const double num = gsl_sf_fact((unsigned)sum),
+		             den = gsl_sf_fact((unsigned)i)*gsl_sf_fact((unsigned)j)*gsl_sf_fact((unsigned)k);
+		*phi_data  = num/den;
+		*phi_data *= pow(u[n],i)*pow(v[n],j)*pow(w[n],k);
+		if (d == 3)
+			*phi_data *= pow(x[n],l)/gsl_sf_fact((unsigned)l);
+		++phi_data;
+	}}}}}
+	destructor_const_Matrix_d(bcoords);
+
+	return (const struct const_Matrix_d*) phi_rst;
+}
+
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+UNUSED(p_b);
+EXIT_ADD_SUPPORT;
+}
+
 // Helper functions ************************************************************************************************* //
 
 ptrdiff_t compute_n_basis (const int d, const int p_b, const int super_type)
@@ -612,6 +663,51 @@ const struct const_Matrix_d* constructor_abc_from_rst_si (const struct const_Mat
 	return (const struct const_Matrix_d*) abc;
 }
 
+const struct const_Matrix_d* constructor_bcoords_from_rst_si (const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const ptrdiff_t d   = rst->ext_1,
+	                n_n = rst->ext_0;
+
+	assert(!(d < 2 || d > 3));
+
+	double* bcoords_d = malloc((size_t)(n_n*(d+1)) * sizeof *bcoords_d); // moved
+	struct Matrix_d* bcoords = constructor_move_Matrix_d_d('C',n_n,d,true,bcoords_d); // returned
+
+	const double*const r = get_col_const_Matrix_d(0,rst),
+	            *const s = get_col_const_Matrix_d(1,rst),
+	            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
+
+	double* u = get_col_Matrix_d(0,bcoords),
+	      * v = get_col_Matrix_d(1,bcoords),
+	      * w = get_col_Matrix_d(2,bcoords),
+	      * x = ( d > 2 ? get_col_Matrix_d(3,bcoords) : NULL);
+
+	if (d == 2) {
+		for (int n = 0; n < n_n; ++n) {
+			const double r_n = r[n],
+			             s_n = s[n];
+
+			u[n] = 1.0/3.0 - 1.0/2.0*r_n - 1.0/(2.0*sqrt(3.0))*s_n;
+			v[n] = 1.0/3.0 + 1.0/2.0*r_n - 1.0/(2.0*sqrt(3.0))*s_n;
+			w[n] = 1.0/3.0               + 1.0/(sqrt(3.0))    *s_n;
+		}
+	} else if (d == 3) {
+		for (int n = 0; n < n_n; ++n) {
+			const double r_n = r[n],
+			             s_n = s[n],
+			             t_n = t[n];
+
+			u[n] = 1.0/4.0 - 1.0/2.0*r_n - 1.0/(2.0*sqrt(3.0))*s_n - 1.0/(2.0*sqrt(6.0))*t_n;
+			v[n] = 1.0/4.0 + 1.0/2.0*r_n - 1.0/(2.0*sqrt(3.0))*s_n - 1.0/(2.0*sqrt(6.0))*t_n;
+			w[n] = 1.0/4.0               + 1.0/(sqrt(3.0))    *s_n - 1.0/(2.0*sqrt(6.0))*t_n;
+			x[n] = 1.0/4.0                                         + 3.0/(2.0*sqrt(6.0))*t_n;
+		}
+	}
+	return (const struct const_Matrix_d*) bcoords;
+}
+
 const struct const_Matrix_d* constructor_abc_from_rst_pyr (const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
@@ -662,7 +758,7 @@ constructor_basis_fptr get_constructor_basis_by_super_type (const int s_type, co
 	} else if (strcmp(ref_basis_name,"bezier") == 0) {
 		switch (s_type) {
 			case ST_TP:  return constructor_basis_tp_bezier; break;
-			case ST_SI:  EXIT_ADD_SUPPORT; break;
+			case ST_SI:  return constructor_basis_si_bezier; break;
 			case ST_PYR: EXIT_ADD_SUPPORT; break;
 			default:     EXIT_ERROR("Unsupported: %d\n",s_type); break;
 		}

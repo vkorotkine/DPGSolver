@@ -147,6 +147,21 @@ static ptrdiff_t get_ind_op
 	 const struct Multiarray_Operator* op ///< Defined for \ref set_operator_fptr.
 	);
 
+/// \brief Set the values of \ref Op_IO for the current operator.
+static void set_current_op_io
+	(const struct Operator_Info* op_info, ///< \ref Operator_Info.
+	 const int* op_values                 ///< One line of values of \ref Operator_Info::values_op.
+	);
+
+/** \brief Constructor for the coefficient to value operator, selecting the operator basis based on `kind`.
+ *  \return See brief. */
+static const struct const_Matrix_d* constructor_cv
+	(const struct const_Matrix_d* rst, ///< The rst coordinates.
+	 const struct Op_IO* op_io,        ///< \ref Op_IO.
+	 const struct Simulation* sim,     ///< \ref Simulation.
+	 const int basis_type_i            ///< May be set to hold the input basis type.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 const struct Multiarray_Operator* constructor_operators
@@ -235,26 +250,21 @@ const struct Multiarray_Operator* constructor_operators_bt
 
 	const ptrdiff_t row_max = op_info->values_op->ext_0;
 	for (ptrdiff_t row = 0; row < row_max; ++row) {
-		const struct Op_IO* op_io = op_info->op_io;
-		const int s_type = op_io[OP_IND_I].s_type;
-		constructor_basis_fptr constructor_basis[2]
-			= { get_constructor_basis_by_super_type_i(s_type,basis_type[0]),
-			    get_constructor_basis_by_super_type_i(s_type,basis_type[1]), };
+		const int* op_values = get_row_const_Matrix_i(row,op_info->values_op);
+		set_current_op_io(op_info,op_values);
 
+		const struct Op_IO* op_io = op_info->op_io;
 		const struct const_Nodes* nodes = constructor_const_Nodes_h(OP_IND_I,op_io,op_info->element,sim); // dest.
 
-		const int p_basis = compute_p_basis(op_io,sim);
-// use constructor_cv here.
-		const struct const_Matrix_d* cv_i = constructor_basis[0](p_basis,nodes->rst); // destructed
-
-		const struct const_Matrix_d* cv_o = constructor_basis[1](p_basis,nodes->rst); // destructed
+		const struct const_Matrix_d* cv_i = constructor_cv(nodes->rst,op_io,sim,basis_type[0]), // destructed
+		                           * cv_o = constructor_cv(nodes->rst,op_io,sim,basis_type[1]); // destructed
 		destructor_const_Nodes(nodes);
+
 
 		const struct const_Matrix_d* op_io0 = constructor_sgesv_const_Matrix_d(cv_o,cv_i); // moved
 		destructor_const_Matrix_d(cv_i);
 		destructor_const_Matrix_d(cv_o);
 
-		const int* op_values = get_row_const_Matrix_i(row,op_info->values_op);
 		ptrdiff_t ind_op = get_ind_op(op_info,op_values,op);
 		const_constructor_move_const_Matrix_d(&op->data[ind_op]->op_std,op_io0);
 	}
@@ -493,12 +503,6 @@ static void compute_range_p_o
 	(int p_o_mm[2],                       ///< Set to the min and max values.
 	 const struct Operator_Info* op_info, ///< \ref Operator_Info.
 	 const int p_i                        ///< The input order.
-	);
-
-/// \brief Set the values of \ref Op_IO for the current operator.
-static void set_current_op_io
-	(const struct Operator_Info* op_info, ///< \ref Operator_Info.
-	 const int* op_values                 ///< One line of values of \ref Operator_Info::values_op.
 	);
 
 /** \brief Return the index of the node correspondence sub multiarray currently being set.
@@ -944,16 +948,67 @@ static ptrdiff_t get_ind_op
 	return ind_op;
 }
 
-// Level 1 ********************************************************************************************************** //
+static void set_current_op_io (const struct Operator_Info* op_info, const int* op_values)
+{
+	const struct Op_IO* op_io = op_info->op_io;
 
-/** \brief Constructor for the coefficient to value operator, selecting the operator basis based on `kind`.
- *  \return See brief. */
+	const int*const ce_ptr = &op_values[OP_IND_CE],
+	         *const h_ptr = &op_values[OP_IND_H],
+	         *const p_ptr = &op_values[OP_IND_P];
+	for (int i = 0; i < 2; ++i) {
+		const_cast_i(&op_io[i].ce_op,ce_ptr[i]);
+		const_cast_i(&op_io[i].h_op,h_ptr[i]);
+		const_cast_i(&op_io[i].p_op,p_ptr[i]);
+		const_cast_i(&op_io[i].s_type,compute_super_type_op(op_io[i].ce,op_io[i].h_op,op_info->element));
+	}
+}
+
 static const struct const_Matrix_d* constructor_cv
-	(const struct const_Matrix_d* rst, ///< The rst coordinates.
-	 const struct Op_IO* op_io,        ///< \ref Op_IO.
-	 const struct Simulation* sim,     ///< \ref Simulation.
-	 const int basis_type_i            ///< May be set to hold the input basis type.
-	);
+	(const struct const_Matrix_d* rst, const struct Op_IO* op_io, const struct Simulation* sim,
+	 const int basis_type_i)
+{
+	int basis_type = -1;
+	switch (basis_type_i) {
+	case BASIS_ORTHO: case BASIS_LAGRANGE: case BASIS_BEZIER:
+		basis_type = basis_type_i;
+		break;
+	default:
+		switch (op_io->kind) {
+		case 'g': // fallthrough
+		case 'm':
+			basis_type = get_basis_i_from_s(sim->basis_geom);
+			break;
+		case 's': // fallthrough
+		case 'f': // fallthrough
+		case 't':
+			basis_type = get_basis_i_from_s(sim->basis_sol);
+			break;
+		case 'p': // fallthrough
+		case 'v':
+			basis_type = get_basis_i_from_s("lagrange");
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %c.\n",op_io->kind);
+			break;
+		}
+		break;
+	}
+
+	const int s_type = op_io->s_type;
+	const int p_basis = compute_p_basis(op_io,sim);
+
+	const struct const_Matrix_d* cv = NULL;
+	if (basis_type == BASIS_LAGRANGE) {
+		cv = constructor_identity_const_Matrix_d('R',rst->ext_0); // returned
+	} else {
+		constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type_i(s_type,basis_type);
+		cv = constructor_basis(p_basis,rst); // returned
+	}
+
+	return cv;
+}
+
+// Level 1 ********************************************************************************************************** //
 
 /** \brief Constructor for the \*c0_\*\*\*_\*\*\* operator from input to output computational element.
  *  \return The required operator if required; `NULL` otherwise. */
@@ -1394,21 +1449,6 @@ static void compute_range_p_o (int p_o_mm[2], const struct Operator_Info* op_inf
 	assert(p_o_mm[1] >= p_o_mm[0]);
 }
 
-static void set_current_op_io (const struct Operator_Info* op_info, const int* op_values)
-{
-	const struct Op_IO* op_io = op_info->op_io;
-
-	const int*const ce_ptr = &op_values[OP_IND_CE],
-	         *const h_ptr = &op_values[OP_IND_H],
-	         *const p_ptr = &op_values[OP_IND_P];
-	for (int i = 0; i < 2; ++i) {
-		const_cast_i(&op_io[i].ce_op,ce_ptr[i]);
-		const_cast_i(&op_io[i].h_op,h_ptr[i]);
-		const_cast_i(&op_io[i].p_op,p_ptr[i]);
-		const_cast_i(&op_io[i].s_type,compute_super_type_op(op_io[i].ce,op_io[i].h_op,op_info->element));
-	}
-}
-
 static ptrdiff_t get_ind_nc
 	(const struct Operator_Info* op_info, const int* op_values, const struct const_Multiarray_Vector_i* nc)
 {
@@ -1445,51 +1485,6 @@ static char get_op_L2_type
 static void update_op_type_Xc
 	(const int*const op_type ///< \ref Operator_Info::op_type.
 	);
-
-static const struct const_Matrix_d* constructor_cv
-	(const struct const_Matrix_d* rst, const struct Op_IO* op_io, const struct Simulation* sim,
-	 const int basis_type_i)
-{
-	int basis_type = -1;
-	switch (basis_type_i) {
-	case BASIS_ORTHO: case BASIS_LAGRANGE: case BASIS_BEZIER:
-		basis_type = basis_type_i;
-		break;
-	default:
-		switch (op_io->kind) {
-		case 'g': // fallthrough
-		case 'm':
-			basis_type = get_basis_i_from_s(sim->basis_geom);
-			break;
-		case 's': // fallthrough
-		case 'f': // fallthrough
-		case 't':
-			basis_type = get_basis_i_from_s(sim->basis_sol);
-			break;
-		case 'p': // fallthrough
-		case 'v':
-			basis_type = get_basis_i_from_s("lagrange");
-			break;
-		default:
-			EXIT_ERROR("Unsupported: %c.\n",op_io->kind);
-			break;
-		}
-		break;
-	}
-
-	const int s_type = op_io->s_type;
-	const int p_basis = compute_p_basis(op_io,sim);
-
-	const struct const_Matrix_d* cv = NULL;
-	if (basis_type == BASIS_LAGRANGE) {
-		cv = constructor_identity_const_Matrix_d('R',rst->ext_0); // returned
-	} else {
-		constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type_i(s_type,basis_type);
-		cv = constructor_basis(p_basis,rst); // returned
-	}
-
-	return cv;
-}
 
 static const struct const_Multiarray_Matrix_d* constructor_op_Xc_ce_io
 	(const ptrdiff_t ind_values, const struct Operator_Info* op_info, const struct Simulation* sim)

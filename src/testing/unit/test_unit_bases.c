@@ -62,6 +62,11 @@ static void test_unit_basis_tensor_product_bezier
 	(struct Test_Info*const test_info ///< \ref Test_Info.
 	);
 
+/// \brief Provides unit tests for the bezier simplex basis functions.
+static void test_unit_basis_simplex_bezier
+	(struct Test_Info*const test_info ///< \ref Test_Info.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 /** \test Performs unit testing for the bases (\ref test_unit_bases.c).
@@ -83,9 +88,10 @@ int main
 		test_unit_basis_pyramid_orthonormal(&test_info);
 	else if (strcmp(test_name,"tp_bezier") == 0)
 		test_unit_basis_tensor_product_bezier(&test_info);
+	else if (strcmp(test_name,"si_bezier") == 0)
+		test_unit_basis_simplex_bezier(&test_info);
 	else
 		EXIT_ERROR("Invalid test name: %s\n",test_name);
-//	test_unit_basis_simplex_bezier(&test_info);
 //	test_unit_basis_pyramid_bezier(&test_info);
 
 	output_warning_count(&test_info);
@@ -478,6 +484,106 @@ static void test_unit_basis_tensor_product_bezier (struct Test_Info*const test_i
 	assert_condition(pass);
 }
 
+// Simplex Bezier *************************************************************************************************** //
+
+/// Container for simplex bezier basis data to be tested for comparison with expected values.
+struct Basis_Data_SI_Bezier {
+	const struct const_Matrix_d* phi22, ///< The 2d basis functions of order 2.
+	                           * phi23, ///< The 2d basis functions of order 3.
+	                           * phi32; ///< The 3d basis functions of order 2.
+
+	const struct const_Multiarray_Matrix_d* grad_phi22, ///< The 2d basis gradient functions of order 2.
+	                                      * grad_phi31; ///< The 3d basis gradient functions of order 1.
+
+	const struct const_Vector_d* p_24, ///< The 2d basis partition of unity (summed) vector of order 4.
+	                           * p_34; ///< The 3d basis partition of unity (summed) vector of order 4.
+
+	/// Gradient coefficients for the approximation of order 5 of a p2 tensor-product polynomial for the 2d basis.
+	const struct const_Multiarray_d* grad_coef_25;
+	/// Gradient coefficients for the approximation of order 7 of a p2 tensor-product polynomial for the 3d basis.
+	const struct const_Multiarray_d* grad_coef_37;
+};
+
+/** \brief Constructor for \ref Basis_Data_SI_Bezier.
+ *  \return Standard. */
+static struct Basis_Data_SI_Bezier* constructor_Basis_Data_SI_Bezier
+	(const char eval_type ///< Method to use to obtain the data. Options: 'a'nalytical, 'c'ompute.
+	);
+
+/// \brief Destructor for \ref Basis_Data_SI_Bezier.
+static void destructor_Basis_Data_SI_Bezier
+	(struct Basis_Data_SI_Bezier* b_data ///< Standard.
+	);
+
+static void test_unit_basis_simplex_bezier (struct Test_Info*const test_info)
+{
+	UNUSED(test_info);
+	bool    pass        = false;
+	double* tol         = NULL;
+	bool*   differences = NULL;
+
+	struct Basis_Data_SI_Bezier* b_data_a = constructor_Basis_Data_SI_Bezier('a'), // destructed
+	                           * b_data_c = constructor_Basis_Data_SI_Bezier('c'); // destructed
+
+	tol = (double[]) { EPS, EPS, EPS, };
+	differences = (bool[])
+		{ diff_const_Matrix_d(b_data_a->phi22,b_data_c->phi22,tol[0]),
+		  diff_const_Matrix_d(b_data_a->phi23,b_data_c->phi23,tol[1]),
+		  diff_const_Matrix_d(b_data_a->phi32,b_data_c->phi32,tol[2]),
+		};
+	if (check_diff(3,differences,&pass)) {
+		if (differences[0]) print_diff_const_Matrix_d(b_data_a->phi22,b_data_c->phi22,tol[0]);
+		if (differences[1]) print_diff_const_Matrix_d(b_data_a->phi23,b_data_c->phi23,tol[1]);
+		if (differences[2]) print_diff_const_Matrix_d(b_data_a->phi32,b_data_c->phi32,tol[2]);
+	}
+	expect_condition(pass,"basis");
+
+	test_print_warning(test_info,"Not testing bezier simplex gradient.");
+#if 0
+	tol = (double[]) { EPS, EPS, };
+	differences = (bool[])
+		{ diff_const_Multiarray_Matrix_d(b_data_a->grad_phi22,b_data_c->grad_phi22,tol[0]),
+		  diff_const_Multiarray_Matrix_d(b_data_a->grad_phi31,b_data_c->grad_phi31,tol[1]),
+		};
+	if (check_diff(2,differences,&pass)) {
+		if (differences[0])
+			print_diff_const_Multiarray_Matrix_d(b_data_a->grad_phi22,b_data_c->grad_phi22,tol[0]);
+		if (differences[1])
+			print_diff_const_Multiarray_Matrix_d(b_data_a->grad_phi31,b_data_c->grad_phi31,tol[1]);
+	}
+	expect_condition(pass,"grad basis");
+#endif
+	tol = (double[]) { EPS, EPS, };
+	differences = (bool[])
+		{ diff_const_Vector_d(b_data_a->p_24,b_data_c->p_24,tol[0]),
+		  diff_const_Vector_d(b_data_a->p_34,b_data_c->p_34,tol[1]),
+		};
+	if (check_diff(2,differences,&pass)) {
+		if (differences[0]) print_diff_const_Vector_d(b_data_a->p_24,b_data_c->p_24,tol[0]);
+		if (differences[1]) print_diff_const_Vector_d(b_data_a->p_34,b_data_c->p_34,tol[1]);
+	}
+	expect_condition(pass,"partition of unity");
+
+	test_print_warning(test_info,"Not testing bezier simplex gradient evaluation.");
+#if 0
+	tol = (double[]) { EPS, EPS, };
+	differences = (bool[])
+		{ diff_const_Multiarray_d(b_data_a->grad_coef_25,b_data_c->grad_coef_25,tol[0]),
+		  diff_const_Multiarray_d(b_data_a->grad_coef_37,b_data_c->grad_coef_37,tol[1]),
+		};
+	if (check_diff(2,differences,&pass)) {
+		if (differences[0]) print_diff_const_Multiarray_d(b_data_a->grad_coef_25,b_data_c->grad_coef_25,tol[0]);
+		if (differences[1]) print_diff_const_Multiarray_d(b_data_a->grad_coef_37,b_data_c->grad_coef_37,tol[1]);
+	}
+	expect_condition(pass,"gradient evaluation");
+#endif
+
+	destructor_Basis_Data_SI_Bezier(b_data_a);
+	destructor_Basis_Data_SI_Bezier(b_data_c);
+
+	assert_condition(pass);
+}
+
 // Level 1 ********************************************************************************************************** //
 // Tensor-Product Orthonormal *************************************************************************************** //
 
@@ -634,7 +740,7 @@ static void destructor_Basis_Data_PYR_Ortho (struct Basis_Data_PYR_Ortho* b_data
 	free(b_data);
 }
 
-// Tensor-Product Orthonormal *************************************************************************************** //
+// Tensor-Product Bezier********************************************************************************************* //
 
 static struct Basis_Data_TP_Bezier* constructor_Basis_Data_TP_Bezier (const char eval_type)
 {
@@ -694,5 +800,58 @@ static void destructor_Basis_Data_TP_Bezier (struct Basis_Data_TP_Bezier* b_data
 	destructor_const_Multiarray_d(b_data->grad_coef_13);
 	destructor_const_Multiarray_d(b_data->grad_coef_23);
 	destructor_const_Multiarray_d(b_data->grad_coef_33);
+	free(b_data);
+}
+
+// Simplex Bezier *************************************************************************************************** //
+
+static struct Basis_Data_SI_Bezier* constructor_Basis_Data_SI_Bezier (const char eval_type)
+{
+	struct Basis_Data_SI_Bezier* b_data = calloc(1,sizeof *b_data); // returned
+
+	const struct const_Nodes* d2_p4_AO = constructor_const_Nodes_si(2,4,NODES_AO), // destructed
+	                        * d3_p4_AO = constructor_const_Nodes_si(3,4,NODES_AO); // destructed
+	const char* basis_name = "si_bezier";
+	if (eval_type == 'a') {
+		b_data->phi22        = constructor_basis_si_bezier_def(2,d2_p4_AO->rst);      // keep
+		b_data->phi23        = constructor_basis_si_bezier_def(3,d2_p4_AO->rst);      // keep
+		b_data->phi32        = constructor_basis_si_bezier_def(2,d3_p4_AO->rst);      // keep
+UNUSED(basis_name);
+//		b_data->grad_phi22   = constructor_grad_basis_si_bezier_def(2,d2_p4_AO->rst); // keep
+//		b_data->grad_phi31   = constructor_grad_basis_si_bezier_def(1,d3_p4_AO->rst); // keep
+		b_data->p_24         = constructor_part_unity_def(d2_p4_AO->rst->ext_0);      // keep
+		b_data->p_34         = constructor_part_unity_def(d3_p4_AO->rst->ext_0);      // keep
+//		b_data->grad_coef_25 = constructor_grad_vals_computation_def(2,5,basis_name);      // keep
+//		b_data->grad_coef_37 = constructor_grad_vals_computation_def(3,7,basis_name);      // keep
+	} else if (eval_type == 'c') {
+		b_data->phi22        = constructor_basis_si_bezier(2,d2_p4_AO->rst);      // keep
+		b_data->phi23        = constructor_basis_si_bezier(3,d2_p4_AO->rst);      // keep
+		b_data->phi32        = constructor_basis_si_bezier(2,d3_p4_AO->rst);      // keep
+//		b_data->grad_phi22   = constructor_grad_basis_si_bezier(2,d2_p4_AO->rst); // keep
+//		b_data->grad_phi31   = constructor_grad_basis_si_bezier(1,d3_p4_AO->rst); // keep
+		b_data->p_24         = constructor_part_unity(b_data->phi22);              // keep
+		b_data->p_34         = constructor_part_unity(b_data->phi32);              // keep
+//		b_data->grad_coef_25 = constructor_grad_vals_computation(2,5,basis_name);      // keep
+//		b_data->grad_coef_37 = constructor_grad_vals_computation(3,7,basis_name);      // keep
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+	destructor_const_Nodes(d2_p4_AO);
+	destructor_const_Nodes(d3_p4_AO);
+
+	return b_data;
+}
+
+static void destructor_Basis_Data_SI_Bezier (struct Basis_Data_SI_Bezier* b_data)
+{
+	destructor_const_Matrix_d(b_data->phi22);
+	destructor_const_Matrix_d(b_data->phi23);
+	destructor_const_Matrix_d(b_data->phi32);
+//	destructor_const_Multiarray_Matrix_d(b_data->grad_phi22);
+//	destructor_const_Multiarray_Matrix_d(b_data->grad_phi31);
+	destructor_const_Vector_d(b_data->p_24);
+	destructor_const_Vector_d(b_data->p_34);
+//	destructor_const_Multiarray_d(b_data->grad_coef_25);
+//	destructor_const_Multiarray_d(b_data->grad_coef_37);
 	free(b_data);
 }

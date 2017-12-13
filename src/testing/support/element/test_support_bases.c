@@ -1203,6 +1203,77 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier_def
 	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
 }
 
+// Simplex Bezier *************************************************************************************************** //
+
+const struct const_Matrix_d* constructor_basis_si_bezier_def (const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_SI);
+
+	const struct const_Matrix_d*const bcoords = constructor_bcoords_from_rst_si(rst); // destructed
+	const double*const u = get_col_const_Matrix_d(0,bcoords),
+	            *const v = get_col_const_Matrix_d(1,bcoords),
+	            *const w = get_col_const_Matrix_d(2,bcoords),
+	            *const x = ( d > 2 ? get_col_const_Matrix_d(3,bcoords) : NULL);
+
+	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('R',n_n,n_b); // returned
+	double* phi_data = phi_rst->data;
+
+	for (ptrdiff_t n = 0; n < n_n; ++n) {
+		const double u_n = u[n],
+		             v_n = v[n],
+		             w_n = w[n],
+		             x_n = ( d == 3 ? x[n] : 0.0 );
+
+		if (d == 2 && p_b == 2) {
+			*phi_data++ =     pow(u_n,0.0)*pow(v_n,0.0)*pow(w_n,2.0);
+			*phi_data++ = 2.0*pow(u_n,0.0)*pow(v_n,1.0)*pow(w_n,1.0);
+			*phi_data++ =     pow(u_n,0.0)*pow(v_n,2.0)*pow(w_n,0.0);
+			*phi_data++ = 2.0*pow(u_n,1.0)*pow(v_n,0.0)*pow(w_n,1.0);
+			*phi_data++ = 2.0*pow(u_n,1.0)*pow(v_n,1.0)*pow(w_n,0.0);
+			*phi_data++ =     pow(u_n,2.0)*pow(v_n,0.0)*pow(w_n,0.0);
+		} else if (d == 2 && p_b == 3) {
+			*phi_data++ =     pow(u_n,0.0)*pow(v_n,0.0)*pow(w_n,3.0);
+			*phi_data++ = 3.0*pow(u_n,0.0)*pow(v_n,1.0)*pow(w_n,2.0);
+			*phi_data++ = 3.0*pow(u_n,0.0)*pow(v_n,2.0)*pow(w_n,1.0);
+			*phi_data++ =     pow(u_n,0.0)*pow(v_n,3.0)*pow(w_n,0.0);
+			*phi_data++ = 3.0*pow(u_n,1.0)*pow(v_n,0.0)*pow(w_n,2.0);
+			*phi_data++ = 6.0*pow(u_n,1.0)*pow(v_n,1.0)*pow(w_n,1.0);
+			*phi_data++ = 3.0*pow(u_n,1.0)*pow(v_n,2.0)*pow(w_n,0.0);
+			*phi_data++ = 3.0*pow(u_n,2.0)*pow(v_n,0.0)*pow(w_n,1.0);
+			*phi_data++ = 3.0*pow(u_n,2.0)*pow(v_n,1.0)*pow(w_n,0.0);
+			*phi_data++ =     pow(u_n,3.0)*pow(v_n,0.0)*pow(w_n,0.0);
+		} else if (d == 3 && p_b == 2) {
+			*phi_data++ =     pow(u_n,0.0)*pow(v_n,0.0)*pow(w_n,0.0)*pow(x_n,2.0);
+			*phi_data++ = 2.0*pow(u_n,0.0)*pow(v_n,0.0)*pow(w_n,1.0)*pow(x_n,1.0);
+			*phi_data++ =     pow(u_n,0.0)*pow(v_n,0.0)*pow(w_n,2.0)*pow(x_n,0.0);
+			*phi_data++ = 2.0*pow(u_n,0.0)*pow(v_n,1.0)*pow(w_n,0.0)*pow(x_n,1.0);
+			*phi_data++ = 2.0*pow(u_n,0.0)*pow(v_n,1.0)*pow(w_n,1.0)*pow(x_n,0.0);
+			*phi_data++ =     pow(u_n,0.0)*pow(v_n,2.0)*pow(w_n,0.0)*pow(x_n,0.0);
+			*phi_data++ = 2.0*pow(u_n,1.0)*pow(v_n,0.0)*pow(w_n,0.0)*pow(x_n,1.0);
+			*phi_data++ = 2.0*pow(u_n,1.0)*pow(v_n,0.0)*pow(w_n,1.0)*pow(x_n,0.0);
+			*phi_data++ = 2.0*pow(u_n,1.0)*pow(v_n,1.0)*pow(w_n,0.0)*pow(x_n,0.0)*2.0;
+			*phi_data++ =     pow(u_n,2.0)*pow(v_n,0.0)*pow(w_n,0.0)*pow(x_n,0.0);
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+	destructor_const_Matrix_d(bcoords);
+
+	return (const struct const_Matrix_d*) phi_rst;
+}
+
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier_def
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+UNUSED(p_b);
+UNUSED(rst);
+EXIT_ADD_SUPPORT;
+}
+
 // Additional functions ********************************************************************************************* //
 
 const struct const_Matrix_d* constructor_mass_orthonormal_def (const int d, const int p_b, const int super_type)

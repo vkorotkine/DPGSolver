@@ -85,6 +85,20 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier_def
 	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
+/** \brief Version of \ref constructor_basis_fptr for the simplex bezier basis from the basis function definitions.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_basis_si_bezier_def
+	(const int p_b,                        ///< See brief.
+	 const struct const_Matrix_d*const rst ///< See brief.
+	);
+
+/** \brief Version of \ref constructor_grad_basis_fptr for the simplex bezier basis from the basis function definitions.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier_def
+	(const int p_b,                        ///< See brief.
+	 const struct const_Matrix_d*const rst ///< See brief.
+	);
+
 // Additional functions ********************************************************************************************* //
 
 /** \brief Constructor for the mass matrix of an orthonormal basis from the definition (i.e. the identity matrix).
