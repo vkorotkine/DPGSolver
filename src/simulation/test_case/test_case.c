@@ -48,6 +48,23 @@ void destructor_Test_Case_rc_real (struct Test_Case_rc* test_case_rc)
 	free(test_case_rc);
 }
 
+bool test_case_requires_positivity (const struct Test_Case*const test_case)
+{
+	switch (test_case->pde_index) {
+	case PDE_ADVECTION: // fallthrough
+	case PDE_POISSON:
+		return false;
+		break;
+	case PDE_EULER:         // fallthrough
+	case PDE_NAVIER_STOKES:
+		return true;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
+		break;
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

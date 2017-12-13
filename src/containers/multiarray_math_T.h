@@ -70,7 +70,15 @@ void scale_Multiarray_T_by_Vector_R
 	 const bool invert_diag               ///< See brief.
 	);
 
+/// \brief Sets `a = a + alpha*b`.
+void add_in_place_Multiarray_T
+	(const Real alpha,                  ///< Scaling constant.
+	 struct Multiarray_T*const a,       ///< Multiarray to be modified.
+	 const struct const_Multiarray_T* b ///< Multiarray to add to array to be modified.
+	);
+
 /// \brief Subtract the 2nd from the 1st multiarray in-place.
+/// \deprecated Replace with calls to \ref add_in_place_Multiarray_T.
 void subtract_in_place_Multiarray_T
 	(struct Multiarray_T* a,            ///< 1st multiarray.
 	 const struct const_Multiarray_T* b ///< 2nd multiarray.

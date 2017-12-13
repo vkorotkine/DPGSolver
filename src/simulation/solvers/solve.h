@@ -71,6 +71,7 @@ double compute_rlhs
 	);
 
 /** \brief Enforce physical constraints on the unknowns if required.
+ *
  *  This routine guarantees that the density and pressure are everywhere positive within the volume using a
  *  transformation to the Bezier basis (whose basis functions are positive everywhere) and then applying a scaling to
  *  the Bezier basis coefficients. */

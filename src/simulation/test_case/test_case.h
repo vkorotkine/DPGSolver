@@ -61,5 +61,10 @@ void destructor_Test_Case_rc_real
 	(struct Test_Case_rc* test_case_rc ///< \ref Test_Case_rc.
 	);
 
+/** \brief Check whether the test case under consideration requires positivity of certain variables.
+ *  \return `true` if yes; `false` otherwise. */
+bool test_case_requires_positivity
+	(const struct Test_Case*const test_case ///< \ref Test_Case_T.
+	);
 
 #endif // DPG__test_case_h__INCLUDED

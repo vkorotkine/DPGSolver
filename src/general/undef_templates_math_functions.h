@@ -27,3 +27,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef max_abs_T
 #undef z_yxpz_T
 #undef z_yxpz_RTT
+#undef average_T
+#undef minimum_T

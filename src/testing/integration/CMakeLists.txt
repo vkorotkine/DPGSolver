@@ -67,5 +67,4 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_S
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DPG_ParametricMixed2D__ml0" "petsc_options_empty")
 
 # Add tests:
-# - equivalence real/complex.
 # - equivalence operators.

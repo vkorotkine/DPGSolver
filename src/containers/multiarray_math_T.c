@@ -139,6 +139,15 @@ void scale_Multiarray_T_by_Vector_R
 	scale_Matrix_T_by_Vector_R(side,alpha,&a_M,b,invert_diag);
 }
 
+void add_in_place_Multiarray_T (const Real alpha, struct Multiarray_T*const a, const struct const_Multiarray_T* b)
+{
+	assert(compute_size(a->order,a->extents) == compute_size(b->order,b->extents));
+
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		a->data[i] += alpha*(b->data[i]);
+}
+
 void subtract_in_place_Multiarray_T (struct Multiarray_T* a, const struct const_Multiarray_T* b)
 {
 	assert(compute_size(a->order,a->extents) == compute_size(b->order,b->extents));

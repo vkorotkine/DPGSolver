@@ -32,6 +32,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define GM3   -1.6
 ///\}
 
+///\{ \name Minimum permited value for physical quantities which should be positive.
+#define EPS_PHYS 1.0e-13
+///\}
+
 ///\{ \name Definitions for the available solver procedures.
 #define SOLVER_E  100 ///< Explicit.
 #define SOLVER_I  200 ///< Implicit.

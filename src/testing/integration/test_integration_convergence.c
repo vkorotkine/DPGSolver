@@ -106,7 +106,7 @@ int main
 		output_error(sim);
 
 		if (DISPLAY_CONV)
-			printf("ml, p, dof: %d %d %td\n",ml,p,compute_dof(sim));
+			printf("\ntest_integration_convergence (ml, p, dof): %d %d %td\n\n\n",ml,p,compute_dof(sim));
 
 		p_prev  = p;
 		ml_prev = ml;
@@ -119,6 +119,7 @@ int main
 	destructor_Integration_Test_Info(int_test_info);
 
 	PetscFinalize();
+	OUTPUT_SUCCESS;
 }
 
 // Static functions ************************************************************************************************* //

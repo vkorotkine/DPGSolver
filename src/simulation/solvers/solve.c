@@ -20,10 +20,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "gsl/gsl_math.h"
 
 #include "macros.h"
 #include "definitions_intrusive.h"
+#include "definitions_test_case.h"
+#include "definitions_tol.h"
 
+#include "element_solver.h"
 #include "face_solver.h"
 #include "volume_solver.h"
 
@@ -32,16 +36,26 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "geometry.h"
 #include "intrusive.h"
+#include "math_functions.h"
+#include "multiarray_operator.h"
+#include "operator.h"
 #include "simulation.h"
 #include "solve_explicit.h"
 #include "solve_implicit.h"
 #include "solution.h"
+#include "solution_euler.h"
 #include "test_case.h"
 
 #include "solve_dg.h"
 #include "solve_dpg.h"
 
 // Static function declarations ************************************************************************************* //
+
+/// \brief Correct the coefficients such that `coef = t*coef + (1-t)*coef_avg`.
+static void correct_coef
+	(struct Multiarray_d*const coef, ///< The multiarray of coefficients for each of the variables.
+	 const double p_ho               ///< The percentage of the 'h'igh-'o'rder contribution to retain.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -106,12 +120,53 @@ double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implici
 
 void enforce_positivity_highorder (struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
-	const struct Volume* vol = (struct Volume*) s_vol;
+	if (!test_case_requires_positivity((struct Test_Case*) sim->test_case_rc->tc))
+		return;
+
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	const char op_format = 'd';
+
+	const struct Volume* vol         = (struct Volume*) s_vol;
 	const struct Solver_Element* s_e = (struct Solver_Element*) vol->element;
 
-	UNUSED(s_e);
-	UNUSED(sim);
-	EXIT_ADD_SUPPORT;
+	const int p = s_vol->p_ref;
+	const struct Operator* ccSB0_vs_vs = get_Multiarray_Operator(s_e->ccSB0_vs_vs,(ptrdiff_t[]){0,0,p,p});
+
+	struct Multiarray_d* s_coef = s_vol->sol_coef;
+
+	struct Multiarray_d* s_coef_b =
+		constructor_mm_NN1_Operator_Multiarray_d(ccSB0_vs_vs,s_coef,'C',op_format,s_coef->order,NULL); // dest.
+
+	convert_variables(s_coef_b,'c','p');
+
+	// Note: As the Bezier basis forms a partition of unity, the average value is given by the average of the
+	//       coefficients.
+	const ptrdiff_t n_n  = s_coef_b->extents[0],
+	                n_vr = s_coef_b->extents[1];
+
+	for (int vr = 0; vr < n_vr; vr += n_vr-1) {
+		double* vr_data = &s_coef_b->data[vr*n_n];
+
+		double vr_avg = average_d(vr_data,n_n);
+		if (vr_avg < EPS_PHYS) {
+			print_Multiarray_d(s_coef_b);
+			EXIT_ERROR("Average %s approaching 0.0.\n",(vr == 0 ? "density" : "pressure"));
+		}
+
+		// Correct terms if necessary
+		const double vr_min = minimum_d(vr_data,n_n);
+		if (vr_min < EPS_PHYS) {
+			const double p_ho = GSL_MAX(0.0,GSL_MIN(1.0,(vr_avg-EPS_PHYS)/(vr_avg-vr_min)));
+			correct_coef(s_coef_b,p_ho);
+		}
+	}
+	convert_variables(s_coef_b,'p','c');
+
+	const struct Operator* ccBS0_vs_vs = get_Multiarray_Operator(s_e->ccBS0_vs_vs,(ptrdiff_t[]){0,0,p,p});
+	mm_NN1C_Operator_Multiarray_d(
+		ccBS0_vs_vs,(struct const_Multiarray_d*)s_coef_b,s_coef,op_format,s_coef_b->order,NULL,NULL);
+
+	destructor_Multiarray_d(s_coef_b);
 }
 
 void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* ssi)
@@ -170,3 +225,23 @@ ptrdiff_t compute_dof_schur (const char dof_type, const struct Simulation* sim)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void correct_coef (struct Multiarray_d*const coef, const double p_ho)
+{
+	assert(coef->order == 2);
+
+	const ptrdiff_t n_n  = coef->extents[0],
+	                n_vr = coef->extents[1];
+
+	for (int vr = 0; vr < n_vr; ++vr) {
+		double*const data = &coef->data[vr*n_n];
+		double avg = average_d(data,n_n);
+		if ((vr == 0 || vr == n_vr-1) && avg < EPS_PHYS) {
+			assert(p_ho < EPS);
+			avg = EPS_PHYS;
+		}
+
+		for (int n = 0; n < n_n; ++n)
+			data[n] = p_ho*data[n] + (1-p_ho)*avg;
+	}
+}

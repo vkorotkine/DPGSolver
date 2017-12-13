@@ -167,7 +167,6 @@ static void constructor_derived_Solver_Element_tp (struct Element* element_ptr, 
 
 	set_operators_tp(&ops_tp,s_se[0]->ccSB0_vs_vs,NULL,s_se[1]->ccSB0_vs_vs,NULL);
 	s_e->ccSB0_vs_vs = constructor_operators_tp("ccSB0","vsA","vsA","H_1_P_PM0",e,sim,&ops_tp); // destructed
-EXIT_UNSUPPORTED; // Ensure that all is working correctly.
 
 	set_operators_tp(&ops_tp,s_se[0]->ccBS0_vs_vs,NULL,s_se[1]->ccBS0_vs_vs,NULL);
 	s_e->ccBS0_vs_vs = constructor_operators_tp("ccBS0","vsA","vsA","H_1_P_PM0",e,sim,&ops_tp); // destructed

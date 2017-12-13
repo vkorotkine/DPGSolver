@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 #include <math.h>
 #include <string.h>
+#include <float.h>
 
 #include "macros.h"
 #include "definitions_tol.h"
@@ -100,5 +101,24 @@ void z_yxpz_RTT (const int n, const Real* x, const Type* y, Type* z)
 		z[i] += y[i]*x[i];
 }
 #endif
+
+Type average_T (const Type*const data, const ptrdiff_t n_entries)
+{
+	Type sum = 0.0;
+	for (int i = 0; i < n_entries; ++i)
+		sum += data[i];
+	return sum/n_entries;
+}
+
+Type minimum_T (const Type*const data, const ptrdiff_t n_entries)
+{
+	Type min = DBL_MAX;
+	for (int i = 0; i < n_entries; ++i) {
+		if (real_T(data[i]) < real_T(min))
+			min = data[i];
+	}
+	return min;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

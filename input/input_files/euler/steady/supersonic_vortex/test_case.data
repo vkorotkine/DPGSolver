@@ -1,7 +1,7 @@
 /// Solver parameters for test case: euler/internal/supersonic_vortex
 
 solver_proc   200
-solver_type_i 201
+solver_type_i 202
 
 num_flux_1st Roe-Pike
 test_norm    H1_upwind

@@ -28,16 +28,22 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_intrusive.h"
 #include "definitions_test_case.h"
+#include "definitions_tol.h"
 
-#include "computational_elements.h"
+#include "element_solver.h"
 #include "face_solver.h"
 #include "volume_solver.h"
 
 #include "multiarray.h"
 #include "vector.h"
 
+#include "computational_elements.h"
 #include "intrusive.h"
+#include "math_functions.h"
+#include "multiarray_operator.h"
+#include "operator.h"
 #include "simulation.h"
+#include "solution_euler.h"
 #include "solve.h"
 #include "solve_dg.h"
 #include "solve_dpg.h"
@@ -476,6 +482,7 @@ static KSP constructor_petsc_ksp (Mat A, const struct Simulation* sim)
 	switch (solver_type_i) {
 	case SOLVER_I_DIRECT:
 		KSPSetType(ksp,KSPPREONLY);
+		KSPSetInitialGuessNonzero(ksp,PETSC_FALSE);
 		if (!symmetric)
 			PCSetType(pc,PCLU);
 		else
@@ -532,6 +539,9 @@ static void display_progress (const struct Test_Case* test_case, const int i_ste
 	PetscReal emax = 0.0, emin = 0.0;
 	KSPComputeExtremeSingularValues(ksp,&emax,&emin);
 
+	if (reason < 0)
+		EXIT_ERROR("Petsc solver diverged with KSPConvergedReason: %d.\n",reason);
+
 	printf("iteration: %5d, KSP iterations (cond, reason): %5d (% .3e, %d), max rhs (initial): % .3e (% .3e)\n",
 	       i_step,iteration_ksp,emax/emin,reason,max_rhs,max_rhs0);
 }
@@ -575,9 +585,12 @@ static void destructor_Schur_Data (Vec b, struct Schur_Data* schur_data)
 
 /// \brief Update the input coefficients with the step stored in the PETSc Vec.
 static void update_coef
-	(const int ind_dof,              ///< The index of the first dof associated with the coefficients.
-	 struct Multiarray_d*const coef, ///< The coefficients to be updated.
-	 Vec x                           ///< The PETSc Vec holding the updates.
+	(const int ind_dof,                 ///< The index of the first dof associated with the coefficients.
+	 struct Multiarray_d*const coef,    ///< The coefficients to be updated.
+	 Vec x,                             ///< The PETSc Vec holding the updates.
+	 const bool allow_relax,            ///< Flag for whether under relaxation should be allowed.
+	 const struct Solver_Volume* s_vol, ///< The current \ref Solver_Volume.
+	 const struct Simulation* sim       ///< \ref Simulation.
 	);
 
 static void update_coef_s_v (Vec x, const struct Simulation* sim)
@@ -585,7 +598,7 @@ static void update_coef_s_v (Vec x, const struct Simulation* sim)
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume* s_vol = (struct Solver_Volume*)curr;
 
-		update_coef((int)s_vol->ind_dof,s_vol->sol_coef,x);
+		update_coef((int)s_vol->ind_dof,s_vol->sol_coef,x,true,s_vol,sim);
 		enforce_positivity_highorder(s_vol,sim);
 	}
 }
@@ -595,23 +608,105 @@ static void update_coef_nf_f (Vec x, const struct Simulation* sim)
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Solver_Face* s_face = (struct Solver_Face*)curr;
 
-		update_coef((int)s_face->ind_dof,s_face->nf_coef,x);
+		update_coef((int)s_face->ind_dof,s_face->nf_coef,x,false,NULL,NULL);
 	}
 }
 
 // Level 4 ********************************************************************************************************** //
 
-static void update_coef (const int ind_dof, struct Multiarray_d*const coef, Vec x)
+/** \brief Compute the under relaxation required to maintain physically correct data.
+ *  \return See brief.
+ *
+ *  The magnitude of the under relaxation is set such that the average value of the density and pressure remain
+ *  positive after the perturbation is added to the coefficients.
+ */
+static double compute_relaxation
+	(const struct const_Multiarray_d*const coef,   ///< The coefficients.
+	 const struct const_Multiarray_d*const d_coef, ///< The full perturbation to the coefficients.
+	 const struct Solver_Volume*const s_vol,       ///< \ref Solver_Volume.
+	 const struct Simulation*const sim             ///< \ref Simulation.
+	);
+
+static void update_coef
+	(const int ind_dof, struct Multiarray_d*const coef, Vec x, const bool allow_relax,
+	 const struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
-		const int ni = (int)compute_size(coef->order,coef->extents);
+	assert(sizeof(PetscScalar) == sizeof(double)); // Use appropriate multiarray otherwise.
 
-		PetscInt ix[ni];
-		for (int i = 0; i < ni; ++i)
-			ix[i] = ind_dof+i;
+	const int ni = (int)compute_size(coef->order,coef->extents);
 
-		PetscScalar y[ni];
-		VecGetValues(x,ni,ix,y);
+	PetscInt ix[ni];
+	for (int i = 0; i < ni; ++i)
+		ix[i] = ind_dof+i;
 
-		for (int i = 0; i < ni; ++i)
-			coef->data[i] += y[i];
+	PetscScalar y[ni];
+	VecGetValues(x,ni,ix,y);
+
+	double relax = 1.0;
+	if (allow_relax) {
+		assert(s_vol != NULL);
+		const struct const_Multiarray_d* d_coef =
+			constructor_move_const_Multiarray_d_d(coef->layout,coef->order,coef->extents,false,y); // destructed
+		relax = compute_relaxation((struct const_Multiarray_d*)coef,(struct const_Multiarray_d*)d_coef,s_vol,sim);
+		destructor_const_Multiarray_d(d_coef);
+	}
+
+	for (int i = 0; i < ni; ++i)
+		coef->data[i] += relax*y[i];
+}
+
+// Level 5 ********************************************************************************************************** //
+
+static double compute_relaxation
+	(const struct const_Multiarray_d*const coef, const struct const_Multiarray_d*const d_coef,
+	 const struct Solver_Volume*const s_vol, const struct Simulation*const sim)
+{
+	double relax = 1.0;
+	if (!test_case_requires_positivity((struct Test_Case*) sim->test_case_rc->tc))
+		return relax;
+
+	const struct Volume* vol         = (struct Volume*) s_vol;
+	const struct Solver_Element* s_e = (struct Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref;
+	const struct Operator* ccSB0_vs_vs = get_Multiarray_Operator(s_e->ccSB0_vs_vs,(ptrdiff_t[]){0,0,p,p});
+
+	const char op_format = 'd';
+	struct Multiarray_d* coef_b = constructor_mm_NN1_Operator_Multiarray_d(
+		ccSB0_vs_vs,(struct Multiarray_d*)coef,'C',op_format,coef->order,NULL); // dest.
+	const struct const_Multiarray_d* d_coef_b =
+		constructor_mm_NN1_Operator_const_Multiarray_d(ccSB0_vs_vs,d_coef,'C',op_format,d_coef->order,NULL); // dest.
+
+	const ptrdiff_t n_n  = coef_b->extents[0],
+	                n_vr = coef_b->extents[1];
+
+	ptrdiff_t* extents = (ptrdiff_t[]) { 1, n_vr, };
+	double data[n_vr];
+	struct Multiarray_d vr_avgs = { .layout = 'C', .order = 2, .extents = extents, .owns_data = false, .data = data, };
+
+	do {
+		add_in_place_Multiarray_d(relax,coef_b,d_coef_b);
+
+		for (int vr = 0; vr < n_vr; ++vr) {
+			const double*const vr_data = &coef_b->data[vr*n_n];
+			vr_avgs.data[vr] = average_d(vr_data,n_n);
+		}
+
+		convert_variables(&vr_avgs,'c','p');
+
+		if (!((vr_avgs.data[0]      < EPS_PHYS) ||
+		      (vr_avgs.data[n_vr-1] < EPS_PHYS)))
+			break;
+
+		add_in_place_Multiarray_d(-relax,coef_b,d_coef_b);
+		relax /= 2.0;
+	} while (relax > EPS);
+
+	if (relax < EPS)
+		EXIT_ERROR("Under relaxation approaching zero.\n");
+
+	destructor_Multiarray_d(coef_b);
+	destructor_const_Multiarray_d(d_coef_b);
+
+	return relax;
 }

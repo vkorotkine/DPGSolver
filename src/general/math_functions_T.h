@@ -68,3 +68,16 @@ void z_yxpz_RTT
 	 Type* z        ///< Location to store the sum.
 	);
 
+/** \brief Compute the average of the input array entries.
+ *  \return See brief. */
+Type average_T
+	(const Type*const data,    ///< The array of data.
+	 const ptrdiff_t n_entries ///< The number of entries.
+	);
+
+/** \brief Compute the minimum of the input array entries.
+ *  \return See brief. */
+Type minimum_T
+	(const Type*const data,    ///< The array of data.
+	 const ptrdiff_t n_entries ///< The number of entries.
+	);

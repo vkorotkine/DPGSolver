@@ -32,6 +32,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define max_abs_T   max_abs_d
 #define z_yxpz_T    z_yxpz
 #define z_yxpz_RTT  z_yxpz
+#define average_T   average_d
+#define minimum_T   minimum_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -50,6 +52,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define max_abs_T   max_abs_c
 #define z_yxpz_T    z_yxpz_c
 #define z_yxpz_RTT  z_yxpz_dcc
+#define average_T   average_c
+#define minimum_T   minimum_c
 ///\}
 
 #endif

@@ -236,7 +236,7 @@ static double time_step_euler (const double dt, const struct Simulation* sim)
 
 		for (ptrdiff_t i = 0; i < i_max; ++i)
 			data_s[i] += dt*data_rhs[i];
-//		enforce_positivity_highorder(sol_coef);
+		enforce_positivity_highorder(s_vol,sim);
 	}
 	return max_rhs;
 }
@@ -285,7 +285,7 @@ static double time_step_ssp_rk_33 (const double dt, const struct Simulation* sim
 				EXIT_ERROR("Unsupported: %d\n",rk);
 				break;
 			}
-//			enforce_positivity_highorder(sol_coef);
+			enforce_positivity_highorder(s_vol,sim);
 		}
 	}
 
@@ -333,7 +333,7 @@ static double time_step_ls_rk_54 (const double dt, const struct Simulation* sim)
 				data_sp[i] += dt*data_rhs[i];
 				data_s[i]  += rk4b[rk]*data_sp[i];
 			}
-//			enforce_positivity_highorder(sol_coef);
+			enforce_positivity_highorder(s_vol,sim);
 		}
 	}
 
