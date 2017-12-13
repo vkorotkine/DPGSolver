@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-//#include "test_integration_linearization.h"
+#include "test_integration_linearization.h"
 
 #include <assert.h>
 #include "petscsys.h"

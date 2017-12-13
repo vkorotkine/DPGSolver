@@ -24,10 +24,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <ctype.h>
 
 #include "macros.h"
+#include "definitions_adaptation.h"
 #include "definitions_alloc.h"
 #include "definitions_core.h"
 #include "definitions_intrusive.h"
-#include "simulation/solvers/adaptation/definitions_adaptation.h"
 
 #include "test_base.h"
 
