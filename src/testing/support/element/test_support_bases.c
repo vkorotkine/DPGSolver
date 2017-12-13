@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_core.h"
 #include "definitions_elements.h"
+#include "definitions_math.h"
 #include "definitions_nodes.h"
 
 #include "multiarray.h"
@@ -1255,7 +1256,7 @@ const struct const_Matrix_d* constructor_basis_si_bezier_def (const int p_b, con
 			*phi_data++ =     pow(u_n,0.0)*pow(v_n,2.0)*pow(w_n,0.0)*pow(x_n,0.0);
 			*phi_data++ = 2.0*pow(u_n,1.0)*pow(v_n,0.0)*pow(w_n,0.0)*pow(x_n,1.0);
 			*phi_data++ = 2.0*pow(u_n,1.0)*pow(v_n,0.0)*pow(w_n,1.0)*pow(x_n,0.0);
-			*phi_data++ = 2.0*pow(u_n,1.0)*pow(v_n,1.0)*pow(w_n,0.0)*pow(x_n,0.0)*2.0;
+			*phi_data++ = 2.0*pow(u_n,1.0)*pow(v_n,1.0)*pow(w_n,0.0)*pow(x_n,0.0);
 			*phi_data++ =     pow(u_n,2.0)*pow(v_n,0.0)*pow(w_n,0.0)*pow(x_n,0.0);
 		} else {
 			EXIT_UNSUPPORTED;
@@ -1269,9 +1270,95 @@ const struct const_Matrix_d* constructor_basis_si_bezier_def (const int p_b, con
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier_def
 	(const int p_b, const struct const_Matrix_d*const rst)
 {
-UNUSED(p_b);
-UNUSED(rst);
-EXIT_ADD_SUPPORT;
+	assert(rst->layout == 'C');
+
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_SI);
+
+	const struct const_Matrix_d*const bcoords = constructor_bcoords_from_rst_si(rst); // destructed
+	const double*const u = get_col_const_Matrix_d(0,bcoords),
+	            *const v = get_col_const_Matrix_d(1,bcoords),
+	            *const w = get_col_const_Matrix_d(2,bcoords),
+	            *const x = ( d > 2 ? get_col_const_Matrix_d(3,bcoords) : NULL);
+
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	static const double db_drst[][3] = { { -1.0/2.0, -1.0/(2.0*SQRT3), -1.0/(2.0*SQRT6), },
+	                                     {  1.0/2.0, -1.0/(2.0*SQRT3), -1.0/(2.0*SQRT6), },
+	                                     {  0.0    ,  1.0/(SQRT3)    , -1.0/(2.0*SQRT6), },
+	                                     {  0.0    ,  0.0            ,  3.0/(2.0*SQRT6), }, };
+
+	for (ptrdiff_t n = 0; n < n_n; ++n) {
+		const double u_n = u[n],
+		             v_n = v[n],
+		             w_n = w[n],
+		             x_n = ( d == 3 ? x[n] : 0.0 );
+
+		if (d == 2 && p_b == 2) {
+			for (int dim = 0; dim < d; ++dim) {
+				*grad_phi_data[dim]++ =
+					    ( 0.0                             *pow(v_n,0.0)                    *pow(w_n,2.0)
+				           +pow(u_n,0.0)                    *0.0                             *pow(w_n,2.0)
+				           +pow(u_n,0.0)                    *pow(v_n,0.0)                    *2.0*pow(w_n,1.0)*db_drst[2][dim] );
+				*grad_phi_data[dim]++ =
+					2.0*( 0.0                             *pow(v_n,1.0)                    *pow(w_n,1.0)
+				           +pow(u_n,0.0)                    *1.0*pow(v_n,0.0)*db_drst[1][dim]*pow(w_n,1.0)
+				           +pow(u_n,0.0)                    *pow(v_n,1.0)                    *1.0*pow(w_n,0.0)*db_drst[2][dim] );
+				*grad_phi_data[dim]++ =
+					    ( 0.0                             *pow(v_n,2.0)                    *pow(w_n,0.0)
+				           +pow(u_n,0.0)                    *2.0*pow(v_n,1.0)*db_drst[1][dim]*pow(w_n,0.0)
+				           +pow(u_n,0.0)                    *pow(v_n,2.0)                    *0.0 );
+				*grad_phi_data[dim]++ =
+					2.0*( 1.0*pow(u_n,0.0)*db_drst[0][dim]*pow(v_n,0.0)                    *pow(w_n,1.0)
+				           +pow(u_n,1.0)                    *0.0                             *pow(w_n,1.0)
+				           +pow(u_n,1.0)                    *pow(v_n,0.0)                    *1.0*pow(w_n,0.0)*db_drst[2][dim] );
+				*grad_phi_data[dim]++ =
+					2.0*( 1.0*pow(u_n,0.0)*db_drst[0][dim]*pow(v_n,1.0)                    *pow(w_n,0.0)
+				           +pow(u_n,1.0)                    *1.0*pow(v_n,0.0)*db_drst[1][dim]*pow(w_n,0.0)
+				           +pow(u_n,1.0)                    *pow(v_n,1.0)                    *0.0 );
+				*grad_phi_data[dim]++ =
+					    ( 2.0*pow(u_n,1.0)*db_drst[0][dim]*pow(v_n,0.0)                    *pow(w_n,0.0)
+				           +pow(u_n,2.0)                    *0.0                             *pow(w_n,0.0)
+				           +pow(u_n,2.0)                    *pow(v_n,0.0)                    *0.0 );
+			}
+		} else if (d == 3 && p_b == 1) {
+			for (int dim = 0; dim < d; ++dim) {
+				*grad_phi_data[dim]++ =
+					    ( 0.0                             *pow(v_n,0.0)                    *pow(w_n,0.0)                    *pow(x_n,1.0)
+				           +pow(u_n,0.0)                    *0.0                             *pow(w_n,0.0)                    *pow(x_n,1.0)
+				           +pow(u_n,0.0)                    *pow(v_n,0.0)                    *0.0                             *pow(x_n,1.0)
+				           +pow(u_n,0.0)                    *pow(v_n,0.0)                    *pow(w_n,0.0)                    *1.0*pow(x_n,0.0)*db_drst[3][dim] );
+				*grad_phi_data[dim]++ =
+					    ( 0.0                             *pow(v_n,0.0)                    *pow(w_n,1.0)                    *pow(x_n,0.0)
+				           +pow(u_n,0.0)                    *0.0                             *pow(w_n,1.0)                    *pow(x_n,0.0)
+				           +pow(u_n,0.0)                    *pow(v_n,0.0)                    *1.0*pow(w_n,0.0)*db_drst[2][dim]*pow(x_n,0.0)
+				           +pow(u_n,0.0)                    *pow(v_n,0.0)                    *pow(w_n,1.0)                    *0.0          );
+				*grad_phi_data[dim]++ =
+					    ( 0.0                             *pow(v_n,1.0)                    *pow(w_n,0.0)                    *pow(x_n,0.0)
+				           +pow(u_n,0.0)                    *1.0*pow(v_n,0.0)*db_drst[1][dim]*pow(w_n,0.0)                    *pow(x_n,0.0)
+				           +pow(u_n,0.0)                    *pow(v_n,1.0)                    *0.0                             *pow(x_n,0.0)
+				           +pow(u_n,0.0)                    *pow(v_n,1.0)                    *pow(w_n,0.0)                    *0.0          );
+				*grad_phi_data[dim]++ =
+					    ( 1.0*pow(u_n,0.0)*db_drst[0][dim]*pow(v_n,0.0)                    *pow(w_n,0.0)                    *pow(x_n,0.0)
+				           +pow(u_n,1.0)                    *0.0                             *pow(w_n,0.0)                    *pow(x_n,0.0)
+				           +pow(u_n,1.0)                    *pow(v_n,0.0)                    *0.0                             *pow(x_n,0.0)
+				           +pow(u_n,1.0)                    *pow(v_n,0.0)                    *pow(w_n,0.0)                    *0.0          );
+			}
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+	destructor_const_Matrix_d(bcoords);
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
 }
 
 // Additional functions ********************************************************************************************* //
@@ -1348,22 +1435,20 @@ const struct const_Multiarray_d* constructor_grad_vals_computation_def
 	int node_type  = 0;
 	int node_order = 0;
 	constructor_Nodes_fptr nodes_fun = NULL;
-	if (strcmp(basis_name,"tp_ortho") == 0) {
+	if ((strcmp(basis_name,"tp_ortho")  == 0) ||
+	    (strcmp(basis_name,"tp_bezier") == 0) ) {
 		node_type  = NODES_GLL;
 		node_order = p_b;
-		nodes_fun   = constructor_const_Nodes_tp;
-	} else if (strcmp(basis_name,"si_ortho") == 0) {
+		nodes_fun  = constructor_const_Nodes_tp;
+	} else if ((strcmp(basis_name,"si_ortho")  == 0) ||
+	           (strcmp(basis_name,"si_bezier") == 0)) {
 		node_type  = NODES_AO;
 		node_order = p_b;
-		nodes_fun   = constructor_const_Nodes_si;
+		nodes_fun  = constructor_const_Nodes_si;
 	} else if (strcmp(basis_name,"pyr_ortho") == 0) {
 		node_type  = NODES_GLL;
 		node_order = p_b;
-		nodes_fun   = constructor_const_Nodes_pyr;
-	} else if (strcmp(basis_name,"tp_bezier") == 0) {
-		node_type  = NODES_GLL;
-		node_order = p_b;
-		nodes_fun   = constructor_const_Nodes_tp;
+		nodes_fun  = constructor_const_Nodes_pyr;
 	} else {
 		EXIT_UNSUPPORTED;
 	}
@@ -1386,27 +1471,33 @@ const struct const_Multiarray_d* constructor_grad_vals_computation
 	if (strcmp(basis_name,"tp_ortho") == 0) {
 		node_type  = NODES_GLL;
 		node_order = p_b;
-		nodes_fun   = constructor_const_Nodes_tp;
+		nodes_fun  = constructor_const_Nodes_tp;
 		basis_fun      = constructor_basis_tp_orthonormal;
 		grad_basis_fun = constructor_grad_basis_tp_orthonormal;
 	} else if (strcmp(basis_name,"si_ortho") == 0) {
 		node_type  = NODES_AO;
 		node_order = p_b;
-		nodes_fun   = constructor_const_Nodes_si;
+		nodes_fun  = constructor_const_Nodes_si;
 		basis_fun      = constructor_basis_si_orthonormal;
 		grad_basis_fun = constructor_grad_basis_si_orthonormal;
 	} else if (strcmp(basis_name,"pyr_ortho") == 0) {
 		node_type  = NODES_GLL;
 		node_order = p_b;
-		nodes_fun   = constructor_const_Nodes_pyr;
+		nodes_fun  = constructor_const_Nodes_pyr;
 		basis_fun      = constructor_basis_pyr_orthonormal;
 		grad_basis_fun = constructor_grad_basis_pyr_orthonormal;
 	} else if (strcmp(basis_name,"tp_bezier") == 0) {
 		node_type  = NODES_GLL;
 		node_order = p_b;
-		nodes_fun   = constructor_const_Nodes_tp;
+		nodes_fun  = constructor_const_Nodes_tp;
 		basis_fun      = constructor_basis_tp_bezier;
 		grad_basis_fun = constructor_grad_basis_tp_bezier;
+	} else if (strcmp(basis_name,"si_bezier") == 0) {
+		node_type  = NODES_AO;
+		node_order = p_b;
+		nodes_fun  = constructor_const_Nodes_si;
+		basis_fun      = constructor_basis_si_bezier;
+		grad_basis_fun = constructor_grad_basis_si_bezier;
 	} else {
 		EXIT_UNSUPPORTED;
 	}

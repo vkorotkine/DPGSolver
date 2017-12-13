@@ -177,7 +177,8 @@ const struct const_Matrix_d* constructor_abc_from_rst_si
 /** \brief Constructor for simplex barycentric coordinates from rst coordinates.
  *  \return Standard.
  *
- *  \todo Add reference to Szabo-Babuska(1991).
+ *  The barycentric coordinates are given by Szabo et al. (eq. (6.6), eq. (13.20), \cite Szabo1991) with a correction to
+ *  the constant terms such that the reference simplices are centered at the origin.
  */
 const struct const_Matrix_d* constructor_bcoords_from_rst_si
 	(const struct const_Matrix_d*const rst ///< The input coordinates on the reference simplex.

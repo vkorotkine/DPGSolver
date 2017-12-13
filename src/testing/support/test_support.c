@@ -94,8 +94,10 @@ bool check_diff (const int n_entries, const bool*const differences, bool* pass)
 {
 	*pass = true;
 	for (int i = 0; i < n_entries; ++i) {
-		if (differences[i])
+		if (differences[i]) {
 			*pass = false;
+			printf("%d\n",i);
+		}
 	}
 	return !(*pass);
 }

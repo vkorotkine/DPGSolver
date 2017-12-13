@@ -59,7 +59,9 @@ void expect_condition (const bool cond, const char* cond_str)
 	if (cond)
 		return;
 
-	printf("\nTest Failure: %s.\n",cond_str);
+	printf("\n********************************************************************************************\n");
+	printf("Test Failure: %s.\n",cond_str);
+	printf("********************************************************************************************\n\n");
 }
 
 void test_print_warning (struct Test_Info*const test_info, const char*const warn_name)

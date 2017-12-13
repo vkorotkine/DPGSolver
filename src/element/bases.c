@@ -23,9 +23,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "gsl/gsl_sf_gamma.h"
 
 #include "macros.h"
-#include "definitions_tol.h"
-#include "definitions_elements.h"
 #include "definitions_bases.h"
+#include "definitions_elements.h"
+#include "definitions_math.h"
+#include "definitions_tol.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -257,9 +258,9 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal
 		}
 
 		grad_phi_rst_part[0][0] *=  2.0                  ;
-		grad_phi_rst_part[1][0] *=  2.0/3.0*sqrt(3.0)*a_n;
-		grad_phi_rst_part[1][1] *=  2.0/3.0*sqrt(3.0)    ;
-		grad_phi_rst_part[1][2] *= -2.0/3.0*sqrt(3.0)*i  ;
+		grad_phi_rst_part[1][0] *=  2.0/3.0*SQRT3*a_n;
+		grad_phi_rst_part[1][1] *=  2.0/3.0*SQRT3    ;
+		grad_phi_rst_part[1][2] *= -2.0/3.0*SQRT3*i  ;
 		if (i > 0) {
 			grad_phi_rst_part[0][0] *= pow(1.0-b_n,i-1.0);
 			grad_phi_rst_part[1][0] *= pow(1.0-b_n,i-1.0);
@@ -276,11 +277,11 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal
 			grad_phi_rst_part[1][0] *=  2.0;
 			grad_phi_rst_part[1][1] *=  2.0;
 			grad_phi_rst_part[1][2] *=  2.0;
-			grad_phi_rst_part[2][0] *=  2.0/3.0*sqrt(6.0)*a_n            ;
-			grad_phi_rst_part[2][1] *=  1.0/6.0*sqrt(6.0)*(3.0*b_n+1.0)  ;
-			grad_phi_rst_part[2][2] *= -1.0/6.0*sqrt(6.0)*(3.0*b_n+1.0)*i;
-			grad_phi_rst_part[2][3] *=  1.0/2.0*sqrt(6.0)                ;
-			grad_phi_rst_part[2][4] *= -1.0/2.0*sqrt(6.0)*(i+j)          ;
+			grad_phi_rst_part[2][0] *=  2.0/3.0*SQRT6*a_n            ;
+			grad_phi_rst_part[2][1] *=  1.0/6.0*SQRT6*(3.0*b_n+1.0)  ;
+			grad_phi_rst_part[2][2] *= -1.0/6.0*SQRT6*(3.0*b_n+1.0)*i;
+			grad_phi_rst_part[2][3] *=  1.0/2.0*SQRT6                ;
+			grad_phi_rst_part[2][4] *= -1.0/2.0*SQRT6*(i+j)          ;
 			if (i > 0) {
 				grad_phi_rst_part[2][0] *= pow(1.0-b_n,i-1.0);
 				grad_phi_rst_part[2][2] *= pow(1.0-b_n,i-1.0);
@@ -578,10 +579,12 @@ const struct const_Matrix_d* constructor_basis_si_bezier (const int p_b, const s
 	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('R',n_n,n_b); // returned
 	double* phi_data = phi_rst->data;
 
+	// If efficiency becomes a consideration, consider using the de Casteljau construction, (section 10.4,
+	// \cite Prautzsch2002). Also note that the ordering of the basis may be altered to make its symmetry apparent.
 	for (int n = 0; n < n_n; ++n) {
-	for (int i = 0, i_max = p_b;             i <= i_max; i++) {
-	for (int j = 0, j_max = p_b-i;           j <= j_max; j++) {
-	for (int k = 0, k_max = p_b-i-j;         k <= k_max; k++) {
+	for (int i = 0, i_max = p_b;               i <= i_max; i++) {
+	for (int j = 0, j_max = p_b-i;             j <= j_max; j++) {
+	for (int k = 0, k_max = p_b-i-j;           k <= k_max; k++) {
 	for (int l = 0, l_max = (d-2)*(p_b-i-j-k); l <= l_max; l++) {
 		const int sum = i+j+k+l;
 		if (sum != p_b)
@@ -604,8 +607,72 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier
 	(const int p_b, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
-UNUSED(p_b);
-EXIT_ADD_SUPPORT;
+
+	const int d   = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_SI);
+
+	assert(!(d < 2 || d > 3));
+
+	const struct const_Matrix_d*const bcoords = constructor_bcoords_from_rst_si(rst); // destructed
+	const double*const u = get_col_const_Matrix_d(0,bcoords),
+	            *const v = get_col_const_Matrix_d(1,bcoords),
+	            *const w = get_col_const_Matrix_d(2,bcoords),
+	            *const x = ( d > 2 ? get_col_const_Matrix_d(3,bcoords) : NULL);
+
+	// Note: TRI derivatives are the same as the appropriate subset of the TET derivatives.
+/*	static const double db_drst_TRI[][2] = { { -1.0/2.0, -1.0/(2.0*SQRT3), },
+	                                         {  1.0/2.0, -1.0/(2.0*SQRT3), },
+	                                         {  0.0    ,  1.0/(SQRT3),     }, };*/
+	static const double db_drst[][3] = { { -1.0/2.0, -1.0/(2.0*SQRT3), -1.0/(2.0*SQRT6), },
+	                                     {  1.0/2.0, -1.0/(2.0*SQRT3), -1.0/(2.0*SQRT6), },
+	                                     {  0.0    ,  1.0/(SQRT3)    , -1.0/(2.0*SQRT6), },
+	                                     {  0.0    ,  0.0            ,  3.0/(2.0*SQRT6), }, };
+
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	for (int n = 0; n < n_n; ++n) {
+	for (int i = 0, i_max = p_b;               i <= i_max; i++) {
+	for (int j = 0, j_max = p_b-i;             j <= j_max; j++) {
+	for (int k = 0, k_max = p_b-i-j;           k <= k_max; k++) {
+	for (int l = 0, l_max = (d-2)*(p_b-i-j-k); l <= l_max; l++) {
+		const int sum = i+j+k+l;
+		if (sum != p_b)
+			continue;
+
+
+		double num = gsl_sf_fact((unsigned)sum),
+		       den = gsl_sf_fact((unsigned)i)*gsl_sf_fact((unsigned)j)*gsl_sf_fact((unsigned)k);
+		if (d == 3)
+			den *= gsl_sf_fact((unsigned)l);
+
+		for (int dim = 0; dim < d; ++dim) {
+			*grad_phi_data[dim]  = num/den;
+			if (d == 2) {
+				*grad_phi_data[dim] *=
+					  (i == 0 ? 0.0 : i*pow(u[n],i-1)*db_drst[0][dim])*pow(v[n],j)*pow(w[n],k)
+					+ pow(u[n],i)*(j == 0 ? 0.0 : j*pow(v[n],j-1)*db_drst[1][dim])*pow(w[n],k)
+					+ pow(u[n],i)*pow(v[n],j)*(k == 0 ? 0.0 : k*pow(w[n],k-1)*db_drst[2][dim]);
+			} else if (d == 3) {
+				*grad_phi_data[dim] *=
+					  (i == 0 ? 0.0 : i*pow(u[n],i-1)*db_drst[0][dim])*pow(v[n],j)*pow(w[n],k)*pow(x[n],l)
+					+ pow(u[n],i)*(j == 0 ? 0.0 : j*pow(v[n],j-1)*db_drst[1][dim])*pow(w[n],k)*pow(x[n],l)
+					+ pow(u[n],i)*pow(v[n],j)*(k == 0 ? 0.0 : k*pow(w[n],k-1)*db_drst[2][dim])*pow(x[n],l)
+					+ pow(u[n],i)*pow(v[n],j)*pow(w[n],k)*(l == 0 ? 0.0 : l*pow(x[n],l-1)*db_drst[3][dim]);
+			}
+			++grad_phi_data[dim];
+		}
+	}}}}}
+	destructor_const_Matrix_d(bcoords);
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
 }
 
 // Helper functions ************************************************************************************************* //
@@ -645,20 +712,20 @@ const struct const_Matrix_d* constructor_abc_from_rst_si (const struct const_Mat
 	for (int n = 0; n < n_n; ++n) {
 		const double r_n = r[n],
 		             s_n = s[n],
-		             t_n = ( d == 2 ? -1.0/sqrt(6.0) : t[n] );
+		             t_n = ( d == 2 ? -1.0/SQRT6 : t[n] );
 
-		if (fabs(2.0*sqrt(3.0)*s_n+sqrt(6.0)*t_n-3.0) > 1e2*EPS)
-			a[n] = 6.0*r_n/(3.0-2.0*sqrt(3.0)*s_n-sqrt(6.0)*t_n);
+		if (fabs(2.0*SQRT3*s_n+SQRT6*t_n-3.0) > 1e2*EPS)
+			a[n] = 6.0*r_n/(3.0-2.0*SQRT3*s_n-SQRT6*t_n);
 		else // On top line of the regular TET / At the top of the regular TRI
 			a[n] = 0.0;
 
-		if (fabs(sqrt(6.0)*t_n-3.0) > 1e2*EPS)
-			b[n] = 1.0/3.0*(8.0*sqrt(3.0)*s_n/(3.0-sqrt(6.0)*t_n)-1.0);
+		if (fabs(SQRT6*t_n-3.0) > 1e2*EPS)
+			b[n] = 1.0/3.0*(8.0*SQRT3*s_n/(3.0-SQRT6*t_n)-1.0);
 		else // At the top of the regular TET
 			b[n] = 0.0;
 
 		if (d == 3)
-			c[n] = 0.5*(sqrt(6.0)*t_n-1.0);
+			c[n] = 0.5*(SQRT6*t_n-1.0);
 	}
 	return (const struct const_Matrix_d*) abc;
 }
@@ -689,9 +756,9 @@ const struct const_Matrix_d* constructor_bcoords_from_rst_si (const struct const
 			const double r_n = r[n],
 			             s_n = s[n];
 
-			u[n] = 1.0/3.0 - 1.0/2.0*r_n - 1.0/(2.0*sqrt(3.0))*s_n;
-			v[n] = 1.0/3.0 + 1.0/2.0*r_n - 1.0/(2.0*sqrt(3.0))*s_n;
-			w[n] = 1.0/3.0               + 1.0/(sqrt(3.0))    *s_n;
+			u[n] = 1.0/3.0 - 1.0/2.0*r_n - 1.0/(2.0*SQRT3)*s_n;
+			v[n] = 1.0/3.0 + 1.0/2.0*r_n - 1.0/(2.0*SQRT3)*s_n;
+			w[n] = 1.0/3.0               + 1.0/(SQRT3)    *s_n;
 		}
 	} else if (d == 3) {
 		for (int n = 0; n < n_n; ++n) {
@@ -699,10 +766,10 @@ const struct const_Matrix_d* constructor_bcoords_from_rst_si (const struct const
 			             s_n = s[n],
 			             t_n = t[n];
 
-			u[n] = 1.0/4.0 - 1.0/2.0*r_n - 1.0/(2.0*sqrt(3.0))*s_n - 1.0/(2.0*sqrt(6.0))*t_n;
-			v[n] = 1.0/4.0 + 1.0/2.0*r_n - 1.0/(2.0*sqrt(3.0))*s_n - 1.0/(2.0*sqrt(6.0))*t_n;
-			w[n] = 1.0/4.0               + 1.0/(sqrt(3.0))    *s_n - 1.0/(2.0*sqrt(6.0))*t_n;
-			x[n] = 1.0/4.0                                         + 3.0/(2.0*sqrt(6.0))*t_n;
+			u[n] = 1.0/4.0 - 1.0/2.0*r_n - 1.0/(2.0*SQRT3)*s_n - 1.0/(2.0*SQRT6)*t_n;
+			v[n] = 1.0/4.0 + 1.0/2.0*r_n - 1.0/(2.0*SQRT3)*s_n - 1.0/(2.0*SQRT6)*t_n;
+			w[n] = 1.0/4.0               + 1.0/(SQRT3)    *s_n - 1.0/(2.0*SQRT6)*t_n;
+			x[n] = 1.0/4.0                                         + 3.0/(2.0*SQRT6)*t_n;
 		}
 	}
 	return (const struct const_Matrix_d*) bcoords;
