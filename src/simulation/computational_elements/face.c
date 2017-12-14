@@ -181,18 +181,6 @@ int compute_side_index_face (const struct Face* face, const struct Volume* vol)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Check if the current face is on a boundary.
- *
- *	This function works similarly to \ref check_if_boundary_v.
- *
- *  \return True if on a boundary. */
-static bool check_if_boundary_f
-	(const int ind_lf,                                  ///< Current face component of \ref Mesh_Connectivity::v_to_lf.
-	 const struct const_Multiarray_Vector_i*const f_ve, ///< Defined in \ref Element.
-	 const struct const_Vector_i*const ve_inds,         ///< The vertex indices for the volume.
-	 const struct Mesh_Vertices*const mesh_vert         ///< \ref Mesh_Vertices.
-	);
-
 /** \brief Check if the current face is curved.
  *
  *	This function works similarly to \ref check_if_curved_v.
@@ -239,10 +227,11 @@ static struct Face* constructor_Face
 
 	const int ind_lf = face_mi->neigh_info[1].ind_lf;
 
-	const_cast_b(&face->boundary,check_if_boundary_f(ind_lf,face->element->f_ve,face_mi->ve_inds,mesh_vert));
+	const_cast_b(&face->boundary,ind_lf > BC_STEP_SC);
 	const_cast_b(&face->curved,
 	                check_if_curved_f(ind_lf,sim->domain_type,face->element->f_ve,face_mi->ve_inds,mesh_vert));
 	const_cast_i(&face->bc,( ind_lf > BC_STEP_SC ? ind_lf : -1 ));
+	assert(!face->boundary || face->bc >= 0);
 
 	set_up_Face__Neigh_Info__ind_ord(face);
 
@@ -278,16 +267,6 @@ static void set_ind_ord
 	 const struct const_Matrix_d*const xyz_ve[2] /**< The xyz coordinates of the vertices obtained from
 	                                              *   \ref Volume::xyz_ve on either side. */
 	);
-
-static bool check_if_boundary_f
-	(const int ind_lf, const struct const_Multiarray_Vector_i*const f_ve, const struct const_Vector_i*const ve_inds,
-	 const struct Mesh_Vertices*const mesh_vert)
-{
-	if (ind_lf > BC_STEP_SC)
-		return true;
-
-	return check_ve_condition(f_ve,ve_inds,mesh_vert->ve_boundary,mesh_vert->ve_bc,false);
-}
 
 static bool check_if_curved_f
 	(const int ind_lf, const int domain_type, const struct const_Multiarray_Vector_i*const f_ve,

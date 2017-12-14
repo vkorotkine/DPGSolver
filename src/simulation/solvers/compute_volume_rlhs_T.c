@@ -106,7 +106,7 @@ struct Flux_Ref_T* constructor_Flux_Ref_vol_T
 //print_const_Multiarray_T(flux_i->s);
 
 	// Compute the fluxes (and optionally their Jacobians) at the volume cubature nodes.
-	struct Flux_T* flux = constructor_Flux_T(flux_i);
+	struct Flux_T* flux = constructor_Flux_T(flux_i); // destructed
 	spvs->destructor_sol_vc(flux_i->s);
 //print_const_Multiarray_T(flux->f);
 //print_const_Multiarray_T(flux->df_ds);

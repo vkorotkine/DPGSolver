@@ -78,7 +78,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
 	gmsh_setnumbers += " -setnumber geom_adv "
-	if (mesh_name.find("/xyz_L/") != -1):
+	if (mesh_name.find("/xyz_l/") != -1):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_xyzl",input_dir,0)
 	elif (mesh_name.find("/xy_l/") != -1):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_xyl",input_dir,0)

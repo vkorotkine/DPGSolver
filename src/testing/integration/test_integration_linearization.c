@@ -15,8 +15,6 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_integration_linearization.h"
-
 #include <assert.h>
 #include "petscsys.h"
 
@@ -175,14 +173,12 @@ static void output_petsc_matrices
 /** \test Performs integration testing for the solver linearization (\ref test_integration_linearization.c).
  *  \return 0 on success (when the LHS matrices computed using complex step and exact linearization match).
  *
- *  The linearization is verified by comparing with the output when using the complex step method.
+ *  The linearization is verified by comparing with the output when using the complex step method. Details of the
+ *  complex step method can be found in Squire et al. \cite Squire1998 and Martins et al. \cite Martins2003.
  *
  *  For second order equations, the verification of the linearization of the weak gradients is also performed. Note that
  *  the volume rhs contributes off-diagonal terms to the global system matrix due to the use of the fully corrected
  *  gradient.
- *
- * Details of the complex step method can be found in Squire et al. \cite Squire1998 and Martins et al.
- * \cite Martins2003.
  */
 int main
 	(int nargc,  ///< Standard.

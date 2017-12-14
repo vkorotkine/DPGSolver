@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define z_yxpz_RTT  z_yxpz
 #define average_T   average_d
 #define minimum_T   minimum_d
+#define add_to_T    add_to_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -54,6 +55,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define z_yxpz_RTT  z_yxpz_dcc
 #define average_T   average_c
 #define minimum_T   minimum_c
+#define add_to_T    add_to_c
 ///\}
 
 #endif

@@ -88,6 +88,7 @@ int main
 
 	assert_condition(pass);
 	output_warning_count(&test_info);
+	OUTPUT_SUCCESS;
 }
 
 // Static functions ************************************************************************************************* //

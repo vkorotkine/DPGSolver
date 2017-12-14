@@ -37,10 +37,15 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_straight_2d_quad_pe
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_curved_2d_mixed")
 
 set (EXEC test_integration_fluxes)
-set (LIBS_DEPEND Test_Base Test_Integration)
+set (LIBS_DEPEND Test_Base Test_Integration Test_Complex_Test_Case)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
-add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "flux_advection_1d" "integration/fluxes/TEST_Advection_Default_LINE__ml0__p0")
+add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "flux_advection_1d" "integration/fluxes/TEST_Advection_Default_1d__ml0__p0")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_advection_2d" "integration/fluxes/TEST_Advection_Default_2d__ml0__p0")
+add_test_DPG_w_path(${BIN_PATH_3D} ${EXEC} "flux_advection_3d" "integration/fluxes/TEST_Advection_Default_3d__ml0__p0")
+#add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "flux_euler_1d" "integration/fluxes/TEST_Euler_Default_1d__ml0__p0")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_euler_2d" "integration/fluxes/TEST_Euler_Default_2d__ml0__p0")
+#add_test_DPG_w_path(${BIN_PATH_3D} ${EXEC} "flux_euler_3d" "integration/fluxes/TEST_Euler_Default_3d__ml0__p0")
 
 set (EXEC test_integration_linearization)
 set (LIBS_DEPEND ${LIBS_BASE} 

@@ -89,6 +89,7 @@ int main
 	output_warning_count(&test_info);
 
 	PetscFinalize();
+	OUTPUT_SUCCESS;
 }
 
 // Static functions ************************************************************************************************* //

@@ -178,12 +178,12 @@ int compute_elem_type_sub_ce (const int e_type, const char ce, const int ind_ce)
 			return e_type;
 		case PYR:
 			switch (ind_ce) {
-			case 0: // standard pyr
-			case 1: case 2:  case 3: case 4: // 4 base pyr sub-elements.
-			case 9: case 10: // 2 top pyr sub-elements.
+			case H_PYR1_V0:
+			case H_PYR10_V0: case H_PYR10_V1: case H_PYR10_V2: case H_PYR10_V3:
+			case H_PYR10_V8: case H_PYR10_V9:
 				return PYR;
 				break;
-			case 5: case 6: case 7: case 8: // 4 tet sub-elements.
+			case H_PYR10_V4: case H_PYR10_V5: case H_PYR10_V6: case H_PYR10_V7:
 				return TET;
 				break;
 			default:
@@ -491,13 +491,22 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_e    = 4;
 		e_info.n_f    = 4;
 		e_info.n_f_ve = (int[]) {2, 2, 2, 2,};
-		e_info.f_ve   = (int[]) {0,2, 1,3, 0,1, 2,3};
+		e_info.f_ve   = (int[]) {0,2, 1,3, 0,1, 2,3,};
 
 		e_info.n_ref_max_v = 5;
 		e_info.n_ref_max_f = 3;
 		break;
 	case TET:
-		EXIT_ADD_SUPPORT;
+		e_info.s_type = ST_SI;
+		e_info.d      = 3;
+		e_info.n_ve   = 4;
+		e_info.n_e    = 6;
+		e_info.n_f    = 4;
+		e_info.n_f_ve = (int[]) {3, 3, 3, 3,};
+		e_info.f_ve   = (int[]) {2,3,1, 2,3,0, 0,1,3, 0,1,2,};
+
+		e_info.n_ref_max_v = 9;
+		e_info.n_ref_max_f = 5;
 		break;
 	case HEX:
 		e_info.s_type = ST_TP;
@@ -506,16 +515,34 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_e    = 12;
 		e_info.n_f    = 6;
 		e_info.n_f_ve = (int[]) {4, 4, 4, 4, 4, 4,};
-		e_info.f_ve   = (int[]) {0,2,4,6, 1,3,5,7, 0,1,4,5, 2,3,6,7, 0,1,2,3, 4,5,6,7};
+		e_info.f_ve   = (int[]) {0,2,4,6, 1,3,5,7, 0,1,4,5, 2,3,6,7, 0,1,2,3, 4,5,6,7,};
 
 		e_info.n_ref_max_v = 9;
 		e_info.n_ref_max_f = 5;
 		break;
 	case WEDGE:
-		EXIT_ADD_SUPPORT;
+		e_info.s_type = ST_WEDGE;
+		e_info.d      = 3;
+		e_info.n_ve   = 6;
+		e_info.n_e    = 9;
+		e_info.n_f    = 5;
+		e_info.n_f_ve = (int[]) {4, 4, 4, 3, 3,};
+		e_info.f_ve   = (int[]) {1,2,4,5, 0,2,3,5, 0,1,3,4, 0,1,2, 3,4,5,};
+
+		e_info.n_ref_max_v = 9;
+		e_info.n_ref_max_f = 5;
 		break;
 	case PYR:
-		EXIT_ADD_SUPPORT;
+		e_info.s_type = ST_PYR;
+		e_info.d      = 3;
+		e_info.n_ve   = 5;
+		e_info.n_e    = 8;
+		e_info.n_f    = 5;
+		e_info.n_f_ve = (int[]) {3, 3, 3, 3, 4,};
+		e_info.f_ve   = (int[]) {0,2,4, 1,3,4, 0,1,4, 2,3,4, 0,1,2,3,};
+
+		e_info.n_ref_max_v = 11;
+		e_info.n_ref_max_f = 5;
 		break;
 	default:
 		EXIT_UNSUPPORTED;

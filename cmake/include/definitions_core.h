@@ -31,9 +31,20 @@ You should have received a copy of the GNU General Public License along with DPG
 #define ADAPT_HP 3
 ///\}
 
-#define DIM 3 ///< 'DIM'ension of this build. Must be passed as a CMake -D parameter.
+#define DIM 2 ///< 'DIM'ension of this build. Must be passed as a CMake -D parameter.
 
 #define NVAR_EULER (DIM+2) ///< 'N'umber of 'VAR'iables for the Euler/Navier-Stokes equations.
 #define NEQ_EULER  (DIM+2) ///< 'N'umber of 'EQ'uations for the Euler/Navier-Stokes equations.
+
+
+///\{ \name Macro used to form arrays of size DIM.
+#if DIM == 1
+	#define ARRAY_DIM(a,b,c) { (a), }
+#elif DIM == 2
+	#define ARRAY_DIM(a,b,c) { (a), (b), }
+#elif DIM == 3
+	#define ARRAY_DIM(a,b,c) { (a), (b), (c), }
+#endif
+///\}
 
 #endif // DPG__definitions_core_h__INCLUDED

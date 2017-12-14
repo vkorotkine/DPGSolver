@@ -34,6 +34,39 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void compute_Flux_T_euler (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
 {
+	const struct const_Multiarray_T*const s = flux_i->s;
+
+	const Type*const rho  = get_col_const_Multiarray_T(0,s),
+// can use ARRAY_DIM for pointers too.
+	          *const rhou = get_col_const_Multiarray_T(1,s),
+	          *const rhov = (DIM > 1 ? get_col_const_Multiarray_T(2,s) : NULL),
+	          *const rhow = (DIM > 2 ? get_col_const_Multiarray_T(3,s) : NULL),
+	          *const E    = get_col_const_Multiarray_T(NVAR-1,s);
+UNUSED(E);
+UNUSED(rhow);
+
+	const ptrdiff_t n_n = s->extents[0];
+
+	for (ptrdiff_t n = 0; n < n_n; ++n) {
+		const Type rho_inv = 1.0/rho[n];
+		const Type rho_uvw[] = ARRAY_DIM(rhou[n],rhov[n],rhow[n]),
+		           uvw[]     = ARRAY_DIM(rho_inv*rhou[n],rho_inv*rhov[n],rho_inv*rhow[n]);
+UNUSED(rho_uvw);
+UNUSED(uvw);
+
+	}
+
+
+
+	const bool* cm = flux_i->compute_member;
+printf("%d %d %d\n",cm[0],cm[1],cm[2]);
+
+// function pointer at top of function to which entries need computing.
+// struct to hold data common to several flux, flux Jacobian, etc functions.
+// give F_ptr the correct size for the dimension under consideration.
+EXIT_UNSUPPORTED;
+
+
 	const ptrdiff_t NnTotal = flux_i->s->extents[0];
 
 	Type const *const W = flux_i->s->data;
@@ -93,6 +126,8 @@ void compute_Flux_T_euler (const struct Flux_Input_T* flux_i, struct mutable_Flu
 			*F_ptr[IndF++]++ += (E+p)*w;
 		}
 	} else if (DIM == 2) {
+/// \todo Delete this.
+return;
 		Type const *rhov_ptr = &W[NnTotal*2];
 
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {

@@ -120,5 +120,11 @@ Type minimum_T (const Type*const data, const ptrdiff_t n_entries)
 	return min;
 }
 
+void add_to_T (Type*const data, const Type c_add, const ptrdiff_t n_entries)
+{
+	for (int i = 0; i < n_entries; ++i)
+		data[i] += c_add;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

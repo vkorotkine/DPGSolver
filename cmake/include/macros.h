@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include "definitions_core.h"
 
 ///\{ \name Print the file name, function and line number.
 #define PRINT_FILELINE   ({ printf("\n\nPrinting at: FILE: %s, FUNCTION: %s (LINE: %d)\n\n\n",__FILE__,__func__,__LINE__); })
@@ -41,6 +42,16 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Mark unused variables.
 #define UNUSED(x)       (void)(x)
 #define MAYBE_UNUSED(x) (void)(x)
+///\}
+
+///\{ \name Macro used to form arrays of size DIM.
+#if DIM == 1
+	#define ARRAY_DIM(a,b,c) { a, }
+#elif DIM == 2
+	#define ARRAY_DIM(a,b,c) { a, b, }
+#elif DIM == 3
+	#define ARRAY_DIM(a,b,c) { a, b, c, }
+#endif
 ///\}
 
 ///\{ \name Macro to compute array length

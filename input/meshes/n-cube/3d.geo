@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_level = 0; mesh_type = PYR; mesh_curving = STRAIGHT; pde_name = POISSON;
+//mesh_level = 0; mesh_type = TET; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_XYZL;
 
 // Geometry Specification
 l = 1;
@@ -87,13 +87,20 @@ EndIf
 // Physical parameters for '.msh' file
 bc_straight =   BC_STEP_SC;
 bc_curved   = 2*BC_STEP_SC;
-If (mesh_curving == STRAIGHT)
+If (mesh_domain == STRAIGHT)
 	bc_base = bc_straight;
 Else
 	bc_base = bc_curved;
 EndIf
 
-If (pde_name == POISSON)
+If (pde_name == ADVECTION)
+	If (geom_adv == GEOM_ADV_XYZL)
+		Physical Surface(bc_base+BC_INFLOW)  = {4001,5001,6001};
+		Physical Surface(bc_base+BC_OUTFLOW) = {4002,5002,6002};
+	Else
+		Error("Unsupported geom_adv: %d",geom_adv); Exit;
+	EndIf
+ElseIf (pde_name == POISSON)
 	Physical Surface(bc_base+BC_DIRICHLET) = {4001:4002,5001:5002,6001:6002};
 ElseIf (pde_name == EULER)
 	Physical Point(bc_base+PERIODIC_XL) = {1,3,5,7};

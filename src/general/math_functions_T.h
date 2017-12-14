@@ -81,3 +81,10 @@ Type minimum_T
 	(const Type*const data,    ///< The array of data.
 	 const ptrdiff_t n_entries ///< The number of entries.
 	);
+
+/// \brief Add the constant to the entries of the array.
+void add_to_T
+	(Type*const data,          ///< The array of data.
+	 const Type c_add,         ///< The 'c'onstant to add to the data.
+	 const ptrdiff_t n_entries ///< The number of entries.
+	);
