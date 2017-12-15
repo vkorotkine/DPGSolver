@@ -144,7 +144,7 @@ void enforce_positivity_highorder (struct Solver_Volume* s_vol, const struct Sim
 	const ptrdiff_t n_n  = s_coef_b->extents[0],
 	                n_vr = s_coef_b->extents[1];
 
-	for (int vr = 0; vr < n_vr; vr += n_vr-1) {
+	for (int vr = 0; vr < n_vr; vr += (int)n_vr-1) {
 		double* vr_data = &s_coef_b->data[vr*n_n];
 
 		double vr_avg = average_d(vr_data,n_n);

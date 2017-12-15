@@ -14,9 +14,9 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 /** \file
  *  \brief Provides the templated Euler flux functions.
- *  \todo Clean-up.
  */
 
+#include <assert.h>
 #include <stddef.h>
 
 #include "macros.h"
@@ -30,604 +30,340 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NEQ  NEQ_EULER  ///< Number of equations.
 #define NVAR NVAR_EULER ///< Number of variables.
 
+/// \brief Container for common data used to compute the fluxes and their Jacobians/Hessians.
+struct Flux_Data_Euler {
+	const Type* rhouvw, ///< Array of momentum variables.
+	          * uvw;    ///< Array of velocity variables.
+	const Type rho_inv, ///< Inverse of density.
+	           E,       ///< Total energy.
+		   p,       ///< Pressure.
+		   V2;      ///< Square of the velocity magnitude.
+};
+
+/** \brief Pointer to functions computing the required Euler flux members.
+ *
+ *  \param flux_data  \ref Flux_Data_Euler.
+ *  \param f_ptr      Pointers to the flux members.
+ *  \param dfds_ptr   Pointers to the flux Jacobian members.
+ *  \param d2fds2_ptr Pointers to the flux Hessian members.
+ */
+typedef void (*compute_Flux_Euler_fptr)
+	(const struct Flux_Data_Euler*const flux_data, ///< \ref Flux_Data_Euler.
+	 Type*const f_ptr[DIM*NEQ],                    ///< Pointers to the flux members.
+	 Type*const dfds_ptr[DIM*NEQ*NVAR],            ///< Pointers to the flux Jacobian members.
+	 Type*const d2fds2_ptr[DIM*NEQ*NVAR*NVAR]      ///< Pointers to the flux Hessian members.
+	);
+
+/** \brief Return the pointer to the appropriate \ref compute_Flux_Euler_fptr specialization based on the required
+ *         members.
+ *  \return See brief. */
+static compute_Flux_Euler_fptr get_compute_Flux_Euler_fptr
+	(const bool*const c_m ///< \ref Flux_Input_T::compute_member.
+	);
+
+/** \brief Compute the square of the Velocity magnitude.
+ *  \return See brief. */
+static Type compute_V2
+	(const Type* uvw ///< The array of velocity components.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void compute_Flux_T_euler (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
 {
 	const struct const_Multiarray_T*const s = flux_i->s;
+	const Type*const rho_p      = get_col_const_Multiarray_T(0,s),
+	          *const rhouvw_p[] = ARRAY_DIM(get_col_const_Multiarray_T(1,s),
+	                                        get_col_const_Multiarray_T(2,s),
+	                                        get_col_const_Multiarray_T(3,s)),
+	          *const E_p        = get_col_const_Multiarray_T(NVAR-1,s);
 
-	const Type*const rho  = get_col_const_Multiarray_T(0,s),
-// can use ARRAY_DIM for pointers too.
-	          *const rhou = get_col_const_Multiarray_T(1,s),
-	          *const rhov = (DIM > 1 ? get_col_const_Multiarray_T(2,s) : NULL),
-	          *const rhow = (DIM > 2 ? get_col_const_Multiarray_T(3,s) : NULL),
-	          *const E    = get_col_const_Multiarray_T(NVAR-1,s);
-UNUSED(E);
-UNUSED(rhow);
+	const bool* c_m = flux_i->compute_member;
 
-	const ptrdiff_t n_n = s->extents[0];
+	compute_Flux_Euler_fptr compute_flux_euler_n = get_compute_Flux_Euler_fptr(c_m);
 
-	for (ptrdiff_t n = 0; n < n_n; ++n) {
-		const Type rho_inv = 1.0/rho[n];
-		const Type rho_uvw[] = ARRAY_DIM(rhou[n],rhov[n],rhow[n]),
-		           uvw[]     = ARRAY_DIM(rho_inv*rhou[n],rho_inv*rhov[n],rho_inv*rhow[n]);
-UNUSED(rho_uvw);
-UNUSED(uvw);
-
-	}
-
-
-
-	const bool* cm = flux_i->compute_member;
-printf("%d %d %d\n",cm[0],cm[1],cm[2]);
-
-// function pointer at top of function to which entries need computing.
-// struct to hold data common to several flux, flux Jacobian, etc functions.
-// give F_ptr the correct size for the dimension under consideration.
-EXIT_UNSUPPORTED;
-
-
-	const ptrdiff_t NnTotal = flux_i->s->extents[0];
-
-	Type const *const W = flux_i->s->data;
-	Type       *const F = flux->f->data;
-
-	Type const *rho_ptr  = &W[NnTotal*0],
-	           *rhou_ptr = &W[NnTotal*1],
-	           *E_ptr    = &W[NnTotal*(DIM+1)];
-
-	Type *F_ptr[DIM*NEQ];
-	for (int eq = 0; eq < NEQ; eq++)  {
-	for (int dim = 0; dim < DIM; dim++) {
-		F_ptr[eq*DIM+dim] = &F[(eq*DIM+dim)*NnTotal];
+	assert(c_m[0]);
+	Type* f_ptr[DIM*NEQ] = { NULL };
+	struct Multiarray_T*const f = flux->f;
+	for (int eq = 0; eq < NEQ; ++eq)  {
+	for (int d = 0; d < DIM; ++d) {
+		const int ind = d+DIM*(eq);
+		f_ptr[ind] = get_col_Multiarray_T(ind,f);
 	}}
 
-	if (DIM == 3) {
-		Type const *rhov_ptr = &W[NnTotal*2],
-		           *rhow_ptr = &W[NnTotal*3];
-
-		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			Type const rho  = *rho_ptr++,
-			           rhou = *rhou_ptr++,
-			           rhov = *rhov_ptr++,
-			           rhow = *rhow_ptr++,
-			           E    = *E_ptr++,
-
-			           u   = rhou/rho,
-			           v   = rhov/rho,
-			           w   = rhow/rho,
-
-			           p = GM1*(E-0.5*rho*(u*u+v*v+w*w));
-
-			ptrdiff_t IndF = 0;
-			// eq 1
-			*F_ptr[IndF++]++ += rhou;
-			*F_ptr[IndF++]++ += rhov;
-			*F_ptr[IndF++]++ += rhow;
-
-			// eq 2
-			*F_ptr[IndF++]++ += rhou*u + p;
-			*F_ptr[IndF++]++ += rhou*v;
-			*F_ptr[IndF++]++ += rhou*w;
-
-			// eq 3
-			*F_ptr[IndF++]++ += rhov*u;
-			*F_ptr[IndF++]++ += rhov*v + p;
-			*F_ptr[IndF++]++ += rhov*w;
-
-			// eq 4
-			*F_ptr[IndF++]++ += rhow*u;
-			*F_ptr[IndF++]++ += rhow*v;
-			*F_ptr[IndF++]++ += rhow*w + p;
-
-			// eq 5
-			*F_ptr[IndF++]++ += (E+p)*u;
-			*F_ptr[IndF++]++ += (E+p)*v;
-			*F_ptr[IndF++]++ += (E+p)*w;
-		}
-	} else if (DIM == 2) {
-/// \todo Delete this.
-return;
-		Type const *rhov_ptr = &W[NnTotal*2];
-
-		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			Type const rho  = *rho_ptr++,
-			           rhou = *rhou_ptr++,
-			           rhov = *rhov_ptr++,
-			           E    = *E_ptr++,
-
-			           u   = rhou/rho,
-			           v   = rhov/rho,
-
-			           p = GM1*(E-0.5*rho*(u*u+v*v));
-
-			ptrdiff_t IndF = 0;
-			// eq 1
-			*F_ptr[IndF++]++ += rhou;
-			*F_ptr[IndF++]++ += rhov;
-
-			// eq 2
-			*F_ptr[IndF++]++ += rhou*u + p;
-			*F_ptr[IndF++]++ += rhou*v;
-
-			// eq 3
-			*F_ptr[IndF++]++ += rhov*u;
-			*F_ptr[IndF++]++ += rhov*v + p;
-
-			// eq 4
-			*F_ptr[IndF++]++ += (E+p)*u;
-			*F_ptr[IndF++]++ += (E+p)*v;
-		}
-	} else if (DIM == 1) {
-		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			Type const rho  = *rho_ptr++,
-			           rhou = *rhou_ptr++,
-			           E    = *E_ptr++,
-
-			           u   = rhou/rho,
-
-			           p = GM1*(E-0.5*rho*(u*u));
-
-			ptrdiff_t IndF = 0;
-			// eq 1
-			*F_ptr[IndF++]++ += rhou;
-
-			// eq 2
-			*F_ptr[IndF++]++ += rhou*u + p;
-
-			// eq 3
-			*F_ptr[IndF++]++ += (E+p)*u;
-		}
-	}
-}
-
-void compute_Flux_T_euler_jacobian (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
-{
-	const ptrdiff_t NnTotal = flux_i->s->extents[0];
-
-	Type const *const W    = flux_i->s->data;
-	Type       *const F    = flux->f->data;
-	Type       *const dFdW = flux->df_ds->data;
-
-	// Standard datatypes
-	int i, n, eq, var, dim, iMax, InddFdW;
-	Type       rho, u, v, w, u2, uv, uw, v2, vw, w2, V2, E, p, H, alpha, beta, *dFdW_ptr[DMAX*NEQ*NEQ];
-	const Type *rho_ptr, *rhou_ptr, *rhov_ptr, *rhow_ptr, *E_ptr;
-
-	rho_ptr  = &W[NnTotal*0];
-	rhou_ptr = &W[NnTotal*1];
-	E_ptr    = &W[NnTotal*(DIM+1)];
-
-	// Store pointers to the arrays that the data will be written into.
-	Type *F_ptr[DMAX*NEQ];
-	if (F != NULL) {
-		for (eq = 0; eq < NEQ; eq++) {
-		for (dim = 0; dim < DIM; dim++) {
-			F_ptr[eq*DMAX+dim] = &F[(eq*DIM+dim)*NnTotal];
-		}}
+	Type* dfds_ptr[DIM*NEQ*NVAR] = { NULL };
+	if (c_m[1]) {
+		struct Multiarray_T*const dfds = flux->df_ds;
+		for (int vr = 0; vr < NVAR; ++vr)  {
+		for (int eq = 0; eq < NEQ; ++eq)  {
+		for (int d = 0; d < DIM; ++d) {
+			const int ind = d+DIM*(eq+NEQ*(vr));
+			dfds_ptr[ind] = get_col_Multiarray_T(ind,dfds);
+		}}}
 	}
 
-	// Note: dFdW is ordered by [node, dim, eq, var] but is set by [node,dim,var,eq] below.
-	for (var = 0; var < NVAR; var++) {
-	for (eq = 0; eq < NEQ; eq++) {
-	for (dim = 0; dim < DIM; dim++) {
-		const int ind_dm = dim+DMAX*(var+NVAR*(eq)),
-		          ind_d  = dim+DIM*(eq+NEQ*(var));
-		dFdW_ptr[ind_dm] = &dFdW[NnTotal*ind_d];
-	}}}
-
-	if (DIM == 3) {
-		rhov_ptr = &W[NnTotal*2];
-		rhow_ptr = &W[NnTotal*3];
-
-		for (n = 0; n < NnTotal; n++) {
-			rho  = *rho_ptr;
-			Type const rhou = *rhou_ptr,
-			           rhov = *rhov_ptr,
-			           rhow = *rhow_ptr;
-			u   = rhou/rho;
-			v   = rhov/rho;
-			w   = rhow/rho;
-			E   = *E_ptr;
-
-
-			u2 = u*u;
-			uv = u*v;
-			uw = u*w;
-			v2 = v*v;
-			vw = v*w;
-			w2 = w*w;
-
-			V2 = u2+v2+w2;
-			p  = GM1*(E-0.5*rho*V2);
-			H  = (E+p)/rho;
-
-			alpha = 0.5*GM1*V2;
-			beta  = alpha-H;
-
-			if (F != NULL) {
-				ptrdiff_t IndF = 0;
-				// eq 1
-				*F_ptr[IndF++] += rhou;
-				*F_ptr[IndF++] += rhov;
-				*F_ptr[IndF++] += rhow;
-
-				// eq 2
-				*F_ptr[IndF++] += rhou*u + p;
-				*F_ptr[IndF++] += rhou*v;
-				*F_ptr[IndF++] += rhou*w;
-
-				// eq 3
-				*F_ptr[IndF++] += rhov*u;
-				*F_ptr[IndF++] += rhov*v + p;
-				*F_ptr[IndF++] += rhov*w;
-
-				// eq 4
-				*F_ptr[IndF++] += rhow*u;
-				*F_ptr[IndF++] += rhow*v;
-				*F_ptr[IndF++] += rhow*w + p;
-
-				// eq 5
-				*F_ptr[IndF++] += (E+p)*u;
-				*F_ptr[IndF++] += (E+p)*v;
-				*F_ptr[IndF++] += (E+p)*w;
-
-				for (i = 0, iMax = NEQ*DMAX; i < iMax; i++)
-					F_ptr[i]++;
-			}
-
-			InddFdW = 0;
-			// *** eq 1 ***
-			// var 1
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-
-			// var 2
-			*dFdW_ptr[InddFdW++] +=  1.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-
-			// var 3
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  1.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-
-			// var 4
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  1.0;
-
-			// var 5
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-
-			// *** eq 2 ***
-			// var 1
-			*dFdW_ptr[InddFdW++] += -u2+alpha;
-			*dFdW_ptr[InddFdW++] += -uv;
-			*dFdW_ptr[InddFdW++] += -uw;
-
-			// var 2
-			*dFdW_ptr[InddFdW++] += -GM3*u;
-			*dFdW_ptr[InddFdW++] +=  v;
-			*dFdW_ptr[InddFdW++] +=  w;
-
-			// var 3
-			*dFdW_ptr[InddFdW++] += -GM1*v;
-			*dFdW_ptr[InddFdW++] +=  u;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-
-			// var 4
-			*dFdW_ptr[InddFdW++] += -GM1*w;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  u;
-
-			// var 5
-			*dFdW_ptr[InddFdW++] +=  GM1;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-
-			// *** eq 3 ***
-			// var 1
-			*dFdW_ptr[InddFdW++] += -uv;
-			*dFdW_ptr[InddFdW++] += -v2+alpha;
-			*dFdW_ptr[InddFdW++] += -vw;
-
-			// var 2
-			*dFdW_ptr[InddFdW++] +=  v;
-			*dFdW_ptr[InddFdW++] += -GM1*u;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-
-			// var 3
-			*dFdW_ptr[InddFdW++] +=  u;
-			*dFdW_ptr[InddFdW++] += -GM3*v;
-			*dFdW_ptr[InddFdW++] +=  w;
-
-			// var 4
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] += -GM1*w;
-			*dFdW_ptr[InddFdW++] +=  v;
-
-			// var 5
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  GM1;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-
-			// *** eq 4 ***
-			// var 1
-			*dFdW_ptr[InddFdW++] += -uw;
-			*dFdW_ptr[InddFdW++] += -vw;
-			*dFdW_ptr[InddFdW++] += -w2+alpha;
-
-			// var 2
-			*dFdW_ptr[InddFdW++] +=  w;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] += -GM1*u;
-
-			// var 3
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  w;
-			*dFdW_ptr[InddFdW++] += -GM1*v;
-
-			// var 4
-			*dFdW_ptr[InddFdW++] +=  u;
-			*dFdW_ptr[InddFdW++] +=  v;
-			*dFdW_ptr[InddFdW++] += -GM3*w;
-
-			// var 5
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  GM1;
-
-			// *** eq 5 ***
-			// var 1
-			*dFdW_ptr[InddFdW++] +=  u*beta;
-			*dFdW_ptr[InddFdW++] +=  v*beta;
-			*dFdW_ptr[InddFdW++] +=  w*beta;
-
-			// var 2
-			*dFdW_ptr[InddFdW++] +=  H-GM1*u2;
-			*dFdW_ptr[InddFdW++] += -GM1*uv;
-			*dFdW_ptr[InddFdW++] += -GM1*uw;
-
-			// var 3
-			*dFdW_ptr[InddFdW++] += -GM1*uv;
-			*dFdW_ptr[InddFdW++] +=  H-GM1*v2;
-			*dFdW_ptr[InddFdW++] += -GM1*vw;
-
-			// var 4
-			*dFdW_ptr[InddFdW++] += -GM1*uw;
-			*dFdW_ptr[InddFdW++] += -GM1*vw;
-			*dFdW_ptr[InddFdW++] +=  H-GM1*w2;
-
-			// var 5
-			*dFdW_ptr[InddFdW++] +=  GAMMA*u;
-			*dFdW_ptr[InddFdW++] +=  GAMMA*v;
-			*dFdW_ptr[InddFdW++] +=  GAMMA*w;
-
-			rho_ptr++; rhou_ptr++; rhov_ptr++; rhow_ptr++; E_ptr++;
-			for (i = 0, iMax = NEQ*NVAR*DMAX; i < iMax; i++)
-				dFdW_ptr[i]++;
-		}
-	} else if (DIM == 2) {
-
-		rhov_ptr = &W[NnTotal*2];
-		for (n = 0; n < NnTotal; n++) {
-
-			rho = *rho_ptr;
-			Type const rhou = *rhou_ptr,
-			           rhov = *rhov_ptr;
-			u   = rhou/rho;
-			v   = rhov/rho;
-			E   = *E_ptr;
-
-			u2 = u*u;
-			uv = u*v;
-			v2 = v*v;
-
-			V2 = u2+v2;
-			p  = GM1*(E-0.5*rho*V2);
-			H  = (E+p)/rho;
-
-			alpha = 0.5*GM1*V2;
-			beta  = alpha-H;
-
-			// F = Null in the implicit solver
-			if (F != NULL) {
-				ptrdiff_t IndF = 0;
-				// eq 1
-				*F_ptr[IndF++] += rhou;
-				*F_ptr[IndF++] += rhov;
-				IndF += 1;
-
-				// eq 2
-				*F_ptr[IndF++] += rhou*u + p;
-				*F_ptr[IndF++] += rhou*v;
-				IndF += 1;
-
-				// eq 3
-				*F_ptr[IndF++] += rhov*u;
-				*F_ptr[IndF++] += rhov*v + p;
-				IndF += 1;
-
-				// eq 4
-				*F_ptr[IndF++] += (E+p)*u;
-				*F_ptr[IndF++] += (E+p)*v;
-
-				for (i = 0, iMax = NEQ*DMAX; i < iMax; i++)
-					F_ptr[i]++;
-			}
-
-			InddFdW = 0;
-			// *** eq 1 ***
-			// var 1
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			InddFdW += 1;
-
-			// var 2
-			*dFdW_ptr[InddFdW++] +=  1.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			InddFdW += 1;
-
-			// var 3
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  1.0;
-			InddFdW += 1;
-
-			// var 4
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			InddFdW += 1;
-
-			// *** eq 2 ***
-			// var 1
-			*dFdW_ptr[InddFdW++] += -u2+alpha;
-			*dFdW_ptr[InddFdW++] += -uv;
-			InddFdW += 1;
-
-			// var 2
-			*dFdW_ptr[InddFdW++] += -GM3*u;
-			*dFdW_ptr[InddFdW++] +=  v;
-			InddFdW += 1;
-
-			// var 3
-			*dFdW_ptr[InddFdW++] += -GM1*v;
-			*dFdW_ptr[InddFdW++] +=  u;
-			InddFdW += 1;
-
-			// var 4
-			*dFdW_ptr[InddFdW++] +=  GM1;
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			InddFdW += 1;
-
-			// *** eq 3 ***
-			// var 1
-			*dFdW_ptr[InddFdW++] += -uv;
-			*dFdW_ptr[InddFdW++] += -v2+alpha;
-			InddFdW += 1;
-
-			// var 2
-			*dFdW_ptr[InddFdW++] +=  v;
-			*dFdW_ptr[InddFdW++] += -GM1*u;
-			InddFdW += 1;
-
-			// var 3
-			*dFdW_ptr[InddFdW++] +=  u;
-			*dFdW_ptr[InddFdW++] += -GM3*v;
-			InddFdW += 1;
-
-			// var 4
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			*dFdW_ptr[InddFdW++] +=  GM1;
-			InddFdW += 1;
-
-			// *** eq 4 ***
-			// var 1
-			*dFdW_ptr[InddFdW++] +=  u*beta;
-			*dFdW_ptr[InddFdW++] +=  v*beta;
-			InddFdW += 1;
-
-			// var 2
-			*dFdW_ptr[InddFdW++] +=  H-GM1*u2;
-			*dFdW_ptr[InddFdW++] += -GM1*uv;
-			InddFdW += 1;
-
-			// var 3
-			*dFdW_ptr[InddFdW++] += -GM1*uv;
-			*dFdW_ptr[InddFdW++] +=  H-GM1*v2;
-			InddFdW += 1;
-
-			// var 4
-			*dFdW_ptr[InddFdW++] +=  GAMMA*u;
-			*dFdW_ptr[InddFdW++] +=  GAMMA*v;
-
-			rho_ptr++; rhou_ptr++; rhov_ptr++; E_ptr++;
-
-			for (i = 0, iMax = NEQ*NVAR*DMAX; i < iMax; i++)
-				dFdW_ptr[i]++;
-		}
-	} else if (DIM == 1) {
-		for (n = 0; n < NnTotal; n++) {
-			rho = *rho_ptr;
-			Type const rhou = *rhou_ptr;
-			u   = rhou/rho;
-			E   = *E_ptr;
-
-			u2 = u*u;
-
-			V2 = u2;
-			p  = GM1*(E-0.5*rho*V2);
-			H  = (E+p)/rho;
-
-			alpha = 0.5*GM1*V2;
-			beta  = alpha-H;
-
-			if (F != NULL) {
-				ptrdiff_t IndF = 0;
-				// eq 1
-				*F_ptr[IndF++] += rhou;
-				IndF += 2;
-
-				// eq 2
-				*F_ptr[IndF++] += rhou*u + p;
-				IndF += 2;
-
-				// eq 3
-				*F_ptr[IndF++] += (E+p)*u;
-				IndF += 2;
-
-				for (i = 0, iMax = NEQ*DMAX; i < iMax; i++)
-					F_ptr[i]++;
-			}
-
-			InddFdW = 0;
-			// *** eq 1 ***
-			// var 1
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			InddFdW += 2;
-
-			// var 2
-			*dFdW_ptr[InddFdW++] +=  1.0;
-			InddFdW += 2;
-
-			// var 3
-			*dFdW_ptr[InddFdW++] +=  0.0;
-			InddFdW += 2;
-
-			// *** eq 2 ***
-			// var 1
-			*dFdW_ptr[InddFdW++] += -u2+alpha;
-			InddFdW += 2;
-
-			// var 2
-			*dFdW_ptr[InddFdW++] += -GM3*u;
-			InddFdW += 2;
-
-			// var 3
-			*dFdW_ptr[InddFdW++] +=  GM1;
-			InddFdW += 2;
-
-			// *** eq 3 ***
-			// var 1
-			*dFdW_ptr[InddFdW++] +=  u*beta;
-			InddFdW += 2;
-
-			// var 2
-			*dFdW_ptr[InddFdW++] +=  H-GM1*u2;
-			InddFdW += 2;
-
-			// var 3
-			*dFdW_ptr[InddFdW++] +=  GAMMA*u;
-
-			rho_ptr++; rhou_ptr++; E_ptr++;
-			for (i = 0, iMax = NEQ*NVAR*DMAX; i < iMax; i++)
-				dFdW_ptr[i]++;
-		}
+	Type* d2fds2_ptr[DIM*NEQ*NVAR*NVAR] = { NULL };
+	if (c_m[3]) {
+		struct Multiarray_T*const d2fds2 = flux->d2f_ds2;
+		for (int vr2 = 0; vr2 < NVAR; ++vr2)  {
+		for (int vr = 0; vr < NVAR; ++vr)  {
+		for (int eq = 0; eq < NEQ; ++eq)  {
+		for (int d = 0; d < DIM; ++d) {
+			const int ind = d+DIM*(eq+NEQ*(vr+NVAR*(vr2)));
+			d2fds2_ptr[ind] = get_col_Multiarray_T(ind,d2fds2);
+		}}}}
+	}
+
+	const ptrdiff_t n_n = s->extents[0];
+	for (ptrdiff_t n = 0; n < n_n; ++n) {
+		const Type rho      = rho_p[n],
+		           rho_inv  = 1.0/rho,
+
+		           rhouvw[] = ARRAY_DIM(rhouvw_p[0][n],rhouvw_p[1][n],rhouvw_p[2][n]),
+		           uvw[]    = ARRAY_DIM(rho_inv*rhouvw[0],rho_inv*rhouvw[1],rho_inv*rhouvw[2]),
+
+		           V2 = compute_V2(uvw),
+		           E = E_p[n],
+		           p = GM1*(E-0.5*rho*V2);
+
+		struct Flux_Data_Euler flux_data =
+			{ .rhouvw  = rhouvw,
+			  .uvw     = uvw,
+			  .rho_inv = rho_inv,
+			  .E       = E,
+			  .p       = p,
+			  .V2      = V2,
+			};
+		compute_flux_euler_n(&flux_data,f_ptr,dfds_ptr,d2fds2_ptr);
 	}
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+/// \brief Version of \ref compute_Flux_Euler_fptr computing only the flux.
+static void compute_Flux_Euler_100
+	(const struct Flux_Data_Euler*const flux_data, ///< See brief.
+	 Type*const f_ptr[DIM*NEQ],                    ///< See brief.
+	 Type*const dfds_ptr[DIM*NEQ*NVAR],            ///< See brief.
+	 Type*const d2fds2_ptr[DIM*NEQ*NVAR*NVAR]      ///< See brief.
+	);
+
+/// \brief Version of \ref compute_Flux_Euler_fptr computing the flux and Jacobian.
+static void compute_Flux_Euler_110
+	(const struct Flux_Data_Euler*const flux_data, ///< See brief.
+	 Type*const f_ptr[DIM*NEQ],                    ///< See brief.
+	 Type*const dfds_ptr[DIM*NEQ*NVAR],            ///< See brief.
+	 Type*const d2fds2_ptr[DIM*NEQ*NVAR*NVAR]      ///< See brief.
+	);
+
+/// \brief Version of \ref compute_Flux_Euler_fptr computing the flux, Jacobian and Hessian.
+static void compute_Flux_Euler_111
+	(const struct Flux_Data_Euler*const flux_data, ///< See brief.
+	 Type*const f_ptr[DIM*NEQ],                    ///< See brief.
+	 Type*const dfds_ptr[DIM*NEQ*NVAR],            ///< See brief.
+	 Type*const d2fds2_ptr[DIM*NEQ*NVAR*NVAR]      ///< See brief.
+	);
+
+static compute_Flux_Euler_fptr get_compute_Flux_Euler_fptr (const bool*const c_m)
+{
+	assert(c_m[0]);
+	if (c_m[3]) {
+		assert(c_m[1]);
+		return compute_Flux_Euler_111;
+	} else if (c_m[1]) {
+		return compute_Flux_Euler_110;
+	} else {
+		return compute_Flux_Euler_100;
+	}
+}
+
+static Type compute_V2 (const Type* uvw)
+{
+	Type V2 = 0.0;
+	for (int d = 0; d < DIM; ++d)
+		V2 += uvw[d]*uvw[d];
+	return V2;
+}
+
+// Level 1 ********************************************************************************************************** //
+
+/// \brief Compute the Euler fluxes for the input nodal values.
+static void compute_Flux_euler_0
+	(const struct Flux_Data_Euler*const flux_data, ///< \ref Flux_Data_Euler.
+	 Type*const f_ptr[DIM*NEQ]                     ///< Pointers to the flux data.
+	);
+
+/// \brief Compute the Euler flux Jacobians for the input nodal values.
+static void compute_Flux_euler_1
+	(const struct Flux_Data_Euler*const flux_data, ///< \ref Flux_Data_Euler.
+	 Type*const dfds_ptr[DIM*NEQ*NVAR]             ///< Pointers to the flux Jacobian data.
+	);
+
+/// \brief Compute the Euler flux Jacobians for the input nodal values.
+static void compute_Flux_euler_2
+	(const struct Flux_Data_Euler*const flux_data, ///< \ref Flux_Data_Euler.
+	 Type*const d2fds2_ptr[DIM*NEQ*NVAR*NVAR]      ///< Pointers to the flux Hessian data.
+	);
+
+/// \brief Increment input number of pointers by one.
+static void increment_pointers
+	(const int n_ptr,       ///< The number of pointers.
+	 const Type**const ptrs ///< Pointer to the array of pointers.
+	);
+
+static void compute_Flux_Euler_100
+	(const struct Flux_Data_Euler*const flux_data, Type*const f_ptr[DIM*NEQ],
+	 Type*const dfds_ptr[DIM*NEQ*NVAR], Type*const d2fds2_ptr[DIM*NEQ*NVAR*NVAR])
+{
+	compute_Flux_euler_0(flux_data,f_ptr);
+	UNUSED(dfds_ptr);
+	UNUSED(d2fds2_ptr);
+
+	increment_pointers(DIM*NEQ,(const Type**)f_ptr);
+}
+
+static void compute_Flux_Euler_110
+	(const struct Flux_Data_Euler*const flux_data, Type*const f_ptr[DIM*NEQ],
+	 Type*const dfds_ptr[DIM*NEQ*NVAR], Type*const d2fds2_ptr[DIM*NEQ*NVAR*NVAR])
+{
+	compute_Flux_euler_0(flux_data,f_ptr);
+	compute_Flux_euler_1(flux_data,dfds_ptr);
+	UNUSED(d2fds2_ptr);
+
+	increment_pointers(DIM*NEQ,     (const Type**)f_ptr);
+	increment_pointers(DIM*NEQ*NVAR,(const Type**)dfds_ptr);
+}
+
+static void compute_Flux_Euler_111
+	(const struct Flux_Data_Euler*const flux_data, Type*const f_ptr[DIM*NEQ],
+	 Type*const dfds_ptr[DIM*NEQ*NVAR], Type*const d2fds2_ptr[DIM*NEQ*NVAR*NVAR])
+{
+	compute_Flux_euler_0(flux_data,f_ptr);
+	compute_Flux_euler_1(flux_data,dfds_ptr);
+	compute_Flux_euler_2(flux_data,d2fds2_ptr);
+
+	increment_pointers(DIM*NEQ,          (const Type**)f_ptr);
+	increment_pointers(DIM*NEQ*NVAR,     (const Type**)dfds_ptr);
+	increment_pointers(DIM*NEQ*NVAR*NVAR,(const Type**)d2fds2_ptr);
+}
+
+// Level 2 ********************************************************************************************************** //
+
+static void compute_Flux_euler_0 (const struct Flux_Data_Euler*const flux_data, Type*const f_ptr[DIM*NEQ])
+{
+	const Type p = flux_data->p,
+	           E = flux_data->E;
+
+	const Type*const rhouvw = flux_data->rhouvw,
+	          *const uvw    = flux_data->uvw;
+
+	int ind = 0;
+	for (int d = 0; d < DIM; ++d)
+		*f_ptr[ind++] += rhouvw[d];
+
+	for (int ind_m = 0; ind_m < DIM; ++ind_m) {
+	for (int d = 0; d < DIM; ++d) {
+		if (d == ind_m)
+			*f_ptr[ind++] += rhouvw[ind_m]*uvw[d] + p;
+		else
+			*f_ptr[ind++] += rhouvw[ind_m]*uvw[d];
+	}}
+
+	for (int d = 0; d < DIM; ++d)
+		*f_ptr[ind++] += (E+p)*uvw[d];
+}
+
+static void compute_Flux_euler_1 (const struct Flux_Data_Euler*const flux_data, Type*const dfds_ptr[DIM*NEQ*NVAR])
+{
+	const Type rho_inv = flux_data->rho_inv,
+	           E       = flux_data->E,
+	           p       = flux_data->p,
+	           V2      = flux_data->V2;
+
+	const Type*const uvw = flux_data->uvw;
+
+	const Type H     = (E+p)*rho_inv,
+	           alpha = 0.5*GM1*V2,
+	           beta  = alpha-H;
+
+	int ind = 0;
+
+	// dfds[:,:,0]
+	for (int d = 0; d < DIM; ++d)
+		*dfds_ptr[ind++] += 0.0;
+
+	for (int ind_m = 0; ind_m < DIM; ++ind_m) {
+	for (int d = 0; d < DIM; ++d) {
+		if (d == ind_m)
+			*dfds_ptr[ind++] += -uvw[ind_m]*uvw[d]+alpha;
+		else
+			*dfds_ptr[ind++] += -uvw[ind_m]*uvw[d];
+	}}
+
+	for (int d = 0; d < DIM; ++d)
+		*dfds_ptr[ind++] += uvw[d]*beta;
+
+	// dfds[:,:,1:DIM]
+	for (int ind_v = 0; ind_v < DIM; ++ind_v) {
+		for (int d = 0; d < DIM; ++d) {
+			if (d == ind_v)
+				*dfds_ptr[ind++] += 1.0;
+			else
+				*dfds_ptr[ind++] += 0.0;
+		}
+
+		for (int ind_m = 0; ind_m < DIM; ++ind_m) {
+		for (int d = 0; d < DIM; ++d) {
+			if (ind_m == ind_v) {
+				if (ind_m == d)
+					*dfds_ptr[ind++] += -GM3*uvw[d];
+				else
+					*dfds_ptr[ind++] += uvw[d];
+			} else {
+				if (ind_m == d)
+					*dfds_ptr[ind++] += -GM1*uvw[ind_v];
+				else if (ind_v == d)
+					*dfds_ptr[ind++] += uvw[ind_m];
+				else
+					*dfds_ptr[ind++] += 0.0;
+			}
+		}}
+
+		for (int d = 0; d < DIM; ++d) {
+			if (d == ind_v)
+				*dfds_ptr[ind++] += H-GM1*uvw[ind_v]*uvw[d];
+			else
+				*dfds_ptr[ind++] += -GM1*uvw[ind_v]*uvw[d];
+		}
+	}
+
+	// dfds[:,:,DIM+1]
+	for (int d = 0; d < DIM; ++d)
+		*dfds_ptr[ind++] += 0.0;
+
+	for (int ind_m = 0; ind_m < DIM; ++ind_m) {
+	for (int d = 0; d < DIM; ++d) {
+		if (d == ind_m)
+			*dfds_ptr[ind++] += GM1;
+		else
+			*dfds_ptr[ind++] += 0.0;
+	}}
+
+	for (int d = 0; d < DIM; ++d)
+		*dfds_ptr[ind++] += GAMMA*uvw[d];
+}
+
+static void compute_Flux_euler_2
+	(const struct Flux_Data_Euler*const flux_data, Type*const d2fds2_ptr[DIM*NEQ*NVAR*NVAR])
+{
+UNUSED(flux_data);
+UNUSED(d2fds2_ptr);
+printf("Not yet implemented.\n");
+}
+
+static void increment_pointers (const int n_ptr, const Type**const ptrs)
+{
+	for (int i = 0; i < n_ptr; ++i)
+		++ptrs[i];
+}

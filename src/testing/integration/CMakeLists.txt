@@ -37,7 +37,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_straight_2d_quad_pe
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_curved_2d_mixed")
 
 set (EXEC test_integration_fluxes)
-set (LIBS_DEPEND Test_Base Test_Integration Test_Complex_Test_Case)
+set (LIBS_DEPEND Test_Base Test_Integration Test_Complex_Test_Case Test_Complex_Solvers)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "flux_advection_1d" "integration/fluxes/TEST_Advection_Default_1d__ml0__p0")

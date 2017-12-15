@@ -108,6 +108,15 @@ static void correct_invalid_test_case_parameters_T
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Return a statically allocated array of \ref Flux_Input_T::compute_member flags depending on the pde and
+ *         solver method.
+ *  \return See brief. */
+static const bool* get_compute_member_T
+	(const char type_ei,                 ///< 'e'xplicit/'i'mplicit type. Options: 'e', 'i'.
+	 struct Test_Case_T*const test_case, ///< \ref Test_Case_T.
+	 const struct Simulation*const sim   ///< \ref Simulation.
+	);
+
 static void set_string_associations_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
 	// pde_index
@@ -125,7 +134,6 @@ static void set_string_associations_T (struct Test_Case_T* test_case, const stru
 
 static void set_pde_related_T (struct Test_Case_T* test_case, const struct Simulation* sim)
 {
-	UNUSED(sim);
 	switch (test_case->pde_index) {
 	case PDE_ADVECTION:
 		const_cast_i(&test_case->n_var,1);
@@ -154,6 +162,13 @@ static void set_pde_related_T (struct Test_Case_T* test_case, const struct Simul
 	default:
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
 		break;
+	}
+
+	const bool* flux_comp_mem_e = get_compute_member_T('e',test_case,sim),
+	          * flux_comp_mem_i = get_compute_member_T('i',test_case,sim);
+	for (int i = 0; i < MAX_FLUX_OUT; ++i) {
+		const_cast_b(&test_case->flux_comp_mem_e[i],flux_comp_mem_e[i]);
+		const_cast_b(&test_case->flux_comp_mem_i[i],flux_comp_mem_i[i]);
 	}
 }
 
@@ -262,4 +277,45 @@ static void correct_invalid_test_case_parameters_T (struct Test_Case_T* test_cas
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
 		break;
 	}
+}
+
+static const bool* get_compute_member_T
+	(const char type_ei, struct Test_Case_T*const test_case, const struct Simulation*const sim)
+{
+	static const bool cm_100000[] = {1,0,0,0,0,0,},
+	                  cm_110000[] = {1,1,0,0,0,0,},
+	                  cm_110100[] = {1,1,0,1,0,0,};
+
+	assert(type_ei == 'e' || type_ei == 'i');
+	switch (test_case->pde_index) {
+	case PDE_ADVECTION:
+		if (type_ei == 'e')
+			return cm_100000;
+		else if (type_ei == 'i')
+			return cm_110000;
+		break;
+	case PDE_EULER:
+		switch (sim->method) {
+		case METHOD_DG:
+			if (type_ei == 'e')
+				return cm_100000;
+			else if (type_ei == 'i')
+				return cm_110000;
+			break;
+		case METHOD_DPG:
+			if (type_ei == 'e')
+				return cm_110000;
+			else if (type_ei == 'i')
+				return cm_110100;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",sim->method);
+			break;
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
+		break;
+	}
+	EXIT_ERROR("Should not have reached this point.\n");
 }

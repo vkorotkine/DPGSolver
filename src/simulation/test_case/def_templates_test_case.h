@@ -32,6 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define constructor_Test_Case_T constructor_Test_Case
 #define destructor_Test_Case_T  destructor_Test_Case
+#define get_compute_member_T    get_compute_member
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -50,6 +51,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define constructor_Test_Case_T constructor_Test_Case_c
 #define destructor_Test_Case_T  destructor_Test_Case_c
+#define get_compute_member_T    get_compute_member_c
 ///\}
 
 #endif

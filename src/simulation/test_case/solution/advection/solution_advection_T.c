@@ -61,13 +61,6 @@ void set_function_pointers_solution_advection_T (struct Test_Case_T* test_case, 
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}
 
-	const bool* flux_comp_mem_e = (bool[]){1,0,0},
-	          * flux_comp_mem_i = (bool[]){1,1,0};
-	for (int i = 0; i < MAX_NUM_FLUX_OUT; ++i) {
-		const_cast_b(&test_case->flux_comp_mem_e[i],flux_comp_mem_e[i]);
-		const_cast_b(&test_case->flux_comp_mem_i[i],flux_comp_mem_i[i]);
-	}
-
 	test_case->compute_Flux = compute_Flux_1_T;
 	test_case->compute_Flux_e[0] = compute_Flux_T_advection;
 	test_case->compute_Flux_i[0] = compute_Flux_T_advection_jacobian;

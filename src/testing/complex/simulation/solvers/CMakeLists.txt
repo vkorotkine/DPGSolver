@@ -12,6 +12,7 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 Test_Complex_Boundary
+	 Test_Complex_Flux
 	 Test_Complex_Solver_DG
 	 Test_Complex_Solver_DPG
 	)

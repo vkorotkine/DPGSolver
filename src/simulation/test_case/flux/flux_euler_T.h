@@ -32,13 +32,6 @@ struct mutable_Flux_T;
  *  	(E+p)u & (E+p)v & (E+p)w \\
  *  \end{bmatrix}
  *  \f]
- */
-void compute_Flux_T_euler
-	(const struct Flux_Input_T* flux_i, ///< See brief.
-	 struct mutable_Flux_T* flux        ///< See brief.
-	);
-
-/** \brief Version of \ref compute_Flux_fptr computing the fluxes and Jacobians for the Euler equations.
  *
  *  Euler flux Jacobians (eq, var, dim):
  *  \f[
@@ -68,7 +61,7 @@ void compute_Flux_T_euler
  *  \end{bmatrix}
  *  \f]
  */
-void compute_Flux_T_euler_jacobian
+void compute_Flux_T_euler
 	(const struct Flux_Input_T* flux_i, ///< See brief.
 	 struct mutable_Flux_T* flux        ///< See brief.
 	);

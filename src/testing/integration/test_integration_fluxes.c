@@ -142,6 +142,8 @@ int main
 		if (differences[1]) print_diff_const_Multiarray_d(flux->df_dg,flux_cmplx_step->df_dg,tol);
 	}
 	expect_condition(pass,"flux_linearization");
+//print_const_Multiarray_d(flux->d2f_ds2);
+//print_const_Multiarray_d(flux_cmplx_step->d2f_ds2);
 
 	assert_condition(pass);
 

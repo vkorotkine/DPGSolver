@@ -107,7 +107,7 @@ Type average_T (const Type*const data, const ptrdiff_t n_entries)
 	Type sum = 0.0;
 	for (int i = 0; i < n_entries; ++i)
 		sum += data[i];
-	return sum/n_entries;
+	return sum/(double)n_entries;
 }
 
 Type minimum_T (const Type*const data, const ptrdiff_t n_entries)

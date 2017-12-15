@@ -92,8 +92,8 @@ struct Test_Case_T {
 	compute_Flux_fptr_T compute_Flux_i[2];
 
 /// \todo Delete if unused.
-	const bool num_flux_comp_mem_e[MAX_NUM_FLUX_OUT], ///< \ref Boundary_Value_Input::compute_member (explicit).
-	           num_flux_comp_mem_i[MAX_NUM_FLUX_OUT]; ///< \ref Boundary_Value_Input::compute_member (implicit).
+	const bool num_flux_comp_mem_e[MAX_FLUX_OUT], ///< \ref Boundary_Value_Input::compute_member (explicit).
+	           num_flux_comp_mem_i[MAX_FLUX_OUT]; ///< \ref Boundary_Value_Input::compute_member (implicit).
 
 	/// Function pointer to the function used to call the combination of 1st and 2nd order numerical flux functions.
 	compute_Numerical_Flux_fptr_T compute_Numerical_Flux;

@@ -54,7 +54,7 @@ struct Numerical_Flux_Input_T {
 };
 
 /** \brief Container storing the numerical fluxes and their Jacobians.
- *  The number of members should be equal to \ref MAX_NUM_FLUX_OUT. */
+ *  The number of members should be equal to \ref MAX_FLUX_OUT. */
 struct Numerical_Flux_T {
 	const struct const_Multiarray_T* nnf; ///< The normal numerical fluxes.
 

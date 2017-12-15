@@ -77,7 +77,7 @@ struct Flux_T* constructor_Flux_T (const struct Flux_Input_T* flux_i)
 	       (flux_i->g != NULL && flux_i->g->layout == 'C'));
 
 	const bool* compute_member = flux_i->compute_member;
-	assert(compute_member[0] || compute_member[1] || compute_member[2]);
+	assert(compute_member[0]);
 
 	const int n_eq = flux_i->n_eq,
 	          n_vr = flux_i->n_var;
@@ -86,11 +86,13 @@ struct Flux_T* constructor_Flux_T (const struct Flux_Input_T* flux_i)
 	struct mutable_Flux_T* flux = calloc(1,sizeof *flux); // returned
 
 	flux->f     = (compute_member[0] ?
-		constructor_zero_Multiarray_T('C',3,(ptrdiff_t[]){n_n,DIM,n_eq})          : NULL); // destructed
+		constructor_zero_Multiarray_T('C',3,(ptrdiff_t[]){n_n,DIM,n_eq})           : NULL); // destructed
 	flux->df_ds = (compute_member[1] ?
-		constructor_zero_Multiarray_T('C',4,(ptrdiff_t[]){n_n,DIM,n_eq,n_vr})     : NULL); // destructed
+		constructor_zero_Multiarray_T('C',4,(ptrdiff_t[]){n_n,DIM,n_eq,n_vr})      : NULL); // destructed
 	flux->df_dg = (compute_member[2] ?
-		constructor_zero_Multiarray_T('C',5,(ptrdiff_t[]){n_n,DIM,n_eq,n_vr,DIM}) : NULL); // destructed
+		constructor_zero_Multiarray_T('C',5,(ptrdiff_t[]){n_n,DIM,n_eq,n_vr,DIM})  : NULL); // destructed
+	flux->d2f_ds2 = (compute_member[3] ?
+		constructor_zero_Multiarray_T('C',5,(ptrdiff_t[]){n_n,DIM,n_eq,n_vr,n_vr}) : NULL); // destructed
 
 	flux_i->compute_Flux(flux_i,flux);
 
@@ -105,6 +107,8 @@ void destructor_Flux_T (struct Flux_T* flux)
 		destructor_const_Multiarray_T(flux->df_ds);
 	if (flux->df_dg != NULL)
 		destructor_const_Multiarray_T(flux->df_dg);
+	if (flux->d2f_ds2 != NULL)
+		destructor_const_Multiarray_T(flux->d2f_ds2);
 
 	free(flux);
 }

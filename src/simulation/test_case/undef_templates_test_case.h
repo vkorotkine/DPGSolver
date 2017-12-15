@@ -31,4 +31,5 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef constructor_Test_Case_T
 #undef destructor_Test_Case_T
+#undef get_compute_member_T
 ///\}

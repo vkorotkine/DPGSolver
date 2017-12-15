@@ -39,7 +39,17 @@ typedef void (*compute_Flux_fptr_T)
 /// \brief Container holding data used for computing the fluxes and flux Jacobians.
 struct Flux_Input_T {
 	const char* input_path;     ///< Pointer to \ref Simulation::input_path.
-	const bool* compute_member; ///< Array of flags for which of the \ref Flux_T members should be computed.
+
+	/** Array of flags for which of the \ref Flux_T members should be computed. The entries correspond to the
+	 *  following members in \ref Flux_T.
+	 *  - [0]: f
+	 *  - [1]: df_ds
+	 *  - [2]: df_dg
+	 *  - [3]: d2f_ds2
+	 *  - [4]: d2f_dsdg
+	 *  - [5]: d2f_dg2
+	 */
+	const bool* compute_member;
 
 	const int n_eq,  ///< \ref Test_Case::n_eq.
 	          n_var; ///< \ref Test_Case::n_var.
@@ -59,16 +69,18 @@ struct Flux_Input_T {
 /** \brief Container storing the fluxes and flux Jacobians.
  *  The number of members should be equal to \ref MAX_FLUX_OUT. */
 struct Flux_T {
-	const struct const_Multiarray_T* f;     ///< The fluxes.
-	const struct const_Multiarray_T* df_ds; ///< The Jacobian of the fluxes wrt the solution variables.
-	const struct const_Multiarray_T* df_dg; ///< The Jacobian of the fluxes wrt the solution gradient variables.
+	const struct const_Multiarray_T* f;       ///< The fluxes.
+	const struct const_Multiarray_T* df_ds;   ///< The Jacobian of the fluxes wrt the solution variables.
+	const struct const_Multiarray_T* df_dg;   ///< The Jacobian of the fluxes wrt the solution gradient variables.
+	const struct const_Multiarray_T* d2f_ds2; ///< The Hessian of the fluxes wrt the solution variables.
 };
 
 /// \brief `mutable` version of \ref Flux_T.
 struct mutable_Flux_T {
-	struct Multiarray_T* f;     ///< See brief.
-	struct Multiarray_T* df_ds; ///< See brief.
-	struct Multiarray_T* df_dg; ///< See brief.
+	struct Multiarray_T* f;       ///< See brief.
+	struct Multiarray_T* df_ds;   ///< See brief.
+	struct Multiarray_T* df_dg;   ///< See brief.
+	struct Multiarray_T* d2f_ds2; ///< See brief.
 };
 
 // Interface functions ********************************************************************************************** //
