@@ -35,14 +35,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Flux_T        destructor_Flux
 #define compute_Flux_1_T         compute_Flux_1
 #define compute_Flux_12_T        compute_Flux_12
+#define increment_pointers_T     increment_pointers
 ///\}
 
 ///\{ \name Function names (pde_specific)
-#define compute_Flux_T_advection          compute_Flux_advection
-#define compute_Flux_T_advection_jacobian compute_Flux_advection_jacobian
-
-#define compute_Flux_T_euler          compute_Flux_euler
-#define compute_Flux_T_euler_jacobian compute_Flux_euler_jacobian
+#define compute_Flux_T_advection compute_Flux_advection
+#define compute_Flux_T_euler     compute_Flux_euler
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -64,14 +62,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Flux_T        destructor_Flux_c
 #define compute_Flux_1_T         compute_Flux_c_1
 #define compute_Flux_12_T        compute_Flux_c_12
+#define increment_pointers_T     increment_pointers_c
 ///\}
 
 ///\{ \name Function names (pde_specific)
-#define compute_Flux_T_advection          compute_Flux_c_advection
-#define compute_Flux_T_advection_jacobian compute_Flux_c_advection_jacobian
-
-#define compute_Flux_T_euler          compute_Flux_c_euler
-#define compute_Flux_T_euler_jacobian compute_Flux_c_euler_jacobian
+#define compute_Flux_T_advection compute_Flux_c_advection
+#define compute_Flux_T_euler     compute_Flux_c_euler
 ///\}
 
 #endif

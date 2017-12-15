@@ -64,11 +64,8 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 	}
 
 	test_case->compute_Flux = compute_Flux_1_T;
-/// \todo Remove redundant compute_Flux_e/i function pointer from \ref Test_Case_T.
-	test_case->compute_Flux_e[0] = compute_Flux_T_euler;
-	test_case->compute_Flux_e[1] = NULL;
-	test_case->compute_Flux_i[0] = compute_Flux_T_euler;
-	test_case->compute_Flux_i[1] = NULL;
+	test_case->compute_Flux_iv[0] = compute_Flux_T_euler;
+	test_case->compute_Flux_iv[1] = NULL;
 
 	test_case->compute_Numerical_Flux = compute_Numerical_Flux_1_T;
 	switch (test_case->ind_num_flux[0]) {

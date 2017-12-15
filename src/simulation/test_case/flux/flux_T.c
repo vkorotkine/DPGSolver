@@ -47,16 +47,14 @@ struct Flux_Input_T* constructor_Flux_Input_T (const struct Simulation* sim)
 	const_cast_b(&flux_i->has_2nd_order,test_case->has_2nd_order);
 
 	flux_i->compute_Flux = test_case->compute_Flux;
+	flux_i->compute_Flux_1st = test_case->compute_Flux_iv[0];
+	flux_i->compute_Flux_2nd = test_case->compute_Flux_iv[1];
 	switch (test_case->solver_method_curr) {
 	case 'e':
-		flux_i->compute_member   = test_case->flux_comp_mem_e;
-		flux_i->compute_Flux_1st = test_case->compute_Flux_e[0];
-		flux_i->compute_Flux_2nd = test_case->compute_Flux_e[1];
+		flux_i->compute_member = test_case->flux_comp_mem_e;
 		break;
 	case 'i':
-		flux_i->compute_member   = test_case->flux_comp_mem_i;
-		flux_i->compute_Flux_1st = test_case->compute_Flux_i[0];
-		flux_i->compute_Flux_2nd = test_case->compute_Flux_i[1];
+		flux_i->compute_member = test_case->flux_comp_mem_i;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %c.\n",test_case->solver_method_curr);
@@ -122,6 +120,12 @@ void compute_Flux_12_T (const struct Flux_Input_T* flux_i, struct mutable_Flux_T
 {
 	flux_i->compute_Flux_1st(flux_i,flux);
 	flux_i->compute_Flux_2nd(flux_i,flux);
+}
+
+void increment_pointers_T (const int n_ptr, const Type**const ptrs)
+{
+	for (int i = 0; i < n_ptr; ++i)
+		++ptrs[i];
 }
 
 // Static functions ************************************************************************************************* //

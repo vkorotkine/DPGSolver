@@ -27,10 +27,6 @@ function(configure_file_h_in file_path file_name)
 	set(ENV{PROJECT_BUILD_INCLUDE_DIR} "${PROJECT_BINARY_DIR}/include")
 	configure_file("${file_path}${file_name}"
 	               "$ENV{PROJECT_BUILD_INCLUDE_DIR}/${file_name_strip_in}")
-
-	# Configure file such that a copy is found for documentation generation
-	configure_file("${file_path}${file_name}"
-	               "${PROJECT_SOURCE_DIR}/cmake/include/${file_name_strip_in}")
 endfunction()
 
 

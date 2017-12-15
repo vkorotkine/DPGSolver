@@ -83,17 +83,8 @@ struct Test_Case_T {
 	/// Function pointer to the function used to call the combination of 1st and 2nd order flux functions.
 	compute_Flux_fptr_T compute_Flux;
 
-/// \todo Merge the flux computation functions (without and with Jacobian) and remove one of these function pointers.
-	/// Function pointers to the functions used to compute the 1st/2nd order fluxes for the explicit solver.
-	compute_Flux_fptr_T compute_Flux_e[2];
-
-	/** Function pointers to the functions used to compute the 1st/2nd order fluxes (and optionally flux Jacobians)
-	 *  for the implicit solver. */
-	compute_Flux_fptr_T compute_Flux_i[2];
-
-/// \todo Delete if unused.
-	const bool num_flux_comp_mem_e[MAX_FLUX_OUT], ///< \ref Boundary_Value_Input::compute_member (explicit).
-	           num_flux_comp_mem_i[MAX_FLUX_OUT]; ///< \ref Boundary_Value_Input::compute_member (implicit).
+	/// Function pointers to the functions used to compute the 1st order (inviscid) and 2nd order (viscous) fluxes.
+	compute_Flux_fptr_T compute_Flux_iv[2];
 
 	/// Function pointer to the function used to call the combination of 1st and 2nd order numerical flux functions.
 	compute_Numerical_Flux_fptr_T compute_Numerical_Flux;

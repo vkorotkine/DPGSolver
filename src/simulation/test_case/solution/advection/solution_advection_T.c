@@ -62,8 +62,7 @@ void set_function_pointers_solution_advection_T (struct Test_Case_T* test_case, 
 	}
 
 	test_case->compute_Flux = compute_Flux_1_T;
-	test_case->compute_Flux_e[0] = compute_Flux_T_advection;
-	test_case->compute_Flux_i[0] = compute_Flux_T_advection_jacobian;
+	test_case->compute_Flux_iv[0] = compute_Flux_T_advection;
 
 	set_function_pointers_num_flux_T(test_case,sim);
 

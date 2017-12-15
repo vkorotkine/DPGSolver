@@ -37,13 +37,22 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NEQ_EULER  (DIM+2) ///< 'N'umber of 'EQ'uations for the Euler/Navier-Stokes equations.
 
 
-///\{ \name Macro used to form arrays of size DIM.
+///\{ \name Macros related to the DIM constant.
 #if DIM == 1
 	#define ARRAY_DIM(a,b,c) { (a), }
+	#define IF_DIM_GE_1(a) a
+	#define IF_DIM_GE_2(a) /* a */
+	#define IF_DIM_GE_3(a) /* a */
 #elif DIM == 2
 	#define ARRAY_DIM(a,b,c) { (a), (b), }
+	#define IF_DIM_GE_1(a) a
+	#define IF_DIM_GE_2(a) a
+	#define IF_DIM_GE_3(a) /* a */
 #elif DIM == 3
 	#define ARRAY_DIM(a,b,c) { (a), (b), (c), }
+	#define IF_DIM_GE_1(a) a
+	#define IF_DIM_GE_2(a) a
+	#define IF_DIM_GE_3(a) a
 #endif
 ///\}
 

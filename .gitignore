@@ -38,6 +38,7 @@ deprecated/__pycache__/*
 deprecated/python/__pycache__/*
 src/processing/__pycache__/*
 src/processing/pre/__pycache__/*
+cmake/include/*
 
 build/*
 build_1D/*

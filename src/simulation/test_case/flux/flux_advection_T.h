@@ -19,14 +19,13 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Flux_Input_T;
 struct mutable_Flux_T;
 
-/// \brief Version of \ref compute_Flux_fptr computing the fluxes for the linear advection equation.
+/** \brief Version of \ref compute_Flux_fptr computing the fluxes for the linear advection equation.
+ *
+ *  The definitions of the Fluxes, and Jacobians can be found in:
+ *  - Fluxes:    \ref compute_Flux_advection_0;
+ *  - Jacobians: \ref compute_Flux_advection_1;
+ */
 void compute_Flux_T_advection
-	(const struct Flux_Input_T* flux_i, ///< See brief.
-	 struct mutable_Flux_T* flux        ///< See brief.
-	);
-
-/// \brief Version of \ref compute_Flux_fptr computing the fluxes and Jacobians for the linear advection equation.
-void compute_Flux_T_advection_jacobian
 	(const struct Flux_Input_T* flux_i, ///< See brief.
 	 struct mutable_Flux_T* flux        ///< See brief.
 	);

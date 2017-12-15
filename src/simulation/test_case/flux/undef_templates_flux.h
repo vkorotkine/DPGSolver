@@ -34,12 +34,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef destructor_Flux_T
 #undef compute_Flux_1_T
 #undef compute_Flux_12_T
+#undef increment_pointers_T
 ///\}
 
 ///\{ \name Function names (pde specific)
 #undef compute_Flux_T_advection
-#undef compute_Flux_T_advection_jacobian
-
 #undef compute_Flux_T_euler
-#undef compute_Flux_T_euler_jacobian
 ///\}

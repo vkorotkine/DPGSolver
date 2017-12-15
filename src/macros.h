@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  *  \brief Defines macros.
  *
+ *  Macro definitions related to the compile-time constant DIM can be found in \ref definitions_core.h.in.
+ *
  *  The call to abort() in EXIT_MSG allows for a stacktrace to be obtained when running the code using memcheck in
  *  valgrind.
  */

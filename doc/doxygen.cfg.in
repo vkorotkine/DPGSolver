@@ -105,6 +105,7 @@ INPUT                  = "@PROJECT_SOURCE_DIR@"
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \
                          *.h \
+                         *.h.in \
                          *.dox \
                          *.md \
                          *.mk

@@ -133,17 +133,20 @@ int main
 	bool pass        = false;
 	const double tol = EPS;
 	const bool differences[] =
-		{ compute_member[1] ? diff_const_Multiarray_d(flux->df_ds,flux_cmplx_step->df_ds,tol) : 0,
-		  compute_member[2] ? diff_const_Multiarray_d(flux->df_dg,flux_cmplx_step->df_dg,tol) : 0,
+		{ compute_member[0] ? diff_const_Multiarray_d(flux->f,      flux_cmplx_step->f,      tol) : false,
+		  compute_member[1] ? diff_const_Multiarray_d(flux->df_ds,  flux_cmplx_step->df_ds,  tol) : false,
+		  compute_member[2] ? diff_const_Multiarray_d(flux->df_dg,  flux_cmplx_step->df_dg,  tol) : false,
+		  compute_member[3] ? diff_const_Multiarray_d(flux->d2f_ds2,flux_cmplx_step->d2f_ds2,tol) : false,
+		  false,
 		};
 	const int len = COUNT_OF(differences);
 	if (check_diff(len,differences,&pass)) {
-		if (differences[0]) print_diff_const_Multiarray_d(flux->df_ds,flux_cmplx_step->df_ds,tol);
-		if (differences[1]) print_diff_const_Multiarray_d(flux->df_dg,flux_cmplx_step->df_dg,tol);
+		if (differences[0]) print_diff_const_Multiarray_d(flux->f,      flux_cmplx_step->f,      tol);
+		if (differences[1]) print_diff_const_Multiarray_d(flux->df_ds,  flux_cmplx_step->df_ds,  tol);
+		if (differences[2]) print_diff_const_Multiarray_d(flux->df_dg,  flux_cmplx_step->df_dg,  tol);
+		if (differences[3]) print_diff_const_Multiarray_d(flux->d2f_ds2,flux_cmplx_step->d2f_ds2,tol);
 	}
 	expect_condition(pass,"flux_linearization");
-//print_const_Multiarray_d(flux->d2f_ds2);
-//print_const_Multiarray_d(flux_cmplx_step->d2f_ds2);
 
 	assert_condition(pass);
 
@@ -192,6 +195,12 @@ static const struct const_Multiarray_d* constructor_xyz ();
 /// \todo make static
 const struct const_Multiarray_d* constructor_normals ();
 
+/// \brief Set the members of the input real \ref mutable_Flux_T container to zero.
+static void set_to_zero_Flux
+	(struct mutable_Flux*const m_flux,    ///< \ref mutable_Flux_T.
+	 const struct Flux_Input*const flux_i ///< \ref Flux_Input_T.
+	);
+
 static void constructor_Flux_Input_data_members (struct Flux_Input*const flux_i, const struct Simulation*const sim)
 {
 	flux_i->s   = constructor_s(0,sim);
@@ -223,46 +232,70 @@ static void destructor_Flux_Input_c_data_members (struct Flux_Input_c*const flux
 static struct Flux* constructor_Flux_cmplx_step (struct Flux_Input_c*const flux_i_c, struct Flux_Input*const flux_i)
 {
 	struct Flux* flux = constructor_Flux(flux_i); // returned
+	struct mutable_Flux*const m_flux = (struct mutable_Flux*) flux;
+	set_to_zero_Flux(m_flux,flux_i);
 
 	const bool* compute_member = flux_i->compute_member;
 
-	assert(compute_member[0] == true);
-	set_to_value_Multiarray_d((struct Multiarray_d*)flux->f,0.0);
+	struct Multiarray_c* s = (struct Multiarray_c*) flux_i_c->s;
+	const ptrdiff_t n_n  = s->extents[0],
+	                n_eq = flux_i->n_eq,
+	                n_vr = flux_i->n_var;
 
-	if (compute_member[1]) {
-		struct Multiarray_d* df_ds = (struct Multiarray_d*) flux->df_ds;
-		set_to_value_Multiarray_d(df_ds,0.0);
+	for (int vr = 0; vr < n_vr; ++vr) {
+		double complex*const data_s = get_col_Multiarray_c(vr,s);
+		add_to_c(data_s,CX_STEP*I,n_n);
+		struct Flux_c* flux_c = constructor_Flux_c(flux_i_c); // destructed
 
-		struct Multiarray_c* s = (struct Multiarray_c*) flux_i_c->s;
+		// f[DIM,NEQ]
+		assert(compute_member[0] == true);
+		for (int eq = 0; eq < n_eq; ++eq) {
+		for (int d = 0; d < DIM; ++d) {
+			const ptrdiff_t ind_c = d+DIM*(eq),
+			                ind_r = d+DIM*(eq);
 
-		const ptrdiff_t n_n  = df_ds->extents[0],
-		                n_eq = df_ds->extents[2],
-		                n_vr = df_ds->extents[3];
+			const double complex*const data_c = get_col_const_Multiarray_c(ind_c,flux_c->f);
+			double*const data_r               = get_col_Multiarray_d(ind_r,m_flux->f);
+			for (int n = 0; n < n_n; ++n)
+				data_r[n] = creal(data_c[n]);
+		}}
 
-		for (int vr = 0; vr < n_vr; ++vr) {
-			double complex*const data_s = get_col_Multiarray_c(vr,s);
-			add_to_c(data_s,CX_STEP*I,n_n);
-			struct Flux_c* flux_c = constructor_Flux_c(flux_i_c); // destructed
-
+		// df_ds[DIM,NEQ,NVAR]
+		if (compute_member[1]) {
 			for (int eq = 0; eq < n_eq; ++eq) {
 			for (int d = 0; d < DIM; ++d) {
-				const ptrdiff_t ind_f     = d+DIM*(eq),
-				                ind_df_ds = d+DIM*(eq+n_eq*(vr));
+				const ptrdiff_t ind_c = d+DIM*(eq),
+				                ind_r = d+DIM*(eq+n_eq*(vr));
 
-				const double complex*const data_f = get_col_const_Multiarray_c(ind_f,flux_c->f);
-				double*const data_df_ds           = get_col_Multiarray_d(ind_df_ds,df_ds);
+				const double complex*const data_c = get_col_const_Multiarray_c(ind_c,flux_c->f);
+				double*const data_r               = get_col_Multiarray_d(ind_r,m_flux->df_ds);
 				for (int n = 0; n < n_n; ++n)
-					data_df_ds[n] = cimag(data_f[n])/CX_STEP;
+					data_r[n] = cimag(data_c[n])/CX_STEP;
 			}}
-
-			destructor_Flux_c(flux_c);
-			add_to_c(data_s,-CX_STEP*I,n_n);
 		}
+
+		// df_ds[DIM,NEQ,NVAR,NVAR]
+		if (compute_member[3]) {
+			for (int vr2 = 0; vr2 < n_vr; ++vr2) {
+			for (int eq = 0; eq < n_eq; ++eq) {
+			for (int d = 0; d < DIM; ++d) {
+				const ptrdiff_t ind_c = d+DIM*(eq+n_eq*(vr2)),
+				                ind_r = d+DIM*(eq+n_eq*(vr2+n_vr*(vr)));
+
+				const double complex*const data_c = get_col_const_Multiarray_c(ind_c,flux_c->df_ds);
+				double*const data_r               = get_col_Multiarray_d(ind_r,m_flux->d2f_ds2);
+				for (int n = 0; n < n_n; ++n)
+					data_r[n] = cimag(data_c[n])/CX_STEP;
+			}}}
+		}
+
+		destructor_Flux_c(flux_c);
+		add_to_c(data_s,-CX_STEP*I,n_n);
 	}
 
-	if (compute_member[2]) {
-		EXIT_ADD_SUPPORT;
-	}
+	// df_dg[DIM,NEQ,NVAR,DIM]
+	if (compute_member[2])
+		EXIT_ADD_SUPPORT; // Should be in a loop with perturbation over g.
 
 	return flux;
 }
@@ -499,4 +532,22 @@ const struct const_Multiarray_d* constructor_normals ()
 
 	const ptrdiff_t* extents = (ptrdiff_t[]) { 3, DIM };
 	return constructor_move_const_Multiarray_d_d('R',2,extents,false,data);
+}
+
+static void set_to_zero_Flux (struct mutable_Flux*const m_flux, const struct Flux_Input*const flux_i)
+{
+	const bool*const c_m = flux_i->compute_member;
+
+	if (c_m[0])
+		set_to_value_Multiarray_d(m_flux->f,0.0);
+	if (c_m[1])
+		set_to_value_Multiarray_d(m_flux->df_ds,0.0);
+	if (c_m[2])
+		set_to_value_Multiarray_d(m_flux->df_dg,0.0);
+	if (c_m[3])
+		set_to_value_Multiarray_d(m_flux->d2f_ds2,0.0);
+	if (c_m[4])
+		EXIT_ADD_SUPPORT;
+	if (c_m[5])
+		EXIT_ADD_SUPPORT;
 }
