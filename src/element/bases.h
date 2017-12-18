@@ -138,16 +138,18 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
 	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
-/** \brief Version of \ref constructor_basis_fptr for the simplex bezier basis (see section 10.1
- *         \cite Prautzsch2002).
- *  \return Standard. */
+/** \brief Version of \ref constructor_basis_fptr for the simplex bezier basis (section 2, \cite Chan2016_bez).
+ *  \return Standard.
+ *
+ *  Note that the extension of the extension to tetrahedral elements is straightforward after noting the general
+ *  extension of the Duffy-type transform for simplices (eq. (3.3), \cite Ainsworth2011).
+ */
 const struct const_Matrix_d* constructor_basis_si_bezier
 	(const int p_b,                        ///< See brief.
 	 const struct const_Matrix_d*const rst ///< See brief.
 	);
 
-/** \brief Version of \ref constructor_grad_basis_fptr for the simplex bezier basis (see section 10.5
- *         \cite Prautzsch2002).
+/** \brief Version of \ref constructor_grad_basis_fptr for the simplex bezier basis.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier
 	(const int p_b,                        ///< See brief.

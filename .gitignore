@@ -40,6 +40,14 @@ src/processing/__pycache__/*
 src/processing/pre/__pycache__/*
 cmake/include/*
 
+*.aux
+*.log
+*.out
+*.sage
+*.sage.py
+*.scmd
+*.sout
+
 build/*
 build_1D/*
 build_2D/*

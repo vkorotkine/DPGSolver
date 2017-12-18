@@ -1,0 +1,226 @@
+\documentclass{article}
+
+% To compile the pdf, execute the following in the terminal:
+% $ pdflatex ${file_name}.tex
+% $ sage ${file_name}.sagetex.sage
+% $ pdflatex ${file_name}.tex
+
+\usepackage{hyperref}
+\usepackage{sagetex}
+\setlength{\sagetexindent}{10ex}
+
+\usepackage{amsmath,amsthm,amssymb,mathtools,bm}
+
+
+\newcommand{\makered}[1]{{\color{red}#1}}
+
+\newcommand{\vect}[1]{\mathbf{{#1}}}
+\newcommand{\mat}[1]{\mathbf{{#1}}}
+
+\title{Bezier Bases for Simplex and Pyramid Elements}
+\author{Philip Zwanenburg}
+
+\begin{document}
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Begin Modifiable parameters. %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{sagesilent}
+dim = 3
+
+# Options: regular, standard.
+type_ref = "regular"
+#type_ref = "standard"
+\end{sagesilent}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% End Modifiable parameters.   %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\begin{sagesilent}
+var('r,s,t')
+var('a,b,c')
+var('i,j,k,l')
+assume(i,j,k,l,'integer')
+\end{sagesilent}
+
+\makered{Add reference to Chan2016}
+
+\section{Simplices}
+
+Given the coordinates of the vertices of the reference triangle,
+\begin{sagesilent}
+if (type_ref == "regular"):
+    rst_V = matrix(dim+1,dim,[-1,-1/sqrt(3),-1/sqrt(6),
+                               1,-1/sqrt(3),-1/sqrt(6),
+                               0, 2/sqrt(3),-1/sqrt(6),
+                               0, 0,         3/sqrt(6) ])
+elif (type_ref == "standard"):
+    rst_V = matrix(dim+1,dim,[ 0,0,0,
+                               1,0,0,
+                               0,1,0,
+                               0,0,1 ])
+\end{sagesilent}
+
+\[
+\bm{r}_V = \sage{rst_V}
+\]
+
+the barycentric coordinates can be found by solving the following linear system:
+\begin{sagesilent}
+A = matrix(SR,dim+1,dim+1)
+A[0,:] = matrix(1,dim+1,[1]*(dim+1))
+A[1:,:] = rst_V.T
+l_rhs = matrix(SR,dim+1,1,[1,r,s,t])
+l_rst = A\l_rhs
+\end{sagesilent}
+
+\[
+\mat{A} \vect{\lambda} = \vect{b}
+\]
+
+where
+\[
+\mat{A} = \sage{A}, \vect{b} = \sage{l_rhs}.
+\]
+
+The result is
+\[
+\vect{\lambda} = \sage{l_rst}.
+\]
+
+
+
+\begin{sagesilent}
+if (type_ref == "standard"):
+    rst_to_abc = [a == r/(1-(s+t)), b == s/(1-t), c == t]
+elif (type_ref == "regular"):
+    rst_to_abc = [a == 6*r/(3-2*sqrt(3)*s-sqrt(6)*t), b == 1/3*(8*sqrt(3)*s/(3-sqrt(6)*t)-1), c == 1/2*(sqrt(6)*t-1)]
+
+s_abc = solve(rst_to_abc,a,b,c)
+abc = matrix(SR,dim,1,[rst_to_abc[n].rhs() for n in range(0,dim)])
+
+s_rst = solve(rst_to_abc,r,s,t)
+rst = matrix(SR,dim,1,[s_rst[0][n].rhs() for n in range(0,dim)]).apply_map(lambda x: x.factor())
+
+l_abc = l_rst(r = rst[0][0],s = rst[1][0], t = rst[2][0]).apply_map(lambda x: x.factor())
+\end{sagesilent}
+
+Given the Duffy-type transform mapping the reference coordinates to the $d$-cube
+\[
+\vect{a} = \sage{abc},
+\]
+
+these equations can be solved for the representation of the $rst$ coordinates in terms of the $abc$ coordinates, 
+\begin{equation} \label{eq:abc_to_rst}
+\vect{r} = \sage{rst},
+\end{equation}
+
+with the barycentric coordinates then given by
+\[ \label{eq:bcoords_abc}
+\vect{\lambda} = \sage{l_abc}.
+\]
+
+The $ijkl^{\text{th}}$ Bezier basis of order $p$ for the simplex is given by
+\[
+B^p_{ijkl} \coloneqq C^p_{ijkl} \lambda_0^i \lambda_1^j \lambda_2^k \lambda_3^l 
+\]
+
+where $i+j+k+l = p$ and
+\[
+C^p_{ijkl}
+= \frac{p!}{i!j!k!l!}
+=
+\frac{(i+j)!}{i!j!}
+\frac{(i+j+k)!}{(i+j)!k!}
+\frac{(i+j+k+l)!}{(i+j+k)!l!}
+\]
+
+After substitution of the barycentric coordinates in terms of the $abc$ coordinates,~\eqref{eq:bcoords_abc}, we obtain
+\begin{sagesilent}
+B_p = (l_abc[0][0]^i*l_abc[1][0]^j*l_abc[2][0]^k*l_abc[3][0]^l).factor()
+
+# Note these are the same as l_abc after substituting the left-most values of b and c.
+if (type_ref == "standard"):
+    abc_l = 0
+elif (type_ref == "regular"):
+    abc_l = -1
+l_a = matrix(SR,2,1,[l_abc[n][0](b=abc_l,c=abc_l) for n in range(0,2)])
+\end{sagesilent}
+\[
+B^p_{ijkl}(a,b,c) = C^p_{ijkl} \sage{B_p}.
+\]
+
+Noting the definition of the $i$th 1D Bezier basis function of degree $p$,
+\begin{equation} \label{eq:bezier_1d}
+B^p_i(a) = \frac{p!}{i!(p-i)!} (\sage{l_a[0][0]})^{p-i} (\sage{l_a[1][0]})^{i},
+\end{equation}
+
+it is then possible to represent the simplex basis using a tensor-product of 1D Bezier basis functions:
+\[
+B^p_{i,j,k,l}(a,b,c) = B^{i+j}_j(a) B^{i+j+k}_k(b) B^{i+j+k+l}_l(c).
+\]
+
+As the gradients of the basis are taken with respect to the $rst$ coordinates, we first note that the Jacobian of $abc$
+coordinates with respect to the $rst$ coordinates is given by
+\begin{sagesilent}
+da_dr = matrix(SR,dim,dim)
+da_dr[:,0] = diff(abc,r)
+da_dr[:,1] = diff(abc,s)
+da_dr[:,2] = diff(abc,t)
+
+da_dr_simp = matrix(SR,dim,dim)
+for n in range(0,dim):
+    for m in range(0,dim):
+        if (da_dr[n,m] != 0):
+            da_dr_simp[n,m] = (da_dr[n,m](r = rst[0][0],s = rst[1][0], t = rst[2][0])).rational_simplify().factor()
+
+da_dr_con = matrix(SR,dim,dim)
+da_dr_con[0,:] = l_abc[0](a=abc_l)                *da_dr_simp[0,:]
+da_dr_con[1,:] = l_abc[0](a=abc_l,b=abc_l)        *da_dr_simp[1,:]
+da_dr_con[2,:] = l_abc[0](a=abc_l,b=abc_l,c=abc_l)*da_dr_simp[2,:]
+\end{sagesilent}
+
+\[
+\mat{\frac{d\vect{a}}{d\vect{r}}} = \sage{da_dr},
+\]
+
+and after substituting~\eqref{eq:abc_to_rst}, by
+\[
+\mat{\frac{d\vect{a}}{d\vect{r}}} = \sage{da_dr_simp}.
+\]
+
+It is important to note that these Jacobian terms are singular at degenerate points of the mapping and that the basis
+gradients must be defined accordingly. Observing that the singular component will always affect the first term
+in~\eqref{eq:bezier_1d}, we note that
+\begin{equation}
+\frac{p!}{i!(p-i)!} (\sage{l_a[0][0]})^{p-i-1} (\sage{l_a[1][0]})^{i} = \frac{p}{p-i} B^{p-1}_i(a).
+\end{equation}
+
+The gradients of $B^p_{i,j,k,l}(a,b,c)$ with respect to the $rst$ coordinates are then given by
+%B^p_{i,j,k,l}(a,b,c) = B^{i+j}_j(a) B^{i+j+k}_k(b) B^{i+j+k+l}_l(c).
+\begin{align*}
+\frac{\partial B^p_{i,j,k,l}(a,b,c)}{\partial r}
+& = \left(\sage{da_dr_con[0][0]}\right)\left(\frac{i+j+k+l}{i+j}\right) \frac{d B^{i+j}_j(a)}{da} B^{i+j+k-1}_k(b) B^{i+j+k+l-1}_l(c) \\
+& + \left(\sage{da_dr_con[1][0]}\right)\left(\frac{i+j+k+l}{i+j+k}\right) B^{i+j}_j(a) \frac{d B^{i+j+k}_k(b)}{db} B^{i+j+k+l-1}_l(c) \\
+& + \left(\sage{da_dr_con[2][0]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc}.
+\end{align*}
+
+\begin{align*}
+\frac{\partial B^p_{i,j,k,l}(a,b,c)}{\partial s}
+& = \left(\sage{da_dr_con[0][1]}\right)\left(\frac{i+j+k+l}{i+j}\right) \frac{d B^{i+j}_j(a)}{da} B^{i+j+k-1}_k(b) B^{i+j+k+l-1}_l(c) \\
+& + \left(\sage{da_dr_con[1][1]}\right)\left(\frac{i+j+k+l}{i+j+k}\right) B^{i+j}_j(a) \frac{d B^{i+j+k}_k(b)}{db} B^{i+j+k+l-1}_l(c) \\
+& + \left(\sage{da_dr_con[2][1]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc}.
+\end{align*}
+
+\begin{align*}
+\frac{\partial B^p_{i,j,k,l}(a,b,c)}{\partial t}
+& = \left(\sage{da_dr_con[0][2]}\right)\left(\frac{i+j+k+l}{i+j}\right) \frac{d B^{i+j}_j(a)}{da} B^{i+j+k-1}_k(b) B^{i+j+k+l-1}_l(c) \\
+& + \left(\sage{da_dr_con[1][2]}\right)\left(\frac{i+j+k+l}{i+j+k}\right) B^{i+j}_j(a) \frac{d B^{i+j+k}_k(b)}{db} B^{i+j+k+l-1}_l(c) \\
+& + \left(\sage{da_dr_con[2][2]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc}.
+\end{align*}
+
+\end{document}

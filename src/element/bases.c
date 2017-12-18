@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_bases.h"
+#include "definitions_core.h"
 #include "definitions_elements.h"
 #include "definitions_math.h"
 #include "definitions_tol.h"
@@ -78,7 +79,7 @@ const struct const_Matrix_d* constructor_basis_tp_orthonormal (const int p_b, co
 		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
 		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
 		for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
-				     *phi_data  = jac_jacobi_normalized(r[n],i,0.0,0.0);
+			           *phi_data  = jac_jacobi_normalized(r[n],i,0.0,0.0);
 			if (d > 1) *phi_data *= jac_jacobi_normalized(s[n],j,0.0,0.0);
 			if (d > 2) *phi_data *= jac_jacobi_normalized(t[n],k,0.0,0.0);
 			++phi_data;
@@ -570,35 +571,30 @@ const struct const_Matrix_d* constructor_basis_si_bezier (const int p_b, const s
 
 	assert(!(d < 2 || d > 3));
 
-	const struct const_Matrix_d*const bcoords = constructor_bcoords_from_rst_si(rst); // destructed
-	const double*const u = get_col_const_Matrix_d(0,bcoords),
-	            *const v = get_col_const_Matrix_d(1,bcoords),
-	            *const w = get_col_const_Matrix_d(2,bcoords),
-	            *const x = ( d > 2 ? get_col_const_Matrix_d(3,bcoords) : NULL);
-
-	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('R',n_n,n_b); // returned
+	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('C',n_n,n_b); // returned
 	double* phi_data = phi_rst->data;
 
-	// If efficiency becomes a consideration, consider using the de Casteljau construction, (section 10.4,
-	// \cite Prautzsch2002). Also note that the ordering of the basis may be altered to make its symmetry apparent.
-	for (int n = 0; n < n_n; ++n) {
+	const struct const_Matrix_d*const abc = constructor_abc_from_rst_si(rst); // destructed
+	const double*const a = get_col_const_Matrix_d(0,abc),
+	            *const b = get_col_const_Matrix_d(1,abc),
+	            *const c = ( d > 2 ? get_col_const_Matrix_d(2,abc) : NULL);
+
 	for (int i = 0, i_max = p_b;               i <= i_max; i++) {
 	for (int j = 0, j_max = p_b-i;             j <= j_max; j++) {
 	for (int k = 0, k_max = p_b-i-j;           k <= k_max; k++) {
 	for (int l = 0, l_max = (d-2)*(p_b-i-j-k); l <= l_max; l++) {
-		const int sum = i+j+k+l;
-		if (sum != p_b)
+		if (i+j+k+l != p_b)
 			continue;
 
-		const double num = gsl_sf_fact((unsigned)sum),
-		             den = gsl_sf_fact((unsigned)i)*gsl_sf_fact((unsigned)j)*gsl_sf_fact((unsigned)k);
-		*phi_data  = num/den;
-		*phi_data *= pow(u[n],i)*pow(v[n],j)*pow(w[n],k);
-		if (d == 3)
-			*phi_data *= pow(x[n],l)/gsl_sf_fact((unsigned)l);
-		++phi_data;
-	}}}}}
-	destructor_const_Matrix_d(bcoords);
+		for (int n = 0; n < n_n; ++n) {
+			           *phi_data =  bernstein_std(i+j,    j,a[n])
+			                       *bernstein_std(i+j+k,  k,b[n]);
+			if (d > 2) *phi_data *= bernstein_std(i+j+k+l,l,c[n]);
+			++phi_data;
+		}
+	}}}}
+	destructor_const_Matrix_d(abc);
+	transpose_Matrix_d(phi_rst,true);
 
 	return (const struct const_Matrix_d*) phi_rst;
 }
@@ -614,63 +610,76 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier
 
 	assert(!(d < 2 || d > 3));
 
-	const struct const_Matrix_d*const bcoords = constructor_bcoords_from_rst_si(rst); // destructed
-	const double*const u = get_col_const_Matrix_d(0,bcoords),
-	            *const v = get_col_const_Matrix_d(1,bcoords),
-	            *const w = get_col_const_Matrix_d(2,bcoords),
-	            *const x = ( d > 2 ? get_col_const_Matrix_d(3,bcoords) : NULL);
-
-	// Note: TRI derivatives are the same as the appropriate subset of the TET derivatives.
-/*	static const double db_drst_TRI[][2] = { { -1.0/2.0, -1.0/(2.0*SQRT3), },
-	                                         {  1.0/2.0, -1.0/(2.0*SQRT3), },
-	                                         {  0.0    ,  1.0/(SQRT3),     }, };*/
-	static const double db_drst[][3] = { { -1.0/2.0, -1.0/(2.0*SQRT3), -1.0/(2.0*SQRT6), },
-	                                     {  1.0/2.0, -1.0/(2.0*SQRT3), -1.0/(2.0*SQRT6), },
-	                                     {  0.0    ,  1.0/(SQRT3)    , -1.0/(2.0*SQRT6), },
-	                                     {  0.0    ,  0.0            ,  3.0/(2.0*SQRT6), }, };
-
 	struct Multiarray_Matrix_d* grad_phi_rst =
 		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
 
 	double* grad_phi_data[d];
 	for (int dim = 0; dim < d; ++dim) {
-		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('C',n_n,n_b); // keep
 		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
 	}
 
-	for (int n = 0; n < n_n; ++n) {
-	for (int i = 0, i_max = p_b;               i <= i_max; i++) {
-	for (int j = 0, j_max = p_b-i;             j <= j_max; j++) {
-	for (int k = 0, k_max = p_b-i-j;           k <= k_max; k++) {
-	for (int l = 0, l_max = (d-2)*(p_b-i-j-k); l <= l_max; l++) {
-		const int sum = i+j+k+l;
-		if (sum != p_b)
-			continue;
 
+	const struct const_Matrix_d*const abc = constructor_abc_from_rst_si(rst); // destructed
+	const double*const a = get_col_const_Matrix_d(0,abc),
+	            *const b = get_col_const_Matrix_d(1,abc);
 
-		double num = gsl_sf_fact((unsigned)sum),
-		       den = gsl_sf_fact((unsigned)i)*gsl_sf_fact((unsigned)j)*gsl_sf_fact((unsigned)k);
-		if (d == 3)
-			den *= gsl_sf_fact((unsigned)l);
+/// \todo Add comments about procedure here. Return constants from a function?
+	if (d == 2) {
+		for (int i = 0, i_max = p_b;     i <= i_max; i++) {
+		for (int j = 0, j_max = p_b-i;   j <= j_max; j++) {
+		for (int k = 0, k_max = p_b-i-j; k <= k_max; k++) {
+			if (i+j+k != p_b)
+				continue;
 
-		for (int dim = 0; dim < d; ++dim) {
-			*grad_phi_data[dim]  = num/den;
-			if (d == 2) {
-				*grad_phi_data[dim] *=
-					  (i == 0 ? 0.0 : i*pow(u[n],i-1)*db_drst[0][dim])*pow(v[n],j)*pow(w[n],k)
-					+ pow(u[n],i)*(j == 0 ? 0.0 : j*pow(v[n],j-1)*db_drst[1][dim])*pow(w[n],k)
-					+ pow(u[n],i)*pow(v[n],j)*(k == 0 ? 0.0 : k*pow(w[n],k-1)*db_drst[2][dim]);
-			} else if (d == 3) {
-				*grad_phi_data[dim] *=
-					  (i == 0 ? 0.0 : i*pow(u[n],i-1)*db_drst[0][dim])*pow(v[n],j)*pow(w[n],k)*pow(x[n],l)
-					+ pow(u[n],i)*(j == 0 ? 0.0 : j*pow(v[n],j-1)*db_drst[1][dim])*pow(w[n],k)*pow(x[n],l)
-					+ pow(u[n],i)*pow(v[n],j)*(k == 0 ? 0.0 : k*pow(w[n],k-1)*db_drst[2][dim])*pow(x[n],l)
-					+ pow(u[n],i)*pow(v[n],j)*pow(w[n],k)*(l == 0 ? 0.0 : l*pow(x[n],l-1)*db_drst[3][dim]);
-			}
-			++grad_phi_data[dim];
-		}
-	}}}}}
-	destructor_const_Matrix_d(bcoords);
+			for (int dim = 0; dim < d; ++dim) {
+			for (int n = 0; n < n_n; ++n) {
+				const double da_scale[] = { ( i+j > 0 ? (p_b)/((double)(i+j))*1.0            : 0.0),
+				                            ( i+j > 0 ? (p_b)/((double)(i+j))*SQRT3/3.0*a[n] : 0.0), };
+				const double db_scale[] = { 0.0,
+				                            2.0*SQRT3/3.0, };
+				*grad_phi_data[dim]++ =  grad_bernstein_std(i+j,    j,a[n])*da_scale[dim]
+				                        *     bernstein_std(i+j+k-1,k,b[n])
+				                      +       bernstein_std(i+j,    j,a[n])
+				                        *grad_bernstein_std(i+j+k,  k,b[n])*db_scale[dim];
+			}}
+		}}}
+	} else if (d == 3) {
+		const double*const c = get_col_const_Matrix_d(2,abc);
+		for (int i = 0, i_max = p_b;               i <= i_max; i++) {
+		for (int j = 0, j_max = p_b-i;             j <= j_max; j++) {
+		for (int k = 0, k_max = p_b-i-j;           k <= k_max; k++) {
+		for (int l = 0, l_max = (d-2)*(p_b-i-j-k); l <= l_max; l++) {
+			if (i+j+k+l != p_b)
+				continue;
+
+			for (int dim = 0; dim < d; ++dim) {
+			for (int n = 0; n < n_n; ++n) {
+				const double da_scale[] = { ( i+j > 0 ? p_b/((double)(i+j))*1.0            : 0.0),
+				                            ( i+j > 0 ? p_b/((double)(i+j))*SQRT3/3.0*a[n] : 0.0),
+				                            ( i+j > 0 ? p_b/((double)(i+j))*SQRT6/6.0*a[n] : 0.0), };
+				const double db_scale[] = { 0.0,
+				                            ( i+j+k > 0 ? (p_b)/((double)(i+j+k))*2.0*SQRT3/3.0             : 0.0),
+				                            ( i+j+k > 0 ? (p_b)/((double)(i+j+k))*SQRT6/12.0*(3.0*b[n]+1.0) : 0.0), };
+				const double dc_scale[] = { 0.0,
+				                            0.0,
+				                            SQRT6/2.0, };
+				*grad_phi_data[dim]++ =  grad_bernstein_std(i+j,      j,a[n])*da_scale[dim]
+				                        *     bernstein_std(i+j+k-1,  k,b[n])
+				                        *     bernstein_std(i+j+k+l-1,l,c[n])
+				                      +       bernstein_std(i+j,      j,a[n])
+				                        *grad_bernstein_std(i+j+k,    k,b[n])*db_scale[dim]
+				                        *     bernstein_std(i+j+k+l-1,l,c[n])
+				                      +       bernstein_std(i+j,      j,a[n])
+				                        *     bernstein_std(i+j+k  ,  k,b[n])
+				                        *grad_bernstein_std(i+j+k+l,  l,c[n])*dc_scale[dim];
+			}}
+		}}}}
+	}
+	destructor_const_Matrix_d(abc);
+
+	for (int dim = 0; dim < d; ++dim)
+		transpose_Matrix_d(grad_phi_rst->data[dim],true);
 
 	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
 }
@@ -888,7 +897,7 @@ static double bernstein_std (const int p, const int i, const double r)
 	if ((i == -1) || (p-i == -1))
 		return 0.0;
 
-	return binomial_coef(p,i)*pow(0.5*(1.0-r),p-i)*pow(0.5*(1.0+r),i);
+	return binomial_coef(p,i)*pow(0.5*(1.0+r),i)*pow(0.5*(1.0-r),p-i);
 }
 
 static double grad_bernstein_std (const int p, const int i, const double r)

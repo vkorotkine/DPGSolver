@@ -525,7 +525,7 @@ static void test_unit_basis_simplex_bezier (struct Test_Info*const test_info)
 	struct Basis_Data_SI_Bezier* b_data_a = constructor_Basis_Data_SI_Bezier('a'), // destructed
 	                           * b_data_c = constructor_Basis_Data_SI_Bezier('c'); // destructed
 
-	tol = (double[]) { EPS, EPS, EPS, };
+	tol = (double[]) { EPS, 2*EPS, EPS, };
 	differences = (bool[])
 		{ diff_const_Matrix_d(b_data_a->phi22,b_data_c->phi22,tol[0]),
 		  diff_const_Matrix_d(b_data_a->phi23,b_data_c->phi23,tol[1]),
@@ -562,7 +562,7 @@ static void test_unit_basis_simplex_bezier (struct Test_Info*const test_info)
 	}
 	expect_condition(pass,"partition of unity");
 
-	tol = (double[]) { 8e0*EPS, 11e4*EPS, };
+	tol = (double[]) { 2e1*EPS, 11e4*EPS, };
 	differences = (bool[])
 		{ diff_const_Multiarray_d(b_data_a->grad_coef_25,b_data_c->grad_coef_25,tol[0]),
 		  diff_const_Multiarray_d(b_data_a->grad_coef_37,b_data_c->grad_coef_37,tol[1]),
