@@ -46,7 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-#define DEBUGGING
+struct S_Params_DPG_T;
 
 /** \brief Function pointer to functions constructing the norm operator used to evaluate the optimal test functions.
  *
@@ -62,15 +62,15 @@ typedef const struct const_Matrix_T* (*constructor_norm_op_fptr)
 
 /** \brief Pointer to functions computing rhs and lhs terms for the dpg solver.
  *
- *  \param norm_op   The dpg norm operator.
- *  \param flux_r    \ref Flux_Ref_T.
+ *  \param s_params  \ref S_Params_DPG_T.
+ *  \param flux_i    \ref Flux_Input_T.
  *  \param dpg_s_vol Pointer to the current volume.
  *  \param ssi       \ref Solver_Storage_Implicit.
  *  \param sim       \ref Simulation.
  */
 typedef void (*compute_rlhs_fptr_T)
-	(const struct const_Matrix_T* norm_op,
-	 const struct Flux_Ref_T* flux_r,
+	(const struct S_Params_DPG_T* s_params,
+	 struct Flux_Input_T* flux_i,
 	 const struct DPG_Solver_Volume_T* dpg_s_vol,
 	 struct Solver_Storage_Implicit* ssi,
 	 const struct Simulation* sim
@@ -81,7 +81,7 @@ struct S_Params_DPG_T {
 	struct S_Params_Volume_Structor_T spvs; ///< \ref S_Params_Volume_Structor.
 
 	constructor_norm_op_fptr constructor_norm_op; ///< Pointer to the appropriate function.
-	compute_rlhs_fptr_T compute_rlhs;               ///< Pointer to the appropriate function.
+	compute_rlhs_fptr_T compute_rlhs;             ///< Pointer to the appropriate function.
 };
 
 /** \brief Set the parameters of \ref S_Params_DPG_T.
@@ -125,16 +125,8 @@ void compute_all_rlhs_dpg_T
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
 //struct Volume*        vol   = (struct Volume*) curr;
 //printf("v_ind: %d\n",vol->index);
-		struct Solver_Volume_T* s_vol         = (struct Solver_Volume_T*) curr;
 		struct DPG_Solver_Volume_T* dpg_s_vol = (struct DPG_Solver_Volume_T*) curr;
-
-		struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_T(&s_params.spvs,flux_i,s_vol,sim); // destructed
-
-		const struct const_Matrix_T* norm_op = s_params.constructor_norm_op(dpg_s_vol,flux_r,sim); // destructed
-
-		s_params.compute_rlhs(norm_op,flux_r,dpg_s_vol,ssi,sim);
-		destructor_const_Matrix_T(norm_op);
-		destructor_Flux_Ref_T(flux_r);
+		s_params.compute_rlhs(&s_params,flux_i,dpg_s_vol,ssi,sim);
 	}
 	destructor_Flux_Input_T(flux_i);
 }
@@ -238,13 +230,13 @@ const struct const_Vector_i* constructor_petsc_idxm_dpg_T
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/// \brief Version of \ref compute_rlhs_fptr computing rhs and lhs terms for 1st order equations only.
+/// \brief Version of \ref compute_rlhs_fptr_T computing rhs and lhs terms for 1st order equations only.
 static void compute_rlhs_1_T
-	(const struct const_Matrix_T* norm_op,      ///< See brief.
-	 const struct Flux_Ref_T* flux_r,             ///< See brief.
+	(const struct S_Params_DPG_T* s_params,       ///< See brief.
+	 struct Flux_Input_T* flux_i,                 ///< See brief.
 	 const struct DPG_Solver_Volume_T* dpg_s_vol, ///< See brief.
-	 struct Solver_Storage_Implicit* ssi,       ///< See brief.
-	 const struct Simulation* sim               ///< See brief.
+	 struct Solver_Storage_Implicit* ssi,         ///< See brief.
+	 const struct Simulation* sim                 ///< See brief.
 	);
 
 /** \brief Version of \ref constructor_norm_op_fptr; see comments for \ref TEST_NORM_H1_UPWIND.
@@ -403,34 +395,57 @@ static const struct const_Matrix_T* constructor_norm_op__h1_upwind_T
 }
 
 static void compute_rlhs_1_T
-	(const struct const_Matrix_T* norm_op, const struct Flux_Ref_T* flux_r, const struct DPG_Solver_Volume_T* dpg_s_vol,
+	(const struct S_Params_DPG_T* s_params, struct Flux_Input_T* flux_i, const struct DPG_Solver_Volume_T* dpg_s_vol,
 	 struct Solver_Storage_Implicit* ssi, const struct Simulation* sim)
 {
 	const struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) dpg_s_vol;
 
-	struct Vector_T* rhs = constructor_rhs_v_1_T(flux_r,s_vol,sim); // destructed
-	struct Matrix_T* lhs = constructor_lhs_v_1_T(flux_r,s_vol,sim); // destructed
+	struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_T(&s_params->spvs,flux_i,s_vol,sim); // destructed
 
-	increment_and_add_dof_rlhs_f_1(rhs,&lhs,dpg_s_vol,sim);
+	const struct const_Matrix_T* norm_op = s_params->constructor_norm_op(dpg_s_vol,flux_r,sim); // destructed
+
+
+	struct Vector_T* rhs     = constructor_rhs_v_1_T(flux_r,s_vol,sim); // destructed
+	struct Matrix_T* lhs_std = constructor_lhs_v_1_T(flux_r,s_vol,sim); // destructed
+
+	increment_and_add_dof_rlhs_f_1(rhs,&lhs_std,dpg_s_vol,sim);
 	increment_rhs_source_T(rhs,s_vol,sim);
 
 	const struct const_Matrix_T* optimal_test =
-		constructor_sysv_const_Matrix_T(norm_op,(struct const_Matrix_T*)lhs); // destructed
+		constructor_sysv_const_Matrix_T(norm_op,(struct const_Matrix_T*)lhs_std); // destructed
+
+	destructor_const_Matrix_T(norm_op);
 
 	const struct const_Vector_T* rhs_opt =
 		constructor_mv_const_Vector_T('T',-1.0,optimal_test,(struct const_Vector_T*)rhs); // destructed
 	destructor_Vector_T(rhs);
 
 #if TYPE_RC == TYPE_REAL
+	struct Test_Case_T* test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
+	if (!test_case->is_linear) {
+		// When the pde is not linear, the "form" is no longer linear in the test functions and the associated
+		// linearization contribution must also be included.
+/* To do:
+ * 1) Compute linearization of the volume LHS term wrt solution coefs -> 3-tensor
+ * 2) Compute linearziation of the boundary face LHS terms wrt solution coefs (complex step) -> 3-tensor
+ *
+ */
+		struct Matrix_T* dL_ds = constructor_dlhs_ds_v_1(flux_r,dpg_s_vol,sim); // destructed
+		EXIT_ADD_SUPPORT;
+
+		destructor_Matrix_T(dL_ds);
+	}
+
 	const struct const_Matrix_T* lhs_opt =
-		constructor_mm_const_Matrix_T('T','N',1.0,optimal_test,(struct const_Matrix_T*)lhs,'R'); // destructed
+		constructor_mm_const_Matrix_T('T','N',1.0,optimal_test,(struct const_Matrix_T*)lhs_std,'R'); // destructed
 
 	add_to_petsc_Mat_Vec_dpg(s_vol,rhs_opt,lhs_opt,ssi,sim);
 	destructor_const_Matrix_T(lhs_opt);
 #elif TYPE_RC == TYPE_COMPLEX
 	add_to_petsc_Mat_dpg_c(s_vol,rhs_opt,ssi);
 #endif
-	destructor_Matrix_T(lhs);
+	destructor_Flux_Ref_T(flux_r);
+	destructor_Matrix_T(lhs_std);
 	destructor_const_Vector_T(rhs_opt);
 
 	destructor_const_Matrix_T(optimal_test);
@@ -588,9 +603,6 @@ static void increment_rlhs_boundary_face_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct DPG_Solver_Face_T* dpg_s_face, struct Matrix_T* lhs,
 	 struct Matrix_T* rhs, const struct Simulation* sim)
 {
-#ifdef DEBUGGING
-//return;
-#endif
 	UNUSED(dpg_s_vol);
 	struct Numerical_Flux_Input_T* num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
 

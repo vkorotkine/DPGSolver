@@ -25,7 +25,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- cc(i)(o)(t): coefficients to coefficients
  *  	- vv(t):       values       to values
  *  	- vc(t):       values       to coefficients
+ *
  *  	- tw: 't'est basis solver operator with 'w'eights.
+ *    - cvcv: 3-tensor of standard cv operator multiplied by each column of the same cv operator.
  *  (t): Optional 't'ranspose.
  *  (i): Optional 'i'nput basis. Options: 'S'olution, 'B'ezier.
  *  (o): Optional 'o'output basis. Options: 'S'olution, 'B'ezier.
@@ -174,12 +176,19 @@ const struct const_Multiarray_Vector_d* constructor_operators_w
 /** \brief Constructor for a \ref Multiarray_Operator\* of operators for 'b'asis 't'ransformation.
  *  \return Standard. */
 const struct Multiarray_Operator* constructor_operators_bt
-	(const char*const name_type,          ///< The name of the operator type (including differentiation index).
-	 const char*const name_in,            ///< The name of the operator input.
-	 const char*const name_out,           ///< The name of the operator output.
-	 const char*const name_range,         ///< The name of the operator range.
-	 const struct const_Element* element, ///< \ref const_Element.
-	 const struct Simulation* sim         ///< \ref Simulation.
+	(const char*const name_type,          ///< Defined for \ref constructor_operators.
+	 const char*const name_in,            ///< Defined for \ref constructor_operators.
+	 const char*const name_out,           ///< Defined for \ref constructor_operators.
+	 const char*const name_range,         ///< Defined for \ref constructor_operators.
+	 const struct const_Element* element, ///< Defined for \ref constructor_operators.
+	 const struct Simulation* sim         ///< Defined for \ref constructor_operators.
+	);
+
+/** \brief Constructor for a \ref Multiarray_Operator\* of operators which is a 3-tensor of the input operator
+ *         multiplied with its columns interpreted as diagonal matrices.
+ *  \return Standard. */
+const struct Multiarray_Operator* constructor_operators_tens3
+	(const struct Multiarray_Operator* op_i ///< The input multiarray of operators.
 	);
 
 /** \brief Constructor for the \ref Operator_Info\* having the given inputs.

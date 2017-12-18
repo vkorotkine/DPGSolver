@@ -70,6 +70,7 @@ void destructor_derived_DPG_Solver_Element (struct Element* element_ptr)
 
 	destructor_Multiarray2_Operator(dpg_s_e->cv0_vt_vc);
 	destructor_Multiarray2_Operator(dpg_s_e->cvt1_vt_vc);
+	destructor_Multiarray2_Operator(dpg_s_e->cvcv0_vs_vc);
 
 	destructor_Multiarray2_Operator(dpg_s_e->cv0_ff_fc);
 
@@ -128,6 +129,11 @@ static void constructor_derived_DPG_Solver_Element_common (struct Element* eleme
 {
 	struct const_Element* e = (struct const_Element*) element_ptr;
 	struct DPG_Solver_Element* dpg_s_e = (struct DPG_Solver_Element*) element_ptr;
+
+	struct Solver_Element* s_e = (struct Solver_Element*) element_ptr;
+
+	dpg_s_e->cvcv0_vs_vc[0] = constructor_operators_tens3(s_e->cv0_vs_vc[0]); // destructed
+	dpg_s_e->cvcv0_vs_vc[1] = constructor_operators_tens3(s_e->cv0_vs_vc[1]); // destructed
 
 	dpg_s_e->cv0_ff_fc[0] = constructor_operators("cv0","ffA","fcs","H_1_P_PM0",e,sim); // destructed
 	dpg_s_e->cv0_ff_fc[1] = constructor_operators("cv0","ffA","fcc","H_1_P_PM0",e,sim); // destructed

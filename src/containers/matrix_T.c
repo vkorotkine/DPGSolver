@@ -144,7 +144,7 @@ void set_block_Matrix_T
 	 const char set_type)
 {
 	assert(a->layout == a_sub->layout); // Add support if required.
-	assert(a->layout == 'R');
+	const char layout = a->layout;
 
 	set_value_fptr_T set_value = NULL;
 	switch (set_type) {
@@ -159,13 +159,22 @@ void set_block_Matrix_T
 	assert(row0+ext_0 <= a->ext_0);
 	assert(col0+ext_1 <= a->ext_1);
 
-	for (int i = 0, row = (int)row0; i < ext_0; ++i, ++row) {
-		const Type*const data_as = get_row_const_Matrix_T(i,a_sub);
-
-		Type* data_a = get_row_Matrix_T(row,a);
-		data_a += col0;
-		for (int j = 0; j < ext_1; ++j)
-			set_value(&data_a[j],data_as[j]);
+	if (layout == 'R') {
+		for (int i = 0, row = (int)row0; i < ext_0; ++i, ++row) {
+			const Type*const data_as = get_row_const_Matrix_T(i,a_sub);
+			Type*const data_a        = get_row_Matrix_T(row,a)+col0;
+			for (int j = 0; j < ext_1; ++j)
+				set_value(&data_a[j],data_as[j]);
+		}
+	} else if (layout == 'C') {
+		for (int j = 0, col = (int)col0; j < ext_1; ++j, ++col) {
+			const Type*const data_as = get_col_const_Matrix_T(j,a_sub);
+			Type*const data_a        = get_col_Matrix_T(col,a)+row0;
+			for (int i = 0; i < ext_0; ++i)
+				set_value(&data_a[i],data_as[i]);
+		}
+	} else {
+		EXIT_ERROR("Unsupported: %c\n",layout);
 	}
 }
 #if TYPE_RC == TYPE_COMPLEX

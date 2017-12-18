@@ -279,6 +279,14 @@ void print_diff_const_Matrix_d
 	print_diff_Matrix_d((const struct Matrix_d*const)a,(const struct Matrix_d*const)b,tol);
 }
 
+void print_diff_cond_const_Matrix_d
+	(const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, const double tol, const bool is_diff)
+{
+	if (!is_diff)
+		return;
+	print_diff_const_Matrix_d(a,b,tol);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

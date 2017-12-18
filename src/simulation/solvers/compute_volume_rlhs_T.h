@@ -49,9 +49,10 @@ struct S_Params_Volume_Structor_T {
 
 /// \brief Container for the reference flux related parameters.
 struct Flux_Ref_T {
-	const struct const_Multiarray_T* fr;     ///< The reference flux.
-	const struct const_Multiarray_T* dfr_ds; ///< The reference flux Jacobians with respect to the solution.
-	const struct const_Multiarray_T* dfr_dg; ///< The reference flux Jacobians with respect to the solution gradients.
+	const struct const_Multiarray_T* fr;       ///< The reference flux.
+	const struct const_Multiarray_T* dfr_ds;   ///< The reference flux Jacobians with respect to the solution.
+	const struct const_Multiarray_T* dfr_dg;   ///< The reference flux Jacobians with respect to the solution gradients.
+	const struct const_Multiarray_T* d2fr_ds2; ///< The reference flux Hessians  with respect to the solution.
 };
 
 // Interface functions ********************************************************************************************** //

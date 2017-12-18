@@ -30,7 +30,8 @@ struct Simulation;
  *  immediately.
  */
 struct Test_Case_T {
-	const int pde_index; ///< Index corresponding to \ref Simulation::pde_name.
+	const int pde_index;  ///< Index corresponding to \ref Simulation::pde_name.
+	const bool is_linear; ///< Flag for whether the pde under consideration is linear.
 
 	const bool has_1st_order, ///< Flag for whether the pde under consideration has 1st order terms.
 	           has_2nd_order; ///< Flag for whether the pde under consideration has 2nd order terms.

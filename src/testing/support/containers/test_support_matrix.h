@@ -135,4 +135,12 @@ void print_diff_const_Matrix_d
 	 const double tol                     ///< The tolerance.
 	);
 
+/// \brief Version of \ref print_diff_const_Matrix_d printing the result if the condition is `true`.
+void print_diff_cond_const_Matrix_d
+	(const struct const_Matrix_d*const a, ///< Input 0.
+	 const struct const_Matrix_d*const b, ///< Input 1.
+	 const double tol,                    ///< The tolerance.
+	 const bool is_diff                   ///< Flag for whether the input matrices are different.
+	);
+
 #endif // DPG__test_support_matrix_h__INCLUDED

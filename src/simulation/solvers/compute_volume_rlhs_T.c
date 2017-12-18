@@ -123,12 +123,15 @@ struct Flux_Ref_T* constructor_Flux_Ref_vol_T
 
 void destructor_Flux_Ref_T (struct Flux_Ref_T* flux_ref)
 {
+/// \todo Make a conditional destructor.
 	if (flux_ref->fr)
 		destructor_const_Multiarray_T(flux_ref->fr);
 	if (flux_ref->dfr_ds)
 		destructor_const_Multiarray_T(flux_ref->dfr_ds);
 	if (flux_ref->dfr_dg)
 		destructor_const_Multiarray_T(flux_ref->dfr_dg);
+	if (flux_ref->d2fr_ds2)
+		destructor_const_Multiarray_T(flux_ref->d2fr_ds2);
 	free(flux_ref);
 }
 
@@ -241,9 +244,10 @@ static struct Flux_Ref_T* constructor_Flux_Ref_T (const struct const_Multiarray_
 
 	struct Flux_Ref_T* flux_r = calloc(1,sizeof *flux_r); // returned
 
-	flux_r->fr     = ( flux->f     ? constructor_flux_ref_T(m,flux->f)     : NULL );
-	flux_r->dfr_ds = ( flux->df_ds ? constructor_flux_ref_T(m,flux->df_ds) : NULL );
-	flux_r->dfr_dg = ( flux->df_dg ? constructor_flux_ref_T(m,flux->df_dg) : NULL );
+	flux_r->fr       = ( flux->f       ? constructor_flux_ref_T(m,flux->f)       : NULL );
+	flux_r->dfr_ds   = ( flux->df_ds   ? constructor_flux_ref_T(m,flux->df_ds)   : NULL );
+	flux_r->dfr_dg   = ( flux->df_dg   ? constructor_flux_ref_T(m,flux->df_dg)   : NULL );
+	flux_r->d2fr_ds2 = ( flux->d2f_ds2 ? constructor_flux_ref_T(m,flux->d2f_ds2) : NULL );
 
 	return flux_r;
 }

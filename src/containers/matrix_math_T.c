@@ -298,7 +298,7 @@ void mm_diag_T
 				Type* data_c       = get_col_Matrix_T(col,c);
 				for (ptrdiff_t row = 0; row < n_row; ++row) {
 					const Type val = b->data[row];
-					data_c[col] += alpha*data_a[col]*val;
+					data_c[row] += alpha*data_a[row]*val;
 				}
 			}
 		}

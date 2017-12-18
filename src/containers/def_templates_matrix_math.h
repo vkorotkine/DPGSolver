@@ -41,6 +41,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define scale_Matrix_T_by_Vector_R scale_Matrix_d_by_Vector_d
 #define mm_diag_T                  mm_diag_d
 #define reinterpret_const_Matrix_T reinterpret_const_Matrix_d
+
+#define update_layout_Multiarray_Matrix_T update_layout_Multiarray_Matrix_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -68,6 +70,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define scale_Matrix_T_by_Vector_R scale_Matrix_c_by_Vector_d
 #define mm_diag_T                  mm_diag_c
 #define reinterpret_const_Matrix_T reinterpret_const_Matrix_c
+
+#define update_layout_Multiarray_Matrix_T update_layout_Multiarray_Matrix_c
 ///\}
 
 #endif

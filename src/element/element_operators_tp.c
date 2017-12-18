@@ -142,6 +142,16 @@ const struct const_Matrix_d* constructor_op_std (const struct const_Multiarray_M
 	const int d_op = (int)compute_size(ops_tp->order,ops_tp->extents);
 	assert(2 <= d_op);
 
+	assert(ops_tp->data[0]->layout == 'R');
+	// Ensure that all is working correctly otherwise. Note that the permutation of the rows requires row-major
+	// sub-operators.
+
+	const char layout = ops_tp->data[0]->layout;
+	const bool requires_transpose = ( layout == 'C' ? true : false );
+
+	if (requires_transpose)
+		update_layout_Multiarray_Matrix_d((struct Multiarray_Matrix_d*)ops_tp,'R');
+
 	int n_rows_sub[DMAX] = { 0, 0, 0, },
 	    n_cols_sub[DMAX] = { 0, 0, 0, };
 	set_ops_tp_n_rows_cols(n_rows_sub,n_cols_sub,ops_tp);
@@ -220,6 +230,11 @@ const struct const_Matrix_d* constructor_op_std (const struct const_Multiarray_M
 	} else {
 		assert(d_op == 2);
 		op_rst = op_rs;
+	}
+
+	if (requires_transpose) {
+		update_layout_Multiarray_Matrix_d((struct Multiarray_Matrix_d*)ops_tp,'C');
+		transpose_Matrix_d((struct Matrix_d*)op_rst,true);
 	}
 
 	destructor_Vector_i(n_rows_op);

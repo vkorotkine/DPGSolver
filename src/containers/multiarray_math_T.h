@@ -26,6 +26,7 @@ struct const_Vector_T;
 struct const_Matrix_R;
 struct const_Matrix_T;
 struct const_Multiarray_T;
+struct Multiarray_Matrix_T;
 
 /// \brief Transpose the \ref Multiarray_T\*'s memory by interpreting as a matrix with `ext_0 = extents[0]`.
 void transpose_Multiarray_T
@@ -134,4 +135,11 @@ void reinterpret_const_Matrix_as_Multiarray_T
 	 const struct const_Multiarray_T* a, ///< The multiarray.
 	 const int order,                    ///< The value of `order` for the multiarray.
 	 const ptrdiff_t* extents            ///< The value of `extents` for the multiarray.
+	);
+
+/** \brief Update the layout of each of the \ref Matrix_T\*s stored in the \ref Multiarray_Matrix_T\* to be that which
+ *         is specified. */
+void update_layout_Multiarray_Matrix_T
+	(struct Multiarray_Matrix_T* a, ///< The input multiarray.
+	 const char layout_o            ///< The desired output layout.
 	);

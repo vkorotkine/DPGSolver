@@ -273,6 +273,43 @@ const struct Multiarray_Operator* constructor_operators_bt
 	return op;
 }
 
+const struct Multiarray_Operator* constructor_operators_tens3 (const struct Multiarray_Operator* op_i)
+{
+	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator(op_i->order,op_i->extents); // rtrnd.
+
+	const ptrdiff_t size_op = compute_size(op_i->order,op_i->extents);
+	for (int ind_op = 0; ind_op < size_op; ++ind_op) {
+		const struct const_Matrix_d* cv_i = op_i->data[ind_op]->op_std;
+		if (cv_i == NULL)
+			continue;
+
+		const struct const_Matrix_d*const cv = constructor_copy_const_Matrix_d(cv_i); // destructed
+		transpose_Matrix_d((struct Matrix_d*)cv,true);
+		assert(cv->layout == 'C');
+
+		const ptrdiff_t ext_0 = cv->ext_0,
+		                ext_1 = cv->ext_1;
+
+		struct const_Vector_d cv_diag = { .ext_0 = ext_0, .owns_data = false, .data = NULL, };
+
+		double data[ext_0*ext_1];
+		struct Matrix_d cvcv_local =
+			{ .layout = 'C', .ext_0 = ext_0, .ext_1 = ext_1, .owns_data = false, .data = data, };
+
+		struct Matrix_d* cvcv = constructor_empty_Matrix_d('C',ext_0,ext_1*ext_1); // moved
+		for (int j = 0; j < ext_1; ++j) {
+			const_cast_d1(&cv_diag.data,get_col_const_Matrix_d(j,cv));
+			mm_diag_d('L',1.0,0.0,cv,&cv_diag,&cvcv_local,false);
+			set_block_Matrix_d(cvcv,(struct const_Matrix_d*)&cvcv_local,0,j*ext_1,'i');
+		}
+
+		cvcv->owns_data = false;
+		const_constructor_move_const_Matrix_d(&op->data[ind_op]->op_std,(struct const_Matrix_d*)cvcv); // returned
+	}
+
+	return op;
+}
+
 struct Operator_Info* constructor_Operator_Info
 	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
 	 const struct const_Element* element, const struct Simulation* sim)

@@ -213,6 +213,15 @@ void reinterpret_const_Matrix_as_Multiarray_T
 	reinterpret_Matrix_as_Multiarray_T((struct Matrix_T*)a_M,(struct Multiarray_T*)a,order,(ptrdiff_t*)extents);
 }
 
+void update_layout_Multiarray_Matrix_T (struct Multiarray_Matrix_T* a, const char layout_o)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+	for (int i = 0; i < size; ++i) {
+		if (a->data[i]->layout != layout_o)
+			transpose_Matrix_T(a->data[i],true);
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

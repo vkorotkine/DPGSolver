@@ -202,6 +202,16 @@ static void test_unit_matrix_mm_diag (struct Test_Info*const test_info)
 	const struct const_Matrix_d* cl_C = constructor_mm_diag_const_Matrix_d(1.0,a_t,bl,'L',false); // destructed
 	const struct const_Matrix_d* cr_C = constructor_mm_diag_const_Matrix_d(1.0,a_t,br,'R',false); // destructed
 
+	struct Matrix_d* cl_R_alt = constructor_empty_Matrix_d(cl_R->layout,cl_R->ext_0,cl_R->ext_1); // destructed
+	struct Matrix_d* cr_R_alt = constructor_empty_Matrix_d(cr_R->layout,cr_R->ext_0,cr_R->ext_1); // destructed
+	struct Matrix_d* cl_C_alt = constructor_empty_Matrix_d(cl_C->layout,cl_C->ext_0,cl_C->ext_1); // destructed
+	struct Matrix_d* cr_C_alt = constructor_empty_Matrix_d(cr_C->layout,cr_C->ext_0,cr_C->ext_1); // destructed
+
+	mm_diag_d('L',1.0,0.0,a,  bl,cl_R_alt,false);
+	mm_diag_d('R',1.0,0.0,a,  br,cr_R_alt,false);
+	mm_diag_d('L',1.0,0.0,a_t,bl,cl_C_alt,false);
+	mm_diag_d('R',1.0,0.0,a_t,br,cr_C_alt,false);
+
 	destructor_const_Matrix_d(a);
 	destructor_const_Matrix_d(a_t);
 	destructor_const_Vector_d(bl);
@@ -212,8 +222,12 @@ static void test_unit_matrix_mm_diag (struct Test_Info*const test_info)
 		  diff_const_Matrix_d(cr,cr_R,EPS),
 		  diff_const_Matrix_d(cl_t,cl_C,EPS),
 		  diff_const_Matrix_d(cr_t,cr_C,EPS),
+		  diff_const_Matrix_d(cl,(struct const_Matrix_d*)cl_R_alt,EPS),
+		  diff_const_Matrix_d(cr,(struct const_Matrix_d*)cr_R_alt,EPS),
+		  diff_const_Matrix_d(cl_t,(struct const_Matrix_d*)cl_C_alt,EPS),
+		  diff_const_Matrix_d(cr_t,(struct const_Matrix_d*)cr_C_alt,EPS),
 		};
-	if (check_diff(4,differences,&pass)) {
+	if (check_diff(8,differences,&pass)) {
 		if (differences[0])
 			print_diff_const_Matrix_d(cl,cl_R,EPS);
 		if (differences[1])
@@ -222,6 +236,12 @@ static void test_unit_matrix_mm_diag (struct Test_Info*const test_info)
 			print_diff_const_Matrix_d(cl_t,cl_C,EPS);
 		if (differences[3])
 			print_diff_const_Matrix_d(cr_t,cr_C,EPS);
+
+		int ind = 4;
+		print_diff_cond_const_Matrix_d(cl,  (struct const_Matrix_d*)cl_R_alt,EPS,differences[ind++]);
+		print_diff_cond_const_Matrix_d(cr,  (struct const_Matrix_d*)cr_R_alt,EPS,differences[ind++]);
+		print_diff_cond_const_Matrix_d(cl_t,(struct const_Matrix_d*)cl_C_alt,EPS,differences[ind++]);
+		print_diff_cond_const_Matrix_d(cr_t,(struct const_Matrix_d*)cr_C_alt,EPS,differences[ind++]);
 	}
 
 	destructor_const_Matrix_d(cl);
@@ -233,6 +253,11 @@ static void test_unit_matrix_mm_diag (struct Test_Info*const test_info)
 	destructor_const_Matrix_d(cr_R);
 	destructor_const_Matrix_d(cl_C);
 	destructor_const_Matrix_d(cr_C);
+
+	destructor_Matrix_d(cl_R_alt);
+	destructor_Matrix_d(cr_R_alt);
+	destructor_Matrix_d(cl_C_alt);
+	destructor_Matrix_d(cr_C_alt);
 
 	assert_condition(pass);
 }
