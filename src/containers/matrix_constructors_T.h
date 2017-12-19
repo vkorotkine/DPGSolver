@@ -52,6 +52,16 @@ struct Matrix_T* constructor_empty_Matrix_T
 	 const ptrdiff_t ext_1  ///< Standard.
 	);
 
+// Zero constructors ************************************************************************************************ //
+
+/** \brief Same as \ref constructor_empty_Matrix_T but with data calloc'ed.
+ *  \return Standard. */
+struct Matrix_T* constructor_zero_Matrix_T
+	(const char layout,     ///< Standard.
+	 const ptrdiff_t ext_0, ///< Standard.
+	 const ptrdiff_t ext_1  ///< Standard.
+	);
+
 // Copy constructors ************************************************************************************************ //
 
 /** \brief Copy constructor for a \ref Matrix_T\* from a \ref Matrix_T\*.

@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_default_const_Matrix_T constructor_default_const_Matrix_d
 
 #define constructor_empty_Matrix_T constructor_empty_Matrix_d
+#define constructor_zero_Matrix_T  constructor_zero_Matrix_d
 
 #define constructor_copy_Matrix_T_T              constructor_copy_Matrix_d_d
 #define constructor_copy_const_Matrix_T_T        constructor_copy_const_Matrix_d_d
@@ -75,6 +76,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_default_const_Matrix_T constructor_default_const_Matrix_c
 
 #define constructor_empty_Matrix_T constructor_empty_Matrix_c
+#define constructor_zero_Matrix_T  constructor_zero_Matrix_c
 
 #define constructor_copy_Matrix_T_T             constructor_copy_Matrix_c_c
 #define constructor_copy_const_Matrix_T_T       constructor_copy_const_Matrix_c_c

@@ -87,7 +87,7 @@ static bool is_adaptive
 
 // Interface functions ********************************************************************************************** //
 
-struct Simulation* constructor_Simulation (const char*const ctrl_name)
+struct Simulation* constructor_Simulation__no_mesh (const char*const ctrl_name)
 {
 	struct Simulation* sim = calloc(1,sizeof *sim); // returned;
 
@@ -95,10 +95,23 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 	set_simulation_mpi(sim);
 	set_simulation_core(sim,ctrl_name);
 
-	set_Simulation_elements(sim,constructor_Elements(DIM)); // destructed
-
 	check_necessary_simulation_parameters(sim);
 	set_simulation_default(sim);
+
+	sim->elements = NULL;
+	sim->volumes  = NULL;
+	sim->faces    = NULL;
+
+	sim->test_case_rc = constructor_Test_Case_rc_real(sim);
+
+	return sim;
+}
+
+struct Simulation* constructor_Simulation (const char*const ctrl_name)
+{
+	struct Simulation* sim = constructor_Simulation__no_mesh(ctrl_name); // returned
+
+	set_Simulation_elements(sim,constructor_Elements(DIM)); // destructed
 
 	struct Mesh_Input mesh_input = set_Mesh_Input(sim);
 	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements); // destructed
@@ -109,19 +122,20 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 
 	destructor_Mesh(mesh);
 
-	sim->test_case_rc = constructor_Test_Case_rc_real(sim);
-
 	return sim;
 }
 
 void destructor_Simulation (struct Simulation* sim)
 {
-	assert(sim->elements->name == IL_ELEMENT);
-	assert(sim->volumes->name  == IL_VOLUME);
-	assert(sim->faces->name    == IL_FACE);
+	if (sim->elements) {
+		assert(sim->elements->name == IL_ELEMENT);
+		destructor_const_Elements(sim->elements);
+	}
 
-	destructor_const_Elements(sim->elements);
+	assert(sim->volumes->name == IL_VOLUME);
 	destructor_Volumes(sim->volumes);
+
+	assert(sim->faces->name == IL_FACE);
 	destructor_Faces(sim->faces);
 
 	destructor_Test_Case_rc_real(sim->test_case_rc);
@@ -257,6 +271,7 @@ static void set_simulation_mpi (struct Simulation*const sim)
 
 static void set_simulation_core (struct Simulation*const sim, const char*const ctrl_name)
 {
+	const_cast_c1(&sim->ctrl_name,ctrl_name);
 	sim->ctrl_name_full = set_ctrl_name_full(ctrl_name);
 	FILE *ctrl_file = fopen_checked(sim->ctrl_name_full);
 

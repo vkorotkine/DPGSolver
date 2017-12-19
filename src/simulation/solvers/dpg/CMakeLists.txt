@@ -8,6 +8,8 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 Solvers
+	 Test_Complex_Computational_Elements
+	 Test_Complex_Test_Case
 	)
 
 set (LIB Solver_DPG)

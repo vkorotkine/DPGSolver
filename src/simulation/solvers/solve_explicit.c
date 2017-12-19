@@ -189,6 +189,12 @@ static void display_progress
 static bool check_exit (const struct Test_Case* test_case, const double max_rhs, const double max_rhs0)
 {
 	bool exit_now = false;
+
+	if (max_rhs < test_case->exit_tol_e) {
+		printf("Complete: max_rhs is below the exit tolerance.\n");
+		exit_now = true;
+	}
+
 	switch (test_case->solver_proc) {
 	case SOLVER_E:
 		if (test_case->time == test_case->time_final)

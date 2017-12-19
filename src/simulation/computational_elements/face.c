@@ -83,7 +83,7 @@ const struct const_Vector_i* compute_ve_inds_f
 
 struct Intrusive_List* constructor_Faces (struct Simulation*const sim, const struct Mesh*const mesh)
 {
-	struct Intrusive_List* faces = constructor_empty_IL(IL_FACE,NULL);
+	struct Intrusive_List* faces = constructor_empty_IL(IL_FACE,NULL); // returned
 
 	const struct const_Multiarray_Vector_i*const node_nums = mesh->mesh_data->node_nums;
 
@@ -176,6 +176,32 @@ int compute_side_index_face (const struct Face* face, const struct Volume* vol)
 		return 1;
 	}
 	EXIT_ERROR("Did not find the volume.\n");
+}
+
+struct Face* constructor_copy_Face
+	(const struct Face*const face_i, const struct Simulation*const sim, const bool independent_elements)
+{
+	struct Face* face = calloc(1,sizeof *face); // returned
+	const_cast_i(&face->index,face_i->index);
+
+	for (int i = 0; i < 2; ++i) {
+		face->neigh_info[i].ind_lf   = face_i->neigh_info[i].ind_lf;
+		face->neigh_info[i].ind_href = face_i->neigh_info[i].ind_href;
+		face->neigh_info[i].ind_sref = face_i->neigh_info[i].ind_sref;
+		face->neigh_info[i].ind_ord  = face_i->neigh_info[i].ind_ord;
+		face->neigh_info[i].volume   = NULL;
+	}
+
+	if (independent_elements)
+		const_cast_const_Element(&face->element,get_element_by_type(sim->elements,face_i->element->type));
+	else
+		const_cast_const_Element(&face->element,face_i->element);
+
+	const_cast_b(&face->boundary,face_i->boundary);
+	const_cast_b(&face->curved,face_i->curved);
+	const_cast_i(&face->bc,face_i->bc);
+
+	return face;
 }
 
 // Static functions ************************************************************************************************* //

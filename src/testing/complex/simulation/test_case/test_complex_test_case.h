@@ -20,7 +20,6 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "compute_error.h"
-#include "numerical_flux.h"
 #include "test_complex_flux.h"
 #include "test_complex_geometry.h"
 #include "test_complex_numerical_flux.h"

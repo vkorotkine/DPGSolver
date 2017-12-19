@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <stddef.h>
+#include <stdbool.h>
 
 struct Simulation;
 struct Solver_Storage_Implicit;
@@ -25,6 +26,8 @@ struct Intrusive_List;
 struct DPG_Solver_Volume_T;
 struct DPG_Solver_Face_T;
 struct Solver_Volume_T;
+struct Vector_T;
+struct Matrix_T;
 
 /// \brief Compute all contributions to the rhs and lhs terms for the DPG scheme.
 void compute_all_rlhs_dpg_T
@@ -59,4 +62,16 @@ ptrdiff_t compute_n_dof_nf_T
 const struct const_Vector_i* constructor_petsc_idxm_dpg_T
 	(const ptrdiff_t n_dof,            ///< The number of local degrees of freedom.
 	 const struct Solver_Volume_T* s_vol ///< The current volume.
+	);
+
+/** \brief Add the face contributions to the rhs and lhs for 1st order equations.
+ *  \note Columns are added to the lhs matrix for each of the face coefficient degrees of freedom.
+ */
+void add_to_rlhs__face_T
+	(struct Vector_T* rhs,                        ///< Holds the values of the rhs.
+	 struct Matrix_T** lhs_ptr,                   ///< Pointer to the matrix holding the values of the lhs.
+	 const struct DPG_Solver_Volume_T* dpg_s_vol, ///< \ref DPG_Solver_Volume_T.
+	 const struct Simulation* sim,                ///< \ref Simulation.
+	 const bool include_internal                  /**< Flag for whether the internal face contributions should be
+	                                               *   included. */
 	);

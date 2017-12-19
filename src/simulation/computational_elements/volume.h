@@ -92,4 +92,15 @@ void update_volumes_element
 	 const struct const_Intrusive_List* elements ///< The list of elements from which to replace the current ones.
 	);
 
+/** \brief Copy constructor for a \ref Volume.
+ *  \return Standard.
+ *  The pointers for \ref Volume::faces **are all set to NULL**.
+ *  The pointer for \ref Volume::element is set according to the value of the `independent_elements` flag.
+ */
+struct Volume* constructor_copy_Volume
+	(const struct Volume*const vol_i,   ///< The input \ref Volume.
+	 const struct Simulation*const sim, ///< \ref Simulation.
+	 const bool independent_elements    ///< Flag for whether
+	);
+
 #endif // DPG__volume_h__INCLUDED

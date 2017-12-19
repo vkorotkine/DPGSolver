@@ -33,6 +33,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+#define PRINT_OPERATORS 0 ///< Enable to print operators to terminal.
+
 // Interface functions ********************************************************************************************** //
 
 const struct Operator* get_operator__tw0_vt_fc_T (const int side_index, const struct Solver_Face_T* s_face)
@@ -124,6 +126,11 @@ struct Matrix_T* constructor_lhs_f_1_T
 {
 	const struct Operator* tw0_vt_fc    = get_operator__tw0_vt_fc_T(side_index[0],s_face);
 	const struct Operator* cv0_vs_fc_op = get_operator__cv0_vs_fc_T(side_index[1],s_face);
+#if PRINT_OPERATORS == 1
+printf("face\n");
+print_const_Matrix_d(tw0_vt_fc->op_std);
+print_const_Matrix_d(cv0_vs_fc_op->op_std);
+#endif
 
 	const struct const_Matrix_R* cv0_vs_fc = cv0_vs_fc_op->op_std;
 	bool need_free_cv0 = false;

@@ -39,6 +39,7 @@ struct Simulation {
 	const int mpi_size, ///< The number of mpi processes.
 	          mpi_rank; ///< The mpi rank of the current processor.
 
+	const char*const ctrl_name;            ///< Name of the control file.
 	const char* ctrl_name_full;            ///< Name of the control file (including full path and file extension).
 	const char mesh_name_full[STRLEN_MAX]; ///< Name of the mesh    file (including full path and file extension).
 	const char input_path[STRLEN_MAX];     ///< The path to the directory containing relevant input files.
@@ -189,12 +190,14 @@ struct Simulation {
 	struct Intrusive_List* faces;                ///< Pointer to the head of the Face    list.
 };
 
+/** \brief Constructor for \ref Simulation omitting the construction of members dependent upon an input mesh.
+ *  \return Standard. */
+struct Simulation* constructor_Simulation__no_mesh
+	(const char*const ctrl_name ///< The partial name of the control file.
+	);
+
 /** \brief Constructor for \ref Simulation.
- *	\return Standard.
- *
- *	As the struct contains many data members, only the memory allocation is performed as part of the constructor. The
- *	appropriate setter functions must be called to define the members.
- */
+ *  \return Standard. */
 struct Simulation* constructor_Simulation
 	(const char*const ctrl_name ///< The partial name of the control file.
 	);

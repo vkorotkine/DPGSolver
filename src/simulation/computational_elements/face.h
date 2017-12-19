@@ -13,8 +13,8 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__Face_h__INCLUDED
-#define DPG__Face_h__INCLUDED
+#ifndef DPG__face_h__INCLUDED
+#define DPG__face_h__INCLUDED
 /** \file
  *  \brief Provides the interface for the base \ref Face container and associated functions.
  *
@@ -131,4 +131,15 @@ int compute_side_index_face
 	 const struct Volume* vol ///< The pointer to the neighbouring \ref Volume.
 	);
 
-#endif // DPG__Face_h__INCLUDED
+/** \brief Copy constructor for a \ref Face.
+ *  \return Standard.
+ *  The pointers for \ref Face::Neigh_Info::volume **are all set to NULL**.
+ *  The pointer for \ref Face::element is set according to the value of the `independent_elements` flag.
+ */
+struct Face* constructor_copy_Face
+	(const struct Face*const face_i,    ///< The input \ref Face.
+	 const struct Simulation*const sim, ///< \ref Simulation.
+	 const bool independent_elements    ///< Flag for whether
+	);
+
+#endif // DPG__face_h__INCLUDED

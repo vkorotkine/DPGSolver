@@ -18,48 +18,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
-///\{ \name Data types
-#define S_Params_DPG_T S_Params_DPG
-///\}
-
-///\{ \name Function pointers
-#define constructor_norm_op_fptr_T constructor_norm_op_fptr
-#define compute_rlhs_fptr_T        compute_rlhs_fptr
-///\}
-
 ///\{ \name Function names
 #define compute_all_rlhs_dpg_T                compute_all_rlhs_dpg
 #define get_operator__cvt1_vt_vc__rlhs_T      get_operator__cvt1_vt_vc__rlhs
 #define constructor_lhs_l_internal_face_dpg_T constructor_lhs_l_internal_face_dpg
 #define compute_n_dof_nf_T                    compute_n_dof_nf
 #define constructor_petsc_idxm_dpg_T          constructor_petsc_idxm_dpg
-
-
-#define set_s_params_dpg_T               set_s_params_dpg
-#define get_operator__cv0_ff_fc_T        get_operator__cv0_ff_fc
-#define set_idxm_T                       set_idxm
-#define compute_rlhs_1_T                 compute_rlhs_1
-#define constructor_norm_op__h1_upwind_T constructor_norm_op__h1_upwind
-#define constructor_rhs_v_1_T            constructor_rhs_v_1
-#define increment_and_add_dof_rlhs_f_1_T increment_and_add_dof_rlhs_f_1
-#define increment_rhs_source_T           increment_rhs_source
-#define increment_rlhs_internal_face_T   increment_rlhs_internal_face
-#define increment_rlhs_boundary_face_T   increment_rlhs_boundary_face
-#define scale_by_Jacobian_T              scale_by_Jacobian
-#define increment_rhs_boundary_face_T    increment_rhs_boundary_face
-#define increment_lhs_boundary_face_T    increment_lhs_boundary_face
+#define add_to_rlhs__face_T                   add_to_rlhs__face
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
-
-///\{ \name Data types
-#define S_Params_DPG_T S_Params_DPG_c
-///\}
-
-///\{ \name Function pointers
-#define constructor_norm_op_fptr_T constructor_norm_op_fptr_c
-#define compute_rlhs_fptr_T        compute_rlhs_fptr_c
-///\}
 
 ///\{ \name Function names
 #define compute_all_rlhs_dpg_T                compute_all_rhs_dpg_c
@@ -67,21 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_lhs_l_internal_face_dpg_T constructor_lhs_l_internal_face_dpg_c
 #define compute_n_dof_nf_T                    compute_n_dof_nf_c
 #define constructor_petsc_idxm_dpg_T          constructor_petsc_idxm_dpg_c
-
-
-#define set_s_params_dpg_T               set_s_params_dpg_c
-#define get_operator__cv0_ff_fc_T        get_operator__cv0_ff_fc_c
-#define set_idxm_T                       set_idxm_c
-#define compute_rlhs_1_T                 compute_rlhs_1_c
-#define constructor_norm_op__h1_upwind_T constructor_norm_op__h1_upwind_c
-#define constructor_rhs_v_1_T            constructor_rhs_v_1_c
-#define increment_and_add_dof_rlhs_f_1_T increment_and_add_dof_rlhs_f_1_c
-#define increment_rhs_source_T           increment_rhs_source_c
-#define increment_rlhs_internal_face_T   increment_rlhs_internal_face_c
-#define increment_rlhs_boundary_face_T   increment_rlhs_boundary_face_c
-#define scale_by_Jacobian_T              scale_by_Jacobian_c
-#define increment_rhs_boundary_face_T    increment_rhs_boundary_face_c
-#define increment_lhs_boundary_face_T    increment_lhs_boundary_face_c
+#define add_to_rlhs__face_T                   add_to_rlhs__face_c
 ///\}
 
 #endif

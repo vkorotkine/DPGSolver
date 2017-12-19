@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_default_const_Matrix_T
 
 #undef constructor_empty_Matrix_T
+#undef constructor_zero_Matrix_T
 
 #undef constructor_copy_Matrix_T_T
 #undef constructor_copy_const_Matrix_T_T

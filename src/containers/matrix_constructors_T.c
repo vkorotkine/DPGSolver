@@ -47,6 +47,16 @@ struct Matrix_T* constructor_empty_Matrix_T (const char layout, const ptrdiff_t 
 	return a;
 }
 
+// Empty constructors *********************************************************************************************** //
+
+struct Matrix_T* constructor_zero_Matrix_T (const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
+{
+	Type* data = calloc((size_t)(ext_0*ext_1) , sizeof *data); // keep
+	struct Matrix_T* a = constructor_move_Matrix_T_T(layout,ext_0,ext_1,true,data); // returned
+
+	return a;
+}
+
 // Copy constructors ************************************************************************************************ //
 
 struct Matrix_T* constructor_copy_Matrix_T_T

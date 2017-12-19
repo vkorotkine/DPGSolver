@@ -38,6 +38,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+#define PRINT_OPERATORS 0 ///< Enable to print operators to terminal.
+
 /** \brief Version of \ref constructor_sol_vc_fptr using interpolation.
  *  \return See brief.. */
 static const struct const_Multiarray_T* constructor_sol_vc_interp_T
@@ -140,6 +142,11 @@ struct Matrix_T* constructor_lhs_v_1_T
 {
 	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc_T(s_vol);
 	const struct Operator* cv0_vs_vc = get_operator__cv0_vs_vc_T(s_vol);
+#if PRINT_OPERATORS == 1
+printf("vol\n");
+print_Multiarray_Operator(&tw1_vt_vc);
+print_const_Matrix_d(cv0_vs_vc->op_std);
+#endif
 
 	const ptrdiff_t ext_0 = tw1_vt_vc.data[0]->op_std->ext_0,
 	                ext_1 = tw1_vt_vc.data[0]->op_std->ext_1;

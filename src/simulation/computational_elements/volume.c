@@ -82,7 +82,7 @@ static bool find_bc_match
 
 struct Intrusive_List* constructor_Volumes (struct Simulation*const sim, const struct Mesh*const mesh)
 {
-	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME,NULL);
+	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME,NULL); // returned
 
 	const struct const_Vector_i*const            elem_types = mesh->mesh_data->elem_types;
 	const struct const_Multiarray_Vector_i*const node_nums  = mesh->mesh_data->node_nums;
@@ -158,6 +158,31 @@ void update_volumes_element
 	}
 }
 
+struct Volume* constructor_copy_Volume
+	(const struct Volume*const vol_i, const struct Simulation*const sim, const bool independent_elements)
+{
+	struct Volume* volume = calloc(1,sizeof *volume); // returned
+
+	const_cast_i(&volume->index,vol_i->index);
+
+	const_constructor_move_Multiarray_d
+		(&volume->xyz_ve,constructor_copy_Multiarray_d((struct Multiarray_d*)vol_i->xyz_ve)); // destructed
+
+	for (int i = 0; i < NFMAX;    ++i) {
+	for (int j = 0; j < NSUBFMAX; ++j) {
+		const_cast_Face(&volume->faces[i][j],NULL);
+	}}
+
+	if (independent_elements)
+		const_cast_const_Element(&volume->element,get_element_by_type(sim->elements,vol_i->element->type));
+	else
+		const_cast_const_Element(&volume->element,vol_i->element);
+	const_cast_b(&volume->boundary,vol_i->boundary);
+	const_cast_b(&volume->curved,vol_i->curved);
+
+	return volume;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -207,7 +232,7 @@ static struct Volume* constructor_Volume
 	struct Volume* volume = calloc(1,sizeof *volume); // returned
 	const_cast_i(&volume->index,index);
 
-	const_constructor_move_Multiarray_d(&volume->xyz_ve,constructor_volume_vertices(vol_mi->ve_inds,nodes));
+	const_constructor_move_Multiarray_d(&volume->xyz_ve,constructor_volume_vertices(vol_mi->ve_inds,nodes)); // dest.
 
 	for (int i = 0; i < NFMAX;    ++i) {
 	for (int j = 0; j < NSUBFMAX; ++j) {

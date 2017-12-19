@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_volume_solver_dpg.h"
 #include "def_templates_face_solver_dpg.h"
 #include "def_templates_matrix.h"
+#include "def_templates_vector.h"
 #include "compute_all_rlhs_dpg_T.h"
 #include "undef_templates_type.h"
 #include "undef_templates_compute_all_rlhs_dpg.h"
@@ -32,5 +33,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_volume_solver_dpg.h"
 #include "undef_templates_face_solver_dpg.h"
 #include "undef_templates_matrix.h"
+#include "undef_templates_vector.h"
 
 #endif // DPG__test_complex_compute_all_rhs_dpg_h__INCLUDED
