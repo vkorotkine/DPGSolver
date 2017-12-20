@@ -165,8 +165,8 @@ struct Volume* constructor_copy_Volume
 
 	const_cast_i(&volume->index,vol_i->index);
 
-	const_constructor_move_Multiarray_d
-		(&volume->xyz_ve,constructor_copy_Multiarray_d((struct Multiarray_d*)vol_i->xyz_ve)); // destructed
+	const_constructor_move_const_Multiarray_d
+		(&volume->xyz_ve,constructor_copy_const_Multiarray_d(vol_i->xyz_ve)); // destructed
 
 	for (int i = 0; i < NFMAX;    ++i) {
 	for (int j = 0; j < NSUBFMAX; ++j) {

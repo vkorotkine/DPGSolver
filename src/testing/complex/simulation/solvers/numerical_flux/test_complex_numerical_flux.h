@@ -40,7 +40,7 @@ struct Simulation;
 #include "numerical_flux.h"
 #include "test_complex_boundary.h"
 
-/** \brief `complex` version of \ref compute_Numerical_Flux_fptr.
+/** \brief `complex` version of \ref compute_Numerical_Flux_fptr_T.
  *  \return See brief.
  *
  *  \param num_flux_i See brief.
@@ -51,9 +51,9 @@ typedef void (*compute_Numerical_Flux_c_fptr)
 	 struct mutable_Numerical_Flux_c* num_flux
 	);
 
-/// \brief Derived `complex` version of \ref Numerical_Flux_Input.
+/// \brief Derived `complex` version of \ref Numerical_Flux_T_Input.
 struct Numerical_Flux_Input_c {
-	struct Numerical_Flux_Input num_flux_i; ///< Base \ref Numerical_Flux_Input.
+	struct Numerical_Flux_Input num_flux_i; ///< Base \ref Numerical_Flux_T_Input.
 
 	const bool has_complex_J; ///< Flag for whether the `complex` Jacobian terms should be computed.
 
@@ -65,7 +65,7 @@ struct Numerical_Flux_Input_c {
 	compute_Numerical_Flux_c_fptr compute_Numerical_Flux_2nd; ///< See brief.
 };
 
-/// \brief `complex` version of \ref Numerical_Flux.
+/// \brief `complex` version of \ref Numerical_Flux_T.
 struct Numerical_Flux_c {
 	const struct const_Multiarray_c* nnf; ///< See brief.
 
@@ -76,7 +76,7 @@ struct Numerical_Flux_c {
 	} neigh_info[2]; ///< See brief.
 };
 
-/// \brief `mutable` version of \ref Numerical_Flux_c.
+/// \brief `mutable` version of \ref Numerical_Flux_T_c.
 struct mutable_Numerical_Flux_c {
 	struct Multiarray_c* nnf; ///< See brief.
 
@@ -89,24 +89,24 @@ struct mutable_Numerical_Flux_c {
 
 // Interface functions ********************************************************************************************** //
 
-/** \brief Constructor for a \ref Numerical_Flux_Input_c container.
+/** \brief Constructor for a \ref Numerical_Flux_T_Input_c container.
  *  \return See brief. */
 struct Numerical_Flux_Input_c* constructor_Numerical_Flux_Input_c
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destructor for a \ref Numerical_Flux_Input_c container.
+/// \brief Destructor for a \ref Numerical_Flux_T_Input_c container.
 void destructor_Numerical_Flux_Input_c
 	(struct Numerical_Flux_Input_c* num_flux_i ///< Standard.
 	);
 
-/** \brief Constructor for a \ref Numerical_Flux_c container.
+/** \brief Constructor for a \ref Numerical_Flux_T_c container.
  *  \return See brief. */
 struct Numerical_Flux_c* constructor_Numerical_Flux_c
-	(const struct Numerical_Flux_Input_c* num_flux_i ///< \ref Numerical_Flux_Input_c.
+	(const struct Numerical_Flux_Input_c* num_flux_i ///< \ref Numerical_Flux_T_Input_c.
 	);
 
-/// \brief Destructor for a \ref Numerical_Flux_c container.
+/// \brief Destructor for a \ref Numerical_Flux_T_c container.
 void destructor_Numerical_Flux_c
 	(struct Numerical_Flux_c* num_flux ///< Standard.
 	);

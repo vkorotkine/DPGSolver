@@ -12,4 +12,10 @@ if(DOXYGEN_FOUND)
 
 	configure_file(${PROJECT_SOURCE_DIR}/doc/doxygen.cfg.in
 	               ${PROJECT_BINARY_DIR}/doc/doxygen.cfg @ONLY)
+
+	file(GLOB_RECURSE FILES *.pdf)
+	foreach(pdf_name_full ${FILES})
+		string(REPLACE "${CMAKE_SOURCE_DIR}/doc" "/doc/html" pdf_name ${pdf_name_full})
+		configure_file(${pdf_name_full} ${PROJECT_BINARY_DIR}${pdf_name} COPYONLY)
+	endforeach()
 endif()

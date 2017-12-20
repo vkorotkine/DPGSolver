@@ -28,7 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Constructor for the H0 norm operator of the input volume.
  *  \return See brief. */
 static const struct const_Matrix_R* constructor_norm_op_H0
-	(const struct DPG_Solver_Volume_T* dpg_s_vol ///< \ref DPG_Solver_Volume.
+	(const struct DPG_Solver_Volume_T* dpg_s_vol ///< \ref DPG_Solver_Volume_T.
 	);
 
 // Interface functions ********************************************************************************************** //

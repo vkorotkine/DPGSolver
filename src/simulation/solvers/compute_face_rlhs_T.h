@@ -58,8 +58,8 @@ void permute_Matrix_R_fc
 /** \brief Get the pointer to the appropriate \ref Solver_Element::nc_fc \ref const_Vector_T\*.
  *  \return See brief. */
 const struct const_Vector_i* get_operator__nc_fc_T
-	(const int side_index_dest,         ///< Defined for \ref permute_Multiarray_d_fc.
-	 const struct Solver_Face_T* s_face ///< Defined for \ref permute_Multiarray_d_fc.
+	(const int side_index_dest,         ///< Defined for \ref permute_Multiarray_T_fc.
+	 const struct Solver_Face_T* s_face ///< Defined for \ref permute_Multiarray_T_fc.
 	);
 
 /** \brief Construct the data members of the \ref Numerical_Flux_Input_T container which are specific to the face under

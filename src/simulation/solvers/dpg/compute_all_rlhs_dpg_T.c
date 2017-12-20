@@ -80,7 +80,7 @@ typedef void (*compute_rlhs_fptr)
 
 /// \brief Container for solver-related parameters.
 struct S_Params_DPG {
-	struct S_Params_Volume_Structor_T spvs; ///< \ref S_Params_Volume_Structor.
+	struct S_Params_Volume_Structor_T spvs; ///< \ref S_Params_Volume_Structor_T.
 
 	constructor_norm_DPG_fptr constructor_norm_DPG; ///< Pointer to the appropriate function.
 	compute_rlhs_fptr compute_rlhs;                 ///< Pointer to the appropriate function.
@@ -113,8 +113,8 @@ static void set_idxm
 	 const struct Multiarray_T* coef ///< Pointer to the coefficients under consideration.
 	);
 
-/// \brief Increment the rhs and lhs entries corresponding to internal faces.
-static void increment_rlhs_internal_face
+/// \brief Provides the internal face contribution to \ref add_to_rlhs__face_T.
+static void add_to_rlhs__face_internal
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, ///< The current \ref DPG_Solver_Volume_T.
 	 const struct DPG_Solver_Face_T* dpg_s_face,  ///< The current \ref DPG_Solver_Face_T.
 	 struct Matrix_T* lhs,                        ///< The lhs matrix contribution for the current volume/faces.
@@ -123,8 +123,8 @@ static void increment_rlhs_internal_face
 	 const struct Simulation* sim                 ///< \ref Simulation.
 	);
 
-/// \brief Increment the rhs and lhs entries corresponding to boundary faces.
-static void increment_rlhs_boundary_face
+/// \brief Provides the boundary face contribution to \ref add_to_rlhs__face_T.
+static void add_to_rlhs__face_boundary
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, ///< The current \ref DPG_Solver_Volume_T.
 	 const struct DPG_Solver_Face_T* dpg_s_face,  ///< The current \ref DPG_Solver_Face_T.
 	 struct Matrix_T* lhs,                        ///< The lhs matrix contribution for the current volume/faces.
@@ -171,7 +171,6 @@ struct Multiarray_Operator get_operator__cvt1_vt_vc__rlhs_T (const struct DPG_So
 	return set_MO_from_MO(dpg_s_e->cvt1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 }
 
-/// \todo make static
 const struct const_Matrix_R* constructor_lhs_l_internal_face_dpg_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct DPG_Solver_Face_T* dpg_s_face)
 {
@@ -293,7 +292,7 @@ void add_to_rlhs__face_T
 				continue;
 
 			const struct DPG_Solver_Face_T* dpg_s_face = (struct DPG_Solver_Face_T*) face;
-			increment_rlhs_internal_face(dpg_s_vol,dpg_s_face,lhs,&rhs_M,&ind_dof,sim);
+			add_to_rlhs__face_internal(dpg_s_vol,dpg_s_face,lhs,&rhs_M,&ind_dof,sim);
 		}}
 	}
 
@@ -305,7 +304,7 @@ void add_to_rlhs__face_T
 			continue;
 
 		const struct DPG_Solver_Face_T* dpg_s_face = (struct DPG_Solver_Face_T*) face;
-		increment_rlhs_boundary_face(dpg_s_vol,dpg_s_face,lhs,&rhs_M,sim);
+		add_to_rlhs__face_boundary(dpg_s_vol,dpg_s_face,lhs,&rhs_M,sim);
 	}}
 
 //print_Matrix_T(lhs);
@@ -340,16 +339,16 @@ static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 	 const struct Simulation* sim                 ///< See brief.
 	);
 
-/// \brief Scale required \ref Numerical_Flux terms by the face Jacobian.
+/// \brief Scale required \ref Numerical_Flux_T terms by the face Jacobian.
 static void scale_by_Jacobian
-	(const struct Numerical_Flux_T* num_flux, ///< \ref Numerical_Flux.
+	(const struct Numerical_Flux_T* num_flux, ///< \ref Numerical_Flux_T.
 	 const struct Solver_Face_T* s_face       ///< The current \ref Solver_Face_T.
 	);
 
 /// \brief Increment the rhs terms with the contribution of the boundary face.
 static void increment_rhs_boundary_face
 	(struct Matrix_T* rhs,                    ///< Holds the rhs terms.
-	 const struct Numerical_Flux_T* num_flux, ///< \ref Numerical_Flux.
+	 const struct Numerical_Flux_T* num_flux, ///< \ref Numerical_Flux_T.
 	 const struct Solver_Face_T* s_face,      ///< The current \ref Solver_Face_T.
 	 const struct Simulation* sim             ///< \ref Simulation.
 	);
@@ -357,7 +356,7 @@ static void increment_rhs_boundary_face
 /// \brief Increment the lhs terms with the contribution of the boundary face.
 static void increment_lhs_boundary_face
 	(struct Matrix_T* lhs,                    ///< Holds the lhs terms.
-	 const struct Numerical_Flux_T* num_flux, ///< \ref Numerical_Flux.
+	 const struct Numerical_Flux_T* num_flux, ///< \ref Numerical_Flux_T.
 	 const struct Solver_Face_T* s_face,      ///< The current \ref Solver_Face_T.
 	 const struct Simulation* sim             ///< \ref Simulation.
 	);
@@ -424,7 +423,7 @@ static void set_idxm (int* ind_idxm, struct Vector_i* idxm, const int ind_dof, c
 	}
 }
 
-static void increment_rlhs_internal_face
+static void add_to_rlhs__face_internal
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct DPG_Solver_Face_T* dpg_s_face, struct Matrix_T* lhs,
 	 struct Matrix_T* rhs, int* ind_dof, const struct Simulation* sim)
 {
@@ -448,7 +447,7 @@ static void increment_rlhs_internal_face
 	destructor_const_Matrix_d(lhs_l);
 }
 
-static void increment_rlhs_boundary_face
+static void add_to_rlhs__face_boundary
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct DPG_Solver_Face_T* dpg_s_face, struct Matrix_T* lhs,
 	 struct Matrix_T* rhs, const struct Simulation* sim)
 {

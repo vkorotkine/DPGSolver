@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__volume_solver_dpg_h__INCLUDED
 #define DPG__volume_solver_dpg_h__INCLUDED
 /** \file
- *  \brief Provides the interface for the real \ref DPG_Solver_Volume container and associated functions.
+ *  \brief Provides the interface for the real \ref DPG_Solver_Volume_T container and associated functions.
  */
 
 #include "volume_solver.h"
@@ -34,5 +34,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_vector.h"
 #include "undef_templates_volume_solver.h"
 #include "undef_templates_volume_solver_dpg.h"
+
+struct DPG_Solver_Volume_c;
+
+/// \brief Copy members from a real to a complex \ref DPG_Solver_Volume_T.
+void copy_members_r_to_c_DPG_Solver_Volume
+	(struct DPG_Solver_Volume_c*const dpg_s_vol,      ///< The complex \ref DPG_Solver_Volume_T.
+	 const struct DPG_Solver_Volume*const dpg_s_vol_r ///< The real \ref DPG_Solver_Volume_T.
+	);
 
 #endif // DPG__volume_solver_dpg_h__INCLUDED

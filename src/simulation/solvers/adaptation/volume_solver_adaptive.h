@@ -23,11 +23,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Container for data relating to the adaptive solver volumes.
 struct Adaptive_Solver_Volume {
-	struct Solver_Volume volume; ///< The base \ref Solver_Volume.
+	struct Solver_Volume volume; ///< The base \ref Solver_Volume_T.
 
 	int adapt_type; ///< The type of adaptation to use. Options: see \ref definitions_adaptation.h.
 
-	int p_ref_prev; ///< The previous value of \ref Solver_Volume::p_ref.
+	int p_ref_prev; ///< The previous value of \ref Solver_Volume_T::p_ref.
 
 	bool updated; ///< Flag for whether the volume was updated.
 };

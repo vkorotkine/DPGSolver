@@ -75,7 +75,7 @@ static double implicit_step
 /** \brief Check the exit conditions.
  *  \return `true` if exit conditions are satisfied, `false` otherwise. */
 static bool check_exit
-	(const struct Test_Case* test_case, ///< \ref Test_Case.
+	(const struct Test_Case* test_case, ///< \ref Test_Case_T.
 	 const double max_rhs               ///< The current maximum value of the rhs term.
 	);
 
@@ -158,7 +158,7 @@ static void solve_and_update
 /** \brief Check if the pde under consideration is linear.
  *  \return `true` if yes; `false` otherwise. */
 static bool check_pde_linear
-	(const int pde_index ///< \ref Test_Case::pde_index.
+	(const int pde_index ///< \ref Test_Case_T::pde_index.
 	);
 
 static void constructor_derived_elements_comp_elements (struct Simulation* sim)
@@ -288,7 +288,7 @@ static void update_coefs
 
 /// \brief Display the solver progress.
 static void display_progress
-	(const struct Test_Case* test_case, ///< \ref Test_Case.
+	(const struct Test_Case* test_case, ///< \ref Test_Case_T.
 	 const int i_step,                  ///< The current implicit step.
 	 const double max_rhs,              ///< The current maximum value of the rhs term.
 	 KSP ksp                            ///< Petsc `KSP` context.
@@ -407,13 +407,13 @@ static bool check_pde_linear (const int pde_index)
 
 // Level 2 ********************************************************************************************************** //
 
-/// \brief Update the values of \ref Solver_Volume::sol_coef based on the computed increment.
+/// \brief Update the values of \ref Solver_Volume_T::sol_coef based on the computed increment.
 static void update_coef_s_v
 	(Vec x,                       ///< Petsc Vec holding the solution coefficient increments.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Update the values of \ref Solver_Face::nf_coef based on the computed increment.
+/// \brief Update the values of \ref Solver_Face_T::nf_coef based on the computed increment.
 static void update_coef_nf_f
 	(Vec x,                       ///< Petsc Vec holding the solution coefficient increments.
 	 const struct Simulation* sim ///< \ref Simulation.
@@ -589,7 +589,7 @@ static void update_coef
 	 struct Multiarray_d*const coef,    ///< The coefficients to be updated.
 	 Vec x,                             ///< The PETSc Vec holding the updates.
 	 const bool allow_relax,            ///< Flag for whether under relaxation should be allowed.
-	 const struct Solver_Volume* s_vol, ///< The current \ref Solver_Volume.
+	 const struct Solver_Volume* s_vol, ///< The current \ref Solver_Volume_T.
 	 const struct Simulation* sim       ///< \ref Simulation.
 	);
 
@@ -623,7 +623,7 @@ static void update_coef_nf_f (Vec x, const struct Simulation* sim)
 static double compute_relaxation
 	(const struct const_Multiarray_d*const coef,   ///< The coefficients.
 	 const struct const_Multiarray_d*const d_coef, ///< The full perturbation to the coefficients.
-	 const struct Solver_Volume*const s_vol,       ///< \ref Solver_Volume.
+	 const struct Solver_Volume*const s_vol,       ///< \ref Solver_Volume_T.
 	 const struct Simulation*const sim             ///< \ref Simulation.
 	);
 

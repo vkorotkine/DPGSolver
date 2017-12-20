@@ -55,9 +55,9 @@ struct Error_CE_Helper {
 	const char* header_spec; ///< The header for the file specific to the variables for which the error was computed.
 	struct Vector_d* sol_L2; ///< \ref Error_CE::sol_L2.
 
-	struct Solution_Container* sol_cont; ///< \ref Solution_Container.
+	struct Solution_Container* sol_cont; ///< \ref Solution_Container_T.
 
-	struct Solver_Volume* s_vol[2]; ///< Pointers to the computed and exact \ref Solver_Volume\*s.
+	struct Solver_Volume* s_vol[2]; ///< Pointers to the computed and exact \ref Solver_Volume_T\*s.
 };
 
 /// Container holding information relating to the solution used to compute the error.

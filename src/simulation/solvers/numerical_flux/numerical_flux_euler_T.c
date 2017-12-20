@@ -57,7 +57,7 @@ static Type max_abs_T
 
 // Interface functions ********************************************************************************************** //
 
-/** \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes using the Lax-Friedrichs method.
+/** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes using the Lax-Friedrichs method.
  *  The implementation was copied from that of [Hesthaven et al.'s Nodal DG code][hest_lf].
  *
  *  <!-- References: -->
@@ -333,7 +333,7 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 	free(flux_i);
 }
 
-/** \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes using the Roe-Pike method.
+/** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes using the Roe-Pike method.
  *  The implementation is based off of that explained in (Ch. 11.3, \cite Toro2009). */
 void compute_Numerical_Flux_T_euler_roe_pike
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
@@ -647,7 +647,7 @@ void compute_Numerical_Flux_T_euler_roe_pike
 	}
 }
 
-/** \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes and Jacobians using the Roe-Pike
+/** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes and Jacobians using the Roe-Pike
  *         method.
  *  See comments for \ref compute_Numerical_Flux_euler_roe_pike. */
 void compute_Numerical_Flux_T_euler_roe_pike_jacobian

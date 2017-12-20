@@ -36,7 +36,7 @@ struct Face* constructor_Face_file
 	 const struct Intrusive_List*const volumes         ///< \ref Simulation::volumes.
 	);
 
-/// \brief Constructor for a \ref Solver_Face from a file.
+/// \brief Constructor for a \ref Solver_Face_T from a file.
 void constructor_file_Solver_Face
 	(FILE* file,           ///< The file from which to read the data.
 	 char* line,           ///< The first line of the input for the current face.

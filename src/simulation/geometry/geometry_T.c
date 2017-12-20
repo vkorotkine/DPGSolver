@@ -409,7 +409,7 @@ static void compute_cofactors_T (struct const_Multiarray_R* jacobian, struct Mul
 		}
 		break;
 	} case 3: {
-		EXIT_ADD_SUPPORT; // curl-form. See comments in \ref compute_geometry_volume_T.
+		EXIT_ADD_SUPPORT; // curl-form. See comments in \ref compute_geometry_volume_T_T.
 		break;
 	} default:
 		EXIT_ERROR("Unsupported: %td\n",d);

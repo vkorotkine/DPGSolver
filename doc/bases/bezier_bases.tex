@@ -2,14 +2,33 @@
 
 % To compile the pdf, execute the following in the terminal:
 % $ pdflatex ${file_name}.tex
+% $ bibtex ${file_name}
 % $ sage ${file_name}.sagetex.sage
 % $ pdflatex ${file_name}.tex
 
-\usepackage{hyperref}
 \usepackage{sagetex}
 \setlength{\sagetexindent}{10ex}
 
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=blue,
+    filecolor=black,
+    linkcolor=blue,
+    urlcolor=blue,
+}
+
 \usepackage{amsmath,amsthm,amssymb,mathtools,bm}
+
+\usepackage[margin=1in]{geometry}
+
+
+\numberwithin{equation}{section}
+
+\newlength\tindent
+\setlength{\tindent}{\parindent}
+\setlength{\parindent}{0pt}
+\renewcommand{\indent}{\hspace*{\tindent}}
 
 
 \newcommand{\makered}[1]{{\color{red}#1}}
@@ -40,14 +59,14 @@ type_ref = "regular"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
+The procedure for the derivation of the basis functions is taken directly from Chan et al.~\cite{Chan2016_bez}.
+
 \begin{sagesilent}
 var('r,s,t')
 var('a,b,c')
 var('i,j,k,l')
 assume(i,j,k,l,'integer')
 \end{sagesilent}
-
-\makered{Add reference to Chan2016}
 
 \section{Simplices}
 
@@ -66,10 +85,10 @@ elif (type_ref == "standard"):
 \end{sagesilent}
 
 \[
-\bm{r}_V = \sage{rst_V}
+\bm{r}_V = \sage{rst_V},
 \]
 
-the barycentric coordinates can be found by solving the following linear system:
+the barycentric coordinates can be found by solving the following linear system
 \begin{sagesilent}
 A = matrix(SR,dim+1,dim+1)
 A[0,:] = matrix(1,dim+1,[1]*(dim+1))
@@ -84,14 +103,13 @@ l_rst = A\l_rhs
 
 where
 \[
-\mat{A} = \sage{A}, \vect{b} = \sage{l_rhs}.
+\mat{A} = \sage{A},\ \vect{b} = \sage{l_rhs}.
 \]
 
 The result is
 \[
 \vect{\lambda} = \sage{l_rst}.
 \]
-
 
 
 \begin{sagesilent}
@@ -109,7 +127,7 @@ rst = matrix(SR,dim,1,[s_rst[0][n].rhs() for n in range(0,dim)]).apply_map(lambd
 l_abc = l_rst(r = rst[0][0],s = rst[1][0], t = rst[2][0]).apply_map(lambda x: x.factor())
 \end{sagesilent}
 
-Given the Duffy-type transform mapping the reference coordinates to the $d$-cube
+Given the Duffy-type transform mapping the reference coordinates to the $d$-cube,
 \[
 \vect{a} = \sage{abc},
 \]
@@ -120,13 +138,13 @@ these equations can be solved for the representation of the $rst$ coordinates in
 \end{equation}
 
 with the barycentric coordinates then given by
-\[ \label{eq:bcoords_abc}
+\begin{equation} \label{eq:bcoords_abc}
 \vect{\lambda} = \sage{l_abc}.
-\]
+\end{equation}
 
 The $ijkl^{\text{th}}$ Bezier basis of order $p$ for the simplex is given by
 \[
-B^p_{ijkl} \coloneqq C^p_{ijkl} \lambda_0^i \lambda_1^j \lambda_2^k \lambda_3^l 
+B^p_{ijkl} \coloneqq C^p_{ijkl} \lambda_0^i \lambda_1^j \lambda_2^k \lambda_3^l,
 \]
 
 where $i+j+k+l = p$ and
@@ -136,10 +154,10 @@ C^p_{ijkl}
 =
 \frac{(i+j)!}{i!j!}
 \frac{(i+j+k)!}{(i+j)!k!}
-\frac{(i+j+k+l)!}{(i+j+k)!l!}
+\frac{(i+j+k+l)!}{(i+j+k)!l!}.
 \]
 
-After substitution of the barycentric coordinates in terms of the $abc$ coordinates,~\eqref{eq:bcoords_abc}, we obtain
+After substitution of~\eqref{eq:bcoords_abc}, we obtain
 \begin{sagesilent}
 B_p = (l_abc[0][0]^i*l_abc[1][0]^j*l_abc[2][0]^k*l_abc[3][0]^l).factor()
 
@@ -159,7 +177,7 @@ Noting the definition of the $i$th 1D Bezier basis function of degree $p$,
 B^p_i(a) = \frac{p!}{i!(p-i)!} (\sage{l_a[0][0]})^{p-i} (\sage{l_a[1][0]})^{i},
 \end{equation}
 
-it is then possible to represent the simplex basis using a tensor-product of 1D Bezier basis functions:
+it is then possible to represent the simplex basis using a tensor-product of 1D Bezier basis functions as
 \[
 B^p_{i,j,k,l}(a,b,c) = B^{i+j}_j(a) B^{i+j+k}_k(b) B^{i+j+k+l}_l(c).
 \]
@@ -196,24 +214,24 @@ and after substituting~\eqref{eq:abc_to_rst}, by
 It is important to note that these Jacobian terms are singular at degenerate points of the mapping and that the basis
 gradients must be defined accordingly. Observing that the singular component will always affect the first term
 in~\eqref{eq:bezier_1d}, we note that
-\begin{equation}
-\frac{p!}{i!(p-i)!} (\sage{l_a[0][0]})^{p-i-1} (\sage{l_a[1][0]})^{i} = \frac{p}{p-i} B^{p-1}_i(a).
-\end{equation}
+\begin{equation*}
+\frac{p!}{i!(p-i)!} (\sage{l_a[0][0]})^{p-i-1} (\sage{l_a[1][0]})^{i} = \frac{p}{p-i} B^{p-1}_i(a),
+\end{equation*}
 
-The gradients of $B^p_{i,j,k,l}(a,b,c)$ with respect to the $rst$ coordinates are then given by
+which is used in defining the gradients of $B^p_{i,j,k,l}(a,b,c)$ with respect to the $rst$ coordinates as
 %B^p_{i,j,k,l}(a,b,c) = B^{i+j}_j(a) B^{i+j+k}_k(b) B^{i+j+k+l}_l(c).
 \begin{align*}
 \frac{\partial B^p_{i,j,k,l}(a,b,c)}{\partial r}
 & = \left(\sage{da_dr_con[0][0]}\right)\left(\frac{i+j+k+l}{i+j}\right) \frac{d B^{i+j}_j(a)}{da} B^{i+j+k-1}_k(b) B^{i+j+k+l-1}_l(c) \\
 & + \left(\sage{da_dr_con[1][0]}\right)\left(\frac{i+j+k+l}{i+j+k}\right) B^{i+j}_j(a) \frac{d B^{i+j+k}_k(b)}{db} B^{i+j+k+l-1}_l(c) \\
-& + \left(\sage{da_dr_con[2][0]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc}.
+& + \left(\sage{da_dr_con[2][0]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc},
 \end{align*}
 
 \begin{align*}
 \frac{\partial B^p_{i,j,k,l}(a,b,c)}{\partial s}
 & = \left(\sage{da_dr_con[0][1]}\right)\left(\frac{i+j+k+l}{i+j}\right) \frac{d B^{i+j}_j(a)}{da} B^{i+j+k-1}_k(b) B^{i+j+k+l-1}_l(c) \\
 & + \left(\sage{da_dr_con[1][1]}\right)\left(\frac{i+j+k+l}{i+j+k}\right) B^{i+j}_j(a) \frac{d B^{i+j+k}_k(b)}{db} B^{i+j+k+l-1}_l(c) \\
-& + \left(\sage{da_dr_con[2][1]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc}.
+& + \left(\sage{da_dr_con[2][1]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc},
 \end{align*}
 
 \begin{align*}
@@ -222,5 +240,12 @@ The gradients of $B^p_{i,j,k,l}(a,b,c)$ with respect to the $rst$ coordinates ar
 & + \left(\sage{da_dr_con[1][2]}\right)\left(\frac{i+j+k+l}{i+j+k}\right) B^{i+j}_j(a) \frac{d B^{i+j+k}_k(b)}{db} B^{i+j+k+l-1}_l(c) \\
 & + \left(\sage{da_dr_con[2][2]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc}.
 \end{align*}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section*{References}
+
+\bibliographystyle{elsarticle-num}
+\bibliography{../code.bib}
 
 \end{document}

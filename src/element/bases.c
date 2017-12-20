@@ -624,7 +624,14 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier
 	const double*const a = get_col_const_Matrix_d(0,abc),
 	            *const b = get_col_const_Matrix_d(1,abc);
 
-/// \todo Add comments about procedure here. Return constants from a function?
+	/** \note Application of the chain-rule to the transformation from the reference to Duffy-type coordinates
+	 *        results in singular terms which cancel with terms from the Bezier basis in a manner which is not
+	 *        completely intuitive. Please consult [bezier_bases.pdf] for details of the derivation of the
+	 *        gradient expressions below.
+	 *
+	 *  <!-- References: -->
+	 *  [bezier_bases.pdf]: bases/bezier_bases.pdf
+	 */
 	if (d == 2) {
 		for (int i = 0, i_max = p_b;     i <= i_max; i++) {
 		for (int j = 0, j_max = p_b-i;   j <= j_max; j++) {
@@ -634,6 +641,7 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier
 
 			for (int dim = 0; dim < d; ++dim) {
 			for (int n = 0; n < n_n; ++n) {
+/// \todo Return constants from a function.
 				const double da_scale[] = { ( i+j > 0 ? (p_b)/((double)(i+j))*1.0            : 0.0),
 				                            ( i+j > 0 ? (p_b)/((double)(i+j))*SQRT3/3.0*a[n] : 0.0), };
 				const double db_scale[] = { 0.0,

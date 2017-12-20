@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name The maximum number of outputs from the flux functions.
-#define MAX_FLUX_OUT 6 ///< See the members of \ref Flux.
+#define MAX_FLUX_OUT 6 ///< See the members of \ref Flux_T.
 ///\}
 
 #include "def_templates_type_d.h"

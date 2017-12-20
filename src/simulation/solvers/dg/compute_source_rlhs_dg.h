@@ -27,7 +27,7 @@ struct Simulation;
  *  \warning Should not be used for non-linear sources.
  *
  *  Updates:
- *  - \ref DG_Solver_Volume::rhs.
+ *  - \ref DG_Solver_Volume_T::rhs.
  */
 void compute_source_rhs_dg
 	(const struct Simulation* sim ///< \ref Simulation.

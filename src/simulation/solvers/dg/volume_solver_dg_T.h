@@ -13,14 +13,14 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the interface for the templated \ref DG_Solver_Volume container and associated functions.
+ *  \brief Provides the interface for the templated \ref DG_Solver_Volume_T container and associated functions.
  *
  *  These volumes are needed by the 'D'iscontinuous 'G'alerkin solver functions.
  */
 
 /// \brief Container for data relating to the DG solver volumes.
 struct DG_Solver_Volume_T {
-	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume.
+	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume_T.
 
 	struct Multiarray_T* sol_coef_p; ///< The coefficients of the solution at a previous Runge-Kutta stage.
 	struct Multiarray_T* rhs;        ///< The rhs terms.
@@ -32,13 +32,13 @@ struct DG_Solver_Volume_T {
 	struct Multiarray_T* grad_coef_v; ///< The volume contribution to the solution gradient coefficients.
 };
 
-/// \brief Constructor for a derived \ref DG_Solver_Volume.
+/// \brief Constructor for a derived \ref DG_Solver_Volume_T.
 void constructor_derived_DG_Solver_Volume_T
 	(struct Volume* volume_ptr,   ///< Pointer to the volume.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destructor for a derived \ref DG_Solver_Volume.
+/// \brief Destructor for a derived \ref DG_Solver_Volume_T.
 void destructor_derived_DG_Solver_Volume_T
 	(struct Volume* volume_ptr ///< Pointer to the volume.
 	);

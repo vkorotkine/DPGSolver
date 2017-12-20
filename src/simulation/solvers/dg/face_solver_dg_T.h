@@ -13,14 +13,14 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the interface for the templated \ref DG_Solver_Face container and associated functions.
+ *  \brief Provides the interface for the templated \ref DG_Solver_Face_T container and associated functions.
  *
  *  These faces are needed by the 'D'iscontinuous 'G'alerkin solver functions.
  */
 
 /// \brief Container for data relating to the DG solver faces.
 struct DG_Solver_Face_T {
-	struct Solver_Face_T face; ///< The base \ref Solver_Face.
+	struct Solver_Face_T face; ///< The base \ref Solver_Face_T.
 
 	// Members required for 2nd order PDE terms.
 
@@ -28,13 +28,13 @@ struct DG_Solver_Face_T {
 	struct Multiarray_T* grad_coef_f[2];
 };
 
-/// \brief Constructor for a derived \ref DG_Solver_Face.
+/// \brief Constructor for a derived \ref DG_Solver_Face_T.
 void constructor_derived_DG_Solver_Face_T
 	(struct Face* face_ptr,       ///< Pointer to the face.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destructor for a derived \ref DG_Solver_Face.
+/// \brief Destructor for a derived \ref DG_Solver_Face_T.
 void destructor_derived_DG_Solver_Face_T
 	(struct Face* face_ptr ///< Pointer to the face.
 	);

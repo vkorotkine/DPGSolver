@@ -95,7 +95,7 @@ void set_initial_solution_T
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Function pointer to be used for \ref Test_Case::set_sol or \ref Test_Case::set_grad when this solution is not
+/** \brief Function pointer to be used for \ref Test_Case_T::set_sol or \ref Test_Case_T::set_grad when this solution is not
  *         required. */
 void set_sg_do_nothing_T
 	(const struct Simulation* sim,      ///< Defined for \ref set_sol_fptr_T.
@@ -125,7 +125,7 @@ struct Multiarray_T* constructor_sol_v_T
 	 const char node_kind          ///< The kind of node. Options: 's'olution, 'c'ubature.
 	);
 
-/// \brief Function pointer to be used for \ref Test_Case::compute_source_rhs when there is no source term.
+/// \brief Function pointer to be used for \ref Test_Case_T::compute_source_rhs when there is no source term.
 void compute_source_rhs_do_nothing_T
 	(const struct Simulation* sim,      ///< See brief.
 	 const struct Solver_Volume_T* s_vol, ///< See brief.

@@ -77,11 +77,11 @@ static void compute_rhs_cmplx_step_dg
 
 /// \brief Set a column of the lhs matrix using the values of the complex rhs for the dg scheme.
 static void set_col_lhs_cmplx_step_dg
-	(const int col_l,                      ///< The local (to the volume solution dof) column index.
-	 const struct Solver_Volume_c* s_vol_c,  /**< The \ref Solver_Volume_c associated with the current column of the
-	                                        *   matrix. */
-	 struct Intrusive_List* volumes_local, ///< Return of \ref constructor_Volumes_local.
-	 struct Solver_Storage_Implicit* ssi   ///< \ref Solver_Storage_Implicit.
+	(const int col_l,                       ///< The local (to the volume solution dof) column index.
+	 const struct Solver_Volume_c* s_vol_c, /**< The \ref Solver_Volume_T associated with the current column of the
+	                                         *   matrix. */
+	 struct Intrusive_List* volumes_local,  ///< Return of \ref constructor_Volumes_local.
+	 struct Solver_Storage_Implicit* ssi    ///< \ref Solver_Storage_Implicit.
 	);
 
 // Interface functions ********************************************************************************************** //

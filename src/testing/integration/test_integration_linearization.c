@@ -120,7 +120,7 @@ struct F_Ptrs_and_Data {
 	/// `derived_name` from \ref constructor_derived_Elements for the method under consideration.
 	const int derived_elem_method;
 
-	/// `derived_category` from \ref constructor_derived_computational_elements for the method under consideration.
+	/// `derived_category` from \ref constructor_derived_computational_elements_T for the method under consideration.
 	const int derived_comp_elem_method;
 
 	compute_grad_coef_fptr compute_grad_coef;  ///< Solution gradient coefficients and related terms.

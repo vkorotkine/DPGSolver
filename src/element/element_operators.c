@@ -135,7 +135,7 @@ static void transpose_operators
 /** \brief Return the names of the basis types to use for the constructor in \ref constructor_operators_bt.
  *  \return See brief. */
 static const int* get_basis_types
-	(const char* name_type,       ///< \ref Defined for \ref constructor_operators_bt.
+	(const char* name_type,       ///< Defined for \ref constructor_operators_bt.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 

@@ -58,7 +58,7 @@ static double compute_domain_volume
 static void increment_vol_errors_l2_2
 	(struct Vector_d* errors_l2_2,           ///< Holds the global squared l2 errors.
 	 const struct const_Multiarray_d* err_v, ///< Holds the error values for the current volume.
-	 const struct Solver_Volume* s_vol       ///< Current \ref Solver_Volume.
+	 const struct Solver_Volume* s_vol       ///< Current \ref Solver_Volume_T.
 	);
 
 /// \brief Output the errors to the 's'erial/'p'arallel file.
@@ -74,19 +74,19 @@ static void output_errors_global
 	 const struct Simulation* sim     ///< \ref Simulation.
 	);
 
-/** \brief Constructor for a derived \ref Solver_Volume used to compute the exact solution.
+/** \brief Constructor for a derived \ref Solver_Volume_T used to compute the exact solution.
  *  \return See brief. */
 static struct Solver_Volume* constructor_Solver_Volume_exact ();
 
-/// \brief Destructor for a derived \ref Solver_Volume used to compute the exact solution.
+/// \brief Destructor for a derived \ref Solver_Volume_T used to compute the exact solution.
 static void destructor_Solver_Volume_exact
 	(struct Solver_Volume* s_vol_ex ///< Standard.
 	);
 
-/// \brief Set the relevant members of a duplicate \ref Solver_Volume used to compute the exact solution.
+/// \brief Set the relevant members of a duplicate \ref Solver_Volume_T used to compute the exact solution.
 static void set_Solver_Volume_exact
-	(struct Solver_Volume* s_vol_ex, ///< The partially duplicated \ref Solver_Volume.
-	 struct Solver_Volume* s_vol     ///< The \ref Solver_Volume.
+	(struct Solver_Volume* s_vol_ex, ///< The partially duplicated \ref Solver_Volume_T.
+	 struct Solver_Volume* s_vol     ///< The \ref Solver_Volume_T.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -235,16 +235,16 @@ void correct_file_name_ml_p (const int ml, const int p, char*const file_name)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Compute the volume of the input \ref Solver_Volume.
+/** \brief Compute the volume of the input \ref Solver_Volume_T.
  *  \return See brief. */
 static double compute_volume
-	(const struct Solver_Volume* s_vol ///< \ref Solver_Volume.
+	(const struct Solver_Volume* s_vol ///< \ref Solver_Volume_T.
 	);
 
 /** \brief Constructor for a \ref const_Vector_T\* holding the cubature weights multiplied by the Jacobian determinants.
  *  \return See brief. */
 static const struct const_Vector_d* constructor_w_detJ
-	(const struct Solver_Volume* s_vol ///< \ref Solver_Volume.
+	(const struct Solver_Volume* s_vol ///< \ref Solver_Volume_T.
 	);
 
 static void destructor_Error_CE (struct Error_CE* error_ce)

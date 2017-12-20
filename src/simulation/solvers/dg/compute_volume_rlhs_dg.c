@@ -36,7 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Version of \ref compute_rlhs_dg_fptr computing the rhs and lhs terms for 1st order equations only.
+/// \brief Version of \ref compute_rlhs_dg_fptr_T computing the rhs and lhs terms for 1st order equations only.
 static void compute_rlhs_1
 	(const struct Flux_Ref* flux_r,       ///< See brief.
 	 struct DG_Solver_Volume* dg_s_vol,   ///< See brief.

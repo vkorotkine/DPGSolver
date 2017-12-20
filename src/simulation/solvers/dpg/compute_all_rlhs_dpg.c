@@ -79,8 +79,8 @@ static void add_to_dL_ds__norm
  *         coefficients. */
 static void add_to_dL_ds__face_boundary
 	(struct Matrix_d*const dL_ds,               ///< Defined for \ref add_to_dL_ds__norm.
-	 const struct DPG_Solver_Volume* dpg_s_vol, ///< Defined for \ref add_to_rlhs__face_boundary_T.
-	 const struct Simulation* sim,              ///< Defined for \ref add_to_rlhs__face_boundary_T.
+	 const struct DPG_Solver_Volume* dpg_s_vol, ///< Defined for \ref add_to_rlhs__face_boundary.
+	 const struct Simulation* sim,              ///< Defined for \ref add_to_rlhs__face_boundary.
 	 const char lin_method                      ///< Linearization method. Options: 'a'nalytical, 'c'omplex step.
 	);
 
@@ -225,16 +225,23 @@ static void add_to_dL_ds__face_boundary
 
 /** \brief Constructor for a list of volumes including only a copy of the current volume.
  *  \return See brief. */
-struct Intrusive_List* constructor_Volumes_dpg_local
-	(const struct DPG_Solver_Volume*const dpg_s_vol, ///< The current \ref DPG_Solver_Volume.
+static struct Intrusive_List* constructor_Volumes_dpg_local
+	(const struct DPG_Solver_Volume*const dpg_s_vol, ///< The current \ref DPG_Solver_Volume_T.
 	 struct Simulation*const sim                     ///< The complex \ref Simulation.
 	);
 
 /** \brief Constructor for a list of faces including only copies of boundary faces neighbouring the current volume.
  *  \return See brief. */
-struct Intrusive_List* constructor_Faces_dpg_local
-	(const struct DPG_Solver_Volume*const dpg_s_vol, ///< The current \ref DPG_Solver_Volume.
+static struct Intrusive_List* constructor_Faces_dpg_local
+	(const struct DPG_Solver_Volume*const dpg_s_vol, ///< The current \ref DPG_Solver_Volume_T.
 	 struct Simulation*const sim                     ///< The complex \ref Simulation.
+	);
+
+/** \brief Copy members of real to complex computational elements of the current type as determined by the name of the
+ *         \ref Simulation::volumes list. */
+static void copy_members_computational_elements_dpg
+	(const struct DPG_Solver_Volume*const dpg_s_vol, ///< The current \ref DPG_Solver_Volume_T.
+	 const struct Simulation*const sim               ///< The complex \ref Simulation.
 	);
 
 const struct Operator* get_operator__cvcv0_vs_vc (const struct DPG_Solver_Volume* dpg_s_vol)
@@ -264,7 +271,7 @@ static void add_to_dL_ds__face_boundary_cmplx_step
 	sim_c->faces   = constructor_Faces_dpg_local(dpg_s_vol,sim_c);
 
 	constructor_derived_computational_elements_c(sim_c,IL_SOLVER);
-	copy_data_computational_elements_dpg(dpg_s_vol,sim_c);
+	copy_members_computational_elements_dpg(dpg_s_vol,sim_c);
 
 	constructor_derived_computational_elements_c(sim_c,IL_SOLVER_DPG);
 
@@ -303,7 +310,7 @@ EXIT_UNSUPPORTED;
 
 // Level 2 ********************************************************************************************************** //
 
-struct Intrusive_List* constructor_Volumes_dpg_local
+static struct Intrusive_List* constructor_Volumes_dpg_local
 	(const struct DPG_Solver_Volume*const dpg_s_vol, struct Simulation*const sim)
 {
 	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME,NULL); // returned
@@ -314,7 +321,7 @@ struct Intrusive_List* constructor_Volumes_dpg_local
 	return volumes;
 }
 
-struct Intrusive_List* constructor_Faces_dpg_local
+static struct Intrusive_List* constructor_Faces_dpg_local
 	(const struct DPG_Solver_Volume*const dpg_s_vol, struct Simulation*const sim)
 {
 	struct Intrusive_List* faces = constructor_empty_IL(IL_FACE,NULL); // returned
@@ -345,16 +352,16 @@ struct Intrusive_List* constructor_Faces_dpg_local
 	return faces;
 }
 
-static void copy_members_computation_elements_dpg
+static void copy_members_computational_elements_dpg
 	(const struct DPG_Solver_Volume*const dpg_s_vol, const struct Simulation*const sim)
 {
 	int category = -1;
 	if (sim->volumes->name == IL_VOLUME_SOLVER) {
 		assert(sim->faces->name == IL_FACE_SOLVER);
-		category = IL_SOLVER:
+		category = IL_SOLVER;
 	} else if (sim->volumes->name == IL_VOLUME_SOLVER_DPG) {
 		assert(sim->faces->name == IL_FACE_SOLVER_DPG);
-		category = IL_SOLVER_DPG:
+		category = IL_SOLVER_DPG;
 	} else {
 		EXIT_ERROR("Unsupported: %d\n",sim->volumes->name);
 	}

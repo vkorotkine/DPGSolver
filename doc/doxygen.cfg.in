@@ -113,6 +113,7 @@ RECURSIVE              = YES
 EXCLUDE                = @PROJECT_SOURCE_DIR@/README.md
 EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */build/* \
+                         */build_*/* \
                          */deprecated/* \
                          */external/*
 EXCLUDE_SYMBOLS        =
@@ -155,7 +156,7 @@ HTML_HEADER            =
 HTML_FOOTER            =
 HTML_STYLESHEET        =
 HTML_EXTRA_STYLESHEET  =
-HTML_EXTRA_FILES       =
+HTML_EXTRA_FILES       = 
 HTML_COLORSTYLE_HUE    = 240
 HTML_COLORSTYLE_SAT    = 255
 HTML_COLORSTYLE_GAMMA  = 40

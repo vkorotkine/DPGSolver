@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the \ref Solver_Volume
+ *  \brief Provides the macro definitions used for c-style templating related to the \ref Solver_Volume_T
  *         containers/functions.
  */
 

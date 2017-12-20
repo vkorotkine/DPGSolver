@@ -98,7 +98,7 @@ void petsc_mat_vec_assemble
 	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
 	);
 
-/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom of all of the \ref Solver_Volume::sol_coef's.
+/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom of all of the \ref Solver_Volume_T::sol_coef's.
  *  \return See brief. */
 ptrdiff_t compute_dof_sol_1st
 	(const struct Simulation* sim ///< \ref Simulation.

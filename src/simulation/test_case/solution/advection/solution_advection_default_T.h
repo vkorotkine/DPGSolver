@@ -24,18 +24,18 @@ struct const_Multiarray_R;
 
 /// \brief Function to be used for \ref Test_Case_T::set_sol for the default linear advection solution.
 void set_sol_advection_default_T
-	(const struct Simulation* sim,        ///< Defined for \ref set_sol_fptr.
-	 struct Solution_Container_T sol_cont ///< Defined for \ref set_sol_fptr.
+	(const struct Simulation* sim,        ///< Defined for \ref set_sol_fptr_T.
+	 struct Solution_Container_T sol_cont ///< Defined for \ref set_sol_fptr_T.
 	);
 
 /** \brief Function to be used for \ref Test_Case_T::constructor_sol for the default linear advection solution.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_sol_advection_default_T
-	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr.
-	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr.
+	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
 
-/// \brief Version of \ref compute_source_rhs_fptr for the default linear advection solution.
+/// \brief Version of \ref compute_source_rhs_fptr_T for the default linear advection solution.
 void compute_source_rhs_advection_default_T
 	(const struct Simulation* sim,        ///< See brief.
 	 const struct Solver_Volume_T* s_vol, ///< See brief.

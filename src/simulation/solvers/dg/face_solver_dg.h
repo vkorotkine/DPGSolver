@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__face_solver_dg_h__INCLUDED
 #define DPG__face_solver_dg_h__INCLUDED
 /** \file
- *  \brief Provides the interface for the real \ref DG_Solver_Face container and associated functions.
+ *  \brief Provides the interface for the real \ref DG_Solver_Face_T container and associated functions.
  *
  *  These faces are needed by the 'D'iscontinuous 'G'alerkin solver functions.
  */

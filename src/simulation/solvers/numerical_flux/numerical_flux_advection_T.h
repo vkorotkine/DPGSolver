@@ -19,13 +19,13 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Numerical_Flux_Input_T;
 struct mutable_Numerical_Flux_T;
 
-/// \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes as the upwind values.
+/// \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes as the upwind values.
 void compute_Numerical_Flux_T_advection_upwind
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
 	);
 
-/** \brief Version of \ref compute_Numerical_Flux_fptr computing the numerical fluxes and Jacobians as the upwind
+/** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes and Jacobians as the upwind
  *         values. */
 void compute_Numerical_Flux_T_advection_upwind_jacobian
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.

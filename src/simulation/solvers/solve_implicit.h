@@ -33,7 +33,7 @@ void solve_implicit
 	);
 
 /** \brief Check whether the matrix under consideration is symmetric based on \ref Simulation::method and
- *         \ref Test_Case::pde_index.
+ *         \ref Test_Case_T::pde_index.
  *  \return `true` if symmetric; `false` otherwise. */
 bool check_symmetric
 	(const struct Simulation* sim ///< \ref Simulation.

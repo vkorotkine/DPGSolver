@@ -13,25 +13,25 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the interface for the templated \ref DPG_Solver_Volume container and associated functions.
+ *  \brief Provides the interface for the templated \ref DPG_Solver_Volume_T container and associated functions.
  *
  *  These volumes are needed by the 'D'iscontinuous 'P'etrov 'G'alerkin solver functions.
  */
 
 /// \brief Container for data relating to the DPG solver volumes.
 struct DPG_Solver_Volume_T {
-	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume.
+	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume_T.
 
 	const struct const_Matrix_R* norm_op_H0; ///< The H0 (L2) norm operator.
 };
 
-/// \brief Constructor for a derived \ref DPG_Solver_Volume.
+/// \brief Constructor for a derived \ref DPG_Solver_Volume_T.
 void constructor_derived_DPG_Solver_Volume_T
 	(struct Volume* volume_ptr,   ///< Pointer to the volume.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destructor for a derived \ref DPG_Solver_Volume.
+/// \brief Destructor for a derived \ref DPG_Solver_Volume_T.
 void destructor_derived_DPG_Solver_Volume_T
 	(struct Volume* volume_ptr ///< Pointer to the volume.
 	);

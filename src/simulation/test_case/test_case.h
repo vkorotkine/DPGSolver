@@ -45,7 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  This container is provided so that \ref Simulation does not need to be templated.
  */
 struct Test_Case_rc {
-	const bool is_real; ///< Flag for whether \ref Test_Case_rc::test_case is real (as opposed to complex).
+	const bool is_real; ///< Flag for whether \ref Test_Case_rc::tc is real (as opposed to complex).
 
 	void* tc; ///< Pointer to the \ref Test_Case_T.
 };

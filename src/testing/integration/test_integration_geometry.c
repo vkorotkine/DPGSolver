@@ -41,7 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Compare \ref Solver_Volume::geom_coef and \todo [ref here] Face::normal_f_i finite members with their expected values.
+/** \brief Compare \ref Solver_Volume_T::geom_coef and \todo [ref here] Face::normal_f_i finite members with their expected values.
  *  \return `true` if tests passed. */
 static bool compare_members_geom
 	(struct Test_Info*const test_info, ///< \ref Test_Info.
@@ -54,7 +54,7 @@ static bool compare_members_geom
  *  \return 0 on success.
  *
  *  Compares the following members with their expected values:
- *  - \ref Solver_Face::normals_fc.
+ *  - \ref Solver_Face_T::normals_fc.
  */
 int main
 	(int nargc,  ///< Standard.

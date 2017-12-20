@@ -198,7 +198,7 @@ void const_constructor_copy_Multiarray_T
 	 const struct const_Multiarray_T*const src    ///< Source.
 	);
 #if TYPE_RC == TYPE_COMPLEX
-/** \brief Copy constructor for a \ref Multiarray_T\* from a \ref Multiarray_R\*.
+/** \brief Copy constructor for a \ref Multiarray_T\* from a real \ref Multiarray_T\*.
  *  \return Standard. */
 struct Multiarray_T* constructor_copy_Multiarray_T_Multiarray_R
 	(struct Multiarray_R* src ///< Source.

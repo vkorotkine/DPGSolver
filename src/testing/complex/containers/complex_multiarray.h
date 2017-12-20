@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__complex_multiarray_h__INCLUDED
 #define DPG__complex_multiarray_h__INCLUDED
 /** \file
- *  \brief Provides \ref Multiarray_c related functions for complex variables.
+ *  \brief Provides \ref Multiarray_T related functions for complex variables.
  *
  *  See \ref multiarray.h and \ref complex_multiarray.h for potentially relevant comments.
  */

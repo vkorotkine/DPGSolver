@@ -26,6 +26,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "geometry.h"
 #include "simulation.h"
 
+#include "test_complex_volume_solver.h"
+#include "complex_multiarray.h"
+
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
@@ -36,13 +39,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void copy_members_r_to_c_Solver_Volume(struct Solver_Volume_c*const s_vol, const struct Solver_Volume*const s_vol_r)
+void copy_members_r_to_c_Solver_Volume (struct Solver_Volume_c*const s_vol, const struct Solver_Volume*const s_vol_r)
 {
 	const_cast_ptrdiff(&s_vol->ind_dof,s_vol_r->ind_dof);
 	const_cast_i(&s_vol->p_ref,s_vol_r->p_ref);
 	const_cast_i(&s_vol->ml,s_vol_r->ml);
 	const_constructor_move_const_Multiarray_d
-		(&s_vol->geom_coef,constructor_copy_Multiarray_d(s_vol_r->geom_coef)); // destructed
+		(&s_vol->geom_coef,constructor_copy_const_Multiarray_d(s_vol_r->geom_coef)); // destructed
 
 	s_vol->sol_coef  = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->sol_coef);  // destructed
 	s_vol->grad_coef = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->grad_coef); // destructed

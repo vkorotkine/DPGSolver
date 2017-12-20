@@ -47,6 +47,8 @@ cmake/include/*
 *.sage.py
 *.scmd
 *.sout
+*.bbl
+*.blg
 
 build/*
 build_1D/*

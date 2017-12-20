@@ -5,7 +5,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
-	 Solver_DG
+	 Solvers
 	)
 
 set (LIB Boundary)

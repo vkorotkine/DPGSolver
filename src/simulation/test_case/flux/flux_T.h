@@ -51,11 +51,11 @@ struct Flux_Input_T {
 	 */
 	const bool* compute_member;
 
-	const int n_eq,  ///< \ref Test_Case::n_eq.
-	          n_var; ///< \ref Test_Case::n_var.
+	const int n_eq,  ///< \ref Test_Case_T::n_eq.
+	          n_var; ///< \ref Test_Case_T::n_var.
 
-	const bool has_1st_order, ///< \ref Test_Case::has_1st_order.
-	           has_2nd_order; ///< \ref Test_Case::has_2nd_order.
+	const bool has_1st_order, ///< \ref Test_Case_T::has_1st_order.
+	           has_2nd_order; ///< \ref Test_Case_T::has_2nd_order.
 
 	const struct const_Multiarray_T* s;   ///< The solution variables.
 	const struct const_Multiarray_T* g;   ///< The solution gradient variables.

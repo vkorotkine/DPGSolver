@@ -25,9 +25,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- cc(i)(o)(t): coefficients to coefficients
  *  	- vv(t):       values       to values
  *  	- vc(t):       values       to coefficients
- *
  *  	- tw: 't'est basis solver operator with 'w'eights.
- *    - cvcv: 3-tensor of standard cv operator multiplied by each column of the same cv operator.
+ *  	- cvcv: 3-tensor of standard cv operator multiplied by each column of the same cv operator.
  *  (t): Optional 't'ranspose.
  *  (i): Optional 'i'nput basis. Options: 'S'olution, 'B'ezier.
  *  (o): Optional 'o'output basis. Options: 'S'olution, 'B'ezier.

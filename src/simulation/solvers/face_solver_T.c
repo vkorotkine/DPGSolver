@@ -40,7 +40,7 @@ static bool check_for_curved_neigh
 /** \brief Set the function pointers to the appropriate functions to compute values needed for the numerical flux
  *         computation. */
 static void set_function_pointers_num_flux_T
-	(struct Solver_Face_T* s_face,  ///< Pointer to the \ref Solver_Face.
+	(struct Solver_Face_T* s_face,  ///< Pointer to the \ref Solver_Face_T.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
@@ -84,8 +84,8 @@ void destructor_derived_Solver_Face_T (struct Face* face_ptr)
 /** \brief Set the function pointers to the appropriate functions to compute boundary values needed for the numerical
  *         flux computation. */
 static void set_function_pointers_num_flux_bc_T
-	(struct Solver_Face_T* s_face,  ///< Defined for \ref set_function_pointers_num_flux.
-	 const struct Simulation* sim ///< Defined for \ref set_function_pointers_num_flux.
+	(struct Solver_Face_T* s_face,  ///< Defined for \ref set_function_pointers_num_flux_T.
+	 const struct Simulation* sim ///< Defined for \ref set_function_pointers_num_flux_T.
 	);
 
 static bool check_for_curved_neigh (struct Face* face)
@@ -122,12 +122,12 @@ static void set_function_pointers_num_flux_T (struct Solver_Face_T* s_face, cons
 
 // Level 1 ********************************************************************************************************** //
 
-/// \brief Version of \ref set_function_pointers_num_flux_bc for the linear advection equation.
+/// \brief Version of \ref set_function_pointers_num_flux_bc_T for the linear advection equation.
 static void set_function_pointers_num_flux_bc_advection_T
 	(struct Solver_Face_T* s_face ///< See brief.
 	);
 
-/// \brief Version of \ref set_function_pointers_num_flux_bc for the Euler equations.
+/// \brief Version of \ref set_function_pointers_num_flux_bc_T for the Euler equations.
 static void set_function_pointers_num_flux_bc_euler_T
 	(struct Solver_Face_T* s_face ///< See brief.
 	);

@@ -84,7 +84,7 @@ static void set_xy_c
 	(double* x_c,                         ///< The x-coordinate of the vortex centre.
 	 double* y_c,                         ///< The y-coordinate of the vortex centre.
 	 const struct Sol_Data__pv* sol_data, ///< \ref Sol_Data__pv.
-	 const double time                    ///< \ref Test_Case::time.
+	 const double time                    ///< \ref Test_Case_T::time.
 	);
 
 static struct Multiarray_T* constructor_sol_periodic_vortex_T

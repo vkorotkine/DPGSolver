@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Flux_Input_T;
 struct mutable_Flux_T;
 
-/** \brief Version of \ref compute_Flux_fptr computing the fluxes for the Euler equations.
+/** \brief Version of \ref compute_Flux_fptr_T computing the fluxes for the Euler equations.
  *
  *  The definitions of the Fluxes, Jacobians, and Hessians can be found in:
  *  - Fluxes:    \ref compute_Flux_euler_0;

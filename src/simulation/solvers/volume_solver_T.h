@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the interface for the templated \ref Solver_Volume container and associated functions.
+ *  \brief Provides the interface for the templated \ref Solver_Volume_T container and associated functions.
  */
 
 #include <stddef.h>
@@ -61,13 +61,13 @@ struct Solver_Volume_T {
 	const struct const_Multiarray_R*const jacobian_det_vc;
 };
 
-/// \brief Constructor for a derived \ref Solver_Volume.
+/// \brief Constructor for a derived \ref Solver_Volume_T.
 void constructor_derived_Solver_Volume_T
 	(struct Volume* volume_ptr,   ///< Pointer to the volume.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destructor for a derived \ref Solver_Volume.
+/// \brief Destructor for a derived \ref Solver_Volume_T.
 void destructor_derived_Solver_Volume_T
 	(struct Volume* volume_ptr ///< Pointer to the volume.
 	);

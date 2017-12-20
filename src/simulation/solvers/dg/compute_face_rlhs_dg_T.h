@@ -48,11 +48,7 @@ struct Simulation;
 struct Solver_Storage_Implicit;
 struct Intrusive_List;
 
-/** \brief Compute the face contributions to the rhs (and optionally lhs) terms for the DG scheme.
- *
- *  \todo update this list when complete.
- *  Computes:
- */
+/// \brief Compute the face contributions to the rhs (and optionally lhs) terms for the DG scheme.
 void compute_face_rlhs_dg_T
 	(const struct Simulation* sim,        ///< \ref Simulation.
 	 struct Solver_Storage_Implicit* ssi, ///< \ref Solver_Storage_Implicit.

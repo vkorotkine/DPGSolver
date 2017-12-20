@@ -21,15 +21,15 @@ struct const_Multiarray_R;
 struct Simulation;
 struct Solution_Container_T;
 
-/// \brief Function to be used for \ref Test_Case::set_sol for the peterson test case.
+/// \brief Function to be used for \ref Test_Case_T::set_sol for the peterson test case.
 void set_sol_peterson_T
-	(const struct Simulation* sim,        ///< Defined for \ref set_sol_fptr.
-	 struct Solution_Container_T sol_cont ///< Defined for \ref set_sol_fptr.
+	(const struct Simulation* sim,        ///< Defined for \ref set_sol_fptr_T.
+	 struct Solution_Container_T sol_cont ///< Defined for \ref set_sol_fptr_T.
 	);
 
-/** \brief Function to be used for \ref Test_Case::constructor_sol for the peterson test case.
+/** \brief Function to be used for \ref Test_Case_T::constructor_sol for the peterson test case.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_sol_peterson_T
-	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr.
-	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr.
+	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);

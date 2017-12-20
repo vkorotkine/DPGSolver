@@ -93,22 +93,22 @@ static void update_hp_members_faces
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Update geometry for \ref Solver_Volume\*s.
+/// \brief Update geometry for \ref Solver_Volume_T\*s.
 static void update_geometry_volumes
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Update geometry for \ref Solver_Face\*s.
+/// \brief Update geometry for \ref Solver_Face_T\*s.
 static void update_geometry_faces
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Project the solution for \ref Solver_Volume\*s.
+/// \brief Project the solution for \ref Solver_Volume_T\*s.
 static void project_solution_volumes
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Project the solution for \ref Solver_Face\*s.
+/// \brief Project the solution for \ref Solver_Face_T\*s.
 static void project_solution_faces
 	(struct Simulation* sim ///< \ref Simulation.
 	);
@@ -144,13 +144,13 @@ static void adapt_hp_faces (struct Simulation* sim)
 
 // Level 1 ********************************************************************************************************** //
 
-/// \brief Update \ref Solver_Volume::p_ref.
+/// \brief Update \ref Solver_Volume_T::p_ref.
 static void update_volume_p_ref
 	(struct Adaptive_Solver_Volume* a_s_vol, ///< \ref Adaptive_Solver_Volume.
 	 const struct Simulation* sim            ///< \ref Simulation.
 	);
 
-/// \brief Update \ref Solver_Face::p_ref.
+/// \brief Update \ref Solver_Face_T::p_ref.
 static void update_face_p_ref
 	(struct Adaptive_Solver_Face* a_s_face, ///< \ref Adaptive_Solver_Face.
 	 const struct Simulation* sim           ///< \ref Simulation.
@@ -178,13 +178,13 @@ static void set_face_adapt_type
 	(struct Adaptive_Solver_Face* a_s_face ///< \ref Adaptive_Solver_Face.
 	);
 
-/// \brief Project all \ref Solver_Volume solution-related data to the p-adaptive volume.
+/// \brief Project all \ref Solver_Volume_T solution-related data to the p-adaptive volume.
 static void compute_projection_p_volume
 	(struct Adaptive_Solver_Volume* a_s_vol, ///< \ref Adaptive_Solver_Volume.
 	 const struct Simulation* sim            ///< \ref Simulation.
 	);
 
-/// \brief Project all \ref Solver_Face solution-related data to the p-adaptive face.
+/// \brief Project all \ref Solver_Face_T solution-related data to the p-adaptive face.
 static void compute_projection_p_face
 	(struct Adaptive_Solver_Face* a_s_face, ///< \ref Adaptive_Solver_Face.
 	 const struct Simulation* sim           ///< \ref Simulation.

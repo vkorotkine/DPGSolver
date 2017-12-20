@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Solver_Volume_T;
 struct Simulation;
 
-/** \brief Version of \ref constructor_xyz_fptr for the parametric cylinder.
+/** \brief Version of \ref constructor_xyz_fptr_T for the parametric cylinder.
  *  \return See brief.
  *
  *  Uses \f$ r-\theta \f$ parametrization to transform from square to circular sections.

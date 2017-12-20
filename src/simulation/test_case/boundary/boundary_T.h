@@ -23,11 +23,11 @@ struct Boundary_Value_T;
 struct Solver_Face_T;
 struct Simulation;
 
-/** \brief Function pointer to functions constructing the face-specific members \ref Boundary_Value_Input.
+/** \brief Function pointer to functions constructing the face-specific members \ref Boundary_Value_Input_T.
  *  \return Standard.
  *
- *  \param bv_i   \ref Boundary_Value_Input.
- *  \param s_face \ref Solver_Face.
+ *  \param bv_i   \ref Boundary_Value_Input_T.
+ *  \param s_face \ref Solver_Face_T.
  *  \param sim    \ref Simulation.
  */
 typedef void (*constructor_Boundary_Value_Input_face_fptr_T)
@@ -36,13 +36,13 @@ typedef void (*constructor_Boundary_Value_Input_face_fptr_T)
 	 const struct Simulation* sim
 	);
 
-/** \brief Function pointer to functions constructing the members \ref Boundary_Value either from the right volume or by
+/** \brief Function pointer to functions constructing the members \ref Boundary_Value_T either from the right volume or by
  *         calling a boundary condition function.
  *  \return Standard.
  *
- *  \param bv     \ref Boundary_Value.
- *  \param bv_i   \ref Boundary_Value_Input.
- *  \param s_face \ref Solver_Face.
+ *  \param bv     \ref Boundary_Value_T.
+ *  \param bv_i   \ref Boundary_Value_Input_T.
+ *  \param s_face \ref Solver_Face_T.
  *  \param sim    \ref Simulation.
  */
 typedef void (*constructor_Boundary_Value_fptr_T)
@@ -55,10 +55,10 @@ typedef void (*constructor_Boundary_Value_fptr_T)
 /// \brief Container holding data used for computing the boundary condition values and their Jacobians.
 struct Boundary_Value_Input_T {
 	const char* input_path;     ///< Pointer to \ref Simulation::input_path.
-	const bool* compute_member; ///< Flags for which of the \ref Boundary_Value members should be computed.
+	const bool* compute_member; ///< Flags for which of the \ref Boundary_Value_T members should be computed.
 
-	const int n_eq,  ///< \ref Test_Case::n_eq.
-	          n_var; ///< \ref Test_Case::n_var.
+	const int n_eq,  ///< \ref Test_Case_T::n_eq.
+	          n_var; ///< \ref Test_Case_T::n_var.
 
 /// \todo geometry: Real -> Templated
 	const struct const_Multiarray_R* normals; ///< The unit normal vector components.
@@ -78,7 +78,7 @@ struct Boundary_Value_T {
 
 // Interface functions ********************************************************************************************** //
 
-/** \brief Version of \ref constructor_Boundary_Value_Input_face_fptr constructing only the solution using members from
+/** \brief Version of \ref constructor_Boundary_Value_Input_face_fptr_T constructing only the solution using members from
  *         the face and interpolated from the left volume at the face cubature nodes as seen from the left volume.
  *  \return See brief. */
 void constructor_Boundary_Value_Input_face_s_fcl_interp_T
@@ -87,12 +87,12 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 	 const struct Simulation* sim         ///< See brief.
 	);
 
-/// \brief Destructor for a \ref Boundary_Value_Input container.
+/// \brief Destructor for a \ref Boundary_Value_Input_T container.
 void destructor_Boundary_Value_Input_T
 	(struct Boundary_Value_Input_T* bv_i ///< Standard.
 	);
 
-/** \brief Version of \ref constructor_Boundary_Value_fptr interpolated from the right volume at the face cubature nodes
+/** \brief Version of \ref constructor_Boundary_Value_fptr_T interpolated from the right volume at the face cubature nodes
  *         as seen from the left volume.
  *  \return See brief. */
 void constructor_Boundary_Value_s_fcl_interp_T
@@ -102,7 +102,7 @@ void constructor_Boundary_Value_s_fcl_interp_T
 	 const struct Simulation* sim               ///< See brief.
 	);
 
-/// \brief Destructor for a \ref Boundary_Value container.
+/// \brief Destructor for a \ref Boundary_Value_T container.
 void destructor_Boundary_Value_T
 	(struct Boundary_Value_T* bv ///< Standard.
 	);

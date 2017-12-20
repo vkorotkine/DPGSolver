@@ -36,8 +36,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Add the linearized contribution from "right" volume to the linearized numerical flux terms if on a domain
  *         boundary. */
 static void combine_num_flux_boundary_T
-	(struct Numerical_Flux_Input_T* num_flux_i, ///< Defined for \ref compute_Numerical_Flux_fptr.
-	 struct mutable_Numerical_Flux_T* num_flux  ///< Defined for \ref compute_Numerical_Flux_fptr.
+	(struct Numerical_Flux_Input_T* num_flux_i, ///< Defined for \ref compute_Numerical_Flux_fptr_T.
+	 struct mutable_Numerical_Flux_T* num_flux  ///< Defined for \ref compute_Numerical_Flux_fptr_T.
 	);
 
 // Interface functions ********************************************************************************************** //

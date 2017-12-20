@@ -63,7 +63,7 @@ void set_S_Params_Volume_Structor_T
 	 const struct Simulation* sim             ///< \ref Simulation.
 	);
 
-/** \brief Call \ref constructor_Flux_Ref using data from the current volume.
+/** \brief Call \ref constructor_Flux_Ref_T using data from the current volume.
  *  \return See brief. */
 struct Flux_Ref_T* constructor_Flux_Ref_vol_T
 	(const struct S_Params_Volume_Structor_T* spvs, ///< \ref S_Params_Volume_Structor_T.

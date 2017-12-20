@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 
 /** \file
- *  \brief Undefine macro definitions for c-style templated containers/functions relating to \ref Test_Cast_T.
+ *  \brief Undefine macro definitions for c-style templated containers/functions relating to \ref Test_Case_T.
  */
 
 ///\{ \name Data types

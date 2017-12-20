@@ -32,7 +32,7 @@ ptrdiff_t compute_dof_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Update \ref Solver_Volume::ind_dof and \ref Solver_Face::ind_dof.
+/// \brief Update \ref Solver_Volume_T::ind_dof and \ref Solver_Face_T::ind_dof.
 void update_ind_dof_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);

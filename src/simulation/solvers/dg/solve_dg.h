@@ -52,9 +52,9 @@ double compute_rlhs_dg
  *         volume and eq, var indices. */
 void set_petsc_Mat_row_col
 	(struct Solver_Storage_Implicit*const s_store_i, ///< \ref Solver_Storage_Implicit.
-	 const struct Solver_Volume* v_l,                ///< The left \ref Solver_Volume.
+	 const struct Solver_Volume* v_l,                ///< The left \ref Solver_Volume_T.
 	 const int eq,                                   ///< The index of the equation.
-	 const struct Solver_Volume* v_r,                ///< The right \ref Solver_Volume.
+	 const struct Solver_Volume* v_r,                ///< The right \ref Solver_Volume_T.
 	 const int vr                                    ///< The index of the variable.
 	);
 

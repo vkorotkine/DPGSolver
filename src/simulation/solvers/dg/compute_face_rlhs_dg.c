@@ -37,11 +37,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Scale \ref Numerical_Flux::nnf and \ref Numerical_Flux::Neigh_Info_NF::dnnf_ds by the face Jacobian.
+/// \brief Scale \ref Numerical_Flux_T::nnf and \ref Numerical_Flux_T::Neigh_Info_NF_T::dnnf_ds by the face Jacobian.
 static void scale_by_Jacobian_i1
-	(const struct Numerical_Flux* num_flux, ///< Defined for \ref scale_by_Jacobian_fptr.
-	 struct Face* face,                     ///< Defined for \ref scale_by_Jacobian_fptr.
-	 const struct Simulation* sim           ///< Defined for \ref scale_by_Jacobian_fptr.
+	(const struct Numerical_Flux* num_flux, ///< Defined for \ref scale_by_Jacobian_fptr_T.
+	 struct Face* face,                     ///< Defined for \ref scale_by_Jacobian_fptr_T.
+	 const struct Simulation* sim           ///< Defined for \ref scale_by_Jacobian_fptr_T.
 	);
 
 /// \brief Compute the rhs and first order lhs terms.

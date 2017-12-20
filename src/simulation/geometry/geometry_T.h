@@ -35,27 +35,17 @@ typedef const struct const_Multiarray_R* (*constructor_xyz_fptr_T)
 	 const struct Simulation* sim
 	);
 
-/** \brief Set up the solver geometry:
- *  - \ref Solver_Volume_T::metrics_vm;
- *  - \ref Solver_Volume_T::metrics_vc;
- *  - \ref Solver_Volume_T::jacobian_det_vc;
- *  - \todo [ref here] Solver_Face_T::normals_fc;
- *  - \todo [ref here] Solver_Face_T::jacobian_det_fc;
- *
- *  Requires that:
- *  - \ref Simulation::volumes points to a list of \ref Solver_Volume_T\*s;
- *  - \ref Simulation::faces   points to a list of \todo [ref here] Solver_Face_T\*s.
- */
+/// \brief Set up the solver geometry for all volumes and faces.
 void set_up_solver_geometry_T
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
 /// \brief Compute the face unit normal vectors at the nodes corresponding to the given face metrics.
 void compute_unit_normals_T
-	(const int ind_lf,                             ///< Defined for \ref compute_unit_normals_and_det.
-	 const struct const_Multiarray_R* normals_ref, ///< Defined for \ref compute_unit_normals_and_det.
-	 const struct const_Multiarray_R* metrics_f,   ///< Defined for \ref compute_unit_normals_and_det.
-	 struct Multiarray_R* normals_f                ///< Defined for \ref compute_unit_normals_and_det.
+	(const int ind_lf,                             ///< Defined for \ref compute_unit_normals_and_det_T.
+	 const struct const_Multiarray_R* normals_ref, ///< Defined for \ref compute_unit_normals_and_det_T.
+	 const struct const_Multiarray_R* metrics_f,   ///< Defined for \ref compute_unit_normals_and_det_T.
+	 struct Multiarray_R* normals_f                ///< Defined for \ref compute_unit_normals_and_det_T.
 	);
 
 /** \brief Compute the geometry of the \ref Solver_Volume_T.

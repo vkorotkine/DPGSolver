@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__test_complex_volume_solver_dpg_h__INCLUDED
 #define DPG__test_complex_volume_solver_dpg_h__INCLUDED
 /** \file
- *  \brief Provides the interface for the complex \ref DPG_Solver_Volume container and associated functions.
+ *  \brief Provides the interface for the complex \ref DPG_Solver_Volume_T container and associated functions.
  */
 
 #include "test_complex_volume_solver.h"

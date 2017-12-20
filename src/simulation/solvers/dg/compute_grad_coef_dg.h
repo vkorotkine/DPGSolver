@@ -44,9 +44,9 @@ struct Simulation;
 /** \brief Compute the weak gradient terms for the DG scheme for PDEs which have 2nd order terms.
  *
  *  Computes: \todo Update the list when working for both explicit/implicit.
- *  - \ref Solver_Volume::grad_coef;
- *  - \ref DG_Solver_Volume::grad_coef_v;
- *  - \ref DG_Solver_Face::grad_coef_f.
+ *  - \ref Solver_Volume_T::grad_coef;
+ *  - \ref DG_Solver_Volume_T::grad_coef_v;
+ *  - \ref DG_Solver_Face_T::grad_coef_f.
  */
 void compute_grad_coef_dg
 	(const struct Simulation* sim ///< \ref Simulation.

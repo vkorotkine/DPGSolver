@@ -78,8 +78,8 @@ struct Test_Case_T {
 	             exit_tol_i,   ///< The exit tolerance for the residual during the implicit solver stage.
 	             exit_ratio_i; ///< The exit ratio for the residual during the implicit solver stage.
 
-	const bool flux_comp_mem_e[MAX_FLUX_OUT], ///< \ref Flux_Input::compute_member (explicit).
-	           flux_comp_mem_i[MAX_FLUX_OUT]; ///< \ref Flux_Input::compute_member (implicit).
+	const bool flux_comp_mem_e[MAX_FLUX_OUT], ///< \ref Flux_Input_T::compute_member (explicit).
+	           flux_comp_mem_i[MAX_FLUX_OUT]; ///< \ref Flux_Input_T::compute_member (implicit).
 
 	/// Function pointer to the function used to call the combination of 1st and 2nd order flux functions.
 	compute_Flux_fptr_T compute_Flux;

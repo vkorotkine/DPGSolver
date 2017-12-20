@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides the interface for the templated \ref Solver_Face container and associated functions.
+ *  \brief Provides the interface for the templated \ref Solver_Face_T container and associated functions.
  */
 
 #include <stddef.h>
@@ -54,13 +54,13 @@ struct Solver_Face_T {
 	constructor_Boundary_Value_fptr_T constructor_Boundary_Value_fcl;
 };
 
-/// \brief Constructor for a derived \ref Solver_Face.
+/// \brief Constructor for a derived \ref Solver_Face_T.
 void constructor_derived_Solver_Face_T
 	(struct Face* face_ptr,       ///< Pointer to the face.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destructor for a derived \ref Solver_Face.
+/// \brief Destructor for a derived \ref Solver_Face_T.
 void destructor_derived_Solver_Face_T
 	(struct Face* face_ptr ///< Pointer to the face.
 	);

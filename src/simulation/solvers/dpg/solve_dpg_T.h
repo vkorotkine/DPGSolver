@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 struct Solver_Storage_Implicit;
 
-/// \brief Update \ref Solver_Volume::ind_dof and \ref Solver_Face::ind_dof for the dg method.
+/// \brief Update \ref Solver_Volume_T::ind_dof and \ref Solver_Face_T::ind_dof for the dg method.
 void update_ind_dof_dpg_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);

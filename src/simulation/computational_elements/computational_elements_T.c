@@ -68,7 +68,7 @@ typedef void (*destructor_derived_Face_fptr)
 	(struct Face* face_ptr
 	);
 
-/// Container holding information used for \ref constructor_derived_computational_elements.
+/// Container holding information used for \ref constructor_derived_computational_elements_T.
 struct Derived_Comp_Elements_Info {
 	int list_name[2]; ///< Names of the volume and face computational element lists.
 
@@ -83,18 +83,18 @@ struct Derived_Comp_Elements_Info {
 };
 
 /** \brief Return a stack-allocated \ref Derived_Comp_Elements_Info container for
- *         \ref constructor_derived_computational_elements.
+ *         \ref constructor_derived_computational_elements_T.
  *  \return See brief. */
 static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
-	(const int derived_category,  ///< Defined for \ref constructor_derived_computational_elements.
+	(const int derived_category,  ///< Defined for \ref constructor_derived_computational_elements_T.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /** \brief Return a stack-allocated \ref Derived_Comp_Elements_Info container
- *         for \ref destructor_derived_computational_elements.
+ *         for \ref destructor_derived_computational_elements_T.
  *  \return See brief. */
 static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
-	(const int base_category,   ///< Defined for \ref destructor_derived_computational_elements.
+	(const int base_category,   ///< Defined for \ref destructor_derived_computational_elements_T.
 	 const int derived_category ///< The current category of the volume/face lists.
 	);
 

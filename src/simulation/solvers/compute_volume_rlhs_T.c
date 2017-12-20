@@ -40,14 +40,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define PRINT_OPERATORS 0 ///< Enable to print operators to terminal.
 
-/** \brief Version of \ref constructor_sol_vc_fptr using interpolation.
+/** \brief Version of \ref constructor_sol_vc_fptr_T using interpolation.
  *  \return See brief.. */
 static const struct const_Multiarray_T* constructor_sol_vc_interp_T
 	(const struct Solver_Volume_T* s_vol, ///< See brief.
 	 const struct Simulation* sim         ///< See brief.
 	);
 
-/** \brief Version of \ref constructor_sol_vc_fptr using collocation.
+/** \brief Version of \ref constructor_sol_vc_fptr_T using collocation.
  *  \return Standard. */
 static const struct const_Multiarray_T* constructor_sol_vc_col_T
 	(const struct Solver_Volume_T* s_vol, ///< See brief.
@@ -75,7 +75,7 @@ static void destructor_sol_vc_col_T
  *  - df_ds: (nodes,dim,eq,var) -> dfr_ds: (nodes,eq,var,dim).
  *  This memory layout was chosen such that terms are grouped by dimension, allowing for differentiation operators to be
  *  applied efficiently; note that **this is not the same ordering as that used for the physical flux**. Please consult
- *  \ref compute_geometry_volume for the ordering of the metric terms if desired.
+ *  \ref compute_geometry_volume_T for the ordering of the metric terms if desired.
  */
 static struct Flux_Ref_T* constructor_Flux_Ref_T
 	(const struct const_Multiarray_R* m, ///< The metric terms.

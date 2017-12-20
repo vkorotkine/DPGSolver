@@ -103,13 +103,13 @@ void destructor_Numerical_Flux_T
 	(struct Numerical_Flux_T* num_flux ///< Standard.
 	);
 
-/// \brief Version of \ref compute_Numerical_Flux_fptr for 1st order numerical fluxes only.
+/// \brief Version of \ref compute_Numerical_Flux_fptr_T for 1st order numerical fluxes only.
 void compute_Numerical_Flux_1_T
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
 	);
 
-/// \brief Version of \ref compute_Numerical_Flux_fptr for 1st and 2nd order numerical fluxes.
+/// \brief Version of \ref compute_Numerical_Flux_fptr_T for 1st and 2nd order numerical fluxes.
 void compute_Numerical_Flux_12_T
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.

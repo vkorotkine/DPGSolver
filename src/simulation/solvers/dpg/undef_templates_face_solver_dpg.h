@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to \ref DPG_Solver_Face containers/functions.
+ *  \brief Undefine macro definitions for c-style templating relating to \ref DPG_Solver_Face_T containers/functions.
  */
 
 ///\{ \name Data types

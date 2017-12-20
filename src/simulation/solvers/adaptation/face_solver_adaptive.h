@@ -23,11 +23,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Container for data relating to the adaptive solver faces.
 struct Adaptive_Solver_Face {
-	struct Solver_Face face; ///< The base \ref Solver_Face.
+	struct Solver_Face face; ///< The base \ref Solver_Face_T.
 
 	int adapt_type; ///< The type of adaptation to use. Options: see \ref definitions_adaptation.h.
 
-	int p_ref_prev; ///< The previous value of \ref Solver_Face::p_ref.
+	int p_ref_prev; ///< The previous value of \ref Solver_Face_T::p_ref.
 };
 
 /// \brief Constructor for a derived \ref Adaptive_Solver_Face.

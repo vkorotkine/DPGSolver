@@ -59,7 +59,7 @@ static time_step_fptr set_time_step
 
 /// \brief Display the solver progress.
 static void display_progress
-	(const struct Test_Case* test_case, ///< \ref Test_Case.
+	(const struct Test_Case* test_case, ///< \ref Test_Case_T.
 	 const int t_step,                  ///< The current time step.
 	 const double max_rhs,              ///< The current maximum value of the rhs term.
 	 const double max_rhs0              ///< The initial maximum value of the rhs term.
@@ -68,7 +68,7 @@ static void display_progress
 /** \brief Check the exit conditions.
  *  \return `true` if exit conditions are satisfied, `false` otherwise. */
 static bool check_exit
-	(const struct Test_Case* test_case, ///< \ref Test_Case.
+	(const struct Test_Case* test_case, ///< \ref Test_Case_T.
 	 const double max_rhs,              ///< The current maximum value of the rhs term.
 	 const double max_rhs0              ///< The initial maximum value of the rhs term.
 	);

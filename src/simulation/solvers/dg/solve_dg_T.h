@@ -21,7 +21,7 @@ struct Multiarray_T;
 struct Solver_Face_T;
 struct Simulation;
 
-/// \brief Version of \ref update_ind_dof for the dg method.
+/// \brief Version of \ref update_ind_dof_T for the dg method.
 void update_ind_dof_dg_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
@@ -38,5 +38,5 @@ void permute_Multiarray_T_fc
 	(struct Multiarray_T* data,         ///< The data to be permuted.
 	 const char perm_layout,            ///< Defined for \ref permute_Multiarray_T_V.
 	 const int side_index_dest,         ///< The side index of the destination.
-	 const struct Solver_Face_T* s_face ///< \ref Solver_Face.
+	 const struct Solver_Face_T* s_face ///< \ref Solver_Face_T.
 	);

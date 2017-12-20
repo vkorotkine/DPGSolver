@@ -40,7 +40,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define SOURCE_A 0.23 ///< 'A'ddition constant.
 ///\}
 
-/** \brief Version of \ref constructor_sol_fptr used for the default linear advection test cases.
+/** \brief Version of \ref constructor_sol_fptr_T used for the default linear advection test cases.
  *  \return See brief. */
 static struct Multiarray_T* constructor_sol_advection_default_T
 	(const struct const_Multiarray_R* xyz, ///< See brief.

@@ -89,7 +89,7 @@ static struct S_Params_T set_s_params_T
 // Interface functions ********************************************************************************************** //
 
 void compute_face_rlhs_dg_T
-	(const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i, struct Intrusive_List* faces)
+	(const struct Simulation* sim, struct Solver_Storage_Implicit* ssi, struct Intrusive_List* faces)
 {
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
 	assert(sim->faces->name    == IL_FACE_SOLVER_DG);
@@ -126,7 +126,7 @@ print_const_Multiarray_T(num_flux->neigh_info[0].dnnf_ds);
 if (!face->boundary)
 	print_const_Multiarray_T(num_flux->neigh_info[1].dnnf_ds);
 #endif
-		s_params.compute_rlhs(num_flux,dg_s_face,s_store_i,sim);
+		s_params.compute_rlhs(num_flux,dg_s_face,ssi,sim);
 		destructor_Numerical_Flux_T(num_flux);
 //if (face->index == 2)
 //break;

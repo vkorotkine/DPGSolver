@@ -166,7 +166,7 @@ static void fprint_vtk_piece_sol
 	 const struct const_Multiarray_d* xyz,       ///< Coordinates of the points (required for 's'erial, 's'tart).
 	 const struct const_Multiarray_d* sol,       ///< The solution variables    (required for 's'erial, 's'tart).
 	 const struct const_Plotting_Nodes* p_nodes, ///< \ref Plotting_Nodes (required for 's'erial, 's'tart).
-	 const int pde_index                         ///< \ref Test_Case::pde_index.
+	 const int pde_index                         ///< \ref Test_Case_T::pde_index.
 	);
 
 static void output_visualization_vtk_geom

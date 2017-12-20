@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__test_complex_face_solver_h__INCLUDED
 #define DPG__test_complex_face_solver_h__INCLUDED
 /** \file
- *  \brief Provides the interface for the complex \ref Solver_Face container and associated functions.
+ *  \brief Provides the interface for the complex \ref Solver_Face_T container and associated functions.
  */
 
 #include "face.h"

@@ -29,10 +29,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// Container holding flags for which members of \ref DG_Solver_Volume are needed.
+/// Container holding flags for which members of \ref DG_Solver_Volume_T are needed.
 struct Needed_Members {
-	bool sol_coef_p, ///< Flag for \ref DG_Solver_Volume::sol_coef_p.
-	     m_inv;      ///< Flag for \ref DG_Solver_Volume::m_inv.
+	bool sol_coef_p, ///< Flag for \ref DG_Solver_Volume_T::sol_coef_p.
+	     m_inv;      ///< Flag for \ref DG_Solver_Volume_T::m_inv.
 };
 
 /** \brief Return a statically allocated \ref Needed_Members container with values set.
@@ -44,7 +44,7 @@ static struct Needed_Members set_needed_members
 /** \brief Constructor for the inverse mass matrix of the input volume.
  *  \return See brief. */
 static const struct const_Matrix_R* constructor_inverse_mass
-	(const struct DG_Solver_Volume_T* volume ///< \ref DG_Solver_Volume.
+	(const struct DG_Solver_Volume_T* volume ///< \ref DG_Solver_Volume_T.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -83,7 +83,7 @@ void destructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr)
 /** \brief Constructor for the mass matrix of the input volume.
  *  \return See brief. */
 static const struct const_Matrix_R* constructor_mass
-	(const struct Solver_Volume_T* s_vol ///< \ref Solver_Volume.
+	(const struct Solver_Volume_T* s_vol ///< \ref Solver_Volume_T.
 	);
 
 static struct Needed_Members set_needed_members (const struct Simulation* sim)
