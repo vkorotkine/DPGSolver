@@ -48,6 +48,13 @@ void swap_layout
 	(char*const layout ///< Pointer to the layout variable.
 	);
 
+/// \brief Swap the layout and the extents.
+void swap_layout_and_extents
+	(char*const layout,     ///< Pointer to the layout variable.
+	 ptrdiff_t*const ext_0, ///< Pointer to the ext_0 variable.
+	 ptrdiff_t*const ext_1  ///< Pointer to the ext_1 variable.
+	);
+
 /** \brief Compute the opposite layout.
  *  \return See brief. */
 char compute_opposite_layout

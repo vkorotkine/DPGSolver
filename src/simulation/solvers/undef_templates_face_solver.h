@@ -12,7 +12,6 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
 /** \file
  *  \brief Undefine macro definitions for c-style templating relating to \ref Solver_Face_T containers/functions.
  */
@@ -24,4 +23,5 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #undef constructor_derived_Solver_Face_T
 #undef destructor_derived_Solver_Face_T
+#undef set_function_pointers_face_num_flux_T
 ///\}

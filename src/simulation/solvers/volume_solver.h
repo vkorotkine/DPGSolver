@@ -33,8 +33,9 @@ struct Solver_Volume_c;
 
 /// \brief Copy members from a real to a complex \ref Solver_Volume_T.
 void copy_members_r_to_c_Solver_Volume
-	(struct Solver_Volume_c*const s_vol,      ///< The complex \ref Solver_Volume_T.
-	 const struct Solver_Volume*const s_vol_r ///< The real \ref Solver_Volume_T.
+	(struct Solver_Volume_c*const s_vol,       ///< The complex \ref Solver_Volume_T.
+	 const struct Solver_Volume*const s_vol_r, ///< The real \ref Solver_Volume_T.
+	 const struct Simulation*const sim         ///< \ref Simulation.
 	);
 
 #endif // DPG__volume_solver_h__INCLUDED

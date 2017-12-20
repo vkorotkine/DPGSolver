@@ -27,10 +27,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define CHECK_LIN 3 ///< The currently selected value from the options above.
 ///\}
 
-///\{ \name Magnitude of the complex step to take for linearization testing.
-#define CX_STEP 1e-30
-///\}
-
 ///\{ \name Maximum magnitude of the perturbation to use for the initial solution.
 #define MAX_PERTURB 1e-5
 ///\}

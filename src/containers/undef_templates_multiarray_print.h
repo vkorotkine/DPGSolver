@@ -28,3 +28,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef print_const_Multiarray_Matrix_T
 
 #undef fprint_const_Multiarray_Vector_T
+
+#undef print_Multiarray_R
+#undef print_const_Multiarray_R

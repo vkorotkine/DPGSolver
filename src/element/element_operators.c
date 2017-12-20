@@ -292,16 +292,14 @@ const struct Multiarray_Operator* constructor_operators_tens3 (const struct Mult
 
 		struct const_Vector_d cv_diag = { .ext_0 = ext_0, .owns_data = false, .data = NULL, };
 
-		double data[ext_0*ext_1];
-		struct Matrix_d cvcv_local =
-			{ .layout = 'C', .ext_0 = ext_0, .ext_1 = ext_1, .owns_data = false, .data = data, };
-
-		struct Matrix_d* cvcv = constructor_empty_Matrix_d('C',ext_0,ext_1*ext_1); // moved
+		struct Matrix_d* cvcv_local = constructor_zero_Matrix_d('C',ext_0,ext_1);        // destructed
+		struct Matrix_d* cvcv       = constructor_empty_Matrix_d('C',ext_0,ext_1*ext_1); // moved
 		for (int j = 0; j < ext_1; ++j) {
 			const_cast_d1(&cv_diag.data,get_col_const_Matrix_d(j,cv));
-			mm_diag_d('L',1.0,0.0,cv,&cv_diag,&cvcv_local,false);
-			set_block_Matrix_d(cvcv,(struct const_Matrix_d*)&cvcv_local,0,j*ext_1,'i');
+			mm_diag_d('L',1.0,0.0,cv,&cv_diag,cvcv_local,false);
+			set_block_Matrix_d(cvcv,(struct const_Matrix_d*)cvcv_local,0,j*ext_1,'i');
 		}
+		destructor_Matrix_d(cvcv_local);
 
 		cvcv->owns_data = false;
 		const_constructor_move_const_Matrix_d(&op->data[ind_op]->op_std,(struct const_Matrix_d*)cvcv); // returned

@@ -47,3 +47,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 #endif
+
+///\{ \name Real Data types/Function names
+#define print_Multiarray_R                  print_Multiarray_d
+#define print_const_Multiarray_R            print_const_Multiarray_d
+///\}

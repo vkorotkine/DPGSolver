@@ -224,8 +224,10 @@ const struct const_Matrix_T* constructor_inverse_const_Matrix_T
 	(const struct const_Matrix_T* src ///< Defined for \ref constructor_inverse_Matrix_T.
 	);
 
-/** \brief Constructor for a \ref Matrix_T\* from the solution of a linear system using [LAPACKE_dsgesv][dsgesv].
+/** \brief Constructor for a \ref Matrix_T\* from the solution of a linear system using LAPACKE_dsgesv.
  *  \return Standard.
+ *
+ *  Reference: [LAPACKE_dsgesv][dsgesv].
  *
  *  <!-- References: -->
  *  [dsgesv]: https://software.intel.com/en-us/mkl-developer-reference-c-gesv
@@ -242,8 +244,10 @@ const struct const_Matrix_T* constructor_sgesv_const_Matrix_T
 	 const struct const_Matrix_T* B_i  ///< Defined for \ref constructor_sgesv_Matrix_T.
 	);
 
-/** \brief Constructor for a \ref Matrix_T\* from the solution of a linear system using [LAPACKE_dsysv][dsysv].
+/** \brief Constructor for a \ref Matrix_T\* from the solution of a linear system using LAPACKE_dsysv.
  *  \return Standard.
+ *
+ *  Reference: [LAPACKE_dsysv][dsysv].
  *
  *  <!-- References: -->
  *  [dsysv]: https://software.intel.com/en-us/mkl-developer-reference-c-sysv
@@ -334,7 +338,7 @@ struct Matrix_T* constructor_mm_diag_Matrix_T_R
 	 const struct const_Matrix_T*const a, ///< Input matrix to be multiplied by the diagonal.
 	 const struct const_Vector_R*const b, ///< Vector storing the entries of the diagonal matrix.
 	 const char side,                     ///< The side from which to apply the diagonal matrix.
-	 const bool invert_diag               ///< Defined for \ref scale_Matrix_by_Vector_R.
+	 const bool invert_diag               ///< Defined for \ref scale_Matrix_T_by_Vector_R.
 	);
 
 /** \brief `const` version of \ref constructor_mm_diag_Matrix_T_R.
@@ -382,7 +386,17 @@ void destructor_Matrix_T
 	(struct Matrix_T* a ///< Standard.
 	);
 
-/// \brief Destructs a \ref const_Matrix_T\*.
+/// \brief `const` version of \ref destructor_Matrix_T.
 void destructor_const_Matrix_T
+	(const struct const_Matrix_T* a ///< Standard.
+	);
+
+/// \brief Destructs a \ref Matrix_T\* if it is not NULL.
+void destructor_conditional_Matrix_T
+	(struct Matrix_T* a ///< Standard.
+	);
+
+/// \brief `const` version of \ref destructor_conditional_Matrix_T.
+void destructor_conditional_const_Matrix_T
 	(const struct const_Matrix_T* a ///< Standard.
 	);

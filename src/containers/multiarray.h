@@ -35,7 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  Following the recommendation of many c++ experts, containers of unsigned integer types are **not** supported
  *  even if the variable to be represented is always positive. For more details, see the Eigen FAQ section on
  *  [Why Eigen's API is using signed integers for sizes, indices, etc.?][eigen_signed] and the linked video and
- *  posts.  [This][SO_signed] SO discussion provides a summary of some of the points made in the video referred to
+ *  posts. [This][SO_signed] SO discussion provides a summary of some of the points made in the video referred to
  *  above if it is no longer accessible.
  *
  *  For similar reasons, the type used for array indexing and storing array sizes is `ptrdiff_t` and not `size_t`.

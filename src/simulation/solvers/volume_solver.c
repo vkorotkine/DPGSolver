@@ -39,8 +39,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void copy_members_r_to_c_Solver_Volume (struct Solver_Volume_c*const s_vol, const struct Solver_Volume*const s_vol_r)
+void copy_members_r_to_c_Solver_Volume
+	(struct Solver_Volume_c*const s_vol, const struct Solver_Volume*const s_vol_r, const struct Simulation*const sim)
 {
+	UNUSED(sim);
 	const_cast_ptrdiff(&s_vol->ind_dof,s_vol_r->ind_dof);
 	const_cast_i(&s_vol->p_ref,s_vol_r->p_ref);
 	const_cast_i(&s_vol->ml,s_vol_r->ml);

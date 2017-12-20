@@ -363,19 +363,20 @@ const struct const_Matrix_T* constructor_sgesv_const_Matrix_T
 
 struct Matrix_T* constructor_sysv_Matrix_T (struct Matrix_T* A_i, struct Matrix_T* B_i)
 {
-	assert(A_i->layout == B_i->layout); // Can be made flexible in future if necessary.
 	assert(A_i->ext_0 == A_i->ext_1);
 
 	// The source matrix is copied as the entries would otherwise be modified while solving the linear system.
-/// \todo check if only half of the A matrix needs to be copied.
 	struct Matrix_T* A = constructor_copy_Matrix_T(A_i); // destructed
 	struct Matrix_T* X = constructor_copy_Matrix_T(B_i); // returned
+
+	if (A->layout != X->layout)
+		swap_layout(&A->layout); // As A is symmetric, we simply swap the layout here.
 
 	const int matrix_layout = ( A->layout == 'R' ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR );
 	const lapack_int n      = (lapack_int)A->ext_0,
 	                 nrhs   = (lapack_int)B_i->ext_1;
-	Type* a               = A->data,
-	      * x               = X->data;
+	Type* a                 = A->data,
+	    * x                 = X->data;
 	const lapack_int lda    = (lapack_int)A->ext_0,
 	                 ldx    = ( matrix_layout == LAPACK_COL_MAJOR ? n : nrhs );
 	lapack_int ipiv[n];
@@ -502,6 +503,17 @@ void destructor_Matrix_T (struct Matrix_T* a)
 void destructor_const_Matrix_T (const struct const_Matrix_T* a)
 {
 	destructor_Matrix_T((struct Matrix_T*)a);
+}
+
+void destructor_conditional_Matrix_T (struct Matrix_T* a)
+{
+	if (a)
+		destructor_Matrix_T(a);
+}
+
+void destructor_conditional_const_Matrix_T (const struct const_Matrix_T* a)
+{
+	destructor_conditional_Matrix_T ((struct Matrix_T*)a);
 }
 
 // Static functions ************************************************************************************************* //

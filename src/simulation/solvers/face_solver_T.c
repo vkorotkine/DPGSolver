@@ -37,11 +37,11 @@ static bool check_for_curved_neigh
 	(struct Face* face ///< \ref Face.
 	);
 
-/** \brief Set the function pointers to the appropriate functions to compute values needed for the numerical flux
- *         computation. */
-static void set_function_pointers_num_flux_T
-	(struct Solver_Face_T* s_face,  ///< Pointer to the \ref Solver_Face_T.
-	 const struct Simulation* sim ///< \ref Simulation.
+/** \brief Set the function pointers to the appropriate functions to compute boundary values needed for the numerical
+ *         flux computation. */
+static void set_function_pointers_num_flux_bc_T
+	(struct Solver_Face_T* s_face, ///< Defined for \ref set_function_pointers_face_num_flux_T.
+	 const struct Simulation* sim  ///< Defined for \ref set_function_pointers_face_num_flux_T.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -64,7 +64,7 @@ void constructor_derived_Solver_Face_T (struct Face* face_ptr, const struct Simu
 	const_constructor_move_Multiarray_R(
 		&s_face->jacobian_det_fc,constructor_empty_Multiarray_R('C',1,(ptrdiff_t[]){0})); // destructed
 
-	set_function_pointers_num_flux_T(s_face,sim);
+	set_function_pointers_face_num_flux_T(s_face,sim);
 }
 
 void destructor_derived_Solver_Face_T (struct Face* face_ptr)
@@ -78,24 +78,7 @@ void destructor_derived_Solver_Face_T (struct Face* face_ptr)
 	destructor_const_Multiarray_R(face->jacobian_det_fc);
 }
 
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-/** \brief Set the function pointers to the appropriate functions to compute boundary values needed for the numerical
- *         flux computation. */
-static void set_function_pointers_num_flux_bc_T
-	(struct Solver_Face_T* s_face,  ///< Defined for \ref set_function_pointers_num_flux_T.
-	 const struct Simulation* sim ///< Defined for \ref set_function_pointers_num_flux_T.
-	);
-
-static bool check_for_curved_neigh (struct Face* face)
-{
-	if (face->neigh_info[0].volume->curved || (face->neigh_info[1].volume && face->neigh_info[1].volume->curved))
-		return true;
-	return false;
-}
-
-static void set_function_pointers_num_flux_T (struct Solver_Face_T* s_face, const struct Simulation* sim)
+void set_function_pointers_face_num_flux_T (struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
 	const struct Face* face = (struct Face*) s_face;
 	if (!face->boundary) {
@@ -120,7 +103,8 @@ static void set_function_pointers_num_flux_T (struct Solver_Face_T* s_face, cons
 	}
 }
 
-// Level 1 ********************************************************************************************************** //
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
 /// \brief Version of \ref set_function_pointers_num_flux_bc_T for the linear advection equation.
 static void set_function_pointers_num_flux_bc_advection_T
@@ -131,6 +115,13 @@ static void set_function_pointers_num_flux_bc_advection_T
 static void set_function_pointers_num_flux_bc_euler_T
 	(struct Solver_Face_T* s_face ///< See brief.
 	);
+
+static bool check_for_curved_neigh (struct Face* face)
+{
+	if (face->neigh_info[0].volume->curved || (face->neigh_info[1].volume && face->neigh_info[1].volume->curved))
+		return true;
+	return false;
+}
 
 static void set_function_pointers_num_flux_bc_T (struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
@@ -144,7 +135,7 @@ static void set_function_pointers_num_flux_bc_T (struct Solver_Face_T* s_face, c
 	}
 }
 
-// Level 2 ********************************************************************************************************** //
+// Level 1 ********************************************************************************************************** //
 
 static void set_function_pointers_num_flux_bc_advection_T (struct Solver_Face_T* s_face)
 {

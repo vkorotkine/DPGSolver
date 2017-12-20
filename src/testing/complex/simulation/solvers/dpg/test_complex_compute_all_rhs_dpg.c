@@ -36,7 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "petscmat.h"
 
 #include "macros.h"
-#include "definitions_test_integration.h"
+#include "definitions_tol.h"
 
 #include "element_solver_dpg.h"
 

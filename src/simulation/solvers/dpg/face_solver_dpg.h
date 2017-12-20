@@ -29,5 +29,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_face_solver.h"
 #include "undef_templates_face_solver_dpg.h"
 
+struct DPG_Solver_Face_c;
+
+/// \brief Copy members from a real to a complex \ref DPG_Solver_Face_T.
+void copy_members_r_to_c_DPG_Solver_Face
+	(struct DPG_Solver_Face_c*const dpg_s_face,       ///< The complex \ref DPG_Solver_Face_T.
+	 const struct DPG_Solver_Face*const dpg_s_face_r, ///< The real \ref DPG_Solver_Face_T.
+	 const struct Simulation*const sim                ///< \ref Simulation.
+	);
 
 #endif // DPG__face_solver_dpg_h__INCLUDED

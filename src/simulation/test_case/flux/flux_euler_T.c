@@ -83,6 +83,7 @@ void compute_Flux_T_euler (const struct Flux_Input_T* flux_i, struct mutable_Flu
 
 	const bool* c_m = flux_i->compute_member;
 
+/// \todo Set `compute_flux_euler_n ` as a member of \ref Flux_Input_T and initialize in the constructor.
 	compute_Flux_Euler_fptr compute_flux_euler_n = get_compute_Flux_Euler_fptr(c_m);
 
 	assert(c_m[0]);

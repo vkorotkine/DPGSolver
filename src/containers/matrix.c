@@ -40,6 +40,15 @@ void swap_layout (char*const layout)
 	*layout = ( *layout == 'R' ? 'C' : 'R' );
 }
 
+void swap_layout_and_extents (char*const layout, ptrdiff_t*const ext_0, ptrdiff_t*const ext_1)
+{
+	swap_layout(layout);
+
+	const ptrdiff_t tmp = *ext_0;
+	*ext_0 = *ext_1;
+	*ext_1 = tmp;
+}
+
 char compute_opposite_layout (const char layout_i)
 {
 	assert((layout_i == 'R') || (layout_i == 'C'));

@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <complex.h>
 #include "definitions_templates_type.h"
 
-#define Type double complex  ///< Type parameter.
-#define Real double          ///< Real type parameter.
-#define TYPE_RC TYPE_COMPLEX ///< Real/complex type parameter.
+#define Type    double complex ///< Type parameter.
+#define Real    double         ///< Real type parameter.
+#define Complex double complex ///< Complex parameter.
+#define TYPE_RC TYPE_COMPLEX   ///< Real/complex type parameter.

@@ -65,8 +65,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_Matrix_from_Multiarray_Matrix_T       set_Matrix_from_Multiarray_Matrix_d
 #define set_const_Matrix_from_Multiarray_Matrix_T set_const_Matrix_from_Multiarray_Matrix_d
 
-#define destructor_Matrix_T       destructor_Matrix_d
-#define destructor_const_Matrix_T destructor_const_Matrix_d
+#define destructor_Matrix_T                   destructor_Matrix_d
+#define destructor_const_Matrix_T             destructor_const_Matrix_d
+#define destructor_conditional_Matrix_T       destructor_conditional_Matrix_d
+#define destructor_conditional_const_Matrix_T destructor_conditional_const_Matrix_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -118,8 +120,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_Matrix_from_Multiarray_Matrix_T       set_Matrix_from_Multiarray_Matrix_c
 #define set_const_Matrix_from_Multiarray_Matrix_T set_const_Matrix_from_Multiarray_Matrix_c
 
-#define destructor_Matrix_T       destructor_Matrix_c
-#define destructor_const_Matrix_T destructor_const_Matrix_c
+#define destructor_Matrix_T                   destructor_Matrix_c
+#define destructor_const_Matrix_T             destructor_const_Matrix_c
+#define destructor_conditional_Matrix_T       destructor_conditional_Matrix_c
+#define destructor_conditional_const_Matrix_T destructor_conditional_const_Matrix_c
 ///\}
 
 #endif

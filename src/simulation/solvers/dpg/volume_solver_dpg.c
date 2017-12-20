@@ -37,8 +37,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver_dpg_T.c"
 
 void copy_members_r_to_c_DPG_Solver_Volume
-	(struct DPG_Solver_Volume_c*const dpg_s_vol, const struct DPG_Solver_Volume*const dpg_s_vol_r)
+	(struct DPG_Solver_Volume_c*const dpg_s_vol, const struct DPG_Solver_Volume*const dpg_s_vol_r,
+	 const struct Simulation*const sim)
 {
+	UNUSED(sim);
 	dpg_s_vol->norm_op_H0 = constructor_copy_const_Matrix_d(dpg_s_vol_r->norm_op_H0); // destructed
 }
 

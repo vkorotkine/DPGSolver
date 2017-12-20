@@ -132,11 +132,15 @@ void destructor_Simulation (struct Simulation* sim)
 		destructor_const_Elements(sim->elements);
 	}
 
-	assert(sim->volumes->name == IL_VOLUME);
-	destructor_Volumes(sim->volumes);
+	if (sim->volumes) {
+		assert(sim->volumes->name == IL_VOLUME);
+		destructor_Volumes(sim->volumes);
+	}
 
-	assert(sim->faces->name == IL_FACE);
-	destructor_Faces(sim->faces);
+	if (sim->faces) {
+		assert(sim->faces->name == IL_FACE);
+		destructor_Faces(sim->faces);
+	}
 
 	destructor_Test_Case_rc_real(sim->test_case_rc);
 

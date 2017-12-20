@@ -72,7 +72,7 @@ void add_to_rlhs__face_T
 	(struct Vector_T* rhs,                        ///< Holds the values of the rhs.
 	 struct Matrix_T** lhs_ptr,                   ///< Pointer to the matrix holding the values of the lhs.
 	 const struct DPG_Solver_Volume_T* dpg_s_vol, ///< \ref DPG_Solver_Volume_T.
-	 const struct Simulation* sim,                ///< \ref Simulation.
+	 const struct Simulation*const sim,           ///< \ref Simulation.
 	 const bool include_internal                  /**< Flag for whether the internal face contributions should be
 	                                               *   included. */
 	);

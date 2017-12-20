@@ -55,11 +55,12 @@ syntax keyword Identifier Adaptive_Solver_Face
 
 
 
-syntax keyword Type Type Real
+syntax keyword Type Type Real Complex
 syntax keyword Special Vector_T const_Vector_T
 syntax keyword Special Vector_R const_Vector_R
 syntax keyword Special Matrix_T const_Matrix_T
 syntax keyword Special Matrix_R const_Matrix_R
+syntax keyword Special Matrix_C const_Matrix_C
 syntax keyword Special Multiarray_T const_Multiarray_T
 syntax keyword Special Multiarray_R const_Multiarray_R
 syntax keyword Special Multiarray_Vector_T const_Multiarray_Vector_T

@@ -77,6 +77,16 @@ struct const_Matrix_CSR_T { ///\{
 
 // Interface functions ********************************************************************************************** //
 
+/** \brief Pointer to value setting functions.
+ *
+ *  \param dest The destination.
+ *  \param src  The source.
+ */
+typedef void (*set_value_fptr_T)
+	(Type*const dest,
+	 const Type src
+	);
+
 /** \brief Get pointer to row of row-major \ref Matrix_T\*.
  *  \return Pointer to the first entry of the row. */
 Type* get_row_Matrix_T
@@ -179,4 +189,29 @@ void set_block_Matrix_T_R
 	 const ptrdiff_t col0,               ///< See brief.
 	 const char set_type                 ///< See brief.
 	);
+
+/** \brief Set a sub-block of a real \ref Matrix_T to the imaginary entries of the input complex \ref const_Matrix_T
+ *         matrix after after division by \ref CX_STEP.
+ *  This function is identical to \ref set_block_Matrix_T excluding the setting portion.
+ */
+void set_block_Matrix_R_cmplx_step
+	(struct Matrix_R* a,                 ///< The large matrix.
+	 const struct const_Matrix_C* a_sub, ///< The matrix holding the values to set in the sub-block.
+	 const ptrdiff_t row0,               ///< The index of the first row where the sub-block should be placed.
+	 const ptrdiff_t col0,               ///< The index of the first column where the sub-block should be placed.
+	 const char set_type                 ///< The type of setting to use. Options: 'i'nsert, 'a'dd.
+	);
 #endif
+
+/// \brief Version of \ref set_value_fptr_T inserting values.
+void set_value_insert_T
+	(Type*const dest, ///< See brief.
+	 const Type src   ///< See brief.
+	);
+
+/// \brief Version of \ref set_value_fptr_T adding values.
+void set_value_add_T
+	(Type*const dest, ///< See brief.
+	 const Type src   ///< See brief.
+	);
+

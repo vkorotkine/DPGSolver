@@ -166,6 +166,7 @@ print_const_Matrix_d(cv0_vs_fc_op->op_std);
 		set_block_Matrix_T(lhs,(struct const_Matrix_T*)lhs_l,eq*lhs_l->ext_0,vr*lhs_l->ext_1,'i');
 #if 0
 printf("eq,var: %d %d\n",eq,vr);
+if (eq == 0 && vr == 0)
 print_Matrix_T(lhs_l);
 #endif
 	}}

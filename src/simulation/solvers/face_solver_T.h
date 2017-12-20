@@ -64,3 +64,10 @@ void constructor_derived_Solver_Face_T
 void destructor_derived_Solver_Face_T
 	(struct Face* face_ptr ///< Pointer to the face.
 	);
+
+/** \brief Set the function pointers to the appropriate functions to compute values needed for the numerical flux
+ *         computation. */
+void set_function_pointers_face_num_flux_T
+	(struct Solver_Face_T* s_face,  ///< Pointer to the \ref Solver_Face_T.
+	 const struct Simulation* sim ///< \ref Simulation.
+	);

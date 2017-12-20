@@ -26,5 +26,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_type_d.h"
 #include "face_solver_dpg_T.c"
 
+void copy_members_r_to_c_DPG_Solver_Face
+	(struct DPG_Solver_Face_c*const dpg_s_face, const struct DPG_Solver_Face*const dpg_s_face_r,
+	 const struct Simulation*const sim)
+{
+	UNUSED(sim);
+	UNUSED(dpg_s_face);
+	UNUSED(dpg_s_face_r);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

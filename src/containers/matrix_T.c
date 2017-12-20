@@ -19,30 +19,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 
 #include "macros.h"
+#include "definitions_tol.h"
 
 // Static function declarations ************************************************************************************* //
-
-/** \brief Function pointer to value setting functions.
- *
- *  \param dest The destination.
- *  \param src  The source.
- */
-typedef void (*set_value_fptr_T)
-	(Type*const dest,
-	 const Type src
-	);
-
-/// \brief Version of \ref set_value_fptr_T inserting values. \{
-void set_value_insert_T
-	(Type*const dest,
-	 const Type src
-	); /// \}
-
-/// \brief Version of \ref set_value_fptr_T adding values. \{
-void set_value_add_T
-	(Type*const dest,
-	 const Type src
-	); /// \}
 
 // Interface functions ********************************************************************************************** //
 
@@ -186,9 +165,46 @@ void set_block_Matrix_T_R
 	set_block_Matrix_T(a,a_sub_c,row0,col0,set_type);
 	destructor_const_Matrix_T(a_sub_c);
 }
+
+void set_block_Matrix_R_cmplx_step
+	(struct Matrix_R* a, const struct const_Matrix_C* a_sub, const ptrdiff_t row0, const ptrdiff_t col0,
+	 const char set_type)
+{
+	assert(a->layout == a_sub->layout); // Add support if required.
+	const char layout = a->layout;
+
+	set_value_fptr_d set_value = NULL;
+	switch (set_type) {
+		case 'i': set_value = set_value_insert_d; break;
+		case 'a': set_value = set_value_add_d;    break;
+		default:  EXIT_ERROR("Unsupported: %c.\n",set_type); break;
+	}
+
+	const ptrdiff_t ext_0 = a_sub->ext_0,
+	                ext_1 = a_sub->ext_1;
+
+	assert(row0+ext_0 <= a->ext_0);
+	assert(col0+ext_1 <= a->ext_1);
+
+	if (layout == 'R') {
+		for (int i = 0, row = (int)row0; i < ext_0; ++i, ++row) {
+			const Complex*const data_as = get_row_const_Matrix_C(i,a_sub);
+			Real*const data_a        = get_row_Matrix_R(row,a)+col0;
+			for (int j = 0; j < ext_1; ++j)
+				set_value(&data_a[j],cimag(data_as[j]/CX_STEP));
+		}
+	} else if (layout == 'C') {
+		for (int j = 0, col = (int)col0; j < ext_1; ++j, ++col) {
+			const Complex*const data_as = get_col_const_Matrix_C(j,a_sub);
+			Real*const data_a        = get_col_Matrix_R(col,a)+row0;
+			for (int i = 0; i < ext_0; ++i)
+				set_value(&data_a[i],cimag(data_as[i]/CX_STEP));
+		}
+	} else {
+		EXIT_ERROR("Unsupported: %c\n",layout);
+	}
+}
 #endif
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
 
 void set_value_insert_T (Type*const dest, const Type src)
 {
@@ -199,3 +215,6 @@ void set_value_add_T (Type*const dest, const Type src)
 {
 	*dest += src;
 }
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //

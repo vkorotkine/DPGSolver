@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "compute_all_rlhs_dpg.h"
 
+#include "macros.h"
+#include "definitions_tol.h"
+
 #include "face_solver_dpg.h"
 #include "volume_solver_dpg.h"
 #include "element_solver_dpg.h"
@@ -36,6 +39,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "simulation.h"
 #include "solve.h"
 #include "test_case.h"
+
+
+#include "test_complex_volume_solver_dpg.h"
+
+#include "complex_multiarray.h"
+#include "complex_matrix.h"
 
 #include "test_complex_computational_elements.h"
 #include "test_complex_compute_all_rhs_dpg.h"
@@ -68,8 +77,8 @@ static struct Matrix_d* constructor_dlhs_ds_v_1
 
 /** \brief Adds the linearization of \ref Norm_DPG::N to the Hessian of the residual (rhs) wrt the solution coefficients
  *         if the norm has a dependence on the solution. */
-static void add_to_dL_ds__norm
-	(struct Matrix_d*const dL_ds,              /**< The term storing the linearization of the LHS wrt to the
+static void add_to_dlhs_ds__norm
+	(struct Matrix_d*const dlhs_ds,            /**< The term storing the linearization of the LHS wrt to the
 	                                            *   solution coefficients. */
 	 const struct Norm_DPG* norm,              ///< \ref Norm_DPG.
 	 const struct const_Matrix_d* optimal_test ///< The optimal test functions.
@@ -77,10 +86,11 @@ static void add_to_dL_ds__norm
 
 /** \brief Adds the linearization of the face boundary terms to the Hessian of the residual (rhs) wrt the solution
  *         coefficients. */
-static void add_to_dL_ds__face_boundary
-	(struct Matrix_d*const dL_ds,               ///< Defined for \ref add_to_dL_ds__norm.
+static void add_to_dlhs_ds__face_boundary
+	(struct Matrix_d*const dlhs_ds,             ///< Defined for \ref add_to_dlhs_ds__norm.
 	 const struct DPG_Solver_Volume* dpg_s_vol, ///< Defined for \ref add_to_rlhs__face_boundary.
-	 const struct Simulation* sim,              ///< Defined for \ref add_to_rlhs__face_boundary.
+	 const struct Simulation*const sim,         ///< Defined for \ref add_to_rlhs__face_boundary.
+	 struct Simulation*const sim_c,             ///< Defined for \ref add_to_rlhs__face_boundary.
 	 const char lin_method                      ///< Linearization method. Options: 'a'nalytical, 'c'omplex step.
 	);
 
@@ -110,11 +120,11 @@ const struct Operator* get_operator__cvcv0_vs_vc
 	(const struct DPG_Solver_Volume* dpg_s_vol ///< The current volume.
 	);
 
-/// \brief Version of \ref add_to_dL_ds__face_boundary using the complex step method.
-static void add_to_dL_ds__face_boundary_cmplx_step
-	(struct Matrix_d*const dL_ds,               ///< See brief.
+/// \brief Version of \ref add_to_dlhs_ds__face_boundary using the complex step method.
+static void add_to_dlhs_ds__face_boundary_cmplx_step
+	(struct Matrix_d*const dlhs_ds,             ///< See brief.
 	 const struct DPG_Solver_Volume* dpg_s_vol, ///< See brief.
-	 const struct Simulation* sim               ///< See brief.
+	 struct Simulation*const sim_c              ///< See brief.
 	);
 
 static struct Matrix_d* constructor_dlhs_ds_v_1
@@ -198,30 +208,84 @@ static void add_to_petsc_Mat_Vec_dpg
 	destructor_const_Vector_i(idxm);
 }
 
-static void add_to_dL_ds__norm
-	(struct Matrix_d*const dL_ds, const struct Norm_DPG* norm, const struct const_Matrix_d* optimal_test)
+static void add_to_dlhs_ds__norm
+	(struct Matrix_d*const dlhs_ds, const struct Norm_DPG* norm, const struct const_Matrix_d* optimal_test)
 {
 	if (!norm->dN_ds)
 		return;
 
-UNUSED(dL_ds);
+UNUSED(dlhs_ds);
 UNUSED(optimal_test);
 EXIT_ADD_SUPPORT;
 }
 
-static void add_to_dL_ds__face_boundary
-	(struct Matrix_d*const dL_ds, const struct DPG_Solver_Volume* dpg_s_vol, const struct Simulation* sim,
-	 const char lin_method)
+static void add_to_dlhs_ds__face_boundary
+	(struct Matrix_d*const dlhs_ds, const struct DPG_Solver_Volume* dpg_s_vol, const struct Simulation*const sim,
+	 struct Simulation*const sim_c, const char lin_method)
 {
+UNUSED(sim);
 	if (lin_method == 'a')
 		EXIT_ADD_SUPPORT; // Will require linearization of boundary condition/numerical flux Jacobians.
 	else if (lin_method == 'c')
-		add_to_dL_ds__face_boundary_cmplx_step(dL_ds,dpg_s_vol,sim);
+		add_to_dlhs_ds__face_boundary_cmplx_step(dlhs_ds,dpg_s_vol,sim_c);
 	else
 		EXIT_ERROR("Unsupported: %c\n",lin_method);
 }
 
 // Level 1 ********************************************************************************************************** //
+
+/// \brief Constructor for the complex \ref Simulation volumes and faces DPG computational element lists.
+static void constructor_Simulation_c_comp_elems
+	(struct Simulation*const sim_c,            ///< The complex \ref Simulation.
+	 const struct DPG_Solver_Volume* dpg_s_vol ///< The current \ref DPG_Solver_Volume_T.
+	);
+
+/// \brief Destructor for the complex \ref Simulation volumes and faces DPG computational element lists.
+static void destructor_Simulation_c_comp_elems
+	(struct Simulation*const sim_c ///< The complex \ref Simulation.
+	);
+
+const struct Operator* get_operator__cvcv0_vs_vc (const struct DPG_Solver_Volume* dpg_s_vol)
+{
+	const struct Volume* vol           = (struct Volume*) dpg_s_vol;
+	const struct Solver_Volume* s_vol  = (struct Solver_Volume*) dpg_s_vol;
+	const struct DPG_Solver_Element* e = (struct DPG_Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref,
+	          curved = vol->curved;
+	return get_Multiarray_Operator(e->cvcv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
+}
+
+static void add_to_dlhs_ds__face_boundary_cmplx_step
+	(struct Matrix_d*const dlhs_ds, const struct DPG_Solver_Volume* dpg_s_vol, struct Simulation*const sim_c)
+{
+	constructor_Simulation_c_comp_elems(sim_c,dpg_s_vol); // destructed
+
+	const struct Solver_Volume_c* s_vol_c =  (struct Solver_Volume_c*) sim_c->volumes->first;
+	struct Multiarray_c*const s_coef_c = s_vol_c->sol_coef;
+
+	const ptrdiff_t size_s = compute_size(s_coef_c->order,s_coef_c->extents);
+
+	struct Matrix_c* lhs = constructor_empty_Matrix_c('R',dlhs_ds->ext_0,size_s); // destructed
+	for (int col_l = 0; col_l < size_s; ++col_l) {
+		set_to_value_Matrix_c(lhs,0.0);
+
+		s_coef_c->data[col_l] += CX_STEP*I;
+		add_to_rlhs__face_c(NULL,&lhs,(struct DPG_Solver_Volume_c*)s_vol_c,sim_c,false);
+		s_coef_c->data[col_l] -= CX_STEP*I;
+
+		transpose_Matrix_c(lhs,true);
+		set_block_Matrix_d_cmplx_step(dlhs_ds,(struct const_Matrix_c*)lhs,0,col_l*size_s,'a');
+
+		// Not transposed back as memory is zero'ed => Simply change `layout`.
+		lhs->layout = 'R';
+	}
+	destructor_Matrix_c(lhs);
+
+	destructor_Simulation_c_comp_elems(sim_c);
+}
+
+// Level 2 ********************************************************************************************************** //
 
 /** \brief Constructor for a list of volumes including only a copy of the current volume.
  *  \return See brief. */
@@ -244,28 +308,9 @@ static void copy_members_computational_elements_dpg
 	 const struct Simulation*const sim               ///< The complex \ref Simulation.
 	);
 
-const struct Operator* get_operator__cvcv0_vs_vc (const struct DPG_Solver_Volume* dpg_s_vol)
+static void constructor_Simulation_c_comp_elems
+	(struct Simulation*const sim_c, const struct DPG_Solver_Volume* dpg_s_vol)
 {
-	const struct Volume* vol           = (struct Volume*) dpg_s_vol;
-	const struct Solver_Volume* s_vol  = (struct Solver_Volume*) dpg_s_vol;
-	const struct DPG_Solver_Element* e = (struct DPG_Solver_Element*) vol->element;
-
-	const int p = s_vol->p_ref,
-	          curved = vol->curved;
-	return get_Multiarray_Operator(e->cvcv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
-}
-
-static void add_to_dL_ds__face_boundary_cmplx_step
-	(struct Matrix_d*const dL_ds, const struct DPG_Solver_Volume* dpg_s_vol, const struct Simulation* sim)
-{
-/// \todo Move the simulation constructor out of the hot path!
-	struct Simulation* sim_c = constructor_Simulation__no_mesh (sim->ctrl_name); // destructed
-	convert_to_Test_Case_rc(sim_c,'c');
-
-	// To avoid recomputing the derived \ref DPG_Solver_Element operators for each volume, the existing
-	// \ref Simulation::elements list is used for the complex \ref Simulation as well.
-	sim_c->elements = sim->elements;
-
 	assert(sim_c->volumes == NULL && sim_c->faces == NULL);
 	sim_c->volumes = constructor_Volumes_dpg_local(dpg_s_vol,sim_c);
 	sim_c->faces   = constructor_Faces_dpg_local(dpg_s_vol,sim_c);
@@ -274,41 +319,29 @@ static void add_to_dL_ds__face_boundary_cmplx_step
 	copy_members_computational_elements_dpg(dpg_s_vol,sim_c);
 
 	constructor_derived_computational_elements_c(sim_c,IL_SOLVER_DPG);
-
-// construct list of volumes as only the current volume, list of faces as only neighbouring boundary faces.
-// derive and copy all the way down to DPG_Solver_*.
-
-
-
-	const struct Solver_Volume* s_vol =  (struct Solver_Volume*) dpg_s_vol;
-	struct Multiarray_d*const s_coef = s_vol->sol_coef;
-
-	const ptrdiff_t size_s = compute_size(s_coef->order,s_coef->extents);
-
-	struct Matrix_d* lhs = constructor_default_Matrix_d();
-	lhs->layout    = dL_ds->layout;
-	lhs->ext_0     = dL_ds->ext_0;
-	lhs->ext_1     = size_s;
-	lhs->owns_data = false;
-	for (int i = 0; i < size_s; ++i) {
-// complex step perturbation
-
-		lhs->data = get_col_Matrix_d(i*size_s,dL_ds);
-// possible transpose of lhs
-//		add_to_rlhs__face_c(NULL,&
-	}
-	destructor_Matrix_d(lhs);
-
-	destructor_derived_computational_elements_c(sim_c,IL_SOLVER);
-	destructor_derived_computational_elements_c(sim_c,IL_BASE);
-	convert_to_Test_Case_rc(sim_c,'r');
-	sim_c->elements = NULL;
-	destructor_Simulation(sim_c);
-/// \todo Move the simulation constructor out of the hot path!
-EXIT_UNSUPPORTED;
+	copy_members_computational_elements_dpg(dpg_s_vol,sim_c);
 }
 
-// Level 2 ********************************************************************************************************** //
+static void destructor_Simulation_c_comp_elems (struct Simulation*const sim_c)
+{
+	destructor_derived_computational_elements_c(sim_c,IL_SOLVER);
+	destructor_derived_computational_elements_c(sim_c,IL_BASE);
+
+	destructor_Volumes(sim_c->volumes);
+	sim_c->volumes = NULL;
+
+	destructor_Faces(sim_c->faces);
+	sim_c->faces = NULL;
+}
+
+// Level 3 ********************************************************************************************************** //
+
+/** \brief Return the pointer to the \ref DPG_Solver_Face_T of the input \ref DPG_Solver_Volume_T with the given index.
+ *  \return See brief. */
+struct DPG_Solver_Face* get_dpg_face_ptr
+	(const struct DPG_Solver_Volume*const dpg_s_vol, ///< The current volume.
+	 const int index_f                               ///< The index of the face.
+	);
 
 static struct Intrusive_List* constructor_Volumes_dpg_local
 	(const struct DPG_Solver_Volume*const dpg_s_vol, struct Simulation*const sim)
@@ -348,6 +381,7 @@ static struct Intrusive_List* constructor_Faces_dpg_local
 		face->neigh_info[0].volume = vol;
 	}}
 	sim->n_f = n_f;
+	assert(n_f < NFMAX);
 
 	return faces;
 }
@@ -368,8 +402,33 @@ static void copy_members_computational_elements_dpg
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		if (category == IL_SOLVER)
-			copy_members_r_to_c_Solver_Volume((struct Solver_Volume_c*)curr,(struct Solver_Volume*)dpg_s_vol);
+			copy_members_r_to_c_Solver_Volume((struct Solver_Volume_c*)curr,(struct Solver_Volume*)dpg_s_vol,sim);
 		else if (category == IL_SOLVER_DPG)
-			copy_members_r_to_c_DPG_Solver_Volume((struct DPG_Solver_Volume_c*)curr,dpg_s_vol);
+			copy_members_r_to_c_DPG_Solver_Volume((struct DPG_Solver_Volume_c*)curr,dpg_s_vol,sim);
 	}
+
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		const struct Face*const face = (struct Face*) curr;
+		const struct DPG_Solver_Face*const dpg_s_face_r = get_dpg_face_ptr(dpg_s_vol,face->index);
+		if (category == IL_SOLVER)
+			copy_members_r_to_c_Solver_Face((struct Solver_Face_c*)curr,(struct Solver_Face*)dpg_s_face_r,sim);
+		else if (category == IL_SOLVER_DPG)
+			copy_members_r_to_c_DPG_Solver_Face((struct DPG_Solver_Face_c*)curr,dpg_s_face_r,sim);
+	}
+}
+
+// Level 3 ********************************************************************************************************** //
+
+struct DPG_Solver_Face* get_dpg_face_ptr (const struct DPG_Solver_Volume*const dpg_s_vol, const int index_f)
+{
+	const struct Volume*const vol = (struct Volume*) dpg_s_vol;
+	for (int i = 0; i < NFMAX;    ++i) {
+	for (int j = 0; j < NSUBFMAX; ++j) {
+		const struct Face* face = vol->faces[i][j];
+		if (!face || (face->index != index_f))
+			continue;
+
+		return (struct DPG_Solver_Face*) face;
+	}}
+	EXIT_ERROR("Did not find the face.\n");
 }

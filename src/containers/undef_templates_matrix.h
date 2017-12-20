@@ -46,12 +46,20 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef set_block_Matrix_T
 #undef set_block_Matrix_T_R
+#undef set_block_Matrix_R_cmplx_step
 
 
 #undef Matrix_R
 #undef const_Matrix_R
+#undef Matrix_C
+#undef const_Matrix_C
 
 #undef get_row_Matrix_R
 #undef get_row_const_Matrix_R
 #undef get_col_Matrix_R
 #undef get_col_const_Matrix_R
+
+#undef get_row_Matrix_C
+#undef get_row_const_Matrix_C
+#undef get_col_Matrix_C
+#undef get_col_const_Matrix_C
