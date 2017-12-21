@@ -156,6 +156,20 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier
 	 const struct const_Matrix_d*const rst ///< See brief.
 	);
 
+/** \brief Version of \ref constructor_basis_fptr for the pyramid bezier basis (section 3, \cite Chan2016_bez).
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_basis_pyr_bezier
+	(const int p_b,                        ///< See brief.
+	 const struct const_Matrix_d*const rst ///< See brief.
+	);
+
+/** \brief Version of \ref constructor_grad_basis_fptr for the pyramid bezier basis.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_bezier
+	(const int p_b,                        ///< See brief.
+	 const struct const_Matrix_d*const rst ///< See brief.
+	);
+
 // Helper functions ************************************************************************************************* //
 
 /** \brief Compute the number of basis functions for the given element type.

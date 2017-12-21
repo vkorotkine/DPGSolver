@@ -67,6 +67,11 @@ static void test_unit_basis_simplex_bezier
 	(struct Test_Info*const test_info ///< \ref Test_Info.
 	);
 
+/// \brief Provides unit tests for the bezier pyramid basis functions.
+static void test_unit_basis_pyramid_bezier
+	(struct Test_Info*const test_info ///< \ref Test_Info.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 /** \test Performs unit testing for the bases (\ref test_unit_bases.c).
@@ -90,9 +95,10 @@ int main
 		test_unit_basis_tensor_product_bezier(&test_info);
 	else if (strcmp(test_name,"si_bezier") == 0)
 		test_unit_basis_simplex_bezier(&test_info);
+	else if (strcmp(test_name,"pyr_bezier") == 0)
+		test_unit_basis_pyramid_bezier(&test_info);
 	else
 		EXIT_ERROR("Invalid test name: %s\n",test_name);
-//	test_unit_basis_pyramid_bezier(&test_info);
 
 	output_warning_count(&test_info);
 }
@@ -579,6 +585,84 @@ static void test_unit_basis_simplex_bezier (struct Test_Info*const test_info)
 	assert_condition(pass);
 }
 
+// Pyramid Bezier *************************************************************************************************** //
+
+/// Container for pyramid bezier basis data to be tested for comparison with expected values.
+struct Basis_Data_PYR_Bezier {
+	const struct const_Matrix_d* phi32; ///< The 3d basis functions of order 2.
+
+	const struct const_Multiarray_Matrix_d* grad_phi32; ///< The 3d basis gradient functions of order 2.
+
+	const struct const_Vector_d* p_34; ///< The 3d basis partition of unity (summed) vector of order 4.
+
+	/// Gradient coefficients for the approximation of order 6 of a p2 tensor-product polynomial for the 3d basis.
+	const struct const_Multiarray_d* grad_coef_36;
+};
+
+/** \brief Constructor for \ref Basis_Data_PYR_Bezier.
+ *  \return Standard. */
+static struct Basis_Data_PYR_Bezier* constructor_Basis_Data_PYR_Bezier
+	(const char eval_type ///< Method to use to obtain the data. Options: 'a'nalytical, 'c'ompute.
+	);
+
+/// \brief Destructor for \ref Basis_Data_PYR_Bezier.
+static void destructor_Basis_Data_PYR_Bezier
+	(struct Basis_Data_PYR_Bezier* b_data ///< Standard.
+	);
+
+static void test_unit_basis_pyramid_bezier (struct Test_Info*const test_info)
+{
+	UNUSED(test_info);
+	bool    pass        = false;
+	double* tol         = NULL;
+	bool*   differences = NULL;
+
+	struct Basis_Data_PYR_Bezier* b_data_a = constructor_Basis_Data_PYR_Bezier('a'), // destructed
+	                            * b_data_c = constructor_Basis_Data_PYR_Bezier('c'); // destructed
+
+	tol = (double[]) { EPS, };
+	differences = (bool[])
+		{ diff_const_Matrix_d(b_data_a->phi32,b_data_c->phi32,tol[0]),
+		};
+	if (check_diff(1,differences,&pass)) {
+		if (differences[0]) print_diff_const_Matrix_d(b_data_a->phi32,b_data_c->phi32,tol[0]);
+	}
+	expect_condition(pass,"basis");
+
+	tol = (double[]) { EPS, };
+	differences = (bool[])
+		{ diff_const_Multiarray_Matrix_d(b_data_a->grad_phi32,b_data_c->grad_phi32,tol[0]),
+		};
+	if (check_diff(1,differences,&pass)) {
+		if (differences[0])
+			print_diff_const_Multiarray_Matrix_d(b_data_a->grad_phi32,b_data_c->grad_phi32,tol[0]);
+	}
+	expect_condition(pass,"grad basis");
+
+	tol = (double[]) { EPS };
+	differences = (bool[])
+		{ diff_const_Vector_d(b_data_a->p_34,b_data_c->p_34,tol[0]),
+		};
+	if (check_diff(1,differences,&pass)) {
+		if (differences[0]) print_diff_const_Vector_d(b_data_a->p_34,b_data_c->p_34,tol[0]);
+	}
+	expect_condition(pass,"mass matrix");
+
+	tol = (double[]) { EPS, };
+	differences = (bool[])
+		{ diff_const_Multiarray_d(b_data_a->grad_coef_36,b_data_c->grad_coef_36,tol[0]),
+		};
+	if (check_diff(1,differences,&pass)) {
+		if (differences[0]) print_diff_const_Multiarray_d(b_data_a->grad_coef_36,b_data_c->grad_coef_36,tol[0]);
+	}
+	expect_condition(pass,"gradient evaluation");
+
+	destructor_Basis_Data_PYR_Bezier(b_data_a);
+	destructor_Basis_Data_PYR_Bezier(b_data_c);
+
+	assert_condition(pass);
+}
+
 // Level 1 ********************************************************************************************************** //
 // Tensor-Product Orthonormal *************************************************************************************** //
 
@@ -847,5 +931,40 @@ static void destructor_Basis_Data_SI_Bezier (struct Basis_Data_SI_Bezier* b_data
 	destructor_const_Vector_d(b_data->p_34);
 	destructor_const_Multiarray_d(b_data->grad_coef_25);
 	destructor_const_Multiarray_d(b_data->grad_coef_37);
+	free(b_data);
+}
+
+// Pyramid Bezier *************************************************************************************************** //
+
+static struct Basis_Data_PYR_Bezier* constructor_Basis_Data_PYR_Bezier (const char eval_type)
+{
+	struct Basis_Data_PYR_Bezier* b_data = calloc(1,sizeof *b_data); // returned
+
+	const struct const_Nodes* d3_p4_GLL = constructor_const_Nodes_pyr(3,4,NODES_GLL); // destructed
+	const char* basis_name = "pyr_bezier";
+	if (eval_type == 'a') {
+		b_data->phi32        = constructor_basis_pyr_bezier_def(2,d3_p4_GLL->rst);      // keep
+		b_data->grad_phi32   = constructor_grad_basis_pyr_bezier_def(2,d3_p4_GLL->rst); // keep
+		b_data->p_34         = constructor_part_unity_def(d3_p4_GLL->rst->ext_0);       // keep
+		b_data->grad_coef_36 = constructor_grad_vals_computation_def(3,6,basis_name);   // keep
+	} else if (eval_type == 'c') {
+		b_data->phi32        = constructor_basis_pyr_bezier(2,d3_p4_GLL->rst);      // keep
+		b_data->grad_phi32   = constructor_grad_basis_pyr_bezier(2,d3_p4_GLL->rst); // keep
+		b_data->p_34         = constructor_part_unity(b_data->phi32);               // keep
+		b_data->grad_coef_36 = constructor_grad_vals_computation(3,6,basis_name);   // keep
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+	destructor_const_Nodes(d3_p4_GLL);
+
+	return b_data;
+}
+
+static void destructor_Basis_Data_PYR_Bezier (struct Basis_Data_PYR_Bezier* b_data)
+{
+	destructor_const_Matrix_d(b_data->phi32);
+	destructor_const_Multiarray_Matrix_d(b_data->grad_phi32);
+	destructor_const_Vector_d(b_data->p_34);
+	destructor_const_Multiarray_d(b_data->grad_coef_36);
 	free(b_data);
 }

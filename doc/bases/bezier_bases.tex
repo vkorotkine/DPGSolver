@@ -30,8 +30,11 @@
 \setlength{\parindent}{0pt}
 \renewcommand{\indent}{\hspace*{\tindent}}
 
+\allowdisplaybreaks[1]
+
 
 \newcommand{\makered}[1]{{\color{red}#1}}
+\newcommand{\makeblue}[1]{{\color{blue}#1}}
 
 \newcommand{\vect}[1]{\mathbf{{#1}}}
 \newcommand{\mat}[1]{\mathbf{{#1}}}
@@ -59,8 +62,6 @@ type_ref = "regular"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-The procedure for the derivation of the basis functions is taken directly from Chan et al.~\cite{Chan2016_bez}.
-
 \begin{sagesilent}
 var('r,s,t')
 var('a,b,c')
@@ -68,21 +69,29 @@ var('i,j,k,l')
 assume(i,j,k,l,'integer')
 \end{sagesilent}
 
+The procedure for the derivation of the basis functions is taken directly from Chan et al.~\cite{Chan2016_bez}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Simplices}
 
-Given the coordinates of the vertices of the reference triangle,
 \begin{sagesilent}
 if (type_ref == "regular"):
     rst_V = matrix(dim+1,dim,[-1,-1/sqrt(3),-1/sqrt(6),
                                1,-1/sqrt(3),-1/sqrt(6),
                                0, 2/sqrt(3),-1/sqrt(6),
                                0, 0,         3/sqrt(6) ])
+    rst_to_abc = [a == 6*r/(3-2*sqrt(3)*s-sqrt(6)*t), b == 1/3*(8*sqrt(3)*s/(3-sqrt(6)*t)-1), c == 1/2*(sqrt(6)*t-1)]
+    abc_l = -1
 elif (type_ref == "standard"):
     rst_V = matrix(dim+1,dim,[ 0,0,0,
                                1,0,0,
                                0,1,0,
                                0,0,1 ])
+    rst_to_abc = [a == r/(1-(s+t)), b == s/(1-t), c == t]
+    abc_l = 0
 \end{sagesilent}
+
+Given the coordinates of the vertices of the reference simplex,
 
 \[
 \bm{r}_V = \sage{rst_V},
@@ -113,11 +122,6 @@ The result is
 
 
 \begin{sagesilent}
-if (type_ref == "standard"):
-    rst_to_abc = [a == r/(1-(s+t)), b == s/(1-t), c == t]
-elif (type_ref == "regular"):
-    rst_to_abc = [a == 6*r/(3-2*sqrt(3)*s-sqrt(6)*t), b == 1/3*(8*sqrt(3)*s/(3-sqrt(6)*t)-1), c == 1/2*(sqrt(6)*t-1)]
-
 s_abc = solve(rst_to_abc,a,b,c)
 abc = matrix(SR,dim,1,[rst_to_abc[n].rhs() for n in range(0,dim)])
 
@@ -133,7 +137,7 @@ Given the Duffy-type transform mapping the reference coordinates to the $d$-cube
 \]
 
 these equations can be solved for the representation of the $rst$ coordinates in terms of the $abc$ coordinates, 
-\begin{equation} \label{eq:abc_to_rst}
+\begin{equation} \label{eq:abc_to_rst_si}
 \vect{r} = \sage{rst},
 \end{equation}
 
@@ -161,11 +165,6 @@ After substitution of~\eqref{eq:bcoords_abc}, we obtain
 \begin{sagesilent}
 B_p = (l_abc[0][0]^i*l_abc[1][0]^j*l_abc[2][0]^k*l_abc[3][0]^l).factor()
 
-# Note these are the same as l_abc after substituting the left-most values of b and c.
-if (type_ref == "standard"):
-    abc_l = 0
-elif (type_ref == "regular"):
-    abc_l = -1
 l_a = matrix(SR,2,1,[l_abc[n][0](b=abc_l,c=abc_l) for n in range(0,2)])
 \end{sagesilent}
 \[
@@ -179,7 +178,7 @@ B^p_i(a) = \frac{p!}{i!(p-i)!} (\sage{l_a[0][0]})^{p-i} (\sage{l_a[1][0]})^{i},
 
 it is then possible to represent the simplex basis using a tensor-product of 1D Bezier basis functions as
 \[
-B^p_{i,j,k,l}(a,b,c) = B^{i+j}_j(a) B^{i+j+k}_k(b) B^{i+j+k+l}_l(c).
+B^p_{ijkl}(a,b,c) = B^{i+j}_j(a) B^{i+j+k}_k(b) B^{i+j+k+l}_l(c).
 \]
 
 As the gradients of the basis are taken with respect to the $rst$ coordinates, we first note that the Jacobian of $abc$
@@ -206,7 +205,7 @@ da_dr_con[2,:] = l_abc[0](a=abc_l,b=abc_l,c=abc_l)*da_dr_simp[2,:]
 \mat{\frac{d\vect{a}}{d\vect{r}}} = \sage{da_dr},
 \]
 
-and after substituting~\eqref{eq:abc_to_rst}, by
+and after substituting~\eqref{eq:abc_to_rst_si}, by
 \[
 \mat{\frac{d\vect{a}}{d\vect{r}}} = \sage{da_dr_simp}.
 \]
@@ -218,27 +217,126 @@ in~\eqref{eq:bezier_1d}, we note that
 \frac{p!}{i!(p-i)!} (\sage{l_a[0][0]})^{p-i-1} (\sage{l_a[1][0]})^{i} = \frac{p}{p-i} B^{p-1}_i(a),
 \end{equation*}
 
-which is used in defining the gradients of $B^p_{i,j,k,l}(a,b,c)$ with respect to the $rst$ coordinates as
-%B^p_{i,j,k,l}(a,b,c) = B^{i+j}_j(a) B^{i+j+k}_k(b) B^{i+j+k+l}_l(c).
+which is used in defining the gradients of $B^p_{ijkl}(a,b,c)$ with respect to the $rst$ coordinates as
 \begin{align*}
-\frac{\partial B^p_{i,j,k,l}(a,b,c)}{\partial r}
+\frac{\partial B^p_{ijkl}(a,b,c)}{\partial r}
 & = \left(\sage{da_dr_con[0][0]}\right)\left(\frac{i+j+k+l}{i+j}\right) \frac{d B^{i+j}_j(a)}{da} B^{i+j+k-1}_k(b) B^{i+j+k+l-1}_l(c) \\
 & + \left(\sage{da_dr_con[1][0]}\right)\left(\frac{i+j+k+l}{i+j+k}\right) B^{i+j}_j(a) \frac{d B^{i+j+k}_k(b)}{db} B^{i+j+k+l-1}_l(c) \\
-& + \left(\sage{da_dr_con[2][0]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc},
-\end{align*}
-
-\begin{align*}
-\frac{\partial B^p_{i,j,k,l}(a,b,c)}{\partial s}
+& + \left(\sage{da_dr_con[2][0]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc}, \\
+\\
+\frac{\partial B^p_{ijkl}(a,b,c)}{\partial s}
 & = \left(\sage{da_dr_con[0][1]}\right)\left(\frac{i+j+k+l}{i+j}\right) \frac{d B^{i+j}_j(a)}{da} B^{i+j+k-1}_k(b) B^{i+j+k+l-1}_l(c) \\
 & + \left(\sage{da_dr_con[1][1]}\right)\left(\frac{i+j+k+l}{i+j+k}\right) B^{i+j}_j(a) \frac{d B^{i+j+k}_k(b)}{db} B^{i+j+k+l-1}_l(c) \\
-& + \left(\sage{da_dr_con[2][1]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc},
-\end{align*}
-
-\begin{align*}
-\frac{\partial B^p_{i,j,k,l}(a,b,c)}{\partial t}
+& + \left(\sage{da_dr_con[2][1]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc}, \\
+\\
+\frac{\partial B^p_{ijkl}(a,b,c)}{\partial t}
 & = \left(\sage{da_dr_con[0][2]}\right)\left(\frac{i+j+k+l}{i+j}\right) \frac{d B^{i+j}_j(a)}{da} B^{i+j+k-1}_k(b) B^{i+j+k+l-1}_l(c) \\
 & + \left(\sage{da_dr_con[1][2]}\right)\left(\frac{i+j+k+l}{i+j+k}\right) B^{i+j}_j(a) \frac{d B^{i+j+k}_k(b)}{db} B^{i+j+k+l-1}_l(c) \\
 & + \left(\sage{da_dr_con[2][2]}\right) B^{i+j}_j(a) B^{i+j+k}_k(b) \frac{d B^{i+j+k+l}_l(c)}{dc}.
+\end{align*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Pyramids}
+
+
+\begin{sagesilent}
+dim = 3
+var('r,s,t')
+var('a,b,c')
+\end{sagesilent}
+
+\begin{sagesilent}
+if (type_ref == "regular"):
+    rst_V = matrix(dim+2,dim,[-1,-1,-1/5*sqrt(2),
+                               1,-1,-1/5*sqrt(2),
+                              -1, 1,-1/5*sqrt(2),
+                               1, 1,-1/5*sqrt(2),
+                               0, 0, 4/5*sqrt(2) ])
+    rst_to_abc = [a == r/(4/5-1/sqrt(2)*t), b == s/(4/5-1/sqrt(2)*t), c == sqrt(2)*t-3/5]
+elif (type_ref == "standard"):
+    rst_V = matrix(dim+2,dim,[ 0,0,0,
+                               1,0,0,
+                               0,1,0,
+                               1,1,0,
+                               0,0,1 ])
+    rst_to_abc = [a == r/(1-t), b == s/(1-t), c == t]
+\end{sagesilent}
+
+The Bezier basis for the pyramid element is given directly by Chan et al.~\cite[eq. (\makeblue{2})]{Chan2016_bez}
+\begin{equation*}
+B^p_{ijk}(a,b,c) = B^{p-k}_i(a) B^{p-k}_j(b) B^{p}_k(c),
+\end{equation*}
+
+where the $abc$ coordinates are once again given by a Duffy-type transformation
+\begin{sagesilent}
+s_abc = solve(rst_to_abc,a,b,c)
+abc = matrix(SR,dim,1,[rst_to_abc[n].rhs() for n in range(0,dim)])
+
+s_rst = solve(rst_to_abc,r,s,t)
+rst = matrix(SR,dim,1,[s_rst[0][n].rhs() for n in range(0,dim)]).apply_map(lambda x: x.factor())
+\end{sagesilent}
+
+\begin{equation*}
+\vect{a} = \sage{abc},
+\end{equation*}
+
+which is determined based on making the following choice for the vertices for the reference pyramid
+\[
+\bm{r}_V = \sage{rst_V}.
+\]
+
+As above, these equations can be solved for the representation of the $rst$ coordinates in terms of the $abc$ coordinates, 
+\begin{equation} \label{eq:abc_to_rst_pyr}
+\vect{r} = \sage{rst}.
+\end{equation}
+
+The computation of the gradients of the basis functions with respect to the reference coordinates once again requires
+the Jacobian of the $abc$ coordinates with respect to the $rst$ coordinates, given by
+\begin{sagesilent}
+da_dr = matrix(SR,dim,dim)
+da_dr[:,0] = diff(abc,r)
+da_dr[:,1] = diff(abc,s)
+da_dr[:,2] = diff(abc,t)
+
+da_dr_simp = matrix(SR,dim,dim)
+for n in range(0,dim):
+    for m in range(0,dim):
+        if (da_dr[n,m] != 0):
+            da_dr_simp[n,m] = (da_dr[n,m](r = rst[0][0],s = rst[1][0], t = rst[2][0])).rational_simplify().factor()
+
+da_dr_con = matrix(SR,dim,dim)
+da_dr_con[0,:] = l_abc[0](a=abc_l,b=abc_l)        *da_dr_simp[0,:]
+da_dr_con[1,:] = l_abc[0](a=abc_l,b=abc_l)        *da_dr_simp[1,:]
+da_dr_con[2,:] = l_abc[0](a=abc_l,b=abc_l,c=abc_l)*da_dr_simp[2,:]
+\end{sagesilent}
+
+\[
+\mat{\frac{d\vect{a}}{d\vect{r}}} = \sage{da_dr},
+\]
+
+and after substituting~\eqref{eq:abc_to_rst_pyr}, by
+\[
+\mat{\frac{d\vect{a}}{d\vect{r}}} = \sage{da_dr_simp}.
+\]
+
+It can once again be noted that these Jacobian terms are singular at degenerate points of the mapping and that the basis
+gradients must be defined accordingly. Once again using~\eqref{eq:bezier_1d}, the gradients with respect to the $rst$
+coordinates are given by
+\begin{align*}
+\frac{\partial B^p_{ijkl}(a,b,c)}{\partial r}
+& = \left(\sage{da_dr_con[0][0]}\right)\left(\frac{p}{p-k}\right) \frac{d B^{p-k}_i(a)}{da} B^{p-k}_j(b) B^{p-1}_k(c) \\
+& + \left(\sage{da_dr_con[1][0]}\right)\left(\frac{p}{p-k}\right) B^{p-k}_i(a) \frac{d B^{p-k}_j(b)}{db} B^{p-1}_k(c) \\
+& + \left(\sage{da_dr_con[2][0]}\right) B^{p-k}_i(a) B^{p-k}_j(b) \frac{d B^{p}_k(c)}{dc}, \\
+\\
+\frac{\partial B^p_{ijkl}(a,b,c)}{\partial s}
+& = \left(\sage{da_dr_con[0][1]}\right)\left(\frac{p}{p-k}\right) \frac{d B^{p-k}_i(a)}{da} B^{p-k}_j(b) B^{p-1}_k(c) \\
+& + \left(\sage{da_dr_con[1][1]}\right)\left(\frac{p}{p-k}\right) B^{p-k}_i(a) \frac{d B^{p-k}_j(b)}{db} B^{p-1}_k(c) \\
+& + \left(\sage{da_dr_con[2][1]}\right) B^{p-k}_i(a) B^{p-k}_j(b) \frac{d B^{p}_k(c)}{dc}, \\
+\\
+\frac{\partial B^p_{ijkl}(a,b,c)}{\partial t}
+& = \left(\sage{da_dr_con[0][2]}\right)\left(\frac{p}{p-k}\right) \frac{d B^{p-k}_i(a)}{da} B^{p-k}_j(b) B^{p-1}_k(c) \\
+& + \left(\sage{da_dr_con[1][2]}\right)\left(\frac{p}{p-k}\right) B^{p-k}_i(a) \frac{d B^{p-k}_j(b)}{db} B^{p-1}_k(c) \\
+& + \left(\sage{da_dr_con[2][2]}\right) B^{p-k}_i(a) B^{p-k}_j(b) \frac{d B^{p}_k(c)}{dc}, \\
 \end{align*}
 
 

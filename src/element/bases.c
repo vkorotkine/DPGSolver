@@ -679,11 +679,108 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier
 				                        *grad_bernstein_std(i+j+k,    k,b[n])*db_scale[dim]
 				                        *     bernstein_std(i+j+k+l-1,l,c[n])
 				                      +       bernstein_std(i+j,      j,a[n])
-				                        *     bernstein_std(i+j+k  ,  k,b[n])
+				                        *     bernstein_std(i+j+k,    k,b[n])
 				                        *grad_bernstein_std(i+j+k+l,  l,c[n])*dc_scale[dim];
 			}}
 		}}}}
 	}
+	destructor_const_Matrix_d(abc);
+
+	for (int dim = 0; dim < d; ++dim)
+		transpose_Matrix_d(grad_phi_rst->data[dim],true);
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
+}
+
+// Pyramid Bezier *************************************************************************************************** //
+
+const struct const_Matrix_d* constructor_basis_pyr_bezier (const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_PYR);
+
+	assert(d == 3);
+
+	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('C',n_n,n_b); // returned
+	double* phi_data = phi_rst->data;
+
+	const struct const_Matrix_d*const abc = constructor_abc_from_rst_pyr(rst); // destructed
+	const double*const a = get_col_const_Matrix_d(0,abc),
+	            *const b = get_col_const_Matrix_d(1,abc),
+	            *const c = get_col_const_Matrix_d(2,abc);
+
+	for (int i = 0, i_max = p_b; i <= i_max; i++) {
+	for (int j = 0, j_max = p_b; j <= j_max; j++) {
+		const int mu_ij = GSL_MAX(i,j);
+		for (int k = 0, k_max = p_b-mu_ij; k <= k_max; k++) {
+		for (int n = 0; n < n_n; ++n) {
+			*phi_data  = bernstein_std(p_b-k,i,a[n])
+			            *bernstein_std(p_b-k,j,b[n])
+			            *bernstein_std(p_b,  k,c[n]);
+			++phi_data;
+		}}
+	}}
+	destructor_const_Matrix_d(abc);
+	transpose_Matrix_d(phi_rst,true);
+
+	return (const struct const_Matrix_d*) phi_rst;
+}
+
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_bezier
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_PYR);
+
+	assert(d == 3);
+
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('C',n_n,n_b); // keep
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	const struct const_Matrix_d*const abc = constructor_abc_from_rst_pyr(rst); // destructed
+	const double*const a = get_col_const_Matrix_d(0,abc),
+	            *const b = get_col_const_Matrix_d(1,abc),
+	            *const c = get_col_const_Matrix_d(2,abc);
+
+	/// See \ref constructor_grad_basis_si_bezier for relevant comments.
+	for (int i = 0, i_max = p_b; i <= i_max; i++) {
+	for (int j = 0, j_max = p_b; j <= j_max; j++) {
+		const int mu_ij = GSL_MAX(i,j);
+		for (int k = 0, k_max = p_b-mu_ij; k <= k_max; k++) {
+		for (int dim = 0; dim < d; ++dim) {
+		for (int n = 0; n < n_n; n++) {
+			const double da_scale[] = { ( p_b-k > 0 ? p_b/((double)(p_b-k))*1.0            : 0.0),
+			                            0.0,
+			                            ( p_b-k > 0 ? p_b/((double)(p_b-k))*SQRT2/2.0*a[n] : 0.0), };
+			const double db_scale[] = { 0.0,
+			                            ( p_b-k > 0 ? p_b/((double)(p_b-k))*1.0            : 0.0),
+			                            ( p_b-k > 0 ? p_b/((double)(p_b-k))*SQRT2/2.0*b[n] : 0.0), };
+			const double dc_scale[] = { 0.0,
+			                            0.0,
+			                            SQRT2, };
+			*grad_phi_data[dim]++ =  grad_bernstein_std(p_b-k,i,a[n])*da_scale[dim]
+			                        *     bernstein_std(p_b-k,j,b[n])
+			                        *     bernstein_std(p_b-1,k,c[n])
+			                      +       bernstein_std(p_b-k,i,a[n])
+			                        *grad_bernstein_std(p_b-k,j,b[n])*db_scale[dim]
+			                        *     bernstein_std(p_b-1,k,c[n])
+			                      +       bernstein_std(p_b-k,i,a[n])
+			                        *     bernstein_std(p_b-k,j,b[n])
+			                        *grad_bernstein_std(p_b,  k,c[n])*dc_scale[dim];
+		}}}
+	}}
 	destructor_const_Matrix_d(abc);
 
 	for (int dim = 0; dim < d; ++dim)

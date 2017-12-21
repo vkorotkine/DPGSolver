@@ -1276,6 +1276,7 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier_def
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_SI);
 
+/// \todo Move the \ref constructor_bcoords_from_rst_si function here and make static.
 	const struct const_Matrix_d*const bcoords = constructor_bcoords_from_rst_si(rst); // destructed
 	const double*const u = get_col_const_Matrix_d(0,bcoords),
 	            *const v = get_col_const_Matrix_d(1,bcoords),
@@ -1357,6 +1358,137 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier_def
 		}
 	}
 	destructor_const_Matrix_d(bcoords);
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
+}
+
+// Pyramid Orthonormal ********************************************************************************************** //
+
+const struct const_Matrix_d* constructor_basis_pyr_bezier_def
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_PYR);
+
+	const struct const_Matrix_d*const abc = constructor_abc_from_rst_pyr(rst); // destructed
+	const double*const a = get_col_const_Matrix_d(0,abc),
+	            *const b = get_col_const_Matrix_d(1,abc),
+	            *const c = get_col_const_Matrix_d(2,abc);
+
+	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('R',n_n,n_b); // returned
+	double* phi_data = phi_rst->data;
+
+	for (ptrdiff_t n = 0; n < n_n; ++n) {
+		const double a_n = a[n],
+		             b_n = b[n],
+		             c_n = c[n];
+
+		if (d == 3 && p_b == 2) {
+EXIT_ADD_SUPPORT; UNUSED(a_n); UNUSED(b_n); UNUSED(c_n);
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+			*phi_data++ = 0.0;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+	destructor_const_Matrix_d(abc);
+
+	return (const struct const_Matrix_d*) phi_rst;
+}
+
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_bezier_def
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_PYR);
+
+	const struct const_Matrix_d*const abc = constructor_abc_from_rst_pyr(rst); // destructed
+	const double*const a = get_col_const_Matrix_d(0,abc),
+	            *const b = get_col_const_Matrix_d(1,abc),
+	            *const c = get_col_const_Matrix_d(2,abc);
+
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	for (ptrdiff_t n = 0; n < n_n; ++n) {
+		const double a_n = a[n],
+		             b_n = b[n],
+		             c_n = c[n];
+
+		if (d == 3 && p_b == 2) {
+EXIT_ADD_SUPPORT; UNUSED(a_n); UNUSED(b_n); UNUSED(c_n);
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+			*grad_phi_data[0]++ = 0.0;
+			*grad_phi_data[1]++ = 0.0;
+			*grad_phi_data[2]++ = 0.0;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+	destructor_const_Matrix_d(abc);
 
 	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
 }
