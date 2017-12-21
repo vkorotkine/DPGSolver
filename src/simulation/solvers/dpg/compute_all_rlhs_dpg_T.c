@@ -612,7 +612,7 @@ static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 
 	struct Norm_DPG* norm = malloc(sizeof* norm); // returned
 	norm->N     = (struct const_Matrix_T*) norm_op;
-	norm->dN_ds = NULL;
+	norm->dN_ds = constructor_default_const_Matrix_T();
 
 	return norm;
 }
