@@ -196,7 +196,7 @@ void compute_all_rlhs_dpg_T
 #endif
 }
 
-struct Multiarray_Operator get_operator__cvt1_vt_vc__rlhs_T (const struct DPG_Solver_Volume_T* dpg_s_vol)
+struct Multiarray_Operator get_operator__cv1_vt_vc__rlhs_T (const struct DPG_Solver_Volume_T* dpg_s_vol)
 {
 	struct Volume* vol            = (struct Volume*) dpg_s_vol;
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) vol;
@@ -206,7 +206,7 @@ struct Multiarray_Operator get_operator__cvt1_vt_vc__rlhs_T (const struct DPG_So
 	const int p      = s_vol->p_ref,
 	          curved = vol->curved;
 
-	return set_MO_from_MO(dpg_s_e->cvt1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
+	return set_MO_from_MO(dpg_s_e->cv1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 }
 
 const struct const_Matrix_R* constructor_lhs_l_internal_face_dpg_T
@@ -559,29 +559,29 @@ static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 	const int n_eq = test_case->n_eq,
 	          n_vr = test_case->n_var;
 
-	const struct Multiarray_Operator cvt1_vt_vc = get_operator__cvt1_vt_vc__rlhs_T(dpg_s_vol);
+	const struct Multiarray_Operator cv1_vt_vc = get_operator__cv1_vt_vc__rlhs_T(dpg_s_vol);
 
-	const ptrdiff_t ext_0 = cvt1_vt_vc.data[0]->op_std->ext_0,
-	                ext_1 = cvt1_vt_vc.data[0]->op_std->ext_1;
+	const ptrdiff_t ext_0 = cv1_vt_vc.data[0]->op_std->ext_0,
+	                ext_1 = cv1_vt_vc.data[0]->op_std->ext_1;
 
-	struct Matrix_T* cvt1r = constructor_empty_Matrix_T('R',n_eq*ext_0,n_vr*ext_1); // destructed
+	struct Matrix_T* cv1r = constructor_empty_Matrix_T('R',n_vr*ext_0,n_eq*ext_1); // destructed
 
-	struct Matrix_T* cvt1r_l = constructor_empty_Matrix_T('R',ext_0,ext_1); // destructed
+	struct Matrix_T* cv1r_l = constructor_empty_Matrix_T('R',ext_0,ext_1); // destructed
 	const struct const_Multiarray_T* dfr_ds_Ma = flux_r->dfr_ds;
 	struct Vector_T dfr_ds = { .ext_0 = dfr_ds_Ma->extents[0], .owns_data = false, .data = NULL, };
 
 	for (int vr = 0; vr < n_vr; ++vr) {
 	for (int eq = 0; eq < n_eq; ++eq) {
-		set_to_value_Matrix_T(cvt1r_l,0.0);
+		set_to_value_Matrix_T(cv1r_l,0.0);
 		for (int dim = 0; dim < DIM; ++dim) {
 			const ptrdiff_t ind =
 				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
 			dfr_ds.data = (Type*)&dfr_ds_Ma->data[ind];
-			mm_diag_T('R',1.0,1.0,cvt1_vt_vc.data[dim]->op_std,(struct const_Vector_T*)&dfr_ds,cvt1r_l,false);
+			mm_diag_T('L',1.0,1.0,cv1_vt_vc.data[dim]->op_std,(struct const_Vector_T*)&dfr_ds,cv1r_l,false);
 		}
-		set_block_Matrix_T(cvt1r,(struct const_Matrix_T*)cvt1r_l,eq*ext_0,vr*ext_1,'i');
+		set_block_Matrix_T(cv1r,(struct const_Matrix_T*)cv1r_l,eq*ext_0,vr*ext_1,'i');
 	}}
-	destructor_Matrix_T(cvt1r_l);
+	destructor_Matrix_T(cv1r_l);
 
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) dpg_s_vol;
 	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
@@ -591,28 +591,35 @@ static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 	const struct const_Vector_R* wJ_vc    = constructor_dot_mult_const_Vector_R(w_vc,J_inv_vc,n_vr); // destructed
 	destructor_const_Vector_R(J_inv_vc);
 
-	const struct const_Matrix_T* n1_l =
-		constructor_mm_diag_const_Matrix_T_R(1.0,(struct const_Matrix_T*)cvt1r,wJ_vc,'R',false); // destructed
+	const struct const_Matrix_T* n1_lt =
+		constructor_mm_diag_const_Matrix_T_R(1.0,(struct const_Matrix_T*)cv1r,wJ_vc,'L',false); // destructed
 	destructor_const_Vector_R(wJ_vc);
 
+	// norm->N
 	const struct const_Matrix_T* n1 =
-		constructor_mm_const_Matrix_T('N','T',1.0,n1_l,(struct const_Matrix_T*)cvt1r,'R'); // destructed
-	destructor_const_Matrix_T(n1_l);
-	destructor_Matrix_T(cvt1r);
+		constructor_mm_const_Matrix_T('T','N',1.0,n1_lt,(struct const_Matrix_T*)cv1r,'R'); // destructed
+	destructor_Matrix_T(cv1r);
 
 	const struct const_Matrix_R* norm_op_H0 = dpg_s_vol->norm_op_H0;
-	assert(norm_op_H0->ext_0 == ext_0);
+	assert(norm_op_H0->ext_0 == ext_1);
 
-	struct Matrix_T* norm_op = constructor_empty_Matrix_T('R',n_eq*ext_0,n_eq*ext_0); // moved
+	struct Matrix_T* N = constructor_empty_Matrix_T('R',n_eq*ext_1,n_eq*ext_1); // moved
 
-	set_block_Matrix_T(norm_op,n1,0,0,'i');
+	set_block_Matrix_T(N,n1,0,0,'i');
 	for (int eq = 0; eq < n_eq; ++eq)
-		set_block_Matrix_T_R(norm_op,norm_op_H0,eq*ext_0,eq*ext_0,'a');
+		set_block_Matrix_T_R(N,norm_op_H0,eq*ext_1,eq*ext_1,'a');
 	destructor_const_Matrix_T(n1);
 
+	// norm->dN_ds
+	struct Matrix_T* dN_ds = NULL;
+#if TYPE_RC == TYPE_REAL
+	dN_ds = constructor_norm_DPG_dN_ds__h1_upwind(dpg_s_vol,flux_r,n1_lt,sim); // moved
+#endif
+	destructor_const_Matrix_T(n1_lt);
+
 	struct Norm_DPG* norm = malloc(sizeof* norm); // returned
-	norm->N     = (struct const_Matrix_T*) norm_op;
-	norm->dN_ds = constructor_default_const_Matrix_T();
+	norm->N     = (struct const_Matrix_T*) N;
+	norm->dN_ds = (struct const_Matrix_T*) dN_ds;
 
 	return norm;
 }

@@ -25,8 +25,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- cc(i)(o)(t): coefficients to coefficients
  *  	- vv(t):       values       to values
  *  	- vc(t):       values       to coefficients
- *  	- tw: 't'est basis solver operator with 'w'eights.
- *  	- cvcv: 3-tensor of standard cv operator multiplied by each column of the same cv operator.
+ *  	- tw: 't'est basis solver operator with 'w'eights. This operator is cvt\*_\*_\* post-multiplied by the cubature
+ *  	       weights. For collocated schemes, `tw` operators also include premultiplication by the inverse weights.
+ *  	- cvcv: 3-tensor of standard cv operator multiplied by each column of another cv operator.
+ *	        See \ref constructor_operators_tens3.
  *  (t): Optional 't'ranspose.
  *  (i): Optional 'i'nput basis. Options: 'S'olution, 'B'ezier.
  *  (o): Optional 'o'output basis. Options: 'S'olution, 'B'ezier.
@@ -183,11 +185,12 @@ const struct Multiarray_Operator* constructor_operators_bt
 	 const struct Simulation* sim         ///< Defined for \ref constructor_operators.
 	);
 
-/** \brief Constructor for a \ref Multiarray_Operator\* of operators which is a 3-tensor of the input operator
- *         multiplied with its columns interpreted as diagonal matrices.
+/** \brief Constructor for a \ref Multiarray_Operator\* of operators which is a 3-tensor of the right operator, `op_r`,
+ *         multiplied by the columns of the left operator, `op_l`, interpreted as diagonal matrices (on the left).
  *  \return Standard. */
 const struct Multiarray_Operator* constructor_operators_tens3
-	(const struct Multiarray_Operator* op_i ///< The input multiarray of operators.
+	(const struct Multiarray_Operator*const op_l, ///< The left operator whose columns are to be used as diagonals.
+	 const struct Multiarray_Operator*const op_r  ///< The right operator.
 	);
 
 /** \brief Constructor for the \ref Operator_Info\* having the given inputs.

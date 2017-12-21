@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #undef compute_all_rlhs_dpg_T
-#undef get_operator__cvt1_vt_vc__rlhs_T
+#undef get_operator__cv1_vt_vc__rlhs_T
 #undef constructor_lhs_l_internal_face_dpg_T
 #undef compute_n_dof_nf_T
 #undef constructor_petsc_idxm_dpg_T

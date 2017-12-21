@@ -36,9 +36,9 @@ void compute_all_rlhs_dpg_T
 	 struct Intrusive_List* volumes       ///< The list of volumes.
 	);
 
-/** \brief Get the appropriate sub-range of the \ref DPG_Solver_Element::cvt1_vt_vc operators.
+/** \brief Get the appropriate sub-range of the \ref DPG_Solver_Element::cv1_vt_vc operators.
  *  \return See brief. */
-struct Multiarray_Operator get_operator__cvt1_vt_vc__rlhs_T
+struct Multiarray_Operator get_operator__cv1_vt_vc__rlhs_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol ///< The current volume.
 	);
 

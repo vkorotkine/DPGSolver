@@ -273,36 +273,66 @@ const struct Multiarray_Operator* constructor_operators_bt
 	return op;
 }
 
-const struct Multiarray_Operator* constructor_operators_tens3 (const struct Multiarray_Operator* op_i)
+const struct Multiarray_Operator* constructor_operators_tens3
+	(const struct Multiarray_Operator*const op_l, const struct Multiarray_Operator*const op_r)
 {
-	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator(op_i->order,op_i->extents); // rtrnd.
+	/* If this function is ever to be used for operators other than those having `ce_i = ce_o = 'v'`, changes will
+	 * likely be necessary. */
+	const int order               = op_r->order;
+	const ptrdiff_t*const extents = op_r->extents;
+	const ptrdiff_t size          = compute_size(order,extents);
 
-	const ptrdiff_t size_op = compute_size(op_i->order,op_i->extents);
-	for (int ind_op = 0; ind_op < size_op; ++ind_op) {
-		const struct const_Matrix_d* cv_i = op_i->data[ind_op]->op_std;
-		if (cv_i == NULL)
+	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator(order,extents); // returned
+
+	ptrdiff_t counter[order];
+	for (ptrdiff_t i = 0; i < order; ++i)
+		counter[i] = 0;
+
+	for (ptrdiff_t sz = 0; sz < size; sz++) {
+		const ptrdiff_t ind_op_r = compute_index_sub_container(order,0,extents,counter);
+		const struct const_Matrix_d* op_r_M_ptr = op_r->data[ind_op_r]->op_std;
+		if (op_r_M_ptr == NULL) {
+			increment_counter_MaO(order,extents,counter);
 			continue;
-
-		const struct const_Matrix_d*const cv = constructor_copy_const_Matrix_d(cv_i); // destructed
-		transpose_Matrix_d((struct Matrix_d*)cv,true);
-		assert(cv->layout == 'C');
-
-		const ptrdiff_t ext_0 = cv->ext_0,
-		                ext_1 = cv->ext_1;
-
-		struct const_Vector_d cv_diag = { .ext_0 = ext_0, .owns_data = false, .data = NULL, };
-
-		struct Matrix_d* cvcv_local = constructor_zero_Matrix_d('C',ext_0,ext_1);        // destructed
-		struct Matrix_d* cvcv       = constructor_empty_Matrix_d('C',ext_0,ext_1*ext_1); // moved
-		for (int j = 0; j < ext_1; ++j) {
-			const_cast_d1(&cv_diag.data,get_col_const_Matrix_d(j,cv));
-			mm_diag_d('L',1.0,0.0,cv,&cv_diag,cvcv_local,false);
-			set_block_Matrix_d(cvcv,(struct const_Matrix_d*)cvcv_local,0,j*ext_1,'i');
 		}
-		destructor_Matrix_d(cvcv_local);
 
-		cvcv->owns_data = false;
-		const_constructor_move_const_Matrix_d(&op->data[ind_op]->op_std,(struct const_Matrix_d*)cvcv); // returned
+		const int order_l               = op_l->order;
+		const ptrdiff_t*const extents_l = op_l->extents;
+		assert((order_l == order) || (order_l == order-1));
+
+		const int ind_c = order-order_l;
+		const ptrdiff_t ind_op_l = compute_index_sub_container(order_l,0,extents_l,&counter[ind_c]);
+
+		const struct const_Matrix_d* op_l_M_ptr = op_l->data[ind_op_l]->op_std;
+		assert(op_l_M_ptr != NULL);
+
+		const struct const_Matrix_d*const op_l_M = constructor_copy_const_Matrix_d(op_l_M_ptr); // destructed
+		const struct const_Matrix_d*const op_r_M = constructor_copy_const_Matrix_d(op_r_M_ptr); // destructed
+		transpose_Matrix_d((struct Matrix_d*)op_l_M,true);
+		transpose_Matrix_d((struct Matrix_d*)op_r_M,true);
+		assert((op_l_M->layout == 'C') && (op_r_M->layout == 'C'));
+
+		const ptrdiff_t ext_0_r = op_r_M->ext_0,
+		                ext_1_r = op_r_M->ext_1,
+		                ext_0_l = op_l_M->ext_0,
+		                ext_1_l = op_l_M->ext_1;
+		assert(ext_0_r == op_l_M->ext_0);
+
+		struct const_Vector_d op_l_diag = { .ext_0 = ext_0_l, .owns_data = false, .data = NULL, };
+
+		struct Matrix_d* op_lr_local = constructor_zero_Matrix_d('C',ext_0_r,ext_1_r);        // destructed
+		struct Matrix_d* op_lr       = constructor_empty_Matrix_d('C',ext_0_r,ext_1_r*ext_1_l); // moved
+		for (int j = 0; j < ext_1_l; ++j) {
+			const_cast_d1(&op_l_diag.data,get_col_const_Matrix_d(j,op_l_M));
+			mm_diag_d('L',1.0,0.0,op_r_M,&op_l_diag,op_lr_local,false);
+			set_block_Matrix_d(op_lr,(struct const_Matrix_d*)op_lr_local,0,j*ext_1_r,'i');
+		}
+		destructor_Matrix_d(op_lr_local);
+		destructor_const_Matrix_d(op_l_M);
+		destructor_const_Matrix_d(op_r_M);
+
+		const_constructor_move_const_Matrix_d(&op->data[ind_op_r]->op_std,(struct const_Matrix_d*)op_lr); // rtrnd
+		increment_counter_MaO(order,extents,counter);
 	}
 
 	return op;

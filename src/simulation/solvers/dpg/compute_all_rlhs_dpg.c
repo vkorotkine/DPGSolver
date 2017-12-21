@@ -84,6 +84,17 @@ static void add_to_petsc_Mat_Vec_dpg
 	 const struct Simulation* sim          ///< \ref Simulation.
 	);
 
+/** \brief Portion of \ref constructor_norm_DPG__h1_upwind constructing the Jacobian of the norm wrt the solution
+ *         coefficients.
+ *  \return See brief. */
+static struct Matrix_d* constructor_norm_DPG_dN_ds__h1_upwind
+	(const struct DPG_Solver_Volume* dpg_s_vol, ///< See brief.
+	 const struct Flux_Ref* flux_r,             ///< See brief.
+	 const struct const_Matrix_d* n1_lt,        /**< The transpose of the left component of the 1st order term of the
+	                                             *   h1 upwind norm. */
+	 const struct Simulation* sim               ///< See brief.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
@@ -138,26 +149,32 @@ static void add_to_dlhs_ds__face_boundary
 	 const char lin_method                      ///< Linearization method. Options: 'a'nalytical, 'c'omplex step.
 	);
 
+/** \brief Get the appropriate sub-range of the \ref DPG_Solver_Element::cvcv1_vt_vc operators.
+ *  \return See brief. */
+static struct Multiarray_Operator get_operator__cvcv1_vt_vc__rlhs
+	(const struct DPG_Solver_Volume* dpg_s_vol ///< The current volume.
+	);
+
 static void add_to_lhs_opt__d_opt_t_ds
 	(const struct Flux_Ref*const flux_r, const struct DPG_Solver_Volume*const dpg_s_vol,
 	 const struct Norm_DPG*const norm, const struct const_Matrix_d*const opt_t,
 	 const struct const_Vector_d*const rhs_std, const struct const_Matrix_d*const lhs_std,
 	 struct Matrix_d*const lhs_opt, const struct Simulation*const sim, struct Simulation*const sim_c)
 {
-	struct Test_Case_T* test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
+	struct Test_Case* test_case = (struct Test_Case*) sim->test_case_rc->tc;
 	if (test_case->is_linear)
 		return;
 
-	struct Matrix_T* dlhs_ds = constructor_dlhs_ds_v_1(flux_r,dpg_s_vol,sim); // destructed
+	struct Matrix_d* dlhs_ds = constructor_dlhs_ds_v_1(flux_r,dpg_s_vol,sim); // destructed
 	add_to_dlhs_ds__face_boundary(dlhs_ds,dpg_s_vol,sim,sim_c,'c');
 	add_to_dlhs_ds__norm(dlhs_ds,norm,opt_t);
 
-//print_const_Matrix_T(norm->N);
-//print_Matrix_T(dlhs_ds);
-	const struct const_Matrix_T* dopt_t_ds =
-		constructor_sysv_const_Matrix_T(norm->N,(struct const_Matrix_T*)dlhs_ds); // destructed
-	destructor_Matrix_T(dlhs_ds);
-//print_const_Matrix_T(dopt_t_ds);
+//print_const_Matrix_d(norm->N);
+//print_Matrix_d(dlhs_ds);
+	const struct const_Matrix_d* dopt_t_ds =
+		constructor_sysv_const_Matrix_d(norm->N,(struct const_Matrix_d*)dlhs_ds); // destructed
+	destructor_Matrix_d(dlhs_ds);
+//print_const_Matrix_d(dopt_t_ds);
 
 	/* As the memory layout of `dopt_t_ds` is the same as that of dlhs_ds as described in
 	 * \ref constructor_dlhs_ds_v_1, it is possible to compute all of the entries of the optimal test function
@@ -168,10 +185,10 @@ static void add_to_lhs_opt__d_opt_t_ds
 	assert(dopt_t_ds->layout == 'C');
 	swap_layout_and_extents((char*)&dopt_t_ds->layout,(ptrdiff_t*)&dopt_t_ds->ext_0,(ptrdiff_t*)&dopt_t_ds->ext_1);
 
-	const struct const_Vector_T* lhs_opt_t = constructor_mv_const_Vector_T
-		('N',1.0,(struct const_Matrix_T*)dopt_t_ds,(struct const_Vector_T*)rhs_std); // destructed
-	destructor_const_Matrix_T(dopt_t_ds);
-//print_const_Vector_T(lhs_opt_t);
+	const struct const_Vector_d* lhs_opt_t = constructor_mv_const_Vector_d
+		('N',1.0,(struct const_Matrix_d*)dopt_t_ds,(struct const_Vector_d*)rhs_std); // destructed
+	destructor_const_Matrix_d(dopt_t_ds);
+//print_const_Vector_d(lhs_opt_t);
 
 	const struct Solver_Volume*const s_vol = (struct Solver_Volume*) dpg_s_vol;
 
@@ -181,16 +198,16 @@ static void add_to_lhs_opt__d_opt_t_ds
 	const ptrdiff_t size_s_coef = compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents),
 	                ext_1       = ( norm->dN_ds ? lhs_std->ext_1 : size_s_coef ),
 			    ext_0       = (lhs_opt_t->ext_0)/ext_1;
-	struct Matrix_T lhs_opt_t_M =
+	struct Matrix_d lhs_opt_t_M =
 		{ .layout = 'C', .ext_0 = ext_0, .ext_1 = ext_1, .owns_data = false, .data = (Type*)lhs_opt_t->data, };
-	transpose_Matrix_T(&lhs_opt_t_M,true);
-//print_Matrix_T(&lhs_opt_t_M);
-//print_const_Matrix_T(lhs_opt);
-	set_block_Matrix_T((struct Matrix_T*)lhs_opt,(struct const_Matrix_T*)&lhs_opt_t_M,0,0,'a');
-//print_const_Matrix_T(lhs_opt);
+	transpose_Matrix_d(&lhs_opt_t_M,true);
+//print_Matrix_d(&lhs_opt_t_M);
+//print_const_Matrix_d(lhs_opt);
+	set_block_Matrix_d((struct Matrix_d*)lhs_opt,(struct const_Matrix_d*)&lhs_opt_t_M,0,0,'a');
+//print_const_Matrix_d(lhs_opt);
 //EXIT_ADD_SUPPORT;
 
-	destructor_const_Vector_T(lhs_opt_t);
+	destructor_const_Vector_d(lhs_opt_t);
 }
 
 static void add_to_petsc_Mat_Vec_dpg
@@ -216,6 +233,50 @@ static void add_to_petsc_Mat_Vec_dpg
 	VecSetValues(ssi->b,(PetscInt)ext_0,idxm->data,rhs_neg->data,ADD_VALUES);
 
 	destructor_const_Vector_i(idxm);
+}
+
+static struct Matrix_d* constructor_norm_DPG_dN_ds__h1_upwind
+	(const struct DPG_Solver_Volume* dpg_s_vol, const struct Flux_Ref* flux_r, const struct const_Matrix_d* n1_lt,
+	 const struct Simulation* sim)
+{
+/// \todo Combine common code from constructor_norm_DPG__h1_upwind into external function.
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	const int n_eq = test_case->n_eq,
+	          n_vr = test_case->n_var;
+
+	const struct Multiarray_Operator cvcv1_vt_vc = get_operator__cvcv1_vt_vc__rlhs(dpg_s_vol);
+
+	const ptrdiff_t ext_0 = cvcv1_vt_vc.data[0]->op_std->ext_0,
+	                ext_1 = cvcv1_vt_vc.data[0]->op_std->ext_1;
+
+	struct Matrix_d* cvcv1r = constructor_empty_Matrix_d('C',n_vr*ext_0,n_eq*ext_1); // destructed
+set_to_value_Matrix_d(cvcv1r,-1.0);
+
+	struct Matrix_d* cvcv1r_l = constructor_empty_Matrix_d('C',ext_0,ext_1); // destructed
+	const struct const_Multiarray_d* d2fr_ds2_Ma = flux_r->d2fr_ds2;
+	struct Vector_d d2fr_ds2 = { .ext_0 = d2fr_ds2_Ma->extents[0], .owns_data = false, .data = NULL, };
+
+	for (int vr2 = 0; vr2 < n_vr; ++vr2) {
+		for (int vr = 0; vr < n_vr; ++vr) {
+		for (int eq = 0; eq < n_eq; ++eq) {
+			set_to_value_Matrix_d(cvcv1r_l,0.0);
+			for (int dim = 0; dim < DIM; ++dim) {
+				const ptrdiff_t ind = compute_index_sub_container(
+					d2fr_ds2_Ma->order,1,d2fr_ds2_Ma->extents,(ptrdiff_t[]){eq,vr,vr2,dim});
+				d2fr_ds2.data = (Type*)&d2fr_ds2_Ma->data[ind];
+				mm_diag_d('L',1.0,1.0,cvcv1_vt_vc.data[dim]->op_std,
+				          (struct const_Vector_d*)&d2fr_ds2,cvcv1r_l,false);
+			}
+			set_block_Matrix_d(cvcv1r,(struct const_Matrix_d*)cvcv1r_l,eq*ext_0,vr*ext_1,'i');
+		}}
+
+		// The vr2 slice of dN_ds
+		const struct const_Matrix_d* dn1_ds =
+			constructor_mm_const_Matrix_T('T','N',1.0,n1_lt,(struct const_Matrix_T*)cvcv1r,'R'); // destructed
+print_const_Matrix_d(dn1_ds);
+// Add sub-blocks to correct sub-blocks of dN_ds.
+EXIT_UNSUPPORTED;
+	}
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -316,6 +377,19 @@ UNUSED(sim);
 		add_to_dlhs_ds__face_boundary_cmplx_step(dlhs_ds,dpg_s_vol,sim_c);
 	else
 		EXIT_ERROR("Unsupported: %c\n",lin_method);
+}
+
+static struct Multiarray_Operator get_operator__cvcv1_vt_vc__rlhs (const struct DPG_Solver_Volume* dpg_s_vol)
+{
+	struct Volume* vol          = (struct Volume*) dpg_s_vol;
+	struct Solver_Volume* s_vol = (struct Solver_Volume*) vol;
+
+	const struct DPG_Solver_Element* dpg_s_e = (struct DPG_Solver_Element*) vol->element;
+
+	const int p      = s_vol->p_ref,
+	          curved = vol->curved;
+
+	return set_MO_from_MO(dpg_s_e->cvcv1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 }
 
 // Level 2 ********************************************************************************************************** //

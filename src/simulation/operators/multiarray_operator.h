@@ -108,4 +108,11 @@ void print_Multiarray_Operator_tol
 	 const double tol                          ///< The tolerance.
 	);
 
+/// \brief Increment the counter for the indicies by 1.
+void increment_counter_MaO
+	(const int order,               ///< Defined in \ref Multiarray_T.
+	 const ptrdiff_t*const extents, ///< Defined in \ref Multiarray_T.
+	 ptrdiff_t*const counter        ///< The counter for the indices.
+	);
+
 #endif // DPG__multiarray_operator_h__INCLUDED

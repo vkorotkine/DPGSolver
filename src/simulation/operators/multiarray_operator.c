@@ -62,13 +62,6 @@ static struct mutable_Multiarray_Operator set_mutable_MO_from_MO
 	 const ptrdiff_t*const sub_indices        ///< The sub-indices specifying which part of the source to extract.
 	);
 
-/// \brief Increment the counter for the indicies by 1.
-static void increment_counter_MaO
-	(const int order,               ///< Defined in \ref Multiarray_T.
-	 const ptrdiff_t*const extents, ///< Defined in \ref Multiarray_T.
-	 ptrdiff_t*const counter        ///< The counter for the indices.
-	);
-
 /// \brief Print the counter for the indices.
 static void print_counter_MaO
 	(const int order,              ///< Defined in \ref Multiarray_T.
@@ -183,6 +176,18 @@ void print_Multiarray_Operator_tol (const struct Multiarray_Operator*const a, co
 	printf("\n");
 }
 
+void increment_counter_MaO (const int order, const ptrdiff_t*const extents, ptrdiff_t*const counter)
+{
+	for (int i = 0; i < order; ++i) {
+		++counter[i];
+		if (counter[i] == extents[i]) {
+			counter[i] = 0;
+			continue;
+		}
+		return;
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -231,18 +236,6 @@ static struct mutable_Multiarray_Operator set_mutable_MO_from_MO
 	dest.data      = &src->data[compute_index_sub_container(src->order,dest.order,src->extents,sub_indices)];
 
 	return dest;
-}
-
-static void increment_counter_MaO (const int order, const ptrdiff_t*const extents, ptrdiff_t*const counter)
-{
-	for (int i = 0; i < order; ++i) {
-		++counter[i];
-		if (counter[i] == extents[i]) {
-			counter[i] = 0;
-			continue;
-		}
-		return;
-	}
 }
 
 static void print_counter_MaO (const int order, const ptrdiff_t*const counter)
