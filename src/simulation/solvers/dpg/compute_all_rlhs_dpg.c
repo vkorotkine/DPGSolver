@@ -106,6 +106,24 @@ static void add_to_petsc_Mat_Vec_dpg
 	 const struct Simulation* sim          ///< \ref Simulation.
 	);
 
+/** \brief Add the contribution of the linearization of the optimal test functions wrt to the solution coefficients to
+ *         the lhs term for the DPG scheme.
+ *
+ *  When the pde is not linear, the "form" is no longer linear in the test functions and the associated linearization
+ *  contribution must also be included.
+ */
+static void add_to_lhs_opt__d_opt_t_ds
+	(const struct Flux_Ref*const flux_r,             ///< \ref Flux_Ref_T.
+	 const struct DPG_Solver_Volume*const dpg_s_vol, ///< \ref DPG_Solver_Volume.
+	 const struct Norm_DPG*const norm,               ///< \ref Norm_DPG.
+	 const struct const_Matrix_d*const opt_t,        ///< Computed optimal test functions.
+	 const struct const_Vector_d*const rhs_std,      ///< The standard (DG-like) contribution to the rhs.
+	 const struct const_Matrix_d*const lhs_std,      ///< The standard (DG-like) contribution to the lhs.
+	 struct Matrix_d*const lhs_opt,                  ///< Container used to store the optimal lhs contribution.
+	 const struct Simulation*const sim,              ///< \ref Simulation.
+	 struct Simulation*const sim_c                   ///< The complex \ref Simulation.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
@@ -116,15 +134,8 @@ static void add_to_petsc_Mat_Vec_dpg
 
 /** \brief Get the pointer to the appropriate \ref DPG_Solver_Element::cvcv0_vs_vc operator.
  *  \return See brief. */
-const struct Operator* get_operator__cvcv0_vs_vc
+static const struct Operator* get_operator__cvcv0_vs_vc
 	(const struct DPG_Solver_Volume* dpg_s_vol ///< The current volume.
-	);
-
-/// \brief Version of \ref add_to_dlhs_ds__face_boundary using the complex step method.
-static void add_to_dlhs_ds__face_boundary_cmplx_step
-	(struct Matrix_d*const dlhs_ds,             ///< See brief.
-	 const struct DPG_Solver_Volume* dpg_s_vol, ///< See brief.
-	 struct Simulation*const sim_c              ///< See brief.
 	);
 
 static struct Matrix_d* constructor_dlhs_ds_v_1
@@ -208,6 +219,81 @@ static void add_to_petsc_Mat_Vec_dpg
 	destructor_const_Vector_i(idxm);
 }
 
+static void add_to_lhs_opt__d_opt_t_ds
+	(const struct Flux_Ref*const flux_r, const struct DPG_Solver_Volume*const dpg_s_vol,
+	 const struct Norm_DPG*const norm, const struct const_Matrix_d*const opt_t,
+	 const struct const_Vector_d*const rhs_std, const struct const_Matrix_d*const lhs_std,
+	 struct Matrix_d*const lhs_opt, const struct Simulation*const sim, struct Simulation*const sim_c)
+{
+	struct Test_Case_T* test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
+	if (test_case->is_linear)
+		return;
+
+	struct Matrix_T* dlhs_ds = constructor_dlhs_ds_v_1(flux_r,dpg_s_vol,sim); // destructed
+	add_to_dlhs_ds__face_boundary(dlhs_ds,dpg_s_vol,sim,sim_c,'c');
+	add_to_dlhs_ds__norm(dlhs_ds,norm,opt_t);
+
+//print_const_Matrix_T(norm->N);
+//print_Matrix_T(dlhs_ds);
+	const struct const_Matrix_T* dopt_t_ds =
+		constructor_sysv_const_Matrix_T(norm->N,(struct const_Matrix_T*)dlhs_ds); // destructed
+	destructor_Matrix_T(dlhs_ds);
+//print_const_Matrix_T(dopt_t_ds);
+
+	/* As the memory layout of `dopt_t_ds` is the same as that of dlhs_ds as described in
+	 * \ref constructor_dlhs_ds_v_1, it is possible to compute all of the entries of the optimal test function
+	 * linearization contribution to the LHS matrix with a single BLAS2 call without doing any memory swapping, simply
+	 * by interpretting `dopt_t_ds` as a row-major, (n_dof_s*n_vr)^2 x (n_dof_t*neq) matrix and omitting the transpose
+	 * operator in the BLAS call.
+	 */
+	assert(dopt_t_ds->layout == 'C');
+	swap_layout_and_extents((char*)&dopt_t_ds->layout,(ptrdiff_t*)&dopt_t_ds->ext_0,(ptrdiff_t*)&dopt_t_ds->ext_1);
+
+	const struct const_Vector_T* lhs_opt_t = constructor_mv_const_Vector_T
+		('N',1.0,(struct const_Matrix_T*)dopt_t_ds,(struct const_Vector_T*)rhs_std); // destructed
+	destructor_const_Matrix_T(dopt_t_ds);
+//print_const_Vector_T(lhs_opt_t);
+
+	const struct Solver_Volume*const s_vol = (struct Solver_Volume*) dpg_s_vol;
+
+	// Note: If the `norm->dN_ds == NULL`, i.e. the norm does not depend on the solution, the redundant 0.0 entries
+	//       are not included in `dopt_t_ds` and hence also not in `lhs_opt_t`, resulting in the condition below to
+	//       determined `ext_1`.
+	const ptrdiff_t size_s_coef = compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents),
+	                ext_1       = ( norm->dN_ds ? lhs_std->ext_1 : size_s_coef ),
+			    ext_0       = (lhs_opt_t->ext_0)/ext_1;
+	struct Matrix_T lhs_opt_t_M =
+		{ .layout = 'C', .ext_0 = ext_0, .ext_1 = ext_1, .owns_data = false, .data = (Type*)lhs_opt_t->data, };
+	transpose_Matrix_T(&lhs_opt_t_M,true);
+//print_Matrix_T(&lhs_opt_t_M);
+//print_const_Matrix_T(lhs_opt);
+	set_block_Matrix_T((struct Matrix_T*)lhs_opt,(struct const_Matrix_T*)&lhs_opt_t_M,0,0,'a');
+//print_const_Matrix_T(lhs_opt);
+//EXIT_ADD_SUPPORT;
+
+	destructor_const_Vector_T(lhs_opt_t);
+}
+
+// Level 1 ********************************************************************************************************** //
+
+/// \brief Version of \ref add_to_dlhs_ds__face_boundary using the complex step method.
+static void add_to_dlhs_ds__face_boundary_cmplx_step
+	(struct Matrix_d*const dlhs_ds,             ///< See brief.
+	 const struct DPG_Solver_Volume* dpg_s_vol, ///< See brief.
+	 struct Simulation*const sim_c              ///< See brief.
+	);
+
+static const struct Operator* get_operator__cvcv0_vs_vc (const struct DPG_Solver_Volume* dpg_s_vol)
+{
+	const struct Volume* vol           = (struct Volume*) dpg_s_vol;
+	const struct Solver_Volume* s_vol  = (struct Solver_Volume*) dpg_s_vol;
+	const struct DPG_Solver_Element* e = (struct DPG_Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref,
+	          curved = vol->curved;
+	return get_Multiarray_Operator(e->cvcv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
+}
+
 static void add_to_dlhs_ds__norm
 	(struct Matrix_d*const dlhs_ds, const struct Norm_DPG* norm, const struct const_Matrix_d* optimal_test)
 {
@@ -232,7 +318,7 @@ UNUSED(sim);
 		EXIT_ERROR("Unsupported: %c\n",lin_method);
 }
 
-// Level 1 ********************************************************************************************************** //
+// Level 2 ********************************************************************************************************** //
 
 /// \brief Constructor for the complex \ref Simulation volumes and faces DPG computational element lists.
 static void constructor_Simulation_c_comp_elems
@@ -244,17 +330,6 @@ static void constructor_Simulation_c_comp_elems
 static void destructor_Simulation_c_comp_elems
 	(struct Simulation*const sim_c ///< The complex \ref Simulation.
 	);
-
-const struct Operator* get_operator__cvcv0_vs_vc (const struct DPG_Solver_Volume* dpg_s_vol)
-{
-	const struct Volume* vol           = (struct Volume*) dpg_s_vol;
-	const struct Solver_Volume* s_vol  = (struct Solver_Volume*) dpg_s_vol;
-	const struct DPG_Solver_Element* e = (struct DPG_Solver_Element*) vol->element;
-
-	const int p = s_vol->p_ref,
-	          curved = vol->curved;
-	return get_Multiarray_Operator(e->cvcv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
-}
 
 static void add_to_dlhs_ds__face_boundary_cmplx_step
 	(struct Matrix_d*const dlhs_ds, const struct DPG_Solver_Volume* dpg_s_vol, struct Simulation*const sim_c)
@@ -285,7 +360,7 @@ static void add_to_dlhs_ds__face_boundary_cmplx_step
 	destructor_Simulation_c_comp_elems(sim_c);
 }
 
-// Level 2 ********************************************************************************************************** //
+// Level 3 ********************************************************************************************************** //
 
 /** \brief Constructor for a list of volumes including only a copy of the current volume.
  *  \return See brief. */
@@ -334,7 +409,7 @@ static void destructor_Simulation_c_comp_elems (struct Simulation*const sim_c)
 	sim_c->faces = NULL;
 }
 
-// Level 3 ********************************************************************************************************** //
+// Level 4 ********************************************************************************************************** //
 
 /** \brief Return the pointer to the \ref DPG_Solver_Face_T of the input \ref DPG_Solver_Volume_T with the given index.
  *  \return See brief. */
@@ -417,7 +492,7 @@ static void copy_members_computational_elements_dpg
 	}
 }
 
-// Level 3 ********************************************************************************************************** //
+// Level 5 ********************************************************************************************************** //
 
 struct DPG_Solver_Face* get_dpg_face_ptr (const struct DPG_Solver_Volume*const dpg_s_vol, const int index_f)
 {

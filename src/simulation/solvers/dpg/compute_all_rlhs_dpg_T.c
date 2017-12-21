@@ -627,63 +627,26 @@ static void compute_rlhs_1
 
 	const struct Norm_DPG* norm = s_params->constructor_norm_DPG(dpg_s_vol,flux_r,sim); // destructed
 
-	struct Vector_T* rhs     = constructor_rhs_v_1(flux_r,s_vol,sim); // destructed
+	struct Vector_T* rhs_std = constructor_rhs_v_1(flux_r,s_vol,sim); // destructed
 	struct Matrix_T* lhs_std = constructor_lhs_v_1_T(flux_r,s_vol,sim); // destructed
 
-	add_to_rlhs__face_T(rhs,&lhs_std,dpg_s_vol,sim,true);
-	increment_rhs_source(rhs,s_vol,sim);
+	add_to_rlhs__face_T(rhs_std,&lhs_std,dpg_s_vol,sim,true);
+	increment_rhs_source(rhs_std,s_vol,sim);
 
 	const struct const_Matrix_T* opt_t =
 		constructor_sysv_const_Matrix_T(norm->N,(struct const_Matrix_T*)lhs_std); // destructed
 
 	const struct const_Vector_T* rhs_opt =
-		constructor_mv_const_Vector_T('T',-1.0,opt_t,(struct const_Vector_T*)rhs); // destructed
+		constructor_mv_const_Vector_T('T',-1.0,opt_t,(struct const_Vector_T*)rhs_std); // destructed
 
 #if TYPE_RC == TYPE_REAL
-	struct Test_Case_T* test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
-	if (!test_case->is_linear) {
-/// \todo Separate function here.
-		// When the pde is not linear, the "form" is no longer linear in the test functions and the associated
-		// linearization contribution must also be included.
+	struct Matrix_T* lhs_opt = constructor_mm_Matrix_T('T','N',1.0,opt_t,(struct const_Matrix_T*)lhs_std,'R'); // dest.
 
-		struct Matrix_T* dlhs_ds = constructor_dlhs_ds_v_1(flux_r,dpg_s_vol,sim); // destructed
-		add_to_dlhs_ds__face_boundary(dlhs_ds,dpg_s_vol,sim,sim_c,'c');
-		add_to_dlhs_ds__norm(dlhs_ds,norm,opt_t);
+	add_to_lhs_opt__d_opt_t_ds(flux_r,dpg_s_vol,norm,opt_t,(struct const_Vector_T*)rhs_std,
+	                           (struct const_Matrix_T*)lhs_std,lhs_opt,sim,sim_c);
 
-//print_const_Matrix_T(norm->N);
-//print_Matrix_T(dlhs_ds);
-		const struct const_Matrix_T* dopt_t_ds =
-			constructor_sysv_const_Matrix_T(norm->N,(struct const_Matrix_T*)dlhs_ds); // destructed
-//print_const_Matrix_T(dopt_t_ds);
-
-		/* As the memory layout of `dopt_t_ds` is the same as that of dlhs_ds as described in
-		 * \ref constructor_dlhs_ds_v_1, it is possible to compute all of the entries of the optimal test function
-		 * linearization contribution to the LHS matrix with a single BLAS2 call without doing any memory swapping,
-		 * simply by interpretting `dopt_t_ds` as a row-major, (n_dof_s*n_vr)^2 x (n_dof_t*neq) matrix and omitting
-		 * the transpose operator in the BLAS call.
-		 */
-		assert(dopt_t_ds->layout == 'C');
-		swap_layout_and_extents((char*)&dopt_t_ds->layout,(ptrdiff_t*)&dopt_t_ds->ext_0,(ptrdiff_t*)&dopt_t_ds->ext_1);
-
-print_Vector_T(rhs);
-		const struct const_Vector_T* lhs_opt_t = constructor_mv_const_Vector_T
-			('N',1.0,(struct const_Matrix_T*)dopt_t_ds,(struct const_Vector_T*)rhs); // destructed
-print_const_Vector_T(lhs_opt_t);
-/// \todo Remove the swapping and try with 'T' in mv call. Potentially the same result...
-
-
-EXIT_ADD_SUPPORT;
-
-		destructor_const_Vector_T(lhs_opt_t);
-		destructor_Matrix_T(dlhs_ds);
-		destructor_const_Matrix_T(dopt_t_ds);
-	}
-
-	const struct const_Matrix_T* lhs_opt =
-		constructor_mm_const_Matrix_T('T','N',1.0,opt_t,(struct const_Matrix_T*)lhs_std,'R'); // destructed
-
-	add_to_petsc_Mat_Vec_dpg(s_vol,rhs_opt,lhs_opt,ssi,sim);
-	destructor_const_Matrix_T(lhs_opt);
+	add_to_petsc_Mat_Vec_dpg(s_vol,rhs_opt,(struct const_Matrix_T*)lhs_opt,ssi,sim);
+	destructor_Matrix_T(lhs_opt);
 #elif TYPE_RC == TYPE_COMPLEX
 	UNUSED(sim_c);
 	add_to_petsc_Mat_dpg_c(s_vol,rhs_opt,ssi);
@@ -691,7 +654,7 @@ EXIT_ADD_SUPPORT;
 	destructor_Flux_Ref_T(flux_r);
 	destructor_Norm_DPG(norm);
 
-	destructor_Vector_T(rhs);
+	destructor_Vector_T(rhs_std);
 	destructor_Matrix_T(lhs_std);
 	destructor_const_Vector_T(rhs_opt);
 

@@ -100,29 +100,35 @@ void solve_implicit (struct Simulation* sim)
 
 bool check_symmetric (const struct Simulation* sim)
 {
-	switch (sim->method) {
-	case METHOD_DG: {
-		struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
-		const int pde_index = test_case->pde_index;
-		switch (pde_index) {
-		case PDE_POISSON:
-			return true;
-			break;
-		case PDE_ADVECTION:     // fallthrough
-		case PDE_EULER:         // fallthrough
-		case PDE_NAVIER_STOKES:
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	const int pde_index = test_case->pde_index;
+
+	switch (pde_index) {
+	case PDE_ADVECTION:
+		switch (sim->method) {
+		case METHOD_DG:
 			return false;
 			break;
+		case METHOD_DPG:
+			return true;
+			break;
 		default:
-			EXIT_ERROR("Unsupported: %d.\n",pde_index);
+			EXIT_ERROR("Unsupported: %d\n",sim->method);
 			break;
 		}
 		break;
-	} case METHOD_DPG:
+	case PDE_POISSON:
 		return true;
 		break;
+	case PDE_EULER:         // fallthrough
+	case PDE_NAVIER_STOKES:
+		// From some previous testing, it is possible that the LHS matrix is symmetric when the test norm is
+		// not a function of the solution but this will generally not be the case, notably for the quasi-optimal
+		// test norm.
+		return false;
+		break;
 	default:
-		EXIT_ERROR("Unsupported: %d\n",sim->method);
+		EXIT_ERROR("Unsupported: %d\n",pde_index);
 		break;
 	}
 }
