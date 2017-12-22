@@ -239,8 +239,11 @@ static struct Matrix_d* constructor_norm_DPG_dN_ds__h1_upwind
 	(const struct DPG_Solver_Volume* dpg_s_vol, const struct Flux_Ref* flux_r, const struct const_Matrix_d* n1_lt,
 	 const struct Simulation* sim)
 {
-/// \todo Combine common code from constructor_norm_DPG__h1_upwind into external function.
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	if (test_case->is_linear)
+		return NULL;
+
+/// \todo Combine common code from constructor_norm_DPG__h1_upwind into external function.
 	const int n_eq = test_case->n_eq,
 	          n_vr = test_case->n_var;
 
@@ -277,6 +280,7 @@ print_const_Matrix_d(dn1_ds);
 // Add sub-blocks to correct sub-blocks of dN_ds.
 EXIT_UNSUPPORTED;
 	}
+return NULL;
 }
 
 // Level 1 ********************************************************************************************************** //

@@ -629,7 +629,7 @@ static void test_unit_basis_pyramid_bezier (struct Test_Info*const test_info)
 	}
 	expect_condition(pass,"basis");
 
-	tol = (double[]) { EPS, };
+	tol = (double[]) { 2e0*EPS, };
 	differences = (bool[])
 		{ diff_const_Multiarray_Matrix_d(b_data_a->grad_phi32,b_data_c->grad_phi32,tol[0]),
 		};
@@ -646,9 +646,9 @@ static void test_unit_basis_pyramid_bezier (struct Test_Info*const test_info)
 	if (check_diff(1,differences,&pass)) {
 		if (differences[0]) print_diff_const_Vector_d(b_data_a->p_34,b_data_c->p_34,tol[0]);
 	}
-	expect_condition(pass,"mass matrix");
+	expect_condition(pass,"partition of unity");
 
-	tol = (double[]) { EPS, };
+	tol = (double[]) { 6e2*EPS, };
 	differences = (bool[])
 		{ diff_const_Multiarray_d(b_data_a->grad_coef_36,b_data_c->grad_coef_36,tol[0]),
 		};
