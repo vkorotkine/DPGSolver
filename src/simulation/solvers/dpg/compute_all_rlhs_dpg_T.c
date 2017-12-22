@@ -311,7 +311,7 @@ void add_to_rlhs__face_T
 	struct Matrix_T* rhs_M = NULL;
 	if (include_internal) {
 		struct Matrix_T* lhs_add = constructor_zero_Matrix_T('R',lhs->ext_0,(n_dof_s+n_dof_nf)*n_vr); // moved
-		set_block_Matrix_T(lhs_add,(struct const_Matrix_T*)lhs,0,0,'i');
+		set_block_Matrix_T(lhs_add,0,0,(struct const_Matrix_T*)lhs,0,0,lhs->ext_0,lhs->ext_1,'i');
 		destructor_Matrix_T(lhs);
 		lhs = lhs_add;
 
@@ -478,7 +478,7 @@ static void add_to_rlhs__face_internal
 	const ptrdiff_t n_dof_test = (lhs->ext_0)/n_eq,
 	                n_dof_nf   = nf_coef.ext_0;
 	for (int vr = 0; vr < n_vr; ++vr) {
-		set_block_Matrix_T_R(lhs,lhs_l,vr*n_dof_test,*ind_dof,'i');
+		set_block_Matrix_T_R(lhs,vr*n_dof_test,*ind_dof,lhs_l,0,0,lhs_l->ext_0,lhs_l->ext_1,'i');
 		*ind_dof += (int)n_dof_nf;
 	}
 	destructor_const_Matrix_d(lhs_l);
@@ -543,7 +543,7 @@ static const struct Norm_DPG* constructor_norm_DPG__h0
 	struct Matrix_T* N = constructor_zero_Matrix_T('R',n_eq*ext_0,n_eq*ext_0); // moved
 
 	for (int eq = 0; eq < n_eq; ++eq)
-		set_block_Matrix_T_R(N,norm_op_H0,eq*ext_0,eq*ext_0,'a');
+		set_block_Matrix_T_R(N,eq*ext_0,eq*ext_0,norm_op_H0,0,0,norm_op_H0->ext_0,norm_op_H0->ext_1,'a');
 
 	struct Norm_DPG* norm = malloc(sizeof* norm); // returned
 	norm->N     = (struct const_Matrix_T*) N;
@@ -579,7 +579,8 @@ static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 			dfr_ds.data = (Type*)&dfr_ds_Ma->data[ind];
 			mm_diag_T('L',1.0,1.0,cv1_vt_vc.data[dim]->op_std,(struct const_Vector_T*)&dfr_ds,cv1r_l,false);
 		}
-		set_block_Matrix_T(cv1r,(struct const_Matrix_T*)cv1r_l,eq*ext_0,vr*ext_1,'i');
+		set_block_Matrix_T(cv1r,eq*ext_0,vr*ext_1,
+		                   (struct const_Matrix_T*)cv1r_l,0,0,cv1r_l->ext_0,cv1r_l->ext_1,'i');
 	}}
 	destructor_Matrix_T(cv1r_l);
 
@@ -605,13 +606,13 @@ static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 
 	struct Matrix_T* N = constructor_empty_Matrix_T('R',n_eq*ext_1,n_eq*ext_1); // moved
 
-	set_block_Matrix_T(N,n1,0,0,'i');
+	set_block_Matrix_T(N,0,0,n1,0,0,n1->ext_0,n1->ext_1,'i');
 	for (int eq = 0; eq < n_eq; ++eq)
-		set_block_Matrix_T_R(N,norm_op_H0,eq*ext_1,eq*ext_1,'a');
+		set_block_Matrix_T_R(N,eq*ext_1,eq*ext_1,norm_op_H0,0,0,norm_op_H0->ext_0,norm_op_H0->ext_1,'a');
 	destructor_const_Matrix_T(n1);
 
 	// norm->dN_ds
-	struct Matrix_T* dN_ds = NULL;
+	const struct const_Matrix_T* dN_ds = NULL;
 #if TYPE_RC == TYPE_REAL
 	dN_ds = constructor_norm_DPG_dN_ds__h1_upwind(dpg_s_vol,flux_r,n1_lt,sim); // moved
 #endif
@@ -619,7 +620,7 @@ static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 
 	struct Norm_DPG* norm = malloc(sizeof* norm); // returned
 	norm->N     = (struct const_Matrix_T*) N;
-	norm->dN_ds = (struct const_Matrix_T*) dN_ds;
+	norm->dN_ds = dN_ds;
 
 	return norm;
 }
@@ -656,6 +657,7 @@ static void compute_rlhs_1
 	destructor_Matrix_T(lhs_opt);
 #elif TYPE_RC == TYPE_COMPLEX
 	UNUSED(sim_c);
+
 	add_to_petsc_Mat_dpg_c(s_vol,rhs_opt,ssi);
 #endif
 	destructor_Flux_Ref_T(flux_r);
@@ -712,7 +714,7 @@ static void increment_lhs_boundary_face
 
 	struct Matrix_T* lhs_ll = constructor_lhs_f_1_T((int[]){0,0},num_flux,s_face); // destructed
 
-	set_block_Matrix_T(lhs,(struct const_Matrix_T*)lhs_ll,0,0,'a');
+	set_block_Matrix_T(lhs,0,0,(struct const_Matrix_T*)lhs_ll,0,0,lhs_ll->ext_0,lhs_ll->ext_1,'a');
 #if 0
 printf("lhs\n");
 print_Matrix_T(lhs_ll);

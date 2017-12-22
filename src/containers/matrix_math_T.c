@@ -67,7 +67,7 @@ void invert_sub_block_Matrix_T (struct Matrix_T* a, const ptrdiff_t row0, const 
 	struct Matrix_T* a_sub_inv = constructor_inverse_Matrix_T(a_sub); // destructed
 	destructor_Matrix_T(a_sub);
 
-	set_block_Matrix_T(a,(struct const_Matrix_T*)a_sub_inv,row0,col0,'i');
+	set_block_Matrix_T(a,row0,col0,(struct const_Matrix_T*)a_sub_inv,0,0,a_sub_inv->ext_0,a_sub_inv->ext_1,'i');
 	destructor_Matrix_T(a_sub_inv);
 }
 

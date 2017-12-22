@@ -297,7 +297,7 @@ const struct const_Matrix_T* constructor_identity_const_Matrix_T (const char lay
 
 struct Matrix_T* constructor_inverse_Matrix_T (struct Matrix_T* src)
 {
-	// The source matrix is copied as the entries would otherwise be modified while solving for for the inverse.
+	// The source matrix is copied as the entries would otherwise be modified while solving for the inverse.
 	struct Matrix_T* A = constructor_copy_Matrix_T(src);                                // destructed;
 	struct Matrix_T* B = constructor_identity_Matrix_T(src->layout,src->ext_0);         // destructed;
 	struct Matrix_T* X = constructor_empty_Matrix_T(src->layout,src->ext_0,src->ext_1); // returned;
@@ -305,9 +305,9 @@ struct Matrix_T* constructor_inverse_Matrix_T (struct Matrix_T* src)
 	const int matrix_layout = ( A->layout == 'R' ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR );
 	const lapack_int n      = (lapack_int)A->ext_0,
 	                 nrhs   = (lapack_int)A->ext_0;
-	Type* a               = A->data,
-	      * b               = B->data,
-	      * x               = X->data;
+	Type* a                 = A->data,
+	    * b                 = B->data,
+	    * x                 = X->data;
 	const lapack_int lda    = (lapack_int)A->ext_0,
 	                 ldb    = (lapack_int)A->ext_0,
 	                 ldx    = (lapack_int)A->ext_0;

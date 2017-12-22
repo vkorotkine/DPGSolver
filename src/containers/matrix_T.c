@@ -119,11 +119,12 @@ void set_to_value_Matrix_T (struct Matrix_T*const a, const Type val)
 }
 
 void set_block_Matrix_T
-	(struct Matrix_T* a, const struct const_Matrix_T* a_sub, const ptrdiff_t row0, const ptrdiff_t col0,
+	(struct Matrix_T* dest, const ptrdiff_t row0_d, const ptrdiff_t col0_d, const struct const_Matrix_T* src,
+	 const ptrdiff_t row0_s, const ptrdiff_t col0_s, const ptrdiff_t ext_0, const ptrdiff_t ext_1,
 	 const char set_type)
 {
-	assert(a->layout == a_sub->layout); // Add support if required.
-	const char layout = a->layout;
+	assert(dest->layout == src->layout); // Add support if required.
+	const char layout = dest->layout;
 
 	set_value_fptr_T set_value = NULL;
 	switch (set_type) {
@@ -132,25 +133,29 @@ void set_block_Matrix_T
 		default:  EXIT_ERROR("Unsupported: %c.\n",set_type); break;
 	}
 
-	const ptrdiff_t ext_0 = a_sub->ext_0,
-	                ext_1 = a_sub->ext_1;
+	assert(row0_d+ext_0 <= dest->ext_0);
+	assert(col0_d+ext_1 <= dest->ext_1);
 
-	assert(row0+ext_0 <= a->ext_0);
-	assert(col0+ext_1 <= a->ext_1);
+	assert(row0_s+ext_0 <= src->ext_0);
+	assert(col0_s+ext_1 <= src->ext_1);
 
 	if (layout == 'R') {
-		for (int i = 0, row = (int)row0; i < ext_0; ++i, ++row) {
-			const Type*const data_as = get_row_const_Matrix_T(i,a_sub);
-			Type*const data_a        = get_row_Matrix_T(row,a)+col0;
+		ptrdiff_t row_d = row0_d,
+		          row_s = row0_s;
+		for (int i = 0; i < ext_0; ++i, ++row_d, ++row_s) {
+			const Type*const data_s = get_row_const_Matrix_T(row_s,src)+col0_s;
+			Type*const data_d       = get_row_Matrix_T(row_d,dest)+col0_d;
 			for (int j = 0; j < ext_1; ++j)
-				set_value(&data_a[j],data_as[j]);
+				set_value(&data_d[j],data_s[j]);
 		}
 	} else if (layout == 'C') {
-		for (int j = 0, col = (int)col0; j < ext_1; ++j, ++col) {
-			const Type*const data_as = get_col_const_Matrix_T(j,a_sub);
-			Type*const data_a        = get_col_Matrix_T(col,a)+row0;
+		ptrdiff_t col_d = col0_d,
+		          col_s = col0_s;
+		for (int j = 0; j < ext_1; ++j, ++col_d, ++col_s) {
+			const Type*const data_s = get_col_const_Matrix_T(col_s,src)+row0_s;
+			Type*const data_d       = get_col_Matrix_T(col_d,dest)+row0_d;
 			for (int i = 0; i < ext_0; ++i)
-				set_value(&data_a[i],data_as[i]);
+				set_value(&data_d[i],data_s[i]);
 		}
 	} else {
 		EXIT_ERROR("Unsupported: %c\n",layout);
@@ -158,20 +163,21 @@ void set_block_Matrix_T
 }
 #if TYPE_RC == TYPE_COMPLEX
 void set_block_Matrix_T_R
-	(struct Matrix_T* a, const struct const_Matrix_R* a_sub, const ptrdiff_t row0, const ptrdiff_t col0,
+	(struct Matrix_T* dest, const ptrdiff_t row0_d, const ptrdiff_t col0_d, const struct const_Matrix_R* src,
+	 const ptrdiff_t row0_s, const ptrdiff_t col0_s, const ptrdiff_t ext_0, const ptrdiff_t ext_1,
 	 const char set_type)
 {
-	const struct const_Matrix_T*const a_sub_c = constructor_copy_const_Matrix_T_Matrix_R(a_sub); // destructed
-	set_block_Matrix_T(a,a_sub_c,row0,col0,set_type);
-	destructor_const_Matrix_T(a_sub_c);
+	const struct const_Matrix_T*const src_c = constructor_copy_const_Matrix_T_Matrix_R(src); // destructed
+	set_block_Matrix_T(dest,row0_d,col0_d,src_c,row0_s,col0_s,ext_0,ext_1,set_type);
+	destructor_const_Matrix_T(src_c);
 }
 
 void set_block_Matrix_R_cmplx_step
-	(struct Matrix_R* a, const struct const_Matrix_C* a_sub, const ptrdiff_t row0, const ptrdiff_t col0,
+	(struct Matrix_R* dest, const struct const_Matrix_C* src, const ptrdiff_t row0_d, const ptrdiff_t col0_d,
 	 const char set_type)
 {
-	assert(a->layout == a_sub->layout); // Add support if required.
-	const char layout = a->layout;
+	assert(dest->layout == src->layout); // Add support if required.
+	const char layout = dest->layout;
 
 	set_value_fptr_d set_value = NULL;
 	switch (set_type) {
@@ -180,25 +186,25 @@ void set_block_Matrix_R_cmplx_step
 		default:  EXIT_ERROR("Unsupported: %c.\n",set_type); break;
 	}
 
-	const ptrdiff_t ext_0 = a_sub->ext_0,
-	                ext_1 = a_sub->ext_1;
+	const ptrdiff_t ext_0 = src->ext_0,
+	                ext_1 = src->ext_1;
 
-	assert(row0+ext_0 <= a->ext_0);
-	assert(col0+ext_1 <= a->ext_1);
+	assert(row0_d+ext_0 <= dest->ext_0);
+	assert(col0_d+ext_1 <= dest->ext_1);
 
 	if (layout == 'R') {
-		for (int i = 0, row = (int)row0; i < ext_0; ++i, ++row) {
-			const Complex*const data_as = get_row_const_Matrix_C(i,a_sub);
-			Real*const data_a        = get_row_Matrix_R(row,a)+col0;
+		for (int i = 0, row = (int)row0_d; i < ext_0; ++i, ++row) {
+			const Complex*const data_s = get_row_const_Matrix_C(i,src);
+			Real*const data_d        = get_row_Matrix_R(row,dest)+col0_d;
 			for (int j = 0; j < ext_1; ++j)
-				set_value(&data_a[j],cimag(data_as[j]/CX_STEP));
+				set_value(&data_d[j],cimag(data_s[j]/CX_STEP));
 		}
 	} else if (layout == 'C') {
-		for (int j = 0, col = (int)col0; j < ext_1; ++j, ++col) {
-			const Complex*const data_as = get_col_const_Matrix_C(j,a_sub);
-			Real*const data_a        = get_col_Matrix_R(col,a)+row0;
+		for (int j = 0, col = (int)col0_d; j < ext_1; ++j, ++col) {
+			const Complex*const data_s = get_col_const_Matrix_C(j,src);
+			Real*const data_d        = get_col_Matrix_R(col,dest)+row0_d;
 			for (int i = 0; i < ext_0; ++i)
-				set_value(&data_a[i],cimag(data_as[i]/CX_STEP));
+				set_value(&data_d[i],cimag(data_s[i]/CX_STEP));
 		}
 	} else {
 		EXIT_ERROR("Unsupported: %c\n",layout);

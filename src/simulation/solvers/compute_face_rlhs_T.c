@@ -163,7 +163,8 @@ print_const_Matrix_d(cv0_vs_fc_op->op_std);
 
 		mm_TRT('N','N',-1.0,0.0,(struct const_Matrix_T*)tw0_nf,cv0_vs_fc,lhs_l);
 
-		set_block_Matrix_T(lhs,(struct const_Matrix_T*)lhs_l,eq*lhs_l->ext_0,vr*lhs_l->ext_1,'i');
+		set_block_Matrix_T(lhs,eq*lhs_l->ext_0,vr*lhs_l->ext_1,
+		                   (struct const_Matrix_T*)lhs_l,0,0,lhs_l->ext_0,lhs_l->ext_1,'i');
 #if 0
 printf("eq,var: %d %d\n",eq,vr);
 if (eq == 0 && vr == 0)

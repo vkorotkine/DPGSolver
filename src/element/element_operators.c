@@ -325,7 +325,8 @@ const struct Multiarray_Operator* constructor_operators_tens3
 		for (int j = 0; j < ext_1_l; ++j) {
 			const_cast_d1(&op_l_diag.data,get_col_const_Matrix_d(j,op_l_M));
 			mm_diag_d('L',1.0,0.0,op_r_M,&op_l_diag,op_lr_local,false);
-			set_block_Matrix_d(op_lr,(struct const_Matrix_d*)op_lr_local,0,j*ext_1_r,'i');
+			set_block_Matrix_d(op_lr,0,j*ext_1_r,
+			                   (struct const_Matrix_d*)op_lr_local,0,0,op_lr_local->ext_0,op_lr_local->ext_1,'i');
 		}
 		destructor_Matrix_d(op_lr_local);
 		destructor_const_Matrix_d(op_l_M);

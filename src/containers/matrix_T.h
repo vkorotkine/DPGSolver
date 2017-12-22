@@ -172,22 +172,30 @@ void set_to_value_Matrix_T
 	 const Type val         ///< The value.
 	);
 
-/// \brief Set a sub-block of a \ref Matrix_T to the entries of the input matrix.
+/// \brief Set a sub-block of a \ref Matrix_T to the entries of the sub-block of the input matrix.
 void set_block_Matrix_T
-	(struct Matrix_T* a,                 ///< The large matrix.
-	 const struct const_Matrix_T* a_sub, ///< The matrix holding the values to set in the sub-block.
-	 const ptrdiff_t row0,               ///< The index of the first row where the sub-block should be placed.
-	 const ptrdiff_t col0,               ///< The index of the first column where the sub-block should be placed.
-	 const char set_type                 ///< The type of setting to use. Options: 'i'nsert, 'a'dd.
+	(struct Matrix_T* dest,            ///< The destination matrix whose block is to be set.
+	 const ptrdiff_t row0_d,           ///< The index of the first row    in the destination matrix.
+	 const ptrdiff_t col0_d,           ///< The index of the first column in the destination matrix.
+	 const struct const_Matrix_T* src, ///< The source matrix whose block is used to set.
+	 const ptrdiff_t row0_s,           ///< The index of the first row    in the source matrix.
+	 const ptrdiff_t col0_s,           ///< The index of the first column in the source matrix.
+	 const ptrdiff_t ext_0,            ///< The first  extent of the sub-block.
+	 const ptrdiff_t ext_1,            ///< The second extent of the sub-block.
+	 const char set_type               ///< The type of setting to use. Options: 'i'nsert, 'a'dd.
 	);
 #if TYPE_RC == TYPE_COMPLEX
 /// \brief Version of \ref set_block_Matrix_T with a real input.
 void set_block_Matrix_T_R
-	(struct Matrix_T* a,                 ///< See brief.
-	 const struct const_Matrix_R* a_sub, ///< See brief.
-	 const ptrdiff_t row0,               ///< See brief.
-	 const ptrdiff_t col0,               ///< See brief.
-	 const char set_type                 ///< See brief.
+	(struct Matrix_T* dest,            ///< See brief.
+	 const ptrdiff_t row0_d,           ///< See brief.
+	 const ptrdiff_t col0_d,           ///< See brief.
+	 const struct const_Matrix_R* src, ///< See brief.
+	 const ptrdiff_t row0_s,           ///< See brief.
+	 const ptrdiff_t col0_s,           ///< See brief.
+	 const ptrdiff_t ext_0,            ///< See brief.
+	 const ptrdiff_t ext_1,            ///< See brief.
+	 const char set_type               ///< See brief.
 	);
 
 /** \brief Set a sub-block of a real \ref Matrix_T to the imaginary entries of the input complex \ref const_Matrix_T
@@ -195,11 +203,11 @@ void set_block_Matrix_T_R
  *  This function is identical to \ref set_block_Matrix_T excluding the setting portion.
  */
 void set_block_Matrix_R_cmplx_step
-	(struct Matrix_R* a,                 ///< The large matrix.
-	 const struct const_Matrix_C* a_sub, ///< The matrix holding the values to set in the sub-block.
-	 const ptrdiff_t row0,               ///< The index of the first row where the sub-block should be placed.
-	 const ptrdiff_t col0,               ///< The index of the first column where the sub-block should be placed.
-	 const char set_type                 ///< The type of setting to use. Options: 'i'nsert, 'a'dd.
+	(struct Matrix_R* dest,            ///< See brief.
+	 const struct const_Matrix_C* src, ///< See brief.
+	 const ptrdiff_t row0_d,           ///< See brief.
+	 const ptrdiff_t col0_d,           ///< See brief.
+	 const char set_type               ///< See brief.
 	);
 #endif
 

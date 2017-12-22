@@ -174,7 +174,8 @@ print_const_Matrix_d(cv0_vs_vc->op_std);
 		mm_TRT('N','N',1.0,0.0,(struct const_Matrix_T*)tw1_r,cv0_vs_vc->op_std,lhs_l);
 //printf("%d %d\n",vr,eq);
 //print_Matrix_T(lhs_l);
-		set_block_Matrix_T(lhs,(struct const_Matrix_T*)lhs_l,eq*lhs_l->ext_0,vr*lhs_l->ext_1,'i');
+		set_block_Matrix_T(lhs,eq*lhs_l->ext_0,vr*lhs_l->ext_1,
+		                   (struct const_Matrix_T*)lhs_l,0,0,lhs_l->ext_0,lhs_l->ext_1,'i');
 	}}
 	destructor_Matrix_T(tw1_r);
 	destructor_Matrix_T(lhs_l);
