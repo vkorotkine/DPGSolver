@@ -43,12 +43,12 @@ You should have received a copy of the GNU General Public License along with DPG
 void copy_members_r_to_c_Solver_Face
 	(struct Solver_Face_c*const s_face, const struct Solver_Face*const s_face_r, const struct Simulation*const sim)
 {
-
-
 	const_cast_ptrdiff(&s_face->ind_dof,s_face_r->ind_dof);
 	const_cast_i(&s_face->p_ref,s_face_r->p_ref);
 	const_cast_i(&s_face->ml,s_face_r->ml);
 	const_cast_c(&s_face->cub_type,s_face_r->cub_type);
+
+	destructor_derived_Solver_Face_c((struct Face*)s_face);
 
 	s_face->nf_coef = constructor_copy_Multiarray_c_Multiarray_d(s_face_r->nf_coef); // destructed
 

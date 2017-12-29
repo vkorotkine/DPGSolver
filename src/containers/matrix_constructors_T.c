@@ -333,8 +333,8 @@ struct Matrix_T* constructor_sgesv_Matrix_T (struct Matrix_T* A_i, struct Matrix
 	assert(A_i->ext_0 == A_i->ext_1);
 
 	// The source matrix is copied as the entries would otherwise be modified while solving the linear system.
-	struct Matrix_T* A = constructor_copy_Matrix_T(A_i); // destructed;
-	struct Matrix_T* X = constructor_empty_Matrix_T(A_i->layout,A_i->ext_0,B_i->ext_1); // returned;
+	struct Matrix_T* A = constructor_copy_Matrix_T(A_i); // destructed
+	struct Matrix_T* X = constructor_empty_Matrix_T(A_i->layout,A_i->ext_0,B_i->ext_1); // returned
 
 	const int matrix_layout = ( A->layout == 'R' ? LAPACK_ROW_MAJOR : LAPACK_COL_MAJOR );
 	const lapack_int n      = (lapack_int)A->ext_0,

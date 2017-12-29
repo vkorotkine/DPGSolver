@@ -1580,7 +1580,7 @@ static const struct const_Multiarray_Matrix_d* constructor_op_Xc_ce_io
 	           sc_o = op_io[OP_IND_O].sc;
 	const_cast_c(&op_io[OP_IND_O].sc,sc_i);
 
-	const struct const_Multiarray_Matrix_d* op_Xc_ce_io = constructor_op_MMd(false,n_op); // returned
+	const struct const_Multiarray_Matrix_d* op_Xc_ce_io = constructor_op_MMd(true,n_op); // returned
 	set_operator_std_interp(ind_values,op_info,sim,op_Xc_ce_io);
 
 	const_cast_i(&op_info->op_type,op_type);

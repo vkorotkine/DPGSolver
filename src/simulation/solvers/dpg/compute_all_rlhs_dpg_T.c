@@ -103,7 +103,7 @@ static struct S_Params_DPG set_s_params_dpg
 /** \brief Get the pointer to the appropriate \ref DPG_Solver_Element::cv0_ff_fc operator.
  *  \return See brief. */
 static const struct Operator* get_operator__cv0_ff_fc
-	(const int side_index,                    ///< The index of the side of the face under consideration.
+	(const int side_index,                      ///< The index of the side of the face under consideration.
 	 const struct DPG_Solver_Face_T* dpg_s_face ///< The current face.
 	);
 
@@ -169,7 +169,7 @@ void compute_all_rlhs_dpg_T
 	 *  terms. For example, setting solver_method_curr = 'e' here, \ref Test_Case_T::flux_comp_mem_e will indicate
 	 *  that the Jacobian should be computed, but the function pointer will point to a function which does not support
 	 *  the Jacobian computation and the values will all simply be 0.
-
+	 *
 	 * \todo Combine the separate (and redundant) numerical flux/boundary condition functions, similarly to what was
 	 *       done for the standard flux functions. Once complete, change solver_method_curr to 'e' for the
 	 *       Test_Case_c.
@@ -182,8 +182,6 @@ void compute_all_rlhs_dpg_T
 #endif
 
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
-//struct Volume*        vol   = (struct Volume*) curr;
-//printf("v_ind: %d\n",vol->index);
 		struct DPG_Solver_Volume_T* dpg_s_vol = (struct DPG_Solver_Volume_T*) curr;
 		s_params.compute_rlhs(&s_params,flux_i,dpg_s_vol,ssi,sim,sim_c);
 	}
@@ -217,7 +215,6 @@ const struct const_Matrix_R* constructor_lhs_l_internal_face_dpg_T
 	const struct Solver_Face_T* s_face = (struct Solver_Face_T*) dpg_s_face;
 
 	const int side_index = compute_side_index_face(face,vol);
-//printf("%d %d %d\n",vol->index,face->index,side_index);
 	const struct Operator* tw0_vt_fc_op = get_operator__tw0_vt_fc_T(side_index,s_face),
 	                     * cv0_ff_fc_op = get_operator__cv0_ff_fc(side_index,dpg_s_face);
 
@@ -343,7 +340,6 @@ void add_to_rlhs__face_T
 
 	destructor_conditional_Matrix_T(rhs_M);
 
-//print_Matrix_T(lhs);
 	*lhs_ptr = lhs;
 }
 
@@ -466,7 +462,6 @@ static void add_to_rlhs__face_internal
 {
 	/// As the rhs is **always** linear wrt the trace unknowns, the rhs and lhs are computed together.
 	const struct const_Matrix_R* lhs_l = constructor_lhs_l_internal_face_dpg_T(dpg_s_vol,dpg_s_face); // destructed
-//print_const_Matrix_d(tw0_vt_fc_op->op_std);
 	const struct Solver_Face_T* s_face  = (struct Solver_Face_T*) dpg_s_face;
 	struct Matrix_T nf_coef = interpret_Multiarray_as_Matrix_T(s_face->nf_coef);
 	mm_RTT('N','N',1.0,1.0,lhs_l,(struct const_Matrix_T*)&nf_coef,rhs);
@@ -635,7 +630,7 @@ static void compute_rlhs_1
 
 	const struct Norm_DPG* norm = s_params->constructor_norm_DPG(dpg_s_vol,flux_r,sim); // destructed
 
-	struct Vector_T* rhs_std = constructor_rhs_v_1(flux_r,s_vol,sim); // destructed
+	struct Vector_T* rhs_std = constructor_rhs_v_1(flux_r,s_vol,sim);   // destructed
 	struct Matrix_T* lhs_std = constructor_lhs_v_1_T(flux_r,s_vol,sim); // destructed
 
 	add_to_rlhs__face_T(rhs_std,&lhs_std,dpg_s_vol,sim,true);
@@ -715,11 +710,6 @@ static void increment_lhs_boundary_face
 	struct Matrix_T* lhs_ll = constructor_lhs_f_1_T((int[]){0,0},num_flux,s_face); // destructed
 
 	set_block_Matrix_T(lhs,0,0,(struct const_Matrix_T*)lhs_ll,0,0,lhs_ll->ext_0,lhs_ll->ext_1,'a');
-#if 0
-printf("lhs\n");
-print_Matrix_T(lhs_ll);
-print_Matrix_T(lhs);
-#endif
 	destructor_Matrix_T(lhs_ll);
 }
 

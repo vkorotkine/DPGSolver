@@ -147,10 +147,10 @@ static void add_to_dlhs_ds__face_boundary
  *  from the DPG norm.
  */
 static void add_to_dlhs_ds__norm
-	(struct Matrix_d**const dlhs_ds_ptr,       /**< Pointer to the term storing the linearization of the LHS wrt to
-	                                            *   the solution coefficients. */
-	 const struct Norm_DPG* norm,              ///< \ref Norm_DPG.
-	 const struct const_Matrix_d* optimal_test ///< The optimal test functions.
+	(struct Matrix_d**const dlhs_ds_ptr, /**< Pointer to the term storing the linearization of the LHS wrt to the
+	                                      *   solution coefficients. */
+	 const struct Norm_DPG* norm,        ///< \ref Norm_DPG.
+	 const struct const_Matrix_d* opt_t  ///< The optimal test functions.
 	);
 
 /** \brief Get the appropriate sub-range of the \ref DPG_Solver_Element::cvcv1_vt_vc operators.
@@ -173,27 +173,12 @@ static void add_to_lhs_opt__d_opt_t_ds
 	add_to_dlhs_ds__face_boundary(dlhs_ds,dpg_s_vol,sim,sim_c,'c');
 	add_to_dlhs_ds__norm(&dlhs_ds,norm,opt_t);
 
-//print_const_Matrix_d(norm->N);
-//print_Matrix_d(dlhs_ds);
 	const struct const_Matrix_d* dopt_t_ds =
 		constructor_sysv_const_Matrix_d(norm->N,(struct const_Matrix_d*)dlhs_ds); // destructed
 	destructor_Matrix_d(dlhs_ds);
-//print_const_Matrix_d(dopt_t_ds);
 
-	/* As the memory layout of `dopt_t_ds` is the same as that of dlhs_ds as described in
-	 * \ref constructor_dlhs_ds_v_1 (with a possibly increased value for `ext_1` if the norm contributed a
-	 * linearization term) it is possible to compute all of the entries of the optimal test function linearization
-	 * contribution to the LHS matrix with a single BLAS2 call without doing any memory swapping, simply by
-	 * interpreting `dopt_t_ds` as a row-major, ext_1 x ext_0 matrix and omitting the transpose
-	 * operator in the BLAS call.
-	 */
-	assert(dopt_t_ds->layout == 'C');
-	swap_layout_and_extents((char*)&dopt_t_ds->layout,(ptrdiff_t*)&dopt_t_ds->ext_0,(ptrdiff_t*)&dopt_t_ds->ext_1);
-
-	const struct const_Vector_d* lhs_opt_t = constructor_mv_const_Vector_d
-		('N',1.0,(struct const_Matrix_d*)dopt_t_ds,(struct const_Vector_d*)rhs_std); // destructed
+	const struct const_Vector_d* lhs_opt_t = constructor_mv_const_Vector_d('T',1.0,dopt_t_ds,rhs_std); // destructed
 	destructor_const_Matrix_d(dopt_t_ds);
-//print_const_Vector_d(lhs_opt_t);
 
 	const struct Solver_Volume*const s_vol = (struct Solver_Volume*) dpg_s_vol;
 
@@ -201,17 +186,13 @@ static void add_to_lhs_opt__d_opt_t_ds
 	//       are not included in `dopt_t_ds` and hence also not in `lhs_opt_t`, resulting in the condition below to
 	//       determine `ext_1`.
 	const ptrdiff_t size_s_coef = compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents),
-	                ext_1       = ( norm->dN_ds ? lhs_std->ext_1 : size_s_coef ),
-			    ext_0       = (lhs_opt_t->ext_0)/ext_1;
+	                ext_0       = ( norm->dN_ds ? lhs_std->ext_1 : size_s_coef ),
+	                ext_1       = (lhs_opt_t->ext_0)/ext_0;
 	struct Matrix_d lhs_opt_t_M =
 		{ .layout = 'C', .ext_0 = ext_0, .ext_1 = ext_1, .owns_data = false, .data = (Type*)lhs_opt_t->data, };
 	transpose_Matrix_d(&lhs_opt_t_M,true);
-//print_Matrix_d(&lhs_opt_t_M);
-//print_const_Matrix_d(lhs_opt);
-	set_block_Matrix_d((struct Matrix_d*)lhs_opt,0,0,
-	                   (struct const_Matrix_d*)&lhs_opt_t_M,0,0,lhs_opt_t_M.ext_0,lhs_opt_t_M.ext_1,'a');
-//print_const_Matrix_d(lhs_opt);
-//EXIT_ADD_SUPPORT;
+	set_block_Matrix_d(lhs_opt,0,0,(struct const_Matrix_d*)&lhs_opt_t_M,0,0,
+	                   lhs_opt_t_M.ext_0,lhs_opt_t_M.ext_1,'a');
 
 	destructor_const_Vector_d(lhs_opt_t);
 }
@@ -262,7 +243,6 @@ static const struct const_Matrix_d* constructor_norm_DPG_dN_ds__h1_upwind
 	assert(n_dof_s == ((struct Solver_Volume*)dpg_s_vol)->sol_coef->extents[0]);
 
 	struct Matrix_d* cvcv1r = constructor_empty_Matrix_d('C',n_vr*ext_0,n_eq*ext_1); // destructed
-set_to_value_Matrix_d(cvcv1r,-1.0);
 
 	struct Matrix_d* cvcv1r_l = constructor_empty_Matrix_d('C',ext_0,ext_1); // destructed
 	const struct const_Multiarray_d* d2fr_ds2_Ma = flux_r->d2fr_ds2;
@@ -304,45 +284,27 @@ set_to_value_Matrix_d(cvcv1r,-1.0);
 		 */
 		const struct const_Matrix_d* dn1_ds =
 			constructor_mm_const_Matrix_T('T','N',1.0,n1_lt,(struct const_Matrix_T*)cvcv1r,'R'); // destructed
-#if 0
-		const ptrdiff_t sub_ext_0     = (dn1_ds->ext_0)/n_eq,
-		                sub_ext_1_vr2 = (dn1_ds->ext_1)/n_vr,
-		                sub_ext_1_vr  = (n1_lt->ext_1)/n_vr;
-//print_const_Matrix_d(dn1_ds);
-//EXIT_UNSUPPORTED;
-printf("%td %td %td\n",sub_ext_0,sub_ext_1_vr2,sub_ext_1_vr);
-printf("%td %td\n",n_dof_t,n_dof_s);
-printf("%td %td\n",dN_ds->ext_0,dN_ds->ext_1);
-printf("%td %td\n",dn1_ds->ext_0,dn1_ds->ext_1);
-set_to_value_Matrix_d(dN_ds,0);
-#endif
 		for (int vr = 0; vr < n_vr; ++vr) {
 		for (int eq = 0; eq < n_eq; ++eq) {
 		for (int dof_s = 0; dof_s < n_dof_s; ++dof_s) {
-			const ptrdiff_t row_sub = n_dof_t*(eq),
-			                col_sub = n_dof_t*(dof_s+n_dof_s*(vr)),
-			                row     = n_dof_t*(eq+n_eq*(dof_s+n_dof_s*(vr2))),
-			                col     = n_dof_t*(vr);
+			const ptrdiff_t row_sub[] = { n_dof_t*(vr), n_dof_t*(eq), },
+			                col_sub[] = { n_dof_t*(dof_s+n_dof_s*(eq)), n_dof_t*(dof_s+n_dof_s*(vr)), };
 
-			set_block_Matrix_d(dN_ds_l,0,0,dn1_ds,col_sub,row_sub,dN_ds_l->ext_0,dN_ds_l->ext_1,'i');
+			set_block_Matrix_d(dN_ds_l,0,0,dn1_ds,row_sub[0],col_sub[0],dN_ds_l->ext_0,dN_ds_l->ext_1,'i');
 			transpose_Matrix_d(dN_ds_l,false);
-			set_block_Matrix_d(dN_ds_l,0,0,dn1_ds,row_sub,col_sub,dN_ds_l->ext_0,dN_ds_l->ext_1,'a');
+			set_block_Matrix_d(dN_ds_l,0,0,dn1_ds,row_sub[1],col_sub[1],dN_ds_l->ext_0,dN_ds_l->ext_1,'a');
 
+			const ptrdiff_t row = n_dof_t*(eq+n_eq*(dof_s+n_dof_s*(vr2))),
+			                col = n_dof_t*(vr);
 			set_block_Matrix_d(dN_ds,row,col,
 			                   (struct const_Matrix_d*)dN_ds_l,0,0,dN_ds_l->ext_0,dN_ds_l->ext_1,'i');
-
-//printf("%d %d %d ----- %3td %3td %3td %3td\n",vr,eq,dof_s,row_sub,col_sub,row,col);
-//print_Matrix_d(dN_ds);
-//if (eq == 1)
-//	EXIT_UNSUPPORTED;
 		}}}
+		destructor_const_Matrix_d(dn1_ds);
 	}
-
 	destructor_Matrix_d(cvcv1r);
 	destructor_Matrix_d(cvcv1r_l);
 	destructor_Matrix_d(dN_ds_l);
-//print_Matrix_d(dN_ds);
-//EXIT_UNSUPPORTED;
+
 	return (struct const_Matrix_d*) dN_ds;
 }
 
@@ -403,9 +365,7 @@ static struct Matrix_d* constructor_dlhs_ds_v_1
 			d2fr_ds2.data = (double*)&d2fr_ds2_Ma->data[ind];
 			mm_diag_d('R',1.0,1.0,tw1_vt_vc.data[dim]->op_std,(struct const_Vector_d*)&d2fr_ds2,tw1_r,false);
 		}
-
 		mm_d('N','N',1.0,0.0,(struct const_Matrix_d*)tw1_r,cvcv0_vs_vc->op_std,lhs_l);
-//print_Matrix_d(lhs_l);
 
 		for (int dof_s = 0; dof_s < n_dof_s; ++dof_s) {
 			const ptrdiff_t row = eq*n_dof_t,
@@ -423,7 +383,7 @@ static struct Matrix_d* constructor_dlhs_ds_v_1
 }
 
 static void add_to_dlhs_ds__norm
-	(struct Matrix_d**const dlhs_ds_ptr, const struct Norm_DPG* norm, const struct const_Matrix_d* optimal_test)
+	(struct Matrix_d**const dlhs_ds_ptr, const struct Norm_DPG* norm, const struct const_Matrix_d* opt_t)
 {
 	if (!norm->dN_ds)
 		return;
@@ -432,14 +392,11 @@ static void add_to_dlhs_ds__norm
 
 	const char layout = dlhs_ds->layout;
 	assert(layout == 'C');
-	struct Matrix_d* dlhs_ds_total = constructor_mm_Matrix_T('N','N',-1.0,norm->dN_ds,optimal_test,'R'); // moved
-//print_Matrix_d(dlhs_ds_total);
-//EXIT_UNSUPPORTED;
+	struct Matrix_d* dlhs_ds_total = constructor_mm_Matrix_T('N','N',-1.0,norm->dN_ds,opt_t,'R'); // moved
 
 	const ptrdiff_t n_t  = norm->N->ext_0,
 	                n_s  = (norm->dN_ds->ext_0)/n_t,
-	                n_sf = optimal_test->ext_1;
-//printf("%td %td %td\n",n_t,n_s,n_sf); // 24, 12, 28
+	                n_sf = opt_t->ext_1;
 
 	// Transpose sub-blocks and reinterpret `dlhs_ds_total` as having different extents.
 	for (int s = 0; s < n_s; ++s) {
@@ -450,15 +407,10 @@ static void add_to_dlhs_ds__norm
 	}
 	dlhs_ds_total->layout = 'C';
 	dlhs_ds_total->ext_0 = n_t;
-	dlhs_ds_total->ext_1 = n_s*(n_sf);
-//print_Matrix_d(dlhs_ds_total);
-//EXIT_UNSUPPORTED;
+	dlhs_ds_total->ext_1 = n_sf*n_s;
 
-//printf("%td %td\n",optimal_test->ext_0,optimal_test->ext_1);
-//printf("%td %td\n",dlhs_ds->ext_0,dlhs_ds->ext_1);
-//printf("%td %td\n",dlhs_ds_total->ext_0,dlhs_ds_total->ext_1);
 	// As the `dlhs_ds` input does not currently have any contribution from the face unknowns, its contributions are
-	// added to `dlhs_ds_total` in the locations corresponding to the solution dof
+	// added to `dlhs_ds_total` in the locations corresponding to the solution dof.
 	for (int s = 0; s < n_s; ++s) {
 		const ptrdiff_t col_sf = s*n_sf,
 		                col_s  = s*n_s;
@@ -469,7 +421,7 @@ static void add_to_dlhs_ds__norm
 	destructor_Matrix_d(dlhs_ds);
 	*dlhs_ds_ptr = dlhs_ds_total;
 
-	assert(dlhs_ds->layout == layout);
+	assert((*dlhs_ds_ptr)->layout == layout);
 }
 
 static void add_to_dlhs_ds__face_boundary
@@ -532,7 +484,7 @@ static void add_to_dlhs_ds__face_boundary_cmplx_step
 		transpose_Matrix_c(lhs,true);
 		set_block_Matrix_d_cmplx_step(dlhs_ds,(struct const_Matrix_c*)lhs,0,col_l*size_s,'a');
 
-		// Not transposed back as memory is zero'ed => Simply change `layout`.
+		// Not transposed back as memory is zero'ed => Only need to change `layout`.
 		lhs->layout = 'R';
 	}
 	destructor_Matrix_c(lhs);
@@ -618,7 +570,6 @@ static struct Intrusive_List* constructor_Faces_dpg_local
 
 	struct Volume* vol = (struct Volume*) sim->volumes->first;
 	assert(sim->volumes->first->next == NULL);
-
 
 	ptrdiff_t n_f = 0;
 	for (int i = 0; i < NFMAX;    ++i) {
