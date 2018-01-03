@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
+#include "compute_all_rlhs_dpg.h"
 
 #include "test_complex_volume_solver_dpg.h"
 
@@ -43,6 +44,7 @@ void copy_members_r_to_c_DPG_Solver_Volume
 	UNUSED(sim);
 	destructor_derived_DPG_Solver_Volume_T((struct Volume*)dpg_s_vol);
 	dpg_s_vol->norm_op_H0 = constructor_copy_const_Matrix_d(dpg_s_vol_r->norm_op_H0); // destructed
+	dpg_s_vol->norm_op_H1 = constructor_copy_const_Matrix_d(dpg_s_vol_r->norm_op_H1); // destructed
 }
 
 // Static functions ************************************************************************************************* //

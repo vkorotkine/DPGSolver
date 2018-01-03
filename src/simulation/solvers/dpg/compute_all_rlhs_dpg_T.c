@@ -364,6 +364,14 @@ static const struct Norm_DPG* constructor_norm_DPG__h0
 	 const struct Simulation* sim                 ///< See brief.
 	);
 
+/** \brief Version of \ref constructor_norm_DPG_fptr; see comments for \ref TEST_NORM_H1.
+ *  \return See brief. */
+static const struct Norm_DPG* constructor_norm_DPG__h1
+	(const struct DPG_Solver_Volume_T* dpg_s_vol, ///< See brief.
+	 const struct Flux_Ref_T* flux_r,             ///< See brief.
+	 const struct Simulation* sim                 ///< See brief.
+	);
+
 /** \brief Version of \ref constructor_norm_DPG_fptr; see comments for \ref TEST_NORM_H1_UPWIND.
  *  \return See brief. */
 static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
@@ -422,6 +430,7 @@ static struct S_Params_DPG set_s_params_dpg (const struct Simulation* sim)
 
 	switch (test_case->ind_test_norm) {
 		case TEST_NORM_H0:        s_params.constructor_norm_DPG = constructor_norm_DPG__h0;        break;
+		case TEST_NORM_H1:        s_params.constructor_norm_DPG = constructor_norm_DPG__h1;        break;
 		case TEST_NORM_H1_UPWIND: s_params.constructor_norm_DPG = constructor_norm_DPG__h1_upwind; break;
 		default:                  EXIT_ERROR("Unsupported: %d\n",test_case->ind_test_norm);        break;
 	}
@@ -539,6 +548,29 @@ static const struct Norm_DPG* constructor_norm_DPG__h0
 
 	for (int eq = 0; eq < n_eq; ++eq)
 		set_block_Matrix_T_R(N,eq*ext_0,eq*ext_0,norm_op_H0,0,0,norm_op_H0->ext_0,norm_op_H0->ext_1,'a');
+
+	struct Norm_DPG* norm = malloc(sizeof* norm); // returned
+	norm->N     = (struct const_Matrix_T*) N;
+	norm->dN_ds = NULL;
+
+	return norm;
+}
+
+static const struct Norm_DPG* constructor_norm_DPG__h1
+	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct Flux_Ref_T* flux_r, const struct Simulation* sim)
+{
+	UNUSED(flux_r);
+
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_eq = test_case->n_eq;
+
+	const struct const_Matrix_R* norm_op_H1 = dpg_s_vol->norm_op_H1;
+	const ptrdiff_t ext_0 = norm_op_H1->ext_0;
+
+	struct Matrix_T* N = constructor_zero_Matrix_T('R',n_eq*ext_0,n_eq*ext_0); // moved
+
+	for (int eq = 0; eq < n_eq; ++eq)
+		set_block_Matrix_T_R(N,eq*ext_0,eq*ext_0,norm_op_H1,0,0,norm_op_H1->ext_0,norm_op_H1->ext_1,'a');
 
 	struct Norm_DPG* norm = malloc(sizeof* norm); // returned
 	norm->N     = (struct const_Matrix_T*) N;

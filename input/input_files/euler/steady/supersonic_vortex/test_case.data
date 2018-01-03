@@ -4,7 +4,7 @@ solver_proc   200
 solver_type_i 202
 
 num_flux_1st Roe-Pike
-test_norm    H1_upwind
+test_norm    H1 H1_upwind
 
 use_schur_complement 1
 

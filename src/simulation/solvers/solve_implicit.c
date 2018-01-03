@@ -640,6 +640,8 @@ static void update_coef
 	assert(sizeof(PetscScalar) == sizeof(double)); // Use appropriate multiarray otherwise.
 
 	const int ni = (int)compute_size(coef->order,coef->extents);
+	if (ni == 0)
+		return;
 
 	PetscInt ix[ni];
 	for (int i = 0; i < ni; ++i)
@@ -692,18 +694,18 @@ static double compute_relaxation
 
 	do {
 		add_in_place_Multiarray_d(relax,coef_b,d_coef_b);
+		convert_variables(coef_b,'c','p');
 
 		for (int vr = 0; vr < n_vr; ++vr) {
 			const double*const vr_data = &coef_b->data[vr*n_n];
 			vr_avgs.data[vr] = average_d(vr_data,n_n);
 		}
 
-		convert_variables(&vr_avgs,'c','p');
-
 		if (!((vr_avgs.data[0]      < EPS_PHYS) ||
 		      (vr_avgs.data[n_vr-1] < EPS_PHYS)))
 			break;
 
+		convert_variables(coef_b,'p','c');
 		add_in_place_Multiarray_d(-relax,coef_b,d_coef_b);
 		relax /= 2.0;
 	} while (relax > EPS);

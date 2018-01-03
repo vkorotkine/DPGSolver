@@ -266,6 +266,8 @@ static void set_string_associations_test_case_T (struct Test_Case_T* test_case, 
 	// test_norm
 	if (strcmp(tcsi->test_norm,"H0") == 0)
 		const_cast_i(&test_case->ind_test_norm,TEST_NORM_H0);
+	else if (strcmp(tcsi->test_norm,"H1") == 0)
+		const_cast_i(&test_case->ind_test_norm,TEST_NORM_H1);
 	else if (strcmp(tcsi->test_norm,"H1_upwind") == 0)
 		const_cast_i(&test_case->ind_test_norm,TEST_NORM_H1_UPWIND);
 	else

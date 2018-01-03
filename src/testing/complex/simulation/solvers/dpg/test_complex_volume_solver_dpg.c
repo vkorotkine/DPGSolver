@@ -27,6 +27,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "operator.h"
 #include "simulation.h"
 
+#include "test_complex_compute_all_rhs_dpg.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //

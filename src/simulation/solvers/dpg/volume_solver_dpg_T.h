@@ -23,6 +23,7 @@ struct DPG_Solver_Volume_T {
 	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume_T.
 
 	const struct const_Matrix_R* norm_op_H0; ///< The H0 (L2) norm operator.
+	const struct const_Matrix_R* norm_op_H1; ///< The H1      norm operator.
 };
 
 /// \brief Constructor for a derived \ref DPG_Solver_Volume_T.

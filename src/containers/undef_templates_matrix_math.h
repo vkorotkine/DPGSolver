@@ -41,3 +41,4 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef permute_Matrix_R_V
 #undef scale_Matrix_R_by_Vector_R
+#undef mm_R
