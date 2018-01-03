@@ -59,6 +59,8 @@ GEOM_ADV_XL   = 2; // (ADV)ection (X)-coord (L)eft
 GEOM_ADV_XYL  = 3; // (ADV)ection (X)(Y)-coords (L)eft
 GEOM_ADV_XYZL = 4; // (ADV)ection (X)(Y)(Z)-coords (L)eft
 
+GEOM_ADV_PERIODIC = 11; // (ADV)ection (PERIODIC) through all faces
+
 GEOM_2BEXP_0 = 0;
 GEOM_2BEXP_1 = 1;
 GEOM_2BEXP_2 = 2;

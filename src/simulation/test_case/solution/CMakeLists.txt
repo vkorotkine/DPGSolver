@@ -7,6 +7,7 @@ set	(SOURCE
 	 euler/solution_euler.c
 	 euler/periodic_vortex/solution_periodic_vortex.c
 	 euler/supersonic_vortex/solution_supersonic_vortex.c
+	 euler/free_stream/solution_free_stream.c
 	)
 
 set	(LIBS_DEPEND

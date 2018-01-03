@@ -12,22 +12,21 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__test_complex_solution_free_stream_h__INCLUDED
+#define DPG__test_complex_solution_free_stream_h__INCLUDED
 /** \file
- *  \brief Provides the macro definitions used for c-style templating related to the parametric geometry functions.
+ *  \brief Provides the interface to complex functions used to set the solution for the free stream test case.
  */
 
-#if TYPE_RC == TYPE_REAL
+#include "def_templates_type_dc.h"
+#include "def_templates_solution.h"
+#include "def_templates_solution_euler.h"
+#include "def_templates_multiarray.h"
+#include "free_stream/solution_free_stream_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_euler.h"
+#include "undef_templates_multiarray.h"
 
-///\{ \name Function names
-#define constructor_xyz_cylinder_parametric_T           constructor_xyz_cylinder_parametric
-#define constructor_xyz_trigonometric_cube_parametric_T constructor_xyz_trigonometric_cube_parametric
-///\}
-
-#elif TYPE_RC == TYPE_COMPLEX
-
-///\{ \name Function names
-#define constructor_xyz_cylinder_parametric_T           constructor_xyz_cylinder_parametric_c
-#define constructor_xyz_trigonometric_cube_parametric_T constructor_xyz_trigonometric_cube_parametric_c
-///\}
-
-#endif
+#endif // DPG__test_complex_solution_free_stream_h__INCLUDED

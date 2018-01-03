@@ -69,8 +69,6 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 
 
 	# Additional spec parameters
-	gmsh_dummy = "-999"
-
 	gmsh_setnumbers += " -setnumber pde_spec "
 	var_names = ["steady/supersonic_vortex",
 	             "periodic/periodic_vortex",
@@ -86,8 +84,10 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_xl",input_dir,0)
 	elif (mesh_name.find("/y_l/") != -1):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_yl",input_dir,0)
+	elif (mesh_name.find("/periodic/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_adv_periodic",input_dir,0)
 	else:
-		gmsh_setnumbers += gmsh_dummy;
+		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
 
 	return gmsh_setnumbers
 

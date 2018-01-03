@@ -29,3 +29,12 @@ const struct const_Multiarray_R* constructor_xyz_cylinder_parametric_T
 	 const struct Solver_Volume_T* s_vol,    ///< See brief.
 	 const struct Simulation* sim            ///< See brief.
 	);
+
+/** \brief Version of \ref constructor_xyz_fptr_T for the n-cube perturbed with trigonometric functions.
+ *  \return See brief.
+ */
+const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_T
+	(const struct const_Multiarray_R* xyz_i, ///< See brief.
+	 const struct Solver_Volume_T* s_vol,    ///< See brief.
+	 const struct Simulation* sim            ///< See brief.
+	);

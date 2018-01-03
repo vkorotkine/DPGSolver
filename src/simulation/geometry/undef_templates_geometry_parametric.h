@@ -18,3 +18,4 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #undef constructor_xyz_cylinder_parametric_T
+#undef constructor_xyz_trigonometric_cube_parametric_T

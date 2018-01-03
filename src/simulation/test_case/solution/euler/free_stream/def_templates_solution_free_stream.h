@@ -14,25 +14,21 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 /** \file
  *  \brief Provides the macro definitions used for c-style templating related to the solution functions for the
- *         euler equations.
+ *         euler equations (test case: free stream).
  */
-
-#include "periodic_vortex/def_templates_solution_periodic_vortex.h"
-#include "supersonic_vortex/def_templates_solution_supersonic_vortex.h"
-#include "free_stream/def_templates_solution_free_stream.h"
 
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
-#define set_function_pointers_solution_euler_T set_function_pointers_solution_euler
-#define convert_variables_T                    convert_variables
+#define set_sol_free_stream_T               set_sol_free_stream
+#define constructor_const_sol_free_stream_T constructor_const_sol_free_stream
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
-#define set_function_pointers_solution_euler_T set_function_pointers_solution_euler_c
-#define convert_variables_T                    convert_variables_c
+#define set_sol_free_stream_T               set_sol_free_stream_c
+#define constructor_const_sol_free_stream_T constructor_const_sol_free_stream_c
 ///\}
 
 #endif

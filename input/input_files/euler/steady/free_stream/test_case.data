@@ -1,4 +1,4 @@
-/// Solver parameters for test case: euler/steady/supersonic_vortex
+/// Solver parameters for test case: euler/steady/free_stream
 
 solver_proc   200
 solver_type_i 202

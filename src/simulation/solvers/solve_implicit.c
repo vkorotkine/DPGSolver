@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_intrusive.h"
 #include "definitions_test_case.h"
 #include "definitions_tol.h"
+#include "definitions_visualization.h"
 
 #include "element_solver.h"
 #include "face_solver.h"
@@ -48,11 +49,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "solve_dg.h"
 #include "solve_dpg.h"
 #include "test_case.h"
+#include "visualization.h"
 
 // Static function declarations ************************************************************************************* //
 
-///\{ \name Flag for whether the petsc data containers should be output to a file.
-#define OUTPUT_PETSC_AB false
+///\{ \name Flags for whether certain outputs are enabled.
+#define OUTPUT_PETSC_AB false ///< Flag for Petsc data containers.
+#define OUTPUT_SOLUTION false ///< Flag for solution data on each element.
 ///\}
 
 /// \brief Constructor for the derived element and computational element lists.
@@ -86,7 +89,7 @@ void solve_implicit (struct Simulation* sim)
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	test_case->solver_method_curr = 'i';
 
-	constructor_derived_elements_comp_elements(sim); // destructed
+	constructor_derived_elements_comp_elements(sim);     // destructed
 	for (int i_step = 0; ; ++i_step) {
 		const double max_rhs = implicit_step(i_step,sim);
 
@@ -153,6 +156,12 @@ static void output_petsc_mat_vec
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/// \brief Output the solution for visualization.
+static void output_solution
+	(const int i_step,           ///< Defined for \ref implicit_step.
+	 struct Simulation*const sim ///< Defined for \ref implicit_step.
+	);
+
 /// \brief Solve the global system of equations and update the coefficients corresponding to the dof.
 static void solve_and_update
 	(const double max_rhs,                      ///< The maximum of the rhs terms.
@@ -202,6 +211,9 @@ static double implicit_step (const int i_step, const struct Simulation* sim)
 	petsc_mat_vec_assemble(ssi);
 	if (OUTPUT_PETSC_AB)
 		output_petsc_mat_vec(ssi->A,ssi->b,sim);
+
+	if (OUTPUT_SOLUTION && i_step == 1)
+		output_solution(i_step,(struct Simulation*)sim);
 
 	solve_and_update(max_rhs,i_step,ssi,sim);
 	destructor_Solver_Storage_Implicit(ssi);
@@ -323,6 +335,18 @@ static void output_petsc_mat_vec (Mat A, Vec b, const struct Simulation* sim)
 	if (test_case->use_schur_complement)
 		output_petsc_schur(A,b,sim);
 
+	EXIT_ERROR("Disable outputting to continue");
+}
+
+static void output_solution (const int i_step, struct Simulation*const sim)
+{
+	UNUSED(i_step);
+	destructor_derived_elements_comp_elements(sim);
+
+	output_visualization(sim,VIS_GEOM_EDGES);
+	output_visualization(sim,VIS_SOLUTION);
+
+	constructor_derived_elements_comp_elements(sim);
 	EXIT_ERROR("Disable outputting to continue");
 }
 

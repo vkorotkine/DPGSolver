@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "gsl/gsl_math.h"
 
 #include "macros.h"
+#include "definitions_core.h"
 #include "definitions_math.h"
 
 
@@ -39,19 +40,20 @@ const struct const_Multiarray_R* constructor_xyz_cylinder_parametric_T
 {
 	UNUSED(s_vol);
 	UNUSED(sim);
-	const ptrdiff_t n_n = xyz_i->extents[0],
-	                d   = xyz_i->extents[1];
-	assert(d >= 2);
+	assert(DIM >= 2);
+	assert(DIM == xyz_i->extents[1]);
 
-	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,d}); // returned
+	const ptrdiff_t n_n = xyz_i->extents[0];
+
+	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
 
 	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
 	          *const y_i = get_col_const_Multiarray_R(1,xyz_i),
-	          *const z_i = ( d > 2 ? get_col_const_Multiarray_R(2,xyz_i) : NULL );
+	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_R(2,xyz_i) : NULL );
 
 	Real*const x = get_col_Multiarray_R(0,xyz),
 	    *const y = get_col_Multiarray_R(1,xyz),
-	    *const z = ( d > 2 ? get_col_Multiarray_R(2,xyz) : NULL );
+	    *const z = ( DIM > 2 ? get_col_Multiarray_R(2,xyz) : NULL );
 
 	for (int n = 0; n < n_n; ++n) {
 		const Real xy[2] = { x_i[n], y_i[n], };
@@ -72,8 +74,42 @@ const struct const_Multiarray_R* constructor_xyz_cylinder_parametric_T
 
 		x[n] = r*cos(t);
 		y[n] = r*sin(t);
-		if (z)
+		if (DIM > 2)
 			z[n] = z_i[n];
+	}
+	return (struct const_Multiarray_R*) xyz;
+}
+
+const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_T
+	(const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
+{
+	UNUSED(s_vol);
+	UNUSED(sim);
+	assert(DIM >= 2);
+	assert(DIM == xyz_i->extents[1]);
+
+	const ptrdiff_t n_n = xyz_i->extents[0];
+
+	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
+
+	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
+	          *const y_i = ( DIM > 1 ? get_col_const_Multiarray_R(1,xyz_i) : NULL ),
+	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_R(2,xyz_i) : NULL );
+
+	Real*const x = get_col_Multiarray_R(0,xyz),
+	    *const y = ( DIM > 1 ? get_col_Multiarray_R(1,xyz) : NULL ),
+	    *const z = ( DIM > 2 ? get_col_Multiarray_R(2,xyz) : NULL );
+
+	const Real dxyz = 0.1;
+	for (int n = 0; n < n_n; ++n) {
+		if (DIM == 2) {
+			x[n] = x_i[n] + dxyz*sin(PI*y_i[n]);
+			y[n] = y_i[n] + dxyz*sin(PI*x_i[n]);
+		} else if (DIM == 3) {
+			EXIT_ADD_SUPPORT; UNUSED(z_i); UNUSED(z);
+		} else {
+			EXIT_UNSUPPORTED;
+		}
 	}
 	return (struct const_Multiarray_R*) xyz;
 }

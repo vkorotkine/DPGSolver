@@ -6,6 +6,7 @@ set	(SOURCE
 	 euler/test_complex_solution_euler.c
 	 euler/periodic_vortex/test_complex_solution_periodic_vortex.c
 	 euler/supersonic_vortex/test_complex_solution_supersonic_vortex.c
+	 euler/free_stream/test_complex_solution_free_stream.c
 	)
 
 set	(LIBS_DEPEND
