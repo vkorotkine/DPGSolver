@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides container(s) and functions relating to the test cases.
  */
 
+#include "boundary.h"
 #include "flux.h"
 #include "geometry.h"
 #include "numerical_flux.h"

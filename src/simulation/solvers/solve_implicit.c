@@ -55,7 +55,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Flags for whether certain outputs are enabled.
 #define OUTPUT_PETSC_AB false ///< Flag for Petsc data containers.
-#define OUTPUT_SOLUTION false ///< Flag for solution data on each element.
+#define OUTPUT_SOLUTION true  ///< Flag for solution data on each element.
 ///\}
 
 /// \brief Constructor for the derived element and computational element lists.

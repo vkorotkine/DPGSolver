@@ -170,8 +170,8 @@ void constructor_Boundary_Value_T_euler_riemann
 	struct Multiarray_T* ds_ds = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_n,NVAR,NVAR}); // keep
 
 	// Standard datatypes
-	unsigned int i, iMax, n, eq, var, InddWdW;
-	Type     rhoL, rhoL_inv, uL, vL, wL, V2L, pL, rhoR, uR, vR, wR, pR,
+	unsigned int i, iMax, n, eq, var, ind_ds_ds;
+	Type       rhoL, rhoL_inv, uL, vL, wL, V2L, pL, rhoR, uR, vR, wR, pR,
 	           cL, RL, VnL, cR, RR, VnR, c, Vn;
 	double     n1, n2, n3;
 
@@ -180,14 +180,15 @@ void constructor_Boundary_Value_T_euler_riemann
 
 	const double* n_ptr = normals->data;
 
-	Type *ds_ds_ptr[NEQ*NEQ];
-	for (int ind = 0, vr_r = 0; vr_r < NVAR; vr_r++) {
-	for (int vr_l = 0; vr_l < NVAR; vr_l++) {
-		ds_ds_ptr[ind++] = &ds_ds->data[n_n*(vr_l+NVAR*vr_r)];
+	Type *ds_ds_ptr[NVAR*NVAR];
+	for (int ind = 0, vr_l = 0; vr_l < NVAR; vr_l++) {
+	for (int vr_r = 0; vr_r < NVAR; vr_r++) {
+		ds_ds_ptr[ind] = &ds_ds->data[n_n*(ind)];
+		++ind;
 	}}
 
 	for (n = 0; n < n_n; n++) {
-		InddWdW = 0;
+		ind_ds_ds = 0;
 
 		// Inner VOLUME
 		rhoL     = rho_l[n];
@@ -231,16 +232,16 @@ void constructor_Boundary_Value_T_euler_riemann
 //printf("j: Sup Inlet\n");
 				for (var = 0; var < NVAR; var++) {
 				for (eq = 0; eq < NEQ; eq++) {
-					*ds_ds_ptr[InddWdW++] = 0.0;
+					*ds_ds_ptr[ind_ds_ds++] = 0.0;
 				}}
 			} else { // Outlet
 //printf("j: Sup Outlet\n");
 				for (var = 0; var < NVAR; var++) {
 				for (eq = 0; eq < NEQ; eq++) {
 					if (var != eq)
-						*ds_ds_ptr[InddWdW++] = 0.0;
+						*ds_ds_ptr[ind_ds_ds++] = 0.0;
 					else
-						*ds_ds_ptr[InddWdW++] = 1.0;
+						*ds_ds_ptr[ind_ds_ds++] = 1.0;
 				}}
 			}
 		} else { // Subsonic
@@ -301,7 +302,7 @@ void constructor_Boundary_Value_T_euler_riemann
 				dcdW[var]  = 0.25*GM1*dRLdW[var];
 			}
 
-			if (abs_T(Vn) < 0.0) { // Inlet
+			if (real_T(Vn) < 0.0) { // Inlet
 //printf("j: Sub Inlet\n");
 				Type sR;
 
@@ -326,11 +327,11 @@ void constructor_Boundary_Value_T_euler_riemann
 						dwdW = 0.5*dRLdW[var]*n3;
 						dpdW = (2.0*c*dcdW[var]*rho+c*c*drhodW)/GAMMA;
 
-						*ds_ds_ptr[InddWdW++] = drhodW;
-						*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
-						*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
-						*ds_ds_ptr[InddWdW++] = drhodW*w + rho*dwdW;
-						*ds_ds_ptr[InddWdW++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW+w*dwdW));
+						*ds_ds_ptr[ind_ds_ds++] = drhodW;
+						*ds_ds_ptr[ind_ds_ds++] = drhodW*u + rho*dudW;
+						*ds_ds_ptr[ind_ds_ds++] = drhodW*v + rho*dvdW;
+						*ds_ds_ptr[ind_ds_ds++] = drhodW*w + rho*dwdW;
+						*ds_ds_ptr[ind_ds_ds++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW+w*dwdW));
 					}
 				} else if (DIM == 2) {
 					for (var = 0; var < NVAR; var++) {
@@ -349,10 +350,10 @@ void constructor_Boundary_Value_T_euler_riemann
 						dvdW = 0.5*dRLdW[var]*n2;
 						dpdW = (2.0*c*dcdW[var]*rho+c*c*drhodW)/GAMMA;
 
-						*ds_ds_ptr[InddWdW++] = drhodW;
-						*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
-						*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
-						*ds_ds_ptr[InddWdW++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW));
+						*ds_ds_ptr[ind_ds_ds++] = drhodW;
+						*ds_ds_ptr[ind_ds_ds++] = drhodW*u + rho*dudW;
+						*ds_ds_ptr[ind_ds_ds++] = drhodW*v + rho*dvdW;
+						*ds_ds_ptr[ind_ds_ds++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW));
 					}
 				} else if (DIM == 1) {
 					for (var = 0; var < NVAR; var++) {
@@ -367,9 +368,9 @@ void constructor_Boundary_Value_T_euler_riemann
 						dudW = 0.5*dRLdW[var]*n1;
 						dpdW = (2.0*c*dcdW[var]*rho+c*c*drhodW)/GAMMA;
 
-						*ds_ds_ptr[InddWdW++] = drhodW;
-						*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
-						*ds_ds_ptr[InddWdW++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW));
+						*ds_ds_ptr[ind_ds_ds++] = drhodW;
+						*ds_ds_ptr[ind_ds_ds++] = drhodW*u + rho*dudW;
+						*ds_ds_ptr[ind_ds_ds++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW));
 					}
 				}
 			} else { // Outlet
@@ -402,11 +403,11 @@ void constructor_Boundary_Value_T_euler_riemann
 						dwdW = dwLdW[var]+n3*cnst1;
 						dpdW = (2.0*c*dcdW[var]*rho+c*c*drhodW)/GAMMA;
 
-						*ds_ds_ptr[InddWdW++] = drhodW;
-						*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
-						*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
-						*ds_ds_ptr[InddWdW++] = drhodW*w + rho*dwdW;
-						*ds_ds_ptr[InddWdW++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW+w*dwdW));
+						*ds_ds_ptr[ind_ds_ds++] = drhodW;
+						*ds_ds_ptr[ind_ds_ds++] = drhodW*u + rho*dudW;
+						*ds_ds_ptr[ind_ds_ds++] = drhodW*v + rho*dvdW;
+						*ds_ds_ptr[ind_ds_ds++] = drhodW*w + rho*dwdW;
+						*ds_ds_ptr[ind_ds_ds++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW+w*dwdW));
 					}
 				} else if (DIM == 2) {
 					for (var = 0; var < NVAR; var++) {
@@ -430,10 +431,10 @@ void constructor_Boundary_Value_T_euler_riemann
 						dvdW = dvLdW[var]+n2*cnst1;
 						dpdW = (2.0*c*dcdW[var]*rho+c*c*drhodW)/GAMMA;
 
-						*ds_ds_ptr[InddWdW++] = drhodW;
-						*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
-						*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
-						*ds_ds_ptr[InddWdW++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW));
+						*ds_ds_ptr[ind_ds_ds++] = drhodW;
+						*ds_ds_ptr[ind_ds_ds++] = drhodW*u + rho*dudW;
+						*ds_ds_ptr[ind_ds_ds++] = drhodW*v + rho*dvdW;
+						*ds_ds_ptr[ind_ds_ds++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW));
 					}
 				} else if (DIM == 1) {
 					for (var = 0; var < NVAR; var++) {
@@ -453,9 +454,9 @@ void constructor_Boundary_Value_T_euler_riemann
 						dudW = duLdW[var]+n1*cnst1;
 						dpdW = (2.0*c*dcdW[var]*rho+c*c*drhodW)/GAMMA;
 
-						*ds_ds_ptr[InddWdW++] = drhodW;
-						*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
-						*ds_ds_ptr[InddWdW++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW));
+						*ds_ds_ptr[ind_ds_ds++] = drhodW;
+						*ds_ds_ptr[ind_ds_ds++] = drhodW*u + rho*dudW;
+						*ds_ds_ptr[ind_ds_ds++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW));
 					}
 				}
 			}
@@ -519,10 +520,11 @@ void constructor_Boundary_Value_T_euler_slipwall
 	if (c_m[1] == true) {
 		struct Multiarray_T* ds_ds = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_n,NVAR,NVAR}); // keep
 
-		Type *ds_ds_ptr[NEQ*NEQ];
-		for (int ind = 0, vr_r = 0; vr_r < NVAR; vr_r++) {
-		for (int vr_l = 0; vr_l < NVAR; vr_l++) {
-			ds_ds_ptr[ind++] = &ds_ds->data[n_n*(vr_l+NVAR*vr_r)];
+		Type *ds_ds_ptr[NVAR*NVAR];
+		for (int ind = 0, vr_l = 0; vr_l < NVAR; vr_l++) {
+		for (int vr_r = 0; vr_r < NVAR; vr_r++) {
+			ds_ds_ptr[ind] = &ds_ds->data[n_n*(ind)];
+			++ind;
 		}}
 		const double* n_ptr = get_row_const_Multiarray_d(0,normals);
 
@@ -636,11 +638,120 @@ void constructor_Boundary_Value_T_euler_slipwall
 	assert(c_m[2] == false);
 }
 
+void constructor_Boundary_Value_T_euler_supersonic_inflow
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
+	 const struct Simulation* sim)
+{
+	UNUSED(face);
+	const bool* c_m = bv_i->compute_member;
+	assert(c_m[0] == true);
 
+	const struct const_Multiarray_d* xyz = bv_i->xyz;
+	const struct const_Multiarray_T* sol_r = constructor_sol_bv(xyz,sim); // destructed
 
-/// \note Alternate order in updated code (Fastest on var_l, then var_r).
+	const ptrdiff_t n_n = xyz->extents[0];
 
+	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,NVAR}); // keep
 
+	const Type*const rho_r  = get_col_const_Multiarray_T(0,sol_r),
+	          *const rhou_r = get_col_const_Multiarray_T(1,sol_r),
+	          *const E_r    = get_col_const_Multiarray_T(NVAR-1,sol_r);
+
+	IF_DIM_GE_2( const Type*const rhov_r = (DIM > 1 ? get_col_const_Multiarray_T(2,sol_r) : NULL); )
+	IF_DIM_GE_3( const Type*const rhow_r = (DIM > 2 ? get_col_const_Multiarray_T(3,sol_r) : NULL); )
+
+	Type*const rho  = get_col_Multiarray_T(0,sol),
+	    *const rhou = get_col_Multiarray_T(1,sol),
+	    *const E    = get_col_Multiarray_T(NVAR-1,sol);
+
+	IF_DIM_GE_2( Type*const rhov = (DIM > 1 ? get_col_Multiarray_T(2,sol) : NULL); )
+	IF_DIM_GE_3( Type*const rhow = (DIM > 2 ? get_col_Multiarray_T(3,sol) : NULL); )
+
+	for (int n = 0; n < n_n; n++) {
+		rho[n] = rho_r[n];
+		IF_DIM_GE_1( rhou[n] = rhou_r[n]; )
+		IF_DIM_GE_2( rhov[n] = rhov_r[n]; )
+		IF_DIM_GE_3( rhow[n] = rhow_r[n]; )
+		E[n]   = E_r[n];
+	}
+
+	bv->s = (struct const_Multiarray_T*)sol;
+
+	if (c_m[1] == true) {
+		struct Multiarray_T* ds_ds = constructor_zero_Multiarray_T('C',3,(ptrdiff_t[]){n_n,NVAR,NVAR}); // keep
+		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds;
+	}
+	destructor_const_Multiarray_T(sol_r);
+
+	assert(c_m[2] == false);
+}
+
+void constructor_Boundary_Value_T_euler_supersonic_outflow
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
+	 const struct Simulation* sim)
+{
+	UNUSED(face);
+	UNUSED(sim);
+	const bool* c_m = bv_i->compute_member;
+	assert(c_m[0] == true);
+
+	const struct const_Multiarray_d* xyz = bv_i->xyz;
+	const struct const_Multiarray_T* sol_l = bv_i->s;
+
+	const ptrdiff_t n_n = xyz->extents[0];
+
+	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,NVAR}); // keep
+
+	const Type*const rho_l  = get_col_const_Multiarray_T(0,sol_l),
+	          *const rhou_l = get_col_const_Multiarray_T(1,sol_l),
+	          *const E_l    = get_col_const_Multiarray_T(NVAR-1,sol_l);
+
+	IF_DIM_GE_2( const Type*const rhov_l = (DIM > 1 ? get_col_const_Multiarray_T(2,sol_l) : NULL); )
+	IF_DIM_GE_3( const Type*const rhow_l = (DIM > 2 ? get_col_const_Multiarray_T(3,sol_l) : NULL); )
+
+	Type*const rho  = get_col_Multiarray_T(0,sol),
+	    *const rhou = get_col_Multiarray_T(1,sol),
+	    *const E    = get_col_Multiarray_T(NVAR-1,sol);
+
+	IF_DIM_GE_2( Type*const rhov = (DIM > 1 ? get_col_Multiarray_T(2,sol) : NULL); )
+	IF_DIM_GE_3( Type*const rhow = (DIM > 2 ? get_col_Multiarray_T(3,sol) : NULL); )
+
+	for (int n = 0; n < n_n; n++) {
+		rho[n] = rho_l[n];
+		IF_DIM_GE_1( rhou[n] = rhou_l[n]; )
+		IF_DIM_GE_2( rhov[n] = rhov_l[n]; )
+		IF_DIM_GE_3( rhow[n] = rhow_l[n]; )
+		E[n]   = E_l[n];
+	}
+	bv->s = (struct const_Multiarray_T*)sol;
+
+	if (c_m[1] == true) {
+		struct Multiarray_T* ds_ds = constructor_zero_Multiarray_T('C',3,(ptrdiff_t[]){n_n,NVAR,NVAR}); // keep
+
+		Type *ds_ds_ptr[NVAR*NVAR];
+		for (int ind = 0, vr_l = 0; vr_l < NVAR; vr_l++) {
+		for (int vr_r = 0; vr_r < NVAR; vr_r++) {
+			ds_ds_ptr[ind] = get_col_Multiarray_T(ind,ds_ds);
+			++ind;
+		}}
+
+		for (int n = 0; n < n_n; n++) {
+			int ind_ds_ds = 0;
+			for (int var = 0; var < NVAR; var++) {
+			for (int eq = 0; eq < NEQ; eq++) {
+				if (var != eq)
+					*ds_ds_ptr[ind_ds_ds++] = 0.0;
+				else
+					*ds_ds_ptr[ind_ds_ds++] = 1.0;
+			}}
+			for (int i = 0; i < NVAR*NVAR; i++)
+				ds_ds_ptr[i]++;
+		}
+		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds;
+	}
+
+	assert(c_m[2] == false);
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

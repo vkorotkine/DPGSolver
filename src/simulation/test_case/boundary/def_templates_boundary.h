@@ -20,8 +20,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Data types
-#define Boundary_Value_Input_T Boundary_Value_Input
-#define Boundary_Value_T       Boundary_Value
+#define Boundary_Value_Input_T   Boundary_Value_Input
+#define Boundary_Value_T         Boundary_Value
+#define mutable_Boundary_Value_T mutable_Boundary_Value
 ///\}
 
 ///\{ \name Function pointers
@@ -42,15 +43,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Boundary_Value_T_advection_inflow  constructor_Boundary_Value_advection_inflow
 #define constructor_Boundary_Value_T_advection_outflow constructor_Boundary_Value_advection_outflow
 
-#define constructor_Boundary_Value_T_euler_riemann  constructor_Boundary_Value_euler_riemann
-#define constructor_Boundary_Value_T_euler_slipwall constructor_Boundary_Value_euler_slipwall
+#define constructor_Boundary_Value_T_euler_riemann            constructor_Boundary_Value_euler_riemann
+#define constructor_Boundary_Value_T_euler_slipwall           constructor_Boundary_Value_euler_slipwall
+#define constructor_Boundary_Value_T_euler_supersonic_inflow  constructor_Boundary_Value_euler_supersonic_inflow
+#define constructor_Boundary_Value_T_euler_supersonic_outflow constructor_Boundary_Value_euler_supersonic_outflow
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Data types
-#define Boundary_Value_T Boundary_Value_c
-#define Boundary_Value_Input_T Boundary_Value_Input_c
+#define Boundary_Value_Input_T   Boundary_Value_Input_c
+#define Boundary_Value_T         Boundary_Value_c
+#define mutable_Boundary_Value_T mutable_Boundary_Value_c
 ///\}
 
 ///\{ \name Function pointers
@@ -71,8 +75,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Boundary_Value_T_advection_inflow constructor_Boundary_Value_c_advection_inflow
 #define constructor_Boundary_Value_T_advection_outflow constructor_Boundary_Value_c_advection_outflow
 
-#define constructor_Boundary_Value_T_euler_riemann constructor_Boundary_Value_c_euler_riemann
-#define constructor_Boundary_Value_T_euler_slipwall constructor_Boundary_Value_c_euler_slipwall
+#define constructor_Boundary_Value_T_euler_riemann            constructor_Boundary_Value_c_euler_riemann
+#define constructor_Boundary_Value_T_euler_slipwall           constructor_Boundary_Value_c_euler_slipwall
+#define constructor_Boundary_Value_T_euler_supersonic_inflow  constructor_Boundary_Value_c_euler_supersonic_inflow
+#define constructor_Boundary_Value_T_euler_supersonic_outflow constructor_Boundary_Value_c_euler_supersonic_outflow
 ///\}
 
 #endif

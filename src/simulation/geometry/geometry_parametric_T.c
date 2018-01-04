@@ -100,7 +100,7 @@ const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_T
 	    *const y = ( DIM > 1 ? get_col_Multiarray_R(1,xyz) : NULL ),
 	    *const z = ( DIM > 2 ? get_col_Multiarray_R(2,xyz) : NULL );
 
-	const Real dxyz = 0.1;
+	const Real dxyz = 0.05;
 	for (int n = 0; n < n_n; ++n) {
 		if (DIM == 2) {
 			x[n] = x_i[n] + dxyz*sin(PI*y_i[n]);

@@ -26,14 +26,20 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Version of \ref constructor_derived_Adaptation_Element using the standard operators.
+/// \brief \ref constructor_derived_Adaptation_Element constructing the standard operators.
 static void constructor_derived_Adaptation_Element_std
 	(struct Element* element_ptr, ///< See brief.
 	 const struct Simulation* sim ///< See brief.
 	);
 
-/// \brief Version of \ref constructor_derived_Adaptation_Element using the tensor-product of sub-element operators.
+/// \brief \ref constructor_derived_Adaptation_Element constructing the tensor-product of sub-element operators.
 static void constructor_derived_Adaptation_Element_tp
+	(struct Element* element_ptr, ///< See brief.
+	 const struct Simulation* sim ///< See brief.
+	);
+
+/// \brief \ref constructor_derived_Adaptation_Element constructing the common operators.
+static void constructor_derived_Adaptation_Element_common
 	(struct Element* element_ptr, ///< See brief.
 	 const struct Simulation* sim ///< See brief.
 	);
@@ -53,6 +59,7 @@ void constructor_derived_Adaptation_Element (struct Element* element_ptr, const 
 		EXIT_UNSUPPORTED;
 		break;
 	}
+	constructor_derived_Adaptation_Element_common(element_ptr,sim);
 }
 
 void destructor_derived_Adaptation_Element (struct Element* element_ptr)
@@ -72,17 +79,6 @@ static void constructor_derived_Adaptation_Element_std (struct Element* element_
 	struct Adaptation_Element* a_e = (struct Adaptation_Element*) element_ptr;
 
 	a_e->cc0_vs_vs = constructor_operators("cc0","vsA","vsA","H_ALL_P_PM1",e,sim); // destructed
-
-	switch (sim->method) {
-	case METHOD_DG:
-		break; // Do nothing.
-	case METHOD_DPG:
-		a_e->cc0_ff_ff = constructor_operators("cc0","ffA","ffA","H_ALL_P_PM1",e,sim); // destructed
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",sim->method);
-		break;
-	}
 }
 
 static void constructor_derived_Adaptation_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
@@ -97,12 +93,18 @@ static void constructor_derived_Adaptation_Element_tp (struct Element* element_p
 
 	set_operators_tp(&ops_tp,a_se[0]->cc0_vs_vs,NULL,a_se[1]->cc0_vs_vs,NULL);
 	a_e->cc0_vs_vs = constructor_operators_tp("cc0","vsA","vsA","H_ALL_P_PM1",e,sim,&ops_tp); // destructed
+}
+
+static void constructor_derived_Adaptation_Element_common (struct Element* element_ptr, const struct Simulation* sim)
+{
+	struct const_Element* e        = (struct const_Element*) element_ptr;
+	struct Adaptation_Element* a_e = (struct Adaptation_Element*) element_ptr;
 
 	switch (sim->method) {
 	case METHOD_DG:
 		break; // Do nothing.
 	case METHOD_DPG:
-		EXIT_ADD_SUPPORT;
+		a_e->cc0_ff_ff = constructor_operators("cc0","ffA","ffA","H_ALL_P_PM1",e,sim); // destructed
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);

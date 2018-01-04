@@ -59,12 +59,12 @@ struct Numerical_Flux_Input_T* constructor_Numerical_Flux_Input_T (const struct 
 	num_flux_i->compute_Numerical_Flux = test_case->compute_Numerical_Flux;
 	switch (test_case->solver_method_curr) {
 	case 'e':
-		num_flux_i->bv_l.compute_member = test_case->flux_comp_mem_e;
+		num_flux_i->bv_l.compute_member = test_case->boundary_value_comp_mem_e;
 		num_flux_i->compute_Numerical_Flux_1st = test_case->compute_Numerical_Flux_e[0];
 		num_flux_i->compute_Numerical_Flux_2nd = test_case->compute_Numerical_Flux_e[1];
 		break;
 	case 'i':
-		num_flux_i->bv_l.compute_member = test_case->flux_comp_mem_i;
+		num_flux_i->bv_l.compute_member = test_case->boundary_value_comp_mem_i;
 		num_flux_i->compute_Numerical_Flux_1st = test_case->compute_Numerical_Flux_i[0];
 		num_flux_i->compute_Numerical_Flux_2nd = test_case->compute_Numerical_Flux_i[1];
 		break;
@@ -165,10 +165,10 @@ static void combine_num_flux_boundary_T
 
 	for (int eq = 0; eq < n_eq; ++eq) {
 	for (int vr_l = 0; vr_l < n_vr; ++vr_l) {
-		const int ind_dnnf_ds_l = eq+vr_l*n_eq;
+		const int ind_dnnf_ds_l = eq+n_eq*(vr_l);
 		for (int vr_r = 0; vr_r < n_vr; ++vr_r) {
-			const int ind_dnnf_ds_r = eq+vr_r*n_eq;
-			const int ind_ds_ds     = vr_l+vr_r*n_vr;
+			const int ind_dnnf_ds_r = eq+n_eq*(vr_r);
+			const int ind_ds_ds     = vr_r+n_vr*(vr_l);
 			z_yxpz_T(n_n,get_col_const_Multiarray_T(ind_dnnf_ds_r,dnnf_ds_r),
 			             get_col_const_Multiarray_T(ind_ds_ds,ds_ds),
 			             get_col_Multiarray_T(ind_dnnf_ds_l,dnnf_ds_l));

@@ -78,8 +78,10 @@ struct Test_Case_T {
 	             exit_tol_i,   ///< The exit tolerance for the residual during the implicit solver stage.
 	             exit_ratio_i; ///< The exit ratio for the residual during the implicit solver stage.
 
-	const bool flux_comp_mem_e[MAX_FLUX_OUT], ///< \ref Flux_Input_T::compute_member (explicit).
-	           flux_comp_mem_i[MAX_FLUX_OUT]; ///< \ref Flux_Input_T::compute_member (implicit).
+	const bool flux_comp_mem_e[MAX_FLUX_OUT],         ///< \ref Flux_Input_T::compute_member (explicit).
+	           flux_comp_mem_i[MAX_FLUX_OUT],         ///< \ref Flux_Input_T::compute_member (implicit).
+	           boundary_value_comp_mem_e[MAX_BV_OUT], ///< \ref Boundary_Value_Input_T::compute_member (explicit).
+	           boundary_value_comp_mem_i[MAX_BV_OUT]; ///< \ref Boundary_Value_Input_T::compute_member (implicit).
 
 	/// Function pointer to the function used to call the combination of 1st and 2nd order flux functions.
 	compute_Flux_fptr_T compute_Flux;
@@ -124,4 +126,10 @@ struct Test_Case_T* constructor_Test_Case_T
 /// \brief Destructor for a \ref Test_Case_T.
 void destructor_Test_Case_T
 	(const struct Test_Case_T* test_case ///< \ref Test_Case_T.
+	);
+
+/// \brief Increment input number of pointers by one.
+void increment_pointers_T
+	(const int n_ptr,       ///< The number of pointers.
+	 const Type**const ptrs ///< Pointer to the array of pointers.
 	);

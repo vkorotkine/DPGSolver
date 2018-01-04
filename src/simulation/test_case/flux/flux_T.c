@@ -122,11 +122,5 @@ void compute_Flux_12_T (const struct Flux_Input_T* flux_i, struct mutable_Flux_T
 	flux_i->compute_Flux_2nd(flux_i,flux);
 }
 
-void increment_pointers_T (const int n_ptr, const Type**const ptrs)
-{
-	for (int i = 0; i < n_ptr; ++i)
-		++ptrs[i];
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

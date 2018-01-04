@@ -106,8 +106,7 @@ const struct const_Vector_i* get_operator__nc_fc_T (const int side_index_dest, c
 }
 
 void constructor_Numerical_Flux_Input_data_T
-	(struct Numerical_Flux_Input_T* num_flux_i, const struct Solver_Face_T* s_face,
-	 const struct Simulation* sim)
+	(struct Numerical_Flux_Input_T* num_flux_i, const struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 

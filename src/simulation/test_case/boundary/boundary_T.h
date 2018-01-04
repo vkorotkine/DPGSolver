@@ -55,7 +55,16 @@ typedef void (*constructor_Boundary_Value_fptr_T)
 /// \brief Container holding data used for computing the boundary condition values and their Jacobians.
 struct Boundary_Value_Input_T {
 	const char* input_path;     ///< Pointer to \ref Simulation::input_path.
-	const bool* compute_member; ///< Flags for which of the \ref Boundary_Value_T members should be computed.
+
+	/** Flags for which of the \ref Boundary_Value_T members should be computed.
+	 *  - [0]: s
+	 *  - [1]: ds_ds
+	 *  - [2]: g
+	 *  - [3]: dg_dg
+	 *  - [4]: ds_dg
+	 *  - [5]: dg_ds
+	 */
+	const bool* compute_member;
 
 	const int n_eq,  ///< \ref Test_Case_T::n_eq.
 	          n_var; ///< \ref Test_Case_T::n_var.
@@ -73,7 +82,22 @@ struct Boundary_Value_T {
 	const struct const_Multiarray_T* s; ///< The solution variables values on the boundary.
 	const struct const_Multiarray_T* g; ///< The solution gradient variables values on the boundary.
 
-	const struct const_Multiarray_T* ds_ds; ///< The Jacobian of the boundary solution wrt the solution.
+	/** The Jacobian of the boundary solution wrt the solution. The ordering was chosen intuitively for consistency
+	 *  with the non-linearized term and the treatment of other linearized terms throughout the code. Memory changes
+	 *  fastest with respect to the boundary variables, then with respect to the derivative variables (i.e. the
+	 *  columns of ds_ds are given by: drho_b/drho_i, drhou_b/drho_i, ..., drho_b/drhou_i, ... where "_b" and "_i"
+	 *  represent 'b'oundary and 'i'nternal variables respectively). Note that "_b" and "_i" are generally replaced
+	 *  with "_r" ('r'ight) and "_l" ('l'eft) throughout for consistency with naming conventions used for internal
+	 *  faces.
+	 */
+	const struct const_Multiarray_T* ds_ds;
+};
+
+/// \brief `mutable` version of \ref Boundary_Value_T.
+struct mutable_Boundary_Value_T {
+	struct Multiarray_T* s;     ///< See brief.
+	struct Multiarray_T* g;     ///< See brief.
+	struct Multiarray_T* ds_ds; ///< See brief.
 };
 
 // Interface functions ********************************************************************************************** //

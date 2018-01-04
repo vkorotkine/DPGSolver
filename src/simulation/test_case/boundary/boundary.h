@@ -19,6 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides containers and functions relating to boundary conditions of the supported PDEs.
  */
 
+///\{ \name The maximum number of outputs from the boundary functions.
+#define MAX_BV_OUT 6 ///< See the members of \ref Boundary_Value_T.
+///\}
+
 #include "def_templates_type_d.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_boundary.h"

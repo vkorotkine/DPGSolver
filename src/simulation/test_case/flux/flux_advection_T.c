@@ -20,6 +20,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 
 #include "macros.h"
+
+#include "def_templates_multiarray.h"
+
 #include "def_templates_flux.h"
 
 // Static function declarations ************************************************************************************* //

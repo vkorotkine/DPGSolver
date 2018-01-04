@@ -20,13 +20,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "flux.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "def_templates_multiarray.h"
 #include "flux_euler_T.c"
 
 // Static functions ************************************************************************************************* //

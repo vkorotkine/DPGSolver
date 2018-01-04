@@ -41,3 +41,19 @@ void constructor_Boundary_Value_T_euler_slipwall
 	 const struct Solver_Face_T* face,          ///< See brief.
 	 const struct Simulation* sim               ///< See brief.
 	);
+
+/// \brief Version of \ref constructor_Boundary_Value_fptr_T computing members using the external upwind values.
+void constructor_Boundary_Value_T_euler_supersonic_inflow
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face_T* face,          ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
+	);
+
+/// \brief Version of \ref constructor_Boundary_Value_fptr_T computing members using the internal interpolated values.
+void constructor_Boundary_Value_T_euler_supersonic_outflow
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face_T* face,          ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
+	);

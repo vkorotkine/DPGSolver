@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Data types
 #undef Boundary_Value_Input_T
 #undef Boundary_Value_T
+#undef mutable_Boundary_Value_T
 ///\}
 
 ///\{ \name Function pointers
@@ -42,4 +43,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef constructor_Boundary_Value_T_euler_riemann
 #undef constructor_Boundary_Value_T_euler_slipwall
+#undef constructor_Boundary_Value_T_euler_supersonic_inflow
+#undef constructor_Boundary_Value_T_euler_supersonic_outflow
 ///\}

@@ -35,25 +35,25 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 /// \brief Set associations between `char*` and `int` variables.
-static void set_string_associations_T
+static void set_string_associations
 	(struct Test_Case_T* test_case,      ///< \ref Test_Case_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 /// \brief Set pde related parameters.
-static void set_pde_related_T
+static void set_pde_related
 	(struct Test_Case_T* test_case,      ///< \ref Test_Case_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 /// \brief Set the function pointer members of \ref Test_Case_T.
-static void set_function_pointers_T
+static void set_function_pointers
 	(struct Test_Case_T* test_case,      ///< \ref Test_Case_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 /// \brief Read members of \ref Test_Case_T from input file.
-static void read_test_case_parameters_T
+static void read_test_case_parameters
 	(struct Test_Case_T* test_case,      ///< \ref Test_Case_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
@@ -64,11 +64,11 @@ struct Test_Case_T* constructor_Test_Case_T (const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = calloc(1,sizeof *test_case); // returned
 
-	set_string_associations_T(test_case,sim);
-	set_pde_related_T(test_case,sim);
+	set_string_associations(test_case,sim);
+	set_pde_related(test_case,sim);
 
-	read_test_case_parameters_T(test_case,sim);
-	set_function_pointers_T(test_case,sim);
+	read_test_case_parameters(test_case,sim);
+	set_function_pointers(test_case,sim);
 
 	test_case->solver_method_curr = 0;
 
@@ -78,6 +78,12 @@ struct Test_Case_T* constructor_Test_Case_T (const struct Simulation* sim)
 void destructor_Test_Case_T (const struct Test_Case_T* test_case)
 {
 	free((void*)test_case);
+}
+
+void increment_pointers_T (const int n_ptr, const Type**const ptrs)
+{
+	for (int i = 0; i < n_ptr; ++i)
+		++ptrs[i];
 }
 
 // Static functions ************************************************************************************************* //
@@ -97,13 +103,13 @@ static struct Test_Case_String_Inputs set_Test_Case_String_Inputs
 	();
 
 /// \brief Set the string association relating to the \ref Test_Case_T input parameters.
-static void set_string_associations_test_case_T
+static void set_string_associations_test_case
 	(struct Test_Case_T* test_case,               ///< \ref Test_Case_T.
 	 const struct Test_Case_String_Inputs* tcsi ///< \ref Test_Case_String_Inputs.
 	);
 
 /// \brief Correct invalid \ref Test_Case_T parameters if present.
-static void correct_invalid_test_case_parameters_T
+static void correct_invalid_test_case_parameters
 	(struct Test_Case_T* test_case, ///< \ref Test_Case_T.
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
@@ -111,13 +117,22 @@ static void correct_invalid_test_case_parameters_T
 /** \brief Return a statically allocated array of \ref Flux_Input_T::compute_member flags depending on the pde and
  *         solver method.
  *  \return See brief. */
-static const bool* get_compute_member_T
+static const bool* get_compute_member_Flux_Input
 	(const char type_ei,                 ///< 'e'xplicit/'i'mplicit type. Options: 'e', 'i'.
 	 struct Test_Case_T*const test_case, ///< \ref Test_Case_T.
 	 const struct Simulation*const sim   ///< \ref Simulation.
 	);
 
-static void set_string_associations_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
+/** \brief Return a statically allocated array of \ref Boundary_Value_Input_T::compute_member flags depending on the pde
+ *         and solver method.
+ *  \return See brief. */
+static const bool* get_compute_member_Boundary_Value_Input
+	(const char type_ei,                 ///< 'e'xplicit/'i'mplicit type. Options: 'e', 'i'.
+	 struct Test_Case_T*const test_case, ///< \ref Test_Case_T.
+	 const struct Simulation*const sim   ///< \ref Simulation.
+	);
+
+static void set_string_associations (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
 	// pde_index
 	if (strstr(sim->pde_name,"advection"))
@@ -132,7 +147,7 @@ static void set_string_associations_T (struct Test_Case_T* test_case, const stru
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_name);
 }
 
-static void set_pde_related_T (struct Test_Case_T* test_case, const struct Simulation* sim)
+static void set_pde_related (struct Test_Case_T* test_case, const struct Simulation* sim)
 {
 	switch (test_case->pde_index) {
 	case PDE_ADVECTION:
@@ -168,15 +183,22 @@ static void set_pde_related_T (struct Test_Case_T* test_case, const struct Simul
 		break;
 	}
 
-	const bool* flux_comp_mem_e = get_compute_member_T('e',test_case,sim),
-	          * flux_comp_mem_i = get_compute_member_T('i',test_case,sim);
+	const bool* flux_comp_mem_e = get_compute_member_Flux_Input('e',test_case,sim),
+	          * flux_comp_mem_i = get_compute_member_Flux_Input('i',test_case,sim);
 	for (int i = 0; i < MAX_FLUX_OUT; ++i) {
 		const_cast_b(&test_case->flux_comp_mem_e[i],flux_comp_mem_e[i]);
 		const_cast_b(&test_case->flux_comp_mem_i[i],flux_comp_mem_i[i]);
 	}
+
+	const bool* boundary_value_comp_mem_e = get_compute_member_Boundary_Value_Input('e',test_case,sim),
+	          * boundary_value_comp_mem_i = get_compute_member_Boundary_Value_Input('i',test_case,sim);
+	for (int i = 0; i < MAX_BV_OUT; ++i) {
+		const_cast_b(&test_case->boundary_value_comp_mem_e[i],boundary_value_comp_mem_e[i]);
+		const_cast_b(&test_case->boundary_value_comp_mem_i[i],boundary_value_comp_mem_i[i]);
+	}
 }
 
-static void set_function_pointers_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
+static void set_function_pointers (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
 	switch (test_case->pde_index) {
 		case PDE_ADVECTION:     set_function_pointers_solution_advection_T(test_case,sim);     break;
@@ -187,7 +209,7 @@ static void set_function_pointers_T (struct Test_Case_T* test_case, const struct
 	}
 }
 
-static void read_test_case_parameters_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
+static void read_test_case_parameters (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
 	const int count_to_find = 1;
 
@@ -226,8 +248,8 @@ static void read_test_case_parameters_T (struct Test_Case_T* test_case, const st
 	}
 	fclose(input_file);
 
-	correct_invalid_test_case_parameters_T(test_case,sim);
-	set_string_associations_test_case_T(test_case,&tcsi);
+	correct_invalid_test_case_parameters(test_case,sim);
+	set_string_associations_test_case(test_case,&tcsi);
 
 	if (count_found != count_to_find)
 		EXIT_ERROR("Did not find the required number of variables");
@@ -246,7 +268,7 @@ static struct Test_Case_String_Inputs set_Test_Case_String_Inputs ()
 	return tcsi;
 }
 
-static void set_string_associations_test_case_T (struct Test_Case_T* test_case, const struct Test_Case_String_Inputs* tcsi)
+static void set_string_associations_test_case (struct Test_Case_T* test_case, const struct Test_Case_String_Inputs* tcsi)
 {
 /// \todo add string associations for solver types.
 	// num_flux_1st
@@ -274,7 +296,7 @@ static void set_string_associations_test_case_T (struct Test_Case_T* test_case, 
 		const_cast_i(&test_case->ind_test_norm,TEST_NORM_INVALID);
 }
 
-static void correct_invalid_test_case_parameters_T (struct Test_Case_T* test_case, const struct Simulation* sim)
+static void correct_invalid_test_case_parameters (struct Test_Case_T* test_case, const struct Simulation* sim)
 {
 	switch (sim->method) {
 	case METHOD_DG:
@@ -288,7 +310,7 @@ static void correct_invalid_test_case_parameters_T (struct Test_Case_T* test_cas
 	}
 }
 
-static const bool* get_compute_member_T
+static const bool* get_compute_member_Flux_Input
 	(const char type_ei, struct Test_Case_T*const test_case, const struct Simulation*const sim)
 {
 	static const bool cm_100000[] = {1,0,0,0,0,0,},
@@ -321,6 +343,34 @@ static const bool* get_compute_member_T
 			EXIT_ERROR("Unsupported: %d\n",sim->method);
 			break;
 		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
+		break;
+	}
+	EXIT_ERROR("Should not have reached this point.\n");
+}
+
+static const bool* get_compute_member_Boundary_Value_Input
+	(const char type_ei, struct Test_Case_T*const test_case, const struct Simulation*const sim)
+{
+	UNUSED(sim);
+	static const bool cm_100000[] = {1,0,0,0,0,0,},
+	                  cm_110000[] = {1,1,0,0,0,0,};
+
+	assert(type_ei == 'e' || type_ei == 'i');
+	switch (test_case->pde_index) {
+	case PDE_ADVECTION:
+		if (type_ei == 'e')
+			return cm_100000;
+		else if (type_ei == 'i')
+			return cm_110000;
+		break;
+	case PDE_EULER:
+		if (type_ei == 'e')
+			return cm_100000;
+		else if (type_ei == 'i')
+			return cm_110000;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);

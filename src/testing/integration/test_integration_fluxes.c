@@ -249,16 +249,18 @@ static struct Flux* constructor_Flux_cmplx_step (struct Flux_Input_c*const flux_
 
 		// f[DIM,NEQ]
 		assert(compute_member[0] == true);
-		for (int eq = 0; eq < n_eq; ++eq) {
-		for (int d = 0; d < DIM; ++d) {
-			const ptrdiff_t ind_c = d+DIM*(eq),
-			                ind_r = d+DIM*(eq);
+		if (vr == 0) {
+			for (int eq = 0; eq < n_eq; ++eq) {
+			for (int d = 0; d < DIM; ++d) {
+				const ptrdiff_t ind_c = d+DIM*(eq),
+				                ind_r = d+DIM*(eq);
 
-			const double complex*const data_c = get_col_const_Multiarray_c(ind_c,flux_c->f);
-			double*const data_r               = get_col_Multiarray_d(ind_r,m_flux->f);
-			for (int n = 0; n < n_n; ++n)
-				data_r[n] = creal(data_c[n]);
-		}}
+				const double complex*const data_c = get_col_const_Multiarray_c(ind_c,flux_c->f);
+				double*const data_r               = get_col_Multiarray_d(ind_r,m_flux->f);
+				for (int n = 0; n < n_n; ++n)
+					data_r[n] = creal(data_c[n]);
+			}}
+		}
 
 		// df_ds[DIM,NEQ,NVAR]
 		if (compute_member[1]) {
@@ -274,7 +276,7 @@ static struct Flux* constructor_Flux_cmplx_step (struct Flux_Input_c*const flux_
 			}}
 		}
 
-		// df_ds[DIM,NEQ,NVAR,NVAR]
+		// d2f_ds2[DIM,NEQ,NVAR,NVAR]
 		if (compute_member[3]) {
 			for (int vr2 = 0; vr2 < n_vr; ++vr2) {
 			for (int eq = 0; eq < n_eq; ++eq) {

@@ -69,7 +69,7 @@ void set_sol_free_stream_T (const struct Simulation* sim, struct Solution_Contai
 struct Sol_Data__fs {
 	// Read parameters
 	Real mach,  ///< The free stream 'mach' number.
-	     theta; ///< The free stream flow angle in the xy-plane.
+	     theta; ///< The free stream flow angle in the xy-plane (in radians).
 };
 
 /** \brief Return the statically allocated \ref Sol_Data__fs container.
@@ -93,7 +93,7 @@ static struct Multiarray_T* constructor_sol_free_stream
 
 	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,n_var}); // returned
 
-	const Real rho_fs = 1.5,
+	const Real rho_fs = 1.0,
 	           p_fs   = pow(rho_fs,GAMMA),
 	           c_fs   = sqrt(GAMMA*p_fs/rho_fs);
 
@@ -155,9 +155,11 @@ static void read_data_free_stream (const char*const input_path, struct Sol_Data_
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),input_file)) {
 		read_skip_string_count_d("mach", &count_found,line,&sol_data->mach);
-		read_skip_string_count_d("theta",&count_found,line,&sol_data->theta);
+		read_skip_string_count_d("theta_deg",&count_found,line,&sol_data->theta);
 	}
 	fclose(input_file);
+
+	sol_data->theta *= PI/180.0;
 
 	if (count_found != count_to_find)
 		EXIT_ERROR("Did not find the required number of variables");

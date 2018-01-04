@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides `complex` versions of containers and functions defined in \ref boundary.h.
  */
 
+#include "boundary.h"
+
 #include "def_templates_type_dc.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_boundary.h"

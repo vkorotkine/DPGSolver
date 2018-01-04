@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_flux_euler.h"
 
 #include "test_complex_flux.h"
+#include "test_complex_test_case.h"
+
 #include "complex_multiarray.h"
 
 // Static function declarations ************************************************************************************* //
@@ -25,7 +27,6 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_dc.h"
-#include "def_templates_multiarray.h"
 #include "flux_euler_T.c"
 
 // Static functions ************************************************************************************************* //

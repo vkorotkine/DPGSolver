@@ -118,9 +118,3 @@ void compute_Flux_12_T
 	(const struct Flux_Input_T* flux_i, ///< See brief.
 	 struct mutable_Flux_T* flux        ///< See brief.
 	);
-
-/// \brief Increment input number of pointers by one.
-void increment_pointers_T
-	(const int n_ptr,       ///< The number of pointers.
-	 const Type**const ptrs ///< Pointer to the array of pointers.
-	);

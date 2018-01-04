@@ -22,14 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Function names
-#undef set_string_associations_T
-#undef set_pde_related_T
-#undef set_function_pointers_T
-#undef read_test_case_parameters_T
-#undef set_string_associations_test_case_T
-#undef correct_invalid_test_case_parameters_T
-
 #undef constructor_Test_Case_T
 #undef destructor_Test_Case_T
-#undef get_compute_member_T
+#undef increment_pointers_T
 ///\}
