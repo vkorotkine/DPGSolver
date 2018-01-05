@@ -35,6 +35,7 @@ struct Solution_Element {
 
 	const struct Multiarray_Operator* cv0_vg_ff[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vm_ff[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vg_fc[2]; ///< See notation in \ref element_operators.h.
 
 	const struct Multiarray_Operator* vc0_ff_ff; ///< See notation in \ref element_operators.h.
 

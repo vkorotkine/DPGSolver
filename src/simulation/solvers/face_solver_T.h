@@ -52,6 +52,11 @@ struct Solver_Face_T {
 
 	/// Construct 'r'ight numerical flux input members at face cubature nodes as seen from the left volume.
 	constructor_Boundary_Value_fptr_T constructor_Boundary_Value_fcl;
+
+	// Used exclusively for testing purposes.
+
+	/// Exact values of the normal flux on the boundary at the face cubature nodes if the solution is known.
+	const struct const_Multiarray_T* nf_fc;
 };
 
 /// \brief Constructor for a derived \ref Solver_Face_T.

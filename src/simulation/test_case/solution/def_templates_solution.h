@@ -40,16 +40,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define update_Solution_Container_sol_T update_Solution_Container_sol
 #define constructor_xyz_vc_interp_T     constructor_xyz_vc_interp
 #define get_operator__tw0_vt_vc_T       get_operator__tw0_vt_vc
-
-#define set_initial_v_sg_coef_T    set_initial_v_sg_coef
-#define set_initial_f_nf_coef_T    set_initial_f_nf_coef
-#define get_operator__cv0_vg_vc_T  get_operator__cv0_vg_vc
-#define constructor_xyz_v_T        constructor_xyz_v
-#define constructor_xyz_f_T        constructor_xyz_f
-#define constructor_normals_ff_T   constructor_normals_ff
-#define constructor_nf_T           constructor_nf
-#define compute_coef_from_val_ff_T compute_coef_from_val_ff
-#define constructor_metrics_ff_T   constructor_metrics_ff
 ///\}
 
 ///\{ \name Function names (pde specific)
@@ -80,16 +70,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define update_Solution_Container_sol_T update_Solution_Container_sol_c
 #define constructor_xyz_vc_interp_T     constructor_xyz_vc_interp_c
 #define get_operator__tw0_vt_vc_T       get_operator__tw0_vt_vc_c
-
-#define set_initial_v_sg_coef_T    set_initial_v_sg_coef_c
-#define set_initial_f_nf_coef_T    set_initial_f_nf_coef_c
-#define get_operator__cv0_vg_vc_T  get_operator__cv0_vg_vc_c
-#define constructor_xyz_v_T        constructor_xyz_v_c
-#define constructor_xyz_f_T        constructor_xyz_f_c
-#define constructor_normals_ff_T   constructor_normals_ff_c
-#define constructor_nf_T           constructor_nf_c
-#define compute_coef_from_val_ff_T compute_coef_from_val_ff_c
-#define constructor_metrics_ff_T   constructor_metrics_ff_c
 ///\}
 
 ///\{ \name Function names (pde specific)

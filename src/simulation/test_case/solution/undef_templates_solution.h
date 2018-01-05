@@ -39,16 +39,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef update_Solution_Container_sol_T
 #undef constructor_xyz_vc_interp_T
 #undef get_operator__tw0_vt_vc_T
-
-#undef set_initial_v_sg_coef_T
-#undef set_initial_f_nf_coef_T
-#undef get_operator__cv0_vg_vc_T
-#undef constructor_xyz_v_T
-#undef constructor_xyz_f_T
-#undef constructor_normals_ff_T
-#undef constructor_nf_T
-#undef compute_coef_from_val_ff_T
-#undef constructor_metrics_ff_T
 ///\}
 
 ///\{ \name Function names (pde specific)

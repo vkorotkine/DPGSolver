@@ -55,7 +55,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Flags for whether certain outputs are enabled.
 #define OUTPUT_PETSC_AB false ///< Flag for Petsc data containers.
-#define OUTPUT_SOLUTION true  ///< Flag for solution data on each element.
+#define OUTPUT_SOLUTION false ///< Flag for solution data on each element.
 ///\}
 
 /// \brief Constructor for the derived element and computational element lists.
@@ -212,7 +212,7 @@ static double implicit_step (const int i_step, const struct Simulation* sim)
 	if (OUTPUT_PETSC_AB)
 		output_petsc_mat_vec(ssi->A,ssi->b,sim);
 
-	if (OUTPUT_SOLUTION && i_step == 1)
+	if (OUTPUT_SOLUTION && i_step == 4)
 		output_solution(i_step,(struct Simulation*)sim);
 
 	solve_and_update(max_rhs,i_step,ssi,sim);
@@ -237,6 +237,7 @@ static bool check_exit (const struct Test_Case* test_case, const double max_rhs)
 	if (max_rhs/max_rhs0 < test_case->exit_ratio_i) {
 		printf("Complete: max_rhs dropped by % .2e orders.\n",log10(max_rhs0/max_rhs));
 		exit_now = true;
+		max_rhs0 = 0.0;
 	}
 
 	if (check_pde_linear(test_case->pde_index))

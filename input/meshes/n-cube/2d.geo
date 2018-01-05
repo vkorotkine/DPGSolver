@@ -79,14 +79,7 @@ ElseIf (pde_name == EULER)
 	ElseIf (geom_adv == GEOM_ADV_XL)
 		Physical Line(bc_base+BC_SUPERSONIC_IN)  = {2001};
 		Physical Line(bc_base+BC_SUPERSONIC_OUT) = {2002};
-		If (mesh_domain == STRAIGHT)
-			Physical Line(bc_base+BC_SLIPWALL) = {1001:1004}; // Can also try with Riemann
-		Else
-			Physical Line(bc_base+BC_RIEMANN)  = {1001:1004};
-		EndIf
-	ElseIf (geom_adv == GEOM_ADV_XYL)
-		Physical Line(bc_base+BC_SUPERSONIC_IN)  = {2001,1001:1002};
-		Physical Line(bc_base+BC_SUPERSONIC_OUT) = {2002,1003:1004};
+		Physical Line(bc_base+BC_SLIPWALL)       = {1001:1004}; // Can also try with Riemann
 	Else
 		Error("Unsupported geom_adv: %d",geom_adv); Exit;
 	EndIf

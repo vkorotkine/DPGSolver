@@ -63,6 +63,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef destructor_Multiarray_T
 #undef destructor_const_Multiarray_T
+#undef destructor_conditional_Multiarray_T
+#undef destructor_conditional_const_Multiarray_T
 #undef destructor_Multiarray_Vector_T
 #undef destructor_const_Multiarray_Vector_T
 #undef destructor_Multiarray_Matrix_T
@@ -81,3 +83,5 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef destructor_Multiarray_R
 #undef destructor_const_Multiarray_R
+#undef destructor_conditional_Multiarray_R
+#undef destructor_conditional_const_Multiarray_R

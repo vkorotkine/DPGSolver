@@ -104,7 +104,7 @@ const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_T
 	for (int n = 0; n < n_n; ++n) {
 		if (DIM == 2) {
 			x[n] = x_i[n] + dxyz*sin(PI*y_i[n]);
-			y[n] = y_i[n] + dxyz*sin(PI*x_i[n]);
+			y[n] = y_i[n];
 		} else if (DIM == 3) {
 			EXIT_ADD_SUPPORT; UNUSED(z_i); UNUSED(z);
 		} else {

@@ -1,4 +1,4 @@
 /// Solution parameters for test case: euler/steady/free_stream
 
 mach      1.5
-theta_deg 15.0
+theta_deg 0.0

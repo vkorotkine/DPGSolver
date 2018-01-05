@@ -113,14 +113,11 @@ struct Numerical_Flux_T* constructor_Numerical_Flux_T (const struct Numerical_Fl
 
 void destructor_Numerical_Flux_T (struct Numerical_Flux_T* num_flux)
 {
-	if (num_flux->nnf != NULL)
-		destructor_const_Multiarray_T(num_flux->nnf);
+	destructor_conditional_const_Multiarray_T(num_flux->nnf);
 	for (int i = 0; i < 2; ++i) {
 		struct Neigh_Info_NF_T n_i = num_flux->neigh_info[i];
-		if (n_i.dnnf_ds != NULL)
-			destructor_const_Multiarray_T(n_i.dnnf_ds);
-		if (n_i.dnnf_dg != NULL)
-			destructor_const_Multiarray_T(n_i.dnnf_dg);
+		destructor_conditional_const_Multiarray_T(n_i.dnnf_ds);
+		destructor_conditional_const_Multiarray_T(n_i.dnnf_dg);
 	}
 	free(num_flux);
 }

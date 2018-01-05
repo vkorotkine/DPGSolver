@@ -65,6 +65,8 @@ void constructor_derived_Solver_Face_T (struct Face* face_ptr, const struct Simu
 		&s_face->jacobian_det_fc,constructor_empty_Multiarray_R('C',1,(ptrdiff_t[]){0})); // destructed
 
 	set_function_pointers_face_num_flux_T(s_face,sim);
+
+	s_face->nf_fc = NULL;
 }
 
 void destructor_derived_Solver_Face_T (struct Face* face_ptr)
@@ -76,6 +78,8 @@ void destructor_derived_Solver_Face_T (struct Face* face_ptr)
 	destructor_const_Multiarray_R(face->xyz_fc);
 	destructor_const_Multiarray_R(face->normals_fc);
 	destructor_const_Multiarray_R(face->jacobian_det_fc);
+
+	destructor_conditional_const_Multiarray_T(face->nf_fc);
 }
 
 void set_function_pointers_face_num_flux_T (struct Solver_Face_T* s_face, const struct Simulation* sim)

@@ -62,13 +62,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_mm_NN1C_const_Multiarray_T               constructor_mm_NN1C_const_Multiarray_d
 #define constructor_mm_tp_NN1C_const_Multiarray_T            constructor_mm_tp_NN1C_const_Multiarray_d
 
-#define destructor_Multiarray_T               destructor_Multiarray_d
-#define destructor_const_Multiarray_T         destructor_const_Multiarray_d
-#define destructor_Multiarray_Vector_T        destructor_Multiarray_Vector_d
-#define destructor_const_Multiarray_Vector_T  destructor_const_Multiarray_Vector_d
-#define destructor_Multiarray_Matrix_T        destructor_Multiarray_Matrix_d
-#define destructor_const_Multiarray_Matrix_T  destructor_const_Multiarray_Matrix_d
-#define destructor_const_Multiarray2_Matrix_T destructor_const_Multiarray2_Matrix_d
+#define destructor_Multiarray_T                   destructor_Multiarray_d
+#define destructor_const_Multiarray_T             destructor_const_Multiarray_d
+#define destructor_conditional_Multiarray_T       destructor_conditional_Multiarray_d
+#define destructor_conditional_const_Multiarray_T destructor_conditional_const_Multiarray_d
+#define destructor_Multiarray_Vector_T            destructor_Multiarray_Vector_d
+#define destructor_const_Multiarray_Vector_T      destructor_const_Multiarray_Vector_d
+#define destructor_Multiarray_Matrix_T            destructor_Multiarray_Matrix_d
+#define destructor_const_Multiarray_Matrix_T      destructor_const_Multiarray_Matrix_d
+#define destructor_const_Multiarray2_Matrix_T     destructor_const_Multiarray2_Matrix_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -119,13 +121,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_mm_NN1C_const_Multiarray_T               constructor_mm_NN1C_const_Multiarray_c
 #define constructor_mm_tp_NN1C_const_Multiarray_T            constructor_mm_tp_NN1C_const_Multiarray_c
 
-#define destructor_Multiarray_T               destructor_Multiarray_c
-#define destructor_const_Multiarray_T         destructor_const_Multiarray_c
-#define destructor_Multiarray_Vector_T        destructor_Multiarray_Vector_c
-#define destructor_const_Multiarray_Vector_T  destructor_const_Multiarray_Vector_c
-#define destructor_Multiarray_Matrix_T        destructor_Multiarray_Matrix_c
-#define destructor_const_Multiarray_Matrix_T  destructor_const_Multiarray_Matrix_c
-#define destructor_const_Multiarray2_Matrix_T destructor_const_Multiarray2_Matrix_c
+#define destructor_Multiarray_T                   destructor_Multiarray_c
+#define destructor_const_Multiarray_T             destructor_const_Multiarray_c
+#define destructor_conditional_Multiarray_T       destructor_conditional_Multiarray_c
+#define destructor_conditional_const_Multiarray_T destructor_conditional_const_Multiarray_c
+#define destructor_Multiarray_Vector_T            destructor_Multiarray_Vector_c
+#define destructor_const_Multiarray_Vector_T      destructor_const_Multiarray_Vector_c
+#define destructor_Multiarray_Matrix_T            destructor_Multiarray_Matrix_c
+#define destructor_const_Multiarray_Matrix_T      destructor_const_Multiarray_Matrix_c
+#define destructor_const_Multiarray2_Matrix_T     destructor_const_Multiarray2_Matrix_c
 ///\}
 
 #endif
@@ -140,6 +144,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define const_constructor_move_Multiarray_R              const_constructor_move_Multiarray_d
 #define const_constructor_move_const_Multiarray_R        const_constructor_move_const_Multiarray_d
 
-#define destructor_Multiarray_R               destructor_Multiarray_d
-#define destructor_const_Multiarray_R         destructor_const_Multiarray_d
+#define destructor_Multiarray_R                   destructor_Multiarray_d
+#define destructor_const_Multiarray_R             destructor_const_Multiarray_d
+#define destructor_conditional_Multiarray_R       destructor_conditional_Multiarray_d
+#define destructor_conditional_const_Multiarray_R destructor_conditional_const_Multiarray_d
 ///\}

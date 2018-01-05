@@ -91,8 +91,8 @@ static void constructor_derived_Solution_Element_std (struct Element* element_pt
 
 	e->cv0_vg_vs[0] = constructor_operators("cv0","vgs","vsA","H_1_P_1P", b_e,sim); // destructed
 	e->cv0_vg_vs[1] = constructor_operators("cv0","vgc","vsA","H_1_P_PM0",b_e,sim); // destructed
-	e->cv0_vg_vc[0] = constructor_operators("cv0","vgs","vcs","H_1_P_1P", b_e,sim); // destructed
-	e->cv0_vg_vc[1] = constructor_operators("cv0","vgc","vcc","H_1_P_PM0",b_e,sim); // destructed
+	e->cv0_vg_vc[0] = constructor_operators("cv0","vgs","vcs","H_1_P_1PPM1",b_e,sim); // destructed
+	e->cv0_vg_vc[1] = constructor_operators("cv0","vgc","vcc","H_1_P_PM1",b_e,sim); // destructed
 	e->cv0_vs_vc[0] = constructor_operators("cv0","vsA","vcs","H_1_P_PM0",b_e,sim); // destructed
 	e->cv0_vs_vc[1] = constructor_operators("cv0","vsA","vcc","H_1_P_PM0",b_e,sim); // destructed
 	e->cv0_vs_vs    = constructor_operators("cv0","vsA","vsA","H_1_P_PM0",b_e,sim); // destructed
@@ -106,6 +106,8 @@ static void constructor_derived_Solution_Element_std (struct Element* element_pt
 		e->cv0_vg_ff[1] = constructor_operators("cv0","vgc","ffA","H_1_P_PM1",  b_e,sim); // destructed
 		e->vv0_vm_ff[0] = constructor_operators("vv0","vms","ffA","H_1_P_1PPM1",b_e,sim); // destructed
 		e->vv0_vm_ff[1] = constructor_operators("vv0","vmc","ffA","H_1_P_PM1",  b_e,sim); // destructed
+		e->cv0_vg_fc[0] = constructor_operators("cv0","vgs","fcs","H_1_P_1PPM1",b_e,sim); // destructed
+		e->cv0_vg_fc[1] = constructor_operators("cv0","vgc","fcc","H_1_P_PM1",  b_e,sim); // destructed
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
@@ -174,6 +176,12 @@ static void constructor_derived_Solution_Element_tp (struct Element* element_ptr
 
 		set_operators_tp(&ops_tp,s_e[0]->vv0_vm_vf[1],s_e[0]->vv0_vm_ff[1],s_e[1]->vv0_vm_vf[1],s_e[1]->vv0_vm_ff[1]);
 		e->vv0_vm_ff[1] = constructor_operators_tp("vv0","vmc","ffA","H_1_P_PM1",b_e,sim,&ops_tp); // destructed
+
+		set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vc[0],s_e[0]->cv0_vg_fc[0],s_e[1]->cv0_vg_vc[0],s_e[1]->cv0_vg_fc[0]);
+		e->cv0_vg_fc[0] = constructor_operators_tp("cv0","vgs","fcs","H_1_P_1PPM1",b_e,sim,&ops_tp); // destructed
+
+		set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vc[1],s_e[0]->cv0_vg_fc[1],s_e[1]->cv0_vg_vc[1],s_e[1]->cv0_vg_fc[1]);
+		e->cv0_vg_fc[1] = constructor_operators_tp("cv0","vgc","fcc","H_1_P_PM1",b_e,sim,&ops_tp); // destructed
 
 		break;
 	default:

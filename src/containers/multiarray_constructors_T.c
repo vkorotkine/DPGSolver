@@ -482,6 +482,17 @@ void destructor_const_Multiarray_T (const struct const_Multiarray_T* a)
 	destructor_Multiarray_T((struct Multiarray_T*)a);
 }
 
+void destructor_conditional_Multiarray_T (struct Multiarray_T* a)
+{
+	if (a)
+		destructor_Multiarray_T(a);
+}
+
+void destructor_conditional_const_Multiarray_T (const struct const_Multiarray_T* a)
+{
+	destructor_conditional_Multiarray_T((struct Multiarray_T*)a);
+}
+
 void destructor_Multiarray_Vector_T (struct Multiarray_Vector_T* a)
 {
 	assert(a != NULL);

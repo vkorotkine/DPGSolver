@@ -17,7 +17,7 @@ mesh_path        ../meshes/
 # Simulation variables
 
 interp_tp  GLL
-interp_si  WSH  // Not working when using AO for p > 1.
+interp_si  WSH
 interp_pyr GLL
 
 basis_geom  lagrange

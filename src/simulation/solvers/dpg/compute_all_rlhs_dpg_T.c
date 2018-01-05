@@ -46,6 +46,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+#define USE_EXACT_NORMAL_FLUX false ///< Flag for whether the exact normal flux should be used on the boundary faces.
+
 struct S_Params_DPG;
 struct Norm_DPG;
 
@@ -380,6 +382,12 @@ static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 	 const struct Simulation* sim                 ///< See brief.
 	);
 
+/// \brief Set the numerical flux members to those corresponding to the use of the exact normal flux values.
+static void set_exact_normal_flux
+	(const struct Solver_Face_T*const s_face,       ///< \ref Solver_Face_T.
+	 struct mutable_Numerical_Flux_T*const num_flux ///< \ref mutable_Numerical_Flux_T.
+	);
+
 /// \brief Scale required \ref Numerical_Flux_T terms by the face Jacobian.
 static void scale_by_Jacobian
 	(const struct Numerical_Flux_T* num_flux, ///< \ref Numerical_Flux_T.
@@ -501,6 +509,11 @@ static void add_to_rlhs__face_boundary
 	struct Numerical_Flux_T* num_flux = constructor_Numerical_Flux_T(num_flux_i); // destructed
 	destructor_Numerical_Flux_Input_data_T(num_flux_i);
 	destructor_Numerical_Flux_Input_T(num_flux_i);
+
+	if (USE_EXACT_NORMAL_FLUX) {
+		assert(s_face->nf_fc != NULL);
+		set_exact_normal_flux(s_face,(struct mutable_Numerical_Flux_T*)num_flux);
+	}
 
 	scale_by_Jacobian(num_flux,s_face);
 
@@ -695,6 +708,21 @@ static void compute_rlhs_1
 	destructor_const_Vector_T(rhs_opt);
 
 	destructor_const_Matrix_T(opt_t);
+}
+
+static void set_exact_normal_flux
+	(const struct Solver_Face_T*const s_face, struct mutable_Numerical_Flux_T*const num_flux)
+{
+	assert(((struct Face*)s_face)->boundary == true);
+
+	destructor_Multiarray_T(num_flux->nnf);
+	num_flux->nnf = constructor_copy_Multiarray_T((struct Multiarray_T*)s_face->nf_fc);
+
+	struct m_Neigh_Info_NF_T n_i = num_flux->neigh_info[0];
+	if (n_i.dnnf_ds)
+		set_to_value_Multiarray_T(n_i.dnnf_ds,0.0);
+	if (n_i.dnnf_dg)
+		set_to_value_Multiarray_T(n_i.dnnf_dg,0.0);
 }
 
 static void scale_by_Jacobian (const struct Numerical_Flux_T* num_flux, const struct Solver_Face_T* s_face)

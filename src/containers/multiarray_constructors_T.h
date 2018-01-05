@@ -385,6 +385,16 @@ void destructor_const_Multiarray_T
 	(const struct const_Multiarray_T* a ///< Standard.
 	);
 
+/// \brief Destructs a \ref Multiarray_T\* if it is not NULL.
+void destructor_conditional_Multiarray_T
+	(struct Multiarray_T* a ///< Standard.
+	);
+
+/// \brief Destructs a \ref const_Multiarray_T\* if it is not NULL.
+void destructor_conditional_const_Multiarray_T
+	(const struct const_Multiarray_T* a ///< Standard.
+	);
+
 /// \brief Destructs a \ref Multiarray_Vector_T\*.
 void destructor_Multiarray_Vector_T
 	(struct Multiarray_Vector_T* a ///< Standard.

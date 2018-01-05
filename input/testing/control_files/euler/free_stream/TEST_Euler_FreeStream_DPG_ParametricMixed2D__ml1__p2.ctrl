@@ -2,7 +2,7 @@ pde_name  euler
 pde_spec  steady/free_stream
 
 geom_name n-cube
-geom_spec xy_l
+geom_spec x_l
 
 dimension 2
 
