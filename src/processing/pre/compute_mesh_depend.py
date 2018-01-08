@@ -57,7 +57,7 @@ class Mesh_Info:
 		if (self.info["geom_spec"] != "NONE"):
 			mesh_file_name += self.info["geom_spec"]+'/'
 
-		supported_mesh_domains = ["straight","curved","parametric"]
+		supported_mesh_domains = ["straight","blended","parametric"]
 		if (self.info["mesh_domain"] not in supported_mesh_domains):
 			EXIT_ERROR
 

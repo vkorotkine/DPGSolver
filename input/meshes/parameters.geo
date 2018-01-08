@@ -68,7 +68,7 @@ GEOM_2BEXP_2 = 2;
 
 // MeshCurving Specifiers
 STRAIGHT   = 0;
-CURVED     = 1;
+BLENDED    = 1;
 PARAMETRIC = 2;
 
 

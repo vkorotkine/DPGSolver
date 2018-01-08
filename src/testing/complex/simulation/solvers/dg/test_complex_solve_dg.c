@@ -124,8 +124,8 @@ void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Stor
 
 			set_col_lhs_cmplx_step_dg(col_l,(struct Solver_Volume_c*)curr_c,volumes_local,ssi);
 		}
-		destructor_IL(volumes_local);
-		destructor_IL(faces_local);
+		destructor_IL(volumes_local,true);
+		destructor_IL(faces_local,true);
 	}
 	petsc_mat_vec_assemble(ssi);
 }

@@ -31,6 +31,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *    links can be replaced with pointers to derived links.
  */
 
+#include <stdbool.h>
+
 /// \brief A doubly-linked list structure to hold intrusive containers.
 struct Intrusive_List {
 	struct Intrusive_Link* first; ///< Pointer to the first \ref Intrusive_Link\* in the list.
@@ -89,17 +91,19 @@ void clear_IL
 	(struct Intrusive_List* lst ///< Standard.
 	);
 
-/** \brief Destructs a \ref Intrusive_List and its dynamically allocated \ref Intrusive_Link components.
+/** \brief Destructs a \ref Intrusive_List and optionally its dynamically allocated \ref Intrusive_Link components.
  *
  *  \note No destructor is being called for the elements represented by the \ref Intrusive_Link components.
  */
 void destructor_IL
-	(struct Intrusive_List* lst ///< Standard.
+	(struct Intrusive_List* lst, ///< Standard.
+	 const bool destruct_links   ///< Flag for whether the individual links require destruction.
 	);
 
 /// \brief `const` version of \ref destructor_IL.
 void destructor_const_IL
-	(const struct const_Intrusive_List* lst ///< Standard.
+	(const struct const_Intrusive_List* lst, ///< See brief.
+	 const bool destruct_links               ///< See brief.
 	);
 
 /// \brief Destructor for a \ref Intrusive_List which is a base for the input \ref Intrusive_List.

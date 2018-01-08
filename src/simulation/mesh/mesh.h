@@ -40,7 +40,7 @@ struct const_Intrusive_List;
 struct Mesh_Input {
 	const int d,           ///< The dimension.
 	          domain_type; /**< The type of domain. Vertex position correction is performed for
-	                        *   `domain_type == DOM_CURVED`. */
+	                        *   `domain_type` == \ref DOM_BLENDED. */
 
 	/** Flag for whether the mesh vertices should be unrealistically corrected to lie on the input domain boundary to
 	 * within a very small tolerance. See \ref mesh_vertices.h for additional discussion of this issue. */

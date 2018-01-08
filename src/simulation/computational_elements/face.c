@@ -154,7 +154,7 @@ void destructor_Faces (struct Intrusive_List* faces)
 		destructor_Face_link((struct Face*) curr);
 		curr = next;
 	}
-	destructor_IL(faces);
+	destructor_IL(faces,true);
 }
 
 void const_cast_Face (const struct Face*const* dest, const struct Face*const src)

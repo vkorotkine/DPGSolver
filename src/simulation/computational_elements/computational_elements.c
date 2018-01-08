@@ -44,16 +44,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Function pointer to a derived Element constructor function for a element which is part of an
- *         \ref Intrusive_List.
- *  \param element_ptr Pointer to the element link in the list.
- *  \param sim         \ref Simulation.
- */
-typedef void (*constructor_derived_Element_fptr)
-	(struct Element* element_ptr,
-	 const struct Simulation* sim
-	);
-
 /** \brief Function pointer to a derived Element destructor function for a element which is part of an
  *         \ref Intrusive_List.
  *  \param element Pointer to the element link in the list.
@@ -118,8 +108,7 @@ void constructor_derived_Elements (struct Simulation* sim, const int derived_nam
 	for (const struct const_Intrusive_Link* curr = base->first; curr; curr = curr->next)
 		push_back_const_IL(elements,
 		                   constructor_derived_const_Intrusive_Link(curr,de_i.sizeof_base,de_i.sizeof_derived));
-	set_tp_sub_elements((struct Intrusive_List*)elements);
-	set_face_elements((struct Intrusive_List*)elements);
+	set_element_pointers((struct Intrusive_List*)elements);
 
 	sim->elements = elements;
 
@@ -127,7 +116,7 @@ void constructor_derived_Elements (struct Simulation* sim, const int derived_nam
 	for (const struct const_Intrusive_Link* curr = sim->elements->first; curr; ) {
 		const struct const_Intrusive_Link* next = curr->next;
 		const struct const_Element* element = (struct const_Element*) curr;
-		if (element->present && element->type != POINT)
+		if (element->present)
 			de_i.constructor_derived_Element((struct Element*)curr,sim);
 		curr = next;
 	}
@@ -147,7 +136,7 @@ void destructor_derived_Elements (struct Simulation* sim, const int base_name)
 	for (const struct const_Intrusive_Link* curr = sim->elements->first; curr; ) {
 		const struct const_Intrusive_Link* next = curr->next;
 		const struct const_Element* element = (struct const_Element*) curr;
-		if (element->present && element->type != POINT)
+		if (element->present)
 			de_i.destructor_derived_Element((struct Element*)curr);
 		curr = next;
 	}
@@ -163,7 +152,7 @@ void destructor_derived_Elements (struct Simulation* sim, const int base_name)
 	update_computational_element_elements(sim);
 
 	// Destruct the derived list.
-	destructor_const_IL(elements_prev);
+	destructor_const_IL(elements_prev,true);
 }
 
 struct Intrusive_Link* constructor_derived_Intrusive_Link
@@ -176,6 +165,57 @@ struct Intrusive_Link* constructor_derived_Intrusive_Link
 	base->derived = derived;
 
 	return derived;
+}
+
+void constructor_offset_derived_Element
+	(constructor_derived_Element_fptr cde, const size_t sizeof_base, const struct Element*const base_e,
+	 struct Element*const curr_e, const struct Simulation*const sim)
+{
+	memcpy(curr_e,base_e,sizeof_base);
+
+	struct Intrusive_List* elements = constructor_empty_IL(IL_INVALID,NULL); // destructed
+
+	const ptrdiff_t curr_offset = BYTE_DIFF(curr_e,base_e);
+
+	for (const struct const_Intrusive_Link* curr = sim->elements->first; curr; curr = curr->next) {
+		struct Element* sim_e = (struct Element*) curr;
+		push_back_IL(elements,(struct Intrusive_Link*)BYTE_ADD(curr,curr_offset));
+		if (sim_e->type == curr_e->type)
+			break;
+	}
+	set_element_pointers(elements);
+	destructor_IL(elements,false);
+
+	cde(curr_e,sim);
+}
+
+bool list_is_derived_from (const char*const name_desired, const char list_type, const struct Simulation*const sim)
+{
+	bool is_derived_from = false;
+	switch (list_type) {
+	case 'e':
+		if (strcmp(name_desired,"solver") == 0) {
+			switch (sim->elements->name) {
+			case IL_ELEMENT_SOLVER:    // fallthrough
+			case IL_ELEMENT_SOLVER_DG: // fallthrough
+			case IL_ELEMENT_SOLVER_DPG:
+				is_derived_from = true;
+				break;
+			default:
+				; // Do nothing
+				break;
+			}
+		} else {
+			EXIT_ERROR("Unsupported: %s\n",name_desired);
+		}
+		break;
+	case 'f':
+	case 'v':
+	default:
+		EXIT_ERROR("Unsupported: %c\n",list_type);
+		break;
+	}
+	return is_derived_from;
 }
 
 // Static functions ************************************************************************************************* //

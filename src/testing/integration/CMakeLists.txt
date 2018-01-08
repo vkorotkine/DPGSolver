@@ -19,14 +19,14 @@ set (EXEC test_integration_mesh)
 set (LIBS_DEPEND ${LIBS_BASE} General Mesh Test_Support_Containers)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "curved_2d_mixed.msh")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "blended_2d_mixed.msh")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "straight_2d_quad_periodic.msh")
 
 set (EXEC test_integration_fe_init)
 set (LIBS_DEPEND ${LIBS_BASE} ${PETSC_LIBRARIES} Simulation Test_Support_Intrusive)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_curved_2d_mixed")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_blended_2d_mixed")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_straight_2d_quad_periodic")
 
 set (EXEC test_integration_geometry)
@@ -34,7 +34,7 @@ set (LIBS_DEPEND ${LIBS_BASE} ${PETSC_LIBRARIES} Simulation Test_Support_Contain
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} PRIVATE ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_straight_2d_quad_periodic")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_curved_2d_mixed")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_blended_2d_mixed")
 
 set (EXEC test_integration_fluxes)
 set (LIBS_DEPEND Test_Base Test_Integration Test_Complex_Test_Case Test_Complex_Solvers)
@@ -74,6 +74,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dg/TEST_Advection
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml1__p3")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D__ml0__p3")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DPG_ParametricMixed2D__ml0__p3")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedQUAD2D__ml0__p2")
 
 set (EXEC test_integration_convergence)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)

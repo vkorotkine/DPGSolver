@@ -16,11 +16,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "element_solver.h"
 
+#include <string.h>
+
 #include "macros.h"
 #include "definitions_elements.h"
 
 #include "multiarray.h"
 
+#include "computational_elements.h"
 #include "element_operators.h"
 #include "element_operators_tp.h"
 #include "multiarray_operator.h"
@@ -50,6 +53,18 @@ static void constructor_derived_Solver_Element_common
 
 void constructor_derived_Solver_Element (struct Element* element_ptr, const struct Simulation* sim)
 {
+	struct Solver_Element* s_e = (struct Solver_Element*) element_ptr;
+
+	constructor_offset_derived_Element(constructor_derived_Adaptation_Element,
+		sizeof(struct Element),element_ptr,(struct Element*)&s_e->a_e,sim); // destructed
+	constructor_offset_derived_Element(constructor_derived_Geometry_Element,
+		sizeof(struct Element),element_ptr,(struct Element*)&s_e->g_e,sim); // destructed
+	constructor_offset_derived_Element(constructor_derived_Solution_Element,
+		sizeof(struct Element),element_ptr,(struct Element*)&s_e->s_e,sim); // destructed
+
+	if (element_ptr->type == POINT)
+		return;
+
 	switch (element_ptr->type) {
 	case LINE: case TRI: case TET: case PYR:
 		constructor_derived_Solver_Element_std(element_ptr,sim);
@@ -66,7 +81,14 @@ void constructor_derived_Solver_Element (struct Element* element_ptr, const stru
 
 void destructor_derived_Solver_Element (struct Element* element_ptr)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	struct Solver_Element* s_e = (struct Solver_Element*) element_ptr;
+
+	destructor_derived_Adaptation_Element((struct Element*)&s_e->a_e);
+	destructor_derived_Geometry_Element((struct Element*)&s_e->g_e);
+	destructor_derived_Solution_Element((struct Element*)&s_e->s_e);
 
 	destructor_Multiarray2_Operator(s_e->cv0_vs_vc);
 	destructor_Multiarray2_Operator(s_e->tw1_vt_vc);

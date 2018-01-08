@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface for the derived \ref Adaptation_Element container and associated functions.
  */
 
-#include "element_solver.h"
+#include "element.h"
 
 struct Simulation;
 

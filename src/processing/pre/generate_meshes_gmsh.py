@@ -60,7 +60,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
 	gmsh_setnumbers += " -setnumber mesh_domain "
-	var_names = ["straight","curved","parametric"]
+	var_names = ["straight","blended","parametric"]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
 	gmsh_setnumbers += " -setnumber mesh_type "

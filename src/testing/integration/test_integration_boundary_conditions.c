@@ -94,7 +94,9 @@ int main
 	// real
 	ind_rc = 0;
 	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc]); // destructed
+constructor_derived_Elements(sim[ind_rc],IL_ELEMENT_SOLVER); // destructed
 	set_up_solver_geometry(sim[ind_rc]);
+destructor_derived_Elements(sim[ind_rc],IL_ELEMENT);
 	set_initial_solution(sim[ind_rc]);
 
 	constructor_derived_Elements(sim[ind_rc],IL_ELEMENT_SOLVER); // destructed
@@ -107,7 +109,9 @@ int main
 	ind_rc = 1;
 	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc]); // destructed
 	convert_to_Test_Case_rc(sim[ind_rc],'c');
-	set_up_solver_geometry_c(sim[ind_rc]);
+constructor_derived_Elements(sim[ind_rc],IL_ELEMENT_SOLVER); // destructed
+	set_up_solver_geometry(sim[ind_rc]);
+destructor_derived_Elements(sim[ind_rc],IL_ELEMENT);
 	set_initial_solution_c(sim[ind_rc]);
 
 	constructor_derived_Elements(sim[ind_rc],IL_ELEMENT_SOLVER); // destructed
@@ -182,6 +186,7 @@ print_const_Multiarray_d(num_flux_i_cmplx_step->bv_r.ds_ds);
 	destructor_derived_Elements(sim[ind_rc],IL_ELEMENT);
 	structor_simulation(&sim[ind_rc],'d',adapt_type,p,ml,0,0,NULL,type_rc[ind_rc]);
 
+	destructor_Integration_Test_Info(int_test_info);
 	PetscFinalize();
 	OUTPUT_SUCCESS;
 }
@@ -272,6 +277,7 @@ static struct Numerical_Flux_Input* constructor_Numerical_Flux_Input_cmplx_step
 		EXIT_ADD_SUPPORT; // Should be in a loop with perturbation over g.
 
  	destructor_Numerical_Flux_Input_c_data_members_l(num_flux_i_c);
+	destructor_Numerical_Flux_Input_c(num_flux_i_c);
 
 	return num_flux_i;
 }

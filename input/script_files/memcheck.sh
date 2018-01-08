@@ -9,9 +9,12 @@
 #PBS -N pz
 
 # Executable and command line arguments
+EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_linearization
+ARGV="euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedQUAD2D__ml0"
+EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_geometry
+ARGV="extern_mesh/TEST_blended_2d_mixed"
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
-ARGV="euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DPG_ParametricQUAD2D__ml0 petsc_options_gmres_default"
-#ARGV="euler/free_stream/TEST_Euler_FreeStream_DPG_ParametricMixed2D__ml0 petsc_options_gmres_default"
+ARGV="advection/default/dg/TEST_Advection_Default_DG_LINE__ml0 petsc_options_gmres_default"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

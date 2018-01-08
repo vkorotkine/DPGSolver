@@ -162,7 +162,7 @@ static void correct_mesh_vertices
 	(const struct Mesh_Input*const mesh_input, const struct Mesh_Vertices*const mesh_vert,
 	 const struct const_Matrix_d*const nodes)
 {
-	if (mesh_input->domain_type != DOM_CURVED)
+	if (mesh_input->domain_type != DOM_BLENDED)
 		return;
 
 	mesh_snap_to_boundary_fptr mesh_snap_to_boundary = set_fptr_mesh_snap(mesh_input->geom_name);

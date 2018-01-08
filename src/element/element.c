@@ -46,11 +46,14 @@ void set_element_present
 	 const struct const_Intrusive_List* elements ///< \ref Simulation::elements.
 	);
 
-/** \brief Mutable version of \ref get_element_by_type.
- *  \return See brief. */
-static struct Element* get_mutable_element_by_type
-	(const struct Intrusive_List*const elements, ///< Defined for \ref get_element_by_type.
-	 const int type                              ///< Defined for \ref get_element_by_type.
+/// \brief Set the pointers to \ref Element::sub_element when applicable (QUAD, HEX, WEDGE).
+static void set_tp_sub_elements
+	(struct Intrusive_List* elements ///< The list of elements.
+	);
+
+/// \brief Set the pointers to \ref Element::face_element.
+static void set_face_elements
+	(struct Intrusive_List* elements ///< The list of elements.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -59,7 +62,7 @@ struct const_Intrusive_List* constructor_Elements (const int d)
 {
 	assert(sizeof(struct Element) == sizeof(struct const_Element));
 
-	struct Intrusive_List* elements = constructor_empty_IL(IL_ELEMENT,NULL);
+	struct Intrusive_List* elements = constructor_empty_IL(IL_ELEMENT,NULL); // returned
 
 	push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(POINT));
 	push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(LINE));
@@ -76,8 +79,7 @@ struct const_Intrusive_List* constructor_Elements (const int d)
 		push_back_IL(elements,(struct Intrusive_Link*) constructor_Element(PYR));
 	}
 
-	set_tp_sub_elements(elements);
-	set_face_elements(elements);
+	set_element_pointers(elements);
 
 	return (struct const_Intrusive_List*) elements;
 }
@@ -89,7 +91,7 @@ void destructor_Elements (struct Intrusive_List* elements)
 		destructor_Element((struct Element*) curr);
 		curr = next;
 	}
-	destructor_IL(elements);
+	destructor_IL(elements,true);
 }
 
 void destructor_const_Elements (const struct const_Intrusive_List* elements)
@@ -338,74 +340,10 @@ void remove_absent_Elements (const struct const_Intrusive_List* elements)
 	}
 }
 
-void set_tp_sub_elements (struct Intrusive_List* elements)
+void set_element_pointers (struct Intrusive_List*const elements)
 {
-	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
-		struct Element* element = (struct Element*) curr;
-		switch (element->type) {
-		case POINT: // fallthrough
-		case LINE:  // fallthrough
-		case TRI:   // fallthrough
-		case TET:   // fallthrough
-		case PYR:
-			element->sub_element[0] = NULL;
-			element->sub_element[1] = NULL;
-			break;
-		case QUAD: // fallthrough
-		case HEX:
-			element->sub_element[0] = get_mutable_element_by_type(elements,LINE);
-			element->sub_element[1] = get_mutable_element_by_type(elements,LINE);
-			break;
-		case WEDGE:
-			element->sub_element[0] = get_mutable_element_by_type(elements,TRI);
-			element->sub_element[1] = get_mutable_element_by_type(elements,LINE);
-			break;
-		default:
-			EXIT_ERROR("Unsupported: %d\n",element->type);
-			break;
-		}
-	}
-}
-
-void set_face_elements (struct Intrusive_List* elements)
-{
-	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
-		struct Element* element = (struct Element*) curr;
-		switch (element->type) {
-		case POINT:
-			element->face_element[0] = NULL;
-			element->face_element[1] = NULL;
-			break;
-		case LINE:
-			element->face_element[0] = get_mutable_element_by_type(elements,POINT);
-			element->face_element[1] = NULL;
-			break;
-		case TRI:  // fallthrough
-		case QUAD:
-			element->face_element[0] = get_mutable_element_by_type(elements,LINE);
-			element->face_element[1] = NULL;
-			break;
-		case TET:
-			element->face_element[0] = get_mutable_element_by_type(elements,TRI);
-			element->face_element[1] = NULL;
-			break;
-		case HEX:
-			element->face_element[0] = get_mutable_element_by_type(elements,QUAD);
-			element->face_element[1] = NULL;
-			break;
-		case WEDGE:
-			element->face_element[0] = get_mutable_element_by_type(elements,QUAD);
-			element->face_element[1] = get_mutable_element_by_type(elements,TRI);
-			break;
-		case PYR:
-			element->face_element[0] = get_mutable_element_by_type(elements,TRI);
-			element->face_element[1] = get_mutable_element_by_type(elements,QUAD);
-			break;
-		default:
-			EXIT_ERROR("Unsupported: %d\n",element->type);
-			break;
-		}
-	}
+	set_tp_sub_elements(elements);
+	set_face_elements(elements);
 }
 
 int get_number_of_face_elements (const struct const_Element*const element)
@@ -442,6 +380,13 @@ struct Elem_info {
 struct Multiarray_d* constructor_reference_normals
 	(const int e_type,              ///< The element type.
 	 const struct Elem_info* e_info ///< \ref Elem_info.
+	);
+
+/** \brief Mutable version of \ref get_element_by_type.
+ *  \return See brief. */
+static struct Element* get_mutable_element_by_type
+	(const struct Intrusive_List*const elements, ///< Defined for \ref get_element_by_type.
+	 const int type                              ///< Defined for \ref get_element_by_type.
 	);
 
 static struct Element* constructor_Element (const int elem_type)
@@ -609,9 +554,74 @@ void set_element_present (const int e_type, const struct const_Intrusive_List* e
 	}
 }
 
-static struct Element* get_mutable_element_by_type (const struct Intrusive_List*const elements, const int type)
+static void set_tp_sub_elements (struct Intrusive_List* elements)
 {
-	return (struct Element*) get_element_by_type((const struct const_Intrusive_List*)elements,type);
+	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
+		struct Element* element = (struct Element*) curr;
+		switch (element->type) {
+		case POINT: // fallthrough
+		case LINE:  // fallthrough
+		case TRI:   // fallthrough
+		case TET:   // fallthrough
+		case PYR:
+			element->sub_element[0] = NULL;
+			element->sub_element[1] = NULL;
+			break;
+		case QUAD: // fallthrough
+		case HEX:
+			element->sub_element[0] = get_mutable_element_by_type(elements,LINE);
+			element->sub_element[1] = get_mutable_element_by_type(elements,LINE);
+			break;
+		case WEDGE:
+			element->sub_element[0] = get_mutable_element_by_type(elements,TRI);
+			element->sub_element[1] = get_mutable_element_by_type(elements,LINE);
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",element->type);
+			break;
+		}
+	}
+}
+
+static void set_face_elements (struct Intrusive_List* elements)
+{
+	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
+		struct Element* element = (struct Element*) curr;
+		switch (element->type) {
+		case POINT:
+			element->face_element[0] = NULL;
+			element->face_element[1] = NULL;
+			break;
+		case LINE:
+			element->face_element[0] = get_mutable_element_by_type(elements,POINT);
+			element->face_element[1] = NULL;
+			break;
+		case TRI:  // fallthrough
+		case QUAD:
+			element->face_element[0] = get_mutable_element_by_type(elements,LINE);
+			element->face_element[1] = NULL;
+			break;
+		case TET:
+			element->face_element[0] = get_mutable_element_by_type(elements,TRI);
+			element->face_element[1] = NULL;
+			break;
+		case HEX:
+			element->face_element[0] = get_mutable_element_by_type(elements,QUAD);
+			element->face_element[1] = NULL;
+			break;
+		case WEDGE:
+			element->face_element[0] = get_mutable_element_by_type(elements,QUAD);
+			element->face_element[1] = get_mutable_element_by_type(elements,TRI);
+			break;
+		case PYR:
+			element->face_element[0] = get_mutable_element_by_type(elements,TRI);
+			element->face_element[1] = get_mutable_element_by_type(elements,QUAD);
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",element->type);
+			break;
+		}
+	}
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -693,4 +703,9 @@ struct Multiarray_d* constructor_reference_normals (const int e_type, const stru
 			data[ind++] = -sin(theta_eta[f]);
 	}
 	return normals;
+}
+
+static struct Element* get_mutable_element_by_type (const struct Intrusive_List*const elements, const int type)
+{
+	return (struct Element*) get_element_by_type((const struct const_Intrusive_List*)elements,type);
 }

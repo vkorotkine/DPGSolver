@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = EULER; pde_spec = STEADY_SUPERSONIC_VORTEX;
+//mesh_domain = BLENDED; mesh_level = 0; mesh_type = MIXED; pde_name = EULER; pde_spec = STEADY_SUPERSONIC_VORTEX;
 
 // Geometry Specification
 If (pde_spec == STEADY_SUPERSONIC_VORTEX)
@@ -21,7 +21,7 @@ If (mesh_domain == PARAMETRIC)
 	Line(1005) = {6,5};
 	Line(1006) = {6,2};
 	Line(1007) = {4,6};
-ElseIf (mesh_domain == CURVED)
+ElseIf (mesh_domain == BLENDED)
 	Point(1) = {r_i,0,0,lc};
 	Point(2) = {r_o,0,0,lc};
 	Point(3) = {0,r_i,0,lc};
@@ -37,6 +37,8 @@ ElseIf (mesh_domain == CURVED)
 	Circle(1005) = {6,7,5};
 	Circle(1006) = {6,7,2};
 	Line(1007)   = {4,6};
+Else
+	Error("Unsupported mesh_domain: %d",mesh_domain); Exit;
 EndIf
 
 

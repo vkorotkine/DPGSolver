@@ -36,7 +36,7 @@ struct Solver_Volume_T {
 	/** The geometry coefficients of the volume in the \ref Simulation::basis_geom. For each of the supported
 	 *  \ref Simulation::domain_type options, geom_coef represents:
 	 *  - DOM_STRAIGHT: the projection of xyz_ve into the geometry basis of order 1.
-	 *  - DOM_CURVED:
+	 *  - DOM_BLENDED:
 	 *  	- straight volumes: [See DOM_STRAIGHT];
 	 *  	- boundary volumes: the coefficients of the *blended* face geometry of order k_g.
 	 *  - DOM_PARAMETRIC: the coefficients of the mapped geometry of order k_g.

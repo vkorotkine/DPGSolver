@@ -123,7 +123,7 @@ printf(" vol: %d %d %d\n",col_l,ssi->col,vol->index);
 			compute_all_rhs_dpg_c(sim,ssi,volumes_local);
 			sol_coef_c->data[col_l] -= CX_STEP*I;
 		}
-		destructor_IL(volumes_local);
+		destructor_IL(volumes_local,true);
 	}
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
@@ -144,7 +144,7 @@ printf("face: %d %d\n",col_l,ssi->col);
 			compute_all_rhs_dpg_c(sim,ssi,volumes_local);
 			nf_coef_c->data[col_l] -= CX_STEP*I;
 		}
-		destructor_IL(volumes_local);
+		destructor_IL(volumes_local,true);
 	}
 	petsc_mat_vec_assemble(ssi);
 }

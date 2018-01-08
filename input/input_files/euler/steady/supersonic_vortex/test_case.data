@@ -1,7 +1,7 @@
 /// Solver parameters for test case: euler/steady/supersonic_vortex
 
 solver_proc   200
-solver_type_i 201
+solver_type_i 202 // Note: Direct solver was possibly required for DPG.
 
 num_flux_1st Roe-Pike
 test_norm    H0 H1_upwind

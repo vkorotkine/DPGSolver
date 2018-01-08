@@ -49,6 +49,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 ///\}
 
+/// Macro to get the difference between two pointers in bytes.
+#define BYTE_DIFF(a,b) (((char*)a)-((char*)b))
+
+/// Macro to add `b` bytes to the pointer address `a`.
+#define BYTE_ADD(a,b) ((char*)a+b)
+
 ///\{ \name Macro to output on successful termination.
 #define OUTPUT_SUCCESS ({printf("Successful termination.\n");})
 ///\}

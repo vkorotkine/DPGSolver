@@ -30,7 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "computational_elements.h"
 
 #include "const_cast.h"
-#include "element_geometry.h"
+#include "element_solver.h"
 #include "intrusive.h"
 #include "operator.h"
 #include "multiarray_operator.h"

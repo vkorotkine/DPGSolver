@@ -109,14 +109,9 @@ void const_cast_const_Element
 	 const struct const_Element*const src    ///< Source.
 	);
 
-/// \brief Set the pointers to \ref Element::sub_element when applicable (QUAD, HEX, WEDGE).
-void set_tp_sub_elements
-	(struct Intrusive_List* elements ///< The list of elements.
-	);
-
-/// \brief Set the pointers to \ref Element::face_element.
-void set_face_elements
-	(struct Intrusive_List* elements ///< The list of elements.
+/// \brief Set the pointers members of \ref Element which point to other \ref Element\*s.
+void set_element_pointers
+	(struct Intrusive_List*const elements ///< The list of elements.
 	);
 
 // Helper functions ************************************************************************************************* //

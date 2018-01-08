@@ -98,16 +98,13 @@ void set_up_solver_geometry_T (struct Simulation* sim)
 {
 	assert(sim->volumes->name == IL_VOLUME_SOLVER);
 	assert(sim->faces->name   == IL_FACE_SOLVER);
-
-	constructor_derived_Elements(sim,IL_ELEMENT_GEOMETRY);
+	assert(list_is_derived_from("solver",'e',sim));
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
 		compute_geometry_volume_T((struct Solver_Volume_T*)curr,sim);
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
 		compute_geometry_face_T((struct Solver_Face_T*)curr,sim);
-
-	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
 void compute_unit_normals_T
@@ -124,7 +121,8 @@ void compute_geometry_volume_T (struct Solver_Volume_T* s_vol, const struct Simu
 	const char op_format = 'd';
 
 	struct Volume* vol = (struct Volume*) s_vol;
-	const struct Geometry_Element* g_e = (struct Geometry_Element*) vol->element;
+	const struct Solver_Element* s_e   = (struct Solver_Element*) vol->element;
+	const struct Geometry_Element* g_e = &s_e->g_e;
 
 	compute_geom_coef_fptr_T compute_geom_coef = set_fptr_geom_coef_T(sim->domain_type,vol->curved);
 	compute_geom_coef(sim,s_vol);
@@ -185,7 +183,8 @@ void compute_geometry_face_T (struct Solver_Face_T* face, struct Simulation *sim
 	struct Volume* vol            = base_face->neigh_info[0].volume;
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) vol;
 
-	const struct Geometry_Element* g_e = (struct Geometry_Element*) vol->element;
+	const struct Solver_Element* s_e   = (struct Solver_Element*) vol->element;
+	const struct Geometry_Element* g_e = &s_e->g_e;
 	struct const_Element* e            = (struct const_Element*) g_e;
 
 	struct Ops {
@@ -282,7 +281,7 @@ static compute_geom_coef_fptr_T set_fptr_geom_coef_T (const int domain_type, con
 {
 	if (domain_type == DOM_STRAIGHT) {
 		return compute_geom_coef_straight_T;
-	} else if (domain_type == DOM_CURVED) {
+	} else if (domain_type == DOM_BLENDED) {
 		if (!volume_curved)
 			return compute_geom_coef_straight_T;
 		else
@@ -427,6 +426,21 @@ static void compute_unit_normals_and_det_T
 
 // Level 1 ********************************************************************************************************** //
 
+/** \brief Constructor for the high-order straight geometry values.
+ *  \return See brief. */
+static const struct const_Multiarray_R* constructor_xyz_s_ho
+	(const struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
+	 const struct Simulation*const sim         ///< \ref Simulation.
+	);
+
+/** \brief Constructor for the high-order geometry coefficients from the input values.
+ *  \return See brief. */
+static const struct const_Multiarray_R* constructor_geom_coef_ho
+	(const struct const_Multiarray_R* geom_val, ///< The geometry values.
+	 const struct Solver_Volume_T*const s_vol,  ///< \ref Solver_Volume_T.
+	 const struct Simulation*const sim          ///< \ref Simulation.
+	);
+
 static void compute_geom_coef_straight_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
 {
 	struct Volume* vol = (struct Volume*) s_vol;
@@ -445,18 +459,14 @@ static void compute_geom_coef_straight_T (const struct Simulation*const sim, str
 
 static void compute_geom_coef_curved_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
 {
-	UNUSED(sim);
-	struct Volume* vol = (struct Volume*) s_vol;
-	const struct Geometry_Element* g_e = (struct Geometry_Element*) vol->element;
-
-	const int p = s_vol->p_ref;
-
-	const struct Operator* vc0_vg_vg = get_Multiarray_Operator(g_e->vc0_vgc_vgc,(ptrdiff_t[]){0,0,p,1});
-// Potentially not the correct operator. vc0_vgs_vgc? vc0_vvs_vgc?
-
-	const struct const_Multiarray_R* geom_coef =
-		constructor_mm_NN1_Operator_const_Multiarray_R(vc0_vg_vg,vol->xyz_ve,'C','d',2,NULL); // keep
+	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho(s_vol,sim); // destructed
 EXIT_ERROR("Add support after output to paraview is working.");
+
+//	const struct const_Multiarray_R* xyz = s_vol->constructor_xyz(xyz_s,s_vol,sim); // destructed
+	destructor_const_Multiarray_R(xyz_s);
+
+	const struct const_Multiarray_R* geom_coef = NULL;
+//	destructor_const_Multiarray_R(xyz);
 
 	destructor_const_Multiarray_R(s_vol->geom_coef);
 	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef,geom_coef);
@@ -464,32 +474,57 @@ EXIT_ERROR("Add support after output to paraview is working.");
 
 static void compute_geom_coef_parametric_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
 {
-	struct Volume* vol           = (struct Volume*) s_vol;
-	struct Geometry_Element* g_e = (struct Geometry_Element*) vol->element;
+	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho(s_vol,sim); // destructed
 
-	const bool curved = vol->curved;
-	const int p       = s_vol->p_ref;
-	assert(curved == true);
-	const struct Operator* vv0_vv_vg = get_Multiarray_Operator(g_e->vv0_vv_vg[curved],(ptrdiff_t[]){0,0,p,1});
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const struct const_Multiarray_R* xyz = test_case->constructor_xyz(xyz_s,s_vol,sim); // destructed
+	destructor_const_Multiarray_R(xyz_s);
 
+/// \todo add setup_bezier_mesh: Likely make this a separate function.
+
+	destructor_const_Multiarray_R(s_vol->geom_coef);
+	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef,constructor_geom_coef_ho(xyz,s_vol,sim)); // keep
+	destructor_const_Multiarray_R(xyz);
+}
+
+// Level 2 ********************************************************************************************************** //
+
+static const struct const_Multiarray_R* constructor_xyz_s_ho
+	(const struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
+{
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	UNUSED(sim);
 	const char op_format = 'd';
 
+	struct Volume* vol = (struct Volume*) s_vol;
+	const struct Solver_Element* s_e   = (struct Solver_Element*) vol->element;
+	const struct Geometry_Element* g_e = &s_e->g_e;
+
+	const bool curved = vol->curved;
+	const int p       = s_vol->p_ref;
+	assert(curved == true);
+
+	const struct Operator* vv0_vv_vg = get_Multiarray_Operator(g_e->vv0_vv_vg[curved],(ptrdiff_t[]){0,0,p,1});
 	const struct const_Multiarray_R* xyz_ve = vol->xyz_ve;
-	const struct const_Multiarray_R* xyz_p =
-		constructor_mm_NN1_Operator_const_Multiarray_R(vv0_vv_vg,xyz_ve,'C',op_format,xyz_ve->order,NULL); // dest.
 
-	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
-	const struct const_Multiarray_R* xyz = test_case->constructor_xyz(xyz_p,s_vol,sim); // destructed
-	destructor_const_Multiarray_R(xyz_p);
+	return constructor_mm_NN1_Operator_const_Multiarray_R(vv0_vv_vg,xyz_ve,'C',op_format,xyz_ve->order,NULL);
+}
 
-/// \todo add setup_bezier_mesh: Likely make this a separate function.
+static const struct const_Multiarray_R* constructor_geom_coef_ho
+	(const struct const_Multiarray_R* geom_val, const struct Solver_Volume_T*const s_vol,
+	 const struct Simulation*const sim)
+{
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	UNUSED(sim);
+	const char op_format = 'd';
+
+	struct Volume* vol = (struct Volume*) s_vol;
+	const struct Solver_Element* s_e   = (struct Solver_Element*) vol->element;
+	const struct Geometry_Element* g_e = &s_e->g_e;
+
+	const int p = s_vol->p_ref;
 
 	const struct Operator* vc0_vgc_vgc = get_Multiarray_Operator(g_e->vc0_vgc_vgc,(ptrdiff_t[]){0,0,p,p});
 
-	destructor_const_Multiarray_R(s_vol->geom_coef);
-	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef,
-		constructor_mm_NN1_Operator_const_Multiarray_R(vc0_vgc_vgc,xyz,'C',op_format,xyz->order,NULL)); // keep
-	destructor_const_Multiarray_R(xyz);
+	return constructor_mm_NN1_Operator_const_Multiarray_R(vc0_vgc_vgc,geom_val,'C',op_format,geom_val->order,NULL);
 }

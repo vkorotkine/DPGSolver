@@ -1,12 +1,12 @@
 Include "../parameters.geo";
-//MeshCurving = CURVED; MeshLevel = 0; MeshType = MIXED3D_HW; PDEName = EULER;
+//MeshCurving = BLENDED; MeshLevel = 0; MeshType = MIXED3D_HW; PDEName = EULER;
 
 // Geometry Specification
 rIn  = 1.000;
 rOut = 1.384;
 dz   = 0.384;
 
-If (MeshCurving == TOBECURVED)
+If (MeshCurving == PARAMETRIC)
 	Point(1)  = {rIn,0,0,lc};
 	Point(2)  = {rOut,0,0,lc};
 	Point(3)  = {0,rIn,0,lc};
@@ -43,7 +43,7 @@ If (MeshCurving == TOBECURVED)
 	Line(1018) = {4,10};
 	Line(1019) = {5,11};
 	Line(1020) = {6,12};
-ElseIf (MeshCurving == CURVED)
+ElseIf (MeshCurving == BLENDED)
 	Point(1)  = {rIn,0,0,lc};
 	Point(2)  = {rOut,0,0,lc};
 	Point(3)  = {0,rIn,0,lc};
@@ -105,7 +105,7 @@ Line Loop (4011) = {-1014,1011,1008,-1013};
 Plane Surface(4001) = {4001};
 Plane Surface(4002) = {4002};
 Plane Surface(4003) = {4003};
-If (MeshCurving == TOBECURVED)
+If (MeshCurving == PARAMETRIC)
 	Plane Surface(4004) = {4004};
 	Plane Surface(4005) = {4005};
 	Plane Surface(4006) = {4006};
@@ -114,7 +114,7 @@ If (MeshCurving == TOBECURVED)
 	Plane Surface(4009) = {4009};
 	Plane Surface(4010) = {4010};
 	Plane Surface(4011) = {4011};
-ElseIf (MeshCurving == CURVED)
+ElseIf (MeshCurving == BLENDED)
 	Ruled Surface(4004) = {4004};
 	Ruled Surface(4005) = {4005};
 	Ruled Surface(4006) = {4006};

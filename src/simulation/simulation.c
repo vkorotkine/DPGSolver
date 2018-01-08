@@ -205,7 +205,7 @@ void set_ml_p_curr (const int ml, const int p, struct Simulation* sim)
 struct Mesh_Ctrl_Data {
 	char mesh_generator[STRLEN_MAX], ///< The name of the file used to generate the mesh.
 	     mesh_format[STRLEN_MAX],    ///< Format of the input mesh. Options: gmsh.
-	     mesh_domain[STRLEN_MIN],    ///< Type of the mesh. Options: straight, curved, parametric.
+	     mesh_domain[STRLEN_MIN],    ///< Type of the mesh. Options: straight, blended, parametric.
 	     mesh_elem_type[STRLEN_MIN], ///< Type of elements present in the mesh; used to set the mesh file name.
 	     mesh_path[STRLEN_MAX],      ///< Relative path to the meshes directory.
 
@@ -515,8 +515,8 @@ static void set_domain_type (struct Simulation*const sim, const struct Mesh_Ctrl
 {
 	if (strstr(mesh_ctrl_data->mesh_domain,"straight"))
 		const_cast_i(&sim->domain_type,DOM_STRAIGHT);
-	else if (strstr(mesh_ctrl_data->mesh_domain,"curved"))
-		const_cast_i(&sim->domain_type,DOM_CURVED);
+	else if (strstr(mesh_ctrl_data->mesh_domain,"blended"))
+		const_cast_i(&sim->domain_type,DOM_BLENDED);
 	else if (strstr(mesh_ctrl_data->mesh_domain,"parametric"))
 		const_cast_i(&sim->domain_type,DOM_PARAMETRIC);
 	else

@@ -1,5 +1,3 @@
-# Mesh processing variables
-
 pde_name  euler
 pde_spec  steady/supersonic_vortex
 
@@ -10,23 +8,22 @@ dimension 2
 
 mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
-mesh_domain      curved
-mesh_type        mixed
+mesh_domain      blended
+mesh_type        quad
 mesh_level       0 0
-mesh_unrealistic 0
-mesh_path        ../testing/integration/mesh/curved_2d_mixed.msh
+mesh_path        ../meshes/
 
 
 # Simulation variables
 
 interp_tp  GLL
-interp_si  AO
+interp_si  WSH
 interp_pyr GLL
 
-basis_geom  lagrange
+basis_geom  lagrange // Also try with bezier
 basis_sol   lagrange
 
-geom_representation  isoparametric
+geom_representation  superparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
@@ -37,5 +34,5 @@ fe_method 1
 
 # Testing variables
 
-ml_test    0 0
-p_ref_test 2 2
+ml_range_test 0 0
+p_range_test  2 2

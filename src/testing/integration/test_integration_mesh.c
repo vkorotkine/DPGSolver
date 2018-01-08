@@ -144,8 +144,8 @@ static struct Mesh_Input* constructor_Mesh_Input (const char*const mesh_name)
 	mesh_input->geom_spec      = malloc(STRLEN_MAX * sizeof *mesh_input->geom_spec);      // free
 	mesh_input->input_path     = malloc(STRLEN_MAX * sizeof *mesh_input->input_path);     // free
 
-	if (strstr(mesh_name,"curved_2d_mixed.msh")) {
-		set_Mesh_Input(mesh_input,2,DOM_CURVED,true,mesh_name,"n-cylinder_hollow_section","",
+	if (strstr(mesh_name,"blended_2d_mixed.msh")) {
+		set_Mesh_Input(mesh_input,2,DOM_BLENDED,true,mesh_name,"n-cylinder_hollow_section","",
 		               "../input_files/euler/steady/supersonic_vortex/");
 	} else if (strstr(mesh_name,"straight_2d_quad_periodic.msh")) {
 		set_Mesh_Input(mesh_input,2,DOM_STRAIGHT,false,mesh_name,"","","");

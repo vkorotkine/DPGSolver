@@ -48,6 +48,9 @@ static void constructor_derived_Adaptation_Element_common
 
 void constructor_derived_Adaptation_Element (struct Element* element_ptr, const struct Simulation* sim)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	switch (element_ptr->type) {
 	case LINE: case TRI: case TET: case PYR:
 		constructor_derived_Adaptation_Element_std(element_ptr,sim);
@@ -64,6 +67,9 @@ void constructor_derived_Adaptation_Element (struct Element* element_ptr, const 
 
 void destructor_derived_Adaptation_Element (struct Element* element_ptr)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	struct Adaptation_Element* a_e = (struct Adaptation_Element*) element_ptr;
 
 	destructor_Multiarray_Operator(a_e->cc0_vs_vs);

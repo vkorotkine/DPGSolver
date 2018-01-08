@@ -112,7 +112,7 @@ void destructor_Volumes (struct Intrusive_List* volumes)
 		destructor_Volume_link((struct Volume*) curr);
 		curr = next;
 	}
-	destructor_IL(volumes);
+	destructor_IL(volumes,true);
 }
 
 bool check_ve_condition

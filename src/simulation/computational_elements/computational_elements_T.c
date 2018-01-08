@@ -209,8 +209,8 @@ void destructor_derived_computational_elements_T (struct Simulation* sim, const 
 	update_computational_element_list_pointers(sim);
 
 	// Destruct the derived lists.
-	destructor_IL(volumes_prev);
-	destructor_IL(faces_prev);
+	destructor_IL(volumes_prev,true);
+	destructor_IL(faces_prev,true);
 }
 
 // Static functions ************************************************************************************************* //

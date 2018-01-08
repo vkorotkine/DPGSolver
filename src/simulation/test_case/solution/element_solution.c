@@ -48,6 +48,9 @@ static void constructor_derived_Solution_Element_common
 
 void constructor_derived_Solution_Element (struct Element* element_ptr, const struct Simulation* sim)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	switch (element_ptr->type) {
 	case LINE: case TRI: case TET: case PYR:
 		constructor_derived_Solution_Element_std(element_ptr,sim);
@@ -64,6 +67,9 @@ void constructor_derived_Solution_Element (struct Element* element_ptr, const st
 
 void destructor_derived_Solution_Element (struct Element* element_ptr)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	struct Solution_Element* element = (struct Solution_Element*) element_ptr;
 
 	destructor_Multiarray2_Operator(element->cv0_vg_vs);
@@ -74,6 +80,8 @@ void destructor_derived_Solution_Element (struct Element* element_ptr)
 
 	destructor_Multiarray2_Operator_conditional(element->cv0_vg_ff);
 	destructor_Multiarray2_Operator_conditional(element->vv0_vm_ff);
+	destructor_Multiarray2_Operator_conditional(element->cv0_vg_fc);
+
 	destructor_Multiarray_Operator_conditional(element->vc0_ff_ff);
 
 	destructor_Multiarray2_Operator_conditional(element->cv0_vg_vf);

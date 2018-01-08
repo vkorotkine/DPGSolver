@@ -1,6 +1,6 @@
 Include "../parameters.geo";
 //mesh_level = 2; mesh_type = TRI; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_YL;
-//mesh_level = 0; mesh_type = TRI; mesh_domain = CURVED; pde_name = EULER; geom_adv = GEOM_ADV_XL;
+//mesh_level = 0; mesh_type = TRI; mesh_domain = BLENDED; pde_name = EULER; geom_adv = GEOM_ADV_XL;
 
 // Geometry Specification
 l = 1;

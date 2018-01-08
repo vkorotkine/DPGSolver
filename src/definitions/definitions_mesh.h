@@ -20,9 +20,12 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name The supported domain types.
-#define DOM_STRAIGHT   1
-#define DOM_CURVED     2
-#define DOM_PARAMETRIC 3
+#define DOM_STRAIGHT   1 ///< Affine mesh.
+
+/// Affine mesh excluding the boundary elements which have the curved boundary representation blended into the volume.
+#define DOM_BLENDED    2
+
+#define DOM_PARAMETRIC 3 ///< Parametric mesh. Generally non-affine.
 ///\}
 
 ///\{ \name The node coordinate tolerance of the mesh vertices

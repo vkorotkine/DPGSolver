@@ -20,12 +20,19 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "element.h"
+#include "element_adaptation.h"
+#include "element_geometry.h"
+#include "element_solution.h"
 
 struct Simulation;
 
 /// \brief Container for data relating to the solver element.
 struct Solver_Element {
 	const struct const_Element element; ///< Base \ref const_Element.
+
+	const struct Adaptation_Element a_e; ///< \ref Adaptation_Element.
+	const struct Geometry_Element   g_e; ///< \ref Geometry_Element.
+	const struct Solution_Element   s_e; ///< \ref Solution_Element.
 
 	// Volume rlhs
 	const struct Multiarray_Operator* cv0_vs_vc[2]; ///< See notation in \ref element_operators.h.

@@ -50,6 +50,9 @@ static void constructor_derived_Geometry_Element_tp
 
 void constructor_derived_Geometry_Element (struct Element* element_ptr, const struct Simulation* sim)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	switch (element_ptr->type) {
 	case LINE: case TRI: case TET: case PYR:
 		constructor_derived_Geometry_Element_std(element_ptr,sim);
@@ -65,6 +68,9 @@ void constructor_derived_Geometry_Element (struct Element* element_ptr, const st
 
 void destructor_derived_Geometry_Element (struct Element* element_ptr)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	struct Geometry_Element* element = (struct Geometry_Element*) element_ptr;
 	destructor_Multiarray2_Operator(element->vv0_vv_vg);
 	destructor_Multiarray_Operator(element->vc0_vgc_vgc);

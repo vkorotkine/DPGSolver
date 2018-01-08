@@ -59,21 +59,22 @@ void clear_IL (struct Intrusive_List* lst)
 	lst->last  = NULL;
 }
 
-void destructor_IL (struct Intrusive_List* lst)
+void destructor_IL (struct Intrusive_List* lst, const bool destruct_links)
 {
-	clear_IL(lst);
+	if (destruct_links)
+		clear_IL(lst);
 	free(lst);
 }
 
-void destructor_const_IL (const struct const_Intrusive_List* lst)
+void destructor_const_IL (const struct const_Intrusive_List* lst, const bool destruct_links)
 {
-	destructor_IL((struct Intrusive_List*)lst);
+	destructor_IL((struct Intrusive_List*)lst,destruct_links);
 }
 
 void destructor_IL_base (struct Intrusive_List* lst)
 {
 	assert(lst->base);
-	destructor_IL(lst->base);
+	destructor_IL(lst->base,true);
 
 	lst->base = NULL;
 }
