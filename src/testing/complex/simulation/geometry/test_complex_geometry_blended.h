@@ -12,9 +12,21 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__test_complex_geometry_blended_h__INCLUDED
+#define DPG__test_complex_geometry_blended_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to parametric geometry functions.
+ *  \brief Provides the interface to real functions used for blended geometry processing.
  */
 
-#undef constructor_xyz_cylinder_parametric_T
-#undef constructor_xyz_trigonometric_cube_parametric_T
+#include "def_templates_type_dc.h"
+#include "def_templates_geometry_blended.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_multiarray.h"
+#include "geometry_blended_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_geometry_blended.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_multiarray.h"
+
+#endif // DPG__test_complex_geometry_blended_h__INCLUDED

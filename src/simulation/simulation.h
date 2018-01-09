@@ -116,7 +116,8 @@ struct Simulation {
 	 *	- geom_blending_si:
 	 *		- szabo_babuska_gen (Szabo-Babuska generalized);
 	 *		- scott;
-	 *		- lenoir;
+	 *		- lenoir (eq. 22, \cite Lenoir1986);
+	 *		- lenoir_simple (Excludes intermediate corrections (remark following eq. 22, \cite Lenoir1986);
 	 *		- nielson;
 	 *	- geom_blending_pyr: currently unsupported; requires investigation.
 	 */

@@ -19,13 +19,27 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_intrusive.h"
+#include "definitions_mesh.h"
 
 
 #include "def_templates_volume_solver.h"
 
 #include "def_templates_multiarray.h"
 
+#include "def_templates_geometry.h"
+
 // Static function declarations ************************************************************************************* //
+
+/** \brief Set the appropriate blended geometry function pointers if applicable.
+ *
+ *  These functions serve to set the values of the geometry coordinates on curved element faces based on a given
+ *  parametrization of the current geometry "patch", where a patch boundary occurs whenever there exists a region of
+ *  limited geometry smoothness (i.e. below C^{\infty}).
+ */
+static void set_function_pointers_blended_xyz
+	(struct Solver_Volume_T*const s_vol, ///< The current volume.
+	 const struct Simulation*const sim   ///< \ref Simulation.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -36,7 +50,10 @@ void constructor_derived_Solver_Volume_T (struct Volume* volume_ptr, const struc
 	const_cast_ptrdiff(&s_vol->ind_dof,-1);
 	const_cast_i(&s_vol->p_ref,sim->p_ref[0]);
 	const_cast_i(&s_vol->ml,0);
+
 	const_constructor_move_Multiarray_R(&s_vol->geom_coef,constructor_default_Multiarray_R()); // destructed
+	set_function_pointers_blended_xyz(s_vol,sim);
+	s_vol->computing_xyz_ve_p2 = false;
 
 	s_vol->sol_coef  = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0});   // destructed
 	s_vol->grad_coef = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // destructed
@@ -73,3 +90,18 @@ const struct const_Vector_d* get_operator__w_vc__s_e_T (const struct Solver_Volu
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void set_function_pointers_blended_xyz (struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
+{
+	const struct Volume*const vol = (struct Volume*) s_vol;
+	if ((sim->domain_type == DOM_STRAIGHT) || !vol->boundary || !vol->curved) {
+		s_vol->constructor_xyz_surface = NULL;
+		return;
+	}
+
+	if (strcmp(sim->geom_name,"n-cylinder_hollow_section") == 0) {
+		s_vol->constructor_xyz_surface = constructor_xyz_surface_cylinder_T;
+	} else {
+		EXIT_ERROR("Unsupported: %s, %s\n",sim->geom_name,sim->geom_spec);
+	}
+}

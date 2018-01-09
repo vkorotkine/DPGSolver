@@ -1,6 +1,7 @@
 set	(SOURCE
 	 element_geometry.c
 	 geometry.c
+	 geometry_blended.c
 	 geometry_parametric.c
 	)
 

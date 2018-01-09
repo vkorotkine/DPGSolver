@@ -12,11 +12,11 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
 /** \file
  *  \brief Undefine macro definitions for c-style templating relating to geometry functions.
  */
 
+#include "undef_templates_geometry_blended.h"
 #include "undef_templates_geometry_parametric.h"
 
 #undef constructor_xyz_fptr_T

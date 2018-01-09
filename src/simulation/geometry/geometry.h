@@ -19,6 +19,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to functions used for geometry processing.
  */
 
+#include "geometry_blended.h"
+#include "geometry_parametric.h"
+
 #include "def_templates_type_d.h"
 #include "def_templates_geometry.h"
 #include "def_templates_face_solver.h"

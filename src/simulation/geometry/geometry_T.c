@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <string.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 #include "definitions_mesh.h"
 #include "definitions_intrusive.h"
 
@@ -229,7 +230,7 @@ static void compute_geom_coef_straight_T
 	);
 
 /// \brief Version of \ref compute_geom_coef_fptr_T for curved volumes using blending.
-static void compute_geom_coef_curved_T
+static void compute_geom_coef_blended_T
 	(const struct Simulation*const sim, ///< See brief.
 	 struct Solver_Volume_T*const s_vol ///< See brief.
 	);
@@ -283,7 +284,7 @@ static compute_geom_coef_fptr_T set_fptr_geom_coef_T (const int domain_type, con
 		if (!volume_curved)
 			return compute_geom_coef_straight_T;
 		else
-			return compute_geom_coef_curved_T;
+			return compute_geom_coef_blended_T;
 	} else if (domain_type == DOM_PARAMETRIC) {
 		return compute_geom_coef_parametric_T;
 	}
@@ -455,16 +456,18 @@ static void compute_geom_coef_straight_T (const struct Simulation*const sim, str
 	}
 }
 
-static void compute_geom_coef_curved_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
+static void compute_geom_coef_blended_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
 {
 	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho(s_vol,sim); // destructed
-EXIT_ERROR("Add support after output to paraview is working.");
 
-//	const struct const_Multiarray_R* xyz = s_vol->constructor_xyz(xyz_s,s_vol,sim); // destructed
+	if (DIM == DMAX)
+		EXIT_ADD_SUPPORT; // Treat curved EDGEs not on curved FACEs
+
+	const struct const_Multiarray_R* xyz = constructor_xyz_blended_T(xyz_s,s_vol,sim); // destructed
 	destructor_const_Multiarray_R(xyz_s);
 
 	const struct const_Multiarray_R* geom_coef = NULL;
-//	destructor_const_Multiarray_R(xyz);
+	destructor_const_Multiarray_R(xyz);
 
 	destructor_const_Multiarray_R(s_vol->geom_coef);
 	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef,geom_coef);

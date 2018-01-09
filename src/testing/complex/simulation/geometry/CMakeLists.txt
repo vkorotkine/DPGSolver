@@ -1,5 +1,6 @@
 set	(SOURCE
 	 test_complex_geometry.c
+	 test_complex_geometry_blended.c
 	 test_complex_geometry_parametric.c
 	)
 

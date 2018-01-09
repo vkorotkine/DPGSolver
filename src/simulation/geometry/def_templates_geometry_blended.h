@@ -13,8 +13,21 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to parametric geometry functions.
+ *  \brief Provides the macro definitions used for c-style templating related to the blended geometry functions.
  */
 
-#undef constructor_xyz_cylinder_parametric_T
-#undef constructor_xyz_trigonometric_cube_parametric_T
+#if TYPE_RC == TYPE_REAL
+
+///\{ \name Function names
+#define constructor_xyz_blended_T          constructor_xyz_blended
+#define constructor_xyz_surface_cylinder_T constructor_xyz_surface_cylinder
+///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define constructor_xyz_blended_T          constructor_xyz_blended_c
+#define constructor_xyz_surface_cylinder_T constructor_xyz_surface_cylinder_c
+///\}
+
+#endif

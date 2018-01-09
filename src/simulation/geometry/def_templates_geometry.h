@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the geometry functions.
  */
 
+#include "def_templates_geometry_blended.h"
 #include "def_templates_geometry_parametric.h"
 
 #if TYPE_RC == TYPE_REAL

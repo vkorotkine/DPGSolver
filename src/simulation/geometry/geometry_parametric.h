@@ -29,5 +29,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_volume_solver.h"
 #include "undef_templates_multiarray.h"
 
-
 #endif // DPG__geometry_parametric_h__INCLUDED
