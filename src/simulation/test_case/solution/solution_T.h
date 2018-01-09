@@ -110,19 +110,12 @@ const struct const_Multiarray_R* constructor_xyz_sol_T
 	 const struct Solution_Container_T* sol_cont ///< \ref Solution_Container_T.
 	);
 
-/// \brief Compute the coefficients associated with the values of the volume solution.
-void compute_coef_from_val_vs_T
-	(const struct Solver_Volume_T* s_vol,        ///< \ref Solver_Volume_T.
-	 const struct const_Multiarray_T* sol_val, ///< The solution values.
-	 struct Multiarray_T* sol_coef             ///< To hold the solution coefficients.
-	);
-
 /** \brief Contructor for a \ref Multiarray_T\* holding the solution at volume nodes of input kind.
  *  \return See brief. */
 struct Multiarray_T* constructor_sol_v_T
 	(const struct Simulation* sim, ///< \ref Simulation.
-	 struct Solver_Volume_T* volume, ///< \ref Solver_Volume_T.
-	 const char node_kind          ///< The kind of node. Options: 's'olution, 'c'ubature.
+	 struct Solver_Volume_T* s_vol, ///< \ref Solver_Volume_T.
+	 const char node_kind           ///< The kind of node. Options: 's'olution, 'c'ubature.
 	);
 
 /// \brief Function pointer to be used for \ref Test_Case_T::compute_source_rhs when there is no source term.
@@ -135,7 +128,8 @@ void compute_source_rhs_do_nothing_T
 /// \brief Update \ref Solution_Container_T::sol based on the input solution values.
 void update_Solution_Container_sol_T
 	(struct Solution_Container_T*const sol_cont, ///< Defined for \ref set_sol_fptr_T.
-	 struct Multiarray_T*const sol             ///< The solution values.
+	 struct Multiarray_T*const sol,              ///< The solution values.
+	 const struct Simulation*const sim           ///< \ref Simulation.
 	);
 
 /** \brief Constructor for the xyz coordinates evaluated at the volume cubature nodes using interpolation.

@@ -64,7 +64,7 @@ static const struct Operator* get_operator__cv0_vg_vc
  *  \return See brief. */
 static const struct const_Multiarray_R* constructor_xyz_v
 	(const struct Simulation* sim, ///< \ref Simulation.
-	 struct Solver_Volume_T* volume, ///< \ref Solver_Volume_T.
+	 struct Solver_Volume_T* s_vol, ///< \ref Solver_Volume_T.
 	 const char node_kind          ///< The kind of node. Options: 's'olution, 'c'ubature.
 	);
 
@@ -74,6 +74,13 @@ static const struct const_Multiarray_R* constructor_xyz_f
 	(const struct Simulation* sim, ///< \ref Simulation.
 	 struct Solver_Face_T* s_face,   ///< \ref Solver_Face_T.
 	 const char node_kind          ///< The kind of node. Options: 'f'lux, 't'race.
+	);
+
+/// \brief Compute the coefficients associated with the values of the volume solution.
+static void compute_coef_from_val_vs_T
+	(const struct Solver_Volume_T* s_vol,        ///< \ref Solver_Volume_T.
+	 const struct const_Multiarray_T* sol_val, ///< The solution values.
+	 struct Multiarray_T* sol_coef             ///< To hold the solution coefficients.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -91,8 +98,7 @@ void set_initial_solution_T (struct Simulation* sim)
 {
 	assert(sim->volumes->name == IL_VOLUME_SOLVER);
 	assert(sim->faces->name   == IL_FACE_SOLVER);
-
-	constructor_derived_Elements(sim,IL_ELEMENT_SOLUTION);
+	assert(list_is_derived_from("solver",'e',sim));
 
 	switch (sim->method) {
 	case METHOD_DG:
@@ -107,13 +113,11 @@ void set_initial_solution_T (struct Simulation* sim)
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
 		break;
 	}
-
-	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
 void set_sg_do_nothing_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
-	UNUSED(sim);
+	assert(list_is_derived_from("solver",'e',sim));
 	UNUSED(sol_cont);
 	return;
 }
@@ -121,6 +125,8 @@ void set_sg_do_nothing_T (const struct Simulation* sim, struct Solution_Containe
 const struct const_Multiarray_R* constructor_xyz_sol_T
 	(const struct Simulation* sim, const struct Solution_Container_T* sol_cont)
 {
+	assert(list_is_derived_from("solver",'e',sim));
+
 	const char ce_type   = sol_cont->ce_type,
 	           node_kind = sol_cont->node_kind;
 
@@ -135,44 +141,28 @@ const struct const_Multiarray_R* constructor_xyz_sol_T
 	return xyz;
 }
 
-void compute_coef_from_val_vs_T
-	(const struct Solver_Volume_T* s_vol, const struct const_Multiarray_T* sol_val, struct Multiarray_T* sol_coef)
-{
-	const char op_format = 'd';
-
-	struct Volume* base_volume = (struct Volume*) s_vol;
-	const struct Solution_Element* element = (struct Solution_Element*) base_volume->element;
-
-	const int p_ref = s_vol->p_ref;
-
-	const struct Operator* vc0_vs_vs = get_Multiarray_Operator(element->vc0_vs_vs,(ptrdiff_t[]){0,0,p_ref,p_ref});
-
-	resize_Multiarray_T(sol_coef,sol_val->order,sol_val->extents);
-	mm_NN1C_Operator_Multiarray_T(vc0_vs_vs,sol_val,sol_coef,op_format,sol_coef->order,NULL,NULL);
-}
-
 struct Multiarray_T* constructor_sol_v_T
-	(const struct Simulation* sim, struct Solver_Volume_T* volume, const char node_kind)
+	(const struct Simulation* sim, struct Solver_Volume_T* s_vol, const char node_kind)
 {
-UNUSED(sim);
+	assert(list_is_derived_from("solver",'e',sim));
 	assert((node_kind == 's') || (node_kind == 'c'));
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
 
-	struct Volume* base_volume = (struct Volume*) volume;
-	const struct Solution_Element* element = (struct Solution_Element*) base_volume->element;
+	struct Volume* vol = (struct Volume*) s_vol;
+	const struct Solution_Element* s_e = &((struct Solver_Element*)vol->element)->s_e;
 
-	const int curved = base_volume->curved,
-	          p      = volume->p_ref;
+	const int curved = vol->curved,
+	          p      = s_vol->p_ref;
 
 	const struct Operator* cv0_vs_vX = NULL;
 	if (node_kind == 's')
-		cv0_vs_vX = get_Multiarray_Operator(element->cv0_vs_vs,(ptrdiff_t[]){0,0,p,p});
+		cv0_vs_vX = get_Multiarray_Operator(s_e->cv0_vs_vs,(ptrdiff_t[]){0,0,p,p});
 	else if (node_kind == 'c')
-		cv0_vs_vX = get_Multiarray_Operator(element->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
+		cv0_vs_vX = get_Multiarray_Operator(s_e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
 
-	const struct const_Multiarray_T*const sol_coef = (struct const_Multiarray_T*) volume->sol_coef;
+	const struct const_Multiarray_T*const sol_coef = (struct const_Multiarray_T*) s_vol->sol_coef;
 
 	const ptrdiff_t ext_0 = cv0_vs_vX->op_std->ext_0,
 	                ext_1 = sol_coef->extents[1];
@@ -192,8 +182,10 @@ void compute_source_rhs_do_nothing_T
 	return;
 }
 
-void update_Solution_Container_sol_T (struct Solution_Container_T*const sol_cont, struct Multiarray_T*const sol)
+void update_Solution_Container_sol_T
+	(struct Solution_Container_T*const sol_cont, struct Multiarray_T*const sol, const struct Simulation*const sim)
 {
+	assert(list_is_derived_from("solver",'e',sim));
 	const char cv_type = sol_cont->cv_type;
 
 	if (cv_type == 'v') {
@@ -216,6 +208,7 @@ void update_Solution_Container_sol_T (struct Solution_Container_T*const sol_cont
 const struct const_Multiarray_R* constructor_xyz_vc_interp_T
 	(const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
 {
+	assert(list_is_derived_from("solver",'e',sim));
 	const struct Operator* cv0_vg_vc = get_operator__cv0_vg_vc(s_vol);
 
 	const struct const_Multiarray_R* geom_coef = s_vol->geom_coef;
@@ -324,7 +317,7 @@ static const struct Operator* get_operator__cv0_vg_vc (const struct Solver_Volum
 }
 
 static const struct const_Multiarray_R* constructor_xyz_v
-	(const struct Simulation* sim, struct Solver_Volume_T* volume, const char node_kind)
+	(const struct Simulation* sim, struct Solver_Volume_T* s_vol, const char node_kind)
 {
 UNUSED(sim);
 	assert((node_kind == 's') || (node_kind == 'c'));
@@ -332,24 +325,24 @@ UNUSED(sim);
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
 
-	struct Volume* base_volume = (struct Volume*) volume;
-	const struct Solution_Element* element = (struct Solution_Element*) base_volume->element;
+	struct Volume* vol = (struct Volume*) s_vol;
+	const struct Solution_Element* s_e = &((struct Solver_Element*)vol->element)->s_e;
 
-	const int d = ((struct const_Element*)element)->d;
+	const int d = ((struct const_Element*)s_e)->d;
 
-	const int curved = base_volume->curved,
-	          p_o    = volume->p_ref,
+	const int curved = vol->curved,
+	          p_o    = s_vol->p_ref,
 	          p_i    = ( curved ? p_o : 1 );
 
 	const struct Operator* cv0_vg_vX = NULL;
 	if (node_kind == 's')
-		cv0_vg_vX = get_Multiarray_Operator(element->cv0_vg_vs[curved],(ptrdiff_t[]){0,0,p_o,p_i});
+		cv0_vg_vX = get_Multiarray_Operator(s_e->cv0_vg_vs[curved],(ptrdiff_t[]){0,0,p_o,p_i});
 	else if (node_kind == 'c')
-		cv0_vg_vX = get_Multiarray_Operator(element->cv0_vg_vc[curved],(ptrdiff_t[]){0,0,p_o,p_i});
+		cv0_vg_vX = get_Multiarray_Operator(s_e->cv0_vg_vc[curved],(ptrdiff_t[]){0,0,p_o,p_i});
 
 	const int n_vs = (int)cv0_vg_vX->op_std->ext_0;
 
-	const struct const_Multiarray_R*const geom_coef = volume->geom_coef;
+	const struct const_Multiarray_R*const geom_coef = s_vol->geom_coef;
 	struct Multiarray_R* xyz_v = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_vs,d}); // returned
 	mm_NN1C_Operator_Multiarray_R(cv0_vg_vX,geom_coef,xyz_v,op_format,geom_coef->order,NULL,NULL);
 
@@ -364,7 +357,7 @@ static const struct const_Multiarray_R* constructor_xyz_f
 	struct Face* face  = (struct Face*) s_face;
 	struct Volume* vol = (struct Volume*) face->neigh_info[0].volume;
 
-	const struct Solution_Element* e = (struct Solution_Element*) vol->element;
+	const struct Solution_Element* s_e = &((struct Solver_Element*)vol->element)->s_e;
 
 	const int ind_lf   = face->neigh_info[0].ind_lf,
 	          ind_href = face->neigh_info[0].ind_href,
@@ -374,15 +367,15 @@ static const struct const_Multiarray_R* constructor_xyz_f
 
 	const struct Operator* cv0_vg_fX = NULL;
 	if (node_kind == 'f')
-		cv0_vg_fX = get_Multiarray_Operator(e->cv0_vg_ff[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
+		cv0_vg_fX = get_Multiarray_Operator(s_e->cv0_vg_ff[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
 	else if (node_kind == 'c')
-		cv0_vg_fX = get_Multiarray_Operator(e->cv0_vg_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
+		cv0_vg_fX = get_Multiarray_Operator(s_e->cv0_vg_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
 	else if (node_kind == 't')
 		EXIT_ADD_SUPPORT;
 	else
 		EXIT_UNSUPPORTED;
 
-	const int d    = ((struct const_Element*)e)->d,
+	const int d    = ((struct const_Element*)s_e)->d,
 	          n_fs = (int)cv0_vg_fX->op_std->ext_0;
 
 	struct Multiarray_R* xyz_f = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_fs,d}); // returned
@@ -393,6 +386,22 @@ static const struct const_Multiarray_R* constructor_xyz_f
 	mm_NN1C_Operator_Multiarray_R(cv0_vg_fX,geom_coef,xyz_f,op_format,geom_coef->order,NULL,NULL);
 
 	return (const struct const_Multiarray_R*) xyz_f;
+}
+
+static void compute_coef_from_val_vs_T
+	(const struct Solver_Volume_T* s_vol, const struct const_Multiarray_T* sol_val, struct Multiarray_T* sol_coef)
+{
+	const char op_format = 'd';
+
+	struct Volume* vol = (struct Volume*) s_vol;
+	const struct Solution_Element* s_e = &((struct Solver_Element*)vol->element)->s_e;
+
+	const int p_ref = s_vol->p_ref;
+
+	const struct Operator* vc0_vs_vs = get_Multiarray_Operator(s_e->vc0_vs_vs,(ptrdiff_t[]){0,0,p_ref,p_ref});
+
+	resize_Multiarray_T(sol_coef,sol_val->order,sol_val->extents);
+	mm_NN1C_Operator_Multiarray_T(vc0_vs_vs,sol_val,sol_coef,op_format,sol_coef->order,NULL,NULL);
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -464,12 +473,12 @@ static const struct const_Multiarray_T* constructor_nf
 static void compute_coef_from_val_ff
 	(const struct Solver_Face_T* s_face, const struct const_Multiarray_T* f_val, struct Multiarray_T* f_coef)
 {
-	const struct Face* face          = (struct Face*) s_face;
-	const struct Solution_Element* e = (struct Solution_Element*) face->neigh_info[0].volume->element;
+	const struct Face* face            = (struct Face*) s_face;
+	const struct Solution_Element* s_e = &((struct Solver_Element*)face->neigh_info[0].volume->element)->s_e;
 
 	const int ind_e = get_face_element_index(face),
 	          p     = s_face->p_ref;
-	const struct Operator* vc0_ff_ff = get_Multiarray_Operator(e->vc0_ff_ff,(ptrdiff_t[]){ind_e,ind_e,0,0,p,p});
+	const struct Operator* vc0_ff_ff = get_Multiarray_Operator(s_e->vc0_ff_ff,(ptrdiff_t[]){ind_e,ind_e,0,0,p,p});
 
 	resize_Multiarray_T(f_coef,f_val->order,f_val->extents);
 	mm_NN1C_Operator_Multiarray_T(vc0_ff_ff,f_val,f_coef,'d',f_coef->order,NULL,NULL);
@@ -542,13 +551,13 @@ static const struct const_Multiarray_R* constructor_metrics_ff (const struct Sol
 	const struct Volume* vol          = face->neigh_info[0].volume;
 	const struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) vol;
 
-	const struct Solution_Element* e = (struct Solution_Element*) vol->element;
+	const struct Solution_Element* s_e = &((struct Solver_Element*)vol->element)->s_e;
 
 	const int ind_lf = face->neigh_info[0].ind_lf,
 	          cv     = vol->curved,
 	          pv     = ( cv ? s_vol->p_ref : 1),
 	          pf     = s_face->p_ref;
-	const struct Operator* vv0_vm_ff = get_Multiarray_Operator(e->vv0_vm_ff[cv],(ptrdiff_t[]){ind_lf,0,0,pf,pv});
+	const struct Operator* vv0_vm_ff = get_Multiarray_Operator(s_e->vv0_vm_ff[cv],(ptrdiff_t[]){ind_lf,0,0,pf,pv});
 
 	const struct const_Multiarray_R* m_vm = s_vol->metrics_vm;
 	return constructor_mm_NN1_Operator_const_Multiarray_R(vv0_vm_ff,m_vm,'C','d',m_vm->order,NULL);

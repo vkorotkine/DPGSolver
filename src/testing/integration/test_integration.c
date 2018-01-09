@@ -89,6 +89,7 @@ void structor_simulation
 	case ADAPT_0:
 		if (mode == 'c') {
 			*sim = constructor_Simulation(ctrl_name); // destructed
+			constructor_derived_Elements(*sim,IL_ELEMENT_SOLVER); // destructed
 			switch (type_rc) {
 				case 'r': constructor_derived_computational_elements(*sim,IL_SOLVER);   break; // dest.
 				case 'c': constructor_derived_computational_elements_c(*sim,IL_SOLVER); break; // dest.
@@ -100,6 +101,7 @@ void structor_simulation
 				case 'c': destructor_derived_computational_elements_c(*sim,IL_BASE); break; // dest.
 				default: EXIT_ERROR("Unsupported: %c\n",type_rc); break;
 			}
+			destructor_derived_Elements(*sim,IL_ELEMENT);
 			destructor_Simulation(*sim);
 		}
 		break;

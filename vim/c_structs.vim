@@ -33,9 +33,8 @@ syntax keyword Special Intrusive_Link const_Intrusive_Link
 
 syntax keyword Identifier Element const_Element
 syntax keyword Identifier Geometry_Element
-syntax keyword Identifier Plotting_Element const_Plotting_Element
+syntax keyword Identifier Plotting_Element
 syntax keyword Identifier Solution_Element
-syntax keyword Identifier Error_Element
 syntax keyword Identifier Adaptation_Element
 syntax keyword Identifier Solver_Element
 syntax keyword Identifier DG_Solver_Element

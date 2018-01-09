@@ -43,6 +43,9 @@ static void constructor_derived_Plotting_Element_tp
 
 void constructor_derived_Plotting_Element (struct Element* element_ptr, const struct Simulation* sim)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	switch (element_ptr->type) {
 	case LINE: case TRI: case TET: case PYR:
 		constructor_derived_Plotting_Element_std(element_ptr,sim);
@@ -67,6 +70,9 @@ void constructor_derived_Plotting_Element (struct Element* element_ptr, const st
 
 void destructor_derived_Plotting_Element (struct Element* element_ptr)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	struct Plotting_Element* element = (struct Plotting_Element*) element_ptr;
 	destructor_Multiarray_Operator(element->cv0_vgs_vp);
 	destructor_Multiarray_Operator(element->cv0_vgc_vp);

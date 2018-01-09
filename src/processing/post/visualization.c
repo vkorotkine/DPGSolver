@@ -28,6 +28,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_case.h"
 #include "definitions_visualization.h"
 
+#include "element_plotting.h"
+#include "element_solver.h"
+
 #include "volume.h"
 #include "volume_solver.h"
 #include "face_solver.h"
@@ -37,7 +40,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "computational_elements.h"
 #include "const_cast.h"
-#include "element_plotting.h"
 #include "file_processing.h"
 #include "multiarray_operator.h"
 #include "nodes_plotting.h"
@@ -64,12 +66,9 @@ void output_visualization (struct Simulation* sim, const int vis_type)
 {
 	assert(sim->volumes->name == IL_VOLUME_SOLVER);
 	assert(sim->faces->name   == IL_FACE_SOLVER);
-
-	constructor_derived_Elements(sim,IL_ELEMENT_PLOTTING);
+	assert(list_is_derived_from("solver",'e',sim));
 
 	output_visualization_paraview(sim,vis_type);
-
-	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
 // Static functions ************************************************************************************************* //
@@ -172,8 +171,6 @@ static void fprint_vtk_piece_sol
 static void output_visualization_vtk_geom
 	(const char geom_type, const struct Simulation* sim, const bool use_test_case_path)
 {
-	assert(sim->elements->name == IL_ELEMENT_PLOTTING);
-
 	static char output_part[STRLEN_MAX] = { 0, };
 	if (!use_test_case_path) {
 		sprintf(output_part,"%s%c","geom_",geom_type);
@@ -205,21 +202,22 @@ static void output_visualization_vtk_geom
 
 	fprint_vtk_header_footer(s_file,false,'h',"UnstructuredGrid");
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Volume* base_volume   = (struct Volume*)curr;
-		struct Solver_Volume* volume = (struct Solver_Volume*)curr;
+		struct Volume* vol          = (struct Volume*)curr;
+		struct Solver_Volume* s_vol = (struct Solver_Volume*)curr;
 
-		const struct const_Plotting_Element* element = (struct const_Plotting_Element*)base_volume->element;
+		const struct Solver_Element* s_e   = (struct Solver_Element*) vol->element;
+		const struct Plotting_Element* p_e = &s_e->p_e;
 
-		const int p = volume->p_ref;
+		const int p = s_vol->p_ref;
 		const struct Operator* cv0_vg_vp =
-			(!base_volume->curved ? get_Multiarray_Operator(element->cv0_vgs_vp,(ptrdiff_t[]){0,0,p,1})
-			                      : get_Multiarray_Operator(element->cv0_vgc_vp,(ptrdiff_t[]){0,0,p,p}) );
+			(!vol->curved ? get_Multiarray_Operator(p_e->cv0_vgs_vp,(ptrdiff_t[]){0,0,p,1})
+			              : get_Multiarray_Operator(p_e->cv0_vgc_vp,(ptrdiff_t[]){0,0,p,p}) );
 
-		const struct const_Multiarray_d* g_coef = volume->geom_coef;
+		const struct const_Multiarray_d* g_coef = s_vol->geom_coef;
 		const struct const_Multiarray_d* xyz_p =
 			constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vg_vp,g_coef,'R','d',g_coef->order,NULL); // destructed
 
-		fprint_vtk_piece_geom(s_file,'s','s',geom_type,xyz_p,element->p_nodes[p]);
+		fprint_vtk_piece_geom(s_file,'s','s',geom_type,xyz_p,p_e->p_nodes[p]);
 		fprint_vtk_piece_geom(s_file,'s','e',geom_type,NULL,NULL);
 
 		destructor_const_Multiarray_d(xyz_p);
@@ -267,8 +265,6 @@ static void output_visualization_vtk_normals (const struct Simulation* sim)
 static void output_visualization_vtk_sol (const struct Simulation* sim)
 {
 /// \todo Add output for trace unknowns also if present.
-	assert(sim->elements->name == IL_ELEMENT_PLOTTING);
-
 	static char output_part[STRLEN_MAX] = { 0, };
 	sprintf(output_part,"%s%c%s%c%s%s",
 	        sim->pde_name,'/',sim->pde_spec,'/',"sol_v__",extract_name(sim->ctrl_name_full,true));
@@ -298,27 +294,28 @@ static void output_visualization_vtk_sol (const struct Simulation* sim)
 
 	fprint_vtk_header_footer(s_file,false,'h',"UnstructuredGrid");
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Volume* base_volume   = (struct Volume*)curr;
-		struct Solver_Volume* volume = (struct Solver_Volume*)curr;
+		struct Volume* vol         = (struct Volume*)curr;
+		struct Solver_Volume* s_vol = (struct Solver_Volume*)curr;
 
-		const struct const_Plotting_Element* element = (struct const_Plotting_Element*)base_volume->element;
+		const struct Solver_Element* s_e   = (struct Solver_Element*) vol->element;
+		const struct Plotting_Element* p_e = &s_e->p_e;
 
-		const int p = volume->p_ref;
+		const int p = s_vol->p_ref;
 		const struct Operator* cv0_vg_vp =
-			(!base_volume->curved ? get_Multiarray_Operator(element->cv0_vgs_vp,(ptrdiff_t[]){0,0,p,1})
-			                      : get_Multiarray_Operator(element->cv0_vgc_vp,(ptrdiff_t[]){0,0,p,p}) );
+			(!vol->curved ? get_Multiarray_Operator(p_e->cv0_vgs_vp,(ptrdiff_t[]){0,0,p,1})
+			              : get_Multiarray_Operator(p_e->cv0_vgc_vp,(ptrdiff_t[]){0,0,p,p}) );
 
-		const struct const_Multiarray_d* g_coef = volume->geom_coef;
+		const struct const_Multiarray_d* g_coef = s_vol->geom_coef;
 		const struct const_Multiarray_d* xyz_p =
 			constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vg_vp,g_coef,'R','d',g_coef->order,NULL); // destructed
 
-		const struct Operator* cv0_vs_vp = get_Multiarray_Operator(element->cv0_vs_vp,(ptrdiff_t[]){0,0,p,p});
+		const struct Operator* cv0_vs_vp = get_Multiarray_Operator(p_e->cv0_vs_vp,(ptrdiff_t[]){0,0,p,p});
 
-		const struct const_Multiarray_d* s_coef = (const struct const_Multiarray_d*)volume->sol_coef;
+		const struct const_Multiarray_d* s_coef = (const struct const_Multiarray_d*)s_vol->sol_coef;
 		const struct const_Multiarray_d* sol_p =
 			constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vs_vp,s_coef,'C','d',s_coef->order,NULL); // destructed
 
-		fprint_vtk_piece_sol(s_file,'s','s',xyz_p,sol_p,element->p_nodes[p],test_case->pde_index);
+		fprint_vtk_piece_sol(s_file,'s','s',xyz_p,sol_p,p_e->p_nodes[p],test_case->pde_index);
 		fprint_vtk_piece_sol(s_file,'s','e',NULL,NULL,NULL,test_case->pde_index);
 
 		destructor_const_Multiarray_d(xyz_p);

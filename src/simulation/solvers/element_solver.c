@@ -59,6 +59,8 @@ void constructor_derived_Solver_Element (struct Element* element_ptr, const stru
 		sizeof(struct Element),element_ptr,(struct Element*)&s_e->a_e,sim); // destructed
 	constructor_offset_derived_Element(constructor_derived_Geometry_Element,
 		sizeof(struct Element),element_ptr,(struct Element*)&s_e->g_e,sim); // destructed
+	constructor_offset_derived_Element(constructor_derived_Plotting_Element,
+		sizeof(struct Element),element_ptr,(struct Element*)&s_e->p_e,sim); // destructed
 	constructor_offset_derived_Element(constructor_derived_Solution_Element,
 		sizeof(struct Element),element_ptr,(struct Element*)&s_e->s_e,sim); // destructed
 
@@ -88,6 +90,7 @@ void destructor_derived_Solver_Element (struct Element* element_ptr)
 
 	destructor_derived_Adaptation_Element((struct Element*)&s_e->a_e);
 	destructor_derived_Geometry_Element((struct Element*)&s_e->g_e);
+	destructor_derived_Plotting_Element((struct Element*)&s_e->p_e);
 	destructor_derived_Solution_Element((struct Element*)&s_e->s_e);
 
 	destructor_Multiarray2_Operator(s_e->cv0_vs_vc);

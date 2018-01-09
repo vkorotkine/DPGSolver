@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element.h"
 #include "element_adaptation.h"
 #include "element_geometry.h"
+#include "element_plotting.h"
 #include "element_solution.h"
 
 struct Simulation;
@@ -32,6 +33,7 @@ struct Solver_Element {
 
 	const struct Adaptation_Element a_e; ///< \ref Adaptation_Element.
 	const struct Geometry_Element   g_e; ///< \ref Geometry_Element.
+	const struct Plotting_Element   p_e; ///< \ref Plotting_Element.
 	const struct Solution_Element   s_e; ///< \ref Solution_Element.
 
 	// Volume rlhs

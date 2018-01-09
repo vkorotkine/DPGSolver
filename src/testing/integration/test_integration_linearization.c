@@ -408,12 +408,10 @@ static void structor_derived_Elements
 
 	switch (mode) {
 	case 'c':
-		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER);                // destructed
 		constructor_derived_Elements(sim,f_ptrs_data->derived_elem_method); // destructed
 		break;
 	case 'd':
 		destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
-		destructor_derived_Elements(sim,IL_ELEMENT);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %c",mode);

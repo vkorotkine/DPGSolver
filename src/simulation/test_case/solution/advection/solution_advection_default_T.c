@@ -62,7 +62,7 @@ void set_sol_advection_default_T (const struct Simulation* sim, struct Solution_
 	struct Multiarray_T* sol = constructor_sol_advection_default_T(xyz,sim); // destructed
 	destructor_const_Multiarray_R(xyz);
 
-	update_Solution_Container_sol_T(&sol_cont,sol);
+	update_Solution_Container_sol_T(&sol_cont,sol,sim);
 	destructor_Multiarray_T(sol);
 }
 

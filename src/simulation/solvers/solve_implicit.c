@@ -178,7 +178,6 @@ static bool check_pde_linear
 
 static void constructor_derived_elements_comp_elements (struct Simulation* sim)
 {
-	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER); // destructed
 	switch (sim->method) {
 	case METHOD_DG:
 		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
@@ -198,7 +197,6 @@ static void destructor_derived_elements_comp_elements (struct Simulation* sim)
 {
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
-	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
 static double implicit_step (const int i_step, const struct Simulation* sim)

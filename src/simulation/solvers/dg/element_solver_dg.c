@@ -44,6 +44,9 @@ static void constructor_derived_DG_Solver_Element_tp
 
 void constructor_derived_DG_Solver_Element (struct Element* element_ptr, const struct Simulation* sim)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	switch (element_ptr->type) {
 	case LINE: case TRI: case TET: case PYR:
 		constructor_derived_DG_Solver_Element_std(element_ptr,sim);
@@ -59,6 +62,9 @@ void constructor_derived_DG_Solver_Element (struct Element* element_ptr, const s
 
 void destructor_derived_DG_Solver_Element (struct Element* element_ptr)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	struct DG_Solver_Element* dg_s_e = (struct DG_Solver_Element*) element_ptr;
 	UNUSED(dg_s_e);
 }

@@ -47,7 +47,7 @@ void set_sol_peterson_T (const struct Simulation* sim, struct Solution_Container
 	struct Multiarray_T* sol = constructor_sol_peterson(sim,xyz); // destructed
 	destructor_const_Multiarray_R(xyz);
 
-	update_Solution_Container_sol_T(&sol_cont,sol);
+	update_Solution_Container_sol_T(&sol_cont,sol,sim);
 	destructor_Multiarray_T(sol);
 }
 

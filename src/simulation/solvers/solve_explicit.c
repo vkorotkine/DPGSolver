@@ -81,7 +81,6 @@ void solve_explicit (struct Simulation* sim)
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	test_case->solver_method_curr = 'e';
-	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER);       // destructed
 	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
 	constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
 
@@ -110,7 +109,6 @@ void solve_explicit (struct Simulation* sim)
 
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
-	destructor_derived_Elements(sim,IL_ELEMENT);
 	test_case->solver_method_curr = 0;
 }
 

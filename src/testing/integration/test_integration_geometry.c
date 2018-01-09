@@ -70,7 +70,8 @@ int main
 
 	struct Simulation*const sim = constructor_Simulation(ctrl_name); // destructed
 
-	constructor_derived_computational_elements(sim,IL_SOLVER);
+	constructor_derived_computational_elements(sim,IL_SOLVER); // destructed
+	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER);       // destructed
 
 	set_up_solver_geometry(sim);
 
@@ -80,6 +81,7 @@ int main
 	const bool pass = compare_members_geom(&test_info,sim);
 
 	destructor_derived_computational_elements(sim,IL_BASE);
+	destructor_derived_Elements(sim,IL_ELEMENT);
 
 	test_print_warning(&test_info,"Not testing free-stream preservation.");
 

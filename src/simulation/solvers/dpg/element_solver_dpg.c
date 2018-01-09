@@ -50,6 +50,9 @@ static void constructor_derived_DPG_Solver_Element_common
 
 void constructor_derived_DPG_Solver_Element (struct Element* element_ptr, const struct Simulation* sim)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	switch (element_ptr->type) {
 	case LINE: case TRI: case TET: case PYR:
 		constructor_derived_DPG_Solver_Element_std(element_ptr,sim);
@@ -66,6 +69,9 @@ void constructor_derived_DPG_Solver_Element (struct Element* element_ptr, const 
 
 void destructor_derived_DPG_Solver_Element (struct Element* element_ptr)
 {
+	if (element_ptr->type == POINT)
+		return;
+
 	struct DPG_Solver_Element* dpg_s_e = (struct DPG_Solver_Element*) element_ptr;
 
 	destructor_Multiarray2_Operator(dpg_s_e->cv0_vt_vc);

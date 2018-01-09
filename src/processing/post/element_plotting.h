@@ -37,18 +37,6 @@ struct Plotting_Element {
 	const struct const_Plotting_Nodes** p_nodes; ///< The array of \ref Plotting_Nodes for each order.
 };
 
-/// \brief `const` version of the \ref Plotting_Element container.
-struct const_Plotting_Element {
-	const struct const_Element element; ///< Defined in \ref Plotting_Element.
-
-	const struct Multiarray_Operator*const cv0_vgs_vp; ///< Defined in \ref Plotting_Element.
-	const struct Multiarray_Operator*const cv0_vgc_vp; ///< Defined in \ref Plotting_Element.
-	const struct Multiarray_Operator*const cv0_vs_vp;  ///< Defined in \ref Plotting_Element.
-
-	const int n_p;                                         ///< Defined in \ref Plotting_Element.
-	const struct const_Plotting_Nodes*const*const p_nodes; ///< Defined in \ref Plotting_Element.
-};
-
 // Constructor/Destructor functions ********************************************************************************* //
 
 /// \brief Constructor for a derived \ref Plotting_Element.

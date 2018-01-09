@@ -36,8 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define IL_ELEMENT_GEOMETRY    101
 #define IL_ELEMENT_PLOTTING    102
 #define IL_ELEMENT_SOLUTION    103
-#define IL_ELEMENT_ERROR       104
-#define IL_ELEMENT_ADAPTATION  105
+#define IL_ELEMENT_ADAPTATION  104
 
 #define IL_ELEMENT_SOLVER      110
 #define IL_ELEMENT_SOLVER_DG   111

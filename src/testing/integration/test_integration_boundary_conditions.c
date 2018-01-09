@@ -94,12 +94,9 @@ int main
 	// real
 	ind_rc = 0;
 	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc]); // destructed
-constructor_derived_Elements(sim[ind_rc],IL_ELEMENT_SOLVER); // destructed
 	set_up_solver_geometry(sim[ind_rc]);
-destructor_derived_Elements(sim[ind_rc],IL_ELEMENT);
 	set_initial_solution(sim[ind_rc]);
 
-	constructor_derived_Elements(sim[ind_rc],IL_ELEMENT_SOLVER); // destructed
 	((struct Test_Case*)sim[ind_rc]->test_case_rc->tc)->solver_method_curr = 'i';
 
 
@@ -109,12 +106,9 @@ destructor_derived_Elements(sim[ind_rc],IL_ELEMENT);
 	ind_rc = 1;
 	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc]); // destructed
 	convert_to_Test_Case_rc(sim[ind_rc],'c');
-constructor_derived_Elements(sim[ind_rc],IL_ELEMENT_SOLVER); // destructed
 	set_up_solver_geometry(sim[ind_rc]);
-destructor_derived_Elements(sim[ind_rc],IL_ELEMENT);
 	set_initial_solution_c(sim[ind_rc]);
 
-	constructor_derived_Elements(sim[ind_rc],IL_ELEMENT_SOLVER); // destructed
 	((struct Test_Case_c*)sim[ind_rc]->test_case_rc->tc)->solver_method_curr = 'e';
 
 	bool pass_all = true;
@@ -177,13 +171,11 @@ print_const_Multiarray_d(num_flux_i_cmplx_step->bv_r.ds_ds);
 	// complex
 	ind_rc = 1;
 	convert_to_Test_Case_rc(sim[ind_rc],'r');
-	destructor_derived_Elements(sim[ind_rc],IL_ELEMENT);
 	structor_simulation(&sim[ind_rc],'d',adapt_type,p,ml,0,0,NULL,type_rc[ind_rc]);
 
 	// real
 	ind_rc = 0;
 	destructor_Numerical_Flux_Input(num_flux_i);
-	destructor_derived_Elements(sim[ind_rc],IL_ELEMENT);
 	structor_simulation(&sim[ind_rc],'d',adapt_type,p,ml,0,0,NULL,type_rc[ind_rc]);
 
 	destructor_Integration_Test_Info(int_test_info);

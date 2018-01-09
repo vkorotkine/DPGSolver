@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "face_solver_adaptive.h"
 #include "element_adaptation.h"
+#include "element_solver.h"
 #include "volume_solver_adaptive.h"
 
 #include "matrix.h"
@@ -63,12 +64,11 @@ static void adapt_hp_faces
 
 void adapt_hp (struct Simulation* sim, const int adapt_strategy)
 {
+	assert(sim->volumes->name == IL_VOLUME_SOLVER);
+	assert(sim->faces->name   == IL_FACE_SOLVER);
+	assert(list_is_derived_from("solver",'e',sim));
+
 	constructor_derived_computational_elements(sim,IL_SOLVER_ADAPTIVE); // destructed
-/** \todo Remove the constructor/destructor of derived elements within the solver functions.
- *  Likely directly derive the adaptive solver element at the start of the solve and include all required adaptation
- *  operators in a single element. Or form an adaptive solver element from multiple other elements and access each
- *  through the appropriate pointer.
- */
 
 	mark_volumes_to_adapt(sim,adapt_strategy);
 	adapt_hp_volumes(sim);
@@ -243,7 +243,6 @@ static void update_hp_members_faces (const struct Simulation* sim)
 
 static void update_geometry_volumes (struct Simulation* sim)
 {
-	constructor_derived_Elements(sim,IL_ELEMENT_GEOMETRY);
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) curr;
 		struct Solver_Volume* s_vol            = (struct Solver_Volume*) curr;
@@ -263,12 +262,10 @@ static void update_geometry_volumes (struct Simulation* sim)
 			break;
 		}
 	}
-	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
 static void update_geometry_faces (struct Simulation* sim)
 {
-	constructor_derived_Elements(sim,IL_ELEMENT_GEOMETRY);
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) curr;
 		struct Solver_Face* s_face            = (struct Solver_Face*) curr;
@@ -288,12 +285,10 @@ static void update_geometry_faces (struct Simulation* sim)
 			break;
 		}
 	}
-	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
 static void project_solution_volumes (struct Simulation* sim)
 {
-	constructor_derived_Elements(sim,IL_ELEMENT_ADAPTATION);
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) curr;
 
@@ -311,12 +306,10 @@ static void project_solution_volumes (struct Simulation* sim)
 		}
 
 	}
-	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
 static void project_solution_faces (struct Simulation* sim)
 {
-	constructor_derived_Elements(sim,IL_ELEMENT_ADAPTATION);
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) curr;
 
@@ -334,7 +327,6 @@ static void project_solution_faces (struct Simulation* sim)
 		}
 
 	}
-	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
 // Level 2 ********************************************************************************************************** //
@@ -448,7 +440,7 @@ static void compute_projection_p_volume (struct Adaptive_Solver_Volume* a_s_vol,
 {
 	const struct Volume* vol    = (struct Volume*) a_s_vol;
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) a_s_vol;
-	const struct Adaptation_Element* a_e = (struct Adaptation_Element*) vol->element;
+	const struct Adaptation_Element* a_e = &((struct Solver_Element*)vol->element)->a_e;
 
 	const int p_i = a_s_vol->p_ref_prev,
 	          p_o = s_vol->p_ref;
@@ -474,7 +466,7 @@ static void compute_projection_p_face (struct Adaptive_Solver_Face* a_s_face, co
 	const struct Face* face    = (struct Face*) a_s_face;
 	struct Solver_Face* s_face = (struct Solver_Face*) a_s_face;
 	const struct Volume* vol   = face->neigh_info[0].volume;
-	const struct Adaptation_Element* a_e = (struct Adaptation_Element*) vol->element;
+	const struct Adaptation_Element* a_e = &((struct Solver_Element*)vol->element)->a_e;
 
 	const struct Multiarray_d* nf_coef_p = s_face->nf_coef;
 	if (compute_size(nf_coef_p->order,nf_coef_p->extents) > 0) {

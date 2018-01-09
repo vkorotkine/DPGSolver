@@ -58,7 +58,7 @@ void set_sol_free_stream_T (const struct Simulation* sim, struct Solution_Contai
 	struct Multiarray_T* sol = constructor_sol_free_stream(xyz,sim); // destructed
 	destructor_const_Multiarray_R(xyz);
 
-	update_Solution_Container_sol_T(&sol_cont,sol);
+	update_Solution_Container_sol_T(&sol_cont,sol,sim);
 	destructor_Multiarray_T(sol);
 }
 

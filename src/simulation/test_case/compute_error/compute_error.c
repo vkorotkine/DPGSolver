@@ -31,7 +31,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "computational_elements.h"
-#include "element_error.h"
+#include "element_solution.h"
+#include "element_solver.h"
 #include "volume_solver.h"
 
 #include "const_cast.h"
@@ -95,9 +96,7 @@ void output_error (const struct Simulation* sim)
 {
 	assert(sim->volumes->name == IL_VOLUME_SOLVER);
 	assert(sim->faces->name   == IL_FACE_SOLVER);
-
-	constructor_derived_Elements((struct Simulation*)sim,IL_ELEMENT_SOLUTION);
-	constructor_derived_Elements((struct Simulation*)sim,IL_ELEMENT_ERROR);
+	assert(list_is_derived_from("solver",'e',sim));
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	struct Error_CE* error_ce = test_case->constructor_Error_CE(sim);
@@ -106,9 +105,6 @@ void output_error (const struct Simulation* sim)
 	output_errors_global(error_ce,sim);
 
 	destructor_Error_CE(error_ce);
-
-	destructor_derived_Elements((struct Simulation*)sim,IL_ELEMENT_SOLUTION);
-	destructor_derived_Elements((struct Simulation*)sim,IL_ELEMENT);
 }
 
 struct Error_CE* constructor_Error_CE (struct Error_CE_Helper* e_ce_h, const struct Simulation* sim)
@@ -379,11 +375,11 @@ static void destructor_Solver_Volume_exact (struct Solver_Volume* s_vol_ex)
 
 static void set_Solver_Volume_exact (struct Solver_Volume* s_vol_ex, struct Solver_Volume* s_vol)
 {
-	struct Volume* b_vol_ex = (struct Volume*) s_vol_ex,
-	             * b_vol    = (struct Volume*) s_vol;
+	struct Volume* vol_ex = (struct Volume*) s_vol_ex,
+	             * vol    = (struct Volume*) s_vol;
 
-	const_cast_b(&b_vol_ex->curved,b_vol->curved);
-	const_cast_const_Element(&b_vol_ex->element,b_vol->element);
+	const_cast_b(&vol_ex->curved,vol->curved);
+	const_cast_const_Element(&vol_ex->element,vol->element);
 
 	const_cast_i(&s_vol_ex->p_ref,s_vol->p_ref);
 	const_constructor_move_const_Multiarray_d(&s_vol_ex->geom_coef,s_vol->geom_coef);
@@ -407,12 +403,12 @@ static double compute_volume (const struct Solver_Volume* s_vol)
 
 static const struct const_Vector_d* constructor_w_detJ (const struct Solver_Volume* s_vol)
 {
-	struct Volume* b_vol = (struct Volume*)s_vol;
-	struct Error_Element* e = (struct Error_Element*) b_vol->element;
+	struct Volume* vol = (struct Volume*)s_vol;
+	const struct Solution_Element* s_e = &((struct Solver_Element*)vol->element)->s_e;
 
-	const int curved = b_vol->curved,
+	const int curved = vol->curved,
 	          p      = s_vol->p_ref;
-	const struct const_Vector_d* w_vc = get_const_Multiarray_Vector_d(e->w_vc[curved],(ptrdiff_t[]){0,0,p,p});
+	const struct const_Vector_d* w_vc = get_const_Multiarray_Vector_d(s_e->w_vc[curved],(ptrdiff_t[]){0,0,p,p});
 	const struct const_Vector_d jacobian_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
 	assert(w_vc->ext_0 == jacobian_det_vc.ext_0);
 

@@ -67,8 +67,7 @@ void solve_for_solution (struct Simulation* sim)
 {
 	assert(sim->volumes->name == IL_VOLUME_SOLVER);
 	assert(sim->faces->name   == IL_FACE_SOLVER);
-
-	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER); // destructed
+	assert(list_is_derived_from("solver",'e',sim));
 
 	set_up_solver_geometry(sim);
 	set_initial_solution(sim);
@@ -89,8 +88,6 @@ void solve_for_solution (struct Simulation* sim)
 		EXIT_ERROR("Unsupported: %d\n",test_case->solver_proc);
 		break;
 	}
-
-	destructor_derived_Elements(sim,IL_ELEMENT);
 }
 
 double compute_rhs (const struct Simulation* sim)

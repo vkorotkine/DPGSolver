@@ -121,8 +121,7 @@ void compute_geometry_volume_T (struct Solver_Volume_T* s_vol, const struct Simu
 	const char op_format = 'd';
 
 	struct Volume* vol = (struct Volume*) s_vol;
-	const struct Solver_Element* s_e   = (struct Solver_Element*) vol->element;
-	const struct Geometry_Element* g_e = &s_e->g_e;
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
 
 	compute_geom_coef_fptr_T compute_geom_coef = set_fptr_geom_coef_T(sim->domain_type,vol->curved);
 	compute_geom_coef(sim,s_vol);
@@ -183,8 +182,7 @@ void compute_geometry_face_T (struct Solver_Face_T* face, struct Simulation *sim
 	struct Volume* vol            = base_face->neigh_info[0].volume;
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) vol;
 
-	const struct Solver_Element* s_e   = (struct Solver_Element*) vol->element;
-	const struct Geometry_Element* g_e = &s_e->g_e;
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
 	struct const_Element* e            = (struct const_Element*) g_e;
 
 	struct Ops {
@@ -497,8 +495,7 @@ static const struct const_Multiarray_R* constructor_xyz_s_ho
 	const char op_format = 'd';
 
 	struct Volume* vol = (struct Volume*) s_vol;
-	const struct Solver_Element* s_e   = (struct Solver_Element*) vol->element;
-	const struct Geometry_Element* g_e = &s_e->g_e;
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
 
 	const bool curved = vol->curved;
 	const int p       = s_vol->p_ref;
@@ -519,8 +516,7 @@ static const struct const_Multiarray_R* constructor_geom_coef_ho
 	const char op_format = 'd';
 
 	struct Volume* vol = (struct Volume*) s_vol;
-	const struct Solver_Element* s_e   = (struct Solver_Element*) vol->element;
-	const struct Geometry_Element* g_e = &s_e->g_e;
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
 
 	const int p = s_vol->p_ref;
 

@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_elements.h"
 
+#include "multiarray.h"
+
 #include "element_operators.h"
 #include "element_operators_tp.h"
 #include "multiarray_operator.h"
@@ -83,6 +85,9 @@ void destructor_derived_Solution_Element (struct Element* element_ptr)
 	destructor_Multiarray2_Operator_conditional(element->cv0_vg_fc);
 
 	destructor_Multiarray_Operator_conditional(element->vc0_ff_ff);
+
+	destructor_const_Multiarray_Vector_d(element->w_vc[0]);
+	destructor_const_Multiarray_Vector_d(element->w_vc[1]);
 
 	destructor_Multiarray2_Operator_conditional(element->cv0_vg_vf);
 	destructor_Multiarray2_Operator_conditional(element->vv0_vm_vf);
@@ -201,8 +206,10 @@ static void constructor_derived_Solution_Element_tp (struct Element* element_ptr
 static void constructor_derived_Solution_Element_common (struct Element* element_ptr, const struct Simulation* sim)
 {
 	struct Solution_Element* e = (struct Solution_Element*) element_ptr;
+	struct const_Element* b_e  = (struct const_Element*)e;
 
-	struct const_Element* b_e = (struct const_Element*)e;
+	e->w_vc[0] = constructor_operators_w("vcs","vcs","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
+	e->w_vc[1] = constructor_operators_w("vcc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
 
 	switch (sim->method) {
 	case METHOD_DG:
