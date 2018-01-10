@@ -35,4 +35,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_operators.h"
 #include "undef_templates_face_solver.h"
 
+/** \brief Return whether the input boundary condition represents a curved boundary.
+ *  \return `true` if yes; `false` otherwise. */
+bool is_bc_curved
+	(const int bc ///< The value of the boundary condition. Options: see \ref definitions_bc.h.
+	);
+
 #endif // DPG__boundary_h__INCLUDED

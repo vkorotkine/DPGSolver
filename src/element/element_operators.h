@@ -58,6 +58,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  The optional straight/curved parameters **must** be replaced with 'A'll if not present when passed to the
  *  constructor function.
  *
+ *  In cases where the dimension of the first computational element type ([1]) is smaller than that of the second
+ *  computational element type ([4]), the nodes used for the operator are determined according to a projection of the
+ *  higher-dimensional nodes to the lower-dimensional face/edge.
+ *
  *  Each operator also has an associated range with a maximum order of \ref OP_ORDER_MAX with the following parameters
  *  (d)(ce_o)(ce_i)[h_o][h_i][p_o][p_i], where entries in square and round brackets are once again required and
  *  optional, respectively.

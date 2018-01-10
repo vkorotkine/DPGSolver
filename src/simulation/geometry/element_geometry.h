@@ -39,6 +39,12 @@ struct Geometry_Element {
 	const struct Multiarray_Operator* vv0_vms_fc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vmc_fc[2]; ///< See notation in \ref element_operators.h.
 
+	// Blending operators
+	const struct Multiarray_Operator* vv0_fv_vgc;  ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_fgc_vgc; ///< See notation in \ref element_operators.h.
+
+	const struct Multiarray_Operator* vv0_vgc_fgc; ///< See notation in \ref element_operators.h.
+
 	// Tensor-product sub-operators.
 	const struct Multiarray_Operator* cv0_vg_vc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vg_vm[2]; ///< See notation in \ref element_operators.h.
@@ -47,6 +53,8 @@ struct Geometry_Element {
 	const struct Multiarray_Operator* cv0_vgc_vcs; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vms_vcc; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vmc_vcs; ///< See notation in \ref element_operators.h.
+
+	const struct Multiarray_Operator* vv0_vgc_vgc; ///< See notation in \ref element_operators.h.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

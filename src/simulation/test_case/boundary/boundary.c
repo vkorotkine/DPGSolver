@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "boundary.h"
 
+#include "definitions_bc.h"
+
 #include "multiarray.h"
 
 #include "element_solver.h"
@@ -39,6 +41,11 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
+
+bool is_bc_curved (const int bc)
+{
+	return ( bc / BC_STEP_SC > 2 );
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

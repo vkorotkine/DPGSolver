@@ -1045,15 +1045,19 @@ static const struct const_Nodes* constructor_const_Nodes_vertices (const int d, 
 	switch (s_type) {
 	case ST_TP: {
 		static const double rst_LINE[] = { -1.0,  1.0, };
-//		static const double rst_QUAD[] = { -1.0,  1.0, -1.0,  1.0,
-//		                                   -1.0, -1.0,  1.0,  1.0, };
-//		static const double rst_HEX[]  = { -1.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0,  1.0,
-//		                                   -1.0, -1.0,  1.0,  1.0, -1.0, -1.0,  1.0,  1.0,
-//		                                   -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0,  1.0, };
+		static const double rst_QUAD[] = { -1.0,  1.0, -1.0,  1.0,
+		                                   -1.0, -1.0,  1.0,  1.0, };
+		static const double rst_HEX[]  = { -1.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0,  1.0,
+		                                   -1.0, -1.0,  1.0,  1.0, -1.0, -1.0,  1.0,  1.0,
+		                                   -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0,  1.0, };
 		if (d == 0)
 			rst = NULL;
 		else if (d == 1)
 			rst = rst_LINE;
+		else if (d == 2)
+			rst = rst_QUAD;
+		else if (d == 3)
+			rst = rst_HEX;
 		else
 			EXIT_UNSUPPORTED;
 		break;

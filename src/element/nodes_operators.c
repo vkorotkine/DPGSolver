@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_element_operators.h"
 
 #include "matrix.h"
+#include "multiarray.h"
 #include "vector.h"
 
 #include "bases.h"
@@ -139,18 +140,21 @@ const struct const_Nodes* constructor_const_Nodes_h
 	nodes->p           = p_io;
 	nodes->node_type   = node_type_io;
 
-	const char ce_i = op_io[OP_IND_I].ce,
-	           ce_o = op_io[OP_IND_O].ce;
-	if ((ce_i == ce_o) || (ce_i == 'v')) { // ((vv || ff || ee) || (vf || ve))
+	const char ce_i  = op_io[OP_IND_I].ce,
+	           ce_o  = op_io[OP_IND_O].ce,
+	           ce_io = op_io[ind_io].ce;
+/// \todo Attempt to remove one of the (potentially redundant ce_x == ce_y) tests in the if condition(s) below.
+	if ((ce_i == ce_o) || (ce_i == 'v') || (ce_i == ce_io)) { // ((vv || ff || ee) || (vf || ve))
 		// Compute the output rst coordinates by multiplying the barycentric coordinates of the nodes with the
 		// appropriate (sub)set of reference element vertices.
-		const char ce_n = (ce_i == ce_o ? 'v' : op_io[ind_io].ce);
+		const char ce_n = ((ce_i == ce_o) || (ce_i == ce_io) ? 'v' : op_io[ind_io].ce);
 		const struct const_Matrix_d* rst_ve_io =
 			constructor_rst_ve(s_type_i,d_i,d_io,ind_h_io,ind_ce_io,ce_n,sim); // destructed
 		nodes->rst = constructor_mm_Matrix_d('N','N',1.0,cv0_vvs_vXX,rst_ve_io,'C'); // keep
 		destructor_const_Matrix_d(rst_ve_io);
 	} else if (ce_o == 'v') { // (fv || ev)
-		nodes->rst = constructor_rst_proj(element->type,d_i,d_io,ind_h_io,ind_ce_io,ce_i,cv0_vvs_vXX,sim); // keep
+	      const int ind_ce_i = op_io[OP_IND_I].ce_op;
+		nodes->rst = constructor_rst_proj(element->type,d_i,d_io,ind_h_io,ind_ce_i,ce_i,cv0_vvs_vXX,sim); // keep
 	} else { // (fe || ef)
 		EXIT_ERROR("Add support: %c %c\n",ce_i,ce_o);
 	}
@@ -364,17 +368,34 @@ static struct Matrix_d* constructor_rst_proj
 	(const int e_type, const int d_i, const int d_io, const int ind_h, const int ind_ce, const char ce,
 	 const struct const_Matrix_d* b_coords, const struct Simulation* sim)
 {
-EXIT_ERROR("Ensure that all is working as expected.\n");
-	struct Matrix_d* rst_proj = NULL;
+	assert(d_io > d_i);
+	assert(ce == 'f' || ce == 'e');
 
-	const int s_type = compute_super_from_elem_type(e_type);
+	const ptrdiff_t n_n = b_coords->ext_0;
+	struct Matrix_d* rst_proj = constructor_zero_Matrix_d('C',n_n,d_i); // returned
+
+	const struct const_Element*const element = get_element_by_type(sim->elements,e_type);
+
+	const struct const_Vector_i*const b_ve = ( ce == 'f' ? element->f_ve->data[ind_ce] : element->e_ve->data[ind_ce] );
+
+	const int s_type    = compute_super_from_elem_type(e_type),
+	          e_type_ce = compute_elem_type_sub_ce(e_type,ce,ind_ce),
+	          s_type_ce = compute_super_from_elem_type(e_type_ce);
 	if ((strcmp(sim->geom_blending[s_type],"gordon_hall") == 0) ||
-	    (strcmp(sim->geom_blending[s_type],"szabo_babuska_gen") == 0))
-	{
-// Possibly need modifications to allow for fine to coarse in constructor_rst_ve's ind_ce parameter.
-		const struct const_Matrix_d* rst_ve_proj = constructor_rst_ve(s_type,d_i,d_io,ind_h,ind_ce,ce,sim); // destructed
-		rst_proj = constructor_mm_NN1C_Matrix_d(b_coords,rst_ve_proj); // returned
-		destructor_const_Matrix_d(rst_ve_proj);
+	    (strcmp(sim->geom_blending[s_type],"szabo_babuska_gen") == 0)) {
+		assert(ind_h == 0); // Ensure that all is working as expected otherwise.
+		const struct const_Matrix_d* rst_ve_d_ce = constructor_rst_ve(s_type_ce,d_i,d_i,ind_h,0,'v',sim); // destructed
+
+		for (int n = 0; n < n_n; ++n) {
+			const double*const data_b_coords = get_row_const_Matrix_d(n,b_coords);
+			for (int d = 0; d < d_i; ++d) {
+				const double*const data_rst_ve = get_col_const_Matrix_d(d,rst_ve_d_ce);
+				double*const data_rst_proj     = get_col_Matrix_d(d,rst_proj);
+				for (int ve = 0; ve < b_ve->ext_0; ++ve)
+					data_rst_proj[n] += data_b_coords[b_ve->data[ve]]*data_rst_ve[ve];
+			}
+		}
+		destructor_const_Matrix_d(rst_ve_d_ce);
 	} else if (strcmp(sim->geom_blending[s_type],"scott") == 0) {
 		EXIT_ADD_SUPPORT;
 	} else if ((strcmp(sim->geom_blending[s_type],"lenoir") == 0) ||
@@ -595,6 +616,20 @@ static const struct const_Matrix_d* constructor_b_coords (const int e_type)
 			  0.0 , 0.5 , 0.5 ,
 			  0.0 , 0.0 , 1.0 ,};
 		break;
+	case QUAD:
+		ext_0 = 9;
+		ext_1 = 4;
+		b_coords = (double[])
+			{ 1.0 , 0.0 , 0.0 , 0.0 ,
+			  0.5 , 0.5 , 0.0 , 0.0 ,
+			  0.0 , 1.0 , 0.0 , 0.0 ,
+			  0.5 , 0.0 , 0.5 , 0.0 ,
+			  0.25, 0.25, 0.25, 0.25,
+			  0.0 , 0.5 , 0.0 , 0.5 ,
+			  0.0 , 0.0 , 1.0 , 0.0 ,
+			  0.0 , 0.0 , 0.5 , 0.5 ,
+			  0.0 , 0.0 , 0.0 , 1.0 ,};
+		break;
 	case TET:
 		ext_0 = 11;
 		ext_1 = 4;
@@ -747,6 +782,53 @@ static const struct const_Vector_i* constructor_ind_h_b_coords
 				 },
 				 {{0,2,}, // f2
 				  {0,1,}, {1,2,},
+				 },
+				};
+
+			ext_0 = n_ve_ce;
+			ind_h_b_coords = ind_h_b_coords_all[ind_ce][ind_h];
+			break;
+		} default:
+			EXIT_ERROR("Unsupported: %c.\n",ce);
+			break;
+		}
+		break;
+	case QUAD:
+		switch (ce) {
+		case 'v': {
+			// Should only be used for operators from lower to higher dimensional computational elements and thus
+			// not be required for h-refinement.
+			enum { n_ve_ce = 4, n_ref_max = 1, };
+			assert(n_ve_ce == element->n_ve);
+			assert(ind_h == 0);
+
+			static const int ind_h_b_coords_all[n_ref_max][n_ve_ce] =
+				{{ 0, 2, 6, 8,},
+				};
+
+			ext_0 = n_ve_ce;
+			ind_h_b_coords = ind_h_b_coords_all[ind_h];
+			break;
+		} case 'f': { // fallthrough
+		} case 'e': {
+			enum { n_ve_ce = 2, n_ref_max = 3, n_ce_max = 4, };
+			assert(n_ref_max == element->n_ref_max_f);
+			assert(n_ce_max == element->n_f);
+			assert(ind_h < n_ref_max);
+			assert(ind_ce < n_ce_max);
+
+			static const int ind_h_b_coords_all[n_ce_max][n_ref_max][n_ve_ce] =
+				{{{0,6,}, // f0
+				  {0,3,}, {3,6,},
+				 },
+				 {{2,8,}, // f1
+				  {2,5,}, {5,8,},
+				 },
+				 {{0,2,}, // f2
+				  {0,1,}, {1,2,},
+				 },
+				 {{6,8,}, // f3
+				  {6,7,}, {7,8,},
 				 },
 				};
 
