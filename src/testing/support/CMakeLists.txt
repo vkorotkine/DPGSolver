@@ -12,4 +12,4 @@ set	(LIBS_DEPEND
 	)
 
 add_library(Test_Support STATIC ${SOURCE})
-target_link_libraries(Test_Support PRIVATE ${LIBS_DEPEND})
+target_link_libraries(Test_Support ${LIBS_DEPEND})

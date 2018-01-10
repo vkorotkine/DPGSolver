@@ -83,6 +83,11 @@ struct Vector_T* constructor_copy_Vector_T (const struct Vector_T*const src)
 	return constructor_move_Vector_T_T(ext_0,true,data);
 }
 
+const struct const_Vector_T* constructor_copy_const_Vector_T (const struct const_Vector_T*const src)
+{
+	return (struct const_Vector_T*) constructor_copy_Vector_T((struct Vector_T*)src);
+}
+
 struct Vector_T* constructor_copy_Vector_T_T (const ptrdiff_t ext_0, const Type*const data_src)
 {
 	Type* data = malloc((size_t)ext_0 * sizeof *data); // keep

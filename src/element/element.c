@@ -102,6 +102,7 @@ void destructor_const_Elements (const struct const_Intrusive_List* elements)
 void destructor_Element (struct Element* element)
 {
 	destructor_Multiarray_Vector_i(element->f_ve);
+	destructor_Multiarray_Vector_i(element->e_ve);
 	destructor_Multiarray_d(element->normals);
 }
 
@@ -366,7 +367,9 @@ struct Elem_info {
 	    n_e,     ///< Defined in \ref Element.
 	    n_f,     ///< Defined in \ref Element.
 	    *n_f_ve, ///< The number of vertices on each face.
-	    *f_ve;   ///< Defined in \ref Element.
+	    *f_ve,   ///< Defined in \ref Element.
+	    *n_e_ve, ///< The number of vertices on each edge.
+	    *e_ve;   ///< Defined in \ref Element.
 
 	int n_ref_max_v, ///< Defined in \ref Element.
 	    n_ref_max_f; ///< Defined in \ref Element.
@@ -401,6 +404,8 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_f    = 0;
 		e_info.n_f_ve = NULL;
 		e_info.f_ve   = NULL;
+		e_info.n_e_ve = e_info.n_f_ve;
+		e_info.e_ve   = e_info.f_ve;
 
 		e_info.n_ref_max_v = 1;
 		e_info.n_ref_max_f = 0;
@@ -413,6 +418,8 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_f    = 2;
 		e_info.n_f_ve = (int[]) {1, 1,};
 		e_info.f_ve   = (int[]) {0, 1,};
+		e_info.n_e_ve = e_info.n_f_ve;
+		e_info.e_ve   = e_info.f_ve;
 
 		e_info.n_ref_max_v = 3;
 		e_info.n_ref_max_f = 1;
@@ -425,6 +432,8 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_f    = 3;
 		e_info.n_f_ve = (int[]) {2, 2, 2,};
 		e_info.f_ve   = (int[]) {1,2, 0,2, 0,1,};
+		e_info.n_e_ve = e_info.n_f_ve;
+		e_info.e_ve   = e_info.f_ve;
 
 		e_info.n_ref_max_v = 5;
 		e_info.n_ref_max_f = 3;
@@ -437,6 +446,8 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_f    = 4;
 		e_info.n_f_ve = (int[]) {2, 2, 2, 2,};
 		e_info.f_ve   = (int[]) {0,2, 1,3, 0,1, 2,3,};
+		e_info.n_e_ve = e_info.n_f_ve;
+		e_info.e_ve   = e_info.f_ve;
 
 		e_info.n_ref_max_v = 5;
 		e_info.n_ref_max_f = 3;
@@ -449,6 +460,8 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_f    = 4;
 		e_info.n_f_ve = (int[]) {3, 3, 3, 3,};
 		e_info.f_ve   = (int[]) {2,3,1, 2,3,0, 0,1,3, 0,1,2,};
+		e_info.n_e_ve = (int[]) {2, 2, 2, 2, 2, 2,};
+		e_info.e_ve   = (int[]) {1,2, 0,2, 0,1, 0,3, 1,3, 2,3,};
 
 		e_info.n_ref_max_v = 9;
 		e_info.n_ref_max_f = 5;
@@ -461,6 +474,8 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_f    = 6;
 		e_info.n_f_ve = (int[]) {4, 4, 4, 4, 4, 4,};
 		e_info.f_ve   = (int[]) {0,2,4,6, 1,3,5,7, 0,1,4,5, 2,3,6,7, 0,1,2,3, 4,5,6,7,};
+		e_info.n_e_ve = (int[]) {2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,};
+		e_info.e_ve   = (int[]) {0,1, 2,3, 4,5, 6,7, 0,2, 1,3, 4,6, 5,7, 0,4, 1,5, 2,6, 3,7,};
 
 		e_info.n_ref_max_v = 9;
 		e_info.n_ref_max_f = 5;
@@ -473,6 +488,8 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_f    = 5;
 		e_info.n_f_ve = (int[]) {4, 4, 4, 3, 3,};
 		e_info.f_ve   = (int[]) {1,2,4,5, 0,2,3,5, 0,1,3,4, 0,1,2, 3,4,5,};
+		e_info.n_e_ve = (int[]) {2, 2, 2, 2, 2, 2, 2, 2, 2,};
+		e_info.e_ve   = (int[]) {1,2, 0,2, 0,1, 4,5, 3,5, 3,4, 0,3, 1,4, 2,5,};
 
 		e_info.n_ref_max_v = 9;
 		e_info.n_ref_max_f = 5;
@@ -485,6 +502,8 @@ static struct Element* constructor_Element (const int elem_type)
 		e_info.n_f    = 5;
 		e_info.n_f_ve = (int[]) {3, 3, 3, 3, 4,};
 		e_info.f_ve   = (int[]) {0,2,4, 1,3,4, 0,1,4, 2,3,4, 0,1,2,3,};
+		e_info.n_e_ve = (int[]) {2, 2, 2, 2, 2, 2, 2, 2,};
+		e_info.e_ve   = (int[]) {0,2, 1,3, 0,1, 2,3, 0,4, 1,4, 2,4, 3,4,};
 
 		e_info.n_ref_max_v = 11;
 		e_info.n_ref_max_f = 5;
@@ -494,7 +513,8 @@ static struct Element* constructor_Element (const int elem_type)
 		break;
 	}
 
-	const ptrdiff_t n_f = e_info.n_f;
+	const ptrdiff_t n_f = e_info.n_f,
+	                n_e = e_info.n_e;
 
 	struct Element* element = calloc(1,sizeof *element); // returned
 
@@ -508,6 +528,7 @@ static struct Element* constructor_Element (const int elem_type)
 	element->n_ref_max_v = e_info.n_ref_max_v;
 	element->n_ref_max_f = e_info.n_ref_max_f;
 	element->f_ve = constructor_copy_Multiarray_Vector_i_i(e_info.f_ve,e_info.n_f_ve,1,&n_f); // destructed
+	element->e_ve = constructor_copy_Multiarray_Vector_i_i(e_info.e_ve,e_info.n_e_ve,1,&n_e); // destructed
 
 	element->normals = constructor_reference_normals(elem_type,&e_info); // destructed
 

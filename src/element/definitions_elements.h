@@ -55,6 +55,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NVEMAX          8  ///< (MAX)imum (N)umber of (VE)rtices for an element. "HEX"
 
 // Face
+#define NEMAX           12 ///< (MAX)imum (N)umber of (E)dges.                                 "HEX"
 #define NFMAX           6  ///< (MAX)imum (N)umber of (F)aces.                                 "HEX"
 #define NFVEMAX         4  ///< (MAX)imum (N)unber of (F)ace (VE)rtices.                       "QUAD"
 #define NFREFMAX        9  ///< (MAX)imum (N)umber of (F)ACE (REF)inements.                    "QUAD"

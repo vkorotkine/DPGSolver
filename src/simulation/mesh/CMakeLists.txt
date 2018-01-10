@@ -14,4 +14,4 @@ set	(LIBS_DEPEND
 	)
 
 add_library(Mesh ${SOURCE})
-target_link_libraries(Mesh PRIVATE ${LIBS_DEPEND})
+target_link_libraries(Mesh ${LIBS_DEPEND})

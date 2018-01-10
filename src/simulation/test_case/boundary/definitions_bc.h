@@ -24,6 +24,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *	\note The value of these constants must be identical to those in the $ROOT/input/meshes/parameters.geo file.
  */
 
+#define BC_INVALID -1 ///< Value to indicate an invalid boundary condition.
+
 ///\{ \name The step in the boundary conditions between straight and curved BCs.
 #define BC_STEP_SC 10000
 ///\}

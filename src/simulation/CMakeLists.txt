@@ -13,9 +13,10 @@ set	(LIBS_DEPEND
 	 ${MPI_C_LIBRARIES}
 	 Computational_Elements
 	 Mesh
+	 Solvers
 	 Test_Case
 	)
 
 set(LIB Simulation)
 add_library(${LIB} STATIC ${SOURCE})
-target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
+target_link_libraries(${LIB} ${LIBS_DEPEND})

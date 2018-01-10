@@ -44,6 +44,12 @@ struct Volume {
 
 	const struct Face*const faces[NFMAX][NSUBFMAX]; ///< Array of pointers to the neighbouring \ref Face containers.
 
+	/// Boundary conditions of each of the volume faces. Equal to \ref BC_INVALID for non-boundary faces.
+	const struct const_Vector_i* bc_faces;
+
+	/// Boundary conditions of each of the volume edges. Equal to \ref BC_INVALID for non-boundary edges.
+	const struct const_Vector_i* bc_edges;
+
 	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
 };
 

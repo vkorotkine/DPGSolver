@@ -13,4 +13,4 @@ set	(LIBS_DEPEND
 	)
 
 add_library(Compute_Error STATIC ${SOURCE})
-target_link_libraries(Compute_Error PRIVATE ${LIBS_DEPEND})
+target_link_libraries(Compute_Error ${LIBS_DEPEND})

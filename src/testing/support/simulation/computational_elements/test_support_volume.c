@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_support_volume.h"
 
 #include "test_support_multiarray.h"
+#include "test_support_vector.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 #include "matrix.h"
+#include "vector.h"
 
 #include "intrusive.h"
 #include "volume.h"
@@ -44,9 +46,18 @@ struct Volume* constructor_Volume
 	read_skip_const_i_1(line,1,&volume->index,1);
 	read_skip_file_const_b("boundary",file,&volume->boundary);
 	read_skip_file_const_b("curved",file,&volume->curved);
+
 	skip_lines(file,1);
 	struct Multiarray_d* xyz_ve = constructor_file_Multiarray_d(file,true); // keep
 	const_constructor_move_Multiarray_d(&volume->xyz_ve,xyz_ve);
+
+	skip_lines(file,1);
+	struct Vector_i* bc_faces = constructor_file_Vector_i(file,true); // keep
+	const_constructor_move_Vector_i(&volume->bc_faces,bc_faces);
+
+	skip_lines(file,1);
+	struct Vector_i* bc_edges = constructor_file_Vector_i(file,true); // keep
+	const_constructor_move_Vector_i(&volume->bc_edges,bc_edges);
 
 	int elem_type;
 	read_skip_file_i("elem_type",file,&elem_type);

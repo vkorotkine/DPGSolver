@@ -15,4 +15,4 @@ set	(LIBS_DEPEND
 	)
 
 add_library(Test_Case ${SOURCE})
-target_link_libraries(Test_Case PRIVATE ${LIBS_DEPEND})
+target_link_libraries(Test_Case ${LIBS_DEPEND})

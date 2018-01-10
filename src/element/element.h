@@ -44,6 +44,7 @@ struct Element {
 	    n_ref_max_e; ///< Maximum number of edge h-refinements.
 
 	struct Multiarray_Vector_i* f_ve; ///< The correspondence between the (f)aces and (ve)rtices.
+	struct Multiarray_Vector_i* e_ve; ///< The correspondence between the (e)dges and (ve)rtices.
 
 	struct Multiarray_d* normals; ///< The reference unit normal vectors for each of the element faces.
 
@@ -71,6 +72,7 @@ struct const_Element {
 	          n_ref_max_e; ///< Defined in \ref Element.
 
 	const struct const_Multiarray_Vector_i*const f_ve; ///< Defined in \ref Element.
+	const struct const_Multiarray_Vector_i*const e_ve; ///< Defined in \ref Element.
 
 	const struct const_Multiarray_d* normals; ///< Defined in \ref Element.
 

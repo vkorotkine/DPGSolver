@@ -22,6 +22,7 @@ set	(SOURCE
 set	(LIBS_DEPEND
 	 Test_Complex_Boundary
 	 Test_Complex_Flux
+	 Test_Complex_Geometry
 	 Test_Support_Containers
 	 Test_Support_Computational_Elements
 	)

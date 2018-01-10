@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_zero_Vector_T constructor_zero_Vector_i
 
 #define constructor_copy_Vector_T         constructor_copy_Vector_i
+#define constructor_copy_const_Vector_T   constructor_copy_const_Vector_i
 #define constructor_copy_Vector_T_T       constructor_copy_Vector_i_i
 #define constructor_copy_const_Vector_T_T constructor_copy_const_Vector_i_i
 

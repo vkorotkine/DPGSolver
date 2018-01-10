@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_support.h"
 #include "test_support_intrusive.h"
 #include "test_support_multiarray.h"
+#include "test_support_vector.h"
 
 #include "macros.h"
 #include "definitions_mesh.h"
@@ -134,6 +135,8 @@ static bool compare_members_fe
 		    (volume->boundary != volume_test->boundary)                                 ||
 		    (volume->curved != volume_test->curved)                                     ||
 		    (diff_const_Multiarray_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH) != 0) ||
+		    (diff_const_Vector_i(volume->bc_faces,volume_test->bc_faces) != 0) ||
+		    (diff_const_Vector_i(volume->bc_edges,volume_test->bc_edges) != 0) ||
 		    (volume->element->type != volume_test->element->type))
 		{
 			pass = false;
@@ -147,6 +150,10 @@ static bool compare_members_fe
 				printf("curved: %d %d\n",volume->curved,volume_test->curved);
 			if (diff_const_Multiarray_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH) != 0)
 				print_diff_const_Multiarray_d(volume->xyz_ve,volume_test->xyz_ve,NODETOL_MESH);
+			if (diff_const_Vector_i(volume->bc_faces,volume_test->bc_faces))
+				print_diff_const_Vector_i(volume->bc_faces,volume_test->bc_faces);
+			if (diff_const_Vector_i(volume->bc_edges,volume_test->bc_edges))
+				print_diff_const_Vector_i(volume->bc_edges,volume_test->bc_edges);
 			if (volume->element->type != volume_test->element->type)
 				printf("elem_type: %d %d\n",volume->element->type,volume_test->element->type);
 		}

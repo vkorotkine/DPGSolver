@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "gsl/gsl_math.h"
 
 #include "macros.h"
+#include "definitions_bc.h"
 #include "definitions_core.h"
 
 
@@ -31,8 +32,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 
 // Static function declarations ************************************************************************************* //
-
-
 
 /** \brief Version of \ref constructor_xyz_fptr_T used for the blended curved surface geometry corrections.
  *  \return See brief. */
@@ -80,6 +79,8 @@ EXIT_UNSUPPORTED;
 /// \brief Container for boundary computational element related data.
 struct Boundary_Comp_Elem_Data {
 	int n_b; ///< Number of boundary computational element entities.
+
+	const struct const_Vector_i* bc_boundaries; ///< \ref Volume::bc_edges or \ref Volume::bc_faces.
 };
 
 /** \brief Constructor for a statically allocated \ref Boundary_Comp_Elem_Data containers.
@@ -94,8 +95,8 @@ static struct Boundary_Comp_Elem_Data constructor_static_Boundary_Comp_Elem_Data
  *  \return See brief.
  *
  *  Most commonly, the base degree is equal to the input volume polynomial degree. However, for certain blending
- *  functions, notably that of Lenoir (see \ref sim::geom_blending for reference), a sequential correction from the
- *  lowest (degree 2) to desired order is required and this function returns the lowest degree.
+ *  functions, notably that of Lenoir (see \ref Simulation::geom_blending for reference), a sequential correction from
+ *  the lowest (degree 2) to desired order is required and this function returns the lowest degree.
  */
 static int compute_p_base_min
 	(const struct Solver_Volume_T*const s_vol, ///< The current volume.
@@ -123,7 +124,7 @@ UNUSED(g_e);
 
 	const int p_min = GSL_MIN(compute_p_base_min(s_vol,sim),p_geom);
 	for (int p = p_min; p <= p_geom; ++p) {
-	for (int b = 0; b < b_ce_d.n_b; ++b) {
+	for (int b = 0; b < b_ce_d.bc_boundaries->ext_0; ++b) {
 	}}
 
 EXIT_UNSUPPORTED;
@@ -139,12 +140,12 @@ static struct Boundary_Comp_Elem_Data constructor_static_Boundary_Comp_Elem_Data
 
 	struct Boundary_Comp_Elem_Data b_ce_d;
 
-	const struct const_Element*const e = vol->element;
+//	const struct const_Element*const e = vol->element;
 
 	if (ce_type == 'e') {
-		b_ce_d.n_b = e->n_e;
+		b_ce_d.bc_boundaries = vol->bc_edges;
 	} else if (ce_type == 'f') {
-		b_ce_d.n_b = e->n_f;
+		b_ce_d.bc_boundaries = vol->bc_faces;
 	} else {
 		EXIT_ERROR("Unsupported: %c\n",ce_type);
 	}

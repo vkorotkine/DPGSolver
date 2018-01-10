@@ -34,7 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *
  *  These functions serve to set the values of the geometry coordinates on curved element faces based on a given
  *  parametrization of the current geometry "patch", where a patch boundary occurs whenever there exists a region of
- *  limited geometry smoothness (i.e. below C^{\infty}).
+ *  limited geometry smoothness (i.e. below C^{infinity}).
  */
 static void set_function_pointers_blended_xyz
 	(struct Solver_Volume_T*const s_vol, ///< The current volume.
@@ -94,7 +94,7 @@ const struct const_Vector_d* get_operator__w_vc__s_e_T (const struct Solver_Volu
 static void set_function_pointers_blended_xyz (struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
 {
 	const struct Volume*const vol = (struct Volume*) s_vol;
-	if ((sim->domain_type == DOM_STRAIGHT) || !vol->boundary || !vol->curved) {
+	if ((sim->domain_type != DOM_BLENDED) || !vol->boundary || !vol->curved) {
 		s_vol->constructor_xyz_surface = NULL;
 		return;
 	}

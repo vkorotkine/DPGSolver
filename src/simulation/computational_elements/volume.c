@@ -23,9 +23,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 
 #include "macros.h"
-#include "definitions_mesh.h"
 #include "definitions_bc.h"
+#include "definitions_core.h"
 #include "definitions_intrusive.h"
+#include "definitions_mesh.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -70,8 +71,8 @@ static void destructor_Volume_link
  *  The two input vectors of vertex boundary conditions are searched for a matching boundary condition possibly subject
  *  to the constraint of looking only at curved boundary conditions.
  *
- *  \return `true` if a matching boundary condition is found for the two vertices; `false` otherwise. */
-static bool find_bc_match
+ *  \return If a matching boundary condition is found for the two vertices, its value is returned; 0 otherwise. */
+static int find_bc_match
 	(const struct const_Vector_i*const ve_bc_0, ///< Vector of boundary conditions associated with the first vertex.
 	 const struct const_Vector_i*const ve_bc_1, ///< Vector of boundary conditions associated with the second vertex.
 	 const bool curved_only                     /**< Flag indicating whether only curved boundary conditions should
@@ -177,6 +178,10 @@ struct Volume* constructor_copy_Volume
 		const_cast_const_Element(&volume->element,get_element_by_type(sim->elements,vol_i->element->type));
 	else
 		const_cast_const_Element(&volume->element,vol_i->element);
+
+	volume->bc_faces = constructor_copy_const_Vector_i(vol_i->bc_faces); // destructed
+	volume->bc_edges = constructor_copy_const_Vector_i(vol_i->bc_edges); // destructed
+
 	const_cast_b(&volume->boundary,vol_i->boundary);
 	const_cast_b(&volume->curved,vol_i->curved);
 
@@ -185,6 +190,21 @@ struct Volume* constructor_copy_Volume
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+/** \brief Constructor for \ref Volume::bc_faces.
+ *  \return See brief. */
+static const struct const_Vector_i* constructor_bc_faces
+	(const struct const_Element*const element, ///< The element associated with the volume.
+	 const struct const_Vector_i*const to_lf   ///< Current volume component of \ref Mesh_Connectivity::v_to_lf.
+	);
+
+/** \brief Constructor for \ref Volume::bc_edges.
+ *  \return See brief. */
+static const struct const_Vector_i* constructor_bc_edges
+	(const struct const_Element*const element,  ///< The element associated with the volume.
+	 const struct const_Vector_i*const ve_inds, ///< The vertex indices for the volume.
+	 const struct Mesh_Vertices*const mesh_vert ///< \ref Mesh_Vertices.
+	);
 
 /** \brief Check if the current volume is on a boundary.
  *
@@ -241,10 +261,14 @@ static struct Volume* constructor_Volume
 
 	const_cast_const_Element(&volume->element,get_element_by_type(sim->elements,vol_mi->elem_type));
 
+	volume->bc_faces = constructor_bc_faces(volume->element,vol_mi->to_lf);
+	volume->bc_edges = constructor_bc_edges(volume->element,vol_mi->ve_inds,mesh_vert);
+
+/// \todo Change the check_if_boundary/check_if_curved functions to use bc_faces/bc_edges.
 	const_cast_b(&volume->boundary,
-	                check_if_boundary_v(vol_mi->to_lf,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
+	             check_if_boundary_v(vol_mi->to_lf,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
 	const_cast_b(&volume->curved,
-	                check_if_curved_v(sim->domain_type,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
+	             check_if_curved_v(sim->domain_type,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
 
 	return volume;
 }
@@ -252,9 +276,11 @@ static struct Volume* constructor_Volume
 static void destructor_Volume_link (struct Volume* volume)
 {
 	destructor_const_Multiarray_d(volume->xyz_ve);
+	destructor_const_Vector_i(volume->bc_faces);
+	destructor_const_Vector_i(volume->bc_edges);
 }
 
-static bool find_bc_match
+static int find_bc_match
 	(const struct const_Vector_i*const ve_bc_0, const struct const_Vector_i*const ve_bc_1, const bool curved_only)
 {
 	const ptrdiff_t i_max = ve_bc_0->ext_0;
@@ -265,12 +291,69 @@ static bool find_bc_match
 			continue;
 
 		if (find_val_Vector_i(ve_bc_1,bc_0,false))
-			return true;
+			return bc_0;
 	}
-	return false;
+	return 0;
 }
 
 // Level 1 ********************************************************************************************************** //
+
+static const struct const_Vector_i* constructor_bc_faces
+	(const struct const_Element*const element, const struct const_Vector_i*const to_lf)
+{
+	struct Vector_i* bc_faces = constructor_empty_Vector_i(element->n_f); // returned
+	set_to_value_Vector_i(bc_faces,BC_INVALID);
+
+	// Check for faces on domain boundaries
+	const ptrdiff_t i_max = to_lf->ext_0;
+	for (ptrdiff_t i = 0; i < i_max; ++i) {
+		if (to_lf->data[i] > BC_STEP_SC)
+			bc_faces->data[i] = to_lf->data[i];
+	}
+
+	return (const struct const_Vector_i*) bc_faces;
+}
+
+static const struct const_Vector_i* constructor_bc_edges
+	(const struct const_Element*const element, const struct const_Vector_i*const ve_inds,
+	 const struct Mesh_Vertices*const mesh_vert)
+{
+	struct Vector_i* bc_edges = constructor_empty_Vector_i(element->n_e); // returned
+	set_to_value_Vector_i(bc_edges,BC_INVALID);
+
+	if (DIM != DMAX)
+		return (const struct const_Vector_i*) bc_edges;
+
+	const struct const_Vector_i*const ve_condition     = mesh_vert->ve_boundary;
+	const struct const_Multiarray_Vector_i*const ve_bc = mesh_vert->ve_bc;
+
+	const int n_le = element->n_e;
+	for (int le = 0; le < n_le; ++le) {
+		const struct const_Vector_i*const e_ve_e = element->e_ve->data[le];
+
+		int count_ve_condition = 0;
+
+		const struct const_Vector_i* ve_bc_V = NULL;
+
+		const int n_ve_e = (int)e_ve_e->ext_0;
+		for (int ve = 0; ve < n_ve_e; ++ve) {
+			const int ind_ve = ve_inds->data[e_ve_e->data[ve]];
+			if (ve_condition->data[ind_ve]) {
+				if (count_ve_condition++ == 0) {
+					ve_bc_V = ve_bc->data[ind_ve];
+					continue;
+				}
+
+				// Ensure that the the vertices are on the same boundary
+				const int bc = find_bc_match(ve_bc_V,ve_bc->data[ind_ve],false);
+				if (bc)
+					bc_edges->data[le] = bc;
+			}
+		}
+	}
+EXIT_ERROR("Not yet tested. Ensure that all is working as expected.\n");
+	return (const struct const_Vector_i*) bc_edges;
+}
 
 static bool check_if_boundary_v
 	(const struct const_Vector_i*const to_lf, const struct const_Multiarray_Vector_i*const f_ve,

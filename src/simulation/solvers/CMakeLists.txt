@@ -30,10 +30,11 @@ set	(SOURCE
 set	(LIBS_DEPEND
 	 ${PETSC_LIBRARIES}
 	 Boundary
+	 Post_Processing
 	 Test_Complex_Computational_Elements
 	 Test_Complex_Test_Case
 	)
 
 set (LIB Solvers)
 add_library(${LIB} STATIC ${SOURCE})
-target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
+target_link_libraries(${LIB} ${LIBS_DEPEND})

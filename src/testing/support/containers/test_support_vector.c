@@ -162,6 +162,11 @@ bool diff_const_Vector_d (const struct const_Vector_d*const a, const struct cons
 	return diff_Vector_d((const struct Vector_d*const)a,(const struct Vector_d*const)b,tol);
 }
 
+bool diff_const_Vector_i (const struct const_Vector_i*const a, const struct const_Vector_i*const b)
+{
+	return diff_Vector_i((const struct Vector_i*const)a,(const struct Vector_i*const)b);
+}
+
 // Printing functions *********************************************************************************************** //
 
 void print_diff_Vector_d (const struct Vector_d*const a, const struct Vector_d*const b, const double tol)
@@ -219,6 +224,12 @@ void print_diff_Vector_i (const struct Vector_i*const a, const struct Vector_i*c
 			printf("\n");
 	}
 	printf("\n\n");
+}
+
+void print_diff_const_Vector_i
+	(const struct const_Vector_i*const a, const struct const_Vector_i*const b)
+{
+	print_diff_Vector_i((const struct Vector_i*)a,(const struct Vector_i*)b);
 }
 
 // Static functions ************************************************************************************************* //

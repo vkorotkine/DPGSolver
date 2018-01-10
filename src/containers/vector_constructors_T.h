@@ -65,6 +65,12 @@ struct Vector_T* constructor_copy_Vector_T
 	(const struct Vector_T*const src ///< The source data.
 	);
 
+/** \brief `const` version of \ref constructor_copy_Vector_T.
+ *  \return Standard. */
+const struct const_Vector_T* constructor_copy_const_Vector_T
+	(const struct const_Vector_T*const src ///< See brief.
+	);
+
 /** \brief Copy constructor for a \ref Vector_T\* from a `const Type*`.
  *  \return Standard. */
 struct Vector_T* constructor_copy_Vector_T_T
