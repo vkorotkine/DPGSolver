@@ -25,12 +25,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_elements.h"
 
 #include "multiarray.h"
-#include "multiarray_operator.h"
 
-#include "simulation.h"
+#include "const_cast.h"
 #include "element_operators.h"
 #include "element_operators_tp.h"
-#include "const_cast.h"
+#include "multiarray_operator.h"
+#include "simulation.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -92,6 +93,9 @@ void destructor_derived_Geometry_Element (struct Element* element_ptr)
 	destructor_Multiarray2_Operator(g_e->vv0_vmc_fc);
 
 	destructor_Multiarray_Operator_conditional(g_e->vv0_fv_vgc);
+	destructor_Multiarray_Operator_conditional(g_e->vv0_vv_fgc);
+	destructor_Multiarray_Operator_conditional(g_e->vv0_vv_fv);
+	destructor_Multiarray_Operator_conditional(g_e->vv0_fv_fgc);
 	destructor_Multiarray_Operator_conditional(g_e->vv0_fgc_vgc);
 	destructor_Multiarray_Operator(g_e->vv0_vgc_fgc);
 
@@ -229,10 +233,16 @@ static void constructor_derived_Geometry_Element_common (struct Element* element
 
 	struct const_Element* e = (struct const_Element*)g_e;
 
-	if (e->d > 1) {
-		g_e->vv0_fv_vgc  = constructor_operators("vv0","fvA","vgc","H_1_P_1P",e,sim);  // destructed
-		g_e->vv0_fgc_vgc = constructor_operators("vv0","fgc","vgc","H_1_P_PM0",e,sim); // destructed
-	} else if (e->d > 2) {
-		EXIT_ADD_SUPPORT;
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	if (test_case->geom_parametrization != 0) {
+		if (e->d > 1) {
+			g_e->vv0_fv_vgc  = constructor_operators("vv0","fvA","vgc","H_1_P_1P", e,sim); // destructed
+			g_e->vv0_vv_fgc  = constructor_operators("vv0","vvA","fgc","H_1_P_1P", e,sim); // destructed
+			g_e->vv0_vv_fv   = constructor_operators("vv0","vvA","fvA","H_1_P_1",  e,sim); // destructed
+			g_e->vv0_fv_fgc  = constructor_operators("vv0","fvA","fgc","H_1_P_1P", e,sim); // destructed
+			g_e->vv0_fgc_vgc = constructor_operators("vv0","fgc","vgc","H_1_P_PM0",e,sim); // destructed
+		} else if (e->d > 2) {
+			EXIT_ADD_SUPPORT;
+		}
 	}
 }

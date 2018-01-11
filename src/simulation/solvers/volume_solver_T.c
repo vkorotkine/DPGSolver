@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 
 #include "def_templates_geometry.h"
+#include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -98,8 +99,10 @@ static void set_function_pointers_blended_xyz (struct Solver_Volume_T*const s_vo
 		return;
 	}
 
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	if (strcmp(sim->geom_name,"n-cylinder_hollow_section") == 0) {
-		s_vol->constructor_xyz_surface = constructor_xyz_surface_cylinder_T;
+		s_vol->constructor_xyz_surface =
+			set_constructor_xyz_surface_fptr("n-cylinder",test_case->geom_parametrization);
 	} else {
 		EXIT_ERROR("Unsupported: %s, %s\n",sim->geom_name,sim->geom_spec);
 	}

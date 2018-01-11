@@ -1,5 +1,7 @@
 /// Solver parameters for test case: euler/steady/supersonic_vortex
 
+geom_parametrization radial_proj
+
 solver_proc   200
 solver_type_i 202 // Note: Direct solver was possibly required for DPG.
 

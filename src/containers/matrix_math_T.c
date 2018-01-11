@@ -78,6 +78,17 @@ void scale_Matrix_T (struct Matrix_T* a, const Type val)
 		a->data[i] *= val;
 }
 
+void add_in_place_Matrix_T (const Real alpha, struct Matrix_T*const a, const struct const_Matrix_T* b)
+{
+	assert(a->layout == b->layout);
+	assert(a->ext_0 == b->ext_0);
+	assert(a->ext_1 == b->ext_1);
+
+	const ptrdiff_t size = (a->ext_0)*(a->ext_1);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		a->data[i] += alpha*(b->data[i]);
+}
+
 void permute_Matrix_T (struct Matrix_T* a, const ptrdiff_t* p)
 {
 	assert((a->layout == 'R') || a->layout == 'C');

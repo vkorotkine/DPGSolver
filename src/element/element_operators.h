@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  *  \brief Provides the functions relating to element operators.
  *
- *  Operator names take the general form: [type][0](7)_[1][2][3]_[4][5][6] where entries in [square brackets] are
+ *  Operator names take the general form: [type][0](7)_[1][2](3)_[4][5](6) where entries in [square brackets] are
  *  required and those in (round brackets) are optional:
  *  - type:
  *  	- cv(t):       coefficients to values
@@ -28,7 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- tw: 't'est basis solver operator with 'w'eights. This operator is cvt\*_\*_\* post-multiplied by the cubature
  *  	       weights. For collocated schemes, `tw` operators also include premultiplication by the inverse weights.
  *  	- cvcv: 3-tensor of standard cv operator multiplied by each column of another cv operator.
- *	        See \ref constructor_operators_tens3.
+ *  	        See \ref constructor_operators_tens3.
  *  (t): Optional 't'ranspose.
  *  (i): Optional 'i'nput basis. Options: 'S'olution, 'B'ezier.
  *  (o): Optional 'o'output basis. Options: 'S'olution, 'B'ezier.
@@ -38,6 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- 'v'olume
  *  	- 'f'ace
  *  	- 'e'dge
+ *  	- 'b'oundary (placeholder for either 'e'dge or 'f'ace)
  *  - [2/5]: character denoting the kind of basis/nodes to be used (kind):
  *  	- 'g'eometry
  *  	- 'm'etric
@@ -48,10 +49,13 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- 'f'lux
  *  	- 'r': g'r'adient
  *  	- 't'est
+ *  	- 'X': Placeholder when the operator may point to several of the options above.
  *  - (3/6): character denoting whether the basis/nodes is meant to be used for straight or curved elements (sc):
  *  	- 's'traight
  *  	- 'c'urved
  *  	- 'A'll
+ *  	\note These entries are omitted whenever their inclusion would be redundant. For example, 'v'ertices are always
+ *          's'traight so a 'v'olume 'v'ertex basis would be denoted by "vv" and not "vvs".
  *  - (7): if present, character specifying which basis was used for the operator:
  *  	- r: reference
  *

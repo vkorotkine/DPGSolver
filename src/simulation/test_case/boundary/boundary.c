@@ -44,7 +44,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 bool is_bc_curved (const int bc)
 {
-	return ( bc / BC_STEP_SC > 2 );
+	return bc > BC_CURVED_START;
 }
 
 // Static functions ************************************************************************************************* //

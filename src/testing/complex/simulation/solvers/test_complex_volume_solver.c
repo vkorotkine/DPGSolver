@@ -18,8 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_volume_solver.h"
 
 #include "complex_multiarray.h"
-
-#include "test_complex_geometry.h"
+#include "test_complex_test_case.h"
 
 #include "element_solver.h"
 
@@ -27,8 +26,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "const_cast.h"
-#include "geometry.h"
+#include "geometry_blended.h"
 #include "simulation.h"
+#include "test_case.h"
 
 // Templated functions ********************************************************************************************** //
 

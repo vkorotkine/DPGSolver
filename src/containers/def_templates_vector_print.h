@@ -35,3 +35,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 #endif
+
+///\{ \name Real Data types/Function names
+#define print_Vector_R           print_Vector_d
+#define print_const_Vector_R     print_const_Vector_d
+///\}

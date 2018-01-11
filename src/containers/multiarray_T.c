@@ -233,6 +233,18 @@ struct Matrix_T interpret_Multiarray_as_Matrix_T (const struct Multiarray_T* a_M
 	return a;
 }
 
+struct const_Matrix_T interpret_const_Multiarray_as_Matrix_T (const struct const_Multiarray_T* a_Ma)
+{
+	assert(a_Ma->order == 2);
+	struct const_Matrix_T a =
+		{ .layout    = a_Ma->layout,
+		  .ext_0     = a_Ma->extents[0],
+		  .ext_1     = a_Ma->extents[1],
+		  .owns_data = false,
+		  .data      = a_Ma->data, };
+	return a;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

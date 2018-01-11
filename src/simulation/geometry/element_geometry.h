@@ -41,8 +41,10 @@ struct Geometry_Element {
 
 	// Blending operators
 	const struct Multiarray_Operator* vv0_fv_vgc;  ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_vv_fgc;  ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_vv_fv;   ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_fv_fgc;  ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_fgc_vgc; ///< See notation in \ref element_operators.h.
-
 	const struct Multiarray_Operator* vv0_vgc_fgc; ///< See notation in \ref element_operators.h.
 
 	// Tensor-product sub-operators.

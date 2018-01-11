@@ -48,6 +48,10 @@ struct Test_Case_T {
 
 	constructor_sol_fptr_T constructor_sol; ///< Function pointer to the function used to construct the solution.
 
+	// Geometry related parameters
+	/// The surface parametrization type to use for geometry blending. Options: see \ref definitions_geometry.h.
+	const int geom_parametrization;
+
 	// Solver related parameters
 	char solver_method_curr; ///< The current solver method. Options: 'e'xplicit, 'i'mplicit.
 

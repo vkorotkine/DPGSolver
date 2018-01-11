@@ -174,3 +174,9 @@ struct const_Vector_T interpret_const_Multiarray_as_Vector_T
 struct Matrix_T interpret_Multiarray_as_Matrix_T
 	(const struct Multiarray_T* a_Ma ///< The input multiarray.
 	);
+
+/** \brief `const` version of \ref interpret_Multiarray_as_Matrix_T.
+ *  \return See brief. */
+struct const_Matrix_T interpret_const_Multiarray_as_Matrix_T
+	(const struct const_Multiarray_T* a_Ma ///< See brief.
+	);

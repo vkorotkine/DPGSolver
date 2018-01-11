@@ -32,6 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define transpose_Matrix_T         transpose_Matrix_d
 #define invert_sub_block_Matrix_T  invert_sub_block_Matrix_d
 #define scale_Matrix_T             scale_Matrix_d
+#define add_in_place_Matrix_T      add_in_place_Matrix_d
 #define permute_Matrix_T           permute_Matrix_d
 #define permute_Matrix_T_V         permute_Matrix_d_V
 #define mm_T                       mm_d
@@ -61,6 +62,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define transpose_Matrix_T         transpose_Matrix_c
 #define invert_sub_block_Matrix_T  invert_sub_block_Matrix_c
 #define scale_Matrix_T             scale_Matrix_c
+#define add_in_place_Matrix_T      add_in_place_Matrix_c
 #define permute_Matrix_T           permute_Matrix_c
 #define permute_Matrix_T_V         permute_Matrix_c_V
 #define mm_T                       mm_c
@@ -77,6 +79,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #endif
 
 ///\{ \name Real Data types/Function names
+#define add_in_place_Matrix_R      add_in_place_Matrix_d
 #define permute_Matrix_R_V         permute_Matrix_d_V
 #define scale_Matrix_R_by_Vector_R scale_Matrix_d_by_Vector_d
 #define mm_R                       mm_d

@@ -26,9 +26,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define BC_INVALID -1 ///< Value to indicate an invalid boundary condition.
 
-///\{ \name The step in the boundary conditions between straight and curved BCs.
-#define BC_STEP_SC 10000
-///\}
+#define BC_STEP_SC      10000 ///< The step in the boundary conditions between straight and curved BCs.
+#define BC_CURVED_START 20000 ///< The value after which boundaries are considered to be curved.
 
 ///\{ \name The values for the various boundary conditions after taking the modulus with \ref BC_STEP_SC.
 

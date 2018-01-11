@@ -12,18 +12,17 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__definitions_geometry_h__INCLUDED
+#define DPG__definitions_geometry_h__INCLUDED
 /** \file
- *  \brief Provides the interface to templated functions used for blended geometry processing.
+ *  \brief Provides definitions relating to the geometry.
  */
 
-struct Solver_Volume_T;
-struct Simulation;
+///\{ \name The supported surface parametrization options.
+#define GEOM_PRM_RADIAL_PROJ 101 ///< Projection from center through affine geometry nodes to the boundary.
+#define GEOM_PRM_ARC_LENGTH  102 ///< Arc length computed using numerical integration.
+#define GEOM_PRM_NORMAL_PROJ 103 ///< Projection from affine geometry nodes to the boundary in the surface normal direction.
+///\}
 
-/** \brief Version of \ref constructor_xyz_fptr_T for the blended curved volume geometry.
- *  \return See brief. */
-const struct const_Multiarray_R* constructor_xyz_blended_T
-	(const char n_type,                      ///< See brief.
-	 const struct const_Multiarray_R* xyz_i, ///< See brief.
-	 const struct Solver_Volume_T* s_vol,    ///< See brief.
-	 const struct Simulation* sim            ///< See brief.
-	);
+#endif // DPG__definitions_geometry_h__INCLUDED

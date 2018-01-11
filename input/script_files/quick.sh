@@ -10,9 +10,9 @@
 
 # Executable and command line arguments
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_linearization
-ARGV="euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedQUAD2D__ml0"
-EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_geometry
-ARGV="extern_mesh/TEST_blended_2d_mixed"
+ARGV="euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedQUAD2D__ml0__p2"
+EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_fluxes
+ARGV="flux_euler_2d integration/TEST_Euler_Default_2d__ml0__p0"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

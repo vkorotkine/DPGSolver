@@ -25,7 +25,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_support_multiarray.h"
 
 #include "macros.h"
+#include "definitions_geometry.h"
 #include "definitions_intrusive.h"
+#include "definitions_mesh.h"
 #include "definitions_tol.h"
 #include "definitions_visualization.h"
 
@@ -37,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "file_processing.h"
 #include "geometry.h"
 #include "simulation.h"
+#include "test_case.h"
 #include "visualization.h"
 
 // Static function declarations ************************************************************************************* //
@@ -118,6 +121,11 @@ static bool compare_members_geom (struct Test_Info*const test_info, const struct
 	/// \todo Add comparison of Solver_Volume::geom_coef.
 	UNUSED(test_info);
 	bool pass = true;
+
+	if (sim->domain_type == DOM_BLENDED) {
+		struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+		assert(test_case->geom_parametrization == GEOM_PRM_RADIAL_PROJ); // May be made flexible in future
+	}
 
 	struct Geom_Test_Data* geom_test_data = constructor_Geom_Test_Data(sim); // destructed
 

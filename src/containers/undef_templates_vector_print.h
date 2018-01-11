@@ -23,3 +23,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef fprint_const_Vector_T
 #undef fprint_Vector_T
+
+#undef print_Vector_R
+#undef print_const_Vector_R

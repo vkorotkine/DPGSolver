@@ -490,6 +490,12 @@ const struct const_Vector_i* constructor_indices_Vector_i
 
 bool op_should_use_L2 (const int*const op_values, const struct Op_IO* op_io)
 {
+	const char ce_i = op_io[OP_IND_I].ce,
+	           ce_o = op_io[OP_IND_O].ce;
+	// Don't use L2 for operators having projected nodes.
+	if (!((ce_i == ce_o) || (ce_i == 'v'))) // ((vv || ff || ee) || (vf || ve))
+		return false;
+
 	if ((op_values[OP_IND_H+OP_IND_I] > op_values[OP_IND_H+OP_IND_O]) ||
 	    (op_values[OP_IND_P+OP_IND_I] > op_values[OP_IND_P+OP_IND_O])) {
 		switch (op_io[OP_IND_O].kind) {

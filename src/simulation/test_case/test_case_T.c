@@ -36,25 +36,25 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Set associations between `char*` and `int` variables.
 static void set_string_associations
-	(struct Test_Case_T* test_case,      ///< \ref Test_Case_T.
+	(struct Test_Case_T* test_case,    ///< \ref Test_Case_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 /// \brief Set pde related parameters.
 static void set_pde_related
-	(struct Test_Case_T* test_case,      ///< \ref Test_Case_T.
+	(struct Test_Case_T* test_case,    ///< \ref Test_Case_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 /// \brief Set the function pointer members of \ref Test_Case_T.
 static void set_function_pointers
-	(struct Test_Case_T* test_case,      ///< \ref Test_Case_T.
+	(struct Test_Case_T* test_case,    ///< \ref Test_Case_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 /// \brief Read members of \ref Test_Case_T from input file.
 static void read_test_case_parameters
-	(struct Test_Case_T* test_case,      ///< \ref Test_Case_T.
+	(struct Test_Case_T* test_case,    ///< \ref Test_Case_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
@@ -213,6 +213,7 @@ static void read_test_case_parameters (struct Test_Case_T* test_case, const stru
 {
 	const int count_to_find = 1;
 
+/// \todo Make the filename flexible such that multiple 'test_case_*.data' files can be used
 	FILE* input_file = fopen_input(sim->input_path,'t'); // closed
 
 	struct Test_Case_String_Inputs tcsi = set_Test_Case_String_Inputs();
@@ -225,6 +226,9 @@ static void read_test_case_parameters (struct Test_Case_T* test_case, const stru
 			++count_found;
 			read_skip_const_i(line,&test_case->solver_proc);
 		}
+		read_skip_convert_const_i(line,"geom_parametrization",&test_case->geom_parametrization,NULL);
+
+/// \todo Change solver_type_* to used read_skip_convert.
 		if (strstr(line,"solver_type_e")) read_skip_const_i(line,&test_case->solver_type_e);
 		if (strstr(line,"solver_type_i")) read_skip_const_i(line,&test_case->solver_type_i);
 

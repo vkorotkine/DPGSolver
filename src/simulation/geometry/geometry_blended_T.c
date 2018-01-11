@@ -34,6 +34,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
 
+#include "def_templates_test_case.h"
+
 // Static function declarations ************************************************************************************* //
 
 /** \brief Version of \ref constructor_xyz_fptr_T used for the blended curved surface geometry corrections.
@@ -57,7 +59,6 @@ const struct const_Multiarray_R* constructor_xyz_blended_T
 	assert(DIM >= 2);
 	assert(DIM == xyz_i->extents[1]);
 
-UNUSED(n_type);
 	const struct const_Multiarray_R*const xyz_e =
 		( DIM == DMAX ? constructor_xyz_blended_ce('e',n_type,xyz_i,s_vol,sim) : xyz_i ); // dest. (if required)
 
@@ -68,27 +69,10 @@ UNUSED(n_type);
 	return xyz;
 }
 
-const struct const_Multiarray_R* constructor_xyz_surface_cylinder_T
-	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
-	 const struct Simulation* sim)
-{
-	UNUSED(n_type);
-	UNUSED(xyz_i);
-	UNUSED(s_vol);
-	UNUSED(sim);
-
-EXIT_UNSUPPORTED;
-//	return (struct const_Multiarray_R*) xyz;
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Container for boundary computational element related data.
- *
- *  \note Many members of this container use the 'b'oundary notation to refer to either 'f'ace or 'e'dge computational
- *        element related operators.
- */
+/// \brief Container for boundary computational element related data.
 struct Boundary_Comp_Elem_Data {
 	const struct const_Multiarray_R* xyz_ve; ///< \ref Volume::xyz_ve.
 
@@ -100,7 +84,6 @@ struct Boundary_Comp_Elem_Data {
 	/** See notation in \ref element_operators.h. The unknown parameter (X) may be set as:
 	 *  - 'v'ertex (p2 vertices);
 	 *  - 'g'eometry (standard blending).
-	 *  The 's/c' parameter is omitted as vertices are always straight and blending is always for curved geometry.
 	 */
 	const struct Operator* vv0_vv_vX;
 
@@ -108,6 +91,9 @@ struct Boundary_Comp_Elem_Data {
 
 	const struct Operator* vv0_vX_bX; ///< See \ref Boundary_Comp_Elem_Data::vv0_vv_vX.
 	const struct Operator* vv0_bX_vX; ///< See \ref Boundary_Comp_Elem_Data::vv0_vv_vX.
+	const struct Operator* vv0_vv_bX; ///< See \ref Boundary_Comp_Elem_Data::vv0_vv_vX.
+	const struct Operator* vv0_vv_bv; ///< See \ref Boundary_Comp_Elem_Data::vv0_vv_vX.
+	const struct Operator* vv0_bv_bX; ///< See \ref Boundary_Comp_Elem_Data::vv0_vv_vX.
 };
 
 /** \brief Constructor for a statically allocated \ref Boundary_Comp_Elem_Data containers.
@@ -166,50 +152,11 @@ static const struct const_Vector_R* constructor_blend_values
  *
  *  \note The difference for each of the volume geometry nodes **after** projection to the boundary is computed.
  */
-//static const struct const_Matrix_R* constructor_xyz_diff
-//	(
-//	);
 static const struct const_Matrix_R* constructor_xyz_diff
-	(const struct Boundary_Comp_Elem_Data*const b_ce_d,
-	 const struct const_Matrix_R*const xyz_i,
-	 const struct Simulation*const sim
-	)
-{
-
-/*	test_case->constructor_xyz_boundary (set based on input file parameter for type of surface parametrization).
- *	Options:
-	- constructor_xyz_boundary_arc_length (2d only)
-		1. Interpolate xyz_ve to boundary (vv0_vv_bv);
-		2. Compute parametric coordinates of vertices
-		3. Interpolate parametric coordinates to curved boundary nodes (vv0_bv_bgc)
-		4. Compute xyz curved (function pointer stored in s_vol)
-	- constructor_xyz_boundary_normal (2d only)
-		1. Interpolate xyz_ve to boundary (vv0_vv_bgc);
-		2. Compute normal vector to surface (pointing outwards)
-		3. Compute xyz curved (function pointer stored in s_vol)
-	- constructor_xyz_boundary_radial_cylinder (fallthrough)
-	- constructor_xyz_boundary_radial_sphere
-		1. Interpolate xyz_ve to boundary (vv0_vv_bgc);
-		2. Compute parametric coordinates of vertices
-		3. Compute xyz curved (function pointer stored in s_vol)
-
-	The functions specific to the s_vol should compute the curved geometry nodes given differing kinds of inputs. So
-	the general function pointer should take a struct argument holding:
-	- arc len: to be determined
-	- normal : normal vector
-	- radial : nothing
-	Potentially use a union as only one set of data may be used at a time.
-*/
-UNUSED(sim);
-
-	struct Matrix_R*const xyz_diff =
-		constructor_mm_Matrix_R('N','N',-1.0,b_ce_d->vv0_vX_bX->op_std,xyz_i,'C'); // returned
-	// add_in_place_Matrix_R(1.0,xyz_diff,xyz_b);
-
-EXIT_UNSUPPORTED;
-/// \todo Move to level 1.
-	return (struct const_Matrix_R*) xyz_diff;
-}
+	(const struct Boundary_Comp_Elem_Data*const b_ce_d, ///< \ref Boundary_Comp_Elem_Data.
+	 const struct const_Matrix_R*const xyz_i,           ///< Input xyz coordinates.
+	 const struct Solver_Volume_T*const s_vol           ///< The current \ref Solver_Volume_T.
+	);
 
 static const struct const_Multiarray_R* constructor_xyz_blended_ce
 	(const char ce_type, const char n_type, const struct const_Multiarray_R* xyz_i,
@@ -234,7 +181,7 @@ static const struct const_Multiarray_R* constructor_xyz_blended_ce
 
 		const struct const_Vector_R*const blend_values = constructor_blend_values(b,n_n,&b_ce_d); // destructed
 		const struct const_Matrix_R*const xyz_diff =
-			constructor_xyz_diff(&b_ce_d,(struct const_Matrix_R*)&xyz_M,sim); // destructed
+			constructor_xyz_diff(&b_ce_d,(struct const_Matrix_R*)&xyz_M,s_vol); // destructed
 
 		for (int d = 0; d < DIM; ++d) {
 			Real*const data_xyz            = get_col_Matrix_R(d,&xyz_M);
@@ -248,7 +195,6 @@ static const struct const_Multiarray_R* constructor_xyz_blended_ce
 	}}
 	destructor_static_Boundary_Comp_Elem_Data(&b_ce_d);
 
-EXIT_UNSUPPORTED;
 	return (struct const_Multiarray_R*) xyz;
 }
 
@@ -350,6 +296,9 @@ static void set_Boundary_Comp_Elem_operators
 		if (ce_type == 'f') {
 			b_ce_d->vv0_vX_bX = get_Multiarray_Operator(g_e->vv0_vgc_fgc,(ptrdiff_t[]){b,0,0,p,p});
 			b_ce_d->vv0_bX_vX = get_Multiarray_Operator(g_e->vv0_fgc_vgc,(ptrdiff_t[]){b,0,0,p,p});
+			b_ce_d->vv0_vv_bX = get_Multiarray_Operator(g_e->vv0_vv_fgc, (ptrdiff_t[]){b,0,0,p,1});
+			b_ce_d->vv0_vv_bv = get_Multiarray_Operator(g_e->vv0_vv_fv,  (ptrdiff_t[]){b,0,0,1,1});
+			b_ce_d->vv0_bv_bX = get_Multiarray_Operator(g_e->vv0_fv_fgc, (ptrdiff_t[]){0,0,0,0,p,1});
 		} else {
 			EXIT_ADD_SUPPORT;
 		}
@@ -402,4 +351,30 @@ static const struct const_Vector_R* constructor_blend_values
 		break;
 	}
 	return (struct const_Vector_d*) blend_values;
+}
+
+static const struct const_Matrix_R* constructor_xyz_diff
+	(const struct Boundary_Comp_Elem_Data*const b_ce_d, const struct const_Matrix_R*const xyz_i,
+	 const struct Solver_Volume_T*const s_vol)
+{
+	const struct Volume*const vol = (struct Volume*) s_vol;
+	struct Blended_Parametric_Data b_p_d =
+		{ .xyz_ve = vol->xyz_ve,
+		  .vv0_vv_bX = b_ce_d->vv0_vv_bX,
+		  .vv0_vv_bv = b_ce_d->vv0_vv_bv,
+		  .vv0_bv_bX = b_ce_d->vv0_bv_bX,
+		  .normal = NULL,
+		};
+
+	const struct const_Matrix_R*const xyz_b = s_vol->constructor_xyz_surface(&b_p_d);
+
+	struct Matrix_R*const xyz_surf_diff =
+		constructor_mm_Matrix_R('N','N',-1.0,b_ce_d->vv0_vX_bX->op_std,xyz_i,'C'); // destructed
+	add_in_place_Matrix_R(1.0,xyz_surf_diff,xyz_b);
+
+	const struct const_Matrix_R*const xyz_diff = constructor_mm_const_Matrix_R(
+		'N','N',1.0,b_ce_d->vv0_bX_vX->op_std,(struct const_Matrix_R*)xyz_surf_diff,'C'); // returned
+	destructor_Matrix_R(xyz_surf_diff);
+
+	return xyz_diff;
 }

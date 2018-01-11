@@ -55,6 +55,13 @@ void scale_Matrix_T
 	 const Type val    ///< The value by which to scale.
 	);
 
+/// \brief Sets `a = a + alpha*b`.
+void add_in_place_Matrix_T
+	(const Real alpha,              ///< Scaling constant.
+	 struct Matrix_T*const a,       ///< Matrix to be modified.
+	 const struct const_Matrix_T* b ///< Matrix to add to matrix to be modified.
+	);
+
 /** \brief Permute the the input matrix according to the input permutation.
  *
  *  The permutation is performed using the [gsl_permute_matrix] function and is from the left for a row-major input and

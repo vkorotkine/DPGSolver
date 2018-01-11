@@ -460,17 +460,12 @@ static void compute_geom_coef_blended_T (const struct Simulation*const sim, stru
 {
 	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho(s_vol,sim); // destructed
 
-	if (DIM == DMAX)
-		EXIT_ADD_SUPPORT; // Treat curved EDGEs not on curved FACEs
-
 	const struct const_Multiarray_R* xyz = constructor_xyz_blended_T('g',xyz_s,s_vol,sim); // destructed
 	destructor_const_Multiarray_R(xyz_s);
 
-	const struct const_Multiarray_R* geom_coef = NULL;
-	destructor_const_Multiarray_R(xyz);
-
 	destructor_const_Multiarray_R(s_vol->geom_coef);
-	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef,geom_coef);
+	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef,constructor_geom_coef_ho(xyz,s_vol,sim)); // keep
+	destructor_const_Multiarray_R(xyz);
 }
 
 static void compute_geom_coef_parametric_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)

@@ -23,6 +23,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "file_processing_conversions.h"
+
 // Opening files **************************************************************************************************** //
 
 /** \brief Open file and check for successful completion.
