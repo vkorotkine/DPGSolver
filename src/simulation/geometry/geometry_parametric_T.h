@@ -25,7 +25,8 @@ struct Simulation;
  *  Uses \f$ r-\theta \f$ parametrization to transform from square to circular sections.
  */
 const struct const_Multiarray_R* constructor_xyz_cylinder_parametric_T
-	(const struct const_Multiarray_R* xyz_i, ///< See brief.
+	(const char n_type,                      ///< See brief.
+	 const struct const_Multiarray_R* xyz_i, ///< See brief.
 	 const struct Solver_Volume_T* s_vol,    ///< See brief.
 	 const struct Simulation* sim            ///< See brief.
 	);
@@ -34,7 +35,8 @@ const struct const_Multiarray_R* constructor_xyz_cylinder_parametric_T
  *  \return See brief.
  */
 const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_T
-	(const struct const_Multiarray_R* xyz_i, ///< See brief.
+	(const char n_type,                      ///< See brief.
+	 const struct const_Multiarray_R* xyz_i, ///< See brief.
 	 const struct Solver_Volume_T* s_vol,    ///< See brief.
 	 const struct Simulation* sim            ///< See brief.
 	);

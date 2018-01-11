@@ -65,3 +65,4 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef resize_Multiarray_R
 #undef interpret_const_Multiarray_as_Vector_R
+#undef interpret_Multiarray_as_Matrix_R

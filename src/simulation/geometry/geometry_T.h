@@ -25,12 +25,14 @@ struct const_Multiarray_R;
 
 /** \brief Pointer to functions constructing the physical xyz coordinates from parametric/straight element coordinates.
  *
- *  \param xyz_i The input xyz coordinates.
- *  \param s_vol \ref Solver_Volume_T.
- *  \param sim   \ref Simulation.
+ *  \param n_type The geometry node type. Options: volume curved 'g'eometry, p2 'v'ertices.
+ *  \param xyz_i  The input xyz coordinates.
+ *  \param s_vol  \ref Solver_Volume_T.
+ *  \param sim    \ref Simulation.
  */
 typedef const struct const_Multiarray_R* (*constructor_xyz_fptr_T)
-	(const struct const_Multiarray_R* xyz_i,
+	(const char n_type,
+	 const struct const_Multiarray_R* xyz_i,
 	 const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim
 	);

@@ -62,6 +62,18 @@ static struct mutable_Multiarray_Operator set_mutable_MO_from_MO
 	 const ptrdiff_t*const sub_indices        ///< The sub-indices specifying which part of the source to extract.
 	);
 
+/** \brief Allocate memory for a \ref mutable_Multiarray_Operator and set all of its members to those of the appropriate
+ *         sub-range of the input.
+ *  \return See brief.
+ *
+ *  \note The returned \ref mutable_Multiarray_Operator **must** be destructed with \ref free_mutable_MO_from_MO.
+ */
+static struct mutable_Multiarray_Operator* alloc_mutable_MO_from_MO
+	(struct mutable_Multiarray_Operator* src, ///< Defined for \ref set_mutable_MO_from_MO.
+	 const int order_o,                       ///< Defined for \ref set_mutable_MO_from_MO.
+	 const ptrdiff_t*const sub_indices        ///< Defined for \ref set_mutable_MO_from_MO.
+	);
+
 /// \brief Print the counter for the indices.
 static void print_counter_MaO
 	(const int order,              ///< Defined in \ref Multiarray_T.
@@ -140,6 +152,19 @@ struct Multiarray_Operator set_MO_from_MO
 	struct mutable_Multiarray_Operator dest =
 		set_mutable_MO_from_MO((struct mutable_Multiarray_Operator*)src,order_o,sub_indices);
 	return *(struct Multiarray_Operator*)& dest;
+}
+
+const struct Multiarray_Operator* alloc_MO_from_MO
+	(const struct Multiarray_Operator* src, const int order_o, const ptrdiff_t*const sub_indices)
+{
+	struct mutable_Multiarray_Operator* dest =
+		alloc_mutable_MO_from_MO((struct mutable_Multiarray_Operator*)src,order_o,sub_indices);
+	return (const struct Multiarray_Operator*) dest;
+}
+
+void free_MO_from_MO (const struct Multiarray_Operator* src)
+{
+	free((void*)src);
 }
 
 const struct Operator* get_Multiarray_Operator
@@ -234,6 +259,22 @@ static struct mutable_Multiarray_Operator set_mutable_MO_from_MO
 	dest.order     = order_o;
 	dest.extents   = src->extents;
 	dest.data      = &src->data[compute_index_sub_container(src->order,dest.order,src->extents,sub_indices)];
+
+	return dest;
+}
+
+static struct mutable_Multiarray_Operator* alloc_mutable_MO_from_MO
+	(struct mutable_Multiarray_Operator* src, const int order_o, const ptrdiff_t*const sub_indices)
+{
+	struct mutable_Multiarray_Operator* dest = malloc(sizeof *dest); // returned
+
+	assert(src != NULL);
+	assert(order_o == 1);
+
+	dest->owns_data = false;
+	dest->order     = order_o;
+	dest->extents   = src->extents;
+	dest->data      = &src->data[compute_index_sub_container(src->order,dest->order,src->extents,sub_indices)];
 
 	return dest;
 }

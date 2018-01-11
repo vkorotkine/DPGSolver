@@ -36,8 +36,10 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 
 const struct const_Multiarray_R* constructor_xyz_cylinder_parametric_T
-	(const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
+	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+	 const struct Simulation* sim)
 {
+	UNUSED(n_type);
 	UNUSED(s_vol);
 	UNUSED(sim);
 	assert(DIM >= 2);
@@ -81,8 +83,10 @@ const struct const_Multiarray_R* constructor_xyz_cylinder_parametric_T
 }
 
 const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_T
-	(const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
+	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+	 const struct Simulation* sim)
 {
+	UNUSED(n_type);
 	UNUSED(s_vol);
 	UNUSED(sim);
 	assert(DIM >= 2);

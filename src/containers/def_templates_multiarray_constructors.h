@@ -139,6 +139,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define constructor_empty_Multiarray_R constructor_empty_Multiarray_d
 
+#define constructor_copy_Multiarray_R          constructor_copy_Multiarray_d
 #define const_constructor_copy_Multiarray_R    const_constructor_copy_Multiarray_d
 
 #define const_constructor_move_Multiarray_R              const_constructor_move_Multiarray_d

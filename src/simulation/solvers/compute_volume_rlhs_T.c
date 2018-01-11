@@ -200,9 +200,8 @@ struct Multiarray_Operator get_operator__tw1_vt_vc_T (const struct Solver_Volume
 
 	const int p      = s_vol->p_ref,
 	          curved = vol->curved;
-	struct Multiarray_Operator tw1_vt_vc = set_MO_from_MO(e->tw1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 
-	return tw1_vt_vc;
+	return set_MO_from_MO(e->tw1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 }
 
 // Static functions ************************************************************************************************* //

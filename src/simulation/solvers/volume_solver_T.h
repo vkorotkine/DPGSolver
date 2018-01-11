@@ -46,10 +46,6 @@ struct Solver_Volume_T {
 	/// Pointer to function used to construct the parametrized surface geometry values (Set to NULL if not requried).
 	constructor_xyz_fptr_T constructor_xyz_surface;
 
-	/** Flag for whether the 'xyz' 've'rtices of 'p'olynomial degree '2' are being computed using blending.
-	 *  This member should be `false` for computation of the high-order volume geometry values. */
-	bool computing_xyz_ve_p2;
-
 	/// The coefficients of the solution in the \ref Simulation::basis_sol.
 	struct Multiarray_T* sol_coef;
 

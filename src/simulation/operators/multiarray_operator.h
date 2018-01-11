@@ -88,6 +88,19 @@ struct Multiarray_Operator set_MO_from_MO
 	 const ptrdiff_t*const sub_indices      ///< The sub-indices specifying which part of the source to extract.
 	);
 
+/** \brief `const` version of \ref alloc_mutable_MO_from_MO.
+ *  \return See brief. */
+const struct Multiarray_Operator* alloc_MO_from_MO
+	(const struct Multiarray_Operator* src, ///< See brief.
+	 const int order_o,                     ///< See brief.
+	 const ptrdiff_t*const sub_indices      ///< See brief.
+	);
+
+/// \brief "Destructor" for \ref alloc_MO_from_MO.
+void free_MO_from_MO
+	(const struct Multiarray_Operator* src ///< Standard.
+	);
+
 /** \brief Get a pointer to a \ref Operator\* from a sub range of a \ref Multiarray_Operator\*.
  *  \return See brief. */
 const struct Operator* get_Multiarray_Operator

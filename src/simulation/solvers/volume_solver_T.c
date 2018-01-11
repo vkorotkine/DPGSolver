@@ -53,7 +53,6 @@ void constructor_derived_Solver_Volume_T (struct Volume* volume_ptr, const struc
 
 	const_constructor_move_Multiarray_R(&s_vol->geom_coef,constructor_default_Multiarray_R()); // destructed
 	set_function_pointers_blended_xyz(s_vol,sim);
-	s_vol->computing_xyz_ve_p2 = false;
 
 	s_vol->sol_coef  = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0});   // destructed
 	s_vol->grad_coef = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // destructed
