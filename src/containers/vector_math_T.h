@@ -20,15 +20,10 @@ struct Vector_T;
 struct Vector_R;
 
 /// \brief Invert each of the entries of the input \ref Vector_T\*.
-void invert_Vector_R
-	(struct Vector_R* a ///< Input vector.
-	);
-#if TYPE_RC == TYPE_COMPLEX
-/// \brief Invert each of the entries of the input \ref Vector_T\*.
 void invert_Vector_T
 	(struct Vector_T* a ///< Input vector.
 	);
-#endif
+
 /// \brief Add to a \ref Vector_T\*.
 void add_to_Vector_T_T
 	(struct Vector_T* a, ///< To be added to.

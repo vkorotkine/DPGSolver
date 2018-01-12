@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 
 struct Simulation;
+struct const_Multiarray_T;
+struct Solver_Volume_T;
 
 /** \brief Constructor for a \ref Solver_Storage_Implicit container.
  *  \return See brief. */
@@ -35,4 +37,12 @@ ptrdiff_t compute_dof_T
 /// \brief Update \ref Solver_Volume_T::ind_dof and \ref Solver_Face_T::ind_dof.
 void update_ind_dof_T
 	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Add the source contribution to \ref Solver_Volume_T::flux_imbalance.
+void add_to_flux_imbalance_source_T
+	(const struct const_Multiarray_T*const source_vc_w_J, /**< The source at the volume cubature nodes with Jacobian
+	                                                       *   scaling. */
+	 const struct Solver_Volume_T*const s_vol,            ///< \ref Solver_Volume_T.
+	 const struct Simulation*const sim                    ///< \ref Simulation.
 	);

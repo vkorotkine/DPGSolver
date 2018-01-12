@@ -24,11 +24,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
 #include "def_templates_geometry.h"
 #include "def_templates_volume_solver.h"
 #include "volume_solver_T.h"
 #include "undef_templates_type.h"
 #include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
 #include "undef_templates_geometry.h"
 #include "undef_templates_volume_solver.h"
 

@@ -32,7 +32,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_face_solver_dg.h"
 #include "test_complex_volume_solver_dg.h"
 
+#include "complex_matrix.h"
 #include "complex_multiarray.h"
+#include "complex_vector.h"
 #include "multiarray.h"
 #include "vector.h"
 

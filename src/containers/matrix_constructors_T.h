@@ -334,7 +334,7 @@ const struct const_Matrix_T* constructor_mm_NN1C_const_Matrix_T
  *  The diagonal matrix is input as a vector and may be applied either from the left or the right.
  */
 struct Matrix_T* constructor_mm_diag_Matrix_T_R
-	(const Real alpha,                  ///< Defined for \ref mm_T.
+	(const Real alpha,                    ///< Defined for \ref mm_T.
 	 const struct const_Matrix_T*const a, ///< Input matrix to be multiplied by the diagonal.
 	 const struct const_Vector_R*const b, ///< Vector storing the entries of the diagonal matrix.
 	 const char side,                     ///< The side from which to apply the diagonal matrix.
@@ -344,7 +344,7 @@ struct Matrix_T* constructor_mm_diag_Matrix_T_R
 /** \brief `const` version of \ref constructor_mm_diag_Matrix_T_R.
  *  \return See brief. */
 const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T_R
-	(const Real alpha,                  ///< See brief.
+	(const Real alpha,                    ///< See brief.
 	 const struct const_Matrix_T*const a, ///< See brief.
 	 const struct const_Vector_R*const b, ///< See brief.
 	 const char side,                     ///< See brief.

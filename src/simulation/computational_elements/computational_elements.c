@@ -209,7 +209,37 @@ bool list_is_derived_from (const char*const name_desired, const char list_type, 
 		}
 		break;
 	case 'f':
+		if (strcmp(name_desired,"solver") == 0) {
+			switch (sim->faces->name) {
+			case IL_FACE_SOLVER:    // fallthrough
+			case IL_FACE_SOLVER_DG: // fallthrough
+			case IL_FACE_SOLVER_DPG:
+				is_derived_from = true;
+				break;
+			default:
+				; // Do nothing
+				break;
+			}
+		} else {
+			EXIT_ERROR("Unsupported: %s\n",name_desired);
+		}
+		break;
 	case 'v':
+		if (strcmp(name_desired,"solver") == 0) {
+			switch (sim->volumes->name) {
+			case IL_VOLUME_SOLVER:    // fallthrough
+			case IL_VOLUME_SOLVER_DG: // fallthrough
+			case IL_VOLUME_SOLVER_DPG:
+				is_derived_from = true;
+				break;
+			default:
+				; // Do nothing
+				break;
+			}
+		} else {
+			EXIT_ERROR("Unsupported: %s\n",name_desired);
+		}
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %c\n",list_type);
 		break;

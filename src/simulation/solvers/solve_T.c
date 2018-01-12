@@ -30,11 +30,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_solve.h"
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+
 #include "def_templates_face_solver.h"
 #include "def_templates_volume_solver.h"
 
 #include "def_templates_solve_dg.h"
 #include "def_templates_solve_dpg.h"
+#include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -96,6 +101,28 @@ void update_ind_dof_T (const struct Simulation* sim)
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;
 	}
+}
+
+void add_to_flux_imbalance_source_T
+	(const struct const_Multiarray_T*const source_vc_w_J, const struct Solver_Volume_T*const s_vol,
+	 const struct Simulation*const sim)
+{
+	UNUSED(sim);
+	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
+
+	const struct const_Matrix_T source_M = interpret_const_Multiarray_as_Matrix_T(source_vc_w_J);
+
+	const struct const_Matrix_T* source_integral =
+		constructor_mm_diag_const_Matrix_T_R(1.0,&source_M,w_vc,'L',false); // destructed
+
+	const struct const_Vector_T* source_integral_sum =
+		constructor_sum_const_Vector_T_const_Matrix_T('C',source_integral); // destructed
+	destructor_const_Matrix_T(source_integral);
+
+	const ptrdiff_t n_vr = s_vol->flux_imbalance->ext_0;
+	for (int vr = 0; vr < n_vr; ++vr)
+		s_vol->flux_imbalance->data[vr] += source_integral_sum->data[vr];
+	destructor_const_Vector_T(source_integral_sum);
 }
 
 // Static functions ************************************************************************************************* //

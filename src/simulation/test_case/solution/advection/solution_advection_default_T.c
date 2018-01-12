@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 
 #include "def_templates_operators.h"
+#include "def_templates_solve.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -82,6 +83,7 @@ void compute_source_rhs_advection_default_T
 
 	const struct const_Vector_d j_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
 	scale_Multiarray_T_by_Vector_R('L',1.0,(struct Multiarray_T*)source_vc,&j_det_vc,false);
+	add_to_flux_imbalance_source_T(source_vc,s_vol,sim);
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';

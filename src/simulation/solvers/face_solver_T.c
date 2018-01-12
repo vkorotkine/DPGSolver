@@ -23,8 +23,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_bc.h"
 
 #include "def_templates_face_solver.h"
+#include "def_templates_volume_solver.h"
 
 #include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
 
 #include "def_templates_boundary.h"
 #include "def_templates_test_case.h"
@@ -105,6 +107,19 @@ void set_function_pointers_face_num_flux_T (struct Solver_Face_T* s_face, const 
 	} else {
 		set_function_pointers_num_flux_bc_T(s_face,sim);
 	}
+}
+
+const struct const_Vector_R* get_operator__w_fc__s_e_T (const struct Solver_Face_T*const s_face)
+{
+	const int side_index = 0;
+	const struct Face*const face          = (struct Face*) s_face;
+	const struct Volume*const vol         = face->neigh_info[side_index].volume;
+	const struct Solver_Element*const s_e = (struct Solver_Element*) vol->element;
+
+	const int p_f = s_face->p_ref;
+
+	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
+	return get_const_Multiarray_Vector_d(s_e->w_fc[curved],(ptrdiff_t[]){0,0,0,0,p_f,p_f});
 }
 
 // Static functions ************************************************************************************************* //

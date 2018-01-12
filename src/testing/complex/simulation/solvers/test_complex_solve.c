@@ -17,13 +17,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_solve.h"
 
+#include "complex_matrix.h"
 #include "complex_multiarray.h"
+#include "complex_vector.h"
 
 #include "test_complex_face_solver.h"
 #include "test_complex_volume_solver.h"
 
 #include "test_complex_solve_dg.h"
 #include "test_complex_solve_dpg.h"
+#include "test_complex_test_case.h"
 
 
 #include "solve.h"
@@ -33,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "intrusive.h"
 #include "simulation.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 

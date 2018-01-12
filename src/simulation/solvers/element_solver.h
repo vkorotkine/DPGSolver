@@ -47,6 +47,8 @@ struct Solver_Element {
 	const struct Multiarray_Operator* tw0_vt_fc[2];   ///< See notation in \ref element_operators.h.
 	const struct const_Multiarray_Vector_i* nc_fc[2]; ///< Node correspondence between 'f'ace 'c'ubature 's'traight.
 
+	const struct const_Multiarray_Vector_d* w_fc[2]; ///< Weights for 'f'ace 'c'ubature.
+
 	// Source rhs
 	const struct Multiarray_Operator* cv0_vg_vc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* tw0_vt_vc[2]; ///< See notation in \ref element_operators.h.

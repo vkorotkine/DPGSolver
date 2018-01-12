@@ -684,7 +684,8 @@ static void compute_rlhs_1
 	const struct const_Matrix_T* opt_t =
 		constructor_sysv_const_Matrix_T(norm->N,(struct const_Matrix_T*)lhs_std); // destructed
 
-	const struct const_Vector_T* rhs_opt =
+/// \todo Add option for the inclusion of a contant value in the test space such that conservation can be enforced.
+	const struct const_Vector_T* rhs_opt_neg =
 		constructor_mv_const_Vector_T('T',-1.0,opt_t,(struct const_Vector_T*)rhs_std); // destructed
 
 #if TYPE_RC == TYPE_REAL
@@ -693,19 +694,19 @@ static void compute_rlhs_1
 	add_to_lhs_opt__d_opt_t_ds(flux_r,dpg_s_vol,norm,opt_t,(struct const_Vector_T*)rhs_std,
 	                           (struct const_Matrix_T*)lhs_std,lhs_opt,sim,sim_c);
 
-	add_to_petsc_Mat_Vec_dpg(s_vol,rhs_opt,(struct const_Matrix_T*)lhs_opt,ssi,sim);
+	add_to_petsc_Mat_Vec_dpg(s_vol,rhs_opt_neg,(struct const_Matrix_T*)lhs_opt,ssi,sim);
 	destructor_Matrix_T(lhs_opt);
 #elif TYPE_RC == TYPE_COMPLEX
 	UNUSED(sim_c);
 
-	add_to_petsc_Mat_dpg_c(s_vol,rhs_opt,ssi);
+	add_to_petsc_Mat_dpg_c(s_vol,rhs_opt_neg,ssi);
 #endif
 	destructor_Flux_Ref_T(flux_r);
 	destructor_Norm_DPG(norm);
 
 	destructor_Vector_T(rhs_std);
 	destructor_Matrix_T(lhs_std);
-	destructor_const_Vector_T(rhs_opt);
+	destructor_const_Vector_T(rhs_opt_neg);
 
 	destructor_const_Matrix_T(opt_t);
 }

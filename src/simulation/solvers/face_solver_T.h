@@ -53,6 +53,7 @@ struct Solver_Face_T {
 	/// Construct 'r'ight numerical flux input members at face cubature nodes as seen from the left volume.
 	constructor_Boundary_Value_fptr_T constructor_Boundary_Value_fcl;
 
+
 	// Used exclusively for testing purposes.
 
 	/// Exact values of the normal flux on the boundary at the face cubature nodes if the solution is known.
@@ -75,4 +76,10 @@ void destructor_derived_Solver_Face_T
 void set_function_pointers_face_num_flux_T
 	(struct Solver_Face_T* s_face,  ///< Pointer to the \ref Solver_Face_T.
 	 const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Get the appropriate sub-range of the \ref Solver_Element::w_fc operators.
+ *  \return See brief. */
+const struct const_Vector_R* get_operator__w_fc__s_e_T
+	(const struct Solver_Face_T*const s_face ///< The current face.
 	);

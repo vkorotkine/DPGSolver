@@ -105,6 +105,8 @@ void destructor_derived_Solver_Element (struct Element* element_ptr)
 		destructor_const_Multiarray_Vector_i(s_e->nc_fc[0]);
 		destructor_const_Multiarray_Vector_i(s_e->nc_fc[1]);
 	}
+	for (int i = 0; i < 2; ++i)
+		destructor_const_Multiarray_Vector_d(s_e->w_fc[i]);
 
 	destructor_Multiarray2_Operator(s_e->cv0_vg_vc);
 	destructor_Multiarray2_Operator(s_e->tw0_vt_vc);
@@ -204,6 +206,9 @@ static void constructor_derived_Solver_Element_common (struct Element* element_p
 
 	s_e->w_vc[0] = constructor_operators_w("vcs","vcs","H_1_P_PM0",sim->p_s_v,e,sim); // destructed
 	s_e->w_vc[1] = constructor_operators_w("vcc","vcc","H_1_P_PM0",sim->p_s_v,e,sim); // destructed
+
+	s_e->w_fc[0] = constructor_operators_w("fcs","fcs","H_1_P_PM1",NULL,e,sim); // destructed
+	s_e->w_fc[1] = constructor_operators_w("fcc","fcc","H_1_P_PM1",NULL,e,sim); // destructed
 
 	const int n_fe = get_number_of_face_elements(e);
 	for (int i = 0; i < n_fe; ++i) {

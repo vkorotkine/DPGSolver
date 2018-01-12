@@ -25,11 +25,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_compute_face_rlhs_dg.h"
 
+#include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
 
 #include "def_templates_face_solver.h"
 #include "def_templates_face_solver_dg.h"
+#include "def_templates_volume_solver.h"
 #include "def_templates_volume_solver_dg.h"
 
 #include "def_templates_compute_face_rlhs.h"
@@ -86,6 +88,13 @@ static struct S_Params_T set_s_params_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/// \brief Add the current face contribution to \ref Solver_Volume_T::flux_imbalance from both sides.
+static void add_to_flux_imbalance
+	(const struct Numerical_Flux_T*const num_flux_w_J, ///< \ref Numerical_Flux_T scaled by face jacobian term.
+	 const struct Solver_Face_T*const s_face,          ///< The current \ref Solver_Face_T.
+	 const struct Simulation*const sim                 ///< \ref Simulation.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void compute_face_rlhs_dg_T
@@ -120,6 +129,8 @@ if (!face->boundary)
 #endif
 
 		s_params.scale_by_Jacobian(num_flux,face,sim);
+
+		add_to_flux_imbalance(num_flux,s_face,sim);
 #if 0
 print_const_Multiarray_T(num_flux->nnf);
 print_const_Multiarray_T(num_flux->neigh_info[0].dnnf_ds);
@@ -184,6 +195,34 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 	}
 
 	return s_params;
+}
+
+static void add_to_flux_imbalance
+	(const struct Numerical_Flux_T*const num_flux_w_J, const struct Solver_Face_T*const s_face,
+	 const struct Simulation*const sim)
+{
+	UNUSED(sim);
+	const struct const_Vector_R* w_fc = get_operator__w_fc__s_e_T(s_face);
+
+	const struct const_Matrix_T nnf_M = interpret_const_Multiarray_as_Matrix_T(num_flux_w_J->nnf);
+
+	const struct const_Matrix_T* nnf_integral =
+		constructor_mm_diag_const_Matrix_T_R(1.0,&nnf_M,w_fc,'L',false); // destructed
+
+	const struct const_Vector_T* nnf_integral_sum =
+		constructor_sum_const_Vector_T_const_Matrix_T('C',nnf_integral); // destructed
+	destructor_const_Matrix_T(nnf_integral);
+
+	const struct Face* face = (struct Face*) s_face;
+	const int n_neigh    = ( face->boundary ? 1 : 2 );
+	for (int n = 0; n < n_neigh; ++n) {
+		struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) face->neigh_info[n].volume;
+		const Real normal_scale = ( n == 0 ? 1.0 : -1.0 );
+		const ptrdiff_t n_vr = s_vol->flux_imbalance->ext_0;
+		for (int vr = 0; vr < n_vr; ++vr)
+			s_vol->flux_imbalance->data[vr] += normal_scale*nnf_integral_sum->data[vr];
+	}
+	destructor_const_Vector_T(nnf_integral_sum);
 }
 
 // Level 1 ********************************************************************************************************** //

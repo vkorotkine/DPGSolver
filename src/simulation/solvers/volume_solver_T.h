@@ -62,6 +62,8 @@ struct Solver_Volume_T {
 
 	/// The determinant of the geometry mapping Jacobian evaluated at the volume cubature nodes.
 	const struct const_Multiarray_R*const jacobian_det_vc;
+
+	struct Vector_T* flux_imbalance;
 };
 
 /// \brief Constructor for a derived \ref Solver_Volume_T.

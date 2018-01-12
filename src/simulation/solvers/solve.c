@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "face_solver.h"
 #include "volume_solver.h"
 
+#include "matrix.h"
 #include "multiarray.h"
 #include "vector.h"
 
@@ -51,6 +52,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "solve_dpg.h"
 
 // Static function declarations ************************************************************************************* //
+
+/// \brief Set the memory of the rhs and lhs (if applicable) terms to zero for the volumes.
+static void zero_memory_volumes
+	(struct Intrusive_List* volumes ///< The list of volumes for which to set the memory.
+	);
 
 /// \brief Correct the coefficients such that `coef = t*coef + (1-t)*coef_avg`.
 static void correct_coef
@@ -95,6 +101,7 @@ double compute_rhs (const struct Simulation* sim)
 /// \todo Add assertions relevant to rhs.
 	double max_rhs = 0.0;
 
+	zero_memory_volumes(sim->volumes);
 	switch (sim->method) {
 	case METHOD_DG:
 		max_rhs = compute_rhs_dg(sim);
@@ -111,6 +118,7 @@ double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implici
 {
 	double max_rhs = 0.0;
 
+	zero_memory_volumes(sim->volumes);
 	switch (sim->method) {
 		case METHOD_DG:  max_rhs = compute_rlhs_dg(sim,s_store_i);    break;
 		case METHOD_DPG: max_rhs = compute_rlhs_dpg(sim,s_store_i);   break;
@@ -227,6 +235,14 @@ ptrdiff_t compute_dof_schur (const char dof_type, const struct Simulation* sim)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void zero_memory_volumes (struct Intrusive_List* volumes)
+{
+	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+		set_to_value_Vector_d(s_vol->flux_imbalance,0.0);
+	}
+}
 
 static void correct_coef (struct Multiarray_d*const coef, const double p_ho)
 {

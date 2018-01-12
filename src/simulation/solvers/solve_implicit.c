@@ -210,7 +210,7 @@ static double implicit_step (const int i_step, const struct Simulation* sim)
 	if (OUTPUT_PETSC_AB)
 		output_petsc_mat_vec(ssi->A,ssi->b,sim);
 
-	if (OUTPUT_SOLUTION && i_step == 4)
+	if (OUTPUT_SOLUTION && i_step == 25)
 		output_solution(i_step,(struct Simulation*)sim);
 
 	solve_and_update(max_rhs,i_step,ssi,sim);
@@ -340,12 +340,12 @@ static void output_petsc_mat_vec (Mat A, Vec b, const struct Simulation* sim)
 static void output_solution (const int i_step, struct Simulation*const sim)
 {
 	UNUSED(i_step);
-	destructor_derived_elements_comp_elements(sim);
+//	destructor_derived_elements_comp_elements(sim);
 
 	output_visualization(sim,VIS_GEOM_EDGES);
 	output_visualization(sim,VIS_SOLUTION);
 
-	constructor_derived_elements_comp_elements(sim);
+//	constructor_derived_elements_comp_elements(sim);
 	EXIT_ERROR("Disable outputting to continue");
 }
 

@@ -64,8 +64,8 @@ static void output_visualization_paraview
 
 void output_visualization (struct Simulation* sim, const int vis_type)
 {
-	assert(sim->volumes->name == IL_VOLUME_SOLVER);
-	assert(sim->faces->name   == IL_FACE_SOLVER);
+	assert(list_is_derived_from("solver",'v',sim));
+	assert(list_is_derived_from("solver",'f',sim));
 	assert(list_is_derived_from("solver",'e',sim));
 
 	output_visualization_paraview(sim,vis_type);

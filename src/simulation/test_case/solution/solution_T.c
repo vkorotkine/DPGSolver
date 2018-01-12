@@ -249,7 +249,7 @@ static const struct const_Multiarray_T* constructor_nf
 
 /// \brief Compute the coefficients associated with the values of the face normal flux.
 static void compute_coef_from_val_ff
-	(const struct Solver_Face_T* s_face,       ///< \ref Solver_Face_T.
+	(const struct Solver_Face_T* s_face,     ///< \ref Solver_Face_T.
 	 const struct const_Multiarray_T* f_val, ///< The flux values.
 	 struct Multiarray_T* f_coef             ///< To hold the flux coefficients.
 	);

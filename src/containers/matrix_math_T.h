@@ -170,8 +170,8 @@ void scale_Matrix_T_by_Vector_R
  */
 void mm_diag_T
 	(const char side,                     ///< The side from which to apply the vector as a diagonal matrix.
-	 const Real alpha,                  ///< Multiplicative constant.
-	 const Real beta,                   ///< Multiplicative constant.
+	 const Real alpha,                    ///< Multiplicative constant.
+	 const Real beta,                     ///< Multiplicative constant.
 	 const struct const_Matrix_R*const a, ///< Input \ref const_Matrix_T\*.
 	 const struct const_Vector_T*const b, ///< Input \ref const_Vector_T\*.
 	 struct Matrix_T* c,                  ///< Input \ref Matrix_T\*.

@@ -27,10 +27,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_base.h"
 #include "test_integration.h"
 
-#include "computational_elements.h"
-
 #include "multiarray.h"
 
+#include "computational_elements.h"
 #include "compute_error.h"
 #include "const_cast.h"
 #include "core.h"
@@ -43,12 +42,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-///\{ \name Flag for whether the convergence orders should be displayed for these tests.
-#define DISPLAY_CONV 1
-///\}
+/// The discount in the convergence order value for which the convergence may still be considered optimal (p+1).
+#define ACCEPTABLE_DISCOUNT 0.165
+
+#define DISPLAY_CONV 1 ///< Flag for whether the convergence orders should be displayed for these tests.
 
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
-#define ORDER_VIS_CONV_P      2
+#define ORDER_VIS_CONV_P      3
 #define ORDER_VIS_CONV_ML_MAX 3
 ///\}
 
@@ -217,10 +217,9 @@ static void check_convergence_orders
 		print_Multiarray_d(conv_orders);
 	}
 
-	const double disc = 0.125;
-	bool pass   = attained_expected_conv_orders(disc,extents,conv_orders,ex_ord,int_test_info);
+	bool pass   = attained_expected_conv_orders(ACCEPTABLE_DISCOUNT,extents,conv_orders,ex_ord,int_test_info);
 	bool pass_d = attained_expected_conv_orders(
-		disc+int_test_info->conv_order_discount,extents,conv_orders,ex_ord,int_test_info);
+		ACCEPTABLE_DISCOUNT+int_test_info->conv_order_discount,extents,conv_orders,ex_ord,int_test_info);
 
 	destructor_Multiarray_i(ex_ord);
 	destructor_Multiarray_d(l2_err);

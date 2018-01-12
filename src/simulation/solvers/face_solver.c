@@ -17,7 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "face_solver.h"
 
-#include "volume.h"
+#include "element_solver.h"
+#include "volume_solver.h"
 
 #include "multiarray.h"
 

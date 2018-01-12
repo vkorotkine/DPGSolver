@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_derived_Solver_Face_T     constructor_derived_Solver_Face
 #define destructor_derived_Solver_Face_T      destructor_derived_Solver_Face
 #define set_function_pointers_face_num_flux_T set_function_pointers_face_num_flux
+#define get_operator__w_fc__s_e_T             get_operator__w_fc__s_e
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -39,6 +40,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_derived_Solver_Face_T     constructor_derived_Solver_Face_c
 #define destructor_derived_Solver_Face_T      destructor_derived_Solver_Face_c
 #define set_function_pointers_face_num_flux_T set_function_pointers_face_num_flux_c
+#define get_operator__w_fc__s_e_T             get_operator__w_fc__s_e_c
 ///\}
 
 #endif
