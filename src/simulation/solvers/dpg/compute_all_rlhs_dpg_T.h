@@ -76,3 +76,8 @@ void add_to_rlhs__face_T
 	 const bool include_internal                  /**< Flag for whether the internal face contributions should be
 	                                               *   included. */
 	);
+
+/// \brief Compute the contribution of the face integrals to the flux imbalances for the DPG scheme.
+void compute_flux_imbalances_faces_dpg_T
+	(struct Simulation*const sim ///< \ref Simulation.
+	);

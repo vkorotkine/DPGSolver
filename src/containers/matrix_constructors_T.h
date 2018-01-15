@@ -269,7 +269,7 @@ const struct const_Matrix_T* constructor_sysv_const_Matrix_T
 struct Matrix_T* constructor_mm_Matrix_T
 	(const char trans_a_i,                ///< Defined for \ref mm_T.
 	 const char trans_b_i,                ///< Defined for \ref mm_T.
-	 const Real alpha,                  ///< Defined for \ref mm_T.
+	 const Real alpha,                    ///< Defined for \ref mm_T.
 	 const struct const_Matrix_T*const a, ///< Defined for \ref mm_T.
 	 const struct const_Matrix_T*const b, ///< Defined for \ref mm_T.
 	 const char layout                    ///< The `layout` of the constructed \ref Matrix_T.
@@ -280,8 +280,30 @@ struct Matrix_T* constructor_mm_Matrix_T
 const struct const_Matrix_T* constructor_mm_const_Matrix_T
 	(const char trans_a_i,                ///< See brief.
 	 const char trans_b_i,                ///< See brief.
-	 const Real alpha,                  ///< See brief.
+	 const Real alpha,                    ///< See brief.
 	 const struct const_Matrix_T*const a, ///< See brief.
+	 const struct const_Matrix_T*const b, ///< See brief.
+	 const char layout                    ///< See brief.
+	);
+
+/** \brief Version of \ref constructor_mm_Matrix_T with 'R'eal and 'T'ype inputs.
+ *  \return See brief. */
+struct Matrix_T* constructor_mm_RT_Matrix_T
+	(const char trans_a_i,                ///< See brief.
+	 const char trans_b_i,                ///< See brief.
+	 const Real alpha,                    ///< See brief.
+	 const struct const_Matrix_R*const a, ///< See brief.
+	 const struct const_Matrix_T*const b, ///< See brief.
+	 const char layout                    ///< See brief.
+	);
+
+/** \brief `const` version of \ref constructor_mm_RT_Matrix_T.
+ *  \return See brief. */
+const struct const_Matrix_T* constructor_mm_RT_const_Matrix_T
+	(const char trans_a_i,                ///< See brief.
+	 const char trans_b_i,                ///< See brief.
+	 const Real alpha,                    ///< See brief.
+	 const struct const_Matrix_R*const a, ///< See brief.
 	 const struct const_Matrix_T*const b, ///< See brief.
 	 const char layout                    ///< See brief.
 	);

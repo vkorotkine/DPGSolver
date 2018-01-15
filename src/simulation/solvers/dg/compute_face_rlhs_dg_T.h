@@ -54,3 +54,8 @@ void compute_face_rlhs_dg_T
 	 struct Solver_Storage_Implicit* ssi, ///< \ref Solver_Storage_Implicit.
 	 struct Intrusive_List* faces         ///< The list of faces.
 	);
+
+/// \brief Compute the contribution of the face integrals to the flux imbalances for the DG scheme.
+void compute_flux_imbalances_faces_dg_T
+	(const struct Simulation*const sim ///< \ref Simulation.
+	);

@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "compute_all_rlhs_dpg.h"
+#include "compute_source_rlhs_dg.h"
 #include "const_cast.h"
 #include "intrusive.h"
 #include "simulation.h"
@@ -52,6 +53,12 @@ double compute_rlhs_dpg (const struct Simulation* sim, struct Solver_Storage_Imp
 {
 	compute_all_rlhs_dpg(sim,ssi,sim->volumes);
 	return compute_max_rhs(ssi);
+}
+
+void compute_flux_imbalances_dpg (struct Simulation*const sim)
+{
+	compute_flux_imbalances_faces_dpg(sim);
+	compute_flux_imbalances_source_dg(sim);
 }
 
 // Static functions ************************************************************************************************* //

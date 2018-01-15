@@ -36,4 +36,9 @@ double compute_rlhs_dpg
 	 struct Solver_Storage_Implicit* ssi ///< See brief.
 	);
 
+/// \brief Version of \ref compute_flux_imbalances for the DPG scheme.
+void compute_flux_imbalances_dpg
+	(struct Simulation*const sim ///< \ref Simulation.
+	);
+
 #endif // DPG__solve_dpg_h__INCLUDED

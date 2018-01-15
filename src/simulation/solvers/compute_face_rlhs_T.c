@@ -179,5 +179,28 @@ print_Matrix_T(lhs_l);
 	return lhs;
 }
 
+void add_to_flux_imbalance_face_nf_w_T
+	(const struct const_Matrix_T*const nf_fc, const struct const_Vector_R*const w_fc,
+	 const struct Solver_Face_T*const s_face)
+{
+	const struct const_Matrix_T* nnf_integral =
+		constructor_mm_diag_const_Matrix_T_R(1.0,nf_fc,w_fc,'L',false); // destructed
+
+	const struct const_Vector_T* nnf_integral_sum =
+		constructor_sum_const_Vector_T_const_Matrix_T('C',nnf_integral); // destructed
+	destructor_const_Matrix_T(nnf_integral);
+
+	const struct Face* face = (struct Face*) s_face;
+	const int n_neigh    = ( face->boundary ? 1 : 2 );
+	for (int n = 0; n < n_neigh; ++n) {
+		struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) face->neigh_info[n].volume;
+		const Real normal_scale = ( n == 0 ? -1.0 : 1.0 );
+		const ptrdiff_t n_vr = s_vol->flux_imbalance->ext_0;
+		for (int vr = 0; vr < n_vr; ++vr)
+			s_vol->flux_imbalance->data[vr] += normal_scale*nnf_integral_sum->data[vr];
+	}
+	destructor_const_Vector_T(nnf_integral_sum);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

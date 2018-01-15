@@ -125,6 +125,13 @@ void compute_source_rhs_do_nothing_T
 	 struct Multiarray_T* rhs           ///< See brief.
 	);
 
+/// \brief Function pointer to be used for \ref Test_Case_T::add_to_flux_imbalance_source when there is no source term.
+void add_to_flux_imbalance_source_do_nothing_T
+	(const struct Simulation* sim,      ///< See brief.
+	 const struct Solver_Volume_T* s_vol, ///< See brief.
+	 struct Multiarray_T* rhs           ///< See brief.
+	);
+
 /// \brief Update \ref Solution_Container_T::sol based on the input solution values.
 void update_Solution_Container_sol_T
 	(struct Solution_Container_T*const sol_cont, ///< Defined for \ref set_sol_fptr_T.

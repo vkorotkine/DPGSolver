@@ -129,8 +129,6 @@ if (!face->boundary)
 #endif
 
 		s_params.scale_by_Jacobian(num_flux,face,sim);
-
-		add_to_flux_imbalance(num_flux,s_face,sim);
 #if 0
 print_const_Multiarray_T(num_flux->nnf);
 print_const_Multiarray_T(num_flux->neigh_info[0].dnnf_ds);
@@ -145,6 +143,37 @@ if (!face->boundary)
 	}
 //EXIT_UNSUPPORTED;
 	destructor_Numerical_Flux_Input_T(num_flux_i);
+}
+
+void compute_flux_imbalances_faces_dg_T (const struct Simulation*const sim)
+{
+	assert(list_is_derived_from("solver",'v',sim));
+	assert(list_is_derived_from("solver",'f',sim));
+	assert(list_is_derived_from("solver",'e',sim));
+
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	test_case->solver_method_curr = 'e';
+
+	struct S_Params_T s_params = set_s_params_T(sim);
+	struct Numerical_Flux_Input_T* num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
+
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		struct Face* face            = (struct Face*) curr;
+		struct Solver_Face_T* s_face = (struct Solver_Face_T*) curr;
+
+		constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed
+
+		struct Numerical_Flux_T* num_flux = constructor_Numerical_Flux_T(num_flux_i); // destructed
+		destructor_Numerical_Flux_Input_data_T(num_flux_i);
+
+		s_params.scale_by_Jacobian(num_flux,face,sim);
+
+		add_to_flux_imbalance(num_flux,s_face,sim);
+		destructor_Numerical_Flux_T(num_flux);
+	}
+	destructor_Numerical_Flux_Input_T(num_flux_i);
+
+	test_case->solver_method_curr = 0;
 }
 
 // Static functions ************************************************************************************************* //
@@ -202,27 +231,10 @@ static void add_to_flux_imbalance
 	 const struct Simulation*const sim)
 {
 	UNUSED(sim);
+	const struct const_Matrix_T nnf_M = interpret_const_Multiarray_as_Matrix_T(num_flux_w_J->nnf);
 	const struct const_Vector_R* w_fc = get_operator__w_fc__s_e_T(s_face);
 
-	const struct const_Matrix_T nnf_M = interpret_const_Multiarray_as_Matrix_T(num_flux_w_J->nnf);
-
-	const struct const_Matrix_T* nnf_integral =
-		constructor_mm_diag_const_Matrix_T_R(1.0,&nnf_M,w_fc,'L',false); // destructed
-
-	const struct const_Vector_T* nnf_integral_sum =
-		constructor_sum_const_Vector_T_const_Matrix_T('C',nnf_integral); // destructed
-	destructor_const_Matrix_T(nnf_integral);
-
-	const struct Face* face = (struct Face*) s_face;
-	const int n_neigh    = ( face->boundary ? 1 : 2 );
-	for (int n = 0; n < n_neigh; ++n) {
-		struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) face->neigh_info[n].volume;
-		const Real normal_scale = ( n == 0 ? 1.0 : -1.0 );
-		const ptrdiff_t n_vr = s_vol->flux_imbalance->ext_0;
-		for (int vr = 0; vr < n_vr; ++vr)
-			s_vol->flux_imbalance->data[vr] += normal_scale*nnf_integral_sum->data[vr];
-	}
-	destructor_const_Vector_T(nnf_integral_sum);
+	add_to_flux_imbalance_face_nf_w_T(&nnf_M,w_fc,s_face);
 }
 
 // Level 1 ********************************************************************************************************** //

@@ -121,6 +121,12 @@ void add_to_petsc_Mat (const struct Solver_Storage_Implicit*const s_store_i, con
 	MatSetValues(s_store_i->A,(PetscInt)ext_0,idxm,(PetscInt)ext_1,idxn,vv,ADD_VALUES);
 }
 
+void compute_flux_imbalances_dg (const struct Simulation*const sim)
+{
+	compute_flux_imbalances_faces_dg(sim);
+	compute_flux_imbalances_source_dg(sim);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

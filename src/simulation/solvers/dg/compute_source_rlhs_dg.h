@@ -33,4 +33,9 @@ void compute_source_rhs_dg
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/// \brief Compute the contribution of the source term integrals to the flux imbalances for the DG scheme.
+void compute_flux_imbalances_source_dg
+	(const struct Simulation*const sim ///< \ref Simulation.
+	);
+
 #endif // DPG__compute_source_rlhs_dg_h__INCLUDED

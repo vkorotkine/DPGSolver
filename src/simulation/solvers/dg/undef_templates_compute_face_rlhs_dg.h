@@ -28,10 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #undef compute_face_rlhs_dg_T
+#undef compute_flux_imbalances_faces_dg_T
 
-#undef set_s_params_T
-#undef scale_by_Jacobian_e_T
 #undef compute_rhs_f_dg_T
-
-#undef finalize_face_rhs_dg_T
 ///\}

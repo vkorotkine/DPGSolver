@@ -115,4 +115,12 @@ ptrdiff_t compute_dof_schur
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Compute the flux imbalances for the current solution.
+ *  \note As the time term is not currently included the computed flux imbalances will not be zero, even for
+ *        conservative methods, when the method has not yet converged.
+ */
+void compute_flux_imbalances
+	(struct Simulation*const sim ///< \ref Simulation.
+	);
+
 #endif // DPG__solve_h__INCLUDED

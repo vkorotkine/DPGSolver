@@ -24,12 +24,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_compute_face_rlhs.h"
 #include "def_templates_face_solver.h"
 #include "def_templates_matrix.h"
+#include "def_templates_vector.h"
 #include "def_templates_numerical_flux.h"
 #include "compute_face_rlhs_T.h"
 #include "undef_templates_type.h"
 #include "undef_templates_compute_face_rlhs.h"
 #include "undef_templates_face_solver.h"
 #include "undef_templates_matrix.h"
+#include "undef_templates_vector.h"
 #include "undef_templates_numerical_flux.h"
 
 #endif // DPG__compute_face_rlhs_h__INCLUDED

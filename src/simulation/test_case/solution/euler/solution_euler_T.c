@@ -49,22 +49,25 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 {
 	test_case->set_grad = set_sg_do_nothing_T;
 	if (strstr(sim->pde_spec,"periodic_vortex")) {
-		test_case->constructor_sol      = constructor_const_sol_invalid_T;
-		test_case->set_sol              = set_sol_periodic_vortex_T;
-		test_case->compute_source_rhs   = compute_source_rhs_do_nothing_T;
-		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
+		test_case->constructor_sol              = constructor_const_sol_invalid_T;
+		test_case->set_sol                      = set_sol_periodic_vortex_T;
+		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
+		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
+		test_case->constructor_Error_CE         = constructor_Error_CE_euler_all;
 	} else if (strstr(sim->pde_spec,"supersonic_vortex")) {
-		test_case->constructor_xyz      = constructor_xyz_cylinder_parametric_T;
-		test_case->constructor_sol      = constructor_const_sol_supersonic_vortex_T;
-		test_case->set_sol              = set_sol_supersonic_vortex_T;
-		test_case->compute_source_rhs   = compute_source_rhs_do_nothing_T;
-		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
+		test_case->constructor_xyz              = constructor_xyz_cylinder_parametric_T;
+		test_case->constructor_sol              = constructor_const_sol_supersonic_vortex_T;
+		test_case->set_sol                      = set_sol_supersonic_vortex_T;
+		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
+		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
+		test_case->constructor_Error_CE         = constructor_Error_CE_euler_all;
 	} else if (strstr(sim->pde_spec,"free_stream")) {
-		test_case->constructor_xyz      = constructor_xyz_trigonometric_cube_parametric_T;
-		test_case->constructor_sol      = constructor_const_sol_free_stream_T;
-		test_case->set_sol              = set_sol_free_stream_T;
-		test_case->compute_source_rhs   = compute_source_rhs_do_nothing_T;
-		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
+		test_case->constructor_xyz              = constructor_xyz_trigonometric_cube_parametric_T;
+		test_case->constructor_sol              = constructor_const_sol_free_stream_T;
+		test_case->set_sol                      = set_sol_free_stream_T;
+		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
+		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
+		test_case->constructor_Error_CE         = constructor_Error_CE_euler_all;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}

@@ -30,13 +30,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Function names
-#define compute_face_rlhs_dg_T compute_face_rlhs_dg
+#define compute_face_rlhs_dg_T             compute_face_rlhs_dg
+#define compute_flux_imbalances_faces_dg_T compute_flux_imbalances_faces_dg
 
-#define set_s_params_T        set_s_params
-#define scale_by_Jacobian_e_T scale_by_Jacobian_e
 #define compute_rhs_f_dg_T    compute_rhs_f_dg
-
-#define finalize_face_rhs_dg_T finalize_face_rhs_dg
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -52,13 +49,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Function names
-#define compute_face_rlhs_dg_T compute_face_rlhs_dg_c
+#define compute_face_rlhs_dg_T             compute_face_rlhs_dg_c
+#define compute_flux_imbalances_faces_dg_T compute_flux_imbalances_faces_dg_c
 
-#define set_s_params_T        set_s_params_c
-#define scale_by_Jacobian_e_T scale_by_Jacobian_e_c
 #define compute_rhs_f_dg_T    compute_rhs_f_dg_c
-
-#define finalize_face_rhs_dg_T finalize_face_rhs_dg_c
 ///\}
 
 #endif

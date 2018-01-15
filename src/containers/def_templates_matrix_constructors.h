@@ -54,6 +54,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_sysv_const_Matrix_T           constructor_sysv_const_Matrix_d
 #define constructor_mm_Matrix_T                   constructor_mm_Matrix_d
 #define constructor_mm_const_Matrix_T             constructor_mm_const_Matrix_d
+#define constructor_mm_RT_Matrix_T                constructor_mm_RT_Matrix_d
+#define constructor_mm_RT_const_Matrix_T          constructor_mm_const_RT_Matrix_d
 #define constructor_mm_NN1R_Matrix_T              constructor_mm_NN1R_Matrix_d
 #define constructor_mm_NN1R_const_Matrix_T        constructor_mm_NN1R_const_Matrix_d
 #define constructor_mm_NN1C_Matrix_T              constructor_mm_NN1C_Matrix_d
@@ -109,6 +111,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_sysv_const_Matrix_T           constructor_sysv_const_Matrix_c
 #define constructor_mm_Matrix_T                   constructor_mm_Matrix_c
 #define constructor_mm_const_Matrix_T             constructor_mm_const_Matrix_c
+#define constructor_mm_RT_Matrix_T                constructor_mm_RT_Matrix_c
+#define constructor_mm_RT_const_Matrix_T          constructor_mm_const_RT_Matrix_c
 #define constructor_mm_NN1R_Matrix_T              constructor_mm_NN1R_Matrix_c
 #define constructor_mm_NN1R_const_Matrix_T        constructor_mm_NN1R_const_Matrix_c
 #define constructor_mm_NN1C_Matrix_T              constructor_mm_NN1C_Matrix_c

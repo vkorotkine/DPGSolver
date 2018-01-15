@@ -125,7 +125,7 @@ Type maximum_abs_T (const Type*const data, const ptrdiff_t n_entries)
 	Type max = DBL_MIN;
 	for (int i = 0; i < n_entries; ++i) {
 		if (abs_T(data[i]) > abs_T(max))
-			max = data[i];
+			max = abs_T(data[i]);
 	}
 	return max;
 }

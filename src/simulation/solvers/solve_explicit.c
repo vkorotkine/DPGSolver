@@ -88,7 +88,7 @@ void solve_explicit (struct Simulation* sim)
 
 	const double time_final = test_case->time_final;
 	double dt = test_case->dt;
-	assert(time_final > 0.0);
+	assert(time_final >= 0.0);
 
 	double max_rhs0 = 0.0;
 

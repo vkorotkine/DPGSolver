@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_coef_from_val_vs_T
 #undef constructor_sol_v_T
 #undef compute_source_rhs_do_nothing_T
+#undef add_to_flux_imbalance_source_do_nothing_T
 #undef update_Solution_Container_sol_T
 #undef constructor_xyz_vc_interp_T
 #undef get_operator__tw0_vt_vc_T

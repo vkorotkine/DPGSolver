@@ -182,6 +182,15 @@ void compute_source_rhs_do_nothing_T
 	return;
 }
 
+void add_to_flux_imbalance_source_do_nothing_T
+	(const struct Simulation* sim, const struct Solver_Volume_T* s_vol, struct Multiarray_T* rhs)
+{
+	UNUSED(sim);
+	UNUSED(s_vol);
+	UNUSED(rhs);
+	return;
+}
+
 void update_Solution_Container_sol_T
 	(struct Solution_Container_T*const sol_cont, struct Multiarray_T*const sol, const struct Simulation*const sim)
 {

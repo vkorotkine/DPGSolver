@@ -41,3 +41,11 @@ void compute_source_rhs_advection_default_T
 	 const struct Solver_Volume_T* s_vol, ///< See brief.
 	 struct Multiarray_T* rhs             ///< See brief.
 	);
+
+/** \brief Version of \ref compute_source_rhs_fptr_T adding flux imbalance contributions for the default linear
+ *         advection solution. */
+void add_to_flux_imbalance_source_advection_default_T
+	(const struct Simulation* sim,        ///< See brief.
+	 const struct Solver_Volume_T* s_vol, ///< See brief.
+	 struct Multiarray_T* rhs             ///< See brief.
+	);

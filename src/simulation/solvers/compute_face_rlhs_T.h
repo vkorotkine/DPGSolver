@@ -17,8 +17,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *         of supported schemes.
  */
 
+struct const_Vector_R;
 struct Matrix_R;
 struct Matrix_T;
+struct const_Matrix_T;
 struct Solver_Face_T;
 struct Numerical_Flux_Input_T;
 struct Numerical_Flux_T;
@@ -82,4 +84,12 @@ struct Matrix_T* constructor_lhs_f_1_T
 	                                           *   comments in \ref compute_face_rlhs_dg.h for the convention. */
 	 const struct Numerical_Flux_T* num_flux, ///< Defined for \ref compute_rlhs_fptr.
 	 const struct Solver_Face_T* s_face       ///< Defined for \ref compute_rlhs_fptr.
+	);
+
+/** \brief Combine the input face cubature weights and normal flux values and add to the corresponding \ref
+ *         Solver_Volume::flux_imbalance. */
+void add_to_flux_imbalance_face_nf_w_T
+	(const struct const_Matrix_T*const nf_fc, ///< The normal flux evaluated at the face cubature nodes.
+	 const struct const_Vector_R*const w_fc,  ///< The face cubature weights.
+	 const struct Solver_Face_T*const s_face  ///< The current face.
 	);

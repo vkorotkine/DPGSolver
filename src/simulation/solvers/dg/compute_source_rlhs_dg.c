@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "volume_solver_dg.h"
 
+#include "computational_elements.h"
 #include "intrusive.h"
 #include "simulation.h"
 #include "test_case.h"
@@ -45,6 +46,18 @@ void compute_source_rhs_dg (const struct Simulation* sim)
 		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
 
 		test_case->compute_source_rhs(sim,s_vol,dg_s_vol->rhs);
+	}
+}
+
+void compute_flux_imbalances_source_dg (const struct Simulation*const sim)
+{
+	assert(list_is_derived_from("solver",'v',sim));
+
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+		test_case->add_to_flux_imbalance_source(sim,s_vol,NULL);
 	}
 }
 

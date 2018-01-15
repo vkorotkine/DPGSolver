@@ -58,6 +58,11 @@ static void zero_memory_volumes
 	(struct Intrusive_List* volumes ///< The list of volumes for which to set the memory.
 	);
 
+/// \brief Set the memory of the rhs and lhs (if applicable) terms relating to flux imbalances to zero for the volumes.
+static void zero_memory_volumes_flux_imbalances
+	(struct Intrusive_List* volumes ///< The list of volumes for which to set the memory.
+	);
+
 /// \brief Correct the coefficients such that `coef = t*coef + (1-t)*coef_avg`.
 static void correct_coef
 	(struct Multiarray_d*const coef, ///< The multiarray of coefficients for each of the variables.
@@ -233,10 +238,32 @@ ptrdiff_t compute_dof_schur (const char dof_type, const struct Simulation* sim)
 	return dof;
 }
 
+void compute_flux_imbalances (struct Simulation*const sim)
+{
+	zero_memory_volumes_flux_imbalances(sim->volumes);
+
+	switch (sim->method) {
+	case METHOD_DG:
+		compute_flux_imbalances_dg(sim);
+		break;
+	case METHOD_DPG:
+		compute_flux_imbalances_dpg(sim);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",sim->method);
+		break;
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
 static void zero_memory_volumes (struct Intrusive_List* volumes)
+{
+	zero_memory_volumes_flux_imbalances(volumes);
+}
+
+static void zero_memory_volumes_flux_imbalances (struct Intrusive_List* volumes)
 {
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;

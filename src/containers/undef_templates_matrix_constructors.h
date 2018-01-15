@@ -51,6 +51,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_sysv_const_Matrix_T
 #undef constructor_mm_Matrix_T
 #undef constructor_mm_const_Matrix_T
+#undef constructor_mm_RT_Matrix_T
+#undef constructor_mm_RT_const_Matrix_T
 #undef constructor_mm_NN1R_Matrix_T
 #undef constructor_mm_NN1R_const_Matrix_T
 #undef constructor_mm_NN1C_Matrix_T

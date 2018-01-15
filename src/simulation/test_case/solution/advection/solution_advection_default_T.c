@@ -83,12 +83,25 @@ void compute_source_rhs_advection_default_T
 
 	const struct const_Vector_d j_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
 	scale_Multiarray_T_by_Vector_R('L',1.0,(struct Multiarray_T*)source_vc,&j_det_vc,false);
-	add_to_flux_imbalance_source_T(source_vc,s_vol,sim);
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
 	const struct Operator* tw0_vt_vc = get_operator__tw0_vt_vc_T(s_vol);
 	mm_NNC_Operator_Multiarray_T(1.0,1.0,tw0_vt_vc,source_vc,rhs,op_format,2,NULL,NULL);
+	destructor_const_Multiarray_T(source_vc);
+}
+
+void add_to_flux_imbalance_source_advection_default_T
+	(const struct Simulation* sim, const struct Solver_Volume_T* s_vol, struct Multiarray_T* rhs)
+{
+	UNUSED(rhs);
+	const struct const_Multiarray_R* xyz_vc    = constructor_xyz_vc_interp_T(s_vol,sim);             // destructed
+	const struct const_Multiarray_T* source_vc = constructor_source_advection_default_T(xyz_vc,sim); // destructed
+	destructor_const_Multiarray_R(xyz_vc);
+
+	const struct const_Vector_d j_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
+	scale_Multiarray_T_by_Vector_R('L',1.0,(struct Multiarray_T*)source_vc,&j_det_vc,false);
+	add_to_flux_imbalance_source_T(source_vc,s_vol,sim);
 	destructor_const_Multiarray_T(source_vc);
 }
 

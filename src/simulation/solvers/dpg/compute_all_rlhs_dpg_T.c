@@ -36,7 +36,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
 
-#include "def_templates_compute_all_rlhs_dpg_d.h"
 #include "def_templates_compute_face_rlhs.h"
 #include "def_templates_compute_volume_rlhs.h"
 #include "def_templates_flux.h"
@@ -136,6 +135,12 @@ static void add_to_rlhs__face_boundary
 	 const struct Simulation*const sim            ///< \ref Simulation.
 	);
 
+/// \brief Add the current face contribution to \ref Solver_Volume_T::flux_imbalance from both sides.
+static void add_to_flux_imbalance
+	(const struct Solver_Face_T*const s_face, ///< The current \ref Solver_Face_T.
+	 const struct Simulation*const sim        ///< \ref Simulation.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void compute_all_rlhs_dpg_T
@@ -194,6 +199,24 @@ void compute_all_rlhs_dpg_T
 	sim_c->elements = NULL;
 	destructor_Simulation(sim_c);
 #endif
+}
+
+void compute_flux_imbalances_faces_dpg_T (struct Simulation*const sim)
+{
+	assert(list_is_derived_from("solver",'f',sim));
+	assert(sim->elements->name == IL_ELEMENT_SOLVER);
+	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DPG); // destructed
+
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	test_case->solver_method_curr = 'e';
+
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		const struct Solver_Face_T*const s_face = (struct Solver_Face_T*) curr;
+		add_to_flux_imbalance(s_face,sim);
+	}
+
+	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
+	test_case->solver_method_curr = 0;
 }
 
 struct Multiarray_Operator get_operator__cv1_vt_vc__rlhs_T (const struct DPG_Solver_Volume_T* dpg_s_vol)
@@ -410,6 +433,13 @@ static void increment_lhs_boundary_face
 	 const struct Simulation* sim             ///< \ref Simulation.
 	);
 
+/** \brief Constructor for the \ref Numerical_Flux_T to be used for the dpg boundary condition imposition.
+ *  \return See brief. */
+static struct Numerical_Flux_T* constructor_Numerical_Flux_dpg
+	(const struct DPG_Solver_Face_T*const dpg_s_face, ///< \ref The current face.
+	 const struct Simulation*const sim                ///< \ref Simulation.
+	);
+
 static struct S_Params_DPG set_s_params_dpg (const struct Simulation* sim)
 {
 	struct S_Params_DPG s_params;
@@ -501,20 +531,9 @@ static void add_to_rlhs__face_boundary
 	 struct Matrix_T* rhs, const struct Simulation*const sim)
 {
 	UNUSED(dpg_s_vol);
-	struct Numerical_Flux_Input_T* num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
+	struct Numerical_Flux_T* num_flux = constructor_Numerical_Flux_dpg(dpg_s_face,sim); // destructed
 
 	const struct Solver_Face_T* s_face = (struct Solver_Face_T*) dpg_s_face;
-	constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed
-
-	struct Numerical_Flux_T* num_flux = constructor_Numerical_Flux_T(num_flux_i); // destructed
-	destructor_Numerical_Flux_Input_data_T(num_flux_i);
-	destructor_Numerical_Flux_Input_T(num_flux_i);
-
-	if (USE_EXACT_NORMAL_FLUX) {
-		assert(s_face->nf_fc != NULL);
-		set_exact_normal_flux(s_face,(struct mutable_Numerical_Flux_T*)num_flux);
-	}
-
 	scale_by_Jacobian(num_flux,s_face);
 
 	if (rhs != NULL)
@@ -522,6 +541,33 @@ static void add_to_rlhs__face_boundary
 	increment_lhs_boundary_face(lhs,num_flux,s_face,sim);
 
 	destructor_Numerical_Flux_T(num_flux);
+}
+
+static void add_to_flux_imbalance (const struct Solver_Face_T*const s_face, const struct Simulation*const sim)
+{
+	UNUSED(sim);
+	const struct Face*const face                    = (struct Face*) s_face;
+	const struct DPG_Solver_Face_T*const dpg_s_face = (struct DPG_Solver_Face_T*) s_face;
+
+	const struct const_Vector_R* w_fc = get_operator__w_fc__s_e_T(s_face);
+	const struct const_Vector_R jacobian_det_fc = interpret_const_Multiarray_as_Vector_R(s_face->jacobian_det_fc);
+	const struct const_Vector_R* wJ_fc = constructor_dot_mult_const_Vector_R(w_fc,&jacobian_det_fc,1); // destructed
+
+	if (!face->boundary) {
+		const struct Operator* cv0_ff_fc = get_operator__cv0_ff_fc(0,dpg_s_face);
+		const struct const_Matrix_T nf_coef_M =
+			interpret_const_Multiarray_as_Matrix_T((struct const_Multiarray_T*)s_face->nf_coef);
+		const struct const_Matrix_T* nf_M =
+			constructor_mm_RT_const_Matrix_T('N','N',1.0,cv0_ff_fc->op_std,&nf_coef_M,'C'); // destructed
+		add_to_flux_imbalance_face_nf_w_T(nf_M,wJ_fc,s_face);
+		destructor_const_Matrix_T(nf_M);
+	} else {
+		struct Numerical_Flux_T* num_flux = constructor_Numerical_Flux_dpg(dpg_s_face,sim); // destructed
+		const struct const_Matrix_T nf_M = interpret_const_Multiarray_as_Matrix_T(num_flux->nnf);
+		add_to_flux_imbalance_face_nf_w_T(&nf_M,wJ_fc,s_face);
+		destructor_Numerical_Flux_T(num_flux);
+	}
+	destructor_const_Vector_R(wJ_fc);
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -772,6 +818,25 @@ static void increment_lhs_boundary_face
 
 	set_block_Matrix_T(lhs,0,0,(struct const_Matrix_T*)lhs_ll,0,0,lhs_ll->ext_0,lhs_ll->ext_1,'a');
 	destructor_Matrix_T(lhs_ll);
+}
+
+static struct Numerical_Flux_T* constructor_Numerical_Flux_dpg
+	(const struct DPG_Solver_Face_T*const dpg_s_face, const struct Simulation*const sim)
+{
+	struct Numerical_Flux_Input_T* num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
+
+	const struct Solver_Face_T* s_face = (struct Solver_Face_T*) dpg_s_face;
+	constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed
+
+	struct Numerical_Flux_T* num_flux = constructor_Numerical_Flux_T(num_flux_i); // returned
+	destructor_Numerical_Flux_Input_data_T(num_flux_i);
+	destructor_Numerical_Flux_Input_T(num_flux_i);
+
+	if (USE_EXACT_NORMAL_FLUX) {
+		assert(s_face->nf_fc != NULL);
+		set_exact_normal_flux(s_face,(struct mutable_Numerical_Flux_T*)num_flux);
+	}
+	return num_flux;
 }
 
 // Level 2 ********************************************************************************************************** //

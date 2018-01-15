@@ -415,6 +415,27 @@ const struct const_Matrix_T* constructor_mm_const_Matrix_T
 	return (const struct const_Matrix_T*) constructor_mm_Matrix_T(trans_a_i,trans_b_i,alpha,a,b,layout);
 }
 
+struct Matrix_T* constructor_mm_RT_Matrix_T
+	(const char trans_a_i, const char trans_b_i, const Real alpha,
+	 const struct const_Matrix_R*const a, const struct const_Matrix_T*const b, const char layout)
+{
+	const MKL_INT m = (MKL_INT) ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ),
+	              n = (MKL_INT) ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 );
+
+	struct Matrix_T* c = constructor_empty_Matrix_T(layout,m,n); // returned
+
+	mm_RTT(trans_a_i,trans_b_i,alpha,0.0,a,b,c);
+
+	return c;
+}
+
+const struct const_Matrix_T* constructor_mm_RT_const_Matrix_T
+	(const char trans_a_i, const char trans_b_i, const Real alpha,
+	 const struct const_Matrix_R*const a, const struct const_Matrix_T*const b, const char layout)
+{
+	return (const struct const_Matrix_T*) constructor_mm_RT_Matrix_T(trans_a_i,trans_b_i,alpha,a,b,layout);
+}
+
 struct Matrix_T* constructor_mm_NN1R_Matrix_T
 	(const struct const_Matrix_T*const a, const struct const_Matrix_T*const b)
 {

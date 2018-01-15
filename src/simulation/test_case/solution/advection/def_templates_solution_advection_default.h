@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_sol_advection_default_T               set_sol_advection_default
 #define constructor_const_sol_advection_default_T constructor_const_sol_advection_default
 #define compute_source_rhs_advection_default_T    compute_source_rhs_advection_default
+#define add_to_flux_imbalance_source_advection_default_T add_to_flux_imbalance_source_advection_default
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -31,6 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_sol_advection_default_T               set_sol_advection_default_c
 #define constructor_const_sol_advection_default_T constructor_const_sol_advection_default_c
 #define compute_source_rhs_advection_default_T    compute_source_rhs_advection_default_c
+#define add_to_flux_imbalance_source_advection_default_T add_to_flux_imbalance_source_advection_default_c
 ///\}
 
 #endif

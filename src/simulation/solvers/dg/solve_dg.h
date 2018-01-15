@@ -64,4 +64,9 @@ void add_to_petsc_Mat
 	 const struct const_Matrix_d* lhs                      ///< The matrix containing the lhs data.
 	);
 
+/// \brief Version of \ref compute_flux_imbalances for the DG scheme.
+void compute_flux_imbalances_dg
+	(const struct Simulation*const sim ///< See brief.
+	);
+
 #endif // DPG__solve_dg_h__INCLUDED

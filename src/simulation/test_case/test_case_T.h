@@ -113,6 +113,9 @@ struct Test_Case_T {
 
 	compute_source_rhs_fptr_T compute_source_rhs; ///< Function pointer to the rhs source computation function.
 
+	/// Function pointer to the source flux imbalance computation function.
+	compute_source_rhs_fptr_T add_to_flux_imbalance_source;
+
 	constructor_Error_CE_fptr constructor_Error_CE; ///< Function pointer to the function computing the error.
 
 	// Miscellaneous parameters
