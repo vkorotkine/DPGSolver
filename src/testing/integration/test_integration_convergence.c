@@ -108,13 +108,13 @@ int main
 		if (DISPLAY_CONV)
 			printf("\ntest_integration_convergence (ml, p, dof): %d %d %td\n\n\n",ml,p,compute_dof(sim));
 
+		if ((ml == ml_ref[1]) && (p == p_ref[1])) {
+			check_convergence_orders(&test_info,int_test_info,sim);
+			structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,type_rc);
+		}
+
 		p_prev  = p;
 		ml_prev = ml;
-
-		if ((ml == ml_ref[1]) && (p == p_ref[1]))
-			check_convergence_orders(&test_info,int_test_info,sim);
-
-		structor_simulation(&sim,'d',adapt_type,p,ml,p_prev,ml_prev,NULL,type_rc);
 	}}
 	destructor_Integration_Test_Info(int_test_info);
 

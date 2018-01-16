@@ -37,4 +37,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define ADAPT_S_H_COARSE 14
 ///\}
 
+///\{ \name Support h-refinement types for tetrahedral elements.
+#define TET8  8  ///< Middle octohedron split into 4 TETs.
+#define TET12 12 ///< Middle octohedron split into 8 TETs.
+#define TET6  6  ///< Middle octohedron split into 2 PYRs.
+///\}
+
 #endif // DPG__definitions_adaptation_h__INCLUDED

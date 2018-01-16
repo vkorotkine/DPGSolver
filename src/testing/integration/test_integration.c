@@ -86,8 +86,11 @@ void structor_simulation
 	assert(type_rc == 'r' || type_rc == 'c');
 
 	switch (adapt_type) {
-	case ADAPT_0:
+	case ADAPT_0: {
+		static bool constructed = false;
 		if (mode == 'c') {
+			if (constructed)
+				structor_simulation(sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
 			*sim = constructor_Simulation(ctrl_name); // destructed
 			constructor_derived_Elements(*sim,IL_ELEMENT_SOLVER); // destructed
 			switch (type_rc) {
@@ -95,6 +98,7 @@ void structor_simulation
 				case 'c': constructor_derived_computational_elements_c(*sim,IL_SOLVER); break; // dest.
 				default: EXIT_ERROR("Unsupported: %c\n",type_rc); break;
 			}
+			constructed = true;
 		} else if (mode == 'd') {
 			switch (type_rc) {
 				case 'r': destructor_derived_computational_elements(*sim,IL_BASE);   break; // dest.
@@ -103,17 +107,18 @@ void structor_simulation
 			}
 			destructor_derived_Elements(*sim,IL_ELEMENT);
 			destructor_Simulation(*sim);
+			constructed = false;
 		}
 		break;
-	case ADAPT_P:
-		if (ml != ml_prev) {
+	} case ADAPT_P:
+		assert(mode == 'c');
+		if (ml != ml_prev)
 			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
-		} else {
-			if (mode == 'c')
-				adapt_hp(*sim,ADAPT_S_P_REFINE);
-		}
+		else
+			adapt_hp(*sim,ADAPT_S_P_REFINE);
 		break;
 	case ADAPT_H:
+		assert(mode == 'c');
 		EXIT_ADD_SUPPORT;
 		if (p != p_prev) {
 			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
@@ -121,14 +126,31 @@ void structor_simulation
 			; // h-adapt
 		}
 		break;
-	case ADAPT_HP:
-		EXIT_ADD_SUPPORT;
-		if (ml != ml_prev)
-			{ ; } // h-adapt
-		if (p != p_prev)
-			{ ; } // p-adapt
+	case ADAPT_HP: {
+		assert(mode == 'c');
+		static bool entered = false;
+		if (!entered) {
+			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
+			entered = true;
+			return;
+		}
+
+		if (ml > ml_prev) {
+			assert(ml-ml_prev == 1);
+			adapt_hp(*sim,ADAPT_S_H_REFINE);
+		} else if (ml < ml_prev) {
+			for (int ml_curr = ml; ml_curr != ml; --ml_curr)
+				adapt_hp(*sim,ADAPT_S_H_COARSE);
+		}
+		if (p > p_prev) {
+			assert(p-p_prev == 1);
+			adapt_hp(*sim,ADAPT_S_P_REFINE);
+		} else if (p < p_prev) {
+			for (int p_curr = p; p_curr != p; --p_curr)
+				adapt_hp(*sim,ADAPT_S_P_COARSE);
+		}
 		break;
-	default:
+	} default:
 		EXIT_ERROR("Unsupported: %d\n",adapt_type);
 		break;
 	}

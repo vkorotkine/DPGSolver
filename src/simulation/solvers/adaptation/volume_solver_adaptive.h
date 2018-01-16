@@ -30,6 +30,8 @@ struct Adaptive_Solver_Volume {
 	int p_ref_prev; ///< The previous value of \ref Solver_Volume_T::p_ref.
 
 	bool updated; ///< Flag for whether the volume was updated.
+
+	struct Adaptive_Solver_Volume* child_0; ///< Pointer to the first child (if applicable).
 };
 
 /// \brief Constructor for a derived \ref Adaptive_Solver_Volume.

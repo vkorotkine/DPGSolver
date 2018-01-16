@@ -37,12 +37,7 @@ struct Volume {
 
 	const int index; ///< The index of the volume.
 
-	const bool boundary, ///< Flag for whether the volume is on a domain boundary.
-	           curved;   ///< Flag for whether the volume is curved.
-
-	const struct const_Multiarray_d*const xyz_ve; ///< The xyz coordinates of the volume vertices.
-
-	const struct Face*const faces[NFMAX][NSUBFMAX]; ///< Array of pointers to the neighbouring \ref Face containers.
+	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
 
 	/// Boundary conditions of each of the volume faces. Equal to \ref BC_INVALID for non-boundary faces.
 	const struct const_Vector_i* bc_faces;
@@ -50,7 +45,12 @@ struct Volume {
 	/// Boundary conditions of each of the volume edges. Equal to \ref BC_INVALID for non-boundary edges.
 	const struct const_Vector_i* bc_edges;
 
-	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
+	const bool boundary, ///< Flag for whether the volume is on a domain boundary.
+	           curved;   ///< Flag for whether the volume is curved.
+
+	const struct const_Multiarray_d*const xyz_ve; ///< The xyz coordinates of the volume vertices.
+
+	const struct Face*const faces[NFMAX][NSUBFMAX]; ///< Array of pointers to the neighbouring \ref Face containers.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

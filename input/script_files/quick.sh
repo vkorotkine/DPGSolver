@@ -12,6 +12,8 @@
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_conservation
 ARGV="advection/default/dg/TEST_Advection_Default_DG_LINE__ml2__p2 petsc_options_gmres_default"
 ARGV="advection/default/dpg/TEST_Advection_Default_DPG_Mixed2D__ml2__p2 petsc_options_gmres_default"
+EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
+ARGV="advection/default/dg/TEST_Advection_Default_DG_LINE petsc_options_gmres_default"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"
