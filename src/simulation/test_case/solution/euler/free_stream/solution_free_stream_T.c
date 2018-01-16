@@ -149,7 +149,7 @@ static void read_data_free_stream (const char*const input_path, struct Sol_Data_
 {
 	const int count_to_find = 2;
 
-	FILE* input_file = fopen_input(input_path,'s'); // closed
+	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
 
 	int count_found = 0;
 	char line[STRLEN_MAX];

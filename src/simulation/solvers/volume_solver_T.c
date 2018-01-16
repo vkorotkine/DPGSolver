@@ -51,6 +51,7 @@ void constructor_derived_Solver_Volume_T (struct Volume* volume_ptr, const struc
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) volume_ptr;
 
 	const_cast_ptrdiff(&s_vol->ind_dof,-1);
+	const_cast_ptrdiff(&s_vol->ind_dof_constraint,-1);
 	const_cast_i(&s_vol->p_ref,sim->p_ref[0]);
 	const_cast_i(&s_vol->ml,0);
 

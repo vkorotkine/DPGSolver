@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_elements.h"
+#include "definitions_test_case.h"
 
 #include "element_operators.h"
 #include "element_operators_tp.h"

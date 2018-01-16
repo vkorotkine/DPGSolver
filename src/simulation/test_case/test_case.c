@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_case.h"
 
+#include "definitions_dpg.h"
+#include "definitions_test_case.h"
+
 #include "const_cast.h"
 #include "file_processing.h"
 #include "simulation.h"
@@ -63,6 +66,22 @@ bool test_case_requires_positivity (const struct Test_Case*const test_case)
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
 		break;
 	}
+}
+
+bool test_case_explicitly_enforces_conservation (const struct Simulation*const sim)
+{
+	switch (sim->method) {
+	case METHOD_DG:
+		break; // Do nothing.
+	case METHOD_DPG: {
+		const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
+		if (test_case->ind_conservation > CONSERVATION_NOT_ENFORCED)
+			return true;
+	} default:
+		EXIT_ERROR("Unsupported: %d",sim->method);
+		break;
+	}
+	return false;
 }
 
 // Static functions ************************************************************************************************* //

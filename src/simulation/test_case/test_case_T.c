@@ -89,25 +89,6 @@ void increment_pointers_T (const int n_ptr, const Type**const ptrs)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/// Container for input strings which are to be subsequently converted to integer parameters.
-struct Test_Case_String_Inputs {
-	char num_flux_1st[STRLEN_MIN]; ///< The name of the 1st order numerical flux scheme to be used.
-	char num_flux_2nd[STRLEN_MIN]; ///< The name of the 2nd order numerical flux scheme to be used.
-
-	char test_norm[STRLEN_MIN]; ///< The name of the norm to use for the optimal test function computation.
-};
-
-/** \brief Return a statically allocated \ref Test_Case_String_Inputs container which zero-initialized members.
- *  \return See brief. */
-static struct Test_Case_String_Inputs set_Test_Case_String_Inputs
-	();
-
-/// \brief Set the string association relating to the \ref Test_Case_T input parameters.
-static void set_string_associations_test_case
-	(struct Test_Case_T* test_case,               ///< \ref Test_Case_T.
-	 const struct Test_Case_String_Inputs* tcsi ///< \ref Test_Case_String_Inputs.
-	);
-
 /// \brief Correct invalid \ref Test_Case_T parameters if present.
 static void correct_invalid_test_case_parameters
 	(struct Test_Case_T* test_case, ///< \ref Test_Case_T.
@@ -213,29 +194,22 @@ static void read_test_case_parameters (struct Test_Case_T* test_case, const stru
 {
 	const int count_to_find = 1;
 
-/// \todo Make the filename flexible such that multiple 'test_case_*.data' files can be used
-	FILE* input_file = fopen_input(sim->input_path,'t'); // closed
-
-	struct Test_Case_String_Inputs tcsi = set_Test_Case_String_Inputs();
+	FILE* input_file = fopen_input(sim->input_path,'t',sim->test_case_extension); // closed
 
 	int count_found = 0,
 	    count_tmp = 0;
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),input_file)) {
-		if (strstr(line,"solver_proc")) {
-			++count_found;
-			read_skip_const_i(line,&test_case->solver_proc);
-		}
+		read_skip_convert_const_i(line,"solver_proc",  &test_case->solver_proc,  &count_found);
+		read_skip_convert_const_i(line,"solver_type_e",&test_case->solver_type_e,NULL);
+		read_skip_convert_const_i(line,"solver_type_i",&test_case->solver_type_i,NULL);
+
 		read_skip_convert_const_i(line,"geom_parametrization",&test_case->geom_parametrization,NULL);
 
-/// \todo Change solver_type_* to used read_skip_convert.
-		if (strstr(line,"solver_type_e")) read_skip_const_i(line,&test_case->solver_type_e);
-		if (strstr(line,"solver_type_i")) read_skip_const_i(line,&test_case->solver_type_i);
-
-		if (strstr(line,"num_flux_1st")) read_skip_c_1(line,tcsi.num_flux_1st);
-		if (strstr(line,"num_flux_2nd")) read_skip_c_1(line,tcsi.num_flux_2nd);
-
-		if (strstr(line,"test_norm")) read_skip_c_1(line,tcsi.test_norm);
+		read_skip_convert_const_i(line,"num_flux_1st",&test_case->ind_num_flux[0],NULL);
+		read_skip_convert_const_i(line,"num_flux_2nd",&test_case->ind_num_flux[1],NULL);
+		read_skip_convert_const_i(line,"test_norm",&test_case->ind_test_norm,NULL);
+		read_skip_convert_const_i(line,"enforce_conservation",&test_case->ind_test_norm,NULL);
 
 		if (strstr(line,"time_final")) read_skip_const_d(line,&test_case->time_final,1,false);
 		if (strstr(line,"time_step"))  read_skip_const_d(line,&test_case->dt,1,false);
@@ -253,52 +227,12 @@ static void read_test_case_parameters (struct Test_Case_T* test_case, const stru
 	fclose(input_file);
 
 	correct_invalid_test_case_parameters(test_case,sim);
-	set_string_associations_test_case(test_case,&tcsi);
 
 	if (count_found != count_to_find)
 		EXIT_ERROR("Did not find the required number of variables");
 }
 
 // Level 1 ********************************************************************************************************** //
-
-static struct Test_Case_String_Inputs set_Test_Case_String_Inputs ()
-{
-	assert(sizeof(struct Test_Case_String_Inputs) == 3*STRLEN_MIN*sizeof(char));
-
-	struct Test_Case_String_Inputs tcsi;
-	tcsi.num_flux_1st[0] = 0;
-	tcsi.num_flux_2nd[0] = 0;
-	tcsi.test_norm[0] = 0;
-	return tcsi;
-}
-
-static void set_string_associations_test_case (struct Test_Case_T* test_case, const struct Test_Case_String_Inputs* tcsi)
-{
-/// \todo add string associations for solver types.
-	// num_flux_1st
-	if (strcmp(tcsi->num_flux_1st,"upwind") == 0)
-		const_cast_i(&test_case->ind_num_flux[0],NUM_FLUX_UPWIND);
-	else if (strcmp(tcsi->num_flux_1st,"Roe-Pike") == 0)
-		const_cast_i(&test_case->ind_num_flux[0],NUM_FLUX_ROE_PIKE);
-	else
-		const_cast_i(&test_case->ind_num_flux[0],NUM_FLUX_INVALID);
-
-	// num_flux_2nd
-	if (strcmp(tcsi->num_flux_2nd,"BR2") == 0)
-		const_cast_i(&test_case->ind_num_flux[1],NUM_FLUX_BR2);
-	else
-		const_cast_i(&test_case->ind_num_flux[1],NUM_FLUX_INVALID);
-
-	// test_norm
-	if (strcmp(tcsi->test_norm,"H0") == 0)
-		const_cast_i(&test_case->ind_test_norm,TEST_NORM_H0);
-	else if (strcmp(tcsi->test_norm,"H1") == 0)
-		const_cast_i(&test_case->ind_test_norm,TEST_NORM_H1);
-	else if (strcmp(tcsi->test_norm,"H1_upwind") == 0)
-		const_cast_i(&test_case->ind_test_norm,TEST_NORM_H1_UPWIND);
-	else
-		const_cast_i(&test_case->ind_test_norm,TEST_NORM_INVALID);
-}
 
 static void correct_invalid_test_case_parameters (struct Test_Case_T* test_case, const struct Simulation* sim)
 {

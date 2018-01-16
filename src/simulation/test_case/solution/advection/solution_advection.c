@@ -56,7 +56,7 @@ void read_data_advection (const char*const input_path, struct Sol_Data__Advectio
 {
 	const int count_to_find = 1;
 
-	FILE* input_file = fopen_input(input_path,'s'); // closed
+	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
 
 	int count_found = 0;
 	char line[STRLEN_MAX];

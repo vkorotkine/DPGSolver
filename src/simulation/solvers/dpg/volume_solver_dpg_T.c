@@ -47,6 +47,7 @@ void constructor_derived_DPG_Solver_Volume_T (struct Volume* volume_ptr, const s
 
 	dpg_s_vol->norm_op_H0 = constructor_norm_op_H0(dpg_s_vol); // destructed
 	dpg_s_vol->norm_op_H1 = constructor_norm_op_H1(dpg_s_vol); // destructed
+	dpg_s_vol->l_mult = 0.0;
 }
 
 void destructor_derived_DPG_Solver_Volume_T (struct Volume* volume_ptr)

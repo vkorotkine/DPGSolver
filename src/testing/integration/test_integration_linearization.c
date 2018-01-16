@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_intrusive.h"
 #include "definitions_test_integration.h"
+#include "definitions_test_case.h"
 #include "definitions_tol.h"
 
 #include "test_base.h"

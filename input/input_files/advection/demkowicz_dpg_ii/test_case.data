@@ -1,7 +1,7 @@
 /// Solver parameters for test case: advection/demkowicz_dpg_ii
 
-solver_proc   200
-solver_type_i 201
+solver_proc   implicit
+solver_type_i direct
 
 num_flux_1st upwind
 test_norm    H1_upwind

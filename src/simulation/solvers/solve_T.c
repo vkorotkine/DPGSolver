@@ -68,7 +68,6 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const str
 {
 	assert(sizeof(PetscInt) == sizeof(int)); // Ensure that all is working correctly if this is removed.
 
-/// \todo check if can be made static.
 	const ptrdiff_t dof = compute_dof_T(sim);
 	update_ind_dof_T(sim);
 	struct Vector_i* nnz = constructor_nnz(sim); // destructed
@@ -143,10 +142,14 @@ static struct Vector_i* constructor_nnz (const struct Simulation* sim)
 
 static ptrdiff_t compute_dof_volumes (const struct Simulation* sim)
 {
+	const bool enforcing_conservation = test_case_explicitly_enforces_conservation(sim);
+
 	ptrdiff_t dof = 0;
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
 		dof += compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents);
+		if (enforcing_conservation)
+			dof += 1;
 	}
 	return dof;
 }

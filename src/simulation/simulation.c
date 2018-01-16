@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 #include "definitions_mesh.h"
 #include "definitions_intrusive.h"
+#include "definitions_test_case.h"
 
 #include "element.h"
 #include "volume.h"
@@ -151,7 +152,7 @@ const char* set_ctrl_name_full (const char*const ctrl_name)
 {
 	static char ctrl_name_full[STRLEN_MAX] = { 0, };
 
-	strcpy(ctrl_name_full,"../");
+	strcpy(ctrl_name_full,PROJECT_INPUT_DIR);
 	if (strstr(ctrl_name,"TEST"))
 		strcat(ctrl_name_full,"testing/");
 	strcat(ctrl_name_full,"control_files/");
@@ -237,6 +238,7 @@ static void set_simulation_invalid (struct Simulation*const sim)
 		const_cast_c(sim->geom_blending[i],0);
 	}
 
+	const_cast_c(sim->test_case_extension,0);
 	const_cast_c(sim->basis_geom,0);
 	const_cast_c(sim->basis_sol,0);
 	const_cast_c(sim->geom_rep,0);
@@ -292,6 +294,8 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"dimension"))        read_skip_const_i_1(line,1,&d,1);
 		if (strstr(line,"mesh_level"))       read_skip_const_i_1(line,1,sim->ml,2);
 		if (strstr(line,"mesh_unrealistic")) read_skip_const_b(line,&sim->mesh_unrealistic);
+
+		read_skip_name_const_c_1("test_case_extension",line,sim->test_case_extension);
 
 		if (strstr(line,"interp_tp"))  read_skip_const_c_1(line,sim->nodes_interp[0]);
 		if (strstr(line,"interp_si"))  read_skip_const_c_1(line,sim->nodes_interp[1]);
@@ -450,7 +454,8 @@ static void set_mesh_parameters (struct Simulation*const sim)
 
 static void set_input_path (struct Simulation*const sim)
 {
-	sprintf((char*)sim->input_path,"%s%s%s%s%s","../input_files/",sim->pde_name,"/",sim->pde_spec,"/");
+	sprintf((char*)sim->input_path,"%s%s%s%s%s%s",
+	        PROJECT_INPUT_DIR,"input_files/",sim->pde_name,"/",sim->pde_spec,"/");
 }
 
 static void set_orders (struct Simulation*const sim)

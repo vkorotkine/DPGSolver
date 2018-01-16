@@ -155,7 +155,7 @@ static void read_data_supersonic_vortex (const char*const input_path, struct Sol
 {
 	const int count_to_find = 4;
 
-	FILE* input_file = fopen_input(input_path,'s'); // closed
+	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
 
 	int count_found = 0;
 	char line[STRLEN_MAX];

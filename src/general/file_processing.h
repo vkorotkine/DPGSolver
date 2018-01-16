@@ -37,7 +37,8 @@ FILE* fopen_checked
  *  \return See brief. */
 FILE* fopen_input
 	(const char*const input_path, ///< Full path to the location of the input file.
-	 const char input_spec        ///< The input specifier. Options: 'g'eometry, 's'olution, 't'est case.
+	 const char input_spec,       ///< The input specifier. Options: 'g'eometry, 's'olution, 't'est case.
+	 const char*const extension   ///< Optional extension to be appended to the file name. Set to NULL if unused.
 	);
 
 /** \brief Open file of the given input name, creating the directory if it does not exist.
@@ -111,6 +112,14 @@ void read_line_values_d
 	(char**const line,      ///< The line.
 	 const ptrdiff_t n_val, ///< The number of values to read.
 	 double*const vals      ///< The array in which to store the values.
+	);
+
+/** \brief Read the second string in the line into a `const char*` if the first string in the line matches the input
+ *         variable name. */
+void read_skip_name_const_c_1
+	(const char*const var_name, ///< The variable name for which to search.
+	 const char*const line,     ///< Line from which to read data.
+	 const char*const var       ///< Variable in which to store data.
 	);
 
 /// \brief Read a `char`, skipping the first string.

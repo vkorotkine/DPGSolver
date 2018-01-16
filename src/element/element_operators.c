@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_element_operators.h"
 #include "definitions_elements.h"
 #include "definitions_h_ref.h"
+#include "definitions_test_case.h"
 
 #include "multiarray.h"
 #include "matrix.h"

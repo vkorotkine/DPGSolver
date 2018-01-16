@@ -26,6 +26,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #define PDE_NAVIER_STOKES 4
 ///\}
 
+///\{ \name Definitions for the available solver methods.
+#define METHOD_DG   1
+#define METHOD_HDG  2
+#define METHOD_HDPG 3
+#define METHOD_DPG  4
+///\}
+
 ///\{ \name Definitions for variables related to the PDEs.
 #define GAMMA  1.4
 #define GM1    0.4
@@ -48,7 +55,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define SOLVER_E_LS_RK_54  103 ///< Explicit low storage Runge-Kutta (5-stage, 4rd order).
 
 #define SOLVER_I_DIRECT    201 ///< Implicit direct solver (LU; Cholesky if symmetric).
-#define SOLVER_I_ITER_DEF  202 ///< Implicit default iterative solver (iLU; iCholesky if symmetric).
+#define SOLVER_I_ITERATIVE 202 ///< Implicit iterative solver (specification provided in input Petsc options file).
 ///\}
 
 ///\{ \name Definitions for the available numerical fluxes.

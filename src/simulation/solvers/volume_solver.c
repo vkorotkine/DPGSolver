@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_volume_solver.h"
 #include "complex_multiarray.h"
+#include "complex_vector.h"
 
 // Templated functions ********************************************************************************************** //
 
@@ -46,6 +47,7 @@ void copy_members_r_to_c_Solver_Volume
 {
 	UNUSED(sim);
 	const_cast_ptrdiff(&s_vol->ind_dof,s_vol_r->ind_dof);
+	const_cast_ptrdiff(&s_vol->ind_dof_constraint,s_vol_r->ind_dof_constraint);
 	const_cast_i(&s_vol->p_ref,s_vol_r->p_ref);
 	const_cast_i(&s_vol->ml,s_vol_r->ml);
 
@@ -63,6 +65,9 @@ void copy_members_r_to_c_Solver_Volume
 		&s_vol->metrics_vc,constructor_copy_const_Multiarray_d(s_vol_r->metrics_vc)); // destructed
 	const_constructor_move_const_Multiarray_d(
 		&s_vol->jacobian_det_vc,constructor_copy_const_Multiarray_d(s_vol_r->jacobian_det_vc)); // destructed
+
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	s_vol->flux_imbalance = constructor_empty_Vector_c(test_case->n_var); // destructed
 }
 
 // Static functions ************************************************************************************************* //

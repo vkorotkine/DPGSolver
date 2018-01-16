@@ -45,6 +45,7 @@ void copy_members_r_to_c_DPG_Solver_Volume
 	destructor_derived_DPG_Solver_Volume_T((struct Volume*)dpg_s_vol);
 	dpg_s_vol->norm_op_H0 = constructor_copy_const_Matrix_d(dpg_s_vol_r->norm_op_H0); // destructed
 	dpg_s_vol->norm_op_H1 = constructor_copy_const_Matrix_d(dpg_s_vol_r->norm_op_H1); // destructed
+	dpg_s_vol->l_mult = dpg_s_vol_r->l_mult;
 }
 
 // Static functions ************************************************************************************************* //

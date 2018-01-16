@@ -517,7 +517,7 @@ static KSP constructor_petsc_ksp (Mat A, const struct Simulation* sim)
 		else
 			PCSetType(pc,PCCHOLESKY);
 		break;
-	case SOLVER_I_ITER_DEF:
+	case SOLVER_I_ITERATIVE:
 /// \todo Potentially modify the tolerance used here based on the current residual value.
 //		KSPSetTolerances(ksp,1e-15,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
 		break;

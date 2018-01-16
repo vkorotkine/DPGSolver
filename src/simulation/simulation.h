@@ -27,13 +27,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_alloc.h"
 #include "definitions_elements.h"
 
-///\{ \name Definitions for the available solver methods.
-#define METHOD_DG   1
-#define METHOD_HDG  2
-#define METHOD_HDPG 3
-#define METHOD_DPG  4
-///\}
-
 /// \brief Struct holding data related to the simulation.
 struct Simulation {
 	const int mpi_size, ///< The number of mpi processes.
@@ -48,6 +41,12 @@ struct Simulation {
 	const char pde_spec[STRLEN_MAX];  ///< Additional specifications for the PDE.
 	const char geom_name[STRLEN_MAX]; ///< Name of the base geometry to be used for the domain.
 	const char geom_spec[STRLEN_MAX]; ///< Additional specifications for the geometry.
+
+	/** Extension on the file name from which to read the test case data.
+	 *  If this variable is not provided in the input control file, the standard test case data file is used:
+	 *  "test_case.data". If it is provided, the file name used is "test_case_{test_case_extension}.data".
+	 */
+	const char test_case_extension[STRLEN_MAX];
 
 	/** The type of domain.
 	 *  Options:

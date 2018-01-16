@@ -1,5 +1,0 @@
-file(GLOB_RECURSE MESH_FILES *.msh)
-foreach(mesh_name_full ${MESH_FILES})
-	string(REPLACE "${CMAKE_SOURCE_DIR}/input/" "" mesh_name ${mesh_name_full})
-	configure_file(${mesh_name_full} ${PROJECT_BINARY_DIR}/${mesh_name} COPYONLY)
-endforeach()

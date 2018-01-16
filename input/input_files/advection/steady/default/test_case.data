@@ -1,8 +1,8 @@
 /// Solver parameters for test case: advection/steady/default
 
-solver_proc   200
-solver_type_e 101
-solver_type_i 202
+solver_proc   implicit
+solver_type_e forward_euler
+solver_type_i iterative
 
 num_flux_1st upwind
 test_norm    H1_upwind

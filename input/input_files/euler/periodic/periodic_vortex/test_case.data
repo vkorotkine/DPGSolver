@@ -1,7 +1,7 @@
 /// Solver parameters for test case: euler/periodic/periodic_vortex
 
-solver_proc   100
-solver_type_e 102
+solver_proc   explicit
+solver_type_e ssp_rk_33
 
 num_flux_1st Roe-Pike
 

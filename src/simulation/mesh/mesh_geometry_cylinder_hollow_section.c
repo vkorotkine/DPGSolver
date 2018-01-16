@@ -93,7 +93,7 @@ static void read_data_cylinder__hollow_section (const char*const input_path, str
 	int       count_found   = 0;
 	const int count_to_find = 2;
 
-	FILE* input_file = fopen_input(input_path,'g'); // closed
+	FILE* input_file = fopen_input(input_path,'g',NULL); // closed
 
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),input_file)) {

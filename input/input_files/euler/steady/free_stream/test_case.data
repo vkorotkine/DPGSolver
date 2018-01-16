@@ -1,7 +1,7 @@
 /// Solver parameters for test case: euler/steady/free_stream
 
-solver_proc   200
-solver_type_i 201
+solver_proc   implicit
+solver_type_i direct
 
 num_flux_1st Roe-Pike
 test_norm    H1 H1_upwind

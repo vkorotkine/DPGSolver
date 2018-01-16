@@ -39,6 +39,12 @@ static void increment_nnz_off_diag
 	 const struct Solver_Face_T* s_face ///< The current face.
 	);
 
+/// \brief Increment the appropriate rows of nnz based on the off-diagonal constraint terms.
+static void increment_nnz_off_diag_constraint
+	(struct Vector_i*const nnz,               ///< Vector of 'n'umber of 'n'on-'z'ero entries per row.
+	 const struct Solver_Volume_T*const s_vol ///< The current volume.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void update_ind_dof_dpg_T (const struct Simulation* sim)
@@ -66,6 +72,16 @@ void update_ind_dof_dpg_T (const struct Simulation* sim)
 		struct Multiarray_T* sol_coef = s_vol->sol_coef;
 		dof += compute_size(sol_coef->order,sol_coef->extents);
 	}
+
+	if (test_case_explicitly_enforces_conservation(sim)) {
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+			struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
+
+			const_cast_ptrdiff(&s_vol->ind_dof_constraint,dof);
+			++dof;
+		}
+	}
+
 	assert(dof == compute_dof(sim));
 }
 
@@ -102,6 +118,20 @@ struct Vector_i* constructor_nnz_dpg_T (const struct Simulation* sim)
 		// Off-diagonal
 		increment_nnz_off_diag(nnz,s_face);
 	}
+
+	// Constraint - if applicable (Off-diagonal only)
+	if (test_case_explicitly_enforces_conservation(sim)) {
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+			struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
+
+// should do nf_coef and sol_coef contributions separately so that the transpose can also be added.
+			increment_nnz_off_diag_constraint(nnz,s_vol);
+//			const ptrdiff_t n_rows = 0;//compute_number_boundary_nf_dof(s_vol);
+//			increment_nnz(nnz,s_vol->ind_dof_constraint,1,n_rows);
+EXIT_UNSUPPORTED;
+		}
+	}
+
 	return nnz;
 }
 
@@ -137,6 +167,24 @@ static void increment_nnz_off_diag (struct Vector_i* nnz, const struct Solver_Fa
 		increment_nnz_off_diag_v(nnz,n,size_nf,s_face);
 		increment_nnz_off_diag_f(nnz,n,size_nf,s_face);
 	}
+}
+
+static void increment_nnz_off_diag_constraint (struct Vector_i*const nnz, const struct Solver_Volume_T*const s_vol)
+{
+	const struct Volume*const vol = (struct Volume*) s_vol;
+	for (int i = 0; i < NFMAX;    ++i) {
+	for (int j = 0; j < NSUBFMAX; ++j) {
+		const struct Face* face = vol->faces[i][j];
+		if (!face)
+			continue;
+
+// Potentially add capability to increment_nnz to allow for incrementing opposite off-diagonal at the same time.
+UNUSED(nnz);
+		if (!face->boundary)
+			EXIT_ADD_SUPPORT;
+		else
+			EXIT_ADD_SUPPORT;
+	}}
 }
 
 // Level 1 ********************************************************************************************************** //

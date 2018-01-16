@@ -22,7 +22,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_alloc.h"
+#include "definitions_dpg.h"
 #include "definitions_geometry.h"
+#include "definitions_test_case.h"
 
 #include "const_cast.h"
 
@@ -59,11 +61,46 @@ void read_skip_convert_const_i
 static int get_define (const char*const def_str, const char*const def_type)
 {
 	int def_i = -1;
-	if (strcmp(def_type,"geom_parametrization") == 0) {
+	if (strcmp(def_type,"solver_proc") == 0) {
+		if      (strcmp(def_str,"explicit")           == 0) def_i = SOLVER_E;
+		else if (strcmp(def_str,"implicit")           == 0) def_i = SOLVER_I;
+		else if (strcmp(def_str,"explicit->implicit") == 0) def_i = SOLVER_EI;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"solver_type_e") == 0) {
+		if      (strcmp(def_str,"forward_euler") == 0) def_i = SOLVER_E_EULER;
+		else if (strcmp(def_str,"ssp_rk_33")     == 0) def_i = SOLVER_E_SSP_RK_33;
+		else if (strcmp(def_str,"ls_rk_54")      == 0) def_i = SOLVER_E_LS_RK_54;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"solver_type_i") == 0) {
+		if      (strcmp(def_str,"direct")    == 0) def_i = SOLVER_I_DIRECT;
+		else if (strcmp(def_str,"iterative") == 0) def_i = SOLVER_I_ITERATIVE;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"num_flux_1st") == 0) {
+		if      (strcmp(def_str,"upwind")    == 0) def_i = NUM_FLUX_UPWIND;
+		else if (strcmp(def_str,"Roe-Pike")  == 0) def_i = NUM_FLUX_ROE_PIKE;
+		else                                       def_i = NUM_FLUX_INVALID;
+	} else if (strcmp(def_type,"num_flux_2nd") == 0) {
+		if      (strcmp(def_str,"BR2") == 0) def_i = NUM_FLUX_BR2;
+		else                                 def_i = NUM_FLUX_INVALID;
+	} else if (strcmp(def_type,"test_norm") == 0) {
+		if      (strcmp(def_str,"H0")        == 0) def_i = TEST_NORM_H0;
+		else if (strcmp(def_str,"H1")        == 0) def_i = TEST_NORM_H1;
+		else if (strcmp(def_str,"H1_upwind") == 0) def_i = TEST_NORM_H1_UPWIND;
+		else                                       def_i = TEST_NORM_INVALID;
+	} else if (strcmp(def_type,"geom_parametrization") == 0) {
 		if      (strcmp(def_str,"radial_proj") == 0) def_i = GEOM_PRM_RADIAL_PROJ;
 		else if (strcmp(def_str,"arc_length")  == 0) def_i = GEOM_PRM_ARC_LENGTH;
 		else if (strcmp(def_str,"normal_proj") == 0) def_i = GEOM_PRM_NORMAL_PROJ;
-		else                                         EXIT_ERROR("Unsupported: %s\n",def_str);
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"conservation") == 0) {
+		if      (strcmp(def_str,"not_enforced")        == 0) def_i = CONSERVATION_NOT_ENFORCED;
+		else if (strcmp(def_str,"lagrange_multiplier") == 0) def_i = CONSERVATION_LAGRANGE_MULT;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",def_type);
 	}

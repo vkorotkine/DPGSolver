@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "solution.h"
 
+#include "definitions_test_case.h"
+
 #include "multiarray.h"
 #include "matrix.h"
 

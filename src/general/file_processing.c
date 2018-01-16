@@ -86,20 +86,25 @@ FILE* fopen_checked (const char*const file_name_full)
 	return file;
 }
 
-FILE* fopen_input (const char*const input_path, const char input_spec)
+FILE* fopen_input (const char*const input_path, const char input_spec, const char*const extension)
 {
 	char input_name[STRLEN_MAX];
 
 	int index = sprintf(input_name,"%s",input_path);
 	switch (input_spec) {
 	case 'g':
+		assert(extension == NULL);
 		sprintf(index+input_name,"%s","geometry_parameters.geo");
 		break;
 	case 's':
+		assert(extension == NULL);
 		sprintf(index+input_name,"%s","solution.data");
 		break;
 	case 't':
-		sprintf(index+input_name,"%s","test_case.data");
+		if (extension[0] == 0)
+			sprintf(index+input_name,"%s","test_case.data");
+		else
+			sprintf(index+input_name,"%s%s%s","test_case_",extension,".data");
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %c\n",input_spec);
@@ -191,6 +196,14 @@ void read_line_values_d (char**const line, const ptrdiff_t n_val, double*const v
 		vals[n] = strtod(*line,&endptr);
 		*line = endptr;
 	}
+}
+
+void read_skip_name_const_c_1 (const char*const var_name, const char*const line, const char*const var)
+{
+	if (!strstr(line,var_name))
+		return;
+
+	sscanf(line,"%*s %s",(char*)var);
 }
 
 void read_skip_c (const char*const line, char*const var)

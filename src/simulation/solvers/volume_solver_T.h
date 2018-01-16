@@ -28,6 +28,10 @@ struct Solver_Volume_T {
 	/// The index of the first degree of freedom (dof) of the volume in relation to the global dof.
 	const ptrdiff_t ind_dof;
 
+	/** The index of the first degree of freedom (dof) of the constraint-related volume members in relation to the
+	 *  global dof. */
+	const ptrdiff_t ind_dof_constraint;
+
 	/// The reference order of the volume. Need not be equal to the order of the solution in the volume.
 	const int p_ref;
 

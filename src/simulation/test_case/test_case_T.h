@@ -74,8 +74,13 @@ struct Test_Case_T {
 	// Parameters for explicit/implicit simulations.
 	const int solver_type_i; ///< The implicit solver type. Options: See definitions_test_case.h.
 
-	const int ind_num_flux[2], ///< Integer indices of the type of 1st/2nd order numerical fluxes.
-	          ind_test_norm;   ///< Integer indices of the type of test_norm.
+	/// Integer indices of the 1st/2nd order numerical fluxes. See \ref definitions_test_case.h
+	const int ind_num_flux[2];
+
+	const int ind_test_norm; ///< Integer index of the test_norm. See \ref definitions_dpg.h.
+
+	/// Integer index of the conservation enforcement procedure. See \ref definitions_dpg.h.
+	const int ind_conservation;
 
 	const double exit_tol_e,   ///< The exit tolerance for the residual during the explicit solver stage.
 	             exit_ratio_e, ///< The exit ratio for the residual during the explicit solver stage.
