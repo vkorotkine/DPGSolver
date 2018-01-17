@@ -144,11 +144,12 @@ static bool compare_members_geom (struct Test_Info*const test_info, const struct
 		struct Solver_Face* face      = (struct Solver_Face*) curr,
 		                  * face_test = (struct Solver_Face*) curr_test;
 
-		if (diff_const_Multiarray_d(face->normals_fc,face_test->normals_fc,EPS) != 0) {
+		const double tol = 1e2*EPS;
+		if (diff_const_Multiarray_d(face->normals_fc,face_test->normals_fc,tol) != 0) {
 			pass = false;
 			expect_condition(pass,"Face");
 
-			print_diff_const_Multiarray_d(face->normals_fc,face_test->normals_fc,EPS);
+			print_diff_const_Multiarray_d(face->normals_fc,face_test->normals_fc,tol);
 		}
 	}
 

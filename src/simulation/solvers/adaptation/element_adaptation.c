@@ -75,6 +75,8 @@ void destructor_derived_Adaptation_Element (struct Element* element_ptr)
 
 	destructor_Multiarray_Operator(a_e->cc0_vs_vs);
 	destructor_Multiarray_Operator_conditional(a_e->cc0_ff_ff);
+
+	destructor_Multiarray_Operator(a_e->vv0_vv_vv);
 }
 
 // Static functions ************************************************************************************************* //
@@ -86,6 +88,7 @@ static void constructor_derived_Adaptation_Element_std (struct Element* element_
 	struct Adaptation_Element* a_e = (struct Adaptation_Element*) element_ptr;
 
 	a_e->cc0_vs_vs = constructor_operators("cc0","vsA","vsA","H_ALL_P_PM1",e,sim); // destructed
+	a_e->vv0_vv_vv = constructor_operators("vv0","vvA","vvA","H_CF_P_12",  e,sim); // destructed
 }
 
 static void constructor_derived_Adaptation_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
@@ -100,6 +103,9 @@ static void constructor_derived_Adaptation_Element_tp (struct Element* element_p
 
 	set_operators_tp(&ops_tp,a_se[0]->cc0_vs_vs,NULL,a_se[1]->cc0_vs_vs,NULL);
 	a_e->cc0_vs_vs = constructor_operators_tp("cc0","vsA","vsA","H_ALL_P_PM1",e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,a_se[0]->vv0_vv_vv,NULL,a_se[1]->vv0_vv_vv,NULL);
+	a_e->vv0_vv_vv = constructor_operators_tp("vv0","vvA","vvA","H_CF_P_12",e,sim,&ops_tp); // destructed
 }
 
 static void constructor_derived_Adaptation_Element_common (struct Element* element_ptr, const struct Simulation* sim)

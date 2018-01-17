@@ -333,7 +333,7 @@ static int compute_p_nodes (const struct Op_IO* op_io, const int node_type, cons
 		}
 		break;
 	} case 'v':
-		return 1;
+		return op_io->p_op;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %c\n",node_kind);
@@ -448,8 +448,9 @@ static int compute_node_type_std
 			EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
 		}
 	case 'v':
-		assert(op_io->p_op == 1);
-		// fallthrough
+		assert(op_io->p_op == 1 || op_io->p_op == 2);
+		return NODES_VERTEX;
+		break;
 	case 'm': // fallthrough
 	case 'g':
 		switch (s_type) {

@@ -572,6 +572,7 @@ static int get_n_children
 static struct Adaptive_Solver_Volume* constructor_Volume_h_ref
 	(const int ind_h,                                     ///< The index of the child h-refined element.
 	 const struct Adaptive_Solver_Volume*const a_s_vol_p, ///< The parent volume.
+	 const struct const_Multiarray_d*const xyz_ve_p2,     ///< \ref Volume::xyz_ve of polynomial degree 2.
 	 const struct Simulation*const sim                    ///< \ref Simulation.
 	);
 
@@ -579,18 +580,28 @@ static void constructor_volumes_h_refine
 	(struct Adaptive_Solver_Volume** a_s_vol, const struct Simulation*const sim)
 {
 	struct Adaptive_Solver_Volume* a_s_vol_p = *a_s_vol;
+	const struct Volume*const vol_p          = (struct Volume*) a_s_vol_p;
+
+	const struct Solver_Element* s_e     = (struct Solver_Element*) vol_p->element;
+	const struct Adaptation_Element* a_e = &s_e->a_e;
+	const struct Operator*const vv0_vv_vv = get_Multiarray_Operator(a_e->vv0_vv_vv,(ptrdiff_t[]){0,0,2,1});
+
+	const struct const_Multiarray_d*const xyz_ve_p2 =
+		constructor_mm_NN1_Operator_const_Multiarray_d(vv0_vv_vv,vol_p->xyz_ve,'C','d',2,NULL); // destructed
 
 	struct Intrusive_List* volumes_c = constructor_empty_IL(IL_VOLUME_SOLVER_ADAPTIVE,NULL); // destructed
 
 	const int n_children = get_n_children(*a_s_vol);
 	for (int n = 1; n <= n_children; ++n) {
-		push_back_IL(volumes_c,(struct Intrusive_Link*)constructor_Volume_h_ref(n,a_s_vol_p,sim));
+
+		push_back_IL(volumes_c,(struct Intrusive_Link*)constructor_Volume_h_ref(n,a_s_vol_p,xyz_ve_p2,sim));
 
 		if (n == 1) {
 			a_s_vol_p->child_0 = (struct Adaptive_Solver_Volume*) volumes_c->first;
 		}
 
 	}
+	destructor_const_Multiarray_d(xyz_ve_p2);
 	destructor_IL(volumes_c,false);
 EXIT_UNSUPPORTED;
 }
@@ -644,7 +655,8 @@ static int get_n_children (const struct Adaptive_Solver_Volume*const a_s_vol)
 }
 
 static struct Adaptive_Solver_Volume* constructor_Volume_h_ref
-	(const int ind_h, const struct Adaptive_Solver_Volume*const a_s_vol_p, const struct Simulation*const sim)
+	(const int ind_h, const struct Adaptive_Solver_Volume*const a_s_vol_p,
+	 const struct const_Multiarray_d*const xyz_ve_p2, const struct Simulation*const sim)
 {
 	struct Adaptive_Solver_Volume* a_s_vol = malloc(sizeof *a_s_vol); // returned
 
@@ -664,6 +676,7 @@ static struct Adaptive_Solver_Volume* constructor_Volume_h_ref
 
 	// xyz_ve:
 	// 0. Input xyz_ve_p2 passed to this function.
+print_const_Multiarray_d(xyz_ve_p2);
 	// 1. if DOM_BLENDED, blend xyz_ve_p2 to the boundary.
 	// 2. compute from xyz_ve_p2 (vv0_vv_vv[ind_h][0][1][2]).
 

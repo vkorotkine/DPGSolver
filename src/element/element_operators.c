@@ -457,7 +457,8 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 		return p_s + sim->p_t_p[ind_p_t];
 		break;
 	} case 'v': // vertex
-		return 1;
+		assert(p_op == 1 || p_op == 2);
+		return p_op;
 		break;
 	case 'c': // fallthrough
 	default:
@@ -501,6 +502,7 @@ bool op_should_use_L2 (const int*const op_values, const struct Op_IO* op_io)
 	    (op_values[OP_IND_P+OP_IND_I] > op_values[OP_IND_P+OP_IND_O])) {
 		switch (op_io[OP_IND_O].kind) {
 		case 'c':
+		case 'v':
 			// Do nothing.
 			break;
 		case 's': // fallthrough
@@ -816,7 +818,10 @@ static int convert_to_range (const char type_range, const char*const name_range)
 			else
 				return OP_R_P_1P;
 		else if (strstr(name_range,"P_1"))
-			return OP_R_P_1;
+			if (strstr(name_range,"P_12"))
+				return OP_R_P_12;
+			else
+				return OP_R_P_1;
 		else if (strstr(name_range,"P_PM0"))
 			return OP_R_P_PM0;
 		else if (strstr(name_range,"P_PM1"))
@@ -918,6 +923,10 @@ static void set_up_extents (struct Operator_Info* op_info)
 		case OP_R_P_1:
 			push_back_Vector_i(extents_op,2,false,false);
 			push_back_Vector_i(extents_op,2,false,false);
+			break;
+		case OP_R_P_12:
+			push_back_Vector_i(extents_op,3,false,false);
+			push_back_Vector_i(extents_op,3,false,false);
 			break;
 		case OP_R_P_1P:    // fallthrough
 		case OP_R_P_1PPM1:
@@ -1472,6 +1481,10 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 			x_mm[0] = 1;
 			x_mm[1] = 1+1;
 			break;
+		case OP_R_P_12:
+			x_mm[0] = 1;
+			x_mm[1] = 2+1;
+			break;
 		case OP_R_P_PM0: // fallthrough
 		case OP_R_P_PM1: // fallthrough
 		case OP_R_P_ALL:
@@ -1496,6 +1509,10 @@ static void compute_range_p_o (int p_o_mm[2], const struct Operator_Info* op_inf
 	case OP_R_P_1:
 		p_o_mm[0] = 1;
 		p_o_mm[1] = 1+1;
+		break;
+	case OP_R_P_12:
+		p_o_mm[0] = 1;
+		p_o_mm[1] = 2+1;
 		break;
 	case OP_R_P_PM0:
 		p_o_mm[0] = p_i;

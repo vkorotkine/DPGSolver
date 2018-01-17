@@ -1037,44 +1037,56 @@ static const struct const_Nodes* constructor_const_Nodes_tet (const int p, const
 
 static const struct const_Nodes* constructor_const_Nodes_vertices (const int d, const int p, const int s_type)
 {
-	assert(p == 1);
+	assert(p == 1 || p == 2);
 	const int node_type = NODES_VERTEX;
 
 	const double* rst = NULL;
 
 	switch (s_type) {
 	case ST_TP: {
-		static const double rst_LINE[] = { -1.0,  1.0, };
-		static const double rst_QUAD[] = { -1.0,  1.0, -1.0,  1.0,
-		                                   -1.0, -1.0,  1.0,  1.0, };
-		static const double rst_HEX[]  = { -1.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0,  1.0,
-		                                   -1.0, -1.0,  1.0,  1.0, -1.0, -1.0,  1.0,  1.0,
-		                                   -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0,  1.0, };
+		static const double rst_LINE_p1[] = { -1.0,  1.0, };
+		static const double rst_QUAD_p1[] = { -1.0,  1.0, -1.0,  1.0,
+		                                      -1.0, -1.0,  1.0,  1.0, };
+		static const double rst_HEX_p1[]  = { -1.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0,  1.0,
+		                                      -1.0, -1.0,  1.0,  1.0, -1.0, -1.0,  1.0,  1.0,
+		                                      -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0,  1.0, };
+		static const double rst_LINE_p2[] = { -1.0,  0.0,  1.0, };
+		static const double rst_QUAD_p2[] = { -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0,
+		                                      -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0,};
+		static const double rst_HEX_p2[]  = { -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0,
+		                                      -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0, -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0, -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0,
+		                                      -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, };
 		if (d == 0)
 			rst = NULL;
 		else if (d == 1)
-			rst = rst_LINE;
+			rst = ( p == 1 ? rst_LINE_p1 : rst_LINE_p2 );
 		else if (d == 2)
-			rst = rst_QUAD;
+			rst = ( p == 1 ? rst_QUAD_p1 : rst_QUAD_p2 );
 		else if (d == 3)
-			rst = rst_HEX;
+			rst = ( p == 1 ? rst_HEX_p1 : rst_HEX_p2 );
 		else
 			EXIT_UNSUPPORTED;
 		break;
 	} case ST_SI: {
-		static const double rst_TRI[] = { -1.0,        1.0,        0.0,
-		                                  -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, };
-		static const double rst_TET[] = { -1.0,        1.0,        0.0,        0.0,
-		                                  -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3,  0.0,
-		                                  -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6,  3.0/SQRT6, };
+		static const double rst_TRI_p1[] = { -1.0,        1.0,        0.0,
+		                                     -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, };
+		static const double rst_TET_p1[] = { -1.0,        1.0,        0.0,        0.0,
+		                                     -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3,  0.0,
+		                                     -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6,  3.0/SQRT6, };
+		static const double rst_TRI_p2[] = { -1.0,        0.0,        1.0,       -0.5,        0.5,        0.0,
+		                                     -1.0/SQRT3, -1.0/SQRT3, -1.0/SQRT3,  0.5/SQRT3,  0.5/SQRT3,  2.0/SQRT3, };
+		static const double rst_TET_p2[] = { -1.0,        0.0,        1.0,       -0.5,        0.5,        0.0,       -0.5,        0.5,        0.0,        0.0,
+		                                     -1.0/SQRT3, -1.0/SQRT3, -1.0/SQRT3,  0.5/SQRT3,  0.5/SQRT3,  2.0/SQRT3, -0.5/SQRT3, -0.5/SQRT3,  1.0/SQRT3,  0.0,
+		                                     -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6,  1.0/SQRT6,  1.0/SQRT6,  1.0/SQRT6,  3.0/SQRT6, };
 		if (d == 2)
-			rst = rst_TRI;
+			rst = ( p == 1 ? rst_TRI_p1 : rst_TRI_p2 );
 		else if (d == 3)
-			rst = rst_TET;
+			rst = ( p == 1 ? rst_TET_p1 : rst_TET_p2 );
 		else
 			EXIT_UNSUPPORTED;
 		break;
 	} case ST_PYR: {
+		assert(p == 1); // ADD_SUPPORT for p2
 		assert(d == 3);
 		static const double rst_PYR[] = { -1.0,        1.0,       -1.0,        1.0,       0.0,
 		                                  -1.0,       -1.0,        1.0,        1.0,       0.0,
@@ -1082,6 +1094,7 @@ static const struct const_Nodes* constructor_const_Nodes_vertices (const int d, 
 		rst = rst_PYR;
 		break;
 	} case ST_WEDGE: {
+		assert(p == 1); // ADD_SUPPORT for p2
 		assert(d == 3);
 		EXIT_ERROR("Should not be required. Here for reference only.\n");
 //		static const double rst_WEDGE[] = { -1.0,        1.0,        0.0,       -1.0,        1.0,        0.0,

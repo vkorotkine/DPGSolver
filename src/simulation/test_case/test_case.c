@@ -77,6 +77,7 @@ bool test_case_explicitly_enforces_conservation (const struct Simulation*const s
 		const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
 		if (test_case->ind_conservation > CONSERVATION_NOT_ENFORCED)
 			return true;
+		break;
 	} default:
 		EXIT_ERROR("Unsupported: %d",sim->method);
 		break;
