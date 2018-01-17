@@ -14,7 +14,7 @@ ARGV="advection/default/dg/TEST_Advection_Default_DG_Mixed2D__ml2__p2 petsc_opti
 ARGV="advection/default/dpg/TEST_Advection_Default_DPG_Mixed2D__ml2__p2 petsc_options_gmres_default"
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_linearization
 ARGV="advection/TEST_Advection_Demkowicz_DPGII_LINE__ml2__p2"
-ARGV="advection/default/dpg/TEST_Advection_Default_Conservative_DPG_Mixed2D__ml1__p2"
+ARGV="advection/default/dpg/TEST_Advection_Default_Conservative_DPG_Mixed2D__ml0__p1"
 #EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
 #ARGV="advection/default/dg/TEST_Advection_Default_DG_LINE petsc_options_gmres_default"
 

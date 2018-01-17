@@ -61,8 +61,9 @@ ptrdiff_t compute_n_dof_nf_T
  *  \return See brief. */
 /// \todo see if this can be made static.
 const struct const_Vector_i* constructor_petsc_idxm_dpg_T
-	(const ptrdiff_t n_dof,            ///< The number of local degrees of freedom.
-	 const struct Solver_Volume_T* s_vol ///< The current volume.
+	(const ptrdiff_t n_dof,               ///< The number of local degrees of freedom.
+	 const struct Solver_Volume_T* s_vol, ///< The current volume.
+	 const struct Simulation*const sim    ///< \ref Simulation.
 	);
 
 /** \brief Add the face contributions to the rhs and lhs for 1st order equations.

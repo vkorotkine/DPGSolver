@@ -373,6 +373,26 @@ const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T_R
 	 const bool invert_diag               ///< See brief.
 	);
 
+/** \brief 'T'ype-'T'ype version of \ref constructor_mm_diag_Matrix_T_R.
+ *  \return Standard. */
+struct Matrix_T* constructor_mm_diag_Matrix_T
+	(const Real alpha,                    ///< See brief.
+	 const struct const_Matrix_T*const a, ///< See brief.
+	 const struct const_Vector_T*const b, ///< See brief.
+	 const char side,                     ///< See brief.
+	 const bool invert_diag               ///< See brief.
+	);
+
+/** \brief `const` version of \ref constructor_mm_diag_Matrix_T.
+ *  \return See brief. */
+const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T
+	(const Real alpha,                    ///< See brief.
+	 const struct const_Matrix_T*const a, ///< See brief.
+	 const struct const_Vector_T*const b, ///< See brief.
+	 const char side,                     ///< See brief.
+	 const bool invert_diag               ///< See brief.
+	);
+
 /// \brief Set a \ref Matrix_T\* from a sub range of a \ref Multiarray_T\*.
 void set_Matrix_from_Multiarray_T
 	(struct Matrix_T* dest,            ///< The destination.

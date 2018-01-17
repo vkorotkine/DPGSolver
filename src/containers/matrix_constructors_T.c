@@ -476,6 +476,22 @@ const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T_R
 	return (const struct const_Matrix_T*) constructor_mm_diag_Matrix_T_R(alpha,a,b,side,invert_diag);
 }
 
+struct Matrix_T* constructor_mm_diag_Matrix_T
+	(const Real alpha, const struct const_Matrix_T*const a, const struct const_Vector_T*const b, const char side,
+	 const bool invert_diag)
+{
+	struct Matrix_T* c = constructor_copy_Matrix_T((struct Matrix_T*)a);
+	scale_Matrix_by_Vector_T(side,alpha,c,b,invert_diag);
+	return c;
+}
+
+const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T
+	(const Real alpha, const struct const_Matrix_T*const a, const struct const_Vector_T*const b, const char side,
+	 const bool invert_diag)
+{
+	return (const struct const_Matrix_T*) constructor_mm_diag_Matrix_T(alpha,a,b,side,invert_diag);
+}
+
 void set_Matrix_from_Multiarray_T (struct Matrix_T* dest, struct Multiarray_T* src, const ptrdiff_t*const sub_indices)
 {
 	dest->layout    = src->layout;

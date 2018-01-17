@@ -144,7 +144,7 @@ static const struct const_Matrix_R* constructor_mass (const struct Solver_Volume
 	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
 
 	const struct const_Vector_R jacobian_det_vc = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
-	const struct const_Vector_R* wJ_vc = constructor_dot_mult_const_Vector_R(w_vc,&jacobian_det_vc,1); // destructed
+	const struct const_Vector_R* wJ_vc = constructor_dot_mult_const_Vector_R(1.0,w_vc,&jacobian_det_vc,1); // destructed
 
 	const struct const_Matrix_R* m_l = cv0_vs_vc->op_std;
 	const struct const_Matrix_R* m_r = constructor_mm_diag_const_Matrix_R(1.0,m_l,wJ_vc,'L',false); // destructed

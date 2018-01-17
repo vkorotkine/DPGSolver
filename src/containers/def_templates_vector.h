@@ -44,6 +44,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define cmp_Vector_T                cmp_Vector_d
 #define copy_data_Vector_T_Vector_T copy_data_Vector_d_Vector_d
 #define push_back_Vector_T          push_back_Vector_d
+#define push_back_Vector_Vector_T   push_back_Vector_Vector_d
 #define find_val_Vector_T           find_val_Vector_d
 ///\}
 
@@ -71,6 +72,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define cmp_Vector_T                cmp_Vector_c
 #define copy_data_Vector_T_Vector_T copy_data_Vector_c_Vector_c
 #define push_back_Vector_T          push_back_Vector_c
+#define push_back_Vector_Vector_T   push_back_Vector_Vector_c
 #define find_val_Vector_T           find_val_Vector_c
 ///\}
 

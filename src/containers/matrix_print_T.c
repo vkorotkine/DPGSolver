@@ -98,7 +98,7 @@ void print_Matrix_T_tol (const struct Matrix_T*const a, const Real tol)
 		printf("\n");
 		break;
 	default:
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Unsupported: %c",a->layout);
 		break;
 	}
 }

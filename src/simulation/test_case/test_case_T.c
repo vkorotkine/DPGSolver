@@ -209,7 +209,7 @@ static void read_test_case_parameters (struct Test_Case_T* test_case, const stru
 		read_skip_convert_const_i(line,"num_flux_1st",&test_case->ind_num_flux[0],NULL);
 		read_skip_convert_const_i(line,"num_flux_2nd",&test_case->ind_num_flux[1],NULL);
 		read_skip_convert_const_i(line,"test_norm",&test_case->ind_test_norm,NULL);
-		read_skip_convert_const_i(line,"enforce_conservation",&test_case->ind_test_norm,NULL);
+		read_skip_convert_const_i(line,"conservation",&test_case->ind_conservation,NULL);
 
 		if (strstr(line,"time_final")) read_skip_const_d(line,&test_case->time_final,1,false);
 		if (strstr(line,"time_step"))  read_skip_const_d(line,&test_case->dt,1,false);

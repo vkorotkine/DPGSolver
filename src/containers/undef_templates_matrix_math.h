@@ -35,6 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef mm_TRT
 #undef mv_T
 #undef scale_Matrix_T_by_Vector_R
+#undef scale_Matrix_by_Vector_T
 #undef mm_diag_T
 #undef reinterpret_const_Matrix_T
 

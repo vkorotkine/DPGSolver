@@ -35,6 +35,9 @@ struct DPG_Solver_Element {
 
 	// Face rlhs
 	const struct Multiarray_Operator* cv0_ff_fc[2]; ///< See notation in \ref element_operators.h.
+
+	// Enforcing conservation
+	const struct const_Multiarray_Vector_d* ones_coef_vt; ///< \See \ref constructor_operators_ones_coef.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

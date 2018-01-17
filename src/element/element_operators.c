@@ -274,6 +274,42 @@ const struct Multiarray_Operator* constructor_operators_bt
 	return op;
 }
 
+const struct const_Multiarray_Vector_d* constructor_operators_ones_coef
+	(const char*const name_io, const struct const_Element* element, const struct Simulation* sim)
+{
+	struct Operator_Info* op_info =
+		constructor_Operator_Info("vv0",name_io,name_io,"H_1_P_PM0",element,sim); // destructed
+
+	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator_V(op_info->extents_op); // destructed
+
+	const ptrdiff_t row_max = op_info->values_op->ext_0;
+	for (ptrdiff_t row = 0; row < row_max; ) // row is incremented when setting the operators.
+		op_info->set_operator(&row,op,op_info,sim);
+
+	const struct const_Multiarray_Vector_d* ones_coef =
+		constructor_empty_const_Multiarray_Vector_d_V(false,op_info->extents_op); // returned
+	destructor_Operator_Info(op_info);
+
+	const ptrdiff_t size = compute_size(op->order,op->extents);
+	for (ptrdiff_t i = 0; i < size; ++i) {
+		const struct const_Matrix_d*const vv0 = op->data[i]->op_std;
+		if (vv0 == NULL) {
+			const_constructor_move_const_Vector_d(&ones_coef->data[i],NULL);
+			continue;
+		}
+
+		struct Vector_d*const ones = constructor_empty_Vector_d(vv0->ext_0); // destructed
+		set_to_value_Vector_d(ones,1.0);
+
+		const_constructor_move_const_Vector_d(&ones_coef->data[i],
+			constructor_sgesv_const_Vector_d(vv0,(struct const_Vector_d*)ones)); // keep
+		destructor_Vector_d(ones);
+	}
+	destructor_Multiarray_Operator(op);
+
+	return ones_coef;
+}
+
 const struct Multiarray_Operator* constructor_operators_tens3
 	(const struct Multiarray_Operator*const op_l, const struct Multiarray_Operator*const op_r)
 {

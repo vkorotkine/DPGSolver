@@ -73,6 +73,18 @@ static void add_to_lhs_opt__d_opt_t_ds
 	 struct Simulation*const sim_c                   ///< The complex \ref Simulation.
 	);
 
+/** \brief Add the contribution from the lagrange multiplier enforcing conservation (if applicable).
+ *
+ *  \note When the numerical flux used to enforce the boundary conditions is non-linear, an additional contribution to
+ *        the standard Lagrange multiplier terms (eq. (4.47) \cite Zienkiewicz2013_ch4) is added to the
+ *        sol_coef-sol_coef portion of lhs_opt. */
+static void add_to_lhs_opt__l_mult
+	(struct Matrix_d**const lhs_opt_ptr,             ///< Pointer to the optimal lhs matrix contribution.
+	 const struct const_Matrix_d*const lhs_std,      ///< The standard (DG-like) contribution to the lhs.
+	 const struct DPG_Solver_Volume*const dpg_s_vol, ///< \ref DPG_Solver_Volume_T.
+	 const struct Simulation*const sim               ///< \ref Simulation.
+	);
+
 /** \brief Add entries from the current volume to Solver_Storage_Implicit::A and Solver_Storage_Implicit::b.
  *  \attention **When using the schur complement method to solve the global system, the block diagonal contributions are
  *             inverted before being added to global system matrix.**
@@ -198,6 +210,43 @@ static void add_to_lhs_opt__d_opt_t_ds
 	destructor_const_Vector_d(lhs_opt_t);
 }
 
+static void add_to_lhs_opt__l_mult
+	(struct Matrix_d**const lhs_opt_ptr, const struct const_Matrix_d*const lhs_std,
+	 const struct DPG_Solver_Volume*const dpg_s_vol, const struct Simulation*const sim)
+{
+	if (!test_case_explicitly_enforces_conservation(sim))
+		return;
+
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+
+	const struct const_Matrix_d*const lhs_l_mult_M = constructor_l_mult_M(lhs_std,dpg_s_vol,sim); // destructed
+	assert(lhs_l_mult_M->ext_1 == test_case->n_eq);
+
+	struct Matrix_d* lhs_opt = *lhs_opt_ptr;
+	assert(lhs_opt->ext_0 == lhs_opt->ext_1);
+
+	const ptrdiff_t ext_1_i = lhs_opt->ext_1,
+	                ext_1   = ext_1_i + lhs_l_mult_M->ext_1;
+
+	struct Matrix_d* lhs_add = constructor_zero_Matrix_d('R',ext_1,ext_1); // moved
+	set_block_Matrix_d(lhs_add,0,0,(struct const_Matrix_d*)lhs_opt,0,0,lhs_opt->ext_0,lhs_opt->ext_1,'i');
+	set_block_Matrix_d(lhs_add,0,ext_1_i,lhs_l_mult_M,0,0,lhs_l_mult_M->ext_0,lhs_l_mult_M->ext_1,'i');
+	transpose_Matrix_d((struct Matrix_d*)lhs_l_mult_M,false);
+	set_block_Matrix_d(lhs_add,ext_1_i,0,lhs_l_mult_M,0,0,lhs_l_mult_M->ext_0,lhs_l_mult_M->ext_1,'i');
+
+	destructor_Matrix_d(lhs_opt);
+	lhs_opt = lhs_add;
+
+	destructor_const_Matrix_d(lhs_l_mult_M);
+
+	*lhs_opt_ptr = lhs_add;
+
+/// \todo Separate function after implementing
+	if (test_case->is_linear)
+		return;
+	EXIT_ADD_SUPPORT;
+}
+
 static void add_to_petsc_Mat_Vec_dpg
 	(const struct Solver_Volume* s_vol, const struct const_Vector_d* rhs_neg, const struct const_Matrix_d* lhs,
 	 struct Solver_Storage_Implicit* ssi, const struct Simulation* sim)
@@ -207,7 +256,7 @@ static void add_to_petsc_Mat_Vec_dpg
 
 	const ptrdiff_t ext_0 = rhs_neg->ext_0;
 
-	const struct const_Vector_i* idxm = constructor_petsc_idxm_dpg(ext_0,s_vol); // destructed.
+	const struct const_Vector_i* idxm = constructor_petsc_idxm_dpg(ext_0,s_vol,sim); // destructed.
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	if (test_case->use_schur_complement) {

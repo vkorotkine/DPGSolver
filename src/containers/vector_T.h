@@ -134,6 +134,12 @@ void push_back_Vector_T
 	 const bool unique          ///< Flag for whether the value should only be added if it is unique.
 	);
 
+/// \brief Push a \ref Vector_T\* of values to the back of a \ref Vector_T\*.
+void push_back_Vector_Vector_T
+	(struct Vector_T*const src,             ///< The source vector.
+	 const struct const_Vector_T*const vals ///< Vector holding values to be added.
+	);
+
 /** \brief Check if the input value is present in the optionally sorted src \ref Vector_T\*.
  *  \return `true` if found. */
 bool find_val_Vector_T

@@ -27,10 +27,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define constructor_zero_Vector_T constructor_zero_Vector_d
 
-#define constructor_copy_Vector_T         constructor_copy_Vector_d
-#define constructor_copy_const_Vector_T   constructor_copy_const_Vector_d
-#define constructor_copy_Vector_T_T       constructor_copy_Vector_d_d
-#define constructor_copy_const_Vector_T_T constructor_copy_const_Vector_d_d
+#define constructor_copy_Vector_T                constructor_copy_Vector_d
+#define constructor_copy_const_Vector_T          constructor_copy_const_Vector_d
+#define constructor_copy_Vector_T_T              constructor_copy_Vector_d_d
+#define constructor_copy_const_Vector_T_T        constructor_copy_const_Vector_d_d
+#define constructor_copy_Vector_T_Vector_R       constructor_copy_Vector_d_Vector_d
+#define constructor_copy_const_Vector_T_Vector_R constructor_copy_const_Vector_d_Vector_d
 
 #define constructor_move_Vector_T_T                constructor_move_Vector_d_d
 #define constructor_move_const_Vector_T_T          constructor_move_const_Vector_d_d
@@ -71,10 +73,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define constructor_zero_Vector_T constructor_zero_Vector_c
 
-#define constructor_copy_Vector_T         constructor_copy_Vector_c
-#define constructor_copy_const_Vector_T   constructor_copy_const_Vector_c
-#define constructor_copy_Vector_T_T       constructor_copy_Vector_c_c
-#define constructor_copy_const_Vector_T_T constructor_copy_const_Vector_c_c
+#define constructor_copy_Vector_T                constructor_copy_Vector_c
+#define constructor_copy_const_Vector_T          constructor_copy_const_Vector_c
+#define constructor_copy_Vector_T_T              constructor_copy_Vector_c_c
+#define constructor_copy_const_Vector_T_T        constructor_copy_const_Vector_c_c
+#define constructor_copy_Vector_T_Vector_R       constructor_copy_Vector_c_Vector_d
+#define constructor_copy_const_Vector_T_Vector_R constructor_copy_const_Vector_c_Vector_d
 
 #define constructor_move_Vector_T_T                constructor_move_Vector_c_c
 #define constructor_move_const_Vector_T_T          constructor_move_const_Vector_c_c

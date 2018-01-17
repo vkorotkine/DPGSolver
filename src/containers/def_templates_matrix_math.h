@@ -40,6 +40,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define mm_TRT                     mm_d
 #define mv_T                       mv_d
 #define scale_Matrix_T_by_Vector_R scale_Matrix_d_by_Vector_d
+#define scale_Matrix_by_Vector_T   scale_Matrix_by_Vector_d
 #define mm_diag_T                  mm_diag_d
 #define reinterpret_const_Matrix_T reinterpret_const_Matrix_d
 
@@ -70,6 +71,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define mm_TRT                     mm_cdc
 #define mv_T                       mv_c
 #define scale_Matrix_T_by_Vector_R scale_Matrix_c_by_Vector_d
+#define scale_Matrix_by_Vector_T   scale_Matrix_by_Vector_c
 #define mm_diag_T                  mm_diag_c
 #define reinterpret_const_Matrix_T reinterpret_const_Matrix_c
 

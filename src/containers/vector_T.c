@@ -204,6 +204,16 @@ void push_back_Vector_T (struct Vector_T*const src, const Type val, const bool s
 		sort_Vector_T(src);
 }
 
+void push_back_Vector_Vector_T (struct Vector_T*const src, const struct const_Vector_T*const vals)
+{
+	const ptrdiff_t ext_0_src = src->ext_0,
+	                ext_0_add = vals->ext_0,
+	                ext_0_sum = ext_0_src+ext_0_add;
+	resize_Vector_T(src,ext_0_sum);
+	for (ptrdiff_t i = ext_0_src, j = 0; i < ext_0_sum; ++i, ++j)
+		src->data[i] = vals->data[j];
+}
+
 bool find_val_Vector_T (const struct const_Vector_T*const src, const Type val, const bool sorted)
 {
 	bool found = false;

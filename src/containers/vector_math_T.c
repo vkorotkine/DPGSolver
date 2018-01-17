@@ -39,5 +39,35 @@ void add_to_Vector_T_T (struct Vector_T* a, const Type* b)
 		a->data[i] += b[i];
 }
 
+void add_to_Vector_T (struct Vector_T* a, const struct const_Vector_T* b)
+{
+	assert(a->ext_0 == b->ext_0);
+	const ptrdiff_t ext_0 = a->ext_0;
+	for (int i = 0; i < ext_0; ++i)
+		a->data[i] += b->data[i];
+}
+
+Type dot_product_Vector_T (const Type alpha, const struct const_Vector_T*const a, const struct const_Vector_T*const b)
+{
+	assert(a->ext_0 == b->ext_0);
+
+	Type out = 0.0;
+	for (int i = 0; i < a->ext_0; ++i)
+		out += a->data[i]*b->data[i];
+
+	return alpha*out;
+}
+
+Type dot_product_Vector_RT (const Type alpha, const struct const_Vector_R*const a, const struct const_Vector_T*const b)
+{
+	assert(a->ext_0 == b->ext_0);
+
+	Type out = 0.0;
+	for (int i = 0; i < a->ext_0; ++i)
+		out += a->data[i]*b->data[i];
+
+	return alpha*out;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

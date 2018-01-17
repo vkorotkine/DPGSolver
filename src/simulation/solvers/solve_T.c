@@ -149,7 +149,7 @@ static ptrdiff_t compute_dof_volumes (const struct Simulation* sim)
 		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
 		dof += compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents);
 		if (enforcing_conservation)
-			dof += 1;
+			dof += compute_size(s_vol->l_mult->order,s_vol->l_mult->extents);
 	}
 	return dof;
 }

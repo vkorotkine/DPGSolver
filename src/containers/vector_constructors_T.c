@@ -102,6 +102,23 @@ const struct const_Vector_T* constructor_copy_const_Vector_T_T (const ptrdiff_t 
 	return (struct const_Vector_T*) constructor_copy_Vector_T_T(ext_0,data_src);
 }
 
+struct Vector_T* constructor_copy_Vector_T_Vector_R (struct Vector_R* src)
+{
+	const ptrdiff_t size = src->ext_0;
+	const Real*const data_src = src->data;
+
+	Type* data = calloc((size_t)size , sizeof *data); // keep
+	for (ptrdiff_t i = 0; i < size; i++)
+		data[i] = (Type)data_src[i];
+
+	return constructor_move_Vector_T_T(src->ext_0,true,data);
+}
+
+const struct const_Vector_T* constructor_copy_const_Vector_T_Vector_R (const struct const_Vector_R* src)
+{
+	return (struct const_Vector_T*) constructor_copy_Vector_T_Vector_R((struct Vector_R*)src);
+}
+
 // Move constructors ************************************************************************************************ //
 
 struct Vector_T* constructor_move_Vector_T_T (const ptrdiff_t ext_0, const bool owns_data, Type*const data)
@@ -183,7 +200,7 @@ const struct const_Vector_T* constructor_inverse_const_Vector_T (const struct co
 }
 
 const struct const_Vector_T* constructor_dot_mult_const_Vector_T
-	(const struct const_Vector_T* a, const struct const_Vector_T* b, const int n_repeated)
+	(const Type alpha, const struct const_Vector_T* a, const struct const_Vector_T* b, const int n_repeated)
 {
 	assert(a->ext_0 == b->ext_0);
 
@@ -192,7 +209,7 @@ const struct const_Vector_T* constructor_dot_mult_const_Vector_T
 	Type* data_c = malloc((size_t)ext_0_rep * sizeof *data_c); // moved
 
 	for (ptrdiff_t i = 0; i < ext_0; ++i)
-		data_c[i] = a->data[i]*b->data[i];
+		data_c[i] = alpha*a->data[i]*b->data[i];
 
 	for (int n = 1; n < n_repeated; ++n) {
 		const ptrdiff_t ind_c = ext_0*n;
@@ -235,7 +252,7 @@ const struct const_Vector_T* constructor_sum_const_Vector_T_const_Matrix_T
 }
 
 struct Vector_T* constructor_mv_Vector_T
-	(const char trans_a_i, const Real alpha, const struct const_Matrix_T*const a,
+	(const char trans_a_i, const Type alpha, const struct const_Matrix_T*const a,
 	 const struct const_Vector_T*const b)
 {
 	const MKL_INT m = (MKL_INT) ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 );
@@ -248,7 +265,7 @@ struct Vector_T* constructor_mv_Vector_T
 }
 
 const struct const_Vector_T* constructor_mv_const_Vector_T
-	(const char trans_a_i, const Real alpha, const struct const_Matrix_T*const a,
+	(const char trans_a_i, const Type alpha, const struct const_Matrix_T*const a,
 	 const struct const_Vector_T*const b)
 {
 	return (const struct const_Vector_T*) constructor_mv_Vector_T(trans_a_i,alpha,a,b);

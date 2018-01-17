@@ -47,7 +47,6 @@ void constructor_derived_DPG_Solver_Volume_T (struct Volume* volume_ptr, const s
 
 	dpg_s_vol->norm_op_H0 = constructor_norm_op_H0(dpg_s_vol); // destructed
 	dpg_s_vol->norm_op_H1 = constructor_norm_op_H1(dpg_s_vol); // destructed
-	dpg_s_vol->l_mult = 0.0;
 }
 
 void destructor_derived_DPG_Solver_Volume_T (struct Volume* volume_ptr)
@@ -73,7 +72,7 @@ static const struct const_Matrix_R* constructor_norm_op_H0 (const struct DPG_Sol
 	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
 
 	const struct const_Vector_R jacobian_det_vc = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
-	const struct const_Vector_R* wJ_vc = constructor_dot_mult_const_Vector_R(w_vc,&jacobian_det_vc,1); // destructed
+	const struct const_Vector_R* wJ_vc = constructor_dot_mult_const_Vector_R(1.0,w_vc,&jacobian_det_vc,1); // destructed
 
 	const struct const_Matrix_R* H0_l = cv0_vt_vc->op_std;
 	const struct const_Matrix_R* H0_r = constructor_mm_diag_const_Matrix_R(1.0,H0_l,wJ_vc,'L',false); // destructed
@@ -93,8 +92,8 @@ static const struct const_Matrix_R* constructor_norm_op_H1 (const struct DPG_Sol
 	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
 	const struct const_Vector_R J_vc  = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
 
-	const struct const_Vector_R* J_inv_vc = constructor_inverse_const_Vector_R(&J_vc);            // destructed
-	const struct const_Vector_R* wJ_vc    = constructor_dot_mult_const_Vector_R(w_vc,J_inv_vc,1); // destructed
+	const struct const_Vector_R* J_inv_vc = constructor_inverse_const_Vector_R(&J_vc);                // destructed
+	const struct const_Vector_R* wJ_vc    = constructor_dot_mult_const_Vector_R(1.0,w_vc,J_inv_vc,1); // destructed
 	destructor_const_Vector_R(J_inv_vc);
 
 	struct Matrix_R* H1 = (struct Matrix_R*) constructor_norm_op_H0(dpg_s_vol); // returned

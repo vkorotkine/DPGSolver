@@ -62,7 +62,8 @@ You should have received a copy of the GNU General Public License along with DPG
 static void add_to_petsc_Mat_dpg_c
 	(const struct Solver_Volume_c* s_vol,  ///< See brief.
 	 const struct const_Vector_c* rhs_neg, ///< See brief.
-	 struct Solver_Storage_Implicit* ssi   ///< See brief.
+	 struct Solver_Storage_Implicit* ssi,  ///< See brief.
+	 const struct Simulation*const sim     ///< See brief.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -74,11 +75,12 @@ static void add_to_petsc_Mat_dpg_c
 // Level 0 ********************************************************************************************************** //
 
 static void add_to_petsc_Mat_dpg_c
-	(const struct Solver_Volume_c* s_vol, const struct const_Vector_c* rhs_neg, struct Solver_Storage_Implicit* ssi)
+	(const struct Solver_Volume_c* s_vol, const struct const_Vector_c* rhs_neg, struct Solver_Storage_Implicit* ssi,
+	 const struct Simulation*const sim)
 {
 	const ptrdiff_t ext_0 = rhs_neg->ext_0;
 
-	const struct const_Vector_i* idxm = constructor_petsc_idxm_dpg_c(ext_0,s_vol); // destructed.
+	const struct const_Vector_i* idxm = constructor_petsc_idxm_dpg_c(ext_0,s_vol,sim); // destructed.
 
 	PetscScalar rhs_c_data[ext_0];
 	for (int i = 0; i < ext_0; ++i)

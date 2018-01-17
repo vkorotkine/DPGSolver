@@ -59,6 +59,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_mm_NN1C_const_Matrix_T
 #undef constructor_mm_diag_Matrix_T_R
 #undef constructor_mm_diag_const_Matrix_T_R
+#undef constructor_mm_diag_Matrix_T
+#undef constructor_mm_diag_const_Matrix_T
 #undef set_Matrix_from_Multiarray_T
 #undef set_const_Matrix_from_Multiarray_T
 #undef set_Matrix_from_Multiarray_Matrix_T

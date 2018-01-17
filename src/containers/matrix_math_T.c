@@ -275,6 +275,57 @@ void scale_Matrix_T_by_Vector_R
 		invert_Vector_R((struct Vector_R*)b);
 }
 
+void scale_Matrix_by_Vector_T
+	(const char side, const Real alpha, struct Matrix_T*const a, const struct const_Vector_T*const b,
+	 const bool invert_diag)
+{
+	if (invert_diag)
+		invert_Vector_T((struct Vector_T*)b);
+
+	if (alpha != 1.0)
+		scale_Matrix_T(a,alpha);
+
+	const ptrdiff_t n_row = a->ext_0,
+	                n_col = a->ext_1;
+
+	bool transpose_a = false;
+	if (side == 'L') {
+		assert(b->ext_0 == a->ext_0);
+
+		if (a->layout == 'C') {
+			transpose_a = true;
+			transpose_Matrix_T(a,true);
+		}
+
+		for (ptrdiff_t row = 0; row < n_row; ++row) {
+			const Type val = b->data[row];
+			Type* data_row = get_row_Matrix_T(row,a);
+			for (ptrdiff_t col = 0; col < n_col; ++col)
+				*data_row++ *= val;
+		}
+	} else if (side == 'R') {
+		assert(b->ext_0 == a->ext_1);
+
+		if (a->layout == 'R') {
+			transpose_a = true;
+			transpose_Matrix_T(a,true);
+		}
+
+		for (ptrdiff_t col = 0; col < n_col; ++col) {
+			const Type val = b->data[col];
+			Type* data_col = get_col_Matrix_T(col,a);
+			for (ptrdiff_t row = 0; row < n_row; ++row)
+				*data_col++ *= val;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+	if (transpose_a)
+		transpose_Matrix_T(a,true);
+	if (invert_diag)
+		invert_Vector_T((struct Vector_T*)b);
+}
+
 void mm_diag_T
 	(const char side, const Real alpha, const Real beta, const struct const_Matrix_R*const a,
 	 const struct const_Vector_T*const b, struct Matrix_T* c, const bool invert_diag)

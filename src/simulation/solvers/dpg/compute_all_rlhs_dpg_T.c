@@ -287,7 +287,7 @@ ptrdiff_t compute_n_dof_nf_T (const struct Solver_Volume_T* s_vol)
 }
 
 const struct const_Vector_i* constructor_petsc_idxm_dpg_T
-	(const ptrdiff_t n_dof, const struct Solver_Volume_T* s_vol)
+	(const ptrdiff_t n_dof, const struct Solver_Volume_T* s_vol, const struct Simulation*const sim)
 {
 	struct Vector_i* idxm = constructor_empty_Vector_i(n_dof); // returned
 	int ind_idxm = 0;
@@ -308,6 +308,11 @@ const struct const_Vector_i* constructor_petsc_idxm_dpg_T
 		set_idxm(&ind_idxm,idxm,(int)s_face->ind_dof,s_face->nf_coef);
 		// sol_coef: To be done.
 	}}
+
+	// volume (l_mult) - if applicable
+	if (test_case_explicitly_enforces_conservation(sim))
+		set_idxm(&ind_idxm,idxm,(int)s_vol->ind_dof_constraint,s_vol->l_mult);
+
 	assert(ind_idxm == n_dof);
 
 	return (struct const_Vector_i*) idxm;
@@ -551,7 +556,7 @@ static void add_to_flux_imbalance (const struct Solver_Face_T*const s_face, cons
 
 	const struct const_Vector_R* w_fc = get_operator__w_fc__s_e_T(s_face);
 	const struct const_Vector_R jacobian_det_fc = interpret_const_Multiarray_as_Vector_R(s_face->jacobian_det_fc);
-	const struct const_Vector_R* wJ_fc = constructor_dot_mult_const_Vector_R(w_fc,&jacobian_det_fc,1); // destructed
+	const struct const_Vector_R* wJ_fc = constructor_dot_mult_const_Vector_R(1.0,w_fc,&jacobian_det_fc,1); // destructed
 
 	if (!face->boundary) {
 		const struct Operator* cv0_ff_fc = get_operator__cv0_ff_fc(0,dpg_s_face);
@@ -585,6 +590,17 @@ static void increment_rhs_source
 	(struct Vector_T* rhs,                ///< Holds the values of the rhs.
 	 const struct Solver_Volume_T* s_vol, ///< Defined for \ref compute_rlhs_fptr.
 	 const struct Simulation* sim         ///< Defined for \ref compute_rlhs_fptr.
+	);
+
+/** \brief Constructor for the negated DPG rhs \ref Vector_T, including contributions from conservation enforcement if
+ *         applicable.
+ *  \return See brief. */
+static const struct const_Vector_T* constructor_rhs_opt_neg
+	(const struct const_Vector_T*const rhs_std,        ///< The DG-like component of the rhs vector.
+	 const struct const_Matrix_T*const lhs_std,        ///< The DG-like component of the lhs matrix.
+	 const struct const_Matrix_T*const opt_t_coef,     ///< The optimal test function coefficients.
+	 const struct DPG_Solver_Volume_T*const dpg_s_vol, ///< The current volume.
+	 const struct Simulation*const sim                 ///< \ref Simulation.
 	);
 
 /// \brief Destructor for \ref Norm_DPG.
@@ -674,8 +690,8 @@ static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
 	const struct const_Vector_R J_vc  = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
 
-	const struct const_Vector_R* J_inv_vc = constructor_inverse_const_Vector_R(&J_vc);               // destructed
-	const struct const_Vector_R* wJ_vc    = constructor_dot_mult_const_Vector_R(w_vc,J_inv_vc,n_vr); // destructed
+	const struct const_Vector_R* J_inv_vc = constructor_inverse_const_Vector_R(&J_vc);                   // destructed
+	const struct const_Vector_R* wJ_vc    = constructor_dot_mult_const_Vector_R(1.0,w_vc,J_inv_vc,n_vr); // destructed
 	destructor_const_Vector_R(J_inv_vc);
 
 	const struct const_Matrix_T* n1_lt =
@@ -727,25 +743,27 @@ static void compute_rlhs_1
 	add_to_rlhs__face_T(rhs_std,&lhs_std,dpg_s_vol,sim,true);
 	increment_rhs_source(rhs_std,s_vol,sim);
 
-	const struct const_Matrix_T* opt_t =
+	const struct const_Matrix_T* opt_t_coef =
 		constructor_sysv_const_Matrix_T(norm->N,(struct const_Matrix_T*)lhs_std); // destructed
 
-/// \todo Add option for the inclusion of a contant value in the test space such that conservation can be enforced.
-	const struct const_Vector_T* rhs_opt_neg =
-		constructor_mv_const_Vector_T('T',-1.0,opt_t,(struct const_Vector_T*)rhs_std); // destructed
+	const struct const_Vector_T*const rhs_opt_neg =
+		constructor_rhs_opt_neg((struct const_Vector_T*)rhs_std,(struct const_Matrix_T*)lhs_std,
+		                        opt_t_coef,dpg_s_vol,sim); // destructed
 
 #if TYPE_RC == TYPE_REAL
-	struct Matrix_T* lhs_opt = constructor_mm_Matrix_T('T','N',1.0,opt_t,(struct const_Matrix_T*)lhs_std,'R'); // dest.
+	struct Matrix_T* lhs_opt =
+		constructor_mm_Matrix_T('T','N',1.0,opt_t_coef,(struct const_Matrix_T*)lhs_std,'R'); // destructed
 
-	add_to_lhs_opt__d_opt_t_ds(flux_r,dpg_s_vol,norm,opt_t,(struct const_Vector_T*)rhs_std,
+	add_to_lhs_opt__d_opt_t_ds(flux_r,dpg_s_vol,norm,opt_t_coef,(struct const_Vector_T*)rhs_std,
 	                           (struct const_Matrix_T*)lhs_std,lhs_opt,sim,sim_c);
+	add_to_lhs_opt__l_mult(&lhs_opt,(struct const_Matrix_T*)lhs_std,dpg_s_vol,sim);
 
 	add_to_petsc_Mat_Vec_dpg(s_vol,rhs_opt_neg,(struct const_Matrix_T*)lhs_opt,ssi,sim);
 	destructor_Matrix_T(lhs_opt);
 #elif TYPE_RC == TYPE_COMPLEX
 	UNUSED(sim_c);
 
-	add_to_petsc_Mat_dpg_c(s_vol,rhs_opt_neg,ssi);
+	add_to_petsc_Mat_dpg_c(s_vol,rhs_opt_neg,ssi,sim);
 #endif
 	destructor_Flux_Ref_T(flux_r);
 	destructor_Norm_DPG(norm);
@@ -754,7 +772,7 @@ static void compute_rlhs_1
 	destructor_Matrix_T(lhs_std);
 	destructor_const_Vector_T(rhs_opt_neg);
 
-	destructor_const_Matrix_T(opt_t);
+	destructor_const_Matrix_T(opt_t_coef);
 }
 
 static void set_exact_normal_flux
@@ -841,6 +859,21 @@ static struct Numerical_Flux_T* constructor_Numerical_Flux_dpg
 
 // Level 2 ********************************************************************************************************** //
 
+/** \brief Get the appropriate sub-range of the \ref DPG_Solver_Element::ones_coef_vt operators.
+ *  \return See brief. */
+static const struct const_Vector_R* get_operator__ones_coef_vt
+	(const struct DPG_Solver_Volume_T*const dpg_s_vol ///< The current volume.
+	);
+
+/** \brief Constructor for the transposed linearized contribution of the Lagrange multiplier constraint equations for
+ *         conservation represented as a \ref const_Matrix_T\* with one column per Lagrange multiplier unknown.
+ *  \return See brief. */
+static const struct const_Matrix_T* constructor_l_mult_M
+	(const struct const_Matrix_T*const lhs_std,        ///< Defined for \ref constructor_rhs_opt_neg.
+	 const struct DPG_Solver_Volume_T*const dpg_s_vol, ///< Defined for \ref constructor_rhs_opt_neg.
+	 const struct Simulation*const sim                 ///< Defined for \ref constructor_rhs_opt_neg.
+	);
+
 static struct Vector_T* constructor_rhs_v_1
 	(const struct Flux_Ref_T* flux_r, const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
 {
@@ -878,6 +911,54 @@ static void increment_rhs_source
 	test_case->compute_source_rhs(sim,s_vol,&rhs_Ma);
 }
 
+static const struct const_Vector_T* constructor_rhs_opt_neg
+	(const struct const_Vector_T*const rhs_std, const struct const_Matrix_T*const lhs_std,
+	 const struct const_Matrix_T*const opt_t_coef, const struct DPG_Solver_Volume_T*const dpg_s_vol,
+	 const struct Simulation*const sim)
+{
+	const struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) dpg_s_vol;
+	struct Vector_T*const rhs_opt_neg = constructor_mv_Vector_T('T',-1.0,opt_t_coef,rhs_std); // returned
+
+	if (test_case_explicitly_enforces_conservation(sim)) {
+		struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+		const int n_eq = test_case->n_eq;
+		assert(test_case->ind_conservation == CONSERVATION_LAGRANGE_MULT);
+
+		// Constraint effect on original "form".
+		const struct const_Matrix_T*const lhs_l_mult_M = constructor_l_mult_M(lhs_std,dpg_s_vol,sim); // destructed
+
+		const struct Multiarray_T*const l_mult = s_vol->l_mult;
+		const struct const_Vector_T l_mult_V =
+			{ .ext_0 = l_mult->extents[0], .owns_data = false, .data = l_mult->data };
+		struct Matrix_T* rhs_l_mult_M =
+			constructor_mm_diag_Matrix_T(-1.0,lhs_l_mult_M,&l_mult_V,'R',false); // destructed
+		destructor_const_Matrix_T(lhs_l_mult_M);
+
+		transpose_Matrix_T(rhs_l_mult_M,true);
+		assert(rhs_l_mult_M->layout == 'C');
+
+		assert(rhs_opt_neg->ext_0 == (rhs_l_mult_M->ext_0)*(rhs_l_mult_M->ext_1));
+		for (int i = 0; i < rhs_opt_neg->ext_0; ++i)
+			rhs_opt_neg->data[i] += rhs_l_mult_M->data[i];
+
+		// Independent constraint equation.
+		const struct const_Matrix_T rhs_std_M =
+			{ .layout = 'C', .ext_0 = (rhs_std->ext_0)/n_eq, .ext_1 = n_eq, .owns_data = false,
+			  .data = rhs_std->data, };
+
+		const struct const_Vector_R*const ones_coef = get_operator__ones_coef_vt(dpg_s_vol);
+		const struct const_Vector_T* ones_coef_T = constructor_copy_const_Vector_T_Vector_R(ones_coef); // dest.
+		const struct const_Vector_T*const rhs_constraint =
+			constructor_mv_const_Vector_T('T',-1.0,&rhs_std_M,ones_coef_T); // destructed
+		destructor_const_Vector_T(ones_coef_T);
+
+		push_back_Vector_Vector_T(rhs_opt_neg,rhs_constraint);
+		destructor_const_Vector_T(rhs_constraint);
+	}
+
+	return (struct const_Vector_T*) rhs_opt_neg;
+}
+
 static void destructor_Norm_DPG (const struct Norm_DPG* norm)
 {
 	destructor_const_Matrix_T(norm->N);
@@ -885,4 +966,48 @@ static void destructor_Norm_DPG (const struct Norm_DPG* norm)
 	if (norm->dN_ds)
 		destructor_const_Matrix_T(norm->dN_ds);
 	free((void*)norm);
+}
+
+// Level 3 ********************************************************************************************************** //
+
+static const struct const_Vector_R* get_operator__ones_coef_vt (const struct DPG_Solver_Volume_T*const dpg_s_vol)
+{
+	const struct Volume*const vol                 = (struct Volume*) dpg_s_vol;
+	const struct Solver_Volume_T*const s_vol      = (struct Solver_Volume_T*) dpg_s_vol;
+	const struct DPG_Solver_Element*const dpg_s_e = (struct DPG_Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref;
+
+	return get_const_Multiarray_Vector_d(dpg_s_e->ones_coef_vt,(ptrdiff_t[]){0,0,p,p});
+}
+
+static const struct const_Matrix_T* constructor_l_mult_M
+	(const struct const_Matrix_T*const lhs_std, const struct DPG_Solver_Volume_T*const dpg_s_vol,
+	 const struct Simulation*const sim)
+{
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_eq = test_case->n_eq;
+	assert(test_case->ind_conservation == CONSERVATION_LAGRANGE_MULT);
+
+	const bool transpose = ( lhs_std->layout == 'C' ? false : true );
+	if (transpose)
+		transpose_Matrix_T((struct Matrix_T*)lhs_std,true);
+
+	ptrdiff_t exts_lhs[2] = { (lhs_std->ext_0)/n_eq, (lhs_std->ext_1)*n_eq, };
+	const struct const_Matrix_T lhs_std_M =
+		{ .layout = 'C', .ext_0 = exts_lhs[0], .ext_1 = exts_lhs[1], .owns_data = false, .data = lhs_std->data, };
+
+	const struct const_Vector_R*const ones_coef = get_operator__ones_coef_vt(dpg_s_vol);
+	const struct const_Vector_T* ones_coef_T = constructor_copy_const_Vector_T_Vector_R(ones_coef); // dest.
+
+	struct Vector_T*const lhs_l_mult = constructor_mv_Vector_T('T',1.0,&lhs_std_M,ones_coef_T); // destructed
+	lhs_l_mult->owns_data = false;
+	const struct const_Matrix_T*const lhs_l_mult_M =
+		constructor_move_const_Matrix_T_T('R',(lhs_l_mult->ext_0)/n_eq,n_eq,true,lhs_l_mult->data); // returned
+	destructor_Vector_T(lhs_l_mult);
+
+	if (transpose)
+		transpose_Matrix_T((struct Matrix_T*)lhs_std,true);
+
+	return lhs_l_mult_M;
 }

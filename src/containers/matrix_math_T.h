@@ -153,11 +153,20 @@ void mv_T
  */
 void scale_Matrix_T_by_Vector_R
 	(const char side,                     ///< The side from which to apply the vector as a diagonal matrix.
-	 const Real alpha,                  ///< Multiplicative constant.
+	 const Real alpha,                    ///< Multiplicative constant.
 	 struct Matrix_T*const a,             ///< Input \ref Matrix_T\*.
 	 const struct const_Vector_R*const b, ///< Input \ref const_Vector_T\*.
 	 const bool invert_diag               /**< Flag for whether the diagonal entries should be inverted before
 	                                       *   application. */
+	);
+
+/// \brief 'T'ype-'T'ype version of \ref scale_Matrix_T_by_Vector_R.
+void scale_Matrix_by_Vector_T
+	(const char side,                     ///< See brief.
+	 const Real alpha,                    ///< See brief.
+	 struct Matrix_T*const a,             ///< See brief.
+	 const struct const_Vector_T*const b, ///< See brief.
+	 const bool invert_diag               ///< See brief.
 	);
 
 /** \brief Computes the matrix-"matrix" multiplication of a matrix with a vector interpreted as a diagonal matrix.

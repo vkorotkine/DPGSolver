@@ -149,7 +149,7 @@ struct Operator_Info {
 // Interface functions ********************************************************************************************** //
 
 /** \brief Constructor for a \ref Multiarray_Operator\* of operators.
- *  \return Standard. */
+ *  \return See brief.. */
 const struct Multiarray_Operator* constructor_operators
 	(const char*const name_type,          ///< The name of the operator type (including differentiation index).
 	 const char*const name_in,            ///< The name of the operator input.
@@ -183,12 +183,21 @@ const struct const_Multiarray_Vector_d* constructor_operators_w
 	);
 
 /** \brief Constructor for a \ref Multiarray_Operator\* of operators for 'b'asis 't'ransformation.
- *  \return Standard. */
+ *  \return See brief. */
 const struct Multiarray_Operator* constructor_operators_bt
 	(const char*const name_type,          ///< Defined for \ref constructor_operators.
 	 const char*const name_in,            ///< Defined for \ref constructor_operators.
 	 const char*const name_out,           ///< Defined for \ref constructor_operators.
 	 const char*const name_range,         ///< Defined for \ref constructor_operators.
+	 const struct const_Element* element, ///< Defined for \ref constructor_operators.
+	 const struct Simulation* sim         ///< Defined for \ref constructor_operators.
+	);
+
+/** \brief Constructor for a \ref const_Multiarray_Vector_T\* of coefficients which result in a vector of ones when
+ *         multiplied with operators from the input basis.
+ *  \return See brief. */
+const struct const_Multiarray_Vector_d* constructor_operators_ones_coef
+	(const char*const name_io,            ///< The name of the operator input/output.
 	 const struct const_Element* element, ///< Defined for \ref constructor_operators.
 	 const struct Simulation* sim         ///< Defined for \ref constructor_operators.
 	);

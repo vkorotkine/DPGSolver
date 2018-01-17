@@ -19,8 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 
+struct Vector_R;
 struct Matrix_T;
 struct Multiarray_T;
+struct const_Vector_R;
 struct const_Vector_T;
 struct const_Matrix_T;
 struct const_Multiarray_T;
@@ -83,6 +85,18 @@ struct Vector_T* constructor_copy_Vector_T_T
 const struct const_Vector_T* constructor_copy_const_Vector_T_T
 	(const ptrdiff_t ext_0,      ///< See brief.
 	 const Type*const data_src ///< See brief.
+	);
+
+/** \brief Copy constructor for a \ref Vector_T\* from a \ref Vector_T\*.
+ *  \return See brief. */
+struct Vector_T* constructor_copy_Vector_T_Vector_R
+	(struct Vector_R* src ///< The source matrix.
+	);
+
+/** \brief `const` version of \ref constructor_copy_Vector_T_Vector_R.
+ *  \return See brief. */
+const struct const_Vector_T* constructor_copy_const_Vector_T_Vector_R
+	(const struct const_Vector_R* src ///< See brief.
 	);
 
 // Move constructors ************************************************************************************************ //
@@ -162,7 +176,8 @@ const struct const_Vector_T* constructor_inverse_const_Vector_T
 /** \brief Constructor for a \ref const_Vector_T\* using an element-wise multiplication of each entry of the inputs.
  *  \return See brief. */
 const struct const_Vector_T* constructor_dot_mult_const_Vector_T
-	(const struct const_Vector_T* a, ///< The 1st input.
+	(const Type alpha,               ///< Scaling constant.
+	 const struct const_Vector_T* a, ///< The 1st input.
 	 const struct const_Vector_T* b, ///< The 2nd input.
 	 const int n_repeated            ///< The number of times the sub-vector should be repeated.
 	);
@@ -185,7 +200,7 @@ const struct const_Vector_T* constructor_sum_const_Vector_T_const_Matrix_T
  *  \return Standard. */
 struct Vector_T* constructor_mv_Vector_T
 	(const char trans_a_i,                ///< Defined for \ref mv_T.
-	 const Real alpha,                  ///< Defined for \ref mv_T.
+	 const Type alpha,                    ///< Defined for \ref mv_T.
 	 const struct const_Matrix_T*const a, ///< Defined for \ref mv_T.
 	 const struct const_Vector_T*const b  ///< Defined for \ref mv_T.
 	);
@@ -194,7 +209,7 @@ struct Vector_T* constructor_mv_Vector_T
  *  \return Standard. */
 const struct const_Vector_T* constructor_mv_const_Vector_T
 	(const char trans_a_i,                ///< See brief.
-	 const Real alpha,                  ///< See brief.
+	 const Type alpha,                    ///< See brief.
 	 const struct const_Matrix_T*const a, ///< See brief.
 	 const struct const_Vector_T*const b  ///< See brief.
 	);

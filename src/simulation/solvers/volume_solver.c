@@ -68,6 +68,7 @@ void copy_members_r_to_c_Solver_Volume
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	s_vol->flux_imbalance = constructor_empty_Vector_c(test_case->n_var); // destructed
+	s_vol->l_mult = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->l_mult); // destructed
 }
 
 // Static functions ************************************************************************************************* //
