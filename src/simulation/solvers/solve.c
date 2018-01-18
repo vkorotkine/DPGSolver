@@ -231,6 +231,13 @@ ptrdiff_t compute_dof_schur (const char dof_type, const struct Simulation* sim)
 	case 'v':
 		dof += compute_dof_volumes(sim);
 		break;
+	case 'l':
+		dof += compute_dof_volumes_l_mult(sim);
+		break;
+	case 'k': // 'k'eep
+		dof += compute_dof_faces(sim);
+		dof += compute_dof_volumes_l_mult(sim);
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",dof_type);
 		break;

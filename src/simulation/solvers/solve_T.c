@@ -62,6 +62,13 @@ static ptrdiff_t compute_dof_faces
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom in the 'L'agrange 'mult'iplier members of the volume
+ *         computational elements.
+ *  \return See brief. */
+static ptrdiff_t compute_dof_volumes_l_mult
+	(const struct Simulation*const sim ///< \ref Simulation.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const struct Simulation* sim)
@@ -88,6 +95,7 @@ ptrdiff_t compute_dof_T (const struct Simulation* sim)
 	ptrdiff_t dof = 0;
 	dof += compute_dof_volumes(sim);
 	dof += compute_dof_faces(sim);
+	dof += compute_dof_volumes_l_mult(sim);
 	return dof;
 }
 
@@ -142,14 +150,10 @@ static struct Vector_i* constructor_nnz (const struct Simulation* sim)
 
 static ptrdiff_t compute_dof_volumes (const struct Simulation* sim)
 {
-	const bool enforcing_conservation = test_case_explicitly_enforces_conservation(sim);
-
 	ptrdiff_t dof = 0;
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
 		dof += compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents);
-		if (enforcing_conservation)
-			dof += compute_size(s_vol->l_mult->order,s_vol->l_mult->extents);
 	}
 	return dof;
 }
@@ -160,6 +164,18 @@ static ptrdiff_t compute_dof_faces (const struct Simulation* sim)
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Solver_Face_T* s_face = (struct Solver_Face_T*) curr;
 		dof += compute_size(s_face->nf_coef->order,s_face->nf_coef->extents);
+	}
+	return dof;
+}
+
+static ptrdiff_t compute_dof_volumes_l_mult (const struct Simulation*const sim)
+{
+	ptrdiff_t dof = 0;
+	if (test_case_explicitly_enforces_conservation(sim)) {
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+			struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
+			dof += compute_size(s_vol->l_mult->order,s_vol->l_mult->extents);
+		}
 	}
 	return dof;
 }

@@ -448,6 +448,12 @@ static void update_coef_nf_f
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/// \brief Update the values of \ref Solver_Volume_T::l_mult based on the computed increment.
+static void update_coef_l_mult_v
+	(Vec x,                            ///< Petsc Vec holding the solution coefficient increments.
+	 const struct Simulation*const sim ///< \ref Simulation.
+	);
+
 static void output_petsc_schur (Mat A, Vec b, const struct Simulation* sim)
 {
 	struct Schur_Data* schur_data = constructor_Schur_Data(A,b,sim); // destructed
@@ -516,6 +522,7 @@ static KSP constructor_petsc_ksp (Mat A, const struct Simulation* sim)
 			PCSetType(pc,PCLU);
 		else
 			PCSetType(pc,PCCHOLESKY);
+		PCFactorSetShiftType(pc,MAT_SHIFT_NONZERO);
 		break;
 	case SOLVER_I_ITERATIVE:
 /// \todo Potentially modify the tolerance used here based on the current residual value.
@@ -542,6 +549,7 @@ static void update_coefs (Vec x, const struct Simulation* sim)
 	case METHOD_DPG:
 		update_coef_s_v(x,sim);
 		update_coef_nf_f(x,sim);
+		update_coef_l_mult_v(x,sim);
 		assert(((struct Test_Case*)sim->test_case_rc->tc)->has_2nd_order == false); // Add support.
 		break;
 	default:
@@ -577,7 +585,7 @@ static void display_progress (const struct Test_Case* test_case, const int i_ste
 
 static struct Schur_Data* constructor_Schur_Data (Mat A, Vec b, const struct Simulation* sim)
 {
-	const ptrdiff_t dof[2] = { compute_dof_schur('f',sim), compute_dof_schur('v',sim), };
+	const ptrdiff_t dof[2] = { compute_dof_schur('k',sim), compute_dof_schur('v',sim), };
 
 	struct Schur_Data* schur_data = malloc(sizeof *schur_data); // free
 
@@ -638,6 +646,18 @@ static void update_coef_nf_f (Vec x, const struct Simulation* sim)
 		struct Solver_Face* s_face = (struct Solver_Face*)curr;
 
 		update_coef((int)s_face->ind_dof,s_face->nf_coef,x,false,NULL,NULL);
+	}
+}
+
+static void update_coef_l_mult_v (Vec x, const struct Simulation*const sim)
+{
+	if (!test_case_explicitly_enforces_conservation(sim))
+		return;
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* s_vol = (struct Solver_Volume*)curr;
+
+		update_coef((int)s_vol->ind_dof_constraint,s_vol->l_mult,x,false,NULL,NULL);
 	}
 }
 

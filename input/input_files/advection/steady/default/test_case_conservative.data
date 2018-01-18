@@ -2,13 +2,13 @@
 
 solver_proc   implicit
 solver_type_e forward_euler
-solver_type_i iterative
+solver_type_i direct
 
 num_flux_1st upwind
 test_norm    H1_upwind
 
 conservation         lagrange_multiplier
-use_schur_complement 0
+use_schur_complement 1
 
 time_step  0.01
 time_final 1e20

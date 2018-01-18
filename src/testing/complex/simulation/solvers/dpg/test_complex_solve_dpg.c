@@ -146,6 +146,27 @@ printf("face: %d %d\n",col_l,ssi->col);
 		}
 		destructor_IL(volumes_local,true);
 	}
+
+	if (test_case_explicitly_enforces_conservation(sim)) {
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+			struct Volume* vol = (struct Volume*) curr;
+			struct Intrusive_List* volumes_local = constructor_Volumes_local_v(vol); // destructed
+
+			const struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*) curr;
+			struct Multiarray_c* l_mult_c = s_vol->l_mult;
+			const ptrdiff_t n_col_l = compute_size(l_mult_c->order,l_mult_c->extents);
+			for (int col_l = 0; col_l < n_col_l; ++col_l) {
+				ssi->col = (int)s_vol->ind_dof_constraint+col_l;
+printf(" vol (l_mult): %d %d %d\n",col_l,ssi->col,vol->index);
+
+				l_mult_c->data[col_l] += CX_STEP*I;
+				compute_all_rhs_dpg_c(sim,ssi,volumes_local);
+				l_mult_c->data[col_l] -= CX_STEP*I;
+			}
+			destructor_IL(volumes_local,true);
+		}
+	}
+
 	petsc_mat_vec_assemble(ssi);
 }
 

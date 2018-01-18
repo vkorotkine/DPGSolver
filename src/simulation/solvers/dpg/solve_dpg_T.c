@@ -64,15 +64,6 @@ void update_ind_dof_dpg_T (const struct Simulation* sim)
 		dof += size;
 	}
 
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
-
-		const_cast_ptrdiff(&s_vol->ind_dof,dof);
-
-		struct Multiarray_T* sol_coef = s_vol->sol_coef;
-		dof += compute_size(sol_coef->order,sol_coef->extents);
-	}
-
 	if (test_case_explicitly_enforces_conservation(sim)) {
 		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 			struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
@@ -82,6 +73,15 @@ void update_ind_dof_dpg_T (const struct Simulation* sim)
 			struct Multiarray_T* l_mult = s_vol->l_mult;
 			dof += compute_size(l_mult->order,l_mult->extents);
 		}
+	}
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
+
+		const_cast_ptrdiff(&s_vol->ind_dof,dof);
+
+		struct Multiarray_T* sol_coef = s_vol->sol_coef;
+		dof += compute_size(sol_coef->order,sol_coef->extents);
 	}
 
 	assert(dof == compute_dof(sim));
@@ -173,7 +173,6 @@ static void increment_nnz_off_diag_constraint (struct Vector_i*const nnz, const 
 	const ptrdiff_t size_l_mult = compute_size(s_vol->l_mult->order,s_vol->l_mult->extents);
 
 	const struct Volume*const vol = (struct Volume*) s_vol;
-	bool added_boundary = false;
 	for (int i = 0; i < NFMAX;    ++i) {
 	for (int j = 0; j < NSUBFMAX; ++j) {
 		const struct Face* face = vol->faces[i][j];
@@ -186,15 +185,12 @@ static void increment_nnz_off_diag_constraint (struct Vector_i*const nnz, const 
 			const ptrdiff_t size_nf = compute_size(nf_coef->order,nf_coef->extents);
 			increment_nnz(nnz,s_vol->ind_dof_constraint,size_l_mult,size_nf);
 			increment_nnz(nnz,s_face->ind_dof,size_nf,size_l_mult);
-		} else if (!added_boundary) {
-			added_boundary = true;
-			assert((void*)s_vol == (void*)face->neigh_info[0].volume);
-			struct Multiarray_T* sol_coef = s_vol->sol_coef;
-			const ptrdiff_t size_sol = compute_size(sol_coef->order,sol_coef->extents);
-			increment_nnz(nnz,s_vol->ind_dof_constraint,size_l_mult,size_sol);
-			increment_nnz(nnz,s_vol->ind_dof,size_sol,size_l_mult);
 		}
 	}}
+	struct Multiarray_T* sol_coef = s_vol->sol_coef;
+	const ptrdiff_t size_sol = compute_size(sol_coef->order,sol_coef->extents);
+	increment_nnz(nnz,s_vol->ind_dof_constraint,size_l_mult,size_sol);
+	increment_nnz(nnz,s_vol->ind_dof,size_sol,size_l_mult);
 }
 
 // Level 1 ********************************************************************************************************** //
