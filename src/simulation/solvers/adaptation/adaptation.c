@@ -569,10 +569,10 @@ static int get_n_children
  *
  *  Members dependent upon potentially refined face computational elements are left unspecified.
  */
-static struct Adaptive_Solver_Volume* constructor_Volume_h_ref
+static struct Adaptive_Solver_Volume* constructor_Adaptive_Solver_Volume_h_ref
 	(const int ind_h,                                     ///< The index of the child h-refined element.
 	 const struct Adaptive_Solver_Volume*const a_s_vol_p, ///< The parent volume.
-	 const struct const_Multiarray_d*const xyz_ve_p2,     ///< \ref Volume::xyz_ve of polynomial degree 2.
+	 const struct const_Multiarray_d*const xyz_ve_p2_i,   ///< \ref Volume::xyz_ve of polynomial degree 2.
 	 const struct Simulation*const sim                    ///< \ref Simulation.
 	);
 
@@ -591,10 +591,12 @@ static void constructor_volumes_h_refine
 
 	struct Intrusive_List* volumes_c = constructor_empty_IL(IL_VOLUME_SOLVER_ADAPTIVE,NULL); // destructed
 
+print_const_Multiarray_d(xyz_ve_p2);
 	const int n_children = get_n_children(*a_s_vol);
 	for (int n = 1; n <= n_children; ++n) {
 
-		push_back_IL(volumes_c,(struct Intrusive_Link*)constructor_Volume_h_ref(n,a_s_vol_p,xyz_ve_p2,sim));
+		push_back_IL(volumes_c,(struct Intrusive_Link*)
+			constructor_Adaptive_Solver_Volume_h_ref(n,a_s_vol_p,xyz_ve_p2,sim));
 
 		if (n == 1) {
 			a_s_vol_p->child_0 = (struct Adaptive_Solver_Volume*) volumes_c->first;
@@ -607,6 +609,61 @@ EXIT_UNSUPPORTED;
 }
 
 // Level 4 ********************************************************************************************************** //
+
+/** \brief Constructor for the \ref Volume base of the h-refined \ref Adaptive_Solver_Volume.
+ *  \return See brief. */
+static void constructor_Volume_h_ref
+	(struct Volume*const vol,                             ///< The child volume.
+	 const int ind_h,                                     ///< The index of the child h-refined element.
+	 const struct Adaptive_Solver_Volume*const a_s_vol_p, ///< The parent volume.
+	 const struct const_Multiarray_d*const xyz_ve_p2_i,   ///< \ref Volume::xyz_ve of polynomial degree 2.
+	 const struct Simulation*const sim                    ///< \ref Simulation.
+	);
+
+/** \brief Constructor for the \ref Solver_Volume_T base of the h-refined \ref Adaptive_Solver_Volume.
+ *  \return See brief. */
+static void constructor_Solver_Volume_h_ref
+	(struct Solver_Volume*const s_vol,                    ///< The child volume.
+	 const int ind_h,                                     ///< The index of the child h-refined element.
+	 const struct Adaptive_Solver_Volume*const a_s_vol_p, ///< The parent volume.
+	 const struct Simulation*const sim                    ///< \ref Simulation.
+	);
+
+static int get_n_children (const struct Adaptive_Solver_Volume*const a_s_vol)
+{
+	struct Volume* vol = (struct Volume*) a_s_vol;
+	switch (vol->element->type) {
+	case LINE:  return 2;  break;
+	case TRI:   return 4;  break;
+	case QUAD:  return 4;  break;
+	case TET:   return 8;  break;
+	case HEX:   return 8;  break;
+	case WEDGE: return 8;  break;
+	case PYR:   return 10; break;
+	default:
+		EXIT_ERROR("Unsupported: %d",vol->element->type);
+		break;
+	}
+}
+
+static struct Adaptive_Solver_Volume* constructor_Adaptive_Solver_Volume_h_ref
+	(const int ind_h, const struct Adaptive_Solver_Volume*const a_s_vol_p,
+	 const struct const_Multiarray_d*const xyz_ve_p2_i, const struct Simulation*const sim)
+{
+	struct Adaptive_Solver_Volume*const a_s_vol = malloc(sizeof *a_s_vol); // returned
+
+	constructor_Volume_h_ref((struct Volume*)a_s_vol,ind_h,a_s_vol_p,xyz_ve_p2_i,sim);
+	constructor_Solver_Volume_h_ref((struct Solver_Volume*)a_s_vol,ind_h,a_s_vol_p,sim);
+
+	const struct Solver_Volume*const s_vol_p = (struct Solver_Volume*) a_s_vol_p;
+	a_s_vol->adapt_type = ADAPT_H;
+	a_s_vol->p_ref_prev = s_vol_p->p_ref;
+	a_s_vol->updated    = true;
+
+	return a_s_vol;
+}
+
+// Level 5 ********************************************************************************************************** //
 
 /** \brief Constructor for \ref Volume::bc_faces for the h-refined child volume.
  *  \return See brief. */
@@ -637,32 +694,12 @@ static bool is_child_curved
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
-static int get_n_children (const struct Adaptive_Solver_Volume*const a_s_vol)
+static void constructor_Volume_h_ref
+	(struct Volume*const vol, const int ind_h, const struct Adaptive_Solver_Volume*const a_s_vol_p,
+	 const struct const_Multiarray_d*const xyz_ve_p2_i, const struct Simulation*const sim)
 {
-	struct Volume* vol = (struct Volume*) a_s_vol;
-	switch (vol->element->type) {
-	case LINE:  return 2;  break;
-	case TRI:   return 4;  break;
-	case QUAD:  return 4;  break;
-	case TET:   return 8;  break;
-	case HEX:   return 8;  break;
-	case WEDGE: return 8;  break;
-	case PYR:   return 10; break;
-	default:
-		EXIT_ERROR("Unsupported: %d",vol->element->type);
-		break;
-	}
-}
-
-static struct Adaptive_Solver_Volume* constructor_Volume_h_ref
-	(const int ind_h, const struct Adaptive_Solver_Volume*const a_s_vol_p,
-	 const struct const_Multiarray_d*const xyz_ve_p2, const struct Simulation*const sim)
-{
-	struct Adaptive_Solver_Volume* a_s_vol = malloc(sizeof *a_s_vol); // returned
-
-	// Volume
-	const struct Volume*const vol_p = (struct Volume*) a_s_vol_p;
-	struct Volume* vol              = (struct Volume*) a_s_vol;
+	const struct Volume*const vol_p          = (struct Volume*) a_s_vol_p;
+	const struct Solver_Volume*const s_vol_p = (struct Solver_Volume*) a_s_vol_p;
 	const_cast_i(&vol->index,-1);
 
 	const struct const_Element*const element_p = vol_p->element;
@@ -674,24 +711,67 @@ static struct Adaptive_Solver_Volume* constructor_Volume_h_ref
 	const_cast_b(&vol->boundary,is_child_on_boundary(vol));
 	const_cast_b(&vol->curved,is_child_curved(vol,sim));
 
-	// xyz_ve:
-	// 0. Input xyz_ve_p2 passed to this function.
-print_const_Multiarray_d(xyz_ve_p2);
-	// 1. if DOM_BLENDED, blend xyz_ve_p2 to the boundary.
-	// 2. compute from xyz_ve_p2 (vv0_vv_vv[ind_h][0][1][2]).
+	const struct const_Multiarray_d* xyz_ve_p2 = NULL;
+	switch (sim->domain_type) {
+	case DOM_STRAIGHT: // fallthrough
+	case DOM_PARAMETRIC:
+		xyz_ve_p2 = xyz_ve_p2_i;
+		break;
+	case DOM_BLENDED:
+		xyz_ve_p2 = constructor_xyz_blended('v',xyz_ve_p2,s_vol_p,sim); // destructed
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d",sim->domain_type);
+		break;
+	}
 
+	const struct Solver_Element* s_e     = (struct Solver_Element*) vol_p->element;
+	const struct Adaptation_Element* a_e = &s_e->a_e;
+	const struct Operator*const vv0_vv_vv = get_Multiarray_Operator(a_e->vv0_vv_vv,(ptrdiff_t[]){ind_h,0,1,2});
 
-printf("%d %d %d %d\n",vol_p->boundary,vol_p->curved,vol->boundary,vol->curved);
-print_const_Multiarray_d(vol_p->xyz_ve);
-print_const_Vector_i(vol_p->bc_faces);
-print_const_Vector_i(vol_p->bc_edges);
+	const_constructor_move_const_Multiarray_d(&vol->xyz_ve,
+		constructor_mm_NN1_Operator_const_Multiarray_d(vv0_vv_vv,xyz_ve_p2,'C','d',2,NULL)); // keep
 
-EXIT_UNSUPPORTED;
-
-	return a_s_vol;
+	if (xyz_ve_p2 != xyz_ve_p2_i)
+		destructor_const_Multiarray_d(xyz_ve_p2);
 }
 
-// Level 5 ********************************************************************************************************** //
+static void constructor_Solver_Volume_h_ref
+	(struct Solver_Volume*const s_vol, const int ind_h, const struct Adaptive_Solver_Volume*const a_s_vol_p,
+	 const struct Simulation*const sim)
+{
+	struct Volume*const vol                  = (struct Volume*) s_vol;
+	const struct Volume*const vol_p          = (struct Volume*) a_s_vol_p;
+	const struct Solver_Volume*const s_vol_p = (struct Solver_Volume*) a_s_vol_p;
+
+	constructor_derived_Solver_Volume(vol,sim);
+
+	const_cast_i(&s_vol->p_ref,s_vol_p->p_ref);
+	const_cast_i(&s_vol->ml,s_vol_p->ml+1);
+
+	compute_geometry_volume(s_vol,sim);
+
+	const struct Solver_Element* s_e     = (struct Solver_Element*) vol_p->element;
+	const struct Adaptation_Element* a_e = &s_e->a_e;
+
+	const int p = s_vol->p_ref;
+	if (compute_size(s_vol_p->sol_coef->order,s_vol_p->sol_coef->extents) != 0) {
+		const struct Operator*const cc0_vs_vs = get_Multiarray_Operator(a_e->cc0_vs_vs,(ptrdiff_t[]){ind_h,0,p,p});
+
+		destructor_Multiarray_d(s_vol->sol_coef);
+		s_vol->sol_coef = constructor_mm_NN1_Operator_Multiarray_d(
+			cc0_vs_vs,s_vol_p->sol_coef,'C','d',2,NULL); // keep
+	}
+
+	if (compute_size(s_vol_p->grad_coef->order,s_vol_p->grad_coef->extents) != 0) {
+		EXIT_ADD_SUPPORT;
+	}
+
+	if (test_case_explicitly_enforces_conservation(sim))
+		set_Multiarray_d(s_vol->l_mult,(struct const_Multiarray_d*)s_vol_p->l_mult);
+}
+
+// Level 6 ********************************************************************************************************** //
 
 static const struct const_Vector_i* constructor_bc_faces_h_ref
 	(const int ind_h, const struct Volume*const vol_p, const struct Volume*const vol_c)

@@ -119,7 +119,7 @@ void set_to_value_Multiarray_T
 /// \brief Set the values of the \ref Multiarray_Vector_T based on the input `Type*` data.
 void set_Multiarray_Vector_T_T
 	(struct Multiarray_Vector_T* a, ///< Standard.
-	 const Type* data_V,             ///< Input data for the Vectors.
+	 const Type* data_V,            ///< Input data for the Vectors.
 	 const int*const ext_V          ///< Defined in \ref constructor_copy_Multiarray_Vector_T_T.
 	);
 
