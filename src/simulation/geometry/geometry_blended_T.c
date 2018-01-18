@@ -146,7 +146,7 @@ static const struct const_Vector_R* constructor_blend_values
 	 const struct Boundary_Comp_Elem_Data*const b_ce_d ///< \ref Boundary_Comp_Elem_Data.
 	);
 
-/** \brief Constructor for a \ref const_Matrix_d\* storing the difference between the corrected and current geometry
+/** \brief Constructor for a \ref const_Matrix_T\* storing the difference between the corrected and current geometry
  *         nodal values on the boundary.
  *  \return See brief.
  *

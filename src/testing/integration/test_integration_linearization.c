@@ -369,6 +369,11 @@ static void check_linearizations
 		pass = false;
 		printf("% .3e (tol = % .3e).\n",diff,tol);
 		expect_condition(pass,"difference");
+
+		/// \todo Delete this warning after checking subsonic Euler bc.
+		test_print_warning(test_info,
+			"May be failing as a result of missing contribution of nonlinear numerical flux term.\n\n"
+			"See comments in the body of add_to_lhs_opt__l_mult.");
 	}
 
 	if (check_symmetric(sim)) {

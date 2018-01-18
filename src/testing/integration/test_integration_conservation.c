@@ -101,7 +101,7 @@ static void check_flux_imbalance (struct Test_Info*const test_info, const struct
 {
 	UNUSED(test_info);
 	bool pass = true;
-	const double tol = 1e1*EPS;
+	const double tol = 2e1*EPS;
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 
@@ -121,6 +121,7 @@ static void check_flux_imbalance (struct Test_Info*const test_info, const struct
 		}
 	}
 	if (maximum_abs_d(flux_imbalance_global->data,flux_imbalance_global->ext_0) > tol) {
+		pass = false;
 		printf("Global imbalance:\n");
 		print_Vector_d(flux_imbalance_global);
 	}

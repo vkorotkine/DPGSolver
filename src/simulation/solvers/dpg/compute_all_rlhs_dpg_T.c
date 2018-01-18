@@ -441,7 +441,7 @@ static void increment_lhs_boundary_face
 /** \brief Constructor for the \ref Numerical_Flux_T to be used for the dpg boundary condition imposition.
  *  \return See brief. */
 static struct Numerical_Flux_T* constructor_Numerical_Flux_dpg
-	(const struct DPG_Solver_Face_T*const dpg_s_face, ///< \ref The current face.
+	(const struct DPG_Solver_Face_T*const dpg_s_face, ///< The current face.
 	 const struct Simulation*const sim                ///< \ref Simulation.
 	);
 
@@ -930,16 +930,12 @@ static const struct const_Vector_T* constructor_rhs_opt_neg
 		const struct Multiarray_T*const l_mult = s_vol->l_mult;
 		const struct const_Vector_T l_mult_V =
 			{ .ext_0 = l_mult->extents[0], .owns_data = false, .data = l_mult->data };
-		struct Matrix_T* rhs_l_mult_M =
-			constructor_mm_diag_Matrix_T(-1.0,lhs_l_mult_M,&l_mult_V,'R',false); // destructed
+		const struct const_Vector_T*const rhs_l_mult_V =
+			constructor_mv_const_Vector_T('N',-1.0,lhs_l_mult_M,&l_mult_V); // destructed
 		destructor_const_Matrix_T(lhs_l_mult_M);
 
-		transpose_Matrix_T(rhs_l_mult_M,true);
-		assert(rhs_l_mult_M->layout == 'C');
-
-		assert(rhs_opt_neg->ext_0 == (rhs_l_mult_M->ext_0)*(rhs_l_mult_M->ext_1));
-		for (int i = 0; i < rhs_opt_neg->ext_0; ++i)
-			rhs_opt_neg->data[i] += rhs_l_mult_M->data[i];
+		add_to_Vector_T(rhs_opt_neg,rhs_l_mult_V);
+		destructor_const_Vector_T(rhs_l_mult_V);
 
 		// Independent constraint equation.
 		const struct const_Matrix_T rhs_std_M =

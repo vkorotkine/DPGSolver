@@ -248,7 +248,7 @@ static const struct const_Vector_i* constructor_ind_h_b_coords
 
 /** \brief Compute scaling factors to be used for the computation of the projected rst coordinates for tensor-product
  *         elements.
- *  \return A statically allocated \ref const_Matrix_d containing the required data. */
+ *  \return A statically allocated \ref const_Matrix_T containing the required data. */
 static struct const_Matrix_d get_scaling_factors
 	(const int e_type, ///< The element type.
 	 const char ce,    ///< The computational element type.

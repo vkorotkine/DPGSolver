@@ -241,10 +241,11 @@ static void add_to_lhs_opt__l_mult
 
 	*lhs_opt_ptr = lhs_add;
 
-/// \todo Separate function after implementing
+/** \todo Potentially need a function for the contribution for the effect of the nonlinear numerical flux contribution
+ *        to the linearization (i.e. if linearization tests are failing). If not, delete the note for \ref
+ *        add_to_lhs_opt__l_mult and the "test_case->is_linear" check below. */
 	if (test_case->is_linear)
 		return;
-	EXIT_ADD_SUPPORT;
 }
 
 static void add_to_petsc_Mat_Vec_dpg

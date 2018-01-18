@@ -123,10 +123,11 @@ struct Vector_i* constructor_nnz_dpg_T (const struct Simulation* sim)
 
 	// Constraint - if applicable (Diagonal and Off-diagonal)
 	if (test_case_explicitly_enforces_conservation(sim)) {
+		const int n_eq = test_case->n_eq;
 		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 			struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
 
-			increment_nnz(nnz,s_vol->ind_dof_constraint,1,1);
+			increment_nnz(nnz,s_vol->ind_dof_constraint,n_eq,n_eq);
 			increment_nnz_off_diag_constraint(nnz,s_vol);
 		}
 	}

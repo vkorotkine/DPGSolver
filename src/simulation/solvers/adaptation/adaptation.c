@@ -172,7 +172,7 @@ static void update_volume_p_ref
 	 const struct Simulation* sim            ///< \ref Simulation.
 	);
 
-/** \brief Update h-refinement related members of the current \ref Adaptive_Solver_Volume_T.
+/** \brief Update h-refinement related members of the current \ref Adaptive_Solver_Volume.
  *
  *  \note New volumes are constructed here (either the children or the parent).
  */

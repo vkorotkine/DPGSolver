@@ -62,9 +62,9 @@ set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dg/TEST_Advection_Default_DG_Mixed2D__ml2__p2" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D__ml0__p3" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_Conservative_DPG_Mixed2D__ml2__p2" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_Mixed2D__ml2__p2" "petsc_options_cg_ilu1")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D__ml0__p3" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_Conservative_DPG_BlendedMixed2D__ml1__p2" "petsc_options_gmres_default")
 
 set (EXEC test_integration_linearization)
 set (LIBS_DEPEND ${LIBS_BASE} 
@@ -95,13 +95,15 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dpg/TEST_Advectio
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/dg/TEST_Advection_Default_DG_LINE__ml0" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/TEST_Advection_Demkowicz_DPGII_LINE__ml0__p1" "petsc_options_cg_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_TRI__ml0" "petsc_options_cg_ilu1") # TODO Replace with MIXED2D.
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_Conservative_DPG_Mixed2D__ml0" "petsc_options_cg_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/periodic_vortex/TEST_Euler_PeriodicVortex_QUAD__ml0__p2" "petsc_options_empty")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D__ml0" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DPG_ParametricMixed2D__ml0" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_Conservative_DPG_BlendedMixed2D__ml1" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DPG_ParametricMixed2D__ml0" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedMixed2D__ml1" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DPG_BlendedMixed2D__ml1" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/free_stream/TEST_Euler_FreeStream_DG_StraightTRI2D__ml0" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/free_stream/TEST_Euler_FreeStream_DG_ParametricMixed2D__ml0" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DPG_BlendedMixed2D__ml1" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/free_stream/TEST_Euler_FreeStream_DG_StraightTRI2D__ml0" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/free_stream/TEST_Euler_FreeStream_DG_ParametricMixed2D__ml0" "petsc_options_gmres_default")
 
 # Add tests:
 # - equivalence operators.

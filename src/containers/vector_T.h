@@ -62,7 +62,7 @@ void set_to_zero_Vector_T
 
 /// \brief Set data entries to those of the src data.
 void set_to_data_Vector_T
-	(struct Vector_T*const a, ///< Standard.
+	(struct Vector_T*const a,  ///< Standard.
 	 const Type*const data_src ///< The source data.
 	);
 

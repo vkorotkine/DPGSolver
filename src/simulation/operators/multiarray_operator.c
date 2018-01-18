@@ -66,7 +66,7 @@ static struct mutable_Multiarray_Operator set_mutable_MO_from_MO
  *         sub-range of the input.
  *  \return See brief.
  *
- *  \note The returned \ref mutable_Multiarray_Operator **must** be destructed with \ref free_mutable_MO_from_MO.
+ *  \note The returned \ref mutable_Multiarray_Operator **must** be destructed with \ref free_MO_from_MO.
  */
 static struct mutable_Multiarray_Operator* alloc_mutable_MO_from_MO
 	(struct mutable_Multiarray_Operator* src, ///< Defined for \ref set_mutable_MO_from_MO.

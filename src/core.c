@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_alloc.h"
+#include "definitions_core.h"
 
 #include "file_processing.h"
 
@@ -31,7 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 const char* set_petsc_options_name (const char* petsc_options_name)
 {
 	static char full_name[STRLEN_MAX] = { 0, };
-	sprintf(full_name,"%s%s%s","../external/petsc/options_files/",petsc_options_name,".txt");
+	sprintf(full_name,"%s%s%s%s",PROJECT_SOURCE_DIR,"external/petsc/options_files/",petsc_options_name,".txt");
 
 	FILE* file = fopen_checked(full_name);
 	fclose(file);

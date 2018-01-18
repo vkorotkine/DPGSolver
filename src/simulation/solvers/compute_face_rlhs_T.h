@@ -87,7 +87,7 @@ struct Matrix_T* constructor_lhs_f_1_T
 	);
 
 /** \brief Combine the input face cubature weights and normal flux values and add to the corresponding \ref
- *         Solver_Volume::flux_imbalance. */
+ *         Solver_Volume_T::flux_imbalance. */
 void add_to_flux_imbalance_face_nf_w_T
 	(const struct const_Matrix_T*const nf_fc, ///< The normal flux evaluated at the face cubature nodes.
 	 const struct const_Vector_R*const w_fc,  ///< The face cubature weights.
