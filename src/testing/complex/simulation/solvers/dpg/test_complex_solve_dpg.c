@@ -85,6 +85,13 @@ void perturb_solution_dpg (const struct Simulation* sim)
 			struct Solver_Face* s_face = (struct Solver_Face*) curr;
 			perturb_Multiarray_d(s_face->nf_coef,MAX_PERTURB);
 		}
+
+		if (test_case_explicitly_enforces_conservation(sim)) {
+			for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+				struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+				perturb_Multiarray_d(s_vol->l_mult,1e3*MAX_PERTURB);
+			}
+		}
 	} else {
 		struct Test_Case_c* test_case = (struct Test_Case_c*) sim->test_case_rc->tc;
 		assert(test_case->has_2nd_order == false); // Add support.
@@ -97,6 +104,13 @@ void perturb_solution_dpg (const struct Simulation* sim)
 		for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 			struct Solver_Face_c* s_face = (struct Solver_Face_c*) curr;
 			perturb_Multiarray_c(s_face->nf_coef,MAX_PERTURB);
+		}
+
+		if (test_case_explicitly_enforces_conservation(sim)) {
+			for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+				struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*) curr;
+				perturb_Multiarray_c(s_vol->l_mult,1e3*MAX_PERTURB);
+			}
 		}
 	}
 }

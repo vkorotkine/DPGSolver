@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_petsc_idxm_dpg_T          constructor_petsc_idxm_dpg
 #define add_to_rlhs__face_T                   add_to_rlhs__face
 #define compute_flux_imbalances_faces_dpg_T   compute_flux_imbalances_faces_dpg
+#define add_to_rlhs__face_boundary_T          add_to_rlhs__face_boundary
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -38,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_petsc_idxm_dpg_T          constructor_petsc_idxm_dpg_c
 #define add_to_rlhs__face_T                   add_to_rlhs__face_c
 #define compute_flux_imbalances_faces_dpg_T   compute_flux_imbalances_faces_dpg_c
+#define add_to_rlhs__face_boundary_T          add_to_rlhs__face_boundary_c
 ///\}
 
 #endif

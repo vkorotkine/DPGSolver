@@ -23,3 +23,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_petsc_idxm_dpg_T
 #undef add_to_rlhs__face_T
 #undef compute_flux_imbalances_faces_dpg_T
+#undef add_to_rlhs__face_boundary_T

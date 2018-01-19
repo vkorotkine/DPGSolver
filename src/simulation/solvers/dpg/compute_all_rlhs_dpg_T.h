@@ -82,3 +82,11 @@ void add_to_rlhs__face_T
 void compute_flux_imbalances_faces_dpg_T
 	(struct Simulation*const sim ///< \ref Simulation.
 	);
+
+/// \brief Provides the boundary face contribution to \ref add_to_rlhs__face_T.
+void add_to_rlhs__face_boundary_T
+	(const struct DPG_Solver_Volume_T* dpg_s_vol, ///< The current \ref DPG_Solver_Volume_T.
+	 struct Matrix_T* lhs,                        ///< The lhs matrix contribution for the current volume/faces.
+	 struct Matrix_T* rhs,                        ///< The rhs matrix contribution for the current volume/faces.
+	 const struct Simulation*const sim            ///< \ref Simulation.
+	);
