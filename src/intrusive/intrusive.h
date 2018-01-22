@@ -146,4 +146,17 @@ const struct const_Intrusive_Link* erase_const_IL
 	 const struct const_Intrusive_Link* curr  ///< Defined for \ref erase_IL.
 	);
 
+/** \brief Replace the input number of links in the list with those of the new list.
+ *
+ *  \warning Does not free memory.
+ *
+ *  \return Pointer to the last link of the new list elements.
+ */
+struct Intrusive_Link* replace_IL
+	(struct Intrusive_List*const lst,    ///< The list.
+	 const int n_replace,                ///< The number of links in the list to be erased.
+	 struct Intrusive_Link*const curr_f, ///< The current link (first in group to be replaced).
+	 struct Intrusive_Link*const first   ///< The first link of the new sub-list.
+	);
+
 #endif // DPG__Intrusive_h__INCLUDED

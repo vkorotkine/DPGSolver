@@ -26,6 +26,19 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** \brief Return the pointer to the link for which \ref Intrusive_Link::next == NULL.
+ *  \return See brief. */
+static struct Intrusive_Link* get_last_link
+	(struct Intrusive_Link*const first ///< The first link.
+	);
+
+/** \brief Return the pointer to the link `n` entries after the input.
+ *  \return See brief. */
+static struct Intrusive_Link* advance_link
+	(struct Intrusive_Link* curr, ///< Pointer to the current link.
+	 const int n                  ///< The number of links to skip over.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 struct Intrusive_List* constructor_empty_IL (const int list_name, struct Intrusive_List* base)
@@ -141,5 +154,56 @@ const struct const_Intrusive_Link* erase_const_IL
 	return (const struct const_Intrusive_Link*) erase_IL((struct Intrusive_List*)lst,(struct Intrusive_Link*)curr);
 }
 
+struct Intrusive_Link* replace_IL
+	(struct Intrusive_List*const lst, const int n_replace, struct Intrusive_Link*const curr_f,
+	 struct Intrusive_Link*const first)
+{
+	struct Intrusive_Link*const last   = get_last_link(first);
+	struct Intrusive_Link*const curr_l = advance_link(curr_f,n_replace-1);
+	if (curr_f == lst->first) {
+		lst->first = first;
+		first->prev = NULL;
+		last->next = curr_l->next;
+		if (curr_l->next) {
+			curr_l->next->prev = last;
+		} else {
+			lst->last = last;
+		}
+	} else if (curr_l == lst->last) {
+		lst->last  = last;
+		assert(last->next == NULL);
+		first->prev = curr_f->prev;
+		if (curr_f->prev) {
+			curr_f->prev->next = first;
+		} else {
+			lst->first = first;
+		}
+	} else {
+		last->next  = curr_l->next;
+		curr_l->next->prev = last;
+
+		first->prev = curr_f->prev;
+		curr_f->prev->next = first;
+	}
+	return last;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static struct Intrusive_Link* get_last_link (struct Intrusive_Link*const first)
+{
+	struct Intrusive_Link* curr = first;
+	while (curr->next)
+		curr = curr->next;
+	return curr;
+}
+
+static struct Intrusive_Link* advance_link (struct Intrusive_Link* curr, const int n)
+{
+	for (int i = 0; i < n; ++i) {
+		assert(curr->next != NULL);
+		curr = curr->next;
+	}
+	return curr;
+}

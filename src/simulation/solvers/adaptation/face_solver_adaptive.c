@@ -17,8 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "face_solver_adaptive.h"
 
-#include <assert.h>
-
 #include "macros.h"
 #include "definitions_adaptation.h"
 
@@ -35,6 +33,11 @@ void constructor_derived_Adaptive_Solver_Face (struct Face* face_ptr, const stru
 
 	a_s_face->adapt_type = ADAPT_NONE;
 	a_s_face->p_ref_prev = s_face->p_ref;
+	a_s_face->ind_h      = -1;
+	a_s_face->updated    = false;
+
+	a_s_face->child_0 = NULL;
+	a_s_face->parent  = NULL;
 	UNUSED(sim);
 }
 

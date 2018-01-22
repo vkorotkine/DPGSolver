@@ -24,10 +24,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Supported adaptation types for computational elements.
-#define ADAPT_P_REFINE 1
-#define ADAPT_P_COARSE 2
-#define ADAPT_H_REFINE 3
-#define ADAPT_H_COARSE 4
+#define ADAPT_P_REFINE 101
+#define ADAPT_P_COARSE 102
+#define ADAPT_H_REFINE 103
+#define ADAPT_H_COARSE 104
 ///\}
 
 ///\{ \name Supported adaptation strategies for the entire domain.

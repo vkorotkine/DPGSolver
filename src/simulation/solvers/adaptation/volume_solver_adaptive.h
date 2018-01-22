@@ -28,10 +28,12 @@ struct Adaptive_Solver_Volume {
 	int adapt_type; ///< The type of adaptation to use. Options: see \ref definitions_adaptation.h.
 
 	int p_ref_prev; ///< The previous value of \ref Solver_Volume_T::p_ref.
+	int ind_h;      ///< The index of the h-refinement (if applicable).
 
 	bool updated; ///< Flag for whether the volume was updated.
 
-	struct Adaptive_Solver_Volume* child_0; ///< Pointer to the first child (if applicable).
+	struct Intrusive_Link* child_0; ///< Pointer to the first child (if applicable).
+	struct Intrusive_Link* parent;  ///< Pointer to the parent (if applicable).
 };
 
 /// \brief Constructor for a derived \ref Adaptive_Solver_Volume.

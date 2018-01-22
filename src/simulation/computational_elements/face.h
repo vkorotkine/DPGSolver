@@ -34,12 +34,12 @@ struct Face {
 
 	const int index; ///< The index of the face.
 
+	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
+
 	const bool boundary, ///< Flag for whether the face is on a domain boundary.
 	           curved;   ///< Flag for whether the face is curved.
 
 	const int bc;        ///< The boundary condition associated with the face (if relevant).
-
-	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
 
 	/** \brief Container for information relating to the neighbouring \ref Volume on either side of the \ref Face.
 	 *

@@ -33,7 +33,11 @@ void constructor_derived_Adaptive_Solver_Volume (struct Volume* volume_ptr, cons
 
 	a_s_vol->adapt_type = ADAPT_NONE;
 	a_s_vol->p_ref_prev = s_vol->p_ref;
+	a_s_vol->ind_h      = -1;
 	a_s_vol->updated    = false;
+
+	a_s_vol->child_0 = NULL;
+	a_s_vol->parent  = NULL;
 	UNUSED(sim);
 }
 
