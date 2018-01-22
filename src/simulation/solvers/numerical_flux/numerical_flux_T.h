@@ -109,6 +109,12 @@ void compute_Numerical_Flux_1_T
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
 	);
 
+/// \brief Version of \ref compute_Numerical_Flux_fptr_T for 2nd order numerical fluxes only.
+void compute_Numerical_Flux_2_T
+	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
+	);
+
 /// \brief Version of \ref compute_Numerical_Flux_fptr_T for 1st and 2nd order numerical fluxes.
 void compute_Numerical_Flux_12_T
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.

@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_solution.h"
 #include "test_complex_solution_advection.h"
+#include "test_complex_solution_diffusion.h"
 #include "test_complex_solution_euler.h"
 #include "test_complex_test_case.h"
 

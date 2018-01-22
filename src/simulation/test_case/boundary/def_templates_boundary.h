@@ -43,6 +43,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Boundary_Value_T_advection_inflow  constructor_Boundary_Value_advection_inflow
 #define constructor_Boundary_Value_T_advection_outflow constructor_Boundary_Value_advection_outflow
 
+#define constructor_Boundary_Value_T_diffusion_dirichlet constructor_Boundary_Value_diffusion_dirichlet
+#define constructor_Boundary_Value_T_diffusion_neumann   constructor_Boundary_Value_diffusion_neumann
+
 #define constructor_Boundary_Value_T_euler_riemann            constructor_Boundary_Value_euler_riemann
 #define constructor_Boundary_Value_T_euler_slipwall           constructor_Boundary_Value_euler_slipwall
 #define constructor_Boundary_Value_T_euler_supersonic_inflow  constructor_Boundary_Value_euler_supersonic_inflow
@@ -72,8 +75,11 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Function names
-#define constructor_Boundary_Value_T_advection_inflow constructor_Boundary_Value_c_advection_inflow
+#define constructor_Boundary_Value_T_advection_inflow  constructor_Boundary_Value_c_advection_inflow
 #define constructor_Boundary_Value_T_advection_outflow constructor_Boundary_Value_c_advection_outflow
+
+#define constructor_Boundary_Value_T_diffusion_dirichlet constructor_Boundary_Value_c_diffusion_dirichlet
+#define constructor_Boundary_Value_T_diffusion_neumann   constructor_Boundary_Value_c_diffusion_neumann
 
 #define constructor_Boundary_Value_T_euler_riemann            constructor_Boundary_Value_c_euler_riemann
 #define constructor_Boundary_Value_T_euler_slipwall           constructor_Boundary_Value_c_euler_slipwall

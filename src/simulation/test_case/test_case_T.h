@@ -46,7 +46,8 @@ struct Test_Case_T {
 	 *  curved elements. */
 	constructor_xyz_fptr_T constructor_xyz;
 
-	constructor_sol_fptr_T constructor_sol; ///< Function pointer to the function used to construct the solution.
+	constructor_sol_fptr_T constructor_sol;  ///< Pointer to the function used to construct the solution.
+	constructor_sol_fptr_T constructor_grad; ///< Pointer to the function used to construct the solution gradient.
 
 	// Geometry related parameters
 	/// The surface parametrization type to use for geometry blending. Options: see \ref definitions_geometry.h.
@@ -92,10 +93,10 @@ struct Test_Case_T {
 	           boundary_value_comp_mem_e[MAX_BV_OUT], ///< \ref Boundary_Value_Input_T::compute_member (explicit).
 	           boundary_value_comp_mem_i[MAX_BV_OUT]; ///< \ref Boundary_Value_Input_T::compute_member (implicit).
 
-	/// Function pointer to the function used to call the combination of 1st and 2nd order flux functions.
+	/// Pointer to the function used to call the combination of 1st and 2nd order flux functions.
 	compute_Flux_fptr_T compute_Flux;
 
-	/// Function pointers to the functions used to compute the 1st order (inviscid) and 2nd order (viscous) fluxes.
+	/// Pointers to the functions used to compute the 1st order (inviscid) and 2nd order (viscous) fluxes.
 	compute_Flux_fptr_T compute_Flux_iv[2];
 
 	/// Function pointer to the function used to call the combination of 1st and 2nd order numerical flux functions.

@@ -1,6 +1,7 @@
 set	(SOURCE
 	 numerical_flux.c
 	 numerical_flux_advection.c
+	 numerical_flux_diffusion.c
 	 numerical_flux_euler.c
 	)
 

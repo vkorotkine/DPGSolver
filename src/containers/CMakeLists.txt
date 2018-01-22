@@ -1,5 +1,3 @@
-#add_subdirectory(complex)
-
 set	(SOURCE
 	 multiarray.c
 	 multiarray_constructors.c
@@ -24,4 +22,4 @@ set	(LIBS_DEPEND
 	)
 
 add_library(Containers STATIC ${SOURCE})
-target_link_libraries(Containers PRIVATE ${LIBS_DEPEND})
+target_link_libraries(Containers ${LIBS_DEPEND})

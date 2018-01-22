@@ -11,4 +11,4 @@ set	(LIBS_DEPEND
 	)
 
 add_library(General STATIC ${SOURCE})
-target_link_libraries(General PRIVATE ${LIBS_DEPEND})
+target_link_libraries(General ${LIBS_DEPEND})

@@ -27,6 +27,7 @@ include_directories(
 	complex/simulation/test_case/flux
 	complex/simulation/test_case/solution
 	complex/simulation/test_case/solution/advection
+	complex/simulation/test_case/solution/diffusion
 	complex/simulation/test_case/solution/euler
 	complex/templates
 	integration

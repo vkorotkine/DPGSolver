@@ -24,8 +24,9 @@ If (pde_name == ADVECTION)
 	Else
 		Error("Unsupported geom_adv: %d",geom_adv); Exit;
 	EndIf
-ElseIf (pde_name == POISSON)
-	Physical Point(bc_base+BC_DIRICHLET) = {1,2};
+ElseIf (pde_name == DIFFUSION)
+	Physical Point(bc_base+BC_DIRICHLET) = {1};
+    Physical Point(bc_base+BC_NEUMANN)   = {2};
 Else
 	Error("Unsupported pde_name: %d",pde_name); Exit;
 EndIf

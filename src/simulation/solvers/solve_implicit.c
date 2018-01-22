@@ -120,7 +120,7 @@ bool check_symmetric (const struct Simulation* sim)
 			break;
 		}
 		break;
-	case PDE_POISSON:
+	case PDE_DIFFUSION:
 		return true;
 		break;
 	case PDE_EULER:         // fallthrough
@@ -421,7 +421,7 @@ static bool check_pde_linear (const int pde_index)
 {
 	switch (pde_index) {
 	case PDE_ADVECTION: // fallthrough
-	case PDE_POISSON:
+	case PDE_DIFFUSION:
 		return true;
 		break;
 	case PDE_EULER: // fallthrough

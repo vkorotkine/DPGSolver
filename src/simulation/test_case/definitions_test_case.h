@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Definitions for the available PDEs.
 #define PDE_ADVECTION     1
-#define PDE_POISSON       2
+#define PDE_DIFFUSION     2
 #define PDE_EULER         3
 #define PDE_NAVIER_STOKES 4
 ///\}
@@ -61,9 +61,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Definitions for the available numerical fluxes.
 #define NUM_FLUX_UPWIND    11
 
-#define NUM_FLUX_ROE_PIKE  31
+#define NUM_FLUX_BR2_STABLE 21
+#define NUM_FLUX_CDG2       22
 
-#define NUM_FLUX_BR2       41
+#define NUM_FLUX_ROE_PIKE  31
 
 #define NUM_FLUX_INVALID   1
 ///\}

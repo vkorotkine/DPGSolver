@@ -30,7 +30,7 @@ MIXED_HW = 22;
 
 // PDE Names
 ADVECTION    = 1;
-POISSON      = 2;
+DIFFUSION    = 2;
 EULER        = 3;
 NAVIERSTOKES = 4;
 
@@ -103,7 +103,7 @@ BC_SUPERSONIC_OUT = 6;
 BC_NOSLIP_T         = 7; // Navier-Stokes
 BC_NOSLIP_ADIABATIC = 8;
 
-BC_DIRICHLET    = 11; // Poisson
+BC_DIRICHLET    = 11; // Diffusion
 BC_NEUMANN      = 12;
 
 BC_INFLOW       = 13; // Advection

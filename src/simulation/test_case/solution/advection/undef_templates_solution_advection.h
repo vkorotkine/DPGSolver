@@ -22,5 +22,3 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "peterson/undef_templates_solution_advection_peterson.h"
 
 #undef set_function_pointers_solution_advection_T
-
-#undef set_function_pointers_num_flux_T

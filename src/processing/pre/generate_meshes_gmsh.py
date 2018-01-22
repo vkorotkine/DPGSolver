@@ -56,7 +56,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	gmsh_setnumbers += " -setnumber mesh_level " + mesh_level
 
 	gmsh_setnumbers += " -setnumber pde_name "
-	var_names = ["advection","poisson","euler","navierstokes"]
+	var_names = ["advection","diffusion","euler","navierstokes"]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
 	gmsh_setnumbers += " -setnumber mesh_domain "

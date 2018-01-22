@@ -12,4 +12,4 @@ set	(LIBS_DEPEND
 	)
 
 add_library(Geometry STATIC ${SOURCE})
-target_link_libraries(Geometry PRIVATE ${LIBS_DEPEND})
+target_link_libraries(Geometry ${LIBS_DEPEND})

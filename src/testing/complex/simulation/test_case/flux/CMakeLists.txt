@@ -1,6 +1,7 @@
 set	(SOURCE
 	 test_complex_flux.c
 	 test_complex_flux_advection.c
+	 test_complex_flux_diffusion.c
 	 test_complex_flux_euler.c
 	)
 
@@ -10,4 +11,4 @@ set	(LIBS_DEPEND
 
 set (LIB Test_Complex_Flux)
 add_library(${LIB} STATIC ${SOURCE})
-target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
+target_link_libraries(${LIB} ${LIBS_DEPEND})

@@ -7,6 +7,8 @@ set	(SOURCE
 	 euler/periodic_vortex/test_complex_solution_periodic_vortex.c
 	 euler/supersonic_vortex/test_complex_solution_supersonic_vortex.c
 	 euler/free_stream/test_complex_solution_free_stream.c
+	 diffusion/test_complex_solution_diffusion.c
+	 diffusion/default_steady/test_complex_solution_diffusion_default_steady.c
 	)
 
 set	(LIBS_DEPEND
@@ -17,4 +19,4 @@ set	(LIBS_DEPEND
 
 set(LIB Test_Complex_Solution)
 add_library(${LIB} STATIC ${SOURCE})
-target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
+target_link_libraries(${LIB} ${LIBS_DEPEND})

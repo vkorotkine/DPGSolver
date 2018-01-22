@@ -41,7 +41,7 @@ static bool check_for_curved_neigh
 
 /** \brief Set the function pointers to the appropriate functions to compute boundary values needed for the numerical
  *         flux computation. */
-static void set_function_pointers_num_flux_bc_T
+static void set_function_pointers_num_flux_bc
 	(struct Solver_Face_T* s_face, ///< Defined for \ref set_function_pointers_face_num_flux_T.
 	 const struct Simulation* sim  ///< Defined for \ref set_function_pointers_face_num_flux_T.
 	);
@@ -94,8 +94,9 @@ void set_function_pointers_face_num_flux_T (struct Solver_Face_T* s_face, const 
 		case PDE_EULER:
 			s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_s_fcl_interp_T;
 			break;
-		case PDE_POISSON:
-			EXIT_UNSUPPORTED;
+		case PDE_DIFFUSION:
+/// \todo Check that gradient should not also be computed as part of this function.
+			s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_s_fcl_interp_T;
 			break;
 		case PDE_NAVIER_STOKES:
 			EXIT_UNSUPPORTED;
@@ -105,7 +106,7 @@ void set_function_pointers_face_num_flux_T (struct Solver_Face_T* s_face, const 
 			break;
 		}
 	} else {
-		set_function_pointers_num_flux_bc_T(s_face,sim);
+		set_function_pointers_num_flux_bc(s_face,sim);
 	}
 }
 
@@ -125,13 +126,18 @@ const struct const_Vector_R* get_operator__w_fc__s_e_T (const struct Solver_Face
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/// \brief Version of \ref set_function_pointers_num_flux_bc_T for the linear advection equation.
-static void set_function_pointers_num_flux_bc_advection_T
+/// \brief Version of \ref set_function_pointers_num_flux_bc for the linear advection equation.
+static void set_function_pointers_num_flux_bc_advection
 	(struct Solver_Face_T* s_face ///< See brief.
 	);
 
-/// \brief Version of \ref set_function_pointers_num_flux_bc_T for the Euler equations.
-static void set_function_pointers_num_flux_bc_euler_T
+/// \brief Version of \ref set_function_pointers_num_flux_bc for the diffusion equation.
+static void set_function_pointers_num_flux_bc_diffusion
+	(struct Solver_Face_T* s_face ///< See brief.
+	);
+
+/// \brief Version of \ref set_function_pointers_num_flux_bc for the Euler equations.
+static void set_function_pointers_num_flux_bc_euler
 	(struct Solver_Face_T* s_face ///< See brief.
 	);
 
@@ -142,12 +148,13 @@ static bool check_for_curved_neigh (struct Face* face)
 	return false;
 }
 
-static void set_function_pointers_num_flux_bc_T (struct Solver_Face_T* s_face, const struct Simulation* sim)
+static void set_function_pointers_num_flux_bc (struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	switch (test_case->pde_index) {
-	case PDE_ADVECTION: set_function_pointers_num_flux_bc_advection_T(s_face); break;
-	case PDE_EULER:     set_function_pointers_num_flux_bc_euler_T(s_face);     break;
+	case PDE_ADVECTION: set_function_pointers_num_flux_bc_advection(s_face); break;
+	case PDE_DIFFUSION: set_function_pointers_num_flux_bc_diffusion(s_face); break;
+	case PDE_EULER:     set_function_pointers_num_flux_bc_euler(s_face);     break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
 		break;
@@ -156,7 +163,7 @@ static void set_function_pointers_num_flux_bc_T (struct Solver_Face_T* s_face, c
 
 // Level 1 ********************************************************************************************************** //
 
-static void set_function_pointers_num_flux_bc_advection_T (struct Solver_Face_T* s_face)
+static void set_function_pointers_num_flux_bc_advection (struct Solver_Face_T* s_face)
 {
 	const struct Face* face = (struct Face*) s_face;
 
@@ -174,7 +181,25 @@ static void set_function_pointers_num_flux_bc_advection_T (struct Solver_Face_T*
 	}
 }
 
-static void set_function_pointers_num_flux_bc_euler_T (struct Solver_Face_T* s_face)
+static void set_function_pointers_num_flux_bc_diffusion (struct Solver_Face_T* s_face)
+{
+	const struct Face* face = (struct Face*) s_face;
+
+	const int bc = face->bc % BC_STEP_SC;
+	switch (bc) {
+	case BC_DIRICHLET:
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_diffusion_dirichlet;
+		break;
+	case BC_NEUMANN:
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_diffusion_neumann;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",face->bc);
+		break;
+	}
+}
+
+static void set_function_pointers_num_flux_bc_euler (struct Solver_Face_T* s_face)
 {
 	const struct Face* face = (struct Face*) s_face;
 

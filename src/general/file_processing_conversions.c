@@ -83,8 +83,9 @@ static int get_define (const char*const def_str, const char*const def_type)
 		else if (strcmp(def_str,"Roe-Pike")  == 0) def_i = NUM_FLUX_ROE_PIKE;
 		else                                       def_i = NUM_FLUX_INVALID;
 	} else if (strcmp(def_type,"num_flux_2nd") == 0) {
-		if      (strcmp(def_str,"BR2") == 0) def_i = NUM_FLUX_BR2;
-		else                                 def_i = NUM_FLUX_INVALID;
+		if      (strcmp(def_str,"BR2_stable") == 0) def_i = NUM_FLUX_BR2_STABLE;
+		else if (strcmp(def_str,"CDG2") == 0)       def_i = NUM_FLUX_CDG2;
+		else                                        def_i = NUM_FLUX_INVALID;
 	} else if (strcmp(def_type,"test_norm") == 0) {
 		if      (strcmp(def_str,"H0")        == 0) def_i = TEST_NORM_H0;
 		else if (strcmp(def_str,"H1")        == 0) def_i = TEST_NORM_H1;

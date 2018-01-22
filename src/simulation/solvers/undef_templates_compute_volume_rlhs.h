@@ -33,6 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef destructor_Flux_Ref_T
 #undef constructor_lhs_v_1_T
 #undef get_operator__cv0_vs_vc_T
+#undef get_operator__cv0_vr_vc_T
 #undef get_operator__tw1_vt_vc_T
 
 #undef constructor_sol_vc_interp_T

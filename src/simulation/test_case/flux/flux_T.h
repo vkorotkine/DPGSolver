@@ -113,6 +113,12 @@ void compute_Flux_1_T
 	 struct mutable_Flux_T* flux        ///< See brief.
 	);
 
+/// \brief Version of \ref compute_Flux_fptr_T for 2nd order fluxes only.
+void compute_Flux_2_T
+	(const struct Flux_Input_T* flux_i, ///< See brief.
+	 struct mutable_Flux_T* flux        ///< See brief.
+	);
+
 /// \brief Version of \ref compute_Flux_fptr_T for 1st and 2nd order fluxes.
 void compute_Flux_12_T
 	(const struct Flux_Input_T* flux_i, ///< See brief.

@@ -57,16 +57,8 @@ static Type max_abs_T
 
 // Interface functions ********************************************************************************************** //
 
-/** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes using the Lax-Friedrichs method.
- *  The implementation was copied from that of [Hesthaven et al.'s Nodal DG code][hest_lf].
- *
- *  <!-- References: -->
- *  [hest_lf]: https://github.com/tcew/nodal-dg/blob/master/Codes1.1/CFD2D/EulerLF2D.m
- */
 void compute_Numerical_Flux_T_euler_lax_friedrichs
-	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
-	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
-	)
+	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
@@ -333,12 +325,8 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 	free(flux_i);
 }
 
-/** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes using the Roe-Pike method.
- *  The implementation is based off of that explained in (Ch. 11.3, \cite Toro2009). */
 void compute_Numerical_Flux_T_euler_roe_pike
-	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
-	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
-	)
+	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {
 	/// The simple entropy fix is taken from (eq. (35), \cite Qu2015).
 
@@ -647,13 +635,8 @@ void compute_Numerical_Flux_T_euler_roe_pike
 	}
 }
 
-/** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes and Jacobians using the Roe-Pike
- *         method.
- *  See comments for \ref compute_Numerical_Flux_euler_roe_pike. */
 void compute_Numerical_Flux_T_euler_roe_pike_jacobian
-	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
-	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
-	)
+	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {
 	/// The simple entropy fix is taken from (eq. (35), \cite Qu2015).
 

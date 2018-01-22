@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "file_processing.h"
 #include "simulation.h"
 #include "solution_advection.h"
+#include "solution_diffusion.h"
 #include "solution_euler.h"
 
 // Static function declarations ************************************************************************************* //
@@ -55,7 +56,7 @@ bool test_case_requires_positivity (const struct Test_Case*const test_case)
 {
 	switch (test_case->pde_index) {
 	case PDE_ADVECTION: // fallthrough
-	case PDE_POISSON:
+	case PDE_DIFFUSION:
 		return false;
 		break;
 	case PDE_EULER:         // fallthrough

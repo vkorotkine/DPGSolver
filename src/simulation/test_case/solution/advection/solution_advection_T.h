@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Test_Case_T;
 struct Simulation;
 
-/// \brief Set the solution function pointer members of an Euler \ref Test_Case_T.
+/// \brief Set the solution function pointer members of an Advection \ref Test_Case_T.
 void set_function_pointers_solution_advection_T
 	(struct Test_Case_T* test_case,    ///< \ref Test_Case_T.
 	 const struct Simulation*const sim ///< \ref Simulation.

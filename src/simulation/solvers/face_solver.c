@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "boundary_advection.h"
+#include "boundary_diffusion.h"
 #include "boundary_euler.h"
 #include "const_cast.h"
 #include "geometry.h"

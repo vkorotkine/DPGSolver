@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_intrusive.h"
+#include "definitions_test_case.h"
 
 
 #include "def_templates_compute_volume_rlhs.h"
@@ -40,9 +41,23 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define PRINT_OPERATORS 0 ///< Enable to print operators to terminal.
 
+/** \brief Version of \ref constructor_sol_vc_fptr_T returning `NULL`.
+ *  \return See brief. */
+static const struct const_Multiarray_T* constructor_NULL
+	(const struct Solver_Volume_T* s_vol, ///< See brief.
+	 const struct Simulation* sim         ///< See brief.
+	);
+
 /** \brief Version of \ref constructor_sol_vc_fptr_T using interpolation.
- *  \return See brief.. */
+ *  \return See brief. */
 static const struct const_Multiarray_T* constructor_sol_vc_interp_T
+	(const struct Solver_Volume_T* s_vol, ///< See brief.
+	 const struct Simulation* sim         ///< See brief.
+	);
+
+/** \brief Version of \ref constructor_sol_vc_fptr_T using interpolation for the solution gradients.
+ *  \return See brief. */
+static const struct const_Multiarray_T* constructor_grad_vc_interp_T
 	(const struct Solver_Volume_T* s_vol, ///< See brief.
 	 const struct Simulation* sim         ///< See brief.
 	);
@@ -52,6 +67,18 @@ static const struct const_Multiarray_T* constructor_sol_vc_interp_T
 static const struct const_Multiarray_T* constructor_sol_vc_col_T
 	(const struct Solver_Volume_T* s_vol, ///< See brief.
 	 const struct Simulation* sim         ///< See brief.
+	);
+
+/** \brief Version of \ref constructor_grad_vc_fptr_T using collocation.
+ *  \return Standard. */
+static const struct const_Multiarray_T* constructor_grad_vc_col_T
+	(const struct Solver_Volume_T* s_vol, ///< See brief.
+	 const struct Simulation* sim         ///< See brief.
+	);
+
+/// \brief Destructor for the return value of \ref constructor_NULL.
+static void destructor_NULL
+	(const struct const_Multiarray_T* sol_vc ///< To be destructed.
 	);
 
 /// \brief Destructor for the return value of \ref constructor_sol_vc_interp_T.
@@ -86,12 +113,35 @@ static struct Flux_Ref_T* constructor_Flux_Ref_T
 
 void set_S_Params_Volume_Structor_T (struct S_Params_Volume_Structor_T* spvs, const struct Simulation* sim)
 {
-	if (!sim->collocated) {
-		spvs->constructor_sol_vc = constructor_sol_vc_interp_T;
-		spvs->destructor_sol_vc  = destructor_sol_vc_interp_T;
-	} else {
-		spvs->constructor_sol_vc = constructor_sol_vc_col_T;
-		spvs->destructor_sol_vc  = destructor_sol_vc_col_T;
+	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
+	switch (test_case->pde_index) {
+	case PDE_ADVECTION: // fallthrough
+	case PDE_EULER:
+		if (!sim->collocated) {
+			spvs->constructor_sol_vc = constructor_sol_vc_interp_T;
+			spvs->destructor_sol_vc  = destructor_sol_vc_interp_T;
+		} else {
+			spvs->constructor_sol_vc = constructor_sol_vc_col_T;
+			spvs->destructor_sol_vc  = destructor_sol_vc_col_T;
+		}
+		spvs->constructor_grad_vc = constructor_NULL;
+		spvs->destructor_grad_vc  = destructor_NULL;
+		break;
+	case PDE_DIFFUSION:
+		spvs->constructor_sol_vc = constructor_NULL;
+		spvs->destructor_sol_vc  = destructor_NULL;
+		if (!sim->collocated) {
+			spvs->constructor_grad_vc = constructor_grad_vc_interp_T;
+			spvs->destructor_grad_vc  = destructor_sol_vc_interp_T;
+		} else {
+			spvs->constructor_grad_vc = constructor_grad_vc_col_T;
+			spvs->destructor_grad_vc  = destructor_sol_vc_col_T;
+		}
+EXIT_ADD_SUPPORT;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
+		break;
 	}
 }
 
@@ -101,15 +151,15 @@ struct Flux_Ref_T* constructor_Flux_Ref_vol_T
 {
 	// Compute the solution, gradients and xyz coordinates at the volume cubature nodes.
 	flux_i->s   = spvs->constructor_sol_vc(s_vol,sim);
-/// \todo Add functions computing gradients, xyz.
-	flux_i->g   = NULL;
-	flux_i->xyz = NULL;
+	flux_i->g   = spvs->constructor_grad_vc(s_vol,sim);
+	flux_i->xyz = NULL; /// \todo Add functions computing xyz.
 //print_Multiarray_T(s_vol->sol_coef);
 //print_const_Multiarray_T(flux_i->s);
 
 	// Compute the fluxes (and optionally their Jacobians) at the volume cubature nodes.
 	struct Flux_T* flux = constructor_Flux_T(flux_i); // destructed
 	spvs->destructor_sol_vc(flux_i->s);
+	spvs->destructor_grad_vc(flux_i->g);
 //print_const_Multiarray_T(flux->f);
 //print_const_Multiarray_T(flux->df_ds);
 
@@ -193,6 +243,16 @@ const struct Operator* get_operator__cv0_vs_vc_T (const struct Solver_Volume_T* 
 	return get_Multiarray_Operator(e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
 }
 
+const struct Operator* get_operator__cv0_vg_vc_T (const struct Solver_Volume_T* s_vol)
+{
+	const struct Volume* vol       = (struct Volume*) s_vol;
+	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref,
+	          curved = vol->curved;
+	return get_Multiarray_Operator(e->cv0_vg_vc[curved],(ptrdiff_t[]){0,0,p,p});
+}
+
 struct Multiarray_Operator get_operator__tw1_vt_vc_T (const struct Solver_Volume_T* s_vol)
 {
 	const struct Volume* vol       = (struct Volume*) s_vol;
@@ -214,6 +274,14 @@ static const struct const_Multiarray_T* constructor_flux_ref_T
 	 const struct const_Multiarray_T* f  ///< The physical flux data.
 	);
 
+static const struct const_Multiarray_T* constructor_NULL
+	(const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
+{
+	UNUSED(s_vol);
+	UNUSED(sim);
+	return NULL;
+}
+
 static const struct const_Multiarray_T* constructor_sol_vc_interp_T
 	(const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
 {
@@ -227,11 +295,36 @@ static const struct const_Multiarray_T* constructor_sol_vc_interp_T
 	return constructor_mm_NN1_Operator_const_Multiarray_T(cv0_vs_vc,s_coef,'C',op_format,s_coef->order,NULL);
 }
 
+static const struct const_Multiarray_T* constructor_grad_vc_interp_T
+	(const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
+{
+	const struct Operator* cv0_vr_vc = get_operator__cv0_vr_vc_T(s_vol);
+
+	const struct const_Multiarray_T* g_coef = (const struct const_Multiarray_T*) s_vol->grad_coef;
+
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	UNUSED(sim);
+	const char op_format = 'd';
+	return constructor_mm_NN1_Operator_const_Multiarray_T(cv0_vr_vc,g_coef,'C',op_format,g_coef->order,NULL);
+}
+
 static const struct const_Multiarray_T* constructor_sol_vc_col_T
 	(const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
 {
 	UNUSED(sim);
 	return (const struct const_Multiarray_T*) s_vol->sol_coef;
+}
+
+static const struct const_Multiarray_T* constructor_grad_vc_col_T
+	(const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
+{
+	UNUSED(sim);
+	return (const struct const_Multiarray_T*) s_vol->grad_coef;
+}
+
+static void destructor_NULL (const struct const_Multiarray_T* sol_vc)
+{
+	assert(sol_vc == NULL);
 }
 
 static void destructor_sol_vc_interp_T (const struct const_Multiarray_T* sol_vc)

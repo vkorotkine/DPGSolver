@@ -36,7 +36,9 @@ include_directories(
 	simulation/test_case/flux
 	simulation/test_case/solution
 	simulation/test_case/solution/advection
+	simulation/test_case/solution/diffusion
 	simulation/test_case/solution/euler
+	simulation/test_case/solution/navier_stokes
 	testing
 	)
 
@@ -76,4 +78,4 @@ set	(LIBS_DEPEND
 
 set(LIB Core)
 add_library(${LIB} STATIC ${SOURCE})
-target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
+target_link_libraries(${LIB} ${LIBS_DEPEND})

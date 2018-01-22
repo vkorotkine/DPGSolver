@@ -4,6 +4,8 @@ set	(SOURCE
 	 advection/solution_advection.c
 	 advection/solution_advection_default.c
 	 advection/peterson/solution_peterson.c
+	 diffusion/solution_diffusion.c
+	 diffusion/default_steady/solution_diffusion_default_steady.c
 	 euler/solution_euler.c
 	 euler/periodic_vortex/solution_periodic_vortex.c
 	 euler/supersonic_vortex/solution_supersonic_vortex.c
@@ -17,7 +19,7 @@ set	(LIBS_DEPEND
 	 Containers
 	 Element
 	 Flux
-	 Numerical_Flux
+#	 Numerical_Flux
 	)
 
 set(LIB Solution)

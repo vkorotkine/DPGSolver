@@ -36,7 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 /// \brief Set the function pointers to the numerical flux computing functions.
-void set_function_pointers_num_flux_T
+static void set_function_pointers_num_flux_T
 	(struct Test_Case_T* test_case,    ///< \ref Test_Case_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
@@ -74,7 +74,7 @@ void set_function_pointers_solution_advection_T (struct Test_Case_T* test_case, 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-void set_function_pointers_num_flux_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
+static void set_function_pointers_num_flux_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
 	switch (sim->method) {
 	case METHOD_DG: // fallthrough

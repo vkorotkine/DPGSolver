@@ -14,4 +14,4 @@ set	(LIBS_DEPEND
 
 set (LIB Test_Complex_Test_Case)
 add_library(${LIB} STATIC ${SOURCE})
-target_link_libraries(${LIB} PRIVATE ${LIBS_DEPEND})
+target_link_libraries(${LIB} ${LIBS_DEPEND})

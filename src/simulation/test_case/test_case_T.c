@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_flux.h"
 #include "def_templates_solution_advection.h"
+#include "def_templates_solution_diffusion.h"
 #include "def_templates_solution_euler.h"
 
 // Static function declarations ************************************************************************************* //
@@ -118,8 +119,8 @@ static void set_string_associations (struct Test_Case_T* test_case, const struct
 	// pde_index
 	if (strstr(sim->pde_name,"advection"))
 		const_cast_i(&test_case->pde_index,PDE_ADVECTION);
-	else if (strstr(sim->pde_name,"poisson"))
-		const_cast_i(&test_case->pde_index,PDE_POISSON);
+	else if (strstr(sim->pde_name,"diffusion"))
+		const_cast_i(&test_case->pde_index,PDE_DIFFUSION);
 	else if (strstr(sim->pde_name,"euler"))
 		const_cast_i(&test_case->pde_index,PDE_EULER);
 	else if (strstr(sim->pde_name,"navier_stokes"))
@@ -138,7 +139,7 @@ static void set_pde_related (struct Test_Case_T* test_case, const struct Simulat
 		const_cast_b(&test_case->has_1st_order,true);
 		const_cast_b(&test_case->has_2nd_order,false);
 		break;
-	case PDE_POISSON:
+	case PDE_DIFFUSION:
 		const_cast_b(&test_case->is_linear,true);
 		const_cast_i(&test_case->n_var,1);
 		const_cast_i(&test_case->n_eq,1);
@@ -183,9 +184,9 @@ static void set_function_pointers (struct Test_Case_T* test_case, const struct S
 {
 	switch (test_case->pde_index) {
 		case PDE_ADVECTION:     set_function_pointers_solution_advection_T(test_case,sim);     break;
-//		case PDE_POISSON:       set_function_pointers_solution_poisson(test_case,sim);       break;
+		case PDE_DIFFUSION:     set_function_pointers_solution_diffusion_T(test_case,sim);     break;
 		case PDE_EULER:         set_function_pointers_solution_euler_T(test_case,sim);         break;
-//		case PDE_NAVIER_STOKES: set_function_pointers_solution_navier_stokes(test_case,sim); break;
+//		case PDE_NAVIER_STOKES: set_function_pointers_solution_navier_stokes_T(test_case,sim); break;
 		default: EXIT_ERROR("Unsupported: %d\n",test_case->pde_index); break;
 	}
 }
@@ -253,6 +254,7 @@ static const bool* get_compute_member_Flux_Input
 {
 	static const bool cm_100000[] = {1,0,0,0,0,0,},
 	                  cm_110000[] = {1,1,0,0,0,0,},
+	                  cm_101000[] = {1,0,1,0,0,0,},
 	                  cm_110100[] = {1,1,0,1,0,0,};
 
 	assert(type_ei == 'e' || type_ei == 'i');
@@ -262,6 +264,12 @@ static const bool* get_compute_member_Flux_Input
 			return cm_100000;
 		else if (type_ei == 'i')
 			return cm_110000;
+		break;
+	case PDE_DIFFUSION:
+		if (type_ei == 'e')
+			return cm_100000;
+		else if (type_ei == 'i')
+			return cm_101000;
 		break;
 	case PDE_EULER:
 		switch (sim->method) {
@@ -294,7 +302,9 @@ static const bool* get_compute_member_Boundary_Value_Input
 {
 	UNUSED(sim);
 	static const bool cm_100000[] = {1,0,0,0,0,0,},
-	                  cm_110000[] = {1,1,0,0,0,0,};
+	                  cm_110000[] = {1,1,0,0,0,0,},
+	                  cm_101000[] = {1,0,1,0,0,0,},
+	                  cm_111000[] = {1,1,1,0,0,0,};
 
 	assert(type_ei == 'e' || type_ei == 'i');
 	switch (test_case->pde_index) {
@@ -303,6 +313,12 @@ static const bool* get_compute_member_Boundary_Value_Input
 			return cm_100000;
 		else if (type_ei == 'i')
 			return cm_110000;
+		break;
+	case PDE_DIFFUSION:
+		if (type_ei == 'e')
+			return cm_101000;
+		else if (type_ei == 'i')
+			return cm_111000;
 		break;
 	case PDE_EULER:
 		if (type_ei == 'e')

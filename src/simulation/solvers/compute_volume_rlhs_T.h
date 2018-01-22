@@ -43,8 +43,11 @@ typedef void (*destructor_sol_vc_fptr_T)
 
 /// \brief Container for volume solver parameters related to con/de'structor's.
 struct S_Params_Volume_Structor_T {
-	constructor_sol_vc_fptr_T constructor_sol_vc; ///< Pointer to the appropriate function.
-	destructor_sol_vc_fptr_T  destructor_sol_vc;  ///< Pointer to the appropriate function.
+	constructor_sol_vc_fptr_T constructor_sol_vc;  ///< Pointer to the appropriate function.
+	constructor_sol_vc_fptr_T constructor_grad_vc; ///< Pointer to the appropriate function.
+
+	destructor_sol_vc_fptr_T  destructor_sol_vc;   ///< Pointer to the appropriate function.
+	destructor_sol_vc_fptr_T  destructor_grad_vc;  ///< Pointer to the appropriate function.
 };
 
 /// \brief Container for the reference flux related parameters.
@@ -83,6 +86,12 @@ struct Matrix_T* constructor_lhs_v_1_T
 	(const struct Flux_Ref_T* flux_r,     ///< \ref Flux_Ref_T.
 	 const struct Solver_Volume_T* s_vol, ///< \ref Solver_Volume_T.
 	 const struct Simulation* sim         ///< \ref Simulation.
+	);
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vr_vc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vr_vc_T
+	(const struct Solver_Volume_T* s_vol ///< The current volume.
 	);
 
 /** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vs_vc operator.

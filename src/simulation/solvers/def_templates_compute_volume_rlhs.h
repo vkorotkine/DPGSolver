@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Flux_Ref_T          destructor_Flux_Ref
 #define constructor_lhs_v_1_T          constructor_lhs_v_1
 #define get_operator__cv0_vs_vc_T      get_operator__cv0_vs_vc
+#define get_operator__cv0_vr_vc_T      get_operator__cv0_vr_vc
 #define get_operator__tw1_vt_vc_T      get_operator__tw1_vt_vc
 
 #define constructor_sol_vc_interp_T constructor_sol_vc_interp
@@ -62,6 +63,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Flux_Ref_T          destructor_Flux_Ref_c
 #define constructor_lhs_v_1_T          constructor_lhs_v_1_c
 #define get_operator__cv0_vs_vc_T      get_operator__cv0_vs_vc_c
+#define get_operator__cv0_vr_vc_T      get_operator__cv0_vr_vc_c
 #define get_operator__tw1_vt_vc_T      get_operator__tw1_vt_vc_c
 
 #define constructor_sol_vc_interp_T constructor_sol_vc_interp_c

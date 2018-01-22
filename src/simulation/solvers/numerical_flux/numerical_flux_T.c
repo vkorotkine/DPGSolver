@@ -129,6 +129,13 @@ void compute_Numerical_Flux_1_T
 	combine_num_flux_boundary_T((struct Numerical_Flux_Input_T*)num_flux_i,num_flux);
 }
 
+void compute_Numerical_Flux_2_T
+	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
+{
+	num_flux_i->compute_Numerical_Flux_2nd(num_flux_i,num_flux);
+	combine_num_flux_boundary_T((struct Numerical_Flux_Input_T*)num_flux_i,num_flux);
+}
+
 void compute_Numerical_Flux_12_T
 	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {

@@ -20,4 +20,4 @@ set	(LIBS_DEPEND
 	)
 
 add_library(Element STATIC ${SOURCE})
-target_link_libraries(Element PRIVATE ${LIBS_DEPEND})
+target_link_libraries(Element ${LIBS_DEPEND})

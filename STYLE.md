@@ -49,3 +49,17 @@ While this greatly reduces redundant code, it results in potential confusion whe
 versions of the functions are called in the code despite their declarations not explicitly appearing
 in any header file. Thus, it is recommended to search the documentation for function names *without*
 the trailing specialization indicator (i.e. function_name`_*`).
+
+### Directory Structure
+
+In the interest of separating unrelated ideas to the extent possible, the code has been partitioned into several
+sub-directories (with `src` being the root). In each of the sub-directories, a static library of related functions is
+generated and only the necessary libraries are then linked to the executables during the build.
+
+This *sometimes* complicates the build process when adding new files as it is possible to forget to link all of the
+appropriate libraries or that it not be obvious which libraries may need to be linked. In the event that an "Undefined
+symbols for architecture" error occurs during linking, it is sometimes helpful to inspect the list of which functions
+are included as part of a static library. This can be done by using the `nm` function in the terminal:
+```sh
+BUILD/path_to_lib$ nm libLIB_NAME.a 
+```
