@@ -66,7 +66,8 @@ void destructor_derived_DG_Solver_Element (struct Element* element_ptr)
 		return;
 
 	struct DG_Solver_Element* dg_s_e = (struct DG_Solver_Element*) element_ptr;
-	UNUSED(dg_s_e);
+
+	destructor_Multiarray2_Operator(dg_s_e->cv1_vs_vc);
 }
 
 // Static functions ************************************************************************************************* //
@@ -76,16 +77,26 @@ static void constructor_derived_DG_Solver_Element_std (struct Element* element_p
 {
 	struct DG_Solver_Element* dg_s_e = (struct DG_Solver_Element*) element_ptr;
 	struct const_Element* e = (struct const_Element*)element_ptr;
-	UNUSED(dg_s_e);
-	UNUSED(e);
-	UNUSED(sim);
+
+	// H_CF, P_PM0 are needed for cv1_vs_vc* operators as they are used to assemble tensor-product operators.
+	dg_s_e->cv1_vs_vc[0] = constructor_operators("cv1","vsA","vcs","H_CF_P_PM0",e,sim); // destructed
+	dg_s_e->cv1_vs_vc[1] = constructor_operators("cv1","vsA","vcc","H_CF_P_PM0",e,sim); // destructed
 }
 
 static void constructor_derived_DG_Solver_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
 {
 	struct DG_Solver_Element* dg_s_e = (struct DG_Solver_Element*) element_ptr;
-	const struct const_Element* e      = (const struct const_Element*) element_ptr;
-	UNUSED(dg_s_e);
-	UNUSED(e);
-	UNUSED(sim);
+	const struct const_Element* e    = (const struct const_Element*) element_ptr;
+
+	const struct const_Element* se[2]    = { e->sub_element[0], e->sub_element[1], };
+	struct DG_Solver_Element* dg_s_se[2] = { (struct DG_Solver_Element*) se[0], (struct DG_Solver_Element*) se[1], };
+	struct Solver_Element* s_se[2]       = { (struct Solver_Element*) se[0], (struct Solver_Element*) se[1], };
+
+	struct Operators_TP ops_tp;
+
+	set_operators_tp(&ops_tp,dg_s_se[0]->cv1_vs_vc[0],s_se[0]->cv0_vs_vc[0],dg_s_se[1]->cv1_vs_vc[0],s_se[1]->cv0_vs_vc[0]);
+	dg_s_e->cv1_vs_vc[0] = constructor_operators_tp("cv1","vsA","vcs","H_1_P_PM0",e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,dg_s_se[0]->cv1_vs_vc[1],s_se[0]->cv0_vs_vc[1],dg_s_se[1]->cv1_vs_vc[1],s_se[1]->cv0_vs_vc[1]);
+	dg_s_e->cv1_vs_vc[1] = constructor_operators_tp("cv1","vsA","vcc","H_1_P_PM0",e,sim,&ops_tp); // destructed
 }

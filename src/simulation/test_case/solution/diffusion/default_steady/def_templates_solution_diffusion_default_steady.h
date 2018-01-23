@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define set_sol_diffusion_default_steady_T                      set_sol_diffusion_default_steady
+#define set_grad_diffusion_default_steady_T                     set_grad_diffusion_default_steady
 #define constructor_const_sol_diffusion_default_steady_T        constructor_const_sol_diffusion_default_steady
 #define constructor_const_grad_diffusion_default_steady_T       constructor_const_grad_diffusion_default_steady
 #define compute_source_rhs_diffusion_default_steady_T           compute_source_rhs_diffusion_default_steady
@@ -31,6 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define set_sol_diffusion_default_steady_T                      set_sol_diffusion_default_steady_c
+#define set_grad_diffusion_default_steady_T                     set_grad_diffusion_default_steady_c
 #define constructor_const_sol_diffusion_default_steady_T        constructor_const_sol_diffusion_default_steady_c
 #define constructor_const_grad_diffusion_default_steady_T       constructor_const_grad_diffusion_default_steady_c
 #define compute_source_rhs_diffusion_default_steady_T           compute_source_rhs_diffusion_default_steady_c

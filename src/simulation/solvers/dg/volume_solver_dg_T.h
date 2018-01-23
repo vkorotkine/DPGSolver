@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  These volumes are needed by the 'D'iscontinuous 'G'alerkin solver functions.
  */
 
+#include "definitions_core.h"
+
 /// \brief Container for data relating to the DG solver volumes.
 struct DG_Solver_Volume_T {
 	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume_T.
@@ -30,6 +32,9 @@ struct DG_Solver_Volume_T {
 
 	// Terms required for 2nd order PDE terms.
 	struct Multiarray_T* grad_coef_v; ///< The volume contribution to the solution gradient coefficients.
+
+	/// Linearization of \ref DG_Solver_Volume_T::grad_coef_v wrt \ref Solver_Volume_T::sol_coef.
+	const struct const_Matrix_R* d_g_coef_v__d_s_coef[DIM];
 };
 
 /// \brief Constructor for a derived \ref DG_Solver_Volume_T.

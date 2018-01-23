@@ -67,9 +67,9 @@ typedef void (*compute_source_rhs_fptr_T)
 
 /// Container for members relating to the solution computation.
 struct Solution_Container_T {
-	const char ce_type,   ///< The type of computational element associated with the solution data being set.
-	           cv_type,   ///< The format in which to return the solution. Options: 'c'oefficients, 'v'alues.
-	           node_kind; ///< The kind of nodes to be used. Options: 's'olution, 'c'ubature.
+	char ce_type,   ///< The type of computational element associated with the solution data being set.
+	     cv_type,   ///< The format in which to return the solution. Options: 'c'oefficients, 'v'alues.
+	     node_kind; ///< The kind of nodes to be used. Options: 's'olution, 'c'ubature.
 
 	struct Solver_Volume_T* volume; ///< \ref Solver_Volume_T.
 	struct Solver_Face_T* face;     ///< \ref Solver_Face_T.
@@ -95,10 +95,17 @@ void set_initial_solution_T
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Function pointer to be used for \ref Test_Case_T::set_sol or \ref Test_Case_T::set_grad when this solution is not
- *         required. */
+/** \brief Function pointer to be used for \ref Test_Case_T::set_sol or \ref Test_Case_T::set_grad when this solution is
+ *         not required. */
 void set_sg_do_nothing_T
 	(const struct Simulation* sim,      ///< Defined for \ref set_sol_fptr_T.
+	 struct Solution_Container_T sol_cont ///< Defined for \ref set_sol_fptr_T.
+	);
+
+/** \brief Function pointer to be used for \ref Test_Case_T::set_grad setting the multiarray of the appropriate size to
+ *         zero. */
+void set_sg_zero_T
+	(const struct Simulation*const sim,   ///< Defined for \ref set_sol_fptr_T.
 	 struct Solution_Container_T sol_cont ///< Defined for \ref set_sol_fptr_T.
 	);
 
@@ -139,15 +146,16 @@ void update_Solution_Container_sol_T
 	 const struct Simulation*const sim           ///< \ref Simulation.
 	);
 
+/// \brief Update \ref Solution_Container_T::sol based on the input solution gradient values.
+void update_Solution_Container_grad_T
+	(struct Solution_Container_T*const sol_cont, ///< Defined for \ref set_sol_fptr_T.
+	 struct Multiarray_T*const grad,             ///< The gradient values.
+	 const struct Simulation*const sim           ///< \ref Simulation.
+	);
+
 /** \brief Constructor for the xyz coordinates evaluated at the volume cubature nodes using interpolation.
  *  \return See brief. */
 const struct const_Multiarray_R* constructor_xyz_vc_interp_T
 	(const struct Solver_Volume_T* s_vol, ///< The current volume.
 	 const struct Simulation* sim       ///< \ref Simulation.
-	);
-
-/** \brief Get the pointer to the appropriate \ref Solver_Element::tw0_vt_vc operator.
- *  \return See brief. */
-const struct Operator* get_operator__tw0_vt_vc_T
-	(const struct Solver_Volume_T* s_vol ///< The current volume.
 	);

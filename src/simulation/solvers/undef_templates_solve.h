@@ -20,3 +20,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef update_ind_dof_T
 #undef constructor_Solver_Storage_Implicit_T
 #undef add_to_flux_imbalance_source_T
+#undef get_operator__tw0_vt_vc_T

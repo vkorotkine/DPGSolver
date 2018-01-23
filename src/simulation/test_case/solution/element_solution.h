@@ -28,10 +28,12 @@ struct Solution_Element {
 	const struct const_Element element; ///< Base \ref const_Element.
 
 	const struct Multiarray_Operator* cv0_vg_vs[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vg_vr[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vg_vc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vs_vc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vs_vs;    ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vc0_vs_vs;    ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vc0_vr_vr;    ///< See notation in \ref element_operators.h.
 
 	const struct Multiarray_Operator* cv0_vg_ff[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vm_ff[2]; ///< See notation in \ref element_operators.h.

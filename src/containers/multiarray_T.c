@@ -245,6 +245,33 @@ struct const_Matrix_T interpret_const_Multiarray_as_Matrix_T (const struct const
 	return a;
 }
 
+struct Multiarray_T interpret_Multiarray_as_slice_T
+	(const struct Multiarray_T* src, const int order_o, const ptrdiff_t*const sub_indices)
+{
+	const ptrdiff_t ind_data = compute_index_sub_container(src->order,order_o,src->extents,sub_indices);
+
+	struct Multiarray_T dest =
+		{ .layout    = src->layout,
+		  .order     = order_o,
+		  .extents   = src->extents,
+		  .owns_data = false,
+		  .data      = &src->data[ind_data], };
+	return dest;
+}
+
+void copy_into_Multiarray_T (struct Multiarray_T*const dest, const struct const_Multiarray_T*const src)
+{
+	assert(dest->order == src->order);
+	for (int i = 0; i < src->order; ++i)
+		assert(dest->extents[i] == src->extents[i]);
+	assert(dest->layout == src->layout);
+	assert(dest->owns_data == true);
+
+	const ptrdiff_t size = compute_size(src->order,src->extents);
+	for (int i = 0; i < size; ++i)
+		dest->data[i] = src->data[i];
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

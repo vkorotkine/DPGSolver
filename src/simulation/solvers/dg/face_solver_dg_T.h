@@ -18,14 +18,24 @@ You should have received a copy of the GNU General Public License along with DPG
  *  These faces are needed by the 'D'iscontinuous 'G'alerkin solver functions.
  */
 
+#include "definitions_core.h"
+
 /// \brief Container for data relating to the DG solver faces.
 struct DG_Solver_Face_T {
 	struct Solver_Face_T face; ///< The base \ref Solver_Face_T.
 
 	// Members required for 2nd order PDE terms.
 
-	/// The face contributions to the solution gradient coefficients in each of the neighbouring volumes.
-	struct Multiarray_T* grad_coef_f[2];
+	/// \brief Container for information relating to volumes on either side of the \ref DG_Solver_Face_T.
+	struct Neigh_Info_DG {
+		struct Multiarray_T* grad_coef_f; ///< The face contributions to the solution gradient coefficients.
+
+		/// Linearization of \ref DG_Solver_Face_T::grad_coef_f wrt \ref Solver_Volume_T::sol_coef from the 'L'eft.
+		const struct const_Matrix_R* d_g_coef_f__d_s_coef_L[DIM];
+
+		/// Linearization of \ref DG_Solver_Face_T::grad_coef_f wrt \ref Solver_Volume_T::sol_coef from the 'R'ight.
+		const struct const_Matrix_R* d_g_coef_f__d_s_coef_R[DIM];
+	} neigh_info[2]; ///< \ref Neigh_Info_DG. Uses the same indexing convention as that of \ref Face::neigh_info.
 };
 
 /// \brief Constructor for a derived \ref DG_Solver_Face_T.

@@ -27,7 +27,8 @@ struct Simulation;
 struct DG_Solver_Element {
 	const struct Solver_Element element; ///< Base \ref Solver_Element.
 
-	// Nothing to add to Solver_Element.
+	// Gradient terms
+	const struct Multiarray_Operator* cv1_vs_vc[2]; ///< See notation in \ref element_operators.h.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

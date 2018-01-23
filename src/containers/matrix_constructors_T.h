@@ -52,6 +52,14 @@ struct Matrix_T* constructor_empty_Matrix_T
 	 const ptrdiff_t ext_1  ///< Standard.
 	);
 
+/** \brief `const` version of \ref constructor_empty_Matrix_T.
+ *  \return Standard. */
+const struct const_Matrix_T* constructor_empty_const_Matrix_T
+	(const char layout,     ///< Standard.
+	 const ptrdiff_t ext_0, ///< Standard.
+	 const ptrdiff_t ext_1  ///< Standard.
+	);
+
 // Zero constructors ************************************************************************************************ //
 
 /** \brief Same as \ref constructor_empty_Matrix_T but with data calloc'ed.
@@ -156,6 +164,23 @@ void const_constructor_move_const_Matrix_T
 
 // Special constructors (only available for real/complex types) ***************************************************** //
 #ifdef TYPE_RC
+
+/** \brief Copy constructor for a \ref Matrix_T\* with permutation.
+ *  \return See brief. */
+struct Matrix_T* constructor_copy_permute_Matrix_T
+	(const struct Matrix_T*const src,       ///< The source matrix.
+	 const struct const_Vector_i*const p_V, ///< Defined for \ref permute_Matrix_T_V.
+	 const char perm_layout                 ///< The layout in which to permute. Options: 'R' (permute rows).
+	);
+
+/** \brief `const` version of \ref constructor_copy_permute_Matrix_T.
+ *  \return See brief. */
+const struct const_Matrix_T* constructor_copy_permute_const_Matrix_T
+	(const struct const_Matrix_T*const src, ///< See brief.
+	 const struct const_Vector_i*const p_V, ///< See brief.
+	 const char perm_layout                 ///< See brief.
+	);
+
 /** \brief Constructor for a \ref Matrix_T\* which is a sub-block of the input matrix.
  *  \return See brief. */
 struct Matrix_T* constructor_sub_block_Matrix_T

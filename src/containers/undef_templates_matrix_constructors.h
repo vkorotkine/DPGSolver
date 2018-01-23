@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_default_const_Matrix_T
 
 #undef constructor_empty_Matrix_T
+#undef constructor_empty_const_Matrix_T
 #undef constructor_zero_Matrix_T
 
 #undef constructor_copy_Matrix_T_T
@@ -30,6 +31,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef const_constructor_copy_Matrix_T
 #undef constructor_copy_Matrix_T_Matrix_R
 #undef constructor_copy_const_Matrix_T_Matrix_R
+#undef constructor_copy_permute_Matrix_T
+#undef constructor_copy_permute_const_Matrix_T
 
 #undef constructor_move_Matrix_T_T
 #undef constructor_move_const_Matrix_T_T
@@ -72,13 +75,21 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef destructor_conditional_const_Matrix_T
 
 
+#undef constructor_empty_Matrix_R
+#undef constructor_empty_const_Matrix_R
+#undef constructor_zero_Matrix_R
+
 #undef constructor_copy_Matrix_R
 #undef constructor_copy_const_Matrix_R
+#undef constructor_copy_permute_Matrix_R
+#undef constructor_copy_permute_const_Matrix_R
 
 #undef constructor_inverse_const_Matrix_R
 #undef constructor_mm_Matrix_R
 #undef constructor_mm_const_Matrix_R
+#undef constructor_mm_diag_Matrix_R
 #undef constructor_mm_diag_const_Matrix_R
 
 #undef destructor_Matrix_R
 #undef destructor_const_Matrix_R
+#undef destructor_conditional_const_Matrix_R

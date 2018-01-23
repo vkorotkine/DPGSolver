@@ -22,8 +22,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_default_Matrix_T       constructor_default_Matrix_d
 #define constructor_default_const_Matrix_T constructor_default_const_Matrix_d
 
-#define constructor_empty_Matrix_T constructor_empty_Matrix_d
-#define constructor_zero_Matrix_T  constructor_zero_Matrix_d
+#define constructor_empty_Matrix_T       constructor_empty_Matrix_d
+#define constructor_empty_const_Matrix_T constructor_empty_const_Matrix_d
+#define constructor_zero_Matrix_T        constructor_zero_Matrix_d
 
 #define constructor_copy_Matrix_T_T              constructor_copy_Matrix_d_d
 #define constructor_copy_const_Matrix_T_T        constructor_copy_const_Matrix_d_d
@@ -33,6 +34,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define const_constructor_copy_Matrix_T          const_constructor_copy_Matrix_d
 #define constructor_copy_Matrix_T_Matrix_R       constructor_copy_Matrix_d_Matrix_d
 #define constructor_copy_const_Matrix_T_Matrix_R constructor_copy_const_Matrix_d_Matrix_d
+#define constructor_copy_permute_Matrix_T        constructor_copy_permute_Matrix_d
+#define constructor_copy_permute_const_Matrix_T  constructor_copy_permute_const_Matrix_d
 
 #define constructor_move_Matrix_T_T           constructor_move_Matrix_d_d
 #define constructor_move_const_Matrix_T_T     constructor_move_const_Matrix_d_d
@@ -81,8 +84,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_default_Matrix_T       constructor_default_Matrix_c
 #define constructor_default_const_Matrix_T constructor_default_const_Matrix_c
 
-#define constructor_empty_Matrix_T constructor_empty_Matrix_c
-#define constructor_zero_Matrix_T  constructor_zero_Matrix_c
+#define constructor_empty_Matrix_T       constructor_empty_Matrix_c
+#define constructor_empty_const_Matrix_T constructor_empty_const_Matrix_c
+#define constructor_zero_Matrix_T        constructor_zero_Matrix_c
 
 #define constructor_copy_Matrix_T_T             constructor_copy_Matrix_c_c
 #define constructor_copy_const_Matrix_T_T       constructor_copy_const_Matrix_c_c
@@ -92,6 +96,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define const_constructor_copy_Matrix_T         const_constructor_copy_Matrix_c
 #define constructor_copy_Matrix_T_Matrix_R       constructor_copy_Matrix_c_Matrix_d
 #define constructor_copy_const_Matrix_T_Matrix_R constructor_copy_const_Matrix_c_Matrix_d
+#define constructor_copy_permute_Matrix_T        constructor_copy_permute_Matrix_c
+#define constructor_copy_permute_const_Matrix_T  constructor_copy_permute_const_Matrix_c
 
 #define constructor_move_Matrix_T_T           constructor_move_Matrix_c_c
 #define constructor_move_const_Matrix_T_T     constructor_move_const_Matrix_c_c
@@ -137,14 +143,22 @@ You should have received a copy of the GNU General Public License along with DPG
 #endif
 
 ///\{ \name Real Data types/Function names
+#define constructor_empty_Matrix_R       constructor_empty_Matrix_d
+#define constructor_empty_const_Matrix_R constructor_empty_const_Matrix_d
+#define constructor_zero_Matrix_R        constructor_zero_Matrix_d
+
 #define constructor_copy_Matrix_R                constructor_copy_Matrix_d
 #define constructor_copy_const_Matrix_R          constructor_copy_const_Matrix_d
+#define constructor_copy_permute_Matrix_R        constructor_copy_permute_Matrix_d
+#define constructor_copy_permute_const_Matrix_R  constructor_copy_permute_const_Matrix_d
 
 #define constructor_inverse_const_Matrix_R        constructor_inverse_const_Matrix_d
 #define constructor_mm_Matrix_R                   constructor_mm_Matrix_d
 #define constructor_mm_const_Matrix_R             constructor_mm_const_Matrix_d
+#define constructor_mm_diag_Matrix_R              constructor_mm_diag_Matrix_d
 #define constructor_mm_diag_const_Matrix_R        constructor_mm_diag_const_Matrix_d
 
-#define destructor_Matrix_R       destructor_Matrix_d
-#define destructor_const_Matrix_R destructor_const_Matrix_d
+#define destructor_Matrix_R                   destructor_Matrix_d
+#define destructor_const_Matrix_R             destructor_const_Matrix_d
+#define destructor_conditional_const_Matrix_R destructor_conditional_const_Matrix_d
 ///\}

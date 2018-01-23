@@ -22,6 +22,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
+#include "def_templates_matrix_math.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -45,6 +47,12 @@ struct Matrix_T* constructor_empty_Matrix_T (const char layout, const ptrdiff_t 
 	struct Matrix_T* a = constructor_move_Matrix_T_T(layout,ext_0,ext_1,true,data); // returned
 
 	return a;
+}
+
+const struct const_Matrix_T* constructor_empty_const_Matrix_T
+	(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1)
+{
+	return (struct const_Matrix_T*) constructor_empty_Matrix_T(layout,ext_0,ext_1);
 }
 
 // Empty constructors *********************************************************************************************** //
@@ -190,6 +198,25 @@ void const_constructor_move_const_Matrix_T (const struct const_Matrix_T*const* d
 
 // Special constructors (only available for real/complex types) ***************************************************** //
 #ifdef TYPE_RC
+
+struct Matrix_T* constructor_copy_permute_Matrix_T
+	(const struct Matrix_T*const src, const struct const_Vector_i* p_V, const char perm_layout)
+{
+	assert(perm_layout == 'R'); // Check that all is as expected if removed.
+	assert(src->layout == 'R');
+
+	struct Matrix_T*const dest = constructor_copy_Matrix_T(src); // returned
+	permute_Matrix_T_V(dest,p_V);
+
+	return dest;
+}
+
+const struct const_Matrix_T* constructor_copy_permute_const_Matrix_T
+	(const struct const_Matrix_T*const src, const struct const_Vector_i*const p_V, const char perm_layout)
+{
+	return (struct const_Matrix_T*) constructor_copy_permute_Matrix_T((struct Matrix_T*)src,p_V,perm_layout);
+}
+
 struct Matrix_T* constructor_sub_block_Matrix_T
 	(const ptrdiff_t row0, const ptrdiff_t col0, const ptrdiff_t n_row, const ptrdiff_t n_col,
 	 const struct Matrix_T* src)

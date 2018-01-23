@@ -318,6 +318,7 @@ static void compute_lhs_analytical
 	constructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_method); // destructed
 	switch (sim->method) {
 	case METHOD_DG:
+		f_ptrs_data->compute_grad_coef(sim);
 		switch (CHECK_LIN) {
 		case CHECK_LIN_VOLUME:
 			f_ptrs_data->compute_volume_lhs(sim,ssi,sim->volumes);

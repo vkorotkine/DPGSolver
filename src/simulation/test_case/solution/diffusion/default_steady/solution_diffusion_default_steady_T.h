@@ -28,6 +28,12 @@ void set_sol_diffusion_default_steady_T
 	 struct Solution_Container_T sol_cont ///< Defined for \ref set_sol_fptr_T.
 	);
 
+/// \brief Function to be used for \ref Test_Case_T::set_grad for the default steady diffusion solution.
+void set_grad_diffusion_default_steady_T
+	(const struct Simulation* sim,        ///< Defined for \ref set_sol_fptr_T.
+	 struct Solution_Container_T sol_cont ///< Defined for \ref set_sol_fptr_T.
+	);
+
 /** \brief \ref Test_Case_T::constructor_sol for the default steady diffusion solution.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_sol_diffusion_default_steady_T

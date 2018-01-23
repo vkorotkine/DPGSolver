@@ -23,15 +23,17 @@ You should have received a copy of the GNU General Public License along with DPG
 #define update_ind_dof_T                      update_ind_dof
 #define constructor_Solver_Storage_Implicit_T constructor_Solver_Storage_Implicit
 #define add_to_flux_imbalance_source_T        add_to_flux_imbalance_source
+#define get_operator__tw0_vt_vc_T             get_operator__tw0_vt_vc
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
-#define compute_dof_T    compute_dof_c
-#define update_ind_dof_T update_ind_dof_c
+#define compute_dof_T                         compute_dof_c
+#define update_ind_dof_T                      update_ind_dof_c
 #define constructor_Solver_Storage_Implicit_T constructor_Solver_Storage_Implicit_c
 #define add_to_flux_imbalance_source_T        add_to_flux_imbalance_source_c
+#define get_operator__tw0_vt_vc_T             get_operator__tw0_vt_vc_c
 ///\}
 
 #endif

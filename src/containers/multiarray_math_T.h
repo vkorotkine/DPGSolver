@@ -96,8 +96,8 @@ void subtract_in_place_Multiarray_T
  *	- `layout = 'C'`.
  */
 void mm_NNC_Multiarray_T
-	(const Real alpha,                      ///< Defined for \ref mm_T.
-	 const Real beta,                       ///< Defined for \ref mm_T.
+	(const Real alpha,                        ///< Defined for \ref mm_T.
+	 const Real beta,                         ///< Defined for \ref mm_T.
 	 const struct const_Matrix_R*const a,     ///< Defined for \ref mm_T.
 	 const struct const_Multiarray_T*const b, ///< Input `b`.
 	 struct Multiarray_T*const c              ///< Output `c`.

@@ -26,9 +26,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_type_d.h"
 #include "def_templates_face_solver.h"
 #include "def_templates_face_solver_dg.h"
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
 #include "face_solver_dg_T.h"
 #include "undef_templates_type.h"
 #include "undef_templates_face_solver.h"
 #include "undef_templates_face_solver_dg.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
 
 #endif // DPG__face_solver_dg_h__INCLUDED

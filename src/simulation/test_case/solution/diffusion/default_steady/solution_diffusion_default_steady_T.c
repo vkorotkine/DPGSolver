@@ -62,12 +62,24 @@ static const struct const_Multiarray_T* constructor_source_diffusion_default_ste
 
 void set_sol_diffusion_default_steady_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
-	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+	assert(sol_cont.node_kind != 'r');
+	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont);  // destructed
 	struct Multiarray_T* sol = constructor_sol_diffusion_default_steady(xyz,sim); // destructed
 	destructor_const_Multiarray_R(xyz);
 
 	update_Solution_Container_sol_T(&sol_cont,sol,sim);
 	destructor_Multiarray_T(sol);
+}
+
+void set_grad_diffusion_default_steady_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
+{
+	assert(sol_cont.node_kind != 's');
+	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont);  // destructed
+	struct Multiarray_T* grad = constructor_grad_diffusion_default_steady(xyz,sim); // destructed
+	destructor_const_Multiarray_R(xyz);
+
+	update_Solution_Container_grad_T(&sol_cont,grad,sim);
+	destructor_Multiarray_T(grad);
 }
 
 const struct const_Multiarray_T* constructor_const_sol_diffusion_default_steady_T

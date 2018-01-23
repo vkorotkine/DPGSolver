@@ -45,11 +45,11 @@ static void set_function_pointers_num_flux
 
 void set_function_pointers_solution_diffusion_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
-	test_case->set_grad = set_sg_do_nothing_T;
 	if (strstr(sim->pde_spec,"default_steady")) {
 		test_case->constructor_sol              = constructor_const_sol_diffusion_default_steady_T;
 		test_case->constructor_grad             = constructor_const_grad_diffusion_default_steady_T;
 		test_case->set_sol                      = set_sol_diffusion_default_steady_T;
+		test_case->set_grad                     = set_grad_diffusion_default_steady_T;
 		test_case->compute_source_rhs           = compute_source_rhs_diffusion_default_steady_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_diffusion_default_steady_T;
 		test_case->constructor_Error_CE         = constructor_Error_CE_diffusion_all;

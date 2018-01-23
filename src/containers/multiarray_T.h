@@ -180,3 +180,17 @@ struct Matrix_T interpret_Multiarray_as_Matrix_T
 struct const_Matrix_T interpret_const_Multiarray_as_Matrix_T
 	(const struct const_Multiarray_T* a_Ma ///< See brief.
 	);
+
+/** \brief Return a stack allocated \ref Multiarray_T holding the data of the desired slice.
+ *  \return See brief. */
+struct Multiarray_T interpret_Multiarray_as_slice_T
+	(const struct Multiarray_T* src,   ///< The source multiarray.
+	 const int order_o,                ///< Defined for \ref compute_index_sub_container.
+	 const ptrdiff_t*const sub_indices ///< Defined for \ref compute_index_sub_container.
+	);
+
+/// \brief Copy data from the source into the destination \ref Multiarray_T.
+void copy_into_Multiarray_T
+	(struct Multiarray_T*const dest,           ///< The destination.
+	 const struct const_Multiarray_T*const src ///< The source.
+	);

@@ -77,10 +77,17 @@ static const struct const_Multiarray_R* constructor_xyz_f
 	);
 
 /// \brief Compute the coefficients associated with the values of the volume solution.
-static void compute_coef_from_val_vs_T
+static void compute_coef_from_val_vs
 	(const struct Solver_Volume_T* s_vol,        ///< \ref Solver_Volume_T.
 	 const struct const_Multiarray_T* sol_val, ///< The solution values.
 	 struct Multiarray_T* sol_coef             ///< To hold the solution coefficients.
+	);
+
+/// \brief Compute the coefficients associated with the values of the volume gradient.
+static void compute_coef_from_val_vg
+	(const struct Solver_Volume_T* s_vol,       ///< \ref Solver_Volume_T.
+	 const struct const_Multiarray_T* grad_val, ///< The gradient values.
+	 struct Multiarray_T* grad_coef             ///< To hold the gradient coefficients.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -120,6 +127,11 @@ void set_sg_do_nothing_T (const struct Simulation* sim, struct Solution_Containe
 	assert(list_is_derived_from("solver",'e',sim));
 	UNUSED(sol_cont);
 	return;
+}
+
+void set_sg_zero_T (const struct Simulation*const sim, struct Solution_Container_T sol_cont)
+{
+	EXIT_ADD_SUPPORT; UNUSED(sim); UNUSED(sol_cont);
 }
 
 const struct const_Multiarray_R* constructor_xyz_sol_T
@@ -194,21 +206,52 @@ void add_to_flux_imbalance_source_do_nothing_T
 void update_Solution_Container_sol_T
 	(struct Solution_Container_T*const sol_cont, struct Multiarray_T*const sol, const struct Simulation*const sim)
 {
+	const int order_exp = 2;
 	assert(list_is_derived_from("solver",'e',sim));
+	assert(sol_cont->sol->order == sol->order);
+	assert(sol_cont->sol->order == order_exp);
+
 	const char cv_type = sol_cont->cv_type;
 
 	if (cv_type == 'v') {
 		assert(sol_cont->sol->data != NULL);
 
-		sol_cont->sol->extents[0] = sol->extents[0];
-		sol_cont->sol->extents[1] = sol->extents[1];
+		for (int i = 0; i < order_exp; ++i)
+			sol_cont->sol->extents[i] = sol->extents[i];
 		free(sol_cont->sol->data);
 		sol_cont->sol->data = sol->data;
 
 		sol->owns_data = false;
 	} else if (cv_type == 'c') {
 		assert(sol_cont->node_kind == 's');
-		compute_coef_from_val_vs_T(sol_cont->volume,(struct const_Multiarray_T*)sol,sol_cont->sol);
+		compute_coef_from_val_vs(sol_cont->volume,(struct const_Multiarray_T*)sol,sol_cont->sol);
+	} else {
+		EXIT_ERROR("Unsupported: %c\n",cv_type);
+	}
+}
+
+void update_Solution_Container_grad_T
+	(struct Solution_Container_T*const sol_cont, struct Multiarray_T*const grad, const struct Simulation*const sim)
+{
+	const int order_exp = 3;
+	assert(list_is_derived_from("solver",'e',sim));
+	assert(sol_cont->sol->order == grad->order);
+	assert(sol_cont->sol->order == order_exp);
+
+	const char cv_type = sol_cont->cv_type;
+
+	if (cv_type == 'v') {
+		assert(sol_cont->sol->data != NULL);
+
+		for (int i = 0; i < order_exp; ++i)
+			sol_cont->sol->extents[i] = grad->extents[i];
+		free(sol_cont->sol->data);
+		sol_cont->sol->data = grad->data;
+
+		grad->owns_data = false;
+	} else if (cv_type == 'c') {
+		assert(sol_cont->node_kind == 'r');
+		compute_coef_from_val_vg(sol_cont->volume,(struct const_Multiarray_T*)grad,sol_cont->sol);
 	} else {
 		EXIT_ERROR("Unsupported: %c\n",cv_type);
 	}
@@ -226,16 +269,6 @@ const struct const_Multiarray_R* constructor_xyz_vc_interp_T
 	UNUSED(sim);
 	const char op_format = 'd';
 	return constructor_mm_NN1_Operator_const_Multiarray_R(cv0_vg_vc,geom_coef,'C',op_format,geom_coef->order,NULL);
-}
-
-const struct Operator* get_operator__tw0_vt_vc_T (const struct Solver_Volume_T* s_vol)
-{
-	const struct Volume* vol       = (struct Volume*) s_vol;
-	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
-
-	const int p = s_vol->p_ref,
-	          curved = vol->curved;
-	return get_Multiarray_Operator(e->tw0_vt_vc[curved],(ptrdiff_t[]){0,0,p,p});
 }
 
 // Static functions ************************************************************************************************* //
@@ -266,16 +299,19 @@ static void compute_coef_from_val_ff
 static void set_initial_v_sg_coef (struct Simulation* sim)
 {
 	struct Solution_Container_T sol_cont =
-		{ .ce_type = 'v', .cv_type = 'c', .node_kind = 's', .volume = NULL, .face = NULL, .sol = NULL, };
+		{ .ce_type = 'v', .cv_type = 'c', .node_kind = 0, .volume = NULL, .face = NULL, .sol = NULL, };
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
 
-		sol_cont.volume = s_vol;
-		sol_cont.sol = s_vol->sol_coef;
 		struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+		sol_cont.volume = s_vol;
+
+		sol_cont.node_kind = 's';
+		sol_cont.sol       = s_vol->sol_coef;
 		test_case->set_sol(sim,sol_cont);
 
-		sol_cont.sol = s_vol->grad_coef;
+		sol_cont.node_kind = 'r';
+		sol_cont.sol       = s_vol->grad_coef;
 		test_case->set_grad(sim,sol_cont);
 	}
 }
@@ -329,8 +365,6 @@ static const struct const_Multiarray_R* constructor_xyz_v
 	(const struct Simulation* sim, struct Solver_Volume_T* s_vol, const char node_kind)
 {
 UNUSED(sim);
-	assert((node_kind == 's') || (node_kind == 'c'));
-
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
 
@@ -344,10 +378,12 @@ UNUSED(sim);
 	          p_i    = ( curved ? p_o : 1 );
 
 	const struct Operator* cv0_vg_vX = NULL;
-	if (node_kind == 's')
-		cv0_vg_vX = get_Multiarray_Operator(s_e->cv0_vg_vs[curved],(ptrdiff_t[]){0,0,p_o,p_i});
-	else if (node_kind == 'c')
-		cv0_vg_vX = get_Multiarray_Operator(s_e->cv0_vg_vc[curved],(ptrdiff_t[]){0,0,p_o,p_i});
+	switch (node_kind) {
+		case 's': cv0_vg_vX = get_Multiarray_Operator(s_e->cv0_vg_vs[curved],(ptrdiff_t[]){0,0,p_o,p_i}); break;
+		case 'r': cv0_vg_vX = get_Multiarray_Operator(s_e->cv0_vg_vr[curved],(ptrdiff_t[]){0,0,p_o,p_i}); break;
+		case 'c': cv0_vg_vX = get_Multiarray_Operator(s_e->cv0_vg_vc[curved],(ptrdiff_t[]){0,0,p_o,p_i}); break;
+		default: EXIT_ERROR("Unsupported: %c",node_kind); break;
+	}
 
 	const int n_vs = (int)cv0_vg_vX->op_std->ext_0;
 
@@ -397,7 +433,7 @@ static const struct const_Multiarray_R* constructor_xyz_f
 	return (const struct const_Multiarray_R*) xyz_f;
 }
 
-static void compute_coef_from_val_vs_T
+static void compute_coef_from_val_vs
 	(const struct Solver_Volume_T* s_vol, const struct const_Multiarray_T* sol_val, struct Multiarray_T* sol_coef)
 {
 	const char op_format = 'd';
@@ -411,6 +447,22 @@ static void compute_coef_from_val_vs_T
 
 	resize_Multiarray_T(sol_coef,sol_val->order,sol_val->extents);
 	mm_NN1C_Operator_Multiarray_T(vc0_vs_vs,sol_val,sol_coef,op_format,sol_coef->order,NULL,NULL);
+}
+
+static void compute_coef_from_val_vg
+	(const struct Solver_Volume_T* s_vol, const struct const_Multiarray_T* grad_val, struct Multiarray_T* grad_coef)
+{
+	const char op_format = 'd';
+
+	struct Volume* vol = (struct Volume*) s_vol;
+	const struct Solution_Element* s_e = &((struct Solver_Element*)vol->element)->s_e;
+
+	const int p_ref = s_vol->p_ref;
+
+	const struct Operator* vc0_vr_vr = get_Multiarray_Operator(s_e->vc0_vr_vr,(ptrdiff_t[]){0,0,p_ref,p_ref});
+
+	resize_Multiarray_T(grad_coef,grad_val->order,grad_val->extents);
+	mm_NN1C_Operator_Multiarray_T(vc0_vr_vr,grad_val,grad_coef,op_format,grad_coef->order,NULL,NULL);
 }
 
 // Level 1 ********************************************************************************************************** //

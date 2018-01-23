@@ -46,3 +46,9 @@ void add_to_flux_imbalance_source_T
 	 const struct Solver_Volume_T*const s_vol,            ///< \ref Solver_Volume_T.
 	 const struct Simulation*const sim                    ///< \ref Simulation.
 	);
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::tw0_vt_vc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__tw0_vt_vc_T
+	(const struct Solver_Volume_T* s_vol ///< The current volume.
+	);

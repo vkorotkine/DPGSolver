@@ -33,14 +33,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_invalid_T constructor_const_sol_invalid
 #define set_initial_solution_T          set_initial_solution
 #define set_sg_do_nothing_T             set_sg_do_nothing
+#define set_sg_zero_T                   set_sg_zero
 #define constructor_xyz_sol_T           constructor_xyz_sol
 #define compute_coef_from_val_vs_T      compute_coef_from_val_vs
 #define constructor_sol_v_T             constructor_sol_v
 #define compute_source_rhs_do_nothing_T compute_source_rhs_do_nothing
 #define add_to_flux_imbalance_source_do_nothing_T add_to_flux_imbalance_source_do_nothing
 #define update_Solution_Container_sol_T update_Solution_Container_sol
+#define update_Solution_Container_grad_T update_Solution_Container_grad
 #define constructor_xyz_vc_interp_T     constructor_xyz_vc_interp
-#define get_operator__tw0_vt_vc_T       get_operator__tw0_vt_vc
 ///\}
 
 ///\{ \name Function names (pde specific)
@@ -64,14 +65,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_invalid_T constructor_const_sol_invalid_c
 #define set_initial_solution_T          set_initial_solution_c
 #define set_sg_do_nothing_T             set_sg_do_nothing_c
+#define set_sg_zero_T                   set_sg_zero_c
 #define constructor_xyz_sol_T           constructor_xyz_sol_c
 #define compute_coef_from_val_vs_T      compute_coef_from_val_vs_c
 #define constructor_sol_v_T             constructor_sol_v_c
 #define compute_source_rhs_do_nothing_T compute_source_rhs_do_nothing_c
 #define add_to_flux_imbalance_source_do_nothing_T add_to_flux_imbalance_source_do_nothing_c
 #define update_Solution_Container_sol_T update_Solution_Container_sol_c
+#define update_Solution_Container_grad_T update_Solution_Container_grad_c
 #define constructor_xyz_vc_interp_T     constructor_xyz_vc_interp_c
-#define get_operator__tw0_vt_vc_T       get_operator__tw0_vt_vc_c
 ///\}
 
 ///\{ \name Function names (pde specific)

@@ -41,12 +41,7 @@ struct Face {
 
 	const int bc;        ///< The boundary condition associated with the face (if relevant).
 
-	/** \brief Container for information relating to the neighbouring \ref Volume on either side of the \ref Face.
-	 *
-	 *  The information for the first index `neigh_info[0]` relates to the Volume whose outward normal vector on the
-	 *  current face coincides with that stored as part of the Face; this is generally referred to as the left
-	 *  volume.
-	 */
+	/// \brief Container for information relating to the neighbouring \ref Volume on either side of the \ref Face.
 	struct Neigh_Info {
 		/// Local face index in relation to the neighbouring volume.
 		int ind_lf;
@@ -95,7 +90,9 @@ struct Face {
 
 		/// Pointer to the neighbouring \ref Volume. The second pointer is `NULL` for a boundary face.
 		struct Volume *volume;
-	} neigh_info[2]; ///< \ref Neigh_Info.
+	} neigh_info[2]; /**< \ref Neigh_Info. The information for the first index `neigh_info[0]` relates to the Volume
+	                  *   whose outward normal vector on the current face coincides with that stored as part of the
+				*   Face; this is generally referred to as the left volume. */
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

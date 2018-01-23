@@ -132,6 +132,16 @@ void add_to_flux_imbalance_source_T
 	destructor_const_Vector_T(source_integral_sum);
 }
 
+const struct Operator* get_operator__tw0_vt_vc_T (const struct Solver_Volume_T* s_vol)
+{
+	const struct Volume* vol       = (struct Volume*) s_vol;
+	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref,
+	          curved = vol->curved;
+	return get_Multiarray_Operator(e->tw0_vt_vc[curved],(ptrdiff_t[]){0,0,p,p});
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

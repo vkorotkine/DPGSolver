@@ -17,27 +17,28 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "compute_grad_coef_dg.h"
 
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "matrix.h"
+#include "multiarray.h"
+#include "vector.h"
 
-#include "macros.h"
+#include "element_solver_dg.h"
+#include "face_solver_dg.h"
+#include "volume_solver_dg.h"
 
+#include "compute_face_rlhs.h"
+#include "intrusive.h"
+#include "multiarray_operator.h"
+#include "operator.h"
 #include "simulation.h"
+#include "solve.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-void compute_grad_coef_dg (const struct Simulation* sim)
-{
-	struct Test_Case* test_case = (struct Test_Case*) sim->test_case_rc->tc;
-	if (!test_case->has_2nd_order)
-		return;
-
-	EXIT_ADD_SUPPORT;
-}
+#include "def_templates_type_d.h"
+#include "compute_grad_coef_dg_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

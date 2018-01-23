@@ -13,13 +13,20 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templated containers/functions relating to solution for the
- *         diffusion equation (test case: default_steady).
+ *  \brief Provides the macro definitions used for c-style templating related to the gradient coefficient computing
+ *         functions for the dg scheme.
  */
 
-#undef set_sol_diffusion_default_steady_T
-#undef set_grad_diffusion_default_steady_T
-#undef constructor_const_sol_diffusion_default_steady_T
-#undef constructor_const_grad_diffusion_default_steady_T
-#undef compute_source_rhs_diffusion_default_steady_T
-#undef add_to_flux_imbalance_source_diffusion_default_steady_T
+#if TYPE_RC == TYPE_REAL
+
+///\{ \name Function names
+#define compute_grad_coef_dg_T compute_grad_coef_dg
+///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define compute_grad_coef_dg_T compute_grad_coef_dg_c
+///\}
+
+#endif

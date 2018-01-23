@@ -15,9 +15,11 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include <assert.h>
 #include <string.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 #include "definitions_test_case.h"
 
 #include "def_templates_matrix.h"
@@ -44,7 +46,7 @@ static struct Needed_Members set_needed_members
 /** \brief Constructor for the inverse mass matrix of the input volume.
  *  \return See brief. */
 static const struct const_Matrix_R* constructor_inverse_mass
-	(const struct DG_Solver_Volume_T* volume ///< \ref DG_Solver_Volume_T.
+	(const struct DG_Solver_Volume_T* dg_s_vol ///< \ref DG_Solver_Volume_T.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -53,28 +55,43 @@ void constructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr, const st
 {
 	struct Needed_Members needed_members = set_needed_members(sim);
 
-	struct Solver_Volume_T* s_volume  = (struct Solver_Volume_T*) volume_ptr;
-	struct DG_Solver_Volume_T* volume = (struct DG_Solver_Volume_T*) volume_ptr;
+	struct Solver_Volume_T* s_vol       = (struct Solver_Volume_T*) volume_ptr;
+	struct DG_Solver_Volume_T* dg_s_vol = (struct DG_Solver_Volume_T*) volume_ptr;
 
-	const int order = s_volume->sol_coef->order;
-	ptrdiff_t* extents = s_volume->sol_coef->extents;
+	const int order = s_vol->sol_coef->order;
+	ptrdiff_t* extents = s_vol->sol_coef->extents;
 
-	volume->rhs        = constructor_empty_Multiarray_T('C',order,extents); // destructed
-	volume->sol_coef_p =
+	dg_s_vol->rhs        = constructor_empty_Multiarray_T('C',order,extents); // destructed
+	dg_s_vol->sol_coef_p =
 		( needed_members.sol_coef_p ? constructor_empty_Multiarray_T('C',order,extents) : NULL ); // destructed
 
-	volume->m_inv = ( needed_members.m_inv ? constructor_inverse_mass(volume) : NULL ); // destructed
+	dg_s_vol->m_inv = ( needed_members.m_inv ? constructor_inverse_mass(dg_s_vol) : NULL ); // destructed
+
+	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
+	if (test_case->has_2nd_order) {
+		const int order = s_vol->grad_coef->order;
+		ptrdiff_t* extents = s_vol->grad_coef->extents;
+		dg_s_vol->grad_coef_v = constructor_zero_Multiarray_T('C',order,extents); // destructed
+
+		if (test_case->solver_method_curr == 'i') {
+			for (int i = 0; i < DIM; ++i)
+				dg_s_vol->d_g_coef_v__d_s_coef[i] = constructor_empty_const_Matrix_R('R',0,0); // destructed
+		} else {
+			assert(test_case->solver_method_curr == 'e');
+		}
+	}
 }
 
 void destructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr)
 {
-	struct DG_Solver_Volume_T* volume = (struct DG_Solver_Volume_T*) volume_ptr;
+	struct DG_Solver_Volume_T* dg_s_vol = (struct DG_Solver_Volume_T*) volume_ptr;
 
-	destructor_Multiarray_T(volume->rhs);
-	if (volume->sol_coef_p)
-		destructor_Multiarray_T(volume->sol_coef_p);
-	if (volume->m_inv)
-		destructor_const_Matrix_R(volume->m_inv);
+	destructor_Multiarray_T(dg_s_vol->rhs);
+	destructor_conditional_Multiarray_T(dg_s_vol->sol_coef_p);
+	destructor_conditional_const_Matrix_R(dg_s_vol->m_inv);
+	destructor_conditional_Multiarray_T(dg_s_vol->grad_coef_v);
+	for (int i = 0; i < DIM; ++i)
+		destructor_conditional_const_Matrix_R(dg_s_vol->d_g_coef_v__d_s_coef[i]);
 }
 
 // Static functions ************************************************************************************************* //
@@ -104,8 +121,7 @@ static struct Needed_Members set_needed_members (const struct Simulation* sim)
 			needed_members.sol_coef_p = true;
 			break;
 		case SOLVER_E_EULER:
-			// Do nothing
-			break;
+			break; // Do nothing
 		default:
 			EXIT_ERROR("Unsupported: %d\n",test_case->solver_type_e);
 			break;
@@ -119,12 +135,26 @@ static struct Needed_Members set_needed_members (const struct Simulation* sim)
 		break;
 	}
 
+	if (test_case->has_2nd_order) {
+		switch (sim->method) {
+		case METHOD_DG:
+			if (!sim->collocated)
+				needed_members.m_inv = true;
+			break;
+		case METHOD_DPG:
+			break; // Do nothing.
+		default:
+			EXIT_ERROR("Unsupported: %d",sim->method);
+			break;
+		}
+	}
+
 	return needed_members;
 }
 
-static const struct const_Matrix_R* constructor_inverse_mass (const struct DG_Solver_Volume_T* volume)
+static const struct const_Matrix_R* constructor_inverse_mass (const struct DG_Solver_Volume_T* dg_s_vol)
 {
-	const struct const_Matrix_R* m     = constructor_mass((struct Solver_Volume_T*)volume); // destructed
+	const struct const_Matrix_R* m     = constructor_mass((struct Solver_Volume_T*)dg_s_vol); // destructed
 	const struct const_Matrix_R* m_inv = constructor_inverse_const_Matrix_R(m);             // returned
 	destructor_const_Matrix_R(m);
 
