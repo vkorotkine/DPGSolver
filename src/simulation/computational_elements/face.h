@@ -77,6 +77,8 @@ struct Face {
 		 *  	           6 : Indsfh = 1
 		 *  	           7 : Indsfh = 0
 		 *  	           8 : Indsfh = 1
+		 *
+		 *  \todo Delete if unused after 3D adaptation is implemented.
 		 */
 		int ind_sref;
 
@@ -140,6 +142,11 @@ struct Face* constructor_copy_Face
 	(const struct Face*const face_i,    ///< The input \ref Face.
 	 const struct Simulation*const sim, ///< \ref Simulation.
 	 const bool independent_elements    ///< Flag for whether
+	);
+
+/// \brief Swap \ref Face::Neigh_Info for the input face.
+void swap_neigh_info
+	(struct Face*const face ///< \ref Face.
 	);
 
 #endif // DPG__face_h__INCLUDED

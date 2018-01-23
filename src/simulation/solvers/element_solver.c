@@ -219,9 +219,6 @@ static void constructor_derived_Solver_Element_common (struct Element* element_p
 	s_e->w_fc[0] = constructor_operators_w("fcs","fcs","H_1_P_PM1",NULL,e,sim); // destructed
 	s_e->w_fc[1] = constructor_operators_w("fcc","fcc","H_1_P_PM1",NULL,e,sim); // destructed
 
-	const int n_fe = get_number_of_face_elements(e);
-	for (int i = 0; i < n_fe; ++i) {
-		s_e->nc_fc[0] = constructor_operators_nc(i,"fcs","fcs","H_1_P_PM0",sim->p_s_v,e,sim); // destructed
-		s_e->nc_fc[1] = constructor_operators_nc(i,"fcc","fcc","H_1_P_PM0",sim->p_s_v,e,sim); // destructed
-	}
+	s_e->nc_fc[0] = constructor_operators_nc("fcs","fcs","H_1_P_PM0",e,sim); // destructed
+	s_e->nc_fc[1] = constructor_operators_nc("fcc","fcc","H_1_P_PM0",e,sim); // destructed
 }

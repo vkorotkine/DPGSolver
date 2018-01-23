@@ -96,7 +96,7 @@ BUILD$ ctest -V (Enable verbose output from tests)
 |---------------|------------------|--------|
 | Advection     | Default          | DONE   |
 |               | Peterson         | DONE   |
-| Poisson       | Default          | DONE   |
+| Diffusion     | Default          | DONE   |
 | Euler         | PeriodicVortex   | DONE   |
 |               | SupersonicVortex | DONE   |
 |               | InviscidChannel  | DONE   |
@@ -118,7 +118,7 @@ BUILD$ ctest -V (Enable verbose output from tests)
 |---------------|-------------------------|--------|
 | Advection     | Inflow                  | DONE   |
 |               | Outflow                 | DONE   |
-| Poisson       | Dirichlet               | DONE   |
+| Diffusion     | Dirichlet               | DONE   |
 |               | Neumann                 | DONE   |
 | Euler         | Riemann                 | DONE   |
 |               | SlipWall                | DONE   |

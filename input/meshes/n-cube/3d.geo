@@ -100,7 +100,7 @@ If (pde_name == ADVECTION)
 	Else
 		Error("Unsupported geom_adv: %d",geom_adv); Exit;
 	EndIf
-ElseIf (pde_name == POISSON)
+ElseIf (pde_name == DIFFUSION)
 	Physical Surface(bc_base+BC_DIRICHLET) = {4001:4002,5001:5002,6001:6002};
 ElseIf (pde_name == EULER)
 	Physical Point(bc_base+PERIODIC_XL) = {1,3,5,7};

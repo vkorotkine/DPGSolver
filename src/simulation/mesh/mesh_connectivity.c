@@ -589,7 +589,7 @@ static bool check_pfe_boundary (const int bc)
 	switch (bc_base) {
 		case BC_INFLOW: // Advection
 		case BC_OUTFLOW:
-		case BC_DIRICHLET: // Poisson
+		case BC_DIRICHLET: // Diffusion
 		case BC_NEUMANN:
 		case BC_RIEMANN: // Euler
 		case BC_SLIPWALL:

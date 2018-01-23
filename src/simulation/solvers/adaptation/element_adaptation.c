@@ -20,6 +20,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_elements.h"
 #include "definitions_test_case.h"
 
+#include "multiarray.h"
+
 #include "element_operators.h"
 #include "element_operators_tp.h"
 #include "multiarray_operator.h"
@@ -77,6 +79,9 @@ void destructor_derived_Adaptation_Element (struct Element* element_ptr)
 	destructor_Multiarray_Operator_conditional(a_e->cc0_ff_ff);
 
 	destructor_Multiarray_Operator(a_e->vv0_vv_vv);
+
+	if (a_e->nc_ff)
+		destructor_const_Multiarray_Vector_i(a_e->nc_ff);
 }
 
 // Static functions ************************************************************************************************* //
@@ -118,6 +123,7 @@ static void constructor_derived_Adaptation_Element_common (struct Element* eleme
 		break; // Do nothing.
 	case METHOD_DPG:
 		a_e->cc0_ff_ff = constructor_operators("cc0","ffA","ffA","H_ALL_P_PM1",e,sim); // destructed
+		a_e->nc_ff     = constructor_operators_nc("ffA","ffA","H_1_P_PM0",e,sim);      // destructed
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);

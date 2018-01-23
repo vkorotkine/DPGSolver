@@ -226,6 +226,12 @@ static void set_face_adapt_type
 	(struct Adaptive_Solver_Face* a_s_face ///< \ref Adaptive_Solver_Face.
 	);
 
+/** \brief If the dominant volume on the current mesh is changed as a result of the h-adaptation, update required
+ *         members of the current face before adapting. */
+static void swap_dominant_volume_if_necessary
+	(struct Adaptive_Solver_Face* a_s_face ///< \ref Adaptive_Solver_Face.
+	);
+
 /// \brief Project all \ref Solver_Volume_T solution-related data to the p-adaptive volume.
 static void compute_projection_p_volume
 	(struct Adaptive_Solver_Volume* a_s_vol, ///< \ref Adaptive_Solver_Volume.
@@ -283,6 +289,7 @@ static void update_hp_members_faces (const struct Simulation* sim)
 		if (adapt_type == ADAPT_NONE)
 			continue;
 
+		swap_dominant_volume_if_necessary(a_s_face);
 		switch (adapt_type) {
 		case ADAPT_P_REFINE: // fallthrough
 		case ADAPT_P_COARSE:
@@ -420,11 +427,24 @@ static void constructor_faces_h_refine
 	 const struct Simulation*const sim              ///< \ref Simulation.
 	);
 
+/// \brief Constructs the parent of the current faces to be coarsened.
+static void constructor_faces_h_coarse
+	(struct Adaptive_Solver_Face*const a_s_face_c0, ///< Current \ref Adaptive_Solver_Face which will be child_0.
+	 const struct Simulation*const sim              ///< \ref Simulation.
+	);
+
 /** \brief Return the maximum mesh level of any volume associated with the input (i.e. including its children if
  *         present).
  *  \return See brief. */
 int find_maximum_mesh_level
 	(const struct Adaptive_Solver_Volume*const a_s_vol ///< The volume.
+	);
+
+/** \brief Get the pointer to the appropriate \ref Adaptive_Solver_Element::nc_ff \ref const_Vector_T\*.
+ *  \return See brief. */
+const struct const_Vector_i* get_operator__nc_ff
+	(const int side_index_dest,       ///< The side index of the destination.
+	 const struct Solver_Face* s_face ///< \ref Solver_Face_T.
 	);
 
 static void update_volume_p_ref (struct Adaptive_Solver_Volume* a_s_vol, const struct Simulation* sim)
@@ -461,12 +481,12 @@ static void update_volume_h (struct Adaptive_Solver_Volume*const a_s_vol, const 
 	const int adapt_type = a_s_vol->adapt_type;
 	switch (adapt_type) {
 	case ADAPT_H_REFINE:
-		constructor_volumes_h_refine(a_s_vol,sim);
 		assert(ml < sim->ml[1]);
+		constructor_volumes_h_refine(a_s_vol,sim);
 		break;
 	case ADAPT_H_COARSE:
-		EXIT_ADD_SUPPORT;
 		assert(ml > sim->ml[0]);
+		EXIT_ADD_SUPPORT;
 		break;
 	case ADAPT_P_REFINE: // fallthrough
 	case ADAPT_P_COARSE: // fallthrough
@@ -484,12 +504,12 @@ static void update_face_h (struct Adaptive_Solver_Face*const a_s_face, const str
 	const int adapt_type = a_s_face->adapt_type;
 	switch (adapt_type) {
 	case ADAPT_H_REFINE:
-		constructor_faces_h_refine(a_s_face,sim);
 		assert(ml < sim->ml[1]);
+		constructor_faces_h_refine(a_s_face,sim);
 		break;
 	case ADAPT_H_COARSE:
-		EXIT_ADD_SUPPORT;
 		assert(ml > sim->ml[0]);
+		constructor_faces_h_coarse(a_s_face,sim);
 		break;
 	case ADAPT_P_REFINE: // fallthrough
 	case ADAPT_P_COARSE: // fallthrough
@@ -562,14 +582,16 @@ static bool neighbours_were_updated (const struct Adaptive_Solver_Face* a_s_face
 
 static void set_face_adapt_type (struct Adaptive_Solver_Face* a_s_face)
 {
-	const struct Face* face          = (struct Face*) a_s_face;
+	const struct Face* face = (struct Face*) a_s_face;
 
 	const int ind_dom_vol = get_dominant_volume_index(a_s_face);
 	const struct Adaptive_Solver_Volume* a_s_vol_d =
 		(struct Adaptive_Solver_Volume*) face->neigh_info[ind_dom_vol].volume;
 
-	if (!a_s_vol_d->updated)
+	if (!a_s_vol_d->updated) {
 		a_s_face->adapt_type = ADAPT_NONE;
+		return;
+	}
 
 	const int max_ml_d = find_maximum_mesh_level(a_s_vol_d);
 
@@ -585,6 +607,28 @@ static void set_face_adapt_type (struct Adaptive_Solver_Face* a_s_face)
 		a_s_face->adapt_type = ADAPT_H_COARSE;
 	else
 		EXIT_ERROR("Did not find the adaptation type.");
+}
+
+static void swap_dominant_volume_if_necessary (struct Adaptive_Solver_Face* a_s_face)
+{
+	if (get_dominant_volume_index(a_s_face) == 0)
+		return;
+
+	struct Face*const face = (struct Face*) a_s_face;
+	swap_neigh_info(face);
+
+	struct Solver_Face*const s_face = (struct Solver_Face*) a_s_face;
+	// Geometry related parameters need not be reordered as they will not be used before being discarded.
+	if (s_face->nf_coef->extents[0] > 0) {
+		const struct const_Vector_i*const nc_ff = get_operator__nc_ff(1,s_face);
+		permute_Multiarray_d_V(s_face->nf_coef,nc_ff,'R');
+	}
+
+	if (s_face->s_coef->extents[0] > 0) {
+		EXIT_ADD_SUPPORT;
+	}
+
+	EXIT_UNSUPPORTED; // Ensure that all is working as expected.
 }
 
 static void compute_projection_p_volume (struct Adaptive_Solver_Volume* a_s_vol, const struct Simulation* sim)
@@ -747,6 +791,16 @@ static void constructor_faces_h_refine
 	destructor_IL(faces_c,false);
 }
 
+static void constructor_faces_h_coarse
+	(struct Adaptive_Solver_Face*const a_s_face_c0, ///< Current \ref Adaptive_Solver_Face which will be child_0.
+	 const struct Simulation*const sim              ///< \ref Simulation.
+	)
+{
+	// Ensure that all of the faces to become children have the same dominant volume. This is required for L2
+	// projection of any solution members of \ref Solver_Face_T.
+	EXIT_ADD_SUPPORT; UNUSED(a_s_face_c0); UNUSED(sim);
+}
+
 int find_maximum_mesh_level (const struct Adaptive_Solver_Volume*const a_s_vol)
 {
 	if (a_s_vol->child_0) {
@@ -760,6 +814,21 @@ int find_maximum_mesh_level (const struct Adaptive_Solver_Volume*const a_s_vol)
 		assert(a_s_vol->child_0 == NULL);
 		return ((struct Solver_Volume*)a_s_vol)->ml;
 	}
+}
+
+const struct const_Vector_i* get_operator__nc_ff (const int side_index_dest, const struct Solver_Face* s_face)
+{
+	const struct Neigh_Info* neigh_info = &((struct Face*)s_face)->neigh_info[side_index_dest];
+
+	struct Volume* vol = neigh_info->volume;
+	const struct Solver_Element* s_e     = (struct Solver_Element*) vol->element;
+	const struct Adaptation_Element* a_e = &s_e->a_e;
+
+	const int ind_ord = neigh_info->ind_ord,
+	          ind_e   = get_face_element_index((struct Face*)s_face),
+	          p_f     = s_face->p_ref;
+
+	return get_const_Multiarray_Vector_i(a_e->nc_ff,(ptrdiff_t[]){ind_ord,ind_e,ind_e,0,0,p_f,p_f});
 }
 
 // Level 4 ********************************************************************************************************** //
@@ -967,6 +1036,7 @@ static void constructor_Solver_Face_h_ref
 	 const struct Simulation*const sim)
 {
 EXIT_ADD_SUPPORT; UNUSED(s_face); UNUSED(a_s_face_p); UNUSED(sim);
+	// If the dominant volume
 }
 
 // Level 6 ********************************************************************************************************** //

@@ -31,6 +31,8 @@ struct Adaptation_Element {
 	const struct Multiarray_Operator* cc0_ff_ff; ///< See notation in \ref element_operators.h.
 
 	const struct Multiarray_Operator* vv0_vv_vv; ///< See notation in \ref element_operators.h.
+
+	const struct const_Multiarray_Vector_i* nc_ff; ///< Node correspondence for 'f'ace 'f'lux.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

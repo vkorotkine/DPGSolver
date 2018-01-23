@@ -187,16 +187,19 @@ const struct Multiarray_Operator* constructor_operators
 }
 
 const struct const_Multiarray_Vector_i* constructor_operators_nc
-	(const int ind_f_elem, const char*const name_in, const char*const name_out, const char*const name_range,
-	 const int p_ref[2], const struct const_Element* element, const struct Simulation* sim)
+	(const char*const name_in, const char*const name_out, const char*const name_range,
+	 const struct const_Element* element, const struct Simulation* sim)
 {
-UNUSED(p_ref);
+	// This will fail for PYR/WEDGE. Ensure that all is working as expected (that operators are built for both face
+	// element types).
+	assert(get_number_of_face_elements(element) == 1);
+
 	struct Operator_Info* op_info =
 		constructor_Operator_Info("UNUSED0",name_in,name_out,name_range,element,sim); // destructed
 
 	const struct const_Vector_i* e_o = op_info->extents_op;
 
-	const struct const_Element* f_element = element->face_element[ind_f_elem];
+	const struct const_Element* f_element = element->face_element[0];
 	assert(f_element != NULL);
 
 	// Add an additional index for the possible permutations
@@ -447,6 +450,9 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 		break;
 	case 'f': // flux
 		return p_op+sim->p_s_f_p;
+		break;
+	case 'r': // g'r'adient
+		return p_op+sim->p_sg_v_p;
 		break;
 	case 'g': // geometry
 		if (op_sc == 's')
@@ -1098,6 +1104,7 @@ static const struct const_Matrix_d* constructor_cv
 			break;
 		case 's': // fallthrough
 		case 'f': // fallthrough
+		case 'r': // fallthrough
 		case 't':
 			basis_type = get_basis_i_from_s(sim->basis_sol);
 			break;

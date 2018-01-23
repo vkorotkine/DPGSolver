@@ -204,6 +204,31 @@ struct Face* constructor_copy_Face
 	return face;
 }
 
+void swap_neigh_info (struct Face*const face)
+{
+	if (face->boundary)
+		return;
+
+	struct Neigh_Info neigh_info_tmp =
+		{ .ind_lf   = face->neigh_info[0].ind_lf,
+		  .ind_href = face->neigh_info[0].ind_href,
+		  .ind_sref = face->neigh_info[0].ind_sref,
+		  .ind_ord  = face->neigh_info[0].ind_ord,
+		  .volume   = face->neigh_info[0].volume, };
+
+	face->neigh_info[0].ind_lf   = face->neigh_info[1].ind_lf;
+	face->neigh_info[0].ind_href = face->neigh_info[1].ind_href;
+	face->neigh_info[0].ind_sref = face->neigh_info[1].ind_sref;
+	face->neigh_info[0].ind_ord  = face->neigh_info[1].ind_ord;
+	face->neigh_info[0].volume   = face->neigh_info[1].volume;
+
+	face->neigh_info[1].ind_lf   = neigh_info_tmp.ind_lf;
+	face->neigh_info[1].ind_href = neigh_info_tmp.ind_href;
+	face->neigh_info[1].ind_sref = neigh_info_tmp.ind_sref;
+	face->neigh_info[1].ind_ord  = neigh_info_tmp.ind_ord;
+	face->neigh_info[1].volume   = neigh_info_tmp.volume;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
