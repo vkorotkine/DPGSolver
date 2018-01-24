@@ -41,6 +41,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef update_layout_Multiarray_Matrix_T
 
+#undef transpose_Matrix_R
+#undef scale_Matrix_R
 #undef add_in_place_Matrix_R
 #undef permute_Matrix_R_V
 #undef scale_Matrix_R_by_Vector_R

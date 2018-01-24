@@ -46,13 +46,13 @@ void constructor_derived_DG_Solver_Face_T (struct Face* face_ptr, const struct S
 			const int order = s_vol->grad_coef->order;
 			ptrdiff_t* extents = s_vol->grad_coef->extents;
 
-			struct Neigh_Info_DG*const neigh_info = &dg_s_face->neigh_info[i];
-			neigh_info->grad_coef_f = constructor_zero_Multiarray_T('C',order,extents); // destructed
+			struct Neigh_Info_DG*const ni = &dg_s_face->neigh_info[i];
+			ni->grad_coef_f = constructor_zero_Multiarray_T('C',order,extents); // destructed
 
 			if (test_case->solver_method_curr == 'i') {
 				for (int i = 0; i < DIM; ++i) {
-					neigh_info->d_g_coef_f__d_s_coef_L[i] = constructor_empty_const_Matrix_R('R',0,0); // dest.
-					neigh_info->d_g_coef_f__d_s_coef_R[i] = constructor_empty_const_Matrix_R('R',0,0); // dest.
+					ni->d_g_coef_f__d_s_coef[0][i] = constructor_empty_const_Matrix_R('R',0,0); // destructed
+					ni->d_g_coef_f__d_s_coef[1][i] = constructor_empty_const_Matrix_R('R',0,0); // destructed
 				}
 			} else {
 				assert(test_case->solver_method_curr == 'e');
@@ -68,12 +68,12 @@ void destructor_derived_DG_Solver_Face_T (struct Face* face_ptr)
 
 	const int n_neigh = ( face->boundary ? 1 : 2 );
 	for (int i = 0; i < n_neigh; ++i) {
-		struct Neigh_Info_DG*const neigh_info = &dg_s_face->neigh_info[i];
+		struct Neigh_Info_DG*const ni = &dg_s_face->neigh_info[i];
 
-		destructor_conditional_Multiarray_T(neigh_info->grad_coef_f);
+		destructor_conditional_Multiarray_T(ni->grad_coef_f);
 		for (int i = 0; i < DIM; ++i) {
-			destructor_conditional_const_Matrix_R(neigh_info->d_g_coef_f__d_s_coef_L[i]);
-			destructor_conditional_const_Matrix_R(neigh_info->d_g_coef_f__d_s_coef_R[i]);
+			destructor_conditional_const_Matrix_R(ni->d_g_coef_f__d_s_coef[0][i]);
+			destructor_conditional_const_Matrix_R(ni->d_g_coef_f__d_s_coef[1][i]);
 		}
 	}
 }

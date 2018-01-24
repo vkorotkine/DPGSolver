@@ -110,4 +110,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_row_const_Matrix_C   get_row_const_Matrix_c
 #define get_col_Matrix_C         get_col_Matrix_c
 #define get_col_const_Matrix_C   get_col_const_Matrix_c
+
+#define set_block_Matrix_R   set_block_Matrix_d
 ///\}

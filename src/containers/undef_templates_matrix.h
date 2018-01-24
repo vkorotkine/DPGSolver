@@ -63,3 +63,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef get_row_const_Matrix_C
 #undef get_col_Matrix_C
 #undef get_col_const_Matrix_C
+
+#undef set_block_Matrix_R

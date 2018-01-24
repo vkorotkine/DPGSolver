@@ -81,6 +81,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #endif
 
 ///\{ \name Real Data types/Function names
+#define transpose_Matrix_R         transpose_Matrix_d
+#define scale_Matrix_R             scale_Matrix_d
 #define add_in_place_Matrix_R      add_in_place_Matrix_d
 #define permute_Matrix_R_V         permute_Matrix_d_V
 #define scale_Matrix_R_by_Vector_R scale_Matrix_d_by_Vector_d

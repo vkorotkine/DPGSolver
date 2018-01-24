@@ -30,11 +30,14 @@ struct DG_Solver_Face_T {
 	struct Neigh_Info_DG {
 		struct Multiarray_T* grad_coef_f; ///< The face contributions to the solution gradient coefficients.
 
-		/// Linearization of \ref DG_Solver_Face_T::grad_coef_f wrt \ref Solver_Volume_T::sol_coef from the 'L'eft.
-		const struct const_Matrix_R* d_g_coef_f__d_s_coef_L[DIM];
-
-		/// Linearization of \ref DG_Solver_Face_T::grad_coef_f wrt \ref Solver_Volume_T::sol_coef from the 'R'ight.
-		const struct const_Matrix_R* d_g_coef_f__d_s_coef_R[DIM];
+		/** Linearization of \ref DG_Solver_Face_T::grad_coef_f wrt \ref Solver_Volume_T::sol_coef from the 'L'eft
+		 *  (index 0) and 'R'ight (index 1) for all dimensions.
+		 *
+		 *  \note For non-boundary faces, this term is independent of the equation and variable under consideration
+		 *        and a single entry is stored for all combinations. However, for boundary faces, as the boundary
+		 *        values of the ghost state generally depend on all solution variables, all entries are required.
+		 */
+		const struct const_Matrix_R* d_g_coef_f__d_s_coef[2][DIM];
 	} neigh_info[2]; ///< \ref Neigh_Info_DG. Uses the same indexing convention as that of \ref Face::neigh_info.
 };
 

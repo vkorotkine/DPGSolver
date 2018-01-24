@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_boundary.h"
 
+#include "element_solver.h"
 #include "face_solver.h"
 
 #include "compute_face_rlhs.h"

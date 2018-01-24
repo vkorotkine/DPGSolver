@@ -33,10 +33,11 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Function names
-#define constructor_Boundary_Value_Input_face_s_fcl_interp_T constructor_Boundary_Value_Input_face_s_fcl_interp
-#define destructor_Boundary_Value_Input_T                    destructor_Boundary_Value_Input
-#define constructor_Boundary_Value_s_fcl_interp_T            constructor_Boundary_Value_s_fcl_interp
-#define destructor_Boundary_Value_T                          destructor_Boundary_Value
+#define constructor_Boundary_Value_Input_face_s_fcl_interp_T  constructor_Boundary_Value_Input_face_s_fcl_interp
+#define constructor_Boundary_Value_Input_face_sg_fcl_interp_T constructor_Boundary_Value_Input_face_sg_fcl_interp
+#define destructor_Boundary_Value_Input_T                     destructor_Boundary_Value_Input
+#define constructor_Boundary_Value_s_fcl_interp_T             constructor_Boundary_Value_s_fcl_interp
+#define destructor_Boundary_Value_T                           destructor_Boundary_Value
 ///\}
 
 ///\{ \name Function names (pde specific)
@@ -68,10 +69,11 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Function names
-#define constructor_Boundary_Value_Input_face_s_fcl_interp_T constructor_Boundary_Value_Input_c_face_s_fcl_interp
-#define destructor_Boundary_Value_Input_T                    destructor_Boundary_Value_Input_c
-#define constructor_Boundary_Value_s_fcl_interp_T            constructor_Boundary_Value_c_s_fcl_interp
-#define destructor_Boundary_Value_T                          destructor_Boundary_Value_c
+#define constructor_Boundary_Value_Input_face_s_fcl_interp_T  constructor_Boundary_Value_Input_c_face_s_fcl_interp
+#define constructor_Boundary_Value_Input_face_sg_fcl_interp_T constructor_Boundary_Value_Input_c_face_sg_fcl_interp
+#define destructor_Boundary_Value_Input_T                     destructor_Boundary_Value_Input_c
+#define constructor_Boundary_Value_s_fcl_interp_T             constructor_Boundary_Value_c_s_fcl_interp
+#define destructor_Boundary_Value_T                           destructor_Boundary_Value_c
 ///\}
 
 ///\{ \name Function names

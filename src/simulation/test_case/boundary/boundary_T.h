@@ -111,6 +111,16 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 	 const struct Simulation* sim         ///< See brief.
 	);
 
+/** \brief Version of \ref constructor_Boundary_Value_Input_face_fptr_T constructing the solution and solution gradient
+ *         using members from the face and interpolated from the left volume at the face cubature nodes as seen from the
+ *         left volume.
+ *  \return See brief. */
+void constructor_Boundary_Value_Input_face_sg_fcl_interp_T
+	(struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face_T* s_face,  ///< See brief.
+	 const struct Simulation* sim         ///< See brief.
+	);
+
 /// \brief Destructor for a \ref Boundary_Value_Input_T container.
 void destructor_Boundary_Value_Input_T
 	(struct Boundary_Value_Input_T* bv_i ///< Standard.

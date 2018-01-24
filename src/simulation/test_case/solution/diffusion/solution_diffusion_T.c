@@ -63,7 +63,7 @@ void set_function_pointers_solution_diffusion_T (struct Test_Case_T* test_case, 
 
 	set_function_pointers_num_flux(test_case,sim);
 
-	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_s_fcl_interp_T;
+	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_sg_fcl_interp_T;
 }
 
 // Static functions ************************************************************************************************* //
