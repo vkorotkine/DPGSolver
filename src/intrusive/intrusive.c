@@ -188,6 +188,14 @@ struct Intrusive_Link* replace_IL
 	return last;
 }
 
+struct Intrusive_Link* advance_Link (const int n_adv, struct Intrusive_Link* first)
+{
+	struct Intrusive_Link* curr = first;
+	for (int n = 0; n < n_adv; ++n)
+		curr = curr->next;
+	return curr;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

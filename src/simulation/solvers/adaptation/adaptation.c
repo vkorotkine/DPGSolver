@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_adaptation.h"
 #include "definitions_bc.h"
+#include "definitions_elements.h"
 #include "definitions_h_ref.h"
 #include "definitions_intrusive.h"
 #include "definitions_mesh.h"
@@ -957,6 +958,39 @@ static bool is_child_curved
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
+/** \brief Get the index of the child volume associated with the current h-refined face.
+ *  \return See brief. */
+static int get_ind_child
+	(const int ind_h,               ///< The index of the h-refinement of the face.
+	 const int side_index,          ///< The index of the side of the face under consideration.
+	 const struct Face*const face_p ///< The parent \ref Face.
+	);
+
+/** \brief Return the value of \ref Face::ind_lf for \ref the dominant \ref Face::neigh_info for an h-refined face.
+ *  \return See brief. */
+static int get_ind_lf_h_ref
+	(const int side_index,          ///< The index of the side of the face under consideration.
+	 const struct Face*const face_p ///< The parent \ref Face.
+	);
+
+/** \brief Return the value of \ref Face::ind_ord for \ref the dominant \ref Face::neigh_info for an h-refined face.
+ *  \return See brief. */
+static int get_ind_ord_h_ref
+	(const int side_index,          ///< The index of the side of the face under consideration.
+	 const struct Face*const face_p ///< The parent \ref Face.
+	);
+
+/** \brief Get the compound index associated with the current face in relation to its neighbouring volume.
+ *  \return See brief.
+ *
+ *  The compound index provides a unique index associated with each possible face of an element (including all h-refined
+ *  possibilities). */
+static int get_ind_compound
+	(const int ind_h,               ///< The index of the h-refinement of the face.
+	 const int side_index,          ///< The index of the side of the face under consideration.
+	 const struct Face*const face_p ///< The parent \ref Face.
+	);
+
 static void constructor_Volume_h_ref
 	(struct Volume*const vol, const int ind_h, const struct Adaptive_Solver_Volume*const a_s_vol_p,
 	 const struct const_Multiarray_d*const xyz_ve_p2_i, const struct Simulation*const sim)
@@ -1014,8 +1048,39 @@ static void constructor_Face_h_ref
 	const_cast_b(&face->curved,face_p->curved);
 	const_cast_i(&face->bc,face_p->bc);
 
-	// Neigh_Info.
-EXIT_ADD_SUPPORT;
+	const struct Volume*const vol_p_0 = face_p->neigh_info[0].volume;
+	const struct Adaptive_Solver_Volume*const a_s_vol_p_0 = (struct Adaptive_Solver_Volume*) vol_p_0;
+
+	const int ind_child_0 = get_ind_child(ind_h,0,face_p);
+	face->neigh_info[0].ind_lf   = get_ind_lf_h_ref(0,face_p);
+	face->neigh_info[0].ind_href = 0;
+	face->neigh_info[0].ind_sref = -1;
+	face->neigh_info[0].ind_ord  = get_ind_ord_h_ref(0,face_p);
+	face->neigh_info[0].volume   = (struct Volume*) advance_Link(ind_child_0,a_s_vol_p_0->child_0);
+
+	if (!face->boundary) {
+		const struct Solver_Face*const s_face_p               = (struct Solver_Face*) a_s_face_p;
+		const struct Volume*const vol_p_1                     = face_p->neigh_info[1].volume;
+		const struct Adaptive_Solver_Volume*const a_s_vol_p_1 = (struct Adaptive_Solver_Volume*) vol_p_1;
+
+		const int max_ml = find_maximum_mesh_level(a_s_vol_p_1);
+		if (max_ml > s_face_p->ml) { // neighbour is also being h-refined
+			const int ind_child_1 = get_ind_child(ind_h,1,face_p);
+			face->neigh_info[1].ind_lf   = get_ind_lf_h_ref(1,face_p);
+			face->neigh_info[1].ind_href = 0;
+			face->neigh_info[1].ind_sref = -1;
+			face->neigh_info[1].ind_ord  = get_ind_ord_h_ref(1,face_p);
+			face->neigh_info[1].volume   = (struct Volume*) advance_Link(ind_child_1,a_s_vol_p_1->child_0);
+		} else { // neighbour is not being refined
+			const int ind_compound_1 = get_ind_compound(ind_h,1,face_p);
+
+			face->neigh_info[1].ind_lf   = face_p->neigh_info[1].ind_lf,
+			face->neigh_info[1].ind_href = ind_compound_1 % NFREFMAX;
+			face->neigh_info[1].ind_sref = -1;
+			face->neigh_info[1].ind_ord  = get_ind_ord_h_ref(1,face_p);
+			face->neigh_info[1].volume   = face_p->neigh_info[1].volume;
+		}
+	}
 }
 
 static void constructor_Solver_Volume_h_ref
@@ -1127,4 +1192,111 @@ static bool is_child_curved (const struct Volume*const vol, const struct Simulat
 		}
 	}
 	return false;
+}
+
+static int get_ind_child (const int ind_h, const int side_index, const struct Face*const face_p)
+{
+	const int ind_compound = get_ind_compound(ind_h,side_index,face_p);
+	const struct Volume*const vol_p = face_p->neigh_info[side_index].volume;
+
+	int ind_child = -1;
+	switch (vol_p->element->type) {
+	case LINE:
+		switch (ind_compound) {
+		case H_POINT1_V0+1:
+			ind_child = H_LINE2_V0; break;
+		case NFREFMAX+H_POINT1_V0+1:
+			ind_child = H_LINE2_V1; break;
+		default:
+			EXIT_ERROR("Unsupported: %d",ind_compound);
+			break;
+		}
+		break;
+	case TRI:
+		switch (ind_compound) {
+		case 1*NFREFMAX+H_LINE2_V0: // fallthrough
+		case 2*NFREFMAX+H_LINE2_V0:
+			ind_child = H_TRI4_V0; break;
+		case 0*NFREFMAX+H_LINE2_V0: // fallthrough
+		case 2*NFREFMAX+H_LINE2_V1:
+			ind_child = H_TRI4_V1; break;
+		case 0*NFREFMAX+H_LINE2_V1: // fallthrough
+		case 1*NFREFMAX+H_LINE2_V1:
+			ind_child = H_TRI4_V2; break;
+		default:
+			EXIT_ERROR("Unsupported: %d",ind_compound);
+			break;
+		}
+		break;
+	case QUAD:
+		EXIT_ADD_SUPPORT;
+	default:
+		EXIT_ERROR("Unsupported: %d",vol_p->element->type);
+		break;
+	}
+	return ind_child-1;
+}
+
+static int get_ind_lf_h_ref (const int side_index, const struct Face*const face_p)
+{
+	const struct Volume*const vol_p = face_p->neigh_info[side_index].volume;
+	switch (vol_p->element->type) {
+	case LINE: // fallthrough
+	case TRI:  // fallthrough
+	case QUAD:
+		return face_p->neigh_info[side_index].ind_lf;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d",vol_p->element->type);
+		break;
+	}
+}
+
+static int get_ind_ord_h_ref (const int side_index, const struct Face*const face_p)
+{
+	const struct Volume*const vol_p = face_p->neigh_info[side_index].volume;
+	switch (vol_p->element->type) {
+	case LINE: // fallthrough
+	case TRI:  // fallthrough
+	case QUAD:
+		return face_p->neigh_info[side_index].ind_ord;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d",vol_p->element->type);
+		break;
+	}
+}
+
+static int get_ind_compound (const int ind_h, const int side_index, const struct Face*const face_p)
+{
+	const int ind_lf      = face_p->neigh_info[side_index].ind_lf,
+	          ind_ord     = get_ind_ord_h_ref(side_index,face_p),
+		  face_e_type = face_p->element->type;
+
+	const int base = ind_lf*NFREFMAX;
+	if (ind_ord == 0 || ind_ord == -1)
+		return base + ind_h;
+
+	int ind_f_ref = -1;
+	switch (face_e_type) {
+	case POINT:
+		EXIT_ERROR("Should not have made it here. ind_ord: %d",ind_ord);
+		break;
+	case LINE:
+		assert(ind_ord == 1);
+		switch (ind_h) {
+			case H_LINE2_V0: ind_f_ref = H_LINE2_V1; break;
+			case H_LINE2_V1: ind_f_ref = H_LINE2_V0; break;
+			default: EXIT_ERROR("Unsupported: %d",ind_h); break;
+		}
+		break;
+	case TRI:
+		EXIT_ADD_SUPPORT;
+	case QUAD:
+		EXIT_ADD_SUPPORT;
+	default:
+		EXIT_ERROR("Unsupported: %d",face_e_type);
+		break;
+	}
+	return base + ind_f_ref;
 }

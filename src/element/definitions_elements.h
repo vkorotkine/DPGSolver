@@ -58,7 +58,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NEMAX           12 ///< (MAX)imum (N)umber of (E)dges.                                 "HEX"
 #define NFMAX           6  ///< (MAX)imum (N)umber of (F)aces.                                 "HEX"
 #define NFVEMAX         4  ///< (MAX)imum (N)unber of (F)ace (VE)rtices.                       "QUAD"
-#define NFREFMAX        9  ///< (MAX)imum (N)umber of (F)ACE (REF)inements.                    "QUAD"
+#define NFREFMAX        5  ///< (MAX)imum (N)umber of (F)ACE (REF)inements.                    "QUAD"
 #define NSUBFMAX        4  ///< (MAX)imum (N)umber of h-adaptive (SUB)-(F)aces (on each FACE). "QUAD/TRI (Isotropic)"
 ///\}
 

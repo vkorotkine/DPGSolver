@@ -158,6 +158,7 @@ static void compute_grad_coef_faces (const struct Simulation*const sim)
 		const struct Test_Case_T*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
 		Real sol_scale = get_sol_scale(0,0,test_case->ind_num_flux[1]);
 UNUSED(sol_scale);
+UNUSED(tw0_vt_fc);
 
 		if (!face->boundary) {
 			tw0_vt_fc[1] = get_operator__tw0_vt_fc_T(1,s_face);

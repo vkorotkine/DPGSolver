@@ -159,4 +159,11 @@ struct Intrusive_Link* replace_IL
 	 struct Intrusive_Link*const first   ///< The first link of the new sub-list.
 	);
 
+/** \brief Return the \ref Intrusive_Link `n_adv` links down from the input link.
+ *  \return See brief. */
+struct Intrusive_Link* advance_Link
+	(const int n_adv,             ///< The number of links to advance.
+	 struct Intrusive_Link* first ///< The first link.
+	);
+
 #endif // DPG__Intrusive_h__INCLUDED

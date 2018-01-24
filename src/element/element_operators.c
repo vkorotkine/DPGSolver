@@ -549,6 +549,7 @@ bool op_should_use_L2 (const int*const op_values, const struct Op_IO* op_io)
 			break;
 		case 's': // fallthrough
 		case 'f': // fallthrough
+		case 'r': // fallthrough
 		case 'p': // fallthrough
 		case 'g':
 			return true;
