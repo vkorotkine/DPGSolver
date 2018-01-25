@@ -47,6 +47,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_inverse_Vector_T                  constructor_inverse_Vector_d
 #define constructor_inverse_const_Vector_T            constructor_inverse_const_Vector_d
 #define constructor_dot_mult_const_Vector_T           constructor_dot_mult_const_Vector_d
+#define constructor_sum_Vectors_Vector_T              constructor_sum_Vectors_Vector_d
+#define constructor_sum_Vectors_const_Vector_T        constructor_sum_Vectors_const_Vector_d
 #define constructor_sum_Vector_T_const_Matrix_T       constructor_sum_Vector_d_const_Matrix_d
 #define constructor_sum_const_Vector_T_const_Matrix_T constructor_sum_const_Vector_d_const_Matrix_d
 #define constructor_mv_Vector_T                       constructor_mv_Vector_d
@@ -93,6 +95,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_inverse_Vector_T                  constructor_inverse_Vector_c
 #define constructor_inverse_const_Vector_T            constructor_inverse_const_Vector_c
 #define constructor_dot_mult_const_Vector_T           constructor_dot_mult_const_Vector_c
+#define constructor_sum_Vectors_Vector_T              constructor_sum_Vectors_Vector_c
+#define constructor_sum_Vectors_const_Vector_T        constructor_sum_Vectors_const_Vector_c
 #define constructor_sum_Vector_T_const_Matrix_T       constructor_sum_Vector_c_const_Matrix_c
 #define constructor_sum_const_Vector_T_const_Matrix_T constructor_sum_const_Vector_c_const_Matrix_c
 #define constructor_mv_Vector_T                       constructor_mv_Vector_c

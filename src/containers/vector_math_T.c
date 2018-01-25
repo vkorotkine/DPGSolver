@@ -32,6 +32,13 @@ void invert_Vector_T (struct Vector_T* a)
 	}
 }
 
+void add_val_to_Vector_T (struct Vector_T*const a, const Type val)
+{
+	const ptrdiff_t ext_0 = a->ext_0;
+	for (ptrdiff_t i = 0; i < ext_0; ++i)
+		a->data[i] += val;
+}
+
 void add_to_Vector_T_T (struct Vector_T* a, const Type* b)
 {
 	const ptrdiff_t ext_0 = a->ext_0;
@@ -67,6 +74,17 @@ Type dot_product_Vector_RT (const Type alpha, const struct const_Vector_R*const 
 		out += a->data[i]*b->data[i];
 
 	return alpha*out;
+}
+
+void dot_mult_Vector_T
+	(const Type alpha, const struct const_Vector_T*const a, const struct const_Vector_T*const b,
+	 struct Vector_T*const c)
+{
+	const ptrdiff_t ext_0 = a->ext_0;
+	assert(ext_0 == b->ext_0);
+	assert(ext_0 == c->ext_0);
+	for (int i = 0; i < ext_0; ++i)
+		c->data[i] = alpha*(a->data[i])*(b->data[i]);
 }
 
 // Static functions ************************************************************************************************* //

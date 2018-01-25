@@ -55,6 +55,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define const_constructor_move_Multiarray_Vector_T       const_constructor_move_Multiarray_Vector_d
 #define const_constructor_move_Multiarray_Matrix_T       const_constructor_move_Multiarray_Matrix_d
 
+#define constructor_sum_Multiarrays_Multiarray_T             constructor_sum_Multiarrays_Multiarray_d
+#define constructor_sum_Multiarrays_const_Multiarray_T       constructor_sum_Multiarrays_const_Multiarray_d
 #define constructor_MaM1_V_const_Multiarray_T                constructor_MaM1_V_const_Multiarray_d
 #define set_Multiarray_Matrix_from_Multiarray_Matrix_T       set_Multiarray_Matrix_from_Multiarray_Matrix_d
 #define set_const_Multiarray_Matrix_from_Multiarray_Matrix_T set_const_Multiarray_Matrix_from_Multiarray_Matrix_d
@@ -114,6 +116,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define const_constructor_move_Multiarray_Vector_T       const_constructor_move_Multiarray_Vector_c
 #define const_constructor_move_Multiarray_Matrix_T       const_constructor_move_Multiarray_Matrix_c
 
+#define constructor_sum_Multiarrays_Multiarray_T             constructor_sum_Multiarrays_Multiarray_c
+#define constructor_sum_Multiarrays_const_Multiarray_T       constructor_sum_Multiarrays_const_Multiarray_c
 #define constructor_MaM1_V_const_Multiarray_T                constructor_MaM1_V_const_Multiarray_c
 #define set_Multiarray_Matrix_from_Multiarray_Matrix_T       set_Multiarray_Matrix_from_Multiarray_Matrix_c
 #define set_const_Multiarray_Matrix_from_Multiarray_Matrix_T set_const_Multiarray_Matrix_from_Multiarray_Matrix_c

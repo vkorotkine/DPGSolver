@@ -20,20 +20,24 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define invert_Vector_T       invert_Vector_d
+#define add_val_to_Vector_T   add_val_to_Vector_d
 #define add_to_Vector_T_T     add_to_Vector_d_d
 #define add_to_Vector_T       add_to_Vector_d
 #define dot_product_Vector_T  dot_product_Vector_d
 #define dot_product_Vector_RT dot_product_Vector_dd
+#define dot_mult_Vector_T     dot_mult_Vector_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define invert_Vector_T       invert_Vector_c
+#define add_val_to_Vector_T   add_val_to_Vector_c
 #define add_to_Vector_T_T     add_to_Vector_c_c
 #define add_to_Vector_T       add_to_Vector_c
 #define dot_product_Vector_T  dot_product_Vector_c
 #define dot_product_Vector_RT dot_product_Vector_cd
+#define dot_mult_Vector_T     dot_mult_Vector_c
 ///\}
 
 #endif

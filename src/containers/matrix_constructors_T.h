@@ -147,7 +147,7 @@ const struct const_Matrix_T* constructor_move_const_Matrix_T_T
 	 const ptrdiff_t ext_0,  ///< Defined for \ref constructor_move_Matrix_T_T.
 	 const ptrdiff_t ext_1,  ///< Defined for \ref constructor_move_Matrix_T_T.
 	 const bool owns_data,   ///< Defined for \ref constructor_move_Matrix_T_T.
-	 const Type*const data ///< Defined for \ref constructor_move_Matrix_T_T.
+	 const Type*const data   ///< Defined for \ref constructor_move_Matrix_T_T.
 	);
 
 /// \brief Move Constructor for a `const` \ref const_Matrix_T `*const` from a \ref Matrix_T\*.

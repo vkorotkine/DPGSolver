@@ -311,6 +311,24 @@ void const_constructor_move_Multiarray_Matrix_T
 
 // Special constructors ********************************************************************************************* //
 
+/** \brief Constructs a \ref Multiarray_T\* as the sum of the entries of the two inputs scaled by the input constants.
+ *  \return See brief. */
+struct Multiarray_T* constructor_sum_Multiarrays_Multiarray_T
+	(const Type alpha_0,              ///< The 1st scaling constant.
+	 struct Multiarray_T*const src_0, ///< The 1st source multiarray.
+	 const Type alpha_1,              ///< The 2nd scaling constant.
+	 struct Multiarray_T*const src_1  ///< The 2nd source multiarray.
+	);
+
+/** \brief `const` version of \ref constructor_sum_Multiarrays_Multiarray_T.
+ *  \return See brief. */
+const struct const_Multiarray_T* constructor_sum_Multiarrays_const_Multiarray_T
+	(const Type alpha_0,                          ///< See brief.
+	 const struct const_Multiarray_T*const src_0, ///< See brief.
+	 const Type alpha_1,                          ///< See brief.
+	 const struct const_Multiarray_T*const src_1  ///< See brief.
+	);
+
 /** \brief Constructor for a \ref const_Multiarray_T\* **of order 2** from the matrix-vector multiplications of the
  *         matrices of `A` with the vector `b`.
  *  \return See brief.

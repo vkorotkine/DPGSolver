@@ -182,6 +182,24 @@ const struct const_Vector_T* constructor_dot_mult_const_Vector_T
 	 const int n_repeated            ///< The number of times the sub-vector should be repeated.
 	);
 
+/** \brief Constructs a \ref Vector_T\* as the sum of the entries of the two inputs scaled by the input constants.
+ *  \return See brief. */
+struct Vector_T* constructor_sum_Vectors_Vector_T
+	(const Type alpha_0,          ///< The 1st scaling constant.
+	 struct Vector_T*const src_0, ///< The 1st source vector.
+	 const Type alpha_1,          ///< The 2nd scaling constant.
+	 struct Vector_T*const src_1  ///< The 2nd source vector.
+	);
+
+/** \brief `const` version of \ref constructor_sum_Vectors_Vector_T.
+ *  \return See brief. */
+const struct const_Vector_T* constructor_sum_Vectors_const_Vector_T
+	(const Type alpha_0,                      ///< See brief.
+	 const struct const_Vector_T*const src_0, ///< See brief.
+	 const Type alpha_1,                      ///< See brief.
+	 const struct const_Vector_T*const src_1  ///< See brief.
+	);
+
 /** \brief Constructs a \ref Vector_T\* as the sum of the rows/columns of the input Matrix in the specified direction.
  *  \return Standard. */
 struct Vector_T* constructor_sum_Vector_T_const_Matrix_T

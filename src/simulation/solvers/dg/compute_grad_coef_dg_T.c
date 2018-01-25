@@ -86,27 +86,72 @@ static const struct const_Matrix_R* constructor_grad_xyz_p
 	 const struct const_Multiarray_R*const metrics    ///< The metric terms.
 	);
 
-/** \brief Constructor for the \ref DG_Solver_Face_T d_g_coef_f__d_s_coef term associated with the current side and
- *         solution indices for 'i'nternal faces.
+/// \brief Exit with an error if the numerical solution is not central for the current \ref Test_Cast_T::ind_num_flux.
+static void assert_numerical_solution_is_central
+	(const int ind_num_flux_2nd ///< \ref Test_Cast_T::ind_num_flux.
+	);
+
+/** \brief Constructor for the difference of numerical solution and interpolated solution from the left volume at the
+ *         face cubature nodes.
+ *  \return See brief. */
+static const struct const_Matrix_T* constructor_diff_s_num_s
+	(const int ind_num_flux_2nd,                    ///< Defined for \ref compute_d_g_coef_f__d_s_coef_i.
+	 const struct DG_Solver_Face_T*const dg_s_face, ///< \ref DG_Solver_Face_T.
+	 const struct Simulation*const sim              ///< \ref Simulation.
+	);
+
+/** \brief Constructor for \ref const_Matrix_T\*s holding the Jacobian determinant, normal and solution difference
+ *         terms.
+ *  \return See brief. */
+static const struct const_Matrix_T*const* constructor_jdet_n_diff_fc
+	(const struct const_Matrix_R*const jdet_n_fc,   ///< Jacobian det. dot multiplied with normal vector terms.
+	 const struct const_Matrix_T*const diff_s_num_s ///< Return from \ref constructor_diff_s_num_s.
+	);
+
+/// \brief Destructor for \ref constructor_jdet_n_diff_fc.
+static void destructor_jdet_n_diff_fc
+	(const struct const_Matrix_T*const* jdet_n_diff_fc ///< Standard.
+	);
+
+/** \brief Computes the \ref DG_Solver_Face_T::Neigh_Info_DG::d_g_coef_f__d_s_coef term associated with the current side
+ *         for 'i'nternal faces.
  *
- *  The `side_index` input determines the \ref DG_Solver_Face::neigh_info, while the `sol_index` input
- *  determines the \ref Neigh_Info_DG::d_g_coef_f__d_s_coef.
+ *  The `side_index` input determines the \ref DG_Solver_Face::neigh_info.
  */
-static void constructor_d_g_coef_f__d_s_coef_i
+static void compute_d_g_coef_f__d_s_coef_i
 	(const int side_index,                        ///< Defined for \ref get_sol_scale.
-	 const int sol_index,                         ///< Defined for \ref get_sol_scale.
 	 const int ind_num_flux_2nd,                  ///< Defined for \ref get_sol_scale.
 	 const struct const_Matrix_R*const jdet_n_fc, ///< Jacobian determinant dotted with normals at fc nodes.
 	 struct DG_Solver_Face_T*const dg_s_face,     ///< \ref DG_Solver_Face_T.
 	 const bool collocated                        ///< \ref Simulation::collocated.
 	);
 
-/// \brief Constructor for the \ref DG_Solver_Face_T d_g_coef_f__d_s_coef term for 'b'oundary faces.
-static void constructor_d_g_coef_f__d_s_coef_b
-	(const int ind_num_flux_2nd,                  ///< Defined for \ref constructor_d_g_coef_f__d_s_coef_i.
-	 const struct const_Matrix_R*const jdet_n_fc, ///< Defined for \ref constructor_d_g_coef_f__d_s_coef_i.
-	 struct DG_Solver_Face_T*const dg_s_face,     ///< Defined for \ref constructor_d_g_coef_f__d_s_coef_i.
+/** \brief Computes the \ref DG_Solver_Face_T::Neigh_Info_DG::g_coef_f term associated with the current side using the
+ *         associated linearization terms.
+ *
+ *  \warning It is assumed that the gradients are linear wrt to the solution in this function.
+ */
+static void compute_g_coef_f_i_using_lin
+	(const int side_index,                   ///< The index of the side under consideration.
+	 struct DG_Solver_Face_T*const dg_s_face ///< \ref DG_Solver_Face_T.
+	);
+
+/** \brief Computes gradient-related members from \ref DG_Solver_Face_T for boundary faces.
+ *
+ *  The following members are computed:
+ *  - DG_Solver_Face_T::Neigh_Info_DG::grad_coef_f;
+ *  - DG_Solver_Face_T::Neigh_Info_DG::d_g_coef_f__d_s_coef (side_index = 0, sol_index = 0 only).
+ */
+static void compute_g_coef_related_boundary
+	(const int ind_num_flux_2nd,                  ///< Defined for \ref compute_d_g_coef_f__d_s_coef_i.
+	 const struct const_Matrix_R*const jdet_n_fc, ///< Defined for \ref compute_d_g_coef_f__d_s_coef_i.
+	 struct DG_Solver_Face_T*const dg_s_face,     ///< Defined for \ref compute_d_g_coef_f__d_s_coef_i.
 	 const struct Simulation*const sim            ///< \ref Simulation.
+	);
+
+/// \brief Add the \ref DG_Solver_Face_T::Neigh_Info_DG::g_coef_f contributions to \ref Solver_Volume_T::grad_coef.
+static void add_face_grad_coef_f_to_volumes
+	(const struct DG_Solver_Face_T*const dg_s_face ///< \ref DG_Solver_Face_T.
 	);
 
 static void compute_grad_coef_volumes (const struct Simulation*const sim)
@@ -174,28 +219,67 @@ static void compute_grad_coef_faces (const struct Simulation*const sim)
 		const struct Test_Case_T*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
 		const int ind_num_flux = test_case->ind_num_flux[1];
 		if (!face->boundary) {
-			const bool coll = sim->collocated;
-			constructor_d_g_coef_f__d_s_coef_i(0,0,ind_num_flux,(struct const_Matrix_R*)jdet_n_fc,dg_s_face,coll);
-			constructor_d_g_coef_f__d_s_coef_i(0,1,ind_num_flux,(struct const_Matrix_R*)jdet_n_fc,dg_s_face,coll);
+			switch (test_case->solver_method_curr) {
+			case 'e': {
+				const struct const_Matrix_T*const diff_s_num_s =
+					constructor_diff_s_num_s(ind_num_flux,dg_s_face,sim); // destructed
 
-			// Permute rows and negate such that the normals are interpreted as having the opposite volume be
-			// dominant.
-			transpose_Matrix_R(jdet_n_fc,true);
-			assert(jdet_n_fc->layout == 'R');
-			permute_Matrix_T_V(jdet_n_fc,get_operator__nc_fc_T(0,s_face));
-			transpose_Matrix_R(jdet_n_fc,true);
+				const struct const_Matrix_T*const*const jdet_n_diff_fc =
+					constructor_jdet_n_diff_fc((struct const_Matrix_R*)jdet_n_fc,diff_s_num_s); // destructed
 
-			scale_Matrix_R(jdet_n_fc,-1.0);
+				// Assuming that the numerical solution is central, s_num - s_r == -(s_num - s_l) with
+				// permutation. Noting that the normal is also negated when viewing from the opposite volume,
+				// the "-ve" sign from the normal vector is used to cancel the "-ve" sign above and thus neither
+				// negation is added below. All that is required is then to reorder the jacobian, normal and
+				// numerical solution difference terms as if they are seen from the opposite volume.
+				assert_numerical_solution_is_central(ind_num_flux);
 
-			constructor_d_g_coef_f__d_s_coef_i(1,0,ind_num_flux,(struct const_Matrix_R*)jdet_n_fc,dg_s_face,coll);
-			constructor_d_g_coef_f__d_s_coef_i(1,1,ind_num_flux,(struct const_Matrix_R*)jdet_n_fc,dg_s_face,coll);
 
-EXIT_ADD_SUPPORT; // Compute the grad_coef_f terms (note linear in left/right solutions).
+				destructor_jdet_n_diff_fc(jdet_n_diff_fc);
+// for each dimension:
+//	multiply by jdet_n_fc
+//	m_inv_tw0_vt_fc
+//
+// swap jdet_n_fc, s_num
+// construct s_num-s_r
+// for each dimension:
+//	multiply by jdet_n_fc
+//	m_inv_tw0_vt_fc
+
+// If assuming a central numerical solution, s_num - s_l == 0.5*(-s_l + s_r) == -(s_num - s_r). Can remove both
+// negations.
+				EXIT_ADD_SUPPORT;
+				/* The procedure used below is inefficient for explicit solver methods. It would be more
+				 * efficient to compute the gradient values at the face cubature nodes, then dot multiply by the
+				 * Jacobian and normal vectors, then multiply by the inverse mass and test operators on the
+				 * left. This would save one matrix-matrix multiplication. */
+				break;
+			} case 'i': {
+				const bool coll = sim->collocated;
+				compute_d_g_coef_f__d_s_coef_i(0,ind_num_flux,(struct const_Matrix_R*)jdet_n_fc,dg_s_face,coll);
+
+				// Permute rows and negate such that the normals are interpreted as having the opposite volume
+				// be dominant.
+				transpose_Matrix_R(jdet_n_fc,true);
+				assert(jdet_n_fc->layout == 'R');
+				permute_Matrix_T_V(jdet_n_fc,get_operator__nc_fc_T(0,s_face));
+				transpose_Matrix_R(jdet_n_fc,true);
+
+				scale_Matrix_R(jdet_n_fc,-1.0);
+
+				compute_d_g_coef_f__d_s_coef_i(1,ind_num_flux,(struct const_Matrix_R*)jdet_n_fc,dg_s_face,coll);
+
+				compute_g_coef_f_i_using_lin(0,dg_s_face);
+				compute_g_coef_f_i_using_lin(1,dg_s_face);
+				break;
+			} default:
+				EXIT_ERROR("Unsupported: %c.",test_case->solver_method_curr);
+				break;
+			}
 		} else {
-			constructor_d_g_coef_f__d_s_coef_b(ind_num_flux,(struct const_Matrix_R*)jdet_n_fc,dg_s_face,sim);
-EXIT_ADD_SUPPORT; // Compute the grad_coef_f term (likely as part of the function above).
+			compute_g_coef_related_boundary(ind_num_flux,(struct const_Matrix_R*)jdet_n_fc,dg_s_face,sim);
 		}
-
+		add_face_grad_coef_f_to_volumes(dg_s_face);
 		destructor_Matrix_R(jdet_n_fc);
 	}
 }
@@ -256,47 +340,142 @@ static const struct const_Matrix_R* constructor_grad_xyz_p
 	return (struct const_Matrix_R*) grad_xyz;
 }
 
-static void constructor_d_g_coef_f__d_s_coef_i
-	(const int side_index, const int sol_index, const int ind_num_flux_2nd,
-	 const struct const_Matrix_R*const jdet_n_fc, struct DG_Solver_Face_T*const dg_s_face, const bool collocated)
+
+static void assert_numerical_solution_is_central (const int ind_num_flux_2nd)
+{
+	switch (ind_num_flux_2nd) {
+	case NUM_FLUX_BR2_STABLE: // fallthrough
+	case NUM_FLUX_CDG2:
+		break; // OK (do nothing)
+	default:
+		EXIT_ERROR("Central numerical solution **required** by the current implementation. (input: %d).",
+		           ind_num_flux_2nd);
+		break;
+	}
+}
+
+static const struct const_Matrix_T* constructor_diff_s_num_s
+	(const int ind_num_flux_2nd, const struct DG_Solver_Face_T*const dg_s_face, const struct Simulation*const sim)
+{
+	const int side_index = 0;
+	const struct Solver_Face_T*const s_face = (struct Solver_Face_T*) dg_s_face;
+
+	struct Numerical_Flux_Input_T*const num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
+	constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed
+
+	const struct Boundary_Value_Input_T*const bv_i = &num_flux_i->bv_l;
+	const struct Boundary_Value_T*const bv         = &num_flux_i->bv_r;
+
+	const Real scale[] = { get_sol_scale(side_index,0,ind_num_flux_2nd),
+	                       get_sol_scale(side_index,1,ind_num_flux_2nd), };
+
+	const struct const_Multiarray_T*const diff =
+		constructor_sum_Multiarrays_const_Multiarray_T(scale[0],bv_i->s,scale[1],bv->s); // destructed/moved
+
+	assert(diff->order == 2);
+	const struct const_Matrix_T* diff_s_num_s =
+		constructor_move_const_Matrix_T_T(diff->layout,diff->extents[0],diff->extents[1],true,diff->data); // rtrnd
+
+	const_cast_b(&diff_s_num_s->owns_data,false);
+	destructor_const_Multiarray_T(diff);
+
+	return diff_s_num_s;
+}
+
+static const struct const_Matrix_T*const* constructor_jdet_n_diff_fc
+	(const struct const_Matrix_R*const jdet_n_fc, const struct const_Matrix_T*const diff_s_num_s)
+{
+	const struct const_Vector_R*const jn_fc_V = get_jn_fc_V(jdet_n_fc);
+
+	const struct const_Matrix_T** jdet_n_diff_fc = malloc(DIM * sizeof *jdet_n_diff_fc); // free
+	for (int d = 0; d < DIM; ++d)
+		jdet_n_diff_fc[d] = constructor_mm_diag_const_Matrix_T(1.0,diff_s_num_s,&jn_fc_V[d],'L',false); // dest.
+
+	return jdet_n_diff_fc;
+}
+
+static void destructor_jdet_n_diff_fc (const struct const_Matrix_T*const* jdet_n_diff_fc)
+{
+	for (int d = 0; d < DIM; ++d)
+		destructor_const_Matrix_T(jdet_n_diff_fc[d]);
+	free((void*)jdet_n_diff_fc);
+}
+
+static void compute_d_g_coef_f__d_s_coef_i
+	(const int side_index, const int ind_num_flux_2nd, const struct const_Matrix_R*const jdet_n_fc,
+	 struct DG_Solver_Face_T*const dg_s_face, const bool collocated)
 {
 	const struct Face*const face            = (struct Face*) dg_s_face;
 	const struct Solver_Face_T*const s_face = (struct Solver_Face_T*) dg_s_face;
 
 	assert(!face->boundary);
 
-	const struct Operator* cv0_vs_fc_op = get_operator__cv0_vs_fc_T(sol_index,s_face);
-	const struct const_Matrix_R* cv0_vs_fc = NULL;
-	if (side_index == sol_index) {
-		cv0_vs_fc = cv0_vs_fc_op->op_std;
-	} else {
-		const struct const_Vector_i* nc_fc = get_operator__nc_fc_T(sol_index,s_face);
-		cv0_vs_fc = constructor_copy_permute_const_Matrix_R(cv0_vs_fc_op->op_std,nc_fc,'R'); // destructed
-	}
+	struct Neigh_Info_DG*const neigh_info = &dg_s_face->neigh_info[side_index];
 
 	const struct const_Matrix_R*const m_inv_tw0_vt_fc =
 		constructor_m_inv_tw0_vt_fc(side_index,dg_s_face,collocated); // destructed
 	const struct const_Vector_R*const jn_fc_V = get_jn_fc_V(jdet_n_fc);
 
-	struct Neigh_Info_DG*const neigh_info = &dg_s_face->neigh_info[side_index];
+	for (int sol_index = 0; sol_index < 2; ++sol_index) {
+		const struct Operator* cv0_vs_fc_op = get_operator__cv0_vs_fc_T(sol_index,s_face);
+		const struct const_Matrix_R* cv0_vs_fc = NULL;
+		if (side_index == sol_index) {
+			cv0_vs_fc = cv0_vs_fc_op->op_std;
+		} else {
+			const struct const_Vector_i* nc_fc = get_operator__nc_fc_T(sol_index,s_face);
+			cv0_vs_fc = constructor_copy_permute_const_Matrix_R(cv0_vs_fc_op->op_std,nc_fc,'R'); // destructed
+		}
+		struct Matrix_R*const right = constructor_empty_Matrix_R('R',cv0_vs_fc->ext_0,cv0_vs_fc->ext_1); // dest.
 
-	Real sol_scale = get_sol_scale(side_index,sol_index,ind_num_flux_2nd);
-	for (int d = 0; d < DIM; ++d) {
-		const struct const_Matrix_R*const right =
-			constructor_mm_diag_const_Matrix_R(sol_scale,cv0_vs_fc,&jn_fc_V[d],'L',false); // destructed
+		const Real sol_scale = get_sol_scale(side_index,sol_index,ind_num_flux_2nd);
 
-		destructor_const_Matrix_R(neigh_info->d_g_coef_f__d_s_coef[sol_index][d]);
-		neigh_info->d_g_coef_f__d_s_coef[sol_index][d] =
-			constructor_mm_const_Matrix_R('N','N',1.0,m_inv_tw0_vt_fc,right,'R'); // keep
-		destructor_const_Matrix_R(right);
+		for (int d = 0; d < DIM; ++d) {
+			mm_diag_R('L',sol_scale,0.0,cv0_vs_fc,&jn_fc_V[d],right,false);
+
+			destructor_const_Matrix_R(neigh_info->d_g_coef_f__d_s_coef[sol_index][d]);
+			neigh_info->d_g_coef_f__d_s_coef[sol_index][d] =
+				constructor_mm_const_Matrix_R('N','N',1.0,m_inv_tw0_vt_fc,(struct const_Matrix_R*)right,'R'); // keep
+		}
+		destructor_Matrix_R(right);
+
+		if (side_index != sol_index)
+			destructor_const_Matrix_R(cv0_vs_fc);
 	}
 	destructor_const_Matrix_R(m_inv_tw0_vt_fc);
-
-	if (side_index != sol_index)
-		destructor_const_Matrix_R(cv0_vs_fc);
 }
 
-static void constructor_d_g_coef_f__d_s_coef_b
+static void compute_g_coef_f_i_using_lin (const int side_index, struct DG_Solver_Face_T*const dg_s_face)
+{
+	const struct Face*const face = (struct Face*) dg_s_face;
+	const struct Solver_Volume_T*const s_vol[] = { (struct Solver_Volume_T*) face->neigh_info[0].volume,
+	                                               (struct Solver_Volume_T*) face->neigh_info[1].volume, };
+	assert(!face->boundary);
+
+	const struct const_Multiarray_T*const sol_coef[] = { (struct const_Multiarray_T*) s_vol[0]->sol_coef,
+	                                                     (struct const_Multiarray_T*) s_vol[1]->sol_coef, };
+
+	struct Neigh_Info_DG*const ni = &dg_s_face->neigh_info[side_index];
+	for (int d = 0; d < DIM; ++d) {
+		struct Multiarray_T grad_coef_f = interpret_Multiarray_as_slice_T(ni->grad_coef_f,2,(ptrdiff_t[]){d});
+		mm_NNC_Multiarray_T(1.0,0.0,ni->d_g_coef_f__d_s_coef[0][d],sol_coef[0],&grad_coef_f);
+		mm_NNC_Multiarray_T(1.0,1.0,ni->d_g_coef_f__d_s_coef[1][d],sol_coef[1],&grad_coef_f);
+	}
+}
+
+static void add_face_grad_coef_f_to_volumes (const struct DG_Solver_Face_T*const dg_s_face)
+{
+	const struct Face*const face = (struct Face*) dg_s_face;
+	const struct Solver_Volume_T*const s_vol[] = { (struct Solver_Volume_T*) face->neigh_info[0].volume,
+	                                               (struct Solver_Volume_T*) face->neigh_info[1].volume, };
+
+	const struct Neigh_Info_DG*const ni = dg_s_face->neigh_info;
+
+	const int n_side = ( face->boundary ? 1 : 2 );
+	for (int i = 0; i < n_side; ++i)
+		add_in_place_Multiarray_T(1.0,s_vol[i]->grad_coef,(struct const_Multiarray_T*)ni[i].grad_coef_f);
+}
+
+static void compute_g_coef_related_boundary
 	(const int ind_num_flux_2nd, const struct const_Matrix_R*const jdet_n_fc, struct DG_Solver_Face_T*const dg_s_face,
 	 const struct Simulation*const sim)
 {
@@ -305,21 +484,25 @@ static void constructor_d_g_coef_f__d_s_coef_b
 
 	const struct Solver_Face_T*const s_face = (struct Solver_Face_T*) dg_s_face;
 
-	const struct Operator*const tw0_vt_fc = get_operator__tw0_vt_fc_T(side_index,s_face);
-	const struct Operator* cv0_vs_fc      = get_operator__cv0_vs_fc_T(sol_index,s_face);
+	const struct Operator*const tw0_vt_fc_op = get_operator__tw0_vt_fc_T(side_index,s_face);
+	const struct Operator* cv0_vs_fc_op      = get_operator__cv0_vs_fc_T(sol_index,s_face);
+
+	const struct const_Matrix_R*const tw0_vt_fc = tw0_vt_fc_op->op_std;
+	const struct const_Matrix_R* cv0_vs_fc      = cv0_vs_fc_op->op_std;
 	struct Neigh_Info_DG*const neigh_info = &dg_s_face->neigh_info[side_index];
 
 	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
-	const int n_eq = test_case->n_eq,
-	          n_vr = test_case->n_var;
+	const int n_vr = test_case->n_var;
 
-	const ptrdiff_t ext_0 = tw0_vt_fc->op_std->ext_0,
-	                ext_1 = cv0_vs_fc->op_std->ext_1;
+	const ptrdiff_t ext_0 = tw0_vt_fc->ext_0,
+	                ext_1 = cv0_vs_fc->ext_1,
+			    n_fc  = tw0_vt_fc->ext_1;
+	assert(n_fc == cv0_vs_fc->ext_0);
 
 	for (int d = 0; d < DIM; ++d) {
 		destructor_const_Matrix_R(neigh_info->d_g_coef_f__d_s_coef[sol_index][d]);
 		neigh_info->d_g_coef_f__d_s_coef[sol_index][d] =
-			constructor_empty_const_Matrix_R('R',n_eq*ext_0,n_vr*ext_1); // keep
+			constructor_empty_const_Matrix_R('R',n_vr*ext_0,n_vr*ext_1); // keep
 	}
 	struct Matrix_R*const local_block = constructor_empty_Matrix_R('R',ext_0,ext_1); // destructed
 
@@ -329,39 +512,60 @@ static void constructor_d_g_coef_f__d_s_coef_b
 		constructor_m_inv_tw0_vt_fc(side_index,dg_s_face,collocated); // destructed
 	const struct const_Vector_R*const jn_fc_V = get_jn_fc_V(jdet_n_fc);
 
-	const bool force_implicit = ( test_case->solver_method_curr == 'i' ? false : true );
-	if (force_implicit)
-		const_cast_c(&test_case->solver_method_curr,'i');
-
 	struct Numerical_Flux_Input_T*const num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
 	constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed
 
-	const struct Boundary_Value_T*const bv = &num_flux_i->bv_r;
+	const struct Boundary_Value_Input_T*const bv_i = &num_flux_i->bv_l;
+	const struct Boundary_Value_T*const bv         = &num_flux_i->bv_r;
 
-	if (force_implicit)
-		const_cast_c(&test_case->solver_method_curr,'e');
+	const Real scale[] = { get_sol_scale(side_index,0,ind_num_flux_2nd),
+	                       get_sol_scale(side_index,1,ind_num_flux_2nd), };
 
-	for (int eq = 0; eq < n_eq; ++eq) {
-	for (int vr = 0; vr < n_vr; ++vr) {
+	// Standard term
+	const struct const_Multiarray_T*const diff_s_num_s =
+		constructor_sum_Multiarrays_const_Multiarray_T(scale[0],bv_i->s,scale[1],bv->s); // destructed
+	const struct const_Matrix_T diff_s_num_s_M = interpret_const_Multiarray_as_Matrix_T(diff_s_num_s);
+	for (int d = 0; d < DIM; ++d) {
+		const struct const_Matrix_T*const right =
+			constructor_mm_diag_const_Matrix_T(1.0,&diff_s_num_s_M,&jn_fc_V[d],'L',false); // destructed
 
-// See \ref numerical_flux_T.c for ind_ds_ds and usage.
-UNUSED(bv);
-UNUSED(jn_fc_V);
-UNUSED(ind_num_flux_2nd);
+		struct Multiarray_T grad_coef_f =
+			interpret_Multiarray_as_slice_T(neigh_info->grad_coef_f,2,(ptrdiff_t[]){d});
+		struct Matrix_T grad_coef_f_M = interpret_Multiarray_as_Matrix_T(&grad_coef_f);
+		mm_RTT('N','N',1.0,0.0,m_inv_tw0_vt_fc,right,&grad_coef_f_M);
+		destructor_const_Matrix_T(right);
+	}
+	destructor_const_Multiarray_T(diff_s_num_s);
 
-// use get_sol_const to get scaling for u_i(nternal) and u_b(oundary) terms
+	if (test_case->solver_method_curr == 'i') { // Jacobian of standard term.
+		const struct const_Multiarray_T*const ds_ds = bv->ds_ds;
+		assert(ds_ds->layout == 'C');
 
-		for (int d = 0; d < DIM; ++d) {
-			const struct const_Matrix_R*const right = NULL;
-EXIT_UNSUPPORTED;
-//				constructor_mm_diag_const_Matrix_R(1.0,cv0_vs_fc->op_std,ds_ds_jn_fc_V,'L',false); // destructed
-			mm_R('N','N',1.0,0.0,m_inv_tw0_vt_fc,right,local_block);
-			destructor_const_Matrix_R(right);
+		struct Matrix_R*const right = constructor_empty_Matrix_R('R',cv0_vs_fc->ext_0,cv0_vs_fc->ext_1); // dest.
+		struct Vector_T*const ds_ds_jn_fc_V = constructor_empty_Vector_T(n_fc); // destructed
+		for (int vr_l = 0; vr_l < n_vr; ++vr_l) {
+		for (int vr_r = 0; vr_r < n_vr; ++vr_r) {
+			const int ind_ds_ds = vr_r+n_vr*(vr_l);
 
-			set_block_Matrix_R((struct Matrix_R*)neigh_info->d_g_coef_f__d_s_coef[sol_index][d],
-			                   eq*ext_0,vr*ext_1,(struct const_Matrix_R*)local_block,0,0,ext_0,ext_1,'i');
-		}
-	}}
+			const struct const_Vector_T ds_ds_V =
+				{ .ext_0 = ds_ds->extents[0], .data = get_col_const_Multiarray_T(ind_ds_ds,ds_ds), };
+
+			for (int d = 0; d < DIM; ++d) {
+				dot_mult_Vector_T(scale[1],&jn_fc_V[d],&ds_ds_V,ds_ds_jn_fc_V);
+				add_val_to_Vector_T(ds_ds_jn_fc_V,scale[0]);
+
+				mm_diag_R('L',1.0,0.0,cv0_vs_fc,(struct const_Vector_T*)ds_ds_jn_fc_V,right,false);
+
+				mm_R('N','N',1.0,0.0,m_inv_tw0_vt_fc,(struct const_Matrix_R*)right,local_block);
+
+				set_block_Matrix_R((struct Matrix_R*)neigh_info->d_g_coef_f__d_s_coef[sol_index][d],vr_l*ext_0,
+				                   vr_r*ext_1,(struct const_Matrix_R*)local_block,0,0,ext_0,ext_1,'i');
+			}
+		}}
+		destructor_Matrix_R(right);
+		destructor_Vector_T(ds_ds_jn_fc_V);
+	}
+
 	destructor_Numerical_Flux_Input_data_T(num_flux_i);
 	destructor_Numerical_Flux_Input_T(num_flux_i);
 
@@ -400,7 +604,7 @@ static struct const_Vector_R* get_jn_fc_V (const struct const_Matrix_R*const jde
 
 	for (int d = 0; d < DIM; ++d) {
 		jn_fc_V[d].ext_0 = jdet_n_fc->ext_0;
-		jn_fc_V[d].data  = (double*)get_col_const_Matrix_R(d,jdet_n_fc);
+		jn_fc_V[d].data  = (Real*)get_col_const_Matrix_R(d,jdet_n_fc);
 	}
 
 	return (struct const_Vector_R*) jn_fc_V;

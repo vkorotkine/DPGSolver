@@ -54,6 +54,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef const_constructor_move_Multiarray_Vector_T
 #undef const_constructor_move_Multiarray_Matrix_T
 
+#undef constructor_sum_Multiarrays_Multiarray_T
+#undef constructor_sum_Multiarrays_const_Multiarray_T
 #undef constructor_MaM1_V_const_Multiarray_T
 #undef set_Multiarray_Matrix_from_Multiarray_Matrix_T
 #undef set_const_Multiarray_Matrix_from_Multiarray_Matrix_T

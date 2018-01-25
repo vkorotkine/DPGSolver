@@ -308,6 +308,36 @@ void const_constructor_move_Multiarray_Matrix_T
 
 // Special constructors (only available for real/complex types) ***************************************************** //
 #ifdef TYPE_RC
+
+struct Multiarray_T* constructor_sum_Multiarrays_Multiarray_T
+	(const Type alpha_0, struct Multiarray_T*const src_0, const Type alpha_1, struct Multiarray_T*const src_1)
+{
+	const char layout             = src_0->layout;
+	const int order               = src_0->order;
+	const ptrdiff_t*const extents = src_0->extents;
+	assert(layout == src_1->layout);
+	assert(order == src_1->order);
+	for (int i = 0; i < order; ++i)
+		assert(extents[i] == src_1->extents[i]);
+
+	struct Multiarray_T*const dest = constructor_empty_Multiarray_T(layout,order,extents); // returned
+
+	const ptrdiff_t size = compute_size(order,extents);
+	for (int i = 0; i < size; ++i)
+		dest->data[i] = alpha_0*src_0->data[i] + alpha_1*src_1->data[i];
+
+	return dest;
+}
+
+const struct const_Multiarray_T* constructor_sum_Multiarrays_const_Multiarray_T
+	(const Type alpha_0, const struct const_Multiarray_T*const src_0, const Type alpha_1,
+	 const struct const_Multiarray_T*const src_1)
+{
+	return (struct const_Multiarray_T*) constructor_sum_Multiarrays_Multiarray_T
+		(alpha_0,(struct Multiarray_T*)src_0,alpha_1,(struct Multiarray_T*)src_1);
+}
+
+
 const struct const_Multiarray_T* constructor_MaM1_V_const_Multiarray_T
 	(const char layout, const char trans_a, const Real alpha, const Real beta,
 	 const struct const_Multiarray_Matrix_T*const A, const struct const_Vector_T* b)

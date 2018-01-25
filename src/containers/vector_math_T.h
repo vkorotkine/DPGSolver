@@ -26,6 +26,12 @@ void invert_Vector_T
 	(struct Vector_T* a ///< Input vector.
 	);
 
+/// \brief Add the input value to all entries of the \ref Vector_T\*.
+void add_val_to_Vector_T
+	(struct Vector_T*const a, ///< To be added to.
+	 const Type val           ///< Value to add.
+	);
+
 /// \brief Add to a \ref Vector_T\*.
 void add_to_Vector_T_T
 	(struct Vector_T* a, ///< To be added to.
@@ -52,4 +58,13 @@ Type dot_product_Vector_RT
 	(const Type alpha,                    ///< Scaling constant.
 	 const struct const_Vector_R*const a, ///< The 1st input.
 	 const struct const_Vector_T*const b  ///< The 2nd input.
+	);
+
+/** \brief Store the element-wise multiplication of the input \ref const_Vector_T\* entries in the output \ref
+ *         Vector_T\*. */
+void dot_mult_Vector_T
+	(const Type alpha,                    ///< Scaling constant.
+	 const struct const_Vector_T*const a, ///< 1st input vector.
+	 const struct const_Vector_T*const b, ///< 2nd input vector.
+	 struct Vector_T*const c              ///< output vector.
 	);

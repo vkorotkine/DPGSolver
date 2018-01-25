@@ -17,10 +17,12 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #undef invert_Vector_T
+#undef add_val_to_Vector_T
 #undef add_to_Vector_T_T
 #undef add_to_Vector_T
 #undef dot_product_Vector_T
 #undef dot_product_Vector_RT
+#undef dot_mult_Vector_T
 
 #undef invert_Vector_R
 #undef dot_product_Vector_R

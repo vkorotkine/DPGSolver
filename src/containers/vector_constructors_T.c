@@ -220,6 +220,27 @@ const struct const_Vector_T* constructor_dot_mult_const_Vector_T
 	return (const struct const_Vector_T*) constructor_move_Vector_T_T(ext_0_rep,true,data_c);
 }
 
+struct Vector_T* constructor_sum_Vectors_Vector_T
+	(const Type alpha_0, struct Vector_T*const src_0, const Type alpha_1, struct Vector_T*const src_1)
+{
+	const ptrdiff_t ext_0 = src_0->ext_0;
+	assert(ext_0 == src_1->ext_0);
+
+	struct Vector_T*const dest = constructor_empty_Vector_T(ext_0); // returned
+	for (int i = 0; i < ext_0; ++i)
+		dest->data[i] = alpha_0*src_0->data[i] + alpha_1*src_1->data[i];
+
+	return dest;
+}
+
+const struct const_Vector_T* constructor_sum_Vectors_const_Vector_T
+	(const Type alpha_0, const struct const_Vector_T*const src_0, const Type alpha_1,
+	 const struct const_Vector_T*const src_1)
+{
+	return (struct const_Vector_T*)
+		constructor_sum_Vectors_Vector_T(alpha_0,(struct Vector_T*)src_0,alpha_1,(struct Vector_T*)src_1);
+}
+
 struct Vector_T* constructor_sum_Vector_T_const_Matrix_T (const char sum_dir, const struct const_Matrix_T*const src)
 {
 	if (sum_dir != src->layout) {
