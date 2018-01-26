@@ -123,7 +123,7 @@ int get_face_element_index
 	(const struct Face*const face ///< The input face.
 	);
 
-/** \brief Compute the side index of the current face. Options: 0 (input left volume), 1 (input right volume).
+/** \brief Returns the side index of the current face: 0 (input left volume), 1 (input right volume).
  *  \return See brief. */
 int compute_side_index_face
 	(const struct Face* face, ///< \ref Face.

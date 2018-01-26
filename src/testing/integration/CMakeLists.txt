@@ -57,6 +57,8 @@ add_test_DPG_w_path(${BIN_PATH_3D} ${EXEC} "boundary_conditions_advection_3d" "i
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_euler_2d_riemann_slipwall" "integration/boundary_conditions/TEST_Euler_RiSl_2d__ml0__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_euler_2d_supersonic_in/out" "integration/boundary_conditions/TEST_Euler_SiSo_2d__ml0__p2")
 
+# Potentially add test for equivalence between explicit/implicit computation of grad_coef.
+
 set (EXEC test_integration_conservation)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
 add_executable(${EXEC} ${EXEC}.c)

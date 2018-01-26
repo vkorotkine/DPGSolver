@@ -1,6 +1,7 @@
 set	(SOURCE
 	 flux.c
 	 flux_advection.c
+	 flux_diffusion.c
 	 flux_euler.c
 	)
 

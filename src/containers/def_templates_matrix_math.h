@@ -35,6 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define add_in_place_Matrix_T      add_in_place_Matrix_d
 #define permute_Matrix_T           permute_Matrix_d
 #define permute_Matrix_T_V         permute_Matrix_d_V
+#define permute_rows_Matrix_T_V    permute_rows_Matrix_d_V
 #define mm_T                       mm_d
 #define mm_RTT                     mm_d
 #define mm_TRT                     mm_d
@@ -66,6 +67,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define add_in_place_Matrix_T      add_in_place_Matrix_c
 #define permute_Matrix_T           permute_Matrix_c
 #define permute_Matrix_T_V         permute_Matrix_c_V
+#define permute_rows_Matrix_T_V    permute_rows_Matrix_c_V
 #define mm_T                       mm_c
 #define mm_RTT                     mm_dcc
 #define mm_TRT                     mm_cdc
@@ -85,6 +87,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define scale_Matrix_R             scale_Matrix_d
 #define add_in_place_Matrix_R      add_in_place_Matrix_d
 #define permute_Matrix_R_V         permute_Matrix_d_V
+#define permute_rows_Matrix_R_V    permute_rows_Matrix_d_V
 #define scale_Matrix_R_by_Vector_R scale_Matrix_d_by_Vector_d
 #define mm_R                       mm_d
 #define mm_diag_R                  mm_diag_d

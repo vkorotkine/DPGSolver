@@ -68,3 +68,11 @@ void dot_mult_Vector_T
 	 const struct const_Vector_T*const b, ///< 2nd input vector.
 	 struct Vector_T*const c              ///< output vector.
 	);
+
+/// \brief Version of \ref dot_mult_Vector_T with 'R'eal, 'T'ype inputs.
+void dot_mult_Vector_RT
+	(const Type alpha,                    ///< Scaling constant.
+	 const struct const_Vector_R*const a, ///< 1st input vector.
+	 const struct const_Vector_T*const b, ///< 2nd input vector.
+	 struct Vector_T*const c              ///< output vector.
+	);

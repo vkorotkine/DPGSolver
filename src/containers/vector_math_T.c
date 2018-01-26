@@ -87,5 +87,16 @@ void dot_mult_Vector_T
 		c->data[i] = alpha*(a->data[i])*(b->data[i]);
 }
 
+void dot_mult_Vector_RT
+	(const Type alpha, const struct const_Vector_R*const a, const struct const_Vector_T*const b,
+	 struct Vector_T*const c)
+{
+	const ptrdiff_t ext_0 = a->ext_0;
+	assert(ext_0 == b->ext_0);
+	assert(ext_0 == c->ext_0);
+	for (int i = 0; i < ext_0; ++i)
+		c->data[i] = alpha*(a->data[i])*(b->data[i]);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

@@ -113,8 +113,12 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 		break;
 #if TYPE_RC == TYPE_REAL
 	case 'i':
-		assert(test_case->has_1st_order || test_case->has_2nd_order);
-		s_params.compute_rlhs = compute_rlhs;
+		if (test_case->has_1st_order && !test_case->has_2nd_order)
+			s_params.compute_rlhs = compute_rlhs_1;
+		else if (!test_case->has_1st_order && test_case->has_2nd_order)
+			s_params.compute_rlhs = compute_rlhs_2;
+		else
+			EXIT_ADD_SUPPORT;
 		break;
 #endif
 	default:

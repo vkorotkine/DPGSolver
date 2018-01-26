@@ -143,7 +143,7 @@ static void scale_rhs_by_m_inv_col
 static void compute_rlhs_common_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
 {
 	zero_memory_volumes(sim->volumes);
-	compute_grad_coef_dg(sim);
+	compute_grad_coef_dg(sim,sim->volumes,sim->faces);
 	compute_volume_rlhs_dg(sim,s_store_i,sim->volumes);
 	compute_face_rlhs_dg(sim,s_store_i,sim->faces);
 	compute_source_rhs_dg(sim);

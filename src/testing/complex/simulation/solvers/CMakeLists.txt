@@ -7,6 +7,7 @@ set	(SOURCE
 	 test_complex_solve.c
 	 test_complex_volume_solver.c
 
+	 dg/test_complex_compute_grad_coef_dg.c
 	 dg/test_complex_compute_face_rhs_dg.c
 	 dg/test_complex_compute_volume_rhs_dg.c
 	 dg/test_complex_solve_dg.c

@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef add_in_place_Matrix_T
 #undef permute_Matrix_T
 #undef permute_Matrix_T_V
+#undef permute_rows_Matrix_T_V
 #undef mm_T
 #undef mm_RTT
 #undef mm_TRT
@@ -45,6 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef scale_Matrix_R
 #undef add_in_place_Matrix_R
 #undef permute_Matrix_R_V
+#undef permute_rows_Matrix_R_V
 #undef scale_Matrix_R_by_Vector_R
 #undef mm_R
 #undef mm_diag_R

@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef dot_product_Vector_T
 #undef dot_product_Vector_RT
 #undef dot_mult_Vector_T
+#undef dot_mult_Vector_RT
 
 #undef invert_Vector_R
 #undef dot_product_Vector_R

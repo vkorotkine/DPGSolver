@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_boundary_advection.h"
 #include "test_complex_boundary_euler.h"
 #include "test_complex_compute_face_rhs.h"
+#include "test_complex_compute_grad_coef_dg.h"
 #include "test_complex_compute_face_rhs_dg.h"
 #include "test_complex_compute_volume_rhs_dg.h"
 #include "test_support_computational_elements.h"
@@ -183,6 +184,7 @@ static void compute_rhs_cmplx_step_dg
 	(struct Intrusive_List* volumes_local, struct Intrusive_List* faces_local, const struct Simulation* sim)
 {
 	zero_memory_volumes(volumes_local);
+	compute_grad_coef_dg_c(sim,volumes_local,faces_local);
 	switch (CHECK_LIN) {
 	case CHECK_LIN_VOLUME:
 		compute_volume_rlhs_dg_c(sim,NULL,volumes_local);

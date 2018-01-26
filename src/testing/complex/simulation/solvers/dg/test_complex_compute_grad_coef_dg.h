@@ -13,27 +13,17 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
+#ifndef DPG__test_complex_compute_grad_coef_dg_h__INCLUDED
+#define DPG__test_complex_compute_grad_coef_dg_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to volume rlhs computing functions.
+ *  \brief Provides complex functions used for computing the weak gradient (auxiliary variable) terms required for the
+ *         computation of the DG viscous fluxes.
  */
 
-///\{ \name Data types
-#undef S_Params_Volume_Structor_T
-#undef Flux_Ref_T
-///\}
+#include "def_templates_type_dc.h"
+#include "def_templates_compute_grad_coef_dg.h"
+#include "compute_grad_coef_dg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_compute_grad_coef_dg.h"
 
-///\{ \name Function pointers
-#undef constructor_sol_vc_fptr_T
-#undef destructor_sol_vc_fptr_T
-///\}
-
-///\{ \name Function names
-#undef set_S_Params_Volume_Structor_T
-#undef constructor_Flux_Ref_vol_T
-#undef destructor_Flux_Ref_T
-#undef constructor_lhs_v_1_T
-#undef constructor_lhs_p_v_2_T
-#undef get_operator__cv0_vs_vc_T
-#undef get_operator__cv0_vr_vc_T
-#undef get_operator__tw1_vt_vc_T
-///\}
+#endif // DPG__test_complex_compute_grad_coef_dg_h__INCLUDED

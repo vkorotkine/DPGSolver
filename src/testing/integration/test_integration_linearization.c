@@ -73,10 +73,14 @@ typedef void (*perturb_solution_fptr)
 
 /** \brief Function pointer to functions computing solution gradient coefficient related terms.
  *
- *  \param sim \ref Simulation.
+ *  \param sim     \ref Simulation.
+ *  \param volumes The list of volumes.
+ *  \param faces   The list of faces.
  */
 typedef void (*compute_grad_coef_fptr)
-	(const struct Simulation* sim
+	(const struct Simulation* sim,
+	 struct Intrusive_List*const volumes,
+	 struct Intrusive_List*const faces
 	);
 
 /** \brief Function pointer to function setting the initial solution for the complex solver computational elements.
@@ -318,7 +322,7 @@ static void compute_lhs_analytical
 	constructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_method); // destructed
 	switch (sim->method) {
 	case METHOD_DG:
-		f_ptrs_data->compute_grad_coef(sim);
+		f_ptrs_data->compute_grad_coef(sim,sim->volumes,sim->faces);
 		switch (CHECK_LIN) {
 		case CHECK_LIN_VOLUME:
 			f_ptrs_data->compute_volume_lhs(sim,ssi,sim->volumes);
@@ -382,6 +386,12 @@ static void check_linearizations
 			printf("symm: %d %d (tol = % .3e).\n",symmetric[0],symmetric[1],tol_symm);
 			expect_condition(pass,"symmetric");
 		}
+	}
+
+	if (pass && (CHECK_LIN != CHECK_LIN_ALL)) {
+		pass = false;
+		printf("Passing, but not checking full linearization (CHECK_LIN: %d).\n",CHECK_LIN);
+		expect_condition(pass,"check full linearization");
 	}
 
 	assert_condition(pass);

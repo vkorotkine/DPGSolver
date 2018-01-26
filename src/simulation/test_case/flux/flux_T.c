@@ -99,15 +99,10 @@ struct Flux_T* constructor_Flux_T (const struct Flux_Input_T* flux_i)
 
 void destructor_Flux_T (struct Flux_T* flux)
 {
-	if (flux->f != NULL)
-		destructor_const_Multiarray_T(flux->f);
-	if (flux->df_ds != NULL)
-		destructor_const_Multiarray_T(flux->df_ds);
-	if (flux->df_dg != NULL)
-		destructor_const_Multiarray_T(flux->df_dg);
-	if (flux->d2f_ds2 != NULL)
-		destructor_const_Multiarray_T(flux->d2f_ds2);
-
+	destructor_conditional_const_Multiarray_T(flux->f);
+	destructor_conditional_const_Multiarray_T(flux->df_ds);
+	destructor_conditional_const_Multiarray_T(flux->df_dg);
+	destructor_conditional_const_Multiarray_T(flux->d2f_ds2);
 	free(flux);
 }
 

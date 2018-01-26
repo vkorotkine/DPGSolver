@@ -40,5 +40,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names (pde specific)
 #undef compute_Flux_T_advection
+#undef compute_Flux_T_diffusion
 #undef compute_Flux_T_euler
+#undef compute_Flux_T_navier_stokes
 ///\}

@@ -33,16 +33,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Flux_Ref_vol_T     constructor_Flux_Ref_vol
 #define destructor_Flux_Ref_T          destructor_Flux_Ref
 #define constructor_lhs_v_1_T          constructor_lhs_v_1
+#define constructor_lhs_p_v_2_T        constructor_lhs_p_v_2
 #define get_operator__cv0_vs_vc_T      get_operator__cv0_vs_vc
 #define get_operator__cv0_vr_vc_T      get_operator__cv0_vr_vc
 #define get_operator__tw1_vt_vc_T      get_operator__tw1_vt_vc
-
-#define constructor_sol_vc_interp_T constructor_sol_vc_interp
-#define constructor_sol_vc_col_T    constructor_sol_vc_col
-#define destructor_sol_vc_interp_T  destructor_sol_vc_interp
-#define destructor_sol_vc_col_T     destructor_sol_vc_col
-#define constructor_Flux_Ref_T      constructor_Flux_Ref
-#define constructor_flux_ref_T      constructor_flux_ref
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -62,16 +56,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Flux_Ref_vol_T     constructor_Flux_Ref_vol_c
 #define destructor_Flux_Ref_T          destructor_Flux_Ref_c
 #define constructor_lhs_v_1_T          constructor_lhs_v_1_c
+#define constructor_lhs_p_v_2_T        constructor_lhs_p_v_2_c
 #define get_operator__cv0_vs_vc_T      get_operator__cv0_vs_vc_c
 #define get_operator__cv0_vr_vc_T      get_operator__cv0_vr_vc_c
 #define get_operator__tw1_vt_vc_T      get_operator__tw1_vt_vc_c
-
-#define constructor_sol_vc_interp_T constructor_sol_vc_interp_c
-#define constructor_sol_vc_col_T    constructor_sol_vc_col_c
-#define destructor_sol_vc_interp_T  destructor_sol_vc_interp_c
-#define destructor_sol_vc_col_T     destructor_sol_vc_col_c
-#define constructor_Flux_Ref_T      constructor_Flux_Ref_c
-#define constructor_flux_ref_T      constructor_flux_ref_c
 ///\}
 
 #endif

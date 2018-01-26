@@ -81,6 +81,13 @@ void permute_Matrix_T_V
 	 const struct const_Vector_i* p_V ///< Vector of permutation indices.
 	);
 
+/** \brief Similar to \ref permute_Matrix_T_V but where permutation is always for rows.
+ *  \note If a column-major input matrix is provided, it is transposed, permuted, then transposed back. */
+void permute_rows_Matrix_T_V
+	(struct Matrix_T* a,              ///< Defined for \ref permute_Matrix_T_V.
+	 const struct const_Vector_i* p_V ///< Defined for \ref permute_Matrix_T_V.
+	);
+
 /** \brief Compute the (m)atrix-(m)atrix multiplication of input `Type` matrices.
  *
  *  Computes: c = alpha*op(a)*op(b)+beta*c using the [cblas_dgemm function][cblas_dgemm] for the computation.

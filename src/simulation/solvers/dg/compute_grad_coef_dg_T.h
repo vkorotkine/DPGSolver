@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 struct Simulation;
+struct Intrusive_List;
 
 /** \brief Compute the weak gradient terms for the DG scheme for PDEs which have 2nd order terms.
  *
@@ -48,5 +49,7 @@ struct Simulation;
  *  - \ref DG_Solver_Face_T::grad_coef_f.
  */
 void compute_grad_coef_dg_T
-	(const struct Simulation*const sim ///< \ref Simulation.
+	(const struct Simulation*const sim,   ///< \ref Simulation.
+	 struct Intrusive_List*const volumes, ///< The list of volumes.
+	 struct Intrusive_List*const faces    ///< The list of faces.
 	);

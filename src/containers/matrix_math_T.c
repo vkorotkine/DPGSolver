@@ -155,6 +155,22 @@ void permute_Matrix_T_V (struct Matrix_T* a, const struct const_Vector_i* p_V)
 	permute_Matrix_T(a,p);
 }
 
+void permute_rows_Matrix_T_V (struct Matrix_T* a, const struct const_Vector_i* p_V)
+{
+	const ptrdiff_t ext_0 = p_V->ext_0;
+	assert(a->ext_0 == ext_0);
+
+	const bool requires_transpose = ( a->layout == 'R' ? false : true );
+	if (requires_transpose)
+		transpose_Matrix_T(a,true);
+
+	assert(a->layout == 'R');
+	permute_Matrix_T_V(a,p_V);
+
+	if (requires_transpose)
+		transpose_Matrix_T(a,true);
+}
+
 void mm_T
 	(const char trans_a_i, const char trans_b_i, const Type alpha, const Type beta,
 	 const struct const_Matrix_T*const a, const struct const_Matrix_T*const b, struct Matrix_T*const c)
@@ -337,8 +353,12 @@ void mm_diag_T
 	if (invert_diag)
 		invert_Vector_T((struct Vector_T*)b);
 
-	if (beta != 1.0)
-		scale_Matrix_T(c,beta);
+	if (beta != 1.0) {
+		if (beta == 0.0)
+			set_to_value_Matrix_T(c,beta);
+		else
+			scale_Matrix_T(c,beta);
+	}
 
 	const ptrdiff_t n_row = a->ext_0,
 	                n_col = a->ext_1;

@@ -80,12 +80,26 @@ void destructor_Flux_Ref_T
 	(struct Flux_Ref_T* flux_ref ///< Standard.
 	);
 
-/** \brief Constructor for the lhs volume term of 1st order equations only.
+/** \brief Constructor for the lhs volume term of 1st order equations only (i.e. flux having dependence only on \ref
+ *         Solver_Volume_T::sol_coef.
  *  \return See brief. */
 struct Matrix_T* constructor_lhs_v_1_T
 	(const struct Flux_Ref_T* flux_r,     ///< \ref Flux_Ref_T.
 	 const struct Solver_Volume_T* s_vol, ///< \ref Solver_Volume_T.
 	 const struct Simulation* sim         ///< \ref Simulation.
+	);
+
+/** \brief Constructor for the partial lhs volume term of 2nd order equations only (i.e. flux having dependence only on
+ *         \ref Solver_Volume_T::grad_coef.
+ *  \return See brief.
+ *
+ *  The lhs contribution computed here is termed 'p'artial as it must subsequently be multiplied by the
+ *  d_g_coef__d_s_coef terms in order to obtain the final lhs terms.
+ */
+struct Matrix_T* constructor_lhs_p_v_2_T
+	(const struct Flux_Ref_T*const flux_r,     ///< \ref Flux_Ref_T.
+	 const struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
+	 const struct Simulation*const sim         ///< \ref Simulation.
 	);
 
 /** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vr_vc operator.
