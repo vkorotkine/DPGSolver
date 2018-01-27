@@ -196,6 +196,19 @@ struct Intrusive_Link* advance_Link (const int n_adv, struct Intrusive_Link* fir
 	return curr;
 }
 
+void insert_List_into_List
+	(struct Intrusive_List*const sub, struct Intrusive_List*const main, struct Intrusive_Link*const curr)
+{
+	if (curr == main->first) {
+		sub->first->prev = NULL;
+		main->first = sub->first;
+	} else {
+		sub->first->prev = curr->prev;
+	}
+	sub->last->next = curr;
+	curr->prev = sub->last;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

@@ -92,7 +92,7 @@ struct Face {
 		struct Volume* volume;
 	} neigh_info[2]; /**< \ref Neigh_Info. The information for the first index `neigh_info[0]` relates to the Volume
 	                  *   whose outward normal vector on the current face coincides with that stored as part of the
-				*   Face; this is generally referred to as the left volume. */
+	                  *   Face; this is generally referred to as the left volume. */
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

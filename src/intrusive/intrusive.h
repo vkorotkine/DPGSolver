@@ -166,4 +166,11 @@ struct Intrusive_Link* advance_Link
 	 struct Intrusive_Link* first ///< The first link.
 	);
 
+/// \brief Insert a "sub" list into the "main" list before the "curr"ent link.
+void insert_List_into_List
+	(struct Intrusive_List*const sub,  ///< The sub list.
+	 struct Intrusive_List*const main, ///< The main list.
+	 struct Intrusive_Link*const curr  ///< The current link.
+	);
+
 #endif // DPG__Intrusive_h__INCLUDED
