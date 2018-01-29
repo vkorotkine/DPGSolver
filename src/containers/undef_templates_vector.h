@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_to_zero_Vector_T
 #undef set_to_data_Vector_T
 #undef set_to_value_Vector_T
+#undef set_to_Vector_Vector_T
 #undef sort_Vector_T
 #undef sum_Vector_T
 #undef prod_Vector_T

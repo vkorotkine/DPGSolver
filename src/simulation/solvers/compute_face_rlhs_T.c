@@ -35,6 +35,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define PRINT_OPERATORS 0 ///< Enable to print operators to terminal.
 
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vr_fc operator.
+ *  \return See brief. */
+static const struct Operator* get_operator__cv0_vr_fc_T
+	(const int side_index,              ///< The index of the side of the face under consideration.
+	 const struct Solver_Face_T* s_face ///< The current \ref Face.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 const struct Operator* get_operator__tw0_vt_fc_T (const int side_index, const struct Solver_Face_T* s_face)
@@ -179,6 +186,56 @@ print_Matrix_T(lhs_l);
 	return lhs;
 }
 
+struct Matrix_T* constructor_lhs_p_f_2_T
+	(const int side_index[2], const struct Numerical_Flux_T* num_flux, const struct Solver_Face_T* s_face)
+{
+	const struct Operator* tw0_vt_fc    = get_operator__tw0_vt_fc_T(side_index[0],s_face);
+	const struct Operator* cv0_vr_fc_op = get_operator__cv0_vr_fc_T(side_index[1],s_face);
+
+	const struct const_Matrix_R* cv0_vr_fc = cv0_vr_fc_op->op_std;
+	bool need_free_cv0 = false;
+	if (side_index[0] != side_index[1]) {
+		need_free_cv0 = true;
+		cv0_vr_fc = constructor_copy_const_Matrix_R(cv0_vr_fc); // destructed
+		permute_Matrix_R_fc((struct Matrix_R*)cv0_vr_fc,'R',side_index[0],s_face);
+	}
+
+	const struct const_Multiarray_T* dnnf_dg_Ma = num_flux->neigh_info[side_index[1]].dnnf_dg;
+
+	const ptrdiff_t ext_0 = tw0_vt_fc->op_std->ext_0,
+	                ext_1 = tw0_vt_fc->op_std->ext_1;
+	const int n_eq = (int)dnnf_dg_Ma->extents[1],
+	          n_vr = (int)dnnf_dg_Ma->extents[2];
+
+	struct Matrix_T* tw0_nf = constructor_empty_Matrix_T('R',ext_0,ext_1);                         // destructed
+	struct Matrix_T* lhs_l  = constructor_empty_Matrix_T('R',ext_0,cv0_vr_fc->ext_1);              // destructed
+	struct Matrix_T* lhs_p  = constructor_empty_Matrix_T('R',n_eq*lhs_l->ext_0,n_vr*lhs_l->ext_1); // returned
+	set_to_value_Matrix_T(tw0_nf,0.0);
+
+	struct Vector_T dnnf_dg = { .ext_0 = dnnf_dg_Ma->extents[0], .owns_data = false, .data = NULL, };
+
+	for (int d_g = 0; d_g < DIM; ++d_g) {
+	for (int vr = 0; vr < n_vr; ++vr) {
+	for (int eq = 0; eq < n_eq; ++eq) {
+		const ptrdiff_t ind =
+			compute_index_sub_container(dnnf_dg_Ma->order,1,dnnf_dg_Ma->extents,(ptrdiff_t[]){eq,vr,d_g});
+		dnnf_dg.data = (Type*)&dnnf_dg_Ma->data[ind];
+		mm_diag_T('R',1.0,0.0,tw0_vt_fc->op_std,(struct const_Vector_T*)&dnnf_dg,tw0_nf,false);
+
+		mm_TRT('N','N',-1.0,0.0,(struct const_Matrix_T*)tw0_nf,cv0_vr_fc,lhs_l);
+
+		set_block_Matrix_T(lhs_p,eq*lhs_l->ext_0,(vr+n_vr*(d_g))*lhs_l->ext_1,
+		                   (struct const_Matrix_T*)lhs_l,0,0,lhs_l->ext_0,lhs_l->ext_1,'i');
+	}}}
+	destructor_Matrix_T(tw0_nf);
+	destructor_Matrix_T(lhs_l);
+
+	if (need_free_cv0)
+		destructor_const_Matrix_R(cv0_vr_fc);
+
+	return lhs_p;
+}
+
 void add_to_flux_imbalance_face_nf_w_T
 	(const struct const_Matrix_T*const nf_fc, const struct const_Vector_R*const w_fc,
 	 const struct Solver_Face_T*const s_face)
@@ -204,3 +261,19 @@ void add_to_flux_imbalance_face_nf_w_T
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static const struct Operator* get_operator__cv0_vr_fc_T (const int side_index, const struct Solver_Face_T* s_face)
+{
+	const struct Face* face             = (struct Face*) s_face;
+	const struct Volume* vol            = face->neigh_info[side_index].volume;
+	const struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) vol;
+	const struct Solver_Element* e      = (struct Solver_Element*) vol->element;
+
+	const int ind_lf   = face->neigh_info[side_index].ind_lf,
+	          ind_href = face->neigh_info[side_index].ind_href;
+	const int p_v = s_vol->p_ref,
+	          p_f = s_face->p_ref;
+
+	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
+	return get_Multiarray_Operator(e->cv0_vr_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
+}

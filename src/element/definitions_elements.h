@@ -26,6 +26,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *	[gmsh_ff]: http://gmsh.info/doc/texinfo/gmsh.html#File-formats
  */
 
+#include "definitions_core.h"
+
 ///\{ \name Gmsh element types
 #define POINT 15
 #define LINE  1
@@ -51,15 +53,31 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Element related values
 
-// Vertex
-#define NVEMAX          8  ///< (MAX)imum (N)umber of (VE)rtices for an element. "HEX"
+#if DIM == 1
+	#define NVEMAX          2  ///< (MAX)imum (N)umber of (VE)rtices for an element. "LINE"
 
-// Face
-#define NEMAX           12 ///< (MAX)imum (N)umber of (E)dges.                                 "HEX"
-#define NFMAX           6  ///< (MAX)imum (N)umber of (F)aces.                                 "HEX"
-#define NFVEMAX         4  ///< (MAX)imum (N)unber of (F)ace (VE)rtices.                       "QUAD"
-#define NFREFMAX        5  ///< (MAX)imum (N)umber of (F)ACE (REF)inements.                    "QUAD"
-#define NSUBFMAX        4  ///< (MAX)imum (N)umber of h-adaptive (SUB)-(F)aces (on each FACE). "QUAD/TRI (Isotropic)"
+	#define NEMAX           2  ///< (MAX)imum (N)umber of (E)dges.                                 "LINE"
+	#define NFMAX           2  ///< (MAX)imum (N)umber of (F)aces.                                 "LINE"
+	#define NFVEMAX         1  ///< (MAX)imum (N)unber of (F)ace (VE)rtices.                       "POINT"
+	#define NFREFMAX        1  ///< (MAX)imum (N)umber of (F)ACE (REF)inements.                    "POINT"
+	#define NSUBFMAX        1  ///< (MAX)imum (N)umber of h-adaptive (SUB)-(F)aces (on each FACE). "POINT"
+#elif DIM == 2
+	#define NVEMAX          4  ///< "QUAD"
+
+	#define NEMAX           4  ///< "QUAD"
+	#define NFMAX           4  ///< "QUAD"
+	#define NFVEMAX         2  ///< "LINE"
+	#define NFREFMAX        3  ///< "LINE"
+	#define NSUBFMAX        2  ///< "LINE (Isotropic)"
+#elif DIM == 3
+	#define NVEMAX          8  ///< "HEX"
+
+	#define NEMAX           12 ///< "HEX"
+	#define NFMAX           6  ///< "HEX"
+	#define NFVEMAX         4  ///< "QUAD"
+	#define NFREFMAX        5  ///< "QUAD"
+	#define NSUBFMAX        4  ///< "QUAD/TRI (Isotropic)"
+#endif
 ///\}
 
 ///\{ \name h-refinement related values
@@ -73,11 +91,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NREFMAXPYR   11
 ///\}
 
-///\{ \name Supported operator types.
-#define OP_V_D0 101
-#define OP_V_D1 102
-#define OP_F_D0 103
-#define OP_F_D1 104
+///\{ \name Supported operator types. /// \todo Delete if compiling when commented.
+//#define OP_V_D0 101
+//#define OP_V_D1 102
+//#define OP_F_D0 103
+//#define OP_F_D1 104
 ///\}
 
 #endif // DPG__definitions_elements_h__INCLUDED

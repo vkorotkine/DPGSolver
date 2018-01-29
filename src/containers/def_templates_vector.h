@@ -35,6 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_to_zero_Vector_T        set_to_zero_Vector_d
 #define set_to_data_Vector_T        set_to_data_Vector_d
 #define set_to_value_Vector_T       set_to_value_Vector_d
+#define set_to_Vector_Vector_T      set_to_Vector_Vector_d
 #define sort_Vector_T               sort_Vector_d
 #define sum_Vector_T                sum_Vector_d
 #define prod_Vector_T               prod_Vector_d
@@ -63,6 +64,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_to_zero_Vector_T        set_to_zero_Vector_c
 #define set_to_data_Vector_T        set_to_data_Vector_c
 #define set_to_value_Vector_T       set_to_value_Vector_c
+#define set_to_Vector_Vector_T      set_to_Vector_Vector_c
 #define sort_Vector_T               sort_Vector_c
 #define sum_Vector_T                sum_Vector_c
 #define prod_Vector_T               prod_Vector_c

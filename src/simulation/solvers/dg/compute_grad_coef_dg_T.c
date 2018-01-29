@@ -89,7 +89,7 @@ static const struct const_Matrix_R* constructor_grad_xyz_p
 
 /// \brief Exit with an error if the numerical solution is not central for the current \ref Test_Cast_T::ind_num_flux.
 static void assert_numerical_solution_is_central
-	(const int ind_num_flux_2nd ///< \ref Test_Cast_T::ind_num_flux.
+	(const int ind_num_flux_2nd ///< The 2nd \ref Test_Cast_T::ind_num_flux.
 	);
 
 /** \brief Constructor for the difference of numerical solution and interpolated solution from the left volume at the
@@ -376,7 +376,7 @@ static const struct const_Matrix_T* constructor_diff_s_num_s
 	const struct const_Matrix_T* diff_s_num_s =
 		constructor_move_const_Matrix_T_T(diff->layout,diff->extents[0],diff->extents[1],true,diff->data); // rtrnd
 
-	const_cast_b(&diff_s_num_s->owns_data,false);
+	const_cast_b(&diff->owns_data,false);
 	destructor_const_Multiarray_T(diff);
 
 	return diff_s_num_s;
@@ -560,6 +560,7 @@ static void compute_g_coef_related_boundary
 
 		struct Matrix_T*const local_block = constructor_empty_Matrix_T('R',ext_0,ext_1); // destructed
 		struct Matrix_T*const right = constructor_empty_Matrix_T('R',cv0_vs_fc->ext_0,cv0_vs_fc->ext_1); // dest.
+		struct Vector_T*const diff_ds_ds_V  = constructor_empty_Vector_T(n_fc); // destructed
 		struct Vector_T*const ds_ds_jn_fc_V = constructor_empty_Vector_T(n_fc); // destructed
 		for (int vr_i = 0; vr_i < n_vr; ++vr_i) {
 		for (int vr_b = 0; vr_b < n_vr; ++vr_b) {
@@ -567,10 +568,11 @@ static void compute_g_coef_related_boundary
 
 			const struct const_Vector_T ds_ds_V =
 				{ .ext_0 = ds_ds->extents[0], .data = get_col_const_Multiarray_T(ind_ds_ds,ds_ds), };
+			set_to_Vector_Vector_T(diff_ds_ds_V,scale[1],&ds_ds_V);
+			add_val_to_Vector_T(diff_ds_ds_V,scale[0]);
 
 			for (int d = 0; d < DIM; ++d) {
-				dot_mult_Vector_RT(scale[1],&jn_fc_V[d],&ds_ds_V,ds_ds_jn_fc_V);
-				add_val_to_Vector_T(ds_ds_jn_fc_V,scale[0]);
+				dot_mult_Vector_RT(1.0,&jn_fc_V[d],(struct const_Vector_T*)diff_ds_ds_V,ds_ds_jn_fc_V);
 
 				mm_diag_T('L',1.0,0.0,cv0_vs_fc,(struct const_Vector_T*)ds_ds_jn_fc_V,right,false);
 
@@ -582,6 +584,7 @@ static void compute_g_coef_related_boundary
 		}}
 		destructor_Matrix_T(local_block);
 		destructor_Matrix_T(right);
+		destructor_Vector_T(diff_ds_ds_V);
 		destructor_Vector_T(ds_ds_jn_fc_V);
 	}
 

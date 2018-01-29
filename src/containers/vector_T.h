@@ -66,6 +66,13 @@ void set_to_data_Vector_T
 	 const Type*const data_src ///< The source data.
 	);
 
+/// \brief Set the data entries to those of the src vector with multiplicative scaling.
+void set_to_Vector_Vector_T
+	(struct Vector_T*const dest,           ///< Destination.
+	 const Type alpha,                     ///< Scaling constant.
+	 const struct const_Vector_T*const src ///< Source.
+	);
+
 /// \brief Set all data entries to the input value.
 void set_to_value_Vector_T
 	(struct Vector_T*const a, ///< Standard.

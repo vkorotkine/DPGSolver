@@ -23,6 +23,32 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** \brief Pointer to value setting functions with scaling.
+ *
+ *  \param alpha Scaling constant.
+ *  \param dest  The destination.
+ *  \param src   The source.
+ */
+typedef void (*set_scaled_value_fptr_T)
+	(const Type alpha,
+	 Type*const dest,
+	 const Type src
+	);
+
+/// \brief Version of \ref set_scaled_value_fptr_T inserting values.
+static void set_scaled_value_insert_T
+	(const Type alpha, ///< See brief.
+	 Type*const dest,  ///< See brief.
+	 const Type src    ///< See brief.
+	);
+
+/// \brief Version of \ref set_scaled_value_fptr_T adding values.
+static void set_scaled_value_add_T
+	(const Type alpha, ///< See brief.
+	 Type*const dest,  ///< See brief.
+	 const Type src    ///< See brief.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 Type* get_row_Matrix_T (const ptrdiff_t row, const struct Matrix_T* a)
@@ -161,6 +187,7 @@ void set_block_Matrix_T
 		EXIT_ERROR("Unsupported: %c\n",layout);
 	}
 }
+
 #if TYPE_RC == TYPE_COMPLEX
 void set_block_Matrix_T_R
 	(struct Matrix_T* dest, const ptrdiff_t row0_d, const ptrdiff_t col0_d, const struct const_Matrix_R* src,
@@ -212,6 +239,51 @@ void set_block_Matrix_R_cmplx_step
 }
 #endif
 
+void set_scaled_block_Matrix_T
+	(const Type alpha, struct Matrix_T* dest, const ptrdiff_t row0_d, const ptrdiff_t col0_d,
+	 const struct const_Matrix_T* src, const ptrdiff_t row0_s, const ptrdiff_t col0_s, const ptrdiff_t ext_0,
+	 const ptrdiff_t ext_1, const char set_type)
+{
+	assert(dest->layout == src->layout); // Add support if required.
+	const char layout = dest->layout;
+
+	set_scaled_value_fptr_T set_scaled_value = NULL;
+	switch (set_type) {
+		case 'i': set_scaled_value = set_scaled_value_insert_T; break;
+		case 'a': set_scaled_value = set_scaled_value_add_T;    break;
+		default:  EXIT_ERROR("Unsupported: %c.\n",set_type); break;
+	}
+
+	assert(row0_d+ext_0 <= dest->ext_0);
+	assert(col0_d+ext_1 <= dest->ext_1);
+
+	assert(row0_s+ext_0 <= src->ext_0);
+	assert(col0_s+ext_1 <= src->ext_1);
+
+	if (layout == 'R') {
+		ptrdiff_t row_d = row0_d,
+		          row_s = row0_s;
+		for (int i = 0; i < ext_0; ++i, ++row_d, ++row_s) {
+			const Type*const data_s = get_row_const_Matrix_T(row_s,src)+col0_s;
+			Type*const data_d       = get_row_Matrix_T(row_d,dest)+col0_d;
+			for (int j = 0; j < ext_1; ++j)
+				set_scaled_value(alpha,&data_d[j],data_s[j]);
+		}
+	} else if (layout == 'C') {
+		ptrdiff_t col_d = col0_d,
+		          col_s = col0_s;
+		for (int j = 0; j < ext_1; ++j, ++col_d, ++col_s) {
+			const Type*const data_s = get_col_const_Matrix_T(col_s,src)+row0_s;
+			Type*const data_d       = get_col_Matrix_T(col_d,dest)+row0_d;
+			for (int i = 0; i < ext_0; ++i)
+				set_scaled_value(alpha,&data_d[i],data_s[i]);
+		}
+	} else {
+		EXIT_ERROR("Unsupported: %c\n",layout);
+	}
+}
+
+
 void set_value_insert_T (Type*const dest, const Type src)
 {
 	*dest = src;
@@ -224,3 +296,13 @@ void set_value_add_T (Type*const dest, const Type src)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void set_scaled_value_insert_T (const Type alpha, Type*const dest, const Type src)
+{
+	*dest = alpha*src;
+}
+
+static void set_scaled_value_add_T (const Type alpha, Type*const dest, const Type src)
+{
+	*dest += alpha*src;
+}

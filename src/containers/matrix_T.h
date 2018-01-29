@@ -211,6 +211,20 @@ void set_block_Matrix_R_cmplx_step
 	);
 #endif
 
+/// \brief Version of \ref set_block_Matrix_T with scaling on the input sub-block.
+void set_scaled_block_Matrix_T
+	(const Type alpha,                 ///< The scaling constant.
+	 struct Matrix_T* dest,            ///< See brief.
+	 const ptrdiff_t row0_d,           ///< See brief.
+	 const ptrdiff_t col0_d,           ///< See brief.
+	 const struct const_Matrix_T* src, ///< See brief.
+	 const ptrdiff_t row0_s,           ///< See brief.
+	 const ptrdiff_t col0_s,           ///< See brief.
+	 const ptrdiff_t ext_0,            ///< See brief.
+	 const ptrdiff_t ext_1,            ///< See brief.
+	 const char set_type               ///< See brief.
+	);
+
 /// \brief Version of \ref set_value_fptr_T inserting values.
 void set_value_insert_T
 	(Type*const dest, ///< See brief.

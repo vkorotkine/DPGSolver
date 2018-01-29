@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Numerical_Flux_Input_data_T constructor_Numerical_Flux_Input_data
 #define destructor_Numerical_Flux_Input_data_T  destructor_Numerical_Flux_Input_data
 #define constructor_lhs_f_1_T                   constructor_lhs_f_1
+#define constructor_lhs_p_f_2_T                 constructor_lhs_p_f_2
 #define add_to_flux_imbalance_face_nf_w_T       add_to_flux_imbalance_face_nf_w
 ///\}
 
@@ -41,6 +42,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Numerical_Flux_Input_data_T constructor_Numerical_Flux_Input_data_c
 #define destructor_Numerical_Flux_Input_data_T  destructor_Numerical_Flux_Input_data_c
 #define constructor_lhs_f_1_T                   constructor_lhs_f_1_c
+#define constructor_lhs_p_f_2_T                 constructor_lhs_p_f_2_c
 #define add_to_flux_imbalance_face_nf_w_T       add_to_flux_imbalance_face_nf_w_c
 ///\}
 

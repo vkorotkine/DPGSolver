@@ -1475,6 +1475,7 @@ static int get_ind_child (const int ind_h, const int side_index, const struct Fa
 			break;
 		}
 		break;
+#if DIM > 1
 	case TRI:
 		switch (ind_compound) {
 		case 1*NFREFMAX+H_LINE2_V0: // fallthrough
@@ -1493,6 +1494,7 @@ static int get_ind_child (const int ind_h, const int side_index, const struct Fa
 		break;
 	case QUAD:
 		EXIT_ADD_SUPPORT;
+#endif
 	default:
 		EXIT_ERROR("Unsupported: %d",vol_p->element->type);
 		break;

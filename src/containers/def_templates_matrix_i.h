@@ -31,9 +31,13 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Function names
-#define set_value_fptr_T   set_value_fptr_i
-#define set_value_insert_T set_value_insert_i
-#define set_value_add_T    set_value_add_i
+#define set_value_fptr_T        set_value_fptr_i
+#define set_scaled_value_fptr_T set_scaled_value_fptr_i
+
+#define set_value_insert_T        set_value_insert_i
+#define set_value_add_T           set_value_add_i
+#define set_scaled_value_insert_T set_scaled_value_insert_i
+#define set_scaled_value_add_T    set_scaled_value_add_i
 
 #define get_row_Matrix_T         get_row_Matrix_i
 #define get_row_const_Matrix_T   get_row_const_Matrix_i

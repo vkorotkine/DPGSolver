@@ -51,9 +51,9 @@ struct Num_Flux_T;
  *  \param sim      \ref Simulation.
  */
 typedef void (*scale_by_Jacobian_fptr_T)
-	(const struct Numerical_Flux_T* num_flux,
-	 struct Face* face,
-	 const struct Simulation* sim
+	(const struct Numerical_Flux_T*const num_flux,
+	 struct Face*const face,
+	 const struct Simulation*const sim
 	);
 
 /** \brief Function pointer to the function used to evaluate the rhs (and optionally lhs) terms.
@@ -210,7 +210,8 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 			s_params.scale_by_Jacobian = scale_by_Jacobian_i1;
 			s_params.compute_rlhs      = compute_rlhs_1;
 		} else if (!test_case->has_1st_order && test_case->has_2nd_order) {
-			EXIT_ADD_SUPPORT; //s_params.compute_rlhs = compute_rlhs_2;
+			s_params.scale_by_Jacobian = scale_by_Jacobian_i2;
+			s_params.compute_rlhs      = compute_rlhs_2;
 		} else if (test_case->has_1st_order && test_case->has_2nd_order) {
 			EXIT_ADD_SUPPORT; //s_params.compute_rlhs = compute_rlhs_12;
 		} else {

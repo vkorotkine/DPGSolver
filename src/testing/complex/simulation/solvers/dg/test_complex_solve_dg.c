@@ -112,6 +112,7 @@ void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Stor
 
 	for (struct Intrusive_Link* curr_c = sim->volumes->first; curr_c; curr_c = curr_c->next) {
 		struct Volume* vol = (struct Volume*) curr_c;
+/// \todo Add a "volume_central" for volume/face terms, use volumes_local (including all neigh) for grad_coef.
 		struct Intrusive_List* volumes_local = constructor_Volumes_local(vol,sim);
 		struct Intrusive_List* faces_local   = constructor_Faces_local(vol,sim);
 
@@ -247,7 +248,7 @@ static bool is_volume_neighbour (const struct Volume* vol, const struct Volume* 
 
 		const int n_side = ( face->boundary ? 1 : 2 );
 		for (int i = 0; i < n_side; ++i) {
-			if (vol == face->neigh_info[i].volume)
+			if (vol->index == face->neigh_info[i].volume->index)
 				return true;
 		}
 	}}
@@ -263,7 +264,7 @@ static bool is_face_neighbour (const struct Face* face, const struct Volume* vol
 		if (!face_n)
 			continue;
 
-		if (face == face_n)
+		if (face->index == face_n->index)
 			return true;
 	}}
 	return false;

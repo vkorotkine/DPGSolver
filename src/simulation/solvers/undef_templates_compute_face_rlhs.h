@@ -24,4 +24,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_Numerical_Flux_Input_data_T
 #undef destructor_Numerical_Flux_Input_data_T
 #undef constructor_lhs_f_1_T
+#undef constructor_lhs_p_f_2_T
 #undef add_to_flux_imbalance_face_nf_w_T

@@ -165,7 +165,8 @@ static void compute_lhs_cmplx_step
 static void check_linearizations
 	(struct Test_Info*const test_info,             ///< \ref Test_Info.
 	 const struct Solver_Storage_Implicit* ssi[2], ///< \ref Solver_Storage_Implicit for the various methods.
-	 const struct Simulation* sim                  ///< \ref Simulation.
+	 const struct Simulation* sim,                 ///< \ref Simulation.
+	 const bool has_2nd_order                      ///< \ref Test_Case_T::has_2nd_order.
 	);
 
 /// \brief Output PETSc matrices to file for visualization.
@@ -207,6 +208,7 @@ int main
 	const int adapt_type = int_test_info->adapt_type;
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
 
+	bool has_2nd_order = false;
 	struct Solver_Storage_Implicit* ssi[2] = { NULL, NULL, };
 	for (int i = 0; i < 2; ++i) {
 		const char type_rc = ( i == 0 ? 'r' : 'c' );
@@ -227,6 +229,8 @@ int main
 
 			f_ptrs_data->perturb_solution(sim);
 			compute_lhs_analytical(sim,ssi[i],f_ptrs_data);
+
+			has_2nd_order = test_case->has_2nd_order;
 		} else {
 			convert_to_Test_Case_rc(sim,'c');
 
@@ -250,7 +254,7 @@ int main
 			if (OUTPUT_PETSC_MATRICES)
 				output_petsc_matrices((const struct Solver_Storage_Implicit**)ssi);
 
-			check_linearizations(&test_info,(const struct Solver_Storage_Implicit**)ssi,sim);
+			check_linearizations(&test_info,(const struct Solver_Storage_Implicit**)ssi,sim,has_2nd_order);
 			for (int j = 0; j < 2; ++j)
 				destructor_Solver_Storage_Implicit(ssi[j]);
 		}
@@ -348,8 +352,6 @@ static void compute_lhs_analytical
 	}
 	structor_derived_Elements(sim,f_ptrs_data,'d');
 	destructor_derived_computational_elements(sim,IL_SOLVER);
-
-	petsc_mat_vec_assemble(ssi);
 }
 
 static void compute_lhs_cmplx_step
@@ -363,20 +365,24 @@ static void compute_lhs_cmplx_step
 }
 
 static void check_linearizations
-	(struct Test_Info*const test_info, const struct Solver_Storage_Implicit* ssi[2], const struct Simulation* sim)
+	(struct Test_Info*const test_info, const struct Solver_Storage_Implicit* ssi[2], const struct Simulation* sim,
+	 const bool has_2nd_order)
 {
 	UNUSED(test_info);
 	bool pass        = true;
 	const double tol = 4e-13;
 
-	const double diff = norm_diff_petsc_Mat(ssi[0]->A,ssi[1]->A);
+	const bool check_diag_only = ( has_2nd_order && CHECK_LIN == CHECK_LIN_VOLUME );
+
+	const double diff = norm_diff_petsc_Mat(ssi[0]->A,ssi[1]->A,check_diag_only);
 	if (diff > tol) {
 		pass = false;
 		printf("% .3e (tol = % .3e).\n",diff,tol);
 		expect_condition(pass,"difference");
 	}
 
-	if (check_symmetric(sim)) {
+	if (check_symmetric(sim) && !check_diag_only) {
+		// Note: Symmetry is lost when check_diag_only is enabled due to a missing face contribution.
 		const double tol_symm = 1e-12;
 		PetscBool symmetric[2] = { false, false, };
 		for (int i = 0; i < 2; ++i)

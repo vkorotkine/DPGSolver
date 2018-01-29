@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver_dg.h"
 #include "element_solver_dg.h"
 
+#include "compute_rlhs.h"
 #include "compute_volume_rlhs.h"
 #include "flux.h"
 #include "intrusive.h"
@@ -139,15 +140,6 @@ static void compute_rlhs_2
 
 // Level 1 ********************************************************************************************************** //
 
-/** \brief Add a contribution to the d_grad_coef__d_s_coef matrix, the 'r'ight matrix in the 'p'artial 'l'eft-'h'and
- *         's'ide entry for a volume. */
-static void add_to_lhs_p_r
-	(const struct const_Matrix_d*const dgc_dsc[DIM], ///< The linearization term.
-	 struct Matrix_d*const lhs_p_r,                  ///< The 'r'ight 'p'artial term for the lhs matrix.
-	 const bool boundary_face_term,                  ///< Flag for whether the entry is from a boundary face.
-	 const struct Simulation*const sim               ///< \ref Simulation.
-	);
-
 static void add_to_vol_rhs
 	(const struct Flux_Ref*const flux_r, struct DG_Solver_Volume*const dg_s_vol, const struct Simulation*const sim)
 {
@@ -180,7 +172,7 @@ static const struct const_Matrix_d* constructor_lhs_p_r_internal
 	assert(dg_s_vol->d_g_coef_v__d_s_coef[0]->ext_0 == n_dof_g);
 	assert(dg_s_vol->d_g_coef_v__d_s_coef[0]->ext_1 == n_dof_s);
 
-	add_to_lhs_p_r(dg_s_vol->d_g_coef_v__d_s_coef,lhs_p_r,false,sim);
+	add_to_lhs_p_r(1.0,dg_s_vol->d_g_coef_v__d_s_coef,lhs_p_r,false,sim);
 
 	const struct Volume*const vol = (struct Volume*) dg_s_vol;
 	for (int i = 0; i < NFMAX;    ++i) {
@@ -194,7 +186,7 @@ static const struct const_Matrix_d* constructor_lhs_p_r_internal
 
 		assert(dg_s_face->neigh_info[s_ind].d_g_coef_f__d_s_coef[s_ind][0]->ext_0 == n_dof_g);
 		assert(dg_s_face->neigh_info[s_ind].d_g_coef_f__d_s_coef[s_ind][0]->ext_1 == n_dof_s);
-		add_to_lhs_p_r(dg_s_face->neigh_info[s_ind].d_g_coef_f__d_s_coef[s_ind],lhs_p_r,face->boundary,sim);
+		add_to_lhs_p_r(1.0,dg_s_face->neigh_info[s_ind].d_g_coef_f__d_s_coef[s_ind],lhs_p_r,face->boundary,sim);
 	}}
 
 	return (struct const_Matrix_d*) lhs_p_r;
@@ -228,7 +220,7 @@ static void add_to_petsc_Mat_offdiagonal_volume_2
 		const struct DG_Solver_Face*const dg_s_face = (struct DG_Solver_Face*) face;
 		assert(dg_s_face->neigh_info[s_ind_o].d_g_coef_f__d_s_coef[s_ind_o][0]->ext_0 == n_dof_g);
 		assert(dg_s_face->neigh_info[s_ind_o].d_g_coef_f__d_s_coef[s_ind_o][0]->ext_1 == n_dof_s);
-		add_to_lhs_p_r(dg_s_face->neigh_info[s_ind_o].d_g_coef_f__d_s_coef[s_ind_o],lhs_p_r,face->boundary,sim);
+		add_to_lhs_p_r(1.0,dg_s_face->neigh_info[s_ind_o].d_g_coef_f__d_s_coef[s_ind_o],lhs_p_r,face->boundary,sim);
 
 
 		const struct const_Matrix_d*const lhs_o =
@@ -239,31 +231,4 @@ static void add_to_petsc_Mat_offdiagonal_volume_2
 		add_to_petsc_Mat(ssi,lhs_o);
 		destructor_const_Matrix_d(lhs_o);
 	}}
-}
-
-// Level 2 ********************************************************************************************************** //
-
-static void add_to_lhs_p_r
-	(const struct const_Matrix_d*const dgc_dsc[DIM], struct Matrix_d*const lhs_p_r, const bool boundary_face_term,
-	 const struct Simulation*const sim)
-{
-	const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
-	const int n_vr = test_case->n_var;
-	if (!boundary_face_term) {
-		for (int d_g = 0; d_g < DIM; ++d_g) {
-			const struct const_Matrix_d*const lhs_p_l = dgc_dsc[d_g];
-			for (int vr_g = 0; vr_g < n_vr; ++vr_g) {
-			for (int vr_s = 0; vr_s < n_vr; ++vr_s) {
-				if (vr_g != vr_s)
-					continue;
-				set_block_Matrix_d(lhs_p_r,(vr_g+n_vr*(d_g))*lhs_p_r->ext_0,vr_s*lhs_p_r->ext_1,
-							 lhs_p_l,0,0,lhs_p_l->ext_0,lhs_p_l->ext_1,'a');
-			}}
-		}
-	} else {
-		for (int d_g = 0; d_g < DIM; ++d_g) {
-			const struct const_Matrix_d*const lhs_p_l = dgc_dsc[d_g];
-			set_block_Matrix_d(lhs_p_r,n_vr*d_g*lhs_p_r->ext_0,0,lhs_p_l,0,0,lhs_p_l->ext_0,lhs_p_l->ext_1,'a');
-		}
-	}
 }

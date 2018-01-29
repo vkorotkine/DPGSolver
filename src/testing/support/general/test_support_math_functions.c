@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_support_math_functions.h"
 
 #include <assert.h>
+#include <stdbool.h>
+#include <float.h>
 
 #include "macros.h"
 #include "definitions_tol.h"
@@ -34,9 +36,21 @@ static bool additional_values_are_zero
 	 const PetscScalar*const*const vals ///< The values for each row.
 	);
 
+/** \brief Computes the relative norm of the difference between the input `double*` data with the specified norm type,
+ *         only considering entries which have matching "cols" indices.
+ *  \return See brief. */
+double norm_diff_cols_d
+	(const int*const n_entries, ///< The number of entries for each of the two inputs.
+	 const double*const data_0, ///< The data for input 0.
+	 const double*const data_1, ///< The data for input 1.
+	 const int*const cols_0,    ///< The column indices for input 0.
+	 const int*const cols_1,    ///< The column indices for input 1.
+	 const char*const norm_type ///< The norm type. Options: "Inf".
+	);
+
 // Interface functions ********************************************************************************************** //
 
-double norm_diff_petsc_Mat (Mat A0, Mat A1)
+double norm_diff_petsc_Mat (Mat A0, Mat A1, const bool allow_differing_num_entries)
 {
 	PetscInt m[2] = { 0, 0, },
 	         n[2] = { 0, 0, };
@@ -59,20 +73,35 @@ double norm_diff_petsc_Mat (Mat A0, Mat A1)
 		MatGetRow(A0,i,&n_cols[0],&cols[0],&vals[0]);
 		MatGetRow(A1,i,&n_cols[1],&cols[1],&vals[1]);
 
-		if (n_cols[0] != n_cols[1]) {
+		double max = DBL_MIN;
+		if (n_cols[0] == n_cols[1]) {
+			const double diff = norm_diff_d(n_cols[0],vals[0],vals[1],"Inf");
+			if (diff > norm_num)
+				norm_num = diff;
+
+			const double norm_row[2] = { norm_d(n_cols[0],vals[0],"Inf"),
+			                             norm_d(n_cols[1],vals[1],"Inf"), };
+			max = ( norm_row[0] > norm_row[1] ? norm_row[0] : norm_row[1] );
+		} else {
+			assert(allow_differing_num_entries);
+
+			assert(n_cols[0] > n_cols[1]); //
+			const double diff =
+				norm_diff_cols_d((int[]){n_cols[0],n_cols[1]},vals[0],vals[1],cols[0],cols[1],"Inf");
+			if (diff > norm_num)
+				norm_num = diff;
+
+			const double norm_row[2] = { norm_d(n_cols[0],vals[0],"Inf"),
+			                             norm_d(n_cols[1],vals[1],"Inf"), };
+			max = ( n_cols[0] > n_cols[1] ? norm_row[0] : norm_row[1] );
+
 			// The Petsc Mat sometimes does not add values to the Mat if they are equal to zero.
-			if (!additional_values_are_zero(n_cols,cols,vals))
+			if (0&&!additional_values_are_zero(n_cols,cols,vals)) /// \todo Delete if unused.
 				EXIT_ERROR("Differing number of entries in row %d (%d, %d).\n",i,n_cols[0],n_cols[1]);
 		}
-		const double diff = norm_diff_d(n_cols[0],vals[0],vals[1],"Inf");
-		if (diff > norm_num)
-			norm_num = diff;
-
-		const double norm_row[2] = { norm_d(n_cols[0],vals[0],"Inf"), norm_d(n_cols[1],vals[1],"Inf"), };
-		const double max = ( norm_row[0] > norm_row[1] ? norm_row[0] : norm_row[1] );
 		if (max > norm_den)
 			norm_den = max;
-		assert(max < 1e30);
+		assert(max < 1e15);
 
 		MatRestoreRow(A0,i,&n_cols[0],&cols[0],&vals[0]);
 		MatRestoreRow(A1,i,&n_cols[1],&cols[1],&vals[1]);
@@ -100,4 +129,35 @@ static bool additional_values_are_zero
 				return false;
 	}
 	return true;
+}
+
+double norm_diff_cols_d
+	(const int*const n_entries, const double*const data_0, const double*const data_1, const int*const cols_0,
+	 const int*const cols_1, const char*const norm_type)
+{
+	assert(n_entries[0] > n_entries[1]); // Can be made flexible.
+
+	double norm_num = 0.0,
+	       norm_den = 0.0;
+
+	if (strcmp(norm_type,"Inf") == 0) {
+		for (int i = 0, j = 0; i < n_entries[0]; ++i) {
+			if (j == n_entries[1]-1 || (cols_0[i] != cols_1[j]))
+				continue;
+
+			const double diff = fabs(data_0[i]-data_1[j]);
+			if (fabs(diff) > fabs(norm_num))
+				norm_num = diff;
+
+			const double max = max_abs_d(data_0[i],data_1[j]);
+			if (fabs(max) > fabs(norm_den))
+				norm_den = max;
+
+			++j;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+
+	return ( fabs(norm_den) > 1e2*EPS ? norm_num/norm_den : norm_num );
 }

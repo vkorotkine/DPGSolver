@@ -20,4 +20,24 @@ You should have received a copy of the GNU General Public License along with DPG
  *         of supported schemes.
  */
 
+#include <stdbool.h>
+#include "definitions_core.h"
+
+struct Matrix_d;
+struct const_Matrix_d;
+struct Simulation;
+
+/** \brief Add a contribution to the d_grad_coef__d_s_coef matrix, the 'r'ight matrix in the 'p'artial 'l'eft-'h'and
+ *         's'ide entry for a volume/face.
+ *
+ *  This function is used to add any necessary terms to partially or fully corrected weak gradient linearization terms.
+ */
+void add_to_lhs_p_r
+	(const double alpha,                             ///< Scaling constant.
+	 const struct const_Matrix_d*const dgc_dsc[DIM], ///< The linearization term.
+	 struct Matrix_d*const lhs_p_r,                  ///< The 'r'ight 'p'artial term for the lhs matrix.
+	 const bool boundary_face_term,                  ///< Flag for whether the entry is from a boundary face.
+	 const struct Simulation*const sim               ///< \ref Simulation.
+	);
+
 #endif // DPG__compute_rlhs_h__INCLUDED

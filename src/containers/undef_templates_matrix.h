@@ -27,8 +27,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef const_Matrix_CSR_T
 
 #undef set_value_fptr_T
+#undef set_scaled_value_fptr_T
 #undef set_value_insert_T
 #undef set_value_add_T
+#undef set_scaled_value_insert_T
+#undef set_scaled_value_add_T
 
 #undef get_row_Matrix_T
 #undef get_row_const_Matrix_T
@@ -47,6 +50,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_block_Matrix_T
 #undef set_block_Matrix_T_R
 #undef set_block_Matrix_R_cmplx_step
+#undef set_scaled_block_Matrix_T
 
 
 #undef Matrix_R

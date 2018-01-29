@@ -14,10 +14,7 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 /// \file
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <math.h>
+#include <assert.h>
 
 #include "macros.h"
 
@@ -74,6 +71,14 @@ void set_to_data_Vector_T (struct Vector_T*const a, const Type*const data_src)
 	const ptrdiff_t ext_0 = a->ext_0;
 	for (ptrdiff_t i = 0; i < ext_0; ++i)
 		a->data[i] = data_src[i];
+}
+
+void set_to_Vector_Vector_T (struct Vector_T*const dest, const Type alpha, const struct const_Vector_T*const src)
+{
+	const ptrdiff_t ext_0 = dest->ext_0;
+	assert(ext_0 == src->ext_0);
+	for (ptrdiff_t i = 0; i < ext_0; ++i)
+		dest->data[i] = alpha*src->data[i];
 }
 
 void set_to_value_Vector_T (struct Vector_T*const a, const Type val)

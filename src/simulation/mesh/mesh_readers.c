@@ -430,11 +430,15 @@ static void reorder_nodes (const int elem_type, struct Vector_i* node_nums)
 			// Do nothing.
 			return;
 			break;
+#if DIM > 1
 		case QUAD: {
 			const int gmsh_ordering_l[] = {0,1,3,2};
 			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
 			break;
-		} case HEX: {
+		}
+#endif
+#if DIM > 2
+		case HEX: {
 			const int gmsh_ordering_l[] = {0,1,3,2,4,5,7,6};
 			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
 			break;
@@ -442,7 +446,9 @@ static void reorder_nodes (const int elem_type, struct Vector_i* node_nums)
 			const int gmsh_ordering_l[] = {0,1,3,2,4};
 			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
 			break;
-		} default:
+		}
+#endif
+		default:
 			EXIT_UNSUPPORTED;
 			break;
 	}

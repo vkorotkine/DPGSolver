@@ -90,7 +90,7 @@ struct Matrix_T* constructor_lhs_v_1_T
 	);
 
 /** \brief Constructor for the partial lhs volume term of 2nd order equations only (i.e. flux having dependence only on
- *         \ref Solver_Volume_T::grad_coef.
+ *         \ref Solver_Volume_T::grad_coef).
  *  \return See brief.
  *
  *  The lhs contribution computed here is termed 'p'artial as it must subsequently be multiplied by the

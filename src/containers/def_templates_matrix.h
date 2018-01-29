@@ -31,12 +31,15 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Function pointers
-#define set_value_fptr_T set_value_fptr_d
+#define set_value_fptr_T        set_value_fptr_d
+#define set_scaled_value_fptr_T set_scaled_value_fptr_d
 ///\}
 
 ///\{ \name Function names
-#define set_value_insert_T set_value_insert_d
-#define set_value_add_T    set_value_add_d
+#define set_value_insert_T        set_value_insert_d
+#define set_value_add_T           set_value_add_d
+#define set_scaled_value_insert_T set_scaled_value_insert_d
+#define set_scaled_value_add_T    set_scaled_value_add_d
 
 #define get_row_Matrix_T         get_row_Matrix_d
 #define get_row_const_Matrix_T   get_row_const_Matrix_d
@@ -52,8 +55,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_to_value_Matrix_T   set_to_value_Matrix_d
 #define set_col_to_val_Matrix_T set_col_to_val_Matrix_d
 
-#define set_block_Matrix_T   set_block_Matrix_d
-#define set_block_Matrix_T_R set_block_Matrix_d
+#define set_block_Matrix_T        set_block_Matrix_d
+#define set_block_Matrix_T_R      set_block_Matrix_d
+#define set_scaled_block_Matrix_T set_scaled_block_Matrix_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -67,12 +71,15 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Function pointers
-#define set_value_fptr_T set_value_fptr_c
+#define set_value_fptr_T        set_value_fptr_c
+#define set_scaled_value_fptr_T set_scaled_value_fptr_c
 ///\}
 
 ///\{ \name Function names
-#define set_value_insert_T set_value_insert_c
-#define set_value_add_T    set_value_add_c
+#define set_value_insert_T        set_value_insert_c
+#define set_value_add_T           set_value_add_c
+#define set_scaled_value_insert_T set_scaled_value_insert_c
+#define set_scaled_value_add_T    set_scaled_value_add_c
 
 #define get_row_Matrix_T         get_row_Matrix_c
 #define get_row_const_Matrix_T   get_row_const_Matrix_c
@@ -90,6 +97,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define set_block_Matrix_T            set_block_Matrix_c
 #define set_block_Matrix_T_R          set_block_Matrix_c_d
+#define set_scaled_block_Matrix_T     set_scaled_block_Matrix_c
 #define set_block_Matrix_R_cmplx_step set_block_Matrix_d_cmplx_step
 ///\}
 

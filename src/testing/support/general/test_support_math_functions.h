@@ -19,13 +19,15 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides several standard math functions.
  */
 
+#include <stdbool.h>
 #include "petscmat.h"
 
 /** \brief Computes the relative norm of the difference between the input `Mat` using the infinity norm.
  *  \return See brief. */
 double norm_diff_petsc_Mat
-	(Mat A0, ///< The Mat for input 0.
-	 Mat A1  ///< The Mat for input 1.
+	(Mat A0,                                ///< The Mat for input 0.
+	 Mat A1,                                ///< The Mat for input 1.
+	 const bool allow_differing_num_entries ///< Flag for whether a differing number of entries per row is allowed.
 	);
 
 #endif // DPG__test_support_math_functions_h__INCLUDED

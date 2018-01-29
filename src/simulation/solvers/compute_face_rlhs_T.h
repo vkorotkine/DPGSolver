@@ -86,6 +86,19 @@ struct Matrix_T* constructor_lhs_f_1_T
 	 const struct Solver_Face_T* s_face       ///< Defined for \ref compute_rlhs_fptr.
 	);
 
+/** \brief Constructor for the partial lhs face term of 2nd order equations only (i.e. flux having dependence only on
+ *         \ref Solver_Volume_T::grad_coef).
+ *  \return See brief.
+ *
+ *  The lhs contribution computed here is termed 'p'artial as it must subsequently be multiplied by the
+ *  d_g_coef__d_s_coef terms in order to obtain the final lhs terms.
+ */
+struct Matrix_T* constructor_lhs_p_f_2_T
+	(const int side_index[2],                 ///< Defined for \ref constructor_lhs_f_1_T.
+	 const struct Numerical_Flux_T* num_flux, ///< Defined for \ref compute_rlhs_fptr.
+	 const struct Solver_Face_T* s_face       ///< Defined for \ref compute_rlhs_fptr.
+	);
+
 /** \brief Combine the input face cubature weights and normal flux values and add to the corresponding \ref
  *         Solver_Volume_T::flux_imbalance. */
 void add_to_flux_imbalance_face_nf_w_T
