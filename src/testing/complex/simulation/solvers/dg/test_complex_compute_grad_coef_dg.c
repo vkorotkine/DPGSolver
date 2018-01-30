@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_volume_solver_dg.h"
 
 #include "test_complex_compute_face_rhs.h"
+#include "test_complex_compute_face_rhs_dg.h"
 #include "test_complex_solve.h"
 
 #include "matrix.h"

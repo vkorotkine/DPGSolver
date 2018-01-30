@@ -141,11 +141,23 @@ void scale_Multiarray_T_by_Vector_R
 
 void add_in_place_Multiarray_T (const Real alpha, struct Multiarray_T*const a, const struct const_Multiarray_T* b)
 {
-	assert(compute_size(a->order,a->extents) == compute_size(b->order,b->extents));
+	assert(check_equal_order_extents(a->order,b->order,a->extents,b->extents));
+	assert(a->layout == b->layout);
 
 	const ptrdiff_t size = compute_size(a->order,a->extents);
 	for (ptrdiff_t i = 0; i < size; ++i)
 		a->data[i] += alpha*(b->data[i]);
+}
+
+void multiply_in_place_Multiarray_TR
+	(const Type alpha, struct Multiarray_T*const a, const struct const_Multiarray_R*const b)
+{
+	assert(check_equal_order_extents(a->order,b->order,a->extents,b->extents));
+	assert(a->layout == b->layout);
+
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		a->data[i] *= alpha*(b->data[i]);
 }
 
 void subtract_in_place_Multiarray_T (struct Multiarray_T* a, const struct const_Multiarray_T* b)

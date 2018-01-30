@@ -25,10 +25,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_numerical_flux.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_boundary.h"
+#include "def_templates_flux.h"
 #include "numerical_flux_T.h"
 #include "undef_templates_type.h"
 #include "undef_templates_numerical_flux.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_boundary.h"
+#include "undef_templates_flux.h"
 
 #endif // DPG__numerical_flux_h__INCLUDED

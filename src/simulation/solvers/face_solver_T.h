@@ -50,7 +50,12 @@ struct Solver_Face_T {
 	 *  \cite Zwanenburg2016) for the precise definition. */
 	const struct const_Multiarray_R*const jacobian_det_fc;
 
-	/// Construct 'r'ight numerical flux input members at face cubature nodes as seen from the left volume.
+	/** Construct 'r'ight numerical flux input members at face cubature nodes as seen from the left volume.
+	 *
+	 *  In the case of using the DG scheme, this function only computes the weak gradient contribution when the face
+	 *  is on a domain boundary. This is necessary as the gradient must be set as the partially corrected value,
+	 *  requiring \ref DG_Solver_Volume_T::grad_coef_v and DG_Solver_Face_T::grad_coef_f, for internal faces.
+	 */
 	constructor_Boundary_Value_fptr_T constructor_Boundary_Value_fcl;
 
 

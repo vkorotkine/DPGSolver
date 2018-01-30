@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_intrusive.h"
+#include "definitions_test_case.h"
 
 
 #include "def_templates_compute_face_rlhs_dg.h"
@@ -34,6 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_volume_solver.h"
 #include "def_templates_volume_solver_dg.h"
 
+#include "def_templates_boundary.h"
 #include "def_templates_compute_face_rlhs.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_operators.h"
@@ -95,6 +97,22 @@ static void add_to_flux_imbalance
 	 const struct Simulation*const sim                 ///< \ref Simulation.
 	);
 
+/** \brief Constructor for \ref Boundary_Value_Input_T::g using interpolation of the partially corrected weak gradient
+ *         to the 'f'ace 'c'ubature nodes as seen from the 'l'eft. */
+static void constructor_Boundary_Value_Input_g_face_fcl
+	(struct Boundary_Value_Input_T*const bv_i,       ///< \ref Boundary_Value_Input_T.
+	 const struct DG_Solver_Face_T*const dg_s_face,  ///< \ref DG_Solver_Face_T.
+	 const struct Simulation*const sim               ///< \ref Simulation.
+	);
+
+/** \brief Constructor for \ref Boundary_Value_T::g using interpolation of the partially corrected weak gradient to the
+ *         to the 'f'ace 'c'ubature nodes as seen from the 'l'eft, **only if the face is not on a domain boundary**. */
+static void constructor_Boundary_Value_g_face_fcl
+	(struct Boundary_Value_T*const bv,              ///< \ref Boundary_Value_Input_T.
+	 const struct DG_Solver_Face_T*const dg_s_face, ///< \ref DG_Solver_Face_T.
+	 const struct Simulation*const sim              ///< \ref Simulation.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void compute_face_rlhs_dg_T
@@ -104,16 +122,18 @@ void compute_face_rlhs_dg_T
 	assert(sim->faces->name    == IL_FACE_SOLVER_DG);
 	assert(sim->volumes->name  == IL_VOLUME_SOLVER_DG);
 
+	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
+	const int has_2nd_order = test_case->has_2nd_order;
+
 	struct S_Params_T s_params = set_s_params_T(sim);
 	struct Numerical_Flux_Input_T* num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
 
 	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {
 		struct Face* face                  = (struct Face*) curr;
-		struct Solver_Face_T* s_face       = (struct Solver_Face_T*) curr;
 		struct DG_Solver_Face_T* dg_s_face = (struct DG_Solver_Face_T*) curr;
 //printf("face: %d\n",face->index);
 
-		constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed
+		constructor_Numerical_Flux_Input_data_dg_T(num_flux_i,dg_s_face,sim,has_2nd_order); // destructed
 #if 0
 print_const_Multiarray_T(num_flux_i->bv_l.s);
 print_const_Multiarray_T(num_flux_i->bv_r.s);
@@ -176,6 +196,19 @@ void compute_flux_imbalances_faces_dg_T (const struct Simulation*const sim)
 	test_case->solver_method_curr = 0;
 }
 
+void constructor_Numerical_Flux_Input_data_dg_T
+	(struct Numerical_Flux_Input_T*const num_flux_i, const struct DG_Solver_Face_T*const dg_s_face,
+	 const struct Simulation*const sim, const bool compute_gradient)
+{
+	const struct Solver_Face_T*const s_face = (struct Solver_Face_T*) dg_s_face;
+
+	if (compute_gradient) {
+		constructor_Boundary_Value_Input_g_face_fcl(&num_flux_i->bv_l,dg_s_face,sim); // destructed
+		constructor_Boundary_Value_g_face_fcl(&num_flux_i->bv_r,dg_s_face,sim);       // destructed
+	}
+	constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -192,6 +225,15 @@ static void compute_rhs_f_dg_T
 	 struct DG_Solver_Face_T* dg_s_face,        ///< Defined for \ref compute_rlhs_fptr_T.
 	 struct Solver_Storage_Implicit* s_store_i, ///< Defined for \ref compute_rlhs_fptr_T.
 	 const struct Simulation* sim               ///< Defined for \ref compute_rlhs_fptr_T.
+	);
+
+/** \brief Constructor for the partially corrected weak gradient interpolated to the face cubature nodes as seen from
+ *         the volume of input "side_index".
+ *  \return See brief. */
+static struct Multiarray_T* constructor_partial_grad_fc_interp
+	(const int side_index,                          ///< The index of the side under consideration.
+	 const struct DG_Solver_Face_T*const dg_s_face, ///< \ref DG_Solver_Face_T.
+	 const struct Simulation*const sim              ///< \ref Simulation.
 	);
 
 static struct S_Params_T set_s_params_T (const struct Simulation* sim)
@@ -238,6 +280,30 @@ static void add_to_flux_imbalance
 	add_to_flux_imbalance_face_nf_w_T(&nnf_M,w_fc,s_face);
 }
 
+static void constructor_Boundary_Value_Input_g_face_fcl
+	(struct Boundary_Value_Input_T*const bv_i, const struct DG_Solver_Face_T*const dg_s_face,
+	 const struct Simulation*const sim)
+{
+	bv_i->g = (struct const_Multiarray_T*) constructor_partial_grad_fc_interp(0,dg_s_face,sim); // destructed
+}
+
+static void constructor_Boundary_Value_g_face_fcl
+	(struct Boundary_Value_T*const bv, const struct DG_Solver_Face_T*const dg_s_face,
+	 const struct Simulation*const sim)
+{
+	const struct Face*const face = (struct Face*) dg_s_face;
+	if (face->boundary)
+		return;
+
+	const int side_index = 1;
+	const struct Solver_Face_T*const s_face = (struct Solver_Face_T*) dg_s_face;
+
+	struct Multiarray_T* grad_r_fcr = constructor_partial_grad_fc_interp(side_index,dg_s_face,sim); // moved
+	permute_Multiarray_T_fc(grad_r_fcr,'R',side_index,s_face);
+
+	bv->g = (struct const_Multiarray_T*) grad_r_fcr; // destructed
+}
+
 // Level 1 ********************************************************************************************************** //
 
 /// \brief Finalize the rhs term contribution from the \ref Face.
@@ -248,7 +314,15 @@ static void finalize_face_rhs_dg_T
 	 const struct Simulation* sim             ///< Defined for \ref compute_rlhs_fptr_T.
 	);
 
-static void scale_by_Jacobian_e_T (const struct Numerical_Flux_T* num_flux, struct Face* face, const struct Simulation* sim)
+/** \brief Return the scaling for the face contribution to the weak gradient used to compute the numerical flux.
+ *  \return See brief. */
+static Real compute_scaling_weak_gradient
+	(const struct DG_Solver_Face_T*const dg_s_face, ///< \ref DG_Solver_Face_T.
+	 const struct Test_Case_T*const test_case       ///< \ref Test_Case_T.
+	);
+
+static void scale_by_Jacobian_e_T
+	(const struct Numerical_Flux_T* num_flux, struct Face* face, const struct Simulation* sim)
 {
 UNUSED(sim);
 	struct Solver_Face_T* s_face = (struct Solver_Face_T*)face;
@@ -274,7 +348,40 @@ static void compute_rhs_f_dg_T
 	}
 }
 
+static struct Multiarray_T* constructor_partial_grad_fc_interp
+	(const int side_index, const struct DG_Solver_Face_T*const dg_s_face, const struct Simulation*const sim)
+{
+
+	const struct Face*const face              = (struct Face*) dg_s_face;
+	const struct Solver_Face_T*const s_face   = (struct Solver_Face_T*) dg_s_face;
+	const struct Volume*const vol             = (struct Volume*) face->neigh_info[side_index].volume;
+	const struct DG_Solver_Volume_T* dg_s_vol = (struct DG_Solver_Volume_T*) vol;
+
+	const struct Neigh_Info_DG*const ni = &dg_s_face->neigh_info[side_index];
+	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
+
+	const Real scale = compute_scaling_weak_gradient(dg_s_face,test_case);
+	const struct Multiarray_T*const g_coef_p =
+		constructor_sum_Multiarrays_Multiarray_T(1.0,dg_s_vol->grad_coef_v,scale,ni->grad_coef_f); // destructed
+
+
+	const struct Operator*const cv0_vr_fc = get_operator__cv0_vr_fc_T(side_index,s_face);
+
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	UNUSED(sim);
+	const char op_format = 'd';
+
+	struct Multiarray_T* ret =
+		constructor_mm_NN1_Operator_Multiarray_T(cv0_vr_fc,g_coef_p,'C',op_format,g_coef_p->order,NULL); // returned
+	destructor_Multiarray_T((struct Multiarray_T*)g_coef_p);
+	return ret;
+}
+
 // Level 2 ********************************************************************************************************** //
+
+/** Scaling factor for the penalty term used to compute the partially corrected weak gradient. Must be greater than 1
+ *  for the scheme to be stable (Theorem 2, \cite Brdar2012). */
+#define PENALTY_SCALING 1.01
 
 static void finalize_face_rhs_dg_T
 	(const int side_index, const struct Numerical_Flux_T* num_flux, struct DG_Solver_Face_T* dg_s_face,
@@ -295,3 +402,26 @@ UNUSED(sim);
 	mm_NNC_Operator_Multiarray_T(-1.0,1.0,tw0_vt_fc,num_flux->nnf,dg_s_vol->rhs,op_format,2,NULL,NULL);
 //print_Multiarray_T(dg_s_vol->rhs);
 }
+
+static Real compute_scaling_weak_gradient
+	(const struct DG_Solver_Face_T*const dg_s_face, const struct Test_Case_T*const test_case)
+{
+	const int ind_num_flux_2nd = test_case->ind_num_flux[1];
+
+	const struct Face*const face = (struct Face*) dg_s_face;
+	switch (ind_num_flux_2nd) {
+	case NUM_FLUX_BR2_STABLE:
+		return PENALTY_SCALING*NFMAX;
+		break;
+	case NUM_FLUX_CDG2:
+		if (face->boundary)
+			return PENALTY_SCALING*NFMAX;
+		else
+			EXIT_ADD_SUPPORT; // 0.0 for one side, 2.0*PENALTY_SCALING*NFMAX for larger area side.
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d",ind_num_flux_2nd);
+		break;
+	}
+}
+

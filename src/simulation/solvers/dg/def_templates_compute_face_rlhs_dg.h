@@ -30,10 +30,11 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Function names
-#define compute_face_rlhs_dg_T             compute_face_rlhs_dg
-#define compute_flux_imbalances_faces_dg_T compute_flux_imbalances_faces_dg
+#define compute_face_rlhs_dg_T                     compute_face_rlhs_dg
+#define compute_flux_imbalances_faces_dg_T         compute_flux_imbalances_faces_dg
+#define constructor_Numerical_Flux_Input_data_dg_T constructor_Numerical_Flux_Input_data_dg
 
-#define compute_rhs_f_dg_T    compute_rhs_f_dg
+#define compute_rhs_f_dg_T compute_rhs_f_dg
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -49,10 +50,11 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Function names
-#define compute_face_rlhs_dg_T             compute_face_rlhs_dg_c
-#define compute_flux_imbalances_faces_dg_T compute_flux_imbalances_faces_dg_c
+#define compute_face_rlhs_dg_T                     compute_face_rlhs_dg_c
+#define compute_flux_imbalances_faces_dg_T         compute_flux_imbalances_faces_dg_c
+#define constructor_Numerical_Flux_Input_data_dg_T constructor_Numerical_Flux_Input_data_dg_c
 
-#define compute_rhs_f_dg_T    compute_rhs_f_dg_c
+#define compute_rhs_f_dg_T compute_rhs_f_dg_c
 ///\}
 
 #endif

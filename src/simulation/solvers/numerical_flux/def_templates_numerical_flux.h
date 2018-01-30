@@ -47,8 +47,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Numerical_Flux_T_advection_upwind          compute_Numerical_Flux_advection_upwind
 #define compute_Numerical_Flux_T_advection_upwind_jacobian compute_Numerical_Flux_advection_upwind_jacobian
 
-#define compute_Numerical_Flux_T_diffusion_br2          compute_Numerical_Flux_diffusion_br2
-#define compute_Numerical_Flux_T_diffusion_br2_jacobian compute_Numerical_Flux_diffusion_br2_jacobian
+#define compute_Numerical_Flux_T_diffusion_central          compute_Numerical_Flux_diffusion_central
+#define compute_Numerical_Flux_T_diffusion_central_jacobian compute_Numerical_Flux_diffusion_central_jacobian
 
 #define compute_Numerical_Flux_T_euler_lax_friedrichs          compute_Numerical_Flux_euler_lax_friedrichs
 #define compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian compute_Numerical_Flux_euler_lax_friedrichs_jacobian
@@ -87,8 +87,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Numerical_Flux_T_advection_upwind          compute_Numerical_Flux_c_advection_upwind
 #define compute_Numerical_Flux_T_advection_upwind_jacobian compute_Numerical_Flux_c_advection_upwind_jacobian
 
-#define compute_Numerical_Flux_T_diffusion_br2          compute_Numerical_Flux_c_diffusion_br2
-#define compute_Numerical_Flux_T_diffusion_br2_jacobian compute_Numerical_Flux_c_diffusion_br2_jacobian
+#define compute_Numerical_Flux_T_diffusion_central          compute_Numerical_Flux_c_diffusion_central
+#define compute_Numerical_Flux_T_diffusion_central_jacobian compute_Numerical_Flux_c_diffusion_central_jacobian
 
 #define compute_Numerical_Flux_T_euler_lax_friedrichs          compute_Numerical_Flux_c_euler_lax_friedrichs
 #define compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian compute_Numerical_Flux_c_euler_lax_friedrichs_jacobian

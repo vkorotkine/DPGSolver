@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver_dg.h"
 
 #include "compute_face_rlhs.h"
+#include "compute_face_rlhs_dg.h"
 #include "const_cast.h"
 #include "intrusive.h"
 #include "multiarray_operator.h"

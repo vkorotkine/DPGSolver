@@ -44,9 +44,13 @@ You should have received a copy of the GNU General Public License along with DPG
  *  In terminology used elsewhere, \f$ y \f$ is the affector and \f$ x \f$ is the affectee.
  */
 
+#include <stdbool.h>
+
 struct Simulation;
 struct Solver_Storage_Implicit;
 struct Intrusive_List;
+struct Numerical_Flux_Input_T;
+struct DG_Solver_Face_T;
 
 /// \brief Compute the face contributions to the rhs (and optionally lhs) terms for the DG scheme.
 void compute_face_rlhs_dg_T
@@ -58,4 +62,13 @@ void compute_face_rlhs_dg_T
 /// \brief Compute the contribution of the face integrals to the flux imbalances for the DG scheme.
 void compute_flux_imbalances_faces_dg_T
 	(const struct Simulation*const sim ///< \ref Simulation.
+	);
+
+/** \brief Construct the data members of the \ref Numerical_Flux_Input_T container which are specific to the face under
+ *         consideration for the dg scheme. */
+void constructor_Numerical_Flux_Input_data_dg_T
+	(struct Numerical_Flux_Input_T*const num_flux_i, ///< \ref Numerical_Flux_Input_T.
+	 const struct DG_Solver_Face_T*const dg_s_face,  ///< \ref DG_Solver_Face_T.
+	 const struct Simulation*const sim,              ///< \ref Simulation.
+	 const bool compute_gradient                     ///< Flag for whether the gradient members should be computed.
 	);

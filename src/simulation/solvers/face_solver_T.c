@@ -95,10 +95,11 @@ void set_function_pointers_face_num_flux_T (struct Solver_Face_T* s_face, const 
 			s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_s_fcl_interp_T;
 			break;
 		case PDE_DIFFUSION:
-/// \todo Check that gradient should not also be computed as part of this function.
+			/// Note: Does not construct the solution gradient term. See comment in \ref Solver_Face_T.
 			s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_s_fcl_interp_T;
 			break;
 		case PDE_NAVIER_STOKES:
+			/// Note: Does not construct the solution gradient term. See comment in \ref Solver_Face_T.
 			EXIT_UNSUPPORTED;
 			break;
 		default:

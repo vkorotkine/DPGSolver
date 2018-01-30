@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "boundary_diffusion.h"
 
 #include "multiarray.h"
+#include "vector.h"
 
 #include "boundary.h"
 

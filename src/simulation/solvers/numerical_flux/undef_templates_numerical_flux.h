@@ -45,8 +45,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_Numerical_Flux_T_advection_upwind
 #undef compute_Numerical_Flux_T_advection_upwind_jacobian
 
-#undef compute_Numerical_Flux_T_diffusion_br2
-#undef compute_Numerical_Flux_T_diffusion_br2_jacobian
+#undef compute_Numerical_Flux_T_diffusion_central
+#undef compute_Numerical_Flux_T_diffusion_central_jacobian
 
 #undef compute_Numerical_Flux_T_euler_lax_friedrichs
 #undef compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian

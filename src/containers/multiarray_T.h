@@ -163,6 +163,12 @@ const struct const_Vector_T* get_const_Multiarray_Vector_T
 	 const ptrdiff_t*const sub_indices            ///< The sub-indices specifying which part of the source to extract.
 	);
 
+/** \brief Return a copy of a stack allocated \ref Vector_T holding the data of the input multiarray of order 1.
+ *  \return See brief. */
+struct Vector_T interpret_Multiarray_as_Vector_T
+	(struct Multiarray_T*const a_Ma ///< The input multiarray.
+	);
+
 /** \brief Return a copy of a stack allocated \ref const_Vector_T holding the data of the input multiarray of order 1.
  *  \return See brief. */
 struct const_Vector_T interpret_const_Multiarray_as_Vector_T
@@ -187,6 +193,13 @@ struct Multiarray_T interpret_Multiarray_as_slice_T
 	(const struct Multiarray_T* src,   ///< The source multiarray.
 	 const int order_o,                ///< Defined for \ref compute_index_sub_container.
 	 const ptrdiff_t*const sub_indices ///< Defined for \ref compute_index_sub_container.
+	);
+
+/** \brief Return a stack allocated \ref Vector_T holding the data of the desired slice.
+ *  \return See brief. */
+struct Vector_T interpret_Multiarray_slice_as_Vector_T
+	(const struct Multiarray_T*const src, ///< Defined for \ref interpret_Multiarray_as_slice_T.
+	 const ptrdiff_t*const sub_indices    ///< Defined for \ref interpret_Multiarray_as_slice_T.
 	);
 
 /// \brief Copy data from the source into the destination \ref Multiarray_T.

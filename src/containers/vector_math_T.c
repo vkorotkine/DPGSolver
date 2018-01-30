@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_vector.h"
 
+#include "def_templates_matrix.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -96,6 +98,22 @@ void dot_mult_Vector_RT
 	assert(ext_0 == c->ext_0);
 	for (int i = 0; i < ext_0; ++i)
 		c->data[i] = alpha*(a->data[i])*(b->data[i]);
+}
+
+void set_to_sum_Vector_T (const char sum_dir, const struct const_Matrix_T*const src, struct Vector_T*const dest)
+{
+	assert(sum_dir == src->layout);
+
+	set_to_value_Vector_T(dest,0.0);
+
+	const ptrdiff_t ext_0 = ( sum_dir == 'R' ? src->ext_0 : src->ext_1 ),
+	                n_val = ( sum_dir == 'R' ? src->ext_1 : src->ext_0 );
+	assert(ext_0 == dest->ext_0);
+	for (ptrdiff_t i = 0; i < ext_0; ++i) {
+		const Type* data_m = get_slice_const_Matrix_T(i,src);
+		for (ptrdiff_t j = 0; j < n_val; ++j)
+			dest->data[i] += data_m[j];
+	}
 }
 
 // Static functions ************************************************************************************************* //

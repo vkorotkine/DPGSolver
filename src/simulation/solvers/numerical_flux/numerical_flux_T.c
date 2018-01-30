@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 
 #include "def_templates_boundary.h"
+#include "def_templates_flux.h"
 #include "def_templates_math_functions.h"
 #include "def_templates_test_case.h"
 
@@ -56,6 +57,8 @@ struct Numerical_Flux_Input_T* constructor_Numerical_Flux_Input_T (const struct 
 	const_cast_i(&num_flux_i->bv_l.n_eq,test_case->n_eq);
 	const_cast_i(&num_flux_i->bv_l.n_var,test_case->n_var);
 
+	num_flux_i->flux_i = constructor_Flux_Input_T(sim); // destructed
+
 	num_flux_i->compute_Numerical_Flux = test_case->compute_Numerical_Flux;
 	switch (test_case->solver_method_curr) {
 	case 'e':
@@ -78,6 +81,7 @@ struct Numerical_Flux_Input_T* constructor_Numerical_Flux_Input_T (const struct 
 
 void destructor_Numerical_Flux_Input_T (struct Numerical_Flux_Input_T* num_flux_i)
 {
+	destructor_Flux_Input_T(num_flux_i->flux_i);
 	free(num_flux_i);
 }
 
@@ -148,15 +152,41 @@ EXIT_ERROR("Ensure that all is working correctly.");
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+/** \brief Portion of \ref combine_num_flux_boundary_T adding the contribution for \ref Numerical_Flux_T::dnnf_ds from
+ *         \ref Boundary_Value_T::ds_ds. */
+static void combine_num_flux_boundary_dnnf_ds_T
+	(struct Numerical_Flux_Input_T*const num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_T*const num_flux  ///< See brief.
+	);
+
+/** \brief Portion of \ref combine_num_flux_boundary_T adding the contribution for \ref Numerical_Flux_T::dnnf_dg from
+ *         \ref Boundary_Value_T::dg_dg. */
+static void combine_num_flux_boundary_dnnf_dg_g_T
+	(struct Numerical_Flux_Input_T*const num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_T*const num_flux  ///< See brief.
+	);
+
+/** \brief Portion of \ref combine_num_flux_boundary_T adding the contribution for \ref Numerical_Flux_T::dnnf_dg from
+ *         \ref Boundary_Value_T::dg_ds. */
+static void combine_num_flux_boundary_dnnf_dg_s_T
+	(struct Numerical_Flux_Input_T*const num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_T*const num_flux  ///< See brief.
+	);
+
 static void combine_num_flux_boundary_T
 	(struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {
-	// Only performed for the linearized terms.
-	if (!(num_flux_i->bv_l.compute_member[1] == true || num_flux_i->bv_l.compute_member[2] == true))
-		return;
+	combine_num_flux_boundary_dnnf_ds_T(num_flux_i,num_flux);
+	combine_num_flux_boundary_dnnf_dg_g_T(num_flux_i,num_flux);
+	combine_num_flux_boundary_dnnf_dg_s_T(num_flux_i,num_flux);
+}
 
-	// Only performed if on a boundary.
-	if (num_flux_i->bv_r.ds_ds == NULL)
+// Level 1 ********************************************************************************************************** //
+
+static void combine_num_flux_boundary_dnnf_ds_T
+	(struct Numerical_Flux_Input_T*const num_flux_i, struct mutable_Numerical_Flux_T*const num_flux)
+{
+	if (num_flux_i->bv_l.compute_member[1] != true || num_flux_i->bv_r.ds_ds == NULL)
 		return;
 
 	struct Multiarray_T* dnnf_ds_l = num_flux->neigh_info[0].dnnf_ds;
@@ -184,6 +214,47 @@ static void combine_num_flux_boundary_T
 
 	destructor_Multiarray_T(num_flux->neigh_info[1].dnnf_ds);
 	num_flux->neigh_info[1].dnnf_ds = NULL;
+}
 
-	assert(num_flux_i->bv_l.compute_member[2] == false); // Add support for this in future.
+static void combine_num_flux_boundary_dnnf_dg_g_T
+	(struct Numerical_Flux_Input_T*const num_flux_i, struct mutable_Numerical_Flux_T*const num_flux)
+{
+	if (num_flux_i->bv_l.compute_member[3] != true || num_flux_i->bv_r.dg_dg == NULL)
+		return;
+
+	struct Multiarray_T*const dnnf_dg_l = num_flux->neigh_info[0].dnnf_dg;
+	const struct const_Multiarray_T*const dnnf_dg_r = (struct const_Multiarray_T*) num_flux->neigh_info[1].dnnf_dg,
+	                               *const dg_dg     = num_flux_i->bv_r.dg_dg;
+
+	const int n_n  = (int)dnnf_dg_l->extents[0],
+	          n_eq = (int)dnnf_dg_l->extents[1],
+	          n_vr = (int)dnnf_dg_l->extents[2];
+
+	for (int eq = 0; eq < n_eq; ++eq) {
+	for (int vr_l = 0; vr_l < n_vr; ++vr_l) {
+	for (int d_l = 0; d_l < DIM; ++d_l) {
+		const int ind_dnnf_dg_l = eq+n_eq*(vr_l+n_vr*(d_l));
+		for (int vr_r = 0; vr_r < n_vr; ++vr_r) {
+		for (int d_r = 0; d_r < DIM; ++d_r) {
+			const int ind_dnnf_dg_r = eq+n_eq*(vr_r+n_vr*(d_r));
+			const int ind_dg_dg     = vr_r+n_vr*(d_l+DIM*(vr_l+n_vr*(d_r)));
+			z_yxpz_T(n_n,get_col_const_Multiarray_T(ind_dnnf_dg_r,dnnf_dg_r),
+			             get_col_const_Multiarray_T(ind_dg_dg,dg_dg),
+			             get_col_Multiarray_T(ind_dnnf_dg_l,dnnf_dg_l));
+		}}
+	}}}
+
+	destructor_const_Multiarray_T(num_flux_i->bv_r.dg_dg);
+	num_flux_i->bv_r.dg_dg = NULL;
+
+	destructor_Multiarray_T(num_flux->neigh_info[1].dnnf_dg);
+	num_flux->neigh_info[1].dnnf_dg = NULL;
+}
+
+static void combine_num_flux_boundary_dnnf_dg_s_T
+	(struct Numerical_Flux_Input_T*const num_flux_i, struct mutable_Numerical_Flux_T*const num_flux)
+{
+	if (num_flux_i->bv_l.compute_member[4] != true)// || num_flux_i->bv_r.dg_ds == NULL)
+		return;
+	EXIT_ADD_SUPPORT; UNUSED(num_flux); // Think about whether this is correct before implementing.
 }

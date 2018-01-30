@@ -63,7 +63,7 @@ void set_function_pointers_solution_diffusion_T (struct Test_Case_T* test_case, 
 
 	set_function_pointers_num_flux(test_case,sim);
 
-	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_sg_fcl_interp_T;
+	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_s_fcl_interp_T;
 }
 
 // Static functions ************************************************************************************************* //
@@ -76,9 +76,10 @@ static void set_function_pointers_num_flux (struct Test_Case_T* test_case, const
 	case METHOD_DPG:
 		test_case->compute_Numerical_Flux = compute_Numerical_Flux_2_T;
 		switch (test_case->ind_num_flux[1]) {
-		case NUM_FLUX_BR2_STABLE:
-			test_case->compute_Numerical_Flux_e[1] = compute_Numerical_Flux_T_diffusion_br2;
-			test_case->compute_Numerical_Flux_i[1] = compute_Numerical_Flux_T_diffusion_br2_jacobian;
+		case NUM_FLUX_BR2_STABLE: // fallthrough
+		case NUM_FLUX_CDG2:
+			test_case->compute_Numerical_Flux_e[1] = compute_Numerical_Flux_T_diffusion_central;
+			test_case->compute_Numerical_Flux_i[1] = compute_Numerical_Flux_T_diffusion_central_jacobian;
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);

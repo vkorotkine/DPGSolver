@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #undef compute_face_rlhs_dg_T
 #undef compute_flux_imbalances_faces_dg_T
+#undef constructor_Numerical_Flux_Input_data_dg_T
 
 #undef compute_rhs_f_dg_T
 ///\}

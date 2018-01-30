@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef get_operator__tw0_vt_fc_T
 #undef get_operator__cv0_vs_fc_T
+#undef get_operator__cv0_vr_fc_T
 #undef permute_Matrix_T_fc
 #undef permute_Matrix_R_fc
 #undef get_operator__nc_fc_T

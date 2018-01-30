@@ -211,6 +211,16 @@ const struct const_Vector_T* get_const_Multiarray_Vector_T
 	return src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
 }
 
+struct Vector_T interpret_Multiarray_as_Vector_T (struct Multiarray_T*const a_Ma)
+{
+	assert(a_Ma->order == 1);
+	struct Vector_T a =
+		{ .ext_0     = a_Ma->extents[0],
+		  .owns_data = false,
+		  .data      = a_Ma->data, };
+	return a;
+}
+
 struct const_Vector_T interpret_const_Multiarray_as_Vector_T (const struct const_Multiarray_T* a_Ma)
 {
 	assert(a_Ma->order == 1);
@@ -257,6 +267,13 @@ struct Multiarray_T interpret_Multiarray_as_slice_T
 		  .owns_data = false,
 		  .data      = &src->data[ind_data], };
 	return dest;
+}
+
+struct Vector_T interpret_Multiarray_slice_as_Vector_T
+	(const struct Multiarray_T*const src, const ptrdiff_t*const sub_indices)
+{
+	struct Multiarray_T tmp = interpret_Multiarray_as_slice_T(src,1,sub_indices);
+	return interpret_Multiarray_as_Vector_T(&tmp);
 }
 
 void copy_into_Multiarray_T (struct Multiarray_T*const dest, const struct const_Multiarray_T*const src)

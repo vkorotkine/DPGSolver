@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "complex_vector_math.h"
 
+#include "complex_matrix.h"
 #include "complex_vector.h"
 #include "vector.h"
 

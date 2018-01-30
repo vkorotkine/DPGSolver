@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "vector_math.h"
 
+#include "matrix.h"
 #include "vector.h"
 
 // Templated functions ********************************************************************************************** //

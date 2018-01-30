@@ -25,6 +25,7 @@ struct const_Vector_R;
 struct const_Vector_T;
 struct const_Matrix_R;
 struct const_Matrix_T;
+struct const_Multiarray_R;
 struct const_Multiarray_T;
 struct Multiarray_Matrix_T;
 
@@ -76,6 +77,13 @@ void add_in_place_Multiarray_T
 	(const Real alpha,                  ///< Scaling constant.
 	 struct Multiarray_T*const a,       ///< Multiarray to be modified.
 	 const struct const_Multiarray_T* b ///< Multiarray to add to array to be modified.
+	);
+
+/// \brief Sets `a = a * alpha*b` where input `b` is of `Real` type..
+void multiply_in_place_Multiarray_TR
+	(const Type alpha,                       ///< Scaling constant.
+	 struct Multiarray_T*const a,            ///< Multiarray to be modified.
+	 const struct const_Multiarray_R*const b ///< Multiarray to add to array to be modified.
 	);
 
 /// \brief Subtract the 2nd from the 1st multiarray in-place.

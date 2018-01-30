@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_boundary.h"
 #include "def_templates_compute_face_rlhs.h"
+#include "def_templates_compute_face_rlhs_dg.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_solve.h"
 #include "def_templates_test_case.h"
@@ -524,7 +525,7 @@ static void compute_g_coef_related_boundary
 	const struct const_Vector_R*const jn_fc_V = get_jn_fc_V(jdet_n_fc);
 
 	struct Numerical_Flux_Input_T*const num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
-	constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed
+	constructor_Numerical_Flux_Input_data_dg_T(num_flux_i,dg_s_face,sim,false); // destructed
 
 	const struct Boundary_Value_Input_T*const bv_i = &num_flux_i->bv_l;
 	const struct Boundary_Value_T*const bv         = &num_flux_i->bv_r;

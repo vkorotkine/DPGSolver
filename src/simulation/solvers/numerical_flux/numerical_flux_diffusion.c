@@ -17,8 +17,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "numerical_flux_diffusion.h"
 
+#include "matrix.h"
 #include "multiarray.h"
+#include "vector.h"
 
+#include "flux.h"
 #include "numerical_flux.h"
 #include "solution_diffusion.h"
 

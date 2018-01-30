@@ -17,8 +17,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_numerical_flux_diffusion.h"
 
+#include "test_complex_flux.h"
 #include "test_complex_numerical_flux.h"
+#include "complex_matrix.h"
 #include "complex_multiarray.h"
+#include "complex_vector.h"
 #include "multiarray.h"
 
 #include "solution_diffusion.h"

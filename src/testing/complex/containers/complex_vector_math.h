@@ -21,8 +21,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_dc.h"
 #include "def_templates_vector.h"
+#include "def_templates_matrix.h"
 #include "vector_math_T.h"
 #include "undef_templates_type.h"
 #include "undef_templates_vector.h"
+#include "undef_templates_matrix.h"
 
 #endif // DPG__complex_vector_math_h__INCLUDED

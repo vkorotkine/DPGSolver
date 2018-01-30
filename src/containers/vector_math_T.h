@@ -20,6 +20,7 @@ struct Vector_T;
 struct Vector_R;
 struct const_Vector_T;
 struct const_Vector_R;
+struct const_Matrix_T;
 
 /// \brief Invert each of the entries of the input \ref Vector_T\*.
 void invert_Vector_T
@@ -75,4 +76,12 @@ void dot_mult_Vector_RT
 	 const struct const_Vector_R*const a, ///< 1st input vector.
 	 const struct const_Vector_T*const b, ///< 2nd input vector.
 	 struct Vector_T*const c              ///< output vector.
+	);
+
+/** \brief Set the values of the \ref Vector_T to the sum of the entries of the \ref Matrix_T in the `sum_dir`
+ *         direction. */
+void set_to_sum_Vector_T
+	(const char sum_dir,                    ///< The direction in which to sum.
+	 const struct const_Matrix_T*const src, ///< The source matrix.
+	 struct Vector_T*const dest             ///< The destination vector.
 	);

@@ -21,15 +21,15 @@ struct mutable_Numerical_Flux_T;
 
 /** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes using the BR2 method (Table 1,
  *         \cite Brdar2012). */
-void compute_Numerical_Flux_T_diffusion_br2
+void compute_Numerical_Flux_T_diffusion_central
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
 	);
 
 /** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes and Jacobians using the BR2
  *         method.
- *  See comments for \ref compute_Numerical_Flux_T_diffusion_br2. */
-void compute_Numerical_Flux_T_diffusion_br2_jacobian
+ *  See comments for \ref compute_Numerical_Flux_T_diffusion_central. */
+void compute_Numerical_Flux_T_diffusion_central_jacobian
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
 	);

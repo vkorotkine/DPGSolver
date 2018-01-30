@@ -54,10 +54,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define collapse_Multiarray_Vector_T           collapse_Multiarray_Vector_d
 #define resize_Multiarray_T                    resize_Multiarray_d
 #define get_const_Multiarray_Vector_T          get_const_Multiarray_Vector_d
+#define interpret_Multiarray_as_Vector_T       interpret_Multiarray_as_Vector_d
 #define interpret_const_Multiarray_as_Vector_T interpret_const_Multiarray_as_Vector_d
 #define interpret_Multiarray_as_Matrix_T       interpret_Multiarray_as_Matrix_d
 #define interpret_const_Multiarray_as_Matrix_T interpret_const_Multiarray_as_Matrix_d
 #define interpret_Multiarray_as_slice_T        interpret_Multiarray_as_slice_d
+#define interpret_Multiarray_slice_as_Vector_T interpret_Multiarray_slice_as_Vector_d
 #define copy_into_Multiarray_T                 copy_into_Multiarray_d
 ///\}
 
@@ -95,10 +97,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define collapse_Multiarray_Vector_T           collapse_Multiarray_Vector_c
 #define resize_Multiarray_T                    resize_Multiarray_c
 #define get_const_Multiarray_Vector_T          get_const_Multiarray_Vector_c
+#define interpret_Multiarray_as_Vector_T       interpret_Multiarray_as_Vector_c
 #define interpret_const_Multiarray_as_Vector_T interpret_const_Multiarray_as_Vector_c
 #define interpret_Multiarray_as_Matrix_T       interpret_Multiarray_as_Matrix_c
 #define interpret_const_Multiarray_as_Matrix_T interpret_const_Multiarray_as_Matrix_c
 #define interpret_Multiarray_as_slice_T        interpret_Multiarray_as_slice_c
+#define interpret_Multiarray_slice_as_Vector_T interpret_Multiarray_slice_as_Vector_c
 #define copy_into_Multiarray_T                 copy_into_Multiarray_c
 ///\}
 

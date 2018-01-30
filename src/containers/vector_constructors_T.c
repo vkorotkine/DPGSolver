@@ -243,6 +243,7 @@ const struct const_Vector_T* constructor_sum_Vectors_const_Vector_T
 
 struct Vector_T* constructor_sum_Vector_T_const_Matrix_T (const char sum_dir, const struct const_Matrix_T*const src)
 {
+	assert((sum_dir == 'R' || sum_dir == 'C'));
 	if (sum_dir != src->layout) {
 		transpose_Matrix_T((struct Matrix_T*)src,true);
 		struct Vector_T* dest = constructor_sum_Vector_T_const_Matrix_T(sum_dir,src);
@@ -250,19 +251,11 @@ struct Vector_T* constructor_sum_Vector_T_const_Matrix_T (const char sum_dir, co
 		return dest;
 	}
 
-	assert((sum_dir == 'R' || sum_dir == 'C'));
-
-	const ptrdiff_t ext_0 = ( sum_dir == 'R' ? src->ext_0 : src->ext_1 ),
-	                n_val = ( sum_dir == 'R' ? src->ext_1 : src->ext_0 );
-
+	const ptrdiff_t ext_0 = ( sum_dir == 'R' ? src->ext_0 : src->ext_1 );
 	struct Vector_T* dest = constructor_empty_Vector_T(ext_0); // returned
-	set_to_value_Vector_T(dest,0.0);
 
-	for (ptrdiff_t i = 0; i < ext_0; ++i) {
-		const Type* data_m = get_slice_const_Matrix_T(i,src);
-		for (ptrdiff_t j = 0; j < n_val; ++j)
-			dest->data[i] += data_m[j];
-	}
+	set_to_sum_Vector_T(sum_dir,src,dest);
+
 	return dest;
 }
 

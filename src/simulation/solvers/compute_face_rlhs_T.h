@@ -40,6 +40,13 @@ const struct Operator* get_operator__cv0_vs_fc_T
 	 const struct Solver_Face_T* s_face ///< The current \ref Face.
 	);
 
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vr_fc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vr_fc_T
+	(const int side_index,              ///< The index of the side of the face under consideration.
+	 const struct Solver_Face_T* s_face ///< The current \ref Face.
+	);
+
 /** \brief Permute the input matrix such that its ordering is such that it is in the reference coordinates of the
  *         face cubature nodes of the opposite volume. */
 void permute_Matrix_T_fc

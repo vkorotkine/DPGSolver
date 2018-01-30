@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define dot_product_Vector_RT dot_product_Vector_dd
 #define dot_mult_Vector_T     dot_mult_Vector_d
 #define dot_mult_Vector_RT    dot_mult_Vector_dd
+#define set_to_sum_Vector_T   set_to_sum_Vector_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -40,6 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define dot_product_Vector_RT dot_product_Vector_cd
 #define dot_mult_Vector_T     dot_mult_Vector_c
 #define dot_mult_Vector_RT    dot_mult_Vector_dc
+#define set_to_sum_Vector_T   set_to_sum_Vector_c
 ///\}
 
 #endif

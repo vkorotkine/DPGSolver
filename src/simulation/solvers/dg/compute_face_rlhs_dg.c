@@ -245,13 +245,6 @@ static void finalize_lhs_2_f_dg
 
 // Level 2 ********************************************************************************************************** //
 
-/** \brief Return the scaling for the face contribution to the weak gradient used to compute the numerical flux.
- *  \return See brief. */
-static double compute_scaling_weak_gradient
-	(const struct DG_Solver_Face*const dg_s_face, ///< \ref DG_Solver_Face_T.
-	 const int ind_num_flux_2nd                   ///< The 2nd \ref Test_Cast_T::ind_num_flux.
-	);
-
 static const struct const_Matrix_d* constructor_lhs_p_r_gs
 	(const int side_index_g, const int side_index_s, const struct DG_Solver_Face*const dg_s_face,
 	 const struct Simulation*const sim)
@@ -261,8 +254,7 @@ static const struct const_Matrix_d* constructor_lhs_p_r_gs
 	const struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) s_vol;
 
 	const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
-	const int n_vr             = test_case->n_var,
-	          ind_num_flux_2nd = test_case->ind_num_flux[1];
+	const int n_vr = test_case->n_var;
 
 	const ptrdiff_t n_dof_s = s_vol->sol_coef->extents[0],
 	                n_dof_g = s_vol->grad_coef->extents[0];
@@ -281,7 +273,7 @@ static const struct const_Matrix_d* constructor_lhs_p_r_gs
 		if (!face || (face_curr != face))
 			continue;
 
-		const double s = compute_scaling_weak_gradient(dg_s_face,ind_num_flux_2nd);
+		const double s = compute_scaling_weak_gradient(dg_s_face,test_case);
 		const int s_ind_g = side_index_g,
 		          s_ind_s = side_index_s;
 
@@ -291,30 +283,4 @@ static const struct const_Matrix_d* constructor_lhs_p_r_gs
 	}}
 
 	return (struct const_Matrix_d*) lhs_p_r;
-}
-
-// Level 3 ********************************************************************************************************** //
-
-/** Scaling factor for the penalty term used to compute the partially corrected weak gradient. Must be greater than 1
- *  for the scheme to be stable (Theorem 2, \cite Brdar2012). */
-#define PENALTY_SCALING 1.01
-
-static double compute_scaling_weak_gradient (const struct DG_Solver_Face*const dg_s_face, const int ind_num_flux_2nd)
-{
-	const struct Face*const face = (struct Face*) dg_s_face;
-	switch (ind_num_flux_2nd) {
-	case NUM_FLUX_BR2_STABLE:
-/// \todo Make a function which returns values given inputs which are available to all calling functions.
-		return PENALTY_SCALING*NFMAX;
-		break;
-	case NUM_FLUX_CDG2:
-		if (face->boundary)
-			return PENALTY_SCALING*NFMAX;
-		else
-			EXIT_ADD_SUPPORT; // 0.0 for one side, 2.0*PENALTY_SCALING*NFMAX for larger area side.
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d",ind_num_flux_2nd);
-		break;
-	}
 }

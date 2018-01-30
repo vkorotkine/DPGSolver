@@ -91,6 +91,10 @@ struct Boundary_Value_T {
 	 *  faces.
 	 */
 	const struct const_Multiarray_T* ds_ds;
+
+	/** The Jacobian of the boundary gradient wrt to the gradient. See comments for \ref Boundary_Value_T::ds_ds in
+	 *  relation to the ordering (fastest on boundary variable/dimension, then on internal variable/dimension). */
+	const struct const_Multiarray_T* dg_dg;
 };
 
 /// \brief `mutable` version of \ref Boundary_Value_T.
@@ -98,6 +102,7 @@ struct mutable_Boundary_Value_T {
 	struct Multiarray_T* s;     ///< See brief.
 	struct Multiarray_T* g;     ///< See brief.
 	struct Multiarray_T* ds_ds; ///< See brief.
+	struct Multiarray_T* dg_dg; ///< See brief.
 };
 
 // Interface functions ********************************************************************************************** //
