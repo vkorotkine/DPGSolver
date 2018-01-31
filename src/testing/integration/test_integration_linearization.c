@@ -59,7 +59,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 ///\{ \name Flag for whether PETSc Matrices should be output to files.
-#define OUTPUT_PETSC_MATRICES false
+#define OUTPUT_PETSC_MATRICES true
 ///\}
 
 /** \brief Function pointer to functions perturbing the solution to ensure that all terms in the linearization are
@@ -165,8 +165,7 @@ static void compute_lhs_cmplx_step
 static void check_linearizations
 	(struct Test_Info*const test_info,             ///< \ref Test_Info.
 	 const struct Solver_Storage_Implicit* ssi[2], ///< \ref Solver_Storage_Implicit for the various methods.
-	 const struct Simulation* sim,                 ///< \ref Simulation.
-	 const bool has_2nd_order                      ///< \ref Test_Case_T::has_2nd_order.
+	 const struct Simulation* sim                  ///< \ref Simulation.
 	);
 
 /// \brief Output PETSc matrices to file for visualization.
@@ -182,9 +181,11 @@ static void output_petsc_matrices
  *  The linearization is verified by comparing with the output when using the complex step method. Details of the
  *  complex step method can be found in Squire et al. \cite Squire1998 and Martins et al. \cite Martins2003.
  *
- *  For second order equations, the verification of the linearization of the weak gradients is also performed. Note that
- *  the volume rhs contributes off-diagonal terms to the global system matrix due to the use of the fully corrected
- *  gradient.
+ *  For easier debugging, specific contributions to the linearization can be checked based on the value of \ref
+ *  CHECK_LIN.
+ *
+ *  For second order equations, note that the volume rhs contributes off-diagonal terms to the global system matrix due
+ *  to the use of the fully corrected weak gradient.
  */
 int main
 	(int nargc,  ///< Standard.
@@ -208,7 +209,6 @@ int main
 	const int adapt_type = int_test_info->adapt_type;
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
 
-	bool has_2nd_order = false;
 	struct Solver_Storage_Implicit* ssi[2] = { NULL, NULL, };
 	for (int i = 0; i < 2; ++i) {
 		const char type_rc = ( i == 0 ? 'r' : 'c' );
@@ -229,8 +229,6 @@ int main
 
 			f_ptrs_data->perturb_solution(sim);
 			compute_lhs_analytical(sim,ssi[i],f_ptrs_data);
-
-			has_2nd_order = test_case->has_2nd_order;
 		} else {
 			convert_to_Test_Case_rc(sim,'c');
 
@@ -254,7 +252,7 @@ int main
 			if (OUTPUT_PETSC_MATRICES)
 				output_petsc_matrices((const struct Solver_Storage_Implicit**)ssi);
 
-			check_linearizations(&test_info,(const struct Solver_Storage_Implicit**)ssi,sim,has_2nd_order);
+			check_linearizations(&test_info,(const struct Solver_Storage_Implicit**)ssi,sim);
 			for (int j = 0; j < 2; ++j)
 				destructor_Solver_Storage_Implicit(ssi[j]);
 		}
@@ -365,24 +363,21 @@ static void compute_lhs_cmplx_step
 }
 
 static void check_linearizations
-	(struct Test_Info*const test_info, const struct Solver_Storage_Implicit* ssi[2], const struct Simulation* sim,
-	 const bool has_2nd_order)
+	(struct Test_Info*const test_info, const struct Solver_Storage_Implicit* ssi[2], const struct Simulation* sim)
 {
 	UNUSED(test_info);
 	bool pass        = true;
 	const double tol = 4e-13;
 
-	const bool check_diag_only = ( has_2nd_order && CHECK_LIN == CHECK_LIN_VOLUME );
-
-	const double diff = norm_diff_petsc_Mat(ssi[0]->A,ssi[1]->A,check_diag_only);
+	const double diff = norm_diff_petsc_Mat(ssi[0]->A,ssi[1]->A,false);
 	if (diff > tol) {
 		pass = false;
 		printf("% .3e (tol = % .3e).\n",diff,tol);
 		expect_condition(pass,"difference");
 	}
 
-	if (check_symmetric(sim) && !check_diag_only) {
-		// Note: Symmetry is lost when check_diag_only is enabled due to a missing face contribution.
+	if (check_symmetric(sim) && CHECK_LIN == CHECK_LIN_ALL) {
+		// Note: Symmetry is lost when terms are omitted from the full linearization.
 		const double tol_symm = 1e-12;
 		PetscBool symmetric[2] = { false, false, };
 		for (int i = 0; i < 2; ++i)

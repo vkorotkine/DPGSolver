@@ -54,7 +54,8 @@ struct Solver_Face_T {
 	 *
 	 *  In the case of using the DG scheme, this function only computes the weak gradient contribution when the face
 	 *  is on a domain boundary. This is necessary as the gradient must be set as the partially corrected value,
-	 *  requiring \ref DG_Solver_Volume_T::grad_coef_v and DG_Solver_Face_T::grad_coef_f, for internal faces.
+	 *  requiring \ref DG_Solver_Volume_T::grad_coef_v and DG_Solver_Face_T::Neigh_Info_DG::grad_coef_f, for internal
+	 *  faces.
 	 */
 	constructor_Boundary_Value_fptr_T constructor_Boundary_Value_fcl;
 

@@ -26,7 +26,7 @@ If (pde_name == ADVECTION)
 	EndIf
 ElseIf (pde_name == DIFFUSION)
 	Physical Point(bc_base+BC_DIRICHLET) = {1};
-    Physical Point(bc_base+BC_NEUMANN)   = {2};
+	Physical Point(bc_base+BC_NEUMANN)   = {2};
 Else
 	Error("Unsupported pde_name: %d",pde_name); Exit;
 EndIf

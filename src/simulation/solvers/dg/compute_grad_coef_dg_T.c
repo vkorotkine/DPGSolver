@@ -49,7 +49,7 @@ static void compute_grad_coef_volumes
 	 struct Intrusive_List*const volumes ///< The list of volumes.
 	);
 
-/// \brief Compute \ref DG_Solver_Face_T::grad_coef_f for the list of faces.
+/// \brief Compute \ref DG_Solver_Face_T::Neigh_Info_DG::grad_coef_f for the list of faces.
 static void compute_grad_coef_faces
 	(const struct Simulation*const sim, ///< \ref Simulation.
 	 struct Intrusive_List*const faces  ///< The list of faces.
@@ -88,9 +88,9 @@ static const struct const_Matrix_R* constructor_grad_xyz_p
 	 const struct const_Multiarray_R*const metrics    ///< The metric terms.
 	);
 
-/// \brief Exit with an error if the numerical solution is not central for the current \ref Test_Cast_T::ind_num_flux.
+/// \brief Exit with an error if the numerical solution is not central for the current \ref Test_Case_T::ind_num_flux.
 static void assert_numerical_solution_is_central
-	(const int ind_num_flux_2nd ///< The 2nd \ref Test_Cast_T::ind_num_flux.
+	(const int ind_num_flux_2nd ///< The 2nd \ref Test_Case_T::ind_num_flux.
 	);
 
 /** \brief Constructor for the difference of numerical solution and interpolated solution from the left volume at the
@@ -115,7 +115,7 @@ static void destructor_jdet_n_diff_fc
 	(const struct const_Matrix_T*const* jdet_n_diff_fc ///< Standard.
 	);
 
-/// \brief Computes the \ref DG_Solver_Face_T::Neigh_Info_DG::g_coef_f term associated with the current side.
+/// \brief Computes the \ref DG_Solver_Face_T::Neigh_Info_DG::grad_coef_f term associated with the current side.
 static void compute_g_coef_f_i
 	(const int side_index,                                   ///< Defined for \ref get_sol_scale.
 	 const struct const_Matrix_T*const*const jdet_n_diff_fc, /**< Jacobian det., normals and solution difference at
@@ -127,7 +127,7 @@ static void compute_g_coef_f_i
 /** \brief Computes the \ref DG_Solver_Face_T::Neigh_Info_DG::d_g_coef_f__d_s_coef term associated with the current side
  *         for 'i'nternal faces.
  *
- *  The `side_index` input determines the \ref DG_Solver_Face::neigh_info.
+ *  The `side_index` input determines the \ref DG_Solver_Face_T::neigh_info.
  */
 static void compute_d_g_coef_f__d_s_coef_i
 	(const int side_index,                        ///< Defined for \ref get_sol_scale.
@@ -137,7 +137,7 @@ static void compute_d_g_coef_f__d_s_coef_i
 	 const bool collocated                        ///< \ref Simulation::collocated.
 	);
 
-/** \brief Computes the \ref DG_Solver_Face_T::Neigh_Info_DG::g_coef_f term associated with the current side using the
+/** \brief Computes the \ref DG_Solver_Face_T::Neigh_Info_DG::grad_coef_f term associated with the current side using the
  *         associated linearization terms.
  *
  *  \warning It is assumed that the gradients are linear wrt to the solution in this function.
@@ -160,7 +160,7 @@ static void compute_g_coef_related_boundary
 	 const struct Simulation*const sim            ///< \ref Simulation.
 	);
 
-/// \brief Add the \ref DG_Solver_Face_T::Neigh_Info_DG::g_coef_f contributions to \ref Solver_Volume_T::grad_coef.
+/// \brief Add the \ref DG_Solver_Face_T::Neigh_Info_DG::grad_coef_f contributions to \ref Solver_Volume_T::grad_coef.
 static void add_face_grad_coef_f_to_volumes
 	(const struct DG_Solver_Face_T*const dg_s_face ///< \ref DG_Solver_Face_T.
 	);
@@ -280,6 +280,22 @@ static void compute_grad_coef_faces (const struct Simulation*const sim, struct I
 		add_face_grad_coef_f_to_volumes(dg_s_face);
 		destructor_Matrix_R(jdet_n_fc);
 	}
+
+#if 0 //TYPE_RC == TYPE_REAL
+for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+	struct Volume*const vol = (struct Volume*) curr;
+	struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) curr;
+	struct DG_Solver_Volume_T*const dg_s_vol = (struct DG_Solver_Volume_T*) curr;
+UNUSED(s_vol);
+UNUSED(dg_s_vol);
+printf("%d\n",vol->index);
+//print_Multiarray_T(s_vol->grad_coef);
+for (int d = 0; d < DIM; ++d)
+	print_const_Matrix_T(dg_s_vol->d_g_coef_v__d_s_coef[d]);
+}
+EXIT_UNSUPPORTED;
+#endif
+
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -293,15 +309,16 @@ static const struct const_Matrix_R* constructor_m_inv_tw0_vt_fc
 	 const bool collocated                    ///< \ref Simulation::collocated.
 	);
 
-/** \brief Return a statically allocated array of \ref const_Vector_R\*s with each holding the data in one column of the
- *         input matrix.
+/** \brief Return a statically allocated array of \ref const_Vector_T\*s of 'R'eal type with each vector holding the
+ *         data in one column of the input matrix.
  *  \return See brief. */
 static struct const_Vector_R* get_jn_fc_V
 	(const struct const_Matrix_R*const jdet_n_fc ///< The input matrix.
 	);
 
 /** \brief Compute the scaling associated with the \ref Solver_Volume_T::sol_coef contribution to the current face weak
- *         gradient term in the integrated by parts twice form. */
+ *         gradient term in the integrated by parts twice form.
+ *  \return See brief. */
 static Real get_sol_scale
 	(const int side_index,      ///< The side index of the volume associated with the face.
 	 const int sol_index,       ///< The side index of the solution.

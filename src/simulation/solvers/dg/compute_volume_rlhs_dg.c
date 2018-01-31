@@ -71,6 +71,7 @@ static void add_to_vol_rhs
 
 /** \brief Constructor for the 'r'ight 'p'artial contribution (d_g_coef__d_s_coef) to the lhs matrix for the 'i'nternal
  *         \ref Volume.
+ *  \return See brief.
  *  \note 'i'nternal here refers to being the internal volume wrt to the faces.
  */
 static const struct const_Matrix_d* constructor_lhs_p_r_internal
@@ -125,6 +126,10 @@ static void compute_rlhs_2
 	const struct const_Matrix_d*const lhs_i =
 		constructor_mm_const_Matrix_d('N','N',1.0,lhs_p_l,lhs_p_r_i,'R'); // destructed
 	destructor_const_Matrix_d(lhs_p_r_i);
+
+#if 0 // OK
+print_const_Matrix_d(lhs_i);
+#endif
 
 	set_petsc_Mat_row_col(ssi,s_vol,0,s_vol,0);
 	add_to_petsc_Mat(ssi,lhs_i);
@@ -220,12 +225,15 @@ static void add_to_petsc_Mat_offdiagonal_volume_2
 		const struct DG_Solver_Face*const dg_s_face = (struct DG_Solver_Face*) face;
 		assert(dg_s_face->neigh_info[s_ind_o].d_g_coef_f__d_s_coef[s_ind_o][0]->ext_0 == n_dof_g);
 		assert(dg_s_face->neigh_info[s_ind_o].d_g_coef_f__d_s_coef[s_ind_o][0]->ext_1 == n_dof_s);
-		add_to_lhs_p_r(1.0,dg_s_face->neigh_info[s_ind_o].d_g_coef_f__d_s_coef[s_ind_o],lhs_p_r,face->boundary,sim);
-
+		add_to_lhs_p_r(1.0,dg_s_face->neigh_info[s_ind_i].d_g_coef_f__d_s_coef[s_ind_o],lhs_p_r,face->boundary,sim);
 
 		const struct const_Matrix_d*const lhs_o =
 			constructor_mm_const_Matrix_d('N','N',1.0,lhs_p_l,(struct const_Matrix_d*)lhs_p_r,'R'); // destructed
 		destructor_Matrix_d(lhs_p_r);
+#if 0 // OK
+printf("face: %d %d %d\n",((struct Volume*)s_vol_i)->index,((struct Volume*)s_vol_o)->index,s_ind_i);
+print_const_Matrix_d(lhs_o);
+#endif
 
 		set_petsc_Mat_row_col(ssi,s_vol_i,0,s_vol_o,0);
 		add_to_petsc_Mat(ssi,lhs_o);

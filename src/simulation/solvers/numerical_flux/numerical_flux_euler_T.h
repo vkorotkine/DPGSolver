@@ -39,7 +39,7 @@ void compute_Numerical_Flux_T_euler_roe_pike
 
 /** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes and Jacobians using the Roe-Pike
  *         method.
- *  See comments for \ref compute_Numerical_Flux_euler_roe_pike. */
+ *  See comments for \ref compute_Numerical_Flux_T_euler_roe_pike. */
 void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.

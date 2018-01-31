@@ -94,9 +94,9 @@ static void constructor_derived_DG_Solver_Element_tp (struct Element* element_pt
 
 	struct Operators_TP ops_tp;
 
-	set_operators_tp(&ops_tp,dg_s_se[0]->cv1_vs_vc[0],s_se[0]->cv0_vs_vc[0],dg_s_se[1]->cv1_vs_vc[0],s_se[1]->cv0_vs_vc[0]);
+	set_operators_tp(&ops_tp,s_se[0]->cv0_vs_vc[0],dg_s_se[0]->cv1_vs_vc[0],s_se[1]->cv0_vs_vc[0],dg_s_se[1]->cv1_vs_vc[0]);
 	dg_s_e->cv1_vs_vc[0] = constructor_operators_tp("cv1","vsA","vcs","H_1_P_PM0",e,sim,&ops_tp); // destructed
 
-	set_operators_tp(&ops_tp,dg_s_se[0]->cv1_vs_vc[1],s_se[0]->cv0_vs_vc[1],dg_s_se[1]->cv1_vs_vc[1],s_se[1]->cv0_vs_vc[1]);
+	set_operators_tp(&ops_tp,s_se[0]->cv0_vs_vc[1],dg_s_se[0]->cv1_vs_vc[1],s_se[1]->cv0_vs_vc[1],dg_s_se[1]->cv1_vs_vc[1]);
 	dg_s_e->cv1_vs_vc[1] = constructor_operators_tp("cv1","vsA","vcc","H_1_P_PM0",e,sim,&ops_tp); // destructed
 }

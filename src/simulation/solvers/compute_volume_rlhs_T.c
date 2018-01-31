@@ -69,7 +69,7 @@ static const struct const_Multiarray_T* constructor_sol_vc_col
 	 const struct Simulation* sim         ///< See brief.
 	);
 
-/** \brief Version of \ref constructor_grad_vc_fptr_T using collocation.
+/** \brief Version of \ref constructor_sol_vc_fptr_T using collocation for solution gradients.
  *  \return Standard. */
 static const struct const_Multiarray_T* constructor_grad_vc_col
 	(const struct Solver_Volume_T* s_vol, ///< See brief.

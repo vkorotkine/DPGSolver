@@ -176,6 +176,7 @@ static void compute_rlhs_2
 
 		finalize_lhs_2_f_dg((int[]){1,0},num_flux,dg_s_face,ssi,sim); // lhs_rl and lhs_rr
 		finalize_lhs_2_f_dg((int[]){1,1},num_flux,dg_s_face,ssi,sim); // lhs_rl and lhs_rr
+//EXIT_UNSUPPORTED;
 	}
 }
 
@@ -183,7 +184,7 @@ static void compute_rlhs_2
 
 /** \brief Constructor for the 'r'ight 'p'artial contribution (d_g_coef__d_s_coef) to the lhs matrix for the gradient
  *         and solution coefficient components corresponding to the input side indices.
- */
+ *  \return See brief. */
 static const struct const_Matrix_d* constructor_lhs_p_r_gs
 	(const int side_index_g,                      ///< Side index of the solution gradients.
 	 const int side_index_s,                      ///< Side index of the solution.
@@ -226,6 +227,11 @@ static void finalize_lhs_2_f_dg
 	lhs_i     = constructor_mm_const_Matrix_d('N','N',1.0,lhs_p_l,lhs_p_r_i,'R'); // destructed
 	destructor_const_Matrix_d(lhs_p_r_i);
 
+#if 0
+printf("%d %d\n",((struct Volume*)s_vol[side_index[0]])->index,((struct Volume*)s_vol[0])->index);
+print_const_Matrix_d(lhs_i);
+#endif
+
 	set_petsc_Mat_row_col(ssi,s_vol[side_index[0]],0,s_vol[0],0);
 	add_to_petsc_Mat(ssi,lhs_i);
 	destructor_const_Matrix_d(lhs_i);
@@ -235,6 +241,10 @@ static void finalize_lhs_2_f_dg
 		lhs_i     = constructor_mm_const_Matrix_d('N','N',1.0,lhs_p_l,lhs_p_r_i,'R'); // destructed
 		destructor_const_Matrix_d(lhs_p_r_i);
 
+#if 0
+printf("%d %d\n",((struct Volume*)s_vol[side_index[0]])->index,((struct Volume*)s_vol[1])->index);
+print_const_Matrix_d(lhs_i);
+#endif
 		set_petsc_Mat_row_col(ssi,s_vol[side_index[0]],0,s_vol[1],0);
 		add_to_petsc_Mat(ssi,lhs_i);
 		destructor_const_Matrix_d(lhs_i);
@@ -264,23 +274,16 @@ static const struct const_Matrix_d* constructor_lhs_p_r_gs
 	assert(dg_s_vol->d_g_coef_v__d_s_coef[0]->ext_0 == n_dof_g);
 	assert(dg_s_vol->d_g_coef_v__d_s_coef[0]->ext_1 == n_dof_s);
 
-	add_to_lhs_p_r(1.0,dg_s_vol->d_g_coef_v__d_s_coef,lhs_p_r,false,sim);
+	if (side_index_g == side_index_s)
+		add_to_lhs_p_r(1.0,dg_s_vol->d_g_coef_v__d_s_coef,lhs_p_r,false,sim);
 
-	const struct Volume*const vol = (struct Volume*) dg_s_vol;
-	for (int i = 0; i < NFMAX;    ++i) {
-	for (int j = 0; j < NSUBFMAX; ++j) {
-		const struct Face* face_curr = vol->faces[i][j];
-		if (!face || (face_curr != face))
-			continue;
+	const double s = compute_scaling_weak_gradient(dg_s_face,test_case);
+	const int s_ind_g = side_index_g,
+	          s_ind_s = side_index_s;
 
-		const double s = compute_scaling_weak_gradient(dg_s_face,test_case);
-		const int s_ind_g = side_index_g,
-		          s_ind_s = side_index_s;
-
-		assert(dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s][0]->ext_0 == n_dof_g);
-		assert(dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s][0]->ext_1 == n_dof_s);
-		add_to_lhs_p_r(s,dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s],lhs_p_r,face->boundary,sim);
-	}}
+	assert(dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s][0]->ext_0 == n_dof_g);
+	assert(dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s][0]->ext_1 == n_dof_s);
+	add_to_lhs_p_r(s,dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s],lhs_p_r,face->boundary,sim);
 
 	return (struct const_Matrix_d*) lhs_p_r;
 }

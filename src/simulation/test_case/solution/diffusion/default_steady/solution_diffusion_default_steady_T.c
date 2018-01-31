@@ -44,7 +44,7 @@ static struct Multiarray_T* constructor_sol_diffusion_default_steady
 	 const struct Simulation* sim          ///< See brief.
 	);
 
-/** \brief Version of \ref constructor_grad_fptr_T used for the default steady diffusion test cases.
+/** \brief Version of \ref constructor_sol_fptr_T used for the default steady diffusion test cases.
  *  \return See brief. */
 static struct Multiarray_T* constructor_grad_diffusion_default_steady
 	(const struct const_Multiarray_R* xyz, ///< See brief.

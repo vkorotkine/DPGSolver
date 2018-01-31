@@ -30,8 +30,8 @@ struct DG_Solver_Face_T {
 	struct Neigh_Info_DG {
 		struct Multiarray_T* grad_coef_f; ///< The face contributions to the solution gradient coefficients.
 
-		/** Linearization of \ref DG_Solver_Face_T::grad_coef_f wrt \ref Solver_Volume_T::sol_coef from the 'L'eft
-		 *  (index 0) and 'R'ight (index 1) for all dimensions.
+		/** Linearization of \ref DG_Solver_Face_T::Neigh_Info_DG::grad_coef_f wrt \ref Solver_Volume_T::sol_coef
+		 *  from the 'L'eft (index 0) and 'R'ight (index 1) for all dimensions.
 		 *
 		 *  \note For non-boundary faces, this term is independent of the equation and variable under consideration
 		 *        and a single entry is stored for all combinations. However, for boundary faces, as the boundary

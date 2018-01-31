@@ -36,22 +36,22 @@ struct Flux_Data_Diffusion {
 	const Type* g; ///< Gradient variable.
 };
 
-/** \brief Pointer to functions computing the required Diffusion flux members.
+/** \brief Pointer to functions computing the required diffusion flux members.
  *
  *  \param flux_data  \ref Flux_Data_Diffusion.
  *  \param f_ptr      Pointers to the flux members.
  *  \param dfdg_ptr   Pointers to the flux Jacobian members.
  */
-typedef void (*compute_Flux_Diffusion_fptr)
+typedef void (*compute_Flux_diffusion_fptr)
 	(const struct Flux_Data_Diffusion*const flux_data,
 	 Type*const f_ptr[DIM*NEQ],
 	 Type*const dfdg_ptr[DIM*DIM*NEQ*NVAR]
 	);
 
-/** \brief Return the pointer to the appropriate \ref compute_Flux_Diffusion_fptr specialization based on the required
+/** \brief Return the pointer to the appropriate \ref compute_Flux_diffusion_fptr specialization based on the required
  *         members.
  *  \return See brief. */
-static compute_Flux_Diffusion_fptr get_compute_Flux_Diffusion_fptr
+static compute_Flux_diffusion_fptr get_compute_Flux_diffusion_fptr
 	(const bool*const c_m ///< \ref Flux_Input_T::compute_member.
 	);
 
@@ -70,7 +70,7 @@ void compute_Flux_T_diffusion (const struct Flux_Input_T* flux_i, struct mutable
 
 	const bool* c_m = flux_i->compute_member;
 
-	compute_Flux_Diffusion_fptr compute_flux_diffusion_n = get_compute_Flux_Diffusion_fptr(c_m);
+	compute_Flux_diffusion_fptr compute_flux_diffusion_n = get_compute_Flux_diffusion_fptr(c_m);
 
 	assert(c_m[0]);
 	Type* f_ptr[DIM*NEQ] = { NULL };
@@ -112,32 +112,32 @@ void compute_Flux_T_diffusion (const struct Flux_Input_T* flux_i, struct mutable
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/// \brief Version of \ref compute_Flux_Diffusion_fptr computing only the flux.
-static void compute_Flux_Diffusion_100
+/// \brief Version of \ref compute_Flux_diffusion_fptr computing only the flux.
+static void compute_Flux_diffusion_100
 	(const struct Flux_Data_Diffusion*const flux_data, ///< See brief.
 	 Type*const f_ptr[DIM*NEQ],                        ///< See brief.
 	 Type*const dfdg_ptr[DIM*NEQ*NVAR*DIM]             ///< See brief.
 	);
 
-/// \brief Version of \ref compute_Flux_Diffusion_fptr computing the flux and Jacobian.
-static void compute_Flux_Diffusion_101
+/// \brief Version of \ref compute_Flux_diffusion_fptr computing the flux and Jacobian.
+static void compute_Flux_diffusion_101
 	(const struct Flux_Data_Diffusion*const flux_data, ///< See brief.
 	 Type*const f_ptr[DIM*NEQ],                        ///< See brief.
 	 Type*const dfdg_ptr[DIM*NEQ*NVAR*DIM]             ///< See brief.
 	);
 
-static compute_Flux_Diffusion_fptr get_compute_Flux_Diffusion_fptr (const bool*const c_m)
+static compute_Flux_diffusion_fptr get_compute_Flux_diffusion_fptr (const bool*const c_m)
 {
 	assert(c_m[0]);
 	if (c_m[2])
-		return compute_Flux_Diffusion_101;
+		return compute_Flux_diffusion_101;
 	else
-		return compute_Flux_Diffusion_100;
+		return compute_Flux_diffusion_100;
 }
 
 // Level 1 ********************************************************************************************************** //
 
-/** \brief Compute the Diffusion fluxes for the input nodal values.
+/** \brief Compute the diffusion fluxes for the input nodal values.
  *  \warning  Negated flux contributions are returned such that the identical treatment to inviscid flux contributions
  *            is applicable. */
 static void compute_Flux_diffusion_0
@@ -145,15 +145,15 @@ static void compute_Flux_diffusion_0
 	 Type*const f_ptr[DIM*NEQ]                         ///< Pointers to the flux data.
 	);
 
-/** \brief Compute the Diffusion flux Jacobians for the input nodal values.
+/** \brief Compute the diffusion flux Jacobians for the input nodal values.
  *  \warning  Negated flux contributions are returned such that the identical treatment to inviscid flux contributions
  *            is applicable. */
-static void compute_Flux_diffusion_2
+static void compute_Flux_diffusion_1
 	(const struct Flux_Data_Diffusion*const flux_data, ///< \ref Flux_Data_Diffusion.
 	 Type*const dfdg_ptr[DIM*NEQ*NVAR*DIM]             ///< Pointers to the flux Jacobian data.
 	);
 
-static void compute_Flux_Diffusion_100
+static void compute_Flux_diffusion_100
 	(const struct Flux_Data_Diffusion*const flux_data, Type*const f_ptr[DIM*NEQ],
 	 Type*const dfdg_ptr[DIM*NEQ*NVAR*DIM])
 {
@@ -163,12 +163,12 @@ static void compute_Flux_Diffusion_100
 	increment_pointers_T(DIM*NEQ,(const Type**)f_ptr);
 }
 
-static void compute_Flux_Diffusion_101
+static void compute_Flux_diffusion_101
 	(const struct Flux_Data_Diffusion*const flux_data, Type*const f_ptr[DIM*NEQ],
 	 Type*const dfdg_ptr[DIM*NEQ*NVAR*DIM])
 {
 	compute_Flux_diffusion_0(flux_data,f_ptr);
-	compute_Flux_diffusion_2(flux_data,dfdg_ptr);
+	compute_Flux_diffusion_1(flux_data,dfdg_ptr);
 
 	increment_pointers_T(DIM*NEQ,         (const Type**)f_ptr);
 	increment_pointers_T(DIM*NEQ*NVAR*DIM,(const Type**)dfdg_ptr);
@@ -188,7 +188,7 @@ static void compute_Flux_diffusion_0 (const struct Flux_Data_Diffusion*const flu
 	IF_DIM_GE_3( *f_ptr[ind++] += -g[2] );
 }
 
-static void compute_Flux_diffusion_2
+static void compute_Flux_diffusion_1
 	(const struct Flux_Data_Diffusion*const flux_data, Type*const dfdg_ptr[DIM*NEQ*NVAR*DIM])
 {
 	UNUSED(flux_data);

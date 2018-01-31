@@ -580,7 +580,7 @@ int find_maximum_mesh_level
 	(const struct Adaptive_Solver_Volume*const a_s_vol ///< The volume.
 	);
 
-/** \brief Get the pointer to the appropriate \ref Adaptive_Solver_Element::nc_ff \ref const_Vector_T\*.
+/** \brief Get the pointer to the appropriate \ref Adaptation_Element::nc_ff \ref const_Vector_T\*.
  *  \return See brief. */
 const struct const_Vector_i* get_operator__nc_ff
 	(const int side_index_dest,       ///< The side index of the destination.
@@ -1226,14 +1226,16 @@ static int get_ind_child
 	 const struct Face*const face_p ///< The parent \ref Face.
 	);
 
-/** \brief Return the value of \ref Face::ind_lf for \ref the dominant \ref Face::neigh_info for an h-refined face.
+/** \brief Return the value of \ref Face::Neigh_Info::ind_lf for the dominant \ref Face::neigh_info for an h-refined
+ *         face.
  *  \return See brief. */
 static int get_ind_lf_h_ref
 	(const int side_index,          ///< The index of the side of the face under consideration.
 	 const struct Face*const face_p ///< The parent \ref Face.
 	);
 
-/** \brief Return the value of \ref Face::ind_ord for \ref the dominant \ref Face::neigh_info for an h-refined face.
+/** \brief Return the value of \ref Face::Neigh_Info::ind_ord for the dominant \ref Face::neigh_info for an h-refined
+ *         face.
  *  \return See brief. */
 static int get_ind_ord_h_ref
 	(const int side_index,          ///< The index of the side of the face under consideration.

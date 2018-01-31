@@ -211,9 +211,6 @@ static void set_col_lhs_cmplx_step_dg
 
 	for (struct Intrusive_Link* curr_r = volumes_local->first; curr_r; curr_r = curr_r->next) {
 		struct Solver_Volume_c* s_vol_r = (struct Solver_Volume_c*) curr_r;
-		if ((CHECK_LIN == CHECK_LIN_VOLUME) && (s_vol_r->ind_dof != s_vol_c->ind_dof))
-			continue;
-
 		ssi->row = (int)s_vol_r->ind_dof+0;
 
 		struct Multiarray_c* sol_coef_r = s_vol_r->sol_coef;
