@@ -292,8 +292,8 @@ printf("%d\n",vol->index);
 //print_Multiarray_T(s_vol->grad_coef);
 for (int d = 0; d < DIM; ++d)
 	print_const_Matrix_T(dg_s_vol->d_g_coef_v__d_s_coef[d]);
-}
 EXIT_UNSUPPORTED;
+}
 #endif
 
 }
@@ -348,7 +348,7 @@ static const struct const_Matrix_R* constructor_grad_xyz_p
 		const struct const_Vector_R metrics_V =
 			{ .ext_0     = metrics->extents[0],
 			  .owns_data = false,
-			  .data = get_col_const_Multiarray_R(dir*DIM+d,metrics), };
+			  .data = get_col_const_Multiarray_R(d*DIM+dir,metrics), };
 		mm_diag_R('L',1.0,1.0,grad_rst->data[d]->op_std,&metrics_V,grad_xyz,false);
 	}
 

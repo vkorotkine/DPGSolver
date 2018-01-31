@@ -10,7 +10,7 @@
 
 # Executable and command line arguments
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_linearization
-ARGV="diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_LINE__ml2__p2"
+ARGV="diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_Mixed2D__ml2__p2"
 #EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
 #ARGV="advection/default/dg/TEST_Advection_Default_DG_LINE petsc_options_gmres_default"
 
@@ -22,6 +22,5 @@ LOGFILE=""
 
 
 # DO NOT MODIFY ANYTHING BELOW THIS LINE
-clear
 
 @MPIEXEC@ -n ${N_PROCS} ${EXECUTABLE} ${ARGV} ${LOGFILE}

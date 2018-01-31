@@ -62,11 +62,9 @@ void compute_Flux_T_diffusion (const struct Flux_Input_T* flux_i, struct mutable
 	const struct const_Multiarray_T*const g = flux_i->g;
 
 	assert(g->order == 3);
-	const ptrdiff_t size_s = compute_size(g->order-1,g->extents);
-
-	const Type*const g_p[] = ARRAY_DIM( get_col_const_Multiarray_T(0*size_s,g),
-	                                    get_col_const_Multiarray_T(1*size_s,g),
-	                                    get_col_const_Multiarray_T(2*size_s,g) );
+	const Type*const g_p[] = ARRAY_DIM( get_col_const_Multiarray_T(0,g),
+	                                    get_col_const_Multiarray_T(1,g),
+	                                    get_col_const_Multiarray_T(2,g) );
 
 	const bool* c_m = flux_i->compute_member;
 

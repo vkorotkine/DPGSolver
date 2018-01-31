@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 
+#include "macros.h"
+
 
 #include "def_templates_compute_face_rlhs.h"
 
@@ -232,10 +234,12 @@ struct Matrix_T* constructor_lhs_p_f_2_T
 		mm_diag_T('R',1.0,0.0,tw0_vt_fc->op_std,(struct const_Vector_T*)&dnnf_dg,tw0_nf,false);
 
 		mm_TRT('N','N',-1.0,0.0,(struct const_Matrix_T*)tw0_nf,cv0_vr_fc,lhs_l);
+//print_Matrix_T(lhs_l);
 
 		set_block_Matrix_T(lhs_p,eq*lhs_l->ext_0,(vr+n_vr*(d_g))*lhs_l->ext_1,
 		                   (struct const_Matrix_T*)lhs_l,0,0,lhs_l->ext_0,lhs_l->ext_1,'i');
 	}}}
+//EXIT_UNSUPPORTED;
 	destructor_Matrix_T(tw0_nf);
 	destructor_Matrix_T(lhs_l);
 

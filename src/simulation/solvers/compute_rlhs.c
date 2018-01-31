@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_rlhs.h"
 
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "matrix.h"
 
@@ -41,14 +42,14 @@ void add_to_lhs_p_r
 			for (int vr_s = 0; vr_s < n_vr; ++vr_s) {
 				if (vr_g != vr_s)
 					continue;
-				set_scaled_block_Matrix_d(alpha,lhs_p_r,(vr_g+n_vr*(d_g))*lhs_p_r->ext_0,vr_s*lhs_p_r->ext_1,
+				set_scaled_block_Matrix_d(alpha,lhs_p_r,(vr_g+n_vr*(d_g))*lhs_p_l->ext_0,vr_s*lhs_p_l->ext_1,
 							        lhs_p_l,0,0,lhs_p_l->ext_0,lhs_p_l->ext_1,'a');
 			}}
 		}
 	} else {
 		for (int d_g = 0; d_g < DIM; ++d_g) {
 			const struct const_Matrix_d*const lhs_p_l = dgc_dsc[d_g];
-			set_scaled_block_Matrix_d(alpha,lhs_p_r,n_vr*d_g*lhs_p_r->ext_0,0,lhs_p_l,
+			set_scaled_block_Matrix_d(alpha,lhs_p_r,n_vr*d_g*lhs_p_l->ext_0,0,lhs_p_l,
 			                          0,0,lhs_p_l->ext_0,lhs_p_l->ext_1,'a');
 		}
 	}

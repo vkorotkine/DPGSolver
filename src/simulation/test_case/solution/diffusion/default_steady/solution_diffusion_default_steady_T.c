@@ -323,8 +323,8 @@ static struct Multiarray_T* constructor_sol_diffusion_default_steady_2d
 
 	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_vs,n_var}); // returned
 
-	const Real* x = get_col_const_Multiarray_R(0,xyz),
-	          * y = get_col_const_Multiarray_R(1,xyz);
+	const Real*const x = get_col_const_Multiarray_R(0,xyz),
+	          *const y = get_col_const_Multiarray_R(1,xyz);
 
 	Type* u = get_col_Multiarray_T(0,sol);
 	const Real scale = sol_data.scale;
@@ -348,11 +348,11 @@ static struct Multiarray_T* constructor_grad_diffusion_default_steady_2d
 
 	struct Multiarray_T* grad = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_vs,n_var,DIM}); // returned
 
-	const Real* x = get_col_const_Multiarray_R(0,xyz),
-	          * y = get_col_const_Multiarray_R(1,xyz);
+	const Real*const x = get_col_const_Multiarray_R(0,xyz),
+	          *const y = get_col_const_Multiarray_R(1,xyz);
 
-	Type* g[] = { get_col_Multiarray_T(0*n_vs*n_var,grad),
-	              get_col_Multiarray_T(1*n_vs*n_var,grad), };
+	Type*const g[] = { get_col_Multiarray_T(0*n_var,grad),
+	                   get_col_Multiarray_T(1*n_var,grad), };
 	const Real scale = sol_data.scale;
 	for (int i = 0; i < n_vs; ++i) {
 		g[0][i] = -1.0*scale*PI*sin(scale*PI*x[i])*cos(scale*PI*y[i]);

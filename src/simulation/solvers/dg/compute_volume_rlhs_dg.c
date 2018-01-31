@@ -218,15 +218,17 @@ static void add_to_petsc_Mat_offdiagonal_volume_2
 		const struct Solver_Volume*const s_vol_o = (struct Solver_Volume*) dg_s_vol_o;
 
 		const ptrdiff_t n_dof_s = s_vol_o->sol_coef->extents[0],
-				    n_dof_g = s_vol_o->grad_coef->extents[0];
+				    n_dof_g = s_vol_i->grad_coef->extents[0];
 
 		struct Matrix_d*const lhs_p_r = constructor_zero_Matrix_d('R',n_dof_g*n_vr*DIM,n_vr*n_dof_s); // destructed
 
 		const struct DG_Solver_Face*const dg_s_face = (struct DG_Solver_Face*) face;
-		assert(dg_s_face->neigh_info[s_ind_o].d_g_coef_f__d_s_coef[s_ind_o][0]->ext_0 == n_dof_g);
-		assert(dg_s_face->neigh_info[s_ind_o].d_g_coef_f__d_s_coef[s_ind_o][0]->ext_1 == n_dof_s);
+		assert(dg_s_face->neigh_info[s_ind_i].d_g_coef_f__d_s_coef[s_ind_o][0]->ext_0 == n_dof_g);
+		assert(dg_s_face->neigh_info[s_ind_i].d_g_coef_f__d_s_coef[s_ind_o][0]->ext_1 == n_dof_s);
 		add_to_lhs_p_r(1.0,dg_s_face->neigh_info[s_ind_i].d_g_coef_f__d_s_coef[s_ind_o],lhs_p_r,face->boundary,sim);
 
+print_const_Matrix_d(lhs_p_l);
+print_Matrix_d(lhs_p_r);
 		const struct const_Matrix_d*const lhs_o =
 			constructor_mm_const_Matrix_d('N','N',1.0,lhs_p_l,(struct const_Matrix_d*)lhs_p_r,'R'); // destructed
 		destructor_Matrix_d(lhs_p_r);

@@ -108,11 +108,11 @@ void set_to_sum_Vector_T (const char sum_dir, const struct const_Matrix_T*const 
 
 	const ptrdiff_t ext_0 = ( sum_dir == 'R' ? src->ext_0 : src->ext_1 ),
 	                n_val = ( sum_dir == 'R' ? src->ext_1 : src->ext_0 );
-	assert(ext_0 == dest->ext_0);
+	assert(n_val == dest->ext_0);
 	for (ptrdiff_t i = 0; i < ext_0; ++i) {
 		const Type* data_m = get_slice_const_Matrix_T(i,src);
 		for (ptrdiff_t j = 0; j < n_val; ++j)
-			dest->data[i] += data_m[j];
+			dest->data[j] += data_m[j];
 	}
 }
 

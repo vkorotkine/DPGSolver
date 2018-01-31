@@ -229,7 +229,10 @@ static void finalize_lhs_2_f_dg
 
 #if 0
 printf("%d %d\n",((struct Volume*)s_vol[side_index[0]])->index,((struct Volume*)s_vol[0])->index);
+//print_const_Matrix_d(lhs_p_l);
+//print_const_Matrix_d(lhs_p_r_i);
 print_const_Matrix_d(lhs_i);
+//EXIT_UNSUPPORTED;
 #endif
 
 	set_petsc_Mat_row_col(ssi,s_vol[side_index[0]],0,s_vol[0],0);
@@ -276,6 +279,7 @@ static const struct const_Matrix_d* constructor_lhs_p_r_gs
 
 	if (side_index_g == side_index_s)
 		add_to_lhs_p_r(1.0,dg_s_vol->d_g_coef_v__d_s_coef,lhs_p_r,false,sim);
+//print_Matrix_d(lhs_p_r);
 
 	const double s = compute_scaling_weak_gradient(dg_s_face,test_case);
 	const int s_ind_g = side_index_g,
@@ -284,6 +288,9 @@ static const struct const_Matrix_d* constructor_lhs_p_r_gs
 	assert(dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s][0]->ext_0 == n_dof_g);
 	assert(dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s][0]->ext_1 == n_dof_s);
 	add_to_lhs_p_r(s,dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s],lhs_p_r,face->boundary,sim);
+//printf("%f\n",s);
+//print_Matrix_d(lhs_p_r);
+//EXIT_UNSUPPORTED;
 
 	return (struct const_Matrix_d*) lhs_p_r;
 }
