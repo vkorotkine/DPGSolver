@@ -28,8 +28,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "numerical_flux_diffusion.h"
 #include "simulation.h"
 #include "solution.h"
-#include "default_steady/solution_diffusion_default_steady.h"
 #include "test_case.h"
+
+#include "default_steady/solution_diffusion_default_steady.h"
 
 // Static function declarations ************************************************************************************* //
 

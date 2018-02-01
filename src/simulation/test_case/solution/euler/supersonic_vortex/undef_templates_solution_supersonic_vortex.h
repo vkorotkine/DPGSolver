@@ -12,7 +12,6 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
 /** \file
  *  \brief Undefine macro definitions for c-style templated containers/functions relating to solution for the
  *         euler equations (test case: supersonic vortex).

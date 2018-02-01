@@ -12,14 +12,19 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__test_complex_solution_navier_stokes_h__INCLUDED
+#define DPG__test_complex_solution_navier_stokes_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templated containers/functions relating to solution for the
- *         euler equations.
+ *  \brief Provides complex functions relating to the Navier-Stokes solutions.
  */
 
-#include "periodic_vortex/undef_templates_solution_periodic_vortex.h"
-#include "supersonic_vortex/undef_templates_solution_supersonic_vortex.h"
-#include "free_stream/undef_templates_solution_free_stream.h"
+#include "def_templates_type_dc.h"
+#include "def_templates_solution_navier_stokes.h"
+#include "def_templates_test_case.h"
+#include "solution_navier_stokes_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solution_navier_stokes.h"
+#include "undef_templates_test_case.h"
 
-#undef set_function_pointers_solution_euler_T
-#undef convert_variables_T
+#endif // DPG__test_complex_solution_navier_stokes_h__INCLUDED

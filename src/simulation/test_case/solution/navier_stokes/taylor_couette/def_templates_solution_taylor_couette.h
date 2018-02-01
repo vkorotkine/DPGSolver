@@ -13,13 +13,22 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templated containers/functions relating to solution for the
- *         euler equations.
+ *  \brief Provides the macro definitions used for c-style templating related to the solution functions for the
+ *         navier-stokes equations (test case: taylor-couette).
  */
 
-#include "periodic_vortex/undef_templates_solution_periodic_vortex.h"
-#include "supersonic_vortex/undef_templates_solution_supersonic_vortex.h"
-#include "free_stream/undef_templates_solution_free_stream.h"
+#if TYPE_RC == TYPE_REAL
 
-#undef set_function_pointers_solution_euler_T
-#undef convert_variables_T
+///\{ \name Function names
+#define set_sol_taylor_couette_T               set_sol_taylor_couette
+#define constructor_const_sol_taylor_couette_T constructor_const_sol_taylor_couette
+///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define set_sol_taylor_couette_T               set_sol_taylor_couette_c
+#define constructor_const_sol_taylor_couette_T constructor_const_sol_taylor_couette_c
+///\}
+
+#endif

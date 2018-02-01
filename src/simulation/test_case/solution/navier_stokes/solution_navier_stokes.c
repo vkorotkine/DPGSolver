@@ -15,63 +15,28 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "solution_advection.h"
-
-#include "multiarray.h"
+#include "solution_navier_stokes.h"
 
 #include "boundary.h"
-#include "compute_error.h"
-#include "compute_error_advection.h"
-#include "const_cast.h"
-#include "file_processing.h"
-#include "flux_advection.h"
-#include "numerical_flux_advection.h"
-#include "simulation.h"
+//#include "compute_error_navier_stokes.h"
 #include "solution.h"
+#include "flux_euler.h"
+//#include "flux_navier_stokes.h"
+#include "geometry.h"
+#include "geometry_parametric.h"
+#include "numerical_flux_euler.h"
+//#include "numerical_flux_navier_stokes.h"
+#include "simulation.h"
 #include "test_case.h"
 
-#include "solution_advection_default.h"
-#include "peterson/solution_peterson.h"
+//#include "periodic_vortex/solution_periodic_vortex.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "solution_advection_T.c"
-
-struct Sol_Data__Advection get_sol_data_advection (const struct Simulation* sim)
-{
-	static bool need_input = true;
-
-	static struct Sol_Data__Advection sol_data;
-	if (need_input) {
-		need_input = false;
-		read_data_advection(sim->input_path,&sol_data);
-	}
-
-	return sol_data;
-}
-
-void read_data_advection (const char*const input_path, struct Sol_Data__Advection*const sol_data)
-{
-	const int count_to_find = 1;
-
-	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
-
-	int count_found = 0;
-	char line[STRLEN_MAX];
-	while (fgets(line,sizeof(line),input_file)) {
-		if (strstr(line,"b_adv")) {
-			read_skip_d_1(line,1,sol_data->b_adv,DMAX);
-			++count_found;
-		}
-	}
-	fclose(input_file);
-
-	if (count_found != count_to_find)
-		EXIT_ERROR("Did not find the required number of variables");
-}
+#include "solution_navier_stokes_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

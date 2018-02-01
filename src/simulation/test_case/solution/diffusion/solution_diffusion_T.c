@@ -82,7 +82,7 @@ static void set_function_pointers_num_flux (struct Test_Case_T* test_case, const
 			test_case->compute_Numerical_Flux_i[1] = compute_Numerical_Flux_T_diffusion_central_jacobian;
 			break;
 		default:
-			EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
+			EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[1]);
 			break;
 		}
 		break;

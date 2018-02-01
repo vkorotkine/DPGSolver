@@ -40,24 +40,26 @@ You should have received a copy of the GNU General Public License along with DPG
 #define PERIODIC_ZR 56
 
 // Advection
-#define BC_INFLOW  13
-#define BC_OUTFLOW 14
+#define BC_INFLOW  1
+#define BC_OUTFLOW 2
 
 // Diffusion
 #define BC_DIRICHLET 11
 #define BC_NEUMANN   12
 
 // Euler
-#define BC_RIEMANN        1
-#define BC_SLIPWALL       2
-#define BC_BACKPRESSURE   3
-#define BC_TOTAL_TP       4
-#define BC_SUPERSONIC_IN  5
-#define BC_SUPERSONIC_OUT 6
+#define BC_RIEMANN        101
+#define BC_SLIPWALL       102
+#define BC_BACKPRESSURE   103
+#define BC_TOTAL_TP       104
+#define BC_SUPERSONIC_IN  105
+#define BC_SUPERSONIC_OUT 106
 
 // Navier-Stokes
-#define BC_NOSLIP_T         7
-#define BC_NOSLIP_ADIABATIC 8
+#define BC_NOSLIP_T         111
+#define BC_NOSLIP_T_ALL     112
+#define BC_NOSLIP_ADIABATIC 116
+#define BC_NOSLIP_DIABATIC  117
 ///\}
 
 

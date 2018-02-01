@@ -29,10 +29,10 @@ MIXED_HW = 22;
 
 
 // PDE Names
-ADVECTION    = 1;
-DIFFUSION    = 2;
-EULER        = 3;
-NAVIERSTOKES = 4;
+ADVECTION     = 1;
+DIFFUSION     = 2;
+EULER         = 3;
+NAVIER_STOKES = 4;
 
 
 // PDE Specifiers
@@ -60,6 +60,9 @@ GEOM_ADV_XYL  = 3; // (ADV)ection (X)(Y)-coords (L)eft
 GEOM_ADV_XYZL = 4; // (ADV)ection (X)(Y)(Z)-coords (L)eft
 
 GEOM_ADV_PERIODIC = 11; // (ADV)ection (PERIODIC) through all faces
+
+GEOM_BC_ADIABATIC_O = 31; /// (B)oundary (C)ondition (ADIABATIC) (O)uter
+GEOM_BC_DIABATIC_O  = 32; /// (B)oundary (C)ondition (DIABATIC) (O)uter
 
 GEOM_2BEXP_0 = 0;
 GEOM_2BEXP_1 = 1;
@@ -93,18 +96,21 @@ GMSH_YZFACE_MIN = 6001;
 GMSH_XYZVOL_MIN = 7001;
 
 
-BC_RIEMANN        = 1; // Euler
-BC_SLIPWALL       = 2;
-BC_BACKPRESSURE   = 3;
-BC_TOTAL_TP       = 4;
-BC_SUPERSONIC_IN  = 5;
-BC_SUPERSONIC_OUT = 6;
 
-BC_NOSLIP_T         = 7; // Navier-Stokes
-BC_NOSLIP_ADIABATIC = 8;
+BC_INFLOW       = 1; // Advection
+BC_OUTFLOW      = 2;
 
 BC_DIRICHLET    = 11; // Diffusion
 BC_NEUMANN      = 12;
 
-BC_INFLOW       = 13; // Advection
-BC_OUTFLOW      = 14;
+BC_RIEMANN        = 101; // Euler
+BC_SLIPWALL       = 102;
+BC_BACKPRESSURE   = 103;
+BC_TOTAL_TP       = 104;
+BC_SUPERSONIC_IN  = 105;
+BC_SUPERSONIC_OUT = 106;
+
+BC_NOSLIP_T         = 111; // Navier-Stokes
+BC_NOSLIP_T_ALL     = 112;
+BC_NOSLIP_ADIABATIC = 116;
+BC_NOSLIP_DIABATIC  = 117;

@@ -13,13 +13,14 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templated containers/functions relating to solution for the
- *         euler equations.
+ *  \brief Provides templated functions relating to the Navier-Stokes solutions.
  */
 
-#include "periodic_vortex/undef_templates_solution_periodic_vortex.h"
-#include "supersonic_vortex/undef_templates_solution_supersonic_vortex.h"
-#include "free_stream/undef_templates_solution_free_stream.h"
+struct Test_Case_T;
+struct Simulation;
 
-#undef set_function_pointers_solution_euler_T
-#undef convert_variables_T
+/// \brief Set the solution function pointer members of an Navier-Stokes \ref Test_Case_T.
+void set_function_pointers_solution_navier_stokes_T
+	(struct Test_Case_T*const test_case, ///< \ref Test_Case_T.
+	 const struct Simulation*const sim   ///< \ref Simulation.
+	);

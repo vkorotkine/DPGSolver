@@ -18,11 +18,12 @@ class Gmsh_call:
 
 		supported_geometries = ["n-cube",
 		                        "n-cylinder_hollow_section",
+		                        "n-cylinder_hollow",
 		                       ]
 
 		geometry = mesh_name.split('/')[0]
 		if (geometry not in supported_geometries):
-			print("The ",geometry," is not currently supported.\n")
+			print("\n\nThe ",geometry," is not currently supported.\n\n\n")
 			EXIT
 
 		geo_name = re.search(r"(__)([\w]+)(__)",mesh_name).group(2)
@@ -56,7 +57,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	gmsh_setnumbers += " -setnumber mesh_level " + mesh_level
 
 	gmsh_setnumbers += " -setnumber pde_name "
-	var_names = ["advection","diffusion","euler","navierstokes"]
+	var_names = ["advection","diffusion","euler","navier_stokes"]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
 	gmsh_setnumbers += " -setnumber mesh_domain "
@@ -72,6 +73,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	gmsh_setnumbers += " -setnumber pde_spec "
 	var_names = ["steady/supersonic_vortex",
 	             "periodic/periodic_vortex",
+	             "steady/taylor_couette",
 	            ]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
@@ -86,6 +88,14 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_yl",input_dir,0)
 	elif (mesh_name.find("/periodic/") != -1):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_periodic",input_dir,0)
+	else:
+		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
+
+	gmsh_setnumbers += " -setnumber geom_bc "
+	if (mesh_name.find("/adiabatic_o/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_bc_adiabatic_o",input_dir,0)
+	elif (mesh_name.find("/diabatic_o/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_bc_diabatic_o",input_dir,0)
 	else:
 		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
 

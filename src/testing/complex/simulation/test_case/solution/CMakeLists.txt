@@ -9,6 +9,7 @@ set	(SOURCE
 	 euler/free_stream/test_complex_solution_free_stream.c
 	 diffusion/test_complex_solution_diffusion.c
 	 diffusion/default_steady/test_complex_solution_diffusion_default_steady.c
+	 navier_stokes/test_complex_solution_navier_stokes.c
 	)
 
 set	(LIBS_DEPEND

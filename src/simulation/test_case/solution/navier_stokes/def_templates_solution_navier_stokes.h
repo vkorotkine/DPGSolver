@@ -13,13 +13,22 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templated containers/functions relating to solution for the
- *         euler equations.
+ *  \brief Provides the macro definitions used for c-style templating related to the solution functions for the
+ *         navier-stokes equations.
  */
 
-#include "periodic_vortex/undef_templates_solution_periodic_vortex.h"
-#include "supersonic_vortex/undef_templates_solution_supersonic_vortex.h"
-#include "free_stream/undef_templates_solution_free_stream.h"
+//#include "periodic_vortex/def_templates_solution_periodic_vortex.h"
 
-#undef set_function_pointers_solution_euler_T
-#undef convert_variables_T
+#if TYPE_RC == TYPE_REAL
+
+///\{ \name Function names
+#define set_function_pointers_solution_navier_stokes_T set_function_pointers_solution_navier_stokes
+///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define set_function_pointers_solution_navier_stokes_T set_function_pointers_solution_navier_stokes_c
+///\}
+
+#endif

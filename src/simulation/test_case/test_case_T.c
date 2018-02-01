@@ -32,6 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_solution_advection.h"
 #include "def_templates_solution_diffusion.h"
 #include "def_templates_solution_euler.h"
+#include "def_templates_solution_navier_stokes.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -186,7 +187,7 @@ static void set_function_pointers (struct Test_Case_T* test_case, const struct S
 		case PDE_ADVECTION:     set_function_pointers_solution_advection_T(test_case,sim);     break;
 		case PDE_DIFFUSION:     set_function_pointers_solution_diffusion_T(test_case,sim);     break;
 		case PDE_EULER:         set_function_pointers_solution_euler_T(test_case,sim);         break;
-//		case PDE_NAVIER_STOKES: set_function_pointers_solution_navier_stokes_T(test_case,sim); break;
+		case PDE_NAVIER_STOKES: set_function_pointers_solution_navier_stokes_T(test_case,sim); break;
 		default: EXIT_ERROR("Unsupported: %d\n",test_case->pde_index); break;
 	}
 }
@@ -255,6 +256,7 @@ static const bool* get_compute_member_Flux_Input
 	static const bool cm_100000[] = {1,0,0,0,0,0,},
 	                  cm_110000[] = {1,1,0,0,0,0,},
 	                  cm_101000[] = {1,0,1,0,0,0,},
+	                  cm_111000[] = {1,1,1,0,0,0,},
 	                  cm_110100[] = {1,1,0,1,0,0,};
 
 	assert(type_ei == 'e' || type_ei == 'i');
@@ -284,6 +286,22 @@ static const bool* get_compute_member_Flux_Input
 				return cm_110000;
 			else if (type_ei == 'i')
 				return cm_110100;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",sim->method);
+			break;
+		}
+		break;
+	case PDE_NAVIER_STOKES:
+		switch (sim->method) {
+		case METHOD_DG:
+			if (type_ei == 'e')
+				return cm_100000;
+			else if (type_ei == 'i')
+				return cm_111000;
+			break;
+		case METHOD_DPG:
+			EXIT_ADD_SUPPORT;
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %d\n",sim->method);
@@ -325,6 +343,12 @@ static const bool* get_compute_member_Boundary_Value_Input
 			return cm_100000;
 		else if (type_ei == 'i')
 			return cm_110000;
+		break;
+	case PDE_NAVIER_STOKES:
+		if (type_ei == 'e')
+			return cm_101000;
+		else if (type_ei == 'i')
+			return cm_111100;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);

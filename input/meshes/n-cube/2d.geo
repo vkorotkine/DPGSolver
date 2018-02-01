@@ -84,7 +84,7 @@ ElseIf (pde_name == EULER)
 	Else
 		Error("Unsupported geom_adv: %d",geom_adv); Exit;
 	EndIf
-ElseIf (pde_name == NAVIERSTOKES)
+ElseIf (pde_name == NAVIER_STOKES)
 	Physical Line(bc_base+PERIODIC_XL) = {2001};
 	Physical Line(bc_base+PERIODIC_XR) = {2002};
 

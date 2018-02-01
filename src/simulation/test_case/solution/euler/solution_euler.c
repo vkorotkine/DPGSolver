@@ -28,10 +28,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "numerical_flux_euler.h"
 #include "simulation.h"
 #include "solution.h"
+#include "test_case.h"
+
 #include "periodic_vortex/solution_periodic_vortex.h"
 #include "supersonic_vortex/solution_supersonic_vortex.h"
 #include "free_stream/solution_free_stream.h"
-#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 

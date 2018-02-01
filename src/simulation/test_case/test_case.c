@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "solution_advection.h"
 #include "solution_diffusion.h"
 #include "solution_euler.h"
+#include "solution_navier_stokes.h"
 
 // Static function declarations ************************************************************************************* //
 
