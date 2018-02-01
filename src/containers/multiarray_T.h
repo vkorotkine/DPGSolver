@@ -195,6 +195,14 @@ struct Multiarray_T interpret_Multiarray_as_slice_T
 	 const ptrdiff_t*const sub_indices ///< Defined for \ref compute_index_sub_container.
 	);
 
+/** \brief `const` version of \ref interpret_Multiarray_as_slice_T.
+ *  \return See brief. */
+struct const_Multiarray_T interpret_const_Multiarray_as_slice_T
+	(const struct const_Multiarray_T*const src, ///< See brief.
+	 const int order_o,                         ///< See brief.
+	 const ptrdiff_t*const sub_indices          ///< See brief.
+	);
+
 /** \brief Return a stack allocated \ref Vector_T holding the data of the desired slice.
  *  \return See brief. */
 struct Vector_T interpret_Multiarray_slice_as_Vector_T

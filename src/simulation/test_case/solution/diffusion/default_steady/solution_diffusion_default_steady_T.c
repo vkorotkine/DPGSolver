@@ -52,7 +52,11 @@ static struct Multiarray_T* constructor_grad_diffusion_default_steady
 	);
 
 /** \brief Constructor for the source evaluated at the input xyz coordinates.
- *  \return See brief. */
+ *  \return See brief.
+ *
+ *  \note As the diffusion equation is being solved as if it were a conservation equation with \f$ f = -\nabla u \f$,
+ *  the source term is given by \f$ s = -\nabla \cdot \nabla u \f$ (i.e. with a "-ve" sign).
+ */
 static const struct const_Multiarray_T* constructor_source_diffusion_default_steady
 	(const struct const_Multiarray_R* xyz, ///< The xyz coordinates.
 	 const struct Simulation* sim          ///< \ref Simulation.
@@ -304,7 +308,7 @@ static const struct const_Multiarray_T* constructor_source_diffusion_default_ste
 	Type* s = get_col_Multiarray_T(0,source);
 	const Real scale = sol_data.scale;
 	for (int i = 0; i < n_vs; ++i)
-		s[i] = -DIM*pow(scale*PI,2.0)*cos(scale*PI*x[i]);
+		s[i] = DIM*pow(scale*PI,2.0)*cos(scale*PI*x[i]);
 
 	return (struct const_Multiarray_T*)source;
 }
@@ -382,7 +386,7 @@ static const struct const_Multiarray_T* constructor_source_diffusion_default_ste
 	Type* s = get_col_Multiarray_T(0,source);
 	const Real scale = sol_data.scale;
 	for (int i = 0; i < n_vs; ++i)
-		s[i] = -DIM*pow(scale*PI,2.0)*cos(scale*PI*x[i])*cos(scale*PI*y[i]);
+		s[i] = DIM*pow(scale*PI,2.0)*cos(scale*PI*x[i])*cos(scale*PI*y[i]);
 
 	return (struct const_Multiarray_T*)source;
 }

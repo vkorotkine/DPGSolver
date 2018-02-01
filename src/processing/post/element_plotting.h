@@ -32,6 +32,7 @@ struct Plotting_Element {
 	const struct Multiarray_Operator* cv0_vgs_vp; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vgc_vp; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vs_vp;  ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vr_vp;  ///< See notation in \ref element_operators.h.
 
 	int n_p;                                     ///< The number of stored plotting nodes.
 	const struct const_Plotting_Nodes** p_nodes; ///< The array of \ref Plotting_Nodes for each order.

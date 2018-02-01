@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_h_ref.h"
 #include "definitions_intrusive.h"
 #include "definitions_mesh.h"
+#include "definitions_test_case.h"
 
 #include "face_solver_adaptive.h"
 #include "element_adaptation.h"
@@ -814,7 +815,24 @@ static void compute_projection_p_volume (struct Adaptive_Solver_Volume* a_s_vol,
 	destructor_Multiarray_d((struct Multiarray_d*)s_coef_p);
 	s_vol->sol_coef = s_coef;
 
-	assert(compute_size(s_vol->grad_coef->order,s_vol->grad_coef->extents) == 0); // Add support for 2nd order.
+	struct Multiarray_d*const g_coef_p = s_vol->grad_coef;
+	switch (sim->method) {
+	case METHOD_DG: {
+		const struct Operator* cc0_vr_vr = get_Multiarray_Operator(a_e->cc0_vr_vr,(ptrdiff_t[]){0,0,p_o,p_i});
+		const ptrdiff_t ext_0 = cc0_vr_vr->op_std->ext_0;
+
+		assert(g_coef_p->order == 3);
+		const ptrdiff_t extents[3] = { ext_0, g_coef_p->extents[1], g_coef_p->extents[2], };
+		resize_Multiarray_d(g_coef_p,g_coef_p->order,extents);
+		break;
+	} case METHOD_DPG: {
+		if (compute_size(g_coef_p->order,g_coef_p->extents) != 0)
+			EXIT_ADD_SUPPORT; // Project as for the solution.
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %d.",sim->method);
+		break;
+	}
 }
 
 static void compute_projection_h_volume (struct Adaptive_Solver_Volume* a_s_vol, const struct Simulation* sim)
@@ -875,7 +893,18 @@ static void compute_projection_p_face (struct Adaptive_Solver_Face* a_s_face, co
 		s_face->nf_coef = nf_coef;
 	}
 
-	assert(((struct Test_Case*)sim->test_case_rc->tc)->has_2nd_order == false); // Add support.
+	const struct Multiarray_d*const s_coef_p = s_face->s_coef;
+	switch (sim->method) {
+	case METHOD_DG: {
+		break; // Do nothing.
+	} case METHOD_DPG: {
+		if (s_coef_p && compute_size(s_coef_p->order,s_coef_p->extents) != 0)
+			EXIT_ADD_SUPPORT; // Project as for nf_coef.
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %d.",sim->method);
+		break;
+	}
 }
 
 static void compute_projection_h_refine_face (struct Adaptive_Solver_Face* a_s_face, const struct Simulation* sim)

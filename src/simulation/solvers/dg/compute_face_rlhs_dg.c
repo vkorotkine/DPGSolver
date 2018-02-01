@@ -263,22 +263,23 @@ static const struct const_Matrix_d* constructor_lhs_p_r_gs
 	 const struct Simulation*const sim)
 {
 	const struct Face*const face = (struct Face*) dg_s_face;
-	const struct Solver_Volume*const s_vol  = (struct Solver_Volume*) face->neigh_info[side_index_g].volume;
-	const struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) s_vol;
+	const struct Solver_Volume*const s_vol_g  = (struct Solver_Volume*) face->neigh_info[side_index_g].volume,
+	                          *const s_vol_s  = (struct Solver_Volume*) face->neigh_info[side_index_s].volume;
+	const struct DG_Solver_Volume* dg_s_vol_g = (struct DG_Solver_Volume*) s_vol_g;
 
 	const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
 	const int n_vr = test_case->n_var;
 
-	const ptrdiff_t n_dof_s = s_vol->sol_coef->extents[0],
-	                n_dof_g = s_vol->grad_coef->extents[0];
+	const ptrdiff_t n_dof_s = s_vol_s->sol_coef->extents[0],
+	                n_dof_g = s_vol_g->grad_coef->extents[0];
 
 	struct Matrix_d*const lhs_p_r = constructor_zero_Matrix_d('R',n_dof_g*n_vr*DIM,n_vr*n_dof_s); // returned
 
-	assert(dg_s_vol->d_g_coef_v__d_s_coef[0]->ext_0 == n_dof_g);
-	assert(dg_s_vol->d_g_coef_v__d_s_coef[0]->ext_1 == n_dof_s);
-
-	if (side_index_g == side_index_s)
-		add_to_lhs_p_r(1.0,dg_s_vol->d_g_coef_v__d_s_coef,lhs_p_r,false,sim);
+	if (side_index_g == side_index_s) {
+		assert(dg_s_vol_g->d_g_coef_v__d_s_coef[0]->ext_0 == n_dof_g);
+		assert(dg_s_vol_g->d_g_coef_v__d_s_coef[0]->ext_1 == n_dof_s);
+		add_to_lhs_p_r(1.0,dg_s_vol_g->d_g_coef_v__d_s_coef,lhs_p_r,false,sim);
+	}
 //print_Matrix_d(lhs_p_r);
 
 	const double s = compute_scaling_weak_gradient(dg_s_face,test_case);

@@ -227,8 +227,6 @@ static void add_to_petsc_Mat_offdiagonal_volume_2
 		assert(dg_s_face->neigh_info[s_ind_i].d_g_coef_f__d_s_coef[s_ind_o][0]->ext_1 == n_dof_s);
 		add_to_lhs_p_r(1.0,dg_s_face->neigh_info[s_ind_i].d_g_coef_f__d_s_coef[s_ind_o],lhs_p_r,face->boundary,sim);
 
-print_const_Matrix_d(lhs_p_l);
-print_Matrix_d(lhs_p_r);
 		const struct const_Matrix_d*const lhs_o =
 			constructor_mm_const_Matrix_d('N','N',1.0,lhs_p_l,(struct const_Matrix_d*)lhs_p_r,'R'); // destructed
 		destructor_Matrix_d(lhs_p_r);

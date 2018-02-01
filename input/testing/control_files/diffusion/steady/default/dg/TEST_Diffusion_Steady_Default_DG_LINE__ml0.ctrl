@@ -1,0 +1,36 @@
+pde_name  diffusion
+pde_spec  default_steady
+
+geom_name n-cube
+geom_spec NONE
+
+dimension 1
+
+mesh_generator   n-cube/1d.geo
+mesh_format      gmsh
+mesh_domain      straight
+mesh_type        line
+mesh_level       0 0
+mesh_path        ../meshes/
+
+
+# Simulation variables
+
+interp_tp  GL
+interp_si  WSH
+interp_pyr GLL
+
+basis_geom  lagrange
+basis_sol   lagrange
+
+geom_representation superparametric
+
+p_ref    0 3
+
+fe_method 1
+
+
+# Testing variables
+
+ml_range_test 0 3
+p_range_test  0 3

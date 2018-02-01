@@ -269,6 +269,20 @@ struct Multiarray_T interpret_Multiarray_as_slice_T
 	return dest;
 }
 
+struct const_Multiarray_T interpret_const_Multiarray_as_slice_T
+	(const struct const_Multiarray_T*const src, const int order_o, const ptrdiff_t*const sub_indices)
+{
+	const ptrdiff_t ind_data = compute_index_sub_container(src->order,order_o,src->extents,sub_indices);
+
+	struct const_Multiarray_T dest =
+		{ .layout    = src->layout,
+		  .order     = order_o,
+		  .extents   = src->extents,
+		  .owns_data = false,
+		  .data      = &src->data[ind_data], };
+	return dest;
+}
+
 struct Vector_T interpret_Multiarray_slice_as_Vector_T
 	(const struct Multiarray_T*const src, const ptrdiff_t*const sub_indices)
 {

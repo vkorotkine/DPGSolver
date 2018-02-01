@@ -64,9 +64,8 @@ If (pde_name == ADVECTION)
 		Error("Unsupported geom_adv: %d",geom_adv); Exit;
 	EndIf
 ElseIf (pde_name == DIFFUSION)
-//	Physical Line(bc_base+BC_DIRICHLET) = {1001:1002,2001};
-//	Physical Line(bc_base+BC_NEUMANN)   = {1003:1004,2002};
-	Physical Line(bc_base+BC_DIRICHLET) = {1001:1004,2001:2002};
+	Physical Line(bc_base+BC_DIRICHLET) = {1001:1002,2001};
+	Physical Line(bc_base+BC_NEUMANN)   = {1003:1004,2002};
 ElseIf (pde_name == EULER)
 	If (geom_adv == GEOM_ADV_PERIODIC)
 		Physical Line(bc_base+PERIODIC_XL) = {2001};
