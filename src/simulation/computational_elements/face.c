@@ -281,7 +281,7 @@ static struct Face* constructor_Face
 	const_cast_b(&face->boundary,ind_lf > BC_STEP_SC);
 	const_cast_b(&face->curved,
 	                check_if_curved_f(ind_lf,sim->domain_type,face->element->f_ve,face_mi->ve_inds,mesh_vert));
-	const_cast_i(&face->bc,( ind_lf > BC_STEP_SC ? ind_lf : -1 ));
+	const_cast_i(&face->bc,( ind_lf > BC_STEP_SC ? ind_lf : BC_INVALID ));
 	assert(!face->boundary || face->bc >= 0);
 
 	set_up_Face__Neigh_Info__ind_ord(face);
@@ -502,7 +502,7 @@ static int check_face_for_periodicity (const struct const_Matrix_d*const xyz_ve[
 
 	struct Vector_d* centroid[2] = { NULL };
 	for (int i = 0; i < 2; ++i) {
-		centroid[i] = constructor_sum_Vector_d_const_Matrix_d('C',xyz_ve[i]); // destructed
+		centroid[i] = constructor_sum_Vector_d_const_Matrix_d('R',xyz_ve[i]); // destructed
 		for (int dim = 0; dim < d; ++dim)
 			centroid[i]->data[dim] /= (double)n_ve;
 	}

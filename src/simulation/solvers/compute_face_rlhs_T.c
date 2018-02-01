@@ -257,7 +257,7 @@ void add_to_flux_imbalance_face_nf_w_T
 		constructor_mm_diag_const_Matrix_T_R(1.0,nf_fc,w_fc,'L',false); // destructed
 
 	const struct const_Vector_T* nnf_integral_sum =
-		constructor_sum_const_Vector_T_const_Matrix_T('C',nnf_integral); // destructed
+		constructor_sum_const_Vector_T_const_Matrix_T('R',nnf_integral); // destructed
 	destructor_const_Matrix_T(nnf_integral);
 
 	const struct Face* face = (struct Face*) s_face;

@@ -123,7 +123,7 @@ void add_to_flux_imbalance_source_T
 		constructor_mm_diag_const_Matrix_T_R(1.0,&source_M,w_vc,'L',false); // destructed
 
 	const struct const_Vector_T* source_integral_sum =
-		constructor_sum_const_Vector_T_const_Matrix_T('C',source_integral); // destructed
+		constructor_sum_const_Vector_T_const_Matrix_T('R',source_integral); // destructed
 	destructor_const_Matrix_T(source_integral);
 
 	const ptrdiff_t n_vr = s_vol->flux_imbalance->ext_0;

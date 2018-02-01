@@ -600,6 +600,15 @@ static int compute_ind_sref
 	 const int side_index          ///< The index of the side of the face under consideration.
 	);
 
+/** \brief Constructor for a new internal \ref Adaptive_Solver_Face for an h-refined \ref Adaptive_Solver_Volume.
+ *  \return See brief. */
+static struct Adaptive_Solver_Face* constructor_Adaptive_Solver_Face_i_new
+	(const int ind_vh,                                    ///< The 'ind'ex of the child 'h'-refined 'v'olume.
+	 const int ind_lf,                                    ///< Local face index.
+	 const struct Adaptive_Solver_Volume*const a_s_vol_p, ///< The parent volume.
+	 const struct Simulation*const sim                    ///< \ref Simulation.
+	);
+
 static void update_volume_p_ref (struct Adaptive_Solver_Volume* a_s_vol, const struct Simulation* sim)
 {
 	const struct Solver_Volume* s_vol = (struct Solver_Volume*) a_s_vol;
@@ -911,14 +920,17 @@ static void insert_new_faces
 	for (int ind_vh = 0; ind_vh < n_children; ++ind_vh) {
 		const struct Volume*const vol = (struct Volume*) curr;
 		const int n_f = vol->element->n_f;
-		for (int lf = 0; lf < n_f; ++lf) {
-			const struct Face* face = vol->faces[lf][0];
+		for (int ind_lf = 0; ind_lf < n_f; ++ind_lf) {
+			const struct Face* face = vol->faces[ind_lf][0];
 			if (face != NULL)
 				continue;
 
+			push_back_IL(faces_new,(struct Intrusive_Link*)
+				constructor_Adaptive_Solver_Face_i_new(ind_vh,ind_lf,a_s_vol_p,sim));
+
 // push_back in faces_new. New face is always ind_href = 0. Add the python documentation to the new version and refer to
 // it for required information.
-printf("%d %d\n",ind_vh,lf);
+printf("%d %d\n",ind_vh,ind_lf);
 		}
 		curr = curr->next;
 	}
@@ -966,6 +978,16 @@ static struct Adaptive_Solver_Face* constructor_Adaptive_Solver_Face_h_ref
 	(const int ind_h,                                    ///< The index of the child h-refined element.
 	 const struct Adaptive_Solver_Face*const a_s_face_p, ///< The parent face.
 	 const struct Simulation*const sim                   ///< \ref Simulation.
+	);
+
+/** \brief Constructor for the \ref Face base of the new internal \ref Adaptive_Solver_Face.
+ *  \return See brief. */
+static void constructor_Face_i_new
+	(struct Face*const face,                              ///< The new face.
+	 const int ind_vh,                                    ///< The 'ind'ex of the child 'h'-refined 'v'olume.
+	 const int ind_lf,                                    ///< Local face index.
+	 const struct Adaptive_Solver_Volume*const a_s_vol_p, ///< The parent volume.
+	 const struct Simulation*const sim                    ///< \ref Simulation.
 	);
 
 static void constructor_volumes_h_refine
@@ -1109,6 +1131,26 @@ static int compute_ind_sref (const struct Face*const face, const int side_index)
 	return ind_sref;
 }
 
+static struct Adaptive_Solver_Face* constructor_Adaptive_Solver_Face_i_new
+	(const int ind_vh, const int ind_lf, const struct Adaptive_Solver_Volume*const a_s_vol_p,
+	 const struct Simulation*const sim)
+{
+	struct Adaptive_Solver_Face*const a_s_face = calloc(1,sizeof *a_s_face); // returned
+
+	constructor_Face_i_new((struct Face*)a_s_face,ind_vh,ind_lf,a_s_vol_p,sim);
+EXIT_ADD_SUPPORT; // Possibly compute any Solver_Face_T nf/sol here as there is nothing to project.
+
+	a_s_face->adapt_type = ADAPT_NONE;
+	a_s_face->p_ref_prev = -1;
+	a_s_face->ind_h      = 0;
+
+	a_s_face->updated    = true;
+	a_s_face->child_0    = NULL;
+	a_s_face->parent     = NULL;
+
+	return a_s_face;
+}
+
 // Level 4 ********************************************************************************************************** //
 
 /** \brief Constructor for the \ref Volume base of the h-refined \ref Adaptive_Solver_Volume.
@@ -1124,7 +1166,7 @@ static void constructor_Volume_h_ref
 /** \brief Constructor for the \ref Face base of the h-refined \ref Adaptive_Solver_Face.
  *  \return See brief. */
 static void constructor_Face_h_ref
-	(struct Face*const face,                             ///< The child volume.
+	(struct Face*const face,                             ///< The child face.
 	 const int ind_h,                                    ///< The index of the child h-refined element.
 	 const struct Adaptive_Solver_Face*const a_s_face_p, ///< The parent volume.
 	 const struct Simulation*const sim                   ///< \ref Simulation.
@@ -1141,10 +1183,43 @@ static void constructor_Solver_Volume_h_ref
 /** \brief Constructor for the \ref Solver_Face_T base of the h-refined \ref Adaptive_Solver_Face.
  *  \return See brief. */
 static void constructor_Solver_Face_h_ref
-	(struct Solver_Face*const s_face,                    ///< The child volume.
+	(struct Solver_Face*const s_face,                    ///< The child face.
 	 const struct Adaptive_Solver_Face*const a_s_face_p, ///< The parent volume.
 	 const struct Simulation*const sim                   ///< \ref Simulation.
 	);
+
+/** \brief Check whether the internal face has an edge on a domain boundary.
+ *  \return `true` if yes; `false` otherwise. */
+static bool internal_face_has_boundary_edge
+	(const int ind_vh,               ///< Defined for \ref constructor_Face_i_new.
+	 const int ind_lf,               ///< Defined for \ref constructor_Face_i_new.
+	 const struct Volume*const vol_p ///< The parent \ref Volume.
+	);
+
+/** \brief Check whether the internal face is curved.
+ *  \return `true` if yes; `false` otherwise. */
+static bool internal_face_is_curved
+	(const int ind_vh,                 ///< Defined for \ref constructor_Face_i_new.
+	 const int ind_lf,                 ///< Defined for \ref constructor_Face_i_new.
+	 const struct Volume*const vol_p,  ///< The parent \ref Volume.
+	 const struct Simulation*const sim ///< \ref Simulation.
+	);
+
+/** \brief Set the members of \ref Face::Neigh_Info for the newly created internal face.
+ *
+ *  \note The values of the members can be generated for each of the supported element/h-refiment combinations using the
+ *        [h_refinement_info.py] script.
+ *
+ *  <!-- References: -->
+ *  [h_refinement_info.py]: h_refinement/h_refinement_info.py
+ */
+static void set_Neigh_Info_Face_i_new
+	(struct Face*const face,                             ///< The new face.
+	 const int ind_vh,                                   ///< The 'ind'ex of the child 'h'-refined 'v'olume.
+	 const int ind_lf,                                   ///< Local face index.
+	 const struct Adaptive_Solver_Volume*const a_s_vol_p ///< The parent volume.
+	);
+
 
 static struct Adaptive_Solver_Volume* constructor_Adaptive_Solver_Volume_h_ref
 	(const int ind_h, const struct Adaptive_Solver_Volume*const a_s_vol_p,
@@ -1187,7 +1262,32 @@ static struct Adaptive_Solver_Face* constructor_Adaptive_Solver_Face_h_ref
 	return a_s_face;
 }
 
+static void constructor_Face_i_new
+	(struct Face*const face, const int ind_vh, const int ind_lf,
+	 const struct Adaptive_Solver_Volume*const a_s_vol_p, const struct Simulation*const sim)
+{
+	const_cast_i(&face->index,-1);
+
+	const struct Volume*const vol_l = (struct Volume*) advance_Link(ind_vh,a_s_vol_p->child_0);
+	const_cast_const_Element(&face->element,
+		get_element_by_type(sim->elements,compute_elem_type_sub_ce(vol_l->element->type,'f',ind_lf)));
+
+	const struct Volume*const vol_p = (struct Volume*) a_s_vol_p;
+	const_cast_b(&face->boundary,internal_face_has_boundary_edge(ind_vh,ind_lf,vol_p));
+	const_cast_b(&face->curved,internal_face_is_curved(ind_vh,ind_lf,vol_p,sim));
+	const_cast_i(&face->bc,BC_INVALID);
+
+	set_Neigh_Info_Face_i_new(face,ind_vh,ind_lf,a_s_vol_p);
+}
+
 // Level 5 ********************************************************************************************************** //
+
+/// \brief Container for data used to set \ref Face::Neigh_Info for new internal faces.
+struct Info_I {
+	int ind_vh_1,         ///< Index of the h-refined child volume for side 1.
+	    ind_lf_1;         ///< \ref Face::Neigh_Info::ind_lf for side 1.
+	const int ind_ord[2]; ///< \ref Face::Neigh_Info::ind_ord for side 0/1.
+};
 
 /** \brief Constructor for \ref Volume::bc_faces for the h-refined child volume.
  *  \return See brief. */
@@ -1367,6 +1467,66 @@ static void constructor_Solver_Face_h_ref
 	const_cast_i(&s_face->ml,s_face_p->ml+1);
 	const_cast_c(&s_face->cub_type,s_face_p->cub_type);
 	s_face->constructor_Boundary_Value_fcl = s_face_p->constructor_Boundary_Value_fcl;
+}
+
+static bool internal_face_has_boundary_edge (const int ind_vh, const int ind_lf, const struct Volume*const vol_p)
+{
+	const struct const_Element*const e = vol_p->element;
+	if (e->d < 3 || !vol_p->boundary)
+		return false;
+
+	EXIT_ADD_SUPPORT; UNUSED(ind_vh); UNUSED(ind_lf);
+}
+
+static bool internal_face_is_curved
+	(const int ind_vh, const int ind_lf, const struct Volume*const vol_p, const struct Simulation*const sim)
+{
+	if (sim->domain_type == DOM_PARAMETRIC)
+		return true;
+
+	const struct const_Element*const e = vol_p->element;
+	if (e->d < 3 || !vol_p->curved)
+		return false;
+
+	EXIT_ADD_SUPPORT; UNUSED(ind_vh); UNUSED(ind_lf);
+}
+
+static void set_Neigh_Info_Face_i_new
+	(struct Face*const face, const int ind_vh, const int ind_lf,
+	 const struct Adaptive_Solver_Volume*const a_s_vol_p)
+{
+	const struct Info_I* info_i = NULL;
+
+// make external
+	const struct Volume*const vol_p = (struct Volume*) a_s_vol_p;
+	switch (vol_p->element->type) {
+	case LINE: {
+		assert(ind_vh == 0); // Should already have found internal faces for other volumes.
+		assert(ind_lf == 1); // Only internal face for volume 0.
+
+		static const struct Info_I nii_01 = { .ind_vh_1 = 1, .ind_lf_1 = 0, .ind_ord[0] = 0, .ind_ord[1] = 0, };
+		info_i = &nii_01;
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %d.",vol_p->element->type);
+		break;
+	}
+
+	int side_index = 0;
+	face->neigh_info[side_index].ind_lf   = ind_lf;
+	face->neigh_info[side_index].ind_href = 0;
+	face->neigh_info[side_index].ind_sref = -1;
+	face->neigh_info[side_index].ind_ord  = info_i->ind_ord[0];
+	face->neigh_info[side_index].volume   = (struct Volume*) advance_Link(ind_vh,a_s_vol_p->child_0);
+	const_cast_Face(&face->neigh_info[side_index].volume->faces[face->neigh_info[side_index].ind_lf][0],face);
+
+	side_index = 1;
+	face->neigh_info[side_index].ind_lf   = info_i->ind_lf_1;
+	face->neigh_info[side_index].ind_href = 0;
+	face->neigh_info[side_index].ind_sref = -1;
+	face->neigh_info[side_index].ind_ord  = info_i->ind_ord[0];
+	face->neigh_info[side_index].volume   = (struct Volume*) advance_Link(info_i->ind_vh_1,a_s_vol_p->child_0);
+	const_cast_Face(&face->neigh_info[side_index].volume->faces[face->neigh_info[side_index].ind_lf][0],face);
 }
 
 // Level 6 ********************************************************************************************************** //

@@ -91,11 +91,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NREFMAXPYR   11
 ///\}
 
-///\{ \name Supported operator types. /// \todo Delete if compiling when commented.
-//#define OP_V_D0 101
-//#define OP_V_D1 102
-//#define OP_F_D0 103
-//#define OP_F_D1 104
-///\}
-
 #endif // DPG__definitions_elements_h__INCLUDED
