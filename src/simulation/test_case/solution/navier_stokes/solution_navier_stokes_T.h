@@ -18,9 +18,19 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Test_Case_T;
 struct Simulation;
+struct Multiarray_T;
+struct const_Multiarray_T;
 
 /// \brief Set the solution function pointer members of an Navier-Stokes \ref Test_Case_T.
 void set_function_pointers_solution_navier_stokes_T
 	(struct Test_Case_T*const test_case, ///< \ref Test_Case_T.
 	 const struct Simulation*const sim   ///< \ref Simulation.
+	);
+
+/// \brief Convert gradients between supported variable types (see \ref convert_variables_T for options).
+void convert_variables_gradients_T
+	(struct Multiarray_T*const grad,            ///< The container holding the gradient data.
+	 const struct const_Multiarray_T*const sol, ///< The container holding the solution data.
+	 const char type_i,                         ///< The input variable type.
+	 const char type_o                          ///< The output variable type.
 	);

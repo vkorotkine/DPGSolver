@@ -1,0 +1,11 @@
+/// Solution parameters for test case: navier_stokes/steady/taylor_couette
+
+Pr  0.72
+r_s 1.0
+
+viscosity_type constant
+mu             1e-3
+
+omega 1.0
+t_i   1.0
+p_i   1.0

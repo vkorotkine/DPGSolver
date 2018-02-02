@@ -13,20 +13,20 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_complex_solution_navier_stokes_h__INCLUDED
-#define DPG__test_complex_solution_navier_stokes_h__INCLUDED
+#ifndef DPG__test_complex_solution_taylor_couette_h__INCLUDED
+#define DPG__test_complex_solution_taylor_couette_h__INCLUDED
 /** \file
- *  \brief Provides complex functions relating to the Navier-Stokes solutions.
+ *  \brief Provides the interface to complex functions used to set the solution for the taylor-couette test case.
  */
 
 #include "def_templates_type_dc.h"
+#include "def_templates_solution.h"
 #include "def_templates_solution_navier_stokes.h"
 #include "def_templates_multiarray.h"
-#include "def_templates_test_case.h"
-#include "solution_navier_stokes_T.h"
+#include "taylor_couette/solution_taylor_couette_T.h"
 #include "undef_templates_type.h"
+#include "undef_templates_solution.h"
 #include "undef_templates_solution_navier_stokes.h"
 #include "undef_templates_multiarray.h"
-#include "undef_templates_test_case.h"
 
-#endif // DPG__test_complex_solution_navier_stokes_h__INCLUDED
+#endif // DPG__test_complex_solution_taylor_couette_h__INCLUDED

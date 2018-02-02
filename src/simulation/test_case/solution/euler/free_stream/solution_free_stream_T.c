@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_intrusive.h"
 #include "definitions_math.h"
-#include "definitions_test_case.h"
+#include "definitions_physics.h"
 #include "definitions_tol.h"
 
 

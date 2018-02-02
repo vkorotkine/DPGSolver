@@ -15,21 +15,11 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "solution_taylor_couette.h"
+#include "flux_navier_stokes.h"
 
 #include "multiarray.h"
 
-#include "element_solution.h"
-#include "volume_solver.h"
-
-#include "file_processing.h"
-#include "math_functions.h"
-#include "multiarray_operator.h"
-#include "operator.h"
-#include "simulation.h"
-#include "solution.h"
-#include "solution_euler.h"
-#include "solution_navier_stokes.h"
+#include "flux.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -37,7 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "taylor_couette/solution_taylor_couette_T.c"
+#include "flux_navier_stokes_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

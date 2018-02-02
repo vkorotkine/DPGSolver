@@ -145,14 +145,14 @@ static void update_volume_face_pointers
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destruct the input number of \ref Adaptive_Solver_Volume_T\*s including all bases.
+/// \brief Destruct the input number of \ref Adaptive_Solver_Volume\*s including all bases.
 static void destruct_fully_Adaptive_Solver_Volumes
 	(const int n_v,                  ///< The 'n'umber of 'v'olumes to destruct.
 	 struct Intrusive_Link* first,   ///< Pointer to the first volume to be destructed.
 	 struct Intrusive_Link** child_0 ///< Pointer to the first child of the parent or NULL if not h-refined.
 	);
 
-/// \brief Destruct the input number of \ref Adaptive_Solver_Face_T\*s including all bases.
+/// \brief Destruct the input number of \ref Adaptive_Solver_Face\*s including all bases.
 static void destruct_fully_Adaptive_Solver_Faces
 	(const int n_f,                  ///< The 'n'umber of 'f'aces to destruct.
 	 struct Intrusive_Link* first,   ///< Pointer to the first face to be destructed.

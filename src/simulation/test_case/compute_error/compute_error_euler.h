@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 struct Simulation;
+struct Error_CE_Data;
 
 /** \brief Version of \ref constructor_Error_CE_fptr checking the error of all supported Euler variables.
  *  \return See brief.
@@ -28,6 +29,13 @@ struct Simulation;
  */
 struct Error_CE* constructor_Error_CE_euler_all
 	(const struct Simulation* sim ///< Defined for \ref constructor_Error_CE_fptr.
+	);
+
+/// \brief Add the computed and exact specified variable to the solution data Multiarrays.
+void add_euler_variable_Error_CE_Data
+	(const char var_type,               ///< The variable type to add. Options: 's' (entropy), 't'emperature.
+	 struct Error_CE_Data*const e_ce_d, ///< \ref Error_CE_Data.
+	 const struct Simulation*const sim  ///< \ref Simulation.
 	);
 
 #endif // DPG__compute_error_euler_h__INCLUDED

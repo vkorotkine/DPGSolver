@@ -194,25 +194,12 @@ static void read_data_periodic_vortex (const char*const input_path, struct Sol_D
 	int count_found = 0;
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),input_file)) {
-		if (strstr(line,"r_v")) {
-			++count_found;
-			read_skip_d(line,&sol_data->r_v,1,false);
-		} else if (strstr(line,"theta")) {
-			++count_found;
-			read_skip_d(line,&sol_data->theta,1,false);
-		} else if (strstr(line,"V_inf")) {
-			++count_found;
-			read_skip_d(line,&sol_data->V_inf,1,false);
-		} else if (strstr(line,"p_inf")) {
-			++count_found;
-			read_skip_d(line,&sol_data->p_inf,1,false);
-		} else if (strstr(line,"t_inf")) {
-			++count_found;
-			read_skip_d(line,&sol_data->t_inf,1,false);
-		} else if (strstr(line,"Rg")) {
-			++count_found;
-			read_skip_d(line,&sol_data->Rg,1,false);
-		}
+		read_skip_string_count_d("r_v",  &count_found,line,&sol_data->r_v);
+		read_skip_string_count_d("theta",&count_found,line,&sol_data->theta);
+		read_skip_string_count_d("V_inf",&count_found,line,&sol_data->V_inf);
+		read_skip_string_count_d("p_inf",&count_found,line,&sol_data->p_inf);
+		read_skip_string_count_d("t_inf",&count_found,line,&sol_data->t_inf);
+		read_skip_string_count_d("Rg",   &count_found,line,&sol_data->Rg);
 	}
 	fclose(input_file);
 

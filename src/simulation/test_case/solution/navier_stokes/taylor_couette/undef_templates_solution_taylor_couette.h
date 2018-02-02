@@ -18,4 +18,6 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #undef set_sol_taylor_couette_T
+#undef set_grad_taylor_couette_T
 #undef constructor_const_sol_taylor_couette_T
+#undef constructor_const_grad_taylor_couette_T

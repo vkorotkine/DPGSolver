@@ -24,7 +24,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_core.h"
-#include "definitions_test_case.h"
+#include "definitions_numerical_flux.h"
+#include "definitions_physics.h"
 
 
 #include "def_templates_solution_euler.h"
@@ -92,12 +93,11 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 
 void convert_variables_T (struct Multiarray_T* vars, const char type_i, const char type_o)
 {
-	assert(type_i != type_o);
 	assert(vars->layout == 'C');
+	assert(vars->extents[1] == NVAR);
 
 	const ptrdiff_t ext_0 = vars->extents[0];
 
-	assert(vars->extents[1] == NVAR);
 
 	switch (type_i) {
 	case 'p': {
@@ -105,6 +105,7 @@ void convert_variables_T (struct Multiarray_T* vars, const char type_i, const ch
 		    * p   = get_col_Multiarray_T(NVAR-1,vars),
 		    * E   = p;
 
+/// \todo Use ARRAY_DIM here.
 		Type* uvw[DMAX] = {            get_col_Multiarray_T(1,vars),
 		                    (DIM > 1 ? get_col_Multiarray_T(2,vars) : NULL),
 		                    (DIM > 2 ? get_col_Multiarray_T(3,vars) : NULL), };
@@ -121,9 +122,7 @@ void convert_variables_T (struct Multiarray_T* vars, const char type_i, const ch
 				E[i] = p[i]/GM1 + 0.5*rho[i]*V2;
 			}
 			break;
-		case 'p':
-			return;
-			break;
+		case 'p': // fallthrough
 		default:
 			EXIT_ERROR("Unsupported: %c\n",type_o);
 			break;
@@ -151,9 +150,7 @@ void convert_variables_T (struct Multiarray_T* vars, const char type_i, const ch
 				p[i] = GM1*(E[i]-0.5*rho2V2*rho_inv);
 			}
 			break;
-		case 'c':
-			return;
-			break;
+		case 'c': // fallthrough
 		default:
 			EXIT_ERROR("Unsupported: %c\n",type_o);
 			break;

@@ -13,22 +13,25 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides templated functions relating to diffusion fluxes.
+ *  \brief Provides templated functions relating to Navier-Stokes fluxes.
  */
 
 struct Flux_Input_T;
 struct mutable_Flux_T;
 
-/** \brief Version of \ref compute_Flux_fptr_T computing the fluxes for the diffusion equation.
+/** \brief Version of \ref compute_Flux_fptr_T computing the fluxes for the Navier-Stokes equations.
+ *
+ *  The implementation is based off of the fluxes as defined in Toro (Sections 1.3 and 1.4, \cite Toro2009).
  *
  *  \warning  Negated flux contributions are returned such that the identical treatment to inviscid flux contributions
  *            is applicable.
  *
- *  The definitions of the Fluxes, and Jacobians can be found in:
- *  - Fluxes:    \ref compute_Flux_diffusion_0;
- *  - Jacobians: \ref compute_Flux_diffusion_1;
+ *  The definitions of the Fluxes, Jacobians, and Hessians can be found in:
+ *  - Fluxes:    \ref compute_Flux_navier_stokes_0;
+ *  - Jacobians: \ref compute_Flux_navier_stokes_1;
+ *  - Hessians:  \ref compute_Flux_navier_stokes_2.
  */
-void compute_Flux_T_diffusion
+void compute_Flux_T_navier_stokes
 	(const struct Flux_Input_T* flux_i, ///< See brief.
 	 struct mutable_Flux_T* flux        ///< See brief.
 	);

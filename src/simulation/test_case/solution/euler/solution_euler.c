@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "boundary.h"
 #include "compute_error_euler.h"
 #include "const_cast.h"
+#include "file_processing.h"
 #include "flux_euler.h"
 #include "geometry.h"
 #include "geometry_parametric.h"
@@ -35,6 +36,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "free_stream/solution_free_stream.h"
 
 // Static function declarations ************************************************************************************* //
+
+/** \brief Return the static variable holding the specific gas constant for the current test case.
+ *  \return See brief. */
+static double get_specific_gas_constant
+	(const struct Simulation*const sim ///< \ref Simulation.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -96,5 +103,65 @@ void compute_mach (struct Multiarray_d* mach, const struct const_Multiarray_d* v
 		convert_variables((struct Multiarray_d*)vars,'p',var_type);
 }
 
+void compute_temperature
+	(struct Multiarray_d*const t, const struct const_Multiarray_d*const vars, const char var_type,
+	 const struct Simulation*const sim)
+{
+	assert(t->extents[0] == vars->extents[0]);
+	assert(t->extents[1] == 1);
+	assert(vars->layout == 'C');
+
+	if (var_type != 'p')
+		convert_variables((struct Multiarray_d*)vars,var_type,'p');
+
+	const double r_s = get_specific_gas_constant(sim);
+	const double* rho = get_col_const_Multiarray_d(0,vars),
+	            * p   = get_col_const_Multiarray_d(vars->extents[1]-1,vars);
+
+	const ptrdiff_t ext_0 = t->extents[0];
+	for (ptrdiff_t i = 0; i < ext_0; ++i)
+		t->data[i] = p[i]/(r_s*rho[i]);
+
+	if (var_type != 'p')
+		convert_variables((struct Multiarray_d*)vars,'p',var_type);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+/// \brief Read the required data from the solution data file.
+static void read_data_specific_gas
+	(const char*const input_path, ///< Defined in \ref fopen_input.
+	 double*const r_s             ///< Variable to be set to the value.
+	);
+
+static double get_specific_gas_constant (const struct Simulation*const sim)
+{
+	static double r_s = 0.0;
+
+	static bool need_input = true;
+	if (need_input) {
+		need_input = false;
+		read_data_specific_gas(sim->input_path,&r_s);
+	}
+	return r_s;
+}
+
+// Level 1 ********************************************************************************************************** //
+
+static void read_data_specific_gas (const char*const input_path, double*const r_s)
+{
+	const int count_to_find = 1;
+
+	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+
+	int count_found = 0;
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_string_count_d("r_s",&count_found,line,r_s);
+	}
+	fclose(input_file);
+
+	if (count_found != count_to_find)
+		EXIT_ERROR("Did not find the required number of variables");
+}

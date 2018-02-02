@@ -12,12 +12,22 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__compute_error_navier_stokes_h__INCLUDED
+#define DPG__compute_error_navier_stokes_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templated containers/functions relating to solution for the
- *         navier-stokes equations.
+ *  \brief Provides the interface to functions used for error computation and output relating to the Euler variables.
  */
 
-#include "taylor_couette/undef_templates_solution_taylor_couette.h"
+struct Simulation;
 
-#undef set_function_pointers_solution_navier_stokes_T
-#undef convert_variables_gradients_T
+/** \brief Version of \ref constructor_Error_CE_fptr checking the error of velocity and temperature.
+ *  \return See brief.
+ *
+ *  This function should be used when the exact solution is available.
+ */
+struct Error_CE* constructor_Error_CE_navier_stokes_uvwt
+	(const struct Simulation* sim ///< Defined for \ref constructor_Error_CE_fptr.
+	);
+
+#endif // DPG__compute_error_navier_stokes_h__INCLUDED

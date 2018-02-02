@@ -3,6 +3,7 @@ set	(SOURCE
 	 compute_error_advection.c
 	 compute_error_diffusion.c
 	 compute_error_euler.c
+	 compute_error_navier_stokes.c
 	)
 
 set	(LIBS_DEPEND

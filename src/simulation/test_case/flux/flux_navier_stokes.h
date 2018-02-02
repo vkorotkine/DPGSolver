@@ -12,12 +12,17 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__flux_navier_stokes_h__INCLUDED
+#define DPG__flux_navier_stokes_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templated containers/functions relating to solution for the
- *         navier-stokes equations.
+ *  \brief Provides real functions relating to Navier-Stokes fluxes.
  */
 
-#include "taylor_couette/undef_templates_solution_taylor_couette.h"
+#include "def_templates_type_d.h"
+#include "def_templates_flux.h"
+#include "flux_navier_stokes_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_flux.h"
 
-#undef set_function_pointers_solution_navier_stokes_T
-#undef convert_variables_gradients_T
+#endif // DPG__flux_navier_stokes_h__INCLUDED

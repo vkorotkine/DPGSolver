@@ -31,3 +31,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef minimum_T
 #undef maximum_abs_T
 #undef add_to_T
+
+#undef equal_R

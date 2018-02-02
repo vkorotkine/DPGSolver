@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "compute_error_euler.h"
+#include "compute_error_navier_stokes.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -32,6 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "compute_error.h"
+#include "compute_error_euler.h"
 #include "const_cast.h"
 #include "element.h"
 #include "intrusive.h"
@@ -41,20 +42,20 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Return a statically allocated `char*` holding the specific header for all of the Euler variables.
+/** \brief Return a statically allocated `char*` holding the specific header for all of the velocity and temperature
+ *         variables.
  *  \return See brief. */
-static const char* compute_header_spec_euler_all
+static const char* compute_header_spec_navier_stokes_uvwt
 	();
 
 // Interface functions ********************************************************************************************** //
 
-struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
+struct Error_CE* constructor_Error_CE_navier_stokes_uvwt (const struct Simulation* sim)
 {
-	const int n_out = DIM+2+1;
+	const int n_out = DIM+1; // Can add support for gradients if desired.
 
 	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
-	e_ce_h->header_spec = compute_header_spec_euler_all();
-
+	e_ce_h->header_spec = compute_header_spec_navier_stokes_uvwt();
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		e_ce_h->s_vol[0] = (struct Solver_Volume*) curr;
@@ -62,7 +63,8 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 
 		for (int i = 0; i < 2; ++i)
 			convert_variables(e_ce_d->sol[i],'c','p');
-		add_euler_variable_Error_CE_Data('s',e_ce_d,sim);
+		add_euler_variable_Error_CE_Data('t',e_ce_d,sim);
+EXIT_UNSUPPORTED; // Remove rho/p (i.e. columns 0 and DIM+1).
 
 		increment_sol_L2(e_ce_h,e_ce_d);
 		destructor_Error_CE_Data(e_ce_d);
@@ -76,42 +78,19 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 	return error_ce;
 }
 
-void add_euler_variable_Error_CE_Data
-	(const char var_type, struct Error_CE_Data*const e_ce_d, const struct Simulation*const sim)
-{
-	const ptrdiff_t ext_0 = e_ce_d->sol[0]->extents[0];
-	struct Multiarray_d*const var = constructor_move_Multiarray_d_d('C',2,(ptrdiff_t[]){ext_0,1},false,NULL); // dest.
-	for (int i = 0; i < 2; ++i) {
-		struct Multiarray_d* sol = e_ce_d->sol[i];
-
-		const ptrdiff_t ext_1_new = sol->extents[1]+1;
-		resize_Multiarray_d(sol,sol->order,(ptrdiff_t[]){ext_0,ext_1_new});
-
-		sol->extents[1] = DIM+2;
-		var->data = get_col_Multiarray_d(ext_1_new-1,sol);
-		switch (var_type) {
-			case 's': compute_entropy(var,(const struct const_Multiarray_d*)sol,'p'); break;
-			case 't': compute_temperature(var,(const struct const_Multiarray_d*)sol,'p',sim); break;
-			default:  EXIT_ERROR("Unsupported: %c.",var_type); break;
-		}
-		sol->extents[1] = ext_1_new;
-	}
-	destructor_Multiarray_d(var);
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static const char* compute_header_spec_euler_all ( )
+static const char* compute_header_spec_navier_stokes_uvwt ( )
 {
 	static char header_spec[STRLEN_MAX];
 
-	int index = sprintf(header_spec,"%-14s%-14s","L2rho","L2u");
+	int index = sprintf(header_spec,"%-14s","L2u");
 	if (DIM >= 2)
 		index += sprintf(header_spec+index,"%-14s","L2v");
 	if (DIM >= 3)
 		index += sprintf(header_spec+index,"%-14s","L2w");
-	sprintf(header_spec+index,"%-14s%-14s","L2p","L2s");
+	sprintf(header_spec+index,"%-14s","L2t");
 
 	return header_spec;
 }

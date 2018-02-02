@@ -193,7 +193,7 @@ struct Vector_T* collapse_Multiarray_Vector_T (const struct Multiarray_Vector_T*
 void resize_Multiarray_T (struct Multiarray_T* a, const int order, const ptrdiff_t* extents)
 {
 #if 1
-	assert(a->order == order);
+	assert(a->order == order); // Make flexible if needed.
 #else
 	a->extents = realloc(a->extents,order * sizeof *a->extents);
 #endif

@@ -17,11 +17,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "solution_navier_stokes.h"
 
+#include "multiarray.h"
+
 #include "boundary.h"
-//#include "compute_error_navier_stokes.h"
+#include "compute_error_navier_stokes.h"
 #include "solution.h"
 #include "flux_euler.h"
-//#include "flux_navier_stokes.h"
+#include "flux_navier_stokes.h"
 #include "geometry.h"
 #include "geometry_parametric.h"
 #include "numerical_flux_euler.h"
@@ -29,7 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "simulation.h"
 #include "test_case.h"
 
-//#include "periodic_vortex/solution_periodic_vortex.h"
+#include "taylor_couette/solution_taylor_couette.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -37,6 +39,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "solution_navier_stokes_T.c"
+
+double compute_kappa_const_cp (const double mu, const double Cp, const double Pr)
+{
+	return mu*Cp/Pr;
+}
+
+double compute_cp_ideal_gas (const double r_s)
+{
+	return GAMMA/GM1*r_s;
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

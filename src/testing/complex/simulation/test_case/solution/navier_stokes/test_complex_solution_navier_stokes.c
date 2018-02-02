@@ -20,11 +20,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_test_case.h"
 
-//#include "compute_error_navier_stokes.h"
+#include "compute_error_navier_stokes.h"
 #include "simulation.h"
 
+#include "complex_multiarray.h"
+
 #include "test_complex_flux_euler.h"
-//#include "test_complex_flux_navier_stokes.h"
+#include "test_complex_flux_navier_stokes.h"
 #include "test_complex_geometry.h"
 #include "test_complex_geometry_parametric.h"
 #include "test_complex_numerical_flux_euler.h"
@@ -32,7 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_solution.h"
 #include "test_complex_test_case.h"
 
-//#include "periodic_vortex/test_complex_solution_periodic_vortex.h"
+#include "taylor_couette/test_complex_solution_taylor_couette.h"
 
 // Static function declarations ************************************************************************************* //
 

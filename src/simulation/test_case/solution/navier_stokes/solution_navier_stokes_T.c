@@ -22,10 +22,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <string.h>
 
 #include "macros.h"
-#include "definitions_test_case.h"
+#include "definitions_core.h"
+#include "definitions_numerical_flux.h"
+#include "definitions_physics.h"
 
 
 #include "def_templates_solution_navier_stokes.h"
+
+#include "def_templates_multiarray.h"
 
 #include "def_templates_boundary.h"
 #include "def_templates_flux.h"
@@ -36,28 +40,29 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+#define NEQ  NEQ_EULER  ///< Number of equations.
+#define NVAR NVAR_EULER ///< Number of variables.
+
 // Interface functions ********************************************************************************************** //
 
 void set_function_pointers_solution_navier_stokes_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
 	if (strstr(sim->pde_spec,"taylor_couette")) {
 		test_case->constructor_xyz              = constructor_xyz_cylinder_parametric_T;
-//		test_case->constructor_sol              = constructor_const_sol_invalid_T;
-//		test_case->constructor_grad             = constructor_const_grad_diffusion_default_steady_T;
-//		test_case->set_sol                      = set_sol_periodic_vortex_T;
-//		test_case->set_grad = set_sg_do_nothing_T;
+		test_case->constructor_sol              = constructor_const_sol_taylor_couette_T;
+		test_case->constructor_grad             = constructor_const_grad_taylor_couette_T;
+		test_case->set_sol                      = set_sol_taylor_couette_T;
+		test_case->set_grad                     = set_grad_taylor_couette_T;
 		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
-//		test_case->constructor_Error_CE         = constructor_Error_CE_navier_stokes_all;
-EXIT_ADD_SUPPORT;
+		test_case->constructor_Error_CE         = constructor_Error_CE_navier_stokes_uvwt;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}
 
-//	test_case->compute_Flux = compute_Flux_12_T;
+	test_case->compute_Flux = compute_Flux_12_T;
 	test_case->compute_Flux_iv[0] = compute_Flux_T_euler;
-//	test_case->compute_Flux_iv[1] = compute_Flux_T_navier_stokes;
-EXIT_ADD_SUPPORT;
+	test_case->compute_Flux_iv[1] = compute_Flux_T_navier_stokes;
 
 //	test_case->compute_Numerical_Flux = compute_Numerical_Flux_12_T;
 EXIT_ADD_SUPPORT;
@@ -73,6 +78,100 @@ EXIT_ADD_SUPPORT;
 EXIT_ADD_SUPPORT; // ind_num_flux[1].
 
 	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_s_fcl_interp_T;
+}
+
+void convert_variables_gradients_T
+	(struct Multiarray_T*const grad, const struct const_Multiarray_T*const sol, const char type_i, const char type_o)
+{
+	assert(type_i != type_o);
+	assert(grad->layout == 'C');
+	assert(sol->layout == 'C');
+	assert(grad->extents[0] == sol->extents[0]);
+	assert(grad->extents[1] == sol->extents[1]);
+	assert(grad->extents[1] == NVAR);
+	assert(grad->extents[2] == DIM);
+
+	const ptrdiff_t ext_0 = grad->extents[0];
+
+	switch (type_i) {
+	case 'p': {
+		const Type*const rho   = get_col_const_Multiarray_T(0,sol),
+		          *const uvw[] = ARRAY_DIM( get_col_const_Multiarray_T(1,sol),
+		                                    get_col_const_Multiarray_T(2,sol),
+		                                    get_col_const_Multiarray_T(3,sol) );
+
+		for (int d_g = 0; d_g < DIM; ++d_g) {
+			Type*const g_rho   = get_col_Multiarray_T(d_g*NVAR+0,grad),
+			    *const g_uvw[] = ARRAY_DIM( get_col_Multiarray_T(d_g*NVAR+1,grad),
+			                                get_col_Multiarray_T(d_g*NVAR+2,grad),
+			                                get_col_Multiarray_T(d_g*NVAR+3,grad) ),
+			    *const g_p     = get_col_Multiarray_T(d_g*NVAR+NVAR-1,grad),
+
+			    *const*const g_rhouvw = g_uvw,
+			    *const g_E            = g_p;
+
+			switch (type_o) {
+			case 'c':
+				for (ptrdiff_t i = 0; i < ext_0; ++i) {
+					Type V2   = 0.0,
+					     g_V2 = 0.0;
+					for (int d = 0; d < DIM; ++d) {
+						V2   += uvw[d][i]*uvw[d][i];
+						g_V2 += 2.0*(uvw[d][i]*g_uvw[d][i]);
+
+						g_rhouvw[d][i] = g_rho[i]*uvw[d][i] + rho[i]*g_uvw[d][i];
+					}
+					g_E[i] = g_p[i]/GM1 + 0.5*(g_rho[i]*V2 + rho[i]*g_V2);
+				}
+				break;
+			case 'p': // fallthrough
+			default:
+				EXIT_ERROR("Unsupported: %c\n",type_o);
+				break;
+			}
+		}
+		break;
+	} case 'c': {
+		const Type*const rho      = get_col_const_Multiarray_T(0,sol),
+		          *const rhouvw[] = ARRAY_DIM( get_col_const_Multiarray_T(1,sol),
+		                                       get_col_const_Multiarray_T(2,sol),
+		                                       get_col_const_Multiarray_T(3,sol) );
+
+		for (int d_g = 0; d_g < DIM; ++d_g) {
+			Type*const g_rho      = get_col_Multiarray_T(d_g*NVAR+0,grad),
+			    *const g_rhouvw[] = ARRAY_DIM( get_col_Multiarray_T(d_g*NVAR+1,grad),
+			                                   get_col_Multiarray_T(d_g*NVAR+2,grad),
+			                                   get_col_Multiarray_T(d_g*NVAR+3,grad) ),
+			    *const g_E        = get_col_Multiarray_T(d_g*NVAR+NVAR-1,grad),
+
+			    *const*const g_uvw = g_rhouvw,
+			    *const g_p         = g_E;
+
+			switch (type_o) {
+			case 'p':
+				for (ptrdiff_t i = 0; i < ext_0; ++i) {
+					Type rho2V2   = 0.0,
+					     g_rho2V2 = 0.0;
+					for (int d = 0; d < DIM; ++d) {
+						rho2V2   += rhouvw[d][i]*rhouvw[d][i];
+						g_rho2V2 += 2.0*(rhouvw[d][i]*g_rhouvw[d][i]);
+
+						g_uvw[d][i] = 1.0/(rho[i]*rho[i])*(rho[i]*g_rhouvw[d][i] - g_rho[i]*rhouvw[d][i]);
+					}
+					g_p[i] = GM1*(g_E[i] - 0.5/(rho[i]*rho[i])*(rho[i]*g_rho2V2 - g_rho[i]*rho2V2));
+				}
+				break;
+			case 'c': // fallthrough
+			default:
+				EXIT_ERROR("Unsupported: %c\n",type_o);
+				break;
+			}
+		}
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %c\n",type_i);
+		break;
+	}
 }
 
 // Static functions ************************************************************************************************* //

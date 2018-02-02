@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_intrusive.h"
 #include "definitions_math.h"
-#include "definitions_test_case.h"
+#include "definitions_physics.h"
 #include "definitions_tol.h"
 
 
@@ -154,13 +154,19 @@ static struct Sol_Data__sv get_sol_data (const struct Simulation* sim)
 static void read_data_supersonic_vortex (const char*const input_path, struct Sol_Data__sv*const sol_data)
 {
 	const int count_to_find = 4;
-
-	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
-
 	int count_found = 0;
+
+	FILE* input_file = NULL;
 	char line[STRLEN_MAX];
+
+	input_file = fopen_input(input_path,'g',NULL); // closed
 	while (fgets(line,sizeof(line),input_file)) {
-		read_skip_string_count_d("r_i",  &count_found,line,&sol_data->r_i);
+		read_skip_string_count_c_style_d("r_i",&count_found,line,&sol_data->r_i);
+	}
+	fclose(input_file);
+
+	input_file = fopen_input(input_path,'s',NULL); // closed
+	while (fgets(line,sizeof(line),input_file)) {
 		read_skip_string_count_d("m_i",  &count_found,line,&sol_data->m_i);
 		read_skip_string_count_d("rho_i",&count_found,line,&sol_data->rho_i);
 		read_skip_string_count_d("V_i",  &count_found,line,&sol_data->V_i);

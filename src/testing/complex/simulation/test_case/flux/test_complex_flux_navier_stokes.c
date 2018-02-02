@@ -12,21 +12,22 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
-#ifndef DPG__test_complex_solution_navier_stokes_h__INCLUDED
-#define DPG__test_complex_solution_navier_stokes_h__INCLUDED
 /** \file
- *  \brief Provides complex functions relating to the Navier-Stokes solutions.
  */
 
-#include "def_templates_type_dc.h"
-#include "def_templates_solution_navier_stokes.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_test_case.h"
-#include "solution_navier_stokes_T.h"
-#include "undef_templates_type.h"
-#include "undef_templates_solution_navier_stokes.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_test_case.h"
+#include "test_complex_flux_navier_stokes.h"
 
-#endif // DPG__test_complex_solution_navier_stokes_h__INCLUDED
+#include "test_complex_flux.h"
+#include "test_complex_test_case.h"
+
+#include "complex_multiarray.h"
+
+// Static function declarations ************************************************************************************* //
+
+// Interface functions ********************************************************************************************** //
+
+#include "def_templates_type_dc.h"
+#include "flux_navier_stokes_T.c"
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //

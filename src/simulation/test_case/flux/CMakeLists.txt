@@ -3,6 +3,7 @@ set	(SOURCE
 	 flux_advection.c
 	 flux_diffusion.c
 	 flux_euler.c
+	 flux_navier_stokes.c
 	)
 
 set	(LIBS_DEPEND

@@ -20,15 +20,19 @@ You should have received a copy of the GNU General Public License along with DPG
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
-#define set_sol_taylor_couette_T               set_sol_taylor_couette
-#define constructor_const_sol_taylor_couette_T constructor_const_sol_taylor_couette
+#define set_sol_taylor_couette_T                set_sol_taylor_couette
+#define set_grad_taylor_couette_T               set_grad_taylor_couette
+#define constructor_const_sol_taylor_couette_T  constructor_const_sol_taylor_couette
+#define constructor_const_grad_taylor_couette_T constructor_const_grad_taylor_couette
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
-#define set_sol_taylor_couette_T               set_sol_taylor_couette_c
-#define constructor_const_sol_taylor_couette_T constructor_const_sol_taylor_couette_c
+#define set_sol_taylor_couette_T                set_sol_taylor_couette_c
+#define set_grad_taylor_couette_T               set_grad_taylor_couette_c
+#define constructor_const_sol_taylor_couette_T  constructor_const_sol_taylor_couette_c
+#define constructor_const_grad_taylor_couette_T constructor_const_grad_taylor_couette_c
 ///\}
 
 #endif

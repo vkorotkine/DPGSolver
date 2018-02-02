@@ -135,17 +135,13 @@ static compute_Flux_diffusion_fptr get_compute_Flux_diffusion_fptr (const bool*c
 
 // Level 1 ********************************************************************************************************** //
 
-/** \brief Compute the diffusion fluxes for the input nodal values.
- *  \warning  Negated flux contributions are returned such that the identical treatment to inviscid flux contributions
- *            is applicable. */
+/// \brief Compute the diffusion fluxes for the input nodal values.
 static void compute_Flux_diffusion_0
 	(const struct Flux_Data_Diffusion*const flux_data, ///< \ref Flux_Data_Diffusion.
 	 Type*const f_ptr[DIM*NEQ]                         ///< Pointers to the flux data.
 	);
 
-/** \brief Compute the diffusion flux Jacobians for the input nodal values.
- *  \warning  Negated flux contributions are returned such that the identical treatment to inviscid flux contributions
- *            is applicable. */
+/// \brief Compute the diffusion flux Jacobians for the input nodal values.
 static void compute_Flux_diffusion_1
 	(const struct Flux_Data_Diffusion*const flux_data, ///< \ref Flux_Data_Diffusion.
 	 Type*const dfdg_ptr[DIM*NEQ*NVAR*DIM]             ///< Pointers to the flux Jacobian data.

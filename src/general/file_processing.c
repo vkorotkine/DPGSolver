@@ -324,6 +324,22 @@ void read_skip_string_count_const_d
 	read_skip_string_count_d(str_search,count,line_i,(double*)var);
 }
 
+void read_skip_string_count_c_style_d
+	(const char*const str_search, int*const count, char*const line_i, double*const var)
+{
+	if (!strstr(line_i,str_search))
+		return;
+
+	(*count)++;
+	read_skip_d(line_i,var,2,true);
+}
+
+void read_skip_string_count_c_style_const_d
+	(const char*const str_search, int*const count, char*const line_i, const double*const var)
+{
+	read_skip_string_count_c_style_d(str_search,count,line_i,(double*)var);
+}
+
 void read_skip_file_const_b (const char*const var_name, FILE* file, const bool*const var)
 {
 	char line[STRLEN_MAX];

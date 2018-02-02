@@ -251,6 +251,26 @@ void read_skip_string_count_const_d
 	 const double*const var       ///< See brief.
 	);
 
+/** \brief Read a `double` from the input line and increment the count if the search string is in the line.
+ *
+ *  This function assumes that the input line has the form of a c-style variable definition (i.e. var = val;) and thus
+ *  skips the first 2 entries in the string and removes the trailing semi-colon.
+ */
+void read_skip_string_count_c_style_d
+	(const char*const str_search, ///< String to search for in the line.
+	 int*const count,             ///< Count to increment.
+	 char*const line_i,           ///< Line from which to read data.
+	 double*const var             ///< Variable in which to store the data.
+	);
+
+/// \brief `const` version of \ref read_skip_string_count_c_style_d.
+void read_skip_string_count_c_style_const_d
+	(const char*const str_search, ///< See brief.
+	 int*const count,             ///< See brief.
+	 char*const line_i,           ///< See brief.
+	 const double*const var       ///< See brief.
+	);
+
 // Setting/Getting file names *************************************************************************************** //
 
 /// \brief Append `src` (char*) to `dest` with optional forward slash ('\').

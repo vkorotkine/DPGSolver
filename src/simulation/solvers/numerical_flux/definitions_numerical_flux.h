@@ -12,12 +12,22 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__definitions_numerical_flux_h__INCLUDED
+#define DPG__definitions_numerical_flux_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templated containers/functions relating to solution for the
- *         navier-stokes equations.
+ *  \brief Provides the definitions relating to numerical fluxes.
  */
 
-#include "taylor_couette/undef_templates_solution_taylor_couette.h"
+///\{ \name Definitions for the available numerical fluxes.
+#define NUM_FLUX_INVALID   1
 
-#undef set_function_pointers_solution_navier_stokes_T
-#undef convert_variables_gradients_T
+#define NUM_FLUX_UPWIND    11
+
+#define NUM_FLUX_BR2_STABLE 21
+#define NUM_FLUX_CDG2       22
+
+#define NUM_FLUX_ROE_PIKE  31
+///\}
+
+#endif // DPG__definitions_numerical_flux_h__INCLUDED

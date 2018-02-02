@@ -24,6 +24,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_alloc.h"
 #include "definitions_dpg.h"
 #include "definitions_geometry.h"
+#include "definitions_physics.h"
+#include "definitions_numerical_flux.h"
 #include "definitions_test_case.h"
 
 #include "const_cast.h"
@@ -39,8 +41,8 @@ static int get_define
 
 // Interface functions ********************************************************************************************** //
 
-void read_skip_convert_const_i
-	(const char*const line, const char*const def_type, const int*const var, int*const count_found)
+void read_skip_convert_i
+	(const char*const line, const char*const def_type, int*const var, int*const count_found)
 {
 	if (!strstr(line,def_type))
 		return;
@@ -51,8 +53,13 @@ void read_skip_convert_const_i
 	char def_str[STRLEN_MAX];
 	sscanf(line,"%*s %s",def_str);
 
-	const int var_def = get_define(def_str,def_type);
-	const_cast_i(var,var_def);
+	*var = get_define(def_str,def_type);
+}
+
+void read_skip_convert_const_i
+	(const char*const line, const char*const def_type, const int*const var, int*const count_found)
+{
+	read_skip_convert_i(line,def_type,(int*)var,count_found);
 }
 
 // Static functions ************************************************************************************************* //
@@ -100,6 +107,11 @@ static int get_define (const char*const def_str, const char*const def_type)
 	} else if (strcmp(def_type,"conservation") == 0) {
 		if      (strcmp(def_str,"not_enforced")        == 0) def_i = CONSERVATION_NOT_ENFORCED;
 		else if (strcmp(def_str,"lagrange_multiplier") == 0) def_i = CONSERVATION_LAGRANGE_MULT;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"viscosity_type") == 0) {
+		if      (strcmp(def_str,"constant")   == 0) def_i = VISCOSITY_CONSTANT;
+		else if (strcmp(def_str,"sutherland") == 0) def_i = VISCOSITY_SUTHERLAND;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else {

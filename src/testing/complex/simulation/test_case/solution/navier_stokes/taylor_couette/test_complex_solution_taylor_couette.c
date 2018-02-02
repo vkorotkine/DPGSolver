@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "solution_taylor_couette.h"
+#include "test_complex_solution_taylor_couette.h"
 
 #include "multiarray.h"
 
@@ -23,20 +23,24 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver.h"
 
 #include "file_processing.h"
-#include "math_functions.h"
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
-#include "solution.h"
-#include "solution_euler.h"
 #include "solution_navier_stokes.h"
 #include "test_case.h"
+
+#include "complex_multiarray.h"
+#include "test_complex_math_functions.h"
+#include "test_complex_solution.h"
+#include "test_complex_solution_euler.h"
+#include "test_complex_solution_navier_stokes.h"
+#include "test_complex_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_d.h"
+#include "def_templates_type_dc.h"
 #include "taylor_couette/solution_taylor_couette_T.c"
 
 // Static functions ************************************************************************************************* //

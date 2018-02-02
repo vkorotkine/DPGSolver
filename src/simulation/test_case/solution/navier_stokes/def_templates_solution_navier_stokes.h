@@ -17,18 +17,20 @@ You should have received a copy of the GNU General Public License along with DPG
  *         navier-stokes equations.
  */
 
-//#include "periodic_vortex/def_templates_solution_periodic_vortex.h"
+#include "taylor_couette/def_templates_solution_taylor_couette.h"
 
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
 #define set_function_pointers_solution_navier_stokes_T set_function_pointers_solution_navier_stokes
+#define convert_variables_gradients_T                  convert_variables_gradients
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define set_function_pointers_solution_navier_stokes_T set_function_pointers_solution_navier_stokes_c
+#define convert_variables_gradients_T                  convert_variables_gradients_c
 ///\}
 
 #endif

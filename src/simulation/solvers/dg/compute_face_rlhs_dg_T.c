@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_intrusive.h"
-#include "definitions_test_case.h"
+#include "definitions_numerical_flux.h"
 
 
 #include "def_templates_compute_face_rlhs_dg.h"

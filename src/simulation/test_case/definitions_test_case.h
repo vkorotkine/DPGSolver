@@ -33,16 +33,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define METHOD_DPG  4
 ///\}
 
-///\{ \name Definitions for variables related to the PDEs.
-#define GAMMA  1.4
-#define GM1    0.4
-#define GM3   -1.6
-///\}
-
-///\{ \name Minimum permited value for physical quantities which should be positive.
-#define EPS_PHYS 1.0e-13
-///\}
-
 ///\{ \name Definitions for the available solver procedures.
 #define SOLVER_E  100 ///< Explicit.
 #define SOLVER_I  200 ///< Implicit.
@@ -56,17 +46,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define SOLVER_I_DIRECT    201 ///< Implicit direct solver (LU; Cholesky if symmetric).
 #define SOLVER_I_ITERATIVE 202 ///< Implicit iterative solver (specification provided in input Petsc options file).
-///\}
-
-///\{ \name Definitions for the available numerical fluxes.
-#define NUM_FLUX_UPWIND    11
-
-#define NUM_FLUX_BR2_STABLE 21
-#define NUM_FLUX_CDG2       22
-
-#define NUM_FLUX_ROE_PIKE  31
-
-#define NUM_FLUX_INVALID   1
 ///\}
 
 #endif // DPG__definitions_test_case_h__INCLUDED

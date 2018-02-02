@@ -32,18 +32,26 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Multiarray_d;
 struct const_Multiarray_d;
 
-/// \brief Compute the entropy measure: s = p/pow(rho,GAMMA).
+/// \brief Compute the entropy measure.
 void compute_entropy
 	(struct Multiarray_d* s,                ///< The container to hold the entropy data.
 	 const struct const_Multiarray_d* vars, ///< The container of Euler variables.
 	 const char var_type                    ///< The type of the variables.
 	);
 
-/// \brief Compute the mach number: mach = V/c.
+/// \brief Compute the mach number.
 void compute_mach
 	(struct Multiarray_d* mach,             ///< The container to hold the mach data.
 	 const struct const_Multiarray_d* vars, ///< The container of Euler variables.
 	 const char var_type                    ///< The type of the variables.
+	);
+
+/// \brief Compute the temperature.
+void compute_temperature
+	(struct Multiarray_d*const t,                ///< The container to hold the temperature data.
+	 const struct const_Multiarray_d*const vars, ///< The container of Euler variables.
+	 const char var_type,                        ///< The type of the variables.
+	 const struct Simulation*const sim           ///< \ref Simulation.
 	);
 
 #endif // DPG__solution_euler_h__INCLUDED

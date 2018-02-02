@@ -11,6 +11,7 @@ set	(SOURCE
 	 euler/supersonic_vortex/solution_supersonic_vortex.c
 	 euler/free_stream/solution_free_stream.c
 	 navier_stokes/solution_navier_stokes.c
+	 navier_stokes/taylor_couette/solution_taylor_couette.c
 	)
 
 set	(LIBS_DEPEND
@@ -20,7 +21,6 @@ set	(LIBS_DEPEND
 	 Containers
 	 Element
 	 Flux
-#	 Numerical_Flux
 	)
 
 set(LIB Solution)

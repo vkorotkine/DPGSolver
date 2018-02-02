@@ -149,7 +149,7 @@ struct Vector_T* collapse_Multiarray_Vector_T
 	(const struct Multiarray_Vector_T*const src ///< The source.
 	);
 
-/// \brief Resize a \ref Multiarray_T\*, clearing any existing data entries.
+/// \brief Resize a \ref Multiarray_T\* using realloc (i.e. copying as much of the data as fits in the new memory).
 void resize_Multiarray_T
 	(struct Multiarray_T* a,  ///< The multiarray.
 	 const int order,         ///< Defined in \ref Multiarray_T.
