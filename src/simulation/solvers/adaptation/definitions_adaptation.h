@@ -28,6 +28,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define ADAPT_P_COARSE 102
 #define ADAPT_H_REFINE 103
 #define ADAPT_H_COARSE 104
+
+#define ADAPT_H_CREATE  111
+#define ADAPT_H_DESTROY 112
 ///\}
 
 ///\{ \name Supported adaptation strategies for the entire domain.

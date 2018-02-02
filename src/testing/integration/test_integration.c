@@ -143,7 +143,7 @@ void structor_simulation
 			assert(p-p_prev == 1);
 			adapt_hp(*sim,ADAPT_S_P_REFINE);
 		} else if (p < p_prev) {
-			for (int p_curr = p; p_curr != p; --p_curr)
+			for (int p_curr = p_prev; p_curr != p; --p_curr)
 				adapt_hp(*sim,ADAPT_S_P_COARSE);
 		}
 		break;

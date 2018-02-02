@@ -141,9 +141,20 @@ struct Face* constructor_copy_Face
 	 const bool independent_elements    ///< Flag for whether
 	);
 
+/// \brief Destructor for a \ref Face.
+void destructor_Face
+	(struct Face* face ///< Pointer to the face.
+	);
+
 /// \brief Swap \ref Face::Neigh_Info for the input face.
 void swap_neigh_info
 	(struct Face*const face ///< \ref Face.
+	);
+
+/** \brief Checks if one of the neighbouring volumes to the current face is curved.
+ *  \return `true` if curved volume is found; `false` otherwise. */
+bool check_for_curved_neigh
+	(struct Face* face ///< \ref Face.
 	);
 
 #endif // DPG__face_h__INCLUDED

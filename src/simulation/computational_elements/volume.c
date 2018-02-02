@@ -188,6 +188,12 @@ struct Volume* constructor_copy_Volume
 	return volume;
 }
 
+void destructor_Volume (struct Volume* vol)
+{
+	destructor_Volume_link(vol);
+	free(vol);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

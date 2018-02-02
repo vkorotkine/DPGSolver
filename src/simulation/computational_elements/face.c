@@ -204,6 +204,12 @@ struct Face* constructor_copy_Face
 	return face;
 }
 
+void destructor_Face (struct Face* face)
+{
+	destructor_Face_link(face);
+	free(face);
+}
+
 void swap_neigh_info (struct Face*const face)
 {
 	if (face->boundary)
@@ -227,6 +233,13 @@ void swap_neigh_info (struct Face*const face)
 	face->neigh_info[1].ind_sref = neigh_info_tmp.ind_sref;
 	face->neigh_info[1].ind_ord  = neigh_info_tmp.ind_ord;
 	face->neigh_info[1].volume   = neigh_info_tmp.volume;
+}
+
+bool check_for_curved_neigh (struct Face* face)
+{
+	if (face->neigh_info[0].volume->curved || (face->neigh_info[1].volume && face->neigh_info[1].volume->curved))
+		return true;
+	return false;
 }
 
 // Static functions ************************************************************************************************* //

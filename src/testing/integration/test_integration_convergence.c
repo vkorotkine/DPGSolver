@@ -85,8 +85,11 @@ int main
 
 	struct Simulation* sim = NULL;
 	const char type_rc = 'r';
-	for (int ml = ml_ref[0], ml_prev = ml-1; ml <= ml_ref[1]; ++ml) {
-	for (int p = p_ref[0], p_prev = p-1; p <= p_ref[1]; ++p) {
+
+	int ml_prev = ml_ref[0]-1,
+	    p_prev  = p_ref[0]-1;
+	for (int ml = ml_ref[0]; ml <= ml_ref[1]; ++ml) {
+	for (int p = p_ref[0]; p <= p_ref[1]; ++p) {
 		const int adapt_type = int_test_info->adapt_type;
 		const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
 		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc); // destructed

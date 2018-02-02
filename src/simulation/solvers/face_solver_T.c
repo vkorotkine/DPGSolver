@@ -33,12 +33,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Checks if one of the neighbouring volumes to the current face is curved.
- *  \return `true` if curved volume is found; `false` otherwise. */
-static bool check_for_curved_neigh
-	(struct Face* face ///< \ref Face.
-	);
-
 /** \brief Set the function pointers to the appropriate functions to compute boundary values needed for the numerical
  *         flux computation. */
 static void set_function_pointers_num_flux_bc
@@ -141,13 +135,6 @@ static void set_function_pointers_num_flux_bc_diffusion
 static void set_function_pointers_num_flux_bc_euler
 	(struct Solver_Face_T* s_face ///< See brief.
 	);
-
-static bool check_for_curved_neigh (struct Face* face)
-{
-	if (face->neigh_info[0].volume->curved || (face->neigh_info[1].volume && face->neigh_info[1].volume->curved))
-		return true;
-	return false;
-}
 
 static void set_function_pointers_num_flux_bc (struct Solver_Face_T* s_face, const struct Simulation* sim)
 {

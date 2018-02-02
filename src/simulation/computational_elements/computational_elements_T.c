@@ -307,21 +307,6 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 		de_info.sizeof_base[0] = sizeof(struct Solver_Volume_T);
 		de_info.sizeof_base[1] = sizeof(struct Solver_Face_T);
 		break;
-/// \todo Check if SOLVER_DG/SOLVER_DPG are still needed as base.
-#if 0
-	case IL_SOLVER_DG:
-		de_info.list_name[0] = IL_VOLUME_SOLVER_DG;
-		de_info.list_name[1] = IL_FACE_SOLVER_DG;
-		de_info.sizeof_base[0] = sizeof(struct DG_Solver_Volume_T);
-		de_info.sizeof_base[1] = sizeof(struct DG_Solver_Face_T);
-		break;
-	case IL_SOLVER_DPG:
-		de_info.list_name[0] = IL_VOLUME_SOLVER_DPG;
-		de_info.list_name[1] = IL_FACE_SOLVER_DPG;
-		de_info.sizeof_base[0] = sizeof(struct DPG_Solver_Volume_T);
-		de_info.sizeof_base[1] = sizeof(struct DPG_Solver_Face_T);
-		break;
-#endif
 	default:
 		EXIT_ERROR("Unsupported: %d\n",base_category);
 		break;

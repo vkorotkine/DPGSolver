@@ -67,6 +67,11 @@ void destructor_Volumes
 	(struct Intrusive_List* volumes ///< Standard.
 	);
 
+/// \brief Destructor for a \ref Volume.
+void destructor_Volume
+	(struct Volume* vol ///< Pointer to the volume.
+	);
+
 // Helper functions ************************************************************************************************* //
 
 /** \brief Check if a sufficient number of vertices (2) satisfy the condition on a domain boundary.
