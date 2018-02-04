@@ -204,6 +204,7 @@ void insert_List_into_List
 		main->first = sub->first;
 	} else {
 		sub->first->prev = curr->prev;
+		curr->prev->next = sub->first;
 	}
 	sub->last->next = curr;
 	curr->prev = sub->last;

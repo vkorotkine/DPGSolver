@@ -616,8 +616,6 @@ class ELEMENT_class:
 
 
 ### Functions ###
-PYTHON_ROOT = '../'
-sys.path.insert(0,PYTHON_ROOT)
 from support_functions import EXIT_TRACEBACK
 
 """ Not used but potentially useful for another function in the future. (ToBeModified)
@@ -714,8 +712,8 @@ if __name__ == '__main__':
 	EType = 'WEDGE'; ELEMENTs.append(ELEMENT_class(EType))
 
 #	EType = 'LINE'
-	EType = 'TRI'
-#	EType = 'QUAD'
+#	EType = 'TRI'
+	EType = 'QUAD'
 #	EType = 'TET'
 #	EType = 'HEX'
 #	EType = 'PYR'

@@ -1314,9 +1314,13 @@ static void set_operator_std_L2
 
 	constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type_o,"orthonormal");
 
+	/* Note: The value of "sc" for the input must be used for both coarse and fine nodes such that the same cubature
+	 *       order is selected for both sets of operators. */
+	const char sc = op_io[OP_IND_I].sc;
+
 	// 'C'oarse
 	struct Op_IO op_io_C[2] = {
-		{.ce = 'v', .kind = 'c', .sc = op_io[OP_IND_O].sc, .h_op = 0, .p_op = p_op_c, .s_type = s_type_o, },
+		{.ce = 'v', .kind = 'c', .sc = sc, .h_op = 0, .p_op = p_op_c, .s_type = s_type_o, },
 		{.ce = 'v', .s_type = s_type_o, },
 	};
 	const struct const_Nodes* nodes_Cc = constructor_const_Nodes_h(OP_IND_O,op_io_C,el,sim); // destructed
@@ -1345,7 +1349,7 @@ static void set_operator_std_L2
 	// 'F'ine
 	const int h_i = op_values[OP_IND_H+OP_IND_I];
 	struct Op_IO op_io_F[2] = {
-		{.ce = 'v', .kind = 'c', .sc = op_io[OP_IND_I].sc, .h_op = h_i, .p_op = p_op_c, .s_type = s_type_o, },
+		{.ce = 'v', .kind = 'c', .sc = sc, .h_op = h_i, .p_op = p_op_c, .s_type = s_type_o, },
 		{.ce = 'v', .s_type = s_type_o, },
 	};
 

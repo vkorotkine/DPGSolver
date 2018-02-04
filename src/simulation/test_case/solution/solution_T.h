@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct const_Multiarray_R;
 struct const_Multiarray_T;
+struct Flux_Input_T;
 struct Simulation;
 struct Solver_Volume_T;
 struct Solver_Face_T;
@@ -158,4 +159,11 @@ void update_Solution_Container_grad_T
 const struct const_Multiarray_R* constructor_xyz_vc_interp_T
 	(const struct Solver_Volume_T* s_vol, ///< The current volume.
 	 const struct Simulation* sim       ///< \ref Simulation.
+	);
+
+/// \brief Constructor for \ref Solver_Face_T::nf_coef using the solution of the dominant neighbouring volume.
+void constructor_Solver_Face__nf_coef_T
+	(struct Solver_Face_T*const s_face, ///< \ref Solver_Face_T.
+	 struct Flux_Input_T*const flux_i,  ///< \ref Flux_Input_T.
+	 const struct Simulation*const sim  ///< \ref Simulation.
 	);

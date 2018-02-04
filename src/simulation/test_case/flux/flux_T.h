@@ -91,6 +91,12 @@ struct Flux_Input_T* constructor_Flux_Input_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Constructor for a \ref Flux_Input_T using \ref Test_Case_T::solver_method_curr = 'e'.
+ *  \return See brief. */
+struct Flux_Input_T* constructor_Flux_Input_T_e
+	(struct Simulation* sim ///< \ref Simulation.
+	);
+
 /// \brief Destructor for a \ref Flux_Input_T container.
 void destructor_Flux_Input_T
 	(struct Flux_Input_T* flux_i ///< Standard.
@@ -124,3 +130,4 @@ void compute_Flux_12_T
 	(const struct Flux_Input_T* flux_i, ///< See brief.
 	 struct mutable_Flux_T* flux        ///< See brief.
 	);
+

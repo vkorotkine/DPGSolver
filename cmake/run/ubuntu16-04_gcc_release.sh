@@ -7,8 +7,8 @@ TOP_DIR="${PWD}/../.."
 
 # Must use mpich configured with --disable-checkpointing when running with valgrind otherwise there
 # is a clash between the two programs. See [this][https://stackoverflow.com/a/37643501/5983549] SO
-# answer.
-export CMAKE_PREFIX_PATH=/home/pzwan/Applications/mpich/mpich-3.2/build
+# answer. It seems that this is no longer required if using mpich-3.2.1.
+export CMAKE_PREFIX_PATH=/home/pzwan/Applications/mpich/mpich-3.2.1/build
 
 export PETSC_DIR=/home/pzwan/Applications/petsc/petsc-3.8.0
 export PETSC_ARCH=arch-linux-mkl-mpich-release

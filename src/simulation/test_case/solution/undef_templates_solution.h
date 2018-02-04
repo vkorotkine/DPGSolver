@@ -41,6 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef update_Solution_Container_sol_T
 #undef update_Solution_Container_grad_T
 #undef constructor_xyz_vc_interp_T
+#undef constructor_Solver_Face__nf_coef_T
 ///\}
 
 ///\{ \name Function names (pde specific)

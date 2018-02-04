@@ -33,6 +33,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define METHOD_DPG  4
 ///\}
 
+#define MAX_N_UNKNOWNS 4 ///< The 'max'imum 'n'umber of 'unknowns' (i.e. solution/gradient variables).
+
 ///\{ \name Definitions for the available solver procedures.
 #define SOLVER_E  100 ///< Explicit.
 #define SOLVER_I  200 ///< Implicit.

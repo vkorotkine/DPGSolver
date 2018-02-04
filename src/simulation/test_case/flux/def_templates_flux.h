@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define constructor_Flux_Input_T constructor_Flux_Input
+#define constructor_Flux_Input_T_e constructor_Flux_Input_e
 #define destructor_Flux_Input_T  destructor_Flux_Input
 #define constructor_Flux_T       constructor_Flux
 #define destructor_Flux_T        destructor_Flux
@@ -60,6 +61,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define constructor_Flux_Input_T constructor_Flux_Input_c
+#define constructor_Flux_Input_T_e constructor_Flux_Input_c_e
 #define destructor_Flux_Input_T  destructor_Flux_Input_c
 #define constructor_Flux_T       constructor_Flux_c
 #define destructor_Flux_T        destructor_Flux_c

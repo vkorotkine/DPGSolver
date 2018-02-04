@@ -90,6 +90,22 @@ static void compute_coef_from_val_vg
 	 struct Multiarray_T* grad_coef             ///< To hold the gradient coefficients.
 	);
 
+/** \brief Constructor for the multiarray of normal flux data evaluated at the desired face nodes.
+ *  \return See brief. */
+static const struct const_Multiarray_T* constructor_nf
+	(struct Solver_Face_T* s_face,     ///< \ref Solver_Face_T.
+	 const char node_kind,             ///< The type of face node at which to obtain the normal flux values.
+	 struct Flux_Input_T*const flux_i, ///< \ref Flux_Input_T.
+	 const struct Simulation*const sim ///< \ref Simulation.
+	);
+
+/// \brief Compute the coefficients associated with the values of the face normal flux.
+static void compute_coef_from_val_ff
+	(const struct Solver_Face_T* s_face,     ///< \ref Solver_Face_T.
+	 const struct const_Multiarray_T* f_val, ///< The flux values.
+	 struct Multiarray_T* f_coef             ///< To hold the flux coefficients.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 const struct const_Multiarray_T* constructor_const_sol_invalid_T
@@ -271,29 +287,29 @@ const struct const_Multiarray_R* constructor_xyz_vc_interp_T
 	return constructor_mm_NN1_Operator_const_Multiarray_R(cv0_vg_vc,geom_coef,'C',op_format,geom_coef->order,NULL);
 }
 
+void constructor_Solver_Face__nf_coef_T
+	(struct Solver_Face_T*const s_face, struct Flux_Input_T*const flux_i, const struct Simulation*const sim)
+{
+	const struct const_Multiarray_T*const nf = constructor_nf(s_face,'f',flux_i,sim); // destructed
+	compute_coef_from_val_ff(s_face,nf,s_face->nf_coef);
+	destructor_const_Multiarray_T(nf);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Constructor for a \ref Flux_Input_T for \ref Test_Case_T::solver_method_curr = 'e'.
+/** \brief Constructor for the multiarray of normal terms at the face flux nodes.
  *  \return See brief. */
-static struct Flux_Input_T* constructor_Flux_Input_T_e
-	(struct Simulation* sim ///< \ref Simulation.
+/// \todo move down one level.
+static const struct const_Multiarray_R* constructor_normals_ff
+	(const struct Solver_Face_T* s_face ///< \ref Solver_Face_T.
 	);
 
-/** \brief Constructor for the multiarray of normal flux data evaluated at the desired face nodes.
+/** \brief Constructor for the multiarray of normal flux terms as the dot product of the input normals and fluxes.
  *  \return See brief. */
-static const struct const_Multiarray_T* constructor_nf
-	(struct Solver_Face_T* s_face,     ///< \ref Solver_Face_T.
-	 const char node_kind,             ///< The type of face node at which to obtain the normal flux values.
-	 struct Flux_Input_T*const flux_i, ///< \ref Flux_Input_T.
-	 const struct Simulation*const sim ///< \ref Simulation.
-	);
-
-/// \brief Compute the coefficients associated with the values of the face normal flux.
-static void compute_coef_from_val_ff
-	(const struct Solver_Face_T* s_face,     ///< \ref Solver_Face_T.
-	 const struct const_Multiarray_T* f_val, ///< The flux values.
-	 struct Multiarray_T* f_coef             ///< To hold the flux coefficients.
+static const struct const_Multiarray_T* constructor_n_dot_f
+	(const struct const_Multiarray_T* flux,   ///< The flux data.
+	 const struct const_Multiarray_R* normals ///< The unit normals data.
 	);
 
 static void set_initial_v_sg_coef (struct Simulation* sim)
@@ -319,7 +335,6 @@ static void set_initial_v_sg_coef (struct Simulation* sim)
 static void set_initial_f_nf_coef (struct Simulation* sim)
 {
 	struct Flux_Input_T* flux_i = constructor_Flux_Input_T_e(sim); // destructed
-
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Face* face = (struct Face*) curr;
 		/// Boundary faces do not have normal flux unknowns.
@@ -327,10 +342,7 @@ static void set_initial_f_nf_coef (struct Simulation* sim)
 			continue;
 
 		struct Solver_Face_T* s_face = (struct Solver_Face_T*) curr;
-		const struct const_Multiarray_T* nf = constructor_nf(s_face,'f',flux_i,sim); // destructed
-
-		compute_coef_from_val_ff(s_face,nf,s_face->nf_coef);
-		destructor_const_Multiarray_T(nf);
+		constructor_Solver_Face__nf_coef_T(s_face,flux_i,sim);
 	}
 	destructor_Flux_Input_T(flux_i);
 }
@@ -465,32 +477,6 @@ static void compute_coef_from_val_vg
 	mm_NN1C_Operator_Multiarray_T(vc0_vr_vr,grad_val,grad_coef,op_format,grad_coef->order,NULL,NULL);
 }
 
-// Level 1 ********************************************************************************************************** //
-
-/** \brief Constructor for the multiarray of normal terms at the face flux nodes.
- *  \return See brief. */
-/// \todo move down one level.
-static const struct const_Multiarray_R* constructor_normals_ff
-	(const struct Solver_Face_T* s_face ///< \ref Solver_Face_T.
-	);
-
-/** \brief Constructor for the multiarray of normal flux terms as the dot product of the input normals and fluxes.
- *  \return See brief. */
-static const struct const_Multiarray_T* constructor_n_dot_f
-	(const struct const_Multiarray_T* flux,   ///< The flux data.
-	 const struct const_Multiarray_R* normals ///< The unit normals data.
-	);
-
-static struct Flux_Input_T* constructor_Flux_Input_T_e (struct Simulation* sim)
-{
-	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
-	test_case->solver_method_curr = 'e';
-	struct Flux_Input_T* flux_i = constructor_Flux_Input_T(sim); // returned
-	test_case->solver_method_curr = '0';
-
-	return flux_i;
-}
-
 static const struct const_Multiarray_T* constructor_nf
 	(struct Solver_Face_T* s_face, const char node_kind, struct Flux_Input_T*const flux_i,
 	 const struct Simulation*const sim)
@@ -545,7 +531,7 @@ static void compute_coef_from_val_ff
 	mm_NN1C_Operator_Multiarray_T(vc0_ff_ff,f_val,f_coef,'d',f_coef->order,NULL,NULL);
 }
 
-// Level 2 ********************************************************************************************************** //
+// Level 1 ********************************************************************************************************** //
 
 /** \brief Constructor for the multiarray of metric terms at the face flux nodes.
  *  \return See brief. */
@@ -604,7 +590,7 @@ static const struct const_Multiarray_T* constructor_n_dot_f
 	return (struct const_Multiarray_T*) nf;
 }
 
-// Level 3 ********************************************************************************************************** //
+// Level 2 ********************************************************************************************************** //
 
 static const struct const_Multiarray_R* constructor_metrics_ff (const struct Solver_Face_T* s_face)
 {

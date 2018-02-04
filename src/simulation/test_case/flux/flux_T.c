@@ -64,6 +64,18 @@ struct Flux_Input_T* constructor_Flux_Input_T (const struct Simulation* sim)
 	return flux_i;
 }
 
+struct Flux_Input_T* constructor_Flux_Input_T_e (struct Simulation* sim)
+{
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const char solver_method_curr = test_case->solver_method_curr;
+
+	test_case->solver_method_curr = 'e';
+	struct Flux_Input_T* flux_i = constructor_Flux_Input_T(sim); // returned
+	test_case->solver_method_curr = solver_method_curr;
+
+	return flux_i;
+}
+
 void destructor_Flux_Input_T (struct Flux_Input_T* flux_i)
 {
 	free(flux_i);

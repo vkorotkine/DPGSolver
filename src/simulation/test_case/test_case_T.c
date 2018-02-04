@@ -48,6 +48,12 @@ static void set_pde_related
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
+/// \brief Set \ref Simulation::method related parameters.
+static void set_method_related
+	(struct Test_Case_T*const test_case, ///< \ref Test_Case_T.
+	 const struct Simulation*const sim   ///< \ref Simulation.
+	);
+
 /// \brief Set the function pointer members of \ref Test_Case_T.
 static void set_function_pointers
 	(struct Test_Case_T* test_case,    ///< \ref Test_Case_T.
@@ -68,6 +74,7 @@ struct Test_Case_T* constructor_Test_Case_T (const struct Simulation* sim)
 
 	set_string_associations(test_case,sim);
 	set_pde_related(test_case,sim);
+	set_method_related(test_case,sim);
 
 	read_test_case_parameters(test_case,sim);
 	set_function_pointers(test_case,sim);
@@ -181,6 +188,28 @@ static void set_pde_related (struct Test_Case_T* test_case, const struct Simulat
 	}
 }
 
+static void set_method_related (struct Test_Case_T*const test_case, const struct Simulation*const sim)
+{
+	const_cast_b(&test_case->required_unknowns[0],true);
+	for (int i = 1; i < MAX_N_UNKNOWNS; ++i)
+		const_cast_b(&test_case->required_unknowns[i],false);
+
+	switch (sim->method) {
+	case METHOD_DG:
+		break; // do nothing.
+	case METHOD_DPG:
+		const_cast_b(&test_case->required_unknowns[1],true);
+		if (test_case->has_2nd_order) {
+			for (int i = 2; i < MAX_N_UNKNOWNS; ++i)
+				const_cast_b(&test_case->required_unknowns[i],true);
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d.",sim->method);
+		break;
+	}
+}
+
 static void set_function_pointers (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
 	switch (test_case->pde_index) {
@@ -218,8 +247,7 @@ static void read_test_case_parameters (struct Test_Case_T* test_case, const stru
 
 		if (strstr(line,"use_schur_complement")) read_skip_const_b(line,&test_case->use_schur_complement);
 
-		if (strstr(line,"display_progress"))    read_skip_const_b(line,&test_case->display_progress);
-		if (strstr(line,"conv_order_discount")) read_skip_const_d(line,&test_case->conv_order_discount,1,false);
+		if (strstr(line,"display_progress")) read_skip_const_b(line,&test_case->display_progress);
 
 		read_skip_string_count_const_d("exit_tol_e",  &count_tmp,line,&test_case->exit_tol_e);
 		read_skip_string_count_const_d("exit_ratio_e",&count_tmp,line,&test_case->exit_ratio_e);

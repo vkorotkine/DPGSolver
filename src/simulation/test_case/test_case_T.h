@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <stdbool.h>
+#include "definitions_test_case.h"
 
 struct Simulation;
 
@@ -35,6 +36,17 @@ struct Test_Case_T {
 
 	const bool has_1st_order, ///< Flag for whether the pde under consideration has 1st order terms.
 	           has_2nd_order; ///< Flag for whether the pde under consideration has 2nd order terms.
+
+	/** The required unknowns for the solver (i.e. which must be computed **before** the solving stage) for the
+	 *  \ref Simulation::method.
+	 *
+	 *  The indices correspond to:
+	 *  0: \ref Solver_Volume_T::sol_coef.
+	 *  1: \ref Solver_Face_T::nf_coef.
+	 *  2: \ref Solver_Volume_T::grad_coef.
+	 *  3: \ref Solver_Face_T::sol_coef.
+	 */
+	const bool required_unknowns[MAX_N_UNKNOWNS];
 
 	const int n_var, ///< Number of variables in the PDE under consideration.
 	          n_eq;  ///< Number of equations in the PDE under consideration.
@@ -126,8 +138,6 @@ struct Test_Case_T {
 
 	// Miscellaneous parameters
 	const bool display_progress; ///< Flag for whether the solver progress should be displayed (in stdout).
-
-	const double conv_order_discount; ///< Discount on the value of the convergence order required for optimality.
 };
 
 /** \brief Constructor for a \ref Test_Case_T.
