@@ -43,6 +43,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NEQ  NEQ_EULER  ///< Number of equations.
 #define NVAR NVAR_EULER ///< Number of variables.
 
+/// \brief Set the function pointers to the numerical flux computing functions.
+static void set_function_pointers_num_flux
+	(struct Test_Case_T* test_case,    ///< \ref Test_Case_T.
+	 const struct Simulation*const sim ///< \ref Simulation.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void set_function_pointers_solution_navier_stokes_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
@@ -64,18 +70,8 @@ void set_function_pointers_solution_navier_stokes_T (struct Test_Case_T* test_ca
 	test_case->compute_Flux_iv[0] = compute_Flux_T_euler;
 	test_case->compute_Flux_iv[1] = compute_Flux_T_navier_stokes;
 
-//	test_case->compute_Numerical_Flux = compute_Numerical_Flux_12_T;
-EXIT_ADD_SUPPORT;
-	switch (test_case->ind_num_flux[0]) {
-	case NUM_FLUX_ROE_PIKE:
-		test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_T_euler_roe_pike;
-		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_T_euler_roe_pike_jacobian;
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
-		break;
-	}
-EXIT_ADD_SUPPORT; // ind_num_flux[1].
+	test_case->compute_Numerical_Flux = compute_Numerical_Flux_12_T;
+	set_function_pointers_num_flux(test_case,sim);
 
 	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_s_fcl_interp_T;
 }
@@ -176,3 +172,37 @@ void convert_variables_gradients_T
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void set_function_pointers_num_flux (struct Test_Case_T* test_case, const struct Simulation*const sim)
+{
+	// Inviscid flux
+	switch (test_case->ind_num_flux[0]) {
+	case NUM_FLUX_ROE_PIKE:
+		test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_T_euler_roe_pike;
+		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_T_euler_roe_pike_jacobian;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
+		break;
+	}
+
+	// Viscous flux
+	switch (sim->method) {
+	case METHOD_DG: // fallthrough
+	case METHOD_DPG:
+		switch (test_case->ind_num_flux[1]) {
+		case NUM_FLUX_BR2_STABLE: // fallthrough
+		case NUM_FLUX_CDG2:
+			test_case->compute_Numerical_Flux_e[1] = compute_Numerical_Flux_T_navier_stokes_central;
+			test_case->compute_Numerical_Flux_i[1] = compute_Numerical_Flux_T_navier_stokes_central_jacobian;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[1]);
+			break;
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",sim->method);
+		break;
+	}
+}

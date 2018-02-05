@@ -12,24 +12,17 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__numerical_flux_navier_stokes_h__INCLUDED
+#define DPG__numerical_flux_navier_stokes_h__INCLUDED
 /** \file
+ *  \brief Provides real functions relating to Navier-Stokes numerical fluxes.
  */
 
-#include "flux_navier_stokes.h"
-
-#include "multiarray.h"
-
-#include "file_processing.h"
-#include "flux.h"
-#include "flux_euler.h"
-#include "test_case.h"
-
-// Static function declarations ************************************************************************************* //
-
-// Interface functions ********************************************************************************************** //
-
 #include "def_templates_type_d.h"
-#include "flux_navier_stokes_T.c"
+#include "def_templates_numerical_flux.h"
+#include "numerical_flux_navier_stokes_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_numerical_flux.h"
 
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
+#endif // DPG__numerical_flux_navier_stokes_h__INCLUDED

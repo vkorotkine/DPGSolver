@@ -43,7 +43,7 @@ struct Mesh_Connectivity_l {
 };
 
 /** \brief Constructor for \ref Conn_info.
- *	\return Standard. */
+ *  \return Standard. */
 static struct Conn_info* constructor_Conn_info
 	(const struct Mesh_Data*const mesh_data,          ///< Standard.
 	 const struct const_Intrusive_List*const elements ///< Standard.
@@ -55,7 +55,7 @@ static void destructor_Conn_info
 	);
 
 /** \brief Compute the list of (f)ace (ve)rtices for each face.
- *	\return See brief. */
+ *  \return See brief. */
 static void compute_f_ve
 	(const struct Mesh_Data*const mesh_data,           ///< Standard.
 	 const struct const_Intrusive_List*const elements, ///< Standard.
@@ -141,7 +141,7 @@ struct Boundary_Face {
 };
 
 /** \brief Constructor for \ref Boundary_Face_Info.
- *	\return Standard. */
+ *  \return Standard. */
 static struct Boundary_Face_Info* constructor_Boundary_Face_Info
 	(ptrdiff_t const n_pfe, ///< \ref Boundary_Face_Info::n_pfe.
 	 ptrdiff_t const n_bf   ///< \ref Boundary_Face_Info::n_bf.
@@ -153,7 +153,7 @@ static void destructor_Boundary_Face_Info
 	);
 
 /** \brief See return.
- *	\return The sum of the number of faces of all volumes.
+ *  \return The sum of the number of faces of all volumes.
  */
 static ptrdiff_t compute_sum_n_f
 	(const struct const_Intrusive_List*const elements, ///< Standard.
@@ -168,7 +168,7 @@ static void set_bf_info
 	);
 
 /** \brief Count the number of boundary faces.
- *	\return See brief. */
+ *  \return See brief. */
 static ptrdiff_t count_boundary_faces
 	(const ptrdiff_t ind_pfe,                    ///< Index of the first physical face element in the mesh element list.
 	 const ptrdiff_t n_pfe,                      ///< The number of physical face elements.
@@ -184,9 +184,9 @@ static void reorder_b_faces
 	);
 
 /** \brief Comparison function for std::bsearch between \ref Boundary_Face\*\* `a` and `b`.
- *	\return The \ref cmp_Vector_T of the `node_nums` of `a` and `b`.
+ *  \return The \ref cmp_Vector_T of the `node_nums` of `a` and `b`.
  *
- *	\note Input Vectors must be have sorted data.
+ *  \note Input Vectors must be have sorted data.
  */
 static int cmp_Boundary_Face
 	(const void *a, ///< Variable 1.
@@ -398,11 +398,11 @@ static void add_bc_info
 // Level 1 ********************************************************************************************************** //
 
 /** \brief Constructor for \ref Boundary_Face.
- *	\return Standard. */
+ *  \return Standard. */
 static struct Boundary_Face* constructor_Boundary_Face ( );
 
 /** \brief Copy constructor for \ref Boundary_Face_Info::b_faces.
- *	\return Standard. */
+ *  \return Standard. */
 static struct Boundary_Face** constructor_b_faces
 	(const ptrdiff_t n_bf,            ///< \ref Boundary_Face_Info::n_bf.
 	 struct Boundary_Face**const src  ///< The source \ref Boundary_Face_Info::b_faces data.
@@ -420,7 +420,7 @@ static void destructor_Boundary_Face
 	);
 
 /** \brief Check if the physical face element is a boundary which is not periodic.
- *	\return See brief. */
+ *  \return See brief. */
 static bool check_pfe_boundary
 	(const int bc ///< The value of the boundary condition.
 	);
@@ -485,7 +485,7 @@ static void set_bf_info
 	}
 
 	if (count_bf != bf_info->n_bf)
-		EXIT_ERROR("Did not find the correct number of boundary face entities");
+		EXIT_ERROR("Did not find the correct number of boundary face entities: %td %td",count_bf,bf_info->n_bf);
 }
 
 static ptrdiff_t count_boundary_faces
@@ -549,7 +549,7 @@ static void update_v_to_lf_bc (struct Multiarray_Vector_i*const v_to_lf, const i
 // Level 2 ********************************************************************************************************** //
 
 /** \brief Constructor for \ref Boundary_Face where the memory is allocated for the node_nums but not set.
- *	\return Standard. */
+ *  \return Standard. */
 static struct Boundary_Face* constructor_empty_Boundary_Face
 	(struct Boundary_Face* src ///< The source data.
 	);
@@ -587,23 +587,31 @@ static bool check_pfe_boundary (const int bc)
 {
 	const int bc_base = bc % BC_STEP_SC;
 	switch (bc_base) {
-		case BC_INFLOW: // Advection
-		case BC_OUTFLOW:
-		case BC_DIRICHLET: // Diffusion
-		case BC_NEUMANN:
-		case BC_RIEMANN: // Euler
-		case BC_SLIPWALL:
-		case BC_BACKPRESSURE:
-		case BC_TOTAL_TP:
-		case BC_SUPERSONIC_IN:
-		case BC_SUPERSONIC_OUT:
-		case BC_NOSLIP_T: // Navier-Stokes
-		case BC_NOSLIP_ADIABATIC:
-			return true;
-			break;
-		default:
-			return false;
-			break;
+	case BC_INFLOW:           // Advection
+	case BC_OUTFLOW:
+	case BC_DIRICHLET:        // Diffusion
+	case BC_NEUMANN:
+	case BC_RIEMANN:          // Euler
+	case BC_SLIPWALL:
+	case BC_BACKPRESSURE:
+	case BC_TOTAL_TP:
+	case BC_SUPERSONIC_IN:
+	case BC_SUPERSONIC_OUT:
+	case BC_NOSLIP_ALL:       // Navier-Stokes
+	case BC_NOSLIP_ADIABATIC:
+	case BC_NOSLIP_DIABATIC:
+		return true;
+		break;
+	case PERIODIC_XL:
+	case PERIODIC_XR:
+	case PERIODIC_YL:
+	case PERIODIC_YR:
+	case PERIODIC_ZL:
+	case PERIODIC_ZR:
+		return false;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",bc_base);
+		break;
 	}
 }
 

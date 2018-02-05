@@ -39,6 +39,7 @@ deprecated/python/__pycache__/*
 src/processing/__pycache__/*
 src/processing/pre/__pycache__/*
 cmake/include/*
+*/__pycache__/*
 
 *.aux
 *.log

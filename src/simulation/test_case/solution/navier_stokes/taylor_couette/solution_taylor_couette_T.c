@@ -291,7 +291,7 @@ static void read_data_taylor_couette (const char*const input_path, struct Sol_Da
 	}
 	fclose(input_file);
 
-	int viscosity_type = -1;
+	int viscosity_type = VISCOSITY_INVALID;
 
 	input_file = fopen_input(input_path,'s',NULL); // closed
 	while (fgets(line,sizeof(line),input_file)) {

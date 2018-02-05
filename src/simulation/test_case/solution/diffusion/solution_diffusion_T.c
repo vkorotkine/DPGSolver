@@ -62,6 +62,7 @@ void set_function_pointers_solution_diffusion_T (struct Test_Case_T* test_case, 
 	test_case->compute_Flux_iv[0] = NULL;
 	test_case->compute_Flux_iv[1] = compute_Flux_T_diffusion;
 
+	test_case->compute_Numerical_Flux = compute_Numerical_Flux_2_T;
 	set_function_pointers_num_flux(test_case,sim);
 
 	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_s_fcl_interp_T;
@@ -75,7 +76,6 @@ static void set_function_pointers_num_flux (struct Test_Case_T* test_case, const
 	switch (sim->method) {
 	case METHOD_DG: // fallthrough
 	case METHOD_DPG:
-		test_case->compute_Numerical_Flux = compute_Numerical_Flux_2_T;
 		switch (test_case->ind_num_flux[1]) {
 		case NUM_FLUX_BR2_STABLE: // fallthrough
 		case NUM_FLUX_CDG2:

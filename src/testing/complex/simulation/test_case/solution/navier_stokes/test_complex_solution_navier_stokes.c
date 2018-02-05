@@ -30,7 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_geometry.h"
 #include "test_complex_geometry_parametric.h"
 #include "test_complex_numerical_flux_euler.h"
-//#include "test_complex_numerical_flux_navier_stokes.h"
+#include "test_complex_numerical_flux_navier_stokes.h"
 #include "test_complex_solution.h"
 #include "test_complex_test_case.h"
 

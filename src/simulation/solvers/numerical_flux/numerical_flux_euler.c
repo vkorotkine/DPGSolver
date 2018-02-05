@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include "numerical_flux_euler.h"
+
 #include "multiarray.h"
 
 #include "const_cast.h"

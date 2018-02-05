@@ -84,17 +84,14 @@ void set_function_pointers_face_num_flux_T (struct Solver_Face_T* s_face, const 
 	if (!face->boundary) {
 		struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 		switch (test_case->pde_index) {
-		case PDE_ADVECTION:
+		case PDE_ADVECTION: // fallthrough
 		case PDE_EULER:
 			s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_s_fcl_interp_T;
 			break;
-		case PDE_DIFFUSION:
-			/// Note: Does not construct the solution gradient term. See comment in \ref Solver_Face_T.
-			s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_s_fcl_interp_T;
-			break;
+		case PDE_DIFFUSION:     // fallthrough
 		case PDE_NAVIER_STOKES:
 			/// Note: Does not construct the solution gradient term. See comment in \ref Solver_Face_T.
-			EXIT_UNSUPPORTED;
+			s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_s_fcl_interp_T;
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
@@ -136,13 +133,19 @@ static void set_function_pointers_num_flux_bc_euler
 	(struct Solver_Face_T* s_face ///< See brief.
 	);
 
+/// \brief Version of \ref set_function_pointers_num_flux_bc for the Navier-Stokes equations.
+static void set_function_pointers_num_flux_bc_navier_stokes
+	(struct Solver_Face_T* s_face ///< See brief.
+	);
+
 static void set_function_pointers_num_flux_bc (struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	switch (test_case->pde_index) {
-	case PDE_ADVECTION: set_function_pointers_num_flux_bc_advection(s_face); break;
-	case PDE_DIFFUSION: set_function_pointers_num_flux_bc_diffusion(s_face); break;
-	case PDE_EULER:     set_function_pointers_num_flux_bc_euler(s_face);     break;
+	case PDE_ADVECTION:     set_function_pointers_num_flux_bc_advection(s_face); break;
+	case PDE_DIFFUSION:     set_function_pointers_num_flux_bc_diffusion(s_face); break;
+	case PDE_EULER:         set_function_pointers_num_flux_bc_euler(s_face);     break;
+	case PDE_NAVIER_STOKES: set_function_pointers_num_flux_bc_navier_stokes(s_face); break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
 		break;
@@ -207,6 +210,22 @@ static void set_function_pointers_num_flux_bc_euler (struct Solver_Face_T* s_fac
 		break;
 	case BC_BACKPRESSURE:
 	case BC_TOTAL_TP:
+	default:
+		EXIT_ERROR("Unsupported: %d\n",face->bc);
+		break;
+	}
+}
+
+static void set_function_pointers_num_flux_bc_navier_stokes (struct Solver_Face_T* s_face)
+{
+	const struct Face* face = (struct Face*) s_face;
+
+	const int bc = face->bc % BC_STEP_SC;
+	switch (bc) {
+	case BC_NOSLIP_ALL:
+//		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_navier_stokes_noslip_all;
+	case BC_NOSLIP_ADIABATIC:
+	case BC_NOSLIP_DIABATIC:
 	default:
 		EXIT_ERROR("Unsupported: %d\n",face->bc);
 		break;

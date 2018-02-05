@@ -44,4 +44,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_Flux_T_diffusion
 #undef compute_Flux_T_euler
 #undef compute_Flux_T_navier_stokes
+
+#undef compute_V2_from_uvw_T
+#undef compute_V2_from_rhouvw_T
 ///\}

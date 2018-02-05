@@ -112,7 +112,7 @@ EndIf
 bc_curved   = 2*BC_STEP_SC;
 
 If (pde_name == NAVIER_STOKES)
-	Physical Line (bc_curved+BC_NOSLIP_T_ALL) = {1001:1004};
+	Physical Line (bc_curved+BC_NOSLIP_ALL) = {1001:1004};
 	If (geom_bc == GEOM_BC_ADIABATIC_O)
 		Physical Line (bc_curved+BC_NOSLIP_ADIABATIC) = {1005:1008};
 	ElseIf (geom_bc == GEOM_BC_DIABATIC_O)

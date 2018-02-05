@@ -12,24 +12,19 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__boundary_navier_stokes_h__INCLUDED
+#define DPG__boundary_navier_stokes_h__INCLUDED
 /** \file
+ *  \brief Provides real containers and functions relating to boundary conditions for the Navier-Stokes equation.
  */
 
-#include "flux_navier_stokes.h"
-
-#include "multiarray.h"
-
-#include "file_processing.h"
-#include "flux.h"
-#include "flux_euler.h"
-#include "test_case.h"
-
-// Static function declarations ************************************************************************************* //
-
-// Interface functions ********************************************************************************************** //
-
 #include "def_templates_type_d.h"
-#include "flux_navier_stokes_T.c"
+#include "def_templates_boundary.h"
+//#include "def_templates_face_solver.h"
+#include "boundary_navier_stokes_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_boundary.h"
+//#include "undef_templates_face_solver.h"
 
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
+#endif // DPG__boundary_navier_stokes_h__INCLUDED

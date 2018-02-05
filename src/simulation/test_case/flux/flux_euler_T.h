@@ -30,3 +30,16 @@ void compute_Flux_T_euler
 	(const struct Flux_Input_T* flux_i, ///< See brief.
 	 struct mutable_Flux_T* flux        ///< See brief.
 	);
+
+/** \brief Compute the square of the Velocity magnitude from the vector of uvw velocity components.
+ *  \return See brief. */
+Type compute_V2_from_uvw_T
+	(const Type*const uvw ///< The array of velocity components.
+	);
+
+/** \brief Compute the square of the Velocity magnitude from the density and vector of rhouvw momentum components.
+ *  \return See brief. */
+Type compute_V2_from_rhouvw_T
+	(const Type rho,         ///< The density.
+	 const Type*const rhouvw ///< The array of momentum components.
+	);

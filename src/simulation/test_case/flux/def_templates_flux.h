@@ -45,6 +45,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Flux_T_diffusion     compute_Flux_diffusion
 #define compute_Flux_T_euler         compute_Flux_euler
 #define compute_Flux_T_navier_stokes compute_Flux_navier_stokes
+
+#define compute_V2_from_uvw_T    compute_V2_from_uvw
+#define compute_V2_from_rhouvw_T compute_V2_from_rhouvw
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -76,6 +79,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Flux_T_diffusion     compute_Flux_c_diffusion
 #define compute_Flux_T_euler         compute_Flux_c_euler
 #define compute_Flux_T_navier_stokes compute_Flux_c_navier_stokes
+
+#define compute_V2_from_uvw_T    compute_V2_from_uvw_c
+#define compute_V2_from_rhouvw_T compute_V2_from_rhouvw_c
 ///\}
 
 #endif

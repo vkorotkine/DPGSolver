@@ -13,16 +13,16 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__numerical_flux_euler_h__INCLUDED
-#define DPG__numerical_flux_euler_h__INCLUDED
+#ifndef DPG__test_complex_numerical_flux_navier_stokes_h__INCLUDED
+#define DPG__test_complex_numerical_flux_navier_stokes_h__INCLUDED
 /** \file
- *  \brief Provides real functions relating to Euler numerical fluxes.
+ *  \brief Provides `complex` versions of functions defined in \ref numerical_flux_navier_stokes.h.
  */
 
-#include "def_templates_type_d.h"
+#include "def_templates_type_dc.h"
 #include "def_templates_numerical_flux.h"
-#include "numerical_flux_euler_T.h"
+#include "numerical_flux_navier_stokes_T.h"
 #include "undef_templates_type.h"
 #include "undef_templates_numerical_flux.h"
 
-#endif // DPG__numerical_flux_euler_h__INCLUDED
+#endif // DPG__test_complex_numerical_flux_navier_stokes_h__INCLUDED

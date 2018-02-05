@@ -23,7 +23,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "flux.h"
 #include "numerical_flux.h"
-#include "solution_diffusion.h"
 
 // Static function declarations ************************************************************************************* //
 

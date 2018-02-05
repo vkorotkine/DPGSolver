@@ -56,8 +56,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define BC_SUPERSONIC_OUT 106
 
 // Navier-Stokes
-#define BC_NOSLIP_T         111
-#define BC_NOSLIP_T_ALL     112
+#define BC_NOSLIP_ALL       111
 #define BC_NOSLIP_ADIABATIC 116
 #define BC_NOSLIP_DIABATIC  117
 ///\}

@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Definitions related to the method in which the viscosity should be computed.
+#define VISCOSITY_INVALID    -1  ///< Invalid value.
 #define VISCOSITY_CONSTANT   101 ///< Constant viscosity.
 #define VISCOSITY_SUTHERLAND 102 ///< Viscosity computed using Sutherland's formula.
 ///\}

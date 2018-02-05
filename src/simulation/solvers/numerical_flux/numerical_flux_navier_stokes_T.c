@@ -13,42 +13,39 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
+ *  \brief Provides the templated Navier-Stokes numerical flux functions.
  */
 
-#include "solution_navier_stokes.h"
+#include <stddef.h>
+#include <stdlib.h>
 
-#include "multiarray.h"
+#include "macros.h"
+#include "definitions_core.h"
 
-#include "boundary.h"
-#include "compute_error_navier_stokes.h"
-#include "solution.h"
-#include "flux_euler.h"
-#include "flux_navier_stokes.h"
-#include "geometry.h"
-#include "geometry_parametric.h"
-#include "numerical_flux_euler.h"
-#include "numerical_flux_navier_stokes.h"
-#include "simulation.h"
-#include "test_case.h"
 
-#include "taylor_couette/solution_taylor_couette.h"
+#include "def_templates_numerical_flux.h"
 
 // Static function declarations ************************************************************************************* //
 
+#define NEQ NEQ_EULER  ///< Number of equations.
+#define NVR NVAR_EULER ///< Number of variables.
+
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_d.h"
-#include "solution_navier_stokes_T.c"
+#include "numerical_flux_central_T.c"
 
-double compute_kappa_const_cp (const double mu, const double Cp, const double Pr)
+void compute_Numerical_Flux_T_navier_stokes_central
+	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {
-	return mu*Cp/Pr;
+	compute_Numerical_Flux_T_central(num_flux_i,num_flux);
 }
 
-double compute_cp_ideal_gas (const double r_s)
+void compute_Numerical_Flux_T_navier_stokes_central_jacobian
+	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {
-	return GAMMA/GM1*r_s;
+	compute_Numerical_Flux_T_central_jacobian(num_flux_i,num_flux);
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+

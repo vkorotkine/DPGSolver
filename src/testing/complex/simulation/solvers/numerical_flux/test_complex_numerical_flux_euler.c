@@ -15,6 +15,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
+#include "test_complex_numerical_flux_euler.h"
+
 #include "test_complex_const_cast.h"
 #include "test_complex_flux.h"
 #include "test_complex_flux_euler.h"

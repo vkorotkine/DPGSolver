@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides templated functions relating to diffusion numerical fluxes.
+ *  \brief Provides templated functions relating to Navier-Stokes numerical fluxes.
  */
 
 struct Numerical_Flux_Input_T;
@@ -21,14 +21,14 @@ struct mutable_Numerical_Flux_T;
 
 /** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes as the average of the left and
  *         right fluxes. */
-void compute_Numerical_Flux_T_diffusion_central
+void compute_Numerical_Flux_T_navier_stokes_central
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
 	);
 
 /** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes and Jacobians for the flux of
- *         \ref compute_Numerical_Flux_T_diffusion_central. */
-void compute_Numerical_Flux_T_diffusion_central_jacobian
+ *         \ref compute_Numerical_Flux_T_navier_stokes_central. */
+void compute_Numerical_Flux_T_navier_stokes_central_jacobian
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
 	);

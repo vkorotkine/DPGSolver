@@ -66,12 +66,6 @@ static compute_Flux_Euler_fptr get_compute_Flux_Euler_fptr
 	(const bool*const c_m ///< \ref Flux_Input_T::compute_member.
 	);
 
-/** \brief Compute the square of the Velocity magnitude.
- *  \return See brief. */
-static Type compute_V2
-	(const Type* uvw ///< The array of velocity components.
-	);
-
 // Interface functions ********************************************************************************************** //
 
 void compute_Flux_T_euler (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
@@ -128,16 +122,15 @@ void compute_Flux_T_euler (const struct Flux_Input_T* flux_i, struct mutable_Flu
 	const ptrdiff_t n_n = s->extents[0];
 	for (ptrdiff_t n = 0; n < n_n; ++n) {
 		const Type rho      = rho_p[n],
-		           rho_inv  = 1.0/rho,
-
 		           rhouvw[] = ARRAY_DIM(rhouvw_p[0][n],rhouvw_p[1][n],rhouvw_p[2][n]),
-		           uvw[]    = ARRAY_DIM(rho_inv*rhouvw[0],rho_inv*rhouvw[1],rho_inv*rhouvw[2]),
+		           E        = E_p[n],
 
-		           V2    = compute_V2(uvw),
-		           E     = E_p[n],
-		           p     = GM1*(E-0.5*rho*V2),
-		           H     = (E+p)*rho_inv,
-		           alpha = 0.5*GM1*V2;
+		           rho_inv = 1.0/rho,
+		           uvw[]   = ARRAY_DIM(rho_inv*rhouvw[0],rho_inv*rhouvw[1],rho_inv*rhouvw[2]),
+		           V2      = compute_V2_from_uvw_T(uvw),
+		           p       = GM1*(E-0.5*rho*V2),
+		           H       = (E+p)*rho_inv,
+		           alpha   = 0.5*GM1*V2;
 
 		struct Flux_Data_Euler flux_data =
 			{ .rhouvw  = rhouvw,
@@ -152,6 +145,22 @@ void compute_Flux_T_euler (const struct Flux_Input_T* flux_i, struct mutable_Flu
 			};
 		compute_flux_euler_n(&flux_data,f_ptr,dfds_ptr,d2fds2_ptr);
 	}
+}
+
+Type compute_V2_from_uvw_T (const Type*const uvw)
+{
+	Type V2 = 0.0;
+	for (int d = 0; d < DIM; ++d)
+		V2 += uvw[d]*uvw[d];
+	return V2;
+}
+
+Type compute_V2_from_rhouvw_T (const Type rho, const Type*const rhouvw)
+{
+	Type rho2V2 = 0.0;
+	for (int d = 0; d < DIM; ++d)
+		rho2V2 += rhouvw[d]*rhouvw[d];
+	return rho2V2/(rho*rho);
 }
 
 // Static functions ************************************************************************************************* //
@@ -192,14 +201,6 @@ static compute_Flux_Euler_fptr get_compute_Flux_Euler_fptr (const bool*const c_m
 	} else {
 		return compute_Flux_Euler_100;
 	}
-}
-
-static Type compute_V2 (const Type* uvw)
-{
-	Type V2 = 0.0;
-	for (int d = 0; d < DIM; ++d)
-		V2 += uvw[d]*uvw[d];
-	return V2;
 }
 
 // Level 1 ********************************************************************************************************** //

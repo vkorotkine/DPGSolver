@@ -11,6 +11,8 @@
 # Executable and command line arguments
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_linearization
 ARGV="navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_DG_TRI__ml0__p2"
+EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_fluxes
+ARGV="flux_navier_stokes_2d integration/TEST_NavierStokes_Default_2d__ml0__p0"
 #EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
 #ARGV="advection/default/dpg/TEST_Advection_Default_DPG_QUAD petsc_options_cg_ilu1"
 

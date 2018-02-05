@@ -46,6 +46,7 @@ add_test_DPG_w_path(${BIN_PATH_3D} ${EXEC} "flux_advection_3d" "integration/TEST
 #add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "flux_euler_1d" "integration/TEST_Euler_Default_1d__ml0__p0")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_euler_2d" "integration/TEST_Euler_Default_2d__ml0__p0")
 #add_test_DPG_w_path(${BIN_PATH_3D} ${EXEC} "flux_euler_3d" "integration/TEST_Euler_Default_3d__ml0__p0")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_navier_stokes_2d" "integration/TEST_NavierStokes_Default_2d__ml0__p0")
 
 set (EXEC test_integration_boundary_conditions)
 set (LIBS_DEPEND Test_Base Test_Integration Test_Complex_Test_Case Test_Complex_Solvers)
