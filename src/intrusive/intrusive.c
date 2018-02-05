@@ -119,6 +119,20 @@ void push_back_const_IL (const struct const_Intrusive_List* lst, const struct co
 	push_back_IL((struct Intrusive_List*)lst,(struct Intrusive_Link*)curr);
 }
 
+void push_back_IL_List (struct Intrusive_List*const lst, struct Intrusive_List*const end)
+{
+	struct Intrusive_Link* last = lst->last;
+	if (last) {
+		last->next = end->first;
+		end->first->prev = last;
+	} else {
+		lst->first = end->first;
+		assert(end->first->prev == NULL);
+	}
+	lst->last = end->last;
+	assert(end->last->next == NULL);
+}
+
 struct Intrusive_Link* erase_IL (struct Intrusive_List* lst, struct Intrusive_Link* curr)
 {
 	if (curr == lst->first) {

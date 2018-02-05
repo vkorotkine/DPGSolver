@@ -128,6 +128,12 @@ void push_back_const_IL
 	 const struct const_Intrusive_Link* curr ///< Defined for \ref push_back_IL.
 	);
 
+/// \brief Add a \ref Intrusive_List to the end of the \ref Intrusive_List.
+void push_back_IL_List
+	(struct Intrusive_List*const lst, ///< The list.
+	 struct Intrusive_List*const end  ///< The list to add to the end.
+	);
+
 /** \brief Erase the current \ref Intrusive_Link.
  *
  *  \warning Does not free memory.
@@ -172,5 +178,6 @@ void insert_List_into_List
 	 struct Intrusive_List*const main, ///< The main list.
 	 struct Intrusive_Link*const curr  ///< The current link.
 	);
+
 
 #endif // DPG__Intrusive_h__INCLUDED

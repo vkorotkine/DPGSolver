@@ -267,10 +267,34 @@ static void destruct_unused_computational_elements (struct Simulation* sim)
 			break;
 		}
 	}
+/// \todo Delete this after debugging 2d.
+#if 1
+for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+struct Volume*vol = (struct Volume*)curr;
+printf("%d\n",vol->index);
+print_const_Multiarray_d(vol->xyz_ve);
+}
+#endif
 
+#if 0
+printf("\n\n\n\n\n");
+for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+struct Face* face = (struct Face*) curr;
+struct Solver_Face* s_face = (struct Solver_Face*) curr;
+struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) curr;
+printf("%d %d %d %d %p\n",face->index,a_s_face->adapt_type,s_face->ml,s_face->p_ref,a_s_face->parent);
+printf("%d %d\n\n",face->neigh_info[0].volume->index,
+       (!face->boundary ? face->neigh_info[1].volume->index:-999));
+print_const_Multiarray_d(s_face->xyz_fc);
+}
+#endif
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) curr;
+//struct Face* face = (struct Face*) curr;
+//struct Solver_Face* s_face = (struct Solver_Face*) curr;
+//if (s_face->ml == 1)
+//	EXIT_UNSUPPORTED;
 
 		switch (a_s_face->adapt_type) {
 		case ADAPT_NONE:     // fallthrough
@@ -282,6 +306,7 @@ static void destruct_unused_computational_elements (struct Simulation* sim)
 			EXIT_ADD_SUPPORT; // Remove children (pass NULL instead of curr in destruct_fully_...)
 			break; // Do nothing.
 		case ADAPT_H_REFINE:
+//printf("face/parent: %d %p %p\n",face->index,a_s_face,a_s_face->parent);
 			destruct_fully_Adaptive_Solver_Faces(1,a_s_face->parent,&curr);
 			break;
 		default:
@@ -611,8 +636,7 @@ static void update_volume_face_pointers (struct Simulation* sim)
 static void destruct_fully_Adaptive_Solver_Volumes
 	(const int n_v, struct Intrusive_Link* first, struct Intrusive_Link** child_0)
 {
-	if (child_0)
-		advance_to_end_of_parent_volume(child_0);
+	advance_to_end_of_parent_volume(child_0);
 
 	struct Intrusive_Link* curr = first;
 	for (int n = 0; n < n_v; ++n) {
@@ -630,8 +654,7 @@ static void destruct_fully_Adaptive_Solver_Volumes
 static void destruct_fully_Adaptive_Solver_Faces
 	(const int n_f, struct Intrusive_Link* first, struct Intrusive_Link** child_0)
 {
-	if (child_0)
-		advance_to_end_of_parent_face(child_0);
+	advance_to_end_of_parent_face(child_0);
 
 	struct Intrusive_Link* curr = first;
 	for (int n = 0; n < n_f; ++n) {
@@ -1102,9 +1125,7 @@ static void insert_new_faces
 		}
 		curr = curr->next;
 	}
-	const struct Face*const face_0 = ((struct Volume*)a_s_vol_p->child_0)->faces[0][0];
-	struct Intrusive_Link* curr_f = (struct Intrusive_Link*)face_0;
-	insert_List_into_List(faces_new,sim->faces,curr_f);
+	push_back_IL_List(sim->faces,faces_new);
 	destructor_IL(faces_new,false);
 }
 
@@ -1624,6 +1645,12 @@ static void constructor_Volume_h_ref
 	const struct Solver_Element* s_e     = (struct Solver_Element*) vol_p->element;
 	const struct Adaptation_Element* a_e = &s_e->a_e;
 	const struct Operator*const vv0_vv_vv = get_Multiarray_Operator(a_e->vv0_vv_vv,(ptrdiff_t[]){ind_h,0,1,2});
+if (element_p->type == QUAD) {
+printf("ind_h: %d\n",ind_h);
+print_const_Matrix_d(vv0_vv_vv->op_std);
+if (ind_h == 4)
+	EXIT_UNSUPPORTED; // Fix problem with operators
+}
 
 	const_constructor_move_const_Multiarray_d(&vol->xyz_ve,
 		constructor_mm_NN1_Operator_const_Multiarray_d(vv0_vv_vv,xyz_ve_p2,'C','d',2,NULL)); // keep
@@ -1680,6 +1707,7 @@ static void constructor_Face_h_ref
 			face->neigh_info[1].volume   = face_p->neigh_info[1].volume;
 		}
 	}
+//EXIT_UNSUPPORTED;
 }
 
 static void constructor_Solver_Volume_h_ref
@@ -1921,7 +1949,24 @@ static int get_ind_child (const int ind_h, const int side_index, const struct Fa
 		}
 		break;
 	case QUAD:
-		EXIT_ADD_SUPPORT;
+		switch (ind_compound) {
+		case 0*NFREFMAX+H_LINE2_V0: // fallthrough
+		case 2*NFREFMAX+H_LINE2_V0:
+			ind_child = H_QUAD4_V0; break;
+		case 1*NFREFMAX+H_LINE2_V0: // fallthrough
+		case 2*NFREFMAX+H_LINE2_V1:
+			ind_child = H_QUAD4_V1; break;
+		case 0*NFREFMAX+H_LINE2_V1: // fallthrough
+		case 3*NFREFMAX+H_LINE2_V0:
+			ind_child = H_QUAD4_V2; break;
+		case 1*NFREFMAX+H_LINE2_V1: // fallthrough
+		case 3*NFREFMAX+H_LINE2_V1:
+			ind_child = H_QUAD4_V3; break;
+		default:
+			EXIT_ERROR("Unsupported: %d",ind_compound);
+			break;
+		}
+		break;
 #endif
 	default:
 		EXIT_ERROR("Unsupported: %d",vol_p->element->type);
@@ -1967,7 +2012,8 @@ static int get_ind_compound (const int ind_h, const int side_index, const struct
 		  face_e_type = face_p->element->type;
 
 	const int base = ind_lf*NFREFMAX;
-	if (ind_ord == 0 || ind_ord == -1)
+
+	if (side_index == 0 || ind_ord == 0 || ind_ord == -1)
 		return base + ind_h;
 
 	int ind_f_ref = -1;
@@ -2054,6 +2100,7 @@ const struct Info_I* get_Info_I
 		case 1:
 			assert(ind_lf == 3); // Only internal face for volume 1.
 			info_i = &i13;
+			break;
 		case 2:
 			assert(ind_lf == 1); // Only internal face for volume 2.
 			info_i = &i21;
