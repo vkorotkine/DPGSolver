@@ -36,10 +36,12 @@ struct Face {
 
 	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
 
-	const bool boundary, ///< Flag for whether the face is on a domain boundary.
-	           curved;   ///< Flag for whether the face is curved.
+	const bool boundary; ///< Flag for whether the face is on a domain boundary.
 
-	const int bc;        ///< The boundary condition associated with the face (if relevant).
+	/// Flag for whether the face is curved (i.e. has at least 2 vertices on the same curved boundary).
+	const bool curved;
+
+	const int bc; ///< The boundary condition associated with the face (if relevant).
 
 	/// \brief Container for information relating to the neighbouring \ref Volume on either side of the \ref Face.
 	struct Neigh_Info {
@@ -155,6 +157,12 @@ void swap_neigh_info
  *  \return `true` if curved volume is found; `false` otherwise. */
 bool check_for_curved_neigh
 	(struct Face* face ///< \ref Face.
+	);
+
+/** \brief Return whether the input boundary condition represents a curved boundary.
+ *  \return `true` if yes; `false` otherwise. */
+bool is_face_bc_curved
+	(const int bc ///< The value of the boundary condition. Options: see \ref definitions_bc.h.
 	);
 
 #endif // DPG__face_h__INCLUDED

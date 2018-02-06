@@ -18,10 +18,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "boundary_navier_stokes.h"
 
 #include "multiarray.h"
+#include "vector.h"
 
 #include "boundary.h"
 #include "simulation.h"
-//#include "solution_navier_stokes.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //

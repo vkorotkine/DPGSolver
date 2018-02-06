@@ -68,4 +68,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #define transpose_Multiarray_R transpose_Multiarray_d
 #define normalize_Multiarray_R                   normalize_Multiarray_d
 #define permute_Multiarray_R                     permute_Multiarray_d
+#define reinterpret_const_Multiarray_as_Matrix_R reinterpret_const_Multiarray_as_Matrix_d
 ///\}

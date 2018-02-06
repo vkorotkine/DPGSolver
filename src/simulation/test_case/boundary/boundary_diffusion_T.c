@@ -49,21 +49,8 @@ void constructor_Boundary_Value_T_diffusion_dirichlet
 	 const struct Simulation* sim)
 {
 	UNUSED(face);
-	const struct const_Multiarray_d* xyz = NULL;
-	if (sim->domain_type == DOM_STRAIGHT) {
-		xyz = bv_i->xyz;
-	} else {
-		/* Boundary values computed by evaluating the exact solution must be applied on the exact boundary which
-		 * requires a correction of the boundary node coordinates. Otherwise, the approximate domain is being
-		 * implicitly treated as the exact domain.
-		 *
-		 * Can correct the coordinates in the direction of the normal vector.
-		 *
-		 * Move this correction out of the boundary condition functions and into the bv_i->xyz specification.
-		 */
-		EXIT_ADD_SUPPORT;
-	}
-	const bool* c_m = bv_i->compute_member;
+	const struct const_Multiarray_d*const xyz = bv_i->xyz;
+	const bool*const c_m = bv_i->compute_member;
 
 	assert(c_m[0] == true);
 	struct Multiarray_T*const s_ex = (struct Multiarray_T*)constructor_sol_bv(xyz,sim); // keep
@@ -112,21 +99,8 @@ void constructor_Boundary_Value_T_diffusion_neumann
 	 const struct Simulation* sim)
 {
 	UNUSED(face);
-	const struct const_Multiarray_d* xyz = NULL;
-	if (sim->domain_type == DOM_STRAIGHT) {
-		xyz = bv_i->xyz;
-	} else {
-		/* Boundary values computed by evaluating the exact solution must be applied on the exact boundary which
-		 * requires a correction of the boundary node coordinates. Otherwise, the approximate domain is being
-		 * implicitly treated as the exact domain.
-		 *
-		 * Can correct the coordinates in the direction of the normal vector.
-		 *
-		 * Move this correction out of the boundary condition functions and into the bv_i->xyz specification.
-		 */
-		EXIT_ADD_SUPPORT;
-	}
-	const bool* c_m = bv_i->compute_member;
+	const struct const_Multiarray_d*const xyz = bv_i->xyz;
+	const bool*const c_m = bv_i->compute_member;
 
 	assert(c_m[0] == true);
 	bv->s = constructor_copy_const_Multiarray_T(bv_i->s); // keep

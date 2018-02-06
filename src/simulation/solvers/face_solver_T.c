@@ -222,10 +222,15 @@ static void set_function_pointers_num_flux_bc_navier_stokes (struct Solver_Face_
 
 	const int bc = face->bc % BC_STEP_SC;
 	switch (bc) {
-	case BC_NOSLIP_ALL:
-//		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_navier_stokes_noslip_all;
+	case BC_NOSLIP_ALL_ROTATING:
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_navier_stokes_no_slip_all_rotating;
+		break;
 	case BC_NOSLIP_ADIABATIC:
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_navier_stokes_no_slip_flux_adiabatic;
+		break;
 	case BC_NOSLIP_DIABATIC:
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",face->bc);
 		break;

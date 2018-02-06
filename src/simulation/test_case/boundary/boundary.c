@@ -42,10 +42,5 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-bool is_bc_curved (const int bc)
-{
-	return bc > BC_CURVED_START;
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

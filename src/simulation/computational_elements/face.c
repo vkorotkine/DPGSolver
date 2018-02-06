@@ -242,6 +242,11 @@ bool check_for_curved_neigh (struct Face* face)
 	return false;
 }
 
+bool is_face_bc_curved (const int bc)
+{
+	return bc > BC_CURVED_START;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

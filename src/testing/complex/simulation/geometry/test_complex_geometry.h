@@ -19,9 +19,6 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to complex functions used for geometry processing.
  */
 
-#include "test_complex_geometry_blended.h"
-#include "test_complex_geometry_parametric.h"
-
 #include "def_templates_type_dc.h"
 #include "def_templates_geometry.h"
 #include "def_templates_face_solver.h"
@@ -33,5 +30,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_face_solver.h"
 #include "undef_templates_volume_solver.h"
 #include "undef_templates_multiarray.h"
+
+#include "test_complex_geometry_blended.h"
+#include "test_complex_geometry_parametric.h"
 
 #endif // DPG__test_complex_geometry_h__INCLUDED

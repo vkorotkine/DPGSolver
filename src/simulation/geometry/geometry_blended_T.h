@@ -19,6 +19,65 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Solver_Volume_T;
 struct Simulation;
 
+struct Blended_Parametric_Data_T;
+
+/** \brief Pointer to functions constructing the boundary xyz coordinates from the required members of the \ref
+ *         Blended_Parametric_Data_T container for several surface parametrizations.
+ *
+ *  \param b_p_d \ref Blended_Parametric_Data_T.
+ */
+typedef const struct const_Matrix_R* (*constructor_xyz_surface_fptr_T)
+	(const struct Blended_Parametric_Data_T*const b_p_d
+	);
+
+/// \brief Container for boundary computational element related data.
+struct Boundary_Comp_Elem_Data_T {
+	const struct const_Multiarray_R* xyz_ve; ///< \ref Volume::xyz_ve.
+
+	int s_type; ///< \ref Element::s_type.
+
+	const struct const_Vector_i* bc_boundaries;   ///< \ref Volume::bc_edges or \ref Volume::bc_faces.
+	const struct const_Multiarray_Vector_i* b_ve; ///< \ref Element::e_ve or \ref Element::f_ve.
+
+	/** See notation in \ref element_operators.h. The unknown parameter (X) may be set as:
+	 *  - 'v'ertex (p2 vertices);
+	 *  - 'g'eometry (standard blending).
+	 */
+	const struct Operator* vv0_vv_vX;
+
+	const struct Multiarray_Operator* vv0_bv_vX; ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
+
+	const struct Operator* vv0_vX_bX;  ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
+	const struct Operator* vv0_bX_vX;  ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
+	const struct Operator* vv0_vv_bX;  ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
+	const struct Operator* vv0_vv_bv;  ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
+	const struct Operator* vv0_vv_fcc; ///< See notation in \ref element_operators.h.
+	const struct Operator* vv0_bv_bX;  ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
+};
+
+/** \brief Container for data required to compute curved surface geometry values for various methods of surface
+ *         parametrization.
+ */
+struct Blended_Parametric_Data_T {
+	const int geom_parametrization; ///< \ref Test_Case_T::geom_parametrization.
+
+	const struct const_Multiarray_R* xyz_ve; ///< \ref Volume::xyz_ve.
+
+	const struct Operator* vv0_vv_bX;  ///< See \ref Boundary_Comp_Elem_Data_T.
+	const struct Operator* vv0_vv_bv;  ///< See \ref Boundary_Comp_Elem_Data_T.
+	const struct Operator* vv0_vv_fcc; ///< See \ref Boundary_Comp_Elem_Data_T.
+	const struct Operator* vv0_bv_bX;  ///< See \ref Boundary_Comp_Elem_Data_T.
+
+	const struct const_Vector_R* normal; ///< Outward pointing unit normal vector.
+
+	const char n_type; ///< The 'n'ode "type" of the surface nodes. Options: 'g'eometry, 'v'ertex, 'c'ubature.
+	const int domain_type; ///< \ref Simulation::domain_type.
+
+	constructor_xyz_fptr_T constructor_xyz; ///< \ref Test_Case_T::constructor_xyz.
+};
+
+// Functions ******************************************************************************************************** //
+
 /** \brief Version of \ref constructor_xyz_fptr_T for the blended curved volume geometry.
  *  \return See brief. */
 const struct const_Multiarray_R* constructor_xyz_blended_T
@@ -26,4 +85,68 @@ const struct const_Multiarray_R* constructor_xyz_blended_T
 	 const struct const_Multiarray_R* xyz_i, ///< See brief.
 	 const struct Solver_Volume_T* s_vol,    ///< See brief.
 	 const struct Simulation* sim            ///< See brief.
+	);
+
+/** \brief Constructor for a statically allocated \ref Boundary_Comp_Elem_Data_T containers.
+ *  \return See brief. */
+struct Boundary_Comp_Elem_Data_T constructor_static_Boundary_Comp_Elem_Data_T
+	(const char ce_type,                      ///< Computational element type. Options: 'e'dge, 'f'ace.
+	 const char n_type,                       ///< Defined for \ref constructor_xyz_fptr_T.
+	 const int p_geom,                        ///< The order of the geometry node basis.
+	 const struct Solver_Volume_T*const s_vol ///< The current volume.
+	);
+
+/// \brief Destructor for a statically allocated \ref Boundary_Comp_Elem_Data_T containers.
+void destructor_static_Boundary_Comp_Elem_Data_T
+	(struct Boundary_Comp_Elem_Data_T*const b_ce_d ///< Standard.
+	);
+
+/** \brief Set the operator members of \ref Boundary_Comp_Elem_Data_T which depend on the the current order, `p`, or
+ *         boundary computational element index, `b`. */
+void set_Boundary_Comp_Elem_operators_T
+	(struct Boundary_Comp_Elem_Data_T*const b_ce_d, ///< \ref Boundary_Comp_Elem_Data_T.
+	 const struct Solver_Volume_T*const s_vol,      ///< The current volume.
+	 const char ce_type,                            ///< The type of computational element.
+	 const char n_type,                             ///< Defined for \ref constructor_xyz_fptr_T.
+	 const int p,                                   ///< The current geometry correction order.
+	 const int b                                    ///< The index of the boundary comp. element under consideration.
+	);
+
+/** \brief Constructor for a \ref const_Matrix_T\* storing the difference between the surface xyz values for the current
+ *         and exact boundary.
+ *  \return See brief. */
+const struct const_Matrix_R* constructor_xyz_surf_diff_T
+	(const struct Boundary_Comp_Elem_Data_T*const b_ce_d, ///< \ref Boundary_Comp_Elem_Data_T.
+	 const struct const_Matrix_R*const xyz_i,             ///< Input xyz coordinates.
+	 const struct Solver_Volume_T*const s_vol,            ///< The current \ref Solver_Volume_T.
+	 const char n_type,                                   ///< \ref Blended_Parametric_Data::n_type.
+	 const struct Simulation*const sim                    ///< \ref Simulation.
+	);
+
+// Geometry-specific functions ************************************************************************************** //
+
+/** \brief Set the pointer to the appropriate \ref constructor_xyz_surface_fptr_T funtion based on the input geometry and
+ *         surface parametrization types.
+ *  \return See brief. */
+constructor_xyz_surface_fptr_T set_constructor_xyz_surface_fptr_T
+	(const char*const geom_type, ///< The geometry type.
+	 const int geom_prm_type     ///< The geometry parametrization type. Options: see \ref definitions_geometry.h.
+	);
+
+/** \brief Version of \ref constructor_xyz_surface_fptr_T for n-cylinder surfaces (\ref GEOM_PRM_RADIAL_PROJ).
+ *  \return See brief. */
+const struct const_Matrix_R* constructor_xyz_surface_cylinder_radial_proj_T
+	(const struct Blended_Parametric_Data_T*const b_p_d ///< See brief.
+	);
+
+/** \brief Version of \ref constructor_xyz_surface_fptr_T for n-cylinder surfaces (\ref GEOM_PRM_ARC_LENGTH).
+ *  \return See brief. */
+const struct const_Matrix_R* constructor_xyz_surface_cylinder_arc_length_T
+	(const struct Blended_Parametric_Data_T*const b_p_d ///< See brief.
+	);
+
+/** \brief Version of \ref constructor_xyz_surface_fptr_T for n-cylinder surfaces (\ref GEOM_PRM_NORMAL_PROJ).
+ *  \return See brief. */
+const struct const_Matrix_R* constructor_xyz_surface_cylinder_normal_proj_T
+	(const struct Blended_Parametric_Data_T*const b_p_d ///< See brief.
 	);

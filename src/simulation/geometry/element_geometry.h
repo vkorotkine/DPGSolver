@@ -39,10 +39,11 @@ struct Geometry_Element {
 	const struct Multiarray_Operator* vv0_vms_fc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vmc_fc[2]; ///< See notation in \ref element_operators.h.
 
-	// Blending operators
+	// Blending/curved element operators
 	const struct Multiarray_Operator* vv0_fv_vgc;  ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vv_fgc;  ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vv_fv;   ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_vv_fcc;  ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_fv_fgc;  ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_fgc_vgc; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vgc_fgc; ///< See notation in \ref element_operators.h.

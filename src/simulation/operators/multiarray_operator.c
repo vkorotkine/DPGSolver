@@ -171,7 +171,9 @@ const struct Operator* get_Multiarray_Operator
 	(const struct Multiarray_Operator* src, const ptrdiff_t*const sub_indices)
 {
 	assert(src != NULL);
-	return src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
+	const struct Operator*const op = src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
+	assert(op != NULL);
+	return op;
 }
 
 // Printing functions *********************************************************************************************** //

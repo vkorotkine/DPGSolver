@@ -31,7 +31,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_face_solver.h"
 #include "def_templates_volume_solver.h"
 
+#include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
+
 #include "def_templates_operators.h"
 #include "def_templates_test_case.h"
 
@@ -77,6 +79,14 @@ static void compute_detJV_T
 static void compute_cofactors_T
 	(struct const_Multiarray_R* jacobian, ///< Multiarray containing the Jacobian terms
 	 struct Multiarray_R* metrics         ///< Multiarray to be set to contain the metric terms.
+	);
+
+/** \brief Constructor for the "xyz" coordinates at the 'f'ace 'c'ubature nodes with a possible correction ensuring that
+ *         they are placed on the exact domain boundary in the case of curved boundary faces.
+ *  \return See brief. */
+static const struct const_Multiarray_R* constructor_xyz_fc_with_exact_boundary
+	(const struct Solver_Face_T*const s_face, ///< \ref Solver_Face_T.
+	 const struct Simulation*const sim        ///< \ref Simulation.
 	);
 
 /** \brief Compute the face unit normal vectors at the nodes corresponding to the given face metrics.
@@ -171,16 +181,16 @@ void compute_geometry_volume_T (struct Solver_Volume_T* s_vol, const struct Simu
 		ops.vv0_vm_vc,met_vm,(struct Multiarray_R*)s_vol->metrics_vc,op_format,met_vm->order,NULL,NULL);
 }
 
-void compute_geometry_face_T (struct Solver_Face_T* face, struct Simulation *sim)
+void compute_geometry_face_T (struct Solver_Face_T* s_face, struct Simulation* sim)
 {
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	UNUSED(sim);
 	const char op_format = 'd';
 
-	assert((face->cub_type == 's') || (face->cub_type == 'c'));
+	assert((s_face->cub_type == 's') || (s_face->cub_type == 'c'));
 
-	struct Face* base_face        = (struct Face*) face;
-	struct Volume* vol            = base_face->neigh_info[0].volume;
+	struct Face* face             = (struct Face*) s_face;
+	struct Volume* vol            = face->neigh_info[0].volume;
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) vol;
 
 	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
@@ -192,11 +202,11 @@ void compute_geometry_face_T (struct Solver_Face_T* face, struct Simulation *sim
 	} ops = { .cv0_vg_fc = NULL,
 	          .vv0_vm_fc = NULL, };
 
-	const int ind_lf = base_face->neigh_info[0].ind_lf;
+	const int ind_lf = face->neigh_info[0].ind_lf;
 	const int p_v = s_vol->p_ref,
-	          p_f = face->p_ref;
+	          p_f = s_face->p_ref;
 
-	const int curved_f = (face->cub_type == 's' ? 0 : 1);
+	const int curved_f = (s_face->cub_type == 's' ? 0 : 1);
 	if (!vol->curved) {
 		ops.cv0_vg_fc = get_Multiarray_Operator(g_e->cv0_vgs_fc[curved_f],(ptrdiff_t[]){ind_lf,0,0,p_f,1});
 		ops.vv0_vm_fc = get_Multiarray_Operator(g_e->vv0_vms_fc[curved_f],(ptrdiff_t[]){ind_lf,0,0,p_f,1});
@@ -205,17 +215,16 @@ void compute_geometry_face_T (struct Solver_Face_T* face, struct Simulation *sim
 		ops.vv0_vm_fc = get_Multiarray_Operator(g_e->vv0_vmc_fc[curved_f],(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
 	}
 
-	const struct const_Multiarray_R* g_coef = s_vol->geom_coef;
-	destructor_const_Multiarray_R(face->xyz_fc);
-	const_constructor_move_const_Multiarray_R(&face->xyz_fc,
-		constructor_mm_NN1_Operator_const_Multiarray_R(ops.cv0_vg_fc,g_coef,'C',op_format,g_coef->order,NULL)); // keep
+	destructor_const_Multiarray_R(s_face->xyz_fc);
+	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc,
+	                                          constructor_xyz_fc_with_exact_boundary(s_face,sim)); // keep
 
 	const struct const_Multiarray_R* m_vm = s_vol->metrics_vm;
 	const struct const_Multiarray_R* metrics_fc =
 		constructor_mm_NN1_Operator_const_Multiarray_R(ops.vv0_vm_fc,m_vm,'C',op_format,m_vm->order,NULL); // destructed
 
 	compute_unit_normals_and_det_T(ind_lf,e->normals,metrics_fc,
-		(struct Multiarray_R*)face->normals_fc,(struct Multiarray_R*)face->jacobian_det_fc);
+		(struct Multiarray_R*)s_face->normals_fc,(struct Multiarray_R*)s_face->jacobian_det_fc);
 
 	destructor_const_Multiarray_R(metrics_fc);
 }
@@ -413,6 +422,65 @@ static void compute_cofactors_T (struct const_Multiarray_R* jacobian, struct Mul
 		EXIT_ERROR("Unsupported: %td\n",d);
 		break;
 	}
+}
+
+static const struct const_Multiarray_R* constructor_xyz_fc_with_exact_boundary
+	(const struct Solver_Face_T*const s_face, const struct Simulation*const sim)
+{
+	struct Face*const face             = (struct Face*) s_face;
+	struct Volume*const vol            = face->neigh_info[0].volume;
+	struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) vol;
+
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
+
+	const struct Operator* cv0_vg_fc = NULL;
+
+	const int ind_lf = face->neigh_info[0].ind_lf;
+	const int p_v = s_vol->p_ref,
+	          p_f = s_face->p_ref;
+
+	const int curved_f = (s_face->cub_type == 's' ? 0 : 1);
+	if (!vol->curved)
+		cv0_vg_fc = get_Multiarray_Operator(g_e->cv0_vgs_fc[curved_f],(ptrdiff_t[]){ind_lf,0,0,p_f,1});
+	else
+		cv0_vg_fc = get_Multiarray_Operator(g_e->cv0_vgc_fc[curved_f],(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
+
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	UNUSED(sim);
+	const char op_f = 'd';
+
+	const struct const_Multiarray_R*const g_coef = s_vol->geom_coef;
+	const struct const_Multiarray_R*const xyz_fc_i =
+		constructor_mm_NN1_Operator_const_Multiarray_R(cv0_vg_fc,g_coef,'C',op_f,g_coef->order,NULL); // rtrnd/dest
+
+	const struct const_Multiarray_R* xyz_fc = NULL;
+	if (!is_face_bc_curved(face->bc)) {
+		xyz_fc = xyz_fc_i;
+	} else {
+print_const_Multiarray_R(xyz_fc_i);
+		assert(face->neigh_info[0].ind_href == 0);
+
+		const char ce_type = 'f',
+		           n_type  = 'c';
+		const int p_g = s_vol->p_ref;
+
+		struct Boundary_Comp_Elem_Data_T b_ce_d =
+			constructor_static_Boundary_Comp_Elem_Data_T(ce_type,n_type,p_g,s_vol); // destructed
+		set_Boundary_Comp_Elem_operators_T(&b_ce_d,s_vol,ce_type,n_type,p_g,ind_lf);
+
+		const struct const_Matrix_R xyz_fc_i_M = interpret_const_Multiarray_as_Matrix_R(xyz_fc_i);
+		const struct const_Matrix_R*const xyz_fc_diff =
+			constructor_xyz_surf_diff_T(&b_ce_d,&xyz_fc_i_M,s_vol,n_type,sim); // destructed
+print_const_Matrix_R(xyz_fc_diff);
+
+		destructor_const_Matrix_R(xyz_fc_diff);
+		destructor_static_Boundary_Comp_Elem_Data_T(&b_ce_d);
+
+EXIT_UNSUPPORTED;
+		destructor_const_Multiarray_R(xyz_fc_i);
+	}
+
+	return (const struct const_Multiarray_R*) xyz_fc;
 }
 
 static void compute_unit_normals_and_det_T

@@ -60,7 +60,7 @@ const struct const_Multiarray_R* constructor_xyz_cylinder_parametric_T
 	for (int n = 0; n < n_n; ++n) {
 		const Real xy[2] = { x_i[n], y_i[n], };
 
-		const Real r = GSL_MAX(xy[0],xy[1]);
+		const Real r = GSL_MAX(fabs(xy[0]),fabs(xy[1]));
 
 		Real t = atan2(xy[1],xy[0]);
 		if (t >= -1.0*PI_OVER_4 && t < 1.0*PI_OVER_4)

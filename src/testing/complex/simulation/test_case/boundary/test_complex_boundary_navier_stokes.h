@@ -13,25 +13,18 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_complex_volume_solver_h__INCLUDED
-#define DPG__test_complex_volume_solver_h__INCLUDED
+#ifndef DPG__test_complex_boundary_navier_stokes_h__INCLUDED
+#define DPG__test_complex_boundary_navier_stokes_h__INCLUDED
 /** \file
- *  \brief Provides the interface for the complex \ref Solver_Volume_T container and associated functions.
+ *  \brief Provides `complex` versions of containers and functions defined in \ref boundary_navier_stokes.h.
  */
 
-#include "volume.h"
-#include "test_complex_geometry_blended.h"
-
 #include "def_templates_type_dc.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_vector.h"
-#include "def_templates_geometry.h"
-#include "def_templates_volume_solver.h"
-#include "volume_solver_T.h"
+#include "def_templates_boundary.h"
+#include "def_templates_face_solver.h"
+#include "boundary_navier_stokes_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_vector.h"
-#include "undef_templates_geometry.h"
-#include "undef_templates_volume_solver.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_face_solver.h"
 
-#endif // DPG__test_complex_volume_solver_h__INCLUDED
+#endif // DPG__test_complex_boundary_navier_stokes_h__INCLUDED

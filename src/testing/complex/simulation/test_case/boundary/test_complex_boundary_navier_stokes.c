@@ -15,37 +15,24 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_complex_geometry_blended.h"
+#include "test_complex_boundary_navier_stokes.h"
 
+#include "test_complex_boundary.h"
 #include "complex_multiarray.h"
-
-#include "test_complex_volume_solver.h"
-
-#include "test_complex_geometry.h"
-#include "test_complex_test_case.h"
-
-#include "matrix.h"
+#include "complex_vector.h"
 #include "multiarray.h"
-#include "vector.h"
 
-#include "element_solver.h"
-#include "face.h"
-#include "volume.h"
-
-#include "boundary.h"
-#include "const_cast.h"
-#include "math_functions.h"
-#include "multiarray_operator.h"
-#include "operator.h"
 #include "simulation.h"
 #include "test_case.h"
+
+#include "test_complex_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_dc.h"
-#include "geometry_blended_T.c"
+#include "boundary_navier_stokes_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

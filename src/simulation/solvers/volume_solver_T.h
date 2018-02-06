@@ -48,7 +48,7 @@ struct Solver_Volume_T {
 	const struct const_Multiarray_R*const geom_coef;
 
 	/// Pointer to function used to construct the parametrized surface geometry values (Set to NULL if not requried).
-	constructor_xyz_surface_fptr constructor_xyz_surface;
+	constructor_xyz_surface_fptr_T constructor_xyz_surface;
 
 	/// The coefficients of the solution in the \ref Simulation::basis_sol.
 	struct Multiarray_T* sol_coef;

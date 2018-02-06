@@ -3,6 +3,7 @@ set	(SOURCE
 	 test_complex_boundary_advection.c
 	 test_complex_boundary_diffusion.c
 	 test_complex_boundary_euler.c
+	 test_complex_boundary_navier_stokes.c
 	)
 
 set	(LIBS_DEPEND

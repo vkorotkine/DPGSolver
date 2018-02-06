@@ -26,11 +26,29 @@ struct Simulation;
 void constructor_Boundary_Value_T_navier_stokes_no_slip_all_rotating
 	(struct Boundary_Value_T* bv,               ///< See brief.
 	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
-	 const struct Solver_Face_T* face,          ///< See brief.
+	 const struct Solver_Face_T* s_face,        ///< See brief.
 	 const struct Simulation* sim               ///< See brief.
 	);
 
-/*  Before considering the implementation of a no-slip, temperature boundary condition, consider reading through Parsani
- *  et al. (Section 6.1, \cite Parsani2015), where it seems to be implied that this boundary condition is inherently
+/** \brief Version of \ref constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general where the total energy flux
+ *         is 0. */
+void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_adiabatic
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face_T* s_face,        ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
+	);
+
+/** \brief Version of \ref constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general where the total energy flux
+ *         is set to a prescribed non-zero value. */
+void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face_T* s_face,        ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
+	);
+
+/*  Before considering the implementation of a no-slip, temperature boundary condition, please read through Parsani et
+ *  al. (Section 6.1, \cite Parsani2015), where it seems to be implied that this boundary condition is inherently
  *  entropy-unstable.
  */

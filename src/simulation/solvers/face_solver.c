@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "boundary_advection.h"
 #include "boundary_diffusion.h"
 #include "boundary_euler.h"
+#include "boundary_navier_stokes.h"
 #include "const_cast.h"
 #include "geometry.h"
 #include "simulation.h"

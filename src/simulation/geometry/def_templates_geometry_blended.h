@@ -18,16 +18,50 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
+///\{ \name Function pointers.
+#define constructor_xyz_surface_fptr_T constructor_xyz_surface_fptr
+///\}
+
+///\{ \name Data types
+#define Boundary_Comp_Elem_Data_T Boundary_Comp_Elem_Data_d
+#define Blended_Parametric_Data_T Blended_Parametric_Data_d
+///\}
+
 ///\{ \name Function names
-#define constructor_xyz_blended_T          constructor_xyz_blended
-#define constructor_xyz_surface_cylinder_T constructor_xyz_surface_cylinder
+#define constructor_xyz_blended_T                    constructor_xyz_blended
+#define constructor_static_Boundary_Comp_Elem_Data_T constructor_static_Boundary_Comp_Elem_Data
+#define destructor_static_Boundary_Comp_Elem_Data_T  destructor_static_Boundary_Comp_Elem_Data
+#define set_Boundary_Comp_Elem_operators_T           set_Boundary_Comp_Elem_operators
+#define constructor_xyz_surf_diff_T                  constructor_xyz_surf_diff
+
+#define set_constructor_xyz_surface_fptr_T             set_constructor_xyz_surface_fptr_d
+#define constructor_xyz_surface_cylinder_radial_proj_T constructor_xyz_surface_cylinder_radial_proj_d
+#define constructor_xyz_surface_cylinder_arc_length_T  constructor_xyz_surface_cylinder_arc_length_d
+#define constructor_xyz_surface_cylinder_normal_proj_T constructor_xyz_surface_cylinder_normal_proj_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+///\{ \name Function pointers.
+#define constructor_xyz_surface_fptr_T constructor_xyz_surface_fptr_c
+///\}
+
+///\{ \name Data types
+#define Boundary_Comp_Elem_Data_T Boundary_Comp_Elem_Data_c
+#define Blended_Parametric_Data_T Blended_Parametric_Data_c
+///\}
+
 ///\{ \name Function names
-#define constructor_xyz_blended_T          constructor_xyz_blended_c
-#define constructor_xyz_surface_cylinder_T constructor_xyz_surface_cylinder_c
+#define constructor_xyz_blended_T                    constructor_xyz_blended_c
+#define constructor_static_Boundary_Comp_Elem_Data_T constructor_static_Boundary_Comp_Elem_Data_c
+#define destructor_static_Boundary_Comp_Elem_Data_T  destructor_static_Boundary_Comp_Elem_Data_c
+#define set_Boundary_Comp_Elem_operators_T           set_Boundary_Comp_Elem_operators_c
+#define constructor_xyz_surf_diff_T                  constructor_xyz_surf_diff_c
+
+#define set_constructor_xyz_surface_fptr_T             set_constructor_xyz_surface_fptr_c
+#define constructor_xyz_surface_cylinder_radial_proj_T constructor_xyz_surface_cylinder_radial_proj_c
+#define constructor_xyz_surface_cylinder_arc_length_T  constructor_xyz_surface_cylinder_arc_length_c
+#define constructor_xyz_surface_cylinder_normal_proj_T constructor_xyz_surface_cylinder_normal_proj_c
 ///\}
 
 #endif

@@ -39,3 +39,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef transpose_Multiarray_R
 #undef normalize_Multiarray_R
 #undef permute_Multiarray_R
+#undef reinterpret_const_Multiarray_as_Matrix_R

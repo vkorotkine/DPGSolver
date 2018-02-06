@@ -49,4 +49,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_Boundary_Value_T_euler_slipwall
 #undef constructor_Boundary_Value_T_euler_supersonic_inflow
 #undef constructor_Boundary_Value_T_euler_supersonic_outflow
+
+#undef constructor_Boundary_Value_T_navier_stokes_no_slip_all_rotating
+#undef constructor_Boundary_Value_T_navier_stokes_no_slip_flux_adiabatic
+#undef constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic
 ///\}

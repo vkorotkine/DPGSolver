@@ -3,6 +3,7 @@ set	(SOURCE
 	 boundary_advection.c
 	 boundary_diffusion.c
 	 boundary_euler.c
+	 boundary_navier_stokes.c
 	)
 
 set	(LIBS_DEPEND

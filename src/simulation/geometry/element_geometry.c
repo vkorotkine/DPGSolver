@@ -95,6 +95,7 @@ void destructor_derived_Geometry_Element (struct Element* element_ptr)
 	destructor_Multiarray_Operator_conditional(g_e->vv0_fv_vgc);
 	destructor_Multiarray_Operator_conditional(g_e->vv0_vv_fgc);
 	destructor_Multiarray_Operator_conditional(g_e->vv0_vv_fv);
+	destructor_Multiarray_Operator_conditional(g_e->vv0_vv_fcc);
 	destructor_Multiarray_Operator_conditional(g_e->vv0_fv_fgc);
 	destructor_Multiarray_Operator_conditional(g_e->vv0_fgc_vgc);
 	destructor_Multiarray_Operator(g_e->vv0_vgc_fgc);
@@ -239,6 +240,7 @@ static void constructor_derived_Geometry_Element_common (struct Element* element
 			g_e->vv0_fv_vgc  = constructor_operators("vv0","fvA","vgc","H_1_P_1P", e,sim); // destructed
 			g_e->vv0_vv_fgc  = constructor_operators("vv0","vvA","fgc","H_1_P_1P", e,sim); // destructed
 			g_e->vv0_vv_fv   = constructor_operators("vv0","vvA","fvA","H_1_P_1",  e,sim); // destructed
+			g_e->vv0_vv_fcc  = constructor_operators("vv0","vvA","fcc","H_1_P_1P", e,sim); // destructed
 			g_e->vv0_fv_fgc  = constructor_operators("vv0","fvA","fgc","H_1_P_1P", e,sim); // destructed
 			g_e->vv0_fgc_vgc = constructor_operators("vv0","fgc","vgc","H_1_P_PM0",e,sim); // destructed
 		} else if (e->d > 2) {

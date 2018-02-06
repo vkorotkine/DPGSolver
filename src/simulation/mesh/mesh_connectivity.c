@@ -597,9 +597,9 @@ static bool check_pfe_boundary (const int bc)
 	case BC_TOTAL_TP:
 	case BC_SUPERSONIC_IN:
 	case BC_SUPERSONIC_OUT:
-	case BC_NOSLIP_ALL:       // Navier-Stokes
-	case BC_NOSLIP_ADIABATIC:
+	case BC_NOSLIP_ADIABATIC:    // Navier-Stokes
 	case BC_NOSLIP_DIABATIC:
+	case BC_NOSLIP_ALL_ROTATING:
 		return true;
 		break;
 	case PERIODIC_XL:

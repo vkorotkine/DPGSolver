@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_boundary_advection.h"
 #include "test_complex_boundary_diffusion.h"
 #include "test_complex_boundary_euler.h"
+#include "test_complex_boundary_navier_stokes.h"
 #include "test_complex_test_case.h"
 
 #include "element_solver.h"
