@@ -94,7 +94,6 @@ const struct Multiarray_Operator* constructor_operators_tp
 	struct Operator_Info* op_info =
 		constructor_Operator_Info(name_type,name_in,name_out,name_range,element,sim); // destructed
 
-//	assert(op_info->op_io[OP_IND_I].ce == 'v'); // May potentially be made flexible in future.
 	const int d = element->d;
 
 	const struct Multiarray_Operator* op = constructor_empty_Multiarray_Operator_V(op_info->extents_op); // returned
@@ -246,7 +245,7 @@ const struct const_Matrix_d* constructor_op_std (const struct const_Multiarray_M
 
 /** \brief Set the input `op_MO[DIM]` to point to the appropriate operators from `ops_tp`.
  *
- *  `spec_indices` can be interpreted as the direction(s) (n-Cube: r,s,t; wedge: rs,NULL,t) in which to use the
+ *  `spec_indices` can be interpreted as the direction(s) (hex: r,s,t; wedge: rs,NULL,t) in which to use the
  *  'special' operator (the second operator for the sub-element).
  */
 static void set_ops_MO
@@ -345,11 +344,10 @@ static void set_sub_op_values
 
 /** \brief Same as \ref constructor_indices_Vector_i but with a correction for h-adaptation sub-operator indices.
  *  \return See brief. */
-const struct const_Vector_i* constructor_sub_indices_Vector_i
+static const struct const_Vector_i* constructor_sub_indices_Vector_i
 	(const int ext_0_expected,           ///< See brief.
 	 const int* op_values,               ///< See brief.
 	 const bool*const indices_skip,      ///< See brief.
-	 const int d,                        ///< The dimension of the sub-operator under consideration.
 	 const struct Operator_Info* op_info ///< \ref Operator_Info.
 	);
 
@@ -389,18 +387,17 @@ static void set_ops_Md
 	const int d = op_info->element->d;
 	struct Matrix_i* sub_op_values = constructor_empty_Matrix_i('R',d,OP_ORDER_MAX); // destructed
 	set_to_value_Matrix_i(sub_op_values,OP_INVALID_IND);
-	const int set_inds[] = { OP_IND_P+OP_IND_I, OP_IND_P+OP_IND_O, OP_IND_H+OP_IND_I };
+	const int set_inds[] = { OP_IND_P+OP_IND_I, OP_IND_P+OP_IND_O, };
 	for (int i = 0; i < (int)(sizeof(set_inds)/sizeof(*set_inds)); ++i) {
 		const int col = set_inds[i];
 		set_col_to_val_Matrix_i(col,sub_op_values,op_values->data[col]);
 	}
-
 	set_sub_op_values(sub_op_values,op_values,op_info,spec_indices);
 
 	for (int i = 0; i < d; ++i) {
 		const int* op_values = get_row_Matrix_i(i,sub_op_values);
 		const struct const_Vector_i* inds_op =
-			constructor_sub_indices_Vector_i(-1,op_values,NULL,i,op_info); // destructed
+			constructor_sub_indices_Vector_i(-1,op_values,NULL,op_info); // destructed
 		const int ind_sub_op = (int)compute_index_sub_container_pi(op_MO[i]->order,0,op_MO[i]->extents,inds_op->data);
 		destructor_const_Vector_i(inds_op);
 
@@ -433,15 +430,6 @@ static void set_sub_op_values_wedge
 	 const struct const_Vector_i* op_values, ///< Defined for \ref set_sub_op_values.
 	 const struct Operator_Info* op_info,    ///< Defined for \ref set_sub_op_values.
 	 const bool* spec_indices                ///< Defined for \ref set_sub_op_values.
-	);
-
-/** \brief Correct the sub-operator index value for h-adaptation.
- *  \return the index corresponding to the correct sub-operator. */
-int correct_sub_op_index
-	(const int ind,   ///< The input index.
-	 const int d,     ///< The dimension under consideration.
-	 const int etype, ///< The type of the element.
-	 const char ce_o  ///< The output computational element type.
 	);
 
 static void set_spec_indices_diff (bool* spec_indices, const int op_val_d, const int s_type)
@@ -597,8 +585,8 @@ static void set_sub_op_values
 	}
 }
 
-const struct const_Vector_i* constructor_sub_indices_Vector_i
-	(const int ext_0_expected, const int* op_values, const bool*const indices_skip, const int d,
+static const struct const_Vector_i* constructor_sub_indices_Vector_i
+	(const int ext_0_expected, const int* op_values, const bool*const indices_skip,
 	 const struct Operator_Info* op_info)
 {
 	const struct Op_IO* op_io = op_info->op_io;
@@ -610,11 +598,8 @@ const struct const_Vector_i* constructor_sub_indices_Vector_i
 
 	int ind = 0;
 	for (int i = 0; i < OP_ORDER_MAX; ++i) {
-		const int op_val = ((i == OP_IND_H+OP_IND_I || i == OP_IND_H+OP_IND_O)
-			? correct_sub_op_index(op_values[i],d,op_info->element->type,op_io[OP_IND_O].ce)
-			: op_values[i] );
 		if (!(indices_skip && indices_skip[i]) && op_values[i] != OP_INVALID_IND)
-			data[ind++] = op_val;
+			data[ind++] = op_values[i];
 	}
 
 	if (ext_0_expected == -1)
@@ -638,27 +623,72 @@ static void set_sub_op_values_quad
 	(struct Matrix_i* sub_op_values, const struct const_Vector_i* op_values, const struct Operator_Info* op_info,
 	 const bool* spec_indices)
 {
-	const char ce_o = op_info->op_io[OP_IND_O].ce;
+	assert(op_info->op_io[OP_IND_I].ce == 'v');
 
 	int* s_vs[2] = { get_row_Matrix_i(0,sub_op_values),
 	                 get_row_Matrix_i(1,sub_op_values), };
 
+	// h_i/h_o
+	for (int i = 0; i < 2; ++i) {
+		const char ce = op_info->op_io[i].ce;
+
+		const int ind_h = OP_IND_H+i,
+		          op_val_ind_h = op_values->data[ind_h];
+		switch (ce) {
+		case 'v':
+			switch (op_val_ind_h) {
+			case H_QUAD1_V0: s_vs[0][ind_h] = H_LINE1_V0; s_vs[1][ind_h] = H_LINE1_V0; break;
+
+			case H_QUAD4_V0: s_vs[0][ind_h] = H_LINE2_V0; s_vs[1][ind_h] = H_LINE2_V0; break;
+			case H_QUAD4_V1: s_vs[0][ind_h] = H_LINE2_V1; s_vs[1][ind_h] = H_LINE2_V0; break;
+			case H_QUAD4_V2: s_vs[0][ind_h] = H_LINE2_V0; s_vs[1][ind_h] = H_LINE2_V1; break;
+			case H_QUAD4_V3: s_vs[0][ind_h] = H_LINE2_V1; s_vs[1][ind_h] = H_LINE2_V1; break;
+
+			default: EXIT_ERROR("Unsupported: %d.\n",op_val_ind_h); break;
+			}
+			break;
+		case 'f': // fallthrough
+		case 'e': {
+			const int ind_ce = OP_IND_CE+i,
+			          op_val_ind_ce = op_values->data[ind_ce];
+
+			switch (op_val_ind_ce) {
+			case H_QUAD1_F0: // fallthrough
+			case H_QUAD1_F1:
+				s_vs[0][ind_h] = H_POINT1_V0;
+				switch (op_val_ind_h) {
+				case H_LINE1_V0: s_vs[1][ind_h] = H_LINE1_V0; break;
+				case H_LINE2_V0: s_vs[1][ind_h] = H_LINE2_V0; break;
+				case H_LINE2_V1: s_vs[1][ind_h] = H_LINE2_V1; break;
+				default: EXIT_ERROR("Unsupported: %d.\n",op_val_ind_h); break;
+				}
+				break;
+			case H_QUAD1_F2: // fallthrough
+			case H_QUAD1_F3:
+				s_vs[1][ind_h] = H_POINT1_V0;
+				switch (op_val_ind_h) {
+				case H_LINE1_V0: s_vs[0][ind_h] = H_LINE1_V0; break;
+				case H_LINE2_V0: s_vs[0][ind_h] = H_LINE2_V0; break;
+				case H_LINE2_V1: s_vs[0][ind_h] = H_LINE2_V1; break;
+				default: EXIT_ERROR("Unsupported: %d.\n",op_val_ind_h); break;
+				}
+				break;
+			default:
+				EXIT_ERROR("Unsupported: %d.\n",op_val_ind_ce);
+				break;
+			}
+			break;
+		} default:
+			EXIT_ERROR("Unsupported: %d\n",op_info->element->type);
+			break;
+		}
+	}
+
+	// d_o/ce_o
 	const int d = op_info->element->d;
-	const int h_o = OP_IND_H+OP_IND_O;
-	const int op_val_h_o = op_values->data[h_o];
+	const char ce_o = op_info->op_io[OP_IND_O].ce;
 	switch (ce_o) {
 	case 'v':
-		switch (op_val_h_o) {
-		case H_QUAD1_V0: s_vs[0][h_o] = H_LINE1_V0; s_vs[1][h_o] = H_LINE1_V0; break;
-
-		case H_QUAD4_V0: s_vs[0][h_o] = H_LINE2_V0; s_vs[1][h_o] = H_LINE2_V0; break;
-		case H_QUAD4_V1: s_vs[0][h_o] = H_LINE2_V1; s_vs[1][h_o] = H_LINE2_V0; break;
-		case H_QUAD4_V2: s_vs[0][h_o] = H_LINE2_V0; s_vs[1][h_o] = H_LINE2_V1; break;
-		case H_QUAD4_V3: s_vs[0][h_o] = H_LINE2_V1; s_vs[1][h_o] = H_LINE2_V1; break;
-
-		default: EXIT_ERROR("Unsupported: %d.\n",op_val_h_o); break;
-		}
-
 		// differentiation index (if applicable)
 		for (int i = 0; i < d; ++i) {
 			if (spec_indices[i])
@@ -666,27 +696,30 @@ static void set_sub_op_values_quad
 		}
 		break;
 	case 'f': // fallthrough
-	case 'e': {
-		const int c_o = OP_IND_CE+OP_IND_O;
-		const int op_val_ce_o = op_values->data[c_o];
-
-		assert((0 <= op_val_ce_o) && (op_val_ce_o < op_info->element->n_f));
-
-		const int ind_f = op_val_ce_o / 2;
-		s_vs[ind_f][h_o] = H_POINT1_V0;
-		const int* ind_v = set_missing_dimension_indices(ind_f,d);
-		s_vs[ind_v[0]][h_o] = op_val_h_o;
-
-		// computational element index
+	case 'e':
+		// computational element index (if applicable)
 		for (int i = 0; i < d; ++i) {
-			if (spec_indices[i])
-				s_vs[i][c_o] = op_val_ce_o % 2;
+			if (spec_indices[i]) {
+				const int ind_ce_o = OP_IND_CE+OP_IND_O;
+				switch (op_values->data[ind_ce_o]) {
+				case H_QUAD1_F0: case H_QUAD1_F2:
+					s_vs[i][ind_ce_o] = H_LINE1_F0;
+					break;
+				case H_QUAD1_F1: case H_QUAD1_F3:
+					s_vs[i][ind_ce_o] = H_LINE1_F1;
+					break;
+				default:
+					EXIT_ERROR("Unsupported: %d.",op_values->data[ind_ce_o]);
+					break;
+				}
+			}
 		}
 		break;
-	} default:
+	default:
 		EXIT_ERROR("Unsupported: %d\n",op_info->element->type);
 		break;
 	}
+
 }
 
 static void set_sub_op_values_hex
@@ -790,53 +823,6 @@ UNUSED(sub_op_values);
 UNUSED(op_values);
 UNUSED(op_info);
 UNUSED(spec_indices);
-}
-
-int correct_sub_op_index (const int ind, const int d, const int etype, const char ce_o)
-{
-	int* ind_sub = NULL;
-	switch (etype) {
-	case QUAD:
-		if (ce_o == 'v') {
-			switch (ind) {
-				case H_QUAD1_V0: ind_sub = (int[]) { H_LINE1_V0, H_LINE1_V0, }; break;
-
-				case H_QUAD4_V0: ind_sub = (int[]) { H_LINE2_V0, H_LINE2_V0, }; break;
-				case H_QUAD4_V1: ind_sub = (int[]) { H_LINE2_V1, H_LINE2_V0, }; break;
-				case H_QUAD4_V2: ind_sub = (int[]) { H_LINE2_V0, H_LINE2_V1, }; break;
-				case H_QUAD4_V3: ind_sub = (int[]) { H_LINE2_V1, H_LINE2_V1, }; break;
-			}
-		} else if (ce_o == 'f') {
-			switch (ind) {
-				case H_QUAD1_F0: ind_sub = (int[]) { H_LINE1_F0, H_LINE1_V0, }; break;
-				case H_QUAD1_F1: ind_sub = (int[]) { H_LINE1_F1, H_LINE1_V0, }; break;
-				case H_QUAD1_F2: ind_sub = (int[]) { H_LINE1_V0, H_LINE1_F0, }; break;
-				case H_QUAD1_F3: ind_sub = (int[]) { H_LINE1_V0, H_LINE1_F1, }; break;
-
-				case H_QUAD4_F00: ind_sub = (int[]) { H_LINE1_F0, H_LINE2_V0, }; break;
-				case H_QUAD4_F01: ind_sub = (int[]) { H_LINE1_F0, H_LINE2_V1, }; break;
-				case H_QUAD4_F10: ind_sub = (int[]) { H_LINE1_F1, H_LINE2_V0, }; break;
-				case H_QUAD4_F11: ind_sub = (int[]) { H_LINE1_F1, H_LINE2_V1, }; break;
-				case H_QUAD4_F20: ind_sub = (int[]) { H_LINE2_V0, H_LINE1_F0, }; break;
-				case H_QUAD4_F21: ind_sub = (int[]) { H_LINE2_V1, H_LINE1_F0, }; break;
-				case H_QUAD4_F30: ind_sub = (int[]) { H_LINE2_V0, H_LINE1_F1, }; break;
-				case H_QUAD4_F31: ind_sub = (int[]) { H_LINE2_V1, H_LINE1_F1, }; break;
-			}
-		} else {
-			EXIT_UNSUPPORTED;
-		}
-		break;
-	case HEX:
-		EXIT_ADD_SUPPORT;
-		break;
-	case WEDGE:
-		EXIT_ADD_SUPPORT;
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",etype);
-		break;
-	}
-	return ind_sub[d];
 }
 
 // Level 3 ********************************************************************************************************** //

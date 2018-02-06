@@ -90,30 +90,6 @@ void adapt_hp (struct Simulation* sim, const int adapt_strategy)
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 
 	update_ind_dof(sim);
-
-/// \todo Delete this after debugging 2d.
-#if 0
-for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-	struct Volume* vol = (struct Volume*) curr;
-	struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-	printf("vol: %d %d %d\n",vol->index,vol->boundary,vol->curved);
-	printf("vol neigh: %d %d\n",vol->faces[0][0]->index,vol->faces[1][0]->index);
-	printf("s_vol: %d %d\n",s_vol->ml,s_vol->p_ref);
-	print_const_Multiarray_d(vol->xyz_ve);
-}
-printf("\n\n\n");
-for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-	struct Face* face = (struct Face*) curr;
-	struct Solver_Face* s_face = (struct Solver_Face*) curr;
-	printf("face: %d %d %d %d\n",face->index,face->boundary,face->curved,face->bc);
-	printf("face neigh[0]: %d %d\n",face->neigh_info[0].volume->index,face->neigh_info[0].ind_lf);
-	if (!face->boundary)
-		printf("face neigh[1]: %d %d\n",face->neigh_info[1].volume->index,face->neigh_info[1].ind_lf);
-	printf("s_face: %d %d\n",s_face->ml,s_face->p_ref);
-	print_const_Multiarray_d(s_face->xyz_fc);
-}
-printf("\n\n\n\n\n\n");
-#endif
 }
 
 // Static functions ************************************************************************************************* //
@@ -267,34 +243,9 @@ static void destruct_unused_computational_elements (struct Simulation* sim)
 			break;
 		}
 	}
-/// \todo Delete this after debugging 2d.
-#if 1
-for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-struct Volume*vol = (struct Volume*)curr;
-printf("%d\n",vol->index);
-print_const_Multiarray_d(vol->xyz_ve);
-}
-#endif
-
-#if 0
-printf("\n\n\n\n\n");
-for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-struct Face* face = (struct Face*) curr;
-struct Solver_Face* s_face = (struct Solver_Face*) curr;
-struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) curr;
-printf("%d %d %d %d %p\n",face->index,a_s_face->adapt_type,s_face->ml,s_face->p_ref,a_s_face->parent);
-printf("%d %d\n\n",face->neigh_info[0].volume->index,
-       (!face->boundary ? face->neigh_info[1].volume->index:-999));
-print_const_Multiarray_d(s_face->xyz_fc);
-}
-#endif
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) curr;
-//struct Face* face = (struct Face*) curr;
-//struct Solver_Face* s_face = (struct Solver_Face*) curr;
-//if (s_face->ml == 1)
-//	EXIT_UNSUPPORTED;
 
 		switch (a_s_face->adapt_type) {
 		case ADAPT_NONE:     // fallthrough
@@ -306,7 +257,6 @@ print_const_Multiarray_d(s_face->xyz_fc);
 			EXIT_ADD_SUPPORT; // Remove children (pass NULL instead of curr in destruct_fully_...)
 			break; // Do nothing.
 		case ADAPT_H_REFINE:
-//printf("face/parent: %d %p %p\n",face->index,a_s_face,a_s_face->parent);
 			destruct_fully_Adaptive_Solver_Faces(1,a_s_face->parent,&curr);
 			break;
 		default:
@@ -1645,12 +1595,6 @@ static void constructor_Volume_h_ref
 	const struct Solver_Element* s_e     = (struct Solver_Element*) vol_p->element;
 	const struct Adaptation_Element* a_e = &s_e->a_e;
 	const struct Operator*const vv0_vv_vv = get_Multiarray_Operator(a_e->vv0_vv_vv,(ptrdiff_t[]){ind_h,0,1,2});
-if (element_p->type == QUAD) {
-printf("ind_h: %d\n",ind_h);
-print_const_Matrix_d(vv0_vv_vv->op_std);
-if (ind_h == 4)
-	EXIT_UNSUPPORTED; // Fix problem with operators
-}
 
 	const_constructor_move_const_Multiarray_d(&vol->xyz_ve,
 		constructor_mm_NN1_Operator_const_Multiarray_d(vv0_vv_vv,xyz_ve_p2,'C','d',2,NULL)); // keep
@@ -1707,7 +1651,6 @@ static void constructor_Face_h_ref
 			face->neigh_info[1].volume   = face_p->neigh_info[1].volume;
 		}
 	}
-//EXIT_UNSUPPORTED;
 }
 
 static void constructor_Solver_Volume_h_ref
