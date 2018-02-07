@@ -102,8 +102,6 @@ void compute_Flux_T_euler (const struct Flux_Input_T* flux_i, struct mutable_Flu
 		}}}
 	}
 
-	assert(c_m[2] == false); // 1st order.
-
 	Type* d2fds2_ptr[DIM*NEQ*NVAR*NVAR] = { NULL };
 	if (c_m[3]) {
 		struct Multiarray_T*const d2fds2 = flux->d2f_ds2;
@@ -115,9 +113,6 @@ void compute_Flux_T_euler (const struct Flux_Input_T* flux_i, struct mutable_Flu
 			d2fds2_ptr[ind] = get_col_Multiarray_T(ind,d2fds2);
 		}}}}
 	}
-
-	assert(c_m[4] == false); // 1st order.
-	assert(c_m[5] == false); // 1st order.
 
 	const ptrdiff_t n_n = s->extents[0];
 	for (ptrdiff_t n = 0; n < n_n; ++n) {

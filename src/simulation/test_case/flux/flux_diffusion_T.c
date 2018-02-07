@@ -176,10 +176,12 @@ static void compute_Flux_diffusion_0 (const struct Flux_Data_Diffusion*const flu
 
 	int ind = 0;
 
+	// Note the warning concerning the use of negated fluxes in \ref compute_Flux_T_diffusion. Using "-=" below.
+
 	// f[:,0]
-	IF_DIM_GE_1( *f_ptr[ind++] += -g[0] );
-	IF_DIM_GE_2( *f_ptr[ind++] += -g[1] );
-	IF_DIM_GE_3( *f_ptr[ind++] += -g[2] );
+	IF_DIM_GE_1( *f_ptr[ind++] -= g[0] );
+	IF_DIM_GE_2( *f_ptr[ind++] -= g[1] );
+	IF_DIM_GE_3( *f_ptr[ind++] -= g[2] );
 }
 
 static void compute_Flux_diffusion_1
@@ -189,19 +191,21 @@ static void compute_Flux_diffusion_1
 
 	int ind = 0;
 
+	// Note the warning concerning the use of negated fluxes in \ref compute_Flux_T_diffusion. Using "-=" below.
+
 	// dfdg[:,:,0]
 	// dfdg[:,0,0]
-	IF_DIM_GE_1( *dfdg_ptr[ind++] += -1.0 );
-	IF_DIM_GE_2( *dfdg_ptr[ind++] +=  0.0 );
-	IF_DIM_GE_3( *dfdg_ptr[ind++] +=  0.0 );
+	IF_DIM_GE_1( *dfdg_ptr[ind++] -= 1.0 );
+	IF_DIM_GE_2( *dfdg_ptr[ind++] -= 0.0 );
+	IF_DIM_GE_3( *dfdg_ptr[ind++] -= 0.0 );
 
 	// dfdg[:,0,1]
-	IF_DIM_GE_2( *dfdg_ptr[ind++] +=  0.0 );
-	IF_DIM_GE_2( *dfdg_ptr[ind++] += -1.0 );
-	IF_DIM_GE_3( *dfdg_ptr[ind++] +=  0.0 );
+	IF_DIM_GE_2( *dfdg_ptr[ind++] -= 0.0 );
+	IF_DIM_GE_2( *dfdg_ptr[ind++] -= 1.0 );
+	IF_DIM_GE_3( *dfdg_ptr[ind++] -= 0.0 );
 
 	// dfdg[:,0,2]
-	IF_DIM_GE_3( *dfdg_ptr[ind++] +=  0.0 );
-	IF_DIM_GE_3( *dfdg_ptr[ind++] +=  0.0 );
-	IF_DIM_GE_3( *dfdg_ptr[ind++] += -1.0 );
+	IF_DIM_GE_3( *dfdg_ptr[ind++] -= 0.0 );
+	IF_DIM_GE_3( *dfdg_ptr[ind++] -= 0.0 );
+	IF_DIM_GE_3( *dfdg_ptr[ind++] -= 1.0 );
 }

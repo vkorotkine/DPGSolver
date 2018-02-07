@@ -74,6 +74,13 @@ static const char* get_file_name_sp
 	 const int mpi_rank               ///< Defined for \ref fopen_sp_output_file.
 	);
 
+/** \brief Check whether the first string in the line is equal to the desired input string.
+ *  \return `true` if yes; `false` otherwise. */
+static bool first_string_matches
+	(const char*const line,      ///< The line to be checked.
+	 const char*const str_search ///< The string to search for as the first entry of the line.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 FILE* fopen_checked (const char*const file_name_full)
@@ -200,7 +207,7 @@ void read_line_values_d (char**const line, const ptrdiff_t n_val, double*const v
 
 void read_skip_name_const_c_1 (const char*const var_name, const char*const line, const char*const var)
 {
-	if (!strstr(line,var_name))
+	if (!first_string_matches(line,var_name))
 		return;
 
 	sscanf(line,"%*s %s",(char*)var);
@@ -311,7 +318,7 @@ void read_skip_const_d_1 (char*const line_i, const int n_skip, const double*cons
 
 void read_skip_string_count_d (const char*const str_search, int*const count, char*const line_i, double*const var)
 {
-	if (!strstr(line_i,str_search))
+	if (!first_string_matches(line_i,str_search))
 		return;
 
 	(*count)++;
@@ -327,7 +334,7 @@ void read_skip_string_count_const_d
 void read_skip_string_count_c_style_d
 	(const char*const str_search, int*const count, char*const line_i, double*const var)
 {
-	if (!strstr(line_i,str_search))
+	if (!first_string_matches(line_i,str_search))
 		return;
 
 	(*count)++;
@@ -532,6 +539,15 @@ static const char* get_file_name_sp
 	else if (sp_type == 'p')
 		sprintf(file_name,"%s%s%s",name_part,".p",extension_part);
 	return file_name;
+}
+
+static bool first_string_matches (const char*const line, const char*const str_search)
+{
+	char str_first[STRLEN_MAX];
+	sscanf(line,"%s",str_first);
+	if (!strstr(line,str_search) || (strcmp(str_search,str_first) != 0))
+		return false;
+	return true;
 }
 
 // Level 1 ********************************************************************************************************** //
