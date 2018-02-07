@@ -13,26 +13,20 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__geometry_h__INCLUDED
-#define DPG__geometry_h__INCLUDED
+#ifndef DPG__geometry_surface_h__INCLUDED
+#define DPG__geometry_surface_h__INCLUDED
 /** \file
- *  \brief Provides the interface to functions used for geometry processing.
+ *  \brief Provides the interface to real functions used for surface geometry processing.
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_geometry.h"
-#include "def_templates_face_solver.h"
-#include "def_templates_volume_solver.h"
-#include "def_templates_multiarray.h"
-#include "geometry_T.h"
+#include "def_templates_geometry_surface.h"
+#include "def_templates_geometry_blended.h"
+#include "def_templates_matrix.h"
+#include "geometry_surface_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_geometry.h"
-#include "undef_templates_face_solver.h"
-#include "undef_templates_volume_solver.h"
-#include "undef_templates_multiarray.h"
+#include "undef_templates_geometry_surface.h"
+#include "undef_templates_geometry_blended.h"
+#include "undef_templates_matrix.h"
 
-#include "geometry_blended.h"
-#include "geometry_parametric.h"
-#include "geometry_surface.h"
-
-#endif // DPG__geometry_h__INCLUDED
+#endif // DPG__geometry_surface_h__INCLUDED

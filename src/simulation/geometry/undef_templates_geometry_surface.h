@@ -13,14 +13,13 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to blended geometry functions.
+ *  \brief Undefine macro definitions for c-style templating relating to surface geometry functions.
  */
 
-#undef Boundary_Comp_Elem_Data_T
-#undef Blended_Parametric_Data_T
+#undef constructor_xyz_surface_fptr_T
 
-#undef constructor_xyz_blended_T
-#undef constructor_static_Boundary_Comp_Elem_Data_T
-#undef destructor_static_Boundary_Comp_Elem_Data_T
-#undef set_Boundary_Comp_Elem_operators_T
-#undef constructor_xyz_surf_diff_T
+#undef set_constructor_xyz_surface_fptr_T
+#undef constructor_xyz_surface_mapped_T
+#undef constructor_xyz_surface_cylinder_radial_proj_T
+#undef constructor_xyz_surface_cylinder_arc_length_T
+#undef constructor_xyz_surface_cylinder_normal_proj_T

@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_core.h"
 #include "definitions_intrusive.h"
+#include "definitions_mesh.h"
 
 
 #include "def_templates_volume_solver.h"
@@ -108,12 +109,19 @@ static void set_function_pointers_constructor_xyz_surface
 		return;
 	}
 
-	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
-	if ((strcmp(sim->geom_name,"n-cylinder_hollow_section") == 0) ||
-	    (strcmp(sim->geom_name,"n-cylinder_hollow")         == 0)) {
-		s_vol->constructor_xyz_surface =
-			set_constructor_xyz_surface_fptr_T("n-cylinder",test_case->geom_parametrization);
+	if (sim->domain_type == DOM_PARAMETRIC) {
+		s_vol->constructor_xyz_surface = set_constructor_xyz_surface_fptr_T(NULL,-1,sim->domain_type);
+	} else if (sim->domain_type == DOM_BLENDED) {
+		const struct Test_Case_T*const test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+		const int geom_par = test_case->geom_parametrization;
+		if ((strcmp(sim->geom_name,"n-cylinder_hollow_section") == 0) ||
+		    (strcmp(sim->geom_name,"n-cylinder_hollow")         == 0)) {
+			s_vol->constructor_xyz_surface =
+				set_constructor_xyz_surface_fptr_T("n-cylinder",geom_par,sim->domain_type);
+		} else {
+			EXIT_ERROR("Unsupported: %s, %s, %d\n",sim->geom_name,sim->geom_spec,sim->domain_type);
+		}
 	} else {
-		EXIT_ERROR("Unsupported: %s, %s\n",sim->geom_name,sim->geom_spec);
+		EXIT_ERROR("Unsupported: %d\n",sim->domain_type);
 	}
 }

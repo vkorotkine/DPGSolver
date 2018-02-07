@@ -15,34 +15,22 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_complex_geometry_blended.h"
-
-#include "complex_multiarray.h"
-
-#include "test_complex_volume_solver.h"
-
-#include "test_complex_geometry.h"
-#include "test_complex_test_case.h"
+#include "geometry_surface.h"
 
 #include "matrix.h"
 #include "multiarray.h"
-#include "vector.h"
 
-#include "element_solver.h"
-#include "face.h"
-#include "volume.h"
-
-#include "multiarray_operator.h"
+#include "const_cast.h"
+#include "geometry.h"
+#include "math_functions.h"
 #include "operator.h"
-#include "simulation.h"
-#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_dc.h"
-#include "geometry_blended_T.c"
+#include "def_templates_type_d.h"
+#include "geometry_surface_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

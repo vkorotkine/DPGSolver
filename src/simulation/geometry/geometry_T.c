@@ -450,14 +450,10 @@ static const struct const_Multiarray_R* constructor_xyz_fc_with_exact_boundary
 	const char op_f = 'd';
 
 	const struct const_Multiarray_R*const g_coef = s_vol->geom_coef;
-	const struct const_Multiarray_R*const xyz_fc_i =
-		constructor_mm_NN1_Operator_const_Multiarray_R(cv0_vg_fc,g_coef,'C',op_f,g_coef->order,NULL); // rtrnd/dest
+	struct Multiarray_R*const xyz_fc = constructor_mm_NN1_Operator_Multiarray_R
+		(cv0_vg_fc,(struct Multiarray_R*)g_coef,'C',op_f,g_coef->order,NULL); // returned
 
-	const struct const_Multiarray_R* xyz_fc = NULL;
-	if (!is_face_bc_curved(face->bc)) {
-		xyz_fc = xyz_fc_i;
-	} else {
-print_const_Multiarray_R(xyz_fc_i);
+	if (is_face_bc_curved(face->bc)) {
 		assert(face->neigh_info[0].ind_href == 0);
 
 		const char ce_type = 'f',
@@ -468,16 +464,13 @@ print_const_Multiarray_R(xyz_fc_i);
 			constructor_static_Boundary_Comp_Elem_Data_T(ce_type,n_type,p_g,s_vol); // destructed
 		set_Boundary_Comp_Elem_operators_T(&b_ce_d,s_vol,ce_type,n_type,p_g,ind_lf);
 
-		const struct const_Matrix_R xyz_fc_i_M = interpret_const_Multiarray_as_Matrix_R(xyz_fc_i);
+		struct Matrix_R xyz_fc_M = interpret_Multiarray_as_Matrix_R(xyz_fc);
 		const struct const_Matrix_R*const xyz_fc_diff =
-			constructor_xyz_surf_diff_T(&b_ce_d,&xyz_fc_i_M,s_vol,n_type,sim); // destructed
-print_const_Matrix_R(xyz_fc_diff);
+			constructor_xyz_surf_diff_T(&b_ce_d,(struct const_Matrix_R*)&xyz_fc_M,s_vol,n_type,sim); // d
+		add_in_place_Matrix_R(1.0,&xyz_fc_M,xyz_fc_diff);
 
 		destructor_const_Matrix_R(xyz_fc_diff);
 		destructor_static_Boundary_Comp_Elem_Data_T(&b_ce_d);
-
-EXIT_UNSUPPORTED;
-		destructor_const_Multiarray_R(xyz_fc_i);
 	}
 
 	return (const struct const_Multiarray_R*) xyz_fc;

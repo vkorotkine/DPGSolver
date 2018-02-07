@@ -51,16 +51,6 @@ static const struct const_Multiarray_R* constructor_xyz_blended_ce
 	 const struct Simulation* sim            ///< Defined for \ref constructor_xyz_fptr_T.
 	);
 
-/** \brief Compute the radius of the curved boundary as that of the first vertex on the boundary.
- *  \return See brief. */
-static double compute_radius_from_xyz_ve
-	(const int n_component_radius,                      /**< The number of components in xyz_ve to use for the
-	                                                     *   computation of the radius. */
-	 const struct const_Matrix_R*const xyz,             ///< The xyz coordinates in which to search.
-	 const struct const_Matrix_R*const xyz_ve,          ///< The xyz coordinates of the vertices.
-	 const struct Blended_Parametric_Data_T*const b_p_d ///< \ref Blended_Parametric_Data_T.
-	);
-
 // Interface functions ********************************************************************************************** //
 
 const struct const_Multiarray_R* constructor_xyz_blended_T
@@ -120,7 +110,8 @@ struct Boundary_Comp_Elem_Data_T constructor_static_Boundary_Comp_Elem_Data_T
 		EXIT_ADD_SUPPORT; // Required for h-adaptation.
 		break;
 	case 'c':
-		break; // do nothing.
+		b_ce_d.vv0_bv_vX = NULL;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %c",n_type);
 		break;
@@ -131,7 +122,8 @@ struct Boundary_Comp_Elem_Data_T constructor_static_Boundary_Comp_Elem_Data_T
 
 void destructor_static_Boundary_Comp_Elem_Data_T (struct Boundary_Comp_Elem_Data_T*const b_ce_d)
 {
-	free_MO_from_MO(b_ce_d->vv0_bv_vX);
+	if (b_ce_d->vv0_bv_vX)
+		free_MO_from_MO(b_ce_d->vv0_bv_vX);
 }
 
 void set_Boundary_Comp_Elem_operators_T
@@ -198,6 +190,7 @@ const struct const_Matrix_R* constructor_xyz_surf_diff_T
 		break;
 	case 'c':
 		xyz_surf_diff = constructor_copy_Matrix_R((struct Matrix_R*)xyz_i); // returned
+		scale_Matrix_R(xyz_surf_diff,-1.0);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %c",n_type);
@@ -206,107 +199,6 @@ const struct const_Matrix_R* constructor_xyz_surf_diff_T
 	add_in_place_Matrix_R(1.0,xyz_surf_diff,xyz_b);
 
 	return (struct const_Matrix_R*) xyz_surf_diff;
-}
-
-
-/// \todo Consider moving geometry specific functions out of the general blending function.
-
-constructor_xyz_surface_fptr_T set_constructor_xyz_surface_fptr_T (const char*const geom_type, const int geom_prm_type)
-{
-	constructor_xyz_surface_fptr_T ptr = NULL;
-
-	if (strcmp(geom_type,"n-cylinder") == 0) {
-		if      (geom_prm_type == GEOM_PRM_RADIAL_PROJ) ptr = constructor_xyz_surface_cylinder_radial_proj_T;
-		else if (geom_prm_type == GEOM_PRM_ARC_LENGTH ) ptr = constructor_xyz_surface_cylinder_arc_length_T;
-		else if (geom_prm_type == GEOM_PRM_NORMAL_PROJ) ptr = constructor_xyz_surface_cylinder_normal_proj_T;
-		else                                            EXIT_ERROR("Unsupported: %d\n",geom_prm_type);
-	} else {
-		EXIT_ERROR("Unsupported: %s\n",geom_type);
-	}
-
-	return ptr;
-}
-
-const struct const_Matrix_R* constructor_xyz_surface_cylinder_radial_proj_T
-	(const struct Blended_Parametric_Data_T*const b_p_d)
-{
-	const struct const_Matrix_R xyz_ve_M = interpret_const_Multiarray_as_Matrix_R(b_p_d->xyz_ve);
-	const struct const_Matrix_R*const xyz_ve_bX =
-		constructor_mm_const_Matrix_R('N','N',1.0,b_p_d->vv0_vv_bX->op_std,&xyz_ve_M,'R'); // destructed
-
-// make external
-	const struct const_Matrix_R* xyz_ve_b = NULL;
-	switch (b_p_d->n_type) {
-	case 'g': // fallthrough
-	case 'v':
-		xyz_ve_b = xyz_ve_bX;
-		break;
-	case 'c': {
-		const struct const_Multiarray_R*const xyz_ve_fcc = constructor_mm_NN1_Operator_const_Multiarray_R
-			(b_p_d->vv0_vv_fcc,b_p_d->xyz_ve,'C','d',b_p_d->xyz_ve->order,NULL); // destructed
-
-		const struct const_Multiarray_R*const xyz_fcc_Ma = b_p_d->constructor_xyz(0,xyz_ve_fcc,NULL,NULL); // dest.
-		destructor_const_Multiarray_R(xyz_ve_fcc);
-
-		const ptrdiff_t ext_0 = xyz_fcc_Ma->extents[0],
-		                ext_1 = xyz_fcc_Ma->extents[1];
-		xyz_ve_b = constructor_empty_const_Matrix_R(xyz_fcc_Ma->layout,ext_0,ext_1); // destructed
-		reinterpret_const_Multiarray_as_Matrix_R(xyz_fcc_Ma,xyz_ve_b,ext_0,ext_1);
-		const_cast_b(&xyz_fcc_Ma->owns_data,false);
-		destructor_const_Multiarray_R(xyz_fcc_Ma);
-/// \todo Check that computation of xyz_surf is not redundant below (i.e. exact boundary values are not already given in
-///        xyz_ve_b).
-
-		transpose_Matrix_R((struct Matrix_R*)xyz_ve_b,true);
-		break;
-	} default:
-		EXIT_ERROR("Unsupported: %c.\n",b_p_d->n_type);
-		break;
-	}
-
-	const double r = compute_radius_from_xyz_ve(2,&xyz_ve_M,xyz_ve_bX,b_p_d);
-
-	const ptrdiff_t n_n = xyz_ve_b->ext_0,
-	                dim = xyz_ve_b->ext_1;
-	assert(dim >= 2);
-
-	struct Matrix_R* xyz_surf = constructor_empty_Matrix_R('R',n_n,dim); // returned
-	for (int n = 0; n < n_n; ++n) {
-		const double*const xyz_b = get_row_const_Matrix_R(n,xyz_ve_b);
-		const double theta = atan2(xyz_b[1],xyz_b[0]);
-
-		double*const xyz_s = get_row_Matrix_R(n,xyz_surf);
-		xyz_s[0] = r*cos(theta);
-		xyz_s[1] = r*sin(theta);
-		if (dim == DMAX)
-			xyz_s[2] = xyz_b[2];
-	}
-	if (xyz_ve_b != xyz_ve_bX)
-		destructor_const_Matrix_R(xyz_ve_b);
-	destructor_const_Matrix_R(xyz_ve_bX);
-
-	transpose_Matrix_R(xyz_surf,true);
-	return (struct const_Matrix_R*) xyz_surf;
-}
-
-const struct const_Matrix_R* constructor_xyz_surface_cylinder_arc_length_T
-	(const struct Blended_Parametric_Data_T*const b_p_d)
-{
-// test for arc length: Should be the same as \theta parametrization for circle.
-//	1. Interpolate xyz_ve to boundary (vv0_vv_bv);
-//	2. Compute parametric coordinates of vertices
-//	3. Interpolate parametric coordinates to curved boundary nodes (vv0_bv_bgc)
-//	4. Compute xyz curved
-UNUSED(b_p_d); EXIT_ADD_SUPPORT;
-}
-
-const struct const_Matrix_R* constructor_xyz_surface_cylinder_normal_proj_T
-	(const struct Blended_Parametric_Data_T*const b_p_d)
-{
-//	1. Interpolate xyz_ve to boundary (vv0_vv_bgc);
-//	2. Compute normal vector to surface (pointing outwards)
-//	3. Compute xyz curved
-UNUSED(b_p_d); EXIT_ADD_SUPPORT;
 }
 
 // Static functions ************************************************************************************************* //
@@ -348,13 +240,6 @@ static const struct const_Matrix_R* constructor_xyz_diff_T
 	 const struct Simulation*const sim                    ///< \ref Simulation.
 	);
 
-/** \brief Find the index of the first node in the matrix of boundary nodes which is also a vertex node.
- *  \return See brief. */
-static ptrdiff_t find_boundary_vertex_index
-	(const struct const_Matrix_R*const xyz,   ///< The xyz coordinates in which to search.
-	 const struct const_Matrix_R*const xyz_ve ///< The xyz coordinates of the vertices.
-	);
-
 static const struct const_Multiarray_R* constructor_xyz_blended_ce
 	(const char ce_type, const char n_type, const struct const_Multiarray_R* xyz_i,
 	 const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
@@ -393,33 +278,6 @@ static const struct const_Multiarray_R* constructor_xyz_blended_ce
 	destructor_static_Boundary_Comp_Elem_Data_T(&b_ce_d);
 
 	return (struct const_Multiarray_R*) xyz;
-}
-
-static double compute_radius_from_xyz_ve
-	(const int n_component_radius, const struct const_Matrix_R*const xyz, const struct const_Matrix_R*const xyz_ve,
-	 const struct Blended_Parametric_Data_T*const b_p_d)
-{
-	const ptrdiff_t ind_b = find_boundary_vertex_index(xyz,xyz_ve);
-
-	double r = 0.0;
-	switch (b_p_d->domain_type) {
-	case DOM_BLENDED:
-		r = norm_d(n_component_radius,get_row_const_Matrix_R(ind_b,xyz),"L2");
-		break;
-	case DOM_PARAMETRIC: {
-		const ptrdiff_t extents[] = { 1, xyz->ext_1, };
-		const double*const data = get_row_const_Matrix_R(ind_b,xyz);
-		const struct const_Multiarray_R xyz_Ma = { .order = 2, .extents = extents, .layout = 'C', .data = data, };
-		const struct const_Multiarray_R* xyz_surf = b_p_d->constructor_xyz(0,&xyz_Ma,NULL,NULL); // destructed
-
-		r = norm_d(n_component_radius,xyz_surf->data,"L2");
-		destructor_const_Multiarray_R(xyz_surf);
-		break;
-	} default:
-		EXIT_ERROR("Unsupported: %d\n",b_p_d->domain_type);
-		break;
-	}
-	return r;
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -516,38 +374,4 @@ static const struct const_Matrix_R* constructor_xyz_diff_T
 	destructor_const_Matrix_R(xyz_surf_diff);
 
 	return xyz_diff;
-}
-
-static ptrdiff_t find_boundary_vertex_index
-	(const struct const_Matrix_R*const xyz, const struct const_Matrix_R*const xyz_ve)
-{
-	bool found = false;
-	ptrdiff_t ind_ve = -1;
-
-	const ptrdiff_t n_n  = xyz->ext_0,
-	                n_ve = xyz_ve->ext_0,
-	                dim  = xyz->ext_1;
-	assert(dim == xyz_ve->ext_1);
-
-	const bool transpose = (xyz_ve->layout != 'R');
-	if (transpose)
-		transpose_Matrix_R((struct Matrix_R*)xyz_ve,true);
-
-	for (int n = 0; !found && n < n_n; ++n) {
-		const double*const data_xyz = get_row_const_Matrix_R(n,xyz);
-		for (int ve = 0; ve < n_ve; ++ve) {
-			const double*const data_xyz_ve = get_row_const_Matrix_R(ve,xyz_ve);
-			const double diff = norm_diff_d(dim,data_xyz_ve,data_xyz,"Inf");
-			if (diff < EPS) {
-				found = true;
-				ind_ve = n;
-				break;
-			}
-		}
-	}
-	assert(found);
-
-	if (transpose)
-		transpose_Matrix_R((struct Matrix_R*)xyz_ve,true);
-	return ind_ve;
 }

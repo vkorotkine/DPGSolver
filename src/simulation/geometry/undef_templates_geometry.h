@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "undef_templates_geometry_blended.h"
 #include "undef_templates_geometry_parametric.h"
+#include "undef_templates_geometry_surface.h"
 
 #undef constructor_xyz_fptr_T
 #undef compute_geom_coef_fptr_T

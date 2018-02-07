@@ -33,5 +33,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_geometry_blended.h"
 #include "test_complex_geometry_parametric.h"
+#include "test_complex_geometry_surface.h"
 
 #endif // DPG__test_complex_geometry_h__INCLUDED

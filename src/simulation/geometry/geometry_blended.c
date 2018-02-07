@@ -26,9 +26,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume.h"
 #include "volume_solver.h"
 
-#include "boundary.h"
-#include "const_cast.h"
-#include "math_functions.h"
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"

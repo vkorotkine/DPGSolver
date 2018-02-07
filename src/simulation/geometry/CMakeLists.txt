@@ -3,6 +3,7 @@ set	(SOURCE
 	 geometry.c
 	 geometry_blended.c
 	 geometry_parametric.c
+	 geometry_surface.c
 	)
 
 set	(LIBS_DEPEND

@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_geometry_blended.h"
 #include "def_templates_geometry_parametric.h"
+#include "def_templates_geometry_surface.h"
 
 #if TYPE_RC == TYPE_REAL
 

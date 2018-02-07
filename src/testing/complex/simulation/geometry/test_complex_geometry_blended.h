@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__test_complex_geometry_blended_h__INCLUDED
 #define DPG__test_complex_geometry_blended_h__INCLUDED
 /** \file
- *  \brief Provides the interface to real functions used for blended geometry processing.
+ *  \brief Provides the interface to complex functions used for blended geometry processing.
  */
 
 #include "test_complex_geometry.h"

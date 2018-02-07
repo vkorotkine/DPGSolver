@@ -21,15 +21,6 @@ struct Simulation;
 
 struct Blended_Parametric_Data_T;
 
-/** \brief Pointer to functions constructing the boundary xyz coordinates from the required members of the \ref
- *         Blended_Parametric_Data_T container for several surface parametrizations.
- *
- *  \param b_p_d \ref Blended_Parametric_Data_T.
- */
-typedef const struct const_Matrix_R* (*constructor_xyz_surface_fptr_T)
-	(const struct Blended_Parametric_Data_T*const b_p_d
-	);
-
 /// \brief Container for boundary computational element related data.
 struct Boundary_Comp_Elem_Data_T {
 	const struct const_Multiarray_R* xyz_ve; ///< \ref Volume::xyz_ve.
@@ -76,7 +67,6 @@ struct Blended_Parametric_Data_T {
 	constructor_xyz_fptr_T constructor_xyz; ///< \ref Test_Case_T::constructor_xyz.
 };
 
-// Functions ******************************************************************************************************** //
 
 /** \brief Version of \ref constructor_xyz_fptr_T for the blended curved volume geometry.
  *  \return See brief. */
@@ -121,32 +111,4 @@ const struct const_Matrix_R* constructor_xyz_surf_diff_T
 	 const struct Solver_Volume_T*const s_vol,            ///< The current \ref Solver_Volume_T.
 	 const char n_type,                                   ///< \ref Blended_Parametric_Data::n_type.
 	 const struct Simulation*const sim                    ///< \ref Simulation.
-	);
-
-// Geometry-specific functions ************************************************************************************** //
-
-/** \brief Set the pointer to the appropriate \ref constructor_xyz_surface_fptr_T funtion based on the input geometry and
- *         surface parametrization types.
- *  \return See brief. */
-constructor_xyz_surface_fptr_T set_constructor_xyz_surface_fptr_T
-	(const char*const geom_type, ///< The geometry type.
-	 const int geom_prm_type     ///< The geometry parametrization type. Options: see \ref definitions_geometry.h.
-	);
-
-/** \brief Version of \ref constructor_xyz_surface_fptr_T for n-cylinder surfaces (\ref GEOM_PRM_RADIAL_PROJ).
- *  \return See brief. */
-const struct const_Matrix_R* constructor_xyz_surface_cylinder_radial_proj_T
-	(const struct Blended_Parametric_Data_T*const b_p_d ///< See brief.
-	);
-
-/** \brief Version of \ref constructor_xyz_surface_fptr_T for n-cylinder surfaces (\ref GEOM_PRM_ARC_LENGTH).
- *  \return See brief. */
-const struct const_Matrix_R* constructor_xyz_surface_cylinder_arc_length_T
-	(const struct Blended_Parametric_Data_T*const b_p_d ///< See brief.
-	);
-
-/** \brief Version of \ref constructor_xyz_surface_fptr_T for n-cylinder surfaces (\ref GEOM_PRM_NORMAL_PROJ).
- *  \return See brief. */
-const struct const_Matrix_R* constructor_xyz_surface_cylinder_normal_proj_T
-	(const struct Blended_Parametric_Data_T*const b_p_d ///< See brief.
 	);
