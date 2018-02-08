@@ -56,7 +56,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define BYTE_ADD(a,b) ((char*)a+b)
 
 ///\{ \name Macro to output on successful termination.
-#define OUTPUT_SUCCESS ({printf("Successful termination.\n");})
+#define OUTPUT_SUCCESS ({printf("\n\nSuccessful termination.\n\n\n");})
 ///\}
 
 #endif // DPG__macros_h__INCLUDED

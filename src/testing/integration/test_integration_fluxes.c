@@ -130,6 +130,8 @@ int main
 
 	const bool* compute_member = flux_i->compute_member;
 
+	assert(!compute_member[4]);
+	assert(!compute_member[5]);
 	bool pass        = false;
 	const double tol = EPS;
 	const bool differences[] =
@@ -137,7 +139,6 @@ int main
 		  compute_member[1] ? diff_const_Multiarray_d(flux->df_ds,  flux_cmplx_step->df_ds,  tol) : false,
 		  compute_member[2] ? diff_const_Multiarray_d(flux->df_dg,  flux_cmplx_step->df_dg,  tol) : false,
 		  compute_member[3] ? diff_const_Multiarray_d(flux->d2f_ds2,flux_cmplx_step->d2f_ds2,tol) : false,
-		  false,
 		};
 	const int len = COUNT_OF(differences);
 	if (check_diff(len,differences,&pass)) {
@@ -147,7 +148,6 @@ int main
 		if (differences[3]) print_diff_const_Multiarray_d(flux->d2f_ds2,flux_cmplx_step->d2f_ds2,tol);
 	}
 	expect_condition(pass,"flux_linearization");
-
 	assert_condition(pass);
 
 	// complex
@@ -295,9 +295,34 @@ static struct Flux* constructor_Flux_cmplx_step (struct Flux_Input_c*const flux_
 		add_to_c(data_s,-CX_STEP*I,n_n);
 	}
 
-	// df_dg[DIM,NEQ,NVAR,DIM]
-	if (compute_member[2])
-		EXIT_ADD_SUPPORT; // Should be in a loop with perturbation over g.
+	struct Multiarray_c*const g = (struct Multiarray_c*) flux_i_c->g;
+
+	for (int dx = 0; dx < DIM; ++dx) {
+	for (int vr = 0; vr < n_vr; ++vr) {
+		double complex*const data_g = get_col_Multiarray_c(vr+n_vr*(dx),g);
+		add_to_c(data_g,CX_STEP*I,n_n);
+		struct Flux_c* flux_c = constructor_Flux_c(flux_i_c); // destructed
+
+		// df_dg[DIM,NEQ,NVAR,DIM]
+		if (compute_member[2]) {
+			for (int eq = 0; eq < n_eq; ++eq) {
+			for (int d = 0; d < DIM; ++d) {
+				const ptrdiff_t ind_c = d+DIM*(eq),
+				                ind_r = d+DIM*(eq+n_eq*(vr+n_vr*(dx)));
+
+				const double complex*const data_c = get_col_const_Multiarray_c(ind_c,flux_c->f);
+				double*const data_r               = get_col_Multiarray_d(ind_r,m_flux->df_dg);
+				for (int n = 0; n < n_n; ++n)
+					data_r[n] = cimag(data_c[n])/CX_STEP;
+			}}
+		}
+
+		assert(!compute_member[4]); // Add support.
+		assert(!compute_member[5]); // Add support.
+
+		destructor_Flux_c(flux_c);
+		add_to_c(data_g,-CX_STEP*I,n_n);
+	}}
 
 	return flux;
 }
