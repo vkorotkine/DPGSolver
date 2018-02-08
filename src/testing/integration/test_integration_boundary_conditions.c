@@ -33,7 +33,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "face.h"
+#include "face_solver.h"
 
+#include "boundary.h"
 #include "computational_elements.h"
 #include "compute_face_rlhs.h"
 #include "intrusive.h"
@@ -51,6 +53,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_test_case.h"
 
 // Static function declarations ************************************************************************************* //
+
+/** \brief Version of \ref constructor_Numerical_Flux_Input_data_T, forcing the gradients to be computed using
+ *         interpolation if required.
+ */
+void constructor_Numerical_Flux_Input_data_with_gradients
+	(struct Numerical_Flux_Input*const num_flux_i, ///< See brief.
+	 const struct Solver_Face*const s_face,        ///< See brief.
+	 const struct Simulation*const sim             ///< See brief.
+	);
 
 /** \brief Constructor for the real \ref Numerical_Flux_Input_T computed using the complex step method.
  *  \return See brief. */
@@ -129,24 +140,29 @@ int main
 			}
 		}
 
-		constructor_Numerical_Flux_Input_data(num_flux_i,s_face_r,sim[0]); // destructed
+		constructor_Numerical_Flux_Input_data_with_gradients(num_flux_i,s_face_r,sim[0]); // destructed
 
 		struct Numerical_Flux_Input* num_flux_i_cmplx_step =
 			constructor_Numerical_Flux_Input_cmplx_step(s_face_r,s_face_c,sim); // destructed
 
-		const bool* compute_member = num_flux_i->bv_l.compute_member;
+		const bool* c_m = num_flux_i->bv_l.compute_member;
 
+		assert(!c_m[4]); // Add support.
+		assert(!c_m[5]); // Add support.
 		bool pass        = false;
 		const double tol = 1e1*EPS;
 		const bool differences[] =
-			{ compute_member[0] ? diff_const_Multiarray_d(num_flux_i->bv_r.s,    num_flux_i_cmplx_step->bv_r.s,    tol) : false,
-			  compute_member[1] ? diff_const_Multiarray_d(num_flux_i->bv_r.ds_ds,num_flux_i_cmplx_step->bv_r.ds_ds,tol) : false,
-			  false, // bv_r.g
+			{ c_m[0] ? diff_const_Multiarray_d(num_flux_i->bv_r.s,    num_flux_i_cmplx_step->bv_r.s,    tol) : false,
+			  c_m[1] ? diff_const_Multiarray_d(num_flux_i->bv_r.ds_ds,num_flux_i_cmplx_step->bv_r.ds_ds,tol) : false,
+			  c_m[2] ? diff_const_Multiarray_d(num_flux_i->bv_r.g    ,num_flux_i_cmplx_step->bv_r.g    ,tol) : false,
+			  c_m[3] ? diff_const_Multiarray_d(num_flux_i->bv_r.dg_dg,num_flux_i_cmplx_step->bv_r.dg_dg,tol) : false,
 			};
 		const int len = COUNT_OF(differences);
 		if (check_diff(len,differences,&pass)) {
 			if (differences[0]) print_diff_const_Multiarray_d(num_flux_i->bv_r.s,    num_flux_i_cmplx_step->bv_r.s,    tol);
 			if (differences[1]) print_diff_const_Multiarray_d(num_flux_i->bv_r.ds_ds,num_flux_i_cmplx_step->bv_r.ds_ds,tol);
+			if (differences[2]) print_diff_const_Multiarray_d(num_flux_i->bv_r.g,    num_flux_i_cmplx_step->bv_r.g,    tol);
+			if (differences[3]) print_diff_const_Multiarray_d(num_flux_i->bv_r.dg_dg,num_flux_i_cmplx_step->bv_r.dg_dg,tol);
 		}
 		char message[STRLEN_MAX];
 		sprintf(message,"%s%d%s","boundary_condition_linearization (bc: ",face_r->bc,")");
@@ -155,10 +171,10 @@ int main
 			pass_all = false;
 #if 0
 printf("\n\n\n%d %d\n",face_r->index,face_r->bc);
-print_diff_const_Multiarray_d(num_flux_i->bv_r.s,    num_flux_i_cmplx_step->bv_r.s,    tol);
-print_diff_const_Multiarray_d(num_flux_i->bv_r.ds_ds,num_flux_i_cmplx_step->bv_r.ds_ds,tol);
-print_const_Multiarray_d(num_flux_i->bv_r.ds_ds);
-print_const_Multiarray_d(num_flux_i_cmplx_step->bv_r.ds_ds);
+print_diff_const_Multiarray_d(num_flux_i->bv_r.g,    num_flux_i_cmplx_step->bv_r.g,    tol);
+print_diff_const_Multiarray_d(num_flux_i->bv_r.dg_dg,num_flux_i_cmplx_step->bv_r.dg_dg,tol);
+//print_const_Multiarray_d(num_flux_i->bv_r.dg_dg);
+//print_const_Multiarray_d(num_flux_i_cmplx_step->bv_r.dg_dg);
 #endif
 
 
@@ -215,11 +231,29 @@ void destructor_Boundary_Value_c_data
 	(struct Numerical_Flux_Input_c* num_flux_i ///< See brief.
 	);
 
+void constructor_Numerical_Flux_Input_data_with_gradients
+	(struct Numerical_Flux_Input*const num_flux_i, const struct Solver_Face*const s_face,
+	 const struct Simulation*const sim)
+{
+	const struct Test_Case*const test_case = (struct Test_Case*)sim->test_case_rc->tc;
+
+	constructor_Boundary_Value_Input_face_fptr
+		constructor_Boundary_Value_Input_face_fcl = test_case->constructor_Boundary_Value_Input_face_fcl;
+	if (test_case->has_2nd_order) {
+		if (constructor_Boundary_Value_Input_face_fcl == constructor_Boundary_Value_Input_face_s_fcl_interp)
+			constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_sg_fcl_interp;
+	}
+
+	constructor_Boundary_Value_Input_face_fcl(&num_flux_i->bv_l,s_face,sim);                // destructed
+	s_face->constructor_Boundary_Value_fcl(&num_flux_i->bv_r,&num_flux_i->bv_l,s_face,sim); // destructed
+}
+
 static struct Numerical_Flux_Input* constructor_Numerical_Flux_Input_cmplx_step
 	(const struct Solver_Face*const s_face_r, const struct Solver_Face_c*const s_face_c, struct Simulation* sim[2])
 {
 	struct Numerical_Flux_Input* num_flux_i = constructor_Numerical_Flux_Input(sim[0]); // returned
-	constructor_Numerical_Flux_Input_data(num_flux_i,s_face_r,sim[0]); // destructed
+
+	constructor_Numerical_Flux_Input_data_with_gradients(num_flux_i,s_face_r,sim[0]); // destructed
 
 	struct mutable_Boundary_Value* m_boundary_value = (struct mutable_Boundary_Value*) &num_flux_i->bv_r;
 	set_to_zero_Boundary_Value(m_boundary_value,num_flux_i);
@@ -227,9 +261,9 @@ static struct Numerical_Flux_Input* constructor_Numerical_Flux_Input_cmplx_step
 	struct Numerical_Flux_Input_c* num_flux_i_c = constructor_Numerical_Flux_Input_c(sim[1]); // destructed
  	constructor_Numerical_Flux_Input_c_data_members_l(num_flux_i_c,num_flux_i); // destructed
 
-	const bool* compute_member = num_flux_i->bv_l.compute_member;
+	const bool* c_m = num_flux_i->bv_l.compute_member;
 
-	struct Multiarray_c* s = (struct Multiarray_c*) num_flux_i_c->bv_l.s;
+	struct Multiarray_c*const s = (struct Multiarray_c*) num_flux_i_c->bv_l.s;
 	const ptrdiff_t n_n  = s->extents[0],
 	                n_vr = s->extents[1];
 
@@ -239,7 +273,7 @@ static struct Numerical_Flux_Input* constructor_Numerical_Flux_Input_cmplx_step
 		constructor_Boundary_Value_c_data(num_flux_i_c,s_face_c,sim[1]); // destructed
 
 		// s[NVAR]
-		assert(compute_member[0] == true);
+		assert(c_m[0] == true);
 		if (vr == 0) {
 			const double complex*const data_c = get_col_const_Multiarray_c(0,num_flux_i_c->bv_r.s);
 			double*const data_r               = get_col_Multiarray_d(0,m_boundary_value->s);
@@ -248,7 +282,7 @@ static struct Numerical_Flux_Input* constructor_Numerical_Flux_Input_cmplx_step
 		}
 
 		// ds_ds[NVAR,NVAR]
-		if (compute_member[1]) {
+		if (c_m[1]) {
 			for (int vr_r = 0; vr_r < n_vr; ++vr_r) {
 				const ptrdiff_t ind_c = vr_r,
 				                ind_r = vr_r+n_vr*(vr);
@@ -264,9 +298,43 @@ static struct Numerical_Flux_Input* constructor_Numerical_Flux_Input_cmplx_step
 		add_to_c(data_s,-CX_STEP*I,n_n);
 	}
 
-	// ds_dg
-	if (compute_member[2])
-		EXIT_ADD_SUPPORT; // Should be in a loop with perturbation over g.
+	struct Multiarray_c*const g = (struct Multiarray_c*) num_flux_i_c->bv_l.g;
+
+	if (c_m[2]) {
+	for (int dx = 0; dx < DIM; ++dx) {
+	for (int vr = 0; vr < n_vr; ++vr) {
+		double complex*const data_g = get_col_Multiarray_c(vr+n_vr*(dx),g);
+		add_to_c(data_g,CX_STEP*I,n_n);
+		constructor_Boundary_Value_c_data(num_flux_i_c,s_face_c,sim[1]); // destructed
+
+		// g[NVAR,DIM]
+		if (c_m[2] && vr == 0) {
+			const double complex*const data_c = get_col_const_Multiarray_c(0+n_vr*dx,num_flux_i_c->bv_r.g);
+			double*const data_r               = get_col_Multiarray_d(0+n_vr*dx,m_boundary_value->g);
+			for (int n = 0; n < n_n*n_vr; ++n)
+				data_r[n] = creal(data_c[n]);
+		}
+
+		// dg_dg[NVAR,NVAR]
+		if (c_m[3]) {
+			for (int dx_r = 0; dx_r < DIM; ++dx_r) {
+			for (int vr_r = 0; vr_r < n_vr; ++vr_r) {
+				const ptrdiff_t ind_c = vr_r+n_vr*dx_r,
+				                ind_r = vr_r+n_vr*(dx_r+DIM*(vr+n_vr*(dx)));
+
+				const double complex*const data_c = get_col_const_Multiarray_c(ind_c,num_flux_i_c->bv_r.g);
+				double*const data_r               = get_col_Multiarray_d(ind_r,m_boundary_value->dg_dg);
+				for (int n = 0; n < n_n; ++n)
+					data_r[n] = cimag(data_c[n])/CX_STEP;
+			}}
+		}
+
+		assert(!c_m[4]); // Add support.
+		assert(!c_m[5]); // Add support.
+
+		destructor_Boundary_Value_c_data(num_flux_i_c);
+		add_to_c(data_g,-CX_STEP*I,n_n);
+	}}}
 
  	destructor_Numerical_Flux_Input_c_data_members_l(num_flux_i_c);
 	destructor_Numerical_Flux_Input_c(num_flux_i_c);
@@ -285,10 +353,14 @@ static void set_to_zero_Boundary_Value
 		set_to_value_Multiarray_d(m_boundary_value->s,0.0);
 	if (c_m[1])
 		set_to_value_Multiarray_d(m_boundary_value->ds_ds,0.0);
-	if (c_m[2])
+	if (c_m[2]) {
+		assert(m_boundary_value->g != NULL);
 		set_to_value_Multiarray_d(m_boundary_value->g,0.0);
-	if (c_m[3])
-		EXIT_ADD_SUPPORT;
+	}
+	if (c_m[3]) {
+		assert(m_boundary_value->dg_dg != NULL);
+		set_to_value_Multiarray_d(m_boundary_value->dg_dg,0.0);
+	}
 	if (c_m[4])
 		EXIT_ADD_SUPPORT;
 	if (c_m[5])
@@ -301,6 +373,8 @@ static void constructor_Numerical_Flux_Input_c_data_members_l
 	num_flux_c_i->bv_l.normals = constructor_copy_const_Multiarray_d(num_flux_i->bv_l.normals);
 	num_flux_c_i->bv_l.xyz     = constructor_copy_const_Multiarray_d(num_flux_i->bv_l.xyz);
 	num_flux_c_i->bv_l.s       = constructor_copy_const_Multiarray_c_Multiarray_d(num_flux_i->bv_l.s);
+	if (num_flux_i->bv_l.g)
+		num_flux_c_i->bv_l.g = constructor_copy_const_Multiarray_c_Multiarray_d(num_flux_i->bv_l.g);
 }
 
 static void destructor_Numerical_Flux_Input_c_data_members_l (struct Numerical_Flux_Input_c*const num_flux_c_i)
@@ -308,6 +382,7 @@ static void destructor_Numerical_Flux_Input_c_data_members_l (struct Numerical_F
 	destructor_const_Multiarray_d(num_flux_c_i->bv_l.normals);
 	destructor_const_Multiarray_d(num_flux_c_i->bv_l.xyz);
 	destructor_const_Multiarray_c(num_flux_c_i->bv_l.s);
+	destructor_conditional_const_Multiarray_c(num_flux_c_i->bv_l.g);
 }
 
 void constructor_Boundary_Value_c_data

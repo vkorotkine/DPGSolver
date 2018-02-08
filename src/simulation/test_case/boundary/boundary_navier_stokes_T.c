@@ -19,8 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 #include <math.h>
+#include <float.h>
 
 #include "macros.h"
+#include "definitions_bc.h"
 #include "definitions_core.h"
 #include "definitions_physics.h"
 
@@ -54,11 +56,19 @@ typedef const Type* (*compute_uvw_ex_fptr)
 
 /// \brief Container for data relating to the exact values on the domain boundary.
 struct Exact_Boundary_Data {
-	Real rho, ///< Exact boundary density.
-	     E;   ///< Exact boundary total energy.
+	Real rho,  ///< Exact boundary density.
+	     E,    ///< Exact boundary total 'e'nergy.
+	     nfEv; ///< Exact boundary 'n'ormal 'v'iscous 'f'lux for the total 'e'nergy equation.
 
 	compute_uvw_ex_fptr compute_uvw_ex; ///< Pointer to function computing the exact velocities on the boundary.
 };
+
+/** \brief Return the statically allocated \ref Exact_Boundary_Data container.
+ *  \return See brief. */
+static struct Exact_Boundary_Data get_Exact_Boundary_Data
+	(const int viscous_bc_type,        ///< The type of viscous boundary condition.
+	 const struct Simulation*const sim ///< \ref Simulation.
+	);
 
 /** \brief Version of \ref constructor_Boundary_Value_fptr_T computing members using the exact values for all variables
  *         and interpolated values for all gradients on a wall.
@@ -102,6 +112,9 @@ void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_adiabatic
 	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* s_face,
 	 const struct Simulation* sim)
 {
+	struct Exact_Boundary_Data eb_data = get_Exact_Boundary_Data(DIABATIC_FLUX_CONSTANT_ZERO,sim);
+printf("%f\n",eb_data.nfEv);
+UNUSED(eb_data);
 	EXIT_ADD_SUPPORT; UNUSED(bv); UNUSED(bv_i); UNUSED(s_face); UNUSED(sim);
 }
 
@@ -109,11 +122,43 @@ void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic
 	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* s_face,
 	 const struct Simulation* sim)
 {
+	struct Exact_Boundary_Data eb_data = get_Exact_Boundary_Data(DIABATIC_FLUX_CONSTANT,sim);
+UNUSED(eb_data);
 	EXIT_ADD_SUPPORT; UNUSED(bv); UNUSED(bv_i); UNUSED(s_face); UNUSED(sim);
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+/** \brief Read/set the required solution data of the \ref Exact_Boundary_Data container (assumes: zero velocity,
+ *         diabatic boundary). */
+static void read_and_set_data_diabatic_flux
+	(const char*const input_path,              ///< Defined in \ref fopen_input.
+	 struct Exact_Boundary_Data*const eb_data, ///< \ref Exact_Boundary_Data.
+	 const bool is_adiabatic                   ///< Flag for whether the boundary is adiabatic.
+	);
+
+static struct Exact_Boundary_Data get_Exact_Boundary_Data (const int viscous_bc_type, const struct Simulation*const sim)
+{
+	static bool need_input = true;
+
+	static struct Exact_Boundary_Data eb_data;
+	if (need_input) {
+		need_input = false;
+		switch (viscous_bc_type) {
+		case DIABATIC_FLUX_CONSTANT_ZERO:
+			read_and_set_data_diabatic_flux(sim->input_path,&eb_data,true);
+			break;
+		case DIABATIC_FLUX_CONSTANT:
+			read_and_set_data_diabatic_flux(sim->input_path,&eb_data,false);
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",viscous_bc_type);
+			break;
+		}
+	}
+	return eb_data;
+}
 
 static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
 	(struct Boundary_Value_T*const bv, const struct Boundary_Value_Input_T*const bv_i,
@@ -198,4 +243,97 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
 	assert(c_m[3] == false);
 	assert(c_m[4] == false);
 	assert(c_m[5] == false);
+}
+
+// Level 1 ********************************************************************************************************** //
+
+/// \brief Subset of read_and_set_data_diabatic_flux reading values to set \ref Exact_Boundary_Data::nfEv.
+static void set_data_nfEv
+	(const char*const input_path,              ///< See brief.
+	 struct Exact_Boundary_Data*const eb_data, ///< See brief.
+	 const bool is_adiabatic                   ///< See brief.
+	);
+
+/** \brief Version of \ref compute_uvw_ex_fptr imposing zero velocity.
+ *  \return See brief. */
+static const Type* compute_uvw_ex_zero
+	(const Real xyz[DIM],
+	 const struct Exact_Boundary_Data*const eb_data
+	);
+
+static void read_and_set_data_diabatic_flux
+	(const char*const input_path, struct Exact_Boundary_Data*const eb_data, const bool is_adiabatic)
+{
+	const int count_to_find = 1;
+	int count_found = 0;
+
+	FILE* input_file = NULL;
+	char line[STRLEN_MAX];
+
+	int diabatic_flux_type = VISCOUS_BC_INVALID;
+
+	input_file = fopen_input(input_path,'s',NULL); // closed
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_convert_const_i(line,"diabatic_flux_type",&diabatic_flux_type,&count_found);
+	}
+	fclose(input_file);
+
+	if (count_found != count_to_find)
+		EXIT_ERROR("Did not find the required number of variables");
+
+	switch (diabatic_flux_type) {
+	case DIABATIC_FLUX_CONSTANT:
+		set_data_nfEv(input_path,eb_data,is_adiabatic);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",diabatic_flux_type);
+		break;
+	}
+
+	eb_data->compute_uvw_ex = compute_uvw_ex_zero;
+}
+
+// Level 2 ********************************************************************************************************** //
+
+static void set_data_nfEv
+	(const char*const input_path, struct Exact_Boundary_Data*const eb_data, const bool is_adiabatic)
+{
+	const int count_to_find = 5;
+	int count_found = 0;
+
+	char line[STRLEN_MAX];
+
+	int viscosity_type = VISCOSITY_INVALID;
+	Real Pr   = DBL_MAX,
+	     r_s  = DBL_MAX,
+	     mu   = DBL_MAX,
+	     dTdn = DBL_MAX;
+
+	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_convert_i(line,"viscosity_type",&viscosity_type,&count_found);
+
+		read_skip_string_count_d("Pr",  &count_found,line,&Pr);
+		read_skip_string_count_d("r_s", &count_found,line,&r_s);
+		read_skip_string_count_d("mu",  &count_found,line,&mu);
+		read_skip_string_count_d("dTdn",&count_found,line,&dTdn);
+	}
+	fclose(input_file);
+
+	if (count_found != count_to_find)
+		EXIT_ERROR("Did not find the required number of variables");
+
+	assert(viscosity_type == VISCOSITY_CONSTANT); // Otherwise constant dTdn still results in varying nfEv.
+
+	const Real Cp = compute_cp_ideal_gas(r_s);
+	eb_data->nfEv = -mu*Cp/Pr*dTdn;
+
+	assert(!is_adiabatic || eb_data->nfEv == 0.0);
+}
+
+static const Type* compute_uvw_ex_zero (const Real xyz[DIM], const struct Exact_Boundary_Data*const eb_data)
+{
+	UNUSED(xyz); UNUSED(eb_data);
+	static const Type uvw[DIM] = {0,};
+	return uvw;
 }

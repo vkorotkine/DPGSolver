@@ -59,7 +59,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #define BC_NOSLIP_ADIABATIC    111
 #define BC_NOSLIP_DIABATIC     112
 #define BC_NOSLIP_ALL_ROTATING 113
+
 ///\}
 
+///\{ \name Options for specialized viscous boundary conditions.
+#define VISCOUS_BC_INVALID 101 ///< Invalid value for this set of options.
+
+#define DIABATIC_FLUX_CONSTANT_ZERO 201 ///< Constant value (equal to 0.0) for the viscous energy flux.
+#define DIABATIC_FLUX_CONSTANT      202 ///< Constant value for the viscous energy flux.
+
+#define NO_SLIP_ROTATING 301 ///< Obtain the no-slip conditions using the angular velocity of a rotating cylinder.
+
+#define NO_SLIP_ALL_PT 401 ///< Obtain all of the remaining no-slip BCs from the 'P'ressure and 'T'emperature.
+///\}
 
 #endif // DPG__definitions_bc_h__INCLUDED

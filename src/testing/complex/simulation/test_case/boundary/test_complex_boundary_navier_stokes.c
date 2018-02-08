@@ -22,7 +22,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "complex_vector.h"
 #include "multiarray.h"
 
+#include "file_processing.h"
 #include "simulation.h"
+#include "solution_navier_stokes.h"
 #include "test_case.h"
 
 #include "test_complex_test_case.h"

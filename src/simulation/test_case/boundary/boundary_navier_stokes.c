@@ -21,7 +21,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "boundary.h"
+#include "file_processing.h"
 #include "simulation.h"
+#include "solution_navier_stokes.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //

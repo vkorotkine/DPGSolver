@@ -32,11 +32,9 @@ You should have received a copy of the GNU General Public License along with DPG
 bool equal_T (const Type x0, const Type x1, const Real tol)
 {
 #if TYPE_RC == TYPE_REAL
-	if ((fabs(x0) < tol && fabs(x0-x1) < tol) ||
-	    (fabs((x0-x1)/x0) < tol))
+	if ((fabs(x0) < tol && fabs(x0-x1) < tol) || (fabs((x0-x1)/x0) < tol))
 #elif TYPE_RC == TYPE_COMPLEX
-	if (((fabs(creal(x0)) < tol && fabs(creal(x0-x1)) < tol) && (fabs(cimag(x0)) < tol && fabs(cimag(x0-x1)) < tol)) ||
-	    ((fabs(creal(x0-x1)/creal(x0)) < tol) && (fabs(cimag(x0-x1)/cimag(x0)) < tol)))
+	if (equal_R(creal(x0),creal(x1),tol) && equal_R(cimag(x0),cimag(x1),tol))
 #endif
 		return true;
 	return false;

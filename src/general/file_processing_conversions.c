@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_alloc.h"
+#include "definitions_bc.h"
 #include "definitions_dpg.h"
 #include "definitions_geometry.h"
 #include "definitions_physics.h"
@@ -114,9 +115,20 @@ static int get_define (const char*const def_str, const char*const def_type)
 		else if (strcmp(def_str,"sutherland") == 0) def_i = VISCOSITY_SUTHERLAND;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"diabatic_flux_type") == 0) {
+		if      (strcmp(def_str,"constant") == 0) def_i = DIABATIC_FLUX_CONSTANT;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"no_slip_type") == 0) {
+		if      (strcmp(def_str,"rotating") == 0) def_i = NO_SLIP_ROTATING;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"no_slip_all_type") == 0) {
+		if      (strcmp(def_str,"pressure_temperature") == 0) def_i = NO_SLIP_ALL_PT;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",def_type);
 	}
-
 	return def_i;
 }
