@@ -36,12 +36,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #if DIM == 1
 	#define SUM_DIM(a,b,c) ((a))
 	#define TENSOR_DIM(a0,a1,a2,b0,b1,b2,c0,c1,c2) { {(a0),}, }
+	#define ARRAY_VAR(a,b,c,d,e) { (a), (b), (e), }
 #elif DIM == 2
 	#define SUM_DIM(a,b,c) ((a)+(b))
 	#define TENSOR_DIM(a0,a1,a2,b0,b1,b2,c0,c1,c2) { {(a0),(a1),}, {(b0),(b1),}, }
+	#define ARRAY_VAR(a,b,c,d,e) { (a), (b), (c), (e), }
 #elif DIM == 3
 	#define SUM_DIM(a,b,c) ((a)+(b)+(c))
 	#define TENSOR_DIM(a0,a1,a2,b0,b1,b2,c0,c1,c2) { {(a0),(a1),(a2),}, {(b0),(b1),(b2),}, {(c0),(c1),(c2),}, }
+	#define ARRAY_VAR(a,b,c,d,e) { (a), (b), (c), (d), (e), }
 #endif
 ///\}
 
@@ -95,20 +98,6 @@ typedef const Type* (*compute_dmu_ds_fptr)
 	 const Type E
 	);
 
-/** \brief Pointer to functions computing the Jacobian of the viscosity wrt the solution gradients.
- *
- *  \param input_path \ref Flux_Input_T::input_path.
- *  \param rho        The density.
- *  \param rhouvw     The xyz momentum components.
- *  \param E          The total energy.
- */
-typedef const Type*const* (*compute_dmu_dg_fptr)
-	(const char*const input_path,
-	 const Type rho,
-	 const Type*const rhouvw,
-	 const Type E
-	);
-
 /// \brief Container for partial derivatives wrt the solution and gradient terms for a scalar quantity.
 struct Partials_Scalar {
 	Type d0;               ///< 0th order derivative (i.e. the scalar value).
@@ -132,33 +121,12 @@ struct Partials_Tensor {
 
 /// \brief Container for common data used to compute the fluxes and their Jacobians/Hessians.
 struct Flux_Data_Navier_Stokes {
-	Type rho, ///< The density.
-	     E,   ///< The total energy.
-	     Pr;  ///< The Prandtl Number.
+	Type Pr; ///< The Prandtl Number.
 
-/// \todo Name change when done replacing with structs.
-	const struct Partials_Scalar* mu_P; ///< Partial derivatives for the viscosity.
-
-//	const struct Partials_Vector* uvw; ///< Partial derivatives for the velocity.
-
-
-	Type rho_inv, ///< The inverse density.
-	     mu;      ///< The viscosity.
-
-	const Type* rhouvw, ///< The momentum components.
-	          * uvw,    ///< The velocity components.
-	          * drho,   ///< The gradients of the density.
-	          * dTs;    ///< The gradients of the 's'caled 'T'emperature (T_s == P/(rho*(\gamma-1))).
-
-	const Type*const* drhouvw, ///< Gradients of the momentum components.
-	          *const* duvw,    ///< Gradients of the velocity components.
-	          *const* tau;     ///< Viscous stress tensor.
-
-
-	const char* input_path; ///< \ref Flux_Input_T::input_path.
-
-	compute_dmu_ds_fptr compute_dmu_ds; ///< \ref compute_dmu_ds_fptr.
-	compute_dmu_dg_fptr compute_dmu_dg; ///< \ref compute_dmu_dg_fptr.
+	const struct Partials_Scalar* mu_p;  ///< Partial derivatives for the viscosity.
+	const struct Partials_Vector* uvw_p, ///< Partial derivatives for the velocity components.
+	                            * dTs_p; ///< Partial derivatives for the scaled temperature gradients.
+	const struct Partials_Tensor* tau_p; ///< Partial derivatives for the viscous stress tensor.
 };
 
 /** \brief Return the pointer to the appropriate \ref compute_Flux_Navier_Stokes_fptr specialization based on the
@@ -166,6 +134,12 @@ struct Flux_Data_Navier_Stokes {
  *  \return See brief. */
 static compute_Flux_Navier_Stokes_fptr get_compute_Flux_Navier_Stokes_fptr
 	(const bool*const c_m ///< \ref Flux_Input_T::compute_member.
+	);
+
+/** \brief Check whether the viscosity is constant for the current test case.
+ *  \return `true` if yes; `false` otherwise. */
+static bool check_if_mu_is_const
+	(const char*const input_path ///< \ref Flux_Input_T::input_path.
 	);
 
 /** \brief Return the pointer to the appropriate \ref compute_mu_fptr specialization based on the viscosity type.
@@ -180,12 +154,6 @@ static compute_dmu_ds_fptr get_compute_dmu_ds_fptr
 	(const char*const input_path ///< \ref Flux_Input_T::input_path.
 	);
 
-/** \brief Return the pointer to the appropriate \ref compute_dmu_dg_fptr specialization based on the viscosity type.
- *  \return See brief. */
-static compute_dmu_dg_fptr get_compute_dmu_dg_fptr
-	(const char*const input_path ///< \ref Flux_Input_T::input_path.
-	);
-
 /** \brief Return the 'Pr'andtl number for the current test case.
  *  \return See brief. */
 static Real compute_Pr
@@ -194,7 +162,7 @@ static Real compute_Pr
 
 /** \brief Return a statically allocated \ref Partials_Scalar for the viscosity.
  *  \return See brief. */
-static struct Partials_Scalar compute_mu_P
+static struct Partials_Scalar compute_mu_p
 	(const Type rho,             ///< The density.
 	 const Type*const rhouvw,    ///< The momentum components.
 	 const Type E,               ///< The total energy.
@@ -204,7 +172,7 @@ static struct Partials_Scalar compute_mu_P
 
 /** \brief Return a statically allocated \ref Partials_Vector for the velocities.
  *  \return See brief. */
-static struct Partials_Vector compute_uvw_P
+static struct Partials_Vector compute_uvw_p
 	(const Type rho_inv,      ///< The inverse density.
 	 const Type*const rhouvw, ///< The momentum components.
 	 const bool*const c_m     ///< Array of flags indicating members to be computed.
@@ -212,19 +180,33 @@ static struct Partials_Vector compute_uvw_P
 
 /** \brief Return a statically allocated \ref Partials_Tensor for the velocity gradients.
  *  \return See brief. */
-static struct Partials_Tensor compute_duvw_P
-	(const Type rho_inv,                     ///< The inverse density.
-	 const struct Partials_Vector*const uvw, ///< See \ref compute_uvw_P.
-	 const Type*const drho,                  ///< The density gradients.
-	 const Type*const*const drhouvw,         ///< The momentum gradients.
-	 const bool*const c_m                    ///< Array of flags indicating members to be computed.
+static struct Partials_Tensor compute_duvw_p
+	(const Type rho_inv,                       ///< The inverse density.
+	 const struct Partials_Vector*const uvw_p, ///< See \ref compute_uvw_p.
+	 const Type*const drho,                    ///< The density gradients.
+	 const Type*const*const drhouvw,           ///< The momentum gradients.
+	 const bool*const c_m                      ///< Array of flags indicating members to be computed.
 	);
 
-/** \brief Return a statically allocated variable holding the values of the viscous stress tensor.
+/** \brief Return a statically allocated \ref Partials_Tensor for the viscous stress tensor.
  *  \return See brief. */
-static const Type*const* compute_tau
-	(const Type mu,              ///< The viscosity.
-	 const Type*const*const duvw ///< The gradients of the velocity components.
+static struct Partials_Tensor compute_tau_p
+	(const struct Partials_Scalar*const mu_p,   ///< See \ref compute_mu_p.
+	 const struct Partials_Tensor*const duvw_p, ///< See \ref compute_duvw_p.
+	 const bool*const c_m,                      ///< Array of flags indicating members to be computed.
+	 const bool mu_is_const                     ///< Flag indicating whether the viscosity is constant.
+	);
+/** \brief Return a statically allocated \ref Partials_Vector for the scaled Temperature (Ts == P/(rho*(\gamma-1)))
+ *         gradients.
+ *  \return See brief. */
+static struct Partials_Vector compute_dTs_p
+	(const Type rho,                            ///< The density.
+	 const Type E,                              ///< The total energy.
+	 const Type*const drho,                     ///< The density gradients.
+	 const Type*const dE,                       ///< The total energy gradients.
+	 const struct Partials_Vector*const uvw_p,  ///< See \ref compute_uvw_p.
+	 const struct Partials_Tensor*const duvw_p, ///< See \ref compute_duvw_p.
+	 const bool*const c_m                       ///< Array of flags indicating members to be computed.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -264,6 +246,9 @@ void compute_Flux_T_navier_stokes (const struct Flux_Input_T* flux_i, struct mut
 /// \todo Set `compute_flux_navier_stokes_n ` as a member of \ref Flux_Input_T and initialize in the constructor.
 	compute_Flux_Navier_Stokes_fptr compute_flux_navier_stokes_n = get_compute_Flux_Navier_Stokes_fptr(c_m);
 
+	const char*const input_path = flux_i->input_path;
+	const bool mu_is_const = check_if_mu_is_const(input_path);
+
 	assert(c_m[0]);
 	Type* f_ptr[DIM*NEQ] = { NULL };
 	struct Multiarray_T*const f = flux->f;
@@ -273,11 +258,8 @@ void compute_Flux_T_navier_stokes (const struct Flux_Input_T* flux_i, struct mut
 		f_ptr[ind] = get_col_Multiarray_T(ind,f);
 	}}
 
-	compute_dmu_ds_fptr compute_dmu_ds = NULL;
 	Type* dfds_ptr[DIM*NEQ*NVAR] = { NULL };
 	if (c_m[1]) {
-		compute_dmu_ds = get_compute_dmu_ds_fptr(flux_i->input_path);
-
 		struct Multiarray_T*const dfds = flux->df_ds;
 		for (int vr = 0; vr < NVAR; ++vr)  {
 		for (int eq = 0; eq < NEQ; ++eq)  {
@@ -287,11 +269,8 @@ void compute_Flux_T_navier_stokes (const struct Flux_Input_T* flux_i, struct mut
 		}}}
 	}
 
-	compute_dmu_dg_fptr compute_dmu_dg = NULL;
 	Type* dfdg_ptr[DIM*NEQ*NVAR*DIM] = { NULL };
 	if (c_m[2]) {
-		compute_dmu_dg = get_compute_dmu_dg_fptr(flux_i->input_path);
-
 		struct Multiarray_T*const dfdg = flux->df_dg;
 		for (int dg = 0; dg < DIM; ++dg) {
 		for (int vr = 0; vr < NVAR; ++vr)  {
@@ -306,7 +285,7 @@ void compute_Flux_T_navier_stokes (const struct Flux_Input_T* flux_i, struct mut
 	assert(c_m[4] == false); // ADD_SUPPORT;
 	assert(c_m[5] == false); // ADD_SUPPORT;
 
-	const Real Pr = compute_Pr(flux_i->input_path);
+	const Real Pr = compute_Pr(input_path);
 
 	const ptrdiff_t n_n = s->extents[0];
 	for (ptrdiff_t n = 0; n < n_n; ++n) {
@@ -314,66 +293,27 @@ void compute_Flux_T_navier_stokes (const struct Flux_Input_T* flux_i, struct mut
 		           E        = E_p[n],
 		           rhouvw[] = ARRAY_DIM( rhouvw_p[0][n], rhouvw_p[1][n], rhouvw_p[2][n] );
 
-		const Type drho[DIM] = ARRAY_DIM( drho_p[0][n],  drho_p[1][n],  drho_p[2][n]  ),
-		           dE[DIM]   = ARRAY_DIM( dE_p[0][n],    dE_p[1][n],    dE_p[2][n]    ),
+		const Type drho[DIM] = ARRAY_DIM( drho_p[0][n], drho_p[1][n], drho_p[2][n] ),
+		           dE[DIM]   = ARRAY_DIM( dE_p[0][n],   dE_p[1][n],   dE_p[2][n]   ),
 		           drhouvw_2[DIM][DIM] = TENSOR_DIM( drhou_p[0][n], drhou_p[1][n], drhou_p[2][n],
 		                                             drhov_p[0][n], drhov_p[1][n], drhov_p[2][n],
 		                                             drhow_p[0][n], drhow_p[1][n], drhow_p[2][n] ),
 		           *const drhouvw[DIM] = ARRAY_DIM( drhouvw_2[0], drhouvw_2[1], drhouvw_2[2] );
 
-		const Type rho_inv  = 1.0/rho,
-		           rho_inv2 = rho_inv*rho_inv;
-		const struct Partials_Scalar mu_P   = compute_mu_P(rho,rhouvw,E,c_m,flux_i->input_path);
-		const struct Partials_Vector uvw_P  = compute_uvw_P(rho_inv,rhouvw,c_m);
-		const struct Partials_Tensor duvw_P = compute_duvw_P(rho_inv,&uvw_P,drho,drhouvw,c_m);
-UNUSED(mu_P);
-EXIT_UNSUPPORTED;
+		const Type rho_inv  = 1.0/rho;
+		const struct Partials_Scalar mu_p   = compute_mu_p(rho,rhouvw,E,c_m,input_path);
+		const struct Partials_Vector uvw_p  = compute_uvw_p(rho_inv,rhouvw,c_m);
+		const struct Partials_Tensor duvw_p = compute_duvw_p(rho_inv,&uvw_p,drho,drhouvw,c_m),
+		                             tau_p  = compute_tau_p(&mu_p,&duvw_p,c_m,mu_is_const);
 
-		const Type *const uvw = uvw_P.d0;
-
-		const Type*const*const duvw = duvw_P.d0;
-
-//		const struct Partials_Scalar mu_p = compute_mu_(rho,rhouvw,E,c_m,flux_i->input_path);
-
-
-		const Type mu = mu_P.d0;
-		const Type*const*const tau = compute_tau(mu,duvw);
-
-		IF_DIM_GE_1( const Type u = uvw[0] );
-		IF_DIM_GE_2( const Type v = uvw[1] );
-		IF_DIM_GE_3( const Type w = uvw[2] );
-
-		IF_DIM_GE_1( const Type* du = duvw[0] );
-		IF_DIM_GE_2( const Type* dv = duvw[1] );
-		IF_DIM_GE_3( const Type* dw = duvw[2] );
-
-		const Type dE_o_rho[] = ARRAY_DIM( rho_inv2*(dE[0]*rho-E*drho[0]),
-		                                   rho_inv2*(dE[1]*rho-E*drho[1]),
-		                                   rho_inv2*(dE[2]*rho-E*drho[2]) );
-		const Type dV2[] = ARRAY_DIM( 2.0*SUM_DIM(u*du[0],v*dv[0],w*dw[0]),
-		                              2.0*SUM_DIM(u*du[1],v*dv[1],w*dw[1]),
-		                              2.0*SUM_DIM(u*du[2],v*dv[2],w*dw[2]) );
-		const Type dTs[] = ARRAY_DIM( dE_o_rho[0]-0.5*dV2[0], dE_o_rho[1]-0.5*dV2[1], dE_o_rho[2]-0.5*dV2[2] );
+		const struct Partials_Vector dTs_p  = compute_dTs_p(rho,E,drho,dE,&uvw_p,&duvw_p,c_m);
 
 		struct Flux_Data_Navier_Stokes flux_data =
-			{ .rho     = rho,
-			  .E       = E,
-			  .rho_inv = rho_inv,
-			  .mu  = mu,
-			  .Pr  = Pr,
-
-			  .drho    = drho,
-			  .rhouvw  = rhouvw,
-			  .uvw     = uvw,
-			  .dTs = dTs,
-
-			  .drhouvw = drhouvw,
-			  .duvw    = duvw,
-			  .tau     = tau,
-
-			  .input_path = flux_i->input_path,
-			  .compute_dmu_ds = compute_dmu_ds,
-			  .compute_dmu_dg = compute_dmu_dg,
+			{ .Pr    = Pr,
+			  .mu_p  = &mu_p,
+			  .uvw_p = &uvw_p,
+			  .dTs_p = &dTs_p,
+			  .tau_p = &tau_p,
 			};
 		compute_flux_navier_stokes_n(&flux_data,f_ptr,dfds_ptr,dfdg_ptr);
 	}
@@ -423,15 +363,6 @@ static const Type* compute_dmu_ds_constant
 	 const Type E                 ///< See brief.
 	);
 
-/** \brief Version of \ref compute_dmu_dg_fptr for constant viscosity.
- *  \return See brief. */
-static const Type*const* compute_dmu_dg_constant
-	(const char*const input_path, ///< See brief.
-	 const Type rho,              ///< See brief.
-	 const Type*const rhouvw,     ///< See brief.
-	 const Type E                 ///< See brief.
-	);
-
 /** \brief Version of \ref compute_mu_fptr using the Sutherland formula (eq. (1.56), \cite Toro2009).
  *  \return See brief. */
 static Type compute_mu_sutherland
@@ -474,6 +405,60 @@ static const Type*const*const* compute_dduvw_ds
 	 const Type*const*const duvw_ds  ///< \ref Flux_Data_Navier_Stokes::duvw_ds.
 	);
 
+/** \brief Return a statically allocated array holding the values of the velocity gradient Jacobians wrt the gradients.
+ *  \return See brief. */
+static const Type*const*const*const* compute_dduvw_dg
+	(const Type rho_inv,  ///< \ref Flux_Data_Navier_Stokes::rho_inv.
+	 const Type*const uvw ///< \ref Flux_Data_Navier_Stokes::uvw.
+	);
+
+/** \brief Return a statically allocated variable holding the values of the viscous stress tensor.
+ *  \return See brief. */
+static const Type*const* compute_tau
+	(const Type mu,              ///< The viscosity.
+	 const Type*const*const duvw ///< The gradients of the velocity components.
+	);
+
+/** \brief Return a statically allocated array holding the values of the viscous stress tensor Jacobians wrt the
+ *         solution.
+ *  \return See brief. */
+static const Type*const*const* compute_dtau_ds
+	(const struct Partials_Scalar*const mu_p,   ///< See \ref compute_mu_p.
+	 const struct Partials_Tensor*const duvw_p, ///< See \ref compute_duvw_p.
+	 const bool mu_is_const                     ///< Defined for \ref compute_tau_p.
+	);
+
+/** \brief Return a statically allocated array holding the values of the viscous stress tensor Jacobians wrt the
+ *         gradient.
+ *  \return See brief. */
+static const Type*const*const*const* compute_dtau_dg
+	(const struct Partials_Scalar*const mu_p,  ///< See \ref compute_mu_p.
+	 const struct Partials_Tensor*const duvw_p ///< See \ref compute_duvw_p.
+	);
+
+/** \brief Return a statically allocated array holding the values of the scaled temperature gradients.
+ *  \return See brief. */
+static const Type* compute_dTs
+	(const Type rho,             ///< See \ref compute_dTs_p.
+	 const Type E,               ///< See \ref compute_dTs_p.
+	 const Type*const uvw,       ///< See \ref compute_dTs_p.
+	 const Type*const drho,      ///< See \ref compute_dTs_p.
+	 const Type*const dE,        ///< See \ref compute_dTs_p.
+	 const Type*const*const duvw ///< See \ref compute_dTs_p.
+	);
+
+/** \brief Return a statically allocated array holding the values of the scaled temperature gradient Jacobians wrt the
+ *         solution.
+ *  \return See brief. */
+static const Type*const* compute_ddTs_ds
+	(const Type rho,                           ///< See \ref compute_dTs_p.
+	 const Type E,                             ///< See \ref compute_dTs_p.
+	 const Type*const drho,                    ///< See \ref compute_dTs_p.
+	 const Type*const dE,                      ///< See \ref compute_dTs_p.
+	 const struct Partials_Vector*const uvw_p, ///< See \ref compute_dTs_p.
+	 const struct Partials_Tensor*const duvw_p ///< See \ref compute_dTs_p.
+	);
+
 static compute_Flux_Navier_Stokes_fptr get_compute_Flux_Navier_Stokes_fptr (const bool*const c_m)
 {
 	assert(c_m[0]);
@@ -485,6 +470,25 @@ static compute_Flux_Navier_Stokes_fptr get_compute_Flux_Navier_Stokes_fptr (cons
 	} else {
 		return compute_Flux_Navier_Stokes_100;
 	}
+}
+
+static bool check_if_mu_is_const (const char*const input_path)
+{
+	static int viscosity_type = VISCOSITY_INVALID;
+	static bool need_input = true;
+	set_viscosity_type(input_path,&viscosity_type,&need_input);
+
+	switch (viscosity_type) {
+	case VISCOSITY_CONSTANT:
+		return true;
+		break;
+	case VISCOSITY_SUTHERLAND:
+		return false;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d.",viscosity_type);
+		break;
+	};
 }
 
 static compute_mu_fptr get_compute_mu_fptr (const char*const input_path)
@@ -508,19 +512,6 @@ static compute_dmu_ds_fptr get_compute_dmu_ds_fptr (const char*const input_path)
 
 	switch (viscosity_type) {
 		case VISCOSITY_CONSTANT:   return compute_dmu_ds_constant;                break;
-		case VISCOSITY_SUTHERLAND: EXIT_ADD_SUPPORT;                              break;
-		default:                   EXIT_ERROR("Unsupported: %d.",viscosity_type); break;
-	};
-}
-
-static compute_dmu_dg_fptr get_compute_dmu_dg_fptr (const char*const input_path)
-{
-	static int viscosity_type = VISCOSITY_INVALID;
-	static bool need_input = true;
-	set_viscosity_type(input_path,&viscosity_type,&need_input);
-
-	switch (viscosity_type) {
-		case VISCOSITY_CONSTANT:   return compute_dmu_dg_constant;                break;
 		case VISCOSITY_SUTHERLAND: EXIT_ADD_SUPPORT;                              break;
 		default:                   EXIT_ERROR("Unsupported: %d.",viscosity_type); break;
 	};
@@ -550,7 +541,7 @@ static Real compute_Pr (const char*const input_path)
 	return Pr;
 }
 
-static struct Partials_Scalar compute_mu_P
+static struct Partials_Scalar compute_mu_p
 	(const Type rho, const Type*const rhouvw, const Type E, const bool*const c_m, const char*const input_path)
 {
 	static struct Partials_Scalar ps;
@@ -566,12 +557,7 @@ static struct Partials_Scalar compute_mu_P
 		ps.d1s = NULL;
 	}
 
-	if (c_m[2]) {
-		compute_dmu_dg_fptr compute_dmu_dg = get_compute_dmu_dg_fptr(input_path);
-		ps.d1g = compute_dmu_dg(input_path,rho,rhouvw,E);
-	} else {
-		ps.d1g = NULL;
-	}
+	ps.d1g = NULL; // All zeros.
 
 	assert(c_m[3] == false); // ADD_SUPPORT;
 	assert(c_m[4] == false); // ADD_SUPPORT;
@@ -580,14 +566,14 @@ static struct Partials_Scalar compute_mu_P
 	return ps;
 }
 
-static struct Partials_Vector compute_uvw_P
+static struct Partials_Vector compute_uvw_p
 	(const Type rho_inv, const Type*const rhouvw, const bool*const c_m)
 {
 	static struct Partials_Vector pv;
 
 	pv.d0  = compute_uvw(rho_inv,rhouvw);
 	pv.d1s = ( c_m[1] ? compute_duvw_ds(rho_inv,pv.d0) : NULL );
-	assert(c_m[2] == false); // ADD_SUPPORT;
+	pv.d1g = NULL; // All zeroes.
 
 	assert(c_m[3] == false); // ADD_SUPPORT;
 	assert(c_m[4] == false); // ADD_SUPPORT;
@@ -596,45 +582,55 @@ static struct Partials_Vector compute_uvw_P
 	return pv;
 }
 
-static struct Partials_Tensor compute_duvw_P
-	(const Type rho_inv, const struct Partials_Vector*const uvw, const Type*const drho,
+static struct Partials_Tensor compute_duvw_p
+	(const Type rho_inv, const struct Partials_Vector*const uvw_p, const Type*const drho,
 	 const Type*const*const drhouvw, const bool*const c_m)
 {
 	static struct Partials_Tensor pt;
 
-	pt.d0  = compute_duvw(rho_inv,uvw->d0,drho,drhouvw);
-	pt.d1s = ( c_m[1] ? compute_dduvw_ds(rho_inv,uvw->d0,drho,drhouvw,uvw->d1s) : NULL );
-	assert(c_m[2] == false); // ADD_SUPPORT;
+	pt.d0  = compute_duvw(rho_inv,uvw_p->d0,drho,drhouvw);
+	pt.d1s = ( c_m[1] ? compute_dduvw_ds(rho_inv,uvw_p->d0,drho,drhouvw,uvw_p->d1s) : NULL );
+	pt.d1g = ( c_m[2] ? compute_dduvw_dg(rho_inv,uvw_p->d0) : NULL );
 
 	assert(c_m[3] == false); // ADD_SUPPORT;
 	assert(c_m[4] == false); // ADD_SUPPORT;
 	assert(c_m[5] == false); // ADD_SUPPORT;
 
 	return pt;
-
 }
 
-static const Type*const* compute_tau (const Type mu, const Type*const*const duvw)
+static struct Partials_Tensor compute_tau_p
+	(const struct Partials_Scalar*const mu_p, const struct Partials_Tensor*const duvw_p, const bool*const c_m,
+	 const bool mu_is_const)
 {
-	IF_DIM_GE_1( const Type* du = duvw[0] );
-	IF_DIM_GE_2( const Type* dv = duvw[1] );
-	IF_DIM_GE_3( const Type* dw = duvw[2] );
+	static struct Partials_Tensor pt;
 
-	const Type divV = SUM_DIM(du[0],dv[1],dw[2]);
+	pt.d0  = compute_tau(mu_p->d0,duvw_p->d0);
+	pt.d1s = ( c_m[1] ? compute_dtau_ds(mu_p,duvw_p,mu_is_const) : NULL );
+	pt.d1g = ( c_m[2] ? compute_dtau_dg(mu_p,duvw_p) : NULL );
 
-	static Type tau[DIM][DIM] = {{0,}};
-	IF_DIM_GE_1( tau[0][0] = mu*2.0*(du[0]-divV/3.0) );
-	IF_DIM_GE_2( tau[0][1] = mu*(dv[0]+du[1]) );
-	IF_DIM_GE_3( tau[0][2] = mu*(dw[0]+du[2]) );
-	IF_DIM_GE_2( tau[1][0] = tau[0][1] );
-	IF_DIM_GE_2( tau[1][1] = mu*2.0*(dv[1]-divV/3.0) );
-	IF_DIM_GE_3( tau[1][2] = mu*(dw[1]+dv[2]) );
-	IF_DIM_GE_3( tau[2][0] = tau[0][2] );
-	IF_DIM_GE_3( tau[2][1] = tau[1][2] );
-	IF_DIM_GE_3( tau[2][2] = mu*2.0*(dw[2]-divV/3.0) );
+	assert(c_m[3] == false); // ADD_SUPPORT;
+	assert(c_m[4] == false); // ADD_SUPPORT;
+	assert(c_m[5] == false); // ADD_SUPPORT;
 
-	static const Type*const tau_array[DIM] = ARRAY_DIM( tau[0], tau[1], tau[2] );
-	return tau_array;
+	return pt;
+}
+
+static struct Partials_Vector compute_dTs_p
+	(const Type rho, const Type E, const Type*const drho, const Type*const dE,
+	 const struct Partials_Vector*const uvw_p, const struct Partials_Tensor*const duvw_p, const bool*const c_m)
+{
+	static struct Partials_Vector pv;
+
+	pv.d0  = compute_dTs(rho,E,uvw_p->d0,drho,dE,duvw_p->d0);
+	pv.d1s = ( c_m[1] ? compute_ddTs_ds(rho,E,drho,dE,uvw_p,duvw_p) : NULL );
+	assert(c_m[2] == false); // ADD_SUPPORT;
+
+	assert(c_m[3] == false); // ADD_SUPPORT;
+	assert(c_m[4] == false); // ADD_SUPPORT;
+	assert(c_m[5] == false); // ADD_SUPPORT;
+
+	return pv;
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -655,6 +651,20 @@ static void compute_Flux_navier_stokes_1s
 static void compute_Flux_navier_stokes_1g
 	(const struct Flux_Data_Navier_Stokes*const flux_data, ///< \ref Flux_Data_Navier_Stokes.
 	 Type*const dfdg_ptr[DIM*NEQ*NVAR*DIM]                 ///< Pointers to the flux Jacobian data.
+	);
+
+/** \brief Return a statically allocated array holding the values of the Jacobian of the velocity divergence wrt the
+ *         solution.
+ *  \return See brief. */
+static const Type* compute_ddivV_ds
+	(const Type*const*const*const dduvw_ds ///< \ref \ref Partials_Tensor::d1s for duvw.
+	);
+
+/** \brief Return a statically allocated array holding the values of the Jacobian of the velocity divergence wrt the
+ *         gradients.
+ *  \return See brief. */
+static const Type*const* compute_ddivV_dg
+	(const Type*const*const*const*const dduvw_dg ///< \ref \ref Partials_Tensor::d1g for duvw.
 	);
 
 static void compute_Flux_Navier_Stokes_100
@@ -731,21 +741,8 @@ static const Type* compute_dmu_ds_constant
 	(const char*const input_path, const Type rho, const Type*const rhouvw, const Type E)
 {
 	UNUSED(input_path); UNUSED(rho); UNUSED(rhouvw); UNUSED(E);
-
-	static const Type dmu_ds[NVAR] = { 0, };
+	static const Type dmu_ds[NVAR] = {0,};
 	return dmu_ds;
-}
-
-static const Type*const* compute_dmu_dg_constant
-	(const char*const input_path, const Type rho, const Type*const rhouvw, const Type E)
-{
-	UNUSED(input_path); UNUSED(rho); UNUSED(rhouvw); UNUSED(E);
-
-	static const Type dmu_dg[NVAR][DIM] = {{0,}};
-	static const Type* dmu_dg_array[NVAR] = {NULL,};
-	for (int vr = 0; vr < NVAR; ++vr)
-		dmu_dg_array[vr] = dmu_dg[vr];
-	return dmu_dg_array;
 }
 
 static Type compute_mu_sutherland (const char*const input_path, const Type rho, const Type*const rhouvw, const Type E)
@@ -830,21 +827,12 @@ static const Type*const* compute_duvw_ds (const Type rho_inv, const Type*const u
 static const Type*const* compute_duvw
 	(const Type rho_inv, const Type*const uvw, const Type*const drho, const Type*const*const drhouvw)
 {
-	IF_DIM_GE_1( const Type u = uvw[0] );
-	IF_DIM_GE_2( const Type v = uvw[1] );
-	IF_DIM_GE_3( const Type w = uvw[2] );
-
-	IF_DIM_GE_1( const Type*const drhou = drhouvw[0] );
-	IF_DIM_GE_2( const Type*const drhov = drhouvw[1] );
-	IF_DIM_GE_3( const Type*const drhow = drhouvw[2] );
-
 	static Type duvw[DIM][DIM] = {{0,}};
 
-	for (int d = 0; d < DIM; ++d) {
-		IF_DIM_GE_1( duvw[0][d] = rho_inv*(drhou[d]-drho[d]*u); )
-		IF_DIM_GE_2( duvw[1][d] = rho_inv*(drhov[d]-drho[d]*v); )
-		IF_DIM_GE_3( duvw[2][d] = rho_inv*(drhow[d]-drho[d]*w); )
-	}
+	for (int ds = 0; ds < DIM; ++ds) {
+	for (int dx = 0; dx < DIM; ++dx) {
+		duvw[ds][dx] = rho_inv*(drhouvw[ds][dx]-drho[dx]*uvw[ds]);
+	}}
 
 	static const Type*const duvw1[DIM] = ARRAY_DIM( duvw[0], duvw[1], duvw[2] );
 	return duvw1;
@@ -854,27 +842,16 @@ static const Type*const*const* compute_dduvw_ds
 	(const Type rho_inv, const Type*const uvw, const Type*const drho, const Type*const*const drhouvw,
 	 const Type*const*const duvw_ds)
 {
-	const Type drho_inv_ds[NVAR] = ARRAY_NVAR( -rho_inv*rho_inv, 0.0, 0.0, 0.0, 0.0 );
-	IF_DIM_GE_1( const Type u = uvw[0]; )
-	IF_DIM_GE_2( const Type v = uvw[1]; )
-	IF_DIM_GE_3( const Type w = uvw[2]; )
-
-	IF_DIM_GE_1( const Type*const drhou = drhouvw[0]; )
-	IF_DIM_GE_2( const Type*const drhov = drhouvw[1]; )
-	IF_DIM_GE_3( const Type*const drhow = drhouvw[2]; )
-
-	IF_DIM_GE_1( const Type*const du_ds = duvw_ds[0]; )
-	IF_DIM_GE_2( const Type*const dv_ds = duvw_ds[1]; )
-	IF_DIM_GE_3( const Type*const dw_ds = duvw_ds[2]; )
+	const Type drho_inv_ds[NVAR] = ARRAY_VAR( -rho_inv*rho_inv, 0.0, 0.0, 0.0, 0.0 );
 
 	static Type dduvw_ds[DIM][DIM][NVAR] = {{{0,}}};
 
-	for (int d = 0; d < DIM; ++d) {
+	for (int ds = 0; ds < DIM; ++ds) {
+	for (int dx = 0; dx < DIM; ++dx) {
 	for (int vr = 0; vr < NVAR; ++vr) {
-		IF_DIM_GE_1( dduvw_ds[0][d][vr] = drho_inv_ds[vr]*(drhou[d]-drho[d]*u) + rho_inv*(0.0-drho[d]*du_ds[vr]) );
-		IF_DIM_GE_2( dduvw_ds[1][d][vr] = drho_inv_ds[vr]*(drhov[d]-drho[d]*v) + rho_inv*(0.0-drho[d]*dv_ds[vr]) );
-		IF_DIM_GE_3( dduvw_ds[2][d][vr] = drho_inv_ds[vr]*(drhow[d]-drho[d]*w) + rho_inv*(0.0-drho[d]*dw_ds[vr]) );
-	}}
+		dduvw_ds[ds][dx][vr] = drho_inv_ds[vr]*(drhouvw[ds][dx]-drho[dx]*uvw[ds])
+		                     + rho_inv*(0.0-drho[dx]*duvw_ds[ds][vr]);
+	}}}
 
 	static const Type*const dduvw_ds2[DIM][DIM] = TENSOR_DIM( dduvw_ds[0][0], dduvw_ds[0][1], dduvw_ds[0][2],
 	                                                          dduvw_ds[1][0], dduvw_ds[1][1], dduvw_ds[1][2],
@@ -884,30 +861,243 @@ static const Type*const*const* compute_dduvw_ds
 	return duvw_ds1;
 }
 
-// Level 2 ********************************************************************************************************** //
+static const Type*const*const*const* compute_dduvw_dg (const Type rho_inv, const Type*const uvw)
+{
+	static Type dduvw_dg[DIM][DIM][DIM][NVAR];
 
-/** \brief Return a statically allocated array holding the values of the viscous stress tensor Jacobians wrt the
- *         solution.
- *  \return See brief. */
+	for (int ds = 0; ds < DIM; ++ds) {
+	for (int dx = 0; dx < DIM; ++dx) {
+	for (int dg = 0; dg < DIM; ++dg) {
+	for (int vr = 0; vr < NVAR; ++vr) {
+		const Type ddrhouvw_dg = ( (vr == ds && dg == dx) ? 1.0 : 0.0 ),
+		           ddrho_dg    = ( (vr == 0  && dg == dx) ? 1.0 : 0.0 );
+		dduvw_dg[ds][dx][dg][vr] = rho_inv*(ddrhouvw_dg-ddrho_dg*uvw[ds]);
+	}}}}
+
+	static const Type* dduvw_dg_3[DIM][DIM][DIM];
+	static const Type*const* dduvw_dg_2[DIM][DIM];
+	static const Type*const*const* dduvw_dg_1[DIM];
+
+	static bool needs_set = true;
+	if (needs_set) {
+		needs_set = false;
+		for (int ds = 0; ds < DIM; ++ds) {
+			for (int dx = 0; dx < DIM; ++dx) {
+				for (int dg = 0; dg < DIM; ++dg) {
+					dduvw_dg_3[ds][dx][dg] = dduvw_dg[ds][dx][dg];
+				}
+				dduvw_dg_2[ds][dx] = dduvw_dg_3[ds][dx];
+			}
+			dduvw_dg_1[ds] = dduvw_dg_2[ds];
+		}
+	}
+	return dduvw_dg_1;
+}
+
+static const Type*const* compute_tau (const Type mu, const Type*const*const duvw)
+{
+	IF_DIM_GE_1( const Type* du = duvw[0] );
+	IF_DIM_GE_2( const Type* dv = duvw[1] );
+	IF_DIM_GE_3( const Type* dw = duvw[2] );
+
+	const Type divV = SUM_DIM(du[0],dv[1],dw[2]);
+
+	static Type tau[DIM][DIM] = {{0,}};
+	IF_DIM_GE_1( tau[0][0] = mu*2.0*(du[0]-divV/3.0) );
+	IF_DIM_GE_2( tau[0][1] = mu*(dv[0]+du[1]) );
+	IF_DIM_GE_3( tau[0][2] = mu*(dw[0]+du[2]) );
+	IF_DIM_GE_2( tau[1][0] = tau[0][1] );
+	IF_DIM_GE_2( tau[1][1] = mu*2.0*(dv[1]-divV/3.0) );
+	IF_DIM_GE_3( tau[1][2] = mu*(dw[1]+dv[2]) );
+	IF_DIM_GE_3( tau[2][0] = tau[0][2] );
+	IF_DIM_GE_3( tau[2][1] = tau[1][2] );
+	IF_DIM_GE_3( tau[2][2] = mu*2.0*(dw[2]-divV/3.0) );
+
+	static const Type*const tau_array[DIM] = ARRAY_DIM( tau[0], tau[1], tau[2] );
+	return tau_array;
+}
+
 static const Type*const*const* compute_dtau_ds
-	(const Type mu,                        ///< \ref Flux_Data_Navier_Stokes::mu.
-	 const Type*const*const duvw,          ///< \ref Flux_Data_Navier_Stokes::duvw.
-	 const Type*const dmu_ds,              ///< \ref Flux_Data_Navier_Stokes::dmu_ds.
-	 const Type*const*const*const dduvw_ds ///< \ref Flux_Data_Navier_Stokes::dduvw_ds.
-	);
+	(const struct Partials_Scalar*const mu_p, const struct Partials_Tensor*const duvw_p, const bool mu_is_const)
+{
+	const Type mu           = mu_p->d0;
+	const Type*const dmu_ds = mu_p->d1s;
+
+	IF_DIM_GE_1( const Type*const*const ddu_ds = duvw_p->d1s[0]; )
+	IF_DIM_GE_2( const Type*const*const ddv_ds = duvw_p->d1s[1]; )
+	IF_DIM_GE_3( const Type*const*const ddw_ds = duvw_p->d1s[2]; )
+
+	const Type*const ddivV_ds = compute_ddivV_ds(duvw_p->d1s);
+
+	static Type dtau_ds[DIM][DIM][NVAR] = {{{0,}}};
+
+	for (int vr = 0; vr < NVAR; ++vr) {
+		IF_DIM_GE_1( dtau_ds[0][0][vr] = mu*2.0*(ddu_ds[0][vr]-ddivV_ds[vr]/3.0) );
+		IF_DIM_GE_2( dtau_ds[0][1][vr] = mu*(ddv_ds[0][vr]+ddu_ds[1][vr])        );
+		IF_DIM_GE_3( dtau_ds[0][2][vr] = mu*(ddw_ds[0][vr]+ddu_ds[2][vr])        );
+		IF_DIM_GE_2( dtau_ds[1][1][vr] = mu*2.0*(ddv_ds[1][vr]-ddivV_ds[vr]/3.0) );
+		IF_DIM_GE_3( dtau_ds[1][2][vr] = mu*(ddw_ds[1][vr]+ddv_ds[2][vr])        );
+		IF_DIM_GE_3( dtau_ds[2][2][vr] = mu*2.0*(ddw_ds[2][vr]-ddivV_ds[vr]/3.0) );
+	}
+
+	if (!mu_is_const) {
+		IF_DIM_GE_1( const Type* du = duvw_p->d0[0] );
+		IF_DIM_GE_2( const Type* dv = duvw_p->d0[1] );
+		IF_DIM_GE_3( const Type* dw = duvw_p->d0[2] );
+		const Type divV = SUM_DIM(du[0],dv[1],dw[2]);
+
+		for (int vr = 0; vr < NVAR; ++vr) {
+			IF_DIM_GE_1( dtau_ds[0][0][vr] += dmu_ds[vr]*2.0*(du[0]-divV/3.0) );
+			IF_DIM_GE_2( dtau_ds[0][1][vr] += dmu_ds[vr]*(dv[0]+du[1])        );
+			IF_DIM_GE_3( dtau_ds[0][2][vr] += dmu_ds[vr]*(dw[0]+du[2])        );
+			IF_DIM_GE_2( dtau_ds[1][1][vr] += dmu_ds[vr]*2.0*(dv[1]-divV/3.0) );
+			IF_DIM_GE_3( dtau_ds[1][2][vr] += dmu_ds[vr]*(dw[1]+dv[2])        );
+			IF_DIM_GE_3( dtau_ds[2][2][vr] += dmu_ds[vr]*2.0*(dw[2]-divV/3.0) );
+		}
+	}
+
+	for (int vr = 0; vr < NVAR; ++vr) {
+		IF_DIM_GE_2( dtau_ds[1][0][vr] = dtau_ds[0][1][vr] );
+		IF_DIM_GE_3( dtau_ds[2][0][vr] = dtau_ds[0][2][vr] );
+		IF_DIM_GE_3( dtau_ds[2][1][vr] = dtau_ds[1][2][vr] );
+	}
+
+	static const Type*const dtau_ds2[DIM][DIM] = TENSOR_DIM( dtau_ds[0][0], dtau_ds[0][1], dtau_ds[0][2],
+	                                                         dtau_ds[1][0], dtau_ds[1][1], dtau_ds[1][2],
+	                                                         dtau_ds[2][0], dtau_ds[2][1], dtau_ds[2][2] );
+
+	static const Type*const*const dtau_ds1[DIM] = ARRAY_DIM( dtau_ds2[0], dtau_ds2[1], dtau_ds2[2] );
+	return dtau_ds1;
+}
+
+static const Type*const*const*const* compute_dtau_dg
+	(const struct Partials_Scalar*const mu_p, const struct Partials_Tensor*const duvw_p)
+{
+	const Type mu = mu_p->d0;
+	assert(mu_p->d1g == NULL); // Add support.
+
+	IF_DIM_GE_1( const Type*const*const*const ddu_dg = duvw_p->d1g[0]; )
+	IF_DIM_GE_2( const Type*const*const*const ddv_dg = duvw_p->d1g[1]; )
+	IF_DIM_GE_3( const Type*const*const*const ddw_dg = duvw_p->d1g[2]; )
+
+	const Type*const*const ddivV_dg = compute_ddivV_dg(duvw_p->d1g);
+
+	static Type dtau_dg[DIM][DIM][DIM][NVAR];
+
+	for (int dg = 0; dg < DIM; ++dg) {
+	for (int vr = 0; vr < NVAR; ++vr) {
+		IF_DIM_GE_1( dtau_dg[0][0][dg][vr] = mu*2.0*(ddu_dg[0][dg][vr]-ddivV_dg[dg][vr]/3.0) );
+		IF_DIM_GE_2( dtau_dg[0][1][dg][vr] = mu*(ddv_dg[0][dg][vr]+ddu_dg[1][dg][vr])        );
+		IF_DIM_GE_3( dtau_dg[0][2][dg][vr] = mu*(ddw_dg[0][dg][vr]+ddu_dg[2][dg][vr])        );
+		IF_DIM_GE_2( dtau_dg[1][1][dg][vr] = mu*2.0*(ddv_dg[1][dg][vr]-ddivV_dg[dg][vr]/3.0) );
+		IF_DIM_GE_3( dtau_dg[1][2][dg][vr] = mu*(ddw_dg[1][dg][vr]+ddv_dg[2][dg][vr])        );
+		IF_DIM_GE_3( dtau_dg[2][2][dg][vr] = mu*2.0*(ddw_dg[2][dg][vr]-ddivV_dg[dg][vr]/3.0) );
+	}}
+
+	for (int dg = 0; dg < DIM; ++dg) {
+	for (int vr = 0; vr < NVAR; ++vr) {
+		IF_DIM_GE_2( dtau_dg[1][0][dg][vr] = dtau_dg[0][1][dg][vr] );
+		IF_DIM_GE_3( dtau_dg[2][0][dg][vr] = dtau_dg[0][2][dg][vr] );
+		IF_DIM_GE_3( dtau_dg[2][1][dg][vr] = dtau_dg[1][2][dg][vr] );
+	}}
+
+
+	static const Type* dtau_dg_3[DIM][DIM][DIM];
+	static const Type*const* dtau_dg_2[DIM][DIM];
+	static const Type*const*const* dtau_dg_1[DIM];
+
+	static bool needs_set = true;
+	if (needs_set) {
+		needs_set = false;
+		for (int ds = 0; ds < DIM; ++ds) {
+			for (int dx = 0; dx < DIM; ++dx) {
+				for (int dg = 0; dg < DIM; ++dg) {
+					dtau_dg_3[ds][dx][dg] = dtau_dg[ds][dx][dg];
+				}
+				dtau_dg_2[ds][dx] = dtau_dg_3[ds][dx];
+			}
+			dtau_dg_1[ds] = dtau_dg_2[ds];
+		}
+	}
+	return dtau_dg_1;
+}
+
+static const Type* compute_dTs
+	(const Type rho, const Type E, const Type*const uvw, const Type*const drho, const Type*const dE,
+	 const Type*const*const duvw)
+{
+	const Type rho_inv  = 1.0/rho;
+	const Type rho_inv2 = rho_inv*rho_inv;
+
+	IF_DIM_GE_1( const Type u = uvw[0] );
+	IF_DIM_GE_2( const Type v = uvw[1] );
+	IF_DIM_GE_3( const Type w = uvw[2] );
+
+	IF_DIM_GE_1( const Type* du = duvw[0] );
+	IF_DIM_GE_2( const Type* dv = duvw[1] );
+	IF_DIM_GE_3( const Type* dw = duvw[2] );
+
+	static Type dTs[DIM];
+	for (int d = 0; d < DIM; ++d) {
+		const Type dE_o_rho = rho_inv2*(dE[d]*rho-E*drho[d]),
+		           dV2      = 2.0*SUM_DIM( u*du[d],v*dv[d],w*dw[d] );
+		dTs[d] = dE_o_rho-0.5*dV2;
+	}
+
+	return dTs;
+}
+
+static const Type*const* compute_ddTs_ds
+	(const Type rho, const Type E, const Type*const drho, const Type*const dE,
+	 const struct Partials_Vector*const uvw_p, const struct Partials_Tensor*const duvw_p)
+{
+	const Type rho_inv  = 1.0/rho;
+	const Type rho_inv2 = rho_inv*rho_inv;
+
+	IF_DIM_GE_1( const Type u = uvw_p->d0[0] );
+	IF_DIM_GE_2( const Type v = uvw_p->d0[1] );
+	IF_DIM_GE_3( const Type w = uvw_p->d0[2] );
+
+	IF_DIM_GE_1( const Type*const du = duvw_p->d0[0] );
+	IF_DIM_GE_2( const Type*const dv = duvw_p->d0[1] );
+	IF_DIM_GE_3( const Type*const dw = duvw_p->d0[2] );
+
+	IF_DIM_GE_1( const Type*const du_ds = uvw_p->d1s[0] );
+	IF_DIM_GE_2( const Type*const dv_ds = uvw_p->d1s[1] );
+	IF_DIM_GE_3( const Type*const dw_ds = uvw_p->d1s[2] );
+
+	IF_DIM_GE_1( const Type*const*const ddu_ds = duvw_p->d1s[0] );
+	IF_DIM_GE_2( const Type*const*const ddv_ds = duvw_p->d1s[1] );
+	IF_DIM_GE_3( const Type*const*const ddw_ds = duvw_p->d1s[2] );
+
+	static Type ddTs_ds[DIM][NVAR];
+	for (int d = 0; d < DIM; ++d) {
+	for (int vr = 0; vr < NVAR; ++vr) {
+		const Type drho_inv2_ds = ( vr == 0      ? -2.0*rho_inv*rho_inv2 : 0.0 ),
+		           drho_ds      = ( vr == 0      ? 1.0 : 0.0 ),
+		           dE_ds        = ( vr == NVAR-1 ? 1.0 : 0.0 );
+		const Type dE_o_rho_ds = drho_inv2_ds*(dE[d]*rho-E*drho[d])
+		                       + rho_inv2*(dE[d]*drho_ds-dE_ds*drho[d]),
+		           dV2_ds      = 2.0*SUM_DIM( du_ds[vr]*du[d]+u*ddu_ds[d][vr],
+		                                      dv_ds[vr]*dv[d]+v*ddv_ds[d][vr],
+		                                      dw_ds[vr]*dw[d]+w*ddw_ds[d][vr] );
+		ddTs_ds[d][vr] = dE_o_rho_ds-0.5*dV2_ds;
+	}}
+
+	static const Type*const ddTs_ds1[DIM] = ARRAY_DIM( ddTs_ds[0], ddTs_ds[1], ddTs_ds[2] );
+	return ddTs_ds1;
+}
+
+// Level 2 ********************************************************************************************************** //
 
 static void compute_Flux_navier_stokes_0
 	(const struct Flux_Data_Navier_Stokes*const flux_data, Type*const f_ptr[DIM*NEQ])
 {
-	IF_DIM_GE_1( const Type u = flux_data->uvw[0]; )
-	IF_DIM_GE_2( const Type v = flux_data->uvw[1]; )
-	IF_DIM_GE_3( const Type w = flux_data->uvw[2]; )
-
-	const Type*const dTs = flux_data->dTs;
-	const Type*const*const tau = flux_data->tau;
-
-	const Type mu = flux_data->mu,
-	           Pr = flux_data->Pr;
+	const Type Pr = flux_data->Pr;
+	const Type mu = flux_data->mu_p->d0;
+	const Type*const uvw = flux_data->uvw_p->d0;
+	const Type*const dTs = flux_data->dTs_p->d0;
+	const Type*const*const tau = flux_data->tau_p->d0;
 
 	int ind = 0;
 
@@ -934,45 +1124,25 @@ static void compute_Flux_navier_stokes_0
 
 	// f[:,4]
 	for (int d = 0; d < DIM; ++d)
-		*f_ptr[ind++] -= GAMMA/Pr*mu*dTs[d] + SUM_DIM( u*tau[d][0],v*tau[d][1],w*tau[d][2] );
+		*f_ptr[ind++] -= GAMMA/Pr*mu*dTs[d] + SUM_DIM( uvw[0]*tau[d][0],uvw[1]*tau[d][1],uvw[2]*tau[d][2] );
 }
 
 static void compute_Flux_navier_stokes_1s
 	(const struct Flux_Data_Navier_Stokes*const flux_data, Type*const dfds_ptr[DIM*NEQ*NVAR])
 {
-	const Type rho     = flux_data->rho,
-	           E       = flux_data->E,
-	           rho_inv = flux_data->rho_inv,
-	           mu = flux_data->mu,
-	           Pr = flux_data->Pr,
 
-	          *const drho   = flux_data->drho,
-	          *const rhouvw = flux_data->rhouvw,
-	          *const uvw = flux_data->uvw,
-	          *const dTs = flux_data->dTs,
+	const Type Pr = flux_data->Pr;
+	const Type mu           = flux_data->mu_p->d0,
+	          *const dmu_ds = flux_data->mu_p->d1s;
 
-	          *const*const drhouvw = flux_data->drhouvw,
-	          *const*const duvw    = flux_data->duvw,
-	          *const*const tau     = flux_data->tau;
+	const Type*const uvw           = flux_data->uvw_p->d0,
+	          *const*const duvw_ds = flux_data->uvw_p->d1s;
 
+	const Type*const dTs           = flux_data->dTs_p->d0,
+	          *const*const ddTs_ds = flux_data->dTs_p->d1s;
 
-
-	IF_DIM_GE_1( const Type u = uvw[0]; )
-	IF_DIM_GE_2( const Type v = uvw[1]; )
-	IF_DIM_GE_3( const Type w = uvw[2]; )
-
-	const Type*const*const duvw_ds = compute_duvw_ds(rho_inv,uvw);
-	const Type*const*const*const dduvw_ds = compute_dduvw_ds(rho_inv,uvw,drho,drhouvw,duvw_ds);
-
-	const Type*const dmu_ds = flux_data->compute_dmu_ds(flux_data->input_path,rho,rhouvw,E);
-	const Type*const*const*const dtau_ds = compute_dtau_ds(mu,duvw,dmu_ds,dduvw_ds);
-	const Type*const*const dTs_ds = NULL;
-
-	IF_DIM_GE_1( const Type*const du_ds = duvw_ds[0]; )
-	IF_DIM_GE_2( const Type*const dv_ds = duvw_ds[1]; )
-	IF_DIM_GE_3( const Type*const dw_ds = duvw_ds[2]; )
-UNUSED(dduvw_ds);
-EXIT_ADD_SUPPORT;
+	const Type*const*const tau           = flux_data->tau_p->d0,
+	          *const*const*const dtau_ds = flux_data->tau_p->d1s;
 
 	int ind = 0;
 
@@ -1001,10 +1171,10 @@ EXIT_ADD_SUPPORT;
 
 		// dfds[:,4,vr]
 		for (int d = 0; d < DIM; ++d) {
-			*dfds_ptr[ind++] -= GAMMA/Pr*( dmu_ds[vr]*dTs[d] + mu*dTs_ds[d][vr] )
-		                         + SUM_DIM( du_ds[vr]*tau[d][0] + u*dtau_ds[d][0][vr],
-		                                    dv_ds[vr]*tau[d][1] + v*dtau_ds[d][1][vr],
-		                                    dw_ds[vr]*tau[d][2] + w*dtau_ds[d][2][vr] );
+			*dfds_ptr[ind++] -= GAMMA/Pr*( dmu_ds[vr]*dTs[d] + mu*ddTs_ds[d][vr] )
+			                  + SUM_DIM( duvw_ds[0][vr]*tau[d][0] + uvw[0]*dtau_ds[d][0][vr],
+			                             duvw_ds[1][vr]*tau[d][1] + uvw[1]*dtau_ds[d][1][vr],
+			                             duvw_ds[2][vr]*tau[d][2] + uvw[2]*dtau_ds[d][2][vr] );
 		}
 	}
 }
@@ -1015,54 +1185,9 @@ static void compute_Flux_navier_stokes_1g
 	EXIT_ADD_SUPPORT; UNUSED(flux_data); UNUSED(dfdg_ptr);
 
 	// Note the warning concerning the use of negated fluxes in \ref compute_Flux_T_navier_stokes. Using "-=" below.
+
+//
 }
-
-// Level 3 ********************************************************************************************************** //
-
-/** \brief Return a statically allocated array holding the values of the Jacobian of the velocity divergence wrt the
- *         solution.
- *  \return See brief. */
-static const Type* compute_ddivV_ds
-	(const Type*const*const*const dduvw_ds ///< \ref Flux_Data_Navier_Stokes::dduvw_ds.
-	);
-
-static const Type*const*const* compute_dtau_ds
-	(const Type mu, const Type*const*const duvw, const Type*const dmu_ds, const Type*const*const*const dduvw_ds)
-{
-	IF_DIM_GE_1( const Type* du = duvw[0] );
-	IF_DIM_GE_2( const Type* dv = duvw[1] );
-	IF_DIM_GE_3( const Type* dw = duvw[2] );
-
-	IF_DIM_GE_1( const Type*const*const ddu_ds = dduvw_ds[0]; )
-	IF_DIM_GE_2( const Type*const*const ddv_ds = dduvw_ds[1]; )
-	IF_DIM_GE_3( const Type*const*const ddw_ds = dduvw_ds[2]; )
-
-	const Type divV = SUM_DIM(du[0],dv[1],dw[2]);
-	const Type*const ddivV_ds = compute_ddivV_ds(dduvw_ds);
-
-	static Type dtau_ds[DIM][DIM][NVAR] = {{{0,}}};
-
-	for (int vr = 0; vr < NVAR; ++vr) {
-		IF_DIM_GE_1( dtau_ds[0][0][vr] = dmu_ds[vr]*2.0*(du[0]-divV/3.0) + mu*2.0*(ddu_ds[0][vr]-ddivV_ds[vr]/3.0) );
-		IF_DIM_GE_2( dtau_ds[0][1][vr] = dmu_ds[vr]*(dv[0]+du[1])        + mu*(ddv_ds[0][vr]+ddu_ds[1][vr])        );
-		IF_DIM_GE_3( dtau_ds[0][2][vr] = dmu_ds[vr]*(dw[0]+du[2])        + mu*(ddw_ds[0][vr]+ddu_ds[2][vr])        );
-		IF_DIM_GE_2( dtau_ds[1][0][vr] = dtau_ds[0][1][vr] );
-		IF_DIM_GE_2( dtau_ds[1][1][vr] = dmu_ds[vr]*2.0*(dv[1]-divV/3.0) + mu*2.0*(ddv_ds[1][vr]-ddivV_ds[vr]/3.0) );
-		IF_DIM_GE_3( dtau_ds[1][2][vr] = dmu_ds[vr]*(dw[1]+dv[2])        + mu*(ddw_ds[1][vr]+ddv_ds[2][vr]) );
-		IF_DIM_GE_3( dtau_ds[2][0][vr] = dtau_ds[0][2][vr] );
-		IF_DIM_GE_3( dtau_ds[2][1][vr] = dtau_ds[1][2][vr] );
-		IF_DIM_GE_3( dtau_ds[2][2][vr] = dmu_ds[vr]*2.0*(dw[2]-divV/3.0) + mu*2.0*(ddw_ds[2][vr]-ddivV_ds[vr]/3.0) );
-	}
-
-	static const Type*const dtau_ds2[DIM][DIM] = TENSOR_DIM( dtau_ds[0][0], dtau_ds[0][1], dtau_ds[0][2],
-	                                                         dtau_ds[1][0], dtau_ds[1][1], dtau_ds[1][2],
-	                                                         dtau_ds[2][0], dtau_ds[2][1], dtau_ds[2][2] );
-
-	static const Type*const*const dtau_ds1[DIM] = ARRAY_DIM( dtau_ds2[0], dtau_ds2[1], dtau_ds2[2] );
-	return dtau_ds1;
-}
-
-// Level 4 ********************************************************************************************************** //
 
 static const Type* compute_ddivV_ds (const Type*const*const*const dduvw_ds)
 {
@@ -1076,5 +1201,21 @@ static const Type* compute_ddivV_ds (const Type*const*const*const dduvw_ds)
 		ddivV_ds[vr] = SUM_DIM( ddu_ds[0][vr], ddv_ds[1][vr], ddw_ds[2][vr] );
 
 	return ddivV_ds;
+}
 
+static const Type*const* compute_ddivV_dg (const Type*const*const*const*const dduvw_dg)
+{
+	IF_DIM_GE_1( const Type*const*const*const ddu_dg = dduvw_dg[0] );
+	IF_DIM_GE_2( const Type*const*const*const ddv_dg = dduvw_dg[1] );
+	IF_DIM_GE_3( const Type*const*const*const ddw_dg = dduvw_dg[2] );
+
+	static Type ddivV_dg[DIM][NVAR];
+
+	for (int dg = 0; dg < DIM; ++dg) {
+	for (int vr = 0; vr < NVAR; ++vr) {
+		ddivV_dg[dg][vr] = SUM_DIM( ddu_dg[0][dg][vr], ddv_dg[1][dg][vr], ddw_dg[2][dg][vr] );
+	}}
+
+	static const Type*const ddivV_dg_1[DIM] = ARRAY_DIM( ddivV_dg[0], ddivV_dg[1], ddivV_dg[2] );
+	return ddivV_dg_1;
 }
