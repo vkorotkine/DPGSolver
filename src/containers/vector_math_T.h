@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides Vector_\* math functions.
  */
 
+#include <stdbool.h>
+
 struct Vector_T;
 struct Vector_R;
 struct const_Vector_T;
@@ -83,5 +85,6 @@ void dot_mult_Vector_RT
 void set_to_sum_Vector_T
 	(const char sum_dir,                    ///< The direction in which to sum.
 	 const struct const_Matrix_T*const src, ///< The source matrix.
-	 struct Vector_T*const dest             ///< The destination vector.
+	 struct Vector_T*const dest,            ///< The destination vector.
+	 const bool zero_initial                ///< Flag for whether the initial data should be zero'ed.
 	);

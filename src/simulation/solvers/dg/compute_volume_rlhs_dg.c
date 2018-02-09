@@ -40,18 +40,26 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Version of \ref compute_rlhs_dg_fptr_T computing the rhs and lhs terms for 1st order equations only.
 static void compute_rlhs_1
-	(const struct Flux_Ref* flux_r,       ///< See brief.
-	 struct DG_Solver_Volume* dg_s_vol,   ///< See brief.
-	 struct Solver_Storage_Implicit* ssi, ///< See brief.
-	 const struct Simulation* sim         ///< See brief.
+	(const struct Flux_Ref*const flux_r,       ///< See brief.
+	 struct DG_Solver_Volume*const dg_s_vol,   ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi, ///< See brief.
+	 const struct Simulation*const sim         ///< See brief.
 	);
 
 /// \brief Version of \ref compute_rlhs_dg_fptr_T computing the rhs and lhs terms for 2nd order equations only.
 static void compute_rlhs_2
-	(const struct Flux_Ref* flux_r,       ///< See brief.
-	 struct DG_Solver_Volume* dg_s_vol,   ///< See brief.
-	 struct Solver_Storage_Implicit* ssi, ///< See brief.
-	 const struct Simulation* sim         ///< See brief.
+	(const struct Flux_Ref*const flux_r,       ///< See brief.
+	 struct DG_Solver_Volume*const dg_s_vol,   ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi, ///< See brief.
+	 const struct Simulation*const sim         ///< See brief.
+	);
+
+/// \brief Version of \ref compute_rlhs_dg_fptr_T computing the rhs and lhs terms for both 1st and 2nd order equations.
+static void compute_rlhs_12
+	(const struct Flux_Ref*const flux_r,       ///< See brief.
+	 struct DG_Solver_Volume*const dg_s_vol,   ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi, ///< See brief.
+	 const struct Simulation*const sim         ///< See brief.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -62,12 +70,56 @@ static void compute_rlhs_2
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/// \brief Add the volume contribution to the rhs term.
-static void add_to_vol_rhs
-	(const struct Flux_Ref* flux_r,     ///< Defined for \ref compute_rlhs_dg_fptr_T.
-	 struct DG_Solver_Volume* dg_s_vol, ///< Defined for \ref compute_rlhs_dg_fptr_T.
-	 const struct Simulation* sim       ///< Defined for \ref compute_rlhs_dg_fptr_T.
+/// \brief Version of \ref compute_rlhs_dg_fptr_T computing the rhs term.
+static void compute_rhs
+	(const struct Flux_Ref*const flux_r,     ///< See brief.
+	 struct DG_Solver_Volume*const dg_s_vol, ///< See brief.
+	 const struct Simulation*const sim       ///< See brief.
 	);
+
+/// \brief Version of \ref compute_rlhs_dg_fptr_T computing the lhs term for linearization wrt the solution.
+static void compute_lhs_1
+	(const struct Flux_Ref*const flux_r,       ///< See brief.
+	 struct DG_Solver_Volume*const dg_s_vol,   ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi, ///< See brief.
+	 const struct Simulation*const sim         ///< See brief.
+	);
+
+/** \brief Version of \ref compute_rlhs_dg_fptr_T computing the lhs term for linearization wrt the solution through the
+ *         solution gradients. */
+static void compute_lhs_2
+	(const struct Flux_Ref*const flux_r,       ///< See brief.
+	 struct DG_Solver_Volume*const dg_s_vol,   ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi, ///< See brief.
+	 const struct Simulation*const sim         ///< See brief.
+	);
+
+static void compute_rlhs_1
+	(const struct Flux_Ref*const flux_r, struct DG_Solver_Volume*const dg_s_vol,
+	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
+{
+	compute_rhs(flux_r,dg_s_vol,sim);
+	compute_lhs_1(flux_r,dg_s_vol,ssi,sim);
+}
+
+static void compute_rlhs_2
+	(const struct Flux_Ref*const flux_r, struct DG_Solver_Volume*const dg_s_vol,
+	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
+{
+	compute_rhs(flux_r,dg_s_vol,sim);
+	compute_lhs_2(flux_r,dg_s_vol,ssi,sim);
+}
+
+static void compute_rlhs_12
+	(const struct Flux_Ref*const flux_r, struct DG_Solver_Volume*const dg_s_vol,
+	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
+{
+	compute_rhs(flux_r,dg_s_vol,sim);
+	compute_lhs_1(flux_r,dg_s_vol,ssi,sim);
+	compute_lhs_2(flux_r,dg_s_vol,ssi,sim);
+}
+
+// Level 1 ********************************************************************************************************** //
 
 /** \brief Constructor for the 'r'ight 'p'artial contribution (d_g_coef__d_s_coef) to the lhs matrix for the 'i'nternal
  *         \ref Volume.
@@ -88,9 +140,25 @@ static void add_to_petsc_Mat_offdiagonal_volume_2
 	 const struct Simulation*const sim          ///< \ref Simulation.
 	);
 
-static void compute_rlhs_1
-	(const struct Flux_Ref* flux_r, struct DG_Solver_Volume* dg_s_vol, struct Solver_Storage_Implicit* ssi,
-	 const struct Simulation* sim)
+static void compute_rhs
+	(const struct Flux_Ref*const flux_r, struct DG_Solver_Volume*const dg_s_vol, const struct Simulation*const sim)
+{
+	UNUSED(sim);
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	const char op_format = 'd';
+
+	struct Solver_Volume* s_vol = (struct Solver_Volume*) dg_s_vol;
+	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
+
+	// rhs
+	for (ptrdiff_t dim = 0; dim < DIM; ++dim)
+		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vt_vc.data[dim],flux_r->fr,dg_s_vol->rhs,op_format,2,&dim,NULL);
+//print_Multiarray_d(dg_s_vol->rhs);
+}
+
+static void compute_lhs_1
+	(const struct Flux_Ref*const flux_r, struct DG_Solver_Volume*const dg_s_vol,
+	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
 {
 /// \todo Add special case for collocated.
 // If collocation is enabled, note that the diagonal weight scaling must be added back in to recover the symmetry of the
@@ -98,24 +166,17 @@ static void compute_rlhs_1
 // terms (volume, face, source or simply the complete rhs).
 assert(sim->collocated == false); // Add support in future.
 
-	// rhs
-	add_to_vol_rhs(flux_r,dg_s_vol,sim);
-
-	// lhs
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) dg_s_vol;
-	struct Matrix_d* lhs = constructor_lhs_v_1(flux_r,s_vol,sim); // destructed
+	struct Matrix_d*const lhs = constructor_lhs_v_1(flux_r,s_vol,sim); // destructed
 	set_petsc_Mat_row_col(ssi,s_vol,0,s_vol,0);
 	add_to_petsc_Mat(ssi,(struct const_Matrix_d*)lhs);
 	destructor_Matrix_d(lhs);
 }
 
-static void compute_rlhs_2
-	(const struct Flux_Ref* flux_r, struct DG_Solver_Volume* dg_s_vol, struct Solver_Storage_Implicit* ssi,
-	 const struct Simulation* sim)
+static void compute_lhs_2
+	(const struct Flux_Ref*const flux_r, struct DG_Solver_Volume*const dg_s_vol,
+	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
 {
-	// rhs
-	add_to_vol_rhs(flux_r,dg_s_vol,sim);
-
 	// lhs (dependence on sol through grad through the flux)
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) dg_s_vol;
 	const struct const_Matrix_d*const lhs_p_l =
@@ -143,23 +204,7 @@ print_const_Matrix_d(lhs_i);
 	destructor_const_Matrix_d(lhs_p_l);
 }
 
-// Level 1 ********************************************************************************************************** //
-
-static void add_to_vol_rhs
-	(const struct Flux_Ref*const flux_r, struct DG_Solver_Volume*const dg_s_vol, const struct Simulation*const sim)
-{
-	UNUSED(sim);
-	// sim may be used to store a parameter establishing which type of operator to use for the computation.
-	const char op_format = 'd';
-
-	struct Solver_Volume* s_vol = (struct Solver_Volume*) dg_s_vol;
-	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc(s_vol);
-
-	// rhs
-	for (ptrdiff_t dim = 0; dim < DIM; ++dim)
-		mm_NNC_Operator_Multiarray_d(1.0,1.0,tw1_vt_vc.data[dim],flux_r->fr,dg_s_vol->rhs,op_format,2,&dim,NULL);
-//print_Multiarray_d(dg_s_vol->rhs);
-}
+// Level 2 ********************************************************************************************************** //
 
 static const struct const_Matrix_d* constructor_lhs_p_r_internal
 	(const struct DG_Solver_Volume*const dg_s_vol, const struct Simulation*const sim)
@@ -189,8 +234,9 @@ static const struct const_Matrix_d* constructor_lhs_p_r_internal
 		const struct DG_Solver_Face*const dg_s_face = (struct DG_Solver_Face*) face;
 		const int s_ind = compute_side_index_face(face,vol);
 
-		assert(dg_s_face->neigh_info[s_ind].d_g_coef_f__d_s_coef[s_ind][0]->ext_0 == n_dof_g);
-		assert(dg_s_face->neigh_info[s_ind].d_g_coef_f__d_s_coef[s_ind][0]->ext_1 == n_dof_s);
+		const int mult = ( !face->boundary ? 1 : n_vr );
+		assert(dg_s_face->neigh_info[s_ind].d_g_coef_f__d_s_coef[s_ind][0]->ext_0 == n_dof_g*mult);
+		assert(dg_s_face->neigh_info[s_ind].d_g_coef_f__d_s_coef[s_ind][0]->ext_1 == n_dof_s*mult);
 		add_to_lhs_p_r(1.0,dg_s_face->neigh_info[s_ind].d_g_coef_f__d_s_coef[s_ind],lhs_p_r,face->boundary,sim);
 	}}
 

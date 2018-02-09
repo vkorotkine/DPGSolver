@@ -11,6 +11,7 @@
 # Executable and command line arguments
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_linearization
 ARGV="navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_DG_TRI__ml0__p2"
+ARGV="navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_DG_ParametricMixed2D__ml0__p1"
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_boundary_conditions
 ARGV="boundary_conditions_navier_stokes_2d_noslip_general/adiabatic integration/boundary_conditions/TEST_NavierStokes_NSGA_2d__ml0__p2"
 

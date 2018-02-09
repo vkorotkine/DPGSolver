@@ -254,7 +254,7 @@ struct Vector_T* constructor_sum_Vector_T_const_Matrix_T (const char sum_dir, co
 	const ptrdiff_t ext_0 = ( sum_dir == 'R' ? src->ext_1 : src->ext_0 );
 	struct Vector_T* dest = constructor_empty_Vector_T(ext_0); // returned
 
-	set_to_sum_Vector_T(sum_dir,src,dest);
+	set_to_sum_Vector_T(sum_dir,src,dest,true);
 
 	return dest;
 }

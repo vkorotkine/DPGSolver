@@ -49,13 +49,11 @@ struct Num_Flux_T;
 /** \brief Function pointer to the function used to scale by the face Jacobian.
  *
  *  \param num_flux \ref Numerical_Flux_T.
- *  \param face     \ref Face.
- *  \param sim      \ref Simulation.
+ *  \param s_face   \ref Solver_Face_T.
  */
 typedef void (*scale_by_Jacobian_fptr_T)
-	(const struct Numerical_Flux_T*const num_flux,
-	 struct Face*const face,
-	 const struct Simulation*const sim
+	(struct Numerical_Flux_T*const num_flux,
+	 const struct Solver_Face_T*const s_face
 	);
 
 /** \brief Function pointer to the function used to evaluate the rhs (and optionally lhs) terms.
@@ -66,10 +64,10 @@ typedef void (*scale_by_Jacobian_fptr_T)
  *  \param sim       \ref Simulation.
  */
 typedef void (*compute_rlhs_fptr_T)
-	(const struct Numerical_Flux_T* num_flux,
-	 struct DG_Solver_Face_T* dg_s_face,
-	 struct Solver_Storage_Implicit* s_store_i,
-	 const struct Simulation* sim
+	(const struct Numerical_Flux_T*const num_flux,
+	 struct DG_Solver_Face_T*const dg_s_face,
+	 struct Solver_Storage_Implicit*const s_store_i,
+	 const struct Simulation*const sim
 	);
 
 /// \brief Container for solver-related parameters.
@@ -130,7 +128,9 @@ void compute_face_rlhs_dg_T
 
 	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {
 		struct Face* face                  = (struct Face*) curr;
+		struct Solver_Face_T* s_face       = (struct Solver_Face_T*) curr;
 		struct DG_Solver_Face_T* dg_s_face = (struct DG_Solver_Face_T*) curr;
+UNUSED(face);
 //printf("face: %d\n",face->index);
 
 		constructor_Numerical_Flux_Input_data_dg_T(num_flux_i,dg_s_face,sim,has_2nd_order); // destructed
@@ -148,7 +148,7 @@ if (!face->boundary)
 	print_const_Multiarray_T(num_flux->neigh_info[1].dnnf_ds);
 #endif
 
-		s_params.scale_by_Jacobian(num_flux,face,sim);
+		s_params.scale_by_Jacobian(num_flux,s_face);
 #if 0
 print_const_Multiarray_T(num_flux->nnf);
 print_const_Multiarray_T(num_flux->neigh_info[0].dnnf_ds);
@@ -178,7 +178,6 @@ void compute_flux_imbalances_faces_dg_T (const struct Simulation*const sim)
 	struct Numerical_Flux_Input_T* num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		struct Face* face            = (struct Face*) curr;
 		struct Solver_Face_T* s_face = (struct Solver_Face_T*) curr;
 
 		constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed
@@ -186,7 +185,7 @@ void compute_flux_imbalances_faces_dg_T (const struct Simulation*const sim)
 		struct Numerical_Flux_T* num_flux = constructor_Numerical_Flux_T(num_flux_i); // destructed
 		destructor_Numerical_Flux_Input_data_T(num_flux_i);
 
-		s_params.scale_by_Jacobian(num_flux,face,sim);
+		s_params.scale_by_Jacobian(num_flux,s_face);
 
 		add_to_flux_imbalance(num_flux,s_face,sim);
 		destructor_Numerical_Flux_T(num_flux);
@@ -214,17 +213,16 @@ void constructor_Numerical_Flux_Input_data_dg_T
 
 /// \brief Scale \ref Numerical_Flux_T::nnf by the face Jacobian (i.e. only the explicit term).
 static void scale_by_Jacobian_e_T
-	(const struct Numerical_Flux_T* num_flux, ///< Defined for \ref scale_by_Jacobian_fptr_T.
-	 struct Face* face,                       ///< Defined for \ref scale_by_Jacobian_fptr_T.
-	 const struct Simulation* sim             ///< Defined for \ref scale_by_Jacobian_fptr_T.
+	(struct Numerical_Flux_T*const num_flux, ///< See brief.
+	 const struct Solver_Face_T*const s_face ///< See brief.
 	);
 
-/// \brief Compute only the rhs term.
+/// \brief Version of \ref compute_rlhs_fptr_T computing only the rhs term.
 static void compute_rhs_f_dg_T
-	(const struct Numerical_Flux_T* num_flux,   ///< Defined for \ref compute_rlhs_fptr_T.
-	 struct DG_Solver_Face_T* dg_s_face,        ///< Defined for \ref compute_rlhs_fptr_T.
-	 struct Solver_Storage_Implicit* s_store_i, ///< Defined for \ref compute_rlhs_fptr_T.
-	 const struct Simulation* sim               ///< Defined for \ref compute_rlhs_fptr_T.
+	(const struct Numerical_Flux_T*const num_flux,   ///< See brief.
+	 struct DG_Solver_Face_T*const dg_s_face,        ///< See brief.
+	 struct Solver_Storage_Implicit*const s_store_i, ///< See brief.
+	 const struct Simulation*const sim               ///< See brief.
 	);
 
 /** \brief Constructor for the partially corrected weak gradient interpolated to the face cubature nodes as seen from
@@ -255,7 +253,8 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 			s_params.scale_by_Jacobian = scale_by_Jacobian_i2;
 			s_params.compute_rlhs      = compute_rlhs_2;
 		} else if (test_case->has_1st_order && test_case->has_2nd_order) {
-			EXIT_ADD_SUPPORT; //s_params.compute_rlhs = compute_rlhs_12;
+			s_params.scale_by_Jacobian = scale_by_Jacobian_i12;
+			s_params.compute_rlhs      = compute_rlhs_12;
 		} else {
 			EXIT_ERROR("Unsupported: %d %d\n",test_case->has_1st_order,test_case->has_2nd_order);
 		}
@@ -308,10 +307,10 @@ static void constructor_Boundary_Value_g_face_fcl
 
 /// \brief Finalize the rhs term contribution from the \ref Face.
 static void finalize_face_rhs_dg_T
-	(const int side_index,                    ///< The index of the side of the face under consideration.
-	 const struct Numerical_Flux_T* num_flux, ///< Defined for \ref compute_rlhs_fptr_T.
-	 struct DG_Solver_Face_T* dg_s_face,      ///< Defined for \ref compute_rlhs_fptr_T.
-	 const struct Simulation* sim             ///< Defined for \ref compute_rlhs_fptr_T.
+	(const int side_index,                         ///< The index of the side of the face under consideration.
+	 const struct Numerical_Flux_T*const num_flux, ///< Defined for \ref compute_rlhs_fptr_T.
+	 struct DG_Solver_Face_T*const dg_s_face,      ///< Defined for \ref compute_rlhs_fptr_T.
+	 const struct Simulation*const sim             ///< Defined for \ref compute_rlhs_fptr_T.
 	);
 
 /** \brief Return the scaling for the face contribution to the weak gradient used to compute the numerical flux.
@@ -322,18 +321,15 @@ static Real compute_scaling_weak_gradient
 	);
 
 static void scale_by_Jacobian_e_T
-	(const struct Numerical_Flux_T* num_flux, struct Face* face, const struct Simulation* sim)
+	(struct Numerical_Flux_T*const num_flux, const struct Solver_Face_T*const s_face)
 {
-UNUSED(sim);
-	struct Solver_Face_T* s_face = (struct Solver_Face_T*)face;
-
 	const struct const_Vector_R jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
 	scale_Multiarray_T_by_Vector_R('L',1.0,(struct Multiarray_T*)num_flux->nnf,&jacobian_det_fc,false);
 }
 
 static void compute_rhs_f_dg_T
-	(const struct Numerical_Flux_T* num_flux, struct DG_Solver_Face_T* dg_s_face,
-	 struct Solver_Storage_Implicit* s_store_i, const struct Simulation* sim)
+	(const struct Numerical_Flux_T*const num_flux, struct DG_Solver_Face_T*const dg_s_face,
+	 struct Solver_Storage_Implicit*const s_store_i, const struct Simulation*const sim)
 {
 	UNUSED(s_store_i);
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_DG);
@@ -342,7 +338,6 @@ static void compute_rhs_f_dg_T
 	finalize_face_rhs_dg_T(0,num_flux,dg_s_face,sim);
 	if (!face->boundary) {
 		permute_Multiarray_T_fc((struct Multiarray_T*)num_flux->nnf,'R',1,(struct Solver_Face_T*)face);
-// Can remove both of the scalings (here and and finalize_face_rhs_dg_T).
 		scale_Multiarray_T((struct Multiarray_T*)num_flux->nnf,-1.0); // Use "-ve" normal.
 		finalize_face_rhs_dg_T(1,num_flux,dg_s_face,sim);
 	}
@@ -384,8 +379,8 @@ static struct Multiarray_T* constructor_partial_grad_fc_interp
 #define PENALTY_SCALING 1.01
 
 static void finalize_face_rhs_dg_T
-	(const int side_index, const struct Numerical_Flux_T* num_flux, struct DG_Solver_Face_T* dg_s_face,
-	 const struct Simulation* sim)
+	(const int side_index, const struct Numerical_Flux_T*const num_flux, struct DG_Solver_Face_T*const dg_s_face,
+	 const struct Simulation*const sim)
 {
 	const struct Face* face            = (struct Face*) dg_s_face;
 	const struct Solver_Face_T* s_face = (struct Solver_Face_T*) face;

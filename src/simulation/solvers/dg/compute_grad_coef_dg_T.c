@@ -281,6 +281,7 @@ static void compute_grad_coef_faces (const struct Simulation*const sim, struct I
 		destructor_Matrix_R(jdet_n_fc);
 	}
 
+// d_g_coef_v__d_s_coef OK for Navier-Stokes.
 #if 0 //TYPE_RC == TYPE_REAL
 for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 	struct Volume*const vol = (struct Volume*) curr;
@@ -288,12 +289,13 @@ for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
 	struct DG_Solver_Volume_T*const dg_s_vol = (struct DG_Solver_Volume_T*) curr;
 UNUSED(s_vol);
 UNUSED(dg_s_vol);
-printf("%d\n",vol->index);
 //print_Multiarray_T(s_vol->grad_coef);
-for (int d = 0; d < DIM; ++d)
+for (int d = 0; d < DIM; ++d) {
+printf("%d %d\n",vol->index,d);
 	print_const_Matrix_T(dg_s_vol->d_g_coef_v__d_s_coef[d]);
-EXIT_UNSUPPORTED;
 }
+}
+EXIT_UNSUPPORTED;
 #endif
 
 }
@@ -587,7 +589,8 @@ static void compute_g_coef_related_boundary
 			const struct const_Vector_T ds_ds_V =
 				{ .ext_0 = ds_ds->extents[0], .data = get_col_const_Multiarray_T(ind_ds_ds,ds_ds), };
 			set_to_Vector_Vector_T(diff_ds_ds_V,scale[1],&ds_ds_V);
-			add_val_to_Vector_T(diff_ds_ds_V,scale[0]);
+			if (vr_i == vr_b)
+				add_val_to_Vector_T(diff_ds_ds_V,scale[0]);
 
 			for (int d = 0; d < DIM; ++d) {
 				dot_mult_Vector_RT(1.0,&jn_fc_V[d],(struct const_Vector_T*)diff_ds_ds_V,ds_ds_jn_fc_V);
@@ -604,6 +607,14 @@ static void compute_g_coef_related_boundary
 		destructor_Matrix_T(right);
 		destructor_Vector_T(diff_ds_ds_V);
 		destructor_Vector_T(ds_ds_jn_fc_V);
+#if 0 //TYPE_RC == TYPE_REAL
+const struct Face*const face = (struct Face*) dg_s_face;
+for (int d = 0; d < DIM; ++d) {
+printf("%d %d %d %d\n",face->index,side_index,sol_index,d);
+print_const_Matrix_T(neigh_info->d_g_coef_f__d_s_coef[sol_index][d]);
+}
+EXIT_UNSUPPORTED;
+#endif
 	}
 
 	destructor_Numerical_Flux_Input_data_T(num_flux_i);

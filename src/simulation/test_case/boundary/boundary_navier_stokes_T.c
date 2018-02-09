@@ -279,7 +279,9 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
 		bv->dg_dg = (const struct const_Multiarray_T*) dg_dg;
 	}
 
-	assert(c_m[4] == false);
+	if (c_m[4])
+		bv->dg_ds = NULL;
+
 	assert(c_m[5] == false);
 }
 
@@ -287,6 +289,10 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 	(struct Boundary_Value_T*const bv, const struct Boundary_Value_Input_T*const bv_i,
 	 const struct Exact_Boundary_Data*const eb_data)
 {
+	const Type*const uvw_ex = eb_data->compute_uvw_ex(NULL,NULL);
+	for (int d = 0; d < DIM; ++d)
+		assert(uvw_ex[d] == 0.0); // Terms affected by non-zero boundary velocity may have been omitted below.
+
 	const bool*const c_m = bv_i->compute_member;
 
 	const struct const_Multiarray_T* s_l = bv_i->s;
@@ -389,14 +395,20 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 		                                           get_col_Multiarray_T(3+NVAR*2,g) );
 
 		const Real nfEv = eb_data->nfEv;
+assert(nfEv == 0.0); // Add required terms below.
 
-		for (int d_b = 0; d_b < DIM; ++d_b) {
 		for (int n = 0; n < n_n; ++n) {
-			drho[d_b][n] = drho_l[d_b][n];
-			for (int dx = 0; dx < DIM; ++dx)
-				drhouvw[d_b][dx][n] = drhouvw_l[d_b][dx][n]-drho_l[dx][n]*2.0*rhouvw_l[d_b][n]/rho_l[n];
-			dE[d_b][n] = -dE_l[d_b][n] + 2.0/rho_l[n]*(E_l[n]*drho_l[d_b][n] + nfEv);
-		}}
+			const Type rho_inv  = 1.0/rho_l[n],
+			           uvw[DIM] = ARRAY_DIM(rho_inv*rhouvw_l[0][n],rho_inv*rhouvw_l[1][n],rho_inv*rhouvw_l[2][n]),
+			           V2       = SUM_DIM( uvw[0]*uvw[0],uvw[1]*uvw[1],uvw[2]*uvw[2] );
+			for (int d_b = 0; d_b < DIM; ++d_b) {
+				drho[d_b][n] = drho_l[d_b][n];
+				for (int dx = 0; dx < DIM; ++dx)
+					drhouvw[d_b][dx][n] = drhouvw_l[d_b][dx][n];
+
+				dE[d_b][n] = -dE_l[d_b][n] + 2.0*drho_l[d_b][n]*(rho_inv*E_l[n]-V2);
+			}
+		}
 		bv->g = (const struct const_Multiarray_T*) g;
 	}
 
@@ -405,8 +417,8 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 			constructor_zero_Multiarray_T('C',5,(ptrdiff_t[]){n_n,NVAR,DIM,NVAR,DIM}); // keep
 
 		Type*const ddrho_ddrho[DIM] = ARRAY_DIM( get_col_Multiarray_T(0+NVAR*(0+DIM*(0+NVAR*(0))),dg_dg),
-			                                 get_col_Multiarray_T(0+NVAR*(1+DIM*(0+NVAR*(1))),dg_dg),
-			                                 get_col_Multiarray_T(0+NVAR*(2+DIM*(0+NVAR*(2))),dg_dg) );
+		                                         get_col_Multiarray_T(0+NVAR*(1+DIM*(0+NVAR*(1))),dg_dg),
+		                                         get_col_Multiarray_T(0+NVAR*(2+DIM*(0+NVAR*(2))),dg_dg) );
 
 		Type*const ddrhouvw_ddrhouvw[DIM][DIM] =
 			TENSOR_DIM( get_col_Multiarray_T(1+NVAR*(0+DIM*(1+NVAR*(0))),dg_dg),
@@ -419,21 +431,10 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 			            get_col_Multiarray_T(3+NVAR*(1+DIM*(3+NVAR*(1))),dg_dg),
 			            get_col_Multiarray_T(3+NVAR*(2+DIM*(3+NVAR*(2))),dg_dg) );
 
-		Type*const ddrhouvw_ddrho[DIM][DIM] =
-			TENSOR_DIM( get_col_Multiarray_T(1+NVAR*(0+DIM*(0+NVAR*(0))),dg_dg),
-			            get_col_Multiarray_T(1+NVAR*(1+DIM*(0+NVAR*(1))),dg_dg),
-			            get_col_Multiarray_T(1+NVAR*(2+DIM*(0+NVAR*(2))),dg_dg),
-			            get_col_Multiarray_T(2+NVAR*(0+DIM*(0+NVAR*(0))),dg_dg),
-			            get_col_Multiarray_T(2+NVAR*(1+DIM*(0+NVAR*(1))),dg_dg),
-			            get_col_Multiarray_T(2+NVAR*(2+DIM*(0+NVAR*(2))),dg_dg),
-			            get_col_Multiarray_T(3+NVAR*(0+DIM*(0+NVAR*(0))),dg_dg),
-			            get_col_Multiarray_T(3+NVAR*(1+DIM*(0+NVAR*(1))),dg_dg),
-			            get_col_Multiarray_T(3+NVAR*(2+DIM*(0+NVAR*(2))),dg_dg) );
-
 		const int i = NVAR-1;
 		Type*const ddE_ddE[DIM] = ARRAY_DIM( get_col_Multiarray_T(i+NVAR*(0+DIM*(i+NVAR*(0))),dg_dg),
-			                             get_col_Multiarray_T(i+NVAR*(1+DIM*(i+NVAR*(1))),dg_dg),
-			                             get_col_Multiarray_T(i+NVAR*(2+DIM*(i+NVAR*(2))),dg_dg) );
+		                                     get_col_Multiarray_T(i+NVAR*(1+DIM*(i+NVAR*(1))),dg_dg),
+		                                     get_col_Multiarray_T(i+NVAR*(2+DIM*(i+NVAR*(2))),dg_dg) );
 
 		Type*const ddE_ddrho[DIM] = ARRAY_DIM( get_col_Multiarray_T(i+NVAR*(0+DIM*(0+NVAR*(0))),dg_dg),
 		                                       get_col_Multiarray_T(i+NVAR*(1+DIM*(0+NVAR*(1))),dg_dg),
@@ -447,23 +448,22 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 					ddrhouvw_ddrhouvw[d][d2][n] = 1.0;
 			}
 
-			for (int ds = 0; ds < DIM; ++ds) {
-			for (int dx = 0; dx < DIM; ++dx) {
-				ddrhouvw_ddrho[ds][dx][n] = -2.0*rhouvw_l[ds][n]/rho_l[n];
-			}}
+			const Type rho_inv  = 1.0/rho_l[n],
+			           uvw[DIM] = ARRAY_DIM(rho_inv*rhouvw_l[0][n],rho_inv*rhouvw_l[1][n],rho_inv*rhouvw_l[2][n]),
+			           V2       = SUM_DIM( uvw[0]*uvw[0],uvw[1]*uvw[1],uvw[2]*uvw[2] );
 
 			for (int ds = 0; ds < DIM; ++ds)
-				ddE_ddrho[ds][n] = 2.0*E_l[n]/rho_l[n];
+				ddE_ddrho[ds][n] = 2.0*(rho_inv*E_l[n]-V2);
 		}
 
 		bv->dg_dg = (const struct const_Multiarray_T*) dg_dg;
 	}
 
-	assert(c_m[4] == false);
+	assert(c_m[4] == false); // Add support.
 
 /// \todo Check the veracity of the comment below after Navier-Stokes DG linearization testing is complete.
 	// Note: There is a non-zero dg_ds term, but the contributions from either side of the face should cancel in the
-	// numerical flux as it is currently implemented.
+	// numerical flux as it is currently implemented. Could then set the term to NULL.
 	assert(c_m[5] == false);
 }
 

@@ -100,11 +100,13 @@ void dot_mult_Vector_RT
 		c->data[i] = alpha*(a->data[i])*(b->data[i]);
 }
 
-void set_to_sum_Vector_T (const char sum_dir, const struct const_Matrix_T*const src, struct Vector_T*const dest)
+void set_to_sum_Vector_T
+	(const char sum_dir, const struct const_Matrix_T*const src, struct Vector_T*const dest, const bool zero_initial)
 {
 	assert(sum_dir == src->layout);
 
-	set_to_value_Vector_T(dest,0.0);
+	if (zero_initial)
+		set_to_value_Vector_T(dest,0.0);
 
 	const ptrdiff_t ext_0 = ( sum_dir == 'R' ? src->ext_0 : src->ext_1 ),
 	                n_val = ( sum_dir == 'R' ? src->ext_1 : src->ext_0 );

@@ -143,10 +143,9 @@ void compute_Numerical_Flux_2_T
 void compute_Numerical_Flux_12_T
 	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {
-// make sure to use '+=' for the numerical fluxes.
 	num_flux_i->compute_Numerical_Flux_1st(num_flux_i,num_flux);
 	num_flux_i->compute_Numerical_Flux_2nd(num_flux_i,num_flux);
-EXIT_ERROR("Ensure that all is working correctly.");
+	combine_num_flux_boundary_T((struct Numerical_Flux_Input_T*)num_flux_i,num_flux);
 }
 
 // Static functions ************************************************************************************************* //
@@ -237,7 +236,7 @@ static void combine_num_flux_boundary_dnnf_dg_g_T
 		for (int vr_r = 0; vr_r < n_vr; ++vr_r) {
 		for (int d_r = 0; d_r < DIM; ++d_r) {
 			const int ind_dnnf_dg_r = eq+n_eq*(vr_r+n_vr*(d_r));
-			const int ind_dg_dg     = vr_r+n_vr*(d_l+DIM*(vr_l+n_vr*(d_r)));
+			const int ind_dg_dg     = vr_r+n_vr*(d_r+DIM*(vr_l+n_vr*(d_l)));
 			z_yxpz_T(n_n,get_col_const_Multiarray_T(ind_dnnf_dg_r,dnnf_dg_r),
 			             get_col_const_Multiarray_T(ind_dg_dg,dg_dg),
 			             get_col_Multiarray_T(ind_dnnf_dg_l,dnnf_dg_l));
@@ -256,5 +255,5 @@ static void combine_num_flux_boundary_dnnf_dg_s_T
 {
 	if (num_flux_i->bv_l.compute_member[5] != true || num_flux_i->bv_r.dg_ds == NULL)
 		return;
-	EXIT_ADD_SUPPORT; UNUSED(num_flux); // Think about whether this is correct before implementing.
+	EXIT_ADD_SUPPORT; UNUSED(num_flux); // Think about whether this is necessary before implementing.
 }

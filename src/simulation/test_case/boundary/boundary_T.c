@@ -96,6 +96,7 @@ void destructor_Boundary_Value_T (struct Boundary_Value_T* bv)
 	destructor_conditional_const_Multiarray_T(bv->g);
 	destructor_conditional_const_Multiarray_T(bv->ds_ds);
 	destructor_conditional_const_Multiarray_T(bv->dg_dg);
+	destructor_conditional_const_Multiarray_T(bv->dg_ds);
 }
 
 // Static functions ************************************************************************************************* //

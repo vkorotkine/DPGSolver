@@ -61,8 +61,8 @@ struct Boundary_Value_Input_T {
 	 *  - [1]: ds_ds
 	 *  - [2]: g
 	 *  - [3]: dg_dg
-	 *  - [4]: ds_dg
-	 *  - [5]: dg_ds
+	 *  - [4]: dg_ds
+	 *  - [5]: ds_dg
 	 */
 	const bool* compute_member;
 

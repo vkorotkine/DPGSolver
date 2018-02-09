@@ -49,7 +49,7 @@ void add_to_lhs_p_r
 	} else {
 		for (int d_g = 0; d_g < DIM; ++d_g) {
 			const struct const_Matrix_d*const lhs_p_l = dgc_dsc[d_g];
-			set_scaled_block_Matrix_d(alpha,lhs_p_r,n_vr*d_g*lhs_p_l->ext_0,0,lhs_p_l,
+			set_scaled_block_Matrix_d(alpha,lhs_p_r,d_g*lhs_p_l->ext_0,0,lhs_p_l,
 			                          0,0,lhs_p_l->ext_0,lhs_p_l->ext_1,'a');
 		}
 	}

@@ -52,4 +52,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian
 #undef compute_Numerical_Flux_T_euler_roe_pike
 #undef compute_Numerical_Flux_T_euler_roe_pike_jacobian
+
+#undef compute_Numerical_Flux_T_navier_stokes_central
+#undef compute_Numerical_Flux_T_navier_stokes_central_jacobian
 ///\}

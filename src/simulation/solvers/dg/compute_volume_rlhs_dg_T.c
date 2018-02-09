@@ -43,10 +43,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \param sim      \ref Simulation.
  */
 typedef void (*compute_rlhs_dg_fptr_T)
-	(const struct Flux_Ref_T* flux_r,
-	 struct DG_Solver_Volume_T* dg_s_vol,
-	 struct Solver_Storage_Implicit* ssi,
-	 const struct Simulation* sim
+	(const struct Flux_Ref_T*const flux_r,
+	 struct DG_Solver_Volume_T*const dg_s_vol,
+	 struct Solver_Storage_Implicit*const ssi,
+	 const struct Simulation*const sim
 	);
 
 /// \brief Container for solver-related parameters.
@@ -117,6 +117,8 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 			s_params.compute_rlhs = compute_rlhs_1;
 		else if (!test_case->has_1st_order && test_case->has_2nd_order)
 			s_params.compute_rlhs = compute_rlhs_2;
+		else if (test_case->has_1st_order && test_case->has_2nd_order)
+			s_params.compute_rlhs = compute_rlhs_12;
 		else
 			EXIT_ADD_SUPPORT;
 		break;

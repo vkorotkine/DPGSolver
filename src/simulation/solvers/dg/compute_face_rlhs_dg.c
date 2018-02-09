@@ -40,34 +40,46 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Scale \ref Numerical_Flux_T::nnf and \ref Numerical_Flux_T::Neigh_Info_NF_T::dnnf_ds by the face Jacobian.
+/// \brief Version of \ref scale_by_Jacobian_fptr_T for 1st order equations only.
 static void scale_by_Jacobian_i1
-	(const struct Numerical_Flux*const num_flux, ///< Defined for \ref scale_by_Jacobian_fptr_T.
-	 struct Face*const face,                     ///< Defined for \ref scale_by_Jacobian_fptr_T.
-	 const struct Simulation*const sim           ///< Defined for \ref scale_by_Jacobian_fptr_T.
+	(struct Numerical_Flux*const num_flux, ///< See brief.
+	 const struct Solver_Face*const s_face ///< See brief.
 	);
 
-/// \brief Scale \ref Numerical_Flux_T::nnf and \ref Numerical_Flux_T::Neigh_Info_NF_T::dnnf_dg by the face Jacobian.
+/// \brief Version of \ref scale_by_Jacobian_fptr_T for 2nd order equations only.
 static void scale_by_Jacobian_i2
-	(const struct Numerical_Flux*const num_flux, ///< Defined for \ref scale_by_Jacobian_fptr_T.
-	 struct Face*const face,                     ///< Defined for \ref scale_by_Jacobian_fptr_T.
-	 const struct Simulation*const sim           ///< Defined for \ref scale_by_Jacobian_fptr_T.
+	(struct Numerical_Flux*const num_flux, ///< See brief.
+	 const struct Solver_Face*const s_face ///< See brief.
 	);
 
-/// \brief Compute the rhs and lhs terms for 1st order fluxes.
+/// \brief Version of \ref scale_by_Jacobian_fptr_T for both 1st and 2nd order equations.
+static void scale_by_Jacobian_i12
+	(struct Numerical_Flux*const num_flux, ///< See brief.
+	 const struct Solver_Face*const s_face ///< See brief.
+	);
+
+/// \brief Version of \ref compute_rlhs_fptr computing the rhs and lhs terms for 1st order equations only.
 static void compute_rlhs_1
-	(const struct Numerical_Flux* num_flux, ///< Defined for \ref compute_rlhs_fptr.
-	 struct DG_Solver_Face* dg_s_face,      ///< Defined for \ref compute_rlhs_fptr.
-	 struct Solver_Storage_Implicit* ssi,   ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Simulation* sim           ///< Defined for \ref compute_rlhs_fptr.
+	(const struct Numerical_Flux*const num_flux, ///< See brief.
+	 struct DG_Solver_Face*const dg_s_face,      ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi,   ///< See brief.
+	 const struct Simulation*const sim           ///< See brief.
 	);
 
-/// \brief Compute the rhs and lhs terms for fluxes depending only on solution gradients.
+/// \brief Version of \ref compute_rlhs_fptr computing the rhs and lhs terms for 2nd order equations only.
 static void compute_rlhs_2
-	(const struct Numerical_Flux* num_flux, ///< Defined for \ref compute_rlhs_fptr.
-	 struct DG_Solver_Face* dg_s_face,      ///< Defined for \ref compute_rlhs_fptr.
-	 struct Solver_Storage_Implicit* ssi,   ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Simulation* sim           ///< Defined for \ref compute_rlhs_fptr.
+	(const struct Numerical_Flux*const num_flux, ///< See brief.
+	 struct DG_Solver_Face*const dg_s_face,      ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi,   ///< See brief.
+	 const struct Simulation*const sim           ///< See brief.
+	);
+
+/// \brief Version of \ref compute_rlhs_fptr computing the rhs and lhs terms for both 1st and 2nd order equations.
+static void compute_rlhs_12
+	(const struct Numerical_Flux*const num_flux, ///< See brief.
+	 struct DG_Solver_Face*const dg_s_face,      ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi,   ///< See brief.
+	 const struct Simulation*const sim           ///< See brief.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -77,6 +89,86 @@ static void compute_rlhs_2
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+/// \brief Version of \ref scale_by_Jacobian_fptr_T scaling \ref Numerical_Flux_T::nnf.
+static void scale_by_Jacobian_nnf
+	(struct Numerical_Flux*const num_flux, ///< See brief.
+	 const struct Solver_Face*const s_face ///< See brief.
+	);
+
+/// \brief Version of \ref scale_by_Jacobian_fptr_T scaling \ref Numerical_Flux_T::dnnf_ds.
+static void scale_by_Jacobian_dnnf_ds
+	(struct Numerical_Flux*const num_flux, ///< See brief.
+	 const struct Solver_Face*const s_face ///< See brief.
+	);
+
+/// \brief Version of \ref scale_by_Jacobian_fptr_T scaling \ref Numerical_Flux_T::dnnf_dg.
+static void scale_by_Jacobian_dnnf_dg
+	(struct Numerical_Flux*const num_flux, ///< See brief.
+	 const struct Solver_Face*const s_face ///< See brief.
+	);
+
+/// \brief Version of \ref compute_rlhs_fptr computing the lhs terms for 1st order equations only.
+static void compute_lhs_1
+	(const struct Numerical_Flux*const num_flux, ///< See brief.
+	 struct DG_Solver_Face*const dg_s_face,      ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi,   ///< See brief.
+	 const struct Simulation*const sim           ///< See brief.
+	);
+
+/// \brief Version of \ref compute_rlhs_fptr computing the lhs terms for 2nd order equations only.
+static void compute_lhs_2
+	(const struct Numerical_Flux*const num_flux, ///< See brief.
+	 struct DG_Solver_Face*const dg_s_face,      ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi,   ///< See brief.
+	 const struct Simulation*const sim           ///< See brief.
+	);
+
+static void scale_by_Jacobian_i1 (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+{
+	scale_by_Jacobian_nnf(num_flux,s_face);
+	scale_by_Jacobian_dnnf_ds(num_flux,s_face);
+}
+
+static void scale_by_Jacobian_i2 (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+{
+	scale_by_Jacobian_nnf(num_flux,s_face);
+	scale_by_Jacobian_dnnf_dg(num_flux,s_face);
+}
+
+static void scale_by_Jacobian_i12 (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+{
+	scale_by_Jacobian_nnf(num_flux,s_face);
+	scale_by_Jacobian_dnnf_ds(num_flux,s_face);
+	scale_by_Jacobian_dnnf_dg(num_flux,s_face);
+}
+
+static void compute_rlhs_1
+	(const struct Numerical_Flux*const num_flux, struct DG_Solver_Face*const dg_s_face,
+	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
+{
+	compute_rhs_f_dg(num_flux,dg_s_face,ssi,sim);
+	compute_lhs_1(num_flux,dg_s_face,ssi,sim);
+}
+
+static void compute_rlhs_2
+	(const struct Numerical_Flux*const num_flux, struct DG_Solver_Face*const dg_s_face,
+	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
+{
+	compute_rhs_f_dg(num_flux,dg_s_face,ssi,sim);
+	compute_lhs_2(num_flux,dg_s_face,ssi,sim);
+}
+
+static void compute_rlhs_12
+	(const struct Numerical_Flux*const num_flux, struct DG_Solver_Face*const dg_s_face,
+	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
+{
+	compute_rhs_f_dg(num_flux,dg_s_face,ssi,sim);
+	compute_lhs_1(num_flux,dg_s_face,ssi,sim);
+	compute_lhs_2(num_flux,dg_s_face,ssi,sim);
+}
+
+// Level 1 ********************************************************************************************************** //
 
 /// \brief Finalize the 1st order lhs term contribution from the \ref Face for the dg scheme.
 static void finalize_lhs_1_f_dg
@@ -96,46 +188,13 @@ static void finalize_lhs_2_f_dg
 	 const struct Simulation*const sim            ///< \ref Simulation.
 	);
 
-static void scale_by_Jacobian_i1
-	(const struct Numerical_Flux* num_flux, struct Face* face, const struct Simulation* sim)
+static void compute_lhs_1
+	(const struct Numerical_Flux*const num_flux, struct DG_Solver_Face*const dg_s_face,
+	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
 {
 UNUSED(sim);
-	assert((!face->boundary && num_flux->neigh_info[1].dnnf_ds != NULL) ||
-	       ( face->boundary && num_flux->neigh_info[1].dnnf_ds == NULL));
-
-	struct Solver_Face* s_face = (struct Solver_Face*)face;
-
-	const struct const_Vector_d jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
-	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->nnf,&jacobian_det_fc,false);
-	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[0].dnnf_ds,&jacobian_det_fc,false);
-	if (!face->boundary)
-		scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[1].dnnf_ds,&jacobian_det_fc,false);
-}
-
-static void scale_by_Jacobian_i2
-	(const struct Numerical_Flux*const num_flux, struct Face*const face, const struct Simulation*const sim)
-{
-UNUSED(sim);
-	assert((!face->boundary && num_flux->neigh_info[1].dnnf_dg != NULL) ||
-	       ( face->boundary && num_flux->neigh_info[1].dnnf_dg == NULL));
-
-	struct Solver_Face* s_face = (struct Solver_Face*)face;
-
-	const struct const_Vector_d jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
-	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->nnf,&jacobian_det_fc,false);
-	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[0].dnnf_dg,&jacobian_det_fc,false);
-	if (!face->boundary)
-		scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[1].dnnf_dg,&jacobian_det_fc,false);
-}
-
-static void compute_rlhs_1
-	(const struct Numerical_Flux* num_flux, struct DG_Solver_Face* dg_s_face,
-	 struct Solver_Storage_Implicit* ssi, const struct Simulation* sim)
-{
-	const struct Face* face = (struct Face*) dg_s_face;
-
 	/// See \ref compute_face_rlhs_dg.h for the `lhs_**` notation.
-	compute_rhs_f_dg(num_flux,dg_s_face,ssi,sim);
+	const struct Face* face = (struct Face*) dg_s_face;
 
 	/** \note The procedure use below is inefficient in the sense that some of the computed operators in \ref
 	 *        finalize_lhs_1_f_dg are identical for lhs_ll/lhs_lr to those of lhs_rl/lhs_rr after permutation.
@@ -156,13 +215,11 @@ static void compute_rlhs_1
 	}
 }
 
-static void compute_rlhs_2
-	(const struct Numerical_Flux* num_flux, struct DG_Solver_Face* dg_s_face,
-	 struct Solver_Storage_Implicit* ssi, const struct Simulation* sim)
+static void compute_lhs_2
+	(const struct Numerical_Flux*const num_flux, struct DG_Solver_Face*const dg_s_face,
+	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
 {
 	const struct Face*const face = (struct Face*) dg_s_face;
-
-	compute_rhs_f_dg(num_flux,dg_s_face,ssi,sim);
 
 	finalize_lhs_2_f_dg((int[]){0,0},num_flux,dg_s_face,ssi,sim); // lhs_ll (and lhs_lr if not on a boundary).
 	if (!face->boundary) {
@@ -180,7 +237,7 @@ static void compute_rlhs_2
 	}
 }
 
-// Level 1 ********************************************************************************************************** //
+// Level 2 ********************************************************************************************************** //
 
 /** \brief Constructor for the 'r'ight 'p'artial contribution (d_g_coef__d_s_coef) to the lhs matrix for the gradient
  *         and solution coefficient components corresponding to the input side indices.
@@ -191,6 +248,36 @@ static const struct const_Matrix_d* constructor_lhs_p_r_gs
 	 const struct DG_Solver_Face*const dg_s_face, ///< \ref DG_Solver_Face_T.
 	 const struct Simulation*const sim            ///< \ref Simulation.
 	);
+
+static void scale_by_Jacobian_nnf (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+{
+	const struct const_Vector_d jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
+	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->nnf,&jacobian_det_fc,false);
+}
+
+static void scale_by_Jacobian_dnnf_ds (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+{
+	const struct Face*const face = (struct Face*) s_face;
+	assert((!face->boundary && num_flux->neigh_info[1].dnnf_ds != NULL) ||
+	       ( face->boundary && num_flux->neigh_info[1].dnnf_ds == NULL));
+
+	const struct const_Vector_d jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
+	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[0].dnnf_ds,&jacobian_det_fc,false);
+	if (!face->boundary)
+		scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[1].dnnf_ds,&jacobian_det_fc,false);
+}
+
+static void scale_by_Jacobian_dnnf_dg (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+{
+	const struct Face*const face = (struct Face*) s_face;
+	assert((!face->boundary && num_flux->neigh_info[1].dnnf_dg != NULL) ||
+	       ( face->boundary && num_flux->neigh_info[1].dnnf_dg == NULL));
+
+	const struct const_Vector_d jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
+	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[0].dnnf_dg,&jacobian_det_fc,false);
+	if (!face->boundary)
+		scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[1].dnnf_dg,&jacobian_det_fc,false);
+}
 
 static void finalize_lhs_1_f_dg
 	(const int side_index[2], const struct Numerical_Flux* num_flux, struct DG_Solver_Face* dg_s_face,
@@ -286,8 +373,9 @@ static const struct const_Matrix_d* constructor_lhs_p_r_gs
 	const int s_ind_g = side_index_g,
 	          s_ind_s = side_index_s;
 
-	assert(dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s][0]->ext_0 == n_dof_g);
-	assert(dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s][0]->ext_1 == n_dof_s);
+	const int mult = ( !face->boundary ? 1 : n_vr );
+	assert(dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s][0]->ext_0 == n_dof_g*mult);
+	assert(dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s][0]->ext_1 == n_dof_s*mult);
 	add_to_lhs_p_r(s,dg_s_face->neigh_info[s_ind_g].d_g_coef_f__d_s_coef[s_ind_s],lhs_p_r,face->boundary,sim);
 //printf("%f\n",s);
 //print_Matrix_d(lhs_p_r);

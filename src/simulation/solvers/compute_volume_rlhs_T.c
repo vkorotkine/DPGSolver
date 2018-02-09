@@ -138,6 +138,19 @@ void set_S_Params_Volume_Structor_T (struct S_Params_Volume_Structor_T* spvs, co
 			spvs->destructor_grad_vc  = destructor_sol_vc_col;
 		}
 		break;
+	case PDE_NAVIER_STOKES:
+		if (!sim->collocated) {
+			spvs->constructor_sol_vc  = constructor_sol_vc_interp;
+			spvs->destructor_sol_vc   = destructor_sol_vc_interp;
+			spvs->constructor_grad_vc = constructor_grad_vc_interp;
+			spvs->destructor_grad_vc  = destructor_sol_vc_interp;
+		} else {
+			spvs->constructor_sol_vc  = constructor_sol_vc_col;
+			spvs->destructor_sol_vc   = destructor_sol_vc_col;
+			spvs->constructor_grad_vc = constructor_grad_vc_col;
+			spvs->destructor_grad_vc  = destructor_sol_vc_col;
+		}
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
 		break;
