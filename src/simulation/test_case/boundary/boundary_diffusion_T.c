@@ -130,10 +130,10 @@ void constructor_Boundary_Value_T_diffusion_neumann
 		                n_vr = bv->g->extents[1];
 		struct Multiarray_T* dg_dg =
 			constructor_zero_Multiarray_T('C',5,(ptrdiff_t[]){n_n,n_vr,DIM,n_vr,DIM}); // moved
-		for (int vr_b = 0; vr_b < n_vr; ++vr_b) {
-		for (int d_b  = 0; d_b  < DIM;  ++d_b)  {
-		for (int vr_i = 0; vr_i < n_vr; ++vr_i) {
 		for (int d_i  = 0; d_i  < DIM;  ++d_i)  {
+		for (int vr_i = 0; vr_i < n_vr; ++vr_i) {
+		for (int d_b  = 0; d_b  < DIM;  ++d_b)  {
+		for (int vr_b = 0; vr_b < n_vr; ++vr_b) {
 			if (!(vr_b == vr_i && d_b == d_i))
 				continue;
 			struct Vector_T dg_V = interpret_Multiarray_slice_as_Vector_T(dg_dg,(ptrdiff_t[]){vr_b,d_b,vr_i,d_i});

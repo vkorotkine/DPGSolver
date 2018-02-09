@@ -71,7 +71,7 @@ static struct Exact_Boundary_Data get_Exact_Boundary_Data
 	);
 
 /** \brief Version of \ref constructor_Boundary_Value_fptr_T computing members using the exact values for all variables
- *         and interpolated values for all gradients on a wall.
+ *         and interpolated values for all gradients.
  *
  *  The boundary conditions are computed as:
  *  - s_b = 2*s_exact - s_i (such that 0.5*(s_b+s_i) == s_exact);
@@ -90,8 +90,24 @@ static struct Exact_Boundary_Data get_Exact_Boundary_Data
 static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
 	(struct Boundary_Value_T*const bv,               ///< See brief.
 	 const struct Boundary_Value_Input_T*const bv_i, ///< See brief.
-	 const struct Solver_Face_T*const s_face,        ///< See brief.
-	 const struct Simulation*const sim,              ///< See brief.
+	 const struct Exact_Boundary_Data*const eb_data  ///< \ref Exact_Boundary_Data.
+	);
+
+/** \brief Version of \ref constructor_Boundary_Value_fptr_T computing members using the exact values for velocity
+ *         variables and energy gradient and interpolated values for the remainder.
+ *
+ *  The boundary solution values are specified such that the exact boundary values are obtained when taking the
+ *  average of the internal and boundary (ghost) states. The boundary gradients are specified such that the normal
+ *  boundary viscous fluxes are identical when computed either as:
+ *  1. n_dot_F = n (dot) f_viscous(s_l,g_l); or
+ *  2. n_dof_F = n (dot) 0.5 * ( f_viscous(s_l,g_l) + f_viscous(s_b,g_b) ).
+ *
+ *  \warning This boundary condition **may not be well-posed** when the normal viscous energy flux is non-zero (i.e. the
+ *  non-adiabatic case). See Parsani et. al \cite Parsani2015 for discussion.
+ */
+static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
+	(struct Boundary_Value_T*const bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T*const bv_i, ///< See brief.
 	 const struct Exact_Boundary_Data*const eb_data  ///< \ref Exact_Boundary_Data.
 	);
 
@@ -101,30 +117,32 @@ void constructor_Boundary_Value_T_navier_stokes_no_slip_all_rotating
 	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* s_face,
 	 const struct Simulation* sim)
 {
+	UNUSED(sim); UNUSED(s_face);
 // pointer to boundary velocity computing function.
 // read/set data (V_tangential)
 	struct Exact_Boundary_Data eb_data;
 	EXIT_UNSUPPORTED;
-	constructor_Boundary_Value_T_navier_stokes_no_slip_all_general(bv,bv_i,s_face,sim,&eb_data);
+	constructor_Boundary_Value_T_navier_stokes_no_slip_all_general(bv,bv_i,&eb_data);
 }
 
 void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_adiabatic
 	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* s_face,
 	 const struct Simulation* sim)
 {
+	UNUSED(sim); UNUSED(s_face);
+
 	struct Exact_Boundary_Data eb_data = get_Exact_Boundary_Data(DIABATIC_FLUX_CONSTANT_ZERO,sim);
-printf("%f\n",eb_data.nfEv);
-UNUSED(eb_data);
-	EXIT_ADD_SUPPORT; UNUSED(bv); UNUSED(bv_i); UNUSED(s_face); UNUSED(sim);
+	constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general(bv,bv_i,&eb_data);
 }
 
 void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic
 	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* s_face,
 	 const struct Simulation* sim)
 {
+	UNUSED(sim); UNUSED(s_face);
+
 	struct Exact_Boundary_Data eb_data = get_Exact_Boundary_Data(DIABATIC_FLUX_CONSTANT,sim);
-UNUSED(eb_data);
-	EXIT_ADD_SUPPORT; UNUSED(bv); UNUSED(bv_i); UNUSED(s_face); UNUSED(sim);
+	constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general(bv,bv_i,&eb_data);
 }
 
 // Static functions ************************************************************************************************* //
@@ -162,38 +180,35 @@ static struct Exact_Boundary_Data get_Exact_Boundary_Data (const int viscous_bc_
 
 static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
 	(struct Boundary_Value_T*const bv, const struct Boundary_Value_Input_T*const bv_i,
-	 const struct Solver_Face_T*const s_face, const struct Simulation*const sim,
 	 const struct Exact_Boundary_Data*const eb_data)
 {
-	EXIT_ADD_SUPPORT; UNUSED(bv); UNUSED(bv_i); UNUSED(s_face); UNUSED(sim);
 	const bool*const c_m = bv_i->compute_member;
-	assert(c_m[0] == true);
 
-	const struct const_Multiarray_T* sol_l = bv_i->s;
+	const struct const_Multiarray_T* s_l = bv_i->s;
 
-	const Type*const rho_l  = get_col_const_Multiarray_T(0,sol_l),
-	          *const E_l    = get_col_const_Multiarray_T(NVAR-1,sol_l),
-	          *const rhou_l = get_col_const_Multiarray_T(1,sol_l);
-	IF_DIM_GE_2( const Type*const rhov_l = get_col_const_Multiarray_T(2,sol_l) );
-	IF_DIM_GE_3( const Type*const rhow_l = get_col_const_Multiarray_T(3,sol_l) );
+	const Type*const rho_l  = get_col_const_Multiarray_T(0,s_l),
+	          *const E_l    = get_col_const_Multiarray_T(NVAR-1,s_l),
+	          *const rhou_l = get_col_const_Multiarray_T(1,s_l);
+	IF_DIM_GE_2( const Type*const rhov_l = get_col_const_Multiarray_T(2,s_l) );
+	IF_DIM_GE_3( const Type*const rhow_l = get_col_const_Multiarray_T(3,s_l) );
 
-	const ptrdiff_t n_n = sol_l->extents[0];
+	const ptrdiff_t n_n = s_l->extents[0];
 
 	const struct const_Multiarray_R* xyz = xyz = bv_i->xyz;
 
 	assert(c_m[0] == true);
-	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,NVAR}); // keep
+	struct Multiarray_T* s = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,NVAR}); // keep
 
-	Type*const rho  = get_col_Multiarray_T(0,sol),
-	    *const E    = get_col_Multiarray_T(NVAR-1,sol),
-	    *const rhou = get_col_Multiarray_T(1,sol);
-	IF_DIM_GE_2( Type*const rhov = get_col_Multiarray_T(2,sol) );
-	IF_DIM_GE_3( Type*const rhow = get_col_Multiarray_T(3,sol) );
+	Type*const rho  = get_col_Multiarray_T(0,s),
+	    *const E    = get_col_Multiarray_T(NVAR-1,s),
+	    *const rhou = get_col_Multiarray_T(1,s);
+	IF_DIM_GE_2( Type*const rhov = get_col_Multiarray_T(2,s) );
+	IF_DIM_GE_3( Type*const rhow = get_col_Multiarray_T(3,s) );
 
 	const Type rho_ex = eb_data->rho,
 	           E_ex   = eb_data->E;
 
-	for (int n = 0; n < n_n; n++) {
+	for (int n = 0; n < n_n; ++n) {
 		const Real xyz_n[] = ARRAY_DIM( get_col_const_Multiarray_R(0,xyz)[n],
 		                                get_col_const_Multiarray_R(1,xyz)[n],
 		                                get_col_const_Multiarray_R(2,xyz)[n] );
@@ -205,7 +220,7 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
 		IF_DIM_GE_3( rhow[n] = -rhow_l[n] + 2.0*rho[n]*uvw_ex[2] );
 		E[n]    = -E_l[n]    + 2.0*E_ex;
 	}
-	bv->s = (struct const_Multiarray_T*)sol;
+	bv->s = (struct const_Multiarray_T*)s;
 
 	if (c_m[1] == true) {
 		struct Multiarray_T*const ds_ds = constructor_zero_Multiarray_T('C',3,(ptrdiff_t[]){n_n,NVAR,NVAR}); // keep
@@ -220,7 +235,6 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
 		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds;
 	}
 
-	assert(c_m[2] == true);
 	if (bv_i->g)
 		bv->g = constructor_copy_const_Multiarray_T(bv_i->g); // keep
 
@@ -240,8 +254,191 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
 		bv->dg_dg = (const struct const_Multiarray_T*) dg_dg;
 	}
 
-	assert(c_m[3] == false);
 	assert(c_m[4] == false);
+	assert(c_m[5] == false);
+}
+
+static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
+	(struct Boundary_Value_T*const bv, const struct Boundary_Value_Input_T*const bv_i,
+	 const struct Exact_Boundary_Data*const eb_data)
+{
+	const bool*const c_m = bv_i->compute_member;
+
+	const struct const_Multiarray_T* s_l = bv_i->s;
+
+	const Type*const rho_l         = get_col_const_Multiarray_T(0,s_l),
+	          *const E_l           = get_col_const_Multiarray_T(NVAR-1,s_l),
+	          *const rhouvw_l[DIM] = ARRAY_DIM( get_col_const_Multiarray_T(1,s_l),
+	                                            get_col_const_Multiarray_T(2,s_l),
+	                                            get_col_const_Multiarray_T(3,s_l) );
+
+	const ptrdiff_t n_n = s_l->extents[0];
+
+	const struct const_Multiarray_R* xyz = xyz = bv_i->xyz;
+
+	assert(c_m[0] == true);
+	{
+		struct Multiarray_T* s = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,NVAR}); // keep
+
+		Type*const rho         = get_col_Multiarray_T(0,s),
+		    *const E           = get_col_Multiarray_T(NVAR-1,s),
+		    *const rhouvw[DIM] = ARRAY_DIM( get_col_Multiarray_T(1,s),
+		                                    get_col_Multiarray_T(2,s),
+		                                    get_col_Multiarray_T(3,s) );
+
+		for (int n = 0; n < n_n; ++n) {
+			const Real xyz_n[] = ARRAY_DIM( get_col_const_Multiarray_R(0,xyz)[n],
+			                                get_col_const_Multiarray_R(1,xyz)[n],
+			                                get_col_const_Multiarray_R(2,xyz)[n] );
+			const Type*const uvw_ex = eb_data->compute_uvw_ex(xyz_n,eb_data);
+
+			rho[n] = rho_l[n];
+			E[n]   = E_l[n];
+			for (int d = 0; d < DIM; ++d)
+				rhouvw[d][n] = -rhouvw_l[d][n] + 2.0*rho[n]*uvw_ex[d];
+		}
+		bv->s = (struct const_Multiarray_T*)s;
+	}
+
+	if (c_m[1] == true) {
+		struct Multiarray_T*const ds_ds = constructor_zero_Multiarray_T('C',3,(ptrdiff_t[]){n_n,NVAR,NVAR}); // keep
+
+		for (int vr_b = 0; vr_b < NVAR; ++vr_b) {
+		for (int vr_i = 0; vr_i < NVAR; ++vr_i) {
+			if (!(vr_b == vr_i))
+				continue;
+			struct Vector_T ds_V = interpret_Multiarray_slice_as_Vector_T(ds_ds,(ptrdiff_t[]){vr_b,vr_i});
+			const Real ds_ds_vr = ( (vr_b == 0 || vr_b == NVAR-1) ? 1.0 : -1.0 );
+			set_to_value_Vector_T(&ds_V,ds_ds_vr);
+		}}
+
+		Type*const duvw_drho[DIM] = ARRAY_DIM( get_col_Multiarray_T(1+NVAR*0,ds_ds),
+		                                       get_col_Multiarray_T(2+NVAR*0,ds_ds),
+		                                       get_col_Multiarray_T(3+NVAR*0,ds_ds) );
+
+		for (int n = 0; n < n_n; ++n) {
+			const Real xyz_n[] = ARRAY_DIM( get_col_const_Multiarray_R(0,xyz)[n],
+			                                get_col_const_Multiarray_R(1,xyz)[n],
+			                                get_col_const_Multiarray_R(2,xyz)[n] );
+			const Type*const uvw_ex = eb_data->compute_uvw_ex(xyz_n,eb_data);
+			for (int d = 0; d < DIM; ++d)
+				duvw_drho[d][n] = 2.0*uvw_ex[d];
+		}
+		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds;
+	}
+
+	if (bv_i->g) {
+		const struct const_Multiarray_T*const g_l = bv_i->g;
+		struct Multiarray_T*const g = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_n,NVAR,DIM}); // keep
+
+		const Type*const drho_l[DIM] = ARRAY_DIM( get_col_const_Multiarray_T(0+NVAR*0,g_l),
+		                                          get_col_const_Multiarray_T(0+NVAR*1,g_l),
+		                                          get_col_const_Multiarray_T(0+NVAR*2,g_l) ),
+		          *const dE_l[DIM]   = ARRAY_DIM( get_col_const_Multiarray_T(NVAR-1+NVAR*0,g_l),
+		                                          get_col_const_Multiarray_T(NVAR-1+NVAR*1,g_l),
+		                                          get_col_const_Multiarray_T(NVAR-1+NVAR*2,g_l) ),
+		          *const drhouvw_l[DIM][DIM] = TENSOR_DIM( get_col_const_Multiarray_T(1+NVAR*0,g_l),
+		                                                   get_col_const_Multiarray_T(1+NVAR*1,g_l),
+		                                                   get_col_const_Multiarray_T(1+NVAR*2,g_l),
+		                                                   get_col_const_Multiarray_T(2+NVAR*0,g_l),
+		                                                   get_col_const_Multiarray_T(2+NVAR*1,g_l),
+		                                                   get_col_const_Multiarray_T(2+NVAR*2,g_l),
+		                                                   get_col_const_Multiarray_T(3+NVAR*0,g_l),
+		                                                   get_col_const_Multiarray_T(3+NVAR*1,g_l),
+		                                                   get_col_const_Multiarray_T(3+NVAR*2,g_l) );
+
+		Type*const drho[DIM] = ARRAY_DIM( get_col_Multiarray_T(0+NVAR*0,g),
+		                                  get_col_Multiarray_T(0+NVAR*1,g),
+		                                  get_col_Multiarray_T(0+NVAR*2,g) ),
+		    *const dE[DIM]   = ARRAY_DIM( get_col_Multiarray_T(NVAR-1+NVAR*0,g),
+		                                  get_col_Multiarray_T(NVAR-1+NVAR*1,g),
+		                                  get_col_Multiarray_T(NVAR-1+NVAR*2,g) ),
+		    *const drhouvw[DIM][DIM] = TENSOR_DIM( get_col_Multiarray_T(1+NVAR*0,g),
+		                                           get_col_Multiarray_T(1+NVAR*1,g),
+		                                           get_col_Multiarray_T(1+NVAR*2,g),
+		                                           get_col_Multiarray_T(2+NVAR*0,g),
+		                                           get_col_Multiarray_T(2+NVAR*1,g),
+		                                           get_col_Multiarray_T(2+NVAR*2,g),
+		                                           get_col_Multiarray_T(3+NVAR*0,g),
+		                                           get_col_Multiarray_T(3+NVAR*1,g),
+		                                           get_col_Multiarray_T(3+NVAR*2,g) );
+
+		const Real nfEv = eb_data->nfEv;
+
+		for (int d_b = 0; d_b < DIM; ++d_b) {
+		for (int n = 0; n < n_n; ++n) {
+			drho[d_b][n] = drho_l[d_b][n];
+			for (int dx = 0; dx < DIM; ++dx)
+				drhouvw[d_b][dx][n] = drhouvw_l[d_b][dx][n]-drho_l[dx][n]*2.0*rhouvw_l[d_b][n]/rho_l[n];
+			dE[d_b][n] = -dE_l[d_b][n] + 2.0/rho_l[n]*(E_l[n]*drho_l[d_b][n] + nfEv);
+		}}
+		bv->g = (const struct const_Multiarray_T*) g;
+	}
+
+	if (c_m[3] == true && bv->g) {
+		struct Multiarray_T*const dg_dg =
+			constructor_zero_Multiarray_T('C',5,(ptrdiff_t[]){n_n,NVAR,DIM,NVAR,DIM}); // keep
+
+		Type*const ddrho_ddrho[DIM] = ARRAY_DIM( get_col_Multiarray_T(0+NVAR*(0+DIM*(0+NVAR*(0))),dg_dg),
+			                                 get_col_Multiarray_T(0+NVAR*(1+DIM*(0+NVAR*(1))),dg_dg),
+			                                 get_col_Multiarray_T(0+NVAR*(2+DIM*(0+NVAR*(2))),dg_dg) );
+
+		Type*const ddrhouvw_ddrhouvw[DIM][DIM] =
+			TENSOR_DIM( get_col_Multiarray_T(1+NVAR*(0+DIM*(1+NVAR*(0))),dg_dg),
+			            get_col_Multiarray_T(1+NVAR*(1+DIM*(1+NVAR*(1))),dg_dg),
+			            get_col_Multiarray_T(1+NVAR*(2+DIM*(1+NVAR*(2))),dg_dg),
+			            get_col_Multiarray_T(2+NVAR*(0+DIM*(2+NVAR*(0))),dg_dg),
+			            get_col_Multiarray_T(2+NVAR*(1+DIM*(2+NVAR*(1))),dg_dg),
+			            get_col_Multiarray_T(2+NVAR*(2+DIM*(2+NVAR*(2))),dg_dg),
+			            get_col_Multiarray_T(3+NVAR*(0+DIM*(3+NVAR*(0))),dg_dg),
+			            get_col_Multiarray_T(3+NVAR*(1+DIM*(3+NVAR*(1))),dg_dg),
+			            get_col_Multiarray_T(3+NVAR*(2+DIM*(3+NVAR*(2))),dg_dg) );
+
+		Type*const ddrhouvw_ddrho[DIM][DIM] =
+			TENSOR_DIM( get_col_Multiarray_T(1+NVAR*(0+DIM*(0+NVAR*(0))),dg_dg),
+			            get_col_Multiarray_T(1+NVAR*(1+DIM*(0+NVAR*(1))),dg_dg),
+			            get_col_Multiarray_T(1+NVAR*(2+DIM*(0+NVAR*(2))),dg_dg),
+			            get_col_Multiarray_T(2+NVAR*(0+DIM*(0+NVAR*(0))),dg_dg),
+			            get_col_Multiarray_T(2+NVAR*(1+DIM*(0+NVAR*(1))),dg_dg),
+			            get_col_Multiarray_T(2+NVAR*(2+DIM*(0+NVAR*(2))),dg_dg),
+			            get_col_Multiarray_T(3+NVAR*(0+DIM*(0+NVAR*(0))),dg_dg),
+			            get_col_Multiarray_T(3+NVAR*(1+DIM*(0+NVAR*(1))),dg_dg),
+			            get_col_Multiarray_T(3+NVAR*(2+DIM*(0+NVAR*(2))),dg_dg) );
+
+		const int i = NVAR-1;
+		Type*const ddE_ddE[DIM] = ARRAY_DIM( get_col_Multiarray_T(i+NVAR*(0+DIM*(i+NVAR*(0))),dg_dg),
+			                             get_col_Multiarray_T(i+NVAR*(1+DIM*(i+NVAR*(1))),dg_dg),
+			                             get_col_Multiarray_T(i+NVAR*(2+DIM*(i+NVAR*(2))),dg_dg) );
+
+		Type*const ddE_ddrho[DIM] = ARRAY_DIM( get_col_Multiarray_T(i+NVAR*(0+DIM*(0+NVAR*(0))),dg_dg),
+		                                       get_col_Multiarray_T(i+NVAR*(1+DIM*(0+NVAR*(1))),dg_dg),
+		                                       get_col_Multiarray_T(i+NVAR*(2+DIM*(0+NVAR*(2))),dg_dg) );
+
+		for (int n = 0; n < n_n; ++n) {
+			for (int d = 0; d < DIM; ++d) {
+				ddrho_ddrho[d][n] = 1.0;
+				ddE_ddE[d][n]     = -1.0;
+				for (int d2 = 0; d2 < DIM; ++d2)
+					ddrhouvw_ddrhouvw[d][d2][n] = 1.0;
+			}
+
+			for (int ds = 0; ds < DIM; ++ds) {
+			for (int dx = 0; dx < DIM; ++dx) {
+				ddrhouvw_ddrho[ds][dx][n] = -2.0*rhouvw_l[ds][n]/rho_l[n];
+			}}
+
+			for (int ds = 0; ds < DIM; ++ds)
+				ddE_ddrho[ds][n] = 2.0*E_l[n]/rho_l[n];
+		}
+
+		bv->dg_dg = (const struct const_Multiarray_T*) dg_dg;
+	}
+
+	assert(c_m[4] == false);
+
+/// \todo Check the veracity of the comment below after Navier-Stokes DG linearization testing is complete.
+	// Note: There is a non-zero dg_ds term, but the contributions from either side of the face should cancel in the
+	// numerical flux as it is currently implemented.
 	assert(c_m[5] == false);
 }
 

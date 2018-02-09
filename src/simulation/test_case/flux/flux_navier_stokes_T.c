@@ -31,23 +31,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \todo Make a separate header for DIM-related macro functions.
-///\{ \name Macros related to the DIM constant.
-#if DIM == 1
-	#define SUM_DIM(a,b,c) ((a))
-	#define TENSOR_DIM(a0,a1,a2,b0,b1,b2,c0,c1,c2) { {(a0),}, }
-	#define ARRAY_VAR(a,b,c,d,e) { (a), (b), (e), }
-#elif DIM == 2
-	#define SUM_DIM(a,b,c) ((a)+(b))
-	#define TENSOR_DIM(a0,a1,a2,b0,b1,b2,c0,c1,c2) { {(a0),(a1),}, {(b0),(b1),}, }
-	#define ARRAY_VAR(a,b,c,d,e) { (a), (b), (c), (e), }
-#elif DIM == 3
-	#define SUM_DIM(a,b,c) ((a)+(b)+(c))
-	#define TENSOR_DIM(a0,a1,a2,b0,b1,b2,c0,c1,c2) { {(a0),(a1),(a2),}, {(b0),(b1),(b2),}, {(c0),(c1),(c2),}, }
-	#define ARRAY_VAR(a,b,c,d,e) { (a), (b), (c), (d), (e), }
-#endif
-///\}
-
 #define NEQ  NEQ_EULER  ///< Number of equations.
 #define NVAR NVAR_EULER ///< Number of variables.
 
