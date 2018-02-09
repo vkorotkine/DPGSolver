@@ -124,7 +124,7 @@ static int get_define (const char*const def_str, const char*const def_type)
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else if (strcmp(def_type,"no_slip_all_type") == 0) {
-		if      (strcmp(def_str,"pressure_temperature") == 0) def_i = NO_SLIP_ALL_PT;
+		if      (strcmp(def_str,"density_energy") == 0) def_i = NO_SLIP_ALL__RHO_E;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else {

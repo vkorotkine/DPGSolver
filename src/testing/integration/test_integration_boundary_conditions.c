@@ -170,7 +170,8 @@ int main
 		if (!pass)
 			pass_all = false;
 #if 0
-printf("\n\n\n%d %d\n",face_r->index,face_r->bc);
+printf("%d %d %d %d %d %d\n",face_r->index,face_r->bc,differences[0],differences[1],differences[2],differences[3]);
+print_const_Multiarray_d(num_flux_i->bv_r.ds_ds);
 print_diff_const_Multiarray_d(num_flux_i->bv_r.g,    num_flux_i_cmplx_step->bv_r.g,    tol);
 print_diff_const_Multiarray_d(num_flux_i->bv_r.dg_dg,num_flux_i_cmplx_step->bv_r.dg_dg,tol);
 //print_const_Multiarray_d(num_flux_i->bv_r.dg_dg);

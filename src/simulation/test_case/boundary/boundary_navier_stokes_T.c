@@ -56,18 +56,20 @@ typedef const Type* (*compute_uvw_ex_fptr)
 
 /// \brief Container for data relating to the exact values on the domain boundary.
 struct Exact_Boundary_Data {
-	Real rho,  ///< Exact boundary density.
-	     E,    ///< Exact boundary total 'e'nergy.
-	     nfEv; ///< Exact boundary 'n'ormal 'v'iscous 'f'lux for the total 'e'nergy equation.
+	Real rho,   ///< Exact boundary density.
+	     E,     ///< Exact boundary total 'e'nergy.
+	     nfEv,  ///< Exact boundary 'n'ormal 'v'iscous 'f'lux for the total 'e'nergy equation.
+	     omega; ///< Exact boundary angular velocity.
 
 	compute_uvw_ex_fptr compute_uvw_ex; ///< Pointer to function computing the exact velocities on the boundary.
 };
 
-/** \brief Return the statically allocated \ref Exact_Boundary_Data container.
- *  \return See brief. */
-static struct Exact_Boundary_Data get_Exact_Boundary_Data
-	(const int viscous_bc_type,        ///< The type of viscous boundary condition.
-	 const struct Simulation*const sim ///< \ref Simulation.
+/// \brief Set the required members of the \ref Exact_Boundary_Data container for the input boundary condition type.
+static void set_Exact_Boundary_Data
+	(struct Exact_Boundary_Data*const eb_data, ///< \ref Exact_Boundary_Data.
+	 bool*const need_input,                    ///< Flag for whether the input needs to be read.
+	 const int viscous_bc_type,                ///< The type of viscous boundary condition.
+	 const char*const input_path               ///< \ref Simulation::input_path.
 	);
 
 /** \brief Version of \ref constructor_Boundary_Value_fptr_T computing members using the exact values for all variables
@@ -118,10 +120,11 @@ void constructor_Boundary_Value_T_navier_stokes_no_slip_all_rotating
 	 const struct Simulation* sim)
 {
 	UNUSED(sim); UNUSED(s_face);
-// pointer to boundary velocity computing function.
-// read/set data (V_tangential)
-	struct Exact_Boundary_Data eb_data;
-	EXIT_UNSUPPORTED;
+
+	static bool need_input = true;
+	static struct Exact_Boundary_Data eb_data;
+	set_Exact_Boundary_Data(&eb_data,&need_input,NO_SLIP_ALL_ROTATING_RHO_E,sim->input_path);
+
 	constructor_Boundary_Value_T_navier_stokes_no_slip_all_general(bv,bv_i,&eb_data);
 }
 
@@ -131,7 +134,10 @@ void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_adiabatic
 {
 	UNUSED(sim); UNUSED(s_face);
 
-	struct Exact_Boundary_Data eb_data = get_Exact_Boundary_Data(DIABATIC_FLUX_CONSTANT_ZERO,sim);
+	static bool need_input = true;
+	static struct Exact_Boundary_Data eb_data;
+	set_Exact_Boundary_Data(&eb_data,&need_input,DIABATIC_FLUX_CONSTANT_ZERO,sim->input_path);
+
 	constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general(bv,bv_i,&eb_data);
 }
 
@@ -141,7 +147,10 @@ void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic
 {
 	UNUSED(sim); UNUSED(s_face);
 
-	struct Exact_Boundary_Data eb_data = get_Exact_Boundary_Data(DIABATIC_FLUX_CONSTANT,sim);
+	static bool need_input = true;
+	static struct Exact_Boundary_Data eb_data;
+	set_Exact_Boundary_Data(&eb_data,&need_input,DIABATIC_FLUX_CONSTANT,sim->input_path);
+
 	constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general(bv,bv_i,&eb_data);
 }
 
@@ -156,26 +165,42 @@ static void read_and_set_data_diabatic_flux
 	 const bool is_adiabatic                   ///< Flag for whether the boundary is adiabatic.
 	);
 
-static struct Exact_Boundary_Data get_Exact_Boundary_Data (const int viscous_bc_type, const struct Simulation*const sim)
-{
-	static bool need_input = true;
+/** \brief Read/set the required solution data of the \ref Exact_Boundary_Data container (assumes: angular velocity is
+ *         required). */
+static void read_and_set_data_no_slip_rotating
+	(const char*const input_path,             ///< Defined in \ref fopen_input.
+	 struct Exact_Boundary_Data*const eb_data ///< \ref Exact_Boundary_Data.
+	);
 
-	static struct Exact_Boundary_Data eb_data;
-	if (need_input) {
-		need_input = false;
+/** \brief Read/set the required solution data of the \ref Exact_Boundary_Data container (assumes: density and
+ *         total energy are required). */
+static void read_and_set_data_rho_E
+	(const char*const input_path,             ///< Defined in \ref fopen_input.
+	 struct Exact_Boundary_Data*const eb_data ///< \ref Exact_Boundary_Data.
+	);
+
+static void set_Exact_Boundary_Data
+	(struct Exact_Boundary_Data*const eb_data, bool*const need_input, const int viscous_bc_type,
+	 const char*const input_path)
+{
+	if (*need_input) {
+		*need_input = false;
 		switch (viscous_bc_type) {
 		case DIABATIC_FLUX_CONSTANT_ZERO:
-			read_and_set_data_diabatic_flux(sim->input_path,&eb_data,true);
+			read_and_set_data_diabatic_flux(input_path,eb_data,true);
 			break;
 		case DIABATIC_FLUX_CONSTANT:
-			read_and_set_data_diabatic_flux(sim->input_path,&eb_data,false);
+			read_and_set_data_diabatic_flux(input_path,eb_data,false);
+			break;
+		case NO_SLIP_ALL_ROTATING_RHO_E:
+			read_and_set_data_no_slip_rotating(input_path,eb_data);
+			read_and_set_data_rho_E(input_path,eb_data);
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %d\n",viscous_bc_type);
 			break;
 		}
 	}
-	return eb_data;
 }
 
 static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
@@ -215,9 +240,9 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
 		const Type*const uvw_ex = eb_data->compute_uvw_ex(xyz_n,eb_data);
 
 		rho[n]  = -rho_l[n]  + 2.0*rho_ex;
-		IF_DIM_GE_1( rhou[n] = -rhou_l[n] + 2.0*rho[n]*uvw_ex[0] );
-		IF_DIM_GE_2( rhov[n] = -rhov_l[n] + 2.0*rho[n]*uvw_ex[1] );
-		IF_DIM_GE_3( rhow[n] = -rhow_l[n] + 2.0*rho[n]*uvw_ex[2] );
+		IF_DIM_GE_1( rhou[n] = -rhou_l[n] + 2.0*rho_ex*uvw_ex[0] );
+		IF_DIM_GE_2( rhov[n] = -rhov_l[n] + 2.0*rho_ex*uvw_ex[1] );
+		IF_DIM_GE_3( rhow[n] = -rhow_l[n] + 2.0*rho_ex*uvw_ex[2] );
 		E[n]    = -E_l[n]    + 2.0*E_ex;
 	}
 	bv->s = (struct const_Multiarray_T*)s;
@@ -458,6 +483,13 @@ static const Type* compute_uvw_ex_zero
 	 const struct Exact_Boundary_Data*const eb_data
 	);
 
+/** \brief Version of \ref compute_uvw_ex_fptr imposing velocity for a rotating boundary.
+ *  \return See brief. */
+static const Type* compute_uvw_ex_rotating
+	(const Real xyz[DIM],
+	 const struct Exact_Boundary_Data*const eb_data
+	);
+
 static void read_and_set_data_diabatic_flux
 	(const char*const input_path, struct Exact_Boundary_Data*const eb_data, const bool is_adiabatic)
 {
@@ -488,6 +520,43 @@ static void read_and_set_data_diabatic_flux
 	}
 
 	eb_data->compute_uvw_ex = compute_uvw_ex_zero;
+}
+
+static void read_and_set_data_no_slip_rotating (const char*const input_path, struct Exact_Boundary_Data*const eb_data)
+{
+	const int count_to_find = 1;
+	int count_found = 0;
+
+	char line[STRLEN_MAX];
+
+	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_string_count_d("omega",&count_found,line,&eb_data->omega);
+	}
+	fclose(input_file);
+
+	if (count_found != count_to_find)
+		EXIT_ERROR("Did not find the required number of variables");
+
+	eb_data->compute_uvw_ex = compute_uvw_ex_rotating;
+}
+
+static void read_and_set_data_rho_E (const char*const input_path, struct Exact_Boundary_Data*const eb_data)
+{
+	const int count_to_find = 2;
+	int count_found = 0;
+
+	char line[STRLEN_MAX];
+
+	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_string_count_d("rho_b",&count_found,line,&eb_data->rho);
+		read_skip_string_count_d("E_b",  &count_found,line,&eb_data->E);
+	}
+	fclose(input_file);
+
+	if (count_found != count_to_find)
+		EXIT_ERROR("Did not find the required number of variables");
 }
 
 // Level 2 ********************************************************************************************************** //
@@ -531,6 +600,23 @@ static void set_data_nfEv
 static const Type* compute_uvw_ex_zero (const Real xyz[DIM], const struct Exact_Boundary_Data*const eb_data)
 {
 	UNUSED(xyz); UNUSED(eb_data);
-	static const Type uvw[DIM] = {0,};
+	static const Type uvw[DIM] = {0.0,};
+	return uvw;
+}
+
+static const Type* compute_uvw_ex_rotating (const Real xyz[DIM], const struct Exact_Boundary_Data*const eb_data)
+{
+	assert(DIM >= 2);
+	const Real x = xyz[0],
+	           y = xyz[1];
+	const Real omega = eb_data->omega;
+
+	const Real r  = sqrt(x*x+y*y),
+	           th = atan2(y,x),
+		     Vt = omega*r;
+
+	static Type uvw[DIM] = {0.0,};
+	uvw[0] = -sin(th)*Vt;
+	uvw[1] =  cos(th)*Vt;
 	return uvw;
 }

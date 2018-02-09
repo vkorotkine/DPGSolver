@@ -301,8 +301,8 @@ static void read_data_taylor_couette (const char*const input_path, struct Sol_Da
 		read_skip_string_count_d("mu",&count_found,line,&sol_data->mu);
 
 		read_skip_string_count_d("omega",&count_found,line,&sol_data->omega);
-		read_skip_string_count_d("t_i",  &count_found,line,&sol_data->t_i);
-		read_skip_string_count_d("p_i",  &count_found,line,&sol_data->p_i);
+		read_skip_string_count_d("t_b",  &count_found,line,&sol_data->t_i);
+		read_skip_string_count_d("p_b",  &count_found,line,&sol_data->p_i);
 		read_skip_string_count_d("r_s",  &count_found,line,&sol_data->r_s);
 	}
 	fclose(input_file);

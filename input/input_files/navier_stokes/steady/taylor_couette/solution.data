@@ -11,8 +11,13 @@ dTdn               0.0
 
 no_slip_type rotating
 omega 1.0
-Vt    0.5
 
-no_slip_all_type pressure_temperature
-p_i   1.0
-t_i   1.0
+no_slip_all_type density_energy
+p_b   1.0 // 'p'ressure    at internal 'b'oundary
+t_b   1.0 // 't'emperature at internal 'b'oundary
+
+
+
+// Redundant inputs (simplifying set-up)
+rho_b 1.0   // Set from c_b = sqrt(\gamma*r_s*T_b) = sqrt(\gamma*P_b/rho_b)
+E_b   2.625 // Set from E_b = P_b/(\gamma-1) + 0.5*rho_b*V2_b (Assumed: \gamma = 1.4, V2_b = 0.25)

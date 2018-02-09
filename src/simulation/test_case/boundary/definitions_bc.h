@@ -70,7 +70,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define NO_SLIP_ROTATING 301 ///< Obtain the no-slip conditions using the angular velocity of a rotating cylinder.
 
-#define NO_SLIP_ALL_PT 401 ///< Obtain all of the remaining no-slip BCs from the 'P'ressure and 'T'emperature.
+/// Obtain all of the remaining BCs (i.e. all excluding velocity) from the density (\rho) and total energy (E).
+#define NO_SLIP_ALL__RHO_E 401
+
+#define NO_SLIP_ALL_ROTATING_RHO_E 1001 ///< Compound \ref NO_SLIP_ROTATING and \ref NO_SLIP_ALL__RHO_E.
 ///\}
 
 #endif // DPG__definitions_bc_h__INCLUDED
