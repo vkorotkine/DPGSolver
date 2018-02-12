@@ -87,6 +87,11 @@ struct Test_Case_T {
 	// Parameters for explicit/implicit simulations.
 	const int solver_type_i; ///< The implicit solver type. Options: See definitions_test_case.h.
 
+	/// Parameter relating to the terms to be included in the LHS matrix. Options: See definitions_test_case.h.
+	const int lhs_terms;
+
+	const double cfl_initial; ///< Initial CFL number in case \ref LHS_CFL_RAMPING is selected.
+
 	/// Integer indices of the 1st/2nd order numerical fluxes. See \ref definitions_test_case.h
 	const int ind_num_flux[2];
 

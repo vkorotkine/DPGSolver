@@ -87,6 +87,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define OP_R_P_12    16 ///< Order = 1 and 2 only.
 #define OP_R_P_1P    11 ///< Order = 1 to p_min:p_max.
 #define OP_R_P_1PPM1 12 ///< Order = 1 to p_reference +/- 1.
+#define OP_R_P_P1    17 ///< Order = p_reference to 1.
 #define OP_R_P_PM0   13 ///< Order = p_reference +/- 0.
 #define OP_R_P_PM1   14 ///< Order = p_reference +/- 1.
 #define OP_R_P_ALL   15 ///< Order = p_min:p_max.

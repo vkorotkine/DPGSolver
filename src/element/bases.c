@@ -69,6 +69,8 @@ const struct const_Matrix_d* constructor_basis_tp_orthonormal (const int p_b, co
 	double* phi_data = phi_rst->data;
 
 	if (d == 0) {
+		assert(n_n == 1);
+		assert(n_b == 1);
 		*phi_data = 1.0;
 	} else {
 		const double*const r = get_col_const_Matrix_d(0,rst),
@@ -489,15 +491,21 @@ const struct const_Matrix_d* constructor_basis_tp_bezier (const int p_b, const s
 	            *const s = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
 	            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
 
-	for (int n = 0; n < n_n; ++n) {
-	for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
-	for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
-	for (int i = 0; i < pp1; ++i) {
-		           *phi_data  = bernstein_std(p_b,i,r[n]);
-		if (d > 1) *phi_data *= bernstein_std(p_b,j,s[n]);
-		if (d > 2) *phi_data *= bernstein_std(p_b,k,t[n]);
-		++phi_data;
-	}}}}
+	if (d == 0) {
+		assert(n_n == 1);
+		assert(n_b == 1);
+		*phi_data = 1.0;
+	} else {
+		for (int n = 0; n < n_n; ++n) {
+		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
+		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
+		for (int i = 0; i < pp1; ++i) {
+			           *phi_data  = bernstein_std(p_b,i,r[n]);
+			if (d > 1) *phi_data *= bernstein_std(p_b,j,s[n]);
+			if (d > 2) *phi_data *= bernstein_std(p_b,k,t[n]);
+			++phi_data;
+		}}}}
+	}
 
 	return (const struct const_Matrix_d*) phi_rst;
 }

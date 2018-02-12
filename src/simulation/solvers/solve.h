@@ -123,4 +123,11 @@ void compute_flux_imbalances
 	(struct Simulation*const sim ///< \ref Simulation.
 	);
 
+/** \brief Constructor for the solution coefficients in the Bezier basis.
+ *  \return See brief. */
+struct Multiarray_d* constructor_s_coef_bezier
+	(const struct Solver_Volume*const s_vol, ///< \ref Solver_Volume_T.
+	 const struct Simulation*const sim       ///< \ref Simulation.
+	);
+
 #endif // DPG__solve_h__INCLUDED

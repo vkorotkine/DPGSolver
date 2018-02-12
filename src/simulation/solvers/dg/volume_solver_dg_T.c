@@ -34,13 +34,20 @@ You should have received a copy of the GNU General Public License along with DPG
 /// Container holding flags for which members of \ref DG_Solver_Volume_T are needed.
 struct Needed_Members {
 	bool sol_coef_p, ///< Flag for \ref DG_Solver_Volume_T::sol_coef_p.
-	     m_inv;      ///< Flag for \ref DG_Solver_Volume_T::m_inv.
+	     m_inv,      ///< Flag for \ref DG_Solver_Volume_T::m_inv.
+	     m;          ///< Flag for \ref DG_Solver_Volume_T::m.
 };
 
 /** \brief Return a statically allocated \ref Needed_Members container with values set.
  *  \return See brief. */
 static struct Needed_Members set_needed_members
 	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/** \brief Constructor for the mass matrix of the input volume.
+ *  \return See brief. */
+static const struct const_Matrix_R* constructor_mass
+	(const struct Solver_Volume_T* s_vol ///< \ref Solver_Volume_T.
 	);
 
 /** \brief Constructor for the inverse mass matrix of the input volume.
@@ -65,6 +72,7 @@ void constructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr, const st
 	dg_s_vol->sol_coef_p =
 		( needed_members.sol_coef_p ? constructor_empty_Multiarray_T('C',order,extents) : NULL ); // destructed
 
+	dg_s_vol->m     = ( needed_members.m     ? constructor_mass(s_vol) : NULL );            // destructed
 	dg_s_vol->m_inv = ( needed_members.m_inv ? constructor_inverse_mass(dg_s_vol) : NULL ); // destructed
 
 	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
@@ -89,6 +97,7 @@ void destructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr)
 	destructor_Multiarray_T(dg_s_vol->rhs);
 	destructor_conditional_Multiarray_T(dg_s_vol->sol_coef_p);
 	destructor_conditional_const_Matrix_R(dg_s_vol->m_inv);
+	destructor_conditional_const_Matrix_R(dg_s_vol->m);
 	destructor_conditional_Multiarray_T(dg_s_vol->grad_coef_v);
 	for (int i = 0; i < DIM; ++i)
 		destructor_conditional_const_Matrix_R(dg_s_vol->d_g_coef_v__d_s_coef[i]);
@@ -97,17 +106,12 @@ void destructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Constructor for the mass matrix of the input volume.
- *  \return See brief. */
-static const struct const_Matrix_R* constructor_mass
-	(const struct Solver_Volume_T* s_vol ///< \ref Solver_Volume_T.
-	);
-
 static struct Needed_Members set_needed_members (const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	struct Needed_Members needed_members =
 		{ .sol_coef_p = false,
+		  .m          = false,
 		  .m_inv      = false, };
 
 	switch (test_case->solver_proc) {
@@ -149,19 +153,11 @@ static struct Needed_Members set_needed_members (const struct Simulation* sim)
 		}
 	}
 
+	if (test_case->lhs_terms == LHS_CFL_RAMPING)
+		needed_members.m = true;
+
 	return needed_members;
 }
-
-static const struct const_Matrix_R* constructor_inverse_mass (const struct DG_Solver_Volume_T* dg_s_vol)
-{
-	const struct const_Matrix_R* m     = constructor_mass((struct Solver_Volume_T*)dg_s_vol); // destructed
-	const struct const_Matrix_R* m_inv = constructor_inverse_const_Matrix_R(m);             // returned
-	destructor_const_Matrix_R(m);
-
-	return m_inv;
-}
-
-// Level 1 ********************************************************************************************************** //
 
 static const struct const_Matrix_R* constructor_mass (const struct Solver_Volume_T* s_vol)
 {
@@ -186,3 +182,15 @@ static const struct const_Matrix_R* constructor_mass (const struct Solver_Volume
 	return mass;
 }
 
+static const struct const_Matrix_R* constructor_inverse_mass (const struct DG_Solver_Volume_T* dg_s_vol)
+{
+	const struct const_Matrix_R* m_inv = NULL;
+	if (dg_s_vol->m) {
+		m_inv = constructor_inverse_const_Matrix_R(dg_s_vol->m); // returned
+	} else {
+		const struct const_Matrix_R* m = constructor_mass((struct Solver_Volume_T*)dg_s_vol); // destructed
+		m_inv = constructor_inverse_const_Matrix_R(m); // returned
+		destructor_const_Matrix_R(m);
+	}
+	return m_inv;
+}

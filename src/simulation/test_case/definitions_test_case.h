@@ -50,4 +50,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define SOLVER_I_ITERATIVE 202 ///< Implicit iterative solver (specification provided in input Petsc options file).
 ///\}
 
+///\{ \name Definitions relating to terms included in the LHS matrix to be inverted.
+#define LHS_FULL_NEWTON 1101 ///< Use the Newton-Raphson method to solve the implicit system.
+
+/** As for \ref LHS_FULL_NEWTON but with an additional diagonal term based on a ramping of the CFL number. Note that
+ *  using a value of CFL = \f$ \infty \f$ corresponds exactly to \ref LHS_FULL_NEWTON. */
+#define LHS_CFL_RAMPING 1102
+///\}
+
 #endif // DPG__definitions_test_case_h__INCLUDED

@@ -82,9 +82,16 @@ Type minimum_T
 	 const ptrdiff_t n_entries ///< The number of entries.
 	);
 
-/** \brief Compute the maximum of the absolution values of the input array entries.
+/** \brief Compute the maximum of the absolute values of the input array entries.
  *  \return See brief. */
 Type maximum_abs_T
+	(const Type*const data,    ///< The array of data.
+	 const ptrdiff_t n_entries ///< The number of entries.
+	);
+
+/** \brief Compute the 'R'eal maximum of the 'T'ype values of the input array entries.
+ *  \return See brief. */
+Real maximum_RT
 	(const Type*const data,    ///< The array of data.
 	 const ptrdiff_t n_entries ///< The number of entries.
 	);

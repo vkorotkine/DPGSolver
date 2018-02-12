@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <assert.h>
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -34,6 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_boundary.h"
 #include "def_templates_flux.h"
 #include "def_templates_geometry.h"
+#include "def_templates_math_functions.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_solution.h"
 #include "def_templates_test_case.h"
@@ -168,6 +170,97 @@ void convert_variables_gradients_T
 		EXIT_ERROR("Unsupported: %c\n",type_i);
 		break;
 	}
+}
+
+compute_mu_fptr_T get_compute_mu_fptr_T (const char*const input_path)
+{
+	static int viscosity_type = VISCOSITY_INVALID;
+	static bool need_input = true;
+	set_viscosity_type_T(input_path,&viscosity_type,&need_input);
+
+	switch (viscosity_type) {
+		case VISCOSITY_CONSTANT:   return compute_mu_constant_T;                  break;
+		case VISCOSITY_SUTHERLAND: return compute_mu_sutherland_T;                break;
+		default:                   EXIT_ERROR("Unsupported: %d.",viscosity_type); break;
+	};
+}
+
+void set_viscosity_type_T
+	(const char*const input_path, int*const viscosity_type_ptr, bool*const need_input)
+{
+	if (*need_input) {
+		*need_input = false;
+
+		const int count_to_find = 1;
+		int count_found = 0;
+
+		char line[STRLEN_MAX];
+		FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			read_skip_convert_i(line,"viscosity_type",viscosity_type_ptr,&count_found);
+		}
+		fclose(input_file);
+
+		if (count_found != count_to_find)
+			EXIT_ERROR("Did not find the required number of variables");
+	}
+}
+
+Type compute_mu_constant_T (const char*const input_path, const Type rho, const Type*const rhouvw, const Type E)
+{
+	UNUSED(rho); UNUSED(rhouvw); UNUSED(E);
+	static Real mu = 0.0;
+
+	static bool need_input = true;
+	if (need_input) {
+		need_input = false;
+
+		const int count_to_find = 1;
+		int count_found = 0;
+
+		char line[STRLEN_MAX];
+		FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			read_skip_string_count_d("mu",&count_found,line,&mu);
+		}
+		fclose(input_file);
+
+		if (count_found != count_to_find)
+			EXIT_ERROR("Did not find the required number of variables");
+	}
+	return mu;
+}
+
+Type compute_mu_sutherland_T (const char*const input_path, const Type rho, const Type*const rhouvw, const Type E)
+{
+	static Real r_s = 0.0;
+
+	static bool need_input = true;
+	if (need_input) {
+		need_input = false;
+
+		const int count_to_find = 1;
+		int count_found = 0;
+
+		char line[STRLEN_MAX];
+		FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			read_skip_string_count_d("r_s",&count_found,line,&r_s);
+		}
+		fclose(input_file);
+
+		if (count_found != count_to_find)
+			EXIT_ERROR("Did not find the required number of variables");
+	}
+
+	const Type V2 = compute_V2_from_rhouvw_T(rho,rhouvw),
+	           p = GM1*(E-0.5*rho*V2),
+		     T = p/(rho*r_s);
+
+	static const Real c1 = 1.46e-6,
+	                  c2 = 112;
+
+	return c1/(1+c2/T)*sqrt_T(T);
 }
 
 // Static functions ************************************************************************************************* //

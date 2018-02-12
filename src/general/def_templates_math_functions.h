@@ -35,6 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define average_T   average_d
 #define minimum_T   minimum_d
 #define maximum_abs_T maximum_abs_d
+#define maximum_RT    maximum_dd
 #define add_to_T    add_to_d
 ///\}
 
@@ -57,6 +58,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define average_T   average_c
 #define minimum_T   minimum_c
 #define maximum_abs_T maximum_abs_c
+#define maximum_RT    maximum_dc
 #define add_to_T    add_to_c
 ///\}
 

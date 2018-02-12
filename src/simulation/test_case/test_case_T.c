@@ -235,6 +235,8 @@ static void read_test_case_parameters (struct Test_Case_T* test_case, const stru
 		read_skip_convert_const_i(line,"solver_proc",  &test_case->solver_proc,  &count_found);
 		read_skip_convert_const_i(line,"solver_type_e",&test_case->solver_type_e,NULL);
 		read_skip_convert_const_i(line,"solver_type_i",&test_case->solver_type_i,NULL);
+		read_skip_convert_const_i(line,"lhs_terms",    &test_case->lhs_terms,    NULL);
+		read_skip_string_count_const_d("cfl_initial",&count_tmp,line,&test_case->cfl_initial);
 
 		read_skip_convert_const_i(line,"geom_parametrization",&test_case->geom_parametrization,NULL);
 
@@ -275,6 +277,32 @@ static void correct_invalid_test_case_parameters (struct Test_Case_T* test_case,
 		break; // Do nothing.
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
+		break;
+	}
+
+	switch (test_case->lhs_terms) {
+	case 0:
+		const_cast_i(&test_case->lhs_terms,LHS_FULL_NEWTON);
+		break;
+	case LHS_FULL_NEWTON:
+		break; // Do nothing.
+	case LHS_CFL_RAMPING:
+		switch (test_case->pde_index) {
+		case PDE_ADVECTION: // fallthrough
+		case PDE_DIFFUSION:
+			EXIT_ERROR("Unsupported: Use full newton for linear problems.\n");
+			break;
+		case PDE_EULER:         // fallthrough
+		case PDE_NAVIER_STOKES:
+			break; // do nothing.
+		default:
+			EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
+			break;
+		}
+		assert(test_case->cfl_initial != 0.0);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",test_case->lhs_terms);
 		break;
 	}
 }

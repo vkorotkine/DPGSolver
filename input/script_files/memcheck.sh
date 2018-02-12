@@ -12,6 +12,8 @@
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_linearization
 ARGV="navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_DG_TRI__ml0__p2"
 ARGV="navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_DG_ParametricMixed2D__ml0__p2"
+EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
+ARGV="euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D petsc_options_gmres_default"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

@@ -128,6 +128,16 @@ Type maximum_abs_T (const Type*const data, const ptrdiff_t n_entries)
 	return max;
 }
 
+Real maximum_RT (const Type*const data, const ptrdiff_t n_entries)
+{
+	Real max = DBL_MIN;
+	for (int i = 0; i < n_entries; ++i) {
+		if (real_T(data[i]) > max)
+			max = real_T(data[i]);
+	}
+	return max;
+}
+
 void add_to_T (Type*const data, const Type c_add, const ptrdiff_t n_entries)
 {
 	for (int i = 0; i < n_entries; ++i)

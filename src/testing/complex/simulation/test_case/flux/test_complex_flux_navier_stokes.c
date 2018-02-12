@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_flux.h"
 #include "test_complex_flux_euler.h"
+#include "test_complex_solution_navier_stokes.h"
 #include "test_complex_test_case.h"
 
 #include "complex_multiarray.h"

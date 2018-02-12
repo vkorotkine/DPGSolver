@@ -54,4 +54,11 @@ void compute_temperature
 	 const struct Simulation*const sim           ///< \ref Simulation.
 	);
 
+/// \brief Compute the maximum wave speed.
+void compute_max_wavespeed
+	(struct Multiarray_d* V_p_c,            ///< The container to hold the maximum wave speed data.
+	 const struct const_Multiarray_d* vars, ///< The container of Euler variables.
+	 const char var_type                    ///< The type of the variables.
+	);
+
 #endif // DPG__solution_euler_h__INCLUDED

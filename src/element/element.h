@@ -50,6 +50,7 @@ struct Element {
 
 	struct Element* sub_element[2];  ///< Sub-element(s) used to form the tensor-product element (if applicable).
 	struct Element* face_element[2]; ///< Element(s) associated with the faces of the \ref Element.
+	struct Element* edge_element;    ///< Element associated with the edges of the \ref Element.
 
 	void* derived; ///< Pointer to the element currently derived from the base element.
 };
@@ -78,6 +79,7 @@ struct const_Element {
 
 	const struct const_Element*const sub_element[2];  ///< Defined in \ref Element.
 	const struct const_Element*const face_element[2]; ///< Defined in \ref Element.
+	const struct const_Element*const edge_element;    ///< Defined in \ref Element.
 
 	const void*const derived; ///< Defined in \ref Element.
 };
@@ -141,6 +143,13 @@ const struct const_Element* get_element_by_type
 const struct const_Element* get_element_by_face
 	(const struct const_Element*const element, ///< The element corresponding to the volume.
 	 const int lf                              ///< The index of the local face.
+	);
+
+/** \brief See return.
+ *  \return Pointer to a \ref Element corresponding to the specified edge of the input volume. */
+const struct const_Element* get_element_by_edge
+	(const struct const_Element*const element, ///< The element corresponding to the volume.
+	 const int le                              ///< The index of the local edge.
 	);
 
 /** \brief Check whether wedges are present in the list of elements.

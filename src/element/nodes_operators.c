@@ -286,12 +286,22 @@ static int compute_node_type
 
 static int compute_d_nodes (const char ce, const int elem_d)
 {
-//	assert(elem_d > 0);
-
 	switch (ce) {
 		case 'v': return elem_d;              break;
 		case 'f': return elem_d-1;            break;
-		case 'e': return GSL_MAX(elem_d-2,0); break;
+		case 'e':
+			switch (elem_d) {
+			case 3:
+				return elem_d-2;
+				break;
+			case 2: // fallthrough
+			case 1:
+				return compute_d_nodes('f',elem_d);
+				break;
+			default:
+				EXIT_ERROR("Unsupported: %d.\n",elem_d);
+				break;
+			}
 		default:
 			EXIT_ERROR("Unsupported: %c\n",ce);
 			break;
@@ -364,6 +374,7 @@ UNUSED(d_io);
 	constructor_Nodes_fptr constructor_Nodes = get_constructor_Nodes_by_super_type(s_type);
 // May need to use d_io below for fv, ev
 	const struct const_Nodes* nodes_ve = constructor_Nodes(d_i,1,NODES_VERTEX); // destructed
+//	const struct const_Nodes* nodes_ve = constructor_Nodes(d_io,1,NODES_VERTEX); // destructed
 
 	const struct const_Matrix_d* rst_ve  = constructor_mm_NN1C_const_Matrix_d(vv0_vvs_vvs,nodes_ve->rst); // returned
 

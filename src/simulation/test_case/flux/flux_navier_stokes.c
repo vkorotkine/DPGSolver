@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "file_processing.h"
 #include "flux.h"
 #include "flux_euler.h"
+#include "solution_navier_stokes.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //

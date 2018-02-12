@@ -19,5 +19,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "taylor_couette/undef_templates_solution_taylor_couette.h"
 
+#undef compute_mu_fptr_T
+
 #undef set_function_pointers_solution_navier_stokes_T
 #undef convert_variables_gradients_T
+#undef get_compute_mu_fptr_T
+#undef set_viscosity_type_T
+#undef compute_mu_constant_T
+#undef compute_mu_sutherland_T

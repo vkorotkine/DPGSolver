@@ -58,6 +58,10 @@ struct Solver_Element {
 	// Positivity preservation
 	const struct Multiarray_Operator* ccSB0_vs_vs; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* ccBS0_vs_vs; ///< See notation in \ref element_operators.h.
+
+	// CFL ramping
+	const struct Multiarray_Operator* cv0_vg_vv[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vg_ev[2]; ///< See notation in \ref element_operators.h.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

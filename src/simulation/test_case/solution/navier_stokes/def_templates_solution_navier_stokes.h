@@ -21,16 +21,32 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
+///\{ \name Function pointers
+#define compute_mu_fptr_T compute_mu_fptr_d
+///\}
+
 ///\{ \name Function names
 #define set_function_pointers_solution_navier_stokes_T set_function_pointers_solution_navier_stokes
 #define convert_variables_gradients_T                  convert_variables_gradients
+#define get_compute_mu_fptr_T                          get_compute_mu_fptr_d
+#define set_viscosity_type_T                           set_viscosity_type_d
+#define compute_mu_constant_T                          compute_mu_constant_d
+#define compute_mu_sutherland_T                        compute_mu_sutherland_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
+///\{ \name Function pointers
+#define compute_mu_fptr_T compute_mu_fptr_c
+///\}
+
 ///\{ \name Function names
 #define set_function_pointers_solution_navier_stokes_T set_function_pointers_solution_navier_stokes_c
 #define convert_variables_gradients_T                  convert_variables_gradients_c
+#define get_compute_mu_fptr_T                          get_compute_mu_fptr_c
+#define set_viscosity_type_T                           set_viscosity_type_c
+#define compute_mu_constant_T                          compute_mu_constant_c
+#define compute_mu_sutherland_T                        compute_mu_sutherland_c
 ///\}
 
 #endif

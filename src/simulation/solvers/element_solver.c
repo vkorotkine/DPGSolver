@@ -115,6 +115,9 @@ void destructor_derived_Solver_Element (struct Element* element_ptr)
 
 	destructor_Multiarray_Operator(s_e->ccSB0_vs_vs);
 	destructor_Multiarray_Operator(s_e->ccBS0_vs_vs);
+
+	destructor_Multiarray2_Operator(s_e->cv0_vg_ev);
+	destructor_Multiarray2_Operator_conditional(s_e->cv0_vg_vv);
 }
 
 // Static functions ************************************************************************************************* //
@@ -148,6 +151,11 @@ static void constructor_derived_Solver_Element_std (struct Element* element_ptr,
 
 	s_e->ccSB0_vs_vs = constructor_operators_bt("ccSB0","vsA","vsA","H_1_P_PM0",e,sim); // destructed
 	s_e->ccBS0_vs_vs = constructor_operators_bt("ccBS0","vsA","vsA","H_1_P_PM0",e,sim); // destructed
+
+	s_e->cv0_vg_vv[0] = constructor_operators("cv0","vgs","vvs","H_1_P_11",e,sim); // destructed
+	s_e->cv0_vg_vv[1] = constructor_operators("cv0","vgc","vvs","H_1_P_P1",e,sim); // destructed
+	s_e->cv0_vg_ev[0] = constructor_operators("cv0","vgs","evs","H_1_P_11",e,sim); // destructed
+	s_e->cv0_vg_ev[1] = constructor_operators("cv0","vgc","evs","H_1_P_P1",e,sim); // destructed
 }
 
 static void constructor_derived_Solver_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
@@ -215,6 +223,12 @@ static void constructor_derived_Solver_Element_tp (struct Element* element_ptr, 
 
 	set_operators_tp(&ops_tp,s_se[0]->ccBS0_vs_vs,NULL,s_se[1]->ccBS0_vs_vs,NULL);
 	s_e->ccBS0_vs_vs = constructor_operators_tp("ccBS0","vsA","vsA","H_1_P_PM0",e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,s_se[0]->cv0_vg_vv[0],s_se[0]->cv0_vg_ev[0],s_se[1]->cv0_vg_vv[0],s_se[1]->cv0_vg_ev[0]);
+	s_e->cv0_vg_ev[0] = constructor_operators_tp("cv0","vgs","evs","H_1_P_11",e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,s_se[0]->cv0_vg_vv[1],s_se[0]->cv0_vg_ev[1],s_se[1]->cv0_vg_vv[1],s_se[1]->cv0_vg_ev[1]);
+	s_e->cv0_vg_ev[1] = constructor_operators_tp("cv0","vgc","evs","H_1_P_P1",e,sim,&ops_tp); // destructed
 }
 
 static void constructor_derived_Solver_Element_common (struct Element* element_ptr, const struct Simulation* sim)

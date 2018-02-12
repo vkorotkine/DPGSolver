@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_case.h"
 
 #include "compute_error_navier_stokes.h"
+#include "file_processing.h"
 #include "simulation.h"
 
 #include "complex_multiarray.h"

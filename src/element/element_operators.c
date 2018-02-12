@@ -865,6 +865,8 @@ static int convert_to_range (const char type_range, const char*const name_range)
 				return OP_R_P_12;
 			else
 				return OP_R_P_1;
+		else if (strstr(name_range,"P_P1"))
+			return OP_R_P_P1;
 		else if (strstr(name_range,"P_PM0"))
 			return OP_R_P_PM0;
 		else if (strstr(name_range,"P_PM1"))
@@ -976,6 +978,10 @@ static void set_up_extents (struct Operator_Info* op_info)
 			push_back_Vector_i(extents_op,op_info->p_ref[1]+1,false,false);
 			push_back_Vector_i(extents_op,2,false,false);
 			break;
+		case OP_R_P_P1:
+			push_back_Vector_i(extents_op,2,false,false);
+			push_back_Vector_i(extents_op,op_info->p_ref[1]+1,false,false);
+			break;
 		case OP_R_P_PM0:   // fallthrough
 		case OP_R_P_PM1:   // fallthrough
 		case OP_R_P_ALL:
@@ -1031,7 +1037,6 @@ static void set_up_values_op (struct Operator_Info* op_info)
 	values->ext_0 = row;
 
 	op_info->values_op = (const struct const_Matrix_i*) values;
-//print_const_Matrix_i(op_info->values_op);
 }
 
 static void transpose_operators (struct Multiarray_Operator* op)
@@ -1120,13 +1125,13 @@ static const struct const_Matrix_d* constructor_cv
 		break;
 	}
 
-	const int s_type = op_io->s_type;
-	const int p_basis = compute_p_basis(op_io,sim);
-
 	const struct const_Matrix_d* cv = NULL;
 	if (basis_type == BASIS_LAGRANGE) {
 		cv = constructor_identity_const_Matrix_d('R',rst->ext_0); // returned
 	} else {
+		const int s_type = op_io->s_type;
+		const int p_basis = compute_p_basis(op_io,sim);
+
 		constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type_i(s_type,basis_type);
 		cv = constructor_basis(p_basis,rst); // returned
 	}
@@ -1202,29 +1207,30 @@ static void set_operator_std_interp
 
 	/* Compute `op_cvNr`: [operator, coefficients to values, differentiation order N, reference basis].
 	 * op_cvNr == basis(p_i,rst_o). */
-	const struct const_Nodes* nodes_o = constructor_const_Nodes_h(OP_IND_O,op_io,element,sim); // destructed
+	const struct const_Nodes* nodes_io = constructor_const_Nodes_h(OP_IND_O,op_io,element,sim); // destructed
 
 	const struct const_Multiarray_Matrix_d* op_cvNr = NULL;
 	if (op_info->range_d == OP_R_D_0) {
-		const struct const_Matrix_d* cv0r = constructor_basis(p_i,nodes_o->rst); // moved
+		const struct const_Matrix_d* cv0r = constructor_basis(p_i,nodes_io->rst); // moved
 
 		op_cvNr = constructor_op_MMd(true,n_op); // destructed
 		const_constructor_move_const_Matrix_d(&op_cvNr->data[0],cv0r); // destructed
 	} else if (op_info->range_d == OP_R_D_ALL) {
 		constructor_grad_basis_fptr constructor_grad_basis =
 			get_constructor_grad_basis_by_super_type(s_type,"orthonormal");
-		op_cvNr = constructor_grad_basis(p_i,nodes_o->rst); // destructed
+		op_cvNr = constructor_grad_basis(p_i,nodes_io->rst); // destructed
 	} else {
 		EXIT_ERROR("Unsupported: %d\n",op_info->range_d);
 	}
+	destructor_const_Nodes(nodes_io);
 
 	/* Compute `op_cvN`: [operator, coefficients to values, differentiation order N].
 	 * op_cvN == op_cvNr*T_i (Corollary 2.2, \cite Zwanenburg2016). */
-	const struct const_Nodes* nodes_i = constructor_const_Nodes_h(OP_IND_I,op_io,element,sim); // destructed
+	const struct const_Nodes* nodes_ii = constructor_const_Nodes_h(OP_IND_I,op_io,element,sim); // destructed
 
-	const struct const_Matrix_d* cv0r_ii = constructor_basis(p_i,nodes_i->rst);                 // destructed
-	const struct const_Matrix_d* cv0_ii  = constructor_cv(nodes_i->rst,&op_io[OP_IND_I],sim,0); // destructed
-	destructor_const_Nodes(nodes_i);
+	const struct const_Matrix_d* cv0r_ii = constructor_basis(p_i,nodes_ii->rst);                 // destructed
+	const struct const_Matrix_d* cv0_ii  = constructor_cv(nodes_ii->rst,&op_io[OP_IND_I],sim,0); // destructed
+	destructor_const_Nodes(nodes_ii);
 
 	const struct const_Matrix_d* T_i = constructor_sgesv_const_Matrix_d(cv0r_ii,cv0_ii); // destructed
 
@@ -1244,7 +1250,11 @@ static void set_operator_std_interp
 	 * op_coN == inv_cv0_oo*op_cvN   <=>   op_coN = sgesv(cv0_oo,op_cvN). */
 	const struct const_Multiarray_Matrix_d* op_coN = constructor_op_MMd(true,n_op);  // destructed
 	if (op_type == OP_T_CC || op_type == OP_T_VC) {
-		const struct const_Matrix_d* cv0_oo = constructor_cv(nodes_o->rst,&op_io[OP_IND_O],sim,0); // destructed
+		const struct Op_IO op_io_oo[2] = { op_io[OP_IND_O], op_io[OP_IND_O], };
+		const struct const_Nodes* nodes_oo = constructor_const_Nodes_h(OP_IND_O,op_io_oo,element,sim); // destructed
+
+		const struct const_Matrix_d* cv0_oo = constructor_cv(nodes_oo->rst,&op_io[OP_IND_O],sim,0); // destructed
+		destructor_const_Nodes(nodes_oo);
 
 		for (int i = 0; i < n_op; ++i) {
 			const struct const_Matrix_d* cv0 = op_cvN->data[i];
@@ -1257,7 +1267,6 @@ static void set_operator_std_interp
 		for (int i = 0; i < n_op; ++i)
 			const_constructor_move_const_Matrix_d(&op_coN->data[i],op_cvN->data[i]); // destructed
 	}
-	destructor_const_Nodes(nodes_o);
 	destructor_const_Multiarray_Matrix_d(op_cvN);
 
 	/* Compute `op_ioN`: [operator, input (coefs/values) to output (coefs/values), differentiation order N].
@@ -1288,13 +1297,11 @@ static void set_operator_std_L2
 	const char ce_i = op_io[OP_IND_I].ce,
 	           ce_o = op_io[OP_IND_O].ce;
 	// Add support if required.
-	assert((ce_i == 'v' && ce_o == 'v') || (ce_i == 'v' && ce_o == 'f') || (ce_i == 'f' && ce_o == 'f'));
+	assert((ce_i == 'v' && ce_o == 'v') || (ce_i == 'v' && ce_o == 'f') || (ce_i == 'v' && ce_o == 'e') ||
+	       (ce_i == 'f' && ce_o == 'f'));
 
 	const int n_op = (int)compute_size(op_ioN->order,op_ioN->extents);
 	assert(n_op == 1); //< Should not have any differentiation operators here.
-
-//printf("%td\n",ind_values);
-//print_const_Matrix_i(op_info->values_op);
 
 	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
 
@@ -1306,8 +1313,13 @@ static void set_operator_std_L2
 
 	const int ind_ce = op_values[OP_IND_CE+OP_IND_O];
 
-	assert(ce_o == 'v' || ce_o == 'f');
-	const struct const_Element* el = (ce_o == 'v' ? e_op : get_element_by_face(e_op,ind_ce) );
+	const struct const_Element* el = NULL;
+	switch (ce_o) {
+		case 'v': el = e_op; break;
+		case 'f': el = get_element_by_face(e_op,ind_ce); break;
+		case 'e': el = get_element_by_edge(e_op,ind_ce); break;
+		default:  EXIT_ERROR("Unsupported: %c\n",ce_o); break;
+	}
 
 	const int p_op_c   = GSL_MAX(p_o,p_i),
 	          s_type_o = el->s_type;
@@ -1533,6 +1545,7 @@ static void compute_range (int x_mm[2], const struct Operator_Info* op_info, con
 			x_mm[0] = 1;
 			x_mm[1] = 2+1;
 			break;
+		case OP_R_P_P1:  // fallthrough
 		case OP_R_P_PM0: // fallthrough
 		case OP_R_P_PM1: // fallthrough
 		case OP_R_P_ALL:
@@ -1554,7 +1567,8 @@ static void compute_range_p_o (int p_o_mm[2], const struct Operator_Info* op_inf
 {
 	const int*const p_ref = op_info->p_ref;
 	switch (op_info->range_p) {
-	case OP_R_P_1:
+	case OP_R_P_1: // fallthrough
+	case OP_R_P_P1:
 		p_o_mm[0] = 1;
 		p_o_mm[1] = 1+1;
 		break;

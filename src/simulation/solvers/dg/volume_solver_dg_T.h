@@ -30,6 +30,9 @@ struct DG_Solver_Volume_T {
 	// Terms required for explicit runs.
 	const struct const_Matrix_R* m_inv; ///< The inverse mass matrix.
 
+	// Terms potentially required for implicit runs.
+	const struct const_Matrix_R* m; ///< The mass matrix.
+
 	// Terms required for 2nd order PDE terms.
 	struct Multiarray_T* grad_coef_v; ///< The volume contribution to the solution gradient coefficients.
 

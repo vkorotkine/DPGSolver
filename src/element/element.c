@@ -55,6 +55,10 @@ static void set_tp_sub_elements
 static void set_face_elements
 	(struct Intrusive_List* elements ///< The list of elements.
 	);
+/// \brief Set the pointers to \ref Element::edge_element.
+static void set_edge_elements
+	(struct Intrusive_List* elements ///< The list of elements.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -156,6 +160,12 @@ const struct const_Element* get_element_by_face (const struct const_Element*cons
 	return element->face_element[get_face_element_index_by_ind_lf(element,lf)];
 }
 
+const struct const_Element* get_element_by_edge (const struct const_Element*const element, const int le)
+{
+	UNUSED(le);
+	return element->edge_element;
+}
+
 bool wedges_present (const struct const_Intrusive_List*const elements)
 {
 	for (const struct const_Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
@@ -254,6 +264,22 @@ int compute_elem_type_sub_ce (const int e_type, const char ce, const int ind_ce)
 			break;
 		}
 		break;
+	case 'e':
+		switch (e_type) {
+		case LINE:
+			return POINT;
+			break;
+		case TRI:   // fallthrough
+		case QUAD:  // fallthrough
+		case TET:   // fallthrough
+		case HEX:   // fallthrough
+		case WEDGE: // fallthrough
+		case PYR:
+			return LINE;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",e_type);
+			break;
+		}
 	default:
 		EXIT_ERROR("Unsupported: %c\n",ce);
 		break;
@@ -345,6 +371,7 @@ void set_element_pointers (struct Intrusive_List*const elements)
 {
 	set_tp_sub_elements(elements);
 	set_face_elements(elements);
+	set_edge_elements(elements);
 }
 
 int get_number_of_face_elements (const struct const_Element*const element)
@@ -637,6 +664,32 @@ static void set_face_elements (struct Intrusive_List* elements)
 		case PYR:
 			element->face_element[0] = get_mutable_element_by_type(elements,TRI);
 			element->face_element[1] = get_mutable_element_by_type(elements,QUAD);
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",element->type);
+			break;
+		}
+	}
+}
+
+static void set_edge_elements (struct Intrusive_List* elements)
+{
+	for (const struct Intrusive_Link* curr = elements->first; curr; curr = curr->next) {
+		struct Element* element = (struct Element*) curr;
+		switch (element->type) {
+		case POINT:
+			element->edge_element = NULL;
+			break;
+		case LINE:
+			element->edge_element = get_mutable_element_by_type(elements,POINT);
+			break;
+		case TRI:   // fallthrough
+		case QUAD:  // fallthrough
+		case TET:   // fallthrough
+		case HEX:   // fallthrough
+		case WEDGE: // fallthrough
+		case PYR:
+			element->edge_element = get_mutable_element_by_type(elements,LINE);
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %d\n",element->type);

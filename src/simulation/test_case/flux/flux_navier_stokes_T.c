@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_flux.h"
 #include "def_templates_math_functions.h"
+#include "def_templates_solution_navier_stokes.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -51,20 +52,6 @@ typedef void (*compute_Flux_Navier_Stokes_fptr)
 	 Type*const f_ptr[DIM*NEQ],
 	 Type*const dfds_ptr[DIM*NEQ*NVAR],
 	 Type*const dfdg_ptr[DIM*NEQ*NVAR*DIM]
-	);
-
-/** \brief Pointer to functions computing the value of the viscosity.
- *
- *  \param input_path \ref Flux_Input_T::input_path.
- *  \param rho        The density.
- *  \param rhouvw     The xyz momentum components.
- *  \param E          The total energy.
- */
-typedef Type (*compute_mu_fptr)
-	(const char*const input_path,
-	 const Type rho,
-	 const Type*const rhouvw,
-	 const Type E
 	);
 
 /** \brief Pointer to functions computing the Jacobian of the viscosity wrt the solution.
@@ -122,12 +109,6 @@ static compute_Flux_Navier_Stokes_fptr get_compute_Flux_Navier_Stokes_fptr
 /** \brief Check whether the viscosity is constant for the current test case.
  *  \return `true` if yes; `false` otherwise. */
 static bool check_if_mu_is_const
-	(const char*const input_path ///< \ref Flux_Input_T::input_path.
-	);
-
-/** \brief Return the pointer to the appropriate \ref compute_mu_fptr specialization based on the viscosity type.
- *  \return See brief. */
-static compute_mu_fptr get_compute_mu_fptr
 	(const char*const input_path ///< \ref Flux_Input_T::input_path.
 	);
 
@@ -321,34 +302,9 @@ static void compute_Flux_Navier_Stokes_111
 	 Type*const dfdg_ptr[DIM*NEQ*NVAR*DIM]                 ///< See brief.
 	);
 
-/// \brief Set the "viscosity_type" parameter based on the value in the input file.
-static void set_viscosity_type
-	(const char*const input_path,  ///< \ref Flux_Input_T::input_path.
-	 int*const viscosity_type_ptr, ///< Pointer to the variable.
-	 bool*const need_input         ///< Pointer to the flag for whether the input is still needed.
-	);
-
-/** \brief Version of \ref compute_mu_fptr for constant viscosity.
- *  \return See brief. */
-static Type compute_mu_constant
-	(const char*const input_path, ///< See brief.
-	 const Type rho,              ///< See brief.
-	 const Type*const rhouvw,     ///< See brief.
-	 const Type E                 ///< See brief.
-	);
-
 /** \brief Version of \ref compute_dmu_ds_fptr for constant viscosity.
  *  \return See brief. */
 static const Type* compute_dmu_ds_constant
-	(const char*const input_path, ///< See brief.
-	 const Type rho,              ///< See brief.
-	 const Type*const rhouvw,     ///< See brief.
-	 const Type E                 ///< See brief.
-	);
-
-/** \brief Version of \ref compute_mu_fptr using the Sutherland formula (eq. (1.56), \cite Toro2009).
- *  \return See brief. */
-static Type compute_mu_sutherland
 	(const char*const input_path, ///< See brief.
 	 const Type rho,              ///< See brief.
 	 const Type*const rhouvw,     ///< See brief.
@@ -469,7 +425,7 @@ static bool check_if_mu_is_const (const char*const input_path)
 {
 	static int viscosity_type = VISCOSITY_INVALID;
 	static bool need_input = true;
-	set_viscosity_type(input_path,&viscosity_type,&need_input);
+	set_viscosity_type_T(input_path,&viscosity_type,&need_input);
 
 	switch (viscosity_type) {
 	case VISCOSITY_CONSTANT:
@@ -484,24 +440,11 @@ static bool check_if_mu_is_const (const char*const input_path)
 	};
 }
 
-static compute_mu_fptr get_compute_mu_fptr (const char*const input_path)
-{
-	static int viscosity_type = VISCOSITY_INVALID;
-	static bool need_input = true;
-	set_viscosity_type(input_path,&viscosity_type,&need_input);
-
-	switch (viscosity_type) {
-		case VISCOSITY_CONSTANT:   return compute_mu_constant;                    break;
-		case VISCOSITY_SUTHERLAND: return compute_mu_sutherland;                  break;
-		default:                   EXIT_ERROR("Unsupported: %d.",viscosity_type); break;
-	};
-}
-
 static compute_dmu_ds_fptr get_compute_dmu_ds_fptr (const char*const input_path)
 {
 	static int viscosity_type = VISCOSITY_INVALID;
 	static bool need_input = true;
-	set_viscosity_type(input_path,&viscosity_type,&need_input);
+	set_viscosity_type_T(input_path,&viscosity_type,&need_input);
 
 	switch (viscosity_type) {
 		case VISCOSITY_CONSTANT:   return compute_dmu_ds_constant;                break;
@@ -540,7 +483,7 @@ static struct Partials_Scalar compute_mu_p
 	static struct Partials_Scalar ps;
 
 /// \todo Move function/function pointer declarations to appropriate levels.
-	compute_mu_fptr compute_mu = get_compute_mu_fptr(input_path);
+	compute_mu_fptr_T compute_mu = get_compute_mu_fptr_T(input_path);
 	ps.d0 = compute_mu(input_path,rho,rhouvw,E);
 
 	if (c_m[1]) {
@@ -657,27 +600,6 @@ static void compute_Flux_Navier_Stokes_100
 	increment_pointers_T(DIM*NEQ,(const Type**)f_ptr);
 }
 
-static void set_viscosity_type
-	(const char*const input_path, int*const viscosity_type_ptr, bool*const need_input)
-{
-	if (*need_input) {
-		*need_input = false;
-
-		const int count_to_find = 1;
-		int count_found = 0;
-
-		char line[STRLEN_MAX];
-		FILE* input_file = fopen_input(input_path,'s',NULL); // closed
-		while (fgets(line,sizeof(line),input_file)) {
-			read_skip_convert_i(line,"viscosity_type",viscosity_type_ptr,&count_found);
-		}
-		fclose(input_file);
-
-		if (count_found != count_to_find)
-			EXIT_ERROR("Did not find the required number of variables");
-	}
-}
-
 static void compute_Flux_Navier_Stokes_111
 	(const struct Flux_Data_Navier_Stokes*const flux_data, Type*const f_ptr[DIM*NEQ],
 	 Type*const dfds_ptr[DIM*NEQ*NVAR], Type*const dfdg_ptr[DIM*NEQ*NVAR*DIM])
@@ -691,69 +613,12 @@ static void compute_Flux_Navier_Stokes_111
 	increment_pointers_T(DIM*NEQ*NVAR*DIM,(const Type**)dfdg_ptr);
 }
 
-static Type compute_mu_constant (const char*const input_path, const Type rho, const Type*const rhouvw, const Type E)
-{
-	UNUSED(rho); UNUSED(rhouvw); UNUSED(E);
-	static Real mu = 0.0;
-
-	static bool need_input = true;
-	if (need_input) {
-		need_input = false;
-
-		const int count_to_find = 1;
-		int count_found = 0;
-
-		char line[STRLEN_MAX];
-		FILE* input_file = fopen_input(input_path,'s',NULL); // closed
-		while (fgets(line,sizeof(line),input_file)) {
-			read_skip_string_count_d("mu",&count_found,line,&mu);
-		}
-		fclose(input_file);
-
-		if (count_found != count_to_find)
-			EXIT_ERROR("Did not find the required number of variables");
-	}
-	return mu;
-}
-
 static const Type* compute_dmu_ds_constant
 	(const char*const input_path, const Type rho, const Type*const rhouvw, const Type E)
 {
 	UNUSED(input_path); UNUSED(rho); UNUSED(rhouvw); UNUSED(E);
 	static const Type dmu_ds[NVAR] = {0,};
 	return dmu_ds;
-}
-
-static Type compute_mu_sutherland (const char*const input_path, const Type rho, const Type*const rhouvw, const Type E)
-{
-	static Real r_s = 0.0;
-
-	static bool need_input = true;
-	if (need_input) {
-		need_input = false;
-
-		const int count_to_find = 1;
-		int count_found = 0;
-
-		char line[STRLEN_MAX];
-		FILE* input_file = fopen_input(input_path,'s',NULL); // closed
-		while (fgets(line,sizeof(line),input_file)) {
-			read_skip_string_count_d("r_s",&count_found,line,&r_s);
-		}
-		fclose(input_file);
-
-		if (count_found != count_to_find)
-			EXIT_ERROR("Did not find the required number of variables");
-	}
-
-	const Type V2 = compute_V2_from_rhouvw_T(rho,rhouvw),
-	           p = GM1*(E-0.5*rho*V2),
-		     T = p/(rho*r_s);
-
-	static const Real c1 = 1.46e-6,
-	                  c2 = 112;
-
-	return c1/(1+c2/T)*sqrt_T(T);
 }
 
 static const Type* compute_uvw (const Type rho_inv, const Type*const rhouvw)

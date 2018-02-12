@@ -78,23 +78,17 @@ void compute_mach (struct Multiarray_d* mach, const struct const_Multiarray_d* v
 	if (var_type != 'p')
 		convert_variables((struct Multiarray_d*)vars,var_type,'p');
 
-	const ptrdiff_t d = vars->extents[1]-2;
-
 	const double* rho = get_col_const_Multiarray_d(0,vars),
-		      * u   = get_col_const_Multiarray_d(1,vars),
-		      * v   = (d > 1 ? get_col_const_Multiarray_d(2,vars) : NULL),
-		      * w   = (d > 2 ? get_col_const_Multiarray_d(3,vars) : NULL),
+		      *const uvw[DIM] = ARRAY_DIM( get_col_const_Multiarray_d(1,vars),
+		                                   get_col_const_Multiarray_d(2,vars),
+		                                   get_col_const_Multiarray_d(3,vars) ),
 	            * p   = get_col_const_Multiarray_d(vars->extents[1]-1,vars);
 
 	const ptrdiff_t ext_0 = mach->extents[0];
 	for (ptrdiff_t i = 0; i < ext_0; ++i) {
 		double V2 = 0.0;
-		switch (d) {
-			case 3: V2 += w[i]*w[i]; // fallthrough
-			case 2: V2 += v[i]*v[i]; // fallthrough
-			case 1: V2 += u[i]*u[i]; break;
-			default: EXIT_ERROR("Unsupported: %td\n",d); break;
-		}
+		for (int d = 0; d < DIM; ++d)
+			V2 += uvw[d][i]*uvw[d][i];
 		const double c2 = GAMMA*p[i]/rho[i];
 		mach->data[i] = sqrt(V2/c2);
 	}
@@ -121,6 +115,35 @@ void compute_temperature
 	const ptrdiff_t ext_0 = t->extents[0];
 	for (ptrdiff_t i = 0; i < ext_0; ++i)
 		t->data[i] = p[i]/(r_s*rho[i]);
+
+	if (var_type != 'p')
+		convert_variables((struct Multiarray_d*)vars,'p',var_type);
+}
+
+void compute_max_wavespeed (struct Multiarray_d* V_p_c, const struct const_Multiarray_d* vars, const char var_type)
+{
+	assert(V_p_c->extents[0] == vars->extents[0]);
+	assert(V_p_c->extents[1] == 1);
+	assert(vars->extents[1]-2 == DIM);
+	assert(vars->layout == 'C');
+
+	if (var_type != 'p')
+		convert_variables((struct Multiarray_d*)vars,var_type,'p');
+
+	const double*const rho      = get_col_const_Multiarray_d(0,vars),
+	            *const uvw[DIM] = ARRAY_DIM( get_col_const_Multiarray_d(1,vars),
+		                                   get_col_const_Multiarray_d(2,vars),
+		                                   get_col_const_Multiarray_d(3,vars) ),
+	            *const p        = get_col_const_Multiarray_d(vars->extents[1]-1,vars);
+
+	const ptrdiff_t ext_0 = V_p_c->extents[0];
+	for (ptrdiff_t i = 0; i < ext_0; ++i) {
+		double V2 = 0.0;
+		for (int d = 0; d < DIM; ++d)
+			V2 += uvw[d][i]*uvw[d][i];
+		const double c2 = GAMMA*p[i]/rho[i];
+		V_p_c->data[i] = sqrt(V2)+sqrt(c2);
+	}
 
 	if (var_type != 'p')
 		convert_variables((struct Multiarray_d*)vars,'p',var_type);

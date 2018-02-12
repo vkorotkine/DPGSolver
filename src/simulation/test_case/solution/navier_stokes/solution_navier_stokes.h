@@ -44,4 +44,12 @@ double compute_cp_ideal_gas
 	(const double r_s ///< The specific gas constant.
 	);
 
+/// \brief Compute the viscosity.
+void compute_viscosity
+	(struct Multiarray_d* mu,               ///< The container to hold the viscosity data.
+	 const struct const_Multiarray_d* vars, ///< The container of Euler variables.
+	 const char var_type,                   ///< The type of the variables.
+	 const char*const input_path            ///< \ref Simulation::input_path.
+	);
+
 #endif // DPG__solution_navier_stokes_h__INCLUDED

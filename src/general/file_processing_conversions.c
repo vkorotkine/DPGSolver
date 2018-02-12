@@ -86,6 +86,11 @@ static int get_define (const char*const def_str, const char*const def_type)
 		else if (strcmp(def_str,"iterative") == 0) def_i = SOLVER_I_ITERATIVE;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"lhs_terms") == 0) {
+		if      (strcmp(def_str,"full_newton") == 0) def_i = LHS_FULL_NEWTON;
+		else if (strcmp(def_str,"cfl_ramping") == 0) def_i = LHS_CFL_RAMPING;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else if (strcmp(def_type,"num_flux_1st") == 0) {
 		if      (strcmp(def_str,"upwind")    == 0) def_i = NUM_FLUX_UPWIND;
 		else if (strcmp(def_str,"Roe-Pike")  == 0) def_i = NUM_FLUX_ROE_PIKE;

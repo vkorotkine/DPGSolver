@@ -16,10 +16,26 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides templated functions relating to the Navier-Stokes solutions.
  */
 
+#include <stdbool.h>
+
 struct Test_Case_T;
 struct Simulation;
 struct Multiarray_T;
 struct const_Multiarray_T;
+
+/** \brief Pointer to functions computing the value of the viscosity.
+ *
+ *  \param input_path \ref Flux_Input_T::input_path.
+ *  \param rho        The density.
+ *  \param rhouvw     The xyz momentum components.
+ *  \param E          The total energy.
+ */
+typedef Type (*compute_mu_fptr_T)
+	(const char*const input_path,
+	 const Type rho,
+	 const Type*const rhouvw,
+	 const Type E
+	);
 
 /// \brief Set the solution function pointer members of an Navier-Stokes \ref Test_Case_T.
 void set_function_pointers_solution_navier_stokes_T
@@ -33,4 +49,35 @@ void convert_variables_gradients_T
 	 const struct const_Multiarray_T*const sol, ///< The container holding the solution data.
 	 const char type_i,                         ///< The input variable type.
 	 const char type_o                          ///< The output variable type.
+	);
+
+/** \brief Return the pointer to the appropriate \ref compute_mu_fptr_T specialization based on the viscosity type.
+ *  \return See brief. */
+compute_mu_fptr_T get_compute_mu_fptr_T
+	(const char*const input_path ///< \ref Flux_Input_T::input_path.
+	);
+
+/// \brief Set the "viscosity_type" parameter based on the value in the input file.
+void set_viscosity_type_T
+	(const char*const input_path,  ///< \ref Flux_Input_T::input_path.
+	 int*const viscosity_type_ptr, ///< Pointer to the variable.
+	 bool*const need_input         ///< Pointer to the flag for whether the input is still needed.
+	);
+
+/** \brief Version of \ref compute_mu_fptr_T for constant viscosity.
+ *  \return See brief. */
+Type compute_mu_constant_T
+	(const char*const input_path, ///< See brief.
+	 const Type rho,              ///< See brief.
+	 const Type*const rhouvw,     ///< See brief.
+	 const Type E                 ///< See brief.
+	);
+
+/** \brief Version of \ref compute_mu_fptr_T using the Sutherland formula (eq. (1.56), \cite Toro2009).
+ *  \return See brief. */
+Type compute_mu_sutherland_T
+	(const char*const input_path, ///< See brief.
+	 const Type rho,              ///< See brief.
+	 const Type*const rhouvw,     ///< See brief.
+	 const Type E                 ///< See brief.
 	);
