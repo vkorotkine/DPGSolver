@@ -25,6 +25,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "complex_vector.h"
 #include "multiarray.h"
 
+#include "const_cast.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //

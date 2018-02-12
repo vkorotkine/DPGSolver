@@ -40,7 +40,7 @@ struct Integration_Test_Info {
 
 	const int adapt_type; ///< Analogue of \ref Simulation::adapt_type.
 
-	const double conv_order_discount; ///< \ref Test_Case_T::conv_order_discount.
+	const double conv_order_discount; ///< The allowed convergence order discount.
 };
 
 /// \brief Call integration test functions.

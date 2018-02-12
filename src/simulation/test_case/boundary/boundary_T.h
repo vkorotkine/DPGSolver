@@ -79,6 +79,14 @@ struct Boundary_Value_Input_T {
 
 /// \brief Container storing the boundary condition values and their Jacobians.
 struct Boundary_Value_T {
+	/** 'n'ormal 'f'lux for the 'E'nergy equation in cases where a constant value is used (e.g. Diabatic wall BCs).
+	 *
+	 *  In these cases, neither boundary values, gradients, nor their Jacobians are required as they are not used to
+	 *  compute the normal numerical flux and they are all set to NULL. */
+	Real nf_E;
+
+	bool nf_E_provided; ///< Flag indicating whether \ref Boundary_Value_T::nf_E was set and should be used.
+
 	const struct const_Multiarray_T* s; ///< The solution variables values on the boundary.
 	const struct const_Multiarray_T* g; ///< The solution gradient variables values on the boundary.
 
@@ -103,6 +111,9 @@ struct Boundary_Value_T {
 
 /// \brief `mutable` version of \ref Boundary_Value_T.
 struct mutable_Boundary_Value_T {
+	Real nf_E;          ///< See brief.
+	bool nf_E_provided; ///< See brief.
+
 	struct Multiarray_T* s;     ///< See brief.
 	struct Multiarray_T* g;     ///< See brief.
 	struct Multiarray_T* ds_ds; ///< See brief.

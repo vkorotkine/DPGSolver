@@ -179,8 +179,8 @@ static struct Partials_Tensor compute_tau_p
 	 const bool*const c_m,                      ///< Array of flags indicating members to be computed.
 	 const bool mu_is_const                     ///< Flag indicating whether the viscosity is constant.
 	);
-/** \brief Return a statically allocated \ref Partials_Vector for the scaled Temperature (Ts == P/(rho*(\gamma-1)))
- *         gradients.
+/** \brief Return a statically allocated \ref Partials_Vector for the scaled Temperature
+ *         (\f$ Ts == P/(rho*(\gamma-1)) \f$) gradients.
  *  \return See brief. */
 static struct Partials_Vector compute_dTs_p
 	(const Type rho,                            ///< The density.
@@ -365,8 +365,8 @@ static const Type* compute_uvw
 /** \brief Return a statically allocated array holding the values of the velocity Jacobians wrt the solution.
  *  \return See brief. */
 static const Type*const* compute_duvw_ds
-	(const Type rho_inv,  ///< \ref Flux_Data_Navier_Stokes::rho_inv.
-	 const Type*const uvw ///< \ref Flux_Data_Navier_Stokes::uvw.
+	(const Type rho_inv,  ///< Inverse density.
+	 const Type*const uvw ///< Velocity components.
 	);
 
 /** \brief Return a statically allocated array holding the values of the velocity derivatives wrt xyz.
@@ -381,18 +381,18 @@ static const Type*const* compute_duvw
 /** \brief Return a statically allocated array holding the values of the velocity gradient Jacobians wrt the solution.
  *  \return See brief. */
 static const Type*const*const* compute_dduvw_ds
-	(const Type rho_inv,             ///< \ref Flux_Data_Navier_Stokes::rho_inv.
-	 const Type*const uvw,           ///< \ref Flux_Data_Navier_Stokes::uvw.
-	 const Type*const drho,          ///< \ref Flux_Data_Navier_Stokes::drho.
-	 const Type*const*const drhouvw, ///< \ref Flux_Data_Navier_Stokes::drhouvw.
-	 const Type*const*const duvw_ds  ///< \ref Flux_Data_Navier_Stokes::duvw_ds.
+	(const Type rho_inv,             ///< Inverse density.
+	 const Type*const uvw,           ///< Velocity components.
+	 const Type*const drho,          ///< Density gradients.
+	 const Type*const*const drhouvw, ///< Momentum gradients.
+	 const Type*const*const duvw_ds  ///< Velocity component Jacobian wrt the solution.
 	);
 
 /** \brief Return a statically allocated array holding the values of the velocity gradient Jacobians wrt the gradients.
  *  \return See brief. */
 static const Type*const*const*const* compute_dduvw_dg
-	(const Type rho_inv,  ///< \ref Flux_Data_Navier_Stokes::rho_inv.
-	 const Type*const uvw ///< \ref Flux_Data_Navier_Stokes::uvw.
+	(const Type rho_inv,  ///< The inverse density.
+	 const Type*const uvw ///< The velocity components.
 	);
 
 /** \brief Return a statically allocated variable holding the values of the viscous stress tensor.

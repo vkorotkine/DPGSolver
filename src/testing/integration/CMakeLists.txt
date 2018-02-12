@@ -99,6 +99,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_S
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DPG_ParametricMixed2D__ml0__p3")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedMixed2D__ml0__p3")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_Conservative_DPG_BlendedMixed2D__ml1__p2")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_DG_ParametricMixed2D__ml0__p2")
 
 set (EXEC test_integration_convergence)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)

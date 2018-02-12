@@ -96,13 +96,13 @@ static void scale_by_Jacobian_nnf
 	 const struct Solver_Face*const s_face ///< See brief.
 	);
 
-/// \brief Version of \ref scale_by_Jacobian_fptr_T scaling \ref Numerical_Flux_T::dnnf_ds.
+/// \brief Version of \ref scale_by_Jacobian_fptr_T scaling \ref Numerical_Flux_T::Neigh_Info_NF_T::dnnf_ds.
 static void scale_by_Jacobian_dnnf_ds
 	(struct Numerical_Flux*const num_flux, ///< See brief.
 	 const struct Solver_Face*const s_face ///< See brief.
 	);
 
-/// \brief Version of \ref scale_by_Jacobian_fptr_T scaling \ref Numerical_Flux_T::dnnf_dg.
+/// \brief Version of \ref scale_by_Jacobian_fptr_T scaling \ref Numerical_Flux_T::Neigh_Info_NF_T::dnnf_dg.
 static void scale_by_Jacobian_dnnf_dg
 	(struct Numerical_Flux*const num_flux, ///< See brief.
 	 const struct Solver_Face*const s_face ///< See brief.

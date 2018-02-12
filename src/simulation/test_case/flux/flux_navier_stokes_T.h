@@ -28,8 +28,8 @@ struct mutable_Flux_T;
  *
  *  The definitions of the Fluxes, Jacobians, and Hessians can be found in:
  *  - Fluxes:    \ref compute_Flux_navier_stokes_0;
- *  - Jacobians: \ref compute_Flux_navier_stokes_1;
- *  - Hessians:  \ref compute_Flux_navier_stokes_2.
+ *  - Jacobians: \ref compute_Flux_navier_stokes_1s and \ref compute_Flux_navier_stokes_1g.
+ *  - Hessians:  \todo ref here.
  */
 void compute_Flux_T_navier_stokes
 	(const struct Flux_Input_T* flux_i, ///< See brief.

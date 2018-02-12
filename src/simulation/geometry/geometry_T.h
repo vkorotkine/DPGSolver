@@ -97,7 +97,7 @@ void compute_unit_normals_T
  */
 void compute_geometry_volume_T
 	(struct Solver_Volume_T* s_vol, ///< \ref Solver_Volume_T.
-	 const struct Simulation* sim ///< \ref Simulation.
+	 const struct Simulation* sim   ///< \ref Simulation.
 	);
 
 /** \brief Compute the geometry of the \ref Solver_Face_T.
@@ -108,6 +108,6 @@ void compute_geometry_volume_T
  *  - Solver_Face_T::jacobian_det_fc.
  */
 void compute_geometry_face_T
-	(struct Solver_Face_T* face, ///< \ref Solver_Face_T.
-	 struct Simulation* sim    ///< \ref Simulation.
+	(struct Solver_Face_T* s_face, ///< \ref Solver_Face_T.
+	 struct Simulation* sim        ///< \ref Simulation.
 	);

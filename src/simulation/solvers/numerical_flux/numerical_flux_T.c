@@ -253,7 +253,7 @@ static void combine_num_flux_boundary_dnnf_dg_g_T
 static void combine_num_flux_boundary_dnnf_dg_s_T
 	(struct Numerical_Flux_Input_T*const num_flux_i, struct mutable_Numerical_Flux_T*const num_flux)
 {
-	if (num_flux_i->bv_l.compute_member[5] != true || num_flux_i->bv_r.dg_ds == NULL)
+	if (num_flux_i->bv_l.compute_member[4] != true || num_flux_i->bv_r.dg_ds == NULL)
 		return;
-	EXIT_ADD_SUPPORT; UNUSED(num_flux); // Think about whether this is necessary before implementing.
+	EXIT_ADD_SUPPORT; UNUSED(num_flux);
 }

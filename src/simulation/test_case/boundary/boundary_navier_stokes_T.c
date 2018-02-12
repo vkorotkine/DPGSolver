@@ -58,7 +58,7 @@ typedef const Type* (*compute_uvw_ex_fptr)
 struct Exact_Boundary_Data {
 	Real rho,   ///< Exact boundary density.
 	     E,     ///< Exact boundary total 'e'nergy.
-	     nfEv,  ///< Exact boundary 'n'ormal 'v'iscous 'f'lux for the total 'e'nergy equation.
+	     nf_E,  ///< Exact boundary 'n'ormal 'v'iscous 'f'lux for the total 'e'nergy equation.
 	     omega; ///< Exact boundary angular velocity.
 
 	compute_uvw_ex_fptr compute_uvw_ex; ///< Pointer to function computing the exact velocities on the boundary.
@@ -85,8 +85,8 @@ static void set_Exact_Boundary_Data
  *  2. n_dof_F = n (dot) 0.5 * ( f_viscous(s_l,g_l) + f_viscous(s_b,g_b) ).
  *
  *  \warning This boundary condition **is not well-posed** as it has been proven that only NVAR-1 boundary conditions
- *           should be imposed for the Navier-Stokes equations on a no-slip wall (Table 2, Remark 11, \cite
- *           Nordstrom2005). Consequently, it should used only under special circumstances, such as for the
+ *           should be imposed for the Navier-Stokes equations on a no-slip wall (Table 2, Remark 11,
+ *           \cite Nordstrom2005). Consequently, it should used only under special circumstances, such as for the
  *           Taylor-Couette case where an additional condition is required due to the domain being periodic.
  */
 static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
@@ -289,10 +289,6 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 	(struct Boundary_Value_T*const bv, const struct Boundary_Value_Input_T*const bv_i,
 	 const struct Exact_Boundary_Data*const eb_data)
 {
-	const Type*const uvw_ex = eb_data->compute_uvw_ex(NULL,NULL);
-	for (int d = 0; d < DIM; ++d)
-		assert(uvw_ex[d] == 0.0); // Terms affected by non-zero boundary velocity may have been omitted below.
-
 	const bool*const c_m = bv_i->compute_member;
 
 	const struct const_Multiarray_T* s_l = bv_i->s;
@@ -365,9 +361,6 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 		const Type*const drho_l[DIM] = ARRAY_DIM( get_col_const_Multiarray_T(0+NVAR*0,g_l),
 		                                          get_col_const_Multiarray_T(0+NVAR*1,g_l),
 		                                          get_col_const_Multiarray_T(0+NVAR*2,g_l) ),
-		          *const dE_l[DIM]   = ARRAY_DIM( get_col_const_Multiarray_T(NVAR-1+NVAR*0,g_l),
-		                                          get_col_const_Multiarray_T(NVAR-1+NVAR*1,g_l),
-		                                          get_col_const_Multiarray_T(NVAR-1+NVAR*2,g_l) ),
 		          *const drhouvw_l[DIM][DIM] = TENSOR_DIM( get_col_const_Multiarray_T(1+NVAR*0,g_l),
 		                                                   get_col_const_Multiarray_T(1+NVAR*1,g_l),
 		                                                   get_col_const_Multiarray_T(1+NVAR*2,g_l),
@@ -394,22 +387,17 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 		                                           get_col_Multiarray_T(3+NVAR*1,g),
 		                                           get_col_Multiarray_T(3+NVAR*2,g) );
 
-		const Real nfEv = eb_data->nfEv;
-assert(nfEv == 0.0); // Add required terms below.
-
 		for (int n = 0; n < n_n; ++n) {
-			const Type rho_inv  = 1.0/rho_l[n],
-			           uvw[DIM] = ARRAY_DIM(rho_inv*rhouvw_l[0][n],rho_inv*rhouvw_l[1][n],rho_inv*rhouvw_l[2][n]),
-			           V2       = SUM_DIM( uvw[0]*uvw[0],uvw[1]*uvw[1],uvw[2]*uvw[2] );
 			for (int d_b = 0; d_b < DIM; ++d_b) {
 				drho[d_b][n] = drho_l[d_b][n];
+				dE[d_b][n] = DBL_MIN; // Cause obvious error if used.
 				for (int dx = 0; dx < DIM; ++dx)
 					drhouvw[d_b][dx][n] = drhouvw_l[d_b][dx][n];
-
-				dE[d_b][n] = -dE_l[d_b][n] + 2.0*drho_l[d_b][n]*(rho_inv*E_l[n]-V2);
 			}
 		}
 		bv->g = (const struct const_Multiarray_T*) g;
+		bv->nf_E = eb_data->nf_E;
+		bv->nf_E_provided = true;
 	}
 
 	if (c_m[3] == true && bv->g) {
@@ -431,46 +419,33 @@ assert(nfEv == 0.0); // Add required terms below.
 			            get_col_Multiarray_T(3+NVAR*(1+DIM*(3+NVAR*(1))),dg_dg),
 			            get_col_Multiarray_T(3+NVAR*(2+DIM*(3+NVAR*(2))),dg_dg) );
 
-		const int i = NVAR-1;
-		Type*const ddE_ddE[DIM] = ARRAY_DIM( get_col_Multiarray_T(i+NVAR*(0+DIM*(i+NVAR*(0))),dg_dg),
-		                                     get_col_Multiarray_T(i+NVAR*(1+DIM*(i+NVAR*(1))),dg_dg),
-		                                     get_col_Multiarray_T(i+NVAR*(2+DIM*(i+NVAR*(2))),dg_dg) );
-
-		Type*const ddE_ddrho[DIM] = ARRAY_DIM( get_col_Multiarray_T(i+NVAR*(0+DIM*(0+NVAR*(0))),dg_dg),
-		                                       get_col_Multiarray_T(i+NVAR*(1+DIM*(0+NVAR*(1))),dg_dg),
-		                                       get_col_Multiarray_T(i+NVAR*(2+DIM*(0+NVAR*(2))),dg_dg) );
-
 		for (int n = 0; n < n_n; ++n) {
 			for (int d = 0; d < DIM; ++d) {
 				ddrho_ddrho[d][n] = 1.0;
-				ddE_ddE[d][n]     = -1.0;
 				for (int d2 = 0; d2 < DIM; ++d2)
 					ddrhouvw_ddrhouvw[d][d2][n] = 1.0;
+//				ddE_ddE[d][n]     = 0.0;
 			}
-
-			const Type rho_inv  = 1.0/rho_l[n],
-			           uvw[DIM] = ARRAY_DIM(rho_inv*rhouvw_l[0][n],rho_inv*rhouvw_l[1][n],rho_inv*rhouvw_l[2][n]),
-			           V2       = SUM_DIM( uvw[0]*uvw[0],uvw[1]*uvw[1],uvw[2]*uvw[2] );
-
-			for (int ds = 0; ds < DIM; ++ds)
-				ddE_ddrho[ds][n] = 2.0*(rho_inv*E_l[n]-V2);
 		}
-
 		bv->dg_dg = (const struct const_Multiarray_T*) dg_dg;
 	}
 
-	assert(c_m[4] == false); // Add support.
+	if (c_m[4] == true && bv->g) {
+		/** Note that boundary values are only used to compute the numerical flux values. In the case of the
+		 *  general no-slip flux boundary condition treated here, the numerical flux for the energy equation is
+		 *  constant. Further, as the boundary values for the gradient terms for the other equations only depend
+		 *  on internal solution gradients (i.e. not the internal solution), this term is set to NULL and simply
+		 *  not used when computing the normal flux Jacobian for the energy equation. */
+		bv->dg_ds = NULL;
+	}
 
-/// \todo Check the veracity of the comment below after Navier-Stokes DG linearization testing is complete.
-	// Note: There is a non-zero dg_ds term, but the contributions from either side of the face should cancel in the
-	// numerical flux as it is currently implemented. Could then set the term to NULL.
 	assert(c_m[5] == false);
 }
 
 // Level 1 ********************************************************************************************************** //
 
-/// \brief Subset of read_and_set_data_diabatic_flux reading values to set \ref Exact_Boundary_Data::nfEv.
-static void set_data_nfEv
+/// \brief Subset of read_and_set_data_diabatic_flux reading values to set \ref Exact_Boundary_Data::nf_E.
+static void set_data_nf_E
 	(const char*const input_path,              ///< See brief.
 	 struct Exact_Boundary_Data*const eb_data, ///< See brief.
 	 const bool is_adiabatic                   ///< See brief.
@@ -479,15 +454,15 @@ static void set_data_nfEv
 /** \brief Version of \ref compute_uvw_ex_fptr imposing zero velocity.
  *  \return See brief. */
 static const Type* compute_uvw_ex_zero
-	(const Real xyz[DIM],
-	 const struct Exact_Boundary_Data*const eb_data
+	(const Real xyz[DIM],                           ///< See brief.
+	 const struct Exact_Boundary_Data*const eb_data ///< See brief.
 	);
 
 /** \brief Version of \ref compute_uvw_ex_fptr imposing velocity for a rotating boundary.
  *  \return See brief. */
 static const Type* compute_uvw_ex_rotating
-	(const Real xyz[DIM],
-	 const struct Exact_Boundary_Data*const eb_data
+	(const Real xyz[DIM],                           ///< See brief.
+	 const struct Exact_Boundary_Data*const eb_data ///< See brief.
 	);
 
 static void read_and_set_data_diabatic_flux
@@ -512,7 +487,7 @@ static void read_and_set_data_diabatic_flux
 
 	switch (diabatic_flux_type) {
 	case DIABATIC_FLUX_CONSTANT:
-		set_data_nfEv(input_path,eb_data,is_adiabatic);
+		set_data_nf_E(input_path,eb_data,is_adiabatic);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",diabatic_flux_type);
@@ -561,7 +536,7 @@ static void read_and_set_data_rho_E (const char*const input_path, struct Exact_B
 
 // Level 2 ********************************************************************************************************** //
 
-static void set_data_nfEv
+static void set_data_nf_E
 	(const char*const input_path, struct Exact_Boundary_Data*const eb_data, const bool is_adiabatic)
 {
 	const int count_to_find = 5;
@@ -589,12 +564,12 @@ static void set_data_nfEv
 	if (count_found != count_to_find)
 		EXIT_ERROR("Did not find the required number of variables");
 
-	assert(viscosity_type == VISCOSITY_CONSTANT); // Otherwise constant dTdn still results in varying nfEv.
+	assert(viscosity_type == VISCOSITY_CONSTANT); // Otherwise constant dTdn still results in varying nf_E.
 
 	const Real Cp = compute_cp_ideal_gas(r_s);
-	eb_data->nfEv = -mu*Cp/Pr*dTdn;
+	eb_data->nf_E = -mu*Cp/Pr*dTdn;
 
-	assert(!is_adiabatic || eb_data->nfEv == 0.0);
+	assert(!is_adiabatic || eb_data->nf_E == 0.0);
 }
 
 static const Type* compute_uvw_ex_zero (const Real xyz[DIM], const struct Exact_Boundary_Data*const eb_data)

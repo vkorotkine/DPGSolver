@@ -351,8 +351,7 @@ static const bool* get_compute_member_Boundary_Value_Input
 	static const bool cm_100000[] = {1,0,0,0,0,0,},
 	                  cm_110000[] = {1,1,0,0,0,0,},
 	                  cm_101000[] = {1,0,1,0,0,0,},
-	                  cm_111100[] = {1,1,1,1,0,0,},
-	                  cm_111110[] = {1,1,1,1,1,0,};
+	                  cm_111100[] = {1,1,1,1,0,0,};
 
 	assert(type_ei == 'e' || type_ei == 'i');
 	switch (test_case->pde_index) {
@@ -378,7 +377,7 @@ static const bool* get_compute_member_Boundary_Value_Input
 		if (type_ei == 'e')
 			return cm_101000;
 		else if (type_ei == 'i')
-			return cm_111110;
+			return cm_111100; // May potentially require cm_111110 in future.
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);

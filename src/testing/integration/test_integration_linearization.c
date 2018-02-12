@@ -59,7 +59,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 ///\{ \name Flag for whether PETSc Matrices should be output to files.
-#define OUTPUT_PETSC_MATRICES false
+#define OUTPUT_PETSC_MATRICES true
 ///\}
 
 /** \brief Function pointer to functions perturbing the solution to ensure that all terms in the linearization are

@@ -109,6 +109,6 @@ const struct const_Matrix_R* constructor_xyz_surf_diff_T
 	(const struct Boundary_Comp_Elem_Data_T*const b_ce_d, ///< \ref Boundary_Comp_Elem_Data_T.
 	 const struct const_Matrix_R*const xyz_i,             ///< Input xyz coordinates.
 	 const struct Solver_Volume_T*const s_vol,            ///< The current \ref Solver_Volume_T.
-	 const char n_type,                                   ///< \ref Blended_Parametric_Data::n_type.
+	 const char n_type,                                   ///< \ref Blended_Parametric_Data_T::n_type.
 	 const struct Simulation*const sim                    ///< \ref Simulation.
 	);

@@ -44,7 +44,7 @@ struct Test_Case_T {
 	 *  0: \ref Solver_Volume_T::sol_coef.
 	 *  1: \ref Solver_Face_T::nf_coef.
 	 *  2: \ref Solver_Volume_T::grad_coef.
-	 *  3: \ref Solver_Face_T::sol_coef.
+	 *  3: \ref Solver_Face_T::s_coef.
 	 */
 	const bool required_unknowns[MAX_N_UNKNOWNS];
 
