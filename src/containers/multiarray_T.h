@@ -110,6 +110,13 @@ const Type* get_col_const_Multiarray_T
 	 const struct const_Multiarray_T* a ///< Defined for \ref get_col_Multiarray_T.
 	);
 
+/** \brief Remove the data from the input column of the \ref Multiarray_T by shifting data from trailing columns to
+ *         start at the memory location of the column to be deleted. */
+void remove_col_Multiarray_T
+	(const ptrdiff_t col,   ///< Column index.
+	 struct Multiarray_T* a ///< Multiarray.
+	);
+
 /// \brief Set all data entries to the input value.
 void set_to_value_Multiarray_T
 	(struct Multiarray_T*const a, ///< Standard.

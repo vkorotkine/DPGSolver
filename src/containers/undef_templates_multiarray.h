@@ -42,6 +42,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef get_row_const_Multiarray_T
 #undef get_col_Multiarray_T
 #undef get_col_const_Multiarray_T
+#undef remove_col_Multiarray_T
 #undef set_to_value_Multiarray_T
 #undef set_Multiarray_Vector_T_T
 #undef set_Multiarray_T

@@ -45,6 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_row_const_Multiarray_T    get_row_const_Multiarray_d
 #define get_col_Multiarray_T          get_col_Multiarray_d
 #define get_col_const_Multiarray_T    get_col_const_Multiarray_d
+#define remove_col_Multiarray_T       remove_col_Multiarray_d
 #define set_to_value_Multiarray_T     set_to_value_Multiarray_d
 #define set_Multiarray_Vector_T_T     set_Multiarray_Vector_d_d
 #define set_Multiarray_T              set_Multiarray_d
@@ -89,6 +90,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_row_const_Multiarray_T    get_row_const_Multiarray_c
 #define get_col_Multiarray_T          get_col_Multiarray_c
 #define get_col_const_Multiarray_T    get_col_const_Multiarray_c
+#define remove_col_Multiarray_T       remove_col_Multiarray_c
 #define set_to_value_Multiarray_T     set_to_value_Multiarray_c
 #define set_Multiarray_Vector_T_T     set_Multiarray_Vector_c_c
 #define set_Multiarray_T              set_Multiarray_c

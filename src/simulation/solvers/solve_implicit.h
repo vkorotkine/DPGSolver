@@ -17,6 +17,34 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__solve_implicit_h__INCLUDED
 /** \file
  *  \brief Provides the interface to functions used to solve for the solution using implicit procedures.
+ *
+ *  An outline of exact what terms are stored for the implicit solve follows. The code was originally implemented for
+ *  explicit schemes where the unsteady term is to be updated according to:
+ *  \f[
+ *  	\frac{\partial s_{coef}}{\partial t} = \text{rhs}.
+ *  \f]
+ *
+ *  For implicit schemes, the linearization was then performed such that:
+ *  \f[
+ *  	\text{lhs} = \frac{\partial \text{rhs}}{\partial s_{coef}}.
+ *  \f]
+ *
+ *  As the full Newton method obtains the solution updates using the following equation:
+ *  \f{eqnarray*}{
+ *  	0 = \text{rhs}(s_{coef,exact}) &\approx& \text{rhs}(s_{coef})
+ *  	                                + \frac{\partial \text{rhs}}{\partial s_{coef}}|_{s_{coef}}\ \Delta(s_{coef})\\
+ *  	                              &\approx& \text{rhs}(s_{coef}) + \text{lhs}(s_{coef})\ \Delta(s_{coef}),
+ *  \f}
+ *
+ *  the corresponding linear system is:
+ *  \f[
+ *  	\text{lhs}(s_{coef}) \Delta(s_{coef}) = -\text{rhs}(s_{coef}).
+ *  \f]
+ *
+ *  Interpretting the above in the general form of a linear system Ax = b, we thus have:
+ *  - A = \f$ \text{lhs}(s_{coef}) \f$;
+ *  - x = \f$ \Delta(s_{coef}) \f$; and
+ *  - b = \f$ -\text{rhs}(s_{coef}) \f$.
  */
 
 #include <stddef.h>

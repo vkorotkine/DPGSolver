@@ -44,24 +44,24 @@ double compute_rhs_dg
 /** \brief Version of \ref compute_rlhs for the dg method.
  *  \return See brief. */
 double compute_rlhs_dg
-	(const struct Simulation* sim,             ///< \ref Simulation.
-	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	(const struct Simulation* sim,       ///< \ref Simulation.
+	 struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
 	);
 
 /** \brief Set the values of \ref Solver_Storage_Implicit::row and Solver_Storage_Implicit::col based on the current
  *         volume and eq, var indices. */
 void set_petsc_Mat_row_col
-	(struct Solver_Storage_Implicit*const s_store_i, ///< \ref Solver_Storage_Implicit.
-	 const struct Solver_Volume* v_l,                ///< The left \ref Solver_Volume_T.
-	 const int eq,                                   ///< The index of the equation.
-	 const struct Solver_Volume* v_r,                ///< The right \ref Solver_Volume_T.
-	 const int vr                                    ///< The index of the variable.
+	(struct Solver_Storage_Implicit*const ssi, ///< \ref Solver_Storage_Implicit.
+	 const struct Solver_Volume* v_l,          ///< The left \ref Solver_Volume_T.
+	 const int eq,                             ///< The index of the equation.
+	 const struct Solver_Volume* v_r,          ///< The right \ref Solver_Volume_T.
+	 const int vr                              ///< The index of the variable.
 	);
 
 /// \brief Add lhs values to the petsc Mat at the appropriate location.
 void add_to_petsc_Mat
-	(const struct Solver_Storage_Implicit*const s_store_i, ///< \ref Solver_Storage_Implicit.
-	 const struct const_Matrix_d* lhs                      ///< The matrix containing the lhs data.
+	(const struct Solver_Storage_Implicit*const ssi, ///< \ref Solver_Storage_Implicit.
+	 const struct const_Matrix_d* lhs                ///< The matrix containing the lhs data.
 	);
 
 /// \brief Version of \ref compute_flux_imbalances for the DG scheme.

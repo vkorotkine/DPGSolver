@@ -46,6 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "operator.h"
 #include "simulation.h"
 #include "solution_euler.h"
+#include "solution_navier_stokes.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -383,6 +384,14 @@ static void fprint_vtk_piece_sol_euler
 	 const struct const_Multiarray_d* sol ///< Defined for \ref fprint_vtk_piece_sol_grad.
 	);
 
+/// \brief Print the solution gradient data of a Navier-Stokes piece to the file.
+static void fprint_vtk_piece_grad_navier_stokes
+	(FILE* file,                                ///< Defined for \ref fprint_vtk_piece_sol_grad.
+	 const char sp_type,                        ///< Defined for \ref fprint_vtk_piece_sol_grad.
+	 const struct const_Multiarray_d*const sol, ///< Defined for \ref fprint_vtk_piece_sol_grad.
+	 const struct const_Multiarray_d*const grad ///< Defined for \ref fprint_vtk_piece_sol_grad.
+	);
+
 const char* set_output_name (const int vis_software, const char*const name_spec)
 {
 	static char output_name[STRLEN_MAX] = { 0, };
@@ -551,6 +560,10 @@ static void fprint_vtk_piece_sol_grad
 			case PDE_EULER:
 				fprint_vtk_piece_sol_euler(file,sp_type,sol);
 				break;
+			case PDE_NAVIER_STOKES:
+				fprint_vtk_piece_sol_euler(file,sp_type,sol);
+				fprint_vtk_piece_grad_navier_stokes(file,sp_type,sol,grad);
+				break;
 			default:
 				EXIT_ERROR("Unsupported: %d\n",pde_index);
 				break;
@@ -595,6 +608,10 @@ static void fprint_vtk_piece_sol_grad
 				break;
 			case PDE_EULER:
 				fprint_vtk_piece_sol_euler(file,sp_type,sol);
+				break;
+			case PDE_NAVIER_STOKES:
+				fprint_vtk_piece_sol_euler(file,sp_type,sol);
+				fprint_vtk_piece_grad_navier_stokes(file,sp_type,sol,grad);
 				break;
 			default:
 				EXIT_ERROR("Unsupported: %d\n",pde_index);
@@ -755,6 +772,59 @@ static void fprint_vtk_piece_sol_euler (FILE* file, const char sp_type, const st
 		fprint_vtk_DataArray_d(file,sp_type,"mach",(struct const_Multiarray_d*)var,false,'s');
 
 		destructor_Multiarray_d(var);
+
+		convert_variables((struct Multiarray_d*)sol,'p','c');
+	} else {
+		EXIT_ERROR("Unsupported: %c\n",sp_type);
+	}
+}
+
+static void fprint_vtk_piece_grad_navier_stokes
+	(FILE* file, const char sp_type, const struct const_Multiarray_d*const sol,
+	 const struct const_Multiarray_d*const grad)
+{
+	char name[STRLEN_MIN];
+	if (sp_type == 'p') {
+		for (int d = 0; d < DIM; ++d) {
+			sprintf(name,"%s%c%d","grad_rho",'_',d);
+			fprint_vtk_DataArray_d(file,sp_type,name,NULL,false,'s');
+
+			sprintf(name,"%s%c%d","grad_velocity",'_',d);
+			fprint_vtk_DataArray_d(file,sp_type,name,NULL,false,'v');
+
+			sprintf(name,"%s%c%d","grad_p",'_',d);
+			fprint_vtk_DataArray_d(file,sp_type,name,NULL,false,'s');
+		}
+	} else if (sp_type == 's') {
+		const ptrdiff_t ext_0 = sol->extents[0],
+		                n_var = sol->extents[1];
+		struct Multiarray_d* var = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){ext_0,0}); // destructed.
+		double* data = var->data;
+
+		convert_variables_gradients((struct Multiarray_d*)grad,sol,'c','p');
+		for (int d = 0; d < DIM; ++d) {
+			var->extents[1] = 1;
+			var->data = (double*) get_col_const_Multiarray_d(0+d*n_var,grad);
+
+			sprintf(name,"%s%c%d","grad_rho",'_',d);
+			fprint_vtk_DataArray_d(file,sp_type,name,(struct const_Multiarray_d*)var,false,'s');
+
+			var->extents[1] = n_var-2;
+			var->data = (double*) get_col_const_Multiarray_d(1+d*n_var,grad);
+
+			sprintf(name,"%s%c%d","grad_velocity",'_',d);
+			fprint_vtk_DataArray_d(file,sp_type,name,(struct const_Multiarray_d*)var,false,'v');
+
+			var->extents[1] = 1;
+			var->data = (double*) get_col_const_Multiarray_d(n_var-1+d*n_var,grad);
+
+			sprintf(name,"%s%c%d","grad_p",'_',d);
+			fprint_vtk_DataArray_d(file,sp_type,name,(struct const_Multiarray_d*)var,false,'s');
+		}
+		var->data = data;
+		destructor_Multiarray_d(var);
+
+		convert_variables_gradients((struct Multiarray_d*)grad,sol,'p','c');
 	} else {
 		EXIT_ERROR("Unsupported: %c\n",sp_type);
 	}

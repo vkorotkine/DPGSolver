@@ -16,6 +16,8 @@ mesh_path        ../meshes/
 
 # Simulation variables
 
+test_case_extension low_tol
+
 interp_tp  GLL
 interp_si  WSH
 interp_pyr GLL

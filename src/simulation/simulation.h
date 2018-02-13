@@ -48,6 +48,12 @@ struct Simulation {
 	 */
 	const char test_case_extension[STRLEN_MAX];
 
+	/** Extension on the file name from which to read the solution data.
+	 *  If this variable is not provided in the input control file, the standard solution data file is used:
+	 *  "solution.data". If it is provided, the file name used is "solution_{solution_extension}.data".
+	 */
+	const char solution_extension[STRLEN_MAX];
+
 	/** The type of domain.
 	 *  Options:
 	 *  	- Straight: All volumes have a geometry order of 1 (affine for simplicies).
@@ -246,5 +252,7 @@ void set_ml_p_curr
 	 const int p,           ///< The polynomial order.
 	 struct Simulation* sim ///< \ref Simulation.
 	);
+
+
 
 #endif // DPG__Simulation_h__INCLUDED

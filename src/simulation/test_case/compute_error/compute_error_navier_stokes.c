@@ -61,10 +61,15 @@ struct Error_CE* constructor_Error_CE_navier_stokes_uvwt (const struct Simulatio
 		e_ce_h->s_vol[0] = (struct Solver_Volume*) curr;
 		struct Error_CE_Data* e_ce_d = constructor_Error_CE_Data(e_ce_h,sim); // destructed
 
-		for (int i = 0; i < 2; ++i)
+		for (int i = 0; i < 2; ++i) {
 			convert_variables(e_ce_d->sol[i],'c','p');
+		}
 		add_euler_variable_Error_CE_Data('t',e_ce_d,sim);
-EXIT_UNSUPPORTED; // Remove rho/p (i.e. columns 0 and DIM+1).
+
+		for (int i = 0; i < 2; ++i) {
+			remove_col_Multiarray_d(DIM+1,e_ce_d->sol[i]); // Remove pressure.
+			remove_col_Multiarray_d(0,    e_ce_d->sol[i]); // Remove density.
+		}
 
 		increment_sol_L2(e_ce_h,e_ce_d);
 		destructor_Error_CE_Data(e_ce_d);

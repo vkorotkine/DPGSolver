@@ -26,9 +26,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_empty_const_Matrix_T constructor_empty_const_Matrix_d
 #define constructor_zero_Matrix_T        constructor_zero_Matrix_d
 
+#define constructor_copy_Matrix_T                constructor_copy_Matrix_d
+#define constructor_copy_scale_Matrix_T          constructor_copy_scale_Matrix_d
+#define constructor_copy_scale_const_Matrix_T    constructor_copy_scale_const_Matrix_d
 #define constructor_copy_Matrix_T_T              constructor_copy_Matrix_d_d
 #define constructor_copy_const_Matrix_T_T        constructor_copy_const_Matrix_d_d
-#define constructor_copy_Matrix_T                constructor_copy_Matrix_d
 #define constructor_copy_const_Matrix_T          constructor_copy_const_Matrix_d
 #define constructor_copy_extract_const_Matrix_T  constructor_copy_extract_const_Matrix_d
 #define const_constructor_copy_Matrix_T          const_constructor_copy_Matrix_d
@@ -88,12 +90,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_empty_const_Matrix_T constructor_empty_const_Matrix_c
 #define constructor_zero_Matrix_T        constructor_zero_Matrix_c
 
-#define constructor_copy_Matrix_T_T             constructor_copy_Matrix_c_c
-#define constructor_copy_const_Matrix_T_T       constructor_copy_const_Matrix_c_c
-#define constructor_copy_Matrix_T               constructor_copy_Matrix_c
-#define constructor_copy_const_Matrix_T         constructor_copy_const_Matrix_c
-#define constructor_copy_extract_const_Matrix_T constructor_copy_extract_const_Matrix_c
-#define const_constructor_copy_Matrix_T         const_constructor_copy_Matrix_c
+#define constructor_copy_Matrix_T                constructor_copy_Matrix_c
+#define constructor_copy_scale_Matrix_T          constructor_copy_scale_Matrix_c
+#define constructor_copy_scale_const_Matrix_T    constructor_copy_scale_const_Matrix_c
+#define constructor_copy_Matrix_T_T              constructor_copy_Matrix_c_c
+#define constructor_copy_const_Matrix_T_T        constructor_copy_const_Matrix_c_c
+#define constructor_copy_const_Matrix_T          constructor_copy_const_Matrix_c
+#define constructor_copy_extract_const_Matrix_T  constructor_copy_extract_const_Matrix_c
+#define const_constructor_copy_Matrix_T          const_constructor_copy_Matrix_c
 #define constructor_copy_Matrix_T_Matrix_R       constructor_copy_Matrix_c_Matrix_d
 #define constructor_copy_const_Matrix_T_Matrix_R constructor_copy_const_Matrix_c_Matrix_d
 #define constructor_copy_permute_Matrix_T        constructor_copy_permute_Matrix_c

@@ -67,6 +67,36 @@ struct Matrix_T* constructor_zero_Matrix_T (const char layout, const ptrdiff_t e
 
 // Copy constructors ************************************************************************************************ //
 
+struct Matrix_T* constructor_copy_Matrix_T (const struct Matrix_T* src)
+{
+	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
+	const Type*const data_src = src->data;
+
+	Type* data = malloc((size_t)size * sizeof *data); // keep
+	for (ptrdiff_t i = 0; i < size; i++)
+		data[i] = data_src[i];
+
+	return constructor_move_Matrix_T_T(src->layout,src->ext_0,src->ext_1,true,data);
+}
+
+struct Matrix_T* constructor_copy_scale_Matrix_T (const struct Matrix_T*const src, const Type scale)
+{
+	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
+	const Type*const data_src = src->data;
+
+	Type* data = malloc((size_t)size * sizeof *data); // keep
+	for (ptrdiff_t i = 0; i < size; i++)
+		data[i] = scale*data_src[i];
+
+	return constructor_move_Matrix_T_T(src->layout,src->ext_0,src->ext_1,true,data);
+}
+
+const struct const_Matrix_T* constructor_copy_scale_const_Matrix_T
+	(const struct const_Matrix_T*const src, const Type scale)
+{
+	return (struct const_Matrix_T*) constructor_copy_scale_Matrix_T((struct Matrix_T*)src,scale);
+}
+
 struct Matrix_T* constructor_copy_Matrix_T_T
 	(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const Type*const data_src)
 {
@@ -83,18 +113,6 @@ const struct const_Matrix_T* constructor_copy_const_Matrix_T_T
 	(const char layout, const ptrdiff_t ext_0, const ptrdiff_t ext_1, const Type*const data_src)
 {
 	return (const struct const_Matrix_T*) constructor_copy_Matrix_T_T(layout,ext_0,ext_1,data_src);
-}
-
-struct Matrix_T* constructor_copy_Matrix_T (const struct Matrix_T* src)
-{
-	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
-	const Type*const data_src = src->data;
-
-	Type* data = malloc((size_t)size * sizeof *data); // keep
-	for (ptrdiff_t i = 0; i < size; i++)
-		data[i] = data_src[i];
-
-	return constructor_move_Matrix_T_T(src->layout,src->ext_0,src->ext_1,true,data);
 }
 
 struct Matrix_T* constructor_copy_Matrix_T_Matrix_R (struct Matrix_R* src)

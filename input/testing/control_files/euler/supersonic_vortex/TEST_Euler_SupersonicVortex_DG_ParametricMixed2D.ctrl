@@ -16,7 +16,7 @@ mesh_path        ../meshes/
 
 # Simulation variables
 
-interp_tp  GLL
+interp_tp  GL
 interp_si  WSH
 interp_pyr GLL
 
@@ -34,5 +34,5 @@ fe_method 1
 
 # Testing variables
 
-ml_range_test 0 3
+ml_range_test 0 4
 p_range_test  1 3

@@ -2,9 +2,11 @@
 
 geom_parametrization radial_proj
 
-solver_proc   explicit->implicit
+solver_proc   implicit
 solver_type_e forward_euler
 solver_type_i iterative
+lhs_terms     cfl_ramping
+cfl_initial   1e1
 
 num_flux_1st Roe-Pike
 num_flux_2nd BR2_stable

@@ -78,6 +78,20 @@ struct Matrix_T* constructor_copy_Matrix_T
 	(const struct Matrix_T* src ///< The source matrix.
 	);
 
+/** \brief Version of \ref constructor_copy_Matrix_T with scaling of the source matrix.
+ *  \return See brief. */
+struct Matrix_T* constructor_copy_scale_Matrix_T
+	(const struct Matrix_T*const src, ///< The source matrix.
+	 const Type scale                 ///< The scaling for the new matrix.
+	);
+
+/** \brief `const` version of \ref constructor_copy_scale_Matrix_T.
+ *  \return See brief. */
+const struct const_Matrix_T* constructor_copy_scale_const_Matrix_T
+	(const struct const_Matrix_T*const src, ///< See brief.
+	 const Type scale                       ///< See brief.
+	);
+
 /** \brief Copy constructor for a \ref const_Matrix_T\* from a \ref const_Matrix_T\*.
  *  \return Standard. */
 const struct const_Matrix_T* constructor_copy_const_Matrix_T

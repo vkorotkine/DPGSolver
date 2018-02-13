@@ -81,6 +81,15 @@ static bool first_string_matches
 	 const char*const str_search ///< The string to search for as the first entry of the line.
 	);
 
+/// \brief Set up the input file name for the given specifier if not already done.
+static void set_up_input_name
+	(const char input_spec,           ///< Defined for \ref fopen_input.
+	 char*const input_name_spec,      ///< The specialized input name to be set up.
+	 bool*const need_set_up,          ///< Flag for whether the name needs to be set up.
+	 const char*const ctrl_name_full, ///< Defined for \ref fopen_input.
+	 const char*const input_path      ///< Defined for \ref fopen_input.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 FILE* fopen_checked (const char*const file_name_full)
@@ -93,27 +102,52 @@ FILE* fopen_checked (const char*const file_name_full)
 	return file;
 }
 
-FILE* fopen_input (const char*const input_path, const char input_spec, const char*const extension)
+void set_up_fopen_input (const char*const ctrl_name_full, const char*const input_path)
 {
-	char input_name[STRLEN_MAX];
+	FILE*const tmp = fopen_input(0,ctrl_name_full,input_path);
+	assert(tmp == NULL);
+}
 
-	int index = sprintf(input_name,"%s",input_path);
+FILE* fopen_input (const char input_spec, const char*const ctrl_name_full_i, const char*const input_path_i)
+{
+	static char ctrl_name_full[STRLEN_MAX] = {0};
+	static char input_path[STRLEN_MAX]     = {0};
+	static bool need_set_up = true;
+
+	assert(input_spec == 0 || !need_set_up);
+
+	char* input_name;
 	switch (input_spec) {
-	case 'g':
-		assert(extension == NULL);
-		sprintf(index+input_name,"%s","geometry_parameters.geo");
+	case 0: {
+		// Only performs set up (Does not return a `FILE*`).
+		assert(need_set_up);
+		need_set_up = false;
+		strcpy(ctrl_name_full,ctrl_name_full_i);
+		strcpy(input_path,input_path_i);
+		return NULL;
 		break;
-	case 's':
-		assert(extension == NULL);
-		sprintf(index+input_name,"%s","solution.data");
+	} case 'g': {
+		static char input_name_spec[STRLEN_MAX] = {0};
+		static bool need_set_up_name = true;
+		set_up_input_name(input_spec,input_name_spec,&need_set_up_name,ctrl_name_full,input_path);
+
+		input_name = input_name_spec;
 		break;
-	case 't':
-		if (extension[0] == 0)
-			sprintf(index+input_name,"%s","test_case.data");
-		else
-			sprintf(index+input_name,"%s%s%s","test_case_",extension,".data");
+	} case 's': {
+		static char input_name_spec[STRLEN_MAX] = {0};
+		static bool need_set_up_name = true;
+		set_up_input_name(input_spec,input_name_spec,&need_set_up_name,ctrl_name_full,input_path);
+
+		input_name = input_name_spec;
 		break;
-	default:
+	} case 't': {
+		static char input_name_spec[STRLEN_MAX] = {0};
+		static bool need_set_up_name = true;
+		set_up_input_name(input_spec,input_name_spec,&need_set_up_name,ctrl_name_full,input_path);
+
+		input_name = input_name_spec;
+		break;
+	} default:
 		EXIT_ERROR("Unsupported: %c\n",input_spec);
 		break;
 	}
@@ -461,6 +495,13 @@ static long strto_subrange
 	 long max         ///< The maximum supported value.
 	);
 
+/** \brief Search for an extension in the control file with the given input name.
+ *  \return A static `char*` holding the name of the extension if found, `NULL` otherwise. */
+static const char* read_extension
+	(const char*const ctrl_name_full, ///< The filename of the file in which to search for the extension.
+	 const char*const extension_name  ///< The name of the extension to search for.
+	);
+
 static int strtoi (const char* str, char** endptr, int base)
 {
 #if INT_MAX == LONG_MAX && INT_MIN == LONG_MIN
@@ -550,6 +591,43 @@ static bool first_string_matches (const char*const line, const char*const str_se
 	return true;
 }
 
+static void set_up_input_name
+	(const char input_spec, char*const input_name_spec, bool*const need_set_up, const char*const ctrl_name_full,
+	 const char*const input_path)
+{
+	if (!*need_set_up)
+		return;
+	*need_set_up = false;
+
+	int index = sprintf(input_name_spec,"%s",input_path);
+	switch (input_spec) {
+	case 'g': {
+		const char*const extension = read_extension(ctrl_name_full,"geometry_parameters_extension");
+		if (extension[0] == 0)
+			sprintf(index+input_name_spec,"%s","geometry_parameters.geo");
+		else
+			sprintf(index+input_name_spec,"%s%s%s","geometry_parameters_",extension,".geo");
+		break;
+	} case 's': {
+		const char*const extension = read_extension(ctrl_name_full,"solution_extension");
+		if (extension[0] == 0)
+			sprintf(index+input_name_spec,"%s","solution.data");
+		else
+			sprintf(index+input_name_spec,"%s%s%s","solution_",extension,".data");
+		break;
+	} case 't': {
+		const char*const extension = read_extension(ctrl_name_full,"test_case_extension");
+		if (extension[0] == 0)
+			sprintf(index+input_name_spec,"%s","test_case.data");
+		else
+			sprintf(index+input_name_spec,"%s%s%s","test_case_",extension,".data");
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %c\n",input_spec);
+		break;
+	}
+}
+
 // Level 1 ********************************************************************************************************** //
 
 static long strto_subrange (const char* str, char** endptr, int base, long min, long max)
@@ -564,4 +642,18 @@ static long strto_subrange (const char* str, char** endptr, int base, long min, 
 		return min;
 	}
 	return y;
+}
+
+static const char* read_extension (const char*const ctrl_name_full, const char*const extension_name)
+{
+	static char extension[STRLEN_MAX];
+	extension[0] = 0;
+
+	FILE*const ctrl_file = fopen_checked(ctrl_name_full);
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),ctrl_file))
+		read_skip_name_const_c_1(extension_name,line,extension);
+	fclose(ctrl_file);
+
+	return extension;
 }

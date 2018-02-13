@@ -75,7 +75,10 @@ static double compute_max_rhs
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
-/// \brief Fill \ref Solver_Storage_Implicit::b with the negative of rhs values.
+/** \brief Fill \ref Solver_Storage_Implicit::b with the negated rhs values.
+ *
+ *  See comments in \ref solve_implicit.h for why the negated values are used here.
+ */
 static void fill_petsc_Vec_b_dg
 	(const struct Simulation*const sim,       ///< Defined for \ref compute_rlhs_dg.
 	 struct Solver_Storage_Implicit*const ssi ///< Defined for \ref compute_rlhs_dg.
@@ -112,6 +115,7 @@ void set_petsc_Mat_row_col
 
 void add_to_petsc_Mat (const struct Solver_Storage_Implicit*const ssi, const struct const_Matrix_d* lhs)
 {
+	assert(lhs->layout == 'R');
 	const ptrdiff_t ext_0 = lhs->ext_0,
 	                ext_1 = lhs->ext_1;
 
@@ -154,7 +158,31 @@ static void scale_rhs_by_m_inv_col
  *  The 'C'ourant'F'riedrichs'L'ewy number is used to determine the time step and is increased as the residual
  *  decreases.
  *
- *  \todo Add documentation for this procedure.
+ *  The explanation for what term must be added to the `A` matrix to achieve the desired effect follows.
+ *
+ *  The equation to be solved for the backwards Euler method for each \ref Volume is:
+ *  \f[
+ *  	M \frac{s_{coef}-s_{coef,curr}}{\Delta t} - \text{rhs}(s_{coef}) = 0,
+ *  \f]
+ *  where \f$ M \f$ is \ref DG_Solver_Volume_T::m.
+ *
+ *  Using Newton's method to solve the above equation taking \f$ s_{coef,curr} \f$ as the initial guess yields
+ *  \f[
+ *  	0 = M \frac{s_{coef,curr}-s_{coef,curr}}{\Delta t} - \text{rhs}(s_{coef}) = 0,
+ *  \f]
+ *  \f{eqnarray*}{
+ *  	0 &=& M \frac{s_{coef,curr}-s_{coef,curr}}{\Delta t} - \text{rhs}(s_{coef,curr})
+ *  	    + \left( M \frac{1}{\Delta t} - \text{lhs}(s_{coef,curr}) \right)\ \Delta(s_{coef}) \\
+ *  	  &=& 0 - \text{rhs}(s_{coef,curr})
+ *  	    + \left( M \frac{1}{\Delta t} - \text{lhs}(s_{coef,curr}) \right)\ \Delta(s_{coef}).
+ *  \f}
+ *
+ *  Rearranging terms such that the system corresponds to that described in \ref solve_implicit.h :
+ *  \f[
+ *  	\left( - M \frac{1}{\Delta t} + \text{lhs}(s_{coef,curr}) \right)\ \Delta(s_{coef}) = - \text{rhs}(s_{coef,curr}).
+ *  \f]
+ *
+ *  Thus the mass matrix contributions should be scaled by \f$ -\frac{1}{\Delta t} \f$.
  */
 static void compute_CFL_ramping
 	(struct Solver_Storage_Implicit*const ssi, ///< \ref Solver_Storage_Implicit.
@@ -255,17 +283,22 @@ static void compute_CFL_ramping (struct Solver_Storage_Implicit*const ssi, const
 		return;
 
 	const double max_rhs = compute_max_rhs(sim);
+	const int n_eq = test_case->n_eq;
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
 		const double dt = compute_dt_cfl_constrained(max_rhs,s_vol,sim);
-UNUSED(dt);
-//		const double max_wave_speed = compute_max_wave_speed(s_vol,sim);
-//		const double max_viscosity  = compute_max_viscosity(s_vol,sim);
 
-//		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
+		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
 
-EXIT_ADD_SUPPORT; UNUSED(ssi);
+		/// \note See the comments for this function for the justification of the scaling.
+		const struct const_Matrix_d*const m_dt = constructor_copy_scale_const_Matrix_d(dg_s_vol->m,-1.0/dt); // dest.
+
+		for (int eq = 0; eq < n_eq; ++eq) {
+			set_petsc_Mat_row_col(ssi,s_vol,eq,s_vol,eq);
+			add_to_petsc_Mat(ssi,(struct const_Matrix_d*)m_dt);
+		}
+		destructor_const_Matrix_d(m_dt);
 	}
 }
 
@@ -314,10 +347,9 @@ static double compute_dt_cfl_constrained
 	// Min length measure.
 	double dx = compute_min_length_measure(s_vol,sim);
 
-EXIT_ADD_SUPPORT;
-
 	const double max_rhs_ratio = compute_max_rhs_ratio(max_rhs);
-	const double cfl = test_case->cfl_initial * ( max_rhs_ratio < 1.0 ? 1.0 : sqrt(max_rhs_ratio) );
+	const double cfl = test_case->cfl_initial * ( max_rhs_ratio < 1.0 ? 1.0 : max_rhs_ratio );
+//printf("cfl: %f %f %f\n",cfl,dx,max_wave_speed);
 
 	return cfl*GSL_MIN(dx/max_wave_speed,( !test_case->has_2nd_order ? DBL_MAX : dx*dx/max_viscosity ));
 }

@@ -96,6 +96,21 @@ const Type* get_col_const_Multiarray_T (const ptrdiff_t col, const struct const_
 	return (const Type*) get_col_Multiarray_T(col,(struct Multiarray_T*)a);
 }
 
+void remove_col_Multiarray_T (const ptrdiff_t col, struct Multiarray_T* a)
+{
+	assert(a->layout == 'C');
+
+	Type*const data_col   = get_col_Multiarray_T(col,a),
+	    *const data_colp1 = get_col_Multiarray_T(col+1,a);
+
+	const ptrdiff_t size    = compute_size(a->order,a->extents),
+	                ind_cp1 = (a->extents[0])*(col+1);
+
+	for (ptrdiff_t i = 0; i < size-ind_cp1; ++i)
+		data_col[i] = data_colp1[i];
+	a->extents[1] -= 1;
+}
+
 void set_to_value_Multiarray_T (struct Multiarray_T*const a, const Type val)
 {
 	const ptrdiff_t size = compute_size(a->order,a->extents);

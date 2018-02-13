@@ -33,12 +33,18 @@ FILE* fopen_checked
 	(const char*const file_name_full ///< File name including full path.
 	);
 
+/// \brief Set up the static variables in \ref fopen_input.
+void set_up_fopen_input
+	(const char*const ctrl_name_full, ///< Full path to a control file in which to filename extensions may be found.
+	 const char*const input_path      ///< Full path to input file directory.
+	);
+
 /** \brief Open the an input file based on the input parameters.
  *  \return See brief. */
 FILE* fopen_input
-	(const char*const input_path, ///< Full path to the location of the input file.
-	 const char input_spec,       ///< The input specifier. Options: 'g'eometry, 's'olution, 't'est case.
-	 const char*const extension   ///< Optional extension to be appended to the file name. Set to NULL if unused.
+	(const char input_spec,             ///< The input specifier. Options: 'g'eometry, 's'olution, 't'est case.
+	 const char*const ctrl_name_full_i, ///< Defined for \ref set_up_fopen_input.
+	 const char*const input_path_i      ///< Defined for \ref set_up_fopen_input.
 	);
 
 /** \brief Open file of the given input name, creating the directory if it does not exist.

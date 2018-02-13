@@ -465,7 +465,9 @@ static Real compute_Pr (const char*const input_path)
 		int count_found = 0;
 
 		char line[STRLEN_MAX];
-		FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+//		FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+UNUSED(input_path);
+		FILE* input_file = fopen_input('s',NULL,NULL); // closed
 		while (fgets(line,sizeof(line),input_file)) {
 			read_skip_string_count_d("Pr",&count_found,line,&Pr);
 		}

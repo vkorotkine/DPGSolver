@@ -23,9 +23,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_empty_const_Matrix_T
 #undef constructor_zero_Matrix_T
 
+#undef constructor_copy_Matrix_T
+#undef constructor_copy_scale_Matrix_T
+#undef constructor_copy_scale_const_Matrix_T
 #undef constructor_copy_Matrix_T_T
 #undef constructor_copy_const_Matrix_T_T
-#undef constructor_copy_Matrix_T
 #undef constructor_copy_const_Matrix_T
 #undef constructor_copy_extract_const_Matrix_T
 #undef const_constructor_copy_Matrix_T

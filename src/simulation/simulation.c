@@ -95,6 +95,7 @@ struct Simulation* constructor_Simulation__no_mesh (const char*const ctrl_name)
 	set_simulation_invalid(sim);
 	set_simulation_mpi(sim);
 	set_simulation_core(sim,ctrl_name);
+	set_fopen_input(sim->ctrl_name_full,sim->input_path);
 
 	check_necessary_simulation_parameters(sim);
 	set_simulation_default(sim);
@@ -239,6 +240,7 @@ static void set_simulation_invalid (struct Simulation*const sim)
 	}
 
 	const_cast_c(sim->test_case_extension,0);
+	const_cast_c(sim->solution_extension,0);
 	const_cast_c(sim->basis_geom,0);
 	const_cast_c(sim->basis_sol,0);
 	const_cast_c(sim->geom_rep,0);
@@ -296,6 +298,7 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"mesh_unrealistic")) read_skip_const_b(line,&sim->mesh_unrealistic);
 
 		read_skip_name_const_c_1("test_case_extension",line,sim->test_case_extension);
+		read_skip_name_const_c_1("solution_extension", line,sim->solution_extension);
 
 		if (strstr(line,"interp_tp"))  read_skip_const_c_1(line,sim->nodes_interp[0]);
 		if (strstr(line,"interp_si"))  read_skip_const_c_1(line,sim->nodes_interp[1]);
