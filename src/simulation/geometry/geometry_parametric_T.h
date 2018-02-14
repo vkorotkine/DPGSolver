@@ -40,3 +40,19 @@ const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_T
 	 const struct Solver_Volume_T* s_vol,    ///< See brief.
 	 const struct Simulation* sim            ///< See brief.
 	);
+
+/** \brief Version of \ref constructor_xyz_fptr_T for a parametric Joukowski to circle blended domain.
+ *  \return See brief.
+ *
+ *  The procedure for the transformation is as follows:
+ *  - Find the point corresponding to each input coordinate on the Joukowski and the external cylinder surfaces based on
+ *    the reference \f$ r \f$ coordinate.
+ *  - Find the final physical coordinate as a linearly blended contribution of the two surface coordinates using
+ *    \f$ s \f$ as the blending parameter.
+ */
+const struct const_Multiarray_R* constructor_xyz_joukowski_parametric_T
+	(const char n_type,                      ///< See brief.
+	 const struct const_Multiarray_R* xyz_i, ///< See brief.
+	 const struct Solver_Volume_T* s_vol,    ///< See brief.
+	 const struct Simulation* sim            ///< See brief.
+	);

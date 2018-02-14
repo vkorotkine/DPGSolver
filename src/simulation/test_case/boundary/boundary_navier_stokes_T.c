@@ -159,8 +159,7 @@ void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic
 /** \brief Read/set the required solution data of the \ref Exact_Boundary_Data container (assumes: zero velocity,
  *         diabatic boundary). */
 static void read_and_set_data_diabatic_flux
-	(struct Exact_Boundary_Data*const eb_data, ///< \ref Exact_Boundary_Data.
-	 const bool is_adiabatic                   ///< Flag for whether the boundary is adiabatic.
+	(struct Exact_Boundary_Data*const eb_data ///< \ref Exact_Boundary_Data.
 	);
 
 /** \brief Read/set the required solution data of the \ref Exact_Boundary_Data container (assumes: angular velocity is
@@ -181,11 +180,9 @@ static void set_Exact_Boundary_Data
 	if (*need_input) {
 		*need_input = false;
 		switch (viscous_bc_type) {
-		case DIABATIC_FLUX_CONSTANT_ZERO:
-			read_and_set_data_diabatic_flux(eb_data,true);
-			break;
+		case DIABATIC_FLUX_CONSTANT_ZERO: // fallthrough
 		case DIABATIC_FLUX_CONSTANT:
-			read_and_set_data_diabatic_flux(eb_data,false);
+			read_and_set_data_diabatic_flux(eb_data);
 			break;
 		case NO_SLIP_ALL_ROTATING_RHO_E:
 			read_and_set_data_no_slip_rotating(eb_data);
@@ -439,12 +436,6 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 
 // Level 1 ********************************************************************************************************** //
 
-/// \brief Subset of read_and_set_data_diabatic_flux reading values to set \ref Exact_Boundary_Data::nf_E.
-static void set_data_nf_E
-	(struct Exact_Boundary_Data*const eb_data, ///< See brief.
-	 const bool is_adiabatic                   ///< See brief.
-	);
-
 /** \brief Version of \ref compute_uvw_ex_fptr imposing zero velocity.
  *  \return See brief. */
 static const Type* compute_uvw_ex_zero
@@ -459,7 +450,7 @@ static const Type* compute_uvw_ex_rotating
 	 const struct Exact_Boundary_Data*const eb_data ///< See brief.
 	);
 
-static void read_and_set_data_diabatic_flux (struct Exact_Boundary_Data*const eb_data, const bool is_adiabatic)
+static void read_and_set_data_diabatic_flux (struct Exact_Boundary_Data*const eb_data)
 {
 	const int count_to_find = 1;
 	int count_found = 0;
@@ -478,8 +469,9 @@ static void read_and_set_data_diabatic_flux (struct Exact_Boundary_Data*const eb
 		EXIT_ERROR("Did not find the required number of variables");
 
 	switch (diabatic_flux_type) {
+	case DIABATIC_FLUX_CONSTANT_ZERO: // fallthrough
 	case DIABATIC_FLUX_CONSTANT:
-		set_data_nf_E(eb_data,is_adiabatic);
+		eb_data->nf_E = get_normal_flux_Energy();
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",diabatic_flux_type);
@@ -527,41 +519,6 @@ static void read_and_set_data_rho_E (struct Exact_Boundary_Data*const eb_data)
 }
 
 // Level 2 ********************************************************************************************************** //
-
-static void set_data_nf_E (struct Exact_Boundary_Data*const eb_data, const bool is_adiabatic)
-{
-	const int count_to_find = 5;
-	int count_found = 0;
-
-	char line[STRLEN_MAX];
-
-	int viscosity_type = VISCOSITY_INVALID;
-	Real Pr   = DBL_MAX,
-	     r_s  = DBL_MAX,
-	     mu   = DBL_MAX,
-	     dTdn = DBL_MAX;
-
-	FILE* input_file = fopen_input('s',NULL,NULL); // closed
-	while (fgets(line,sizeof(line),input_file)) {
-		read_skip_convert_i(line,"viscosity_type",&viscosity_type,&count_found);
-
-		read_skip_string_count_d("Pr",  &count_found,line,&Pr);
-		read_skip_string_count_d("r_s", &count_found,line,&r_s);
-		read_skip_string_count_d("mu",  &count_found,line,&mu);
-		read_skip_string_count_d("dTdn",&count_found,line,&dTdn);
-	}
-	fclose(input_file);
-
-	if (count_found != count_to_find)
-		EXIT_ERROR("Did not find the required number of variables");
-
-	assert(viscosity_type == VISCOSITY_CONSTANT); // Otherwise constant dTdn still results in varying nf_E.
-
-	const Real Cp = compute_cp_ideal_gas(r_s);
-	eb_data->nf_E = -mu*Cp/Pr*dTdn;
-
-	assert(!is_adiabatic || eb_data->nf_E == 0.0);
-}
 
 static const Type* compute_uvw_ex_zero (const Real xyz[DIM], const struct Exact_Boundary_Data*const eb_data)
 {

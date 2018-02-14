@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_domain = PARAMETRIC; mesh_type = MIXED; pde_name = NAVIERSTOKES; mesh_level = 0; geom_bc = GEOM_BC_ADIABATIC_O; pde_spec = STEADY_TAYLOR_COUETTE;
+//mesh_domain = PARAMETRIC; mesh_type = TRI; pde_name = NAVIER_STOKES; mesh_level = 0; geom_bc = GEOM_BC_DIABATIC_O; pde_spec = STEADY_TAYLOR_COUETTE; geom_ar = GEOM_AR_1;
 
 
 // Geometry Specification
@@ -69,22 +69,16 @@ EndIf
 
 
 // Allows different (A)spect (R)atio elements
-aspect_ratio = 1.0;
-If (aspect_ratio == 1.0)
+aspect_ratio = geom_ar;
+If (aspect_ratio == 1)
 	Transfinite Line {1001:1008} = 2^(mesh_level+1)+1 Using Progression 1;
 	Transfinite Line {1009:1012} = 2^(mesh_level)+1 Using Progression 1;
-ElseIf (aspect_ratio == 2.0)
+ElseIf (aspect_ratio <= 8.001)
+	add = Log(aspect_ratio/2)/Log(2);
 	Transfinite Line {1001:1008} = 2^(mesh_level)+1 Using Progression 1;
-	Transfinite Line {1009:1012} = 2^(mesh_level)+1 Using Progression 1;
-ElseIf (aspect_ratio == 4.0)
-	Transfinite Line {1001:1008} = 2^(mesh_level)+1 Using Progression 1;
-	Transfinite Line {1009:1012} = 2^(mesh_level+1)+1 Using Progression 1;
-ElseIf (aspect_ratio == 8.0)
-	Transfinite Line {1001:1008} = 2^(mesh_level)+1 Using Progression 1;
-	Transfinite Line {1009:1012} = 2^(mesh_level+2)+1 Using Progression 1;
-ElseIf (aspect_ratio == 16.0)
-	Transfinite Line {1001:1008} = 2^(mesh_level)+1 Using Progression 1;
-	Transfinite Line {1009:1012} = 2^(mesh_level+3)+1 Using Progression 1;
+	Transfinite Line {1009:1012} = 2^(mesh_level+add)+1 Using Progression 1;
+Else
+	Error("Unsupported aspect_ratio: %d",aspect_ratio); Exit;
 EndIf
 
 ind_l = 4001;

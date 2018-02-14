@@ -51,4 +51,9 @@ void compute_viscosity
 	 const char var_type                    ///< The type of the variables.
 	);
 
+/** \brief Get the normal flux for the Energy equation in cases where the value is constant along an entire boundary.
+ *  \return See brief. */
+double get_normal_flux_Energy
+	( );
+
 #endif // DPG__solution_navier_stokes_h__INCLUDED

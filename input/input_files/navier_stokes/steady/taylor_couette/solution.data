@@ -6,7 +6,7 @@ r_s 1.0
 viscosity_type constant
 mu             1e-3
 
-diabatic_flux_type constant
+diabatic_flux_type constant_zero
 dTdn               0.0
 
 no_slip_type rotating

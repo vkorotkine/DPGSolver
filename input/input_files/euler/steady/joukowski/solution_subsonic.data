@@ -1,0 +1,4 @@
+/// Solution parameters for test case: euler/steady/joukowski_symmetric
+
+mach      0.2
+theta_deg 0.0

@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "geometry_parametric.h"
 
+#include "file_processing.h"
 #include "multiarray.h"
 
 // Static function declarations ************************************************************************************* //

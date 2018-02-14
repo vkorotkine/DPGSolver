@@ -46,6 +46,11 @@ You should have received a copy of the GNU General Public License along with DPG
 static const char* compute_header_spec_euler_all
 	();
 
+/** \brief Return a statically allocated `char*` holding the specific header for the entropy variable.
+ *  \return See brief. */
+static const char* compute_header_spec_euler_entropy
+	();
+
 // Interface functions ********************************************************************************************** //
 
 struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
@@ -55,6 +60,32 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
 	e_ce_h->header_spec = compute_header_spec_euler_all();
 
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		e_ce_h->s_vol[0] = (struct Solver_Volume*) curr;
+		struct Error_CE_Data* e_ce_d = constructor_Error_CE_Data(e_ce_h,sim); // destructed
+
+		for (int i = 0; i < 2; ++i)
+			convert_variables(e_ce_d->sol[i],'c','p');
+		add_euler_variable_Error_CE_Data('s',e_ce_d,sim);
+
+		increment_sol_L2(e_ce_h,e_ce_d);
+		destructor_Error_CE_Data(e_ce_d);
+
+		update_domain_order(e_ce_h);
+	}
+
+	struct Error_CE* error_ce = constructor_Error_CE(e_ce_h,sim); // returned
+	destructor_Error_CE_Helper(e_ce_h);
+
+	return error_ce;
+}
+
+struct Error_CE* constructor_Error_CE_euler_entropy (const struct Simulation* sim)
+{
+	const int n_out = 1;
+
+	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
+	e_ce_h->header_spec = compute_header_spec_euler_entropy();
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		e_ce_h->s_vol[0] = (struct Solver_Volume*) curr;
@@ -63,6 +94,10 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 		for (int i = 0; i < 2; ++i)
 			convert_variables(e_ce_d->sol[i],'c','p');
 		add_euler_variable_Error_CE_Data('s',e_ce_d,sim);
+		for (int i = 0; i < 2; ++i) {
+			for (int vr = 0; vr < DIM+1; ++vr) // Remove all except entropy.
+				remove_col_Multiarray_d(0,e_ce_d->sol[i]);
+		}
 
 		increment_sol_L2(e_ce_h,e_ce_d);
 		destructor_Error_CE_Data(e_ce_d);
@@ -114,5 +149,12 @@ static const char* compute_header_spec_euler_all ( )
 		index += sprintf(header_spec+index,"%-14s","L2w");
 	sprintf(header_spec+index,"%-14s%-14s","L2p","L2s");
 
+	return header_spec;
+}
+
+static const char* compute_header_spec_euler_entropy ( )
+{
+	static char header_spec[STRLEN_MAX];
+	sprintf(header_spec,"%-14s","L2s");
 	return header_spec;
 }

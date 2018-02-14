@@ -2,7 +2,7 @@ pde_name  navier_stokes
 pde_spec  steady/taylor_couette
 
 geom_name n-cylinder_hollow
-geom_spec adiabatic_o
+geom_spec adiabatic_o/geom_ar_1
 
 dimension 2
 

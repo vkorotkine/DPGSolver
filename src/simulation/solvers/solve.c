@@ -213,7 +213,7 @@ ptrdiff_t compute_dof_sol_1st (const struct Simulation* sim)
 	ptrdiff_t dof = 0;
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-		dof += compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents);
+		dof += s_vol->sol_coef->extents[0];
 	}
 	return dof;
 }

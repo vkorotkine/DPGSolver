@@ -53,6 +53,7 @@ GEOM_NONE = 0; // Dummy value
 GEOM_AR_1 = 1;
 GEOM_AR_2 = 2;
 GEOM_AR_3 = 3;
+GEOM_AR_8 = 8;
 
 GEOM_ADV_YL   = 1; // (ADV)ection (Y)-coord (L)eft
 GEOM_ADV_XL   = 2; // (ADV)ection (X)-coord (L)eft
@@ -67,6 +68,9 @@ GEOM_BC_DIABATIC_O  = 32; /// (B)oundary (C)ondition (DIABATIC) (O)uter
 GEOM_2BEXP_0 = 0;
 GEOM_2BEXP_1 = 1;
 GEOM_2BEXP_2 = 2;
+
+GEOM_CONFORMAL_HALF = 41;
+GEOM_CONFORMAL_FULL = 42;
 
 
 // MeshCurving Specifiers

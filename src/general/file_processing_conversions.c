@@ -121,7 +121,8 @@ static int get_define (const char*const def_str, const char*const def_type)
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else if (strcmp(def_type,"diabatic_flux_type") == 0) {
-		if      (strcmp(def_str,"constant") == 0) def_i = DIABATIC_FLUX_CONSTANT;
+		if      (strcmp(def_str,"constant_zero") == 0) def_i = DIABATIC_FLUX_CONSTANT_ZERO;
+		else if (strcmp(def_str,"constant")      == 0) def_i = DIABATIC_FLUX_CONSTANT;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else if (strcmp(def_type,"no_slip_type") == 0) {

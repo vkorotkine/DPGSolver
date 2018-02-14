@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "solution_navier_stokes.h"
 
+#include <float.h>
+
 #include "multiarray.h"
 
 #include "boundary.h"
@@ -78,6 +80,67 @@ void compute_viscosity (struct Multiarray_d* mu, const struct const_Multiarray_d
 
 	if (var_type != 'c')
 		convert_variables((struct Multiarray_d*)vars,'c',var_type);
+}
+
+double get_normal_flux_Energy ( )
+{
+	static double nf_E = DBL_MIN;
+
+	static bool need_input = true;
+	if (need_input) {
+		need_input = false;
+
+		char line[STRLEN_MAX];
+		int count_to_find = 0;
+		int count_found = 0;
+		FILE* input_file = NULL;
+
+		int diabatic_flux_type = VISCOUS_BC_INVALID;
+
+		count_to_find = 1;
+		count_found = 0;
+		input_file = fopen_input('s',NULL,NULL); // closed
+		while (fgets(line,sizeof(line),input_file))
+			read_skip_convert_i(line,"diabatic_flux_type",&diabatic_flux_type,&count_found);
+		fclose(input_file);
+		assert(count_found == count_to_find);
+
+		if (diabatic_flux_type == DIABATIC_FLUX_CONSTANT_ZERO) {
+			nf_E = 0.0;
+		} else {
+			assert(diabatic_flux_type == DIABATIC_FLUX_CONSTANT);
+
+			int viscosity_type = VISCOSITY_INVALID;
+			double Pr   = DBL_MAX,
+			       r_s  = DBL_MAX,
+			       mu   = DBL_MAX,
+			       dTdn = DBL_MAX;
+
+			count_to_find = 5;
+			count_found = 0;
+			input_file = fopen_input('s',NULL,NULL); // closed
+			while (fgets(line,sizeof(line),input_file)) {
+				read_skip_convert_i(line,"viscosity_type",&viscosity_type,&count_found);
+
+				read_skip_string_count_d("Pr",  &count_found,line,&Pr);
+				read_skip_string_count_d("r_s", &count_found,line,&r_s);
+				read_skip_string_count_d("mu",  &count_found,line,&mu);
+				read_skip_string_count_d("dTdn",&count_found,line,&dTdn);
+			}
+			fclose(input_file);
+			assert(count_found == count_to_find);
+
+			assert(viscosity_type == VISCOSITY_CONSTANT); // Otherwise nf_E still varies for constant dTdn.
+
+			const double Cp = compute_cp_ideal_gas(r_s);
+
+			/// See comments in \ref flux_navier_stokes_T.h regarding the negation used below.
+			nf_E = (-1.0)*mu*Cp/Pr*dTdn;
+
+			assert(nf_E != 0.0);
+		}
+	}
+	return nf_E;
 }
 
 // Static functions ************************************************************************************************* //

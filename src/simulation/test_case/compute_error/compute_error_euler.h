@@ -31,6 +31,12 @@ struct Error_CE* constructor_Error_CE_euler_all
 	(const struct Simulation* sim ///< Defined for \ref constructor_Error_CE_fptr.
 	);
 
+/** \brief Version of \ref constructor_Error_CE_fptr checking the error of the entropy.
+ *  \return See brief. */
+struct Error_CE* constructor_Error_CE_euler_entropy
+	(const struct Simulation* sim ///< Defined for \ref constructor_Error_CE_fptr.
+	);
+
 /// \brief Add the computed and exact specified variable to the solution data Multiarrays.
 void add_euler_variable_Error_CE_Data
 	(const char var_type,               ///< The variable type to add. Options: 's' (entropy), 't'emperature.

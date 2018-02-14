@@ -99,6 +99,25 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	else:
 		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
 
+	gmsh_setnumbers += " -setnumber geom_ar "
+	found = 0
+	for i in [1,2,3,8]:
+		geom_spec = "geom_ar_"+str(i)
+		print(geom_spec)
+		if (mesh_name.find("/"+geom_spec+"/") != -1):
+			gmsh_setnumbers += get_gmsh_number(geom_spec,input_dir,0)
+			found = 1
+	if (not found):
+		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
+
+	gmsh_setnumbers += " -setnumber geom_conformal "
+	if (mesh_name.find("/conformal_half/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_conformal_half",input_dir,0)
+	elif (mesh_name.find("/conformal_full/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_conformal_full",input_dir,0)
+	else:
+		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
+
 	return gmsh_setnumbers
 
 
