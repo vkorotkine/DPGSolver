@@ -55,8 +55,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Set \ref Integration_Test_Info::conv_order_discount to the value specified for the test
  *         case (from the input file) or to 0.0 otherwise. */
 static void set_convergence_order_discount
-	(struct Integration_Test_Info*const int_test_info, ///< \ref Integration_Test_Info.
-	 const struct Simulation*const sim                 ///< \ref Simulation.
+	(struct Integration_Test_Info*const int_test_info ///< \ref Integration_Test_Info.
 	);
 
 /// \brief Check the convergence orders of the errors for the simulations performed.
@@ -72,14 +71,14 @@ static void check_convergence_orders
  *  \return 0 on success (when the solution converges at the expected rate).
  */
 int main
-	(int nargc,  ///< Standard.
+	(int argc,   ///< Standard.
 	 char** argv ///< Standard.
 	)
 {
-	assert_condition_message(nargc == 3,"Invalid number of input arguments");
+	assert_condition_message(argc == 3,"Invalid number of input arguments");
 
 	const char* petsc_options_name = set_petsc_options_name(argv[2]);
-	PetscInitialize(&nargc,&argv,petsc_options_name,PETSC_NULL);
+	PetscInitialize(&argc,&argv,petsc_options_name,PETSC_NULL);
 
 	const char* ctrl_name = argv[1];
 
@@ -114,7 +113,7 @@ int main
 			printf("\ntest_integration_convergence (ml, p, dof): %d %d %td\n\n\n",ml,p,compute_dof(sim));
 
 		if ((ml == ml_ref[1]) && (p == p_ref[1])) {
-			set_convergence_order_discount(int_test_info,sim);
+			set_convergence_order_discount(int_test_info);
 			check_convergence_orders(&test_info,int_test_info,sim);
 			structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,type_rc);
 		}
@@ -147,13 +146,12 @@ static bool attained_expected_conv_orders
 	 const struct Integration_Test_Info* int_test_info ///< \ref Integration_Test_Info.
 	);
 
-static void set_convergence_order_discount
-	(struct Integration_Test_Info*const int_test_info, const struct Simulation*const sim)
+static void set_convergence_order_discount (struct Integration_Test_Info*const int_test_info)
 {
 	char line[STRLEN_MAX];
 	bool found_discount = false;
 
-	FILE* input_file = fopen_input(sim->input_path,'t',sim->test_case_extension); // closed
+	FILE* input_file = fopen_input('t',NULL,NULL); // closed
 	while (fgets(line,sizeof(line),input_file)) {
 		if (strstr(line,"conv_order_discount")) {
 			found_discount = true;

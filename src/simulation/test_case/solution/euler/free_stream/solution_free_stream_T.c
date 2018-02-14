@@ -75,14 +75,13 @@ struct Sol_Data__fs {
 /** \brief Return the statically allocated \ref Sol_Data__fs container.
  *  \return See brief. */
 static struct Sol_Data__fs get_sol_data
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
+	( );
 
 static struct Multiarray_T* constructor_sol_free_stream
 	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
 {
 	assert(DIM >= 2);
-	const struct Sol_Data__fs sol_data = get_sol_data(sim);
+	const struct Sol_Data__fs sol_data = get_sol_data();
 
 	// Compute the solution
 	const ptrdiff_t n_n = xyz->extents[0];
@@ -126,18 +125,17 @@ static struct Multiarray_T* constructor_sol_free_stream
 
 /// \brief Read the required solution data into \ref Sol_Data__fs.
 static void read_data_free_stream
-	(const char*const input_path,       ///< Defined in \ref fopen_input.
-	 struct Sol_Data__fs*const sol_data ///< \ref Sol_Data__fs.
+	(struct Sol_Data__fs*const sol_data ///< \ref Sol_Data__fs.
 	);
 
-static struct Sol_Data__fs get_sol_data (const struct Simulation* sim)
+static struct Sol_Data__fs get_sol_data ( )
 {
 	static bool need_input = true;
 
 	static struct Sol_Data__fs sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_free_stream(sim->input_path,&sol_data);
+		read_data_free_stream(&sol_data);
 	}
 
 	return sol_data;
@@ -145,11 +143,11 @@ static struct Sol_Data__fs get_sol_data (const struct Simulation* sim)
 
 // Level 2 ********************************************************************************************************** //
 
-static void read_data_free_stream (const char*const input_path, struct Sol_Data__fs*const sol_data)
+static void read_data_free_stream (struct Sol_Data__fs*const sol_data)
 {
 	const int count_to_find = 2;
 
-	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+	FILE* input_file = fopen_input('s',NULL,NULL); // closed
 
 	int count_found = 0;
 	char line[STRLEN_MAX];

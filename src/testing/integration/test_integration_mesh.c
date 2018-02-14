@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <string.h>
+#include "petscsys.h"
 
 #include "test_base.h"
 #include "test_support_vector.h"
@@ -30,17 +31,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
+#include "const_cast.h"
 #include "intrusive.h"
 #include "mesh.h"
 #include "mesh_readers.h"
 #include "mesh_connectivity.h"
 #include "mesh_vertices.h"
-#include "const_cast.h"
+#include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
 
 /** \brief Contructs a \ref Mesh_Input\*.
- *	\return Standard. */
+ *  \return Standard. */
 static struct Mesh_Input* constructor_Mesh_Input
 	(const char*const mesh_name ///< The test mesh name.
 	);
@@ -69,12 +71,18 @@ static bool compare_members_Mesh
  *  - \ref Mesh_Vertices.
  */
 int main
-	(int nargc,  ///< Standard.
+	(int argc,   ///< Standard.
 	 char** argv ///< Standard.
 	)
 {
-	assert_condition_message(nargc == 2,"Invalid number of input arguments");
-	const char* mesh_name = argv[1];
+	PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
+
+	assert_condition_message(argc == 3,"Invalid number of input arguments");
+	const char*const mesh_name = argv[1],
+	          *const ctrl_name = argv[2];
+
+	struct Simulation*const sim = constructor_Simulation(ctrl_name);
+	destructor_Simulation(sim);
 
 	struct Test_Info test_info = { .n_warn = 0, };
 
@@ -88,6 +96,8 @@ int main
 
 	assert_condition(pass);
 	output_warning_count(&test_info);
+
+	PetscFinalize();
 	OUTPUT_SUCCESS;
 }
 
@@ -111,21 +121,19 @@ struct Mesh_Test_Data {
 	struct Multiarray_Vector_i* ve_bc;       ///< Defined in \ref Mesh_Vertices.
 };
 
-/** \brief Set the members of the \ref Mesh_Input\*.
- *  \todo Check if `geom_spec` is being used and remove it if not. */
-static void set_Mesh_Input
+/// \brief Set the members of the \ref Mesh_Input\*.
+static void set_Mesh_Input_no_sim
 	(struct Mesh_Input*const mesh_input, ///< \ref Mesh_Input.
 	 const int d,                        ///< Defined in \ref Mesh_Input.
 	 const int domain_type,              ///< Defined in \ref Mesh_Input.
 	 const bool mesh_unrealistic,        ///< Defined in \ref Mesh_Input.
 	 const char* mesh_name,              ///< The mesh name without the relative path.
 	 const char* geom_name_,             ///< Defined in \ref Mesh_Input.
-	 const char* geom_spec_,             ///< Defined in \ref Mesh_Input.
-	 const char* input_path_             ///< Defined in \ref Mesh_Input.
+	 const char* geom_spec_              ///< Defined in \ref Mesh_Input.
 	);
 
 /** \brief Constructs a \ref Mesh_Test_Data\*.
- *	\return Standard. */
+ *  \return Standard. */
 static struct Mesh_Test_Data* constructor_Mesh_Test_Data
 	(const char*const mesh_name_full ///< Defined in \ref Mesh_Input.
 	);
@@ -142,13 +150,11 @@ static struct Mesh_Input* constructor_Mesh_Input (const char*const mesh_name)
 	mesh_input->mesh_name_full = malloc(STRLEN_MAX * sizeof *mesh_input->mesh_name_full); // free
 	mesh_input->geom_name      = malloc(STRLEN_MAX * sizeof *mesh_input->geom_name);      // free
 	mesh_input->geom_spec      = malloc(STRLEN_MAX * sizeof *mesh_input->geom_spec);      // free
-	mesh_input->input_path     = malloc(STRLEN_MAX * sizeof *mesh_input->input_path);     // free
 
 	if (strstr(mesh_name,"blended_2d_mixed.msh")) {
-		set_Mesh_Input(mesh_input,2,DOM_BLENDED,true,mesh_name,"n-cylinder_hollow_section","",
-		               "../input_files/euler/steady/supersonic_vortex/");
+		set_Mesh_Input_no_sim(mesh_input,2,DOM_BLENDED,true,mesh_name,"n-cylinder_hollow_section","");
 	} else if (strstr(mesh_name,"straight_2d_quad_periodic.msh")) {
-		set_Mesh_Input(mesh_input,2,DOM_STRAIGHT,false,mesh_name,"","","");
+		set_Mesh_Input_no_sim(mesh_input,2,DOM_STRAIGHT,false,mesh_name,"","");
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",mesh_name);
 	}
@@ -161,7 +167,6 @@ static void destructor_Mesh_Input (struct Mesh_Input* mesh_input)
 	free((void*)mesh_input->mesh_name_full);
 	free((void*)mesh_input->geom_name);
 	free((void*)mesh_input->geom_spec);
-	free((void*)mesh_input->input_path);
 
 	free(mesh_input);
 }
@@ -238,9 +243,9 @@ static bool compare_members_Mesh
 
 // Level 1 ********************************************************************************************************** //
 
-static void set_Mesh_Input
+static void set_Mesh_Input_no_sim
 	(struct Mesh_Input*const mesh_input, const int d, const int domain_type, const bool mesh_unrealistic,
-	 const char* mesh_name, const char* geom_name_, const char* geom_spec_, const char* input_path_)
+	 const char* mesh_name, const char* geom_name_, const char* geom_spec_)
 {
 	const_cast_i(&mesh_input->d,d);
 	const_cast_i(&mesh_input->domain_type,domain_type);
@@ -256,9 +261,6 @@ static void set_Mesh_Input
 	char* geom_spec = (char*) mesh_input->geom_spec;
 	strcpy(geom_spec,geom_spec_);
 	const_cast_c1(&mesh_input->geom_spec,geom_spec);
-
-	char* input_path = (char*) mesh_input->input_path;
-	strcpy(input_path,input_path_);
 }
 
 static struct Mesh_Test_Data* constructor_Mesh_Test_Data (const char*const mesh_name_full)

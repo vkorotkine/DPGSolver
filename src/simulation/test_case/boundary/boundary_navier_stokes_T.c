@@ -68,8 +68,7 @@ struct Exact_Boundary_Data {
 static void set_Exact_Boundary_Data
 	(struct Exact_Boundary_Data*const eb_data, ///< \ref Exact_Boundary_Data.
 	 bool*const need_input,                    ///< Flag for whether the input needs to be read.
-	 const int viscous_bc_type,                ///< The type of viscous boundary condition.
-	 const char*const input_path               ///< \ref Simulation::input_path.
+	 const int viscous_bc_type                 ///< The type of viscous boundary condition.
 	);
 
 /** \brief Version of \ref constructor_Boundary_Value_fptr_T computing members using the exact values for all variables
@@ -123,7 +122,7 @@ void constructor_Boundary_Value_T_navier_stokes_no_slip_all_rotating
 
 	static bool need_input = true;
 	static struct Exact_Boundary_Data eb_data;
-	set_Exact_Boundary_Data(&eb_data,&need_input,NO_SLIP_ALL_ROTATING_RHO_E,sim->input_path);
+	set_Exact_Boundary_Data(&eb_data,&need_input,NO_SLIP_ALL_ROTATING_RHO_E);
 
 	constructor_Boundary_Value_T_navier_stokes_no_slip_all_general(bv,bv_i,&eb_data);
 }
@@ -136,7 +135,7 @@ void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_adiabatic
 
 	static bool need_input = true;
 	static struct Exact_Boundary_Data eb_data;
-	set_Exact_Boundary_Data(&eb_data,&need_input,DIABATIC_FLUX_CONSTANT_ZERO,sim->input_path);
+	set_Exact_Boundary_Data(&eb_data,&need_input,DIABATIC_FLUX_CONSTANT_ZERO);
 
 	constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general(bv,bv_i,&eb_data);
 }
@@ -149,7 +148,7 @@ void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic
 
 	static bool need_input = true;
 	static struct Exact_Boundary_Data eb_data;
-	set_Exact_Boundary_Data(&eb_data,&need_input,DIABATIC_FLUX_CONSTANT,sim->input_path);
+	set_Exact_Boundary_Data(&eb_data,&need_input,DIABATIC_FLUX_CONSTANT);
 
 	constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general(bv,bv_i,&eb_data);
 }
@@ -160,41 +159,37 @@ void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic
 /** \brief Read/set the required solution data of the \ref Exact_Boundary_Data container (assumes: zero velocity,
  *         diabatic boundary). */
 static void read_and_set_data_diabatic_flux
-	(const char*const input_path,              ///< Defined in \ref fopen_input.
-	 struct Exact_Boundary_Data*const eb_data, ///< \ref Exact_Boundary_Data.
+	(struct Exact_Boundary_Data*const eb_data, ///< \ref Exact_Boundary_Data.
 	 const bool is_adiabatic                   ///< Flag for whether the boundary is adiabatic.
 	);
 
 /** \brief Read/set the required solution data of the \ref Exact_Boundary_Data container (assumes: angular velocity is
  *         required). */
 static void read_and_set_data_no_slip_rotating
-	(const char*const input_path,             ///< Defined in \ref fopen_input.
-	 struct Exact_Boundary_Data*const eb_data ///< \ref Exact_Boundary_Data.
+	(struct Exact_Boundary_Data*const eb_data ///< \ref Exact_Boundary_Data.
 	);
 
 /** \brief Read/set the required solution data of the \ref Exact_Boundary_Data container (assumes: density and
  *         total energy are required). */
 static void read_and_set_data_rho_E
-	(const char*const input_path,             ///< Defined in \ref fopen_input.
-	 struct Exact_Boundary_Data*const eb_data ///< \ref Exact_Boundary_Data.
+	(struct Exact_Boundary_Data*const eb_data ///< \ref Exact_Boundary_Data.
 	);
 
 static void set_Exact_Boundary_Data
-	(struct Exact_Boundary_Data*const eb_data, bool*const need_input, const int viscous_bc_type,
-	 const char*const input_path)
+	(struct Exact_Boundary_Data*const eb_data, bool*const need_input, const int viscous_bc_type)
 {
 	if (*need_input) {
 		*need_input = false;
 		switch (viscous_bc_type) {
 		case DIABATIC_FLUX_CONSTANT_ZERO:
-			read_and_set_data_diabatic_flux(input_path,eb_data,true);
+			read_and_set_data_diabatic_flux(eb_data,true);
 			break;
 		case DIABATIC_FLUX_CONSTANT:
-			read_and_set_data_diabatic_flux(input_path,eb_data,false);
+			read_and_set_data_diabatic_flux(eb_data,false);
 			break;
 		case NO_SLIP_ALL_ROTATING_RHO_E:
-			read_and_set_data_no_slip_rotating(input_path,eb_data);
-			read_and_set_data_rho_E(input_path,eb_data);
+			read_and_set_data_no_slip_rotating(eb_data);
+			read_and_set_data_rho_E(eb_data);
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %d\n",viscous_bc_type);
@@ -446,8 +441,7 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 
 /// \brief Subset of read_and_set_data_diabatic_flux reading values to set \ref Exact_Boundary_Data::nf_E.
 static void set_data_nf_E
-	(const char*const input_path,              ///< See brief.
-	 struct Exact_Boundary_Data*const eb_data, ///< See brief.
+	(struct Exact_Boundary_Data*const eb_data, ///< See brief.
 	 const bool is_adiabatic                   ///< See brief.
 	);
 
@@ -465,18 +459,16 @@ static const Type* compute_uvw_ex_rotating
 	 const struct Exact_Boundary_Data*const eb_data ///< See brief.
 	);
 
-static void read_and_set_data_diabatic_flux
-	(const char*const input_path, struct Exact_Boundary_Data*const eb_data, const bool is_adiabatic)
+static void read_and_set_data_diabatic_flux (struct Exact_Boundary_Data*const eb_data, const bool is_adiabatic)
 {
 	const int count_to_find = 1;
 	int count_found = 0;
 
-	FILE* input_file = NULL;
 	char line[STRLEN_MAX];
 
 	int diabatic_flux_type = VISCOUS_BC_INVALID;
 
-	input_file = fopen_input(input_path,'s',NULL); // closed
+	FILE* input_file = fopen_input('s',NULL,NULL); // closed
 	while (fgets(line,sizeof(line),input_file)) {
 		read_skip_convert_const_i(line,"diabatic_flux_type",&diabatic_flux_type,&count_found);
 	}
@@ -487,7 +479,7 @@ static void read_and_set_data_diabatic_flux
 
 	switch (diabatic_flux_type) {
 	case DIABATIC_FLUX_CONSTANT:
-		set_data_nf_E(input_path,eb_data,is_adiabatic);
+		set_data_nf_E(eb_data,is_adiabatic);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",diabatic_flux_type);
@@ -497,14 +489,14 @@ static void read_and_set_data_diabatic_flux
 	eb_data->compute_uvw_ex = compute_uvw_ex_zero;
 }
 
-static void read_and_set_data_no_slip_rotating (const char*const input_path, struct Exact_Boundary_Data*const eb_data)
+static void read_and_set_data_no_slip_rotating (struct Exact_Boundary_Data*const eb_data)
 {
 	const int count_to_find = 1;
 	int count_found = 0;
 
 	char line[STRLEN_MAX];
 
-	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+	FILE* input_file = fopen_input('s',NULL,NULL); // closed
 	while (fgets(line,sizeof(line),input_file)) {
 		read_skip_string_count_d("omega",&count_found,line,&eb_data->omega);
 	}
@@ -516,14 +508,14 @@ static void read_and_set_data_no_slip_rotating (const char*const input_path, str
 	eb_data->compute_uvw_ex = compute_uvw_ex_rotating;
 }
 
-static void read_and_set_data_rho_E (const char*const input_path, struct Exact_Boundary_Data*const eb_data)
+static void read_and_set_data_rho_E (struct Exact_Boundary_Data*const eb_data)
 {
 	const int count_to_find = 2;
 	int count_found = 0;
 
 	char line[STRLEN_MAX];
 
-	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+	FILE* input_file = fopen_input('s',NULL,NULL); // closed
 	while (fgets(line,sizeof(line),input_file)) {
 		read_skip_string_count_d("rho_b",&count_found,line,&eb_data->rho);
 		read_skip_string_count_d("E_b",  &count_found,line,&eb_data->E);
@@ -536,8 +528,7 @@ static void read_and_set_data_rho_E (const char*const input_path, struct Exact_B
 
 // Level 2 ********************************************************************************************************** //
 
-static void set_data_nf_E
-	(const char*const input_path, struct Exact_Boundary_Data*const eb_data, const bool is_adiabatic)
+static void set_data_nf_E (struct Exact_Boundary_Data*const eb_data, const bool is_adiabatic)
 {
 	const int count_to_find = 5;
 	int count_found = 0;
@@ -550,7 +541,7 @@ static void set_data_nf_E
 	     mu   = DBL_MAX,
 	     dTdn = DBL_MAX;
 
-	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+	FILE* input_file = fopen_input('s',NULL,NULL); // closed
 	while (fgets(line,sizeof(line),input_file)) {
 		read_skip_convert_i(line,"viscosity_type",&viscosity_type,&count_found);
 

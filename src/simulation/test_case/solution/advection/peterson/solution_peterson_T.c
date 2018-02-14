@@ -66,7 +66,7 @@ static struct Multiarray_T* constructor_sol_peterson
 {
 	assert(DIM == 2);
 
-	const struct Sol_Data__Advection sol_data = get_sol_data_advection(sim);
+	const struct Sol_Data__Advection sol_data = get_sol_data_advection();
 
 	// Compute the solution
 	const ptrdiff_t n_vs = xyz->extents[0];

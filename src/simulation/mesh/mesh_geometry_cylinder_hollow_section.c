@@ -40,14 +40,13 @@ struct Geom_Data__chs {
 
 /// \brief Read the required geometry data into \ref Geom_Data__chs.
 static void read_data_cylinder__hollow_section
-	(const char*const input_path,          ///< Defined in \ref fopen_input.
-	 struct Geom_Data__chs*const geom_data ///< \ref Geom_Data__chs.
+	(struct Geom_Data__chs*const geom_data ///< \ref Geom_Data__chs.
 	);
 
 // Interface functions ********************************************************************************************** //
 
 void mesh_snap_to_cylinder__hollow_section
-	(const char*const input_path, const struct const_Vector_i*const ve_curved, const struct Matrix_d*const nodes)
+	(const struct const_Vector_i*const ve_curved, const struct Matrix_d*const nodes)
 {
 	// Set geometry data
 	static bool need_input = true;
@@ -55,7 +54,7 @@ void mesh_snap_to_cylinder__hollow_section
 	static struct Geom_Data__chs geom_data;
 	if (need_input) {
 		need_input = false;
-		read_data_cylinder__hollow_section(input_path,&geom_data);
+		read_data_cylinder__hollow_section(&geom_data);
 	}
 
 	// Snap vertices to the boundary
@@ -88,13 +87,12 @@ void mesh_snap_to_cylinder__hollow_section
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static void read_data_cylinder__hollow_section (const char*const input_path, struct Geom_Data__chs*const geom_data)
+static void read_data_cylinder__hollow_section (struct Geom_Data__chs*const geom_data)
 {
 	int       count_found   = 0;
 	const int count_to_find = 2;
 
-	FILE* input_file = fopen_input(input_path,'g',NULL); // closed
-
+	FILE* input_file = fopen_input('g',NULL,NULL); // closed
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),input_file)) {
 		if (strstr(line,"r_i")) {

@@ -76,8 +76,7 @@ struct Sol_Data__pv {
 /** \brief Return the statically allocated \ref Sol_Data__pv container.
  *  \return See brief. */
 static struct Sol_Data__pv get_sol_data
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
+	( );
 
 /// \brief Set the centre xy coordinates of the periodic vortex at the given time.
 static void set_xy_c
@@ -91,7 +90,7 @@ static struct Multiarray_T* constructor_sol_periodic_vortex_T
 	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
 {
 	assert(DIM >= 2);
-	const struct Sol_Data__pv sol_data = get_sol_data(sim);
+	const struct Sol_Data__pv sol_data = get_sol_data();
 
 	// Set the coordinates of the vortex centre depending on the time.
 	Real x_c = 0.0,
@@ -144,8 +143,7 @@ static struct Multiarray_T* constructor_sol_periodic_vortex_T
 
 /// \brief Read the required solution data into \ref Sol_Data__pv.
 static void read_data_periodic_vortex
-	(const char*const input_path,       ///< Defined in \ref fopen_input.
-	 struct Sol_Data__pv*const sol_data ///< \ref Sol_Data__pv.
+	(struct Sol_Data__pv*const sol_data ///< \ref Sol_Data__pv.
 	);
 
 /// \brief Set the remaining required solution data of \ref Sol_Data__pv based on the read values.
@@ -153,14 +151,14 @@ static void set_data_periodic_vortex
 	(struct Sol_Data__pv*const sol_data ///< \ref Sol_Data__pv.
 	);
 
-static struct Sol_Data__pv get_sol_data (const struct Simulation* sim)
+static struct Sol_Data__pv get_sol_data ( )
 {
 	static bool need_input = true;
 
 	static struct Sol_Data__pv sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_periodic_vortex(sim->input_path,&sol_data);
+		read_data_periodic_vortex(&sol_data);
 		set_data_periodic_vortex(&sol_data);
 	}
 
@@ -185,11 +183,11 @@ static void set_xy_c (double* x_c, double* y_c, const struct Sol_Data__pv* sol_d
 
 // Level 2 ********************************************************************************************************** //
 
-static void read_data_periodic_vortex (const char*const input_path, struct Sol_Data__pv*const sol_data)
+static void read_data_periodic_vortex (struct Sol_Data__pv*const sol_data)
 {
 	const int count_to_find = 6;
 
-	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+	FILE* input_file = fopen_input('s',NULL,NULL); // closed
 
 	int count_found = 0;
 	char line[STRLEN_MAX];

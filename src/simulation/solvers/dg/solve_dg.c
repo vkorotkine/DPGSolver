@@ -337,7 +337,7 @@ static double compute_dt_cfl_constrained
 	double max_viscosity = EPS;
 	if (test_case->has_2nd_order) {
 		struct Multiarray_d* mu = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){ext_0,1}); // destructed
-		compute_viscosity(mu,(struct const_Multiarray_d*)s_coef_b,'c',sim->input_path);
+		compute_viscosity(mu,(struct const_Multiarray_d*)s_coef_b,'c');
 
 		max_viscosity = maximum_dd(mu->data,ext_0);
 		destructor_Multiarray_d(mu);

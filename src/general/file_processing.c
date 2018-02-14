@@ -120,7 +120,6 @@ FILE* fopen_input (const char input_spec, const char*const ctrl_name_full_i, con
 	switch (input_spec) {
 	case 0: {
 		// Only performs set up (Does not return a `FILE*`).
-		assert(need_set_up);
 		need_set_up = false;
 		strcpy(ctrl_name_full,ctrl_name_full_i);
 		strcpy(input_path,input_path_i);

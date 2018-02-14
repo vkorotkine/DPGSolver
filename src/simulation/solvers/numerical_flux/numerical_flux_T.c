@@ -47,8 +47,6 @@ struct Numerical_Flux_Input_T* constructor_Numerical_Flux_Input_T (const struct 
 {
 	struct Numerical_Flux_Input_T* num_flux_i = calloc(1,sizeof *num_flux_i); // returned
 
-	const_cast_c1(&num_flux_i->bv_l.input_path,sim->input_path);
-
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const_cast_i(&num_flux_i->method,sim->method);
 	const_cast_b(&num_flux_i->has_1st_order,test_case->has_1st_order);

@@ -79,6 +79,7 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 void add_euler_variable_Error_CE_Data
 	(const char var_type, struct Error_CE_Data*const e_ce_d, const struct Simulation*const sim)
 {
+	UNUSED(sim);
 	const ptrdiff_t ext_0 = e_ce_d->sol[0]->extents[0];
 	struct Multiarray_d*const var = constructor_move_Multiarray_d_d('C',2,(ptrdiff_t[]){ext_0,1},false,NULL); // dest.
 	for (int i = 0; i < 2; ++i) {
@@ -91,7 +92,7 @@ void add_euler_variable_Error_CE_Data
 		var->data = get_col_Multiarray_d(ext_1_new-1,sol);
 		switch (var_type) {
 			case 's': compute_entropy(var,(const struct const_Multiarray_d*)sol,'p'); break;
-			case 't': compute_temperature(var,(const struct const_Multiarray_d*)sol,'p',sim); break;
+			case 't': compute_temperature(var,(const struct const_Multiarray_d*)sol,'p'); break;
 			default:  EXIT_ERROR("Unsupported: %c.",var_type); break;
 		}
 		sol->extents[1] = ext_1_new;

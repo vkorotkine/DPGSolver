@@ -64,7 +64,7 @@ void compute_Flux_T_advection (const struct Flux_Input_T* flux_i, struct mutable
 	static struct Sol_Data__Advection sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(flux_i->input_path,&sol_data);
+		read_data_advection(&sol_data);
 	}
 
 	const struct const_Multiarray_T*const s = flux_i->s;

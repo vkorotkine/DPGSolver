@@ -230,7 +230,7 @@ static const struct const_Multiarray_T* constructor_source_advection_default_1d_
 	static struct Sol_Data__Advection sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(sim->input_path,&sol_data);
+		read_data_advection(&sol_data);
 	}
 
 	const ptrdiff_t n_vs = xyz->extents[0];
@@ -260,7 +260,7 @@ static const struct const_Multiarray_T* constructor_source_advection_default_2d_
 	static struct Sol_Data__Advection sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(sim->input_path,&sol_data);
+		read_data_advection(&sol_data);
 	}
 
 	const ptrdiff_t n_vs = xyz->extents[0];

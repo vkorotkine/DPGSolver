@@ -55,14 +55,14 @@ static void check_flux_imbalance
  *  \return 0 on success (when the element-local and global conservation is achieved (negligible flux imbalance)).
  */
 int main
-	(int nargc,  ///< Standard.
+	(int argc,   ///< Standard.
 	 char** argv ///< Standard.
 	)
 {
-	assert_condition_message(nargc == 3,"Invalid number of input arguments");
+	assert_condition_message(argc == 3,"Invalid number of input arguments");
 
 	const char* petsc_options_name = set_petsc_options_name(argv[2]);
-	PetscInitialize(&nargc,&argv,petsc_options_name,PETSC_NULL);
+	PetscInitialize(&argc,&argv,petsc_options_name,PETSC_NULL);
 
 	const char* ctrl_name = argv[1];
 

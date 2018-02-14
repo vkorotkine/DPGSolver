@@ -54,8 +54,6 @@ typedef void (*constructor_Boundary_Value_fptr_T)
 
 /// \brief Container holding data used for computing the boundary condition values and their Jacobians.
 struct Boundary_Value_Input_T {
-	const char* input_path;     ///< Pointer to \ref Simulation::input_path.
-
 	/** Flags for which of the \ref Boundary_Value_T members should be computed.
 	 *  - [0]: s
 	 *  - [1]: ds_ds

@@ -54,13 +54,13 @@ static bool compare_members_fe
  *  - \ref Face.
  */
 int main
-	(int nargc,  ///< Standard.
+	(int argc,   ///< Standard.
 	 char** argv ///< Standard.
 	)
 {
-	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+	PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
 
-	assert_condition_message(nargc == 2,"Invalid number of input arguments");
+	assert_condition_message(argc == 2,"Invalid number of input arguments");
 	const char* ctrl_name = argv[1];
 
 	struct Test_Info test_info = { .n_warn = 0, };

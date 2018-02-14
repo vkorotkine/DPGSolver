@@ -38,8 +38,6 @@ typedef void (*compute_Flux_fptr_T)
 
 /// \brief Container holding data used for computing the fluxes and flux Jacobians.
 struct Flux_Input_T {
-	const char* input_path; ///< Pointer to \ref Simulation::input_path.
-
 	/** Array of flags for which of the \ref Flux_T members should be computed. The entries correspond to the
 	 *  following members in \ref Flux_T.
 	 *  - [0]: f

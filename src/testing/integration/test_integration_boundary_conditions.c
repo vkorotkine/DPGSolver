@@ -80,13 +80,13 @@ static struct Numerical_Flux_Input* constructor_Numerical_Flux_Input_cmplx_step
  *  complex step method can be found in Squire et al. \cite Squire1998 and Martins et al. \cite Martins2003.
  */
 int main
-	(int nargc,  ///< Standard.
+	(int argc,   ///< Standard.
 	 char** argv ///< Standard.
 	)
 {
-	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+	PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
 
-	assert_condition_message(nargc == 3,"Invalid number of input arguments");
+	assert_condition_message(argc == 3,"Invalid number of input arguments");
 	const char*const ctrl_name = argv[2];
 
 	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name);

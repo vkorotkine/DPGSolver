@@ -81,20 +81,22 @@ static struct Flux* constructor_Flux_cmplx_step
  *  complex step method can be found in Squire et al. \cite Squire1998 and Martins et al. \cite Martins2003.
  */
 int main
-	(int nargc,  ///< Standard.
+	(int argc,   ///< Standard.
 	 char** argv ///< Standard.
 	)
 {
-	PetscInitialize(&nargc,&argv,PETSC_NULL,PETSC_NULL);
+	PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
 
-	assert_condition_message(nargc == 3,"Invalid number of input arguments");
+	assert_condition_message(argc == 3,"Invalid number of input arguments");
 	const char*const ctrl_name = argv[2];
 
-	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name);
+	struct Integration_Test_Info*const int_test_info =
+		constructor_Integration_Test_Info(ctrl_name); // destructed
 
 	const int p          = int_test_info->p_ref[0],
 	          ml         = int_test_info->ml[0],
 	          adapt_type = int_test_info->adapt_type;
+	destructor_Integration_Test_Info(int_test_info);
 	assert(adapt_type == ADAPT_0);
 
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
@@ -149,6 +151,8 @@ int main
 	}
 	expect_condition(pass,"flux_linearization");
 	assert_condition(pass);
+
+	destructor_Flux(flux_cmplx_step);
 
 	// complex
 	ind_rc = 1;

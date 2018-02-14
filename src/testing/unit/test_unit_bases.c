@@ -77,11 +77,11 @@ static void test_unit_basis_pyramid_bezier
 /** \test Performs unit testing for the bases (\ref test_unit_bases.c).
  *  \return 0 on success. */
 int main
-	(int nargc,  ///< Standard.
+	(int argc,   ///< Standard.
 	 char** argv ///< Standard.
 	)
 {
-	assert_condition_message(nargc == 2,"Invalid number of input arguments");
+	assert_condition_message(argc == 2,"Invalid number of input arguments");
 	const char* test_name = argv[1];
 
 	struct Test_Info test_info = { .n_warn = 0, };

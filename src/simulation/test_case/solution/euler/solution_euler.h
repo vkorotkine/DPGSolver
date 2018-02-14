@@ -50,8 +50,7 @@ void compute_mach
 void compute_temperature
 	(struct Multiarray_d*const t,                ///< The container to hold the temperature data.
 	 const struct const_Multiarray_d*const vars, ///< The container of Euler variables.
-	 const char var_type,                        ///< The type of the variables.
-	 const struct Simulation*const sim           ///< \ref Simulation.
+	 const char var_type                         ///< The type of the variables.
 	);
 
 /// \brief Compute the maximum wave speed.

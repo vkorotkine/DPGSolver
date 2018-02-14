@@ -237,8 +237,7 @@ struct Sol_Data__dd {
 /** \brief Return the statically allocated \ref Sol_Data__dd container.
  *  \return See brief. */
 static struct Sol_Data__dd get_sol_data
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
+	( );
 
 static struct Multiarray_T* constructor_sol_diffusion_default_steady_1d
 	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
@@ -246,7 +245,7 @@ static struct Multiarray_T* constructor_sol_diffusion_default_steady_1d
 	assert(DIM == 1);
 	assert(xyz->extents[1] == DIM);
 
-	const struct Sol_Data__dd sol_data = get_sol_data(sim);
+	const struct Sol_Data__dd sol_data = get_sol_data();
 
 	const ptrdiff_t n_vs = xyz->extents[0];
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
@@ -395,18 +394,17 @@ static const struct const_Multiarray_T* constructor_source_diffusion_default_ste
 
 /// \brief Read the required solution data into \ref Sol_Data__dd.
 static void read_data_default_diffusion
-	(const char*const input_path,       ///< Defined in \ref fopen_input.
-	 struct Sol_Data__dd*const sol_data ///< \ref Sol_Data__dd.
+	(struct Sol_Data__dd*const sol_data ///< \ref Sol_Data__dd.
 	);
 
-static struct Sol_Data__dd get_sol_data (const struct Simulation* sim)
+static struct Sol_Data__dd get_sol_data ( )
 {
 	static bool need_input = true;
 
 	static struct Sol_Data__dd sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_default_diffusion(sim->input_path,&sol_data);
+		read_data_default_diffusion(&sol_data);
 	}
 
 	return sol_data;
@@ -414,11 +412,11 @@ static struct Sol_Data__dd get_sol_data (const struct Simulation* sim)
 
 // Level 3 ********************************************************************************************************** //
 
-static void read_data_default_diffusion (const char*const input_path, struct Sol_Data__dd*const sol_data)
+static void read_data_default_diffusion (struct Sol_Data__dd*const sol_data)
 {
 	const int count_to_find = 1;
 
-	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+	FILE* input_file = fopen_input('s',NULL,NULL); // closed
 
 	int count_found = 0;
 	char line[STRLEN_MAX];

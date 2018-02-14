@@ -52,15 +52,14 @@ double compute_cp_ideal_gas (const double r_s)
 	return GAMMA/GM1*r_s;
 }
 
-void compute_viscosity
-	(struct Multiarray_d* mu, const struct const_Multiarray_d* vars, const char var_type, const char*const input_path)
+void compute_viscosity (struct Multiarray_d* mu, const struct const_Multiarray_d* vars, const char var_type)
 {
 	assert(mu->extents[0] == vars->extents[0]);
 	assert(mu->extents[1] == 1);
 	assert(vars->extents[1]-2 == DIM);
 	assert(vars->layout == 'C');
 
-	compute_mu_fptr_d compute_mu = get_compute_mu_fptr_d(input_path);
+	compute_mu_fptr_d compute_mu = get_compute_mu_fptr_d();
 
 	if (var_type != 'c')
 		convert_variables((struct Multiarray_d*)vars,var_type,'c');
@@ -74,7 +73,7 @@ void compute_viscosity
 	const ptrdiff_t ext_0 = mu->extents[0];
 	for (ptrdiff_t i = 0; i < ext_0; ++i) {
 		const double rhouvw_i[DIM] = ARRAY_DIM( rhouvw[0][i], rhouvw[1][i], rhouvw[2][i] );
-		mu->data[i] = compute_mu(input_path,rho[i],rhouvw_i,E[i]);
+		mu->data[i] = compute_mu(rho[i],rhouvw_i,E[i]);
 	}
 
 	if (var_type != 'c')

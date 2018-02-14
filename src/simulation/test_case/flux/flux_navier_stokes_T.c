@@ -56,14 +56,12 @@ typedef void (*compute_Flux_Navier_Stokes_fptr)
 
 /** \brief Pointer to functions computing the Jacobian of the viscosity wrt the solution.
  *
- *  \param input_path \ref Flux_Input_T::input_path.
  *  \param rho        The density.
  *  \param rhouvw     The xyz momentum components.
  *  \param E          The total energy.
  */
 typedef const Type* (*compute_dmu_ds_fptr)
-	(const char*const input_path,
-	 const Type rho,
+	(const Type rho,
 	 const Type*const rhouvw,
 	 const Type E
 	);
@@ -109,29 +107,25 @@ static compute_Flux_Navier_Stokes_fptr get_compute_Flux_Navier_Stokes_fptr
 /** \brief Check whether the viscosity is constant for the current test case.
  *  \return `true` if yes; `false` otherwise. */
 static bool check_if_mu_is_const
-	(const char*const input_path ///< \ref Flux_Input_T::input_path.
-	);
+	( );
 
 /** \brief Return the pointer to the appropriate \ref compute_dmu_ds_fptr specialization based on the viscosity type.
  *  \return See brief. */
 static compute_dmu_ds_fptr get_compute_dmu_ds_fptr
-	(const char*const input_path ///< \ref Flux_Input_T::input_path.
-	);
+	( );
 
 /** \brief Return the 'Pr'andtl number for the current test case.
  *  \return See brief. */
 static Real compute_Pr
-	(const char*const input_path ///< \ref Flux_Input_T::input_path.
-	);
+	( );
 
 /** \brief Return a statically allocated \ref Partials_Scalar for the viscosity.
  *  \return See brief. */
 static struct Partials_Scalar compute_mu_p
-	(const Type rho,             ///< The density.
-	 const Type*const rhouvw,    ///< The momentum components.
-	 const Type E,               ///< The total energy.
-	 const bool*const c_m,       ///< Array of flags indicating members to be computed.
-	 const char*const input_path ///< \ref Flux_Input_T::input_path.
+	(const Type rho,          ///< The density.
+	 const Type*const rhouvw, ///< The momentum components.
+	 const Type E,            ///< The total energy.
+	 const bool*const c_m     ///< Array of flags indicating members to be computed.
 	);
 
 /** \brief Return a statically allocated \ref Partials_Vector for the velocities.
@@ -210,8 +204,7 @@ void compute_Flux_T_navier_stokes (const struct Flux_Input_T* flux_i, struct mut
 /// \todo Set `compute_flux_navier_stokes_n ` as a member of \ref Flux_Input_T and initialize in the constructor.
 	compute_Flux_Navier_Stokes_fptr compute_flux_navier_stokes_n = get_compute_Flux_Navier_Stokes_fptr(c_m);
 
-	const char*const input_path = flux_i->input_path;
-	const bool mu_is_const = check_if_mu_is_const(input_path);
+	const bool mu_is_const = check_if_mu_is_const();
 
 	assert(c_m[0]);
 	Type* f_ptr[DIM*NEQ] = { NULL };
@@ -249,7 +242,7 @@ void compute_Flux_T_navier_stokes (const struct Flux_Input_T* flux_i, struct mut
 	assert(c_m[4] == false); // ADD_SUPPORT;
 	assert(c_m[5] == false); // ADD_SUPPORT;
 
-	const Real Pr = compute_Pr(input_path);
+	const Real Pr = compute_Pr();
 
 	const ptrdiff_t n_n = s->extents[0];
 	for (ptrdiff_t n = 0; n < n_n; ++n) {
@@ -265,7 +258,7 @@ void compute_Flux_T_navier_stokes (const struct Flux_Input_T* flux_i, struct mut
 		           *const drhouvw[DIM] = ARRAY_DIM( drhouvw_2[0], drhouvw_2[1], drhouvw_2[2] );
 
 		const Type rho_inv  = 1.0/rho;
-		const struct Partials_Scalar mu_p   = compute_mu_p(rho,rhouvw,E,c_m,input_path);
+		const struct Partials_Scalar mu_p   = compute_mu_p(rho,rhouvw,E,c_m);
 		const struct Partials_Vector uvw_p  = compute_uvw_p(rho_inv,rhouvw,c_m);
 		const struct Partials_Tensor duvw_p = compute_duvw_p(rho_inv,&uvw_p,drho,drhouvw,c_m),
 		                             tau_p  = compute_tau_p(&mu_p,&duvw_p,c_m,mu_is_const);
@@ -305,8 +298,7 @@ static void compute_Flux_Navier_Stokes_111
 /** \brief Version of \ref compute_dmu_ds_fptr for constant viscosity.
  *  \return See brief. */
 static const Type* compute_dmu_ds_constant
-	(const char*const input_path, ///< See brief.
-	 const Type rho,              ///< See brief.
+	(const Type rho,              ///< See brief.
 	 const Type*const rhouvw,     ///< See brief.
 	 const Type E                 ///< See brief.
 	);
@@ -421,11 +413,11 @@ static compute_Flux_Navier_Stokes_fptr get_compute_Flux_Navier_Stokes_fptr (cons
 	}
 }
 
-static bool check_if_mu_is_const (const char*const input_path)
+static bool check_if_mu_is_const ( )
 {
 	static int viscosity_type = VISCOSITY_INVALID;
 	static bool need_input = true;
-	set_viscosity_type_T(input_path,&viscosity_type,&need_input);
+	set_viscosity_type_T(&viscosity_type,&need_input);
 
 	switch (viscosity_type) {
 	case VISCOSITY_CONSTANT:
@@ -440,11 +432,11 @@ static bool check_if_mu_is_const (const char*const input_path)
 	};
 }
 
-static compute_dmu_ds_fptr get_compute_dmu_ds_fptr (const char*const input_path)
+static compute_dmu_ds_fptr get_compute_dmu_ds_fptr ( )
 {
 	static int viscosity_type = VISCOSITY_INVALID;
 	static bool need_input = true;
-	set_viscosity_type_T(input_path,&viscosity_type,&need_input);
+	set_viscosity_type_T(&viscosity_type,&need_input);
 
 	switch (viscosity_type) {
 		case VISCOSITY_CONSTANT:   return compute_dmu_ds_constant;                break;
@@ -453,7 +445,7 @@ static compute_dmu_ds_fptr get_compute_dmu_ds_fptr (const char*const input_path)
 	};
 }
 
-static Real compute_Pr (const char*const input_path)
+static Real compute_Pr ( )
 {
 	static Real Pr = 0.0;
 
@@ -465,8 +457,6 @@ static Real compute_Pr (const char*const input_path)
 		int count_found = 0;
 
 		char line[STRLEN_MAX];
-//		FILE* input_file = fopen_input(input_path,'s',NULL); // closed
-UNUSED(input_path);
 		FILE* input_file = fopen_input('s',NULL,NULL); // closed
 		while (fgets(line,sizeof(line),input_file)) {
 			read_skip_string_count_d("Pr",&count_found,line,&Pr);
@@ -480,17 +470,17 @@ UNUSED(input_path);
 }
 
 static struct Partials_Scalar compute_mu_p
-	(const Type rho, const Type*const rhouvw, const Type E, const bool*const c_m, const char*const input_path)
+	(const Type rho, const Type*const rhouvw, const Type E, const bool*const c_m)
 {
 	static struct Partials_Scalar ps;
 
 /// \todo Move function/function pointer declarations to appropriate levels.
-	compute_mu_fptr_T compute_mu = get_compute_mu_fptr_T(input_path);
-	ps.d0 = compute_mu(input_path,rho,rhouvw,E);
+	compute_mu_fptr_T compute_mu = get_compute_mu_fptr_T();
+	ps.d0 = compute_mu(rho,rhouvw,E);
 
 	if (c_m[1]) {
-		compute_dmu_ds_fptr compute_dmu_ds = get_compute_dmu_ds_fptr(input_path);
-		ps.d1s = compute_dmu_ds(input_path,rho,rhouvw,E);
+		compute_dmu_ds_fptr compute_dmu_ds = get_compute_dmu_ds_fptr();
+		ps.d1s = compute_dmu_ds(rho,rhouvw,E);
 	} else {
 		ps.d1s = NULL;
 	}
@@ -616,9 +606,9 @@ static void compute_Flux_Navier_Stokes_111
 }
 
 static const Type* compute_dmu_ds_constant
-	(const char*const input_path, const Type rho, const Type*const rhouvw, const Type E)
+	(const Type rho, const Type*const rhouvw, const Type E)
 {
-	UNUSED(input_path); UNUSED(rho); UNUSED(rhouvw); UNUSED(E);
+	UNUSED(rho); UNUSED(rhouvw); UNUSED(E);
 	static const Type dmu_ds[NVAR] = {0,};
 	return dmu_ds;
 }

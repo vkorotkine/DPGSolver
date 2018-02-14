@@ -15,17 +15,17 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #ifndef DPG__mesh_h__INCLUDED
 #define DPG__mesh_h__INCLUDED
-/**	\file
- *	\brief Provides the interface for reading a mesh file and 'converting to'/'computing' useful information.
+/** \file
+ *  \brief Provides the interface for reading a mesh file and 'converting to'/'computing' useful information.
  *
- *	Relevant data is returned as part of \ref Mesh.
+ *  Relevant data is returned as part of \ref Mesh.
  *
- *	Supported input formats:
- *		- gmsh (linear elements only).
+ *  Supported input formats:
+ *  - gmsh (linear elements only).
  *
- *	The \ref Mesh_Vertices container is used to assign the `boundary` and `curved` flags to the \ref Volume and \ref
- *	Face elements in the domain. The vertex information, while generally not used for the solver, can be used to set up
- *	information relating to mesh edges (faces and volumes, by association).
+ *  The \ref Mesh_Vertices container is used to assign the `boundary` and `curved` flags to the \ref Volume and \ref
+ *  Face elements in the domain. The vertex information, while generally not used for the solver, can be used to set up
+ *  information relating to mesh edges (faces and volumes, by association).
  */
 
 #include <stdbool.h>
@@ -49,9 +49,6 @@ struct Mesh_Input {
 	const char* mesh_name_full; ///< Name of the mesh file (including the full path and file extension).
 	const char* geom_name;      ///< Name of the base geometry to be used for the domain.
 	const char* geom_spec;      ///< Additional specifications for the geometry.
-	const char* input_path;     /**< The path to the input file with relevant geometry parameters (required for curved
-	                             *   mesh vertex correction). */
-
 };
 
 /// \brief Container for the data output from the mesh set up.
@@ -62,11 +59,11 @@ struct Mesh {
 };
 
 /** \brief Constructor for a \ref Mesh.
- *	\return Standard.
+ *  \return Standard.
  *
- *	To provide addtional modularity, it is possible to pass a `NULL` value for the `elements` list. This results in the
- *	list being constructed and destructed as part of the connectivity set up. However, as the base \ref Element list is
- *	used in many other modules of the code, it is generally convenient to set it up before setting up the mesh.
+ *  To provide addtional modularity, it is possible to pass a `NULL` value for the `elements` list. This results in the
+ *  list being constructed and destructed as part of the connectivity set up. However, as the base \ref Element list is
+ *  used in many other modules of the code, it is generally convenient to set it up before setting up the mesh.
  */
 struct Mesh* constructor_Mesh
 	(const struct Mesh_Input* mesh_input,        ///< \ref Mesh_Input.
@@ -79,7 +76,7 @@ void destructor_Mesh
 	);
 
 /** \brief See return.
- *	\return The index of the first volume. */
+ *  \return The index of the first volume. */
 ptrdiff_t get_first_volume_index
 	(const struct const_Vector_i*const elem_per_dim, ///< Defined in \ref Conn_info.
 	 const int d                                     ///< Defined in \ref Conn_info.

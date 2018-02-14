@@ -37,7 +37,7 @@ void compute_Numerical_Flux_T_advection_upwind
 	static struct Sol_Data__Advection sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(num_flux_i->bv_l.input_path,&sol_data);
+		read_data_advection(&sol_data);
 	}
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
@@ -70,7 +70,7 @@ void compute_Numerical_Flux_T_advection_upwind_jacobian
 	static struct Sol_Data__Advection sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(num_flux_i->bv_l.input_path,&sol_data);
+		read_data_advection(&sol_data);
 	}
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];

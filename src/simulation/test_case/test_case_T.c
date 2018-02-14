@@ -230,7 +230,7 @@ static void read_test_case_parameters (struct Test_Case_T* test_case, const stru
 	char line[STRLEN_MAX];
 	FILE* input_file = NULL;
 
-	input_file = fopen_input(sim->input_path,'t',sim->test_case_extension); // closed
+	input_file = fopen_input('t',NULL,NULL); // closed
 	while (fgets(line,sizeof(line),input_file)) {
 		read_skip_convert_const_i(line,"solver_proc",  &test_case->solver_proc,  &count_found);
 		read_skip_convert_const_i(line,"solver_type_e",&test_case->solver_type_e,NULL);

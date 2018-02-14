@@ -86,6 +86,12 @@ static bool is_adaptive
 	(const int var[2] ///< The array of minimal and maximal orders/mesh levels.
 	);
 
+/** \brief Get the path to the input files.
+ *  \return A statically allocated `char[]` holding the input path. */
+static const char* get_input_path
+	(struct Simulation*const sim ///< Standard.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 struct Simulation* constructor_Simulation__no_mesh (const char*const ctrl_name)
@@ -95,7 +101,7 @@ struct Simulation* constructor_Simulation__no_mesh (const char*const ctrl_name)
 	set_simulation_invalid(sim);
 	set_simulation_mpi(sim);
 	set_simulation_core(sim,ctrl_name);
-	set_fopen_input(sim->ctrl_name_full,sim->input_path);
+	set_up_fopen_input(sim->ctrl_name_full,get_input_path(sim));
 
 	check_necessary_simulation_parameters(sim);
 	set_simulation_default(sim);
@@ -172,7 +178,7 @@ struct Mesh_Input set_Mesh_Input (const struct Simulation*const sim)
 		  .mesh_name_full   = sim->mesh_name_full,
 		  .geom_name        = sim->geom_name,
 		  .geom_spec        = sim->geom_spec,
-		  .input_path       = sim->input_path, };
+		};
 
 	return mesh_input;
 }
@@ -216,11 +222,6 @@ struct Mesh_Ctrl_Data {
 
 /// \brief Set the mesh parameters.
 static void set_mesh_parameters
-	(struct Simulation*const sim ///< Standard.
-	);
-
-/// \brief Set the path to the input files.
-static void set_input_path
 	(struct Simulation*const sim ///< Standard.
 	);
 
@@ -331,7 +332,6 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		EXIT_ERROR("Using executable of incorrect dimension (%d (mesh) != %d (exec)).\n",d,DIM);
 
 	set_mesh_parameters(sim);
-	set_input_path(sim);
 	set_orders(sim);
 }
 
@@ -408,6 +408,14 @@ static bool is_adaptive (const int var[2])
 	return false;
 }
 
+static const char* get_input_path (struct Simulation*const sim)
+{
+	static char input_path[STRLEN_MAX];
+	sprintf(input_path,"%s%s%s%s%s%s",
+	        PROJECT_INPUT_DIR,"input_files/",sim->pde_name,"/",sim->pde_spec,"/");
+	return input_path;
+}
+
 // Level 1 ********************************************************************************************************** //
 
 /// \brief Set the mesh extension based on the mesh generator used.
@@ -453,12 +461,6 @@ static void set_mesh_parameters (struct Simulation*const sim)
 	mesh_name_assemble(sim,&mesh_ctrl_data);
 
 	set_domain_type(sim,&mesh_ctrl_data);
-}
-
-static void set_input_path (struct Simulation*const sim)
-{
-	sprintf((char*)sim->input_path,"%s%s%s%s%s%s",
-	        PROJECT_INPUT_DIR,"input_files/",sim->pde_name,"/",sim->pde_spec,"/");
 }
 
 static void set_orders (struct Simulation*const sim)

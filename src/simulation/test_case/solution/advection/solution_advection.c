@@ -40,24 +40,24 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_type_d.h"
 #include "solution_advection_T.c"
 
-struct Sol_Data__Advection get_sol_data_advection (const struct Simulation* sim)
+struct Sol_Data__Advection get_sol_data_advection ( )
 {
 	static bool need_input = true;
 
 	static struct Sol_Data__Advection sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(sim->input_path,&sol_data);
+		read_data_advection(&sol_data);
 	}
 
 	return sol_data;
 }
 
-void read_data_advection (const char*const input_path, struct Sol_Data__Advection*const sol_data)
+void read_data_advection (struct Sol_Data__Advection*const sol_data)
 {
 	const int count_to_find = 1;
 
-	FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+	FILE* input_file = fopen_input('s',NULL,NULL); // closed
 
 	int count_found = 0;
 	char line[STRLEN_MAX];

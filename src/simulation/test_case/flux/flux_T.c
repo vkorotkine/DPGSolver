@@ -37,8 +37,6 @@ struct Flux_Input_T* constructor_Flux_Input_T (const struct Simulation* sim)
 {
 	struct Flux_Input_T* flux_i = calloc(1,sizeof *flux_i); // returned
 
-	const_cast_c1(&flux_i->input_path,sim->input_path);
-
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const_cast_i(&flux_i->n_eq,test_case->n_eq);
 	const_cast_i(&flux_i->n_var,test_case->n_var);

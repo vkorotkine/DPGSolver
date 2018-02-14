@@ -115,14 +115,13 @@ struct Sol_Data__tc {
 /** \brief Return the statically allocated \ref Sol_Data__tc container.
  *  \return See brief. */
 static struct Sol_Data__tc get_sol_data
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
+	( );
 
 static struct Multiarray_T* constructor_sol_taylor_couette
 	(const struct const_Multiarray_R*const xyz, const struct Simulation*const sim)
 {
 	assert(DIM == 2);
-	const struct Sol_Data__tc sol_data = get_sol_data(sim);
+	const struct Sol_Data__tc sol_data = get_sol_data();
 
 	// Compute the solution
 	const ptrdiff_t n_n = xyz->extents[0];
@@ -179,7 +178,7 @@ static struct Multiarray_T* constructor_grad_taylor_couette
 	(const struct const_Multiarray_R*const xyz, const struct Simulation*const sim)
 {
 	assert(DIM == 2);
-	const struct Sol_Data__tc sol_data = get_sol_data(sim);
+	const struct Sol_Data__tc sol_data = get_sol_data();
 
 	// Compute the solution
 	const ptrdiff_t n_n = xyz->extents[0];
@@ -251,8 +250,7 @@ static struct Multiarray_T* constructor_grad_taylor_couette
 
 /// \brief Read the required solution data into \ref Sol_Data__tc.
 static void read_data_taylor_couette
-	(const char*const input_path,       ///< Defined in \ref fopen_input.
-	 struct Sol_Data__tc*const sol_data ///< \ref Sol_Data__tc.
+	(struct Sol_Data__tc*const sol_data ///< \ref Sol_Data__tc.
 	);
 
 /// \brief Set the remaining required solution data of \ref Sol_Data__tc based on the read values.
@@ -260,14 +258,14 @@ static void set_data_taylor_couette
 	(struct Sol_Data__tc*const sol_data ///< \ref Sol_Data__tc.
 	);
 
-static struct Sol_Data__tc get_sol_data (const struct Simulation* sim)
+static struct Sol_Data__tc get_sol_data ( )
 {
 	static bool need_input = true;
 
 	static struct Sol_Data__tc sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_taylor_couette(sim->input_path,&sol_data);
+		read_data_taylor_couette(&sol_data);
 		set_data_taylor_couette(&sol_data);
 	}
 
@@ -276,7 +274,7 @@ static struct Sol_Data__tc get_sol_data (const struct Simulation* sim)
 
 // Level 2 ********************************************************************************************************** //
 
-static void read_data_taylor_couette (const char*const input_path, struct Sol_Data__tc*const sol_data)
+static void read_data_taylor_couette (struct Sol_Data__tc*const sol_data)
 {
 	const int count_to_find = 9;
 	int count_found = 0;
@@ -284,7 +282,7 @@ static void read_data_taylor_couette (const char*const input_path, struct Sol_Da
 	FILE* input_file = NULL;
 	char line[STRLEN_MAX];
 
-	input_file = fopen_input(input_path,'g',NULL); // closed
+	input_file = fopen_input('g',NULL,NULL); // closed
 	while (fgets(line,sizeof(line),input_file)) {
 		read_skip_string_count_c_style_d("r_i",&count_found,line,&sol_data->r_i);
 		read_skip_string_count_c_style_d("r_o",&count_found,line,&sol_data->r_o);
@@ -293,7 +291,7 @@ static void read_data_taylor_couette (const char*const input_path, struct Sol_Da
 
 	int viscosity_type = VISCOSITY_INVALID;
 
-	input_file = fopen_input(input_path,'s',NULL); // closed
+	input_file = fopen_input('s',NULL,NULL); // closed
 	while (fgets(line,sizeof(line),input_file)) {
 		read_skip_convert_i(line,"viscosity_type",&viscosity_type,&count_found);
 

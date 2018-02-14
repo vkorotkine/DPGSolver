@@ -92,13 +92,11 @@ void destructor_Mesh_Vertices (struct Mesh_Vertices* mesh_vert)
 // Level 0 ********************************************************************************************************** //
 
 /** \brief Function pointer to mesh_snap_to_boundary functions.
- *  \param input_path The path to the input file.
- *  \param ve_curved  Defined in \ref Mesh_Vertices.
- *  \param ve_bc      Defined in \ref Mesh_Data.
+ *  \param ve_curved Defined in \ref Mesh_Vertices.
+ *  \param ve_bc     Defined in \ref Mesh_Data.
  */
 typedef void (*mesh_snap_to_boundary_fptr)
-	(const char*const input_path,
-	 const struct const_Vector_i*const ve_curved,
+	(const struct const_Vector_i*const ve_curved,
 	 const struct Matrix_d*const nodes
 	);
 
@@ -167,7 +165,7 @@ static void correct_mesh_vertices
 
 	mesh_snap_to_boundary_fptr mesh_snap_to_boundary = set_fptr_mesh_snap(mesh_input->geom_name);
 
-	mesh_snap_to_boundary(mesh_input->input_path,mesh_vert->ve_curved,(struct Matrix_d*)nodes);
+	mesh_snap_to_boundary(mesh_vert->ve_curved,(struct Matrix_d*)nodes);
 }
 
 // Level 1 ********************************************************************************************************** //

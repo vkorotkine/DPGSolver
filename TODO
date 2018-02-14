@@ -2,5 +2,3 @@ Petsc Solver Updates
 1) Compare assembly of Schur complement matrix as in
    [Petsc ex70](http://www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex70.c.html) with direct assembly
    if this is found to dominate solver cost.
-
-2) Change all "nargc" to "argc".

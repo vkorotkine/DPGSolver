@@ -172,11 +172,11 @@ void convert_variables_gradients_T
 	}
 }
 
-compute_mu_fptr_T get_compute_mu_fptr_T (const char*const input_path)
+compute_mu_fptr_T get_compute_mu_fptr_T ( )
 {
 	static int viscosity_type = VISCOSITY_INVALID;
 	static bool need_input = true;
-	set_viscosity_type_T(input_path,&viscosity_type,&need_input);
+	set_viscosity_type_T(&viscosity_type,&need_input);
 
 	switch (viscosity_type) {
 		case VISCOSITY_CONSTANT:   return compute_mu_constant_T;                  break;
@@ -185,8 +185,7 @@ compute_mu_fptr_T get_compute_mu_fptr_T (const char*const input_path)
 	};
 }
 
-void set_viscosity_type_T
-	(const char*const input_path, int*const viscosity_type_ptr, bool*const need_input)
+void set_viscosity_type_T (int*const viscosity_type_ptr, bool*const need_input)
 {
 	if (*need_input) {
 		*need_input = false;
@@ -195,7 +194,7 @@ void set_viscosity_type_T
 		int count_found = 0;
 
 		char line[STRLEN_MAX];
-		FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+		FILE* input_file = fopen_input('s',NULL,NULL); // closed
 		while (fgets(line,sizeof(line),input_file)) {
 			read_skip_convert_i(line,"viscosity_type",viscosity_type_ptr,&count_found);
 		}
@@ -206,7 +205,7 @@ void set_viscosity_type_T
 	}
 }
 
-Type compute_mu_constant_T (const char*const input_path, const Type rho, const Type*const rhouvw, const Type E)
+Type compute_mu_constant_T (const Type rho, const Type*const rhouvw, const Type E)
 {
 	UNUSED(rho); UNUSED(rhouvw); UNUSED(E);
 	static Real mu = 0.0;
@@ -219,7 +218,7 @@ Type compute_mu_constant_T (const char*const input_path, const Type rho, const T
 		int count_found = 0;
 
 		char line[STRLEN_MAX];
-		FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+		FILE* input_file = fopen_input('s',NULL,NULL); // closed
 		while (fgets(line,sizeof(line),input_file)) {
 			read_skip_string_count_d("mu",&count_found,line,&mu);
 		}
@@ -231,7 +230,7 @@ Type compute_mu_constant_T (const char*const input_path, const Type rho, const T
 	return mu;
 }
 
-Type compute_mu_sutherland_T (const char*const input_path, const Type rho, const Type*const rhouvw, const Type E)
+Type compute_mu_sutherland_T (const Type rho, const Type*const rhouvw, const Type E)
 {
 	static Real r_s = 0.0;
 
@@ -243,7 +242,7 @@ Type compute_mu_sutherland_T (const char*const input_path, const Type rho, const
 		int count_found = 0;
 
 		char line[STRLEN_MAX];
-		FILE* input_file = fopen_input(input_path,'s',NULL); // closed
+		FILE* input_file = fopen_input('s',NULL,NULL); // closed
 		while (fgets(line,sizeof(line),input_file)) {
 			read_skip_string_count_d("r_s",&count_found,line,&r_s);
 		}

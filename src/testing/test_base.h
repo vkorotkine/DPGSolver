@@ -26,30 +26,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Containers ******************************************************************************************************* //
 
-/// Container for flags marking which integration are to be run.
-struct Test_Integration_Run {
-	bool equivalence_real_complex, ///< Test equivalence of real and complex functions.
-	     equivalence_algorithms,   ///< Test equivalence of the supported algorithms.
-	     linearization,            ///< Test the linearizations.
-	     conv_order;               ///< Test for expected convergence orders.
-};
-
 /// Container for test related information.
 struct Test_Info {
-/// \todo Remove all unused variables: name, ts, te, n_test, n_pass.
-	int    nargc; ///< Standard.
-	char** argv;  ///< Standard.
-
 	char name[STRLEN_MAX]; ///< The test name.
 
-	clock_t ts, ///< Start time.
-	        te; ///< End time.
-
-	int n_test, ///< The number of tests run.
-	    n_pass, ///< The number of tests which passed.
-	    n_warn; ///< The number of warnings generated.
-
-	struct Test_Integration_Run t_int; ///< \ref Test_Integration_Run.
+	int n_warn; ///< The number of warnings generated.
 };
 
 // Interface functions ********************************************************************************************** //
