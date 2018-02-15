@@ -845,6 +845,7 @@ void fprint_const_Multiarray_d_vtk_point
 	const ptrdiff_t ext_0 = extents[0],
 	                ext_1 = extents[1];
 
+	static const char*const print_format_d = " % .8e";
 	if (data_type == 'v') {
 		const bool transpose_Ma = ( a->layout == 'R' ? false : true );
 		if (transpose_Ma)
@@ -857,7 +858,7 @@ void fprint_const_Multiarray_d_vtk_point
 				fprintf(file,"\t");
 			for (ptrdiff_t j = 0; j < 3; ++j) {
 				if (j < ext_1)
-					fprintf(file," % .8e",data[j]);
+					fprintf(file,print_format_d,data[j]);
 				else
 					fprintf(file," %d",0);
 			}
@@ -879,7 +880,7 @@ void fprint_const_Multiarray_d_vtk_point
 				new_line = false;
 			}
 
-			fprintf(file," % .8e",data[i]);
+			fprintf(file,print_format_d,data[i]);
 
 			if ((i+1)%8 == 0 || (i == ext_0-1)) {
 				fprintf(file,"\n");

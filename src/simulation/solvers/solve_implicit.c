@@ -57,6 +57,7 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Flags for whether certain outputs are enabled.
 #define OUTPUT_PETSC_AB false ///< Flag for Petsc data containers.
 #define OUTPUT_SOLUTION false ///< Flag for solution data on each element.
+#define OUTPUT_STEP     5     ///< Iteration step at which to output the solution if enabled.
 ///\}
 
 /// \brief Constructor for the derived element and computational element lists.
@@ -211,7 +212,7 @@ static double implicit_step (const int i_step, const struct Simulation* sim)
 	if (OUTPUT_PETSC_AB)
 		output_petsc_mat_vec(ssi->A,ssi->b,sim);
 
-	if (OUTPUT_SOLUTION && i_step == 25)
+	if (OUTPUT_SOLUTION && i_step == OUTPUT_STEP)
 		output_solution(i_step,(struct Simulation*)sim);
 
 	solve_and_update(max_rhs,i_step,ssi,sim);

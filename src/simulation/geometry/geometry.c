@@ -32,6 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray_operator.h"
 #include "simulation.h"
 #include "test_case.h"
+#include "visualization.h"
 
 // Static function declarations ************************************************************************************* //
 

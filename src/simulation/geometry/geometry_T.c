@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 #include "definitions_mesh.h"
 #include "definitions_intrusive.h"
+#include "definitions_visualization.h"
 
 
 #include "def_templates_geometry.h"
@@ -38,6 +39,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
+
+#define OUTPUT_GEOMETRY false ///< Flag for whether the geometry should be output for visualization.
 
 /** \brief Pointer to functions computing \ref Solver_Volume_T::geom_coef.
  *  \param sim   \ref Simulation.
@@ -116,6 +119,13 @@ void set_up_solver_geometry_T (struct Simulation* sim)
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
 		compute_geometry_face_T((struct Solver_Face_T*)curr,sim);
+
+#if TYPE_RC == TYPE_REAL
+	if (OUTPUT_GEOMETRY) {
+		output_visualization(sim,VIS_GEOM_VOLUMES);
+		EXIT_UNSUPPORTED;
+	}
+#endif
 }
 
 void compute_unit_normals_T

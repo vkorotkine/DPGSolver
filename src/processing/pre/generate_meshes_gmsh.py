@@ -74,6 +74,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	var_names = ["steady/supersonic_vortex",
 	             "periodic/periodic_vortex",
 	             "steady/taylor_couette",
+	             "steady/joukowski",
 	            ]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
@@ -103,7 +104,6 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	found = 0
 	for i in [1,2,3,8]:
 		geom_spec = "geom_ar_"+str(i)
-		print(geom_spec)
 		if (mesh_name.find("/"+geom_spec+"/") != -1):
 			gmsh_setnumbers += get_gmsh_number(geom_spec,input_dir,0)
 			found = 1

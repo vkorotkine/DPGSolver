@@ -95,7 +95,7 @@ struct Error_CE* constructor_Error_CE_euler_entropy (const struct Simulation* si
 			convert_variables(e_ce_d->sol[i],'c','p');
 		add_euler_variable_Error_CE_Data('s',e_ce_d,sim);
 		for (int i = 0; i < 2; ++i) {
-			for (int vr = 0; vr < DIM+1; ++vr) // Remove all except entropy.
+			for (int vr = 0; vr < DIM+2; ++vr) // Remove all except entropy.
 				remove_col_Multiarray_d(0,e_ce_d->sol[i]);
 		}
 

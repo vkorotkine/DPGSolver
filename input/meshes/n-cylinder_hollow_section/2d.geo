@@ -4,6 +4,8 @@ Include "../parameters.geo";
 // Geometry Specification
 If (pde_spec == STEADY_SUPERSONIC_VORTEX)
 	Include "../../input_files/euler/steady/supersonic_vortex/geometry_parameters.geo";
+Else
+	Error("Unsupported pde_spec: %d",pde_spec); Exit;
 EndIf
 
 If (mesh_domain == PARAMETRIC)

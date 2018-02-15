@@ -37,11 +37,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Container for the geometric data required for the supported parametric cases.
 struct Geo_Data {
-	Real x_scale,       ///< Multiplicative scaling for the x-coordinates.
-	     r_i,           ///< Radius corresponding to the 'i'nner surface.
-	     r_o,           ///< Radius corresponding to the 'o'uter surface.
-	     total_radians, ///< The total number of radians to use when a cylindrical surface is present.
-	     center[DMAX];  ///< The center of the geometry under consideration.
+	Real x_scale,  ///< Multiplicative scaling for the x-coordinates.
+	     r_i,      ///< Radius corresponding to the 'i'nner surface.
+	     r_o,      ///< Radius corresponding to the 'o'uter surface.
+	     s_offset; ///< The offset for the reference domain 's'-coordinate.
 };
 
 /** \brief Return the statically allocated \ref Geo_Data container.
@@ -159,26 +158,52 @@ const struct const_Multiarray_R* constructor_xyz_joukowski_parametric_T
 
 	struct Geo_Data geo_data = get_geo_data("joukowski");
 
-	const Real x_scale       = geo_data.x_scale,
-	           r_i           = geo_data.r_i,
-	           r_o           = geo_data.r_o,
-	           total_radians = geo_data.total_radians,
-		    *const center  = geo_data.center;
+	const Real x_scale  = geo_data.x_scale,
+	           r_i      = geo_data.r_i,
+	           r_o      = geo_data.r_o,
+		     s_offset = geo_data.s_offset,
+		     center_x = 1.0-r_i; // The Joukowski transformation requires that the point (0,1) is included.
+
+	const Real center_x_c  = -x_scale,
+	           zeta_tail   = center_x+r_i, // theta = 0.0 in equation for zeta below.
+	           x_mid_p     = (zeta_tail+1.0/zeta_tail)*x_scale,
+	           y_mid_p     = sqrt(pow(r_o,2.0)-pow(x_mid_p-center_x_c,2.0)),
+	           min_radians = atan2(y_mid_p,x_mid_p-center_x_c);
 
 	for (int n = 0; n < n_n; ++n) {
-		const Real t = 0.5*total_radians*(1.0-x_i[n]);
+		assert(y_i[n] != 0.0);
 
-		const Complex zeta = center[0]+r_i*cos(t) + I*(center[1]+r_i*sin(t));
-		const Complex z_j = zeta + 1.0/zeta;
+		const int sign_y = ( y_i[n] > 0 ? 1 : -1 );
+		const Real r = x_i[n],
+		           s = fabs(y_i[n])-s_offset;
 
-		const Real x_j = creal(z_j)*x_scale,
-		           y_j = cimag(z_j);
+		if (r <= 0.0) {
+			const Real b_r[] = { -r, 1.0+r, },
+			           b_s[] = { 1.0-s, s, };
 
-		const Real x_c = r_o*cos(t) - x_scale,
-		           y_c = r_o*sin(t);
+			// Joukowski portion
+			const Real t_j = PI*(-r);
 
-		x[n] = x_j*(1-y_i[n]) + x_c*(y_i[n]);
-		y[n] = y_j*(1-y_i[n]) + y_c*(y_i[n]);
+			const Complex zeta = center_x+r_i*cos(t_j) + I*(r_i*sin(t_j));
+			const Complex z_j = zeta + 1.0/zeta;
+
+			const Real x_j = creal(z_j)*x_scale,
+			           y_j = cimag(z_j);
+
+			// Cylinder portion
+			const Real t_c = PI*b_r[0]+min_radians*b_r[1],
+			           x_c = r_o*cos(t_c) + center_x_c,
+			           y_c = r_o*sin(t_c);
+
+			// Blended contribution
+			x[n] =         x_j*b_s[0] + x_c*b_s[1];
+			y[n] = sign_y*(y_j*b_s[0] + y_c*b_s[1]);
+		} else {
+			const Real b_r[] = { 1.0-r, r, },
+			           b_s[] = { 1.0-s, s, };
+			x[n] =         x_mid_p*b_r[0] + (x_mid_p+r_o)*b_r[1];
+			y[n] = sign_y*(0.0    *b_s[0] +  y_mid_p*b_s[1]);
+		}
 		if (DIM > 2)
 			z[n] = z_i[n];
 	}
@@ -212,26 +237,19 @@ static struct Geo_Data get_geo_data (const char*const geo_name)
 
 static void read_data_joukowski (struct Geo_Data*const geo_data)
 {
-	const int count_to_find = 5;
+	const int count_to_find = 4;
 
 	FILE* input_file = fopen_input('g',NULL,NULL); // closed
-
-	Real total_degrees = 0.0;
 
 	int count_found = 0;
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),input_file)) {
-		read_skip_string_count_d("r_i", &count_found,line,&geo_data->r_i);
-		read_skip_string_count_d("r_o", &count_found,line,&geo_data->r_o);
-		read_skip_string_count_d("x_scale",&count_found,line,&geo_data->x_scale);
-		read_skip_string_count_d("total_degrees",&count_found,line,&total_degrees);
-		if (strstr(line,"center_cyl")) {
-			read_skip_d_1(line,1,geo_data->center,DMAX);
-			++count_found;
-		}
+		read_skip_string_count_c_style_d("x_scale", &count_found,line,&geo_data->x_scale);
+		read_skip_string_count_c_style_d("r_i",     &count_found,line,&geo_data->r_i);
+		read_skip_string_count_c_style_d("r_o",     &count_found,line,&geo_data->r_o);
+		read_skip_string_count_c_style_d("s_offset",&count_found,line,&geo_data->s_offset);
 	}
 	fclose(input_file);
 
-	geo_data->total_radians = total_degrees*PI/180.0;
 	assert(count_found == count_to_find);
 }

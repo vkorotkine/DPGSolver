@@ -1,10 +1,10 @@
-/*
- * Geometry parameters for test case: euler/steady/joukowski
- */
+// Geometry parameters for test case: euler/steady/joukowski
 
-r_i 2.0
-r_o 10.0
+// Required by gmsh
+s_offset = 1.0;
 
-x_scale       2.5
-center_cyl    -0.95 0.0 0.0
-total_degrees 180
+// Additional for code use.
+r_i = 2.0;
+r_o = 30.0;
+
+x_scale = 2.5;
