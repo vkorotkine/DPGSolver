@@ -79,7 +79,7 @@ void add_in_place_Multiarray_T
 	 const struct const_Multiarray_T* b ///< Multiarray to add to array to be modified.
 	);
 
-/// \brief Sets `a = a * alpha*b` where input `b` is of `Real` type..
+/// \brief Sets `a = a * alpha*b` where input `b` is of `Real` type.
 void multiply_in_place_Multiarray_TR
 	(const Type alpha,                       ///< Scaling constant.
 	 struct Multiarray_T*const a,            ///< Multiarray to be modified.

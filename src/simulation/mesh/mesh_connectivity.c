@@ -18,12 +18,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "mesh_readers.h"
 #include "intrusive.h"
 
+#include <assert.h>
 #include <limits.h>
 
+#include "macros.h"
+#include "definitions_bc.h"
 #include "definitions_core.h"
 #include "definitions_elements.h"
-#include "definitions_bc.h"
-#include "macros.h"
+#include "definitions_mesh.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -98,6 +100,7 @@ struct Mesh_Connectivity* constructor_Mesh_Connectivity
 
 	destructor_Multiarray_Vector_i(conn_info->f_ve);
 	destructor_Vector_i(conn_info->ind_f_ve);
+	destructor_conditional_Multiarray_Vector_i(conn_info->f_ve_per);
 	destructor_Conn_info(conn_info);
 
 
@@ -121,6 +124,36 @@ void set_f_node_nums (struct Vector_i**const f_node_nums, const struct const_Vec
 {
 	*f_node_nums = constructor_copy_Vector_i_i(node_nums->ext_0,node_nums->data);
 	sort_Vector_i(*f_node_nums);
+}
+
+bool check_pfe_boundary (const int bc)
+{
+	const int bc_base = bc % BC_STEP_SC;
+	switch (bc_base) {
+	case BC_INFLOW:           // Advection
+	case BC_OUTFLOW:
+	case BC_DIRICHLET:        // Diffusion
+	case BC_NEUMANN:
+	case BC_RIEMANN:          // Euler
+	case BC_SLIPWALL:
+	case BC_BACKPRESSURE:
+	case BC_TOTAL_TP:
+	case BC_SUPERSONIC_IN:
+	case BC_SUPERSONIC_OUT:
+	case BC_NOSLIP_ADIABATIC:    // Navier-Stokes
+	case BC_NOSLIP_DIABATIC:
+	case BC_NOSLIP_ALL_ROTATING:
+		return true;
+		break;
+	case PERIODIC_XL: case PERIODIC_XR:
+	case PERIODIC_YL: case PERIODIC_YR:
+	case PERIODIC_ZL: case PERIODIC_ZR:
+	case PERIODIC_XL_REFLECTED_Y: case PERIODIC_XR_REFLECTED_Y:
+		return false;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",bc_base);
+		break;
+	}
 }
 
 // Static functions ************************************************************************************************* //
@@ -385,6 +418,7 @@ static void add_bc_info
 		struct Boundary_Face*const*const bf_curr =
 			bsearch(&f_curr,bf_info->b_faces,(size_t)n_bf,sizeof(bf_info->b_faces[0]),cmp_Boundary_Face);
 
+		assert(bf_curr != NULL);
 		v_to_lf_i[f] = (*bf_curr)->bc;
 	}
 	free(f_curr);
@@ -417,12 +451,6 @@ static void destructor_b_faces
 /// \brief Destructor for \ref Boundary_Face.
 static void destructor_Boundary_Face
 	(struct Boundary_Face* bf ///< Standard.
-	);
-
-/** \brief Check if the physical face element is a boundary which is not periodic.
- *  \return See brief. */
-static bool check_pfe_boundary
-	(const int bc ///< The value of the boundary condition.
 	);
 
 static ptrdiff_t compute_sum_n_f
@@ -469,7 +497,7 @@ static void set_bf_info
 
 	ptrdiff_t count_bf = 0;
 
-	const ptrdiff_t n_max = ind_pfe+bf_info->n_bf;
+	const ptrdiff_t n_max = ind_pfe+bf_info->n_pfe;
 	for (ptrdiff_t n = ind_pfe; n < n_max; ++n) {
 		const int bc = get_val_const_Matrix_i(n,0,elem_tags);
 
@@ -581,38 +609,6 @@ static void destructor_b_faces (const ptrdiff_t n_bf, struct Boundary_Face** src
 	for (ptrdiff_t i = 0; i < n_bf; ++i)
 		destructor_Boundary_Face(src[i]);
 	free(src);
-}
-
-static bool check_pfe_boundary (const int bc)
-{
-	const int bc_base = bc % BC_STEP_SC;
-	switch (bc_base) {
-	case BC_INFLOW:           // Advection
-	case BC_OUTFLOW:
-	case BC_DIRICHLET:        // Diffusion
-	case BC_NEUMANN:
-	case BC_RIEMANN:          // Euler
-	case BC_SLIPWALL:
-	case BC_BACKPRESSURE:
-	case BC_TOTAL_TP:
-	case BC_SUPERSONIC_IN:
-	case BC_SUPERSONIC_OUT:
-	case BC_NOSLIP_ADIABATIC:    // Navier-Stokes
-	case BC_NOSLIP_DIABATIC:
-	case BC_NOSLIP_ALL_ROTATING:
-		return true;
-		break;
-	case PERIODIC_XL:
-	case PERIODIC_XR:
-	case PERIODIC_YL:
-	case PERIODIC_YR:
-	case PERIODIC_ZL:
-	case PERIODIC_ZR:
-		return false;
-	default:
-		EXIT_ERROR("Unsupported: %d\n",bc_base);
-		break;
-	}
 }
 
 // Level 3 ********************************************************************************************************** //

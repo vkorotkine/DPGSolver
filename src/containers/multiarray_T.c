@@ -50,14 +50,6 @@ static int cmp_Vector_T_indexed
 	 const void *b  ///< Variable 2.
 	);
 
-/** \brief Reorder a \ref Multiarray_Vector_T based on the provided ordering.
- *  \warning This is not currently done in place.
- */
-static void reorder_Multiarray_Vector_T
-	(struct Multiarray_Vector_T*const a, ///< Standard.
-	 const int*const ordering    ///< The ordering.
-	);
-
 /** \brief Compute the total number of entries in a \ref Multiarray_Vector_T\*.
  *  \return See brief. */
 static ptrdiff_t compute_total_entries
@@ -180,6 +172,18 @@ struct Vector_i* sort_Multiarray_Vector_T (struct Multiarray_Vector_T* a, const 
 	return ordering;
 }
 
+void reorder_Multiarray_Vector_T (struct Multiarray_Vector_T*const a, const int*const ordering)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	struct Vector_T* b[size];
+	for (ptrdiff_t i = 0; i < size; i++)
+		b[i] = a->data[ordering[i]];
+
+	for (ptrdiff_t i = 0; i < size; i++)
+		a->data[i] = b[i];
+}
+
 struct Vector_T* collapse_Multiarray_Vector_T (const struct Multiarray_Vector_T*const src)
 {
 	const ptrdiff_t n_entries = compute_total_entries(src);
@@ -223,7 +227,10 @@ const struct const_Vector_T* get_const_Multiarray_Vector_T
 	(const struct const_Multiarray_Vector_T* src, const ptrdiff_t*const sub_indices)
 {
 	assert(src != NULL);
-	return src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
+	const struct const_Vector_T*const vec =
+		src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
+	assert(vec != NULL);
+	return vec;
 }
 
 struct Vector_T interpret_Multiarray_as_Vector_T (struct Multiarray_T*const a_Ma)
@@ -339,18 +346,6 @@ static void destructor_Vector_T_indexed (struct Vector_T_indexed** src, const pt
 	for (ptrdiff_t i = 0; i < size; ++i)
 		free(src[i]);
 	free(src);
-}
-
-static void reorder_Multiarray_Vector_T (struct Multiarray_Vector_T*const a, const int*const ordering)
-{
-	const ptrdiff_t size = compute_size(a->order,a->extents);
-
-	struct Vector_T* b[size];
-	for (ptrdiff_t i = 0; i < size; i++)
-		b[i] = a->data[ordering[i]];
-
-	for (ptrdiff_t i = 0; i < size; i++)
-		a->data[i] = b[i];
 }
 
 static int cmp_Vector_T_indexed (const void *a, const void *b)

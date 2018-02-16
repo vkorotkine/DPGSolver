@@ -42,6 +42,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_copy_Multiarray_T          constructor_copy_Multiarray_i
 #define constructor_copy_const_Multiarray_T    constructor_copy_const_Multiarray_i
 #define constructor_copy_Multiarray_Vector_T_T constructor_copy_Multiarray_Vector_i_i
+#define constructor_copy_Multiarray_Vector_T   constructor_copy_Multiarray_Vector_i
 #define const_constructor_copy_Multiarray_T    const_constructor_copy_Multiarray_i
 
 #define constructor_move_Multiarray_T_T                  constructor_move_Multiarray_i_i
@@ -61,6 +62,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_const_Multiarray_T         destructor_const_Multiarray_i
 #define destructor_Multiarray_Vector_T        destructor_Multiarray_Vector_i
 #define destructor_const_Multiarray_Vector_T  destructor_const_Multiarray_Vector_i
+#define destructor_conditional_Multiarray_Vector_T       destructor_conditional_Multiarray_Vector_i
+#define destructor_conditional_const_Multiarray_Vector_T destructor_conditional_const_Multiarray_Vector_i
 #define destructor_Multiarray_Matrix_T        destructor_Multiarray_Matrix_i
 #define destructor_const_Multiarray_Matrix_T  destructor_const_Multiarray_Matrix_i
 #define destructor_const_Multiarray2_Matrix_T destructor_const_Multiarray2_Matrix_i

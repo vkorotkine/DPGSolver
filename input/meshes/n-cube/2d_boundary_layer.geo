@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_level = 0; mesh_type = MIXED; mesh_domain = PARAMETRIC; pde_name = EULER; geom_conformal = GEOM_CONFORMAL_HALF; pde_spec = STEADY_JOUKOWSKI;
+//mesh_level = -1; mesh_type = MIXED; mesh_domain = PARAMETRIC; pde_name = EULER; geom_conformal = GEOM_CONFORMAL_FULL; pde_spec = STEADY_JOUKOWSKI;
 
 // Geometry Specification
 If (pde_name == EULER && pde_spec == STEADY_JOUKOWSKI)
@@ -65,58 +65,28 @@ Else
 	Transfinite Surface {4000:4001};
 EndIf
 
-
-If (mesh_type == MIXED)
-	Recombine Surface{4000};
-Else
-	Error("Unsupported mesh_type: %d",mesh_type); Exit;
+all_recombined = 0;
+Recombine Surface{4000};
+If (all_recombined)
+	Recombine Surface{4001,4002,4003};
 EndIf
-
 
 
 // Physical parameters for '.msh' file
-bc_straight =   BC_STEP_SC;
-bc_curved   = 2*BC_STEP_SC;
-If (mesh_domain == STRAIGHT)
-	bc_base = bc_straight;
-Else
-	bc_base = bc_curved;
-EndIf
+bc_s = 1*BC_STEP_SC;
+bc_c = 2*BC_STEP_SC;
 
-Physical Line(bc_base+BC_RIEMANN)     = {1004};
-Physical Line(bc_straight+BC_RIEMANN) = {1005,2004,2005};
-If (pde_name == EULER)
-	Physical Line(bc_base+BC_SLIPWALL) = {1000};
-	If (geom_conformal == GEOM_CONFORMAL_HALF)
-		Physical Line(bc_straight+BC_SLIPWALL) = {2000,2001,1001};
-	ElseIf (geom_conformal == GEOM_CONFORMAL_FULL)
-        Error("Put this option in a different geo file"); Exit;
-		Physical Line(bc_straight+PERIODIC_XL) = {2000:2001};
-		Physical Line(bc_straight+PERIODIC_XR) = {2002:2003};
-
-		// Periodic Indicator (Slave = Master)
-		Periodic Line {2000} = {2002}; // Periodic (x)
-		Periodic Line {2001} = {2003};
+If (geom_conformal == GEOM_CONFORMAL_HALF)
+	Physical Line(bc_c+BC_RIEMANN)  = {1004};
+	Physical Line(bc_s+BC_RIEMANN)  = {1005,2004,2005};
+	Physical Line(bc_s+BC_SLIPWALL) = {2000,2001,1001};
+	If (pde_name == EULER)
+		Physical Line(bc_c+BC_SLIPWALL) = {1000};
+	ElseIf (pde_name == NAVIER_STOKES)
+		Physical Line(bc_c+BC_NOSLIP_ADIABATIC) = {1000};
 	Else
-		Error("Unsupported geom_conformal: %d",geom_conformal); Exit;
+		Error("Unsupported pde_name: %d",pde_name); Exit;
 	EndIf
-ElseIf (pde_name == NAVIER_STOKES)
-	Physical Line(bc_base+BC_NOSLIP_ADIABATIC) = {1000};
-	If (geom_conformal == GEOM_CONFORMAL_HALF)
-		Physical Line(bc_straight+BC_SLIPWALL) = {2000,2001,1001};
-	ElseIf (geom_conformal == GEOM_CONFORMAL_FULL)
-		Error("Put this option in a different geo file"); Exit;
-		Physical Line(bc_straight+PERIODIC_XL) = {2000:2001};
-		Physical Line(bc_straight+PERIODIC_XR) = {2002:2003};
-
-		// Periodic Indicator (Slave = Master)
-		Periodic Line {2000} = {2002}; // Periodic (x)
-		Periodic Line {2001} = {2003};
-	Else
-		Error("Unsupported geom_conformal: %d",geom_conformal); Exit;
-	EndIf
-Else
-	Error("Unsupported pde_name: %d",pde_name); Exit;
 EndIf
 
 Physical Surface(9400) = 4000;
@@ -130,3 +100,56 @@ Physical Surface(9403) = 4003;
 
 Color Black{ Surface{4000:4003}; }
 Geometry.Color.Points = Black;
+
+If (geom_conformal == GEOM_CONFORMAL_FULL)
+	Physical Point(20102) = {0,0,0,lc}; // Required to fix the numbering of the symmetric entities below.
+
+	Symmetry{ 0.0,-1.0,0.0,0.0 }{Duplicata{Surface{4000:4003};}}
+	If (all_transfinite)
+		Transfinite Line{20107,20105,20115} = 2^(mesh_level+1)+1 Using Progression 1.2;
+		Transfinite Line{-20112,20110,20120} = 2^(mesh_level+1)+0 Using Progression 1.4;
+		Transfinite Line{20104,20106,20111} = 2^(mesh_level+1)+1 Using Bump 0.2;
+		Transfinite Line{20114,-20116,-20121} = 2^(mesh_level+1)+1 Using Progression 1.4;
+		Transfinite Surface {20103,20108,20113,20118};
+	Else
+		Transfinite Line{20107,20105} = 2^(mesh_level+1)+1 Using Progression 1.2;
+		Transfinite Line{-20112,20110} = 2^(mesh_level+1)+0 Using Progression 1.4;
+		Transfinite Line{20104,20106,20111} = 2^(mesh_level+1)+1 Using Bump 0.2;
+		Transfinite Line{20114,20116} = 2^(mesh_level+1)+0 Using Progression 1.4;
+		Transfinite Surface {20103,20108};
+	EndIf
+	Recombine Surface{20103};
+	If (all_recombined)
+		Recombine Surface{20108,20113,20118};
+	EndIf
+
+	Physical Line(bc_c+BC_RIEMANN) = {1004,20111};
+	Physical Line(bc_s+BC_RIEMANN) = {1005,2004,2005,20121,20115,20120};
+
+	Physical Line(bc_s+PERIODIC_XL_REFLECTED_Y) = {2000:2001};
+	Physical Line(bc_s+PERIODIC_XR_REFLECTED_Y) = {20107,20112};
+	Physical Line(bc_s+PERIODIC_YL)             = {1001};
+	Physical Line(bc_s+PERIODIC_YR)             = {20114};
+
+	// Periodic Indicator (Slave = Master)
+	Periodic Line {2000} = {20107}; // Periodic (x)
+	Periodic Line {2001} = {20112};
+	Periodic Line {1001} = {20114}; // Periodic (y)
+
+	If (pde_name == EULER)
+		Physical Line(bc_c+BC_SLIPWALL) = {1000,20104};
+	ElseIf (pde_name == NAVIER_STOKES)
+		Physical Line(bc_c+BC_NOSLIP_ADIABATIC) = {1000,20104};
+	Else
+		Error("Unsupported pde_name: %d",pde_name); Exit;
+	EndIf
+
+	Physical Surface(9404) = -20103;
+	Physical Surface(9405) = -20108;
+	Physical Surface(9406) = -20113;
+	Physical Surface(9407) = -20118;
+
+
+	Color Black{ Surface{20103,20108,20113,20118}; }
+	Geometry.Color.Points = Black;
+EndIf

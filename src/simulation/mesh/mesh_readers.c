@@ -34,8 +34,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// Expected number of tags for elements in the gmsh file.
-#define GMSH_N_TAGS 2
+#define OUTPUT_MESH_DATA false ///< Flag for whether data should be output.
+#define GMSH_N_TAGS 2          ///< Expected number of tags for elements in the gmsh file.
 
 /// \brief Holds data relating to elements in the gmsh file.
 struct Element_Data {
@@ -78,7 +78,6 @@ struct Mesh_Data* constructor_Mesh_Data (const char*const mesh_name_full, const 
 	else
 		EXIT_UNSUPPORTED;
 
-
 	struct Mesh_Data* mesh_data = calloc(1,sizeof *mesh_data); // returned
 
 	const_constructor_move_Matrix_d(&mesh_data->nodes,mesh_data_l.nodes);
@@ -99,6 +98,17 @@ struct Mesh_Data* constructor_Mesh_Data (const char*const mesh_name_full, const 
 
 	const_cast_i(&mesh_data->d,d);
 	const_cast_ptrdiff(&mesh_data->ind_v,ind_v);
+
+	if (OUTPUT_MESH_DATA) {
+		print_const_Vector_i(mesh_data->elem_per_dim);
+		print_const_Matrix_d(mesh_data->nodes);
+		print_const_Vector_i(mesh_data->elem_types);
+		print_const_Matrix_i(mesh_data->elem_tags);
+		print_const_Multiarray_Vector_i(mesh_data->node_nums);
+		if (mesh_data->periodic_corr)
+			print_const_Matrix_i(mesh_data->periodic_corr);
+		EXIT_ERROR("Disable output to continue.\n");
+	}
 
 	free(mesh_data_l.elem_data);
 

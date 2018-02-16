@@ -31,14 +31,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name The values for the various boundary conditions after taking the modulus with \ref BC_STEP_SC.
 
-// General
-#define PERIODIC_XL 51
-#define PERIODIC_XR 52
-#define PERIODIC_YL 53
-#define PERIODIC_YR 54
-#define PERIODIC_ZL 55
-#define PERIODIC_ZR 56
-
 // Advection
 #define BC_INFLOW  1
 #define BC_OUTFLOW 2

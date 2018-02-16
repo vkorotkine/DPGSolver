@@ -1,20 +1,8 @@
-#file(GLOB_RECURSE CTRL_FILES *.ctrl)
-#foreach(ctrl_name_full ${CTRL_FILES})
-#	string(REPLACE "${CMAKE_SOURCE_DIR}/input" "" ctrl_name ${ctrl_name_full})
-#	configure_file(${ctrl_name_full} ${PROJECT_BINARY_DIR}${ctrl_name} COPYONLY)
-#endforeach()
-
 file(GLOB_RECURSE GEO_FILES *.geo)
 foreach(geo_name_full ${GEO_FILES})
 	string(REPLACE "${CMAKE_SOURCE_DIR}/input" "" geo_name ${geo_name_full})
 	configure_file(${geo_name_full} ${PROJECT_BINARY_DIR}${geo_name} COPYONLY)
 endforeach()
-
-#file(GLOB_RECURSE DATA_FILES *.data)
-#foreach(data_name_full ${DATA_FILES})
-#	string(REPLACE "${CMAKE_SOURCE_DIR}/input" "" data_name ${data_name_full})
-#	configure_file(${data_name_full} ${PROJECT_BINARY_DIR}${data_name} COPYONLY)
-#endforeach()
 
 file(GLOB_RECURSE SCRIPT_FILES *.sh)
 foreach(script_name_full ${SCRIPT_FILES})
@@ -22,6 +10,5 @@ foreach(script_name_full ${SCRIPT_FILES})
 	configure_file(${script_name_full} ${PROJECT_BINARY_DIR}${script_name} @ONLY)
 endforeach()
 
-add_subdirectory(nodes)
 add_subdirectory(meshes)
 add_subdirectory(testing)

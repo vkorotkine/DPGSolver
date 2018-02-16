@@ -280,7 +280,8 @@ const struct const_Nodes* constructor_const_Nodes_pyr (const int d, const int p,
 	Pc      = malloc(STRLEN_MIN * sizeof *Pc);      // free
 	sprintf(Pc,"%d",P);
 
-	strcpy(CubFile,"../nodes/pyr/");
+	strcpy(CubFile,PROJECT_INPUT_DIR);
+	strcat(CubFile,"nodes/pyr/");
 	strcat(CubFile,NodeType);
 	strcat(CubFile,Pc);
 	strcat(CubFile,".txt");
@@ -595,7 +596,8 @@ static const struct const_Nodes* constructor_const_Nodes_tri (const int p, const
 	Pc      = malloc(STRLEN_MIN * sizeof *Pc);      // free
 	sprintf(Pc,"%d",P);
 
-	strcpy(CubFile,"../nodes/tri/");
+	strcpy(CubFile,PROJECT_INPUT_DIR);
+	strcat(CubFile,"nodes/tri/");
 	strcat(CubFile,NodeType);
 	strcat(CubFile,Pc);
 	strcat(CubFile,".txt");
@@ -818,7 +820,8 @@ static const struct const_Nodes* constructor_const_Nodes_tet (const int p, const
 	Pc      = malloc(STRLEN_MIN * sizeof *Pc);      // free
 	sprintf(Pc,"%d",P);
 
-	strcpy(CubFile,"../nodes/tet/");
+	strcpy(CubFile,PROJECT_INPUT_DIR);
+	strcat(CubFile,"nodes/tet/");
 	strcat(CubFile,NodeType);
 	strcat(CubFile,Pc);
 	strcat(CubFile,".txt");

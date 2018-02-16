@@ -1,5 +1,0 @@
-file(GLOB_RECURSE NODES_FILES *.txt)
-foreach(nodes_name_full ${NODES_FILES})
-	string(REPLACE "${CMAKE_SOURCE_DIR}/input" "" nodes_name ${nodes_name_full})
-	configure_file(${nodes_name_full} ${PROJECT_BINARY_DIR}${nodes_name} @ONLY)
-endforeach()

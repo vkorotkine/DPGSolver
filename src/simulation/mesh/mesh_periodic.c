@@ -18,11 +18,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "mesh_periodic.h"
 #include "mesh_connectivity.h"
 
+#include <assert.h>
 #include <limits.h>
 
-#include "definitions_core.h"
-#include "definitions_bc.h"
 #include "macros.h"
+#include "definitions_bc.h"
+#include "definitions_core.h"
+#include "definitions_mesh.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -53,6 +55,7 @@ static void destructor_Periodic_Face_Info
 /// \brief Container for periodic face information.
 struct Periodic_Face {
 	char   dir;                 ///< The direction of the periodicity. Options: 'x', 'y', 'z'.
+	double centr_scaling[DIM];  ///< Possible scaling for reflected periodic face centroid coordinates.
 	double centr[DMAX-1];       ///< The centroid coordinates in directions other than the periodic one.
 	struct Vector_i* node_nums; ///< The node numbers of the face vertices.
 };
@@ -101,6 +104,9 @@ void correct_f_ve_for_periodic (const struct Mesh_Data*const mesh_data, struct C
 	if (mesh_data->periodic_corr == NULL)
 		return;
 
+	// Copy of f_ve to be used for tracking periodic mesh boundaries.
+	conn_info->f_ve_per = constructor_copy_Multiarray_Vector_i(conn_info->f_ve); // keep
+
 	const int d = conn_info->d;
 	const ptrdiff_t ind_pfe = get_first_volume_index(conn_info->elem_per_dim,d-1),
 	                n_pfe   = conn_info->elem_per_dim->data[d-1];
@@ -123,6 +129,18 @@ void correct_f_ve_for_periodic (const struct Mesh_Data*const mesh_data, struct C
 	// re-sort f_ve.
 	struct Vector_i* ind_f_ve_final = sort_Multiarray_Vector_i(f_ve,true); // destructed
 	reorder_Vector_i(conn_info->ind_f_ve,ind_f_ve_final->data);
+	reorder_Multiarray_Vector_i(conn_info->f_ve_per,ind_f_ve_final->data);
+
+//	const struct const_Vector_i*const ind_f_ve_per =
+//		constructor_ind_f_ve_periodic(conn_info->f_ve,conn_info->f_ve_per); // returned.
+print_Vector_i(ind_f_ve_final);
+print_Multiarray_Vector_i(conn_info->f_ve);
+/*
+1. Construct the list of periodic face indices.
+2. Store the associated BC in a v_to_lf_per multiarray_vector.
+3. Use this in constructor_faces to fix the problem with periodic faces.
+*/
+EXIT_ADD_SUPPORT;
 
 	destructor_Vector_i(ind_f_ve_final);
 }
@@ -143,9 +161,16 @@ static void set_pf_dir
 	 const int bc                   ///< The boundary condition.
 	);
 
+/// \brief Set \ref Periodic_Face::centr_scaling.
+static void set_pf_reflected_scaling
+	(struct Periodic_Face*const pf, ///< The \ref Periodic_Face.
+	 const int bc                   ///< The boundary condition.
+	);
+
 /// \brief Set the periodic face centroid.
 static void set_pf_centr
-	(struct Periodic_Face*const pf,               ///< The \ref Periodic_Face.
+	(const int ind_ms,                            ///< Indicates 'm'aster (0) or 's'lave (1).
+	 struct Periodic_Face*const pf,               ///< The \ref Periodic_Face.
 	 const struct const_Vector_i*const node_nums, ///< The entry of \ref Mesh_Data::node_nums for the current face.
 	 const struct const_Matrix_d*const nodes      ///< The \ref Mesh_Data::nodes.
 	);
@@ -237,7 +262,8 @@ static void set_pf_info
 
 		struct Periodic_Face*const pf = pf_info[ind_ms]->p_faces[count_ms[ind_ms]];
 		set_pf_dir(pf,bc);
-		set_pf_centr(pf,node_nums->data[n],nodes);
+		set_pf_reflected_scaling(pf,bc);
+		set_pf_centr(ind_ms,pf,node_nums->data[n],nodes);
 		set_f_node_nums(&pf->node_nums,node_nums->data[n]);
 
 		++count_ms[ind_ms];
@@ -283,8 +309,7 @@ static void substitute_m_for_s (struct Multiarray_Vector_i*const f_ve, struct Pe
 // Level 1 ********************************************************************************************************** //
 
 /** \brief Comparison function for std::qsort between \ref Periodic_Face\* `a` and `b`.
- *	\return The comparison of `a` and `b` based first on the direction and then on the centroid.
- */
+ *  \return The comparison of `a` and `b` based first on the direction and then on the centroid. */
 static int cmp_Periodic_Face
 	(const void *a, ///< Variable 1.
 	 const void *b  ///< Variable 2.
@@ -292,16 +317,22 @@ static int cmp_Periodic_Face
 
 static bool check_pfe_periodic (const char sm, const int bc)
 {
+	assert(sm == 'M' || sm == 'S');
+
 	const int bc_base = bc % BC_STEP_SC;
-	switch (sm) {
-	case 'M':
-		return ((bc_base == PERIODIC_XL) || (bc_base == PERIODIC_YL) || (bc_base == PERIODIC_ZL));
+	switch (bc_base) {
+	case PERIODIC_XL: case PERIODIC_YL: case PERIODIC_ZL:
+	case PERIODIC_XL_REFLECTED_Y:
+		return ( sm == 'M' );
 		break;
-	case 'S':
-		return ((bc_base == PERIODIC_XR) || (bc_base == PERIODIC_YR) || (bc_base == PERIODIC_ZR));
+	case PERIODIC_XR: case PERIODIC_YR: case PERIODIC_ZR:
+	case PERIODIC_XR_REFLECTED_Y:
+		return ( sm == 'S' );
 		break;
 	default:
-		EXIT_UNSUPPORTED;
+		if (!check_pfe_boundary(bc))
+			EXIT_ERROR("The periodic BC (%d) is not listed above.\n",bc);
+		return false;
 		break;
 	}
 }
@@ -310,17 +341,45 @@ static void set_pf_dir (struct Periodic_Face*const pf, const int bc)
 {
 	const int bc_base = bc % BC_STEP_SC;
 	switch (bc_base) {
-		case PERIODIC_XL: case PERIODIC_XR: pf->dir = 'x'; break;
-		case PERIODIC_YL: case PERIODIC_YR: pf->dir = 'y'; break;
-		case PERIODIC_ZL: case PERIODIC_ZR: pf->dir = 'z'; break;
-		default:
-			EXIT_UNSUPPORTED;
-			break;
+	case PERIODIC_XL: case PERIODIC_XR: case PERIODIC_XL_REFLECTED_Y: case PERIODIC_XR_REFLECTED_Y:
+		pf->dir = 'x';
+		break;
+	case PERIODIC_YL: case PERIODIC_YR:
+		pf->dir = 'y';
+		break;
+	case PERIODIC_ZL: case PERIODIC_ZR:
+		pf->dir = 'z';
+		break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
 	}
 }
 
+static void set_pf_reflected_scaling (struct Periodic_Face*const pf, const int bc)
+{
+	const double* c_scale;
+	const int bc_base = bc % BC_STEP_SC;
+	switch (bc_base) {
+	case PERIODIC_XL: case PERIODIC_XR: case PERIODIC_YL: case PERIODIC_YR: case PERIODIC_ZL: case PERIODIC_ZR: {
+		static double c_scale_000[] = ARRAY_DIM( 1.0, 1.0, 1.0 );
+		c_scale = c_scale_000;
+		break;
+	} case PERIODIC_XL_REFLECTED_Y: case PERIODIC_XR_REFLECTED_Y: {
+		static double c_scale_010[] = ARRAY_DIM( 1.0,-1.0, 1.0 );
+		c_scale = c_scale_010;
+		break;
+	} default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+
+	for (int d = 0; d < DIM; ++d)
+		pf->centr_scaling[d] = c_scale[d];
+}
+
 static void set_pf_centr
-	(struct Periodic_Face*const pf, const struct const_Vector_i*const node_nums,
+	(const int ind_ms, struct Periodic_Face*const pf, const struct const_Vector_i*const node_nums,
 	 const struct const_Matrix_d*const nodes)
 {
 	ptrdiff_t skip = DMAX;
@@ -337,6 +396,8 @@ static void set_pf_centr
 	for (int i = 0; i < DMAX-1; ++i)
 		centr[i] = 0.0;
 
+	const double*const c_scale = pf->centr_scaling;
+
 	const ptrdiff_t d     = nodes->ext_1,
 	                n_max = node_nums->ext_0;
 	for (ptrdiff_t n = 0; n < n_max; ++n) {
@@ -345,7 +406,8 @@ static void set_pf_centr
 		ptrdiff_t ind_c = 0;
 		for (ptrdiff_t dim = 0; dim < d; ++dim) {
 			if (dim != skip) {
-				centr[ind_c] += nodes_r[dim];
+				const double scale = ( ind_ms ? c_scale[dim] : 1.0 );
+				centr[ind_c] += scale*nodes_r[dim];
 				++ind_c;
 			}
 		}

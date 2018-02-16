@@ -180,6 +180,20 @@ struct Multiarray_Vector_T* constructor_copy_Multiarray_Vector_T_T
 	return dest;
 }
 
+struct Multiarray_Vector_T* constructor_copy_Multiarray_Vector_T (struct Multiarray_Vector_T*const src)
+{
+	const int order = src->order;
+	const ptrdiff_t* extents = src->extents;
+
+	struct Multiarray_Vector_T* dest = constructor_empty_Multiarray_Vector_T(false,order,extents); // returned
+
+	const ptrdiff_t size = compute_size(order,extents);
+	for (int i = 0; i < size; ++i)
+		dest->data[i] = constructor_copy_Vector_T(src->data[i]); // returned
+
+	return dest;
+}
+
 void const_constructor_copy_Multiarray_T
 	(const struct const_Multiarray_T*const* dest, const struct const_Multiarray_T*const src)
 {
@@ -544,6 +558,18 @@ void destructor_Multiarray_Vector_T (struct Multiarray_Vector_T* a)
 void destructor_const_Multiarray_Vector_T (const struct const_Multiarray_Vector_T* a)
 {
 	destructor_Multiarray_Vector_T((struct Multiarray_Vector_T*)a);
+}
+
+void destructor_conditional_Multiarray_Vector_T (struct Multiarray_Vector_T*const a)
+{
+	if (!a)
+		return;
+	destructor_Multiarray_Vector_T(a);
+}
+
+void destructor_conditional_const_Multiarray_Vector_T (const struct const_Multiarray_Vector_T*const a)
+{
+	destructor_conditional_Multiarray_Vector_T((struct Multiarray_Vector_T*)a);
 }
 
 void destructor_Multiarray_Matrix_T (struct Multiarray_Matrix_T* a)

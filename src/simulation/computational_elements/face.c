@@ -482,7 +482,7 @@ static struct Vertex_Correspondence* constructor_Vertex_Correspondence (const st
 	if (bc_periodic) {
 		n_skip = 1;
 		switch (bc_periodic) {
-		case PERIODIC_XL: ind_skip_i[0] = 0; break;
+		case PERIODIC_XL: case PERIODIC_XL_REFLECTED_Y: ind_skip_i[0] = 0; break;
 		case PERIODIC_YL: ind_skip_i[0] = 1; break;
 		case PERIODIC_ZL: ind_skip_i[0] = 2; break;
 		default:
@@ -528,6 +528,8 @@ static int check_face_for_periodicity (const struct const_Matrix_d*const xyz_ve[
 	int bc = 0;
 	for (int dim = 0; dim < d; ++dim) {
 		if (!equal_d(centroid[0]->data[dim],centroid[1]->data[dim],EPS)) {
+/// \todo Delete commented here.
+//printf("%d %e %e %e\n",dim,centroid[0]->data[dim],centroid[1]->data[dim]);
 			switch (dim) {
 				case 0: bc = PERIODIC_XL; break;
 				case 1: bc = PERIODIC_YL; break;
@@ -535,6 +537,8 @@ static int check_face_for_periodicity (const struct const_Matrix_d*const xyz_ve[
 			}
 		}
 	}
+//if (bc == PERIODIC_XL || bc == PERIODIC_YL || bc == PERIODIC_ZL)
+//printf("\n\n");
 
 	for (int i = 0; i < 2; ++i)
 		destructor_Vector_d(centroid[i]);

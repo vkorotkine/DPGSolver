@@ -150,6 +150,14 @@ struct Vector_i* sort_Multiarray_Vector_T
 	 const bool return_indices      ///< Flag for whether the indices should also be returned.
 	);
 
+/** \brief Reorder a \ref Multiarray_Vector_T based on the provided ordering.
+ *  \warning This is not currently done in place.
+ */
+void reorder_Multiarray_Vector_T
+	(struct Multiarray_Vector_T*const a, ///< Standard.
+	 const int*const ordering    ///< The ordering.
+	);
+
 /** \brief Collapse a \ref Multiarray_Vector_T\* into a \ref Vector_T\* with copied data.
  *  \return The \ref Vector_T\*. */
 struct Vector_T* collapse_Multiarray_Vector_T

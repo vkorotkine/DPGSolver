@@ -123,7 +123,7 @@ void set_up_solver_geometry_T (struct Simulation* sim)
 #if TYPE_RC == TYPE_REAL
 	if (OUTPUT_GEOMETRY) {
 		output_visualization(sim,VIS_GEOM_VOLUMES);
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Disable output to continue.\n");
 	}
 #endif
 }

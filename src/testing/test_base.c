@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_alloc.h"
+#include "definitions_core.h"
 
 #include "file_processing.h"
 
@@ -113,6 +114,6 @@ const char* set_data_file_name_integration (const char*const ctrl_name, const ch
 static char* set_file_name_base (const char*const test_type)
 {
 	static char file_name_base[STRLEN_MAX];
-	sprintf(file_name_base,"%s%s","../testing/",test_type);
+	sprintf(file_name_base,"%s%s%s",PROJECT_INPUT_DIR,"testing/",test_type);
 	return file_name_base;
 }

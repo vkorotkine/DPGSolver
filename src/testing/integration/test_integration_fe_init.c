@@ -27,6 +27,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_mesh.h"
 
+#include "multiarray.h"
+
 #include "simulation.h"
 #include "intrusive.h"
 #include "element.h"
@@ -179,6 +181,7 @@ static bool compare_members_fe
 
 			compare_members_Face(face,face_test,true);
 		}
+EXIT_UNSUPPORTED;
 	}
 
 	destructor_FE_Test_Data(fe_test_data);

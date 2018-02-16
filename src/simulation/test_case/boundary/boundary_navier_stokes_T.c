@@ -538,7 +538,7 @@ static const Type* compute_uvw_ex_rotating (const Real xyz[DIM], const struct Ex
 	           th = atan2(y,x),
 		     Vt = omega*r;
 
-	static Type uvw[DIM] = {0.0,};
+	static Type uvw[DMAX] = {0.0,};
 	uvw[0] = -sin(th)*Vt;
 	uvw[1] =  cos(th)*Vt;
 	return uvw;

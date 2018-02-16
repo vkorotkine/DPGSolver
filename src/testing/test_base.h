@@ -67,7 +67,7 @@ void output_warning_count
  *  \return See brief. */
 const char* set_data_file_name_unit
 	(const char*const file_name_spec /**< The specific name of the data file (`file_name` without extension but with
-	                                  *   relative path from '../test/unit'). */
+	                                  *   relative path from '$PROJECT_INPUT_DIR/testing/unit'). */
 	);
 
 /** \brief Sets the name of the integration test data file.

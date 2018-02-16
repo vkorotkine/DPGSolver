@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *	\brief Provides the interface to mesh connectivity containers and functions.
  */
 
+#include <stdbool.h>
+
 struct const_Intrusive_List;
 struct Mesh_Data;
 
@@ -37,6 +39,9 @@ struct Conn_info {
 	// Computed here:
 	struct Multiarray_Vector_i* f_ve;     ///< Global face to vertex correspondence.
 	struct Vector_i*            ind_f_ve; ///< Indices of \ref f_ve after sorting.
+
+	/// Global face to vertex correspondence not including correction for periodic faces being the same.
+	struct Multiarray_Vector_i* f_ve_per;
 };
 
 /// \brief Holds data relating to the mesh connectivity.
@@ -65,6 +70,12 @@ void destructor_Mesh_Connectivity
 void set_f_node_nums
 	(struct Vector_i**const f_node_nums,         ///< The face node numbers.
 	 const struct const_Vector_i*const node_nums ///< The entry of \ref Mesh_Data::node_nums for the current face.
+	);
+
+/** \brief Check if the physical face element is a boundary which is not periodic.
+ *  \return See brief. */
+bool check_pfe_boundary
+	(const int bc ///< The value of the boundary condition.
 	);
 
 #endif // DPG__mesh_connectivity_h__INCLUDED

@@ -1,0 +1,40 @@
+pde_name  euler
+pde_spec  steady/joukowski
+
+geom_name n-cube
+geom_spec conformal_full
+
+dimension 2
+
+mesh_generator   n-cube/2d_boundary_layer.geo
+mesh_format      gmsh
+mesh_domain      parametric
+mesh_type        mixed
+mesh_level       0 0
+mesh_path        ../testing/integration/mesh/parametric_2d_quad_periodic_reflected.msh
+
+
+# Simulation variables
+
+solution_extension subsonic
+
+interp_tp  GL
+interp_si  WSH
+interp_pyr GLL
+
+basis_geom  lagrange
+basis_sol   lagrange
+
+geom_representation superparametric
+geom_blending_tp    gordon_hall
+geom_blending_si    szabo_babuska_gen
+
+p_ref    2 2
+
+fe_method 1
+
+
+# Testing variables
+
+ml_range_test 0 0
+p_range_test  2 2

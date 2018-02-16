@@ -1,5 +1,0 @@
-file(GLOB_RECURSE DATA_FILES *.data)
-foreach(data_name_full ${DATA_FILES})
-	string(REPLACE "${CMAKE_SOURCE_DIR}/input/" "" data_name ${data_name_full})
-	configure_file(${data_name_full} ${PROJECT_BINARY_DIR}/${data_name} COPYONLY)
-endforeach()

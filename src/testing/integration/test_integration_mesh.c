@@ -24,8 +24,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_support_multiarray.h"
 
 #include "macros.h"
-#include "definitions_mesh.h"
 #include "definitions_alloc.h"
+#include "definitions_core.h"
+#include "definitions_mesh.h"
 
 #include "multiarray.h"
 #include "matrix.h"
@@ -155,6 +156,8 @@ static struct Mesh_Input* constructor_Mesh_Input (const char*const mesh_name)
 		set_Mesh_Input_no_sim(mesh_input,2,DOM_BLENDED,true,mesh_name,"n-cylinder_hollow_section","");
 	} else if (strstr(mesh_name,"straight_2d_quad_periodic.msh")) {
 		set_Mesh_Input_no_sim(mesh_input,2,DOM_STRAIGHT,false,mesh_name,"","");
+	} else if (strstr(mesh_name,"parametric_2d_quad_periodic_reflected.msh")) {
+		set_Mesh_Input_no_sim(mesh_input,2,DOM_PARAMETRIC,false,mesh_name,"","");
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",mesh_name);
 	}
@@ -252,7 +255,8 @@ static void set_Mesh_Input_no_sim
 	const_cast_b(&mesh_input->mesh_unrealistic,mesh_unrealistic);
 
 	char* mesh_name_full = (char*) mesh_input->mesh_name_full;
-	strcpy(mesh_name_full,"../testing/integration/mesh/");
+	strcpy(mesh_name_full,PROJECT_INPUT_DIR);
+	strcat(mesh_name_full,"testing/integration/mesh/");
 	strcat(mesh_name_full,mesh_name);
 
 	char* geom_name = (char*) mesh_input->geom_name;

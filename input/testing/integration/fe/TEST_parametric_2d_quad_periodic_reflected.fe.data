@@ -1,0 +1,290 @@
+--------------------------------------------------------------------------------
+Volume    0
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 4 2
+-1.000000000000e+00  1.000000000000e-01 
+ 0.000000000000e+00  1.000000000000e-01 
+-1.000000000000e+00  2.000000000000e-01 
+ 0.000000000000e+00  2.000000000000e-01
+bc_faces:
+container Vector_i
+4		-1	-1	20102	-1
+bc_edges:
+container Vector_i
+4		-1	-1	-1	-1
+elem_type: 3
+
+Volume    1
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 4 2
+-1.000000000000e+00  2.000000000000e-01 
+ 0.000000000000e+00  2.000000000000e-01 
+-1.000000000000e+00  1.100000000000e+00 
+ 0.000000000000e+00  1.100000000000e+00
+bc_faces:
+container Vector_i
+4		-1	-1	-1	20101
+bc_edges:
+container Vector_i
+4		-1	-1	-1	-1
+elem_type: 3
+
+Volume    2
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 4 2
+ 0.000000000000e+00  1.000000000000e-01 
+ 1.000000000000e+00  1.000000000000e-01 
+ 0.000000000000e+00  2.000000000000e-01 
+ 1.000000000000e+00  2.000000000000e-01
+bc_faces:
+container Vector_i
+4		-1	10101	-1	-1
+bc_edges:
+container Vector_i
+4		-1	-1	-1	-1
+elem_type: 3
+
+Volume    3
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 4 2
+ 0.000000000000e+00  2.000000000000e-01 
+ 1.000000000000e+00  2.000000000000e-01 
+ 0.000000000000e+00  1.100000000000e+00 
+ 1.000000000000e+00  1.100000000000e+00
+bc_faces:
+container Vector_i
+4		-1	10101	-1	10101
+bc_edges:
+container Vector_i
+4		-1	-1	-1	-1
+elem_type: 3
+
+Volume    4
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 4 2
+-1.000000000000e+00 -1.000000000000e-01 
+-1.000000000000e+00 -2.000000000000e-01 
+ 0.000000000000e+00 -1.000000000000e-01 
+ 0.000000000000e+00 -2.000000000000e-01
+bc_faces:
+container Vector_i
+4		20102	-1	-1	-1
+bc_edges:
+container Vector_i
+4		-1	-1	-1	-1
+elem_type: 3
+
+Volume    5
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 4 2
+                  0 -2.000000000000e-01
+-1.000000000000e+00 -2.000000000000e-01
+                  0 -1.100000000000e+00
+-1.000000000000e+00 -1.100000000000e+00
+bc_faces:
+container Vector_i
+4		-1	-1	-1	20101
+bc_edges:
+container Vector_i
+4		-1	-1	-1	-1
+elem_type: 3
+
+Volume    6
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 4 2
+                  0 -1.000000000000e-01
+                  0 -2.000000000000e-01
+ 1.000000000000e+00 -1.000000000000e-01
+ 1.000000000000e+00 -2.000000000000e-01
+bc_faces:
+container Vector_i
+4		-1	-1	-1	10101
+bc_edges:
+container Vector_i
+4		-1	-1	-1	-1
+elem_type: 3
+
+Volume    7
+boundary: 1
+curved:   1
+xyz_ve:
+container Multiarray_d
+R 2 4 2
+ 1.000000000000e+00 -2.000000000000e-01
+                  0 -2.000000000000e-01
+ 1.000000000000e+00 -1.100000000000e+00
+                  0 -1.100000000000e+00
+bc_faces:
+container Vector_i
+4		10101	-1	-1	10101
+bc_edges:
+container Vector_i
+4		-1	-1	-1	-1
+elem_type: 3
+
+--------------------------------------------------------------------------------
+Face 0
+boundary:  0
+curved:    1
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    0
+Neigh_Info 1
+	ind_lf 2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    4
+
+Face 1
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    0
+Neigh_Info 1
+	ind_lf 0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    2
+
+Face 2
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    0
+Neigh_Info 1
+	ind_lf 3
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    1
+
+Face 3
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 3
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    0
+Neigh_Info 1
+	ind_lf 2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    1
+
+Face 4
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    1
+Neigh_Info 1
+	ind_lf 1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    3
+
+Face 5
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 1
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    1
+Neigh_Info 1
+	ind_lf 0
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    3
+
+Face 6
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    2
+Neigh_Info 1
+	ind_lf 3
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    3
+
+Face 7
+boundary:  0
+curved:    0
+bc:        -1
+elem_type: 1
+Neigh_Info 0
+	ind_lf 3
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    2
+Neigh_Info 1
+	ind_lf 2
+	ind_href 0
+	ind_sref 0
+	ind_ord  0
+	ind_v    3
+

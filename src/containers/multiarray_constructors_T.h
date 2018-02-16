@@ -179,6 +179,12 @@ struct Multiarray_Vector_T* constructor_copy_Multiarray_Vector_T_T
 	 const ptrdiff_t*const extents_i ///< The input extents.
 	);
 
+/** \brief Copy constructor for a \ref Multiarray_Vector_T\*.
+ *  \return See brief. */
+struct Multiarray_Vector_T* constructor_copy_Multiarray_Vector_T
+	(struct Multiarray_Vector_T*const src ///< The source multiarray.
+	);
+
 /** \brief Copy constructor for a \ref Multiarray_T\* from a \ref Multiarray_T\*.
  *  \return Standard. */
 struct Multiarray_T* constructor_copy_Multiarray_T
@@ -421,6 +427,16 @@ void destructor_Multiarray_Vector_T
 /// \brief `const` version of \ref destructor_Multiarray_Vector_T.
 void destructor_const_Multiarray_Vector_T
 	(const struct const_Multiarray_Vector_T* a ///< Defined for \ref destructor_Multiarray_Vector_T.
+	);
+
+/// \brief Destructs a \ref Multiarray_Vector_T\* if it is not NULL.
+void destructor_conditional_Multiarray_Vector_T
+	(struct Multiarray_Vector_T*const a ///< Standard.
+	);
+
+/// \brief `const` version of \ref destructor_conditional_Multiarray_Vector_T.
+void destructor_conditional_const_Multiarray_Vector_T
+	(const struct const_Multiarray_Vector_T*const a ///< See brief.
 	);
 
 /// \brief Destructs a \ref Multiarray_Matrix_T\*.

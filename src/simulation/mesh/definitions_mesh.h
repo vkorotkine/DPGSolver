@@ -32,4 +32,17 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NODETOL_MESH 1.0e-5
 ///\}
 
+
+///\{ \name "Boundary conditions" which result in no boundary (i.e. the boundaries connect to each other periodically).
+#define PERIODIC_XL 51
+#define PERIODIC_XR 52
+#define PERIODIC_YL 53
+#define PERIODIC_YR 54
+#define PERIODIC_ZL 55
+#define PERIODIC_ZR 56
+
+#define PERIODIC_XL_REFLECTED_Y 61
+#define PERIODIC_XR_REFLECTED_Y 62
+///\}
+
 #endif // DPG__definitions_mesh_h__INCLUDED
