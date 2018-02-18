@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_level = 0; mesh_type = MIXED; mesh_domain = PARAMETRIC; pde_name = EULER; geom_conformal = GEOM_CONFORMAL_FULL; pde_spec = STEADY_JOUKOWSKI;
+//mesh_level = 1; mesh_type = MIXED; mesh_domain = PARAMETRIC; pde_name = EULER; geom_conformal = GEOM_CONFORMAL_FULL; pde_spec = STEADY_JOUKOWSKI;
 
 // Geometry Specification
 If (pde_name == EULER && pde_spec == STEADY_JOUKOWSKI)
@@ -14,6 +14,11 @@ b = s_offset;
 l = 1;
 h = 1;
 bl = 0.1*h;
+
+t_progression_bl = 1.2;
+t_progression_x  = 1.4;
+t_progression_y  = 1.4;
+t_bump_x         = 0.2;
 
 Point(0) = {-l,b,-0,lc};
 Point(1) = {0, b,-0,lc};
@@ -52,16 +57,16 @@ Plane Surface(4003) = {4003};
 
 all_transfinite = 1;
 If (all_transfinite)
-	Transfinite Line{2000,2002,2004} = 2^(mesh_level+1)+1 Using Progression 1.2;
-	Transfinite Line{2001,2003,2005} = 2^(mesh_level+1)+0 Using Progression 1.4;
-	Transfinite Line{1000,1002,1004} = 2^(mesh_level+1)+1 Using Bump 0.2;
-	Transfinite Line{1001,1003,1005} = 2^(mesh_level+1)+1 Using Progression 1.4;
+	Transfinite Line{2000,2002,2004} = 2^(mesh_level+1)+1 Using Progression t_progression_bl;
+	Transfinite Line{2001,2003,2005} = 2^(mesh_level+1)+0 Using Progression t_progression_y;
+	Transfinite Line{1000,1002,1004} = 2^(mesh_level+1)+1 Using Bump t_bump_x;
+	Transfinite Line{1001,1003,1005} = 2^(mesh_level+1)+1 Using Progression t_progression_x;
 	Transfinite Surface {4000:4003};
 Else
-	Transfinite Line{2000,2002} = 2^(mesh_level+1)+1 Using Progression 1.2;
-	Transfinite Line{2001,2003} = 2^(mesh_level+1)+0 Using Progression 1.4;
-	Transfinite Line{1000,1002,1004} = 2^(mesh_level+1)+1 Using Bump 0.2;
-	Transfinite Line{1001,1003} = 2^(mesh_level+1)+0 Using Progression 1.4;
+	Transfinite Line{2000,2002} = 2^(mesh_level+1)+1 Using Progression t_progression_bl;
+	Transfinite Line{2001,2003} = 2^(mesh_level+1)+0 Using Progression t_progression_y;
+	Transfinite Line{1000,1002,1004} = 2^(mesh_level+1)+1 Using Bump t_bump_x;
+	Transfinite Line{1001,1003} = 2^(mesh_level+1)+0 Using Progression t_progression_x;
 	Transfinite Surface {4000:4001};
 EndIf
 
@@ -106,16 +111,16 @@ If (geom_conformal == GEOM_CONFORMAL_FULL)
 
 	Symmetry{ 0.0,-1.0,0.0,0.0 }{Duplicata{Surface{4000:4003};}}
 	If (all_transfinite)
-		Transfinite Line{20107,20105,20115} = 2^(mesh_level+1)+1 Using Progression 1.2;
-		Transfinite Line{20112,20110,20120} = 2^(mesh_level+1)+0 Using Progression 1.4;
-		Transfinite Line{20104,20106,20111} = 2^(mesh_level+1)+1 Using Bump 0.2;
-		Transfinite Line{20114,-20116,-20121} = 2^(mesh_level+1)+1 Using Progression 1.4;
+		Transfinite Line{20107,20105,20115} = 2^(mesh_level+1)+1 Using Progression t_progression_bl;
+		Transfinite Line{20112,20110,20120} = 2^(mesh_level+1)+0 Using Progression t_progression_y;
+		Transfinite Line{20104,20106,20111} = 2^(mesh_level+1)+1 Using Bump t_bump_x;
+		Transfinite Line{20114,-20116,-20121} = 2^(mesh_level+1)+1 Using Progression t_progression_x;
 		Transfinite Surface {20103,20108,20113,20118};
 	Else
-		Transfinite Line{20107,20105} = 2^(mesh_level+1)+1 Using Progression 1.2;
-		Transfinite Line{20112,20110} = 2^(mesh_level+1)+0 Using Progression 1.4;
-		Transfinite Line{20104,20106,20111} = 2^(mesh_level+1)+1 Using Bump 0.2;
-		Transfinite Line{20114,-20116} = 2^(mesh_level+1)+0 Using Progression 1.4;
+		Transfinite Line{20107,20105} = 2^(mesh_level+1)+1 Using Progression t_progression_bl;
+		Transfinite Line{20112,20110} = 2^(mesh_level+1)+0 Using Progression t_progression_y;
+		Transfinite Line{20104,20106,20111} = 2^(mesh_level+1)+1 Using Bump t_bump_x;
+		Transfinite Line{20114,-20116} = 2^(mesh_level+1)+0 Using Progression t_progression_x;
 		Transfinite Surface {20103,20108};
 	EndIf
 	Recombine Surface{20103};
