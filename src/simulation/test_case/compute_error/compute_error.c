@@ -324,7 +324,7 @@ static void output_errors_global (const struct Error_CE* error_ce, const struct 
 		skip_lines(s_file,1);
 		char line[STRLEN_MAX];
 		char* line_ptr[1] = {line};
-		fgets(line,sizeof(line),s_file);
+		fgets_checked(line,sizeof(line),s_file);
 
 		int dof = 0;
 		read_line_values_i(line_ptr,1,&dof,false);

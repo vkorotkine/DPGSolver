@@ -131,17 +131,6 @@ void correct_f_ve_for_periodic (const struct Mesh_Data*const mesh_data, struct C
 	reorder_Vector_i(conn_info->ind_f_ve,ind_f_ve_final->data);
 	reorder_Multiarray_Vector_i(conn_info->f_ve_per,ind_f_ve_final->data);
 
-//	const struct const_Vector_i*const ind_f_ve_per =
-//		constructor_ind_f_ve_periodic(conn_info->f_ve,conn_info->f_ve_per); // returned.
-print_Vector_i(ind_f_ve_final);
-print_Multiarray_Vector_i(conn_info->f_ve);
-/*
-1. Construct the list of periodic face indices.
-2. Store the associated BC in a v_to_lf_per multiarray_vector.
-3. Use this in constructor_faces to fix the problem with periodic faces.
-*/
-EXIT_ADD_SUPPORT;
-
 	destructor_Vector_i(ind_f_ve_final);
 }
 
@@ -330,7 +319,7 @@ static bool check_pfe_periodic (const char sm, const int bc)
 		return ( sm == 'S' );
 		break;
 	default:
-		if (!check_pfe_boundary(bc))
+		if (!check_pfe_boundary(bc,false))
 			EXIT_ERROR("The periodic BC (%d) is not listed above.\n",bc);
 		return false;
 		break;

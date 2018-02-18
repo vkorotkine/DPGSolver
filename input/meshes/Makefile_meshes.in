@@ -12,7 +12,7 @@ meshes:
 
 
 PYTHONC    := python3
-PYTHON_DIR := $(PROJECT_SOURCE_DIR)/src/processing/pre
+PYTHON_DIR := $(PROJECT_SOURCE_DIR)/input/meshes
 
 # Dependency generation
 

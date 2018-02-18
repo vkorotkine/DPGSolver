@@ -18,7 +18,6 @@ include_directories(
 	element
 	general
 	intrusive
-	processing/post
 	simulation
 	templates
 	simulation/computational_elements
@@ -39,6 +38,7 @@ include_directories(
 	simulation/test_case/solution/diffusion
 	simulation/test_case/solution/euler
 	simulation/test_case/solution/navier_stokes
+	simulation/visualization
 	testing
 	)
 
@@ -65,7 +65,6 @@ add_subdirectory(containers)
 add_subdirectory(element)
 add_subdirectory(general)
 add_subdirectory(intrusive)
-add_subdirectory(processing)
 add_subdirectory(simulation)
 add_subdirectory(testing)
 

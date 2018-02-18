@@ -3,9 +3,7 @@ set	(SOURCE
 	)
 
 set	(LIBS_DEPEND
-	 Adaptation
 	 Simulation
-	 Test_Complex_Computational_Elements
 	)
 
 set (LIB Test_Integration)
@@ -24,7 +22,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "straight_2d_quad_periodic.msh" "eule
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "parametric_2d_quad_periodic_reflected.msh" "extern_mesh/TEST_parametric_2d_quad_periodic_reflected")
 
 set (EXEC test_integration_fe_init)
-set (LIBS_DEPEND ${LIBS_BASE} ${PETSC_LIBRARIES} Simulation Test_Support_Intrusive)
+set (LIBS_DEPEND ${LIBS_BASE} ${PETSC_LIBRARIES} Simulation Test_Support_Simulation)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_blended_2d_mixed")
@@ -32,14 +30,14 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_straight_2d_quad_pe
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_parametric_2d_quad_periodic_reflected")
 
 set (EXEC test_integration_geometry)
-set (LIBS_DEPEND ${LIBS_BASE} ${PETSC_LIBRARIES} Simulation Test_Support_Containers Test_Support_Intrusive)
+set (LIBS_DEPEND ${LIBS_BASE} ${PETSC_LIBRARIES} Simulation Test_Support_Containers Test_Support_Simulation)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_straight_2d_quad_periodic")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_blended_2d_mixed")
 
 set (EXEC test_integration_fluxes)
-set (LIBS_DEPEND Test_Base Test_Integration Test_Complex_Test_Case Test_Complex_Solvers)
+set (LIBS_DEPEND Test_Base Test_Integration Test_Complex_Simulation)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "flux_advection_1d" "integration/TEST_Advection_Default_1d__ml0__p2")
@@ -54,7 +52,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_euler_2d" "integration/TEST_Eul
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_navier_stokes_2d" "integration/TEST_NavierStokes_Default_2d__ml0__p0") # TODO: Change this to use DPG such that Hessians are also tested.
 
 set (EXEC test_integration_boundary_conditions)
-set (LIBS_DEPEND Test_Base Test_Integration Test_Complex_Test_Case Test_Complex_Solvers)
+set (LIBS_DEPEND Test_Base Test_Integration Test_Complex_Simulation)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "boundary_conditions_advection_1d" "integration/TEST_Advection_Default_1d__ml0__p2")
@@ -80,12 +78,9 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_S
 set (EXEC test_integration_linearization)
 set (LIBS_DEPEND ${LIBS_BASE} 
      Simulation 
+     Test_Complex_Simulation 
      Test_Integration 
-     Test_Complex_Geometry
      Test_Support_General
-     Test_Complex_Solution
-     Test_Complex_Solvers
-     Test_Complex_Test_Case
     )
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})

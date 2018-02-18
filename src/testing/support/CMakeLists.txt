@@ -1,7 +1,6 @@
 add_subdirectory(containers)
 add_subdirectory(element)
 add_subdirectory(general)
-add_subdirectory(intrusive)
 add_subdirectory(simulation)
 
 set	(SOURCE

@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_level = -1; mesh_type = MIXED; mesh_domain = PARAMETRIC; pde_name = EULER; geom_conformal = GEOM_CONFORMAL_FULL; pde_spec = STEADY_JOUKOWSKI;
+//mesh_level = 0; mesh_type = MIXED; mesh_domain = PARAMETRIC; pde_name = EULER; geom_conformal = GEOM_CONFORMAL_FULL; pde_spec = STEADY_JOUKOWSKI;
 
 // Geometry Specification
 If (pde_name == EULER && pde_spec == STEADY_JOUKOWSKI)
@@ -107,15 +107,15 @@ If (geom_conformal == GEOM_CONFORMAL_FULL)
 	Symmetry{ 0.0,-1.0,0.0,0.0 }{Duplicata{Surface{4000:4003};}}
 	If (all_transfinite)
 		Transfinite Line{20107,20105,20115} = 2^(mesh_level+1)+1 Using Progression 1.2;
-		Transfinite Line{-20112,20110,20120} = 2^(mesh_level+1)+0 Using Progression 1.4;
+		Transfinite Line{20112,20110,20120} = 2^(mesh_level+1)+0 Using Progression 1.4;
 		Transfinite Line{20104,20106,20111} = 2^(mesh_level+1)+1 Using Bump 0.2;
 		Transfinite Line{20114,-20116,-20121} = 2^(mesh_level+1)+1 Using Progression 1.4;
 		Transfinite Surface {20103,20108,20113,20118};
 	Else
 		Transfinite Line{20107,20105} = 2^(mesh_level+1)+1 Using Progression 1.2;
-		Transfinite Line{-20112,20110} = 2^(mesh_level+1)+0 Using Progression 1.4;
+		Transfinite Line{20112,20110} = 2^(mesh_level+1)+0 Using Progression 1.4;
 		Transfinite Line{20104,20106,20111} = 2^(mesh_level+1)+1 Using Bump 0.2;
-		Transfinite Line{20114,20116} = 2^(mesh_level+1)+0 Using Progression 1.4;
+		Transfinite Line{20114,-20116} = 2^(mesh_level+1)+0 Using Progression 1.4;
 		Transfinite Surface {20103,20108};
 	EndIf
 	Recombine Surface{20103};
@@ -132,9 +132,9 @@ If (geom_conformal == GEOM_CONFORMAL_FULL)
 	Physical Line(bc_s+PERIODIC_YR)             = {20114};
 
 	// Periodic Indicator (Slave = Master)
-	Periodic Line {2000} = {20107}; // Periodic (x)
-	Periodic Line {2001} = {20112};
-	Periodic Line {1001} = {20114}; // Periodic (y)
+	Periodic Line {20107} = {-2000}; // Periodic (x)
+	Periodic Line {20112} = {-2001};
+	Periodic Line {20114} = {1001};  // Periodic (y)
 
 	If (pde_name == EULER)
 		Physical Line(bc_c+BC_SLIPWALL) = {1000,20104};

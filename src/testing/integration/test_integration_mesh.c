@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "petscsys.h"
 
 #include "test_base.h"
+#include "test_support.h"
 #include "test_support_vector.h"
 #include "test_support_matrix.h"
 #include "test_support_multiarray.h"
@@ -105,6 +106,11 @@ int main
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+/// \brief Container for data relating to members which may be optionally constructed for \ref Mesh_Test_Data.
+struct Mesh_Read_Data {
+	bool v_to_lf_wp; ///< Flag for whether \ref Mesh_Test_Data::v_to_lf_wp should be read.
+};
+
 /// \brief Container for data of the \ref Mesh which is to be tested.
 struct Mesh_Test_Data {
 	struct Vector_i*            elem_per_dim;  ///< Defined in \ref Mesh_Data.
@@ -114,8 +120,9 @@ struct Mesh_Test_Data {
 	struct Multiarray_Vector_i* node_nums;     ///< Defined in \ref Mesh_Data.
 	struct Matrix_i*            periodic_corr; ///< Defined in \ref Mesh_Data.
 
-	struct Multiarray_Vector_i* v_to_v;  ///< Defined in \ref Mesh_Connectivity.
-	struct Multiarray_Vector_i* v_to_lf; ///< Defined in \ref Mesh_Connectivity.
+	struct Multiarray_Vector_i* v_to_v;     ///< Defined in \ref Mesh_Connectivity.
+	struct Multiarray_Vector_i* v_to_lf;    ///< Defined in \ref Mesh_Connectivity.
+	struct Multiarray_Vector_i* v_to_lf_wp; ///< Defined in \ref Mesh_Connectivity.
 
 	struct Vector_i*            ve_curved;   ///< Defined in \ref Mesh_Vertices.
 	struct Vector_i*            ve_boundary; ///< Defined in \ref Mesh_Vertices.
@@ -136,7 +143,8 @@ static void set_Mesh_Input_no_sim
 /** \brief Constructs a \ref Mesh_Test_Data\*.
  *  \return Standard. */
 static struct Mesh_Test_Data* constructor_Mesh_Test_Data
-	(const char*const mesh_name_full ///< Defined in \ref Mesh_Input.
+	(const char*const mesh_name_full,                 ///< Defined in \ref Mesh_Input.
+	 const struct Mesh_Read_Data*const mesh_read_data ///< \ref Mesh_Read_Data.
 	);
 
 /// \brief Destructor for \ref Mesh_Test_Data\*.
@@ -179,8 +187,12 @@ static bool compare_members_Mesh
 {
 	UNUSED(test_info);
 	bool pass = true;
+	bool* differences = NULL;
 
-	struct Mesh_Test_Data* mesh_test_data = constructor_Mesh_Test_Data(mesh_name_full); // destructed
+	struct Mesh_Read_Data mesh_read_data =
+		{ .v_to_lf_wp = mesh->mesh_conn->v_to_lf_wp != NULL,
+		};
+	struct Mesh_Test_Data* mesh_test_data = constructor_Mesh_Test_Data(mesh_name_full,&mesh_read_data); // dest.
 
 	// Mesh_Data
 	struct Vector_i*            elem_per_dim  = (struct Vector_i*)            mesh->mesh_data->elem_per_dim;
@@ -209,17 +221,25 @@ static bool compare_members_Mesh
 	}
 
 	// Mesh_Connectivity
-	struct Multiarray_Vector_i* v_to_v  = (struct Multiarray_Vector_i*) mesh->mesh_conn->v_to_v;
-	struct Multiarray_Vector_i* v_to_lf = (struct Multiarray_Vector_i*) mesh->mesh_conn->v_to_lf;
+	struct Multiarray_Vector_i* v_to_v     = (struct Multiarray_Vector_i*) mesh->mesh_conn->v_to_v;
+	struct Multiarray_Vector_i* v_to_lf    = (struct Multiarray_Vector_i*) mesh->mesh_conn->v_to_lf;
+	struct Multiarray_Vector_i* v_to_lf_wp = (struct Multiarray_Vector_i*) mesh->mesh_conn->v_to_lf_wp;
 
-	if ((diff_Multiarray_Vector_i(v_to_v,mesh_test_data->v_to_v) != 0)   ||
-	    (diff_Multiarray_Vector_i(v_to_lf,mesh_test_data->v_to_lf) != 0))
-	{
+	const bool inc_p = (v_to_lf_wp != NULL);
+
+	differences = (bool[])
+		{ diff_Multiarray_Vector_i(v_to_v,mesh_test_data->v_to_v),
+		  diff_Multiarray_Vector_i(v_to_lf,mesh_test_data->v_to_lf),
+		  (inc_p ? diff_Multiarray_Vector_i(v_to_lf_wp,mesh_test_data->v_to_lf_wp) : false),
+		};
+	if (check_diff(3,differences,&pass)) {
 		pass = false;
 		expect_condition(pass,"mesh connectivity");
 
 		print_diff_Multiarray_Vector_i(v_to_v,mesh_test_data->v_to_v);
 		print_diff_Multiarray_Vector_i(v_to_lf,mesh_test_data->v_to_lf);
+		if (inc_p)
+			print_diff_Multiarray_Vector_i(v_to_lf_wp,mesh_test_data->v_to_lf_wp);
 	}
 
 	// Mesh_Vertices
@@ -267,7 +287,8 @@ static void set_Mesh_Input_no_sim
 	const_cast_c1(&mesh_input->geom_spec,geom_spec);
 }
 
-static struct Mesh_Test_Data* constructor_Mesh_Test_Data (const char*const mesh_name_full)
+static struct Mesh_Test_Data* constructor_Mesh_Test_Data
+	(const char*const mesh_name_full, const struct Mesh_Read_Data*const mesh_read_data)
 {
 	struct Mesh_Test_Data* mesh_test_data = calloc(1,sizeof *mesh_test_data); // free
 
@@ -280,19 +301,21 @@ static struct Mesh_Test_Data* constructor_Mesh_Test_Data (const char*const mesh_
 	mesh_test_data->elem_types   = constructor_file_name_Vector_i("elem_types",mesh_data_name_full);   // destructed
 	mesh_test_data->elem_tags    = constructor_file_name_Matrix_i("elem_tags",mesh_data_name_full);    // destructed
 	mesh_test_data->node_nums    =
-		constructor_file_name_Multiarray_Vector_i("node_nums",mesh_data_name_full); // destructed
+		constructor_file_name_Multiarray_Vector_i("node_nums",mesh_data_name_full,true); // destructed
 	if (strstr(mesh_name_full,"periodic"))
 		mesh_test_data->periodic_corr =
 			constructor_file_name_Matrix_i("periodic_corr",mesh_data_name_full); // destructed
 	else
 		mesh_test_data->periodic_corr = NULL;
 
-	mesh_test_data->v_to_v  = constructor_file_name_Multiarray_Vector_i("v_to_v",mesh_data_name_full);  // destructed
-	mesh_test_data->v_to_lf = constructor_file_name_Multiarray_Vector_i("v_to_lf",mesh_data_name_full); // destructed
+	mesh_test_data->v_to_v  = constructor_file_name_Multiarray_Vector_i("v_to_v",mesh_data_name_full,true);  // dest
+	mesh_test_data->v_to_lf = constructor_file_name_Multiarray_Vector_i("v_to_lf",mesh_data_name_full,true); // dest
+	mesh_test_data->v_to_lf_wp = constructor_file_name_Multiarray_Vector_i(
+		"v_to_lf_wp",mesh_data_name_full,mesh_read_data->v_to_lf_wp); // destructed
 
 	mesh_test_data->ve_curved   = constructor_file_name_Vector_i("ve_curved",mesh_data_name_full);        // destructed
 	mesh_test_data->ve_boundary = constructor_file_name_Vector_i("ve_boundary",mesh_data_name_full);      // destructed
-	mesh_test_data->ve_bc       = constructor_file_name_Multiarray_Vector_i("ve_bc",mesh_data_name_full); // destructed
+	mesh_test_data->ve_bc       = constructor_file_name_Multiarray_Vector_i("ve_bc",mesh_data_name_full,true); // d
 
 	return mesh_test_data;
 }
@@ -309,6 +332,7 @@ static void destructor_Mesh_Test_Data (struct Mesh_Test_Data* mesh_test_data)
 
 	destructor_Multiarray_Vector_i(mesh_test_data->v_to_v);
 	destructor_Multiarray_Vector_i(mesh_test_data->v_to_lf);
+	destructor_conditional_Multiarray_Vector_i(mesh_test_data->v_to_lf_wp);
 
 	destructor_Vector_i(mesh_test_data->ve_curved);
 	destructor_Vector_i(mesh_test_data->ve_boundary);

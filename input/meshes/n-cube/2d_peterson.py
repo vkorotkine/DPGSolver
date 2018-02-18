@@ -11,7 +11,7 @@ import math
 import numpy as np
 import re
 
-sys.path.insert(0,"../../../src/processing/")
+sys.path.insert(0,"")
 from support_functions import list_print
 
 ### Classes ###

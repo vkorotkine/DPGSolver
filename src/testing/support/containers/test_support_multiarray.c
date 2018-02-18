@@ -93,8 +93,11 @@ const struct const_Multiarray_d* constructor_file_name_const_Multiarray_d
 }
 
 struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
-	(const char*const var_name, const char*const file_name_full)
+	(const char*const var_name, const char*const file_name_full, const bool assert_found)
 {
+	char var_name_wc[STRLEN_MAX];
+	sprintf(var_name_wc,"%s%c",var_name,':');
+
 	struct Multiarray_Vector_i* dest = NULL;
 
 	FILE* data_file = fopen_checked(file_name_full); // closed
@@ -103,7 +106,7 @@ struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
 
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),data_file) != NULL) {
-		if (strstr(line,var_name)) {
+		if (first_string_matches(line,var_name_wc)) {
 			found_var = true;
 			dest = constructor_file_Multiarray_Vector_i(data_file);
 		}
@@ -111,17 +114,17 @@ struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
 
 	fclose(data_file);
 
-	if (!found_var)
+	if (assert_found && !found_var)
 		EXIT_ERROR("Did not find the '%s' variable in the file: %s",var_name,file_name_full);
 
 	return dest;
 }
 
 const struct const_Multiarray_Vector_i* constructor_file_name_const_Multiarray_Vector_i
-	(const char*const var_name, const char*const file_name_full)
+	(const char*const var_name, const char*const file_name_full, const bool assert_found)
 {
 	return (const struct const_Multiarray_Vector_i*)
-		constructor_file_name_Multiarray_Vector_i(var_name,file_name_full);
+		constructor_file_name_Multiarray_Vector_i(var_name,file_name_full,assert_found);
 }
 
 const struct const_Multiarray_Matrix_d* constructor_file_name_const_Multiarray_Matrix_d

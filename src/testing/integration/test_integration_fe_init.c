@@ -181,7 +181,6 @@ static bool compare_members_fe
 
 			compare_members_Face(face,face_test,true);
 		}
-EXIT_UNSUPPORTED;
 	}
 
 	destructor_FE_Test_Data(fe_test_data);

@@ -10,7 +10,7 @@ mesh_generator   n-cube/2d_boundary_layer.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        mixed
-mesh_level       1 3
+mesh_level       1 1
 mesh_path        ../meshes/
 
 

@@ -1,20 +1,100 @@
-add_subdirectory(computational_elements)
-add_subdirectory(geometry)
-add_subdirectory(operators)
 add_subdirectory(mesh)
-add_subdirectory(solvers)
-add_subdirectory(test_case)
+add_subdirectory(operators)
 
 set	(SOURCE
 	 simulation.c
+
+	 computational_elements/computational_elements.c
+	 computational_elements/face.c
+	 computational_elements/volume.c
+
+	 geometry/element_geometry.c
+	 geometry/geometry.c
+	 geometry/geometry_blended.c
+	 geometry/geometry_parametric.c
+	 geometry/geometry_surface.c
+
+	 solvers/compute_rlhs.c
+	 solvers/compute_face_rlhs.c
+	 solvers/compute_volume_rlhs.c
+	 solvers/element_solver.c
+	 solvers/face_solver.c
+	 solvers/solve.c
+	 solvers/solve_explicit.c
+	 solvers/solve_implicit.c
+	 solvers/volume_solver.c
+
+	 solvers/adaptation/adaptation.c
+	 solvers/adaptation/face_solver_adaptive.c
+	 solvers/adaptation/element_adaptation.c
+	 solvers/adaptation/volume_solver_adaptive.c
+
+	 solvers/dg/compute_face_rlhs_dg.c
+	 solvers/dg/compute_grad_coef_dg.c
+	 solvers/dg/compute_source_rlhs_dg.c
+	 solvers/dg/compute_volume_rlhs_dg.c
+	 solvers/dg/element_solver_dg.c
+	 solvers/dg/face_solver_dg.c
+	 solvers/dg/solve_dg.c
+	 solvers/dg/volume_solver_dg.c
+
+	 solvers/dpg/compute_all_rlhs_dpg.c
+	 solvers/dpg/face_solver_dpg.c
+	 solvers/dpg/element_solver_dpg.c
+	 solvers/dpg/solve_dpg.c
+	 solvers/dpg/volume_solver_dpg.c
+
+	 solvers/numerical_flux/numerical_flux.c
+	 solvers/numerical_flux/numerical_flux_advection.c
+	 solvers/numerical_flux/numerical_flux_diffusion.c
+	 solvers/numerical_flux/numerical_flux_euler.c
+	 solvers/numerical_flux/numerical_flux_navier_stokes.c
+
+	 test_case/test_case.c
+
+	 test_case/boundary/boundary.c
+	 test_case/boundary/boundary_advection.c
+	 test_case/boundary/boundary_diffusion.c
+	 test_case/boundary/boundary_euler.c
+	 test_case/boundary/boundary_navier_stokes.c
+
+	 test_case/compute_error/compute_error.c
+	 test_case/compute_error/compute_error_advection.c
+	 test_case/compute_error/compute_error_diffusion.c
+	 test_case/compute_error/compute_error_euler.c
+	 test_case/compute_error/compute_error_navier_stokes.c
+
+	 test_case/flux/flux.c
+	 test_case/flux/flux_advection.c
+	 test_case/flux/flux_diffusion.c
+	 test_case/flux/flux_euler.c
+	 test_case/flux/flux_navier_stokes.c
+
+	 test_case/solution/element_solution.c
+	 test_case/solution/solution.c
+	 test_case/solution/advection/solution_advection.c
+	 test_case/solution/advection/solution_advection_default.c
+	 test_case/solution/advection/peterson/solution_peterson.c
+	 test_case/solution/diffusion/solution_diffusion.c
+	 test_case/solution/diffusion/default_steady/solution_diffusion_default_steady.c
+	 test_case/solution/euler/solution_euler.c
+	 test_case/solution/euler/periodic_vortex/solution_periodic_vortex.c
+	 test_case/solution/euler/supersonic_vortex/solution_supersonic_vortex.c
+	 test_case/solution/euler/free_stream/solution_free_stream.c
+	 test_case/solution/navier_stokes/solution_navier_stokes.c
+	 test_case/solution/navier_stokes/taylor_couette/solution_taylor_couette.c
+
+	 visualization/element_plotting.c
+	 visualization/visualization.c
 	)
 
 set	(LIBS_DEPEND
 	 ${MPI_C_LIBRARIES}
-	 Computational_Elements
+	 ${PETSC_LIBRARIES}
+	 Containers
+	 Intrusive
 	 Mesh
-	 Solvers
-	 Test_Case
+	 Test_Complex_Simulation
 	)
 
 set(LIB Simulation)

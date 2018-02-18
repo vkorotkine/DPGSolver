@@ -78,6 +78,8 @@ int main
 	else
 		EXIT_ERROR("Invalid test name: %s\n",test_name);
 	output_warning_count(&test_info);
+
+	OUTPUT_SUCCESS;
 }
 
 // Static functions ************************************************************************************************* //

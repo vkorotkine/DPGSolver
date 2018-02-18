@@ -46,15 +46,17 @@ const struct const_Multiarray_d* constructor_file_name_const_Multiarray_d
 /** \brief Constructor for a \ref Multiarray_Vector_T\* from data in the input file of the given name.
  *  \return Standard. */
 struct Multiarray_Vector_i* constructor_file_name_Multiarray_Vector_i
-	(const char*const var_name,      ///< The name of the variable to be read in from the file.
-	 const char*const file_name_full ///< The name of the file (including the full path).
+	(const char*const var_name,       ///< The name of the variable to be read in from the file.
+	 const char*const file_name_full, ///< The name of the file (including the full path).
+	 const bool assert_found          ///< Flag to assert that the variable be found in the file.
 	);
 
 /** \brief `const` version of \ref constructor_file_name_Multiarray_Vector_i.
  *  \return Standard. */
 const struct const_Multiarray_Vector_i* constructor_file_name_const_Multiarray_Vector_i
-	(const char*const var_name,      ///< Defined for \ref constructor_file_name_Multiarray_Vector_i.
-	 const char*const file_name_full ///< Defined for \ref constructor_file_name_Multiarray_Vector_i.
+	(const char*const var_name,       ///< See brief.
+	 const char*const file_name_full, ///< See brief.
+	 const bool assert_found          ///< See brief.
 	);
 
 /** \brief Constructor for a \ref const_Multiarray_Matrix_T\* from data in the input file of the given name.

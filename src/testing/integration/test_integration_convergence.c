@@ -193,12 +193,12 @@ static void check_convergence_orders
 		FILE* p_file = fopen_sp_input_file('p',input_name_curr,"txt",0); // closed
 
 		skip_lines(p_file,1);
-		fgets(line,sizeof(line),p_file);
+		fgets_checked(line,sizeof(line),p_file);
 		int data_i[n_err];
 		read_skip_i_1(line,1,data_i,n_err);
 
 		skip_lines(p_file,2);
-		fgets(line,sizeof(line),p_file);
+		fgets_checked(line,sizeof(line),p_file);
 
 		double data_d[n_err+1];
 		read_skip_d_1(line,0,data_d,n_err+1);
@@ -263,7 +263,7 @@ static int compute_n_err (const char* input_name)
 	FILE* p_file = fopen_sp_input_file('p',input_name,"txt",0); // closed
 
 	char line[STRLEN_MAX];
-	fgets(line,sizeof(line),p_file);
+	fgets_checked(line,sizeof(line),p_file);
 
 	int n_err = 0;
 	read_skip_i(line,&n_err);

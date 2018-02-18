@@ -14,8 +14,7 @@ ARGV="navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_Dia
 ARGV="euler/joukowski/TEST_Euler_Joukowski_DG_ParametricMixed2D petsc_options_gmres_default"
 #ARGV="euler/joukowski/TEST_Euler_Joukowski_DG_ParametricMixed2D__ml0 petsc_options_gmres_default"
 ARGV="euler/joukowski/TEST_Euler_Joukowski_Full_DG_ParametricMixed2D petsc_options_gmres_default"
-EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_fe_init
-ARGV="extern_mesh/TEST_parametric_2d_quad_periodic_reflected"
+ARGV="euler/joukowski/TEST_Euler_Joukowski_Full_DG_ParametricMixed2D__ml1 petsc_options_gmres_default"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

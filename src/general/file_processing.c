@@ -74,13 +74,6 @@ static const char* get_file_name_sp
 	 const int mpi_rank               ///< Defined for \ref fopen_sp_output_file.
 	);
 
-/** \brief Check whether the first string in the line is equal to the desired input string.
- *  \return `true` if yes; `false` otherwise. */
-static bool first_string_matches
-	(const char*const line,      ///< The line to be checked.
-	 const char*const str_search ///< The string to search for as the first entry of the line.
-	);
-
 /// \brief Set up the input file name for the given specifier if not already done.
 static void set_up_input_name
 	(const char input_spec,           ///< Defined for \ref fopen_input.
@@ -175,19 +168,32 @@ FILE* fopen_sp_input_file
 	return fopen_checked(file_name);
 }
 
+void fgets_checked (char*const line, const int sizeof_line, FILE*const file)
+{
+	if (!fgets(line,sizeof_line,file))
+		EXIT_ERROR("fgets returned NULL.\n");
+}
+
+bool first_string_matches (const char*const line, const char*const str_search)
+{
+	char str_first[STRLEN_MAX];
+	sscanf(line,"%s",str_first);
+	if (!strstr(line,str_search) || (strcmp(str_search,str_first) != 0))
+		return false;
+	return true;
+}
+
 void skip_lines (FILE* file, const int n_skip)
 {
 	char line[STRLEN_MAX];
-	for (int n = 0; n < n_skip; ++n) {
-		if (fgets(line,sizeof(line),file) == NULL)
-			EXIT_ERROR("End of file.\n");
-	}
+	for (int n = 0; n < n_skip; ++n)
+		fgets_checked(line,sizeof(line),file);
 }
 
 void skip_lines_ptr (FILE* file, char**const line, const int line_size, const int n_skip)
 {
 	for (int n = 0; n < n_skip; ++n)
-		if (fgets(*line,line_size,file)) {};
+		fgets_checked(*line,line_size,file);
 }
 
 void discard_line_values (char**const line, int n_discard)
@@ -383,7 +389,7 @@ void read_skip_string_count_c_style_const_d
 void read_skip_file_const_b (const char*const var_name, FILE* file, const bool*const var)
 {
 	char line[STRLEN_MAX];
-	if (fgets(line,sizeof(line),file)) {};
+	fgets_checked(line,sizeof(line),file);
 
 	if (!strstr(line,var_name))
 		EXIT_ERROR("Did not find '%s' in the current line of the file.\n",var_name);
@@ -394,7 +400,7 @@ void read_skip_file_const_b (const char*const var_name, FILE* file, const bool*c
 void read_skip_file_const_i (const char*const var_name, FILE* file, const int*const var)
 {
 	char line[STRLEN_MAX];
-	if (fgets(line,sizeof(line),file)) {};
+	fgets_checked(line,sizeof(line),file);
 
 	if (!strstr(line,var_name))
 		EXIT_ERROR("Did not find '%s' in the current line of the file.\n",var_name);
@@ -405,7 +411,7 @@ void read_skip_file_const_i (const char*const var_name, FILE* file, const int*co
 void read_skip_file_i (const char*const var_name, FILE* file, int*const var)
 {
 	char line[STRLEN_MAX];
-	if (fgets(line,sizeof(line),file)) {};
+	fgets_checked(line,sizeof(line),file);
 
 	if (!strstr(line,var_name))
 		EXIT_ERROR("Did not find '%s' in the current line (%s) of the file.\n",var_name,line);
@@ -579,15 +585,6 @@ static const char* get_file_name_sp
 	else if (sp_type == 'p')
 		sprintf(file_name,"%s%s%s",name_part,".p",extension_part);
 	return file_name;
-}
-
-static bool first_string_matches (const char*const line, const char*const str_search)
-{
-	char str_first[STRLEN_MAX];
-	sscanf(line,"%s",str_first);
-	if (!strstr(line,str_search) || (strcmp(str_search,str_first) != 0))
-		return false;
-	return true;
 }
 
 static void set_up_input_name

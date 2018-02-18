@@ -49,9 +49,14 @@ struct Mesh_Connectivity {
 	const struct const_Multiarray_Vector_i*const v_to_v; ///< Volume to volume connectivity.
 
 	/** Volume to local face connectivity.
-	 *	Redundant self-reference entries are replaced with the number corresponding to the appropriate boundary
-	 *	condition. */
+	 *  Redundant self-reference entries are replaced with the number corresponding to the appropriate boundary
+	 *  condition. */
 	const struct const_Multiarray_Vector_i*const v_to_lf;
+
+	/** 'V'olume to local face connectivity ('w'ith 'p'eriodic boundary condition information).
+	 *  Almost entirely filled with redundant entries for standard internal or boundary faces. Information providing
+	 *  entries are filled with the number corresponding to the periodic boundary for all relevant faces. */
+	const struct const_Multiarray_Vector_i*const v_to_lf_wp;
 };
 
 /** \brief Constructor for the \ref Mesh_Connectivity.
@@ -72,10 +77,11 @@ void set_f_node_nums
 	 const struct const_Vector_i*const node_nums ///< The entry of \ref Mesh_Data::node_nums for the current face.
 	);
 
-/** \brief Check if the physical face element is a boundary which is not periodic.
+/** \brief Check if the boundary physical face element is a boundary which is not periodic.
  *  \return See brief. */
 bool check_pfe_boundary
-	(const int bc ///< The value of the boundary condition.
+	(const int bc,               ///< The value of the boundary condition.
+	 const bool include_periodic ///< Flag for whether periodic faces should be considered to be boundary faces.
 	);
 
 #endif // DPG__mesh_connectivity_h__INCLUDED

@@ -53,6 +53,7 @@ struct Face_mesh_info {
 	/// \brief Container for neighbouring info.
 	struct Neigh_info_mi {
 		int ind_lf;            ///< \ref Face::Neigh_Info::ind_lf.
+		int ind_lf_wp;         ///< Corresponding entry of \ref Mesh_Connectivity::v_to_lf_wp.
 		struct Volume* volume; ///< \ref Face::Neigh_Info::volume.
 	} neigh_info[2]; ///< \ref Neigh_info_mi.
 };
@@ -87,8 +88,11 @@ struct Intrusive_List* constructor_Faces (struct Simulation*const sim, const str
 
 	const struct const_Multiarray_Vector_i*const node_nums = mesh->mesh_data->node_nums;
 
-	const struct const_Multiarray_Vector_i*const v_to_v  = mesh->mesh_conn->v_to_v,
-	                                      *const v_to_lf = mesh->mesh_conn->v_to_lf;
+	const struct const_Multiarray_Vector_i*const v_to_v     = mesh->mesh_conn->v_to_v,
+	                                      *const v_to_lf    = mesh->mesh_conn->v_to_lf,
+	                                      *const v_to_lf_wp = mesh->mesh_conn->v_to_lf_wp;
+
+	const bool include_p = (v_to_lf_wp != NULL);
 
 	struct Volume** volume_array = malloc((size_t)sim->n_v * sizeof *volume_array); // free
 
@@ -123,12 +127,13 @@ struct Intrusive_List* constructor_Faces (struct Simulation*const sim, const str
 				{ .element            = get_element_by_face(volume->element,lf),
 				  .ve_inds            = ve_inds,
 				  .neigh_info[0] = { .ind_lf = lf,
+				                     .ind_lf_wp = ( include_p ? v_to_lf_wp->data[v]->data[lf] : 0 ),
 				                     .volume = volume, },
-				  .neigh_info[1] = { .ind_lf = ind_lf,
-				                     .volume = volume_n, },
+				  .neigh_info[1] = { .ind_lf    = ind_lf,
+				                     .volume    = volume_n, },
 				};
 
-			push_back_IL(faces,(struct Intrusive_Link*) constructor_Face(sim,mesh,&face_mi,(int)n_f));
+			push_back_IL(faces,(struct Intrusive_Link*)constructor_Face(sim,mesh,&face_mi,(int)n_f));
 
 			destructor_const_Vector_i(ve_inds);
 
@@ -265,7 +270,8 @@ static bool check_if_curved_f
 
 /// \brief Set up the \ref Face::Neigh_Info::ind_ord
 static void set_up_Face__Neigh_Info__ind_ord
-	(struct Face* face ///< \ref Face.
+	(struct Face* face,  ///< \ref Face.
+	 const int ind_lf_wp ///< Value of \ref Mesh_Connectivity::v_to_lf_wp corresponding to the current face.
 	);
 
 static struct Face* constructor_Face
@@ -302,7 +308,7 @@ static struct Face* constructor_Face
 	const_cast_i(&face->bc,( ind_lf > BC_STEP_SC ? ind_lf : BC_INVALID ));
 	assert(!face->boundary || face->bc >= 0);
 
-	set_up_Face__Neigh_Info__ind_ord(face);
+	set_up_Face__Neigh_Info__ind_ord(face,face_mi->neigh_info[0].ind_lf_wp);
 
 	return face;
 }
@@ -332,9 +338,10 @@ const struct const_Vector_i* compute_ve_inds_f
 
 /// \brief Set Face::Neigh_Info::ind_ord based on the xyz coordinates of the face vertices.
 static void set_ind_ord
-	(struct Neigh_Info neigh_info[2],            ///< \ref Face::Neigh_Info.
-	 const struct const_Matrix_d*const xyz_ve[2] /**< The xyz coordinates of the vertices obtained from
-	                                              *   \ref Volume::xyz_ve on either side. */
+	(struct Neigh_Info neigh_info[2],             ///< \ref Face::Neigh_Info.
+	 const struct const_Matrix_d*const xyz_ve[2], /**< The xyz coordinates of the vertices obtained from
+	                                               *   \ref Volume::xyz_ve on either side. */
+	 const int ind_lf_wp                          ///< Defined for \ref set_up_Face__Neigh_Info__ind_ord.
 	);
 
 static bool check_if_curved_f
@@ -350,7 +357,7 @@ static bool check_if_curved_f
 	return check_ve_condition(f_ve,ve_inds,mesh_vert->ve_boundary,mesh_vert->ve_bc,true);
 }
 
-static void set_up_Face__Neigh_Info__ind_ord (struct Face* face)
+static void set_up_Face__Neigh_Info__ind_ord (struct Face* face, const int ind_lf_wp)
 {
 	if (face->boundary) {
 		face->neigh_info[0].ind_ord = -1;
@@ -375,7 +382,7 @@ static void set_up_Face__Neigh_Info__ind_ord (struct Face* face)
 		destructor_const_Matrix_d(xyz_ve_v);
 	}
 
-	set_ind_ord(face->neigh_info,xyz_ve);
+	set_ind_ord(face->neigh_info,xyz_ve,ind_lf_wp);
 
 	for (int i = 0; i < 2; ++i)
 		destructor_const_Matrix_d(xyz_ve[i]);
@@ -397,7 +404,8 @@ struct Vertex_Correspondence {
 /** \brief Constructor for \ref Vertex_Correspondence.
  *  \return Standard. */
 static struct Vertex_Correspondence* constructor_Vertex_Correspondence
-	(const struct const_Matrix_d*const xyz_ve[2] ///< Defined in \ref set_ind_ord.
+	(const struct const_Matrix_d*const xyz_ve[2], ///< Defined in \ref set_ind_ord.
+	 const int ind_lf_wp                          ///< Defined for \ref set_up_Face__Neigh_Info__ind_ord.
 	);
 
 /// \brief Destructor for \ref Vertex_Correspondence.
@@ -405,7 +413,8 @@ static void destructor_Vertex_Correspondence
 	(struct Vertex_Correspondence* vert_corr ///< \ref Vertex_Correspondence.
 	);
 
-static void set_ind_ord (struct Neigh_Info neigh_info[2], const struct const_Matrix_d*const xyz_ve[2])
+static void set_ind_ord
+	(struct Neigh_Info neigh_info[2], const struct const_Matrix_d*const xyz_ve[2], const int ind_lf_wp)
 {
 	const ptrdiff_t d = xyz_ve[0]->ext_1;
 	if (d == 1) {
@@ -414,7 +423,7 @@ static void set_ind_ord (struct Neigh_Info neigh_info[2], const struct const_Mat
 		return;
 	}
 
-	struct Vertex_Correspondence* vert_corr = constructor_Vertex_Correspondence(xyz_ve); // destructed
+	struct Vertex_Correspondence* vert_corr = constructor_Vertex_Correspondence(xyz_ve,ind_lf_wp); // destructed
 
 	struct Vector_i* matches_R_to_L = vert_corr->matches_R_to_L,
 	               * matches_L_to_R = vert_corr->matches_L_to_R;
@@ -453,10 +462,10 @@ static void set_ind_ord (struct Neigh_Info neigh_info[2], const struct const_Mat
 
 // Level 3 ********************************************************************************************************** //
 
-/** \brief Check if the face is periodic based on the coordinates of the centroid of the face vertex coordinates.
- *  \return 0 if not periodic; the value associated with the periodic boundary of the given direction otherwise. */
-static int check_face_for_periodicity
-	(const struct const_Matrix_d*const xyz_ve[2] ///< Defined in \ref set_ind_ord.
+/** \brief Return the number corresponding to the periodic boundary face if applicable, otherwise 0.
+ *  \return See brief. */
+static int get_bc_base_periodic
+	(const int ind_lf_wp ///< Defiend for \ref constructor_Vertex_Correspondence.
 	);
 
 /** \brief Constructor for a \ref Vector_T\* holding the indices of the matches between the input xyz coordinate
@@ -465,37 +474,57 @@ static int check_face_for_periodicity
  *
  *	The matrices must have `layout = 'R'`.
  */
-struct Vector_i* constructor_matches_Vector_i_Matrix_d
+static struct Vector_i* constructor_matches_Vector_i_Matrix_d
 	(const struct const_Matrix_d*const xyz_m, ///< The master xyz coordinates.
 	 const struct const_Matrix_d*const xyz_s, ///< The slave xyz coordinates.
-	 const struct Vector_i*const ind_skip     ///< The indices to skip (if ext_0 > 0).
+	 const struct Vector_i*const ind_skip,    ///< The indices to skip (if ext_0 > 0).
+	 const struct Vector_i*const ind_reflect  ///< The indices to reflect (if ext_0 > 0).
 	);
 
-static struct Vertex_Correspondence* constructor_Vertex_Correspondence (const struct const_Matrix_d*const xyz_ve[2])
+static struct Vertex_Correspondence* constructor_Vertex_Correspondence
+	(const struct const_Matrix_d*const xyz_ve[2], const int ind_lf_wp)
 {
 	struct Vertex_Correspondence* vert_corr = calloc(1,sizeof *vert_corr); // returned
 
-	const int bc_periodic = check_face_for_periodicity(xyz_ve);
+	const int bc_periodic = get_bc_base_periodic(ind_lf_wp);
 
-	int n_skip = 0;
-	int ind_skip_i[1] = {-1};
+	int n_skip    = 0,
+	    n_reflect = 0;
+	int ind_skip_i[1]    = {-1},
+	    ind_reflect_i[1] = {-1};
 	if (bc_periodic) {
-		n_skip = 1;
 		switch (bc_periodic) {
-		case PERIODIC_XL: case PERIODIC_XL_REFLECTED_Y: ind_skip_i[0] = 0; break;
-		case PERIODIC_YL: ind_skip_i[0] = 1; break;
-		case PERIODIC_ZL: ind_skip_i[0] = 2; break;
+		case PERIODIC_XL:
+			n_skip = 1;
+			ind_skip_i[0] = 0;
+			break;
+		case PERIODIC_YL:
+			n_skip = 1;
+			ind_skip_i[0] = 1;
+			break;
+		case PERIODIC_ZL:
+			n_skip = 1;
+			ind_skip_i[0] = 2;
+			break;
+		case PERIODIC_XL_REFLECTED_Y:
+			n_reflect = 1;
+			ind_reflect_i[0] = 1;
+			break;
 		default:
 			EXIT_UNSUPPORTED;
 			break;
 		}
 	}
-	struct Vector_i* ind_skip = constructor_copy_Vector_i_i(n_skip,ind_skip_i); // destructed;
+	const struct Vector_i*const ind_skip    = constructor_copy_Vector_i_i(n_skip,ind_skip_i);       // destructed;
+	const struct Vector_i*const ind_reflect = constructor_copy_Vector_i_i(n_reflect,ind_reflect_i); // destructed;
 
-	vert_corr->matches_R_to_L = constructor_matches_Vector_i_Matrix_d(xyz_ve[0],xyz_ve[1],ind_skip), // destructed
-	vert_corr->matches_L_to_R = constructor_matches_Vector_i_Matrix_d(xyz_ve[1],xyz_ve[0],ind_skip); // destructed
+	vert_corr->matches_R_to_L =
+		constructor_matches_Vector_i_Matrix_d(xyz_ve[0],xyz_ve[1],ind_skip,ind_reflect), // destructed
+	vert_corr->matches_L_to_R =
+		constructor_matches_Vector_i_Matrix_d(xyz_ve[1],xyz_ve[0],ind_skip,ind_reflect); // destructed
 
-	destructor_Vector_i(ind_skip);
+	destructor_Vector_i((struct Vector_i*)ind_skip);
+	destructor_Vector_i((struct Vector_i*)ind_reflect);
 
 	return vert_corr;
 }
@@ -510,50 +539,29 @@ static void destructor_Vertex_Correspondence (struct Vertex_Correspondence* vert
 
 // Level 4 ********************************************************************************************************** //
 
-static int check_face_for_periodicity (const struct const_Matrix_d*const xyz_ve[2])
+static int get_bc_base_periodic (const int ind_lf_wp)
 {
-	if (xyz_ve[0]->layout != 'R')
-		EXIT_ERROR("Expected row major.");
-
-	const ptrdiff_t n_ve = xyz_ve[0]->ext_0,
-	                d    = xyz_ve[0]->ext_1;
-
-	struct Vector_d* centroid[2] = { NULL };
-	for (int i = 0; i < 2; ++i) {
-		centroid[i] = constructor_sum_Vector_d_const_Matrix_d('R',xyz_ve[i]); // destructed
-		for (int dim = 0; dim < d; ++dim)
-			centroid[i]->data[dim] /= (double)n_ve;
+	// Return 0 for internal or non-periodic boundary face.
+	if ((ind_lf_wp < BC_STEP_SC) ||
+	    (check_pfe_boundary(ind_lf_wp,false))) {
+		return 0;
+	} else {
+		assert(check_pfe_boundary(ind_lf_wp,true));
+		return ind_lf_wp % BC_STEP_SC;
 	}
-
-	int bc = 0;
-	for (int dim = 0; dim < d; ++dim) {
-		if (!equal_d(centroid[0]->data[dim],centroid[1]->data[dim],EPS)) {
-/// \todo Delete commented here.
-//printf("%d %e %e %e\n",dim,centroid[0]->data[dim],centroid[1]->data[dim]);
-			switch (dim) {
-				case 0: bc = PERIODIC_XL; break;
-				case 1: bc = PERIODIC_YL; break;
-				case 2: bc = PERIODIC_ZL; break;
-			}
-		}
-	}
-//if (bc == PERIODIC_XL || bc == PERIODIC_YL || bc == PERIODIC_ZL)
-//printf("\n\n");
-
-	for (int i = 0; i < 2; ++i)
-		destructor_Vector_d(centroid[i]);
-
-	return bc;
 }
 
-struct Vector_i* constructor_matches_Vector_i_Matrix_d
+static struct Vector_i* constructor_matches_Vector_i_Matrix_d
 	(const struct const_Matrix_d*const xyz_m, const struct const_Matrix_d*const xyz_s,
-	 const struct Vector_i*const ind_skip)
+	 const struct Vector_i*const ind_skip, const struct Vector_i*const ind_reflect)
 {
 	const ptrdiff_t ext_1  = xyz_m->ext_1,
-	                n_skip = ind_skip->ext_0;
+	                n_skip = ind_skip->ext_0,
+	                n_refl = ind_reflect->ext_0;
 	if (n_skip >= ext_1)
 		EXIT_ERROR("Too many entries in `ind_skip` (Unsupported: %td >= %td).",n_skip,ext_1);
+	if (n_refl >= ext_1)
+		EXIT_ERROR("Too many entries in `ind_reflect` (Unsupported: %td >= %td).",n_refl,ext_1);
 
 	const ptrdiff_t ext_0 = xyz_m->ext_0;
 	struct Vector_i* dest = constructor_empty_Vector_i(ext_0); // returned
@@ -565,13 +573,17 @@ struct Vector_i* constructor_matches_Vector_i_Matrix_d
 			const double*const data_s = get_row_const_Matrix_d(i2,xyz_s);
 
 			double diff = 0.0;
-			ptrdiff_t ind = 0;
+			int ind_s = 0,
+			    ind_r = 0;
 			for (ptrdiff_t j = 0; j < ext_1; ++j) {
-				if (ind < n_skip && j == ind_skip->data[ind]) {
-					++ind;
+				if (ind_s < n_skip && j == ind_skip->data[ind_s]) {
+					++ind_s;
 					continue;
 				}
-				diff += fabs(data_m[j]-data_s[j]);
+				float scale = -1.0;
+				if (ind_r < n_refl && j == ind_reflect->data[ind_r])
+					scale = 1.0;
+				diff += fabs(data_m[j]+scale*data_s[j]);
 			}
 
 			if (diff < EPS) {

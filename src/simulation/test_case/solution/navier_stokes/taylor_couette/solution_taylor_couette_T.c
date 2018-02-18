@@ -180,6 +180,8 @@ static struct Multiarray_T* constructor_grad_taylor_couette
 	(const struct const_Multiarray_R*const xyz, const struct Simulation*const sim)
 {
 	assert(DIM == 2);
+	static const int dmax = 2;
+
 	const struct Sol_Data__tc sol_data = get_sol_data(sim);
 
 	// Compute the solution
@@ -200,10 +202,10 @@ static struct Multiarray_T* constructor_grad_taylor_couette
 	          *const p_ptr   = get_col_const_Multiarray_T(n_var-1,sol);
 
 	struct Multiarray_T*const grad = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_n,n_var,DIM}); // returned
-	Type*const g_rho_ptr[] = { get_col_Multiarray_T(0*n_var+0,grad), get_col_Multiarray_T(1*n_var+0,grad), },
-	    *const g_u_ptr[]   = { get_col_Multiarray_T(0*n_var+1,grad), get_col_Multiarray_T(1*n_var+1,grad), },
-	    *const g_v_ptr[]   = { get_col_Multiarray_T(0*n_var+2,grad), get_col_Multiarray_T(1*n_var+2,grad), },
-	    *const g_p_ptr[]   = { get_col_Multiarray_T(0*n_var+3,grad), get_col_Multiarray_T(1*n_var+3,grad), };
+	Type*const g_rho_ptr[] = ARRAY_DIM( get_col_Multiarray_T(0*n_var+0,grad), get_col_Multiarray_T(1*n_var+0,grad), NULL ),
+	    *const g_u_ptr[]   = ARRAY_DIM( get_col_Multiarray_T(0*n_var+1,grad), get_col_Multiarray_T(1*n_var+1,grad), NULL ),
+	    *const g_v_ptr[]   = ARRAY_DIM( get_col_Multiarray_T(0*n_var+2,grad), get_col_Multiarray_T(1*n_var+2,grad), NULL ),
+	    *const g_p_ptr[]   = ARRAY_DIM( get_col_Multiarray_T(0*n_var+3,grad), get_col_Multiarray_T(1*n_var+3,grad), NULL );
 
 	const Real r_i    = sol_data.r_i,
 	           r_o    = sol_data.r_o,
@@ -233,7 +235,7 @@ static struct Multiarray_T* constructor_grad_taylor_couette
 		 *        with the equation of state, such that the correct temperature gradient is obtained. */
 		const Real dp_dX[] = { 0.0, 0.0, };
 
-		for (int d = 0; d < DIM; ++d) {
+		for (int d = 0; d < dmax; ++d) {
 			g_rho_ptr[d][i] = 1.0/(r_s*t)*dp_dX[d] - p/(r_s*t*t)*dt_dr*dr_dX[d];
 			g_u_ptr[d][i]   = -(  cos(th)*dth_dX[d]*Vt + sin(th)*dVt_dr*dr_dX[d] );
 			g_v_ptr[d][i]   =  ( -sin(th)*dth_dX[d]*Vt + cos(th)*dVt_dr*dr_dX[d] );

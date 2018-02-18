@@ -5,9 +5,14 @@ TOP_DIR="${PWD}/../.."
 
 # Modifiable parameters ****************************************************** #
 
-export MKLROOT=/Users/philip/Desktop/research_codes/mkl/mkl_2017_3/mkl
-export PETSC_DIR=/Users/philip/Desktop/research_codes/petsc/petsc-3.8.2
-export PETSC_ARCH=arch-macOS-mkl-mpich-release
+# Must use mpich configured with --disable-checkpointing when running with valgrind otherwise there
+# is a clash between the two programs. See [this][https://stackoverflow.com/a/37643501/5983549] SO
+# answer. It seems that this is no longer required if using mpich-3.2.1.
+export CMAKE_PREFIX_PATH=/home/pzwan/Applications/mpich/mpich-3.2.1/build
+
+export PETSC_DIR=/home/pzwan/Applications/petsc/petsc-3.8.0
+export PETSC_ARCH=arch-linux-mkl-mpich-release
+
 
 BUILD_DIR=${TOP_DIR}/build_test
 

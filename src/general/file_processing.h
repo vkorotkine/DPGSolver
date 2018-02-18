@@ -73,6 +73,20 @@ FILE* fopen_sp_input_file
 
 // Reading data from the current line ******************************************************************************* //
 
+/// \brief Call standard library fgets, exiting if `NULL` is returned.
+void fgets_checked
+	(char*const line,       ///< Input[0] for fgets.
+	 const int sizeof_line, ///< Input[1] for fgets.
+	 FILE*const file        ///< Input[2] for fgets.
+	);
+
+/** \brief Check whether the first string in the line is equal to the desired input string.
+ *  \return `true` if yes; `false` otherwise. */
+bool first_string_matches
+	(const char*const line,      ///< The line to be checked.
+	 const char*const str_search ///< The string to search for as the first entry of the line.
+	);
+
 /// \brief Skip lines in a file while reading.
 void skip_lines
 	(FILE* file,          ///< Standard.

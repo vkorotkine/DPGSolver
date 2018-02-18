@@ -90,6 +90,8 @@ int main
 	else
 		EXIT_ERROR("Invalid test name: %s\n",test_name);
 	output_warning_count(&test_info);
+
+	OUTPUT_SUCCESS;
 }
 
 // Static functions ************************************************************************************************* //
@@ -630,13 +632,13 @@ static struct Nodes_FC_Data* constructor_Nodes_FC_Data (const char eval_type, co
 		sprintf(file_name_part,"%s%s","nodes/",node_type);
 		const char*const file_name_full = set_data_file_name_unit(file_name_part);
 
-		nodes_fc_data->point_N = constructor_file_name_const_Multiarray_Vector_i("point_N",file_name_full); // keep
-		nodes_fc_data->line_3  = constructor_file_name_const_Multiarray_Vector_i("line_3", file_name_full); // keep
-		nodes_fc_data->line_4  = constructor_file_name_const_Multiarray_Vector_i("line_4", file_name_full); // keep
-		nodes_fc_data->quad_9  = constructor_file_name_const_Multiarray_Vector_i("quad_9", file_name_full); // keep
-		nodes_fc_data->quad_16 = constructor_file_name_const_Multiarray_Vector_i("quad_16",file_name_full); // keep
-		nodes_fc_data->tri_6   = constructor_file_name_const_Multiarray_Vector_i("tri_6",  file_name_full); // keep
-		nodes_fc_data->tri_10  = constructor_file_name_const_Multiarray_Vector_i("tri_10", file_name_full); // keep
+		nodes_fc_data->point_N = constructor_file_name_const_Multiarray_Vector_i("point_N",file_name_full,true); // keep
+		nodes_fc_data->line_3  = constructor_file_name_const_Multiarray_Vector_i("line_3", file_name_full,true); // keep
+		nodes_fc_data->line_4  = constructor_file_name_const_Multiarray_Vector_i("line_4", file_name_full,true); // keep
+		nodes_fc_data->quad_9  = constructor_file_name_const_Multiarray_Vector_i("quad_9", file_name_full,true); // keep
+		nodes_fc_data->quad_16 = constructor_file_name_const_Multiarray_Vector_i("quad_16",file_name_full,true); // keep
+		nodes_fc_data->tri_6   = constructor_file_name_const_Multiarray_Vector_i("tri_6",  file_name_full,true); // keep
+		nodes_fc_data->tri_10  = constructor_file_name_const_Multiarray_Vector_i("tri_10", file_name_full,true); // keep
 	} else if (eval_type == 'c') {
 		nodes_fc_data->point_N = constructor_nodes_face_corr(0,2,NODES_GL,ST_TP);  // keep
 		nodes_fc_data->line_3  = constructor_nodes_face_corr(1,2,NODES_GL,ST_TP);  // keep

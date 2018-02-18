@@ -12,7 +12,7 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-///	\file
+/// \file
 
 #include "mesh_connectivity.h"
 #include "mesh_readers.h"
@@ -40,8 +40,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Container for locally computed \ref Mesh_Connectivity members.
 struct Mesh_Connectivity_l {
-	struct Multiarray_Vector_i* v_to_v;  ///< Local version of \ref Mesh_Connectivity::v_to_v.
-	struct Multiarray_Vector_i* v_to_lf; ///< Local version of \ref Mesh_Connectivity::v_to_lf.
+	struct Multiarray_Vector_i* v_to_v;     ///< Local version of \ref Mesh_Connectivity::v_to_v.
+	struct Multiarray_Vector_i* v_to_lf;    ///< Local version of \ref Mesh_Connectivity::v_to_lf.
+	struct Multiarray_Vector_i* v_to_lf_wp; ///< Local version of \ref Mesh_Connectivity::v_to_lf_wp.
 };
 
 /** \brief Constructor for \ref Conn_info.
@@ -81,9 +82,10 @@ static void compute_v_to__v_lf
  *	the appropriate boundary condition.
  */
 static void add_bc_info
-	(const struct Mesh_Data*const mesh_data,      ///< Standard.
-	 const struct Conn_info*const conn_info,      ///< The \ref Conn_info.
-	 struct Mesh_Connectivity_l*const mesh_conn_l ///< The \ref Mesh_Connectivity_l.
+	(const struct Mesh_Data*const mesh_data,       ///< Standard.
+	 const struct Conn_info*const conn_info,       ///< The \ref Conn_info.
+	 struct Mesh_Connectivity_l*const mesh_conn_l, ///< The \ref Mesh_Connectivity_l.
+	 const bool include_periodic                   ///< Flag for whether periodic boundaries should be included.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -96,18 +98,19 @@ struct Mesh_Connectivity* constructor_Mesh_Connectivity
 
 	compute_f_ve(mesh_data,elements,conn_info);
 	compute_v_to__v_lf(conn_info,&mesh_conn_l);
-	add_bc_info(mesh_data,conn_info,&mesh_conn_l);
+	add_bc_info(mesh_data,conn_info,&mesh_conn_l,false);
+	add_bc_info(mesh_data,conn_info,&mesh_conn_l,true);
 
 	destructor_Multiarray_Vector_i(conn_info->f_ve);
 	destructor_Vector_i(conn_info->ind_f_ve);
 	destructor_conditional_Multiarray_Vector_i(conn_info->f_ve_per);
 	destructor_Conn_info(conn_info);
 
-
 	struct Mesh_Connectivity* mesh_conn = calloc(1,sizeof *mesh_conn); // returned
 
 	const_constructor_move_Multiarray_Vector_i(&mesh_conn->v_to_v,mesh_conn_l.v_to_v);
 	const_constructor_move_Multiarray_Vector_i(&mesh_conn->v_to_lf,mesh_conn_l.v_to_lf);
+	const_constructor_move_Multiarray_Vector_i(&mesh_conn->v_to_lf_wp,mesh_conn_l.v_to_lf_wp);
 
 	return mesh_conn;
 }
@@ -116,6 +119,7 @@ void destructor_Mesh_Connectivity (struct Mesh_Connectivity* mesh_conn)
 {
 	destructor_const_Multiarray_Vector_i(mesh_conn->v_to_v);
 	destructor_const_Multiarray_Vector_i(mesh_conn->v_to_lf);
+	destructor_conditional_const_Multiarray_Vector_i(mesh_conn->v_to_lf_wp);
 
 	free(mesh_conn);
 }
@@ -126,7 +130,7 @@ void set_f_node_nums (struct Vector_i**const f_node_nums, const struct const_Vec
 	sort_Vector_i(*f_node_nums);
 }
 
-bool check_pfe_boundary (const int bc)
+bool check_pfe_boundary (const int bc, const bool include_periodic)
 {
 	const int bc_base = bc % BC_STEP_SC;
 	switch (bc_base) {
@@ -149,7 +153,7 @@ bool check_pfe_boundary (const int bc)
 	case PERIODIC_YL: case PERIODIC_YR:
 	case PERIODIC_ZL: case PERIODIC_ZR:
 	case PERIODIC_XL_REFLECTED_Y: case PERIODIC_XR_REFLECTED_Y:
-		return false;
+		return include_periodic;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",bc_base);
 		break;
@@ -195,17 +199,20 @@ static ptrdiff_t compute_sum_n_f
 
 /// \brief Set boundary face info for all entries in the list.
 static void set_bf_info
-	(struct Boundary_Face_Info* bf_info,    ///< The \ref Boundary_Face_Info.
-	 const ptrdiff_t ind_pfe,               ///< Index of the first physical face element in the mesh element list.
-	 const struct Mesh_Data*const mesh_data ///< The \ref Mesh_Data.
+	(struct Boundary_Face_Info* bf_info,     ///< The \ref Boundary_Face_Info.
+	 const ptrdiff_t ind_pfe,                ///< Index of the first physical face element in the mesh element list.
+	 const struct Mesh_Data*const mesh_data, ///< The \ref Mesh_Data.
+	 const bool include_periodic             ///< Flag for whether periodic boundaries should be included.
 	);
 
 /** \brief Count the number of boundary faces.
  *  \return See brief. */
 static ptrdiff_t count_boundary_faces
-	(const ptrdiff_t ind_pfe,                    ///< Index of the first physical face element in the mesh element list.
-	 const ptrdiff_t n_pfe,                      ///< The number of physical face elements.
-	 const struct const_Matrix_i*const elem_tags ///< \ref Mesh_Data::elem_tags.
+	(const ptrdiff_t ind_pfe,                     /**< Index of the first physical face element in the mesh element
+	                                               *   list. */
+	 const ptrdiff_t n_pfe,                       ///< The number of physical face elements.
+	 const struct const_Matrix_i*const elem_tags, ///< \ref Mesh_Data::elem_tags.
+	 const bool include_periodic                  ///< Flag for whether periodic faces should be included.
 	);
 
 /** \brief Reorder the boundary face entries in the list according to the node numbering.
@@ -330,31 +337,36 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 	reorder_Vector_i(ind_v_V,ind_f_ve_V->data);
 	reorder_Vector_i(ind_lf_V,ind_f_ve_V->data);
 
-	// Compute v_to_v and v_to_lf
-	int* v_to_v_i  = malloc((size_t)n_f * sizeof *v_to_v_i);  // free
-	int* v_to_lf_i = malloc((size_t)n_f * sizeof *v_to_lf_i); // free
+	// Compute v_to_v, v_to_lf, and (optionally) v_to_lf_wp
+	int*const v_to_v_i     = malloc((size_t)n_f * sizeof *v_to_v_i);  // free
+	int*const v_to_lf_i    = malloc((size_t)n_f * sizeof *v_to_lf_i); // free
+	int*const v_to_lf_wp_i = malloc((size_t)n_f * sizeof *v_to_lf_i); // free
+	for (int i = 0; i < n_f; ++i) {
+		v_to_v_i[i]     = -1;
+		v_to_lf_i[i]    = -1;
+		v_to_lf_wp_i[i] = -1;
+	}
 
-	struct Multiarray_Vector_i* f_ve = conn_info->f_ve;
 	const int*const ind_f_ve_i = ind_f_ve_V->data;
+	struct Multiarray_Vector_i*const f_ve     = conn_info->f_ve;
+	struct Multiarray_Vector_i*const f_ve_per = conn_info->f_ve_per;
 
-	bool found_match = false;
-	for (ptrdiff_t f = 0; f < n_f; f++) {
+	const bool include_periodic = (f_ve_per != NULL);
+
+	for (ptrdiff_t f = 0; f < n_f; ++f) {
 		const ptrdiff_t ind_0 = ind_f_ve_i[f];
 		if ((f+1) < n_f && check_equal_Vector_i(f_ve->data[f],f_ve->data[f+1])) {
 			const ptrdiff_t ind_1 = ind_f_ve_i[f+1];
-
 			v_to_v_i[ind_0]  = ind_v_i[f+1];
 			v_to_lf_i[ind_0] = ind_lf_i[f+1];
 			v_to_v_i[ind_1]  = ind_v_i[f];
 			v_to_lf_i[ind_1] = ind_lf_i[f];
 
-			found_match = true;
-		} else {
-			if (!found_match) {
-				v_to_v_i[ind_0]  = -1;
-				v_to_lf_i[ind_0] = -1;
+			if (include_periodic && (check_equal_Vector_i(f_ve_per->data[f],f_ve_per->data[f+1]))) {
+				v_to_lf_wp_i[ind_0] = v_to_lf_i[ind_0];
+				v_to_lf_wp_i[ind_1] = v_to_lf_i[ind_1];
 			}
-			found_match = false;
+			++f;
 		}
 	}
 	destructor_Vector_i(ind_v_V);
@@ -362,26 +374,29 @@ static void compute_v_to__v_lf (const struct Conn_info*const conn_info, struct M
 
 	mesh_conn_l->v_to_v  = constructor_copy_Multiarray_Vector_i_i(v_to_v_i,conn_info->v_n_lf->data,1,&n_v);  // keep
 	mesh_conn_l->v_to_lf = constructor_copy_Multiarray_Vector_i_i(v_to_lf_i,conn_info->v_n_lf->data,1,&n_v); // keep
+	mesh_conn_l->v_to_lf_wp = ( !include_periodic ? NULL :
+		constructor_copy_Multiarray_Vector_i_i(v_to_lf_wp_i,conn_info->v_n_lf->data,1,&n_v)); // keep
 
 	free(v_to_v_i);
 	free(v_to_lf_i);
+	free(v_to_lf_wp_i);
 }
 
 static void add_bc_info
 	(const struct Mesh_Data*const mesh_data, const struct Conn_info*const conn_info,
-	 struct Mesh_Connectivity_l*const mesh_conn_l)
+	 struct Mesh_Connectivity_l*const mesh_conn_l, const bool include_periodic)
 {
 	const int d = conn_info->d;
 	const ptrdiff_t ind_pfe = get_first_volume_index(conn_info->elem_per_dim,d-1),
 	                n_pfe   = conn_info->elem_per_dim->data[d-1],
-	                n_bf    = count_boundary_faces(ind_pfe,n_pfe,mesh_data->elem_tags);
+	                n_bf    = count_boundary_faces(ind_pfe,n_pfe,mesh_data->elem_tags,include_periodic);
 
-	if (n_bf == 0)
+	if ((n_bf == 0) || (include_periodic && conn_info->f_ve_per == NULL))
 		return;
 
 	// Set the boundary face info and sort it by node_nums.
 	struct Boundary_Face_Info* bf_info = constructor_Boundary_Face_Info(n_pfe,n_bf); // destructed
-	set_bf_info(bf_info,ind_pfe,mesh_data);
+	set_bf_info(bf_info,ind_pfe,mesh_data,include_periodic);
 
 	// Copy the pointers to the node_nums into a Multiarray_Vector_i (for sorting).
 	struct Multiarray_Vector_i* bf_ve = constructor_empty_Multiarray_Vector_i(true,1,&n_bf); // destructed
@@ -398,12 +413,20 @@ static void add_bc_info
 	destructor_Vector_i(ind_bf_ve);
 
 	// Set the unused entries in v_to_lf to the values of the associated boundary conditions.
-	struct Vector_i*const v_to_lf_V = collapse_Multiarray_Vector_i(mesh_conn_l->v_to_lf); // destructed
+	struct Multiarray_Vector_i* v_to_lf = NULL;
+	struct Vector_i*const* f_ve_V = NULL;
+
+	if (!include_periodic) {
+		v_to_lf = mesh_conn_l->v_to_lf;
+		f_ve_V  = conn_info->f_ve->data;
+	} else {
+		v_to_lf = mesh_conn_l->v_to_lf_wp;
+		f_ve_V  = conn_info->f_ve_per->data;
+	}
+	struct Vector_i*const v_to_lf_V = collapse_Multiarray_Vector_i(v_to_lf); // destructed
 
 	int*const v_to_lf_i  = v_to_lf_V->data,
 	   *const ind_f_ve_i = conn_info->ind_f_ve->data;
-
-	struct Vector_i*const*const f_ve_V = conn_info->f_ve->data;
 
 	struct Boundary_Face*const f_curr = calloc(1,sizeof *f_curr); // free
 	f_curr->bc = -1;
@@ -423,7 +446,7 @@ static void add_bc_info
 	}
 	free(f_curr);
 
-	update_v_to_lf_bc(mesh_conn_l->v_to_lf,v_to_lf_i);
+	update_v_to_lf_bc(v_to_lf,v_to_lf_i);
 
 	destructor_Vector_i(v_to_lf_V);
 	destructor_Boundary_Face_Info(bf_info);
@@ -490,7 +513,8 @@ static void destructor_Boundary_Face_Info (struct Boundary_Face_Info* bf_info)
 }
 
 static void set_bf_info
-	(struct Boundary_Face_Info* bf_info, const ptrdiff_t ind_pfe, const struct Mesh_Data*const mesh_data)
+	(struct Boundary_Face_Info* bf_info, const ptrdiff_t ind_pfe, const struct Mesh_Data*const mesh_data,
+	 const bool include_periodic)
 {
 	const struct const_Matrix_i*const            elem_tags = mesh_data->elem_tags;
 	const struct const_Multiarray_Vector_i*const node_nums = mesh_data->node_nums;
@@ -501,7 +525,7 @@ static void set_bf_info
 	for (ptrdiff_t n = ind_pfe; n < n_max; ++n) {
 		const int bc = get_val_const_Matrix_i(n,0,elem_tags);
 
-		if (!check_pfe_boundary(bc))
+		if (!check_pfe_boundary(bc,include_periodic))
 			continue;
 
 		struct Boundary_Face*const bf = bf_info->b_faces[count_bf];
@@ -517,13 +541,14 @@ static void set_bf_info
 }
 
 static ptrdiff_t count_boundary_faces
-	(const ptrdiff_t ind_pfe, const ptrdiff_t n_pfe, const struct const_Matrix_i*const elem_tags)
+	(const ptrdiff_t ind_pfe, const ptrdiff_t n_pfe, const struct const_Matrix_i*const elem_tags,
+	 const bool include_periodic)
 {
 	ptrdiff_t count = 0;
 
 	const ptrdiff_t n_max = ind_pfe+n_pfe;
 	for (ptrdiff_t n = ind_pfe; n < n_max; ++n) {
-		if (check_pfe_boundary(get_val_const_Matrix_i(n,0,elem_tags)))
+		if (check_pfe_boundary(get_val_const_Matrix_i(n,0,elem_tags),include_periodic))
 			++count;
 	}
 	return count;
