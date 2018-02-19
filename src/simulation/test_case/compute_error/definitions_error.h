@@ -12,15 +12,16 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__definitions_error_h__INCLUDED
+#define DPG__definitions_error_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templated containers/functions relating to solution for the
- *         euler equations.
+ *  \brief Provides the definitions relating to error computation.
  */
 
-#include "periodic_vortex/undef_templates_solution_periodic_vortex.h"
-#include "supersonic_vortex/undef_templates_solution_supersonic_vortex.h"
-#include "free_stream/undef_templates_solution_free_stream.h"
+///\{ \name Supported error types.
+#define ERROR_STANDARD   101 ///< Standart volume L2 error output.
+#define ERROR_FUNCTIONAL 102 ///< Surface Functional error output.
+///\}
 
-#undef set_function_pointers_solution_euler_T
-#undef convert_variables_T
-#undef constructor_const_functionals_cd_cl_zero_T
+#endif // DPG__definitions_error_h__INCLUDED

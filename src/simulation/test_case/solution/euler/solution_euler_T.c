@@ -76,6 +76,7 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
 		test_case->constructor_Error_CE         = constructor_Error_CE_euler_entropy;
+		test_case->constructor_Error_CE_functionals = constructor_Error_CE_functionals__cd_cl;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}
@@ -167,6 +168,18 @@ void convert_variables_T (struct Multiarray_T* vars, const char type_i, const ch
 		EXIT_ERROR("Unsupported: %c\n",type_i);
 		break;
 	}
+}
+
+const struct const_Multiarray_T* constructor_const_functionals_cd_cl_zero_T
+	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
+{
+	UNUSED(sim);
+	const ptrdiff_t n_n = xyz->extents[0];
+
+	struct Multiarray_T* func = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,2}); // returned
+	set_to_value_Multiarray_T(func,0.0);
+
+	return (struct const_Multiarray_T*) func;
 }
 
 // Static functions ************************************************************************************************* //

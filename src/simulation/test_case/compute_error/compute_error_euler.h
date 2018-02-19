@@ -44,4 +44,10 @@ void add_euler_variable_Error_CE_Data
 	 const struct Simulation*const sim  ///< \ref Simulation.
 	);
 
+/** \brief Version of \ref constructor_Error_CE_fptr checking the error of drag and lift coefficients.
+ *  \return See brief. */
+struct Error_CE* constructor_Error_CE_functionals__cd_cl
+	(const struct Simulation*const sim ///< \ref Simulation.
+	);
+
 #endif // DPG__compute_error_euler_h__INCLUDED

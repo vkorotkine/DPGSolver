@@ -1,4 +1,6 @@
 /// Solution parameters for test case: euler/steady/free_stream
 
+density   1.0
+pressure  1.0
 mach      1.5
 theta_deg 0.0

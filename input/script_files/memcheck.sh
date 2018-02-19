@@ -10,11 +10,8 @@
 
 # Executable and command line arguments
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
-ARGV="navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_Diabatic_DG_ParametricTRI petsc_options_gmres_default"
-ARGV="euler/joukowski/TEST_Euler_Joukowski_DG_ParametricMixed2D petsc_options_gmres_default"
-#ARGV="euler/joukowski/TEST_Euler_Joukowski_DG_ParametricMixed2D__ml0 petsc_options_gmres_default"
-ARGV="euler/joukowski/TEST_Euler_Joukowski_Full_DG_ParametricMixed2D petsc_options_gmres_default"
-ARGV="euler/joukowski/TEST_Euler_Joukowski_Full_DG_ParametricMixed2D__ml1 petsc_options_gmres_r120"
+ARGV="euler/joukowski/TEST_Euler_Joukowski_Full_DG_ParametricMixed2D petsc_options_gmres_r120"
+#ARGV="euler/joukowski/TEST_Euler_Joukowski_Full_DG_ParametricMixed2D petsc_options_gmres_amg"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

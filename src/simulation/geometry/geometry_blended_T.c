@@ -180,7 +180,7 @@ const struct const_Matrix_R* constructor_xyz_surf_diff_T
 		};
 
 	assert(s_vol->constructor_xyz_surface != NULL);
-	const struct const_Matrix_R*const xyz_b = s_vol->constructor_xyz_surface(&b_p_d);
+	const struct const_Matrix_R*const xyz_b = s_vol->constructor_xyz_surface(&b_p_d); // destructed
 
 	struct Matrix_R* xyz_surf_diff = NULL;
 	switch (n_type) {
@@ -197,6 +197,7 @@ const struct const_Matrix_R* constructor_xyz_surf_diff_T
 		break;
 	}
 	add_in_place_Matrix_R(1.0,xyz_surf_diff,xyz_b);
+	destructor_const_Matrix_R(xyz_b);
 
 	return (struct const_Matrix_R*) xyz_surf_diff;
 }

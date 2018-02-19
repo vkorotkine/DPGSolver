@@ -68,7 +68,9 @@ void set_sol_free_stream_T (const struct Simulation* sim, struct Solution_Contai
 /// \brief Container for solution data relating to 'f'ree 's'tream.
 struct Sol_Data__fs {
 	// Read parameters
-	Real mach,  ///< The free stream 'mach' number.
+	Real rho,   ///< The free stream density.
+	     p,     ///< The free stream pressure.
+	     mach,  ///< The free stream 'mach' number.
 	     theta; ///< The free stream flow angle in the xy-plane (in radians).
 };
 
@@ -92,8 +94,8 @@ static struct Multiarray_T* constructor_sol_free_stream
 
 	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,n_var}); // returned
 
-	const Real rho_fs = 1.0,
-	           p_fs   = pow(rho_fs,GAMMA),
+	const Real rho_fs = sol_data.rho,
+	           p_fs   = sol_data.p,
 	           c_fs   = sqrt(GAMMA*p_fs/rho_fs);
 
 	const Real V_fs   = sol_data.mach*c_fs,
@@ -145,14 +147,16 @@ static struct Sol_Data__fs get_sol_data ( )
 
 static void read_data_free_stream (struct Sol_Data__fs*const sol_data)
 {
-	const int count_to_find = 2;
+	const int count_to_find = 4;
 
 	FILE* input_file = fopen_input('s',NULL,NULL); // closed
 
 	int count_found = 0;
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),input_file)) {
-		read_skip_string_count_d("mach", &count_found,line,&sol_data->mach);
+		read_skip_string_count_d("density",  &count_found,line,&sol_data->rho);
+		read_skip_string_count_d("pressure", &count_found,line,&sol_data->p);
+		read_skip_string_count_d("mach",     &count_found,line,&sol_data->mach);
 		read_skip_string_count_d("theta_deg",&count_found,line,&sol_data->theta);
 	}
 	fclose(input_file);

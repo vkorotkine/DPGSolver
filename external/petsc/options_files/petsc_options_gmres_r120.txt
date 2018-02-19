@@ -1,5 +1,5 @@
 -ksp_type gmres
--ksp_rtol 1.e-7
+-ksp_rtol 1.e-4
 -ksp_initial_guess_nonzero
 -ksp_gmres_modifiedgramschmidt
 -ksp_gmres_restart 120

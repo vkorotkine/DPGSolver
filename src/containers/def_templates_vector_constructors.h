@@ -62,6 +62,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define destructor_Vector_T       destructor_Vector_d
 #define destructor_const_Vector_T destructor_const_Vector_d
+#define destructor_conditional_Vector_T       destructor_conditional_Vector_d
+#define destructor_conditional_const_Vector_T destructor_conditional_const_Vector_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -110,6 +112,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define destructor_Vector_T       destructor_Vector_c
 #define destructor_const_Vector_T destructor_const_Vector_c
+#define destructor_conditional_Vector_T       destructor_conditional_Vector_c
+#define destructor_conditional_const_Vector_T destructor_conditional_const_Vector_c
 ///\}
 
 #endif

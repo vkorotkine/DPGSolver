@@ -24,13 +24,16 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_core.h"
+#include "definitions_error.h"
 
+#include "face_solver.h"
 #include "volume.h"
 #include "volume_solver.h"
 
 #include "multiarray.h"
 #include "vector.h"
 
+#include "boundary.h"
 #include "compute_error.h"
 #include "const_cast.h"
 #include "element.h"
@@ -51,6 +54,11 @@ static const char* compute_header_spec_euler_all
 static const char* compute_header_spec_euler_entropy
 	();
 
+/** \brief Return a statically allocated `char*` holding the specific header for the drag/lift functionals.
+ *  \return See brief. */
+static const char* compute_header_spec_cd_cl
+	();
+
 // Interface functions ********************************************************************************************** //
 
 struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
@@ -59,6 +67,7 @@ struct Error_CE* constructor_Error_CE_euler_all (const struct Simulation* sim)
 
 	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
 	e_ce_h->header_spec = compute_header_spec_euler_all();
+	const_cast_i(&e_ce_h->error_type,ERROR_STANDARD);
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		e_ce_h->s_vol[0] = (struct Solver_Volume*) curr;
@@ -86,6 +95,7 @@ struct Error_CE* constructor_Error_CE_euler_entropy (const struct Simulation* si
 
 	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
 	e_ce_h->header_spec = compute_header_spec_euler_entropy();
+	const_cast_i(&e_ce_h->error_type,ERROR_STANDARD);
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		e_ce_h->s_vol[0] = (struct Solver_Volume*) curr;
@@ -135,6 +145,50 @@ void add_euler_variable_Error_CE_Data
 	destructor_Multiarray_d(var);
 }
 
+struct Error_CE* constructor_Error_CE_functionals__cd_cl (const struct Simulation*const sim)
+{
+	const int n_out = 2;
+
+	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
+	e_ce_h->header_spec = compute_header_spec_cd_cl();
+	const_cast_i(&e_ce_h->error_type,ERROR_FUNCTIONAL);
+
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		const struct Face*const face          = (struct Face*) curr;
+		if (!face->boundary)
+			continue;
+
+		const struct Solver_Face*const s_face = (struct Solver_Face*) curr;
+		e_ce_h->s_face = s_face;
+		e_ce_h->s_vol[0] = (struct Solver_Volume*) face->neigh_info[0].volume;
+
+		struct Boundary_Value_Input bv_i;
+		constructor_Boundary_Value_Input_face_s_fcl_interp(&bv_i,s_face,sim); // destructed
+		bv_i.g = NULL;
+
+		const struct const_Multiarray_d*const xyz_fc = s_face->xyz_fc;
+		const ptrdiff_t n_n = bv_i.xyz->extents[0];
+
+		struct Error_CE_Data e_ce_d;
+		e_ce_d.sol[0] = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_n,2}); // destructed
+		compute_cd_cl_values(e_ce_d.sol[0],bv_i.s,'c',bv_i.normals);
+		destructor_Boundary_Value_Input(&bv_i);
+
+		e_ce_d.sol[1] = (struct Multiarray_d*)constructor_const_functionals_cd_cl_zero(xyz_fc,sim); // destructed
+
+		increment_sol_integrated_face(e_ce_h,&e_ce_d);
+		update_domain_order(e_ce_h);
+
+		for (int i = 0; i < 2; ++i)
+			destructor_Multiarray_d(e_ce_d.sol[i]);
+	}
+
+	struct Error_CE* error_ce = constructor_Error_CE(e_ce_h,sim); // returned
+	destructor_Error_CE_Helper(e_ce_h);
+
+	return error_ce;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -156,5 +210,12 @@ static const char* compute_header_spec_euler_entropy ( )
 {
 	static char header_spec[STRLEN_MAX];
 	sprintf(header_spec,"%-14s","L2s");
+	return header_spec;
+}
+
+static const char* compute_header_spec_cd_cl ( )
+{
+	static char header_spec[STRLEN_MAX];
+	sprintf(header_spec,"%-14s%-14s","L2_Cd","L2_Cl");
 	return header_spec;
 }

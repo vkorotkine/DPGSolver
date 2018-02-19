@@ -77,6 +77,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef destructor_conditional_const_Matrix_T
 
 
+#undef constructor_default_Matrix_R
+#undef constructor_default_const_Matrix_R
+
 #undef constructor_empty_Matrix_R
 #undef constructor_empty_const_Matrix_R
 #undef constructor_zero_Matrix_R
@@ -85,6 +88,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_copy_const_Matrix_R
 #undef constructor_copy_permute_Matrix_R
 #undef constructor_copy_permute_const_Matrix_R
+
+#undef constructor_move_Matrix_R_R
+#undef constructor_move_const_Matrix_R_R
 
 #undef constructor_inverse_const_Matrix_R
 #undef constructor_mm_Matrix_R

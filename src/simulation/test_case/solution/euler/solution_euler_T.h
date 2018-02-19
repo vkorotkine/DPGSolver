@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Test_Case_T;
 struct Simulation;
 struct Multiarray_T;
+struct const_Multiarray_R;
 struct const_Multiarray_T;
 
 /// \brief Set the solution function pointer members of an Euler \ref Test_Case_T.
@@ -37,4 +38,11 @@ void convert_variables_T
 	(struct Multiarray_T* vars, ///< The container holding the data.
 	 const char type_i,         ///< The input variable type.
 	 const char type_o          ///< The output variable type.
+	);
+
+/** \brief Function to be used for \ref Test_Case_T::constructor_functionals for zero drag/lift coefficients.
+ *  \return See brief. */
+const struct const_Multiarray_T* constructor_const_functionals_cd_cl_zero_T
+	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);

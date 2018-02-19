@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_core.h"
+#include "definitions_error.h"
 
 #include "volume.h"
 #include "volume_solver.h"
@@ -56,6 +57,7 @@ struct Error_CE* constructor_Error_CE_navier_stokes_uvwt (const struct Simulatio
 
 	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
 	e_ce_h->header_spec = compute_header_spec_navier_stokes_uvwt();
+	const_cast_i(&e_ce_h->error_type,ERROR_STANDARD);
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		e_ce_h->s_vol[0] = (struct Solver_Volume*) curr;

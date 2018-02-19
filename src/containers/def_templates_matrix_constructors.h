@@ -147,6 +147,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #endif
 
 ///\{ \name Real Data types/Function names
+#define constructor_default_Matrix_R       constructor_default_Matrix_d
+#define constructor_default_const_Matrix_R constructor_default_const_Matrix_d
+
 #define constructor_empty_Matrix_R       constructor_empty_Matrix_d
 #define constructor_empty_const_Matrix_R constructor_empty_const_Matrix_d
 #define constructor_zero_Matrix_R        constructor_zero_Matrix_d
@@ -155,6 +158,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_copy_const_Matrix_R          constructor_copy_const_Matrix_d
 #define constructor_copy_permute_Matrix_R        constructor_copy_permute_Matrix_d
 #define constructor_copy_permute_const_Matrix_R  constructor_copy_permute_const_Matrix_d
+
+#define constructor_move_Matrix_R_R           constructor_move_Matrix_d_d
+#define constructor_move_const_Matrix_R_R     constructor_move_const_Matrix_d_d
 
 #define constructor_inverse_const_Matrix_R        constructor_inverse_const_Matrix_d
 #define constructor_mm_Matrix_R                   constructor_mm_Matrix_d

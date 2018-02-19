@@ -40,7 +40,7 @@ struct Error_CE {
 	const ptrdiff_t dof;        ///< The number of degrees of freedom.
 	const double domain_volume; ///< The volume of the domain.
 
-	const struct const_Vector_d* sol_L2;         ///< The solution measured in L2.
+	const struct const_Vector_d* sol_err;        ///< The solution error of the desired error type.
 	const struct const_Vector_i* expected_order; ///< The expected convergence order of each variable.
 
 	const char* header_spec; ///< The header for the file specific to the variables for which the error was computed.
@@ -49,15 +49,17 @@ struct Error_CE {
 /// Container holding information used to construct the \ref Error_CE container.
 struct Error_CE_Helper {
 	const int n_out;      ///< The number of output error variables.
+	const int error_type; ///< The type of error. Options: see \ref definitions_error.h
 	int domain_order;     ///< Polynomial order of computational elements in the domain.
 	double domain_volume; ///< \ref Error_CE::domain_volume.
 
 	const char* header_spec; ///< The header for the file specific to the variables for which the error was computed.
-	struct Vector_d* sol_L2; ///< \ref Error_CE::sol_L2.
+	struct Vector_d* sol_err;        ///< \ref Error_CE::sol_err.
 
 	struct Solution_Container* sol_cont; ///< \ref Solution_Container_T.
 
-	struct Solver_Volume* s_vol[2]; ///< Pointers to the computed and exact \ref Solver_Volume_T\*s.
+	struct Solver_Volume* s_vol[2];   ///< Pointers to the computed and exact \ref Solver_Volume_T\*s.
+	const struct Solver_Face* s_face; ///< Pointer to the \ref Solver_Face_T (if applicable).
 };
 
 /// Container holding information relating to the solution used to compute the error.
@@ -79,6 +81,11 @@ struct Error_CE_Data {
  */
 void output_error
 	(const struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Output the error of the functionals.
+void output_error_functionals
+	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 /** \brief Constructor for a \ref Error_CE container.
@@ -118,6 +125,12 @@ void increment_sol_L2
 	 struct Error_CE_Data* e_ce_d    ///< \ref Error_CE_Data.
 	);
 
+/// \brief Increment \ref Error_CE_Helper::sol_integrated for the input face variables.
+void increment_sol_integrated_face
+	(struct Error_CE_Helper*const e_ce_h, ///< \ref Error_CE_Helper.
+	 struct Error_CE_Data*const e_ce_d    ///< \ref Error_CE_Data.
+	);
+
 /// \brief Update \ref Error_CE_Helper::domain_order.
 void update_domain_order
 	(struct Error_CE_Helper* e_ce_h ///< \ref Error_CE_Helper.
@@ -126,7 +139,8 @@ void update_domain_order
 /** \brief Return a statically allocated `char*` holding the name of the error file.
  *  \return See brief. */
 const char* compute_error_file_name
-	(const struct Simulation* sim ///< \ref Simulation.
+	(const int error_type,             ///< The number representing the type of error being output.
+	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 /// \brief Correct existing (add if missing) 'ml' and 'p' parameters of the file name if input values are valid.

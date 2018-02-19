@@ -1,0 +1,16 @@
+/// Solver parameters for test case: euler/steady/joukowski_symmetric
+
+solver_proc   implicit
+solver_type_i iterative
+lhs_terms     cfl_ramping
+cfl_initial   1e+3
+
+num_flux_1st Roe-Pike
+test_norm    H1
+
+use_schur_complement 1
+
+exit_tol_i   1e-14
+exit_ratio_i 1e-8
+
+display_progress 1

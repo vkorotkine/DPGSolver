@@ -503,35 +503,37 @@ static void destructor_petsc_x (Vec x)
 
 static KSP constructor_petsc_ksp (Mat A, const struct Simulation* sim)
 {
+	MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);
 	KSP ksp;
 	KSPCreate(MPI_COMM_WORLD,&ksp);
-	KSPSetFromOptions(ksp);
-
-	PC pc;
 	KSPSetOperators(ksp,A,A);
+	KSPSetFromOptions(ksp);
 	KSPSetComputeSingularValues(ksp,PETSC_TRUE);
-	KSPGetPC(ksp,&pc);
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 
 	const bool symmetric = check_symmetric(sim);
 	const int solver_type_i = test_case->solver_type_i;
 	switch (solver_type_i) {
-	case SOLVER_I_DIRECT:
+	case SOLVER_I_DIRECT: {
+		PC pc;
+		KSPGetPC(ksp,&pc);
+
 		KSPSetType(ksp,KSPPREONLY);
 		KSPSetInitialGuessNonzero(ksp,PETSC_FALSE);
 		if (!symmetric)
 			PCSetType(pc,PCLU);
 		else
 			PCSetType(pc,PCCHOLESKY);
+		PCSetUp(pc);
 		break;
-	case SOLVER_I_ITERATIVE:
+	} case SOLVER_I_ITERATIVE:
 /// \todo Potentially modify the tolerance used here based on the current residual value.
 //		KSPSetTolerances(ksp,1e-15,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
 		break;
 	}
-	KSPSetUp(ksp);
-	PCSetUp(pc);
+//	KSPSetUp(ksp);
 
 	return ksp;
 }

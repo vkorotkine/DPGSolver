@@ -365,5 +365,20 @@ void destructor_const_Vector_T (const struct const_Vector_T* a)
 	destructor_Vector_T((struct Vector_T*)a);
 }
 
+void destructor_conditional_Vector_T (struct Vector_T* a)
+{
+	if (a == NULL)
+		return;
+
+	if (a->owns_data)
+		free(a->data);
+	free(a);
+}
+
+void destructor_conditional_const_Vector_T (const struct const_Vector_T* a)
+{
+	destructor_conditional_Vector_T((struct Vector_T*)a);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

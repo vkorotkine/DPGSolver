@@ -60,4 +60,16 @@ void compute_max_wavespeed
 	 const char var_type                    ///< The type of the variables.
 	);
 
+/** \brief Compute the drag and lift coefficient **values** at the input nodes.
+ *
+ *  \note This function computes the values to be subsequently used to in the integral for the drag/lift coefficient
+ *        computation.
+ */
+void compute_cd_cl_values
+	(struct Multiarray_d* c_dl,                    ///< The container to hold the cd/cl data.
+	 const struct const_Multiarray_d*const vars,   ///< The container of Euler variables.
+	 const char var_type,                          ///< The type of the variables.
+	 const struct const_Multiarray_d*const normals ///< The container of unit normal vectors.
+	);
+
 #endif // DPG__solution_euler_h__INCLUDED

@@ -285,7 +285,17 @@ void destructor_Vector_T
 	(struct Vector_T* a ///< Standard.
 	);
 
-/// \brief Destructs a \ref const_Vector_T\*.
+/// \brief `const` version of \ref destructor_Vector_T.
 void destructor_const_Vector_T
+	(const struct const_Vector_T* a ///< Standard.
+	);
+
+/// \brief Destructs a \ref Vector_T\* if it is not `NULL`.
+void destructor_conditional_Vector_T
+	(struct Vector_T* a ///< Standard.
+	);
+
+/// \brief `const` version of \ref destructor_conditional_Vector_T.
+void destructor_conditional_const_Vector_T
 	(const struct const_Vector_T* a ///< Standard.
 	);

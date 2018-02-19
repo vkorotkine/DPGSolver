@@ -88,14 +88,15 @@ const struct const_Matrix_R* constructor_xyz_surface_mapped_T
 	const struct const_Multiarray_R*const xyz_ve_fcc = constructor_mm_NN1_Operator_const_Multiarray_R
 		(b_p_d->vv0_vv_fcc,b_p_d->xyz_ve,'C','d',b_p_d->xyz_ve->order,NULL); // destructed
 
-	const struct const_Multiarray_R*const xyz_fcc_Ma = b_p_d->constructor_xyz(0,xyz_ve_fcc,NULL,NULL); // dest.
+	const struct const_Multiarray_R*const xyz_fcc_Ma = b_p_d->constructor_xyz(0,xyz_ve_fcc,NULL,NULL); // destructed
 	destructor_const_Multiarray_R(xyz_ve_fcc);
 
 	const ptrdiff_t ext_0 = xyz_fcc_Ma->extents[0],
-			ext_1 = xyz_fcc_Ma->extents[1];
-	const struct const_Matrix_R*const xyz_surf =
-		constructor_empty_const_Matrix_R(xyz_fcc_Ma->layout,ext_0,ext_1); // returned
+	                ext_1 = xyz_fcc_Ma->extents[1];
+	const struct const_Matrix_R*const xyz_surf = constructor_default_const_Matrix_R(); // returned
 	reinterpret_const_Multiarray_as_Matrix_R(xyz_fcc_Ma,xyz_surf,ext_0,ext_1);
+	const_cast_b(&xyz_surf->owns_data,true);
+
 	const_cast_b(&xyz_fcc_Ma->owns_data,false);
 	destructor_const_Multiarray_R(xyz_fcc_Ma);
 

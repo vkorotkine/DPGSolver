@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_core.h"
+#include "definitions_error.h"
 #include "definitions_intrusive.h"
 
 #include "multiarray.h"
@@ -33,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "computational_elements.h"
 #include "element_solution.h"
 #include "element_solver.h"
+#include "face_solver.h"
 #include "volume_solver.h"
 
 #include "const_cast.h"
@@ -62,16 +64,25 @@ static void increment_vol_errors_l2_2
 	 const struct Solver_Volume* s_vol       ///< Current \ref Solver_Volume_T.
 	);
 
+/// \brief Increment the global errors with the integrated contribution from the current face.
+static void increment_face_errors_integrated
+	(struct Vector_d*const errors_int,            ///< Holds the integrated errors over the face.
+	 const struct const_Multiarray_d*const err_f, ///< Holds the error values for the current face.
+	 const struct Solver_Face*const s_face        ///< Current \ref Solver_Face_T.
+	);
+
 /// \brief Output the errors to the 's'erial/'p'arallel file.
 static void output_errors_sp
 	(const char sp_type,              ///< 's'erial/'p'arallel specifier.
+	 const int error_type,            ///< The number representing the type of error being output.
 	 const struct Error_CE* error_ce, ///< \ref Error_CE.
 	 const struct Simulation* sim     ///< \ref Simulation.
 	);
 
 /// \brief Output the combined errors from all processors.
 static void output_errors_global
-	(const struct Error_CE* error_ce, ///< \ref Error_CE.
+	(const int error_type,            ///< The number representing the type of error being output.
+	 const struct Error_CE* error_ce, ///< \ref Error_CE.
 	 const struct Simulation* sim     ///< \ref Simulation.
 	);
 
@@ -101,32 +112,72 @@ void output_error (const struct Simulation* sim)
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	struct Error_CE* error_ce = test_case->constructor_Error_CE(sim);
 
-	output_errors_sp('s',error_ce,sim);
-	output_errors_global(error_ce,sim);
+	output_errors_sp('s',ERROR_STANDARD,error_ce,sim);
+	output_errors_global(ERROR_STANDARD,error_ce,sim);
+
+	destructor_Error_CE(error_ce);
+}
+
+void output_error_functionals (const struct Simulation*const sim)
+{
+	assert(sim->volumes->name == IL_VOLUME_SOLVER);
+	assert(sim->faces->name   == IL_FACE_SOLVER);
+	assert(list_is_derived_from("solver",'e',sim));
+
+	const struct Test_Case*const test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	if (!test_case->constructor_Error_CE_functionals)
+		return;
+
+	struct Error_CE* error_ce = test_case->constructor_Error_CE_functionals(sim);
+
+	output_errors_sp('s',ERROR_FUNCTIONAL,error_ce,sim);
+	output_errors_global(ERROR_FUNCTIONAL,error_ce,sim);
 
 	destructor_Error_CE(error_ce);
 }
 
 struct Error_CE* constructor_Error_CE (struct Error_CE_Helper* e_ce_h, const struct Simulation* sim)
 {
-	// Finalize sol_L2
-	struct Vector_d* sol_L2 = e_ce_h->sol_L2;
-	for (int i = 0; i < sol_L2->ext_0; ++i)
-		sol_L2->data[i] = sqrt(sol_L2->data[i]/(e_ce_h->domain_volume));
+	// Finalize sol_err
+	struct Vector_d* sol_err = e_ce_h->sol_err;
+	switch (e_ce_h->error_type) {
+	case ERROR_STANDARD:
+		for (int i = 0; i < sol_err->ext_0; ++i)
+			sol_err->data[i] = sqrt(sol_err->data[i]/(e_ce_h->domain_volume));
+		break;
+	case ERROR_FUNCTIONAL:
+		break; // do nothing.
+	default:
+		EXIT_ERROR("Unsupported: %d\n",e_ce_h->error_type);
+		break;
+	}
 
 	// Construct Error_CE
-	struct Error_CE* error_ce = malloc(sizeof *error_ce); // returned
+	struct Error_CE* error_ce = calloc(1,sizeof *error_ce); // returned
 
 	const_cast_ptrdiff(&error_ce->dof,compute_dof_sol_1st(sim));
 	const_cast_d(&error_ce->domain_volume,e_ce_h->domain_volume);
 
-	error_ce->sol_L2 = (const struct const_Vector_d*) e_ce_h->sol_L2; // destructed
-
-	struct Vector_i* expected_order = constructor_empty_Vector_i(e_ce_h->n_out); // moved
-	set_to_value_Vector_i(expected_order,e_ce_h->domain_order+1);
-	error_ce->expected_order = (const struct const_Vector_i*) expected_order; // destructed
 
 	const_cast_c1(&error_ce->header_spec,e_ce_h->header_spec);
+
+	int exp_o = -1;
+	switch (e_ce_h->error_type) {
+	case ERROR_STANDARD:
+		exp_o = e_ce_h->domain_order+1;
+		break;
+	case ERROR_FUNCTIONAL:
+		exp_o = 2*e_ce_h->domain_order;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",e_ce_h->error_type);
+		break;
+	}
+	error_ce->sol_err = constructor_copy_const_Vector_d((struct const_Vector_d*)e_ce_h->sol_err); // destructed
+
+	struct Vector_i* expected_order = constructor_empty_Vector_i(e_ce_h->n_out); // moved
+	set_to_value_Vector_i(expected_order,exp_o);
+	error_ce->expected_order = (const struct const_Vector_i*) expected_order; // destructed
 
 	return error_ce;
 }
@@ -141,8 +192,8 @@ struct Error_CE_Helper* constructor_Error_CE_Helper (const struct Simulation* si
 
 	e_ce_h->header_spec = NULL;
 
-	e_ce_h->sol_L2 = constructor_empty_Vector_d(n_out); // to be moved
-	set_to_value_Vector_d(e_ce_h->sol_L2,0.0);
+	e_ce_h->sol_err = constructor_empty_Vector_d(n_out); // destructed
+	set_to_value_Vector_d(e_ce_h->sol_err,0.0);
 
 	e_ce_h->sol_cont = malloc(sizeof *e_ce_h->sol_cont); // free
 	const_cast_c(&e_ce_h->sol_cont->ce_type,'v');
@@ -160,6 +211,8 @@ struct Error_CE_Helper* constructor_Error_CE_Helper (const struct Simulation* si
 
 void destructor_Error_CE_Helper (struct Error_CE_Helper* e_ce_h)
 {
+	destructor_Vector_d(e_ce_h->sol_err);
+
 	free(e_ce_h->sol_cont);
 	destructor_Solver_Volume_exact(e_ce_h->s_vol[1]);
 	free(e_ce_h);
@@ -193,7 +246,13 @@ void destructor_Error_CE_Data (struct Error_CE_Data* e_ce_d)
 void increment_sol_L2 (struct Error_CE_Helper* e_ce_h, struct Error_CE_Data* e_ce_d)
 {
 	subtract_in_place_Multiarray_d(e_ce_d->sol[0],(const struct const_Multiarray_d*)e_ce_d->sol[1]);
-	increment_vol_errors_l2_2(e_ce_h->sol_L2,(const struct const_Multiarray_d*)e_ce_d->sol[0],e_ce_h->s_vol[0]);
+	increment_vol_errors_l2_2(e_ce_h->sol_err,(const struct const_Multiarray_d*)e_ce_d->sol[0],e_ce_h->s_vol[0]);
+}
+
+void increment_sol_integrated_face (struct Error_CE_Helper*const e_ce_h, struct Error_CE_Data*const e_ce_d)
+{
+	subtract_in_place_Multiarray_d(e_ce_d->sol[0],(struct const_Multiarray_d*)e_ce_d->sol[1]);
+	increment_face_errors_integrated(e_ce_h->sol_err,(struct const_Multiarray_d*)e_ce_d->sol[0],e_ce_h->s_face);
 }
 
 void update_domain_order (struct Error_CE_Helper* e_ce_h)
@@ -204,13 +263,27 @@ void update_domain_order (struct Error_CE_Helper* e_ce_h)
 		assert(e_ce_h->domain_order == e_ce_h->s_vol[0]->p_ref);
 }
 
-const char* compute_error_file_name (const struct Simulation* sim)
+const char* compute_error_file_name (const int error_type, const struct Simulation*const sim)
 {
 	static const char* name_part = "../output/errors/";
 
+	char l2_spec[STRLEN_MIN];
+	switch (error_type) {
+	case ERROR_STANDARD:
+		strcpy(l2_spec,"");
+		break;
+	case ERROR_FUNCTIONAL:
+		strcpy(l2_spec,"functional_");
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",error_type);
+		break;
+	}
+
 	static char output_name[STRLEN_MAX];
-	sprintf(output_name,"%s%s%c%s%c%s%s",
-	        name_part,sim->pde_name,'/',sim->pde_spec,'/',"l2_errors__",extract_name(sim->ctrl_name_full,true));
+	sprintf(output_name,"%s%s%c%s%c%s%s%s",
+	        name_part,sim->pde_name,'/',sim->pde_spec,'/',
+	        l2_spec,"l2_errors__",extract_name(sim->ctrl_name_full,true));
 	correct_file_name_ml_p(sim->ml_p_curr[0],sim->ml_p_curr[1],output_name);
 	return output_name;
 }
@@ -231,6 +304,11 @@ void correct_file_name_ml_p (const int ml, const int p, char*const file_name)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+///\{ \name Summation methods for combining error contributions across the domain.
+#define SUMMATION_L2_VOL   201 ///< See \ref output_errors_global.
+#define SUMMATION_STANDARD 202 ///< See \ref output_errors_global.
+///\}
+
 /** \brief Compute the volume of the input \ref Solver_Volume_T.
  *  \return See brief. */
 static double compute_volume
@@ -243,11 +321,17 @@ static const struct const_Vector_d* constructor_w_detJ
 	(const struct Solver_Volume* s_vol ///< \ref Solver_Volume_T.
 	);
 
+/** \brief Constructor for a \ref const_Vector_T\* holding the cubature weights multiplied by the Jacobian determinants
+ *         for the input face.
+ *  \return See brief. */
+static const struct const_Vector_d* constructor_w_detJ_face
+	(const struct Solver_Face*const s_face ///< \ref Solver_Face_T.
+	);
+
 static void destructor_Error_CE (struct Error_CE* error_ce)
 {
-	destructor_const_Vector_d(error_ce->sol_L2);
+	destructor_const_Vector_d(error_ce->sol_err);
 	destructor_const_Vector_i(error_ce->expected_order);
-
 	free(error_ce);
 }
 
@@ -276,12 +360,33 @@ static void increment_vol_errors_l2_2
 	destructor_const_Vector_d(w_detJ);
 }
 
-static void output_errors_sp (const char sp_type, const struct Error_CE* error_ce, const struct Simulation* sim)
+static void increment_face_errors_integrated
+	(struct Vector_d*const errors_int, const struct const_Multiarray_d*const err_f,
+	 const struct Solver_Face*const s_face)
 {
-	const char* output_name = compute_error_file_name(sim);
+	assert(errors_int->ext_0 == err_f->extents[1]);
+
+	const struct const_Vector_d*const w_detJ = constructor_w_detJ_face(s_face); // destructed
+	const ptrdiff_t ext_0 = w_detJ->ext_0;
+
+	const ptrdiff_t n_out = errors_int->ext_0;
+	for (int i = 0; i < n_out; ++i) {
+		const double* err_data = get_col_const_Multiarray_d(i,err_f);
+		for (int j = 0; j < ext_0; ++j)
+			errors_int->data[i] += w_detJ->data[j]*err_data[j];
+	}
+	destructor_const_Vector_d(w_detJ);
+}
+
+static void output_errors_sp
+	(const char sp_type, const int error_type, const struct Error_CE* error_ce, const struct Simulation* sim)
+{
+	const ptrdiff_t n_out         = error_ce->sol_err->ext_0;
+	const double*const error_data = error_ce->sol_err->data;
+
+	const char* output_name = compute_error_file_name(error_type,sim);
 	FILE* sp_file = fopen_sp_output_file(sp_type,output_name,"txt",sim->mpi_rank); // closed
 
-	const ptrdiff_t n_out = error_ce->sol_L2->ext_0;
 	if (sp_type == 'p') {
 		fprintf(sp_file,"n_out: %td\n",n_out);
 		fprintf(sp_file,"expected_orders: ");
@@ -298,25 +403,38 @@ static void output_errors_sp (const char sp_type, const struct Error_CE* error_c
 	}
 
 	for (int i = 0; i < n_out; ++i)
-		fprintf(sp_file,"%-14.4e",error_ce->sol_L2->data[i]);
+		fprintf(sp_file,"%-14.4e",error_data[i]);
 
 	fclose(sp_file);
 }
 
-static void output_errors_global (const struct Error_CE* error_ce, const struct Simulation* sim)
+static void output_errors_global (const int error_type, const struct Error_CE* error_ce, const struct Simulation* sim)
 {
 	if (!(sim->mpi_rank == 0))
 		return;
 	MPI_Barrier(MPI_COMM_WORLD);
 
-	const char* file_name = compute_error_file_name(sim);
+	int summation_method = -1;
+	switch (error_type) {
+	case ERROR_STANDARD:
+		summation_method = SUMMATION_L2_VOL;
+		break;
+	case ERROR_FUNCTIONAL:
+		summation_method = SUMMATION_STANDARD;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",error_type);
+		break;
+	}
 
-	const ptrdiff_t n_out = error_ce->sol_L2->ext_0;
+	const char* file_name = compute_error_file_name(error_type,sim);
+
+	const ptrdiff_t n_out = error_ce->sol_err->ext_0;
 
 	ptrdiff_t dof_g = 0;
 	double domain_volume_g = 0.0;
-	struct Vector_d* sol_L2_g = constructor_empty_Vector_d(n_out); // moved
-	set_to_value_Vector_d(sol_L2_g,0.0);
+	struct Vector_d* sol_error_g = constructor_empty_Vector_d(n_out); // moved
+	set_to_value_Vector_d(sol_error_g,0.0);
 
 	for (int mpi_rank = 0; mpi_rank < sim->mpi_size; ++mpi_rank) {
 		FILE* s_file = fopen_sp_input_file('s',file_name,"txt",mpi_rank);
@@ -334,26 +452,35 @@ static void output_errors_global (const struct Error_CE* error_ce, const struct 
 		read_skip_d_1(line,1,&domain_volume,1);
 		domain_volume_g += domain_volume;
 
-		double sol_L2[n_out];
-		read_skip_d_1(line,2,sol_L2,(int)n_out);
-		for (int i = 0; i < sol_L2_g->ext_0; ++i)
-			sol_L2_g->data[i] += sol_L2[i]*sol_L2[i]*domain_volume;
-
+		double sol_e[n_out];
+		read_skip_d_1(line,2,sol_e,(int)n_out);
+		for (int i = 0; i < sol_error_g->ext_0; ++i) {
+			switch (summation_method) {
+				case SUMMATION_L2_VOL:   sol_error_g->data[i] += sol_e[i]*sol_e[i]*domain_volume; break;
+				case SUMMATION_STANDARD: sol_error_g->data[i] += sol_e[i];                        break;
+				default: EXIT_ERROR("Unsupported: %d\n",summation_method);                        break;
+			}
+		}
 		fclose(s_file);
 	}
 
-	for (int i = 0; i < sol_L2_g->ext_0; ++i)
-		sol_L2_g->data[i] = sqrt(sol_L2_g->data[i]/domain_volume_g);
+	for (int i = 0; i < sol_error_g->ext_0; ++i) {
+		switch (summation_method) {
+			case SUMMATION_L2_VOL:   sol_error_g->data[i] = sqrt(sol_error_g->data[i]/domain_volume_g); break;
+			case SUMMATION_STANDARD: sol_error_g->data[i] = fabs(sol_error_g->data[i]);                 break;
+			default: EXIT_ERROR("Unsupported: %d\n",summation_method);                                  break;
+		}
+	}
 
-	struct Error_CE* error_ce_g = malloc(sizeof *error_ce_g); // destructed
+	struct Error_CE* error_ce_g = calloc(1,sizeof *error_ce_g); // destructed
 
 	const_cast_d(&error_ce_g->domain_volume,domain_volume_g);
-	error_ce_g->sol_L2 = (const struct const_Vector_d*) sol_L2_g; // keep
+	error_ce_g->sol_err = (const struct const_Vector_d*) sol_error_g; // keep
 	error_ce_g->expected_order = constructor_copy_const_Vector_i_i(n_out,error_ce->expected_order->data); // keep
 	const_cast_c1(&error_ce_g->header_spec,error_ce->header_spec);
 	const_cast_ptrdiff(&error_ce_g->dof,dof_g);
 
-	output_errors_sp('p',error_ce_g,sim);
+	output_errors_sp('p',error_type,error_ce_g,sim);
 
 	destructor_Error_CE(error_ce_g);
 }
@@ -418,6 +545,21 @@ static const struct const_Vector_d* constructor_w_detJ (const struct Solver_Volu
 
 	for (int i = 0; i < ext_0; ++i)
 		w_detJ->data[i] = w_vc->data[i]*jacobian_det_vc.data[i];
+
+	return (const struct const_Vector_d*) w_detJ;
+}
+
+static const struct const_Vector_d* constructor_w_detJ_face (const struct Solver_Face*const s_face)
+{
+	const struct const_Vector_d*const w_fc = get_operator__w_fc__s_e(s_face);
+	const struct const_Vector_d jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
+	assert(w_fc->ext_0 == jacobian_det_fc.ext_0);
+
+	const ptrdiff_t ext_0 = w_fc->ext_0;
+
+	struct Vector_d* w_detJ = constructor_empty_Vector_d(ext_0); // returned
+	for (int i = 0; i < ext_0; ++i)
+		w_detJ->data[i] = w_fc->data[i]*jacobian_det_fc.data[i];
 
 	return (const struct const_Vector_d*) w_detJ;
 }

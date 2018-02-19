@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_core.h"
+#include "definitions_error.h"
 #include "definitions_intrusive.h"
 #include "definitions_visualization.h"
 
@@ -60,7 +61,9 @@ static void set_convergence_order_discount
 
 /// \brief Check the convergence orders of the errors for the simulations performed.
 static void check_convergence_orders
-	(struct Test_Info*const test_info,                       ///< \ref Test_Info.
+	(const int error_type,                                   ///< The type of error.
+	 bool*const pass,                                        ///< To be set based on the result of the test.
+	 struct Test_Info*const test_info,                       ///< \ref Test_Info.
 	 const struct Integration_Test_Info*const int_test_info, ///< \ref Integration_Test_Info.
 	 const struct Simulation*const sim                       ///< \ref Simulation.
 	);
@@ -108,13 +111,18 @@ int main
 		}
 
 		output_error(sim);
+		output_error_functionals(sim);
 
 		if (DISPLAY_CONV)
 			printf("\ntest_integration_convergence (ml, p, dof): %d %d %td\n\n\n",ml,p,compute_dof(sim));
 
 		if ((ml == ml_ref[1]) && (p == p_ref[1])) {
 			set_convergence_order_discount(int_test_info);
-			check_convergence_orders(&test_info,int_test_info,sim);
+			bool pass = true;
+			check_convergence_orders(ERROR_STANDARD,&pass,&test_info,int_test_info,sim);
+			check_convergence_orders(ERROR_FUNCTIONAL,&pass,&test_info,int_test_info,sim);
+			assert_condition(pass);
+
 			structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,type_rc);
 		}
 
@@ -165,14 +173,23 @@ static void set_convergence_order_discount (struct Integration_Test_Info*const i
 }
 
 static void check_convergence_orders
-	(struct Test_Info*const test_info, const struct Integration_Test_Info*const int_test_info,
-	 const struct Simulation* sim)
+	(const int error_type, bool*const pass, struct Test_Info*const test_info,
+	 const struct Integration_Test_Info*const int_test_info, const struct Simulation* sim)
 {
 	UNUSED(test_info);
 	if (sim->mpi_rank)
 		return;
 
-	const char* input_name = compute_error_file_name(sim);
+	const int* p_ref  = int_test_info->p_ref,
+	         * ml_ref = int_test_info->ml;
+	const char* input_name = compute_error_file_name(error_type,sim);
+
+	const char*const input_name_curr = set_file_name_curr(ADAPT_0,p_ref[0],ml_ref[0],true,input_name);
+	FILE* p_file = fopen_sp_input_file('p',input_name_curr,"txt",0); // closed
+	if (p_file == NULL) {
+		fclose(p_file);
+		return;
+	}
 
 	const int n_err = compute_n_err(input_name);
 
@@ -183,8 +200,6 @@ static void check_convergence_orders
 	struct Multiarray_d* l2_err = constructor_zero_Multiarray_d('C',3,extents);     // destructed
 	struct Multiarray_d* h      = constructor_zero_Multiarray_d('C',2,&extents[0]); // destructed
 
-	const int* p_ref  = int_test_info->p_ref,
-	         * ml_ref = int_test_info->ml;
 	for (int p = p_ref[0]; p <= p_ref[1]; ++p) {
 	for (int ml = ml_ref[0]; ml <= ml_ref[1]; ++ml) {
 		const char* input_name_curr = set_file_name_curr(ADAPT_0,p,ml,true,input_name);
@@ -238,9 +253,13 @@ static void check_convergence_orders
 		print_Multiarray_d(l2_err);
 		printf("Convergence orders:\n");
 		print_Multiarray_d(conv_orders);
+		printf("------------------------------------------------------------------------------------------\n\n\n");
 	}
 
-	bool pass   = attained_expected_conv_orders(ACCEPTABLE_DISCOUNT,extents,conv_orders,ex_ord,int_test_info);
+	if (!*pass)
+		return;
+
+	*pass       = attained_expected_conv_orders(ACCEPTABLE_DISCOUNT,extents,conv_orders,ex_ord,int_test_info);
 	bool pass_d = attained_expected_conv_orders(
 		ACCEPTABLE_DISCOUNT+int_test_info->conv_order_discount,extents,conv_orders,ex_ord,int_test_info);
 
@@ -249,11 +268,10 @@ static void check_convergence_orders
 	destructor_Multiarray_d(h);
 	destructor_Multiarray_d(conv_orders);
 
-	if (pass_d && !pass) {
+	if (pass_d && !*pass) {
 		test_print_warning(test_info,"Only passing with the convergence order discount.");
-		pass = true;
+		*pass = true;
 	}
-	assert_condition(pass);
 }
 
 // Level 1 ********************************************************************************************************** //
