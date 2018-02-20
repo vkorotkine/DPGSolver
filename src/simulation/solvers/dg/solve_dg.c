@@ -84,6 +84,44 @@ static void fill_petsc_Vec_b_dg
 	 struct Solver_Storage_Implicit*const ssi ///< Defined for \ref compute_rlhs_dg.
 	);
 
+/** \brief Compute and add diagonal block terms to the LHS matrix in case \ref LHS_CFL_RAMPING was selected.
+ *
+ *  The addition of these terms corresponds to the use of the backwards (implicit) Euler method with bounded time step,
+ *  as opposed to the full Newton method which is the limit of the backwards Euler as the time step goes to infinity.
+ *  The 'C'ourant'F'riedrichs'L'ewy number is used to determine the time step and is increased as the residual
+ *  decreases.
+ *
+ *  The explanation for what term must be added to the `A` matrix to achieve the desired effect follows.
+ *
+ *  The equation to be solved for the backwards Euler method for each \ref Volume is:
+ *  \f[
+ *  	M \frac{s_{coef}-s_{coef,curr}}{\Delta t} - \text{rhs}(s_{coef}) = 0,
+ *  \f]
+ *  where \f$ M \f$ is \ref DG_Solver_Volume_T::m.
+ *
+ *  Using Newton's method to solve the above equation taking \f$ s_{coef,curr} \f$ as the initial guess yields
+ *  \f[
+ *  	0 = M \frac{s_{coef,curr}-s_{coef,curr}}{\Delta t} - \text{rhs}(s_{coef}) = 0,
+ *  \f]
+ *  \f{eqnarray*}{
+ *  	0 &=& M \frac{s_{coef,curr}-s_{coef,curr}}{\Delta t} - \text{rhs}(s_{coef,curr})
+ *  	    + \left( M \frac{1}{\Delta t} - \text{lhs}(s_{coef,curr}) \right)\ \Delta(s_{coef}) \\
+ *  	  &=& 0 - \text{rhs}(s_{coef,curr})
+ *  	    + \left( M \frac{1}{\Delta t} - \text{lhs}(s_{coef,curr}) \right)\ \Delta(s_{coef}).
+ *  \f}
+ *
+ *  Rearranging terms such that the system corresponds to that described in \ref solve_implicit.h :
+ *  \f[
+ *  	\left( - M \frac{1}{\Delta t} + \text{lhs}(s_{coef,curr}) \right)\ \Delta(s_{coef}) = - \text{rhs}(s_{coef,curr}).
+ *  \f]
+ *
+ *  Thus the mass matrix contributions should be scaled by \f$ -\frac{1}{\Delta t} \f$.
+ */
+static void compute_CFL_ramping
+	(struct Solver_Storage_Implicit*const ssi, ///< \ref Solver_Storage_Implicit.
+	 const struct Simulation*const sim         ///< \ref Simulation.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
@@ -100,6 +138,7 @@ double compute_rhs_dg (const struct Simulation* sim)
 double compute_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
 {
 	compute_rlhs_common_dg(sim,ssi);
+	compute_CFL_ramping(ssi,sim);
 	fill_petsc_Vec_b_dg(sim,ssi);
 
 	return compute_max_rhs(sim);
@@ -151,42 +190,12 @@ static void scale_rhs_by_m_inv_col
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
-/** \brief Compute and add diagonal block terms to the LHS matrix in case \ref LHS_CFL_RAMPING was selected.
- *
- *  The addition of these terms corresponds to the use of the backwards (implicit) Euler method with bounded time step,
- *  as opposed to the full Newton method which is the limit of the backwards Euler as the time step goes to infinity.
- *  The 'C'ourant'F'riedrichs'L'ewy number is used to determine the time step and is increased as the residual
- *  decreases.
- *
- *  The explanation for what term must be added to the `A` matrix to achieve the desired effect follows.
- *
- *  The equation to be solved for the backwards Euler method for each \ref Volume is:
- *  \f[
- *  	M \frac{s_{coef}-s_{coef,curr}}{\Delta t} - \text{rhs}(s_{coef}) = 0,
- *  \f]
- *  where \f$ M \f$ is \ref DG_Solver_Volume_T::m.
- *
- *  Using Newton's method to solve the above equation taking \f$ s_{coef,curr} \f$ as the initial guess yields
- *  \f[
- *  	0 = M \frac{s_{coef,curr}-s_{coef,curr}}{\Delta t} - \text{rhs}(s_{coef}) = 0,
- *  \f]
- *  \f{eqnarray*}{
- *  	0 &=& M \frac{s_{coef,curr}-s_{coef,curr}}{\Delta t} - \text{rhs}(s_{coef,curr})
- *  	    + \left( M \frac{1}{\Delta t} - \text{lhs}(s_{coef,curr}) \right)\ \Delta(s_{coef}) \\
- *  	  &=& 0 - \text{rhs}(s_{coef,curr})
- *  	    + \left( M \frac{1}{\Delta t} - \text{lhs}(s_{coef,curr}) \right)\ \Delta(s_{coef}).
- *  \f}
- *
- *  Rearranging terms such that the system corresponds to that described in \ref solve_implicit.h :
- *  \f[
- *  	\left( - M \frac{1}{\Delta t} + \text{lhs}(s_{coef,curr}) \right)\ \Delta(s_{coef}) = - \text{rhs}(s_{coef,curr}).
- *  \f]
- *
- *  Thus the mass matrix contributions should be scaled by \f$ -\frac{1}{\Delta t} \f$.
- */
-static void compute_CFL_ramping
-	(struct Solver_Storage_Implicit*const ssi, ///< \ref Solver_Storage_Implicit.
-	 const struct Simulation*const sim         ///< \ref Simulation.
+/** \brief Return the time step relating to the CFL ramping.
+ *  \return See brief. */
+static double compute_dt_cfl_constrained
+	(const double max_rhs,                   ///< The maximum of the RHS terms (negated steady residual).
+	 const struct Solver_Volume*const s_vol, ///< \ref Solver_Volume_T.
+	 const struct Simulation*const sim       ///< \ref Simulation.
 	);
 
 static void compute_rlhs_common_dg (const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi)
@@ -196,8 +205,6 @@ static void compute_rlhs_common_dg (const struct Simulation*const sim, struct So
 	compute_volume_rlhs_dg(sim,ssi,sim->volumes);
 	compute_face_rlhs_dg(sim,ssi,sim->faces);
 	compute_source_rhs_dg(sim);
-
-	compute_CFL_ramping(ssi,sim);
 }
 
 static void scale_rhs_by_m_inv (const struct Simulation*const sim)
@@ -246,35 +253,6 @@ static void fill_petsc_Vec_b_dg (const struct Simulation*const sim, struct Solve
 	}
 }
 
-// Level 1 ********************************************************************************************************** //
-
-/** \brief Return the time step relating to the CFL ramping.
- *  \return See brief. */
-static double compute_dt_cfl_constrained
-	(const double max_rhs,                   ///< The maximum of the RHS terms (negated steady residual).
-	 const struct Solver_Volume*const s_vol, ///< \ref Solver_Volume_T.
-	 const struct Simulation*const sim       ///< \ref Simulation.
-	);
-
-static void scale_rhs_by_m_inv_std (const struct Simulation*const sim)
-{
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
-		mm_NN1C_overwrite_Multiarray_d(dg_s_vol->m_inv,&dg_s_vol->rhs);
-	}
-}
-
-static void scale_rhs_by_m_inv_col (const struct Simulation*const sim)
-{
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume* s_vol       = (struct Solver_Volume*) curr;
-		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
-
-		const struct const_Vector_d jac_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
-		scale_Multiarray_by_Vector_d('L',1.0,dg_s_vol->rhs,&jac_det_vc,true);
-	}
-}
-
 static void compute_CFL_ramping (struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
 {
 	const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
@@ -302,7 +280,7 @@ static void compute_CFL_ramping (struct Solver_Storage_Implicit*const ssi, const
 	}
 }
 
-// Level 2 ********************************************************************************************************** //
+// Level 1 ********************************************************************************************************** //
 
 /** \brief Return the minimum measure of the length of the input volume.
  *  \return See brief. */
@@ -316,6 +294,25 @@ static double compute_min_length_measure
 static double compute_max_rhs_ratio
 	(const double max_rhs ///< The current maximum rhs value.
 	);
+
+static void scale_rhs_by_m_inv_std (const struct Simulation*const sim)
+{
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
+		mm_NN1C_overwrite_Multiarray_d(dg_s_vol->m_inv,&dg_s_vol->rhs);
+	}
+}
+
+static void scale_rhs_by_m_inv_col (const struct Simulation*const sim)
+{
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* s_vol       = (struct Solver_Volume*) curr;
+		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
+
+		const struct const_Vector_d jac_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
+		scale_Multiarray_by_Vector_d('L',1.0,dg_s_vol->rhs,&jac_det_vc,true);
+	}
+}
 
 static double compute_dt_cfl_constrained
 	(const double max_rhs, const struct Solver_Volume*const s_vol, const struct Simulation*const sim)
@@ -354,7 +351,7 @@ static double compute_dt_cfl_constrained
 	return cfl*GSL_MIN(dx/max_wave_speed,( !test_case->has_2nd_order ? DBL_MAX : dx*dx/max_viscosity ));
 }
 
-// Level 3 ********************************************************************************************************** //
+// Level 2 ********************************************************************************************************** //
 
 static double compute_min_length_measure (const struct Solver_Volume*const s_vol, const struct Simulation*const sim)
 {

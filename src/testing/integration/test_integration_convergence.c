@@ -49,7 +49,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DISPLAY_CONV 1 ///< Flag for whether the convergence orders should be displayed for these tests.
 
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
-#define ORDER_VIS_CONV_P      3
+#define ORDER_VIS_CONV_P      2
 #define ORDER_VIS_CONV_ML_MAX 3
 ///\}
 
@@ -179,6 +179,19 @@ static void check_convergence_orders
 	UNUSED(test_info);
 	if (sim->mpi_rank)
 		return;
+
+	switch (error_type) {
+	case ERROR_STANDARD:
+		break; // do nothing
+	case ERROR_FUNCTIONAL: {
+		const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
+		if (!test_case->has_functional)
+			return;
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %d.\n",error_type);
+		break;
+	}
 
 	const int* p_ref  = int_test_info->p_ref,
 	         * ml_ref = int_test_info->ml;

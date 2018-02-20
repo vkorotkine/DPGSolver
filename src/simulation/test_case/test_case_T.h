@@ -146,6 +146,8 @@ struct Test_Case_T {
 
 	// Miscellaneous parameters
 	const bool display_progress; ///< Flag for whether the solver progress should be displayed (in stdout).
+
+	const bool has_functional; ///< Flag for whether a functional error should be computed for the test case.
 };
 
 /** \brief Constructor for a \ref Test_Case_T.

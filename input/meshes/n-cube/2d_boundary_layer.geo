@@ -9,7 +9,6 @@ Else
 EndIf
 Printf("s_offset = %g.",s_offset);
 
-// Geometry Specification
 b = s_offset;
 l = 1;
 h = 1;

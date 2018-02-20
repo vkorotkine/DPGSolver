@@ -11,7 +11,6 @@
 # Executable and command line arguments
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
 ARGV="euler/joukowski/TEST_Euler_Joukowski_Full_DG_ParametricMixed2D petsc_options_gmres_r120"
-#ARGV="euler/joukowski/TEST_Euler_Joukowski_Full_DG_ParametricMixed2D petsc_options_gmres_amg"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

@@ -164,8 +164,9 @@ static void output_solution
 	 struct Simulation*const sim ///< Defined for \ref implicit_step.
 	);
 
-/// \brief Solve the global system of equations and update the coefficients corresponding to the dof.
-static void solve_and_update
+/** \brief Solve the global system of equations and update the coefficients corresponding to the dof.
+ *  \return Petsc error code. */
+static PetscErrorCode solve_and_update
 	(const double max_rhs,                      ///< The maximum of the rhs terms.
 	 const int i_step,                          ///< Defined for \ref implicit_step.
 	 const struct Solver_Storage_Implicit* ssi, ///< \ref Solver_Storage_Implicit.
@@ -288,15 +289,11 @@ static void destructor_petsc_x
 	);
 
 /** \brief Constructor for a petsc `KSP` context.
- *  \return See brief. */
-static KSP constructor_petsc_ksp
-	(Mat A,                       ///< The matrix.
+ *  \return The Petsc error code. */
+static PetscErrorCode constructor_petsc_ksp
+	(KSP*const ksp,               ///< Pointer to the Petsc KSP.
+	 Mat A,                       ///< The matrix.
 	 const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/// \brief Destructor for a petsc `KSP` context.
-static void destructor_petsc_ksp
-	(KSP ksp ///< Standard.
 	);
 
 /// \brief Update the values of coefficients based on the computed increment.
@@ -351,19 +348,19 @@ static void output_solution (const int i_step, struct Simulation*const sim)
 	EXIT_ERROR("Disable outputting to continue");
 }
 
-static void solve_and_update
+static PetscErrorCode solve_and_update
 	(const double max_rhs, const int i_step, const struct Solver_Storage_Implicit* ssi, const struct Simulation* sim)
 {
 	KSP ksp = NULL;
-	Vec x   = constructor_petsc_x(ssi->b); // destructed
+	Vec x = constructor_petsc_x(ssi->b); // destructed
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	const bool use_schur_complement = test_case->use_schur_complement;
 	if (!use_schur_complement) {
 		printf("\tKSP set up.\n");
-		ksp = constructor_petsc_ksp(ssi->A,sim); // destructed
+		CHKERRQ(constructor_petsc_ksp(&ksp,ssi->A,sim)); // destructed
 		printf("\tKSP solve.\n");
-		KSPSolve(ksp,ssi->b,x);
+		CHKERRQ(KSPSolve(ksp,ssi->b,x));
 	} else {
 		printf("\tCompute Schur.\n");
 		struct Schur_Data* schur_data = constructor_Schur_Data(ssi->A,ssi->b,sim); // destructed
@@ -377,37 +374,37 @@ static void solve_and_update
 		Mat A_01_11i,
 		    A_01_11i_10;
 
-		MatMatMult(A[0][1], A[1][1],MAT_INITIAL_MATRIX,fill,&A_01_11i);    // destroyed
-		MatMatMult(A_01_11i,A[1][0],MAT_INITIAL_MATRIX,fill,&A_01_11i_10); // destroyed
+		CHKERRQ(MatMatMult(A[0][1], A[1][1],MAT_INITIAL_MATRIX,fill,&A_01_11i));    // destroyed
+		CHKERRQ(MatMatMult(A_01_11i,A[1][0],MAT_INITIAL_MATRIX,fill,&A_01_11i_10)); // destroyed
 
-		MatAXPY(A[0][0],-1.0,A_01_11i_10,SAME_NONZERO_PATTERN);
-		MatDestroy(&A_01_11i_10);
+		CHKERRQ(MatAXPY(A[0][0],-1.0,A_01_11i_10,SAME_NONZERO_PATTERN));
+		CHKERRQ(MatDestroy(&A_01_11i_10));
 
-		VecScale(b[1],-1.0);
-		MatMultAdd(A_01_11i,b[1],b[0],b[0]);
-		MatDestroy(&A_01_11i);
-		VecScale(b[1],-1.0);
+		CHKERRQ(VecScale(b[1],-1.0));
+		CHKERRQ(MatMultAdd(A_01_11i,b[1],b[0],b[0]));
+		CHKERRQ(MatDestroy(&A_01_11i));
+		CHKERRQ(VecScale(b[1],-1.0));
 
 		Vec x_sub[2];
 		for (int i = 0; i < 2; ++i)
-			VecGetSubVector(x,schur_data->is[i],&x_sub[i]); // restored
+			CHKERRQ(VecGetSubVector(x,schur_data->is[i],&x_sub[i])); // restored
 
 		printf("\tKSP set up.\n");
-		ksp = constructor_petsc_ksp(A[0][0],sim); // destructed
+		CHKERRQ(constructor_petsc_ksp(&ksp,A[0][0],sim)); // destructed
 
 		printf("\tKSP solve.\n");
-		KSPSolve(ksp,b[0],x_sub[0]);
+		CHKERRQ(KSPSolve(ksp,b[0],x_sub[0]));
 
 		Mat A_11i_10;
-		MatMatMult(A[1][1],A[1][0],MAT_INITIAL_MATRIX,fill,&A_11i_10); // destroyed
+		CHKERRQ(MatMatMult(A[1][1],A[1][0],MAT_INITIAL_MATRIX,fill,&A_11i_10)); // destroyed
 
-		MatMult(A_11i_10,x_sub[0],x_sub[1]);
-		MatDestroy(&A_11i_10);
-		VecScale(x_sub[1],-1.0);
-		MatMultAdd(A[1][1],b[1],x_sub[1],x_sub[1]);
+		CHKERRQ(MatMult(A_11i_10,x_sub[0],x_sub[1]));
+		CHKERRQ(MatDestroy(&A_11i_10));
+		CHKERRQ(VecScale(x_sub[1],-1.0));
+		CHKERRQ(MatMultAdd(A[1][1],b[1],x_sub[1],x_sub[1]));
 
 		for (int i = 0; i < 2; ++i)
-			VecRestoreSubVector(x,schur_data->is[i],&x_sub[i]);
+			CHKERRQ(VecRestoreSubVector(x,schur_data->is[i],&x_sub[i]));
 
 		destructor_Schur_Data(ssi->b,schur_data);
 	}
@@ -416,7 +413,8 @@ static void solve_and_update
 	destructor_petsc_x(x);
 
 	display_progress(test_case,i_step,max_rhs,ksp);
-	destructor_petsc_ksp(ksp);
+	CHKERRQ(KSPDestroy(&ksp));
+	return 0;
 }
 
 static bool check_pde_linear (const int pde_index)
@@ -501,15 +499,15 @@ static void destructor_petsc_x (Vec x)
 	VecDestroy(&x);
 }
 
-static KSP constructor_petsc_ksp (Mat A, const struct Simulation* sim)
+static PetscErrorCode constructor_petsc_ksp (KSP*const ksp, Mat A, const struct Simulation* sim)
 {
-	MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);
-	MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);
-	KSP ksp;
-	KSPCreate(MPI_COMM_WORLD,&ksp);
-	KSPSetOperators(ksp,A,A);
-	KSPSetFromOptions(ksp);
-	KSPSetComputeSingularValues(ksp,PETSC_TRUE);
+	CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
+	CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));
+
+	CHKERRQ(KSPCreate(MPI_COMM_WORLD,ksp));
+	CHKERRQ(KSPSetOperators(*ksp,A,A));
+	CHKERRQ(KSPSetFromOptions(*ksp));
+	CHKERRQ(KSPSetComputeSingularValues(*ksp,PETSC_TRUE));
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 
@@ -518,29 +516,23 @@ static KSP constructor_petsc_ksp (Mat A, const struct Simulation* sim)
 	switch (solver_type_i) {
 	case SOLVER_I_DIRECT: {
 		PC pc;
-		KSPGetPC(ksp,&pc);
+		CHKERRQ(KSPGetPC(*ksp,&pc));
 
-		KSPSetType(ksp,KSPPREONLY);
-		KSPSetInitialGuessNonzero(ksp,PETSC_FALSE);
+		CHKERRQ(KSPSetType(*ksp,KSPPREONLY));
+		CHKERRQ(KSPSetInitialGuessNonzero(*ksp,PETSC_FALSE));
 		if (!symmetric)
-			PCSetType(pc,PCLU);
+			CHKERRQ(PCSetType(pc,PCLU));
 		else
-			PCSetType(pc,PCCHOLESKY);
-		PCSetUp(pc);
+			CHKERRQ(PCSetType(pc,PCCHOLESKY));
+		CHKERRQ(PCSetUp(pc));
 		break;
 	} case SOLVER_I_ITERATIVE:
 /// \todo Potentially modify the tolerance used here based on the current residual value.
-//		KSPSetTolerances(ksp,1e-15,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
+//		KSPSetTolerances(*ksp,1e-15,PETSC_DEFAULT,PETSC_DEFAULT,PETSC_DEFAULT);
 		break;
 	}
-//	KSPSetUp(ksp);
-
-	return ksp;
-}
-
-static void destructor_petsc_ksp (KSP ksp)
-{
-	KSPDestroy(&ksp);
+	KSPSetUp(*ksp);
+	return 0;
 }
 
 static void update_coefs (Vec x, const struct Simulation* sim)

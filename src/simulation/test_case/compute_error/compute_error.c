@@ -128,6 +128,8 @@ void output_error_functionals (const struct Simulation*const sim)
 	if (!test_case->constructor_Error_CE_functionals)
 		return;
 
+	assert(test_case->has_functional);
+
 	struct Error_CE* error_ce = test_case->constructor_Error_CE_functionals(sim);
 
 	output_errors_sp('s',ERROR_FUNCTIONAL,error_ce,sim);
