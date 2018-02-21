@@ -41,6 +41,7 @@ src/processing/pre/__pycache__/*
 cmake/include/*
 */__pycache__/*
 *input/meshes/__pycache__/*
+src/processing/post/*.txt
 
 *.aux
 *.log

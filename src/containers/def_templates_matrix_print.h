@@ -21,10 +21,12 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define check_Matrix_extents_zero_T check_Matrix_extents_zero_d
 
-#define print_Matrix_T_tol       print_Matrix_d_tol
-#define print_const_Matrix_T_tol print_const_Matrix_d_tol
-#define print_Matrix_T           print_Matrix_d
-#define print_const_Matrix_T     print_const_Matrix_d
+#define print_Matrix_T_tol           print_Matrix_d_tol
+#define print_const_Matrix_T_tol     print_const_Matrix_d_tol
+#define print_Matrix_T               print_Matrix_d
+#define print_const_Matrix_T         print_const_Matrix_d
+#define print_to_file_Matrix_T       print_to_file_Matrix_d
+#define print_to_file_const_Matrix_T print_to_file_const_Matrix_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -32,10 +34,12 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define check_Matrix_extents_zero_T check_Matrix_extents_zero_c
 
-#define print_Matrix_T_tol       print_Matrix_c_tol
-#define print_const_Matrix_T_tol print_const_Matrix_c_tol
-#define print_Matrix_T           print_Matrix_c
-#define print_const_Matrix_T     print_const_Matrix_c
+#define print_Matrix_T_tol           print_Matrix_c_tol
+#define print_const_Matrix_T_tol     print_const_Matrix_c_tol
+#define print_Matrix_T               print_Matrix_c
+#define print_const_Matrix_T         print_const_Matrix_c
+#define print_to_file_Matrix_T       print_to_file_Matrix_c
+#define print_to_file_const_Matrix_T print_to_file_const_Matrix_c
 ///\}
 
 #endif

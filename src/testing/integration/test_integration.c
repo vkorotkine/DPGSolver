@@ -45,7 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Integration_Test_Info* constructor_Integration_Test_Info (const char*const ctrl_name)
 {
-	struct Integration_Test_Info* int_test_info = malloc(sizeof *int_test_info); // returned
+	struct Integration_Test_Info* int_test_info = calloc(1,sizeof *int_test_info); // returned
 	int_test_info->ctrl_name = ctrl_name;
 
 	// Read information
@@ -117,11 +117,18 @@ void structor_simulation
 		break;
 	case ADAPT_H:
 		assert(mode == 'c');
-		EXIT_ADD_SUPPORT;
-		if (p != p_prev) {
+		static bool entered = false;
+		if (!entered) {
 			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
+			entered = true;
+			return;
+		}
+
+		if (ml > ml_prev) {
+			assert(ml-ml_prev == 1);
+			adapt_hp(*sim,ADAPT_S_H_REFINE);
 		} else {
-			; // h-adapt
+			EXIT_ERROR("Should only be performing h-refinement.\n");
 		}
 		break;
 	case ADAPT_HP: {
@@ -172,23 +179,29 @@ const char* set_file_name_curr
 		if (add_missing)
 			correct_file_name_ml_p(ml,p,file_name_curr);
 		index = strstr(file_name_curr,"__ml");
+		assert(index);
 		index[4] = (char)('0'+ml);
 		assert(!isdigit(index[5]));
 		index = strstr(file_name_curr,"__p");
+		assert(index);
 		index[3] = (char)('0'+p);
 		assert(!isdigit(index[4]));
 		break;
 	case ADAPT_P:
 		assert(strstr(file_name_curr,"__p") == NULL);
 		index = strstr(file_name_curr,"__ml");
-		index[4] = (char)('0'+ml);
-		assert(!isdigit(index[5]));
+		if (index) {
+			index[4] = (char)('0'+ml);
+			assert(!isdigit(index[5]));
+		}
 		break;
 	case ADAPT_H:
 		assert(strstr(file_name_curr,"__ml") == NULL);
 		index = strstr(file_name_curr,"__p");
-		index[3] = (char)('0'+p);
-		assert(!isdigit(index[4]));
+		if (index) {
+			index[3] = (char)('0'+p);
+			assert(!isdigit(index[4]));
+		}
 		break;
 	case ADAPT_HP:
 		assert(strstr(file_name_curr,"__ml") == NULL);

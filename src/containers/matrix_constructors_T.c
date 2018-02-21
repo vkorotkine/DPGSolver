@@ -536,6 +536,7 @@ const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T
 {
 	return (const struct const_Matrix_T*) constructor_mm_diag_Matrix_T(alpha,a,b,side,invert_diag);
 }
+#endif
 
 void set_Matrix_from_Multiarray_T (struct Matrix_T* dest, struct Multiarray_T* src, const ptrdiff_t*const sub_indices)
 {
@@ -570,7 +571,7 @@ void set_const_Matrix_from_Multiarray_Matrix_T
 {
 	set_Matrix_from_Multiarray_Matrix_T((struct Matrix_T*)dest,(struct Multiarray_Matrix_T*)src,sub_indices);
 }
-#endif
+
 // Destructors ****************************************************************************************************** //
 
 void destructor_Matrix_T (struct Matrix_T* a)

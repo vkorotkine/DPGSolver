@@ -46,12 +46,6 @@ static int strtoi
 	 int base         ///< The base for the number to be read (generally base 10).
 	);
 
-/** \brief Extract the path from the string input.
- *  \return The path (no free necessary). */
-static const char* extract_path
-	(const char*const name_full ///< The full input.
-	);
-
 /** \brief Analogue of `mkdir -p` but called from within the code.
  *  \return 0 if successful.
  *
@@ -84,6 +78,25 @@ static void set_up_input_name
 	);
 
 // Interface functions ********************************************************************************************** //
+
+const char* extract_path (const char*const name_full)
+{
+	const size_t len = strlen(name_full);
+
+	size_t path_len = len;
+	while (name_full[path_len] != '/')
+		--path_len; // Do nothing
+
+	assert(path_len != len);
+	assert(path_len != 0);
+
+	static char name_path[STRLEN_MAX] = { 0, };
+	for (size_t i = 0; i < path_len; ++i)
+		name_path[i] = name_full[i];
+	name_path[path_len] = 0;
+
+	return name_path;
+}
 
 FILE* fopen_checked (const char*const file_name_full)
 {
@@ -166,6 +179,19 @@ FILE* fopen_sp_input_file
 {
 	const char* file_name = get_file_name_sp(sp_type,name_part,extension_part,mpi_rank);
 	return fopen_checked(file_name);
+}
+
+FILE* fopen_sp_input_file_unchecked
+	(const char sp_type, const char*const name_part, const char*const extension_part, const int mpi_rank)
+{
+	const char* file_name = get_file_name_sp(sp_type,name_part,extension_part,mpi_rank);
+	return fopen(file_name,"r");
+}
+
+void mkdir_p_given_file_name (const char*const file_name)
+{
+	const char*const file_path = extract_path(file_name);
+	mkdir_p(file_path);
 }
 
 void fgets_checked (char*const line, const int sizeof_line, FILE*const file)
@@ -275,6 +301,21 @@ void read_skip_c_1 (const char*const line, char*const var)
 void read_skip_const_c_1 (const char*const line, const char*const var)
 {
 	read_skip_c_1(line,(char*)var);
+}
+
+void read_skip_c_2 (const char*const line_i, const int n_skip, char**const var, const int n_var)
+{
+	char line[STRLEN_MAX];
+	strcpy(line,line_i);
+
+	char* token_s = strtok(line," ");
+	for (int i = 0; i < n_skip; ++i)
+		token_s = strtok(NULL," ");
+
+	for (int i = 0; i < n_var; ++i) {
+		sscanf(token_s,"%s",var[i]);
+		token_s = strtok(NULL," ");
+	}
 }
 
 void read_skip_const_b (const char*const line, const bool*const var)
@@ -516,25 +557,6 @@ static int strtoi (const char* str, char** endptr, int base)
 #endif
 }
 
-static const char* extract_path (const char*const name_full)
-{
-	const size_t len = strlen(name_full);
-
-	size_t path_len = len;
-	while (name_full[path_len] != '/')
-		--path_len; // Do nothing
-
-	assert(path_len != len);
-	assert(path_len != 0);
-
-	static char name_path[STRLEN_MAX] = { 0, };
-	for (size_t i = 0; i < path_len; ++i)
-		name_path[i] = name_full[i];
-	name_path[path_len] = 0;
-
-	return name_path;
-}
-
 static int mkdir_p (const char *path)
 {
     /* Adapted from http://stackoverflow.com/a/2336245/119527 */
@@ -580,10 +602,14 @@ static const char* get_file_name_sp
 	assert(sp_type == 's' || sp_type == 'p');
 	static char file_name[STRLEN_MAX] = { 0, };
 
-	if (sp_type == 's')
+	if (sp_type == 's') {
 		sprintf(file_name,"%s%c%d%s%s",name_part,'_',mpi_rank,".",extension_part);
-	else if (sp_type == 'p')
-		sprintf(file_name,"%s%s%s",name_part,".p",extension_part);
+	} else if (sp_type == 'p') {
+		if (strcmp(extension_part,"txt") == 0)
+			sprintf(file_name,"%s%s%s",name_part,"_p.",extension_part);
+		else
+			sprintf(file_name,"%s%s%s",name_part,".p",extension_part);
+	}
 	return file_name;
 }
 

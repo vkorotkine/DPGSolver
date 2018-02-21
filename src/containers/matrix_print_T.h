@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides Matrix_\* printing functions.
  */
 
+#include <stdio.h>
 #include <complex.h>
 
 struct Matrix_T;
@@ -41,6 +42,18 @@ void print_Matrix_T
 /// \brief `const` version of \ref print_Matrix_T.
 void print_const_Matrix_T
 	(const struct const_Matrix_T*const a ///< Defined for \ref print_Matrix_T.
+	);
+
+/// \brief Print a \ref const_Matrix_T\* to a file.
+void print_to_file_const_Matrix_T
+	(FILE*const file,                    ///< The file.
+	 const struct const_Matrix_T*const a ///< The matrix to print.
+	);
+
+/// \brief `mutable` version of \ref print_to_file_const_Matrix_T.
+void print_to_file_Matrix_T
+	(FILE*const file,              ///< The file.
+	 const struct Matrix_T*const a ///< The matrix to print.
 	);
 
 #if TYPE_RC == TYPE_COMPLEX

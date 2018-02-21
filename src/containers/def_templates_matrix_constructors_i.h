@@ -37,6 +37,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define const_constructor_move_Matrix_T       const_constructor_move_Matrix_i
 #define const_constructor_move_const_Matrix_T const_constructor_move_const_Matrix_i
 
+#define set_Matrix_from_Multiarray_T              set_Matrix_from_Multiarray_i
+#define set_const_Matrix_from_Multiarray_T        set_const_Matrix_from_Multiarray_i
+#define set_Matrix_from_Multiarray_Matrix_T       set_Matrix_from_Multiarray_Matrix_i
+#define set_const_Matrix_from_Multiarray_Matrix_T set_const_Matrix_from_Multiarray_Matrix_i
+
 #define destructor_Matrix_T       destructor_Matrix_i
 #define destructor_const_Matrix_T destructor_const_Matrix_i
 ///\}

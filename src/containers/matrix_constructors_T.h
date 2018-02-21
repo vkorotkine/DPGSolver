@@ -431,6 +431,7 @@ const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T
 	 const char side,                     ///< See brief.
 	 const bool invert_diag               ///< See brief.
 	);
+#endif
 
 /// \brief Set a \ref Matrix_T\* from a sub range of a \ref Multiarray_T\*.
 void set_Matrix_from_Multiarray_T
@@ -459,7 +460,7 @@ void set_const_Matrix_from_Multiarray_Matrix_T
 	 const struct const_Multiarray_Matrix_T* src, ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_T.
 	 const ptrdiff_t*const sub_indices            ///< Defined for \ref set_Matrix_from_Multiarray_Matrix_T.
 	);
-#endif
+
 // Destructors ****************************************************************************************************** //
 
 /// \brief Destructs a \ref Matrix_T\*.

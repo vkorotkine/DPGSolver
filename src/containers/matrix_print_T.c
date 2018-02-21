@@ -118,12 +118,69 @@ void print_const_Matrix_T (const struct const_Matrix_T*const a)
 	print_Matrix_T((const struct Matrix_T*)a);
 }
 
-static bool check_Matrix_extents_zero_T (const ptrdiff_t ext_0, const ptrdiff_t ext_1)
+void print_to_file_const_Matrix_T (FILE*const file, const struct const_Matrix_T*const a)
 {
-	if (ext_0 == 0 || ext_1 == 0)
-		return true;
-	return false;
+	const ptrdiff_t ext_0 = a->ext_0,
+	                ext_1 = a->ext_1;
+
+	const Type* data = a->data;
+
+	static const char*const format_d = " % .4e"; MAYBE_UNUSED(format_d);
+	static const char*const format_i = " % 11d";  MAYBE_UNUSED(format_i);
+	switch (a->layout) {
+	case 'R':
+		for (int i = 0; i < ext_0; ++i) {
+			for (int j = 0; j < ext_1; ++j) {
+				const Type val = *data++;
+#ifdef TYPE_RC
+	#if TYPE_RC == TYPE_REAL
+				if (isnan(val) || (fabs(val) > 0.0))
+					fprintf(file,format_d,val);
+				else
+					fprintf(file,format_i,0);
+	#elif TYPE_RC == TYPE_COMPLEX
+EXIT_ADD_SUPPORT; UNUSED(file); UNUSED(val);
+	#endif
+#else
+				fprintf(file,format_i,val);
+#endif
+			}
+			fprintf(file,"\n");
+		}
+		fprintf(file,"\n");
+		break;
+	case 'C':
+		for (int i = 0; i < ext_0; ++i) {
+			for (int j = 0; j < ext_1; ++j) {
+				const Type val = data[i+ext_0*j];
+#ifdef TYPE_RC
+	#if TYPE_RC == TYPE_REAL
+				if (isnan(val) || (fabs(val) > 0.0))
+					fprintf(file,format_d,val);
+				else
+					fprintf(file,format_i,0);
+	#elif TYPE_RC == TYPE_COMPLEX
+EXIT_ADD_SUPPORT; UNUSED(file); UNUSED(val);
+	#endif
+#else
+				fprintf(file,format_i,val);
+#endif
+			}
+			fprintf(file,"\n");
+		}
+		fprintf(file,"\n");
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %c",a->layout);
+		break;
+	}
 }
+
+void print_to_file_Matrix_T (FILE*const file, const struct Matrix_T*const a)
+{
+	print_to_file_const_Matrix_T(file,(struct const_Matrix_T*)a);
+}
+
 #if TYPE_RC == TYPE_COMPLEX
 void print_real (const double complex val)
 {
@@ -171,5 +228,13 @@ void print_imag (const double complex val)
 	}
 }
 #endif
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static bool check_Matrix_extents_zero_T (const ptrdiff_t ext_0, const ptrdiff_t ext_1)
+{
+	if (ext_0 == 0 || ext_1 == 0)
+		return true;
+	return false;
+}

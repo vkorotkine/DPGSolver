@@ -27,6 +27,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Opening files **************************************************************************************************** //
 
+/** \brief Extract the path from the string input.
+ *  \return The path (no free necessary). */
+const char* extract_path
+	(const char*const name_full ///< The full input.
+	);
+
 /** \brief Open file and check for successful completion.
  *  \return See brief. */
 FILE* fopen_checked
@@ -69,6 +75,20 @@ FILE* fopen_sp_input_file
 	 const char*const name_part,      ///< Defined for \ref fopen_sp_output_file.
 	 const char*const extension_part, ///< Defined for \ref fopen_sp_output_file.
 	 const int mpi_rank               ///< Defined for \ref fopen_sp_output_file.
+	);
+
+/** \brief Unchecked version of \ref fopen_sp_input_file.
+ *  \return The pointer to the file or `NULL` if not present. */
+FILE* fopen_sp_input_file_unchecked
+	(const char sp_type,              ///< See brief.
+	 const char*const name_part,      ///< See brief.
+	 const char*const extension_part, ///< See brief.
+	 const int mpi_rank               ///< See brief.
+	);
+
+/// \brief Create a directory associated with the path of the input name if not already present.
+void mkdir_p_given_file_name
+	(const char*const file_name ///< The name of the file containing the path to the directory.
 	);
 
 // Reading data from the current line ******************************************************************************* //
@@ -170,6 +190,14 @@ void read_skip_c_1
 void read_skip_const_c_1
 	(const char*const line, ///< See brief.
 	 const char*const var   ///< See brief.
+	);
+
+/// \brief Read into a preallocated `char**`, optionally skipping strings.
+void read_skip_c_2
+	(const char*const line_i, ///< Line from which to read data.
+	 const int n_skip,        ///< The number of strings to skip.
+	 char**const var,         ///< Variable in which to store data.
+	 const int n_var          ///< The number of entries to store in the `var` array.
 	);
 
 /// \brief Read a `const bool`, skipping the first string.

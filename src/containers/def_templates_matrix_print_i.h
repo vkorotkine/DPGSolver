@@ -20,8 +20,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define check_Matrix_extents_zero_T check_Matrix_extents_zero_i
 
-#define print_Matrix_T_tol       print_Matrix_i_tol
-#define print_const_Matrix_T_tol print_const_Matrix_i_tol
-#define print_Matrix_T           print_Matrix_i
-#define print_const_Matrix_T     print_const_Matrix_i
+#define print_Matrix_T_tol           print_Matrix_i_tol
+#define print_const_Matrix_T_tol     print_const_Matrix_i_tol
+#define print_Matrix_T               print_Matrix_i
+#define print_const_Matrix_T         print_const_Matrix_i
+#define print_to_file_Matrix_T       print_to_file_Matrix_i
+#define print_to_file_const_Matrix_T print_to_file_const_Matrix_i
 ///\}
