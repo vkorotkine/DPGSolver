@@ -162,6 +162,8 @@ const char* set_ctrl_name_full (const char*const ctrl_name)
 	strcpy(ctrl_name_full,PROJECT_INPUT_DIR);
 	if (strstr(ctrl_name,"TEST"))
 		strcat(ctrl_name_full,"testing/");
+	if (strstr(ctrl_name,"RESULTS"))
+		strcat(ctrl_name_full,"results/");
 	strcat(ctrl_name_full,"control_files/");
 	strcat(ctrl_name_full,ctrl_name);
 	strcat(ctrl_name_full,".ctrl");

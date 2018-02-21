@@ -52,7 +52,7 @@ struct Integration_Test_Info* constructor_Integration_Test_Info (const char*cons
 	char line[STRLEN_MAX];
 
 	const char* ctrl_name_full = set_ctrl_name_full(ctrl_name);
-	FILE *ctrl_file = fopen_checked(ctrl_name_full);
+	FILE* ctrl_file = fopen_checked(ctrl_name_full);
 
 	int ml_ctrl[2];
 	int p_ref_ctrl[2];

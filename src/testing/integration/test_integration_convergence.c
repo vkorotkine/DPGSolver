@@ -53,6 +53,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define ORDER_VIS_CONV_ML_MAX 3
 ///\}
 
+///\{ \name Parameters relating to maximum allowable mesh level and order for convergence order testing.
+#define ML_MAX 8
+#define P_MAX  6
+///\}
+
 /** \brief Set \ref Integration_Test_Info::conv_order_discount to the value specified for the test
  *         case (from the input file) or to 0.0 otherwise. */
 static void set_convergence_order_discount
@@ -78,7 +83,7 @@ int main
 	 char** argv ///< Standard.
 	)
 {
-	assert_condition_message(argc == 3,"Invalid number of input arguments");
+	assert_condition_message((argc == 3) || (argc == 4),"Invalid number of input arguments");
 
 	const char* petsc_options_name = set_petsc_options_name(argv[2]);
 	PetscInitialize(&argc,&argv,petsc_options_name,PETSC_NULL);
@@ -88,6 +93,8 @@ int main
 	struct Test_Info test_info = { .n_warn = 0, };
 
 	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name);
+	if (argc == 4)
+		int_test_info->conv_study_extension = argv[3];
 
 	const int* p_ref  = int_test_info->p_ref,
 	         * ml_ref = int_test_info->ml;
@@ -138,6 +145,33 @@ int main
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+/// \brief Container for convergence order related data for each mesh level and polynomial order.
+struct Conv_Order_Data {
+	const struct const_Multiarray_d* h,           ///< The multiarray of mesh spacing.
+	                               * l2_err,      ///< The multiarray of L2 errors.
+	                               * conv_orders; ///< The multiarray of convergence orders.
+	const struct const_Multiarray_i* ex_ord;      ///< The multiarray of expected orders.
+};
+
+/** \brief Copy the files from the $BUILD/output/error/... subdirectory to the $BUILD/output/results/... subdirectory in
+ *  the case where a convergence study is being performed. */
+static void copy_error_files_for_conv_study
+	(const struct Integration_Test_Info*const int_test_info ///< \ref Integration_Test_Info.
+	);
+
+/** \brief Constructor for a \ref Conv_Order_Data container.
+ *  \return See brief. */
+static struct Conv_Order_Data* constructor_Conv_Order_Data
+	(const struct Integration_Test_Info*const int_test_info, ///< \ref Integration_Test_Info.
+	 const int error_type,                                   ///< Current error type.
+	 const struct Simulation*const sim                       ///< \ref Simulation.
+	);
+
+/// \brief Destructor for a \ref Conv_Order_Data container.
+static void destructor_Conv_Order_Data
+	(const struct Conv_Order_Data*const cod ///< Standard.
+	);
+
 /** \brief Compute the number of errors to be read for the convergence order test.
  *  \return See brief. */
 static int compute_n_err
@@ -147,11 +181,10 @@ static int compute_n_err
 /** \brief Return whether the convergence orders are in the expected range.
  *  \return See brief. */
 static bool attained_expected_conv_orders
-	(const double discount,                            ///< Allowable discount from the expected conv. orders.
-	 const ptrdiff_t* extents_e,                       ///< The extents of the error data.
-	 const struct Multiarray_d* conv_orders,           ///< The container for the conv. order data.
-	 const struct Multiarray_i* exp_orders,            ///< The container of expected conv. order data.
-	 const struct Integration_Test_Info* int_test_info ///< \ref Integration_Test_Info.
+	(const double discount,                             ///< Allowable discount from the expected conv. orders.
+	 const struct const_Multiarray_d*const conv_orders, ///< The container for the conv. order data.
+	 const struct const_Multiarray_i*const exp_orders,  ///< The container of expected conv. order data.
+	 const struct Integration_Test_Info* int_test_info  ///< \ref Integration_Test_Info.
 	);
 
 static void set_convergence_order_discount (struct Integration_Test_Info*const int_test_info)
@@ -193,6 +226,8 @@ static void check_convergence_orders
 		break;
 	}
 
+	copy_error_files_for_conv_study(int_test_info);
+
 	const int* p_ref  = int_test_info->p_ref,
 	         * ml_ref = int_test_info->ml;
 	const char* input_name = compute_error_file_name(error_type,sim);
@@ -204,21 +239,106 @@ static void check_convergence_orders
 		return;
 	}
 
-	const int n_err = compute_n_err(input_name);
+	const struct Conv_Order_Data*const cod = constructor_Conv_Order_Data(int_test_info,error_type,sim); // dest.
+	const struct const_Multiarray_i*const ex_ord      = cod->ex_ord;
+	const struct const_Multiarray_d*const conv_orders = cod->conv_orders;
+	if (DISPLAY_CONV) {
+		printf("h:\n");
+		print_const_Multiarray_d(cod->h);
+		printf("L2 errors:\n");
+		print_const_Multiarray_d(cod->l2_err);
+		printf("Convergence orders:\n");
+		print_const_Multiarray_d(conv_orders);
+		printf("------------------------------------------------------------------------------------------\n\n\n");
+	}
 
-	ptrdiff_t extents[]    = { int_test_info->ml[1]+1, int_test_info->p_ref[1]+1, n_err, };
+	if (!*pass)
+		return;
+
+	*pass       = attained_expected_conv_orders(ACCEPTABLE_DISCOUNT,conv_orders,ex_ord,int_test_info);
+	bool pass_d = attained_expected_conv_orders(
+		ACCEPTABLE_DISCOUNT+int_test_info->conv_order_discount,conv_orders,ex_ord,int_test_info);
+
+	destructor_Conv_Order_Data(cod);
+
+	if (pass_d && !*pass) {
+		test_print_warning(test_info,"Only passing with the convergence order discount.");
+		*pass = true;
+	}
+}
+
+// Level 1 ********************************************************************************************************** //
+
+/** \brief Return a statically allocated `char*` containing the root of the error input file names.
+ *  \return See brief. */
+static const char* compute_error_input_name_root
+	(const struct Integration_Test_Info*const int_test_info, ///< \ref Integration_Test_Info.
+	 const int error_type,                                   ///< Defined for \ref compute_error_file_name.
+	 const bool use_default,                                 ///< Flag for whether the default should be returned.
+	 const struct Simulation*const sim                       ///< Defined for \ref compute_error_file_name.
+	);
+
+static void copy_error_files_for_conv_study (const struct Integration_Test_Info*const int_test_info)
+{
+	if (!int_test_info->conv_study_extension)
+		return;
+
+//	const char*const input_name_i = compute_error_input_name_root(int_test_info,error_type,true,sim);
+//	const char*const input_name_o = compute_error_input_name_root(int_test_info,error_type,false,sim);
+	EXIT_ADD_SUPPORT;
+}
+
+static int compute_n_err (const char* input_name)
+{
+	FILE* p_file = fopen_sp_input_file('p',input_name,"txt",0); // closed
+
+	char line[STRLEN_MAX];
+	fgets_checked(line,sizeof(line),p_file);
+
+	int n_err = 0;
+	read_skip_i(line,&n_err);
+	fclose(p_file);
+
+	return n_err;
+}
+
+static struct Conv_Order_Data* constructor_Conv_Order_Data
+	(const struct Integration_Test_Info*const int_test_info, const int error_type,
+	 const struct Simulation*const sim)
+{
+	const int* p_range  = NULL,
+	         * ml_range = NULL;
+
+	const char*const conv_study_ext = int_test_info->conv_study_extension;
+	if (!conv_study_ext) {
+		p_range  = int_test_info->p_ref;
+		ml_range = int_test_info->ml;
+	} else {
+		static const int max_p_range[]  = { 0, P_MAX, },
+		                 max_ml_range[] = { 0, ML_MAX, };
+		p_range  = max_p_range;
+		ml_range = max_ml_range;
+	}
+
+	const char*const input_name = compute_error_input_name_root(int_test_info,error_type,false,sim);
+
+	const int n_err = compute_n_err(input_name);
+	ptrdiff_t extents[]    = { ml_range[1]+1, p_range[1]+1, n_err, };
 	const ptrdiff_t base_e = extents[0]*extents[1];
 
-	struct Multiarray_i* ex_ord = constructor_zero_Multiarray_i('C',3,extents);     // destructed
-	struct Multiarray_d* l2_err = constructor_zero_Multiarray_d('C',3,extents);     // destructed
-	struct Multiarray_d* h      = constructor_zero_Multiarray_d('C',2,&extents[0]); // destructed
+	struct Multiarray_d* h           = constructor_zero_Multiarray_d('C',2,&extents[0]); // moved
+	struct Multiarray_i* ex_ord      = constructor_zero_Multiarray_i('C',3,extents);     // moved
+	struct Multiarray_d* l2_err      = constructor_zero_Multiarray_d('C',3,extents);     // moved
+	struct Multiarray_d* conv_orders = constructor_zero_Multiarray_d('C',3,extents);     // moved
 
-	for (int p = p_ref[0]; p <= p_ref[1]; ++p) {
-	for (int ml = ml_ref[0]; ml <= ml_ref[1]; ++ml) {
+	for (int p = p_range[0]; p <= p_range[1]; ++p) {
+	for (int ml = ml_range[0]; ml <= ml_range[1]; ++ml) {
 		const char* input_name_curr = set_file_name_curr(ADAPT_0,p,ml,true,input_name);
 
 		char line[STRLEN_MAX];
 		FILE* p_file = fopen_sp_input_file('p',input_name_curr,"txt",0); // closed
+		if (!p_file)
+			continue;
 
 		skip_lines(p_file,1);
 		fgets_checked(line,sizeof(line),p_file);
@@ -242,10 +362,8 @@ static void check_convergence_orders
 		}
 	}}
 
-	struct Multiarray_d* conv_orders = constructor_zero_Multiarray_d('C',3,extents); // destructed
-
-	for (int p = p_ref[0]; p <= p_ref[1]; ++p) {
-	for (int ml = ml_ref[0]+1; ml <= ml_ref[1]; ++ml) {
+	for (int p = p_range[0]; p <= p_range[1]; ++p) {
+	for (int ml = ml_range[0]+1; ml <= ml_range[1]; ++ml) {
 	for (int n = 0; n < n_err; ++n) {
 		const ptrdiff_t ind_c_h = p*extents[0] + ml-1,
 		                ind_f_h = p*extents[0] + ml,
@@ -255,60 +373,48 @@ static void check_convergence_orders
 		double* data_l2 = l2_err->data,
 		      * data_h  = h->data;
 
+		if (data_h[ind_f_h] == 0.0 || data_h[ind_c_h] == 0.0)
+			continue;
+
 		conv_orders->data[ind_f_e] =
 			log10(data_l2[ind_f_e]/data_l2[ind_c_e])/log10(data_h[ind_f_h]/data_h[ind_c_h]);
 	}}}
 
-	if (DISPLAY_CONV) {
-		printf("h:\n");
-		print_Multiarray_d(h);
-		printf("L2 errors:\n");
-		print_Multiarray_d(l2_err);
-		printf("Convergence orders:\n");
-		print_Multiarray_d(conv_orders);
-		printf("------------------------------------------------------------------------------------------\n\n\n");
+	struct Conv_Order_Data*const cod = malloc(sizeof *cod);      // free
+	cod->h           = (struct const_Multiarray_d*) h;           // destructed
+	cod->ex_ord      = (struct const_Multiarray_i*) ex_ord;      // destructed
+	cod->l2_err      = (struct const_Multiarray_d*) l2_err;      // destructed
+	cod->conv_orders = (struct const_Multiarray_d*) conv_orders; // destructed
+
+	return cod;
+
+/*
+// Goes in function which outputs combined data.
+	char error_ext[STRLEN_MIN];
+	switch (error_type) {
+		case ERROR_STANDARD: strcpy(error_ext,"standard"); break;
+		case ERROR_FUNCTIONAL: strcpy(error_ext,"functional"); break;
+		default: EXIT_ERROR("Unsupported: %d.\n",error_type); break;
 	}
-
-	if (!*pass)
-		return;
-
-	*pass       = attained_expected_conv_orders(ACCEPTABLE_DISCOUNT,extents,conv_orders,ex_ord,int_test_info);
-	bool pass_d = attained_expected_conv_orders(
-		ACCEPTABLE_DISCOUNT+int_test_info->conv_order_discount,extents,conv_orders,ex_ord,int_test_info);
-
-	destructor_Multiarray_i(ex_ord);
-	destructor_Multiarray_d(l2_err);
-	destructor_Multiarray_d(h);
-	destructor_Multiarray_d(conv_orders);
-
-	if (pass_d && !*pass) {
-		test_print_warning(test_info,"Only passing with the convergence order discount.");
-		*pass = true;
-	}
+*/
 }
 
-// Level 1 ********************************************************************************************************** //
-
-static int compute_n_err (const char* input_name)
+static void destructor_Conv_Order_Data (const struct Conv_Order_Data*const cod)
 {
-	FILE* p_file = fopen_sp_input_file('p',input_name,"txt",0); // closed
-
-	char line[STRLEN_MAX];
-	fgets_checked(line,sizeof(line),p_file);
-
-	int n_err = 0;
-	read_skip_i(line,&n_err);
-	fclose(p_file);
-
-	return n_err;
+	destructor_const_Multiarray_d(cod->h);
+	destructor_const_Multiarray_i(cod->ex_ord);
+	destructor_const_Multiarray_d(cod->l2_err);
+	destructor_const_Multiarray_d(cod->conv_orders);
+	free((void*)cod);
 }
 
 static bool attained_expected_conv_orders
-	(const double discount, const ptrdiff_t* extents_e, const struct Multiarray_d* conv_orders,
-	 const struct Multiarray_i* exp_orders, const struct Integration_Test_Info* int_test_info)
+	(const double discount, const struct const_Multiarray_d*const conv_orders,
+	 const struct const_Multiarray_i*const exp_orders, const struct Integration_Test_Info* int_test_info)
 {
 	bool pass = true;
 
+	const ptrdiff_t*const extents_e = conv_orders->extents;
 	const int* p_ref  = int_test_info->p_ref,
 	         * ml_ref = int_test_info->ml;
 	const int n_err   = (int)extents_e[2];
@@ -324,4 +430,31 @@ static bool attained_expected_conv_orders
 		}
 	}}
 	return pass;
+}
+
+// Level 2 ********************************************************************************************************** //
+
+static const char* compute_error_input_name_root
+	(const struct Integration_Test_Info*const int_test_info, const int error_type, const bool use_default,
+	 const struct Simulation*const sim)
+{
+	const char*const conv_study_ext = int_test_info->conv_study_extension;
+	if (use_default || !conv_study_ext)
+		return compute_error_file_name(error_type,sim);
+	else {
+		static const char* name_part = "../output/results/";
+
+		char l2_spec[STRLEN_MIN];
+		switch (error_type) {
+			case ERROR_STANDARD: strcpy(l2_spec,""); break;
+			case ERROR_FUNCTIONAL: strcpy(l2_spec,"functional_"); break;
+			default: EXIT_ERROR("Unsupported: %d\n",error_type); break;
+		}
+
+		static char output_name[STRLEN_MAX];
+		sprintf(output_name,"%s%s%c%s",name_part,conv_study_ext,'/',l2_spec);
+		correct_file_name_ml_p(sim->ml_p_curr[0],sim->ml_p_curr[1],output_name);
+		return output_name;
+	}
+	return NULL;
 }

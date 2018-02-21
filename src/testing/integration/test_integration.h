@@ -28,6 +28,9 @@ struct Simulation;
 struct Integration_Test_Info {
 	const char* ctrl_name; ///< The name of the control file used for the current test.
 
+	/// The name of the extension for a specific convergence order test.
+	const char* conv_study_extension;
+
 	/** The minimal and maximal reference orders to be used for convergence order testing.
 	 *
 	 *  This range may differ from \ref Simulation::p_ref, such that convergence order testing can be performed
