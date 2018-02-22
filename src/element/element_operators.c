@@ -466,6 +466,8 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 			return GSL_MAX(p_s,1);
 		else if (strcmp(sim->geom_rep,"superparametric") == 0)
 			return p_s+1;
+		else if (strcmp(sim->geom_rep,"superparametric_p_le_1") == 0)
+			return ( p_s < 2 ? p_s+1 : p_s );
 		else if (strstr(sim->geom_rep,"fixed"))
 			EXIT_ADD_SUPPORT; // Find number in geom_rep (use something similar to 'convert_to_range_d').
 		else

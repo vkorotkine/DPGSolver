@@ -4,7 +4,7 @@ foreach(geo_name_full ${GEO_FILES})
 	configure_file(${geo_name_full} ${PROJECT_BINARY_DIR}${geo_name} COPYONLY)
 endforeach()
 
-file(GLOB_RECURSE SCRIPT_FILES *.sh)
+file(GLOB_RECURSE SCRIPT_FILES *.sh *.py)
 foreach(script_name_full ${SCRIPT_FILES})
 	string(REPLACE "${CMAKE_SOURCE_DIR}/input" "" script_name ${script_name_full})
 	configure_file(${script_name_full} ${PROJECT_BINARY_DIR}${script_name} @ONLY)

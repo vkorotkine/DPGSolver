@@ -2,15 +2,15 @@ pde_name  euler
 pde_spec  steady/joukowski
 
 geom_name n-cube
-geom_spec conformal_half
+geom_spec conformal_full/geom_ar_1
 
 dimension 2
 
-mesh_generator   n-cube/2d_boundary_layer.geo
+mesh_generator   n-cube/2d_boundary_layer_single_progression.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        mixed
-mesh_level       2 2
+mesh_level       0 5
 mesh_path        ../meshes/
 
 
@@ -18,18 +18,19 @@ mesh_path        ../meshes/
 
 solution_extension subsonic
 
-interp_tp  GL
-interp_si  WSH
+
+interp_tp  GLL
+interp_si  AO
 interp_pyr GLL
 
 basis_geom  lagrange
 basis_sol   lagrange
 
-geom_representation superparametric
+geom_representation isoparametric
 geom_blending_tp    gordon_hall
 geom_blending_si    szabo_babuska_gen
 
-p_ref    0 3
+p_ref    2 3
 
 fe_method 1
 
@@ -37,4 +38,4 @@ fe_method 1
 # Testing variables
 
 ml_range_test 0 3
-p_range_test  0 3
+p_range_test  2 3

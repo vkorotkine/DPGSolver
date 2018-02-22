@@ -10,13 +10,14 @@ mesh_generator   n-cube/2d_boundary_layer_single_progression.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        mixed
-mesh_level       0 2
+mesh_level       0 5
 mesh_path        ../meshes/
 
 
 # Simulation variables
 
 solution_extension subsonic
+
 
 interp_tp  GLL
 interp_si  AO
@@ -36,5 +37,5 @@ fe_method 1
 
 # Testing variables
 
-ml_range_test 0 2
-p_range_test  0 3
+ml_range_test 0 5
+p_range_test  0 0

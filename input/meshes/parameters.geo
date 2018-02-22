@@ -10,7 +10,7 @@ EPS = 1e-15;
 
 
 // Dummy value
-GMSH_DUMMY = -999;
+GMSH_DUMMY = 314159265;
 
 
 // Element types (Gmsh convention)
@@ -54,6 +54,10 @@ GEOM_NONE = 0; // Dummy value
 GEOM_AR_1 = 1;
 GEOM_AR_2 = 2;
 GEOM_AR_3 = 3;
+GEOM_AR_4 = 4;
+GEOM_AR_5 = 5;
+GEOM_AR_6 = 6;
+GEOM_AR_7 = 7;
 GEOM_AR_8 = 8;
 
 GEOM_ADV_YL   = 1; // (ADV)ection (Y)-coord (L)eft

@@ -102,7 +102,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 
 	gmsh_setnumbers += " -setnumber geom_ar "
 	found = 0
-	for i in [1,2,3,8]:
+	for i in range(1,8+1):
 		geom_spec = "geom_ar_"+str(i)
 		if (mesh_name.find("/"+geom_spec+"/") != -1):
 			gmsh_setnumbers += get_gmsh_number(geom_spec,input_dir,0)

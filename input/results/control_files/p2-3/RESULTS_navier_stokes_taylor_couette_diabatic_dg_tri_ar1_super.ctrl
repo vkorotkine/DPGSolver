@@ -1,25 +1,25 @@
-pde_name  euler
-pde_spec  steady/joukowski
+pde_name  navier_stokes
+pde_spec  steady/taylor_couette
 
-geom_name n-cube
-geom_spec conformal_half
+geom_name n-cylinder_hollow
+geom_spec diabatic_o/geom_ar_1
 
 dimension 2
 
-mesh_generator   n-cube/2d_boundary_layer.geo
+mesh_generator   n-cylinder_hollow/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
-mesh_type        mixed
-mesh_level       3 3
+mesh_type        tri
+mesh_level       0 5
 mesh_path        ../meshes/
 
 
 # Simulation variables
 
-solution_extension subsonic
+solution_extension diabatic
 
 interp_tp  GL
-interp_si  WSH
+interp_si  AO
 interp_pyr GLL
 
 basis_geom  lagrange
@@ -29,12 +29,12 @@ geom_representation superparametric
 geom_blending_tp    gordon_hall
 geom_blending_si    szabo_babuska_gen
 
-p_ref    0 3
+p_ref    2 3
 
 fe_method 1
 
 
 # Testing variables
 
-ml_range_test 0 3
-p_range_test  0 3
+ml_range_test 0 4
+p_range_test  2 3

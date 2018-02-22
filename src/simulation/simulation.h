@@ -109,7 +109,8 @@ struct Simulation {
 
 	/** The type of geometry representation used. Options:
 	 *	- isoparametric;
-	 *	- superparametric1 (geometry order one greater than the solution order);
+	 *	- superparametric        (geometry order one greater than the solution order);
+	 *	- superparametric_p_le_1 (geometry order one greater than the solution order for p <= 1 (iso otherwise));
 	 *	- fixed# (used for geometry which is of fixed order #).
 	 */
 	const char geom_rep[STRLEN_MIN];
