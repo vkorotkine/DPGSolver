@@ -41,8 +41,10 @@ def run_euler_joukowski (cmd_line_params,ar_val):
 
 	if (ar_val == 1):
 		ctrl_spec   = ["ar1_iso", "ar1_super", ]
+	elif (ar_val == 2):
+		ctrl_spec   = ["ar2_super_p_le_1", "ar2_super", ]
 	elif (ar_val == 4):
-		ctrl_spec   = ["ar4_iso", "ar4_super", ]
+		ctrl_spec   = ["ar4_super_p_le_1", "ar4_super", ]
 	else:
 		sys.exit("Unsupported ar_val: \""+str(ar_val)+"\".")
 	ctrl_matrix = ["p0-0", "p1-1", "p2-3", ]
@@ -75,10 +77,8 @@ if __name__ == "__main__":
 
 	One command line argument must be provided, specifying which jobs should be run:
 	- all:                              All jobs listed below;
-	- euler_joukowski_ar1:              Aspect ratio ~ 1 only.
-	- euler_joukowski_ar4:              Aspect ratio ~ 4 only.
-	- navier_stokes_taylor_couette_ar1: Aspect ratio ~ 1 only.
-	- navier_stokes_taylor_couette_ar8: Aspect ratio ~ 8 only.
+	- euler_joukowski_arX:              Aspect ratio ~ X only.
+	- navier_stokes_taylor_couette_arX: Aspect ratio ~ X only.
 	"""
 
 	argc = len(sys.argv)
@@ -91,6 +91,8 @@ if __name__ == "__main__":
 
 	if (jobs_name == "all" or "euler_joukowski_ar1" in jobs_name):
 		run_euler_joukowski(clp,1)
+	if (jobs_name == "all" or "euler_joukowski_ar2" in jobs_name):
+		run_euler_joukowski(clp,2)
 	if (jobs_name == "all" or "euler_joukowski_ar4" in jobs_name):
 		run_euler_joukowski(clp,4)
 	if (jobs_name == "all" or "navier_stokes_taylor_couette_ar1" in jobs_name):

@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_level = 0; mesh_type = MIXED; mesh_domain = PARAMETRIC; pde_name = EULER; geom_conformal = GEOM_CONFORMAL_FULL; pde_spec = STEADY_JOUKOWSKI; geom_ar = GEOM_AR_4;
+//mesh_level = 0; mesh_type = MIXED; mesh_domain = PARAMETRIC; pde_name = EULER; geom_conformal = GEOM_CONFORMAL_FULL; pde_spec = STEADY_JOUKOWSKI; geom_ar = GEOM_AR_2;
 
 // Geometry Specification
 If (pde_name == EULER && pde_spec == STEADY_JOUKOWSKI)
@@ -19,9 +19,11 @@ t_bump_x         = 0.15;
 // Allows different (A)spect (R)atio elements
 aspect_ratio = geom_ar;
 If (aspect_ratio == 1)
-	t_progression_y  = 4.0;
+	t_progression_y = 4.0;
+ElseIf (aspect_ratio == 2)
+	t_progression_y = 5.5;
 ElseIf (aspect_ratio == 4)
-	t_progression_y  = 7.0;
+	t_progression_y = 7.0;
 Else
     Error("Unsupported aspect_ratio: %d",aspect_ratio); Exit;
 EndIf
