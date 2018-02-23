@@ -37,14 +37,16 @@ def run_euler_joukowski (cmd_line_params,ar_val):
 	""" Run the Euler Joukowski cases. """
 	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"euler","steady","joukowski"])
 	test_case  = "euler_joukowski_full_dg_2D"
-	petsc_opts = "petsc_options_gmres_r120"
 
 	if (ar_val == 1):
 		ctrl_spec   = ["ar1_iso", "ar1_super", ]
+		petsc_opts = "petsc_options_gmres_r120"
 	elif (ar_val == 2):
 		ctrl_spec   = ["ar2_super_p_le_1", "ar2_super", ]
+		petsc_opts = "petsc_options_gmres_r120"
 	elif (ar_val == 4):
 		ctrl_spec   = ["ar4_super_p_le_1", "ar4_super", ]
+		petsc_opts = "petsc_options_gmres_r240"
 	else:
 		sys.exit("Unsupported ar_val: \""+str(ar_val)+"\".")
 	ctrl_matrix = ["p0-0", "p1-1", "p2-3", ]

@@ -17,7 +17,7 @@ mesh_path        ../meshes/
 # Simulation variables
 
 solution_extension subsonic
-
+test_case_extension cfl_low
 
 interp_tp  GLL
 interp_si  AO
