@@ -70,7 +70,7 @@ def assign_block(A,cases_run,f):
 		j2 = 0
 		for j in range(0,n_cols):
 			if (cases_run[i,j] == 1):
-				A[i,j] = vals_d[j2]
+				A[i,j] = vals_d[j]
 				j2 += 1
 
 
@@ -307,6 +307,11 @@ def convert_data(output,file_name_no_ext):
 
 
 if __name__ == '__main__':
+	"""
+	Command line arguments:
+	1. Path the directory containing error data files.
+	2. Name of the error data file without the extension.
+	"""
 
 	if (len(sys.argv) != 3):
 		print("\nIncorrect number of inputs. Should be:")

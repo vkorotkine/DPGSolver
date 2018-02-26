@@ -41,15 +41,17 @@ def run_euler_joukowski (cmd_line_params,ar_val):
 	if (ar_val == 1):
 		ctrl_spec   = ["ar1_iso", "ar1_super", ]
 		petsc_opts = "petsc_options_gmres_r120"
+		ctrl_matrix = ["p0-0", "p1-1", "p2-3", ]
 	elif (ar_val == 2):
 		ctrl_spec   = ["ar2_super_p_le_1", "ar2_super", ]
 		petsc_opts = "petsc_options_gmres_r120"
+		ctrl_matrix = ["p0-0", "p1-1", "p2-3", ]
 	elif (ar_val == 4):
 		ctrl_spec   = ["ar4_super_p_le_1", "ar4_super", ]
 		petsc_opts = "petsc_options_gmres_r240"
+		ctrl_matrix = ["p2-3", ]
 	else:
 		sys.exit("Unsupported ar_val: \""+str(ar_val)+"\".")
-	ctrl_matrix = ["p0-0", "p1-1", "p2-3", ]
 
 	execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
 
