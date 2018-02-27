@@ -61,6 +61,13 @@ struct Vector_i* constructor_file_Vector_i
 	 const bool check_container ///< Flag for whether the container type should be checked.
 	);
 
+/** \brief `const` version of \ref constructor_file_Vector_i.
+ *  \return See brief. */
+const struct const_Vector_i* constructor_file_const_Vector_i
+	(FILE* data_file,           ///< See brief.
+	 const bool check_container ///< See brief.
+	);
+
 // Difference functions ********************************************************************************************* //
 
 /** \brief Check the relative difference between entries in the input \ref Vector_T\*s up to the input tolerance.

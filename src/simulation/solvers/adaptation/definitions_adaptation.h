@@ -23,6 +23,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #define ADAPT_NONE 0
 ///\}
 
+///\{ \name Supported adaptation options.
+#define ADAPT_0  0
+#define ADAPT_P  1
+#define ADAPT_H  2
+#define ADAPT_HP 3
+///\}
+
 ///\{ \name Supported adaptation types for computational elements.
 #define ADAPT_P_REFINE 101
 #define ADAPT_P_COARSE 102
@@ -34,10 +41,12 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Supported adaptation strategies for the entire domain.
-#define ADAPT_S_P_REFINE 11
-#define ADAPT_S_P_COARSE 12
-#define ADAPT_S_H_REFINE 13
-#define ADAPT_S_H_COARSE 14
+#define ADAPT_S_P_REFINE 11 ///< Uniform p refinement for the entire domain.
+#define ADAPT_S_P_COARSE 12 ///< Uniform p coarsening for the entire domain.
+#define ADAPT_S_H_REFINE 13 ///< Uniform h refinement for the entire domain.
+#define ADAPT_S_H_COARSE 14 ///< Uniform h coarsening for the entire domain.
+
+#define ADAPT_S_XYZ_VE 21 ///< Adapt around the specified vertices until the required mesh level is reached.
 ///\}
 
 ///\{ \name Support h-refinement types for tetrahedral elements.

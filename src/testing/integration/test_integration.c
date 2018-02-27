@@ -30,6 +30,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_intrusive.h"
 
 #include "test_base.h"
+#include "test_support_multiarray.h"
+#include "test_support_vector.h"
+
+#include "multiarray.h"
+#include "vector.h"
 
 #include "adaptation.h"
 #include "computational_elements.h"
@@ -40,6 +45,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
+
+/** Flag used to specify that the simulation should be set up as if the adaptation type was \ref ADAPT_0 but with
+ *  potential h-refinement for the initial mesh. */
+#define ADAPT_0_FOR_H 10
+
+/// \brief Refine the initial mesh if a refinement file is available.
+static void refine_initial_mesh_if_required
+	(struct Simulation*const sim ///< \ref Simulation.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -89,7 +103,8 @@ void structor_simulation
 	assert(type_rc == 'r' || type_rc == 'c');
 
 	switch (adapt_type) {
-	case ADAPT_0: {
+	case ADAPT_0: { // fallthrough
+	} case ADAPT_0_FOR_H: {
 		if (mode == 'c') {
 			if (*sim != NULL)
 				structor_simulation(sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
@@ -100,6 +115,8 @@ void structor_simulation
 				case 'c': constructor_derived_computational_elements_c(*sim,IL_SOLVER); break; // dest.
 				default: EXIT_ERROR("Unsupported: %c\n",type_rc); break;
 			}
+			if (adapt_type == ADAPT_0_FOR_H)
+				refine_initial_mesh_if_required(*sim);
 		} else if (mode == 'd') {
 			switch (type_rc) {
 				case 'r': destructor_derived_computational_elements(*sim,IL_BASE);   break; // dest.
@@ -115,20 +132,20 @@ void structor_simulation
 		if (ml != ml_prev)
 			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
 		else
-			adapt_hp(*sim,ADAPT_S_P_REFINE);
+			adapt_hp(*sim,ADAPT_S_P_REFINE,NULL);
 		break;
 	case ADAPT_H:
 		assert(mode == 'c');
 		static bool entered = false;
 		if (!entered) {
-			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
+			structor_simulation(sim,mode,ADAPT_0_FOR_H,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
 			entered = true;
 			return;
 		}
 
 		if (ml > ml_prev) {
 			assert(ml-ml_prev == 1);
-			adapt_hp(*sim,ADAPT_S_H_REFINE);
+			adapt_hp(*sim,ADAPT_S_H_REFINE,NULL);
 		} else {
 			EXIT_ERROR("Should only be performing h-refinement.\n");
 		}
@@ -137,24 +154,24 @@ void structor_simulation
 		assert(mode == 'c');
 		static bool entered = false;
 		if (!entered) {
-			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
+			structor_simulation(sim,mode,ADAPT_0_FOR_H,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
 			entered = true;
 			return;
 		}
 
 		if (ml > ml_prev) {
 			assert(ml-ml_prev == 1);
-			adapt_hp(*sim,ADAPT_S_H_REFINE);
+			adapt_hp(*sim,ADAPT_S_H_REFINE,NULL);
 		} else if (ml < ml_prev) {
 			for (int ml_curr = ml; ml_curr != ml; --ml_curr)
-				adapt_hp(*sim,ADAPT_S_H_COARSE);
+				adapt_hp(*sim,ADAPT_S_H_COARSE,NULL);
 		}
 		if (p > p_prev) {
 			assert(p-p_prev == 1);
-			adapt_hp(*sim,ADAPT_S_P_REFINE);
+			adapt_hp(*sim,ADAPT_S_P_REFINE,NULL);
 		} else if (p < p_prev) {
 			for (int p_curr = p_prev; p_curr != p; --p_curr)
-				adapt_hp(*sim,ADAPT_S_P_COARSE);
+				adapt_hp(*sim,ADAPT_S_P_COARSE,NULL);
 		}
 		break;
 	} default:
@@ -219,3 +236,40 @@ const char* set_file_name_curr
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void refine_initial_mesh_if_required (struct Simulation*const sim)
+{
+	const int count_to_find = 2;
+	int count_found = 0;
+
+	struct Adaptation_Data adapt_data;
+
+	char line[STRLEN_MAX];
+	FILE* input_file = fopen_input('t',NULL,NULL); // closed
+	while (fgets(line,sizeof(line),input_file)) {
+		if (strstr(line,"xyz_ve_refine")) {
+			++count_found;
+			adapt_data.xyz_ve_refine = constructor_file_const_Multiarray_d(input_file,true); // destructed
+		}
+		if (strstr(line,"xyz_ve_mesh_level")) {
+			++count_found;
+			adapt_data.xyz_ve_ml = constructor_file_const_Vector_i(input_file,true); // destructed
+		}
+	}
+	fclose(input_file);
+
+	if (adapt_data.xyz_ve_refine == NULL) {
+		assert(adapt_data.xyz_ve_ml == NULL);
+		return;
+	}
+
+	if (count_found != count_to_find)
+		EXIT_ERROR("Did not find the required number of variables");
+
+	adapt_hp(sim,ADAPT_S_XYZ_VE,&adapt_data);
+
+EXIT_UNSUPPORTED;
+	destructor_const_Multiarray_d(adapt_data.xyz_ve_refine);
+	destructor_const_Vector_i(adapt_data.xyz_ve_ml);
+}
+

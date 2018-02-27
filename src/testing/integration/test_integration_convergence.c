@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <math.h>
 
 #include "macros.h"
+#include "definitions_adaptation.h"
 #include "definitions_core.h"
 #include "definitions_error.h"
 #include "definitions_intrusive.h"

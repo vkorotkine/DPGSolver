@@ -73,6 +73,13 @@ struct Multiarray_d* constructor_file_Multiarray_d
 	 const bool check_container ///< Flag for whether the container type should be checked.
 	);
 
+/** \brief `const` version of \ref constructor_file_Multiarray_d.
+ *  \return See brief. */
+const struct const_Multiarray_d* constructor_file_const_Multiarray_d
+	(FILE* data_file,           ///< See brief.
+	 const bool check_container ///< See brief.
+	);
+
 /** \brief Constructor for a \ref Multiarray_Vector_T\* as read from a file.
  *  \return Standard. */
 struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i

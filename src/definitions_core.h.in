@@ -24,13 +24,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DMAX 3
 ///\}
 
-///\{ \name Supported adaptation options. \todo Move this to defitions_adaptation.
-#define ADAPT_0  0
-#define ADAPT_P  1
-#define ADAPT_H  2
-#define ADAPT_HP 3
-///\}
-
 #define PROJECT_SOURCE_DIR "@PROJECT_SOURCE_DIR@/"       ///< The CMake project source directory.
 #define PROJECT_INPUT_DIR  "@PROJECT_SOURCE_DIR@/input/" ///< The base directory for input files.
 

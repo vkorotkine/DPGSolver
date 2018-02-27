@@ -195,6 +195,11 @@ struct Multiarray_d* constructor_file_Multiarray_d (FILE* data_file, const bool 
 	return dest;
 }
 
+const struct const_Multiarray_d* constructor_file_const_Multiarray_d (FILE* data_file, const bool check_container)
+{
+	return (struct const_Multiarray_d*) constructor_file_Multiarray_d(data_file,check_container);
+}
+
 struct Multiarray_Vector_i* constructor_file_Multiarray_Vector_i (FILE* data_file)
 {
 	check_container_type(data_file,"Multiarray_Vector_i");

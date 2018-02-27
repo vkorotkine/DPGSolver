@@ -127,6 +127,11 @@ struct Vector_i* constructor_file_Vector_i (FILE* data_file, const bool check_co
 	return constructor_copy_Vector_i_i(ext_0,data);
 }
 
+const struct const_Vector_i* constructor_file_const_Vector_i (FILE* data_file, const bool check_container)
+{
+	return (struct const_Vector_i*) constructor_file_Vector_i(data_file,check_container);
+}
+
 // Difference functions ********************************************************************************************* //
 
 bool diff_Vector_i (const struct Vector_i*const a, const struct Vector_i*const b)
