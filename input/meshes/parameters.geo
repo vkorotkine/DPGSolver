@@ -1,5 +1,5 @@
 /*
- * The boundary condition definitions below **must** be the same as those in $(ROOT)/src/constants/constants_bc.h
+ * The boundary condition definitions below **must** be the same as those in $(ROOT)/src/simulation/test_case/boundary/definitions_bc.h
  */
 
 // Default characteristic length (Not used for transfinite meshes)
@@ -108,12 +108,19 @@ GMSH_YZFACE_MIN = 6001;
 GMSH_XYZVOL_MIN = 7001;
 
 
+// See comments in $DPG_ROOT/src/simulation/test_case/boundary/definitions_bc.h for when "ALT"ernate BC values are required.
 
 BC_INFLOW       = 1; // Advection
-BC_OUTFLOW      = 2;
+BC_INFLOW_ALT1  = 2;
+BC_INFLOW_ALT2  = 3;
+BC_OUTFLOW      = 11;
+BC_OUTFLOW_ALT1 = 12;
+BC_OUTFLOW_ALT2 = 13;
 
-BC_DIRICHLET    = 11; // Diffusion
-BC_NEUMANN      = 12;
+BC_DIRICHLET      = 21; // Diffusion
+BC_DIRICHLET_ALT1 = 22;
+BC_NEUMANN        = 31;
+BC_NEUMANN_ALT1   = 32;
 
 BC_RIEMANN        = 101; // Euler
 BC_SLIPWALL       = 102;

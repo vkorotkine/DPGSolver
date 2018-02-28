@@ -29,6 +29,14 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_blended_2d_mixed")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_straight_2d_quad_periodic")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_parametric_2d_quad_periodic_reflected")
 
+set (EXEC test_integration_fe_init_refined)
+set (LIBS_DEPEND ${LIBS_BASE} ${PETSC_LIBRARIES} Simulation Test_Integration Test_Support_Simulation)
+add_executable(${EXEC} ${EXEC}.c)
+target_link_libraries(${EXEC} ${LIBS_DEPEND})
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_h_refined_2d_tri_h1")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_h_refined_2d_tri_h2")
+
+
 set (EXEC test_integration_geometry)
 set (LIBS_DEPEND ${LIBS_BASE} ${PETSC_LIBRARIES} Simulation Test_Support_Containers Test_Support_Simulation)
 add_executable(${EXEC} ${EXEC}.c)

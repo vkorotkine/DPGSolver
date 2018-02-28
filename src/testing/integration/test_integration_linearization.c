@@ -219,8 +219,6 @@ int main
 		struct F_Ptrs_and_Data* f_ptrs_data = constructor_F_Ptrs_and_Data(sim); // destructed
 
 		if (i == 0) {
-			set_up_solver_geometry(sim);
-			set_initial_solution(sim);
 			ssi[i] = constructor_Solver_Storage_Implicit(sim); // destructed
 
 			struct Test_Case* test_case = (struct Test_Case*) sim->test_case_rc->tc;
@@ -230,10 +228,6 @@ int main
 			f_ptrs_data->perturb_solution(sim);
 			compute_lhs_analytical(sim,ssi[i],f_ptrs_data);
 		} else {
-			convert_to_Test_Case_rc(sim,'c');
-
-			set_up_solver_geometry_c(sim);
-			set_initial_solution_c(sim);
 			ssi[i] = constructor_Solver_Storage_Implicit_c(sim); // destructed
 
 			struct Test_Case_c* test_case = (struct Test_Case_c*) sim->test_case_rc->tc;
@@ -241,8 +235,6 @@ int main
 
 			f_ptrs_data->perturb_solution(sim);
 			compute_lhs_cmplx_step(sim,ssi[i],f_ptrs_data);
-
-			convert_to_Test_Case_rc(sim,'r');
 		}
 		petsc_mat_vec_assemble(ssi[i]);
 

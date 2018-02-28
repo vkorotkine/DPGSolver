@@ -47,4 +47,9 @@ void destructor_derived_Adaptive_Solver_Face
 	(struct Face* face_ptr ///< Pointer to the face.
 	);
 
+/// \brief Initialize adaptation related parameters for the current \ref Adaptive_Solver_Face.
+void initialize_Adaptive_Solver_Face
+	(struct Adaptive_Solver_Face*const a_s_face ///< \ref Adaptive_Solver_Face.
+	);
+
 #endif // DPG__face_solver_adaptive_h__INCLUDED

@@ -47,4 +47,9 @@ void destructor_derived_Adaptive_Solver_Volume
 	(struct Volume* volume_ptr ///< Pointer to the volume.
 	);
 
+/// \brief Initialize adaptation related parameters for the current \ref Adaptive_Solver_Volume.
+void initialize_Adaptive_Solver_Volume
+	(struct Adaptive_Solver_Volume*const a_s_vol ///< \ref Adaptive_Solver_Volume.
+	);
+
 #endif // DPG__volume_solver_adaptive_h__INCLUDED

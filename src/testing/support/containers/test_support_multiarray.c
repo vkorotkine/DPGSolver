@@ -332,7 +332,7 @@ void print_diff_Multiarray_d (const struct Multiarray_d*const a, const struct Mu
 	const ptrdiff_t size = compute_size(a->order,a->extents);
 
 	if ((size != compute_size(b->order,b->extents)) || (layout != b->layout)) {
-		printf("Attempting to compare Multiarrays of different size:\n");
+		printf("Attempting to compare Multiarrays of different size/layout (layouts: %c, %c):\n",layout,b->layout);
 		print_Multiarray_d_tol(a,tol);
 		print_Multiarray_d_tol(b,tol);
 		return;

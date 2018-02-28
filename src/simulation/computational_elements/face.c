@@ -252,6 +252,16 @@ bool is_face_bc_curved (const int bc)
 	return bc > BC_CURVED_START;
 }
 
+struct Volume* get_volume_neighbour (const struct Volume*const vol, const struct Face*const face)
+{
+	if (!face)
+		return NULL;
+
+	const int side_index = compute_side_index_face(face,vol),
+	          side_index_n = ( side_index == 0 ? 1 : 0 );
+	return face->neigh_info[side_index_n].volume;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

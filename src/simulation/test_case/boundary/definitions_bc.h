@@ -15,13 +15,17 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #ifndef DPG__definitions_bc_h__INCLUDED
 #define DPG__definitions_bc_h__INCLUDED
-/**	\file
- *	\brief Provides the definitions related to the boundary conditions.
+/** \file
+ *  \brief Provides the definitions related to the boundary conditions.
  *
- *	The naming convention for the periodic boundary conditions omits the 'BC_' prefix as they are only used for
- *	preprocessing and not as actual boundary conditions.
+ *  The naming convention for the periodic boundary conditions omits the 'BC_' prefix as they are only used for
+ *  preprocessing and not as actual boundary conditions.
  *
- *	\note The value of these constants must be identical to those in the $ROOT/input/meshes/parameters.geo file.
+ *  The "ALT"ernate values for the same boundary conditions are required such that volumes having multiple vertices on a
+ *  boundary are not identified as boundary volumes when these vertices are not on the same boundary. The alternate
+ *  values are thus used to distinguish between separate portions of the boundary employing the same boundary condition.
+ *
+ *  \note The value of these constants must be identical to those in the $ROOT/input/meshes/parameters.geo file.
  */
 
 #define BC_INVALID -1 ///< Value to indicate an invalid boundary condition.
@@ -32,12 +36,18 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name The values for the various boundary conditions after taking the modulus with \ref BC_STEP_SC.
 
 // Advection
-#define BC_INFLOW  1
-#define BC_OUTFLOW 2
+#define BC_INFLOW       1
+#define BC_INFLOW_ALT1  2
+#define BC_INFLOW_ALT2  3
+#define BC_OUTFLOW      11
+#define BC_OUTFLOW_ALT1 12
+#define BC_OUTFLOW_ALT2 13
 
 // Diffusion
-#define BC_DIRICHLET 11
-#define BC_NEUMANN   12
+#define BC_DIRICHLET      21
+#define BC_DIRICHLET_ALT1 22
+#define BC_NEUMANN        31
+#define BC_NEUMANN_ALT1   32
 
 // Euler
 #define BC_RIEMANN        101

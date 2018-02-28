@@ -118,7 +118,6 @@ int main
 	// complex
 	ind_rc = 1;
 	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc]); // destructed
-	convert_to_Test_Case_rc(sim[ind_rc],'c');
 	((struct Test_Case_c*)sim[ind_rc]->test_case_rc->tc)->solver_method_curr = 'e';
 
 	struct Flux_Input_c* flux_c_i = constructor_Flux_Input_c(sim[ind_rc]); // destructed
@@ -129,7 +128,6 @@ int main
 	struct Test_Info test_info = { .n_warn = 0, };
 
 	struct Flux* flux_cmplx_step = constructor_Flux_cmplx_step(flux_c_i,flux_i);
-	convert_to_Test_Case_rc(sim[ind_rc],'r');
 
 	const bool* compute_member = flux_i->compute_member;
 

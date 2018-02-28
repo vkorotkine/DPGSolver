@@ -3,7 +3,7 @@
 solver_proc   implicit
 solver_type_i iterative
 lhs_terms     cfl_ramping
-cfl_initial   4e-2
+cfl_initial   1e0
 
 num_flux_1st Roe-Pike
 test_norm    H1
@@ -26,4 +26,4 @@ R 2 2 2
 
 xyz_ve_mesh_level:
 container Vector_i
-2   1 1
+2   2 2

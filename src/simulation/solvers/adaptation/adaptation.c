@@ -53,6 +53,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** \brief Return the maximum number of global adaptation calls which must be made in order to achieve the adaptation
+ *         strategy.
+ *  \return See brief. */
+static int compute_max_n_adapt
+	(const int adapt_strategy,                     ///< Defined for \ref adapt_hp.
+	 const struct Adaptation_Data*const adapt_data ///< Defined for \ref adapt_hp.
+	);
+
 /// \brief Mark volumes for adaptation based on the input strategy.
 static void mark_volumes_to_adapt
 	(const struct Simulation*const sim,            ///< Defined for \ref adapt_hp.
@@ -70,7 +78,7 @@ static void adapt_hp_faces
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Destruct any unused computational elements which have spawned an h-adapted parent or children.
+/// \brief Destruct any unused computational elements which have been replaced with an h-adapted parent or children.
 static void destruct_unused_computational_elements
 	(struct Simulation* sim ///< \ref Simulation.
 	);
@@ -85,10 +93,13 @@ void adapt_hp (struct Simulation* sim, const int adapt_strategy, const struct Ad
 
 	constructor_derived_computational_elements(sim,IL_SOLVER_ADAPTIVE); // destructed
 
-	mark_volumes_to_adapt(sim,adapt_strategy,adapt_data);
-	adapt_hp_volumes(sim);
-	adapt_hp_faces(sim);
-	destruct_unused_computational_elements(sim);
+	const int n_adapt = compute_max_n_adapt(adapt_strategy,adapt_data);
+	for (int i = 0; i < n_adapt; ++i) {
+		mark_volumes_to_adapt(sim,adapt_strategy,adapt_data);
+		adapt_hp_volumes(sim);
+		adapt_hp_faces(sim);
+		destruct_unused_computational_elements(sim);
+	}
 
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 
@@ -180,21 +191,56 @@ static bool volume_contains_xyz_ve
 	 const int row                                 ///< The index of the row of xyz_ve to check.
 	);
 
-/** \brief Exit if the finite element space will not be 1-irregular in h (mesh) and p (order) after adaptation based on
- *         the \ref Adaptive_Solver_Volume::adapt_type values for each element.
- *  \return `true` if satisfied.
+/** \brief Ensure that the space will be 1-irregular after adaptation is performed by increasing the the mesh level or
+ *         the order in all volumes which would cause this constraint to be violated.
  *
  *  The term 1-irregular is used to denote:
  *  - h: A mesh for which the \ref Solver_Volume_T::ml of neighbouring volumes differs by at most 1;
  *  - p: A mesh for which the \ref Solver_Volume_T::p_ref of neighbouring volumes differs by at most 1.
  */
+static void ensure_1_irregular
+	(const struct Simulation*const sim ///< \ref Simulation.
+	);
+
+/** \brief Exit if the finite element space will not be 1-irregular in h (mesh) and p (order) after adaptation based on
+ *         the \ref Adaptive_Solver_Volume::adapt_type values for each element.
+ *  \return `true` if satisfied.
+ *
+ *  See comments for \ref ensure_1_irregular for the definition of "1-irregular".
+ */
 static bool space_will_be_1_irregular
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
+static int compute_max_n_adapt (const int adapt_strategy, const struct Adaptation_Data*const adapt_data)
+{
+	switch (adapt_strategy) {
+	case ADAPT_S_P_REFINE: // fallthrough
+	case ADAPT_S_P_COARSE: // fallthrough
+	case ADAPT_S_H_REFINE: // fallthrough
+	case ADAPT_S_H_COARSE:
+		return 1;
+	case ADAPT_S_XYZ_VE: {
+		const struct const_Vector_i*const xyz_ve_ml = adapt_data->xyz_ve_ml;
+
+		int max_ml = 0;
+		for (int i = 0; i < xyz_ve_ml->ext_0; ++i)
+			max_ml = GSL_MAX(max_ml,xyz_ve_ml->data[i]);
+		return max_ml;
+	} default:
+		EXIT_ERROR("Unsupported: %d\n",adapt_strategy);
+		break;
+	}
+}
+
 static void mark_volumes_to_adapt
 	(const struct Simulation*const sim, const int adapt_strategy, const struct Adaptation_Data*const adapt_data)
 {
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Adaptive_Solver_Volume*const a_s_vol = (struct Adaptive_Solver_Volume*) curr;
+		a_s_vol->adapt_type = ADAPT_NONE;
+	}
+
 	switch (adapt_strategy) {
 	case ADAPT_S_XYZ_VE: {
 		const struct const_Multiarray_d*const xyz_ve_ref = adapt_data->xyz_ve_refine;
@@ -212,7 +258,7 @@ static void mark_volumes_to_adapt
 					a_s_vol->adapt_type = ADAPT_H_REFINE;
 			}
 		}
-EXIT_ADD_SUPPORT; // Ensure 1-irregular
+		ensure_1_irregular(sim);
 		break;
 	}
 	case ADAPT_S_P_REFINE:
@@ -287,6 +333,8 @@ static void destruct_unused_computational_elements (struct Simulation* sim)
 			break;
 		}
 	}
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
+		initialize_Adaptive_Solver_Volume((struct Adaptive_Solver_Volume*)curr);
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) curr;
@@ -308,6 +356,8 @@ static void destruct_unused_computational_elements (struct Simulation* sim)
 			break;
 		}
 	}
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
+		initialize_Adaptive_Solver_Face((struct Adaptive_Solver_Face*)curr);
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -421,6 +471,15 @@ static void advance_to_end_of_parent_volume
 /// \brief Advance the \ref Intrusive_Link\* face pointer until the next link has a different parent.
 static void advance_to_end_of_parent_face
 	(struct Intrusive_Link** curr ///< Pointer to the current \ref Adaptive_Solver_Face.
+	);
+
+/** \brief Update the \ref Adaptive_Solver_Volume::adapt_type parameter in all neighbouring elements which would cause
+ *         the 1-irregularity constraint to be violated after adaptation.
+ *  \return `true` if a neighbour was updated; `false` otherwise. */
+static bool update_neighbours_for_1_irregular
+	(struct Adaptive_Solver_Volume*const a_s_vol, ///< The \ref Adaptive_Solver_Volume.
+	 const char hp_type                           /**< The type of parameter. Options: mes'h' level,
+	                                               *   'p'olynomial order. */
 	);
 
 /** \brief Exit if the input volume is not 1-irregular with respect to its neighbours for the given hp_type.
@@ -549,7 +608,8 @@ static void update_geometry_volumes (struct Simulation* sim)
 {
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) curr;
-		assert(a_s_vol->adapt_type != ADAPT_NONE);
+		if (a_s_vol->adapt_type == ADAPT_NONE)
+			continue;
 
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
 		compute_geometry_volume(s_vol,sim);
@@ -694,14 +754,36 @@ static void update_index_faces (struct Simulation*const sim)
 static bool volume_contains_xyz_ve
 	(const struct Volume*const vol, const struct const_Multiarray_d*const xyz_ve, const int row)
 {
+	bool contains_v = false;
+
 	const double*const xyz_ve_data = get_row_const_Multiarray_d(row,xyz_ve);
+
+	const bool requires_transpose = ( vol->xyz_ve->layout != 'R' ? true : false );
+	if (requires_transpose)
+		transpose_Multiarray_d((struct Multiarray_d*)vol->xyz_ve,true);
 
 	const ptrdiff_t n_ve = xyz_ve->extents[0];
 	for (int i = 0; i < n_ve; ++i) {
 		if (norm_diff_d(DIM,xyz_ve_data,get_row_const_Multiarray_d(i,vol->xyz_ve),"Inf") < EPS)
-			return true;
+			contains_v = true;
 	}
-	return false;
+	if (requires_transpose)
+		transpose_Multiarray_d((struct Multiarray_d*)vol->xyz_ve,true);
+
+	return contains_v;
+}
+
+static void ensure_1_irregular (const struct Simulation*const sim)
+{
+	for (bool updated = 1; updated; ) {
+		updated = 0;
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+			struct Adaptive_Solver_Volume*const a_s_vol = (struct Adaptive_Solver_Volume*) curr;
+			if (update_neighbours_for_1_irregular(a_s_vol,'h') ||
+			    update_neighbours_for_1_irregular(a_s_vol,'p'))
+				updated = 1;
+		}
+	}
 }
 
 static bool space_will_be_1_irregular (const struct Simulation*const sim)
@@ -779,6 +861,13 @@ static struct Adaptive_Solver_Face* constructor_Adaptive_Solver_Face_i_new
  */
 static int get_ind_h_operator
 	(const struct Adaptive_Solver_Face*const a_s_face ///< \ref Adaptive_Solver_Face.
+	);
+
+/// \brief Increment the \ref Adaptive_Solver_Volume::adapt_type for the current hp_type.
+static void increment_adapt_type
+	(struct Adaptive_Solver_Volume*const a_s_vol, ///< The \ref Adaptive_Solver_Volume.
+	 const char hp_type                           /**< The type of parameter. Options: mes'h' level,
+	                                               *   'p'olynomial order. */
 	);
 
 /** \brief Return the value of the mes'h' level or 'p'olynomial order in the volume after adaptation is performed.
@@ -1203,13 +1292,35 @@ static void advance_to_end_of_parent_face (struct Intrusive_Link** curr)
 	}
 }
 
+static bool update_neighbours_for_1_irregular (struct Adaptive_Solver_Volume*const a_s_vol, const char hp_type)
+{
+	bool updated = false;
+
+	const struct Volume*const vol = (struct Volume*) a_s_vol;
+	const int mp_up = compute_updated_hp(a_s_vol,hp_type);
+	for (int i = 0; i < NFMAX;    ++i) {
+	for (int j = 0; j < NSUBFMAX; ++j) {
+		const struct Volume*const vol_n = get_volume_neighbour(vol,vol->faces[i][j]);
+		if (!vol_n)
+			continue;
+
+		struct Adaptive_Solver_Volume*const a_s_vol_n = (struct Adaptive_Solver_Volume*) vol_n;
+		const int mp_up_n = compute_updated_hp(a_s_vol_n,hp_type);
+		if (mp_up-mp_up_n > 1) {
+			updated = true;
+			increment_adapt_type(a_s_vol_n,hp_type);
+		}
+	}}
+	return updated;
+}
+
 static bool volume_will_be_1_irregular (const struct Adaptive_Solver_Volume*const a_s_vol, const char hp_type)
 {
 	const struct Volume*const vol = (struct Volume*) a_s_vol;
 	const int mp_up = compute_updated_hp(a_s_vol,hp_type);
 	for (int i = 0; i < NFMAX;    ++i) {
 	for (int j = 0; j < NSUBFMAX; ++j) {
-		const struct Volume*const vol_n = (struct Volume*) vol->faces[i][j];
+		const struct Volume*const vol_n = get_volume_neighbour(vol,vol->faces[i][j]);
 		if (!vol_n)
 			continue;
 
@@ -1271,7 +1382,7 @@ static void constructor_volumes_h_refine
 	const struct Operator*const vv0_vv_vv = get_Multiarray_Operator(a_e->vv0_vv_vv,(ptrdiff_t[]){0,0,2,1});
 
 	const struct const_Multiarray_d*const xyz_ve_p2 =
-		constructor_mm_NN1_Operator_const_Multiarray_d(vv0_vv_vv,vol_p->xyz_ve,'C','d',2,NULL); // destructed
+		constructor_mm_NN1_Operator_const_Multiarray_d(vv0_vv_vv,vol_p->xyz_ve,'R','d',2,NULL); // destructed
 
 	struct Intrusive_List* volumes_c = constructor_empty_IL(IL_VOLUME_SOLVER_ADAPTIVE,NULL); // destructed
 
@@ -1430,6 +1541,37 @@ static int get_ind_h_operator (const struct Adaptive_Solver_Face*const a_s_face)
 		return a_s_face->ind_h-1;
 	}
 	return a_s_face->ind_h;
+}
+
+
+static void increment_adapt_type (struct Adaptive_Solver_Volume*const a_s_vol, const char hp_type)
+{
+	const int adapt_type = a_s_vol->adapt_type;
+	switch (hp_type) {
+	case 'h':
+		switch (adapt_type) {
+			case ADAPT_H_COARSE: a_s_vol->adapt_type = ADAPT_NONE;             break;
+			case ADAPT_NONE:     a_s_vol->adapt_type = ADAPT_H_REFINE;         break;
+			case ADAPT_H_REFINE: EXIT_ERROR("Should not be entering here.\n"); break;
+			case ADAPT_P_COARSE: a_s_vol->adapt_type = ADAPT_HP_RC;            break;
+			case ADAPT_P_REFINE: a_s_vol->adapt_type = ADAPT_HP_RR;            break;
+			default:             EXIT_ERROR("Unsupported: %d\n",adapt_type);   break;
+		}
+		break;
+	case 'p':
+		switch (adapt_type) {
+			case ADAPT_P_COARSE: a_s_vol->adapt_type = ADAPT_NONE;             break;
+			case ADAPT_NONE:     a_s_vol->adapt_type = ADAPT_P_REFINE;         break;
+			case ADAPT_P_REFINE: EXIT_ERROR("Should not be entering here.\n"); break;
+			case ADAPT_H_COARSE: a_s_vol->adapt_type = ADAPT_HP_CR;            break;
+			case ADAPT_H_REFINE: a_s_vol->adapt_type = ADAPT_HP_RR;            break;
+			default:             EXIT_ERROR("Unsupported: %d\n",adapt_type);   break;
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %c\n",hp_type);
+		break;
+	}
 }
 
 static int compute_updated_hp (const struct Adaptive_Solver_Volume*const a_s_vol, const char hp_type)
@@ -1744,7 +1886,7 @@ static void constructor_Volume_h_ref
 	const struct Operator*const vv0_vv_vv = get_Multiarray_Operator(a_e->vv0_vv_vv,(ptrdiff_t[]){ind_h,0,1,2});
 
 	const_constructor_move_const_Multiarray_d(&vol->xyz_ve,
-		constructor_mm_NN1_Operator_const_Multiarray_d(vv0_vv_vv,xyz_ve_p2,'C','d',2,NULL)); // keep
+		constructor_mm_NN1_Operator_const_Multiarray_d(vv0_vv_vv,xyz_ve_p2,'R','d',2,NULL)); // keep
 
 	if (xyz_ve_p2 != xyz_ve_p2_i)
 		destructor_const_Multiarray_d(xyz_ve_p2);
@@ -1771,7 +1913,7 @@ static void constructor_Face_h_ref
 	const int ind_child_0 = get_ind_child(ind_h,0,face_p);
 	face->neigh_info[0].ind_lf   = get_ind_lf_h_ref(0,face_p);
 	face->neigh_info[0].ind_href = 0;
-	face->neigh_info[0].ind_sref = -1;
+	face->neigh_info[0].ind_sref = 0;
 	face->neigh_info[0].ind_ord  = get_ind_ord_h_ref(0,face_p);
 	face->neigh_info[0].volume   = (struct Volume*) advance_Link(ind_child_0,a_s_vol_p_0->child_0);
 
@@ -1785,7 +1927,7 @@ static void constructor_Face_h_ref
 			const int ind_child_1 = get_ind_child(ind_h,1,face_p);
 			face->neigh_info[1].ind_lf   = get_ind_lf_h_ref(1,face_p);
 			face->neigh_info[1].ind_href = 0;
-			face->neigh_info[1].ind_sref = -1;
+			face->neigh_info[1].ind_sref = 0;
 			face->neigh_info[1].ind_ord  = get_ind_ord_h_ref(1,face_p);
 			face->neigh_info[1].volume   = (struct Volume*) advance_Link(ind_child_1,a_s_vol_p_1->child_0);
 		} else { // neighbour is not being refined
@@ -1793,10 +1935,15 @@ static void constructor_Face_h_ref
 
 			face->neigh_info[1].ind_lf   = face_p->neigh_info[1].ind_lf,
 			face->neigh_info[1].ind_href = ind_compound_1 % NFREFMAX;
-			face->neigh_info[1].ind_sref = -1;
+			face->neigh_info[1].ind_sref = 0;
 			face->neigh_info[1].ind_ord  = get_ind_ord_h_ref(1,face_p);
 			face->neigh_info[1].volume   = face_p->neigh_info[1].volume;
 		}
+	} else {
+		face->neigh_info[1].ind_lf   = -1;
+		face->neigh_info[1].ind_href = -1;
+		face->neigh_info[1].ind_sref = -1;
+		face->neigh_info[1].ind_ord  = -1;
 	}
 }
 
@@ -1855,7 +2002,7 @@ static void set_Neigh_Info_Face_i_new
 	int side_index = 0;
 	face->neigh_info[side_index].ind_lf   = ind_lf;
 	face->neigh_info[side_index].ind_href = 0;
-	face->neigh_info[side_index].ind_sref = -1;
+	face->neigh_info[side_index].ind_sref = 0;
 	face->neigh_info[side_index].ind_ord  = info_i->ind_ord[0];
 	face->neigh_info[side_index].volume   = (struct Volume*) advance_Link(ind_vh,a_s_vol_p->child_0);
 	const_cast_Face(&face->neigh_info[side_index].volume->faces[face->neigh_info[side_index].ind_lf][0],face);
@@ -1863,7 +2010,7 @@ static void set_Neigh_Info_Face_i_new
 	side_index = 1;
 	face->neigh_info[side_index].ind_lf   = info_i->ind_lf_1;
 	face->neigh_info[side_index].ind_href = 0;
-	face->neigh_info[side_index].ind_sref = -1;
+	face->neigh_info[side_index].ind_sref = 0;
 	face->neigh_info[side_index].ind_ord  = info_i->ind_ord[0];
 	face->neigh_info[side_index].volume   = (struct Volume*) advance_Link(info_i->ind_vh_1,a_s_vol_p->child_0);
 	const_cast_Face(&face->neigh_info[side_index].volume->faces[face->neigh_info[side_index].ind_lf][0],face);

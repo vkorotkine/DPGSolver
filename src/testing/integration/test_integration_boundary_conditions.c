@@ -106,8 +106,6 @@ int main
 	// real
 	ind_rc = 0;
 	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc]); // destructed
-	set_up_solver_geometry(sim[ind_rc]);
-	set_initial_solution(sim[ind_rc]);
 
 	((struct Test_Case*)sim[ind_rc]->test_case_rc->tc)->solver_method_curr = 'i';
 
@@ -117,9 +115,6 @@ int main
 	// complex
 	ind_rc = 1;
 	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc]); // destructed
-	convert_to_Test_Case_rc(sim[ind_rc],'c');
-	set_up_solver_geometry(sim[ind_rc]);
-	set_initial_solution_c(sim[ind_rc]);
 
 	((struct Test_Case_c*)sim[ind_rc]->test_case_rc->tc)->solver_method_curr = 'e';
 
@@ -190,7 +185,6 @@ if (!pass)
 
 	// complex
 	ind_rc = 1;
-	convert_to_Test_Case_rc(sim[ind_rc],'r');
 	structor_simulation(&sim[ind_rc],'d',adapt_type,p,ml,0,0,NULL,type_rc[ind_rc]);
 
 	// real

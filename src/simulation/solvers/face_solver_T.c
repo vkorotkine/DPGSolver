@@ -160,10 +160,10 @@ static void set_function_pointers_num_flux_bc_advection (struct Solver_Face_T* s
 
 	const int bc = face->bc % BC_STEP_SC;
 	switch (bc) {
-	case BC_INFLOW:
+	case BC_INFLOW: case BC_INFLOW_ALT1: case BC_INFLOW_ALT2:
 		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_advection_inflow;
 		break;
-	case BC_OUTFLOW:
+	case BC_OUTFLOW: case BC_OUTFLOW_ALT1: case BC_OUTFLOW_ALT2:
 		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_advection_outflow;
 		break;
 	default:
@@ -178,10 +178,10 @@ static void set_function_pointers_num_flux_bc_diffusion (struct Solver_Face_T* s
 
 	const int bc = face->bc % BC_STEP_SC;
 	switch (bc) {
-	case BC_DIRICHLET:
+	case BC_DIRICHLET: case BC_DIRICHLET_ALT1:
 		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_diffusion_dirichlet;
 		break;
-	case BC_NEUMANN:
+	case BC_NEUMANN: case BC_NEUMANN_ALT1:
 		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_diffusion_neumann;
 		break;
 	default:

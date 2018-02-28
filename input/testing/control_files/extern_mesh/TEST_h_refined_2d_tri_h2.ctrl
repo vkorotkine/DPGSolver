@@ -1,0 +1,34 @@
+pde_name  advection
+pde_spec  steady/default
+
+geom_name n-cube
+geom_spec xy_l
+
+dimension 2
+
+mesh_generator   n-cube/2d.geo
+mesh_format      gmsh
+mesh_domain      straight
+mesh_type        tri
+mesh_level       0 3
+mesh_path        ../testing/integration/mesh/straight__2d__tri_ml0.msh
+
+
+# Simulation variables
+
+test_case_extension initially_refined2
+
+interp_tp  GL
+interp_si  WSH
+interp_pyr GLL
+
+basis_geom  lagrange
+basis_sol   lagrange
+
+geom_representation isoparametric
+geom_blending_tp    gordon_hall
+geom_blending_si    szabo_babuska_gen
+
+p_ref    0 0
+
+fe_method 1

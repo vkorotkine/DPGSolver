@@ -31,13 +31,8 @@ void constructor_derived_Adaptive_Solver_Volume (struct Volume* volume_ptr, cons
 	struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) volume_ptr;
 	struct Solver_Volume* s_vol            = (struct Solver_Volume*) volume_ptr;
 
-	a_s_vol->adapt_type = ADAPT_NONE;
 	a_s_vol->p_ref_prev = s_vol->p_ref;
-	a_s_vol->ind_h      = -1;
-	a_s_vol->updated    = false;
-
-	a_s_vol->child_0 = NULL;
-	a_s_vol->parent  = NULL;
+	initialize_Adaptive_Solver_Volume(a_s_vol);
 	UNUSED(sim);
 }
 
@@ -45,6 +40,16 @@ void destructor_derived_Adaptive_Solver_Volume (struct Volume* volume_ptr)
 {
 	struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) volume_ptr;
 	UNUSED(a_s_vol);
+}
+
+void initialize_Adaptive_Solver_Volume (struct Adaptive_Solver_Volume*const a_s_vol)
+{
+	a_s_vol->adapt_type = ADAPT_NONE;
+	a_s_vol->ind_h      = -1;
+	a_s_vol->updated    = false;
+
+	a_s_vol->child_0 = NULL;
+	a_s_vol->parent  = NULL;
 }
 
 // Static functions ************************************************************************************************* //

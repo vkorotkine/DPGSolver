@@ -5,6 +5,7 @@ add_subdirectory(simulation)
 
 set	(SOURCE
 	 test_support.c
+	 test_support_fe_init.c
 	)
 
 set	(LIBS_DEPEND

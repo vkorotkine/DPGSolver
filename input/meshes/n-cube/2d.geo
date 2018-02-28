@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_level = 2; mesh_type = TRI; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_YL;
+//mesh_level = 0; mesh_type = TRI; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_XYL;
 //mesh_level = 0; mesh_type = TRI; mesh_domain = BLENDED; pde_name = EULER; geom_adv = GEOM_ADV_XL;
 
 // Geometry Specification
@@ -55,17 +55,23 @@ EndIf
 
 If (pde_name == ADVECTION)
 	If (geom_adv == GEOM_ADV_YL)
-		Physical Line(bc_base+BC_INFLOW)  = {1001,1002};
-		Physical Line(bc_base+BC_OUTFLOW) = {2001,2002,1003,1004};
+		Physical Line(bc_base+BC_INFLOW)       = {1001,1002};
+		Physical Line(bc_base+BC_OUTFLOW)      = {2001};
+		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {2002};
+		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {1003,1004};
 	ElseIf (geom_adv == GEOM_ADV_XYL)
-		Physical Line(bc_base+BC_INFLOW)  = {1001:1002,2001};
-		Physical Line(bc_base+BC_OUTFLOW) = {1003:1004,2002};
+		Physical Line(bc_base+BC_INFLOW)       = {1001:1002};
+		Physical Line(bc_base+BC_INFLOW_ALT1)  = {2001};
+		Physical Line(bc_base+BC_OUTFLOW)      = {1003:1004};
+		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {2002};
 	Else
 		Error("Unsupported geom_adv: %d",geom_adv); Exit;
 	EndIf
 ElseIf (pde_name == DIFFUSION)
-	Physical Line(bc_base+BC_DIRICHLET) = {1001:1002,2001};
-	Physical Line(bc_base+BC_NEUMANN)   = {1003:1004,2002};
+	Physical Line(bc_base+BC_DIRICHLET)      = {1001:1002};
+	Physical Line(bc_base+BC_DIRICHLET_ALT1) = {2001};
+	Physical Line(bc_base+BC_NEUMANN)        = {1003:1004};
+	Physical Line(bc_base+BC_NEUMANN_ALT1)   = {2002};
 ElseIf (pde_name == EULER)
 	If (geom_adv == GEOM_ADV_PERIODIC)
 		Physical Line(bc_base+PERIODIC_XL) = {2001};

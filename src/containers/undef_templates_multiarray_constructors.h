@@ -82,6 +82,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_empty_Multiarray_R
 
 #undef constructor_copy_Multiarray_R
+#undef constructor_copy_const_Multiarray_R
 #undef const_constructor_copy_Multiarray_R
 
 #undef const_constructor_move_Multiarray_R

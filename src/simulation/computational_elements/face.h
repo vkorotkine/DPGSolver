@@ -165,4 +165,11 @@ bool is_face_bc_curved
 	(const int bc ///< The value of the boundary condition. Options: see \ref definitions_bc.h.
 	);
 
+/** \brief Return the pointer to the neighbouring \ref Volume or `NULL` if not present.
+ *  \return See brief. */
+struct Volume* get_volume_neighbour
+	(const struct Volume*const vol, ///< The current volume.
+	 const struct Face*const face   ///< The face under consideration.
+	);
+
 #endif // DPG__face_h__INCLUDED

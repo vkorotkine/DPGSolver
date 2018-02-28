@@ -30,6 +30,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_intrusive.h"
 
 #include "test_base.h"
+#include "test_complex_computational_elements.h"
+#include "test_complex_geometry.h"
+#include "test_complex_solution.h"
+#include "test_complex_test_case.h"
 #include "test_support_multiarray.h"
 #include "test_support_vector.h"
 
@@ -38,11 +42,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "adaptation.h"
 #include "computational_elements.h"
-#include "test_complex_computational_elements.h"
 #include "compute_error.h"
 #include "const_cast.h"
 #include "file_processing.h"
+#include "geometry.h"
 #include "simulation.h"
+#include "solution.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -111,17 +116,35 @@ void structor_simulation
 			*sim = constructor_Simulation(ctrl_name); // destructed
 			constructor_derived_Elements(*sim,IL_ELEMENT_SOLVER); // destructed
 			switch (type_rc) {
-				case 'r': constructor_derived_computational_elements(*sim,IL_SOLVER);   break; // dest.
-				case 'c': constructor_derived_computational_elements_c(*sim,IL_SOLVER); break; // dest.
-				default: EXIT_ERROR("Unsupported: %c\n",type_rc); break;
+			case 'r':
+				constructor_derived_computational_elements(*sim,IL_SOLVER); // destructed
+				set_up_solver_geometry(*sim);
+				set_initial_solution(*sim);
+				break; // dest.
+			case 'c':
+				constructor_derived_computational_elements_c(*sim,IL_SOLVER); // destructed
+				convert_to_Test_Case_rc(*sim,'c'); // converted back
+				set_up_solver_geometry_c(*sim);
+				set_initial_solution_c(*sim);
+				break;
+			default:
+				EXIT_ERROR("Unsupported: %c\n",type_rc);
+				break;
 			}
 			if (adapt_type == ADAPT_0_FOR_H)
 				refine_initial_mesh_if_required(*sim);
 		} else if (mode == 'd') {
 			switch (type_rc) {
-				case 'r': destructor_derived_computational_elements(*sim,IL_BASE);   break; // dest.
-				case 'c': destructor_derived_computational_elements_c(*sim,IL_BASE); break; // dest.
-				default: EXIT_ERROR("Unsupported: %c\n",type_rc); break;
+			case 'r':
+				destructor_derived_computational_elements(*sim,IL_BASE); // destructed
+				break;
+			case 'c':
+				convert_to_Test_Case_rc(*sim,'r');
+				destructor_derived_computational_elements_c(*sim,IL_BASE); // destructed
+				break;
+			default:
+				EXIT_ERROR("Unsupported: %c\n",type_rc);
+				break;
 			}
 			destructor_derived_Elements(*sim,IL_ELEMENT);
 			destructor_Simulation(*sim);
@@ -242,7 +265,7 @@ static void refine_initial_mesh_if_required (struct Simulation*const sim)
 	const int count_to_find = 2;
 	int count_found = 0;
 
-	struct Adaptation_Data adapt_data;
+	struct Adaptation_Data adapt_data = { .xyz_ve_refine = NULL, .xyz_ve_ml = NULL, };
 
 	char line[STRLEN_MAX];
 	FILE* input_file = fopen_input('t',NULL,NULL); // closed
@@ -264,12 +287,12 @@ static void refine_initial_mesh_if_required (struct Simulation*const sim)
 	}
 
 	if (count_found != count_to_find)
-		EXIT_ERROR("Did not find the required number of variables");
+		EXIT_ERROR("Did not find the required number of variables (Found: %d/%d).\n",count_found,count_to_find);
 
 	adapt_hp(sim,ADAPT_S_XYZ_VE,&adapt_data);
-
+adapt_hp(sim,ADAPT_S_H_REFINE,NULL);
 EXIT_UNSUPPORTED;
+
 	destructor_const_Multiarray_d(adapt_data.xyz_ve_refine);
 	destructor_const_Vector_i(adapt_data.xyz_ve_ml);
 }
-

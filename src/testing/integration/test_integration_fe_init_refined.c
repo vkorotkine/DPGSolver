@@ -15,7 +15,13 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "face_solver_adaptive.h"
+#include <string.h>
+#include "petscsys.h"
+
+#include "test_base.h"
+#include "test_integration.h"
+#include "test_support.h"
+#include "test_support_fe_init.h"
 
 #include "macros.h"
 #include "definitions_adaptation.h"
@@ -26,30 +32,37 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void constructor_derived_Adaptive_Solver_Face (struct Face* face_ptr, const struct Simulation* sim)
+/** \test Performs integration testing for the computational element initialization when the initial mesh is refined
+ *        (\ref test_integration_fe_init_refined.c).
+ *  \return 0 on success.
+ *
+ *  The test is otherwise identical to that of \ref test_integration_fe_init.c.
+ */
+int main
+	(int argc,   ///< Standard.
+	 char** argv ///< Standard.
+	)
 {
-	struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) face_ptr;
-	struct Solver_Face* s_face            = (struct Solver_Face*) face_ptr;
+	PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
 
-	a_s_face->p_ref_prev = s_face->p_ref;
-	initialize_Adaptive_Solver_Face(a_s_face);
-	UNUSED(sim);
-}
+	assert_condition_message(argc == 2,"Invalid number of input arguments");
+	const char* ctrl_name = argv[1];
 
-void destructor_derived_Adaptive_Solver_Face (struct Face* face_ptr)
-{
-	struct Adaptive_Solver_Face* a_s_face = (struct Adaptive_Solver_Face*) face_ptr;
-	UNUSED(a_s_face);
-}
+	struct Test_Info test_info = { .n_warn = 0, };
 
-void initialize_Adaptive_Solver_Face (struct Adaptive_Solver_Face*const a_s_face)
-{
-	a_s_face->adapt_type = ADAPT_NONE;
-	a_s_face->ind_h      = -1;
-	a_s_face->updated    = false;
+	struct Simulation* sim = NULL;
+	const char type_rc = 'r';
+	structor_simulation(&sim,'c',ADAPT_H,0,0,-1,-1,ctrl_name,type_rc); // destructed
 
-	a_s_face->child_0 = NULL;
-	a_s_face->parent  = NULL;
+	const bool pass = compare_members_fe(&test_info,sim);
+
+	structor_simulation(&sim,'d',ADAPT_0,0,0,-1,-1,NULL,type_rc);
+
+	assert_condition(pass);
+	output_warning_count(&test_info);
+
+	PetscFinalize();
+	OUTPUT_SUCCESS;
 }
 
 // Static functions ************************************************************************************************* //
