@@ -13,8 +13,13 @@ b = s_offset;
 l = 1;
 h = 1;
 
+all_transfinite  = 1;
+bl_recombined    = 1;
+all_recombined   = 0;
+use_bump         = 0;
 t_progression_x  = 3.0;
 t_bump_x         = 0.15;
+t_progression_j  = 1.2;
 
 // Allows different (A)spect (R)atio elements
 aspect_ratio = geom_ar;
@@ -56,18 +61,19 @@ Plane Surface(4000) = {4000};
 Plane Surface(4001) = {4001};
 
 Transfinite Line{2000:2002} = n_y Using Progression t_progression_y;
-Transfinite Line{1000,1002} = 2^(mesh_level+2)+1 Using Bump t_bump_x;
-Transfinite Line{1001,1003} = 2^(mesh_level+2)+1 Using Progression t_progression_x;
+If (use_bump)
+	Transfinite Line{1000,1002} = 2^(mesh_level+2)+1 Using Bump t_bump_x;
+Else
+	Transfinite Line{1000,1002} = 2^(mesh_level+2)+1 Using Progression t_progression_j;
+EndIf
+Transfinite Line{1001,1003} = 2^(mesh_level+1)+1 Using Progression t_progression_x;
 
-all_transfinite = 1;
 If (all_transfinite)
 	Transfinite Surface {4000:4001};
 Else
 	Transfinite Surface {4000};
 EndIf
 
-bl_recombined = 0;
-all_recombined = 0;
 If (bl_recombined)
 	Recombine Surface{4000};
 EndIf
@@ -109,8 +115,13 @@ If (geom_conformal == GEOM_CONFORMAL_FULL)
 	Symmetry{ 0.0,-1.0,0.0,0.0 }{Duplicata{Surface{4000:4001};}}
 
 	Transfinite Line{-10003,10001,10006} = n_y Using Progression t_progression_y;
-	Transfinite Line{10000,-10002}       = 2^(mesh_level+2)+1 Using Bump t_bump_x;
-	Transfinite Line{10005,-10007}       = 2^(mesh_level+2)+1 Using Progression t_progression_x;
+	If (use_bump)
+		Transfinite Line{10000,-10002} = 2^(mesh_level+2)+1 Using Bump t_bump_x;
+	Else
+		Transfinite Line{10000,-10002} = 2^(mesh_level+2)+1 Using Progression t_progression_j;
+	EndIf
+
+	Transfinite Line{10005,-10007}       = 2^(mesh_level+1)+1 Using Progression t_progression_x;
 	If (all_transfinite)
 		Transfinite Surface {9999,10004};
 	Else

@@ -1818,7 +1818,7 @@ static int get_ind_child
 	 const struct Face*const face_p ///< The parent \ref Face.
 	);
 
-/** \brief Return the value of \ref Face::Neigh_Info::ind_lf for the dominant \ref Face::neigh_info for an h-refined
+/** \brief Return the value of \ref Face::Neigh_Info::ind_lf for the desired \ref Face::neigh_info for an h-refined
  *         face.
  *  \return See brief. */
 static int get_ind_lf_h_ref
@@ -1826,7 +1826,19 @@ static int get_ind_lf_h_ref
 	 const struct Face*const face_p ///< The parent \ref Face.
 	);
 
-/** \brief Return the value of \ref Face::Neigh_Info::ind_ord for the dominant \ref Face::neigh_info for an h-refined
+/** \brief Return the value of \ref Face::Neigh_Info::ind_href for the non-dominant \ref Face::neigh_info for an
+ *         h-refined face.
+ *  \return See brief.
+ *
+ *  \note The non-dominant \ref Face::neigh_info is that which has index [1].
+ */
+static int get_ind_href_h_ref_non_dominant
+	(const int ind_h,                ///< The index of the h-refinement of the face.
+	 const struct Face*const face_p, ///< The parent \ref Face.
+	 const struct Face*const face    ///< The current \ref Face.
+	);
+
+/** \brief Return the value of \ref Face::Neigh_Info::ind_ord for the desired \ref Face::neigh_info for an h-refined
  *         face.
  *  \return See brief. */
 static int get_ind_ord_h_ref
@@ -1927,9 +1939,9 @@ static void constructor_Face_h_ref
 		if (a_s_vol_p_1->adapt_type == ADAPT_H_REFINE) { // neighbour is also being h-refined
 			const int ind_child_1 = get_ind_child(ind_h,1,face_p);
 			face->neigh_info[1].ind_lf   = get_ind_lf_h_ref(1,face_p);
-			face->neigh_info[1].ind_href = 0;
-			face->neigh_info[1].ind_sref = 0;
 			face->neigh_info[1].ind_ord  = get_ind_ord_h_ref(1,face_p);
+			face->neigh_info[1].ind_href = get_ind_href_h_ref_non_dominant(ind_h,face_p,face);
+			face->neigh_info[1].ind_sref = 0;
 			face->neigh_info[1].volume   = (struct Volume*) advance_Link(ind_child_1,a_s_vol_p_1->child_0);
 		} else { // neighbour is not being refined
 			const int ind_compound_1 = get_ind_compound(ind_h,1,face_p);
@@ -2309,6 +2321,54 @@ static int get_ind_lf_h_ref (const int side_index, const struct Face*const face_
 		EXIT_ERROR("Unsupported: %d",vol_p->element->type);
 		break;
 	}
+}
+
+static int get_ind_href_h_ref_non_dominant
+	(const int ind_h, const struct Face*const face_p, const struct Face*const face)
+{
+	const int side_index = 1;
+	const int ind_href_p = face_p->neigh_info[side_index].ind_href,
+	          ind_ord    = face->neigh_info[side_index].ind_ord;
+
+	const struct Volume*const vol_p = face_p->neigh_info[side_index].volume;
+	switch (vol_p->element->type) {
+	case LINE:
+		assert(ind_h == 0);
+		return H_POINT1_V0;
+		break;
+	case TRI:  // fallthrough
+	case QUAD:
+		assert(ind_ord == 0 || ind_ord == 1);
+		assert(ind_h == H_LINE2_V0 || ind_h == H_LINE2_V1);
+		if (ind_ord == 0) {
+			switch (ind_href_p) {
+				case H_LINE1_V0:
+					return H_LINE1_V0;
+					break;
+				case H_LINE2_V0: // fallthrough
+				case H_LINE2_V1:
+					return ind_h;
+					break;
+				default: EXIT_ERROR("Unsupported: %d",ind_href_p); break;
+			}
+		} else {
+			switch (ind_href_p) {
+				case H_LINE1_V0:
+					return H_LINE1_V0;
+					break;
+				case H_LINE2_V0: // fallthrough
+				case H_LINE2_V1:
+					return ( ind_h == H_LINE2_V0 ? H_LINE2_V1 : H_LINE2_V0 );
+					break;
+				default: EXIT_ERROR("Unsupported: %d",ind_href_p); break;
+			}
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d",vol_p->element->type);
+		break;
+	}
+	EXIT_ERROR("Should not have reached this point.\n");
 }
 
 static int get_ind_ord_h_ref (const int side_index, const struct Face*const face_p)

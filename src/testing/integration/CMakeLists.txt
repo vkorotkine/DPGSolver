@@ -35,6 +35,7 @@ add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_h_refined_2d_tri_h1")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_h_refined_2d_tri_h2")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_h_refined_2d_tri_h1+uniform")
 
 
 set (EXEC test_integration_geometry)

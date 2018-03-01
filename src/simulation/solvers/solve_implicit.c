@@ -57,7 +57,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Flags for whether certain outputs are enabled.
 #define OUTPUT_PETSC_AB false ///< Flag for Petsc data containers.
 #define OUTPUT_SOLUTION false ///< Flag for solution data on each element.
-#define OUTPUT_STEP     5     ///< Iteration step at which to output the solution if enabled.
+#define EXIT_ON_OUTPUT  false ///< Flag for whether the simulation should exit after outputting.
+#define OUTPUT_STEP     10    ///< Iteration step at which to output the solution if enabled.
 ///\}
 
 /// \brief Constructor for the derived element and computational element lists.
@@ -339,13 +340,12 @@ static void output_petsc_mat_vec (Mat A, Vec b, const struct Simulation* sim)
 static void output_solution (const int i_step, struct Simulation*const sim)
 {
 	UNUSED(i_step);
-//	destructor_derived_elements_comp_elements(sim);
 
 	output_visualization(sim,VIS_GEOM_EDGES);
 	output_visualization(sim,VIS_SOLUTION);
 
-//	constructor_derived_elements_comp_elements(sim);
-	EXIT_ERROR("Disable outputting to continue");
+	if (EXIT_ON_OUTPUT)
+		EXIT_ERROR("Disable outputting to continue");
 }
 
 static PetscErrorCode solve_and_update
