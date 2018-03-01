@@ -283,6 +283,13 @@ void read_skip_c (const char*const line, char*const var)
 	sscanf(line,"%*s %s",var);
 }
 
+void read_skip_name_i (const char*const var_name, const char*const line, int*const var)
+{
+	if (!first_string_matches(line,var_name))
+		return;
+	read_skip_i(line,var);
+}
+
 void read_skip_i (const char*const line, int*const var)
 {
 	sscanf(line,"%*s %u",var);

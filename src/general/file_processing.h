@@ -168,6 +168,14 @@ void read_skip_c
 	 char*const var         ///< Variable in which to store data.
 	);
 
+/** \brief Read the second string in the line into a `int*` if the first string in the line matches the input
+ *         variable name. */
+void read_skip_name_i
+	(const char*const var_name, ///< The variable name for which to search.
+	 const char*const line,     ///< Line from which to read data.
+	 int*const var              ///< Variable in which to store data.
+	);
+
 /// \brief Read an `int`, skipping the first string.
 void read_skip_i
 	(const char*const line, ///< Line from which to read data.

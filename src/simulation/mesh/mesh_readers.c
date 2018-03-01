@@ -206,7 +206,7 @@ static struct Vector_i* count_elements_per_dim (const struct const_Vector_i*cons
 			count->data[3]++;
 			break;
 		default:
-			EXIT_UNSUPPORTED;
+			EXIT_ERROR("Unsupported: %d\n",elem_type);
 			break;
 		}
 	}

@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_level = 0; mesh_type = TRI; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_XYL;
+//mesh_level = -1; mesh_type = TRI; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_XYL;
 //mesh_level = 0; mesh_type = TRI; mesh_domain = BLENDED; pde_name = EULER; geom_adv = GEOM_ADV_XL;
 
 // Geometry Specification

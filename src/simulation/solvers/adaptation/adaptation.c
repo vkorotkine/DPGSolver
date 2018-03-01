@@ -1808,7 +1808,10 @@ static bool is_child_curved
 	);
 
 /** \brief Get the index of the child volume associated with the current h-refined face.
- *  \return See brief. */
+ *  \return See brief.
+ *
+ *  \todo Add reference with visualization of the returned values.
+ */
 static int get_ind_child
 	(const int ind_h,               ///< The index of the h-refinement of the face.
 	 const int side_index,          ///< The index of the side of the face under consideration.
@@ -1918,12 +1921,10 @@ static void constructor_Face_h_ref
 	face->neigh_info[0].volume   = (struct Volume*) advance_Link(ind_child_0,a_s_vol_p_0->child_0);
 
 	if (!face->boundary) {
-		const struct Solver_Face*const s_face_p               = (struct Solver_Face*) a_s_face_p;
 		const struct Volume*const vol_p_1                     = face_p->neigh_info[1].volume;
 		const struct Adaptive_Solver_Volume*const a_s_vol_p_1 = (struct Adaptive_Solver_Volume*) vol_p_1;
 
-		const int max_ml = find_maximum_mesh_level(a_s_vol_p_1);
-		if (max_ml > s_face_p->ml) { // neighbour is also being h-refined
+		if (a_s_vol_p_1->adapt_type == ADAPT_H_REFINE) { // neighbour is also being h-refined
 			const int ind_child_1 = get_ind_child(ind_h,1,face_p);
 			face->neigh_info[1].ind_lf   = get_ind_lf_h_ref(1,face_p);
 			face->neigh_info[1].ind_href = 0;
@@ -2155,9 +2156,12 @@ static int get_ind_child (const int ind_h, const int side_index, const struct Fa
 	const int ind_compound = get_ind_compound(ind_h,side_index,face_p);
 	const struct Volume*const vol_p = face_p->neigh_info[side_index].volume;
 
+	const int ind_href = face_p->neigh_info[side_index].ind_href;
+
 	int ind_child = -1;
 	switch (vol_p->element->type) {
 	case LINE:
+		assert(ind_href == H_POINT1_V0);
 		switch (ind_compound) {
 		case H_POINT1_V0+1:
 			ind_child = H_LINE2_V0; break;
@@ -2170,37 +2174,117 @@ static int get_ind_child (const int ind_h, const int side_index, const struct Fa
 		break;
 #if DIM > 1
 	case TRI:
-		switch (ind_compound) {
-		case 1*NFREFMAX+H_LINE2_V0: // fallthrough
-		case 2*NFREFMAX+H_LINE2_V0:
-			ind_child = H_TRI4_V0; break;
-		case 0*NFREFMAX+H_LINE2_V0: // fallthrough
-		case 2*NFREFMAX+H_LINE2_V1:
-			ind_child = H_TRI4_V1; break;
-		case 0*NFREFMAX+H_LINE2_V1: // fallthrough
-		case 1*NFREFMAX+H_LINE2_V1:
-			ind_child = H_TRI4_V2; break;
+		switch (ind_href) {
+		case H_LINE1_V0:
+			switch (ind_compound) {
+			case 1*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 2*NFREFMAX+H_LINE2_V0:
+				ind_child = H_TRI4_V0; break;
+			case 0*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 2*NFREFMAX+H_LINE2_V1:
+				ind_child = H_TRI4_V1; break;
+			case 0*NFREFMAX+H_LINE2_V1: // fallthrough
+			case 1*NFREFMAX+H_LINE2_V1:
+				ind_child = H_TRI4_V2; break;
+			default:
+				EXIT_ERROR("Unsupported: %d",ind_compound);
+				break;
+			}
+			break;
+		case H_LINE2_V0:
+			switch (ind_compound) {
+			case 1*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 1*NFREFMAX+H_LINE2_V1: // fallthrough
+			case 2*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 2*NFREFMAX+H_LINE2_V1:
+				ind_child = H_TRI4_V0; break;
+			case 0*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 0*NFREFMAX+H_LINE2_V1:
+				ind_child = H_TRI4_V1; break;
+			default:
+				EXIT_ERROR("Unsupported: %d",ind_compound);
+				break;
+			}
+			break;
+		case H_LINE2_V1:
+			switch (ind_compound) {
+			case 2*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 2*NFREFMAX+H_LINE2_V1:
+				ind_child = H_TRI4_V1; break;
+			case 0*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 0*NFREFMAX+H_LINE2_V1: // fallthrough
+			case 1*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 1*NFREFMAX+H_LINE2_V1:
+				ind_child = H_TRI4_V2; break;
+			default:
+				EXIT_ERROR("Unsupported: %d",ind_compound);
+				break;
+			}
+			break;
 		default:
-			EXIT_ERROR("Unsupported: %d",ind_compound);
+			EXIT_ERROR("Unsupported: %d",ind_href);
 			break;
 		}
 		break;
 	case QUAD:
-		switch (ind_compound) {
-		case 0*NFREFMAX+H_LINE2_V0: // fallthrough
-		case 2*NFREFMAX+H_LINE2_V0:
-			ind_child = H_QUAD4_V0; break;
-		case 1*NFREFMAX+H_LINE2_V0: // fallthrough
-		case 2*NFREFMAX+H_LINE2_V1:
-			ind_child = H_QUAD4_V1; break;
-		case 0*NFREFMAX+H_LINE2_V1: // fallthrough
-		case 3*NFREFMAX+H_LINE2_V0:
-			ind_child = H_QUAD4_V2; break;
-		case 1*NFREFMAX+H_LINE2_V1: // fallthrough
-		case 3*NFREFMAX+H_LINE2_V1:
-			ind_child = H_QUAD4_V3; break;
+		switch (ind_href) {
+		case H_LINE1_V0:
+			switch (ind_compound) {
+			case 0*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 2*NFREFMAX+H_LINE2_V0:
+				ind_child = H_QUAD4_V0; break;
+			case 1*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 2*NFREFMAX+H_LINE2_V1:
+				ind_child = H_QUAD4_V1; break;
+			case 0*NFREFMAX+H_LINE2_V1: // fallthrough
+			case 3*NFREFMAX+H_LINE2_V0:
+				ind_child = H_QUAD4_V2; break;
+			case 1*NFREFMAX+H_LINE2_V1: // fallthrough
+			case 3*NFREFMAX+H_LINE2_V1:
+				ind_child = H_QUAD4_V3; break;
+			default:
+				EXIT_ERROR("Unsupported: %d",ind_compound);
+				break;
+			}
+			break;
+		case H_LINE2_V0:
+			switch (ind_compound) {
+			case 0*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 0*NFREFMAX+H_LINE2_V1: // fallthrough
+			case 2*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 2*NFREFMAX+H_LINE2_V1:
+				ind_child = H_QUAD4_V0; break;
+			case 1*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 1*NFREFMAX+H_LINE2_V1:
+				ind_child = H_QUAD4_V1; break;
+			case 3*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 3*NFREFMAX+H_LINE2_V1:
+				ind_child = H_QUAD4_V2; break;
+			default:
+				EXIT_ERROR("Unsupported: %d",ind_compound);
+				break;
+			}
+			break;
+		case H_LINE2_V1:
+			switch (ind_compound) {
+			case 2*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 2*NFREFMAX+H_LINE2_V1:
+				ind_child = H_QUAD4_V1; break;
+			case 0*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 0*NFREFMAX+H_LINE2_V1:
+				ind_child = H_QUAD4_V2; break;
+			case 1*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 1*NFREFMAX+H_LINE2_V1: // fallthrough
+			case 3*NFREFMAX+H_LINE2_V0: // fallthrough
+			case 3*NFREFMAX+H_LINE2_V1:
+				ind_child = H_QUAD4_V3; break;
+			default:
+				EXIT_ERROR("Unsupported: %d",ind_compound);
+				break;
+			}
+			break;
 		default:
-			EXIT_ERROR("Unsupported: %d",ind_compound);
+			EXIT_ERROR("Unsupported: %d",ind_href);
 			break;
 		}
 		break;

@@ -12,7 +12,7 @@
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
 ARGV="RESULTS_euler_joukowski_full_dg_2D petsc_options_gmres_r120"
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_fe_init_refined
-ARGV="extern_mesh/TEST_h_refined_2d_tri_h2"
+ARGV="extern_mesh/TEST_h_refined_2d_tri_h1+uniform"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

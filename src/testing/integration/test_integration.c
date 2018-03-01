@@ -265,11 +265,12 @@ static void refine_initial_mesh_if_required (struct Simulation*const sim)
 	const int count_to_find = 2;
 	int count_found = 0;
 
-	struct Adaptation_Data adapt_data = { .xyz_ve_refine = NULL, .xyz_ve_ml = NULL, };
+	struct Adaptation_Data adapt_data = { .adapt_h = { 0, 0, }, .xyz_ve_refine = NULL, .xyz_ve_ml = NULL, };
 
 	char line[STRLEN_MAX];
 	FILE* input_file = fopen_input('t',NULL,NULL); // closed
 	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_name_i("n_adapt_h_refine",line,&adapt_data.adapt_h[0]);
 		if (strstr(line,"xyz_ve_refine")) {
 			++count_found;
 			adapt_data.xyz_ve_refine = constructor_file_const_Multiarray_d(input_file,true); // destructed
@@ -290,8 +291,10 @@ static void refine_initial_mesh_if_required (struct Simulation*const sim)
 		EXIT_ERROR("Did not find the required number of variables (Found: %d/%d).\n",count_found,count_to_find);
 
 	adapt_hp(sim,ADAPT_S_XYZ_VE,&adapt_data);
-adapt_hp(sim,ADAPT_S_H_REFINE,NULL);
-EXIT_UNSUPPORTED;
+	for (int i = 0; i < adapt_data.adapt_h[0]; ++i)
+		adapt_hp(sim,ADAPT_S_H_REFINE,NULL);
+	for (int i = 0; i < adapt_data.adapt_h[1]; ++i)
+		adapt_hp(sim,ADAPT_S_H_COARSE,NULL);
 
 	destructor_const_Multiarray_d(adapt_data.xyz_ve_refine);
 	destructor_const_Vector_i(adapt_data.xyz_ve_ml);

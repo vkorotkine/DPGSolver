@@ -23,6 +23,8 @@ struct Simulation;
 
 /// \brief Container for data relating to element adaptation in the domain.
 struct Adaptation_Data {
+	int adapt_h[2]; ///< Number of uniform refinement [0] and coarsening [1] adaptations to perform.
+
 	/// Coordinates of vertices for which adjacent elements should be refined.
 	const struct const_Multiarray_d* xyz_ve_refine;
 
