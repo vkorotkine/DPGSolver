@@ -762,7 +762,7 @@ static bool volume_contains_xyz_ve
 	if (requires_transpose)
 		transpose_Multiarray_d((struct Multiarray_d*)vol->xyz_ve,true);
 
-	const ptrdiff_t n_ve = xyz_ve->extents[0];
+	const ptrdiff_t n_ve = vol->xyz_ve->extents[0];
 	for (int i = 0; i < n_ve; ++i) {
 		if (norm_diff_d(DIM,xyz_ve_data,get_row_const_Multiarray_d(i,vol->xyz_ve),"Inf") < EPS)
 			contains_v = true;
@@ -1055,11 +1055,9 @@ static void swap_dominant_volume_if_necessary (struct Adaptive_Solver_Face* a_s_
 		permute_Multiarray_d_V(s_face->nf_coef,nc_ff,'R');
 	}
 
-	if (s_face->s_coef->extents[0] > 0) {
+	if (s_face->s_coef && s_face->s_coef->extents[0] > 0) {
 		EXIT_ADD_SUPPORT;
 	}
-
-	EXIT_UNSUPPORTED; // Ensure that all is working as expected.
 }
 
 static void compute_projection_p_volume (struct Adaptive_Solver_Volume* a_s_vol, const struct Simulation* sim)

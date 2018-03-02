@@ -17,7 +17,7 @@ mesh_path        ../meshes/
 # Simulation variables
 
 solution_extension subsonic
-
+test_case_extension refinement
 
 interp_tp  GLL
 interp_si  AO
@@ -37,5 +37,5 @@ fe_method 1
 
 # Testing variables
 
-ml_range_test 0 4
+ml_range_test 0 3
 p_range_test  1 1

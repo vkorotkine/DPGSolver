@@ -2,7 +2,7 @@ pde_name  euler
 pde_spec  steady/joukowski
 
 geom_name n-cube
-geom_spec conformal_full/geom_ar_4
+geom_spec conformal_full/geom_ar_1
 
 dimension 2
 
@@ -17,7 +17,7 @@ mesh_path        ../meshes/
 # Simulation variables
 
 solution_extension subsonic
-test_case_extension refinement
+test_case_extension refinement_uniform2
 
 
 interp_tp  GLL
@@ -31,7 +31,7 @@ geom_representation superparametric
 geom_blending_tp    gordon_hall
 geom_blending_si    szabo_babuska_gen
 
-p_ref    2 3
+p_ref    1 3
 
 fe_method 1
 
@@ -39,4 +39,4 @@ fe_method 1
 # Testing variables
 
 ml_range_test 0 2
-p_range_test  2 3
+p_range_test  1 1

@@ -15,7 +15,7 @@ h = 1;
 
 all_transfinite  = 1;
 bl_recombined    = 1;
-all_recombined   = 0;
+all_recombined   = 1;
 use_bump         = 0;
 t_progression_x  = 3.0;
 t_bump_x         = 0.15;
@@ -66,7 +66,7 @@ If (use_bump)
 Else
 	Transfinite Line{1000,1002} = 2^(mesh_level+2)+1 Using Progression t_progression_j;
 EndIf
-Transfinite Line{1001,1003} = 2^(mesh_level+1)+1 Using Progression t_progression_x;
+Transfinite Line{1001,1003} = 2^(mesh_level+2)+1 Using Progression t_progression_x;
 
 If (all_transfinite)
 	Transfinite Surface {4000:4001};
@@ -121,7 +121,7 @@ If (geom_conformal == GEOM_CONFORMAL_FULL)
 		Transfinite Line{10000,-10002} = 2^(mesh_level+2)+1 Using Progression t_progression_j;
 	EndIf
 
-	Transfinite Line{10005,-10007}       = 2^(mesh_level+1)+1 Using Progression t_progression_x;
+	Transfinite Line{10005,-10007}       = 2^(mesh_level+2)+1 Using Progression t_progression_x;
 	If (all_transfinite)
 		Transfinite Surface {9999,10004};
 	Else
