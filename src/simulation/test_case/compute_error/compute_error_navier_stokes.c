@@ -92,12 +92,12 @@ static const char* compute_header_spec_navier_stokes_uvwt ( )
 {
 	static char header_spec[STRLEN_MAX];
 
-	int index = sprintf(header_spec,"%-14s","$L^2-u$");
+	int index = sprintf(header_spec,"%-14s","$u$");
 	if (DIM >= 2)
-		index += sprintf(header_spec+index,"%-14s","$L^2-v$");
+		index += sprintf(header_spec+index,"%-14s","$v$");
 	if (DIM >= 3)
-		index += sprintf(header_spec+index,"%-14s","$L^2-w$");
-	sprintf(header_spec+index,"%-14s","$L^2-T$");
+		index += sprintf(header_spec+index,"%-14s","$w$");
+	sprintf(header_spec+index,"%-14s","$T$");
 
 	return header_spec;
 }

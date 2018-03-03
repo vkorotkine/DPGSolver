@@ -80,7 +80,7 @@ static const char* compute_header_spec_diffusion_all (const struct Simulation* s
 	UNUSED(sim);
 	static char header_spec[STRLEN_MAX];
 
-	sprintf(header_spec,"%-14s","$L^2-u$");
+	sprintf(header_spec,"%-14s","$u$");
 
 	return header_spec;
 }

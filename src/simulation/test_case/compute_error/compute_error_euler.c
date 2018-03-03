@@ -196,12 +196,12 @@ static const char* compute_header_spec_euler_all ( )
 {
 	static char header_spec[STRLEN_MAX];
 
-	int index = sprintf(header_spec,"%-14s%-14s","$L^2-\rho$","$L^2-u$");
+	int index = sprintf(header_spec,"%-14s%-14s","$\rho$","$u$");
 	if (DIM >= 2)
-		index += sprintf(header_spec+index,"%-14s","$L^2-v$");
+		index += sprintf(header_spec+index,"%-14s","$v$");
 	if (DIM >= 3)
-		index += sprintf(header_spec+index,"%-14s","$L^2-w$");
-	sprintf(header_spec+index,"%-14s%-14s","$L^2-p$","$L^2-s$");
+		index += sprintf(header_spec+index,"%-14s","$w$");
+	sprintf(header_spec+index,"%-14s%-14s","$p$","$s$");
 
 	return header_spec;
 }
@@ -209,13 +209,13 @@ static const char* compute_header_spec_euler_all ( )
 static const char* compute_header_spec_euler_entropy ( )
 {
 	static char header_spec[STRLEN_MAX];
-	sprintf(header_spec,"%-14s","$L^2-s$");
+	sprintf(header_spec,"%-14s","$s$");
 	return header_spec;
 }
 
 static const char* compute_header_spec_cd_cl ( )
 {
 	static char header_spec[STRLEN_MAX];
-	sprintf(header_spec,"%-14s%-14s","$L^2-C_D$","$L^2-C_L$");
+	sprintf(header_spec,"%-14s%-14s","$C_D$","$C_L$");
 	return header_spec;
 }
