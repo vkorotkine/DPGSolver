@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef real_T
 #undef sqrt_T
 #undef pow_T
+#undef log_T
 
 #undef equal_T
 #undef norm_T

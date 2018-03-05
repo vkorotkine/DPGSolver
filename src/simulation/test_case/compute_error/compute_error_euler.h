@@ -22,6 +22,11 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 struct Error_CE_Data;
 
+///\{ \name Parameters related to removal of lift/drag functionals for error computation.
+#define REMOVE_CD_CL__NONE 0   ///< Remove neither.
+#define REMOVE_CD_CL__D    101 ///< Remove drag.
+///\}
+
 /** \brief Version of \ref constructor_Error_CE_fptr checking the error of all supported Euler variables.
  *  \return See brief.
  *
@@ -44,10 +49,16 @@ void add_euler_variable_Error_CE_Data
 	 const struct Simulation*const sim  ///< \ref Simulation.
 	);
 
-/** \brief Version of \ref constructor_Error_CE_fptr checking the error of drag and lift coefficients.
+/** \brief Version of \ref constructor_Error_CE_fptr checking the error of pressure drag and lift coefficients.
  *  \return See brief. */
 struct Error_CE* constructor_Error_CE_functionals__cd_cl
 	(const struct Simulation*const sim ///< \ref Simulation.
+	);
+
+/** \brief Version of \ref constructor_Error_CE_functionals__cd_cl with drag coefficient removed.
+ *  \return See brief. */
+struct Error_CE* constructor_Error_CE_functionals__cl
+	(const struct Simulation*const sim ///< See brief.
 	);
 
 #endif // DPG__compute_error_euler_h__INCLUDED

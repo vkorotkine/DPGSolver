@@ -172,4 +172,10 @@ struct Volume* get_volume_neighbour
 	 const struct Face*const face   ///< The face under consideration.
 	);
 
+/** \brief Return `true` if the \ref Face is a wall boundary and `false` otherwise.
+ *  \return See brief. */
+bool is_face_wall_boundary
+	(const struct Face*const face ///< \ref Face.
+	);
+
 #endif // DPG__face_h__INCLUDED

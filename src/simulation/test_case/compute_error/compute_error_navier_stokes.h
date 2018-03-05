@@ -27,7 +27,13 @@ struct Simulation;
  *  This function should be used when the exact solution is available.
  */
 struct Error_CE* constructor_Error_CE_navier_stokes_uvwt
-	(const struct Simulation* sim ///< Defined for \ref constructor_Error_CE_fptr.
+	(const struct Simulation* sim ///< See brief.
+	);
+
+/** \brief Version of \ref constructor_Error_CE_fptr checking the error of expected zero surface velocity.
+ *  \return See brief. */
+struct Error_CE* constructor_Error_CE_navier_stokes_uvw_zero_surface
+	(const struct Simulation* sim ///< See brief.
 	);
 
 #endif // DPG__compute_error_navier_stokes_h__INCLUDED

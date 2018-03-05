@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_boundary.h"
 
 #include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
 
 #include "def_templates_face_solver.h"
 #include "def_templates_volume_solver.h"
@@ -97,6 +98,37 @@ void destructor_Boundary_Value_T (struct Boundary_Value_T* bv)
 	destructor_conditional_const_Multiarray_T(bv->ds_ds);
 	destructor_conditional_const_Multiarray_T(bv->dg_dg);
 	destructor_conditional_const_Multiarray_T(bv->dg_ds);
+}
+
+void constructor_Boundary_Value_T_grad_from_internal
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const int n_var)
+{
+	const bool*const c_m = bv_i->compute_member;
+	const ptrdiff_t n_n = bv_i->s->extents[0];
+
+	if (bv_i->g)
+		bv->g = constructor_copy_const_Multiarray_T(bv_i->g); // keep
+
+	if (c_m[3] == true && bv->g) {
+		struct Multiarray_T*const dg_dg =
+			constructor_zero_Multiarray_T('C',5,(ptrdiff_t[]){n_n,n_var,DIM,n_var,DIM}); // keep
+
+		for (int vr_b = 0; vr_b < n_var; ++vr_b) {
+		for (int d_b  = 0; d_b  < DIM;   ++d_b)  {
+		for (int vr_i = 0; vr_i < n_var; ++vr_i) {
+		for (int d_i  = 0; d_i  < DIM;   ++d_i)  {
+			if (!(vr_b == vr_i && d_b == d_i))
+				continue;
+			struct Vector_T dg_V = interpret_Multiarray_slice_as_Vector_T(dg_dg,(ptrdiff_t[]){vr_b,d_b,vr_i,d_i});
+			set_to_value_Vector_T(&dg_V,1.0);
+		}}}}
+		bv->dg_dg = (const struct const_Multiarray_T*) dg_dg;
+	}
+
+	if (c_m[4])
+		bv->dg_ds = NULL;
+
+	assert(c_m[5] == false);
 }
 
 // Static functions ************************************************************************************************* //

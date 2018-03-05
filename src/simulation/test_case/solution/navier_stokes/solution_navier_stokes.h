@@ -29,6 +29,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_multiarray.h"
 #include "undef_templates_test_case.h"
 
+///\{ \name Constant associated with the Sutherland formala to compute the viscosity.
+#define C1_SUTHERLAND 1.46e-6
+#define C2_SUTHERLAND 112
+///\}
+
 /** \brief Return the value of the coefficient of thermal conductivity for the Navier-Stokes equations, assuming
  *         constant specific heat at constant pressure (eq. (1.59), \cite Toro2009).
  *  \return See brief. */
@@ -54,6 +59,11 @@ void compute_viscosity
 /** \brief Get the normal flux for the Energy equation in cases where the value is constant along an entire boundary.
  *  \return See brief. */
 double get_normal_flux_Energy
+	( );
+
+/** \brief Get the constant value of the specific gas constant.
+ *  \return See brief. */
+double get_r_s
 	( );
 
 #endif // DPG__solution_navier_stokes_h__INCLUDED

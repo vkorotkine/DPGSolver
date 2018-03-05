@@ -167,3 +167,16 @@ void constructor_Solver_Face__nf_coef_T
 	 struct Flux_Input_T*const flux_i,  ///< \ref Flux_Input_T.
 	 const struct Simulation*const sim  ///< \ref Simulation.
 	);
+
+/// \brief Function to be used for \ref Test_Case_T::set_grad for the test cases with zero gradients.
+void set_grad_zero_T
+	(const struct Simulation* sim,        ///< Defined for \ref set_sol_fptr_T.
+	 struct Solution_Container_T sol_cont ///< Defined for \ref set_sol_fptr_T.
+	);
+
+/** \brief Function to be used for \ref Test_Case_T::constructor_grad for test cases with zero gradients.
+ *  \return See brief. */
+const struct const_Multiarray_T* constructor_const_grad_zero_T
+	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
+	);

@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_test_case.h"
 
+#include "compute_error_euler.h"
 #include "compute_error_navier_stokes.h"
 #include "file_processing.h"
 #include "simulation.h"
@@ -36,6 +37,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_solution.h"
 #include "test_complex_test_case.h"
 
+#include "free_stream/test_complex_solution_free_stream.h"
 #include "taylor_couette/test_complex_solution_taylor_couette.h"
 
 // Static function declarations ************************************************************************************* //

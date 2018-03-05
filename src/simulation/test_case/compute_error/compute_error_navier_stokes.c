@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 #include "definitions_error.h"
 
+#include "face.h"
 #include "volume.h"
 #include "volume_solver.h"
 
@@ -47,6 +48,11 @@ You should have received a copy of the GNU General Public License along with DPG
  *         variables.
  *  \return See brief. */
 static const char* compute_header_spec_navier_stokes_uvwt
+	();
+
+/** \brief Return a statically allocated `char*` holding the specific header for the velocity variables.
+ *  \return See brief. */
+static const char* compute_header_spec_navier_stokes_uvw
 	();
 
 // Interface functions ********************************************************************************************** //
@@ -85,6 +91,52 @@ struct Error_CE* constructor_Error_CE_navier_stokes_uvwt (const struct Simulatio
 	return error_ce;
 }
 
+struct Error_CE* constructor_Error_CE_navier_stokes_uvw_zero_surface (const struct Simulation*const sim)
+{
+	const int n_out = DIM;
+
+	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
+	e_ce_h->header_spec = compute_header_spec_navier_stokes_uvw();
+	const_cast_i(&e_ce_h->error_type,ERROR_STANDARD);
+
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		const struct Face*const face = (struct Face*) curr;
+		if (!is_face_wall_boundary(face))
+			continue;
+
+		const struct Solver_Face*const s_face = (struct Solver_Face*) curr;
+		e_ce_h->s_face = s_face;
+		e_ce_h->s_vol[0] = (struct Solver_Volume*) face->neigh_info[0].volume;
+
+		struct Boundary_Value_Input bv_i;
+		constructor_Boundary_Value_Input_face_s_fcl_interp(&bv_i,s_face,sim); // destructed
+		bv_i.g = NULL;
+
+		struct Error_CE_Data e_ce_d;
+		e_ce_d.sol[0] = (struct Multiarray_d*) constructor_copy_const_Multiarray_d(bv_i.s); // destructed
+		destructor_Boundary_Value_Input(&bv_i);
+
+		e_ce_d.sol[1] = constructor_copy_Multiarray_d(e_ce_d.sol[0]); // destructed
+		set_to_value_Multiarray_d(e_ce_d.sol[1],0.0);
+
+		for (int i = 0; i < 2; ++i) {
+			remove_col_Multiarray_d(DIM+1,e_ce_d.sol[i]); // Remove pressure.
+			remove_col_Multiarray_d(0,    e_ce_d.sol[i]); // Remove density.
+		}
+
+		increment_sol_integrated_face(e_ce_h,&e_ce_d);
+		update_domain_order(e_ce_h);
+
+		for (int i = 0; i < 2; ++i)
+			destructor_Multiarray_d(e_ce_d.sol[i]);
+	}
+
+	struct Error_CE* error_ce = constructor_Error_CE(e_ce_h,sim); // returned
+	destructor_Error_CE_Helper(e_ce_h);
+
+	return error_ce;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -99,5 +151,17 @@ static const char* compute_header_spec_navier_stokes_uvwt ( )
 		index += sprintf(header_spec+index,"%-14s","$w$");
 	sprintf(header_spec+index,"%-14s","$T$");
 
+	return header_spec;
+}
+
+static const char* compute_header_spec_navier_stokes_uvw ( )
+{
+	static char header_spec[STRLEN_MAX];
+
+	int index = sprintf(header_spec,"%-14s","$u$");
+	if (DIM >= 2)
+		index += sprintf(header_spec+index,"%-14s","$v$");
+	if (DIM >= 3)
+		index += sprintf(header_spec+index,"%-14s","$w$");
 	return header_spec;
 }

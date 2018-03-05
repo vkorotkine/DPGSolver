@@ -1,0 +1,15 @@
+/// Solution parameters for test case: navier_stokes/steady/joukowski_symmetric
+
+density   1.0
+pressure  1.0
+mach      0.2
+theta_deg 0.0
+
+
+Pr  0.72
+r_s 1.0
+
+viscosity_type sutherland
+
+diabatic_flux_type constant_zero
+dTdn               0.0

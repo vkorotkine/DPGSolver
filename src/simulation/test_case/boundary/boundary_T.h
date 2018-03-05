@@ -159,3 +159,13 @@ void constructor_Boundary_Value_s_fcl_interp_T
 void destructor_Boundary_Value_T
 	(struct Boundary_Value_T* bv ///< Standard.
 	);
+
+/** \brief Version of \ref constructor_Boundary_Value_fptr_T constructing gradient components of the input \ref
+ *         Boundary_Value_T in the case of the ghost values for the gradient being specified as the same as the internal
+ *         values. */
+void constructor_Boundary_Value_T_grad_from_internal
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const int n_var                            ///< The number of variables.
+	);
+

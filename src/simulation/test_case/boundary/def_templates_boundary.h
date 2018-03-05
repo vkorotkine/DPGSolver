@@ -38,6 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Boundary_Value_Input_T                     destructor_Boundary_Value_Input
 #define constructor_Boundary_Value_s_fcl_interp_T             constructor_Boundary_Value_s_fcl_interp
 #define destructor_Boundary_Value_T                           destructor_Boundary_Value
+#define constructor_Boundary_Value_T_grad_from_internal       constructor_Boundary_Value_grad_from_internal
 ///\}
 
 ///\{ \name Function names (pde specific)
@@ -78,6 +79,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Boundary_Value_Input_T                     destructor_Boundary_Value_Input_c
 #define constructor_Boundary_Value_s_fcl_interp_T             constructor_Boundary_Value_c_s_fcl_interp
 #define destructor_Boundary_Value_T                           destructor_Boundary_Value_c
+#define constructor_Boundary_Value_T_grad_from_internal       constructor_Boundary_Value_c_grad_from_internal
 ///\}
 
 ///\{ \name Function names

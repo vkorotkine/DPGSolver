@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_physics.h"
 
 
+#include "def_templates_solution_euler.h"
 #include "def_templates_solution_navier_stokes.h"
 
 #include "def_templates_multiarray.h"
@@ -65,6 +66,16 @@ void set_function_pointers_solution_navier_stokes_T (struct Test_Case_T* test_ca
 		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
 		test_case->constructor_Error_CE         = constructor_Error_CE_navier_stokes_uvwt;
+	} else if (strstr(sim->pde_spec,"joukowski")) {
+		test_case->constructor_xyz                  = constructor_xyz_joukowski_parametric_T;
+		test_case->constructor_sol                  = constructor_const_sol_free_stream_T;
+		test_case->constructor_grad                 = constructor_const_grad_zero_T;
+		test_case->set_sol                          = set_sol_free_stream_T;
+		test_case->set_grad                         = set_grad_zero_T;
+		test_case->compute_source_rhs               = compute_source_rhs_do_nothing_T;
+		test_case->add_to_flux_imbalance_source     = add_to_flux_imbalance_source_do_nothing_T;
+		test_case->constructor_Error_CE             = constructor_Error_CE_navier_stokes_uvw_zero_surface;
+		test_case->constructor_Error_CE_functionals = constructor_Error_CE_functionals__cl;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}
@@ -233,33 +244,13 @@ Type compute_mu_constant_T (const Type rho, const Type*const rhouvw, const Type 
 
 Type compute_mu_sutherland_T (const Type rho, const Type*const rhouvw, const Type E)
 {
-	static Real r_s = 0.0;
-
-	static bool need_input = true;
-	if (need_input) {
-		need_input = false;
-
-		const int count_to_find = 1;
-		int count_found = 0;
-
-		char line[STRLEN_MAX];
-		FILE* input_file = fopen_input('s',NULL,NULL); // closed
-		while (fgets(line,sizeof(line),input_file)) {
-			read_skip_string_count_d("r_s",&count_found,line,&r_s);
-		}
-		fclose(input_file);
-
-		if (count_found != count_to_find)
-			EXIT_ERROR("Did not find the required number of variables");
-	}
+	Real r_s = get_r_s();
+	static const Real c1 = C1_SUTHERLAND,
+	                  c2 = C2_SUTHERLAND;
 
 	const Type V2 = compute_V2_from_rhouvw_T(rho,rhouvw),
 	           p = GM1*(E-0.5*rho*V2),
 		     T = p/(rho*r_s);
-
-	static const Real c1 = 1.46e-6,
-	                  c2 = 112;
-
 	return c1/(1+c2/T)*sqrt_T(T);
 }
 

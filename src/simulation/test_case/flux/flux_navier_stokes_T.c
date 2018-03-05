@@ -54,18 +54,6 @@ typedef void (*compute_Flux_Navier_Stokes_fptr)
 	 Type*const dfdg_ptr[DIM*NEQ*NVAR*DIM]
 	);
 
-/** \brief Pointer to functions computing the Jacobian of the viscosity wrt the solution.
- *
- *  \param rho        The density.
- *  \param rhouvw     The xyz momentum components.
- *  \param E          The total energy.
- */
-typedef const Type* (*compute_dmu_ds_fptr)
-	(const Type rho,
-	 const Type*const rhouvw,
-	 const Type E
-	);
-
 /// \brief Container for partial derivatives wrt the solution and gradient terms for a scalar quantity.
 struct Partials_Scalar {
 	Type d0;               ///< 0th order derivative (i.e. the scalar value).
@@ -86,6 +74,20 @@ struct Partials_Tensor {
 	const Type*const*const* d1s;       ///< 1st order derivative wrt the 's'olution.
 	const Type*const*const*const* d1g; ///< 1st order derivative wrt the 'g'radients.
 };
+
+/** \brief Pointer to functions computing the Jacobian of the viscosity wrt the solution.
+ *
+ *  \param rho    The density.
+ *  \param rhouvw The xyz momentum components.
+ *  \param E      The total energy.
+ *  \param uvw_p  The \ref Partials_Vector for the velocity components.
+ */
+typedef const Type* (*compute_dmu_ds_fptr)
+	(const Type rho,
+	 const Type*const rhouvw,
+	 const Type E,
+	 const struct Partials_Vector*const uvw_p
+	);
 
 /// \brief Container for common data used to compute the fluxes and their Jacobians/Hessians.
 struct Flux_Data_Navier_Stokes {
@@ -122,10 +124,11 @@ static Real compute_Pr
 /** \brief Return a statically allocated \ref Partials_Scalar for the viscosity.
  *  \return See brief. */
 static struct Partials_Scalar compute_mu_p
-	(const Type rho,          ///< The density.
-	 const Type*const rhouvw, ///< The momentum components.
-	 const Type E,            ///< The total energy.
-	 const bool*const c_m     ///< Array of flags indicating members to be computed.
+	(const Type rho,                           ///< The density.
+	 const Type*const rhouvw,                  ///< The momentum components.
+	 const Type E,                             ///< The total energy.
+	 const struct Partials_Vector*const uvw_p, ///< See \ref compute_uvw_p.
+	 const bool*const c_m                      ///< Array of flags indicating members to be computed.
 	);
 
 /** \brief Return a statically allocated \ref Partials_Vector for the velocities.
@@ -258,8 +261,8 @@ void compute_Flux_T_navier_stokes (const struct Flux_Input_T* flux_i, struct mut
 		           *const drhouvw[DIM] = ARRAY_DIM( drhouvw_2[0], drhouvw_2[1], drhouvw_2[2] );
 
 		const Type rho_inv  = 1.0/rho;
-		const struct Partials_Scalar mu_p   = compute_mu_p(rho,rhouvw,E,c_m);
 		const struct Partials_Vector uvw_p  = compute_uvw_p(rho_inv,rhouvw,c_m);
+		const struct Partials_Scalar mu_p   = compute_mu_p(rho,rhouvw,E,&uvw_p,c_m);
 		const struct Partials_Tensor duvw_p = compute_duvw_p(rho_inv,&uvw_p,drho,drhouvw,c_m),
 		                             tau_p  = compute_tau_p(&mu_p,&duvw_p,c_m,mu_is_const);
 
@@ -298,9 +301,19 @@ static void compute_Flux_Navier_Stokes_111
 /** \brief Version of \ref compute_dmu_ds_fptr for constant viscosity.
  *  \return See brief. */
 static const Type* compute_dmu_ds_constant
-	(const Type rho,              ///< See brief.
-	 const Type*const rhouvw,     ///< See brief.
-	 const Type E                 ///< See brief.
+	(const Type rho,                          ///< See brief.
+	 const Type*const rhouvw,                 ///< See brief.
+	 const Type E,                            ///< See brief.
+	 const struct Partials_Vector*const uvw_p ///< See \ref compute_uvw_p.
+	);
+
+/** \brief Version of \ref compute_dmu_ds_fptr for viscosity specified in \ref compute_mu_sutherland_T.
+ *  \return See brief. */
+static const Type* compute_dmu_ds_sutherland
+	(const Type rho,                          ///< See brief.
+	 const Type*const rhouvw,                 ///< See brief.
+	 const Type E,                            ///< See brief.
+	 const struct Partials_Vector*const uvw_p ///< See \ref compute_uvw_p.
 	);
 
 /** \brief Return a statically allocated array holding the values of the velocity.
@@ -440,7 +453,7 @@ static compute_dmu_ds_fptr get_compute_dmu_ds_fptr ( )
 
 	switch (viscosity_type) {
 		case VISCOSITY_CONSTANT:   return compute_dmu_ds_constant;                break;
-		case VISCOSITY_SUTHERLAND: EXIT_ADD_SUPPORT;                              break;
+		case VISCOSITY_SUTHERLAND: return compute_dmu_ds_sutherland;              break;
 		default:                   EXIT_ERROR("Unsupported: %d.",viscosity_type); break;
 	};
 }
@@ -470,17 +483,17 @@ static Real compute_Pr ( )
 }
 
 static struct Partials_Scalar compute_mu_p
-	(const Type rho, const Type*const rhouvw, const Type E, const bool*const c_m)
+	(const Type rho, const Type*const rhouvw, const Type E, const struct Partials_Vector*const uvw_p,
+	 const bool*const c_m)
 {
 	static struct Partials_Scalar ps;
 
-/// \todo Move function/function pointer declarations to appropriate levels.
 	compute_mu_fptr_T compute_mu = get_compute_mu_fptr_T();
 	ps.d0 = compute_mu(rho,rhouvw,E);
 
 	if (c_m[1]) {
 		compute_dmu_ds_fptr compute_dmu_ds = get_compute_dmu_ds_fptr();
-		ps.d1s = compute_dmu_ds(rho,rhouvw,E);
+		ps.d1s = compute_dmu_ds(rho,rhouvw,E,uvw_p);
 	} else {
 		ps.d1s = NULL;
 	}
@@ -606,10 +619,42 @@ static void compute_Flux_Navier_Stokes_111
 }
 
 static const Type* compute_dmu_ds_constant
-	(const Type rho, const Type*const rhouvw, const Type E)
+	(const Type rho, const Type*const rhouvw, const Type E, const struct Partials_Vector*const uvw_p)
 {
-	UNUSED(rho); UNUSED(rhouvw); UNUSED(E);
+	UNUSED(rho); UNUSED(rhouvw); UNUSED(E); UNUSED(uvw_p);
 	static const Type dmu_ds[NVAR] = {0,};
+	return dmu_ds;
+}
+
+static const Type* compute_dmu_ds_sutherland
+	(const Type rho, const Type*const rhouvw, const Type E, const struct Partials_Vector*const uvw_p)
+{
+	IF_DIM_GE_1( const Type u = uvw_p->d0[0] );
+	IF_DIM_GE_2( const Type v = uvw_p->d0[1] );
+	IF_DIM_GE_3( const Type w = uvw_p->d0[2] );
+
+	IF_DIM_GE_1( const Type*const du_ds = uvw_p->d1s[0] );
+	IF_DIM_GE_2( const Type*const dv_ds = uvw_p->d1s[1] );
+	IF_DIM_GE_3( const Type*const dw_ds = uvw_p->d1s[2] );
+
+	const Real r_s = get_r_s(),
+	           c2  = r_s/GM1*C2_SUTHERLAND;
+
+	const Type mus   = compute_mu_sutherland_T(rho,rhouvw,E),
+	           V2    = compute_V2_from_rhouvw_T(rho,rhouvw),
+	           Ts    = E/rho-0.5*V2,
+	           scale = mus/Ts*(c2/((1+c2/Ts)*Ts)+0.5);
+
+	static Type dmu_ds[NVAR] = {0,};
+	for (int vr = 0; vr < NVAR; ++vr) {
+		const Type drho_ds = ( vr == 0      ? 1.0 : 0.0 ),
+		           dE_ds   = ( vr == NVAR-1 ? 1.0 : 0.0 );
+		const Type dV2_ds  = 2.0*SUM_DIM( u*du_ds[vr], v*dv_ds[vr], w*dw_ds[vr] );
+
+		const Type dTs_ds = -1.0*E/(rho*rho)*drho_ds + 1.0/rho*dE_ds - 0.5*dV2_ds;
+
+		dmu_ds[vr] = scale*dTs_ds;
+	}
 	return dmu_ds;
 }
 
@@ -912,10 +957,10 @@ static const Type*const* compute_ddTs_ds
 		           dE_ds        = ( vr == NVAR-1 ? 1.0 : 0.0 );
 		const Type dE_o_rho_ds = drho_inv2_ds*(dE[d]*rho-E*drho[d])
 		                       + rho_inv2*(dE[d]*drho_ds-dE_ds*drho[d]),
-		           dV2_ds      = 2.0*SUM_DIM( du_ds[vr]*du[d]+u*ddu_ds[d][vr],
+		           ddV2_ds     = 2.0*SUM_DIM( du_ds[vr]*du[d]+u*ddu_ds[d][vr],
 		                                      dv_ds[vr]*dv[d]+v*ddv_ds[d][vr],
 		                                      dw_ds[vr]*dw[d]+w*ddw_ds[d][vr] );
-		ddTs_ds[d][vr] = dE_o_rho_ds-0.5*dV2_ds;
+		ddTs_ds[d][vr] = dE_o_rho_ds-0.5*ddV2_ds;
 	}}
 
 	static const Type*const ddTs_ds_1[DIM] = ARRAY_DIM( ddTs_ds[0], ddTs_ds[1], ddTs_ds[2] );

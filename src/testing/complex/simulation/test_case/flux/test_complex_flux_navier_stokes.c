@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "complex_multiarray.h"
 
 #include "file_processing.h"
+#include "solution_navier_stokes.h"
 
 // Static function declarations ************************************************************************************* //
 

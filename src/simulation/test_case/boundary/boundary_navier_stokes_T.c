@@ -252,29 +252,7 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
 		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds;
 	}
 
-	if (bv_i->g)
-		bv->g = constructor_copy_const_Multiarray_T(bv_i->g); // keep
-
-	if (c_m[3] == true && bv->g) {
-		struct Multiarray_T*const dg_dg =
-			constructor_zero_Multiarray_T('C',5,(ptrdiff_t[]){n_n,NVAR,DIM,NVAR,DIM}); // keep
-
-		for (int vr_b = 0; vr_b < NVAR; ++vr_b) {
-		for (int d_b  = 0; d_b  < DIM;  ++d_b)  {
-		for (int vr_i = 0; vr_i < NVAR; ++vr_i) {
-		for (int d_i  = 0; d_i  < DIM;  ++d_i)  {
-			if (!(vr_b == vr_i && d_b == d_i))
-				continue;
-			struct Vector_T dg_V = interpret_Multiarray_slice_as_Vector_T(dg_dg,(ptrdiff_t[]){vr_b,d_b,vr_i,d_i});
-			set_to_value_Vector_T(&dg_V,1.0);
-		}}}}
-		bv->dg_dg = (const struct const_Multiarray_T*) dg_dg;
-	}
-
-	if (c_m[4])
-		bv->dg_ds = NULL;
-
-	assert(c_m[5] == false);
+	constructor_Boundary_Value_T_grad_from_internal(bv,bv_i,NVAR);
 }
 
 static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general

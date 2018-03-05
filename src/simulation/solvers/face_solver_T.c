@@ -222,6 +222,11 @@ static void set_function_pointers_num_flux_bc_navier_stokes (struct Solver_Face_
 
 	const int bc = face->bc % BC_STEP_SC;
 	switch (bc) {
+	case BC_RIEMANN:
+	case BC_SUPERSONIC_IN:
+	case BC_SUPERSONIC_OUT:
+		set_function_pointers_num_flux_bc_euler(s_face);
+		break;
 	case BC_NOSLIP_ALL_ROTATING:
 		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_navier_stokes_no_slip_all_rotating;
 		break;

@@ -262,6 +262,33 @@ struct Volume* get_volume_neighbour (const struct Volume*const vol, const struct
 	return face->neigh_info[side_index_n].volume;
 }
 
+bool is_face_wall_boundary (const struct Face*const face)
+{
+	const int bc_base = face->bc % BC_STEP_SC;
+	switch (bc_base) {
+	case BC_INVALID:
+	case BC_RIEMANN:
+	case BC_BACKPRESSURE:
+	case BC_TOTAL_TP:
+	case BC_SUPERSONIC_IN:
+	case BC_SUPERSONIC_OUT:
+	case PERIODIC_XL: case PERIODIC_XR:
+	case PERIODIC_YL: case PERIODIC_YR:
+	case PERIODIC_ZL: case PERIODIC_ZR:
+	case PERIODIC_XL_REFLECTED_Y: case PERIODIC_XR_REFLECTED_Y:
+		return false;
+		break;
+	case BC_SLIPWALL:
+	case BC_NOSLIP_ADIABATIC:    // Navier-Stokes
+	case BC_NOSLIP_DIABATIC:
+	case BC_NOSLIP_ALL_ROTATING:
+		return true;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",bc_base);
+		break;
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

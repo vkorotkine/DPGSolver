@@ -295,6 +295,30 @@ void constructor_Solver_Face__nf_coef_T
 	destructor_const_Multiarray_T(nf);
 }
 
+void set_grad_zero_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
+{
+	assert(sol_cont.node_kind != 's');
+	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+	struct Multiarray_T* grad = (struct Multiarray_T*) constructor_const_grad_zero_T(xyz,sim); // destructed
+	destructor_const_Multiarray_R(xyz);
+
+	update_Solution_Container_grad_T(&sol_cont,grad,sim);
+	destructor_Multiarray_T(grad);
+}
+
+const struct const_Multiarray_T* constructor_const_grad_zero_T
+	(const struct const_Multiarray_R*const xyz, const struct Simulation*const sim)
+{
+	// Compute the solution
+	const ptrdiff_t n_n = xyz->extents[0];
+	assert(DIM == xyz->extents[1]);
+
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_var = test_case->n_var;
+
+	return (struct const_Multiarray_T*) constructor_zero_Multiarray_T('C',3,(ptrdiff_t[]){n_n,n_var,DIM});
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

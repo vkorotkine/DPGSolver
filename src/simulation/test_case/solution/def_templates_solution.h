@@ -43,6 +43,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define update_Solution_Container_grad_T update_Solution_Container_grad
 #define constructor_xyz_vc_interp_T     constructor_xyz_vc_interp
 #define constructor_Solver_Face__nf_coef_T constructor_Solver_Face__nf_coef
+#define set_grad_zero_T                    set_grad_zero
+#define constructor_const_grad_zero_T      constructor_const_grad_zero
 ///\}
 
 ///\{ \name Function names (pde specific)
@@ -76,6 +78,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define update_Solution_Container_grad_T update_Solution_Container_grad_c
 #define constructor_xyz_vc_interp_T     constructor_xyz_vc_interp_c
 #define constructor_Solver_Face__nf_coef_T constructor_Solver_Face__nf_coef_c
+#define set_grad_zero_T                    set_grad_zero_c
+#define constructor_const_grad_zero_T      constructor_const_grad_zero_c
 ///\}
 
 ///\{ \name Function names (pde specific)

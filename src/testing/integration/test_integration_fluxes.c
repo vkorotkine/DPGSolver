@@ -134,19 +134,19 @@ int main
 	assert(!compute_member[4]);
 	assert(!compute_member[5]);
 	bool pass        = false;
-	const double tol = EPS;
+	const double* tol = (double[]) { EPS, EPS, 2.0*EPS, EPS, };
 	const bool differences[] =
-		{ compute_member[0] ? diff_const_Multiarray_d(flux->f,      flux_cmplx_step->f,      tol) : false,
-		  compute_member[1] ? diff_const_Multiarray_d(flux->df_ds,  flux_cmplx_step->df_ds,  tol) : false,
-		  compute_member[2] ? diff_const_Multiarray_d(flux->df_dg,  flux_cmplx_step->df_dg,  tol) : false,
-		  compute_member[3] ? diff_const_Multiarray_d(flux->d2f_ds2,flux_cmplx_step->d2f_ds2,tol) : false,
+		{ compute_member[0] ? diff_const_Multiarray_d(flux->f,      flux_cmplx_step->f,      tol[0]) : false,
+		  compute_member[1] ? diff_const_Multiarray_d(flux->df_ds,  flux_cmplx_step->df_ds,  tol[1]) : false,
+		  compute_member[2] ? diff_const_Multiarray_d(flux->df_dg,  flux_cmplx_step->df_dg,  tol[2]) : false,
+		  compute_member[3] ? diff_const_Multiarray_d(flux->d2f_ds2,flux_cmplx_step->d2f_ds2,tol[3]) : false,
 		};
 	const int len = COUNT_OF(differences);
 	if (check_diff(len,differences,&pass)) {
-		if (differences[0]) print_diff_const_Multiarray_d(flux->f,      flux_cmplx_step->f,      tol);
-		if (differences[1]) print_diff_const_Multiarray_d(flux->df_ds,  flux_cmplx_step->df_ds,  tol);
-		if (differences[2]) print_diff_const_Multiarray_d(flux->df_dg,  flux_cmplx_step->df_dg,  tol);
-		if (differences[3]) print_diff_const_Multiarray_d(flux->d2f_ds2,flux_cmplx_step->d2f_ds2,tol);
+		if (differences[0]) print_diff_const_Multiarray_d(flux->f,      flux_cmplx_step->f,      tol[0]);
+		if (differences[1]) print_diff_const_Multiarray_d(flux->df_ds,  flux_cmplx_step->df_ds,  tol[1]);
+		if (differences[2]) print_diff_const_Multiarray_d(flux->df_dg,  flux_cmplx_step->df_dg,  tol[2]);
+		if (differences[3]) print_diff_const_Multiarray_d(flux->d2f_ds2,flux_cmplx_step->d2f_ds2,tol[3]);
 	}
 	expect_condition(pass,"flux_linearization");
 	assert_condition(pass);

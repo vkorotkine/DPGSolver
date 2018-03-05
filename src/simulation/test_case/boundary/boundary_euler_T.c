@@ -472,7 +472,7 @@ void constructor_Boundary_Value_T_euler_riemann
 	convert_variables_T((struct Multiarray_T*)sol_l,'p','c');
 	destructor_const_Multiarray_T(sol_r);
 
-	assert(c_m[2] == false);
+	constructor_Boundary_Value_T_grad_from_internal(bv,bv_i,NVAR);
 }
 
 void constructor_Boundary_Value_T_euler_slipwall
@@ -683,7 +683,7 @@ void constructor_Boundary_Value_T_euler_supersonic_inflow
 	}
 	destructor_const_Multiarray_T(sol_r);
 
-	assert(c_m[2] == false);
+	constructor_Boundary_Value_T_grad_from_internal(bv,bv_i,NVAR);
 }
 
 void constructor_Boundary_Value_T_euler_supersonic_outflow
@@ -750,7 +750,7 @@ void constructor_Boundary_Value_T_euler_supersonic_outflow
 		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds;
 	}
 
-	assert(c_m[2] == false);
+	constructor_Boundary_Value_T_grad_from_internal(bv,bv_i,NVAR);
 }
 
 // Static functions ************************************************************************************************* //

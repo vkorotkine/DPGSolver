@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define real_T
 #define sqrt_T sqrt
 #define pow_T  pow
+#define log_T  log
 ///\}
 
 ///\{ \name Function names
@@ -46,6 +47,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define real_T creal
 #define sqrt_T csqrt
 #define pow_T  cpow
+#define log_T  clog
 ///\}
 
 ///\{ \name Function names

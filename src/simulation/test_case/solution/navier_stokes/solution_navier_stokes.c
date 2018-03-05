@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "boundary.h"
+#include "compute_error_euler.h"
 #include "compute_error_navier_stokes.h"
 #include "file_processing.h"
 #include "flux_euler.h"
@@ -35,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "solution_euler.h"
 #include "test_case.h"
 
+#include "free_stream/solution_free_stream.h"
 #include "taylor_couette/solution_taylor_couette.h"
 
 // Static function declarations ************************************************************************************* //
@@ -141,6 +143,32 @@ double get_normal_flux_Energy ( )
 		}
 	}
 	return nf_E;
+}
+
+double get_r_s ( )
+{
+	static double r_s = 0.0;
+
+	static bool need_input = true;
+	if (need_input) {
+		need_input = false;
+
+		const int count_to_find = 1;
+		int count_found = 0;
+
+		char line[STRLEN_MAX];
+		FILE* input_file = fopen_input('s',NULL,NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			read_skip_string_count_d("r_s",&count_found,line,&r_s);
+		}
+		fclose(input_file);
+
+		if (count_found != count_to_find)
+			EXIT_ERROR("Did not find the required number of variables");
+	}
+
+	assert(r_s != 0.0);
+	return r_s;
 }
 
 // Static functions ************************************************************************************************* //

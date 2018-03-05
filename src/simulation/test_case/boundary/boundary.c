@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_bc.h"
 
 #include "multiarray.h"
+#include "vector.h"
 
 #include "element_solver.h"
 #include "face.h"

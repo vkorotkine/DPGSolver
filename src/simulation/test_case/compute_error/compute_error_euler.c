@@ -54,10 +54,13 @@ static const char* compute_header_spec_euler_all
 static const char* compute_header_spec_euler_entropy
 	();
 
-/** \brief Return a statically allocated `char*` holding the specific header for the drag/lift functionals.
+/** \brief Version of \ref constructor_Error_CE_fptr checking the error of pressure drag and lift coefficients where
+ *         specified functionals may be removed.
  *  \return See brief. */
-static const char* compute_header_spec_cd_cl
-	();
+struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
+	(const struct Simulation*const sim, ///< \ref Simulation.
+	 const int remove_cd_cl             ///< \brief Flag for which functional to remove (if any).
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -147,50 +150,26 @@ void add_euler_variable_Error_CE_Data
 
 struct Error_CE* constructor_Error_CE_functionals__cd_cl (const struct Simulation*const sim)
 {
-	const int n_out = 2;
+	return constructor_Error_CE_functionals__cd_cl_general(sim,REMOVE_CD_CL__NONE);
+}
 
-	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
-	e_ce_h->header_spec = compute_header_spec_cd_cl();
-	const_cast_i(&e_ce_h->error_type,ERROR_FUNCTIONAL);
-
-	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		const struct Face*const face          = (struct Face*) curr;
-		if (!face->boundary)
-			continue;
-
-		const struct Solver_Face*const s_face = (struct Solver_Face*) curr;
-		e_ce_h->s_face = s_face;
-		e_ce_h->s_vol[0] = (struct Solver_Volume*) face->neigh_info[0].volume;
-
-		struct Boundary_Value_Input bv_i;
-		constructor_Boundary_Value_Input_face_s_fcl_interp(&bv_i,s_face,sim); // destructed
-		bv_i.g = NULL;
-
-		const struct const_Multiarray_d*const xyz_fc = s_face->xyz_fc;
-		const ptrdiff_t n_n = bv_i.xyz->extents[0];
-
-		struct Error_CE_Data e_ce_d;
-		e_ce_d.sol[0] = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_n,2}); // destructed
-		compute_cd_cl_values(e_ce_d.sol[0],bv_i.s,'c',bv_i.normals);
-		destructor_Boundary_Value_Input(&bv_i);
-
-		e_ce_d.sol[1] = (struct Multiarray_d*)constructor_const_functionals_cd_cl_zero(xyz_fc,sim); // destructed
-
-		increment_sol_integrated_face(e_ce_h,&e_ce_d);
-		update_domain_order(e_ce_h);
-
-		for (int i = 0; i < 2; ++i)
-			destructor_Multiarray_d(e_ce_d.sol[i]);
-	}
-
-	struct Error_CE* error_ce = constructor_Error_CE(e_ce_h,sim); // returned
-	destructor_Error_CE_Helper(e_ce_h);
-
-	return error_ce;
+struct Error_CE* constructor_Error_CE_functionals__cl (const struct Simulation*const sim)
+{
+	return constructor_Error_CE_functionals__cd_cl_general(sim,REMOVE_CD_CL__D);
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+/** \brief Return a statically allocated `char*` holding the specific header for the drag/lift functionals.
+ *  \return See brief. */
+static const char* compute_header_spec_cd_cl
+	();
+
+/** \brief Return a statically allocated `char*` holding the specific header for the lift functional.
+ *  \return See brief. */
+static const char* compute_header_spec_cl
+	();
 
 static const char* compute_header_spec_euler_all ( )
 {
@@ -213,9 +192,80 @@ static const char* compute_header_spec_euler_entropy ( )
 	return header_spec;
 }
 
+struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
+	(const struct Simulation*const sim, const int remove_cd_cl)
+{
+	const int n_out = (remove_cd_cl ? 1 : 2);
+
+	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
+	switch (remove_cd_cl) {
+		case REMOVE_CD_CL__NONE: e_ce_h->header_spec = compute_header_spec_cd_cl(); break;
+		case REMOVE_CD_CL__D:    e_ce_h->header_spec = compute_header_spec_cl();    break;
+		default: EXIT_ERROR("Unsupported: %d\n",remove_cd_cl); break;
+	}
+	const_cast_i(&e_ce_h->error_type,ERROR_FUNCTIONAL);
+
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		const struct Face*const face = (struct Face*) curr;
+		if (!is_face_wall_boundary(face))
+			continue;
+
+		const struct Solver_Face*const s_face = (struct Solver_Face*) curr;
+		e_ce_h->s_face = s_face;
+		e_ce_h->s_vol[0] = (struct Solver_Volume*) face->neigh_info[0].volume;
+
+		struct Boundary_Value_Input bv_i;
+		constructor_Boundary_Value_Input_face_s_fcl_interp(&bv_i,s_face,sim); // destructed
+		bv_i.g = NULL;
+
+		const struct const_Multiarray_d*const xyz_fc = s_face->xyz_fc;
+		const ptrdiff_t n_n = bv_i.xyz->extents[0];
+
+		struct Error_CE_Data e_ce_d;
+		e_ce_d.sol[0] = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_n,2}); // destructed
+		compute_cd_cl_values(e_ce_d.sol[0],bv_i.s,'c',bv_i.normals);
+		destructor_Boundary_Value_Input(&bv_i);
+
+		e_ce_d.sol[1] = (struct Multiarray_d*)constructor_const_functionals_cd_cl_zero(xyz_fc,sim); // destructed
+
+		for (int i = 0; i < 2; ++i) {
+			switch (remove_cd_cl) {
+			case REMOVE_CD_CL__NONE:
+				break; // do nothing.
+			case REMOVE_CD_CL__D:
+				remove_col_Multiarray_d(0,e_ce_d.sol[i]); // Remove drag.
+				break;
+			default:
+				EXIT_ERROR("Unsupported: %d\n",remove_cd_cl);
+				break;
+			}
+		}
+
+		increment_sol_integrated_face(e_ce_h,&e_ce_d);
+		update_domain_order(e_ce_h);
+
+		for (int i = 0; i < 2; ++i)
+			destructor_Multiarray_d(e_ce_d.sol[i]);
+	}
+
+	struct Error_CE* error_ce = constructor_Error_CE(e_ce_h,sim); // returned
+	destructor_Error_CE_Helper(e_ce_h);
+
+	return error_ce;
+}
+
+// Level 1 ********************************************************************************************************** //
+
 static const char* compute_header_spec_cd_cl ( )
 {
 	static char header_spec[STRLEN_MAX];
 	sprintf(header_spec,"%-14s%-14s","$C_D$","$C_L$");
+	return header_spec;
+}
+
+static const char* compute_header_spec_cl ( )
+{
+	static char header_spec[STRLEN_MAX];
+	sprintf(header_spec,"%-14s","$C_L$");
 	return header_spec;
 }

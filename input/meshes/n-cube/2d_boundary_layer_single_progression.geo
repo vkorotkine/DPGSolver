@@ -4,6 +4,8 @@ Include "../parameters.geo";
 // Geometry Specification
 If (pde_name == EULER && pde_spec == STEADY_JOUKOWSKI)
 	Include "../../input_files/euler/steady/joukowski/geometry_parameters.geo";
+ElseIf (pde_name == NAVIER_STOKES && pde_spec == STEADY_JOUKOWSKI)
+	Include "../../input_files/navier_stokes/steady/joukowski/geometry_parameters.geo";
 Else
 	Error("Unsupported pde_name, pde_spec: %d, %d",pde_name,pde_spec); Exit;
 EndIf

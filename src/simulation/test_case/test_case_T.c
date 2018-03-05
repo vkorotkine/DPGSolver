@@ -196,7 +196,9 @@ static void set_method_related (struct Test_Case_T*const test_case, const struct
 
 	switch (sim->method) {
 	case METHOD_DG:
-		break; // do nothing.
+		if (test_case->has_2nd_order)
+			const_cast_b(&test_case->required_unknowns[2],true);
+		break;
 	case METHOD_DPG:
 		const_cast_b(&test_case->required_unknowns[1],true);
 		if (test_case->has_2nd_order) {
