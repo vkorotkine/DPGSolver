@@ -5,11 +5,12 @@ pressure  1.0
 mach      0.2
 theta_deg 0.0
 
-
 Pr  0.72
 r_s 1.0
 
+
 viscosity_type sutherland
+mu             1e+1 // With rho = p = r_s = 1.0 => T = 1.0 => Re ~= 1/(mu*1e-3)
 
 diabatic_flux_type constant_zero
 dTdn               0.0

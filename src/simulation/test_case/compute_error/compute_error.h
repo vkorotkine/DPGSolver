@@ -131,6 +131,12 @@ void increment_sol_integrated_face
 	 struct Error_CE_Data*const e_ce_d    ///< \ref Error_CE_Data.
 	);
 
+/// \brief Increment \ref Error_CE_Helper::sol_L2 on a face.
+void increment_sol_face_L2
+	(struct Error_CE_Helper*const e_ce_h, ///< \ref Error_CE_Helper.
+	 struct Error_CE_Data*const e_ce_d    ///< \ref Error_CE_Data.
+	);
+
 /// \brief Update \ref Error_CE_Helper::domain_order.
 void update_domain_order
 	(struct Error_CE_Helper* e_ce_h ///< \ref Error_CE_Helper.

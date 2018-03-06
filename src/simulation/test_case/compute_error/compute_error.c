@@ -68,7 +68,8 @@ static void increment_vol_errors_l2_2
 static void increment_face_errors_integrated
 	(struct Vector_d*const errors_int,            ///< Holds the integrated errors over the face.
 	 const struct const_Multiarray_d*const err_f, ///< Holds the error values for the current face.
-	 const struct Solver_Face*const s_face        ///< Current \ref Solver_Face_T.
+	 const struct Solver_Face*const s_face,       ///< Current \ref Solver_Face_T.
+	 const int pow_exponent                       ///< The exponent to which to raise the error term.
 	);
 
 /// \brief Output the errors to the 's'erial/'p'arallel file.
@@ -254,7 +255,13 @@ void increment_sol_L2 (struct Error_CE_Helper* e_ce_h, struct Error_CE_Data* e_c
 void increment_sol_integrated_face (struct Error_CE_Helper*const e_ce_h, struct Error_CE_Data*const e_ce_d)
 {
 	subtract_in_place_Multiarray_d(e_ce_d->sol[0],(struct const_Multiarray_d*)e_ce_d->sol[1]);
-	increment_face_errors_integrated(e_ce_h->sol_err,(struct const_Multiarray_d*)e_ce_d->sol[0],e_ce_h->s_face);
+	increment_face_errors_integrated(e_ce_h->sol_err,(struct const_Multiarray_d*)e_ce_d->sol[0],e_ce_h->s_face,1);
+}
+
+void increment_sol_face_L2 (struct Error_CE_Helper*const e_ce_h, struct Error_CE_Data*const e_ce_d)
+{
+	subtract_in_place_Multiarray_d(e_ce_d->sol[0],(struct const_Multiarray_d*)e_ce_d->sol[1]);
+	increment_face_errors_integrated(e_ce_h->sol_err,(struct const_Multiarray_d*)e_ce_d->sol[0],e_ce_h->s_face,2);
 }
 
 void update_domain_order (struct Error_CE_Helper* e_ce_h)
@@ -364,9 +371,10 @@ static void increment_vol_errors_l2_2
 
 static void increment_face_errors_integrated
 	(struct Vector_d*const errors_int, const struct const_Multiarray_d*const err_f,
-	 const struct Solver_Face*const s_face)
+	 const struct Solver_Face*const s_face, const int pow_exponent)
 {
 	assert(errors_int->ext_0 == err_f->extents[1]);
+	assert(pow_exponent == 1 || pow_exponent == 2); // Think before adding further support.
 
 	const struct const_Vector_d*const w_detJ = constructor_w_detJ_face(s_face); // destructed
 	const ptrdiff_t ext_0 = w_detJ->ext_0;
@@ -375,7 +383,7 @@ static void increment_face_errors_integrated
 	for (int i = 0; i < n_out; ++i) {
 		const double* err_data = get_col_const_Multiarray_d(i,err_f);
 		for (int j = 0; j < ext_0; ++j)
-			errors_int->data[i] += w_detJ->data[j]*err_data[j];
+			errors_int->data[i] += w_detJ->data[j]*pow(err_data[j],pow_exponent);
 	}
 	destructor_const_Vector_d(w_detJ);
 }

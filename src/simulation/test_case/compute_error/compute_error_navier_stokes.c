@@ -124,7 +124,7 @@ struct Error_CE* constructor_Error_CE_navier_stokes_uvw_zero_surface (const stru
 			remove_col_Multiarray_d(0,    e_ce_d.sol[i]); // Remove density.
 		}
 
-		increment_sol_integrated_face(e_ce_h,&e_ce_d);
+		increment_sol_face_L2(e_ce_h,&e_ce_d);
 		update_domain_order(e_ce_h);
 
 		for (int i = 0; i < 2; ++i)

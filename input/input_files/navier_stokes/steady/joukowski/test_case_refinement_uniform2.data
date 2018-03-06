@@ -21,7 +21,7 @@ display_progress 1
 
 xyz_ve_refine:
 container Multiarray_d
-R 2 2 2
+R 2 4 2
 -1.000000000000e+00  1.000000000000e-01  // Note: The y-coordinate corresponds to (+1)*s_offset
 -1.000000000000e+00 -1.000000000000e-01  // Note: The y-coordinate corresponds to (-1)*s_offset
  0.000000000000e+00  1.000000000000e-01  // Note: The y-coordinate corresponds to (+1)*s_offset
@@ -29,6 +29,6 @@ R 2 2 2
 
 xyz_ve_mesh_level:
 container Vector_i
-2   2 2 1 1
+4   2 2 1 1
 
-n_adapt_h_refine 2
+n_adapt_h_refine 0
