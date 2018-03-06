@@ -175,7 +175,7 @@ static const char* compute_header_spec_euler_all ( )
 {
 	static char header_spec[STRLEN_MAX];
 
-	int index = sprintf(header_spec,"%-14s%-14s","$\rho$","$u$");
+	int index = sprintf(header_spec,"%-14s%-14s","$\\rho$","$u$");
 	if (DIM >= 2)
 		index += sprintf(header_spec+index,"%-14s","$v$");
 	if (DIM >= 3)

@@ -33,6 +33,37 @@ def execute_commands (cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_s
 
 			subprocess.call(shlex.split(cmd),cwd=str(os.getcwd()))
 
+
+def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming):
+	""" Run the Euler Supersonic Vortex cases. """
+	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"euler","steady","supersonic_vortex"])
+	test_case  = "euler_supersonic_vortex_dg_2d"
+	petsc_opts = "petsc_options_gmres_tol_1e-2"
+
+	print(ar_val)
+	if (ar_val == 1.0):
+		assert (non_conforming == False),"Add support."
+		ctrl_spec   = ["ar1_iso", "ar1_super", ]
+		ctrl_matrix = ["p1-1", "p2-3", ]
+	elif (ar_val == 2.5):
+		assert (non_conforming == False),"Add support."
+		ctrl_spec   = ["ar2-5_iso", "ar2-5_super", ]
+		ctrl_matrix = ["p2-3", ]
+	elif (ar_val == 5.0):
+		assert (non_conforming == False),"Add support."
+		ctrl_spec   = ["ar5_iso", "ar5_super", ]
+		ctrl_matrix = ["p2-3", ]
+	elif (ar_val == 20.0):
+		if (non_conforming != True):
+			ctrl_spec   = ["ar20_iso", "ar20_super", ]
+		else:
+			ctrl_spec   = ["ar20_non_conforming_iso", "ar20_non_conforming_super", ]
+		ctrl_matrix = ["p2-3", ]
+	else:
+		sys.exit("Unsupported ar_val: \""+str(ar_val)+"\".")
+
+	execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
+
 def run_euler_joukowski (cmd_line_params,ar_val):
 	""" Run the Euler Joukowski cases. """
 	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"euler","steady","joukowski"])
@@ -93,12 +124,24 @@ if __name__ == "__main__":
 
 	jobs_name = sys.argv[1]
 
+	if (jobs_name == "all" or "euler_supersonic_vortex_ar1" in jobs_name):
+		run_euler_supersonic_vortex(clp,1.0,False)
+	if (jobs_name == "all" or "euler_supersonic_vortex_ar2-5" in jobs_name):
+		run_euler_supersonic_vortex(clp,2.5,False)
+	if (jobs_name == "all" or "euler_supersonic_vortex_ar5" in jobs_name):
+		run_euler_supersonic_vortex(clp,5.0,False)
+	if (jobs_name == "all" or "euler_supersonic_vortex_ar20" in jobs_name):
+		run_euler_supersonic_vortex(clp,20.0,False)
+	if (jobs_name == "all" or "euler_supersonic_vortex_non_conforming_ar20" in jobs_name):
+		run_euler_supersonic_vortex(clp,20.0,True)
+
 	if (jobs_name == "all" or "euler_joukowski_ar1" in jobs_name):
 		run_euler_joukowski(clp,1)
 	if (jobs_name == "all" or "euler_joukowski_ar2" in jobs_name):
 		run_euler_joukowski(clp,2)
 	if (jobs_name == "all" or "euler_joukowski_ar4" in jobs_name):
 		run_euler_joukowski(clp,4)
+
 	if (jobs_name == "all" or "navier_stokes_taylor_couette_ar1" in jobs_name):
 		run_navier_stokes_taylor_couette(clp,1)
 	if (jobs_name == "all" or "navier_stokes_taylor_couette_ar8" in jobs_name):

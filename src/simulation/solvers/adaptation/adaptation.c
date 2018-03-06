@@ -764,7 +764,7 @@ static bool volume_contains_xyz_ve
 
 	const ptrdiff_t n_ve = vol->xyz_ve->extents[0];
 	for (int i = 0; i < n_ve; ++i) {
-		if (norm_diff_d(DIM,xyz_ve_data,get_row_const_Multiarray_d(i,vol->xyz_ve),"Inf") < EPS)
+		if (norm_diff_d(DIM,xyz_ve_data,get_row_const_Multiarray_d(i,vol->xyz_ve),"Inf") < NODETOL_MESH)
 			contains_v = true;
 	}
 	if (requires_transpose)

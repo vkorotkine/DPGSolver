@@ -101,13 +101,12 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
 
 	gmsh_setnumbers += " -setnumber geom_ar "
-	found = 0
-	for i in range(1,8+1):
-		geom_spec = "geom_ar_"+str(i)
-		if (mesh_name.find("/"+geom_spec+"/") != -1):
-			gmsh_setnumbers += get_gmsh_number(geom_spec,input_dir,0)
-			found = 1
-	if (not found):
+	geom_spec_ar = re.findall(r"geom_ar_\d+(?:\-\d*)",mesh_name)
+	if (len(geom_spec_ar) >= 1):
+		assert (len(geom_spec_ar) == 1),"More than one occurence of \"geom_ar_\\d+\" found."
+		geom_ar = (geom_spec_ar[0].replace("geom_ar_","")).replace("-",".")
+		gmsh_setnumbers += geom_ar
+	else:
 		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
 
 	gmsh_setnumbers += " -setnumber geom_conformal "

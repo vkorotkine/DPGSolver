@@ -51,7 +51,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DISPLAY_CONV 1 ///< Flag for whether the convergence orders should be displayed for these tests.
 
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
-#define ORDER_VIS_CONV_P      2
+#define ORDER_VIS_CONV_P      3
 #define ORDER_VIS_CONV_ML_MAX 3
 ///\}
 
@@ -377,6 +377,7 @@ static struct Conv_Order_Data* constructor_Conv_Order_Data
 	struct Multiarray_d* l2_err      = constructor_zero_Multiarray_d('C',3,extents);     // moved
 	struct Multiarray_d* conv_orders = constructor_zero_Multiarray_d('C',3,extents);     // moved
 
+	bool read_var_names = true;
 	for (int p = p_range[0]; p <= p_range[1]; ++p) {
 	for (int ml = ml_range[0]; ml <= ml_range[1]; ++ml) {
 		const char*const input_name_curr = set_file_name_curr(ADAPT_0,p,ml,true,input_name);
@@ -391,7 +392,8 @@ static struct Conv_Order_Data* constructor_Conv_Order_Data
 		int data_i[n_err];
 		read_skip_i_1(line,1,data_i,n_err);
 
-		if (p == p_range[0] && ml == ml_range[0]) {
+		if (read_var_names) {
+			read_var_names = false;
 			skip_lines(p_file,1);
 			fgets_checked(line,sizeof(line),p_file);
 			read_skip_c_2(line,1,var_names,n_err);

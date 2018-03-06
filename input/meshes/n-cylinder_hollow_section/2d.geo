@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_domain = BLENDED; mesh_level = 0; mesh_type = MIXED; pde_name = EULER; pde_spec = STEADY_SUPERSONIC_VORTEX;
+//mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = EULER; pde_spec = STEADY_SUPERSONIC_VORTEX; geom_ar = 5;
 
 // Geometry Specification
 If (pde_spec == STEADY_SUPERSONIC_VORTEX)
@@ -43,10 +43,28 @@ Else
 	Error("Unsupported mesh_domain: %d",mesh_domain); Exit;
 EndIf
 
+aspect_ratio = geom_ar;
 
-// Include something for aspect ratio: 1.0, 2.5, 5.0, 20.0
-Transfinite Line {1003:1006}      = 2^(mesh_level)+1 Using Progression 1;
-Transfinite Line {1001,1002,1007} = 2^(mesh_level)+1 Using Progression 1;
+Printf("aspect_ratio ~= %g.",aspect_ratio);
+If (aspect_ratio == 1.0)
+	Transfinite Line {1003:1004}      = 5*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1005:1006}      = 5*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1001,1002,1007} = 2*2^(mesh_level)+1  Using Progression 1;
+ElseIf (aspect_ratio == 2.5)
+	Transfinite Line {1003:1004}      = 1*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1005:1006}      = 1*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1001,1002,1007} = 1*2^(mesh_level)+1  Using Progression 1;
+ElseIf (aspect_ratio == 5.0)
+	Transfinite Line {1003:1004}      = 2*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1005:1006}      = 2*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1001,1002,1007} = 5*2^(mesh_level)+1  Using Progression 1;
+ElseIf (aspect_ratio == 20.0)
+	Transfinite Line {1003:1004}      = 1*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1005:1006}      = 1*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1001,1002,1007} = 10*2^(mesh_level)+1 Using Progression 1;
+Else
+    Error("Unsupported aspect_ratio: %d",aspect_ratio); Exit;
+EndIf
 
 
 Line Loop (4001) = {1007,1005,-1002,-1003};

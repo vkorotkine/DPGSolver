@@ -2,7 +2,7 @@ pde_name  euler
 pde_spec  steady/supersonic_vortex
 
 geom_name n-cylinder_hollow_section
-geom_spec NONE
+geom_spec geom_ar_2-5
 
 dimension 2
 

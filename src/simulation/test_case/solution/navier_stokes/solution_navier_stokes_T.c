@@ -245,8 +245,8 @@ Type compute_mu_constant_T (const Type rho, const Type*const rhouvw, const Type 
 Type compute_mu_sutherland_T (const Type rho, const Type*const rhouvw, const Type E)
 {
 	Real r_s = get_r_s();
-	static const Real c2 = C2_SUTHERLAND;
-	const Real        c1 = C1_SUTHERLAND*compute_mu_constant_T(rho,rhouvw,E);
+	static const Type c2 = C2_SUTHERLAND;
+	const Type        c1 = C1_SUTHERLAND*compute_mu_constant_T(rho,rhouvw,E);
 
 	const Type V2 = compute_V2_from_rhouvw_T(rho,rhouvw),
 	           p = GM1*(E-0.5*rho*V2),

@@ -51,15 +51,6 @@ EXTENSION_ENABLED  = 1;
 
 GEOM_NONE = 0; // Dummy value
 
-GEOM_AR_1 = 1;
-GEOM_AR_2 = 2;
-GEOM_AR_3 = 3;
-GEOM_AR_4 = 4;
-GEOM_AR_5 = 5;
-GEOM_AR_6 = 6;
-GEOM_AR_7 = 7;
-GEOM_AR_8 = 8;
-
 GEOM_ADV_YL   = 1; // (ADV)ection (Y)-coord (L)eft
 GEOM_ADV_XL   = 2; // (ADV)ection (X)-coord (L)eft
 GEOM_ADV_XYL  = 3; // (ADV)ection (X)(Y)-coords (L)eft

@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_domain = PARAMETRIC; mesh_type = TRI; pde_name = NAVIER_STOKES; mesh_level = 0; geom_bc = GEOM_BC_DIABATIC_O; pde_spec = STEADY_TAYLOR_COUETTE; geom_ar = GEOM_AR_1;
+//mesh_domain = PARAMETRIC; mesh_type = TRI; pde_name = NAVIER_STOKES; mesh_level = 0; geom_bc = GEOM_BC_DIABATIC_O; pde_spec = STEADY_TAYLOR_COUETTE; geom_ar = 1;
 
 
 // Geometry Specification
