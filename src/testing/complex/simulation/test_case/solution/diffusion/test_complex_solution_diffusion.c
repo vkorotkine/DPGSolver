@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_error_diffusion.h"
 #include "const_cast.h"
 #include "file_processing.h"
+#include "geometry.h"
 #include "simulation.h"
 #include "solution.h"
 

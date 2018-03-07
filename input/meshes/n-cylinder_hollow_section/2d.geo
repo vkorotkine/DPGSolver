@@ -1,12 +1,15 @@
 Include "../parameters.geo";
-//mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = EULER; pde_spec = STEADY_SUPERSONIC_VORTEX; geom_ar = 5;
+//mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = DIFFUSION; pde_spec = STEADY_DEFAULT; geom_ar = 5;
 
 // Geometry Specification
 If (pde_spec == STEADY_SUPERSONIC_VORTEX)
 	Include "../../input_files/euler/steady/supersonic_vortex/geometry_parameters.geo";
+ElseIf (pde_spec == STEADY_DEFAULT)
+	Include "../../input_files/diffusion/steady/default/geometry_parameters.geo";
 Else
 	Error("Unsupported pde_spec: %d",pde_spec); Exit;
 EndIf
+Printf("r_i, r_o: %g %g",r_i,r_o);
 
 If (mesh_domain == PARAMETRIC)
 	Point(1) = {r_i,0,0,lc};
@@ -88,10 +91,16 @@ EndIf
 BC_Straight =   BC_STEP_SC;
 BC_Curved   = 2*BC_STEP_SC;
 
-If (pde_name == EULER)
+If (pde_name == DIFFUSION)
+	Physical Line (1*BC_STEP_SC+BC_DIRICHLET)    = {1001,1002};
+	Physical Line (2*BC_STEP_SC+BC_NEUMANN)      = {1003:1004};
+	Physical Line (3*BC_STEP_SC+BC_NEUMANN_ALT1) = {1005:1006};
+ElseIf (pde_name == EULER)
 	Physical Line (1*BC_STEP_SC+BC_RIEMANN)  = {1001,1002};
 	Physical Line (2*BC_STEP_SC+BC_SLIPWALL) = {1003:1004};
 	Physical Line (3*BC_STEP_SC+BC_SLIPWALL) = {1005:1006};
+Else
+	Error("Unsupported pde_name: %d",pde_name); Exit;
 EndIf
 
 Physical Surface(9401) = {4001};

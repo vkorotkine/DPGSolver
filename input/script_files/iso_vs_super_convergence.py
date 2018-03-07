@@ -33,6 +33,16 @@ def execute_commands (cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_s
 
 			subprocess.call(shlex.split(cmd),cwd=str(os.getcwd()))
 
+def run_diffusion_default (cmd_line_params):
+	""" Run the Diffusion default cases. """
+	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"diffusion","steady","default"])
+	test_case  = "diffusion_steady_default_dg_2d"
+	petsc_opts = "petsc_options_gmres_tol_1e-15"
+
+	ctrl_matrix = ["p1-3",]
+
+	for ctrl_spec in [["ar1_iso", ], ["ar20_iso", ], ["ar20_non_conforming_iso", ], ]:
+		execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
 
 def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming):
 	""" Run the Euler Supersonic Vortex cases. """
@@ -40,7 +50,6 @@ def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming):
 	test_case  = "euler_supersonic_vortex_dg_2d"
 	petsc_opts = "petsc_options_gmres_tol_1e-2"
 
-	print(ar_val)
 	if (ar_val == 1.0):
 		assert (non_conforming == False),"Add support."
 		ctrl_spec   = ["ar1_iso", "ar1_super", ]
@@ -123,6 +132,9 @@ if __name__ == "__main__":
 	clp.set_exec_cmd(1)
 
 	jobs_name = sys.argv[1]
+
+	if (jobs_name == "all" or "diffusion_default" in jobs_name):
+		run_diffusion_default(clp)
 
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar1" in jobs_name):
 		run_euler_supersonic_vortex(clp,1.0,False)

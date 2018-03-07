@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_boundary.h"
 #include "def_templates_flux.h"
+#include "def_templates_geometry.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_solution.h"
 #include "def_templates_test_case.h"
@@ -48,6 +49,7 @@ void set_function_pointers_solution_advection_T (struct Test_Case_T* test_case, 
 {
 	test_case->set_grad = set_sg_do_nothing_T;
 	if (strstr(sim->pde_spec,"peterson")) {
+		test_case->constructor_xyz              = NULL;
 		test_case->constructor_sol              = constructor_const_sol_peterson_T;
 		test_case->set_sol                      = set_sol_peterson_T;
 		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
@@ -55,6 +57,7 @@ void set_function_pointers_solution_advection_T (struct Test_Case_T* test_case, 
 		test_case->constructor_Error_CE         = constructor_Error_CE_advection_all;
 	} else if ((strcmp(sim->pde_spec,"demkowicz_dpg_ii") == 0) ||
 	           (strcmp(sim->pde_spec,"steady/default") == 0)) {
+		test_case->constructor_xyz              = NULL;
 		test_case->constructor_sol              = constructor_const_sol_advection_default_T;
 		test_case->set_sol                      = set_sol_advection_default_T;
 		test_case->compute_source_rhs           = compute_source_rhs_advection_default_T;

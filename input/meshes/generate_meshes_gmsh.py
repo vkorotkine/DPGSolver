@@ -75,6 +75,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	             "periodic/periodic_vortex",
 	             "steady/taylor_couette",
 	             "steady/joukowski",
+	             "steady/default",
 	            ]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
@@ -101,7 +102,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
 
 	gmsh_setnumbers += " -setnumber geom_ar "
-	geom_spec_ar = re.findall(r"geom_ar_\d+(?:\-\d*)",mesh_name)
+	geom_spec_ar = re.findall("geom_ar_\d+\-*\d*",mesh_name)
 	if (len(geom_spec_ar) >= 1):
 		assert (len(geom_spec_ar) == 1),"More than one occurence of \"geom_ar_\\d+\" found."
 		geom_ar = (geom_spec_ar[0].replace("geom_ar_","")).replace("-",".")

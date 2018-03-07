@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_boundary.h"
 #include "def_templates_flux.h"
+#include "def_templates_geometry.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_solution.h"
 #include "def_templates_test_case.h"
@@ -46,7 +47,9 @@ static void set_function_pointers_num_flux
 
 void set_function_pointers_solution_diffusion_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
-	if (strstr(sim->pde_spec,"default_steady")) {
+	if (strstr(sim->pde_spec,"default_steady") ||
+	    strstr(sim->pde_spec,"steady/default")) {
+		test_case->constructor_xyz              = constructor_xyz_cylinder_parametric_T;
 		test_case->constructor_sol              = constructor_const_sol_diffusion_default_steady_T;
 		test_case->constructor_grad             = constructor_const_grad_diffusion_default_steady_T;
 		test_case->set_sol                      = set_sol_diffusion_default_steady_T;

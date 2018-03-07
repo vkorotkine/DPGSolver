@@ -1,0 +1,36 @@
+pde_name  diffusion
+pde_spec  steady/default
+
+geom_name n-cylinder_hollow_section
+geom_spec geom_ar_20-0
+
+dimension 2
+
+mesh_generator   n-cylinder_hollow_section/2d.geo
+mesh_format      gmsh
+mesh_domain      parametric
+mesh_type        mixed
+mesh_level       0 4
+mesh_path        ../meshes/
+
+
+# Simulation variables
+
+interp_tp  GL
+interp_si  WSH
+interp_pyr GLL
+
+basis_geom  lagrange
+basis_sol   lagrange
+
+geom_representation isoparametric
+
+p_ref    1 3
+
+fe_method 1
+
+
+# Testing variables
+
+ml_range_test 0 4
+p_range_test  1 3
