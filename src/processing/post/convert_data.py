@@ -309,8 +309,8 @@ def convert_data(output,file_name_no_ext):
 if __name__ == '__main__':
 	"""
 	Command line arguments:
-	1. Path to the directory containing error data files.
-	2. Name of the error data file without the file extension.
+	1. Name of the error data file without the file extension.
+	2. Path to the directory containing error data files.
 	"""
 
 	if (len(sys.argv) != 3):
@@ -320,8 +320,8 @@ if __name__ == '__main__':
 		print("\n\n")
 		EXIT
 
-	output_dir     = sys.argv[1]
-	file_name_part = sys.argv[2]
+	output_dir     = sys.argv[2]
+	file_name_part = sys.argv[1]
 	file_name = output_dir+'/'+file_name_part
 
 	output = output_class()

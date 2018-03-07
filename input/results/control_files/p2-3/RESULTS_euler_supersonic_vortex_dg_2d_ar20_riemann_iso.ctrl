@@ -1,8 +1,8 @@
-pde_name  diffusion
-pde_spec  steady/default
+pde_name  euler
+pde_spec  steady/supersonic_vortex
 
 geom_name n-cylinder_hollow_section
-geom_spec geom_ar_20-0
+geom_spec geom_ar_20-0/bc_exact
 
 dimension 2
 
@@ -16,23 +16,25 @@ mesh_path        ../meshes/
 
 # Simulation variables
 
-test_case_extension non_conforming
 
-interp_tp  GL
+
+interp_tp  GLL
 interp_si  WSH
 interp_pyr GLL
 
 basis_geom  lagrange
 basis_sol   lagrange
 
-geom_representation isoparametric
+geom_representation  isoparametric
+geom_blending_tp     gordon_hall
+geom_blending_si     szabo_babuska_gen
 
-p_ref    3 3
+p_ref    2 3
 
 fe_method 1
 
 
 # Testing variables
 
-ml_range_test 0 0
-p_range_test  3 3
+ml_range_test 0 3
+p_range_test  2 3

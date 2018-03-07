@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = DIFFUSION; pde_spec = STEADY_DEFAULT; geom_ar = 5;
+//mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = DIFFUSION; pde_spec = STEADY_DEFAULT; geom_ar = 20; geom_unaligned = 1; bc_exact = 1;
 
 // Geometry Specification
 If (pde_spec == STEADY_SUPERSONIC_VORTEX)
@@ -10,6 +10,13 @@ Else
 	Error("Unsupported pde_spec: %d",pde_spec); Exit;
 EndIf
 Printf("r_i, r_o: %g %g",r_i,r_o);
+
+prog_radial = 1.0;
+If (!geom_unaligned)
+	prog_center = prog_radial;
+Else
+	prog_center = 0.9*prog_radial;
+EndIf
 
 If (mesh_domain == PARAMETRIC)
 	Point(1) = {r_i,0,0,lc};
@@ -50,21 +57,25 @@ aspect_ratio = geom_ar;
 
 Printf("aspect_ratio ~= %g.",aspect_ratio);
 If (aspect_ratio == 1.0)
-	Transfinite Line {1003:1004}      = 5*2^(mesh_level)+1  Using Progression 1;
-	Transfinite Line {1005:1006}      = 5*2^(mesh_level)+1  Using Progression 1;
-	Transfinite Line {1001,1002,1007} = 2*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1003:1004} = 5*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1005:1006} = 5*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1001,1002} = 2*2^(mesh_level)+1  Using Progression prog_radial;
+	Transfinite Line {1007}      = 2*2^(mesh_level)+1  Using Progression prog_center;
 ElseIf (aspect_ratio == 2.5)
-	Transfinite Line {1003:1004}      = 1*2^(mesh_level)+1  Using Progression 1;
-	Transfinite Line {1005:1006}      = 1*2^(mesh_level)+1  Using Progression 1;
-	Transfinite Line {1001,1002,1007} = 1*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1003:1004} = 1*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1005:1006} = 1*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1001,1002} = 1*2^(mesh_level)+1  Using Progression prog_radial;
+	Transfinite Line {1007}      = 1*2^(mesh_level)+1  Using Progression prog_center;
 ElseIf (aspect_ratio == 5.0)
-	Transfinite Line {1003:1004}      = 2*2^(mesh_level)+1  Using Progression 1;
-	Transfinite Line {1005:1006}      = 2*2^(mesh_level)+1  Using Progression 1;
-	Transfinite Line {1001,1002,1007} = 5*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1003:1004} = 2*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1005:1006} = 2*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1001,1002} = 5*2^(mesh_level)+1  Using Progression prog_radial;
+	Transfinite Line {1007}      = 5*2^(mesh_level)+1  Using Progression prog_center;
 ElseIf (aspect_ratio == 20.0)
-	Transfinite Line {1003:1004}      = 1*2^(mesh_level)+1  Using Progression 1;
-	Transfinite Line {1005:1006}      = 1*2^(mesh_level)+1  Using Progression 1;
-	Transfinite Line {1001,1002,1007} = 10*2^(mesh_level)+1 Using Progression 1;
+	Transfinite Line {1003:1004} = 1*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1005:1006} = 1*2^(mesh_level)+1  Using Progression 1;
+	Transfinite Line {1001,1002} = 10*2^(mesh_level)+1 Using Progression prog_radial;
+	Transfinite Line {1007}      = 10*2^(mesh_level)+1 Using Progression prog_center;
 Else
     Error("Unsupported aspect_ratio: %d",aspect_ratio); Exit;
 EndIf
@@ -97,8 +108,13 @@ If (pde_name == DIFFUSION)
 	Physical Line (3*BC_STEP_SC+BC_NEUMANN_ALT1) = {1005:1006};
 ElseIf (pde_name == EULER)
 	Physical Line (1*BC_STEP_SC+BC_RIEMANN)  = {1001,1002};
-	Physical Line (2*BC_STEP_SC+BC_SLIPWALL) = {1003:1004};
-	Physical Line (3*BC_STEP_SC+BC_SLIPWALL) = {1005:1006};
+	If (!bc_exact)
+		Physical Line (2*BC_STEP_SC+BC_SLIPWALL) = {1003:1004};
+		Physical Line (3*BC_STEP_SC+BC_SLIPWALL) = {1005:1006};
+	Else
+		Physical Line (2*BC_STEP_SC+BC_RIEMANN) = {1003:1004};
+		Physical Line (3*BC_STEP_SC+BC_RIEMANN) = {1005:1006};
+	EndIf
 Else
 	Error("Unsupported pde_name: %d",pde_name); Exit;
 EndIf

@@ -571,8 +571,11 @@ static void display_progress (const struct Test_Case* test_case, const int i_ste
 	PetscReal emax = 0.0, emin = 0.0;
 	KSPComputeExtremeSingularValues(ksp,&emax,&emin);
 
-	if (reason < 0)
-		EXIT_ERROR("Petsc solver diverged with KSPConvergedReason: %d.\n",reason);
+	if (reason < 0) {
+		printf("Warning: Petsc solver diverged with KSPConvergedReason: %d.\n",reason);
+		if (reason != KSP_DIVERGED_ITS)
+			EXIT_ERROR("Diverged for reason other than maximum iterations.\n");
+	}
 
 	printf("iteration: %5d, KSP iterations (cond, reason): %5d (% .3e, %d), max rhs (initial): % .3e (% .3e)\n",
 	       i_step,iteration_ksp,emax/emin,reason,max_rhs,max_rhs0);

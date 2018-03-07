@@ -11,7 +11,8 @@
 # Executable and command line arguments
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
 ARGV="RESULTS_navier_stokes_joukowski_full_dg_2D petsc_options_gmres_tol_1e-2"
-ARGV="RESULTS_euler_supersonic_vortex_dg_2d petsc_options_gmres_tol_1e-2"
+ARGV="RESULTS_euler_joukowski_full_dg_2d petsc_options_gmres_tol_1e-2"
+ARGV="RESULTS_euler_joukowski_full_dg_2d petsc_options_gmres_vienna_cl"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

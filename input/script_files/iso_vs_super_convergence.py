@@ -44,30 +44,34 @@ def run_diffusion_default (cmd_line_params):
 	for ctrl_spec in [["ar1_iso", ], ["ar20_iso", ], ["ar20_non_conforming_iso", ], ]:
 		execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
 
-def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming):
+def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming,bc_riemann):
 	""" Run the Euler Supersonic Vortex cases. """
 	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"euler","steady","supersonic_vortex"])
 	test_case  = "euler_supersonic_vortex_dg_2d"
 	petsc_opts = "petsc_options_gmres_tol_1e-2"
 
-	if (ar_val == 1.0):
+	if (ar_val != 20.0):
 		assert (non_conforming == False),"Add support."
+		assert (bc_riemann == False),"Add support."
+
+	if (ar_val == 1.0):
 		ctrl_spec   = ["ar1_iso", "ar1_super", ]
 		ctrl_matrix = ["p1-1", "p2-3", ]
 	elif (ar_val == 2.5):
-		assert (non_conforming == False),"Add support."
 		ctrl_spec   = ["ar2-5_iso", "ar2-5_super", ]
 		ctrl_matrix = ["p2-3", ]
 	elif (ar_val == 5.0):
-		assert (non_conforming == False),"Add support."
 		ctrl_spec   = ["ar5_iso", "ar5_super", ]
 		ctrl_matrix = ["p2-3", ]
 	elif (ar_val == 20.0):
-		if (non_conforming != True):
-			ctrl_spec   = ["ar20_iso", "ar20_super", ]
-		else:
-			ctrl_spec   = ["ar20_non_conforming_iso", "ar20_non_conforming_super", ]
 		ctrl_matrix = ["p2-3", ]
+		if (bc_riemann == False):
+			if (non_conforming != True):
+				ctrl_spec   = ["ar20_iso", "ar20_super", ]
+			else:
+				ctrl_spec   = ["ar20_non_conforming_iso", "ar20_non_conforming_super", ]
+		else:
+			ctrl_spec   = ["ar20_riemann_iso", "ar20_riemann_non_conforming_iso", "ar20_riemann_non_conforming_super", ]
 	else:
 		sys.exit("Unsupported ar_val: \""+str(ar_val)+"\".")
 
@@ -77,18 +81,16 @@ def run_euler_joukowski (cmd_line_params,ar_val):
 	""" Run the Euler Joukowski cases. """
 	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"euler","steady","joukowski"])
 	test_case  = "euler_joukowski_full_dg_2D"
+	petsc_opts = "petsc_options_gmres_tol_1e-2"
 
 	if (ar_val == 1):
 		ctrl_spec   = ["ar1_iso", "ar1_super", ]
-		petsc_opts = "petsc_options_gmres_tol_1e-2"
 		ctrl_matrix = ["p0-0", "p1-1", "p2-3", ]
 	elif (ar_val == 2):
 		ctrl_spec   = ["ar2_super_p_le_1", "ar2_super", ]
-		petsc_opts = "petsc_options_gmres_tol_1e-2"
 		ctrl_matrix = ["p0-0", "p1-1", "p2-3", ]
 	elif (ar_val == 4):
 		ctrl_spec   = ["ar4_super_p_le_1", "ar4_super", ]
-		petsc_opts = "petsc_options_gmres_tol_1e-2"
 		ctrl_matrix = ["p2-3", ]
 	else:
 		sys.exit("Unsupported ar_val: \""+str(ar_val)+"\".")
@@ -137,15 +139,17 @@ if __name__ == "__main__":
 		run_diffusion_default(clp)
 
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar1" in jobs_name):
-		run_euler_supersonic_vortex(clp,1.0,False)
+		run_euler_supersonic_vortex(clp,1.0,False,False)
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar2-5" in jobs_name):
-		run_euler_supersonic_vortex(clp,2.5,False)
+		run_euler_supersonic_vortex(clp,2.5,False,False)
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar5" in jobs_name):
-		run_euler_supersonic_vortex(clp,5.0,False)
+		run_euler_supersonic_vortex(clp,5.0,False,False)
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar20" in jobs_name):
-		run_euler_supersonic_vortex(clp,20.0,False)
+		run_euler_supersonic_vortex(clp,20.0,False,False)
 	if (jobs_name == "all" or "euler_supersonic_vortex_non_conforming_ar20" in jobs_name):
-		run_euler_supersonic_vortex(clp,20.0,True)
+		run_euler_supersonic_vortex(clp,20.0,True,False)
+	if (jobs_name == "all" or "euler_supersonic_vortex_riemann" in jobs_name):
+		run_euler_supersonic_vortex(clp,20.0,True,True)
 
 	if (jobs_name == "all" or "euler_joukowski_ar1" in jobs_name):
 		run_euler_joukowski(clp,1)

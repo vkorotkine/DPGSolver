@@ -1,14 +1,16 @@
 -ksp_type gmres
--ksp_rtol 1.e-2
--ksp_max_it 100
+-ksp_rtol 1.e-4
 -ksp_initial_guess_nonzero
 -ksp_gmres_modifiedgramschmidt
--ksp_gmres_restart 30
+-ksp_gmres_restart 60
 -pc_type ilu
 -pc_factor_levels 1
 -pc_factor_mat_ordering_type rcm
 -pc_factor_shift_type NONZERO
 
 
+-vec_type viennacl
+-mat_type aijviennacl
+
 #-options_left
-#-ksp_error_if_not_converged
+-ksp_error_if_not_converged
