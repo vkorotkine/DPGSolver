@@ -81,9 +81,7 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const str
 
 	struct Solver_Storage_Implicit* ssi = calloc(1,sizeof *ssi); // free
 
-//	MatCreateSeqAIJ(MPI_COMM_WORLD,(PetscInt)dof,(PetscInt)dof,0,nnz->data,&ssi->A); // destructed
-	MatCreateSeqAIJViennaCL(MPI_COMM_WORLD,(PetscInt)dof,(PetscInt)dof,0,nnz->data,&ssi->A); // destructed
-EXIT_UNSUPPORTED; // Re-enable default after working.
+	MatCreateSeqAIJ(MPI_COMM_WORLD,(PetscInt)dof,(PetscInt)dof,0,nnz->data,&ssi->A); // destructed
 	MatSetFromOptions(ssi->A);
 	MatSetUp(ssi->A);
 

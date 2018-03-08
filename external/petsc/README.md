@@ -4,8 +4,9 @@
 
 The following packages must have previously been installed:
 - [MPICH](https://www.mpich.org/);
-- [Intel MKL](https://software.intel.com/en-us/mkl).
-- Optionally: [ViennaCL](http://viennacl.sourceforge.net)
+- [Intel MKL](https://software.intel.com/en-us/mkl);
+- Optionally: [ViennaCL](http://viennacl.sourceforge.net). For OpenCL installation, follow
+  [these](https://askubuntu.com/a/850594) instructions on ubuntu; installed by default on MacOS.
 
 ## Installation Instructions
 
