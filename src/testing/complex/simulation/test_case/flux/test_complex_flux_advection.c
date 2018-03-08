@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_test_case.h"
 #include "complex_multiarray.h"
 
+#include "multiarray.h"
+
 #include "solution_advection.h"
 
 // Static function declarations ************************************************************************************* //

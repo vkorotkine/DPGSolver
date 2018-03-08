@@ -43,6 +43,7 @@ STEADY_SUBSONIC_GAUSSIAN_BUMP = 4;
 STEADY_PLANE_COUETTE          = 5;
 STEADY_TAYLOR_COUETTE         = 6;
 STEADY_JOUKOWSKI              = 7;
+STEADY_VORTEX                 = 8;
 
 
 // GeomSpecifiers

@@ -33,6 +33,19 @@ def execute_commands (cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_s
 
 			subprocess.call(shlex.split(cmd),cwd=str(os.getcwd()))
 
+def run_advection_vortex (cmd_line_params):
+	""" Run the Advection vortex cases. """
+	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"advection","steady","vortex"])
+	test_case  = "advection_steady_vortex_dg_2d"
+	petsc_opts = "petsc_options_gmres_tol_1e-15"
+
+#	ctrl_matrix = ["p0-0","p1-1","p2-3",]
+	ctrl_matrix = ["p0-0", "p1-1", "p2-3",]
+	ctrl_specs  = [["ar20_iso"], ["ar20_super"], ["ar1_iso"],]
+
+	for ctrl_spec in ctrl_specs:
+		execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
+
 def run_diffusion_default (cmd_line_params):
 	""" Run the Diffusion default cases. """
 	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"diffusion","steady","default"])
@@ -134,6 +147,9 @@ if __name__ == "__main__":
 	clp.set_exec_cmd(1)
 
 	jobs_name = sys.argv[1]
+
+	if (jobs_name == "all" or "advection_vortex" in jobs_name):
+		run_advection_vortex(clp)
 
 	if (jobs_name == "all" or "diffusion_default" in jobs_name):
 		run_diffusion_default(clp)

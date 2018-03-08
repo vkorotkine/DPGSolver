@@ -31,9 +31,34 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 struct Simulation;
 
+/** \brief Function pointer to linear Advection velocity vector computing functions.
+ *  \return An array holding the values of the vector at the given input nodes.
+ *
+ *  \param xyz The xyz coordinates.
+ */
+typedef const double* (*compute_b_adv_fptr)
+	(const double*const xyz
+	);
+
+/** \brief Version of \ref compute_b_adv_fptr for constant advection velocity throughout the domain.
+ *  \return See brief. */
+const double* compute_b_adv_constant
+	(const double*const xyz ///< See brief.
+	);
+
+/** \brief Version of \ref compute_b_adv_fptr for constant magnitude advection velocity with angle varying over a
+ *         cylinder.
+ *  \return See brief. */
+const double* compute_b_adv_vortex
+	(const double*const xyz ///< See brief.
+	);
+
 /// \brief Container for solution data relating to linear advection solutions.
 struct Sol_Data__Advection {
-	double b_adv[DMAX]; ///< The constant advection velocity vector.
+	compute_b_adv_fptr compute_b_adv; ///< \ref compute_b_adv_fptr.
+
+//	double b_adv[DMAX]; ///< The constant advection velocity vector.
+//	double b_mag;       ///< Magnitude of the advection velocity vector.
 };
 
 /** \brief Return the statically allocated \ref Sol_Data__Advection container.

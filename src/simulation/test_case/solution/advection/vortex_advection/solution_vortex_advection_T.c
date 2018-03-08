@@ -34,58 +34,56 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /** \brief Return a \ref Multiarray_T\* container holding the solution values at the input coordinates.
  *  \return See brief. */
-static struct Multiarray_T* constructor_sol_peterson
-	(const struct Simulation* sim,        ///< Defined for \ref set_sol_peterson_T.
+static struct Multiarray_T* constructor_sol_vortex_advection
+	(const struct Simulation* sim,        ///< Defined for \ref set_sol_vortex_advection_T.
 	 const struct const_Multiarray_R* xyz ///< xyz coordinates at which to evaluate the solution.
 	);
 
 // Interface functions ********************************************************************************************** //
 
-void set_sol_peterson_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
+void set_sol_vortex_advection_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
 	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
-	struct Multiarray_T* sol = constructor_sol_peterson(sim,xyz); // destructed
+	struct Multiarray_T* sol = constructor_sol_vortex_advection(sim,xyz); // destructed
 	destructor_const_Multiarray_R(xyz);
 
 	update_Solution_Container_sol_T(&sol_cont,sol,sim);
 	destructor_Multiarray_T(sol);
 }
 
-const struct const_Multiarray_T* constructor_const_sol_peterson_T
+const struct const_Multiarray_T* constructor_const_sol_vortex_advection_T
 	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
 {
-	struct Multiarray_T* sol = constructor_sol_peterson(sim,xyz); // returned
+	struct Multiarray_T* sol = constructor_sol_vortex_advection(sim,xyz); // returned
 	return (const struct const_Multiarray_T*) sol;
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static struct Multiarray_T* constructor_sol_peterson
+static struct Multiarray_T* constructor_sol_vortex_advection
 	(const struct Simulation* sim, const struct const_Multiarray_R* xyz)
 {
 	assert(DIM == 2);
 
 	const struct Sol_Data__Advection sol_data = get_sol_data_advection();
+	assert(sol_data.compute_b_adv == compute_b_adv_vortex);
 
 	// Compute the solution
-	const ptrdiff_t n_vs = xyz->extents[0];
+	const ptrdiff_t n_n = xyz->extents[0];
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const int n_var = test_case->n_var;
 
-	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_vs,n_var}); // returned
+	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,n_var}); // returned
 
-	assert(sol_data.compute_b_adv == compute_b_adv_constant);
-
-	const Real*const b_adv = sol_data.compute_b_adv(NULL);
-	assert((b_adv[0] == 0.0) && (b_adv[1] == 1.0)); /* Can be made flexible in future but solution below must be
-	                                                 * modified. */
-
-	const Real* x = get_col_const_Multiarray_R(0,xyz);
+	const Real* x = get_col_const_Multiarray_R(0,xyz),
+	          * y = get_col_const_Multiarray_R(1,xyz);
 
 	Type* u = get_col_Multiarray_T(0,sol);
-	for (int i = 0; i < n_vs; ++i)
-		u[i] = sin(2.15*x[i]+0.23);
+	for (int i = 0; i < n_n; ++i) {
+		const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]);
+		u[i] = sin(2.15*r+0.23);
+	}
 
 	return sol;
 }

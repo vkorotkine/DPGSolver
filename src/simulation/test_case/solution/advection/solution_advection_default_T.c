@@ -242,8 +242,9 @@ static const struct const_Multiarray_T* constructor_source_advection_default_1d_
 	const Real* x = get_col_const_Multiarray_R(0,xyz);
 
 	Type* s = get_col_Multiarray_T(0,source);
-	const Real* b_adv = sol_data.b_adv;
 	for (int i = 0; i < n_vs; ++i) {
+		const Real xyz_n[DIM] = ARRAY_DIM(x[i],0,0);
+		const Real*const b_adv = sol_data.compute_b_adv(xyz_n);
 		s[i] = b_adv[0]*SOURCE_M*cos(SOURCE_M*x[i]+SOURCE_A);
 	}
 
@@ -273,8 +274,9 @@ static const struct const_Multiarray_T* constructor_source_advection_default_2d_
 	          * y = get_col_const_Multiarray_R(1,xyz);
 
 	Type* s = get_col_Multiarray_T(0,source);
-	const Real* b_adv = sol_data.b_adv;
 	for (int i = 0; i < n_vs; ++i) {
+		const Real xyz_n[DIM] = ARRAY_DIM(x[i],y[i],0);
+		const Real*const b_adv = sol_data.compute_b_adv(xyz_n);
 		s[i] = b_adv[0]*SOURCE_M*cos(SOURCE_M*x[i]+SOURCE_A)*sin(SOURCE_M*y[i]+SOURCE_A)
 		     + b_adv[1]*SOURCE_M*sin(SOURCE_M*x[i]+SOURCE_A)*cos(SOURCE_M*y[i]+SOURCE_A);
 	}

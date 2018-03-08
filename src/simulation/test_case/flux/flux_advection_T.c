@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 
 #include "macros.h"
+#include "definitions_core.h"
 
 #include "def_templates_multiarray.h"
 
@@ -99,11 +100,17 @@ void compute_Flux_T_advection (const struct Flux_Input_T* flux_i, struct mutable
 	assert(c_m[4] == false); // 1st order.
 	assert(c_m[5] == false); // 1st order.
 
+	assert(flux_i->xyz != NULL);
+	const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,flux_i->xyz),
+	                                       get_col_const_Multiarray_R(1,flux_i->xyz),
+	                                       get_col_const_Multiarray_R(2,flux_i->xyz) );
+
 	const ptrdiff_t n_n = s->extents[0];
 	for (ptrdiff_t n = 0; n < n_n; ++n) {
+		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
 		struct Flux_Data_Advection flux_data =
 			{ .u     = u_p[n],
-			  .b_adv = sol_data.b_adv,
+			  .b_adv = sol_data.compute_b_adv(xyz_n),
 			};
 		compute_flux_advection_n(&flux_data,f_ptr,dfds_ptr);
 	}

@@ -320,7 +320,7 @@ static void copy_error_files_for_conv_study
 	input_name_o_root[i] = 0;
 	sprintf(command,"%s %s%s","rm",input_name_o_root,"*");
 	if (system(command))
-		EXIT_ERROR("Problem with system call.");
+		; // Do nothing (The directory may not exist yet).
 
 	const int*const p_range  = get_conv_order_range(int_test_info,'p'),
 	         *const ml_range = get_conv_order_range(int_test_info,'m');
@@ -338,7 +338,7 @@ static void copy_error_files_for_conv_study
 
 		mkdir_p_given_file_name(input_name_curr_o);
 		sprintf(command,"%s %s%s %s%s","cp",input_name_curr_i,"_p.txt",input_name_curr_o,"_p.txt");
-		if (system(command));
+		if (system(command))
 			EXIT_ERROR("Problem with system call.");
 	}}
 }

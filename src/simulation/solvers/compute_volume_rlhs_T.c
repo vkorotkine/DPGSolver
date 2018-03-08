@@ -76,6 +76,13 @@ static const struct const_Multiarray_T* constructor_grad_vc_col
 	 const struct Simulation* sim         ///< See brief.
 	);
 
+/** \brief Constructor for the xyz coordinates evaluated at the 'v'olume 'c'ubature nodes.
+ *  \return See brief. */
+static const struct const_Multiarray_R* constructor_xyz_vc
+	(const struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
+	 const struct Simulation*const sim         ///< \ref Simulation.
+	);
+
 /// \brief Destructor for the return value of \ref constructor_NULL.
 static void destructor_NULL
 	(const struct const_Multiarray_T* sol_vc ///< To be destructed.
@@ -164,7 +171,7 @@ struct Flux_Ref_T* constructor_Flux_Ref_vol_T
 	// Compute the solution, gradients and xyz coordinates at the volume cubature nodes.
 	flux_i->s   = spvs->constructor_sol_vc(s_vol,sim);
 	flux_i->g   = spvs->constructor_grad_vc(s_vol,sim);
-	flux_i->xyz = NULL; /// \todo Add functions computing xyz.
+	flux_i->xyz = constructor_xyz_vc(s_vol,sim);
 //print_Multiarray_T(s_vol->sol_coef);
 //print_const_Multiarray_T(flux_i->s);
 //print_Multiarray_T(s_vol->grad_coef);
@@ -174,6 +181,7 @@ struct Flux_Ref_T* constructor_Flux_Ref_vol_T
 	struct Flux_T* flux = constructor_Flux_T(flux_i); // destructed
 	spvs->destructor_sol_vc(flux_i->s);
 	spvs->destructor_grad_vc(flux_i->g);
+	destructor_conditional_const_Multiarray_R(flux_i->xyz);
 //print_const_Multiarray_T(flux->f);
 //print_const_Multiarray_T(flux->df_ds);
 
@@ -324,6 +332,12 @@ static const struct const_Multiarray_T* constructor_flux_ref_T
 	 const struct const_Multiarray_T* f  ///< The physical flux data.
 	);
 
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vg_vc operator.
+ *  \return See brief. */
+static const struct Operator* get_operator__cv0_vg_vc_T
+	(const struct Solver_Volume_T* s_vol ///< The current volume.
+	);
+
 static const struct const_Multiarray_T* constructor_NULL
 	(const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
 {
@@ -370,6 +384,33 @@ static const struct const_Multiarray_T* constructor_grad_vc_col
 {
 	UNUSED(sim);
 	return (const struct const_Multiarray_T*) s_vol->grad_coef;
+}
+
+static const struct const_Multiarray_R* constructor_xyz_vc
+	(const struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
+{
+	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
+	switch (test_case->pde_index) {
+	case PDE_ADVECTION:
+		break; // Do nothing (continue below).
+	case PDE_DIFFUSION:
+	case PDE_EULER:
+	case PDE_NAVIER_STOKES:
+		return NULL;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
+		break;
+	}
+
+	const struct Operator*const cv0_vg_vc = get_operator__cv0_vg_vc_T(s_vol);
+
+	const struct const_Multiarray_R*const g_coef = s_vol->geom_coef;
+
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	UNUSED(sim);
+	const char op_format = 'd';
+	return constructor_mm_NN1_Operator_const_Multiarray_R(cv0_vg_vc,g_coef,'C',op_format,g_coef->order,NULL);
 }
 
 static void destructor_NULL (const struct const_Multiarray_T* sol_vc)
@@ -442,4 +483,15 @@ static const struct const_Multiarray_T* constructor_flux_ref_T
 	}
 
 	return (const struct const_Multiarray_T*) fr;
+}
+
+static const struct Operator* get_operator__cv0_vg_vc_T (const struct Solver_Volume_T* s_vol)
+{
+	const struct Volume* vol       = (struct Volume*) s_vol;
+	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
+
+	const int curved = vol->curved,
+	          p = s_vol->p_ref,
+	          p_i = ( curved ? p : 1 );
+	return get_Multiarray_Operator(e->cv0_vg_vc[curved],(ptrdiff_t[]){0,0,p,p_i});
 }

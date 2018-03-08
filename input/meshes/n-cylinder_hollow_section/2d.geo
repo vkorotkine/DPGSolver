@@ -1,9 +1,11 @@
 Include "../parameters.geo";
-//mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = DIFFUSION; pde_spec = STEADY_DEFAULT; geom_ar = 20; geom_unaligned = 1; bc_exact = 1;
+//mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = ADVECTION; pde_spec = STEADY_VORTEX; geom_ar = 20; geom_unaligned = 1; bc_exact = 1;
 
 // Geometry Specification
 If (pde_spec == STEADY_SUPERSONIC_VORTEX)
 	Include "../../input_files/euler/steady/supersonic_vortex/geometry_parameters.geo";
+ElseIf (pde_spec == STEADY_VORTEX)
+	Include "../../input_files/advection/steady/vortex/geometry_parameters.geo";
 ElseIf (pde_spec == STEADY_DEFAULT)
 	Include "../../input_files/diffusion/steady/default/geometry_parameters.geo";
 Else
@@ -102,7 +104,13 @@ EndIf
 BC_Straight =   BC_STEP_SC;
 BC_Curved   = 2*BC_STEP_SC;
 
-If (pde_name == DIFFUSION)
+If (pde_name == ADVECTION)
+	Physical Line (1*BC_STEP_SC+BC_OUTFLOW)      = {1001};
+	Physical Line (1*BC_STEP_SC+BC_INFLOW)       = {1002};
+	Physical Line (2*BC_STEP_SC+BC_OUTFLOW_ALT1) = {1003:1004};
+//	Physical Line (2*BC_STEP_SC+BC_INFLOW_ALT1) = {1003:1004};
+	Physical Line (3*BC_STEP_SC+BC_OUTFLOW_ALT1) = {1005:1006};
+ElseIf (pde_name == DIFFUSION)
 	Physical Line (1*BC_STEP_SC+BC_DIRICHLET)    = {1001,1002};
 	Physical Line (2*BC_STEP_SC+BC_NEUMANN)      = {1003:1004};
 	Physical Line (3*BC_STEP_SC+BC_NEUMANN_ALT1) = {1005:1006};
@@ -114,6 +122,7 @@ ElseIf (pde_name == EULER)
 	Else
 		Physical Line (2*BC_STEP_SC+BC_RIEMANN) = {1003:1004};
 		Physical Line (3*BC_STEP_SC+BC_RIEMANN) = {1005:1006};
+//		Physical Line (3*BC_STEP_SC+BC_SLIPWALL) = {1005:1006};
 	EndIf
 Else
 	Error("Unsupported pde_name: %d",pde_name); Exit;

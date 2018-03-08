@@ -291,6 +291,14 @@ void read_skip_const_d_1
 	 const int n_var         ///< Defined for \ref read_skip_d_1.
 	);
 
+/// \brief Read an `int` from the input line and increment the count if the search string is in the line.
+void read_skip_string_count_i
+	(const char*const str_search, ///< String to search for in the line.
+	 int*const count,             ///< Count to increment.
+	 char*const line_i,           ///< Line from which to read data.
+	 int*const var                ///< Variable in which to store the data.
+	);
+
 /// \brief Read a `double` from the input line and increment the count if the search string is in the line.
 void read_skip_string_count_d
 	(const char*const str_search, ///< String to search for in the line.

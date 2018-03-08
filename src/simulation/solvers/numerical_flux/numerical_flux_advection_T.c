@@ -22,6 +22,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 
 
+#include "def_templates_multiarray.h"
+
 #include "def_templates_numerical_flux.h"
 
 #include "def_templates_boundary.h"
@@ -49,8 +51,15 @@ void compute_Numerical_Flux_T_advection_upwind
 
 	Type       *const nFluxNum = num_flux->nnf->data;
 
-	const double* b_adv = sol_data.b_adv;
+	const struct const_Multiarray_d*const xyz_Ma = num_flux_i->bv_l.xyz;
+	const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,xyz_Ma),
+	                                       get_col_const_Multiarray_R(1,xyz_Ma),
+	                                       get_col_const_Multiarray_R(2,xyz_Ma) );
+
 	for (int n = 0; n < NnTotal; n++) {
+		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
+		const double*const b_adv = sol_data.compute_b_adv(xyz_n);
+
 		double b_dot_n = 0.0;
 		for (int dim = 0; dim < DIM; dim++)
 			b_dot_n += b_adv[dim]*nL[n*DIM+dim];
@@ -87,8 +96,15 @@ void compute_Numerical_Flux_T_advection_upwind_jacobian
 	assert(dnFluxNumdWL != NULL);
 	assert(dnFluxNumdWR != NULL);
 
-	const double* b_adv = sol_data.b_adv;
+	const struct const_Multiarray_d*const xyz_Ma = num_flux_i->bv_l.xyz;
+	const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,xyz_Ma),
+	                                       get_col_const_Multiarray_R(1,xyz_Ma),
+	                                       get_col_const_Multiarray_R(2,xyz_Ma) );
+
 	for (int n = 0; n < NnTotal; n++) {
+		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
+		const double*const b_adv = sol_data.compute_b_adv(xyz_n);
+
 		double b_dot_n = 0.0;
 		for (int dim = 0; dim < DIM; dim++)
 			b_dot_n += b_adv[dim]*nL[n*DIM+dim];

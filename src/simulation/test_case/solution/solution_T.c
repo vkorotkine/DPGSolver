@@ -516,8 +516,10 @@ static const struct const_Multiarray_T* constructor_nf
 	test_case->set_sol(sim,sol_cont);
 
 	flux_i->s = (struct const_Multiarray_T*)sol_fs;
+	flux_i->xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 
 	struct Flux_T* flux = constructor_Flux_T(flux_i);
+	destructor_const_Multiarray_R(flux_i->xyz);
 
 	const struct const_Multiarray_R* normals = NULL;
 	bool destruct_normals = false;

@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_geometry.h"
 #include "definitions_physics.h"
 #include "definitions_numerical_flux.h"
+#include "definitions_solution.h"
 #include "definitions_test_case.h"
 
 #include "const_cast.h"
@@ -131,6 +132,11 @@ static int get_define (const char*const def_str, const char*const def_type)
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else if (strcmp(def_type,"no_slip_all_type") == 0) {
 		if      (strcmp(def_str,"density_energy") == 0) def_i = NO_SLIP_ALL__RHO_E;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"advection_type") == 0) {
+		if      (strcmp(def_str,"constant") == 0) def_i = ADVECTION_TYPE_CONST;
+		else if (strcmp(def_str,"vortex")   == 0) def_i = ADVECTION_TYPE_VORTEX;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else {

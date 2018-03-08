@@ -403,6 +403,15 @@ void read_skip_const_d_1 (char*const line_i, const int n_skip, const double*cons
 	read_skip_d_1(line_i,n_skip,(double*)var,n_var);
 }
 
+void read_skip_string_count_i (const char*const str_search, int*const count, char*const line_i, int*const var)
+{
+	if (!first_string_matches(line_i,str_search))
+		return;
+
+	(*count)++;
+	read_skip_i(line_i,var);
+}
+
 void read_skip_string_count_d (const char*const str_search, int*const count, char*const line_i, double*const var)
 {
 	if (!first_string_matches(line_i,str_search))

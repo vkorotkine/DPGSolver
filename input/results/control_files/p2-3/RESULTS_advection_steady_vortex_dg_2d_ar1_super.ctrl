@@ -1,5 +1,5 @@
-pde_name  euler
-pde_spec  steady/supersonic_vortex
+pde_name  advection
+pde_spec  steady/vortex // Potentially add subscript for degree of exact solution.
 
 geom_name n-cylinder_hollow_section
 geom_spec geom_ar_1-0
@@ -10,7 +10,7 @@ mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        mixed
-mesh_level       0 4
+mesh_level       0 5
 mesh_path        ../meshes/
 
 
@@ -25,7 +25,7 @@ interp_pyr GLL
 basis_geom  lagrange
 basis_sol   lagrange
 
-geom_representation  isoparametric
+geom_representation  superparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
@@ -36,5 +36,5 @@ fe_method 1
 
 # Testing variables
 
-ml_range_test 0 3
+ml_range_test 0 5
 p_range_test  2 3

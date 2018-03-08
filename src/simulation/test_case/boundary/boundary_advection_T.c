@@ -38,18 +38,7 @@ void constructor_Boundary_Value_T_advection_inflow
 	 const struct Simulation* sim)
 {
 	UNUSED(face);
-	const struct const_Multiarray_d* xyz = NULL;
-	if (sim->domain_type == DOM_STRAIGHT) {
-		xyz = bv_i->xyz;
-	} else {
-		/* Boundary values computed by evaluating the exact solution must be applied on the exact boundary which
-		 * requires a correction of the boundary node coordinates. Otherwise, the approximate domain is being
-		 * implicitly treated as the exact domain.
-		 *
-		 * Can correct the coordinates in the direction of the normal vector.
-		 */
-		EXIT_ADD_SUPPORT;
-	}
+	const struct const_Multiarray_d*const xyz = bv_i->xyz;
 	const bool* c_m = bv_i->compute_member;
 
 	assert(c_m[0] == true);
