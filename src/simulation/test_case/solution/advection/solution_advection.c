@@ -71,6 +71,8 @@ void read_data_advection (struct Sol_Data__Advection*const sol_data)
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),input_file)) {
 		read_skip_convert_i(line,"advection_type",&advection_type,&count_found);
+		if (strstr(line,"u_scale"))
+			read_skip_d_1(line,1,&sol_data->u_scale,1);
 	}
 	fclose(input_file);
 
@@ -146,8 +148,8 @@ const double* compute_b_adv_vortex (const double*const xyz)
 	             y = xyz[1],
 	             t = atan2(y,x);
 
-	b_adv[0] =  sin(t);
-	b_adv[1] = -cos(t);
+	IF_DIM_GE_1( b_adv[0] =  sin(t); )
+	IF_DIM_GE_2( b_adv[1] = -cos(t); )
 
 	return b_adv;
 }

@@ -15,8 +15,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #ifndef DPG__test_integration_h__INCLUDED
 #define DPG__test_integration_h__INCLUDED
-/**	\file
- *	\brief Provides functions/structures for integration testing.
+/** \file
+ *  \brief Provides functions/structures for integration testing.
  */
 
 #include <stdbool.h>
@@ -83,6 +83,11 @@ const char* set_file_name_curr
 	 const int ml,              ///< The mesh level of the current simulation.
 	 const bool add_missing,    ///< Flag to add missing 'ml' and 'p' parameters to the file name.
 	 const char*const file_name ///< The name of the file.
+	);
+
+/// \brief Adapt the initial mesh if a adaptation parameters are provided in the input file.
+void adapt_initial_mesh_if_required
+	(struct Simulation*const sim ///< \ref Simulation.
 	);
 
 #endif // DPG__test_integration_h__INCLUDED

@@ -57,7 +57,7 @@ static bool compare_members_geom
 /** \test Performs integration testing for the geometry initialization (\ref test_integration_geometry.c).
  *  \return 0 on success.
  *
- *  Compares the following members listed in \ref compare_members_geom with their expected values.
+ *  Compares the members listed in \ref compare_members_geom with their expected values.
  */
 int main
 	(int argc,   ///< Standard.

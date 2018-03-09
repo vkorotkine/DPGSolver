@@ -486,6 +486,8 @@ static Vec constructor_petsc_x (Vec b)
 
 	Vec x = NULL;
 	VecCreateSeq(MPI_COMM_WORLD,dof,&x); // destructed
+	VecSetFromOptions(x);
+	VecSetUp(x);
 	VecCopy(b,x);
 
 	VecAssemblyBegin(x);

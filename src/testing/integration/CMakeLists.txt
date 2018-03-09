@@ -74,6 +74,12 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_euler_2d_riemann
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_euler_2d_supersonic_in/out" "integration/boundary_conditions/TEST_Euler_SiSo_2d__ml0__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_navier_stokes_2d_noslip_general/adiabatic" "integration/boundary_conditions/TEST_NavierStokes_NSGA_2d__ml0__p2")
 
+set (EXEC test_integration_non_conforming)
+set (LIBS_DEPEND Test_Base Test_Integration)
+add_executable(${EXEC} ${EXEC}.c)
+target_link_libraries(${EXEC} ${LIBS_DEPEND})
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "non_conforming_mixed_2d" "integration/TEST_non_conforming_mixed_2d")
+
 # Potentially add test for equivalence between explicit/implicit computation of grad_coef.
 
 set (EXEC test_integration_conservation)

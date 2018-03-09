@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_alloc.h"
 #include "definitions_core.h"
 #include "definitions_intrusive.h"
+#include "definitions_simulation.h"
 
 #include "test_base.h"
 #include "test_complex_computational_elements.h"
@@ -54,11 +55,6 @@ You should have received a copy of the GNU General Public License along with DPG
 /** Flag used to specify that the simulation should be set up as if the adaptation type was \ref ADAPT_0 but with
  *  potential h-refinement for the initial mesh. */
 #define ADAPT_0_FOR_H 10
-
-/// \brief Refine the initial mesh if a refinement file is available.
-static void refine_initial_mesh_if_required
-	(struct Simulation*const sim ///< \ref Simulation.
-	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -132,7 +128,7 @@ void structor_simulation
 				break;
 			}
 			if (adapt_type == ADAPT_0_FOR_H)
-				refine_initial_mesh_if_required(*sim);
+				adapt_initial_mesh_if_required(*sim);
 		} else if (mode == 'd') {
 			switch (type_rc) {
 			case 'r':
@@ -257,15 +253,17 @@ const char* set_file_name_curr
 	return file_name_curr;
 }
 
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-static void refine_initial_mesh_if_required (struct Simulation*const sim)
+void adapt_initial_mesh_if_required (struct Simulation*const sim)
 {
-	const int count_to_find = 2;
+	const int* count_to_find = (int[]) {2,3};
 	int count_found = 0;
 
-	struct Adaptation_Data adapt_data = { .adapt_h = { 0, 0, }, .xyz_ve_refine = NULL, .xyz_ve_ml = NULL, };
+	struct Adaptation_Data adapt_data =
+		{ .adapt_h = { 0, 0, },
+		  .xyz_ve_refine = NULL,
+		  .xyz_ve_ml = NULL,
+		  .xyz_ve_p  = NULL,
+		};
 
 	char line[STRLEN_MAX];
 	FILE* input_file = fopen_input('t',NULL,NULL); // closed
@@ -279,16 +277,21 @@ static void refine_initial_mesh_if_required (struct Simulation*const sim)
 			++count_found;
 			adapt_data.xyz_ve_ml = constructor_file_const_Vector_i(input_file,true); // destructed
 		}
+		if (strstr(line,"xyz_ve_polynomial_order")) {
+			++count_found;
+			adapt_data.xyz_ve_p = constructor_file_const_Vector_i(input_file,true); // destructed
+		}
 	}
 	fclose(input_file);
 
 	if (adapt_data.xyz_ve_refine == NULL) {
-		assert(adapt_data.xyz_ve_ml == NULL);
+		assert(adapt_data.xyz_ve_ml == NULL || adapt_data.xyz_ve_p == NULL);
 		return;
 	}
 
-	if (count_found != count_to_find)
-		EXIT_ERROR("Did not find the required number of variables (Found: %d/%d).\n",count_found,count_to_find);
+	if (count_found < count_to_find[0] || count_found > count_to_find[1])
+		EXIT_ERROR("Did not find the required number of variables (Found: %d/[%d,%d]).\n",
+		           count_found,count_to_find[0],count_to_find[1]);
 
 	adapt_hp(sim,ADAPT_S_XYZ_VE,&adapt_data);
 	for (int i = 0; i < adapt_data.adapt_h[0]; ++i)
@@ -299,3 +302,6 @@ static void refine_initial_mesh_if_required (struct Simulation*const sim)
 	destructor_const_Multiarray_d(adapt_data.xyz_ve_refine);
 	destructor_const_Vector_i(adapt_data.xyz_ve_ml);
 }
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //

@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 configure_options = [
-  '--with-mpi-dir=/usr/local/Cellar/mpich/3.2_3/',
+  '--with-mpi-dir=/Users/philip/Desktop/research_codes/mpich/mpich-3.2.1/mpich-install/',
   '--with-blas-lapack-dir=/Users/philip/Desktop/research_codes/mkl/mkl_2017_3/mkl',
   '--with-debugging=1',
   ]

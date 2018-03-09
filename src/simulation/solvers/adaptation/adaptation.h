@@ -29,6 +29,7 @@ struct Adaptation_Data {
 	const struct const_Multiarray_d* xyz_ve_refine;
 
 	const struct const_Vector_i* xyz_ve_ml; ///< Mesh levels to which xyz_ve_refine should be refined.
+	const struct const_Vector_i* xyz_ve_p;  ///< Polynomial order to which xyz_ve_refine should be refined/coarsened.
 };
 
 /// \brief Adapt the computational elements using the input adaptation strategy.

@@ -57,8 +57,7 @@ const double* compute_b_adv_vortex
 struct Sol_Data__Advection {
 	compute_b_adv_fptr compute_b_adv; ///< \ref compute_b_adv_fptr.
 
-//	double b_adv[DMAX]; ///< The constant advection velocity vector.
-//	double b_mag;       ///< Magnitude of the advection velocity vector.
+	double u_scale; ///< Scaling constant for the solution.
 };
 
 /** \brief Return the statically allocated \ref Sol_Data__Advection container.

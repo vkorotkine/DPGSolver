@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_core.h"
+#include "definitions_solution.h"
 #include "definitions_tol.h"
 
 
@@ -66,8 +67,21 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 {
 	assert(DIM == 2);
 
-	const struct Sol_Data__Advection sol_data = get_sol_data_advection();
-	assert(sol_data.compute_b_adv == compute_b_adv_vortex);
+	static int adv_type = -1;
+	static double scale = 0.0;
+
+	static bool requires_input = true;
+	if (requires_input) {
+		const struct Sol_Data__Advection sol_data = get_sol_data_advection();
+		if (sol_data.compute_b_adv == compute_b_adv_vortex)
+			adv_type = ADVECTION_TYPE_VORTEX;
+		else if (sol_data.compute_b_adv == compute_b_adv_constant)
+			adv_type = ADVECTION_TYPE_CONST;
+		else
+			EXIT_UNSUPPORTED;
+		scale = sol_data.u_scale;
+		assert(scale != 0.0);
+	}
 
 	// Compute the solution
 	const ptrdiff_t n_n = xyz->extents[0];
@@ -80,9 +94,21 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 	          * y = get_col_const_Multiarray_R(1,xyz);
 
 	Type* u = get_col_Multiarray_T(0,sol);
-	for (int i = 0; i < n_n; ++i) {
-		const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]);
-		u[i] = sin(2.15*r+0.23);
+	switch (adv_type) {
+	case ADVECTION_TYPE_VORTEX:
+		for (int i = 0; i < n_n; ++i) {
+			const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]);
+			u[i] = sin(0.1*r);
+		}
+		break;
+	case ADVECTION_TYPE_CONST:
+		for (int i = 0; i < n_n; ++i) {
+			u[i] = sin(scale*y[i]);
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",adv_type);
+		break;
 	}
 
 	return sol;

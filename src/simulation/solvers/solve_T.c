@@ -85,7 +85,7 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const str
 	MatSetFromOptions(ssi->A);
 	MatSetUp(ssi->A);
 
-	VecCreateSeq(MPI_COMM_WORLD,(PetscInt)dof,&ssi->b);                              // destructed
+	VecCreateSeq(MPI_COMM_WORLD,(PetscInt)dof,&ssi->b); // destructed
 	VecSetFromOptions(ssi->b);
 	VecSetUp(ssi->b);
 

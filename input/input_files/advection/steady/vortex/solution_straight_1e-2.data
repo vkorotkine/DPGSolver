@@ -1,5 +1,5 @@
 /// Solution parameters for test case: advection/steady/supersonic_vortex
 
-advection_type vortex
-b_magnitude 1.0
-u_scale 1e-0
+advection_type constant
+b_adv   1.0 0.0 0.0
+u_scale 1e-2

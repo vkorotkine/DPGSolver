@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_h_ref.h"
 #include "definitions_intrusive.h"
 #include "definitions_mesh.h"
+#include "definitions_simulation.h"
 #include "definitions_test_case.h"
 #include "definitions_tol.h"
 
@@ -61,8 +62,9 @@ static int compute_max_n_adapt
 	 const struct Adaptation_Data*const adapt_data ///< Defined for \ref adapt_hp.
 	);
 
-/// \brief Mark volumes for adaptation based on the input strategy.
-static void mark_volumes_to_adapt
+/** \brief Mark volumes for adaptation based on the input strategy.
+ *  \return `true` if at least one volume was marked for adaptation; `false` otherwise. */
+static bool mark_volumes_to_adapt
 	(const struct Simulation*const sim,            ///< Defined for \ref adapt_hp.
 	 const int adapt_strategy,                     ///< Defined for \ref adapt_hp.
 	 const struct Adaptation_Data*const adapt_data ///< Defined for \ref adapt_hp.
@@ -95,7 +97,10 @@ void adapt_hp (struct Simulation* sim, const int adapt_strategy, const struct Ad
 
 	const int n_adapt = compute_max_n_adapt(adapt_strategy,adapt_data);
 	for (int i = 0; i < n_adapt; ++i) {
-		mark_volumes_to_adapt(sim,adapt_strategy,adapt_data);
+printf("adapt loop: %d\n",i);
+		if(!mark_volumes_to_adapt(sim,adapt_strategy,adapt_data))
+			break;
+
 		adapt_hp_volumes(sim);
 		adapt_hp_faces(sim);
 		destruct_unused_computational_elements(sim);
@@ -183,9 +188,9 @@ static void update_index_faces
 	(struct Simulation*const sim ///< \ref Simulation.
 	);
 
-/** \brief Return whether the vertex in the specified row of the input multiarray is contained in \ref Volume::xyz_ve.
+/** \brief Return whether the vertex in the specified row of the input multiarray is in \ref Volume::xyz_ve.
  *  \return See brief. */
-static bool volume_contains_xyz_ve
+static bool volume_has_specified_xyz_ve
 	(const struct Volume*const vol,                ///< \ref Volume.
 	 const struct const_Multiarray_d*const xyz_ve, ///< Multiarray of vertex coordinates.
 	 const int row                                 ///< The index of the row of xyz_ve to check.
@@ -221,21 +226,24 @@ static int compute_max_n_adapt (const int adapt_strategy, const struct Adaptatio
 	case ADAPT_S_H_COARSE:
 		return 1;
 	case ADAPT_S_XYZ_VE: {
-		const struct const_Vector_i*const xyz_ve_ml = adapt_data->xyz_ve_ml;
+		const struct const_Vector_i*const xyz_ve_ml = adapt_data->xyz_ve_ml,
+		                           *const xyz_ve_p  = adapt_data->xyz_ve_p;
+		for (int i = 0; xyz_ve_ml && i < xyz_ve_ml->ext_0; ++i)
+			assert(xyz_ve_ml->data[i] <= ML_MAX);
+		for (int i = 0; xyz_ve_p && i < xyz_ve_p->ext_0; ++i)
+			assert(xyz_ve_p->data[i] <= P_MAX);
 
-		int max_ml = 0;
-		for (int i = 0; i < xyz_ve_ml->ext_0; ++i)
-			max_ml = GSL_MAX(max_ml,xyz_ve_ml->data[i]);
-		return max_ml;
+		return ML_MAX+P_MAX;
 	} default:
 		EXIT_ERROR("Unsupported: %d\n",adapt_strategy);
 		break;
 	}
 }
 
-static void mark_volumes_to_adapt
+static bool mark_volumes_to_adapt
 	(const struct Simulation*const sim, const int adapt_strategy, const struct Adaptation_Data*const adapt_data)
 {
+	bool adapting = false;
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Volume*const a_s_vol = (struct Adaptive_Solver_Volume*) curr;
 		a_s_vol->adapt_type = ADAPT_NONE;
@@ -244,9 +252,11 @@ static void mark_volumes_to_adapt
 	switch (adapt_strategy) {
 	case ADAPT_S_XYZ_VE: {
 		const struct const_Multiarray_d*const xyz_ve_ref = adapt_data->xyz_ve_refine;
-		const struct const_Vector_i*const xyz_ve_ml      = adapt_data->xyz_ve_ml;
+		const struct const_Vector_i*const xyz_ve_ml      = adapt_data->xyz_ve_ml,
+		                           *const xyz_ve_p       = adapt_data->xyz_ve_p;
 		const ptrdiff_t n_ve = xyz_ve_ref->extents[0];
-		assert(n_ve == xyz_ve_ml->ext_0);
+		assert(!xyz_ve_ml || (n_ve == xyz_ve_ml->ext_0));
+		assert(!xyz_ve_p  || (n_ve == xyz_ve_p->ext_0));
 
 		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 			const struct Volume*const vol               = (struct Volume*) curr;
@@ -254,32 +264,55 @@ static void mark_volumes_to_adapt
 			struct Adaptive_Solver_Volume*const a_s_vol = (struct Adaptive_Solver_Volume*) curr;
 
 			for (int i = 0; i < n_ve; ++i) {
-				if (s_vol->ml < xyz_ve_ml->data[i] && volume_contains_xyz_ve(vol,xyz_ve_ref,i))
-					a_s_vol->adapt_type = ADAPT_H_REFINE;
+				if (xyz_ve_ml &&
+				    (s_vol->ml < xyz_ve_ml->data[i] && volume_has_specified_xyz_ve(vol,xyz_ve_ref,i))) {
+					if (xyz_ve_ml->data[i] <= ML_MAX) {
+printf("href: %d %d %d\n",vol->index,i,xyz_ve_ml->data[i]);
+						adapting = true;
+						a_s_vol->adapt_type = ADAPT_H_REFINE;
+					}
+				} else if (xyz_ve_p &&
+				           (s_vol->p_ref < xyz_ve_p->data[i] && volume_has_specified_xyz_ve(vol,xyz_ve_ref,i))) {
+					if (xyz_ve_p->data[i] <= P_MAX) {
+printf("pref: %d %d %d\n",vol->index,i,xyz_ve_p->data[i]);
+						adapting = true;
+						a_s_vol->adapt_type = ADAPT_P_REFINE;
+					}
+				} else if (xyz_ve_p &&
+				           (s_vol->p_ref > xyz_ve_p->data[i] && volume_has_specified_xyz_ve(vol,xyz_ve_ref,i))) {
+					if (xyz_ve_p->data[i] >= P_MIN) {
+						adapting = true;
+						a_s_vol->adapt_type = ADAPT_P_COARSE;
+					}
+				}
 			}
 		}
 		ensure_1_irregular(sim);
 		break;
 	}
 	case ADAPT_S_P_REFINE:
+		adapting = true;
 		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 			struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) curr;
 			a_s_vol->adapt_type = ADAPT_P_REFINE;
 		}
 		break;
 	case ADAPT_S_P_COARSE:
+		adapting = true;
 		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 			struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) curr;
 			a_s_vol->adapt_type = ADAPT_P_COARSE;
 		}
 		break;
 	case ADAPT_S_H_REFINE:
+		adapting = true;
 		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 			struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) curr;
 			a_s_vol->adapt_type = ADAPT_H_REFINE;
 		}
 		break;
 	case ADAPT_S_H_COARSE:
+		adapting = true;
 		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 			struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) curr;
 			a_s_vol->adapt_type = ADAPT_H_COARSE;
@@ -290,6 +323,8 @@ static void mark_volumes_to_adapt
 		break;
 	}
 	assert(space_will_be_1_irregular(sim));
+
+	return adapting;
 }
 
 static void adapt_hp_volumes (struct Simulation* sim)
@@ -751,7 +786,7 @@ static void update_index_faces (struct Simulation*const sim)
 	}
 }
 
-static bool volume_contains_xyz_ve
+static bool volume_has_specified_xyz_ve
 	(const struct Volume*const vol, const struct const_Multiarray_d*const xyz_ve, const int row)
 {
 	bool contains_v = false;

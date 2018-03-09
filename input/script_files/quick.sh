@@ -14,6 +14,9 @@ ARGV="RESULTS_navier_stokes_joukowski_full_dg_2D petsc_options_gmres_tol_1e-2"
 ARGV="RESULTS_euler_joukowski_full_dg_2D petsc_options_gmres_tol_1e-2"
 ARGV="RESULTS_advection_vortex_dg_2d petsc_options_gmres_tol_1e-15"
 
+EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_non_conforming
+ARGV="integration/TEST_non_conforming_mixed_2d"
+
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"
 
