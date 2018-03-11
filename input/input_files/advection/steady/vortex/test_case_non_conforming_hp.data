@@ -15,7 +15,6 @@ exit_ratio_i 1e-15
 
 display_progress 1
 
-
 xyz_ve_refine:
 container Multiarray_d
 R 2 3 2

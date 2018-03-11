@@ -37,9 +37,7 @@ struct Face {
 	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
 
 	const bool boundary; ///< Flag for whether the face is on a domain boundary.
-
-	/// Flag for whether the face is curved (i.e. has at least 2 vertices on the same curved boundary).
-	const bool curved;
+	const bool curved;   ///< Flag for whether the face is curved.
 
 	const int bc; ///< The boundary condition associated with the face (if relevant).
 

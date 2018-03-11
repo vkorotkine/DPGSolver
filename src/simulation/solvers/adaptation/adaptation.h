@@ -19,7 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to functions used to perform hp adaption.
  */
 
+#include <stdbool.h>
+
 struct Simulation;
+struct Solver_Face;
 
 /// \brief Container for data relating to element adaptation in the domain.
 struct Adaptation_Data {
@@ -38,6 +41,19 @@ void adapt_hp
 	 const int adapt_strategy,                     /**< The adaptation strategy. Options:
 	                                                *   see \ref definitions_adaptation.h. */
 	 const struct Adaptation_Data*const adapt_data ///< \ref Adaptation_Data.
+	);
+
+/** \brief Constructor for the geometry values at the face geometry nodes interpolated from the volume of specified
+ *         side_index including reordering if the destination side_index differs.
+ *  \return See brief. */
+const struct const_Multiarray_d* constructor_geom_fg
+	(const int side_index,                  ///< The side index of the neighbouring volume.
+	 const int side_index_dest,             ///< The side index of the destination neighbouring volume.
+	 const struct Solver_Face*const s_face, ///< The current \ref Solver_Face.
+	 const bool use_pg_face,                /**< Flag for whether the face geometry order should be used instead of
+	                                         *   the face reference polynomial order. */
+	 const bool use_full_face               /**< Flag for whether the whole face (not the sub-face if applicable)
+	                                         *   should be used. */
 	);
 
 #endif // DPG__adaptation_h__INCLUDED

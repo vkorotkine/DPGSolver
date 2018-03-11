@@ -30,7 +30,8 @@ struct Adaptive_Solver_Volume {
 	int p_ref_prev; ///< The previous value of \ref Solver_Volume_T::p_ref.
 	int ind_h;      ///< The index of the h-refinement (if applicable).
 
-	bool updated; ///< Flag for whether the volume was updated.
+	bool updated;         ///< Flag for whether the volume was updated.
+	bool updated_geom_nc; ///< Flag for whether the volume geometry was updated due to non-conformity.
 
 	struct Intrusive_Link* child_0; ///< Pointer to the first child (if applicable).
 	struct Intrusive_Link* parent;  ///< Pointer to the parent (if applicable).

@@ -293,10 +293,10 @@ bool is_face_wall_boundary (const struct Face*const face)
 // Level 0 ********************************************************************************************************** //
 
 /** \brief Check if the current face is curved.
+ *  \return True if curved.
  *
- *	This function works similarly to \ref check_if_curved_v.
- *
- *  \return True if curved. */
+ *  This function works similarly to \ref check_if_curved_v.
+ */
 static bool check_if_curved_f
 	(const int ind_lf,                                  ///< Current face component of \ref Mesh_Connectivity::v_to_lf.
 	 const int domain_type,                             ///< \ref Simulation::domain_type.

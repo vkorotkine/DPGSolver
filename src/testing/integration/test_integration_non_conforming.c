@@ -19,9 +19,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "petscsys.h"
 
 #include "macros.h"
+#include "definitions_tol.h"
 
 #include "test_base.h"
 #include "test_integration.h"
+#include "test_support_multiarray.h"
 
 #include "element_geometry.h"
 #include "element_solver.h"
@@ -30,8 +32,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include "adaptation.h"
 #include "intrusive.h"
 #include "multiarray_operator.h"
+#include "operator.h"
 #include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
@@ -46,6 +50,8 @@ static void check_face_geometry
 /** \test Performs integration testing for non-conforming meshes (both in h and in p)
  *        (\ref test_integration_non_conforming.c).
  *  \return 0 on success.
+ *
+ *  \todo If this condition is necessary for optimal convergence, add appropriate discussion here.
  *
  *  This checks:
  *  - That the values of the geometry nodes on non-conforming faces match exactly.
@@ -77,6 +83,9 @@ int main
 	adapt_initial_mesh_if_required(sim);
 	check_face_geometry(sim);
 EXIT_ADD_SUPPORT; // Ensure that this is working with Bezier geometry as well.
+// Also add a test for initially mesh level 1 with unaligned mesh such that circular section special cases are
+// eliminated.
+// Don't forget to re-enabled the blending correction.
 
 	structor_simulation(&sim,'d',adapt_type,p,ml,p_prev,ml_prev,NULL,'r');
 
@@ -89,55 +98,57 @@ EXIT_ADD_SUPPORT; // Ensure that this is working with Bezier geometry as well.
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Get the pointer to the appropriate \ref Geometry_Element::cv0_vgc_fgc operator.
- *  \return See brief. */
-const struct Operator* get_operator__cv0_vgc_fgc
-	(const int side_index,                 ///< The index of the side of the face under consideration.
-	 const struct Solver_Face*const s_face ///< The current \ref Solver_Face.
+/// \brief Print information to terminal for non-matching geom values from either side of the face.
+static void print_diff_geom
+	(const struct Face*const face,                     ///< \ref Face.
+	 const struct const_Multiarray_d*const geom_fg[2], ///< Face Geometry values interpolated from each volume.
+	 const double tol                                  ///< The tolerance for the difference check.
 	);
 
 static void check_face_geometry (const struct Simulation*const sim)
 {
+	bool pass = true;
+	const double tol = 1e1*EPS;
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		const struct Face*const face = (struct Face*) curr;
-		if (face->boundary)
+		if (face->boundary || !face->curved)
 			continue;
+printf("%d\n",face->index);
+for (int i = 0; i < 2; ++i) {
+	const struct Volume*const vol          = face->neigh_info[i].volume;
+	const struct Solver_Volume*const s_vol = (struct Solver_Volume*) vol;
+	printf("volume %d: (ind: %d, p: %d, ml: %d).\n",i,vol->index,s_vol->p_ref,s_vol->ml);
+}
 
-		const struct Solver_Volume*const s_vol[] = { (struct Solver_Volume*) face->neigh_info[0].volume,
-		                                             (struct Solver_Volume*) face->neigh_info[1].volume, };
-
-print_const_Multiarray_d(s_vol[0]->geom_coef);
-print_const_Multiarray_d(s_vol[1]->geom_coef);
 		const struct Solver_Face*const s_face = (struct Solver_Face*) curr;
-		const struct Operator* cv0_vgc_fgc_op = get_operator__cv0_vgc_fgc(0,s_face);
-UNUSED(cv0_vgc_fgc_op);
 
-	}
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
-struct Volume* vol = (struct Volume*) curr;
-printf("%d %d %d\n",vol->index,s_vol->ml,s_vol->p_ref);
-//print_const_Multiarray_d(vol->xyz_ve);
-	}
+		const struct const_Multiarray_d* geom_fg[2] = {NULL,};
+		for (int i = 0; i < 2; ++i)
+			geom_fg[i] = constructor_geom_fg(i,0,s_face,false,false); // destructed
+
+		if (diff_const_Multiarray_d(geom_fg[0],geom_fg[1],tol)) {
+			pass = false;
+			print_diff_geom(face,geom_fg,tol);
 EXIT_ADD_SUPPORT;
+		}
+
+		for (int i = 0; i < 2; ++i)
+			destructor_const_Multiarray_d(geom_fg[i]);
+	}
+	assert_condition(pass);
 }
 
 // Level 1 ********************************************************************************************************** //
 
-const struct Operator* get_operator__cv0_vgc_fgc (const int side_index, const struct Solver_Face*const s_face)
+static void print_diff_geom
+	(const struct Face*const face, const struct const_Multiarray_d*const geom_fg[2], const double tol)
 {
-	const struct Face*const face            = (struct Face*) s_face;
-	const struct Volume*const vol           = face->neigh_info[side_index].volume;
-	const struct Solver_Volume*const s_vol  = (struct Solver_Volume*) vol;
-	const struct Geometry_Element*const g_e = &((struct Solver_Element*)vol->element)->g_e;
-
-	const int ind_lf   = face->neigh_info[side_index].ind_lf,
-	          ind_href = face->neigh_info[side_index].ind_href;
-	const int p_v = s_vol->p_ref,
-	          p_f = s_face->p_ref;
-
-	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
-	assert(curved);
-
-	return get_Multiarray_Operator(g_e->cv0_vgc_fgc,(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
+	for (int i = 0; i < 2; ++i) {
+		const struct Volume*const vol          = face->neigh_info[i].volume;
+		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) vol;
+		printf("volume %d: (ind: %d, p: %d, ml: %d).\n",i,vol->index,s_vol->p_ref,s_vol->ml);
+	}
+	print_const_Multiarray_d(geom_fg[0]);
+	print_const_Multiarray_d(geom_fg[1]);
+	print_diff_const_Multiarray_d(geom_fg[0],geom_fg[1],tol);
 }

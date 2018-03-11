@@ -43,4 +43,32 @@ void copy_members_r_to_c_Solver_Face
 	 const struct Simulation*const sim        ///< \ref Simulation.
 	);
 
+/** \brief Return `true` if the face is conforming; `false` otherwise.
+ *  \return See brief. */
+bool face_is_conforming
+	(const struct Solver_Face*const s_face ///< \ref Solver_Face_T.
+	);
+
+/** \brief Return the index of the side corresponding to the volume which is dominant in relation to the geometry
+ *         specification.
+ *  \return See brief.
+ *
+ *  The dominant volume is that which constrains the geometry the most.
+ */
+int get_dominant_geom_vol_side_index
+	(const struct Solver_Face*const s_face ///< \ref Solver_Face_T.
+	);
+
+/** \brief Return the geometry polynomial order to be used for the face.
+ *  \return See brief. */
+int compute_face_geometry_order
+	(const struct Solver_Face*const s_face ///< \ref Solver_Face_T.
+	);
+
+/** \brief Return the reference polynomial order for the face.
+ *  \return See brief. */
+int compute_face_reference_order
+	(const struct Solver_Face*const s_face ///< \ref Solver_Face_T.
+	);
+
 #endif // DPG__face_solver_h__INCLUDED

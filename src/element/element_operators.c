@@ -549,13 +549,13 @@ bool op_should_use_L2 (const int*const op_values, const struct Op_IO* op_io)
 		switch (op_io[OP_IND_O].kind) {
 		case 'c':
 		case 'v':
+		case 'g':
 			// Do nothing.
 			break;
 		case 's': // fallthrough
 		case 'f': // fallthrough
 		case 'r': // fallthrough
 		case 'p': // fallthrough
-		case 'g':
 			return true;
 			break;
 		default:

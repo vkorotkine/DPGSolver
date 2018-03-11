@@ -320,7 +320,7 @@ static void copy_error_files_for_conv_study
 	input_name_o_root[i] = 0;
 	sprintf(command,"%s %s%s","rm",input_name_o_root,"*");
 	if (system(command))
-		; // Do nothing (The directory may not exist yet).
+		{ ; } // Do nothing (The directory may not exist yet).
 
 	const int*const p_range  = get_conv_order_range(int_test_info,'p'),
 	         *const ml_range = get_conv_order_range(int_test_info,'m');

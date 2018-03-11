@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "face_solver.h"
 
+#include <assert.h>
+#include "gsl/gsl_math.h"
+
 #include "element_solver.h"
 #include "volume_solver.h"
 
@@ -65,6 +68,53 @@ void copy_members_r_to_c_Solver_Face
 	set_function_pointers_face_num_flux_c(s_face,sim);
 
 	s_face->nf_fc = constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->nf_fc); // destructed
+}
+
+bool face_is_conforming (const struct Solver_Face*const s_face)
+{
+	const struct Face*const face = (struct Face*) s_face;
+	if (face->boundary)
+		return true;
+
+	const struct Solver_Volume*const s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
+	                                              (struct Solver_Volume*) face->neigh_info[1].volume, };
+	if ((s_vol[0]->p_ref == s_vol[1]->p_ref) && (s_vol[0]->ml == s_vol[1]->ml))
+		return true;
+	return false;
+}
+
+int get_dominant_geom_vol_side_index (const struct Solver_Face*const s_face)
+{
+	const struct Face*const face = (struct Face*) s_face;
+	assert(!face->boundary);
+	const struct Solver_Volume*const s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
+	                                              (struct Solver_Volume*) face->neigh_info[1].volume, };
+	if (s_vol[0]->ml != s_vol[1]->ml)
+		return ( (s_vol[0]->ml < s_vol[1]->ml) ? 0 : 1 );
+	else if (s_vol[0]->p_ref != s_vol[1]->p_ref)
+		return ( (s_vol[0]->p_ref < s_vol[1]->p_ref) ? 0 : 1 );
+	else
+		return 0;
+}
+
+int compute_face_geometry_order (const struct Solver_Face*const s_face)
+{
+	const struct Face*const face = (struct Face*) s_face;
+	assert(!face->boundary);
+	const struct Solver_Volume*const s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
+	                                              (struct Solver_Volume*) face->neigh_info[1].volume, };
+	return GSL_MIN(s_vol[0]->p_ref,s_vol[1]->p_ref);
+}
+
+int compute_face_reference_order (const struct Solver_Face*const s_face)
+{
+	const struct Face*const face = (struct Face*) s_face;
+	const struct Solver_Volume*const s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
+	                                              (struct Solver_Volume*) face->neigh_info[1].volume, };
+	if (face->boundary)
+		return s_vol[0]->p_ref;
+	else
+		return GSL_MAX(s_vol[0]->p_ref,s_vol[1]->p_ref);
 }
 
 // Static functions ************************************************************************************************* //
