@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
 
+#include "def_templates_geometry.h"
 #include "def_templates_operators.h"
 #include "def_templates_test_case.h"
 
@@ -48,6 +49,8 @@ static const struct const_Multiarray_R* constructor_xyz_blended_ce
 	 const char n_type,                      ///< Defined for \ref constructor_xyz_fptr_T.
 	 const struct const_Multiarray_R* xyz_i, ///< Defined for \ref constructor_xyz_fptr_T.
 	 const struct Solver_Volume_T* s_vol,    ///< Defined for \ref constructor_xyz_fptr_T.
+	 const bool use_existing_as_surf,        ///< Defined for \ref constructor_xyz_surf_diff_T.
+	 const bool boundary_only,               ///< Flag for whether only domain boundary entities should be checked.
 	 const struct Simulation* sim            ///< Defined for \ref constructor_xyz_fptr_T.
 	);
 
@@ -57,19 +60,38 @@ const struct const_Multiarray_R* constructor_xyz_blended_T
 	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim)
 {
-	UNUSED(s_vol);
-	UNUSED(sim);
 	assert(DIM >= 2);
 	assert(DIM == xyz_i->extents[1]);
 
 	const struct const_Multiarray_R*const xyz_e =
-		( DIM == DMAX ? constructor_xyz_blended_ce('e',n_type,xyz_i,s_vol,sim) : xyz_i ); // dest. (if required)
+		( DIM == DMAX ? constructor_xyz_blended_ce('e',n_type,xyz_i,s_vol,false,true,sim) : xyz_i ); // dest.
 
-	const struct const_Multiarray_R*const xyz = constructor_xyz_blended_ce('f',n_type,xyz_e,s_vol,sim); // returned
+	const struct const_Multiarray_R*const xyz =
+		constructor_xyz_blended_ce('f',n_type,xyz_e,s_vol,false,true,sim); // returned
 	if (DIM == DMAX)
 		destructor_const_Multiarray_R(xyz_e);
 
 	return xyz;
+}
+
+void correct_internal_xyz_blended_T (struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
+{
+	assert(DIM >= 2);
+
+	const char n_type = 'g';
+	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho_T('g',s_vol,sim); // destructed
+	assert(DIM == xyz_s->extents[1]);
+
+	const struct const_Multiarray_R*const xyz =
+		constructor_xyz_blended_ce('f',n_type,xyz_s,s_vol,true,false,sim); // destructed
+	destructor_const_Multiarray_R(xyz_s);
+
+	const struct const_Multiarray_R* geom_coef = constructor_geom_coef_ho_T(xyz,s_vol,sim); // destructed
+	destructor_const_Multiarray_R(xyz);
+
+	set_Multiarray_d((struct Multiarray_d*)s_vol->geom_coef,geom_coef);
+
+	destructor_const_Multiarray_R(geom_coef);
 }
 
 struct Boundary_Comp_Elem_Data_T constructor_static_Boundary_Comp_Elem_Data_T
@@ -137,11 +159,12 @@ void set_Boundary_Comp_Elem_operators_T
 	switch (n_type) {
 	case 'g':
 		if (ce_type == 'f') {
-			b_ce_d->vv0_vX_bX = get_Multiarray_Operator(g_e->vv0_vgc_fgc,(ptrdiff_t[]){b,0,0,p,p});
-			b_ce_d->vv0_bX_vX = get_Multiarray_Operator(g_e->vv0_fgc_vgc,(ptrdiff_t[]){b,0,0,p,p});
-			b_ce_d->vv0_vv_bX = get_Multiarray_Operator(g_e->vv0_vv_fgc, (ptrdiff_t[]){b,0,0,p,1});
-			b_ce_d->vv0_vv_bv = get_Multiarray_Operator(g_e->vv0_vv_fv,  (ptrdiff_t[]){b,0,0,1,1});
-			b_ce_d->vv0_bv_bX = get_Multiarray_Operator(g_e->vv0_fv_fgc, (ptrdiff_t[]){0,0,0,0,p,1});
+			b_ce_d->vv0_vX_bX   = get_Multiarray_Operator(g_e->vv0_vgc_fgc,(ptrdiff_t[]){b,0,0,p,p});
+			b_ce_d->vv0_bX_vX   = get_Multiarray_Operator(g_e->vv0_fgc_vgc,(ptrdiff_t[]){b,0,0,p,p});
+			b_ce_d->vv0_vv_bX   = get_Multiarray_Operator(g_e->vv0_vv_fgc, (ptrdiff_t[]){b,0,0,p,1});
+			b_ce_d->vv0_vv_bv   = get_Multiarray_Operator(g_e->vv0_vv_fv,  (ptrdiff_t[]){b,0,0,1,1});
+			b_ce_d->vv0_bv_bX   = get_Multiarray_Operator(g_e->vv0_fv_fgc, (ptrdiff_t[]){0,0,0,0,p,1});
+			b_ce_d->cv0_vgc_bgc = get_Multiarray_Operator(g_e->cv0_vgc_fgc,(ptrdiff_t[]){b,0,0,p,p});
 		} else {
 			EXIT_ADD_SUPPORT;
 		}
@@ -163,24 +186,32 @@ void set_Boundary_Comp_Elem_operators_T
 
 const struct const_Matrix_R* constructor_xyz_surf_diff_T
 	(const struct Boundary_Comp_Elem_Data_T*const b_ce_d, const struct const_Matrix_R*const xyz_i,
-	 const struct Solver_Volume_T*const s_vol, const char n_type, const struct Simulation*const sim)
+	 const struct Solver_Volume_T*const s_vol, const char n_type, const bool use_existing_as_surf,
+	 const struct Simulation*const sim)
 {
-	const struct Volume*const vol = (struct Volume*) s_vol;
-	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
-	struct Blended_Parametric_Data_T b_p_d =
-		{ .xyz_ve = vol->xyz_ve,
-		  .vv0_vv_bX   = b_ce_d->vv0_vv_bX,
-		  .vv0_vv_bv   = b_ce_d->vv0_vv_bv,
-		  .vv0_vv_fcc  = b_ce_d->vv0_vv_fcc,
-		  .vv0_bv_bX   = b_ce_d->vv0_bv_bX,
-		  .normal      = NULL,
-		  .n_type      = n_type,
-		  .domain_type = sim->domain_type,
-		  .constructor_xyz = test_case->constructor_xyz,
-		};
+	const struct const_Matrix_R* xyz_b = NULL;
+	if (!use_existing_as_surf) {
+		assert(s_vol->constructor_xyz_surface != NULL);
 
-	assert(s_vol->constructor_xyz_surface != NULL);
-	const struct const_Matrix_R*const xyz_b = s_vol->constructor_xyz_surface(&b_p_d); // destructed
+		const struct Volume*const vol = (struct Volume*) s_vol;
+		const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
+		struct Blended_Parametric_Data_T b_p_d =
+			{ .xyz_ve      = vol->xyz_ve,
+			  .vv0_vv_bX   = b_ce_d->vv0_vv_bX,
+			  .vv0_vv_bv   = b_ce_d->vv0_vv_bv,
+			  .vv0_vv_fcc  = b_ce_d->vv0_vv_fcc,
+			  .vv0_bv_bX   = b_ce_d->vv0_bv_bX,
+			  .normal      = NULL,
+			  .n_type      = n_type,
+			  .domain_type = sim->domain_type,
+			  .constructor_xyz = test_case->constructor_xyz,
+			};
+
+		xyz_b = s_vol->constructor_xyz_surface(&b_p_d); // destructed
+	} else {
+		const struct const_Matrix_R g_coef = interpret_const_Multiarray_as_Matrix_R(s_vol->geom_coef);
+		xyz_b = constructor_mm_const_Matrix_R('N','N',1.0,b_ce_d->cv0_vgc_bgc->op_std,&g_coef,'C'); // dest.
+	}
 
 	struct Matrix_R* xyz_surf_diff = NULL;
 	switch (n_type) {
@@ -238,14 +269,17 @@ static const struct const_Matrix_R* constructor_xyz_diff_T
 	 const struct const_Matrix_R*const xyz_i,             ///< Input xyz coordinates.
 	 const struct Solver_Volume_T*const s_vol,            ///< The current \ref Solver_Volume_T.
 	 const char n_type,                                   ///< \ref Blended_Parametric_Data_T::n_type.
+	 const bool use_existing_as_surf,                     ///< Defined for \ref constructor_xyz_surf_diff_T.
 	 const struct Simulation*const sim                    ///< \ref Simulation.
 	);
 
 static const struct const_Multiarray_R* constructor_xyz_blended_ce
 	(const char ce_type, const char n_type, const struct const_Multiarray_R* xyz_i,
-	 const struct Solver_Volume_T* s_vol, const struct Simulation* sim)
+	 const struct Solver_Volume_T* s_vol, const bool use_existing_as_surf, const bool boundary_only,
+	 const struct Simulation* sim)
 {
 	assert(n_type == 'v' || n_type == 'g');
+	assert(boundary_only || use_existing_as_surf);
 	const int p_geom = ( n_type == 'v' ? 2 : s_vol->p_ref ),
 	          p_min = GSL_MIN(compute_p_base_min(s_vol,sim),p_geom);
 	struct Boundary_Comp_Elem_Data_T b_ce_d =
@@ -257,14 +291,15 @@ static const struct const_Multiarray_R* constructor_xyz_blended_ce
 	const ptrdiff_t n_n = xyz_i->extents[0];
 	for (int p = p_min; p <= p_geom; ++p) {
 	for (int b = 0; b < b_ce_d.bc_boundaries->ext_0; ++b) {
-		if (!is_face_bc_curved(b_ce_d.bc_boundaries->data[b]))
+		if (boundary_only && !is_face_bc_curved(b_ce_d.bc_boundaries->data[b]))
 			continue;
 
 		set_Boundary_Comp_Elem_operators_T(&b_ce_d,s_vol,ce_type,n_type,p,b);
 
 		const struct const_Vector_R*const blend_values = constructor_blend_values(b,n_n,&b_ce_d); // destructed
 		const struct const_Matrix_R*const xyz_diff =
-			constructor_xyz_diff_T(&b_ce_d,(struct const_Matrix_R*)&xyz_M,s_vol,n_type,sim); // destructed
+			constructor_xyz_diff_T(&b_ce_d,(struct const_Matrix_R*)&xyz_M,s_vol,n_type,
+			                       use_existing_as_surf,sim); // destructed
 
 		for (int d = 0; d < DIM; ++d) {
 			Real*const data_xyz            = get_col_Matrix_R(d,&xyz_M);
@@ -365,10 +400,11 @@ static const struct const_Vector_R* constructor_blend_values
 
 static const struct const_Matrix_R* constructor_xyz_diff_T
 	(const struct Boundary_Comp_Elem_Data_T*const b_ce_d, const struct const_Matrix_R*const xyz_i,
-	 const struct Solver_Volume_T*const s_vol, const char n_type, const struct Simulation*const sim)
+	 const struct Solver_Volume_T*const s_vol, const char n_type, const bool use_existing_as_surf,
+	 const struct Simulation*const sim)
 {
 	const struct const_Matrix_R*const xyz_surf_diff =
-		constructor_xyz_surf_diff_T(b_ce_d,xyz_i,s_vol,n_type,sim); // destructed
+		constructor_xyz_surf_diff_T(b_ce_d,xyz_i,s_vol,n_type,use_existing_as_surf,sim); // destructed
 
 	const struct const_Matrix_R*const xyz_diff =
 		constructor_mm_const_Matrix_R('N','N',1.0,b_ce_d->vv0_bX_vX->op_std,xyz_surf_diff,'C'); // returned

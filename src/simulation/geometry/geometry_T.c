@@ -239,6 +239,60 @@ void compute_geometry_face_T (struct Solver_Face_T* s_face, struct Simulation* s
 	destructor_const_Multiarray_R(metrics_fc);
 }
 
+const struct const_Multiarray_R* constructor_xyz_s_ho_T
+	(const char ve_rep, const struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
+{
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	UNUSED(sim);
+	const char op_format = 'd';
+
+	struct Volume* vol = (struct Volume*) s_vol;
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
+
+	const bool curved = vol->curved;
+	const int p       = s_vol->p_ref;
+	assert(curved == true);
+
+	const struct Operator* vv0_vv_vg = get_Multiarray_Operator(g_e->vv0_vv_vg[curved],(ptrdiff_t[]){0,0,p,1});
+	assert(ve_rep == 'v' || ve_rep == 'g');
+	const struct const_Multiarray_R* xyz_ve = NULL;
+	if (ve_rep == 'v') {
+		xyz_ve = vol->xyz_ve;
+	} else if (ve_rep == 'g') {
+		const int pg = ( curved ? p : 1 );
+		const struct Operator* cv0_vg_vv = get_Multiarray_Operator(g_e->cv0_vg_vv[curved],(ptrdiff_t[]){0,0,1,pg});
+		const struct const_Multiarray_R*const g_coef = s_vol->geom_coef;
+		xyz_ve = constructor_mm_NN1_Operator_const_Multiarray_R(
+			cv0_vg_vv,g_coef,'C',op_format,g_coef->order,NULL); // destructed
+	}
+
+	const struct const_Multiarray_R*const xyz_s =
+		constructor_mm_NN1_Operator_const_Multiarray_R(vv0_vv_vg,xyz_ve,'C',op_format,xyz_ve->order,NULL);
+
+	if (ve_rep == 'g')
+		destructor_const_Multiarray_R(xyz_ve);
+
+	return xyz_s;
+}
+
+const struct const_Multiarray_R* constructor_geom_coef_ho_T
+	(const struct const_Multiarray_R* geom_val, const struct Solver_Volume_T*const s_vol,
+	 const struct Simulation*const sim)
+{
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	UNUSED(sim);
+	const char op_format = 'd';
+
+	struct Volume* vol = (struct Volume*) s_vol;
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
+
+	const int p = s_vol->p_ref;
+
+	const struct Operator* vc0_vgc_vgc = get_Multiarray_Operator(g_e->vc0_vgc_vgc,(ptrdiff_t[]){0,0,p,p});
+
+	return constructor_mm_NN1_Operator_const_Multiarray_R(vc0_vgc_vgc,geom_val,'C',op_format,geom_val->order,NULL);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -476,7 +530,7 @@ static const struct const_Multiarray_R* constructor_xyz_fc_with_exact_boundary
 
 		struct Matrix_R xyz_fc_M = interpret_Multiarray_as_Matrix_R(xyz_fc);
 		const struct const_Matrix_R*const xyz_fc_diff =
-			constructor_xyz_surf_diff_T(&b_ce_d,(struct const_Matrix_R*)&xyz_fc_M,s_vol,n_type,sim); // d
+			constructor_xyz_surf_diff_T(&b_ce_d,(struct const_Matrix_R*)&xyz_fc_M,s_vol,n_type,false,sim); // d
 		add_in_place_Matrix_R(1.0,&xyz_fc_M,xyz_fc_diff);
 
 		destructor_const_Matrix_R(xyz_fc_diff);
@@ -496,21 +550,6 @@ static void compute_unit_normals_and_det_T
 
 // Level 1 ********************************************************************************************************** //
 
-/** \brief Constructor for the high-order straight geometry values.
- *  \return See brief. */
-static const struct const_Multiarray_R* constructor_xyz_s_ho
-	(const struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
-	 const struct Simulation*const sim         ///< \ref Simulation.
-	);
-
-/** \brief Constructor for the high-order geometry coefficients from the input values.
- *  \return See brief. */
-static const struct const_Multiarray_R* constructor_geom_coef_ho
-	(const struct const_Multiarray_R* geom_val, ///< The geometry values.
-	 const struct Solver_Volume_T*const s_vol,  ///< \ref Solver_Volume_T.
-	 const struct Simulation*const sim          ///< \ref Simulation.
-	);
-
 static void compute_geom_coef_straight_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
 {
 	struct Volume* vol = (struct Volume*) s_vol;
@@ -529,19 +568,19 @@ static void compute_geom_coef_straight_T (const struct Simulation*const sim, str
 
 static void compute_geom_coef_blended_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
 {
-	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho(s_vol,sim); // destructed
+	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho_T('v',s_vol,sim); // destructed
 
 	const struct const_Multiarray_R* xyz = constructor_xyz_blended_T('g',xyz_s,s_vol,sim); // destructed
 	destructor_const_Multiarray_R(xyz_s);
 
 	destructor_const_Multiarray_R(s_vol->geom_coef);
-	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef,constructor_geom_coef_ho(xyz,s_vol,sim)); // keep
+	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef,constructor_geom_coef_ho_T(xyz,s_vol,sim)); // keep
 	destructor_const_Multiarray_R(xyz);
 }
 
 static void compute_geom_coef_parametric_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
 {
-	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho(s_vol,sim); // destructed
+	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho_T('v',s_vol,sim); // destructed
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const struct const_Multiarray_R* xyz = test_case->constructor_xyz(0,xyz_s,s_vol,sim); // destructed
@@ -550,46 +589,8 @@ static void compute_geom_coef_parametric_T (const struct Simulation*const sim, s
 /// \todo add setup_bezier_mesh: Likely make this a separate function.
 
 	destructor_const_Multiarray_R(s_vol->geom_coef);
-	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef,constructor_geom_coef_ho(xyz,s_vol,sim)); // keep
+	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef,constructor_geom_coef_ho_T(xyz,s_vol,sim)); // keep
 	destructor_const_Multiarray_R(xyz);
-}
 
-// Level 2 ********************************************************************************************************** //
-
-static const struct const_Multiarray_R* constructor_xyz_s_ho
-	(const struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
-{
-	// sim may be used to store a parameter establishing which type of operator to use for the computation.
-	UNUSED(sim);
-	const char op_format = 'd';
-
-	struct Volume* vol = (struct Volume*) s_vol;
-	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
-
-	const bool curved = vol->curved;
-	const int p       = s_vol->p_ref;
-	assert(curved == true);
-
-	const struct Operator* vv0_vv_vg = get_Multiarray_Operator(g_e->vv0_vv_vg[curved],(ptrdiff_t[]){0,0,p,1});
-	const struct const_Multiarray_R* xyz_ve = vol->xyz_ve;
-
-	return constructor_mm_NN1_Operator_const_Multiarray_R(vv0_vv_vg,xyz_ve,'C',op_format,xyz_ve->order,NULL);
-}
-
-static const struct const_Multiarray_R* constructor_geom_coef_ho
-	(const struct const_Multiarray_R* geom_val, const struct Solver_Volume_T*const s_vol,
-	 const struct Simulation*const sim)
-{
-	// sim may be used to store a parameter establishing which type of operator to use for the computation.
-	UNUSED(sim);
-	const char op_format = 'd';
-
-	struct Volume* vol = (struct Volume*) s_vol;
-	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
-
-	const int p = s_vol->p_ref;
-
-	const struct Operator* vc0_vgc_vgc = get_Multiarray_Operator(g_e->vc0_vgc_vgc,(ptrdiff_t[]){0,0,p,p});
-
-	return constructor_mm_NN1_Operator_const_Multiarray_R(vc0_vgc_vgc,geom_val,'C',op_format,geom_val->order,NULL);
+	correct_internal_xyz_blended_T(s_vol,sim);
 }

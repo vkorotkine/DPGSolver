@@ -48,10 +48,11 @@ struct Geometry_Element {
 	const struct Multiarray_Operator* vv0_fgc_vgc; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vgc_fgc; ///< See notation in \ref element_operators.h.
 
-	const struct Multiarray_Operator* cv0_vgc_fgc; ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* cc0_vgc_fgc; ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* vv0_fgc_fgc; ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* vc0_fgc_fgc; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vgc_fgc;  ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cc0_vgc_fgc;  ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_fgc_fgc;  ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vc0_fgc_fgc;  ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vg_vv[2]; ///< See notation in \ref element_operators.h.
 
 	const struct const_Multiarray_Vector_i* nc_fg[2]; ///< Node correspondence 'f'ace 'g'eometry.
 

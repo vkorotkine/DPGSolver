@@ -111,3 +111,21 @@ void compute_geometry_face_T
 	(struct Solver_Face_T* s_face, ///< \ref Solver_Face_T.
 	 struct Simulation* sim        ///< \ref Simulation.
 	);
+
+/** \brief Constructor for the high-order straight geometry values using the vertices of the p1 representation either as
+ * \ref Volume::xyz_ve or the interpolation of \ref Solver_Volume_T::geom_coef to the vertex nodes.
+ *  \return See brief. */
+const struct const_Multiarray_R* constructor_xyz_s_ho_T
+	(const char ve_rep,                        /**< Indicator for what nodes to use as the vertices. Options:
+	                                            *   'v'ertices, interpolated 'g'eometry coefficient. */
+	 const struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
+	 const struct Simulation*const sim         ///< \ref Simulation.
+	);
+
+/** \brief Constructor for the high-order geometry coefficients from the input values.
+ *  \return See brief. */
+const struct const_Multiarray_R* constructor_geom_coef_ho_T
+	(const struct const_Multiarray_R* geom_val, ///< The geometry values.
+	 const struct Solver_Volume_T*const s_vol,  ///< \ref Solver_Volume_T.
+	 const struct Simulation*const sim          ///< \ref Simulation.
+	);

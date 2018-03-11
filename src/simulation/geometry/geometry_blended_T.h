@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to templated functions used for blended geometry processing.
  */
 
+#include <stdbool.h>
+
 struct Solver_Volume_T;
 struct Simulation;
 
@@ -38,12 +40,13 @@ struct Boundary_Comp_Elem_Data_T {
 
 	const struct Multiarray_Operator* vv0_bv_vX; ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
 
-	const struct Operator* vv0_vX_bX;  ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
-	const struct Operator* vv0_bX_vX;  ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
-	const struct Operator* vv0_vv_bX;  ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
-	const struct Operator* vv0_vv_bv;  ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
-	const struct Operator* vv0_vv_fcc; ///< See notation in \ref element_operators.h.
-	const struct Operator* vv0_bv_bX;  ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
+	const struct Operator* vv0_vX_bX;   ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
+	const struct Operator* vv0_bX_vX;   ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
+	const struct Operator* vv0_vv_bX;   ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
+	const struct Operator* vv0_vv_bv;   ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
+	const struct Operator* vv0_vv_fcc;  ///< See notation in \ref element_operators.h.
+	const struct Operator* vv0_bv_bX;   ///< See \ref Boundary_Comp_Elem_Data_T::vv0_vv_vX.
+	const struct Operator* cv0_vgc_bgc; ///< See notation in \ref element_operators.h.
 };
 
 /** \brief Container for data required to compute curved surface geometry values for various methods of surface
@@ -110,5 +113,15 @@ const struct const_Matrix_R* constructor_xyz_surf_diff_T
 	 const struct const_Matrix_R*const xyz_i,             ///< Input xyz coordinates.
 	 const struct Solver_Volume_T*const s_vol,            ///< The current \ref Solver_Volume_T.
 	 const char n_type,                                   ///< \ref Blended_Parametric_Data_T::n_type.
+	 const bool use_existing_as_surf,                     /**< Flag for whether the existing high-order geometry
+	                                                       *   representation should be used for surface
+							       *   representation. */
 	 const struct Simulation*const sim                    ///< \ref Simulation.
+	);
+
+/** \brief Correct the internal coefficients for the volume geometry representation using the existing face geometry
+ *         representation as the surface values. */
+void correct_internal_xyz_blended_T
+	(struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
+	 const struct Simulation*const sim   ///< \ref Simulation.
 	);

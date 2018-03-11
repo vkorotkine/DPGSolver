@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_static_Boundary_Comp_Elem_Data_T  destructor_static_Boundary_Comp_Elem_Data
 #define set_Boundary_Comp_Elem_operators_T           set_Boundary_Comp_Elem_operators
 #define constructor_xyz_surf_diff_T                  constructor_xyz_surf_diff
+#define correct_internal_xyz_blended_T               correct_internal_xyz_blended
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -44,6 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_static_Boundary_Comp_Elem_Data_T  destructor_static_Boundary_Comp_Elem_Data_c
 #define set_Boundary_Comp_Elem_operators_T           set_Boundary_Comp_Elem_operators_c
 #define constructor_xyz_surf_diff_T                  constructor_xyz_surf_diff_c
+#define correct_internal_xyz_blended_T               correct_internal_xyz_blended_c
 ///\}
 
 #endif

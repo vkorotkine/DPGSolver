@@ -82,7 +82,7 @@ int main
 
 	adapt_initial_mesh_if_required(sim);
 	check_face_geometry(sim);
-EXIT_ADD_SUPPORT; // Ensure that this is working with Bezier geometry as well.
+EXIT_ADD_SUPPORT;
 // Also add a test for initially mesh level 1 with unaligned mesh such that circular section special cases are
 // eliminated.
 // Don't forget to re-enabled the blending correction.
@@ -129,7 +129,6 @@ for (int i = 0; i < 2; ++i) {
 		if (diff_const_Multiarray_d(geom_fg[0],geom_fg[1],tol)) {
 			pass = false;
 			print_diff_geom(face,geom_fg,tol);
-EXIT_ADD_SUPPORT;
 		}
 
 		for (int i = 0; i < 2; ++i)

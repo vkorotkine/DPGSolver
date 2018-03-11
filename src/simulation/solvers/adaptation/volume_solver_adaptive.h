@@ -33,6 +33,9 @@ struct Adaptive_Solver_Volume {
 	bool updated;         ///< Flag for whether the volume was updated.
 	bool updated_geom_nc; ///< Flag for whether the volume geometry was updated due to non-conformity.
 
+	/// Flag for whether the volume geometry was updated due to non-conformity from a single face.
+	bool updated_geom_nc_face;
+
 	struct Intrusive_Link* child_0; ///< Pointer to the first child (if applicable).
 	struct Intrusive_Link* parent;  ///< Pointer to the parent (if applicable).
 };

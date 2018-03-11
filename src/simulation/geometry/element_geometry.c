@@ -104,6 +104,7 @@ void destructor_derived_Geometry_Element (struct Element* element_ptr)
 	destructor_Multiarray_Operator(g_e->cc0_vgc_fgc);
 	destructor_Multiarray_Operator_conditional(g_e->vv0_fgc_fgc);
 	destructor_Multiarray_Operator_conditional(g_e->vc0_fgc_fgc);
+	destructor_Multiarray2_Operator(g_e->cv0_vg_vv);
 
 	const int n_fe = get_number_of_face_elements((struct const_Element*)element_ptr);
 	for (int i = 0; i < n_fe; ++i) {
@@ -158,6 +159,9 @@ static void constructor_derived_Geometry_Element_std (struct Element* element_pt
 
 	g_e->cv0_vgc_fgc = constructor_operators("cv0","vgc","fgc","H_CF_P_PM1",b_e,sim); // destructed
 	g_e->cc0_vgc_fgc = constructor_operators("cc0","vgc","fgc","H_CF_P_PM1",b_e,sim); // destructed
+
+	g_e->cv0_vg_vv[0] = constructor_operators("cv0","vgs","vvA","H_1_P_1",  b_e,sim); // destructed
+	g_e->cv0_vg_vv[1] = constructor_operators("cv0","vgc","vvA","H_1_P_P1", b_e,sim); // destructed
 }
 
 static void constructor_derived_Geometry_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
@@ -251,6 +255,12 @@ static void constructor_derived_Geometry_Element_tp (struct Element* element_ptr
 
 	set_operators_tp(&ops_tp,s_e[0]->cc0_vgc_vgc,s_e[0]->cc0_vgc_fgc,s_e[1]->cc0_vgc_vgc,s_e[1]->cc0_vgc_fgc);
 	g_e->cc0_vgc_fgc = constructor_operators_tp("cc0","vgc","fgc","H_CF_P_PM1",b_e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vv[0],NULL,s_e[1]->cv0_vg_vv[0],NULL);
+	g_e->cv0_vg_vv[0] = constructor_operators_tp("cv0","vgs","vvA","H_1_P_1",b_e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vv[1],NULL,s_e[1]->cv0_vg_vv[1],NULL);
+	g_e->cv0_vg_vv[1] = constructor_operators_tp("cv0","vgc","vvA","H_1_P_P1",b_e,sim,&ops_tp); // destructed
 }
 
 static void constructor_derived_Geometry_Element_common (struct Element* element_ptr, const struct Simulation* sim)

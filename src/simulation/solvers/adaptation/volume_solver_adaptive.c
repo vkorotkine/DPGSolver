@@ -46,8 +46,9 @@ void initialize_Adaptive_Solver_Volume (struct Adaptive_Solver_Volume*const a_s_
 {
 	a_s_vol->adapt_type = ADAPT_NONE;
 	a_s_vol->ind_h      = -1;
-	a_s_vol->updated         = false;
-	a_s_vol->updated_geom_nc = false;
+	a_s_vol->updated              = false;
+	a_s_vol->updated_geom_nc      = false;
+	a_s_vol->updated_geom_nc_face = false;
 
 	a_s_vol->child_0 = NULL;
 	a_s_vol->parent  = NULL;
