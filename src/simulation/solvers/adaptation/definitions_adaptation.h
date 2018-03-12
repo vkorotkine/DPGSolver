@@ -24,10 +24,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Supported adaptation options.
-#define ADAPT_0  0
-#define ADAPT_P  1
-#define ADAPT_H  2
-#define ADAPT_HP 3
+#define ADAPT_0  0 ///< No adaptation.
+#define ADAPT_P  1 ///< Adaptation in polynomial order only.
+#define ADAPT_H  2 ///< Adaptation in mesh level only.
+#define ADAPT_HP 3 ///< Adaptation in both polynomial order and mesh level.
 ///\}
 
 ///\{ \name Supported adaptation types for computational elements.

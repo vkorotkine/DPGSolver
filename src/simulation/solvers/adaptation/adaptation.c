@@ -54,6 +54,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** Flag for whether \ref correct_non_conforming_geometry should be executed.
+ *  This should likely only be disabled for comparative testing purposes. */
+#define CORRECT_NON_CONFORMING_GEOMETRY true
+
 /** \brief Return the maximum number of global adaptation calls which must be made in order to achieve the adaptation
  *         strategy.
  *  \return See brief. */
@@ -89,7 +93,7 @@ static void destruct_unused_computational_elements
  *  \return See brief. */
 static const struct Operator* get_operator__cv0_vgc_fgc
 	(const int side_index,                  ///< The index of the side of the face under consideration.
-	 const struct Solver_Face*const s_face, ///< The current \ref Solver_Face.
+	 const struct Solver_Face*const s_face, ///< The current \ref Solver_Face_T.
 	 const bool use_pg_face,                ///< Defined for \ref constructor_geom_fg.
 	 const bool use_full_face               ///< Defined for \ref constructor_geom_fg.
 	);
@@ -114,10 +118,8 @@ void adapt_hp (struct Simulation* sim, const int adapt_strategy, const struct Ad
 
 	const int n_adapt = compute_max_n_adapt(adapt_strategy,adapt_data);
 	for (int i = 0; i < n_adapt; ++i) {
-printf("adapt loop: %d\n",i);
 		if(!mark_volumes_to_adapt(sim,adapt_strategy,adapt_data))
 			break;
-printf("adapting\n");
 
 		adapt_hp_volumes(sim);
 		adapt_hp_faces(sim);
@@ -140,10 +142,6 @@ const struct const_Multiarray_d* constructor_geom_fg
 
 	const struct const_Multiarray_d*const geom_fg =
 		constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vgc_fgc,s_vol->geom_coef,'C','d',2,NULL); // ret.
-//printf("geom_fg\n");
-//print_const_Matrix_d(cv0_vgc_fgc->op_std);
-//print_const_Multiarray_d(s_vol->geom_coef);
-//print_const_Multiarray_d(geom_fg);
 	if (side_index != side_index_dest) {
 		const struct const_Vector_i*const nc_fg = get_operator__nc_fg(side_index_dest,s_face,use_pg_face);
 		permute_Multiarray_d_V((struct Multiarray_d*)geom_fg,nc_fg,'R');
@@ -307,14 +305,12 @@ static bool mark_volumes_to_adapt
 				if (xyz_ve_ml &&
 				    (s_vol->ml < xyz_ve_ml->data[i] && volume_has_specified_xyz_ve(vol,xyz_ve_ref,i))) {
 					if (xyz_ve_ml->data[i] <= ML_MAX) {
-printf("href: %d %d %d\n",vol->index,i,xyz_ve_ml->data[i]);
 						adapting = true;
 						a_s_vol->adapt_type = ADAPT_H_REFINE;
 					}
 				} else if (xyz_ve_p &&
 				           (s_vol->p_ref < xyz_ve_p->data[i] && volume_has_specified_xyz_ve(vol,xyz_ve_ref,i))) {
 					if (xyz_ve_p->data[i] <= P_MAX) {
-printf("pref: %d %d %d\n",vol->index,i,xyz_ve_p->data[i]);
 						adapting = true;
 						a_s_vol->adapt_type = ADAPT_P_REFINE;
 					}
@@ -451,7 +447,6 @@ static const struct Operator* get_operator__cv0_vgc_fgc
 	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
 	assert(curved);
 
-//printf("%d %d %d %d\n",ind_lf,ind_href,p_f,p_v);
 	return get_Multiarray_Operator(g_e->cv0_vgc_fgc,(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
 }
 
@@ -742,7 +737,6 @@ static void update_geometry_volumes (struct Simulation* sim)
 
 static void update_geometry_faces (struct Simulation* sim)
 {
-printf("\n\n\n******************************************************************** update geom_vol\n\n\n\n");
 	correct_non_conforming_geometry(sim);
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
@@ -1009,7 +1003,9 @@ static int compute_updated_hp
  *  \return `true` if yes; `false` otherwise. */
 static bool face_requires_geom_update
 	(const struct Solver_Face*const s_face, ///< The current \ref Solver_Face_T.
-	 const int ml                           ///< The current 'm'esh 'l'evel under consideration.
+	 const int ml,                          ///< The current 'm'esh 'l'evel under consideration.
+	 const char ml_vf                       /**< Indicates whether the 'm'esh 'l'evel of the 'v'olumes or 'f'ace
+	                                         *   should be considered to judge the necessity for the update. */
 	);
 
 /** \brief Return `true` if one of the neighbours of the face was updated, `false` otherwise.
@@ -1483,42 +1479,28 @@ static bool volume_will_be_1_irregular (const struct Adaptive_Solver_Volume*cons
 
 static void correct_non_conforming_geometry (const struct Simulation*const sim)
 {
+	if (!CORRECT_NON_CONFORMING_GEOMETRY)
+		return;
 	if (DIM == 1)
 		return;
 
-for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-	const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
-	const struct Volume*const vol = (struct Volume*) curr;
-if (vol->index >= 1 && vol->index <= 3) {
-	printf("vol g_coef: %d\n",vol->index);
-	print_const_Multiarray_d(s_vol->geom_coef);
-}
-}
 	/** Correct sequentially all volumes for each mesh level such that it can always be assumed that the geometry
 	 * from coarser (dominant for geometry) volumes is correct. */
 	for (int ml = ML_MIN; ml < ML_MAX; ++ml) {
-printf("ml: %d ********\n",ml);
-		for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-			const struct Solver_Face*const s_face            = (struct Solver_Face*) curr;
-			const struct Adaptive_Solver_Face*const a_s_face = (struct Adaptive_Solver_Face*) curr;
+		for (int ml_type = 0; ml_type < 2; ++ml_type) {
+			const char ml_vf = ( ml_type == 0 ? 'f' : 'v' );
+			for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+				const struct Solver_Face*const s_face            = (struct Solver_Face*) curr;
+				const struct Adaptive_Solver_Face*const a_s_face = (struct Adaptive_Solver_Face*) curr;
 
-			if (!face_requires_geom_update(s_face,ml) || !face_neigh_was_updated(a_s_face))
-				continue;
+				if (!face_requires_geom_update(s_face,ml,ml_vf) || !face_neigh_was_updated(a_s_face))
+					continue;
 
-			correct_non_conforming_face_geometry(s_face,ml);
+				correct_non_conforming_face_geometry(s_face,ml);
+			}
+			correct_additional_non_conforming_face_geometry(sim);
 		}
 	}
-
-	correct_additional_non_conforming_face_geometry(sim);
-
-for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-	const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
-	const struct Volume*const vol = (struct Volume*) curr;
-if (vol->index >= 1 && vol->index <= 3) {
-	printf("vol g_coef: %d\n",vol->index);
-	print_const_Multiarray_d(s_vol->geom_coef);
-}
-}
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		const struct Adaptive_Solver_Volume*const a_s_vol = (struct Adaptive_Solver_Volume*) curr;
@@ -1644,7 +1626,6 @@ static void constructor_faces_h_refine
 
 	const int n_children = get_n_children(face_p->element);
 	for (int n = 1; n <= n_children; ++n) {
-
 		push_back_IL(faces_c,(struct Intrusive_Link*)constructor_Adaptive_Solver_Face_h_ref(n,a_s_face_p,sim));
 
 		if (n == 1)
@@ -1856,13 +1837,25 @@ static int compute_updated_hp (const struct Adaptive_Solver_Volume*const a_s_vol
 	}
 }
 
-static bool face_requires_geom_update (const struct Solver_Face*const s_face, const int ml)
+static bool face_requires_geom_update (const struct Solver_Face*const s_face, const int ml, const char ml_vf)
 {
 	const struct Face*const face = (struct Face*) s_face;
-	const struct Solver_Volume*const s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
-	                                              (struct Solver_Volume*) face->neigh_info[1].volume, };
-	if (face_is_conforming(s_face) || !(s_vol[0]->ml == ml || s_vol[1]->ml == ml) || !face->curved)
-		return false;
+	switch (ml_vf) {
+	case 'v': {
+		const struct Solver_Volume*const s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
+		                                              (struct Solver_Volume*) face->neigh_info[1].volume, };
+
+		if (face_is_conforming(s_face) || !(s_vol[0]->ml == ml || s_vol[1]->ml == ml) || !face->curved)
+			return false;
+		break;
+	} case 'f':
+		if (face_is_conforming(s_face) || !(s_face->ml == ml) || !face->curved)
+			return false;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %c\n",ml_vf);
+		break;
+	}
 	return true;
 }
 
@@ -1892,8 +1885,6 @@ static void correct_non_conforming_face_geometry (const struct Solver_Face*const
 		const int si_n = (si+1) % 2;
 		if (!((s_vol[si_n]->ml < s_vol[si]->ml) || (s_vol[si_n]->p_ref < s_vol[si]->p_ref)))
 			continue;
-struct Volume* vol[2] = { (struct Volume*) s_vol[0], (struct Volume*) s_vol[1], };
-printf("\n\n\n*************** volumes: %d %d ******************\n",vol[si]->index,vol[si_n]->index);
 
 		struct Adaptive_Solver_Volume*const a_s_vol = (struct Adaptive_Solver_Volume*) s_vol[si];
 		a_s_vol->updated_geom_nc = true;
@@ -1935,8 +1926,6 @@ static void correct_additional_non_conforming_face_geometry (const struct Simula
 
 			// Do not mark 'updated_geom_nc' as `true` such that multiple faces may be updated if needed.
 			a_s_vol[si_neigh]->updated_geom_nc_face = true;
-struct Volume* vol[2] = { (struct Volume*) a_s_vol[si_neigh], (struct Volume*) a_s_vol[si_dom], };
-printf("\n\n\n*************** volumes (add): %d %d ******************\n",vol[0]->index,vol[1]->index);
 
 			const struct const_Multiarray_d*const geom_coef_fg =
 				constructor_coef_fg_vol_opp_dom(si_neigh,s_face); // destructed
@@ -2024,9 +2013,12 @@ static void set_Neigh_Info_Face_i_new
  *  \return See brief. */
 static const struct Operator* get_operator__cc0_vgc_fgc
 	(const int side_index,                 ///< The index of the side of the face under consideration.
-	 const struct Solver_Face*const s_face ///< The current \ref Solver_Face.
+	 const struct Solver_Face*const s_face ///< The current \ref Solver_Face_T.
 	);
 
+/** \brief Constructor for the 'f'ace 'g'eometry coefficients of the geometry order of the volume having input
+ *         side_index with specified additional parameters.
+ *  \return See brief. */
 static const struct const_Multiarray_d* constructor_coef_fg_vol_specified
 	(const int side_index,                 ///< Side index of the volume for which the coefficients are computed.
 	 const int side_index_d,               /**< Side index of the volume from which to interpolate the coefs to the
@@ -2295,14 +2287,14 @@ const struct Info_I* get_Info_I
  *  \return See brief. */
 static const struct Operator* get_operator__vv0_fgc_fgc
 	(const int side_index,                 ///< The index of the side of the face under consideration.
-	 const struct Solver_Face*const s_face ///< The current \ref Solver_Face.
+	 const struct Solver_Face*const s_face ///< The current \ref Solver_Face_T.
 	);
 
-/** \brief Get the pointer to the appropriate \ref Geometry_Element::cc0_fgc_fgc operator.
+/** \brief Get the pointer to the appropriate \ref Geometry_Element::vc0_fgc_fgc operator.
  *  \return See brief. */
 static const struct Operator* get_operator__vc0_fgc_fgc
 	(const int side_index,                 ///< The index of the side of the face under consideration.
-	 const struct Solver_Face*const s_face ///< The current \ref Solver_Face.
+	 const struct Solver_Face*const s_face ///< The current \ref Solver_Face_T.
 	);
 
 static void constructor_Volume_h_ref
@@ -2819,7 +2811,9 @@ static int get_ind_href_h_ref_non_dominant
 	const struct Volume*const vol_p = face_p->neigh_info[side_index].volume;
 	switch (vol_p->element->type) {
 	case LINE:
-		assert(ind_h == 0);
+		/** +1 as the refined POINT is the same as the original point and there is consequently no increment for
+		 *  the refined POINT in \ref definitions_h_ref.h. */
+		assert(ind_h == H_POINT1_V0+1);
 		return H_POINT1_V0;
 		break;
 	case TRI:  // fallthrough

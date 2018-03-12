@@ -59,7 +59,7 @@ static const char* compute_header_spec_euler_entropy
  *  \return See brief. */
 struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
 	(const struct Simulation*const sim, ///< \ref Simulation.
-	 const int remove_cd_cl             ///< \brief Flag for which functional to remove (if any).
+	 const int remove_cd_cl             ///< Flag for which functional to remove (if any).
 	);
 
 // Interface functions ********************************************************************************************** //

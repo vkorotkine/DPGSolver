@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_domain = PARAMETRIC; mesh_level = 0; mesh_type = MIXED; pde_name = ADVECTION; pde_spec = STEADY_VORTEX; geom_ar = 20; geom_unaligned = 1; bc_exact = 1;
+//mesh_domain = PARAMETRIC; mesh_level = 1; mesh_type = MIXED; pde_name = ADVECTION; pde_spec = STEADY_VORTEX; geom_ar = 2.5; geom_unaligned = 1; bc_exact = 1;
 
 // Geometry Specification
 If (pde_spec == STEADY_SUPERSONIC_VORTEX)

@@ -49,7 +49,7 @@ void adapt_hp
 const struct const_Multiarray_d* constructor_geom_fg
 	(const int side_index,                  ///< The side index of the neighbouring volume.
 	 const int side_index_dest,             ///< The side index of the destination neighbouring volume.
-	 const struct Solver_Face*const s_face, ///< The current \ref Solver_Face.
+	 const struct Solver_Face*const s_face, ///< The current \ref Solver_Face_T.
 	 const bool use_pg_face,                /**< Flag for whether the face geometry order should be used instead of
 	                                         *   the face reference polynomial order. */
 	 const bool use_full_face               /**< Flag for whether the whole face (not the sub-face if applicable)

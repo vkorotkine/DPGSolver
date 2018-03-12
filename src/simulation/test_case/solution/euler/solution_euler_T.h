@@ -40,7 +40,7 @@ void convert_variables_T
 	 const char type_o          ///< The output variable type.
 	);
 
-/** \brief Function to be used for \ref Test_Case_T::constructor_functionals for zero drag/lift coefficients.
+/** \brief Function to be used for constructing functionals of zero drag/lift coefficients.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_functionals_cd_cl_zero_T
 	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.

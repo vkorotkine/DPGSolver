@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "petscsys.h"
 
 #include "macros.h"
+#include "definitions_adaptation.h"
 #include "definitions_tol.h"
 
 #include "test_base.h"
@@ -51,10 +52,13 @@ static void check_face_geometry
  *        (\ref test_integration_non_conforming.c).
  *  \return 0 on success.
  *
- *  \todo If this condition is necessary for optimal convergence, add appropriate discussion here.
+ *  For the implementation as it is at the current time, that a mesh with internally curved non-conforming faces passes
+ *  this test or not does not have any impact on the recovery of optimal convergence orders for isoparametric geometry
+ *  representation (March 11, 2018). It may potentially be interesting to investigate if the mortar method of Kopriva
+ *  \cite Kopriva1996 resolves this issue.
  *
  *  This checks:
- *  - That the values of the geometry nodes on non-conforming faces match exactly.
+ *  - That the values of the geometry nodes on non-conforming faces match to machine precision.
  */
 int main
 	(int argc,   ///< Standard.
@@ -82,12 +86,8 @@ int main
 
 	adapt_initial_mesh_if_required(sim);
 	check_face_geometry(sim);
-EXIT_ADD_SUPPORT;
-// Also add a test for initially mesh level 1 with unaligned mesh such that circular section special cases are
-// eliminated.
-// Don't forget to re-enabled the blending correction.
 
-	structor_simulation(&sim,'d',adapt_type,p,ml,p_prev,ml_prev,NULL,'r');
+	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,'r');
 
 	destructor_Integration_Test_Info(int_test_info);
 
@@ -108,17 +108,11 @@ static void print_diff_geom
 static void check_face_geometry (const struct Simulation*const sim)
 {
 	bool pass = true;
-	const double tol = 1e1*EPS;
+	const double tol = 4e3*EPS;
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		const struct Face*const face = (struct Face*) curr;
 		if (face->boundary || !face->curved)
 			continue;
-printf("%d\n",face->index);
-for (int i = 0; i < 2; ++i) {
-	const struct Volume*const vol          = face->neigh_info[i].volume;
-	const struct Solver_Volume*const s_vol = (struct Solver_Volume*) vol;
-	printf("volume %d: (ind: %d, p: %d, ml: %d).\n",i,vol->index,s_vol->p_ref,s_vol->ml);
-}
 
 		const struct Solver_Face*const s_face = (struct Solver_Face*) curr;
 

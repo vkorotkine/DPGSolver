@@ -268,16 +268,15 @@ static void constructor_derived_Geometry_Element_common (struct Element* element
 	struct Geometry_Element*const g_e = (struct Geometry_Element*) element_ptr;
 	struct const_Element*const e      = (struct const_Element*)g_e;
 
-	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	if (e->d > 1) {
 		g_e->vv0_vv_fgc = constructor_operators("vv0","vvA","fgc","H_1_P_1P",e,sim); // destructed
 		g_e->vv0_vv_fv  = constructor_operators("vv0","vvA","fvA","H_1_P_1", e,sim); // destructed
 		g_e->vv0_vv_fcc = constructor_operators("vv0","vvA","fcc","H_1_P_1P",e,sim); // destructed
-		if (test_case->geom_parametrization != 0) {
-			g_e->vv0_fv_vgc  = constructor_operators("vv0","fvA","vgc","H_1_P_1P", e,sim); // destructed
-			g_e->vv0_fv_fgc  = constructor_operators("vv0","fvA","fgc","H_1_P_1P", e,sim); // destructed
-			g_e->vv0_fgc_vgc = constructor_operators("vv0","fgc","vgc","H_1_P_PM0",e,sim); // destructed
-		}
+
+		g_e->vv0_fv_vgc  = constructor_operators("vv0","fvA","vgc","H_1_P_1P", e,sim); // destructed
+		g_e->vv0_fv_fgc  = constructor_operators("vv0","fvA","fgc","H_1_P_1P", e,sim); // destructed
+		g_e->vv0_fgc_vgc = constructor_operators("vv0","fgc","vgc","H_1_P_PM0",e,sim); // destructed
+
 		g_e->vv0_fgc_fgc = constructor_operators("vv0","fgc","fgc","H_1_P_PM1",e,sim); // destructed
 		g_e->vc0_fgc_fgc = constructor_operators("vc0","fgc","fgc","H_1_P_PM0",e,sim); // destructed
 

@@ -352,8 +352,6 @@ static int compute_p_base_min (const struct Solver_Volume_T*const s_vol, const s
 		EXIT_ERROR("Unsupported: %d\n",s_type);
 		break;
 	}
-	assert(p_base_min != 0);
-
 	return p_base_min;
 }
 

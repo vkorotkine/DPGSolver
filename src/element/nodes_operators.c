@@ -320,7 +320,8 @@ static int compute_p_nodes (const struct Op_IO* op_io, const int node_type, cons
 	case 't': // fallthrough
 	case 'g': // fallthrough
 	case 'm': // fallthrough
-	case 'p':
+	case 'p': // fallthrough
+	case 'v':
 		return compute_p_basis(op_io,sim);
 		break;
 	case 'c': {
@@ -344,10 +345,7 @@ static int compute_p_nodes (const struct Op_IO* op_io, const int node_type, cons
 				EXIT_UNSUPPORTED;
 		}
 		break;
-	} case 'v':
-		return op_io->p_op;
-		break;
-	default:
+	} default:
 		EXIT_ERROR("Unsupported: %c\n",node_kind);
 		break;
 	}
@@ -409,7 +407,7 @@ static struct Matrix_d* constructor_rst_proj
 		const struct const_Matrix_d scaling_factors = get_scaling_factors(e_type,ce,ind_ce);
 		mm_d('N','N',1.0,0.0,b_coords,&scaling_factors,rst_proj);
 	} else if (strcmp(sim->geom_blending[s_type],"szabo_babuska_gen") == 0) {
-		const struct const_Matrix_d* rst_ve_d_ce = constructor_rst_ve(s_type_ce,d_i,d_i,ind_h,0,'v',sim); // destructed
+		const struct const_Matrix_d* rst_ve_d_ce = constructor_rst_ve(s_type_ce,d_i,d_i,ind_h,0,'v',sim); // d.
 		for (int n = 0; n < n_n; ++n) {
 			const double*const data_b_coords = get_row_const_Matrix_d(n,b_coords);
 			for (int d = 0; d < d_i; ++d) {
@@ -462,7 +460,7 @@ static int compute_node_type_std
 			EXIT_ERROR("Unsupported: %s\n",sim->nodes_interp[s_type]);
 		}
 	case 'v':
-		assert(op_io->p_op == 1 || op_io->p_op == 2);
+		assert(op_io->p_op >= 0 && op_io->p_op <= 2);
 		return NODES_VERTEX;
 		break;
 	case 'm': // fallthrough

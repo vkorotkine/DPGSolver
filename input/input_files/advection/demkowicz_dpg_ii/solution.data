@@ -1,3 +1,4 @@
 /// Solution parameters for test case: advection/demkowicz_dpg_ii
 
+advection_type constant
 b_adv   2.0 0.0 0.0

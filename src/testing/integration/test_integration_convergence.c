@@ -51,7 +51,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DISPLAY_CONV 1 ///< Flag for whether the convergence orders should be displayed for these tests.
 
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
-#define ORDER_VIS_CONV_P      2
+#define ORDER_VIS_CONV_P      3
 #define ORDER_VIS_CONV_ML_MAX 3
 ///\}
 
@@ -155,7 +155,7 @@ struct Conv_Order_Data {
 	const struct const_Multiarray_i* cases_run,   ///< The multiarray of flags indicating which cases were run.
 	                               * ex_ord;      ///< The multiarray of expected orders.
 
-	const char*const* var_names; /// Names of the variables for which the error and convergence orders are provided.
+	const char*const* var_names; ///< Names of the variables for which the error and convergence orders are provided.
 };
 
 /** \brief Copy the files from the $BUILD/output/error/... subdirectory to the $BUILD/output/results/... subdirectory in

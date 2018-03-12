@@ -119,19 +119,19 @@ void destructor_Error_CE_Data
 	(struct Error_CE_Data* e_ce_d ///< Standard.
 	);
 
-/// \brief Increment \ref Error_CE_Helper::sol_L2.
+/// \brief Increment \ref Error_CE_Helper::sol_err.
 void increment_sol_L2
 	(struct Error_CE_Helper* e_ce_h, ///< \ref Error_CE_Helper.
 	 struct Error_CE_Data* e_ce_d    ///< \ref Error_CE_Data.
 	);
 
-/// \brief Increment \ref Error_CE_Helper::sol_integrated for the input face variables.
+/// \brief Increment \ref Error_CE_Helper::sol_err for the input face variables.
 void increment_sol_integrated_face
 	(struct Error_CE_Helper*const e_ce_h, ///< \ref Error_CE_Helper.
 	 struct Error_CE_Data*const e_ce_d    ///< \ref Error_CE_Data.
 	);
 
-/// \brief Increment \ref Error_CE_Helper::sol_L2 on a face.
+/// \brief Increment \ref Error_CE_Helper::sol_err on a face.
 void increment_sol_face_L2
 	(struct Error_CE_Helper*const e_ce_h, ///< \ref Error_CE_Helper.
 	 struct Error_CE_Data*const e_ce_d    ///< \ref Error_CE_Data.

@@ -503,8 +503,8 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 		return p_s + sim->p_t_p[ind_p_t];
 		break;
 	} case 'v': // vertex
-		assert(p_op == 1 || p_op == 2);
-		return p_op;
+		assert(p_op >= 0 && p_op <= 2);
+		return GSL_MAX(1,p_op);
 		break;
 	case 'c': // fallthrough
 	default:

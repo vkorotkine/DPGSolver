@@ -30,8 +30,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_test_case.h"
 
 ///\{ \name Constant associated with the Sutherland formala to compute the viscosity.
-#define C1_SUTHERLAND 8e-2 ///< \ref (eq. (1.56), \cite Toro2009) after division by mu_0 ~= 18.27e-6 [Pa*s].
-#define C2_SUTHERLAND 112  ///< \ref (eq. (1.56), \cite Toro2009).
+#define C1_SUTHERLAND 8e-2 ///< (eq. (1.56), \cite Toro2009) after division by mu_0 ~= 18.27e-6 [Pa*s].
+#define C2_SUTHERLAND 112  ///< (eq. (1.56), \cite Toro2009).
 ///\}
 
 /** \brief Return the value of the coefficient of thermal conductivity for the Navier-Stokes equations, assuming
