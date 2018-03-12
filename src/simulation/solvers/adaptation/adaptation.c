@@ -55,7 +55,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 /** Flag for whether \ref correct_non_conforming_geometry should be executed.
- *  This should likely only be disabled for comparative testing purposes. */
+ *  **This should only be disabled for comparative testing purposes.** */
 #define CORRECT_NON_CONFORMING_GEOMETRY true
 
 /** \brief Return the maximum number of global adaptation calls which must be made in order to achieve the adaptation
@@ -731,7 +731,7 @@ static void update_geometry_volumes (struct Simulation* sim)
 			continue;
 
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-		compute_geometry_volume(s_vol,sim);
+		compute_geometry_volume(true,s_vol,sim);
 	}
 }
 
@@ -1509,6 +1509,7 @@ static void correct_non_conforming_geometry (const struct Simulation*const sim)
 
 		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
 		correct_internal_xyz_blended(s_vol,sim);
+		compute_geometry_volume(false,s_vol,sim);
 	}
 }
 

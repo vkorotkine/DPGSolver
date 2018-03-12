@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to functions used for geometry processing.
  */
 
+#include <stdbool.h>
+
 struct Simulation;
 struct Intrusive_List;
 struct Solver_Volume_T;
@@ -96,8 +98,9 @@ void compute_unit_normals_T
  *  \f}
  */
 void compute_geometry_volume_T
-	(struct Solver_Volume_T* s_vol, ///< \ref Solver_Volume_T.
-	 const struct Simulation* sim   ///< \ref Simulation.
+	(const bool recompute_geom_coef, ///< Flag for whether \ref Solver_Volume_T::geom_coef should be computed.
+	 struct Solver_Volume_T* s_vol,  ///< \ref Solver_Volume_T.
+	 const struct Simulation* sim    ///< \ref Simulation.
 	);
 
 /** \brief Compute the geometry of the \ref Solver_Face_T.

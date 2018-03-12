@@ -52,10 +52,20 @@ static void check_face_geometry
  *        (\ref test_integration_non_conforming.c).
  *  \return 0 on success.
  *
- *  For the implementation as it is at the current time, that a mesh with internally curved non-conforming faces passes
- *  this test or not does not have any impact on the recovery of optimal convergence orders for isoparametric geometry
- *  representation (March 11, 2018). It may potentially be interesting to investigate if the mortar method of Kopriva
- *  \cite Kopriva1996 resolves this issue.
+ *  Note that meshes which do not pass this test resulted in the loss of optimal convergence for both the linear
+ *  advection and Euler equations for isoparametric geometry representation (1/2 to 1 order). This condition thus
+ *  appears to be necessary for optimal convergence in these cases.
+ *
+ *  Also note that the non-conforming treatment implemented here is different from that of Kopriva \cite Kopriva1996
+ *  which uses mortar elements between volumes. As the current implementation does not require a basis on the face to
+ *  represent the normal flux, it seems likely that there is a lower chance of aliasing. Given that all three of
+ *  Kopriva's conditions are satisfied:
+ *  1. Conservative treatment of numerical fluxes;
+ *  2. Satisfaction of the outflow condition (Upwind values used to compute flux and unaffected by downwind values for
+ *     cases where characteristics come only from the upwind direction);
+ *  3. Same geometry representation used for both non-conforming elements on the face.
+ *
+ *  there does not seem to be any motivation to adopt the mortar method.
  *
  *  This checks:
  *  - That the values of the geometry nodes on non-conforming faces match to machine precision.

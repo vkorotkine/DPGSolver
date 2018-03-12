@@ -53,6 +53,7 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
 #define ORDER_VIS_CONV_P      3
 #define ORDER_VIS_CONV_ML_MAX 3
+#define DISPLAY_GEOM          0 ///< Flag for whether the geometry should be output.
 ///\}
 
 ///\{ \name Parameters relating to maximum allowable mesh level and order for convergence order testing.
@@ -117,6 +118,8 @@ int main
 		if (p == ORDER_VIS_CONV_P && ml <= ORDER_VIS_CONV_ML_MAX) {
 			output_visualization(sim,VIS_GEOM_EDGES);
 			output_visualization(sim,VIS_SOLUTION);
+			output_visualization(sim,VIS_GEOM_VOLUMES);
+			output_visualization(sim,VIS_NORMALS);
 		}
 
 		output_error(sim);

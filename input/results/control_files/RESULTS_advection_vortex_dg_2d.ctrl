@@ -26,7 +26,7 @@ interp_pyr GLL
 basis_geom  lagrange
 basis_sol   lagrange
 
-geom_representation  superparametric_p_le_1
+geom_representation  isoparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 

@@ -115,7 +115,7 @@ void set_up_solver_geometry_T (struct Simulation* sim)
 	assert(list_is_derived_from("solver",'e',sim));
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
-		compute_geometry_volume_T((struct Solver_Volume_T*)curr,sim);
+		compute_geometry_volume_T(true,(struct Solver_Volume_T*)curr,sim);
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
 		compute_geometry_face_T((struct Solver_Face_T*)curr,sim);
@@ -136,7 +136,8 @@ void compute_unit_normals_T
 	normalize_Multiarray_R(normals_f,"L2",false,NULL);
 }
 
-void compute_geometry_volume_T (struct Solver_Volume_T* s_vol, const struct Simulation *sim)
+void compute_geometry_volume_T
+	(const bool recompute_geom_coef, struct Solver_Volume_T* s_vol, const struct Simulation *sim)
 {
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
@@ -144,8 +145,10 @@ void compute_geometry_volume_T (struct Solver_Volume_T* s_vol, const struct Simu
 	struct Volume* vol = (struct Volume*) s_vol;
 	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
 
-	compute_geom_coef_fptr_T compute_geom_coef = set_fptr_geom_coef_T(sim->domain_type,vol->curved);
-	compute_geom_coef(sim,s_vol);
+	if (recompute_geom_coef) {
+		compute_geom_coef_fptr_T compute_geom_coef = set_fptr_geom_coef_T(sim->domain_type,vol->curved);
+		compute_geom_coef(sim,s_vol);
+	}
 
 	const int d = ((struct const_Element*)g_e)->d;
 
