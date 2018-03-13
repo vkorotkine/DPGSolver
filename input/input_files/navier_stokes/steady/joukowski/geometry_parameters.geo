@@ -5,7 +5,7 @@ s_offset = 0.1;
 
 // Additional for code use.
 r_i = 2.0;
-r_o = 320.0;
+r_o = 80.0;
 
 x_scale = 4.0;
 

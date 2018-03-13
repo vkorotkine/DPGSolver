@@ -62,7 +62,7 @@ def run_diffusion_default (cmd_line_params):
 	for ctrl_spec in [["ar1_iso", ], ["ar20_iso", ], ["ar20_non_conforming_iso", ], ]:
 		execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
 
-def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming,bc_riemann):
+def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming):
 	""" Run the Euler Supersonic Vortex cases. """
 	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"euler","steady","supersonic_vortex"])
 	test_case  = "euler_supersonic_vortex_dg_2d"
@@ -70,7 +70,6 @@ def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming,bc_rieman
 
 	if (ar_val != 20.0):
 		assert (non_conforming == False),"Add support."
-		assert (bc_riemann == False),"Add support."
 
 	if (ar_val == 1.0):
 		ctrl_spec   = ["ar1_iso", "ar1_super", ]
@@ -83,13 +82,10 @@ def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming,bc_rieman
 		ctrl_matrix = ["p2-3", ]
 	elif (ar_val == 20.0):
 		ctrl_matrix = ["p2-3", ]
-		if (bc_riemann == False):
-			if (non_conforming != True):
-				ctrl_spec   = ["ar20_iso", "ar20_super", ]
-			else:
-				ctrl_spec   = ["ar20_non_conforming_iso", "ar20_non_conforming_super", ]
+		if (non_conforming != True):
+			ctrl_spec   = ["ar20_iso", "ar20_super", ]
 		else:
-			ctrl_spec   = ["ar20_riemann_iso", "ar20_riemann_non_conforming_iso", "ar20_riemann_non_conforming_super", ]
+			ctrl_spec   = ["ar20_non_conforming_iso", "ar20_non_conforming_super", ]
 	else:
 		sys.exit("Unsupported ar_val: \""+str(ar_val)+"\".")
 
@@ -133,6 +129,20 @@ def run_navier_stokes_taylor_couette (cmd_line_params,ar_val):
 
 	execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
 
+def run_navier_stokes_joukowski (cmd_line_params,ar_val):
+	""" Run the Navier-Stokes Joukowski cases. """
+	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"navier_stokes","steady","joukowski"])
+	test_case  = "navier_stokes_joukowski_full_dg_2D"
+	petsc_opts = "petsc_options_gmres_tol_1e-4"
+
+	if (ar_val == 4):
+		ctrl_spec   = ["ar4_iso", "ar4_super", ]
+		ctrl_matrix = ["p1-2", ]
+	else:
+		sys.exit("Unsupported ar_val: \""+str(ar_val)+"\".")
+
+	execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
+
 
 if __name__ == "__main__":
 	"""
@@ -162,17 +172,15 @@ if __name__ == "__main__":
 		run_diffusion_default(clp)
 
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar1" in jobs_name):
-		run_euler_supersonic_vortex(clp,1.0,False,False)
+		run_euler_supersonic_vortex(clp,1.0,False)
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar2-5" in jobs_name):
-		run_euler_supersonic_vortex(clp,2.5,False,False)
+		run_euler_supersonic_vortex(clp,2.5,False)
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar5" in jobs_name):
-		run_euler_supersonic_vortex(clp,5.0,False,False)
+		run_euler_supersonic_vortex(clp,5.0,False)
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar20" in jobs_name):
-		run_euler_supersonic_vortex(clp,20.0,False,False)
+		run_euler_supersonic_vortex(clp,20.0,False)
 	if (jobs_name == "all" or "euler_supersonic_vortex_non_conforming_ar20" in jobs_name):
-		run_euler_supersonic_vortex(clp,20.0,True,False)
-	if (jobs_name == "all" or "euler_supersonic_vortex_riemann" in jobs_name):
-		run_euler_supersonic_vortex(clp,20.0,True,True)
+		run_euler_supersonic_vortex(clp,20.0,True)
 
 	if (jobs_name == "all" or "euler_joukowski_ar1" in jobs_name):
 		run_euler_joukowski(clp,1)
@@ -185,3 +193,6 @@ if __name__ == "__main__":
 		run_navier_stokes_taylor_couette(clp,1)
 	if (jobs_name == "all" or "navier_stokes_taylor_couette_ar8" in jobs_name):
 		run_navier_stokes_taylor_couette(clp,8)
+
+	if (jobs_name == "all" or "navier_stokes_joukowski_ar4" in jobs_name):
+		run_navier_stokes_joukowski(clp,4)

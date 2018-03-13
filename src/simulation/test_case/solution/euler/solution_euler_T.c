@@ -76,7 +76,7 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
 		test_case->constructor_Error_CE         = constructor_Error_CE_euler_entropy;
-		test_case->constructor_Error_CE_functionals = constructor_Error_CE_functionals__cd_cl;
+		test_case->constructor_Error_CE_functionals = constructor_Error_CE_functionals__cl;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}

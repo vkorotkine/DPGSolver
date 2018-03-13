@@ -117,12 +117,6 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	else:
 		gmsh_setnumbers += '0'
 
-	gmsh_setnumbers += " -setnumber bc_exact "
-	if (mesh_name.find("/bc_exact/") != -1):
-		gmsh_setnumbers += '1'
-	else:
-		gmsh_setnumbers += '0'
-
 	gmsh_setnumbers += " -setnumber geom_conformal "
 	if (mesh_name.find("/conformal_half/") != -1):
 		gmsh_setnumbers += get_gmsh_number("geom_conformal_half",input_dir,0)
