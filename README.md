@@ -1,5 +1,33 @@
 # Discontinuous Petrov Galerkin Solver
 
+<table>
+	<tr>
+		<th>Branch</th>
+		<th>Version</th>
+		<th>Documentation</th>
+	</tr>
+	<tr>
+		<th>
+			<a href="https://github.com/PhilipZwanenburg/DPGSolver/tree/master">
+				master
+			</a>
+		</th>
+		<th>
+			<a href="https://badge.fury.io/">
+				<img src="https://badge.fury.io/gh/PhilipZwanenburg%2FDPGSolver.svg"
+				     title="version">
+			</a>
+		</th>
+		<th>
+			<a href="https://codedocs.xyz/PhilipZwanenburg/DPGSolver/">
+				<img src="https://codedocs.xyz/PhilipZwanenburg/DPGSolver.svg"
+				     title="documentation">
+			</a>
+		</th>
+	</tr>
+</table>
+
+
 ## Code Description
 - Methods:
 	- Discontinuous Galerkin (DG);
