@@ -1,14 +1,20 @@
 # Discontinuous Petrov Galerkin Solver
 
-## Contributors
+## Code Description
+- Methods:
+	- Discontinuous Galerkin (DG);
+	- Discontinuous Petrov Galerkin (DPG).
+- Supported Partial Differential Equations: Advection, Diffusion, Euler, Navier-Stokes.
+- Supported elements: LINEs, TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
+- Supported refinements: isotropic h (size) or p (order).
 
-Philip Zwanenburg, philip.zwanenburg@mail.mcgill.ca
+Note: An older version of the code can be found in the [deprecated directory](deprecated) which may
+still have features not yet re-implemented in the new version, notably the 3D hp-adaptation
+verification. The list of features that remains to be re-implemented can be found
+[here](todo_reimplementation.md).
 
-Siva Nadarajah, siva.nadarajah@mcgill.ca
-
-Cem Gormezano
-
-Manmeet Bhabra
+**It is recommened** to follow the [Coding Style Guidelines](STYLE.md) when making modifications to
+the code.
 
 ## Building/Running the Code
 
@@ -30,7 +36,8 @@ recommended to use a standard package manager for installing missing software wh
 (e.g. `apt` on ubuntu and `homebrew` on macOS) to limit package conflicts and place installed
 software in directories in the default search path.
 
-Three separate build directories are generated based on the supported problem dimensions in which the code can be run.
+Three separate build directories are generated based on the supported problem dimensions in which
+the code can be run.
 
 ### Compile using Make
 
@@ -41,9 +48,9 @@ BUILD$ make help
 
 Of primary interest are the following:
 ```sh
-BUILD$ make        // Compile the code.
+BUILD$ make -j     // Compile the code.
 BUILD$ make meshes // Generate the meshes.
-BUILD$ make doc    // Generate the Doxygen documentation.
+BUILD$ make -j doc // Generate the Doxygen documentation.
 ```
 
 The html documentation can be accessed by pointing a browser at `BUILD/doc/html/index.html`.
@@ -53,7 +60,7 @@ The html documentation can be accessed by pointing a browser at `BUILD/doc/html/
 Executable files running various configurations of the code are placed in `BUILD/bin`, and should be executed following
 the example in `$BUILD/script_files/quick.sh`. To run an executable with valgrind's memory leak detector enabled:
 ```sh
-BUILD/script_files$ sh memcheck.sh
+BUILD/script_files$ ./memcheck.sh
 ```
 
 ## Testing
@@ -79,54 +86,12 @@ BUILD$ ctest -R <regex> (Run tests matching regular expression)
 BUILD$ ctest -V (Enable verbose output from tests)
 ```
 
-## Code Description
-- Methods:
-	- Discontinuous Galerkin (DG);
-	- Hybridized Discontinuous Galerkin (HDG);
-	- Discontinuous Petrov Galerkin (DPG).
-- Supported elements: LINEs, TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
-- Supported refinements: isotropic h (size) or p (order).
+## Contributors
 
-**Please** follow the [Coding Style Guidelines](STYLE.md) when making modifications to the code.
-
-## Code Status
-
-### Test Cases
-| PDE           | Name             | Status |
-|---------------|------------------|--------|
-| Advection     | Default          | DONE   |
-|               | Peterson         | DONE   |
-| Diffusion     | Default          | DONE   |
-| Euler         | PeriodicVortex   | DONE   |
-|               | SupersonicVortex | DONE   |
-|               | InviscidChannel  | DONE   |
-| Navier-Stokes | Taylor-Couette   | DONE   |
-
-
-#### Supported Numerical Fluxes
-| Name           | Status |
-|----------------|------- |
-| Upwind         | DONE   |
-| Lax-Friedrichs | DONE   |
-| Roe-Pike       | DONE   |
-| Bassi-Rebay 2  | DONE   |
-| Compact DG 2   | DONE   |
-
-
-#### Supported Boundary Conditions
-| PDE           | Name                    | Status |
-|---------------|-------------------------|--------|
-| Advection     | Inflow                  | DONE   |
-|               | Outflow                 | DONE   |
-| Diffusion     | Dirichlet               | DONE   |
-|               | Neumann                 | DONE   |
-| Euler         | Riemann                 | DONE   |
-|               | SlipWall                | DONE   |
-|               | BackPressure            | DONE   |
-|               | Supersonic (In/Out)flow | DONE   |
-|               | Total Temp/Pressure     | DONE   |
-| Navier-Stokes | No Slip Dirichlet       | DONE   |
-|               | No Slip Adiabatic       | DONE   |
+- Manmeet Bhabra
+- Cem Gormezano
+- Siva Nadarajah, siva.nadarajah (at) mcgill.ca
+- Philip Zwanenburg, philip.zwanenburg (at) mail.mcgill.ca
 
 # License
 
