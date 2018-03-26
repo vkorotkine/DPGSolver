@@ -1,6 +1,6 @@
 Include "../parameters.geo";
 //mesh_level = -1; mesh_type = TRI; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_XYL;
-//mesh_level = 0; mesh_type = TRI; mesh_domain = BLENDED; pde_name = EULER; geom_adv = GEOM_ADV_XL;
+//mesh_level = 1; mesh_type = MIXED; mesh_domain = PARAMETRIC; pde_name = EULER; geom_adv = GEOM_ADV_XLR;
 
 // Geometry Specification
 l = 1;
@@ -87,6 +87,10 @@ ElseIf (pde_name == EULER)
 		Physical Line(bc_base+BC_SUPERSONIC_IN)  = {2001};
 		Physical Line(bc_base+BC_SUPERSONIC_OUT) = {2002};
 		Physical Line(bc_base+BC_SLIPWALL)       = {1001:1004}; // Can also try with Riemann
+	ElseIf (geom_adv == GEOM_ADV_XLR)
+		Physical Line(bc_base+BC_RIEMANN)  = {2001,2002};
+		Physical Line(bc_base+BC_SLIPWALL) = {1001:1004};
+//		Physical Line(bc_straight+BC_RIEMANN) = {1001:1004};
 	Else
 		Error("Unsupported geom_adv: %d",geom_adv); Exit;
 	EndIf

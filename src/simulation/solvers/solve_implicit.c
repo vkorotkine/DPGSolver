@@ -57,8 +57,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Flags for whether certain outputs are enabled.
 #define OUTPUT_PETSC_AB false ///< Flag for Petsc data containers.
 #define OUTPUT_SOLUTION false ///< Flag for solution data on each element.
-#define EXIT_ON_OUTPUT  false ///< Flag for whether the simulation should exit after outputting.
-#define OUTPUT_STEP     10    ///< Iteration step at which to output the solution if enabled.
+#define EXIT_ON_OUTPUT  true  ///< Flag for whether the simulation should exit after outputting.
+#define OUTPUT_STEP     0     ///< Iteration step at which to output the solution if enabled.
 ///\}
 
 /// \brief Constructor for the derived element and computational element lists.

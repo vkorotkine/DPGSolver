@@ -139,6 +139,11 @@ static int get_define (const char*const def_str, const char*const def_type)
 		else if (strcmp(def_str,"vortex")   == 0) def_i = ADVECTION_TYPE_VORTEX;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"boundary_perturb_type") == 0) {
+		if      (strcmp(def_str,"none")            == 0) def_i = BOUNDARY_PERTURB_TYPE_NONE;
+		else if (strcmp(def_str,"trigonometric_x") == 0) def_i = BOUNDARY_PERTURB_TYPE_TRIG_X;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",def_type);
 	}

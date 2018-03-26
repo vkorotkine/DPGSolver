@@ -151,13 +151,13 @@ void constructor_Boundary_Value_T_euler_riemann
 		} else { // Subsonic
 			Type uvw_t[] = { 0.0, 0.0, 0.0, };
 			if (real_T(Vn) < 0.0) { // Inlet
-				const Type s_r = sqrt_T(p_r[n]/pow_T(rho_r[n],GAMMA));
+				const Type s_r = p_r[n]/pow_T(rho_r[n],GAMMA);
+				rho[n] = pow_T(1.0/GAMMA*c*c/(s_r),1.0/GM1);
 				compute_Vt(data_n,Vn_r,uvw_r,uvw_t);
-				rho[n] = pow_T(1.0/GAMMA*c*c/(s_r*s_r),1.0/GM1);
 			} else { // Outlet
-				const Type s_l = sqrt_T(p_l[n]/pow_T(rho_l[n],GAMMA));
+				const Type s_l = p_l[n]/pow_T(rho_l[n],GAMMA);
+				rho[n] = pow_T(1.0/GAMMA*c*c/(s_l),1.0/GM1);
 				compute_Vt(data_n,Vn_l,uvw_l,uvw_t);
-				rho[n] = pow_T(1.0/GAMMA*c*c/(s_l*s_l),1.0/GM1);
 			}
 			compute_uvw(data_n,Vn,uvw_t,uvw);
 

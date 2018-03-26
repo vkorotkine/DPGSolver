@@ -24,4 +24,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define ADVECTION_TYPE_VORTEX 2 ///< See \ref compute_b_adv_vortex.
 ///\}
 
+///\{ \name Definitions for the available options for boundary solution perturbation.
+#define BOUNDARY_PERTURB_TYPE_NONE   1 ///< No perturbation.
+#define BOUNDARY_PERTURB_TYPE_TRIG_X 2 ///< Perturb with trigonometric function on x-coordinate boundaries.
+///\}
+
 #endif // DPG__definitions_solution_h__INCLUDED
