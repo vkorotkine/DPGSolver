@@ -58,6 +58,7 @@ struct Sol_Data__Advection {
 	compute_b_adv_fptr compute_b_adv; ///< \ref compute_b_adv_fptr.
 
 	double u_scale; ///< Scaling constant for the solution.
+	double u_coef_polynomial4[5]; ///< Coefficients for polynomial solution of maximal degree 4.
 };
 
 /** \brief Return the statically allocated \ref Sol_Data__Advection container.

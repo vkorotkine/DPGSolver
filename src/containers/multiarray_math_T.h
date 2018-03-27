@@ -151,3 +151,10 @@ void update_layout_Multiarray_Matrix_T
 	(struct Multiarray_Matrix_T* a, ///< The input multiarray.
 	 const char layout_o            ///< The desired output layout.
 	);
+
+/** \brief Version of \ref norm_T for a \ref Multiarray_T input.
+ *  \return See brief. */
+Type norm_Multiarray_T
+	(const struct Multiarray_T*const src, ///< See brief.
+	 const char*const norm_type           ///< See brief.
+	);

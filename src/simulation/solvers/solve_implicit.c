@@ -92,7 +92,7 @@ void solve_implicit (struct Simulation* sim)
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	test_case->solver_method_curr = 'i';
 
-	constructor_derived_elements_comp_elements(sim);     // destructed
+	constructor_derived_elements_comp_elements(sim); // destructed
 	for (int i_step = 0; ; ++i_step) {
 		const double max_rhs = implicit_step(i_step,sim);
 
@@ -209,6 +209,12 @@ static double implicit_step (const int i_step, const struct Simulation* sim)
 
 	printf("\tCompute rlhs.\n");
 	const double max_rhs = compute_rlhs(sim,ssi);
+
+	if (i_step == 0) {
+		struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
+		if (test_case->copy_initial_rhs)
+			copy_rhs(sim,ssi);
+	}
 
 	petsc_mat_vec_assemble(ssi);
 	if (OUTPUT_PETSC_AB)

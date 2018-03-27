@@ -76,7 +76,9 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	             "steady/taylor_couette",
 	             "steady/joukowski",
 	             "steady/default",
+	             "steady/free_stream",
 	             "steady/vortex",
+	             "default_steady",
 	            ]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
@@ -137,6 +139,7 @@ def get_gmsh_number_from_mesh_name (mesh_name,var_names,input_dir,with_underscor
 	param_file_name = input_dir+"/parameters.geo"
 
 	var_name = "gmsh_dummy"
+	found = False
 	for target in var_names:
 		target_name = target
 		if (with_underscore):
@@ -144,7 +147,9 @@ def get_gmsh_number_from_mesh_name (mesh_name,var_names,input_dir,with_underscor
 
 		if (mesh_name.find(target_name) != -1):
 			var_name = target.replace('/','_')
+			found = True
 			break
+	assert found, "Did not find the variable name in the mesh_name."
 
 	return get_gmsh_number(var_name,input_dir,with_underscore)
 

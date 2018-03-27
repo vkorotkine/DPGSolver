@@ -1,4 +1,4 @@
-/// Solution parameters for test case: advection/steady/supersonic_vortex
+/// Solution parameters for test case: advection/steady/vortex
 
 advection_type constant
 b_adv   1.0 0.0 0.0

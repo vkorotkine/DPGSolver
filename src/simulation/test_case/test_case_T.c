@@ -254,6 +254,7 @@ static void read_test_case_parameters (struct Test_Case_T* test_case, const stru
 
 		if (strstr(line,"display_progress")) read_skip_const_b(line,&test_case->display_progress);
 		if (strstr(line,"has_functional"))   read_skip_const_b(line,&test_case->has_functional);
+		if (strstr(line,"copy_initial_rhs")) read_skip_const_b(line,&test_case->copy_initial_rhs);
 
 		read_skip_string_count_const_d("exit_tol_e",  &count_tmp,line,&test_case->exit_tol_e);
 		read_skip_string_count_const_d("exit_ratio_e",&count_tmp,line,&test_case->exit_ratio_e);

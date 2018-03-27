@@ -1183,8 +1183,10 @@ static void set_face_adapt_type (struct Adaptive_Solver_Face* a_s_face)
 		a_s_face->adapt_type = ADAPT_H_REFINE;
 	else if (max_ml_d < s_face->ml)
 		a_s_face->adapt_type = ADAPT_H_COARSE;
+//	else if (s_vol_d->p_ref == s_face->p_ref && max_ml_d == s_face->ml) // Should not reach this point.
 	else
-		EXIT_ERROR("Did not find the adaptation type.");
+		EXIT_ERROR("Did not find the adaptation type (face: %d %d, vol: %d %d).",
+		           s_face->p_ref,s_face->ml,s_vol_d->p_ref,s_vol_d->ml);
 }
 
 static void swap_dominant_volume_if_necessary (struct Adaptive_Solver_Face* a_s_face)
@@ -2148,7 +2150,7 @@ static const struct const_Vector_i* constructor_cc0_vgc_fgc_indices
 		bool found = 0;
 		const double*const op_row = get_row_const_Matrix_d(i,cc0_vgc_fgc);
 		for (int j = 0; j < ext_1; ++j) {
-			if (equal_d(op_row[j],1.0,EPS)) {
+			if (equal_d(op_row[j],1.0,2e0*EPS)) {
 				found = 1;
 				inds->data[i] = j;
 				break;
@@ -2157,6 +2159,8 @@ static const struct const_Vector_i* constructor_cc0_vgc_fgc_indices
 		if (!found) {
 			printf("Did not find the column corresponding to the face coefficient for row: %d.\n",i);
 			print_const_Matrix_d(cc0_vgc_fgc);
+			for (int j = 0; j < ext_1; ++j)
+				printf("%d % .3e % .3e\n",j,op_row[j],op_row[j]-1.0);
 			EXIT_UNSUPPORTED;
 		}
 	}
@@ -2471,8 +2475,9 @@ static const struct const_Multiarray_d* constructor_coef_fg_vol_specified
 	const struct const_Multiarray_d*const geom_fg_min =
 		constructor_geom_fg(side_index_d,side_index,s_face,true,use_full_face); // destructed/moved
 
+	const int p_fg = compute_face_geometry_order(s_face);
 	const struct const_Multiarray_d* geom_fg = NULL;
-	if (s_vol->p_ref == compute_face_geometry_order(s_face)) {
+	if (s_vol->p_ref == p_fg) {
 		geom_fg = geom_fg_min; // destructed
 	} else {
 		const struct Operator*const vv0_fgc_fgc = get_operator__vv0_fgc_fgc(side_index,s_face);
@@ -2984,11 +2989,12 @@ static const struct Operator* get_operator__vv0_fgc_fgc (const int side_index, c
 {
 	const struct Face*const face            = (struct Face*) s_face;
 	const struct Volume* vol                = face->neigh_info[side_index].volume;
+	const struct Solver_Volume*const s_vol  = (struct Solver_Volume*) vol;
 	const struct Geometry_Element*const g_e = &((struct Solver_Element*)vol->element)->g_e;
 
 	const int ind_e = get_face_element_index(face),
 	          p_fg  = compute_face_geometry_order(s_face),
-	          p_f   = s_face->p_ref;
+	          p_f    = s_vol->p_ref;
 	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
 	assert(curved == 1);
 	assert(p_f == p_fg+1);

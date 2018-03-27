@@ -234,6 +234,12 @@ void update_layout_Multiarray_Matrix_T (struct Multiarray_Matrix_T* a, const cha
 	}
 }
 
+Type norm_Multiarray_T (const struct Multiarray_T*const src, const char*const norm_type)
+{
+	const ptrdiff_t n_entries = compute_size(src->order,src->extents);
+	return norm_T(n_entries,src->data,norm_type);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

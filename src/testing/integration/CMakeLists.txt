@@ -82,6 +82,19 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/TEST_non_conforming_mixe
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/TEST_non_conforming_unaligned_mixed_2d")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "RESULTS_euler_joukowski_full_dg_2D_ar4_iso")
 
+set (EXEC test_integration_free_stream)
+set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
+add_executable(${EXEC} ${EXEC}.c)
+target_link_libraries(${EXEC} ${LIBS_DEPEND})
+#set_target_properties(${EXEC} PROPERTIES COMPILE_FLAGS "-DTEST_FREE_STREAM") # TODO: Delete if unused.
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d__ml2__p3" "petsc_options_gmres_tol_1e-15")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_unaligned__ml2__p3" "petsc_options_gmres_tol_1e-15")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_trig_xl__ml2__p3" "petsc_options_gmres_tol_1e-15")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_non_conforming" "petsc_options_gmres_tol_1e-15")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_non_conforming_p2_iso" "petsc_options_gmres_tol_1e-15")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_non_conforming_p2_super" "petsc_options_gmres_tol_1e-15")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_non_conforming_p3_sol" "petsc_options_gmres_tol_1e-15") # Expected to be failing.
+
 # Potentially add test for equivalence between explicit/implicit computation of grad_coef.
 
 set (EXEC test_integration_conservation)

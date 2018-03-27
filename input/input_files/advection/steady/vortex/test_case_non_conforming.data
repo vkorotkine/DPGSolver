@@ -1,4 +1,4 @@
-/// Solver parameters for test case: euler/steady/supersonic_vortex
+/// Solver parameters for test case: advection/steady/vortex
 
 geom_parametrization radial_proj
 

@@ -4,3 +4,5 @@ density   1.0
 pressure  1.0
 mach      0.2
 theta_deg 0.0
+
+boundary_perturb_type none

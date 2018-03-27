@@ -267,9 +267,11 @@ static struct Multiarray_T* constructor_sol_free_stream_trig_x
 //		p[i]   = p_fs + mag*sin(scale*y[i]+shift);
 		p[i]   = pow(rho[i],GAMMA);
 #else
+UNUSED(v_fs);
+UNUSED(x);
 		rho[i] = rho_fs + mag*sin(scale*y[i]+shift);
 		p[i]   = p_fs;
-		const Type c = sqrt(GAMMA*p[i]/rho[i]);
+		const Type c = sqrt_T(GAMMA*p[i]/rho[i]);
 //		u[i]   = 2.0/GM1*c-5.4;
 		u[i]   = -2.0/GM1*c+6.4;
 #if TYPE_RC == TYPE_REAL

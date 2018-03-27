@@ -29,10 +29,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_flux_advection.h"
 #include "test_complex_numerical_flux_advection.h"
+#include "test_complex_test_case.h"
+
 #include "test_complex_solution_advection_default.h"
+#include "free_stream_advection/test_complex_solution_free_stream_advection.h"
 #include "peterson/test_complex_solution_peterson.h"
 #include "vortex_advection/test_complex_solution_vortex_advection.h"
-#include "test_complex_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 

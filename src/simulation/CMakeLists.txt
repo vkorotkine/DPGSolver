@@ -74,6 +74,7 @@ set	(SOURCE
 	 test_case/solution/solution.c
 	 test_case/solution/advection/solution_advection.c
 	 test_case/solution/advection/solution_advection_default.c
+	 test_case/solution/advection/free_stream_advection/solution_free_stream_advection.c
 	 test_case/solution/advection/peterson/solution_peterson.c
 	 test_case/solution/advection/vortex_advection/solution_vortex_advection.c
 	 test_case/solution/diffusion/solution_diffusion.c

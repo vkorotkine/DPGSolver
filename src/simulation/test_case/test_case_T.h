@@ -146,8 +146,11 @@ struct Test_Case_T {
 
 	// Miscellaneous parameters
 	const bool display_progress; ///< Flag for whether the solver progress should be displayed (in stdout).
-
 	const bool has_functional; ///< Flag for whether a functional error should be computed for the test case.
+
+	/** Flag for whether the rhs term computed from the initial state should be copied to the \ref Solver_Volume_T\*s.
+	 *  This is used to check free-stream preservation, for example. */
+	const bool copy_initial_rhs;
 };
 
 /** \brief Constructor for a \ref Test_Case_T.

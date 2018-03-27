@@ -37,6 +37,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define reinterpret_const_Multiarray_as_Matrix_T reinterpret_const_Multiarray_as_Matrix_d
 #define reinterpret_const_Matrix_as_Multiarray_T reinterpret_const_Matrix_as_Multiarray_d
 #define compute_extents_mm_MMa                   compute_extents_mm_MMa
+#define norm_Multiarray_T                        norm_Multiarray_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -60,6 +61,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define reinterpret_const_Multiarray_as_Matrix_T reinterpret_const_Multiarray_as_Matrix_c
 #define reinterpret_const_Matrix_as_Multiarray_T reinterpret_const_Matrix_as_Multiarray_c
 #define compute_extents_mm_MMa                   compute_extents_mm_MMa
+#define norm_Multiarray_T                        norm_Multiarray_c
 ///\}
 
 #endif

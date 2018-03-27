@@ -118,7 +118,7 @@ static void print_diff_geom
 static void check_face_geometry (const struct Simulation*const sim)
 {
 	bool pass = true;
-	const double tol = 4e3*EPS;
+	const double tol = 5e3*EPS;
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		const struct Face*const face = (struct Face*) curr;
 		if (face->boundary || !face->curved)

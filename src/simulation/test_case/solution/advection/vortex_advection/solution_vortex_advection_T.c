@@ -101,12 +101,20 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 			u[i] = sin(0.1*r);
 		}
 		break;
-	case ADVECTION_TYPE_CONST:
+	case ADVECTION_TYPE_CONST: {
+		const struct Sol_Data__Advection sol_data = get_sol_data_advection();
+		const double*c = sol_data.u_coef_polynomial4;
+		assert(c[0] != 0.0);
+
 		for (int i = 0; i < n_n; ++i) {
-			u[i] = sin(scale*y[i]);
+			u[i] = c[0]*1.0
+			     + c[1]*pow(y[i],1)
+			     + c[2]*pow(y[i],2)
+			     + c[3]*pow(y[i],3)
+			     + c[4]*pow(y[i],4);
 		}
 		break;
-	default:
+	} default:
 		EXIT_ERROR("Unsupported: %d\n",adv_type);
 		break;
 	}

@@ -1,4 +1,4 @@
-/// Solver parameters for test case: euler/steady/supersonic_vortex
+/// Solver parameters for test case: advection/steady/vortex
 
 geom_parametrization radial_proj
 
@@ -14,12 +14,13 @@ exit_tol_i   1e-15
 exit_ratio_i 1e-15
 
 display_progress 1
+copy_initial_rhs 1
 
 xyz_ve_refine:
 container Multiarray_d
 R 2 3 2
 1.0   1.0
-0.692 1.192
+0.596 1.192
 1.384 0.692
 
 xyz_ve_mesh_level:

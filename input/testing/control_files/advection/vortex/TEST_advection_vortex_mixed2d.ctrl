@@ -1,0 +1,42 @@
+pde_name  advection
+pde_spec  steady/vortex
+
+geom_name n-cylinder_hollow_section
+geom_spec geom_ar_2-5
+
+dimension 2
+
+mesh_generator   n-cylinder_hollow_section/2d.geo
+mesh_format      gmsh
+mesh_domain      parametric
+mesh_type        mixed
+mesh_level       1 3
+mesh_path        ../meshes/
+
+
+# Simulation variables
+
+#solution_extension vortex_1e-0
+solution_extension straight_1e-0
+test_case_extension non_conforming_hp
+
+interp_tp  GL
+interp_si  AO
+interp_pyr GLL
+
+basis_geom  lagrange
+basis_sol   lagrange
+
+geom_representation  isoparametric
+geom_blending_tp     gordon_hall
+geom_blending_si     szabo_babuska_gen
+
+p_ref    2 4
+
+fe_method 1
+
+
+# Testing variables
+
+ml_range_test 1 3
+p_range_test  2 4

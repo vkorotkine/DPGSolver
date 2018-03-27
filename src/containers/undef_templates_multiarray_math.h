@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef reinterpret_const_Multiarray_as_Matrix_T
 #undef reinterpret_const_Matrix_as_Multiarray_T
 #undef compute_extents_mm_MMa
+#undef norm_Multiarray_T
 
 
 #undef transpose_Multiarray_R

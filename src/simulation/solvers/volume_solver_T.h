@@ -69,6 +69,8 @@ struct Solver_Volume_T {
 
 	struct Vector_T* flux_imbalance; ///< The values of the flux imbalances for each equation.
 	struct Multiarray_T* l_mult; ///< The values of the Lagrange multipliers used to enforce conservation.
+
+	struct Multiarray_T* rhs; ///< The rhs terms.
 };
 
 /// \brief Constructor for a derived \ref Solver_Volume_T.

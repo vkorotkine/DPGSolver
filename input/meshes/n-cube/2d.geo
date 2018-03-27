@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_level = -1; mesh_type = TRI; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_XYL;
+//mesh_level = 2; mesh_type = MIXED; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_XL; geom_unaligned = 1;
 //mesh_level = 1; mesh_type = MIXED; mesh_domain = PARAMETRIC; pde_name = EULER; geom_adv = GEOM_ADV_XLR;
 
 // Geometry Specification
@@ -21,8 +21,17 @@ Line(2001) = {1,3};
 Line(2002) = {2,4};
 Line(2003) = {5,6};
 
-Transfinite Line{1001:1004} = 2^(mesh_level)+1   Using Progression 1;
-Transfinite Line{2001:2003} = 2^(mesh_level+1)+1 Using Progression 1;
+If (!geom_unaligned)
+	prog_spec = 1;
+Else
+	prog_spec = 1.1;
+EndIf
+
+
+Transfinite Line{1001:1002} = 2^(mesh_level)+1   Using Progression 1;
+Transfinite Line{2001:2002} = 2^(mesh_level+1)+1 Using Progression 1;
+Transfinite Line{2003}      = 2^(mesh_level+1)+1 Using Progression prog_spec;
+Transfinite Line{1003:1004} = 2^(mesh_level)+1   Using Progression prog_spec;
 
 Line Loop (4001) = {1001,2003,-1003,-2001};
 Line Loop (4002) = {1002,2002,-1004,-2003};
@@ -54,11 +63,16 @@ Else
 EndIf
 
 If (pde_name == ADVECTION)
-	If (geom_adv == GEOM_ADV_YL)
+	If (geom_adv == GEOM_ADV_XL)
+		Physical Line(bc_base+BC_INFLOW)       = {2001};
+		Physical Line(bc_base+BC_OUTFLOW)      = {2002};
+		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {1001,1002};
+		Physical Line(bc_base+BC_OUTFLOW_ALT2) = {1003,1004};
+	ElseIf (geom_adv == GEOM_ADV_YL)
 		Physical Line(bc_base+BC_INFLOW)       = {1001,1002};
 		Physical Line(bc_base+BC_OUTFLOW)      = {2001};
 		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {2002};
-		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {1003,1004};
+		Physical Line(bc_base+BC_OUTFLOW_ALT2) = {1003,1004};
 	ElseIf (geom_adv == GEOM_ADV_XYL)
 		Physical Line(bc_base+BC_INFLOW)       = {1001:1002};
 		Physical Line(bc_base+BC_INFLOW_ALT1)  = {2001};

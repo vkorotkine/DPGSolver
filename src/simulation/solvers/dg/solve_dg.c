@@ -177,6 +177,17 @@ void compute_flux_imbalances_dg (const struct Simulation*const sim)
 	compute_flux_imbalances_source_dg(sim);
 }
 
+void copy_rhs_dg (const struct Simulation*const sim)
+{
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume*const s_vol             = (struct Solver_Volume*) curr;
+		const struct DG_Solver_Volume*const dg_s_vol = (struct DG_Solver_Volume*) curr;
+
+		destructor_conditional_Multiarray_d(s_vol->rhs);
+		s_vol->rhs = constructor_copy_Multiarray_T(dg_s_vol->rhs); // keep
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

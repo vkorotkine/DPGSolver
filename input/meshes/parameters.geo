@@ -44,6 +44,8 @@ STEADY_PLANE_COUETTE          = 5;
 STEADY_TAYLOR_COUETTE         = 6;
 STEADY_JOUKOWSKI              = 7;
 STEADY_VORTEX                 = 8;
+STEADY_FREE_STREAM            = 9;
+DEFAULT_STEADY                = 100; // Replace with STEADY_DEFAULT.
 
 
 // GeomSpecifiers

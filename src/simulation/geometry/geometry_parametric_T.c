@@ -156,12 +156,12 @@ const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_x
 	    *const y = ( DIM > 1 ? get_col_Multiarray_R(1,xyz) : NULL ),
 	    *const z = ( DIM > 2 ? get_col_Multiarray_R(2,xyz) : NULL );
 
-	const Real dxyz = 0.05;
+	const Real dxyz = 0.05*8.0;
 	for (int n = 0; n < n_n; ++n) {
 		if (DIM == 2) {
 //			x[n] = x_i[n] + (1.0-x_i[n])/2.0*dxyz*sin(PI*y_i[n]) + 4e0*(1.0+x_i[n])/2.0;
-			x[n] = x_i[n] + (1.0-x_i[n])/2.0*8.0*dxyz*sin(PI*y_i[n]);
-			y[n] = y_i[n];
+			x[n] = x_i[n] + (1.0-x_i[n])/2.0*dxyz*sin(PI*y_i[n]);
+			y[n] = y_i[n] + cos(y_i[n]*PI/2.0)*dxyz/4.0*cos(x_i[n]*PI/2.0);
 		} else if (DIM == 3) {
 			EXIT_ADD_SUPPORT; UNUSED(z_i); UNUSED(z);
 		} else {

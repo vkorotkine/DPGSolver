@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_case.h"
 
 #include "solution_advection_default.h"
+#include "free_stream_advection/solution_free_stream_advection.h"
 #include "peterson/solution_peterson.h"
 #include "vortex_advection/solution_vortex_advection.h"
 
@@ -73,6 +74,8 @@ void read_data_advection (struct Sol_Data__Advection*const sol_data)
 		read_skip_convert_i(line,"advection_type",&advection_type,&count_found);
 		if (strstr(line,"u_scale"))
 			read_skip_d_1(line,1,&sol_data->u_scale,1);
+		if (strstr(line,"u_coef_polynomial4"))
+			read_skip_d_1(line,1,sol_data->u_coef_polynomial4,5);
 	}
 	fclose(input_file);
 
@@ -88,6 +91,7 @@ void read_data_advection (struct Sol_Data__Advection*const sol_data)
 
 const double* compute_b_adv_constant (const double*const xyz)
 {
+	UNUSED(xyz);
 	static bool need_input = true;
 	static double b_adv[DIM] = {0,};
 
@@ -112,7 +116,6 @@ const double* compute_b_adv_constant (const double*const xyz)
 			EXIT_ERROR("Did not find the required number of variables");
 	}
 
-	UNUSED(xyz);
 	return b_adv;
 }
 

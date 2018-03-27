@@ -130,6 +130,15 @@ double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implici
 	return max_rhs;
 }
 
+void copy_rhs (const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi)
+{
+	switch (sim->method) {
+		case METHOD_DG:  copy_rhs_dg(sim); break;
+		case METHOD_DPG: EXIT_ADD_SUPPORT; UNUSED(ssi); break;
+		default:         EXIT_ERROR("Unsupported: %d\n",sim->method); break;
+	}
+}
+
 void enforce_positivity_highorder (struct Solver_Volume* s_vol, const struct Simulation* sim)
 {
 	if (!test_case_requires_positivity((struct Test_Case*) sim->test_case_rc->tc))

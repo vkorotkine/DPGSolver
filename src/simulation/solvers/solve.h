@@ -74,6 +74,12 @@ double compute_rlhs
 	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
 	);
 
+/// \brief Copy the the rhs terms from to the base \ref Solver_Volume_T::rhs for all volumes.
+void copy_rhs
+	(const struct Simulation*const sim,       ///< \ref Simulation.
+	 struct Solver_Storage_Implicit*const ssi ///< \ref Solver_Storage_Implicit.
+	);
+
 /** \brief Enforce physical constraints on the unknowns if required.
  *
  *  This routine guarantees that the density and pressure are everywhere positive within the volume using a
