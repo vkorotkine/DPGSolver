@@ -194,7 +194,7 @@ void compute_geometry_volume_T
 		ops.vv0_vm_vc,met_vm,(struct Multiarray_R*)s_vol->metrics_vc,op_format,met_vm->order,NULL,NULL);
 }
 
-void compute_geometry_face_T (struct Solver_Face_T* s_face, struct Simulation* sim)
+void compute_geometry_face_T (struct Solver_Face_T* s_face, const struct Simulation*const sim)
 {
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	UNUSED(sim);

@@ -55,7 +55,8 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 /** Flag for whether \ref correct_non_conforming_geometry should be executed.
- *  **This should only be disabled for comparative testing purposes.** */
+ *  **This should only be disabled for comparative testing purposes.** See non-conforming and geometry related tests for
+ *  additional relevant comments. */
 #define CORRECT_NON_CONFORMING_GEOMETRY true
 
 /** \brief Return the maximum number of global adaptation calls which must be made in order to achieve the adaptation
@@ -415,6 +416,7 @@ static void destruct_unused_computational_elements (struct Simulation* sim)
 		case ADAPT_P_REFINE: // fallthrough
 		case ADAPT_P_COARSE: // fallthrough
 		case ADAPT_H_CREATE:
+		case ADAPT_GEOM:
 			break; // Do nothing.
 		case ADAPT_H_COARSE:
 			EXIT_ADD_SUPPORT; // Remove children (pass NULL instead of curr in destruct_fully_...)
@@ -1487,7 +1489,7 @@ static void correct_non_conforming_geometry (const struct Simulation*const sim)
 		return;
 
 	/** Correct sequentially all volumes for each mesh level such that it can always be assumed that the geometry
-	 * from coarser (dominant for geometry) volumes is correct. */
+	 *  from coarser (dominant for geometry) volumes is correct. */
 	for (int ml = ML_MIN; ml < ML_MAX; ++ml) {
 		for (int ml_type = 0; ml_type < 2; ++ml_type) {
 			const char ml_vf = ( ml_type == 0 ? 'f' : 'v' );
@@ -1512,6 +1514,21 @@ static void correct_non_conforming_geometry (const struct Simulation*const sim)
 		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
 		correct_internal_xyz_blended(s_vol,sim);
 		compute_geometry_volume(false,s_vol,sim);
+	}
+
+	// Mark conforming faces, requiring geometry updating if currently marked with ADAPT_NONE.
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		const struct Face*const face = (struct Face*) curr;
+		const struct Adaptive_Solver_Volume*const a_s_vol[2] =
+			{ (struct Adaptive_Solver_Volume*) face->neigh_info[0].volume,
+                    (struct Adaptive_Solver_Volume*) face->neigh_info[1].volume, };
+		struct Adaptive_Solver_Face*const a_s_face = (struct Adaptive_Solver_Face*) curr;
+
+		if (a_s_face->adapt_type != ADAPT_NONE)
+			continue;
+
+		if (a_s_vol[0]->updated_geom_nc || (!face->boundary && a_s_vol[1]->updated_geom_nc))
+			a_s_face->adapt_type = ADAPT_GEOM;
 	}
 }
 
@@ -2150,7 +2167,7 @@ static const struct const_Vector_i* constructor_cc0_vgc_fgc_indices
 		bool found = 0;
 		const double*const op_row = get_row_const_Matrix_d(i,cc0_vgc_fgc);
 		for (int j = 0; j < ext_1; ++j) {
-			if (equal_d(op_row[j],1.0,2e0*EPS)) {
+			if (equal_d(op_row[j],1.0,4e0*EPS)) {
 				found = 1;
 				inds->data[i] = j;
 				break;

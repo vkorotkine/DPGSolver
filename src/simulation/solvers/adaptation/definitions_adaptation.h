@@ -43,6 +43,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define ADAPT_H_CREATE  111
 #define ADAPT_H_DESTROY 112
+
+#define ADAPT_GEOM 120 ///< Neither adapted in h or p, but requiring geometry update.
 ///\}
 
 ///\{ \name Supported adaptation strategies for the entire domain.

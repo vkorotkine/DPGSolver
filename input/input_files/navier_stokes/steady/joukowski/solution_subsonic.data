@@ -1,5 +1,7 @@
 /// Solution parameters for test case: navier_stokes/steady/joukowski_symmetric
 
+boundary_perturb_type none
+
 density   1.0
 pressure  1.0
 mach      0.2

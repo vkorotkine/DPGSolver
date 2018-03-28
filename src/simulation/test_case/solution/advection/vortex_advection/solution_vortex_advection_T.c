@@ -98,7 +98,8 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 	case ADVECTION_TYPE_VORTEX:
 		for (int i = 0; i < n_n; ++i) {
 			const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]);
-			u[i] = sin(0.1*r);
+//			u[i] = scale*sin(0.1*r)*cos(0.3*r);
+			u[i] = 1.0;
 		}
 		break;
 	case ADVECTION_TYPE_CONST: {

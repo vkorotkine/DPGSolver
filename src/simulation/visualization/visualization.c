@@ -55,7 +55,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define VIS_SOFTWARE_PARAVIEW 11 ///< Paraview.
 ///\}
 
-/// \brief Output the visualization of the specified output in a format suitable for Paraview.
+/** \brief Output the visualization of the specified output in a format suitable for Paraview.
+ *
+ *  The "Find Data using Queries" feature is particularly useful for debugging. It allows one to find, for example, all
+ *  volumes having indices equal to specified values.
+ */
 static void output_visualization_paraview
 	(const struct Simulation* sim, ///< \ref Simulation.
 	 const int vis_type            ///< The type of visualization. Options: see \ref definitions_visualization.h.
@@ -116,6 +120,13 @@ static void output_visualization_paraview (const struct Simulation* sim, const i
 
 // Level 1 ********************************************************************************************************** //
 
+/// \brief Container for volume related data.
+struct Volume_Data_Vis {
+	int index, ///< \ref Volume::index.
+	    p_ref, ///< \ref Solver_Volume_T::p_ref.
+	    ml;    ///< \ref Solver_Volume_T::ml.
+};
+
 /** \brief Set the output file name specific to the visualization under consideration.
  *  \return The output name (no free needed). */
 const char* set_output_name
@@ -167,7 +178,8 @@ static void fprint_vtk_piece_sol_grad
 	 const struct const_Multiarray_d*const sol,  ///< The solution variables          (required for 's'erial, 's'tart).
 	 const struct const_Multiarray_d*const grad, ///< The solution gradient variables (required for 's'erial, 's'tart).
 	 const struct const_Plotting_Nodes* p_nodes, ///< \ref Plotting_Nodes (required for 's'erial, 's'tart).
-	 const int pde_index                         ///< \ref Test_Case_T::pde_index.
+	 const int pde_index,                        ///< \ref Test_Case_T::pde_index.
+	 const struct Volume_Data_Vis*const vdv      ///< \ref Volume_Data_Vis.
 	);
 
 static void output_visualization_vtk_geom
@@ -281,7 +293,7 @@ static void output_visualization_vtk_sol (const struct Simulation* sim)
 
 		fprint_vtk_header_footer(p_file,true,'h',"UnstructuredGrid");
 
-		fprint_vtk_piece_sol_grad(p_file,'p','s',NULL,NULL,NULL,NULL,test_case->pde_index);
+		fprint_vtk_piece_sol_grad(p_file,'p','s',NULL,NULL,NULL,NULL,test_case->pde_index,NULL);
 
 		for (int i = 0; i < sim->mpi_size; ++i)
 			fprintf(p_file,"<Piece Source=\"%s_%d.vtu\"/>\n",extract_name(output_part,false),i);
@@ -324,8 +336,10 @@ static void output_visualization_vtk_sol (const struct Simulation* sim)
 		const struct const_Multiarray_d*const grad_p = ( !test_case->has_2nd_order ? NULL :
 			constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vr_vp,r_coef,'C','d',r_coef->order,NULL)); // dest.
 
-		fprint_vtk_piece_sol_grad(s_file,'s','s',xyz_p,sol_p,grad_p,p_e->p_nodes[p],test_case->pde_index);
-		fprint_vtk_piece_sol_grad(s_file,'s','e',NULL,NULL,NULL,NULL,test_case->pde_index);
+		const struct Volume_Data_Vis vdv = { .index = vol->index, .p_ref = s_vol->p_ref, .ml = s_vol->ml, };
+
+		fprint_vtk_piece_sol_grad(s_file,'s','s',xyz_p,sol_p,grad_p,p_e->p_nodes[p],test_case->pde_index,&vdv);
+		fprint_vtk_piece_sol_grad(s_file,'s','e',NULL,NULL,NULL,NULL,test_case->pde_index,NULL);
 
 		destructor_const_Multiarray_d(xyz_p);
 		destructor_const_Multiarray_d(sol_p);
@@ -363,11 +377,30 @@ void fprint_vtk_DataArray_d
 	 const char data_type                   ///< The type of data. Options: 'v'ector, 's'calar.
 	);
 
+/// \brief `int` version of \ref fprint_vtk_DataArray_d.
+void fprint_vtk_DataArray_i
+	(FILE* file,                            ///< See brief.
+	 const char sp_type,                    ///< See brief.
+	 const char*const data_name,            ///< See brief.
+	 const struct const_Multiarray_i* data, ///< See brief.
+	 const bool include_hf,                 ///< See brief.
+	 const char data_type                   ///< See brief.
+	);
+
 /// \brief Print the solution data of a scalar (advection/diffusion) piece to the file.
 static void fprint_vtk_piece_sol_scalar
-	(FILE* file,                          ///< Defined for \ref fprint_vtk_piece_sol_grad.
-	 const char sp_type,                  ///< Defined for \ref fprint_vtk_piece_sol_grad.
-	 const struct const_Multiarray_d* sol ///< Defined for \ref fprint_vtk_piece_sol_grad.
+	(FILE* file,                           ///< Defined for \ref fprint_vtk_piece_sol_grad.
+	 const char sp_type,                   ///< Defined for \ref fprint_vtk_piece_sol_grad.
+	 const struct const_Multiarray_d* sol, ///< Defined for \ref fprint_vtk_piece_sol_grad.
+	 const char*const data_name            ///< Name to be associated with the data array.
+	);
+
+/// \brief `int` version of \ref fprint_vtk_piece_sol_scalar.
+static void fprint_vtk_piece_sol_scalar_i
+	(FILE* file,                           ///< See brief.
+	 const char sp_type,                   ///< See brief.
+	 const struct const_Multiarray_i* sol, ///< See brief.
+	 const char*const data_name            ///< See brief.
 	);
 
 /// \brief Print the solution gradient data of a scalar (advection/diffusion) piece to the file.
@@ -534,7 +567,7 @@ static void fprint_vtk_piece_normals
 static void fprint_vtk_piece_sol_grad
 	(FILE* file, const char sp_type, const char se_type, const struct const_Multiarray_d*const xyz,
 	 const struct const_Multiarray_d*const sol, const struct const_Multiarray_d*const grad,
-	 const struct const_Plotting_Nodes* p_nodes, const int pde_index)
+	 const struct const_Plotting_Nodes* p_nodes, const int pde_index, const struct Volume_Data_Vis*const vdv)
 {
 	assert(sp_type == 's' || sp_type == 'p');
 	assert(se_type == 's' || se_type == 'e');
@@ -549,12 +582,15 @@ static void fprint_vtk_piece_sol_grad
 			fprintf_tn(file,1,"</PCells>");
 
 			fprintf_tn(file,1,"<PPointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
+			fprint_vtk_piece_sol_scalar(file,sp_type,NULL,"index");
+			fprint_vtk_piece_sol_scalar(file,sp_type,NULL,"p_ref");
+			fprint_vtk_piece_sol_scalar(file,sp_type,NULL,"ml");
 			switch (pde_index) {
 			case PDE_ADVECTION:
-				fprint_vtk_piece_sol_scalar(file,sp_type,sol);
+				fprint_vtk_piece_sol_scalar(file,sp_type,sol,"u");
 				break;
 			case PDE_DIFFUSION:
-				fprint_vtk_piece_sol_scalar(file,sp_type,sol);
+				fprint_vtk_piece_sol_scalar(file,sp_type,sol,"u");
 				fprint_vtk_piece_grad_scalar(file,sp_type,grad);
 				break;
 			case PDE_EULER:
@@ -598,12 +634,27 @@ static void fprint_vtk_piece_sol_grad
 			fprintf_tn(file,1,"</Cells>");
 
 			fprintf_tn(file,1,"<PointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
+
+			struct Multiarray_i*const data_i =
+				constructor_empty_Multiarray_i(sol->layout,sol->order,sol->extents); // destructed
+
+			set_to_value_Multiarray_i(data_i,vdv->index);
+			fprint_vtk_piece_sol_scalar_i(file,sp_type,(struct const_Multiarray_i*)data_i,"index");
+
+			set_to_value_Multiarray_i(data_i,vdv->p_ref);
+			fprint_vtk_piece_sol_scalar_i(file,sp_type,(struct const_Multiarray_i*)data_i,"p_ref");
+
+			set_to_value_Multiarray_i(data_i,vdv->ml);
+			fprint_vtk_piece_sol_scalar_i(file,sp_type,(struct const_Multiarray_i*)data_i,"ml");
+
+			destructor_Multiarray_i(data_i);
+
 			switch (pde_index) {
 			case PDE_ADVECTION:
-				fprint_vtk_piece_sol_scalar(file,sp_type,sol);
+				fprint_vtk_piece_sol_scalar(file,sp_type,sol,"u");
 				break;
 			case PDE_DIFFUSION:
-				fprint_vtk_piece_sol_scalar(file,sp_type,sol);
+				fprint_vtk_piece_sol_scalar(file,sp_type,sol,"u");
 				fprint_vtk_piece_grad_scalar(file,sp_type,grad);
 				break;
 			case PDE_EULER:
@@ -633,6 +684,14 @@ void fprint_const_Multiarray_d_vtk_point
 	 const int n_tab,                    ///< The number of tabs.
 	 const struct const_Multiarray_d* a, ///< Standard.
 	 const char data_type                ///< Defined for \ref fprint_vtk_DataArray_d.
+	);
+
+/// \brief `int` version of \ref fprint_const_Multiarray_d_vtk_point.
+void fprint_const_Multiarray_i_vtk_point
+	(FILE* file,                         ///< See brief.
+	 const int n_tab,                    ///< See brief.
+	 const struct const_Multiarray_i* a, ///< See brief.
+	 const char data_type                ///< See brief.
 	);
 
 void fprint_vtk_Points (FILE* file, const char sp_type, const struct const_Multiarray_d* xyz)
@@ -685,6 +744,32 @@ void fprint_vtk_DataArray_d
 		fprintf(file,"\t</%s>\n",pointdata_name);
 }
 
+void fprint_vtk_DataArray_i
+	(FILE* file, const char sp_type, const char*const data_name, const struct const_Multiarray_i* data,
+	 const bool include_hf, const char data_type)
+{
+	assert(sp_type == 's' || sp_type == 'p');
+	assert(data_type == 's');
+
+	static char pointdata_name[STRLEN_MIN] = { 0, };
+	if (include_hf) {
+		if (sp_type == 's')
+			strcpy(pointdata_name,"PointData");
+		else
+			sprintf(pointdata_name,"%c%s",'P',"PointData");
+		fprintf(file,"\t<%s Vectors=\"%s\">\n",pointdata_name,data_name);
+	}
+
+	if (data_type == 's')
+		fprintf(file,"\t\t<DataArray type=\"Int32\" Name=\"%s\" format=\"ascii\">\n",data_name);
+	if (sp_type == 's')
+		fprint_const_Multiarray_i_vtk_point(file,2,data,data_type);
+	fprintf_tn(file,2,"</DataArray>");
+
+	if (include_hf)
+		fprintf(file,"\t</%s>\n",pointdata_name);
+}
+
 void fprint_const_Multiarray_Vector_i_offsets (FILE* file, const int n_tab, const struct const_Multiarray_Vector_i* a)
 {
 	const ptrdiff_t size = compute_size(a->order,a->extents);
@@ -699,14 +784,27 @@ void fprint_const_Multiarray_Vector_i_offsets (FILE* file, const int n_tab, cons
 	destructor_Vector_i(a_V);
 }
 
-static void fprint_vtk_piece_sol_scalar (FILE* file, const char sp_type, const struct const_Multiarray_d* sol)
+static void fprint_vtk_piece_sol_scalar
+	(FILE* file, const char sp_type, const struct const_Multiarray_d* sol, const char*const data_name)
 {
 	if (sp_type == 'p') {
-		fprint_vtk_DataArray_d(file,sp_type,"u",NULL,false,'s');
+		fprint_vtk_DataArray_d(file,sp_type,data_name,NULL,false,'s');
 	} else if (sp_type == 's') {
 		assert(sol->extents[1] == 1);
+		fprint_vtk_DataArray_d(file,sp_type,data_name,sol,false,'s');
+	} else {
+		EXIT_ERROR("Unsupported: %c\n",sp_type);
+	}
+}
 
-		fprint_vtk_DataArray_d(file,sp_type,"u",sol,false,'s');
+static void fprint_vtk_piece_sol_scalar_i
+	(FILE* file, const char sp_type, const struct const_Multiarray_i* sol, const char*const data_name)
+{
+	if (sp_type == 'p') {
+		fprint_vtk_DataArray_i(file,sp_type,data_name,NULL,false,'s');
+	} else if (sp_type == 's') {
+		assert(sol->extents[1] == 1);
+		fprint_vtk_DataArray_i(file,sp_type,data_name,sol,false,'s');
 	} else {
 		EXIT_ERROR("Unsupported: %c\n",sp_type);
 	}
@@ -871,6 +969,45 @@ void fprint_const_Multiarray_d_vtk_point
 		assert(ext_1 == 1);
 
 		const double* data = a->data;
+
+		bool new_line = true;
+		for (ptrdiff_t i = 0; i < ext_0; ++i) {
+			if (new_line) {
+				for (int j = 0; j < n_tab; ++j)
+					fprintf(file,"\t");
+				new_line = false;
+			}
+
+			fprintf(file,print_format_d,data[i]);
+
+			if ((i+1)%8 == 0 || (i == ext_0-1)) {
+				fprintf(file,"\n");
+				new_line = true;
+			}
+		}
+	} else {
+		EXIT_ERROR("Unsupported: %c.\n",data_type);
+	}
+}
+
+void fprint_const_Multiarray_i_vtk_point
+	(FILE* file, const int n_tab, const struct const_Multiarray_i* a, const char data_type)
+{
+	assert(data_type == 's');
+
+	const int order               = a->order;
+	const ptrdiff_t*const extents = a->extents;
+
+	assert(order == 2);
+
+	const ptrdiff_t ext_0 = extents[0],
+	                ext_1 = extents[1];
+
+	static const char*const print_format_d = " % 3d";
+	if (data_type == 's') {
+		assert(ext_1 == 1);
+
+		const int* data = a->data;
 
 		bool new_line = true;
 		for (ptrdiff_t i = 0; i < ext_0; ++i) {

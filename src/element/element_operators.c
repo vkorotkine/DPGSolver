@@ -128,6 +128,12 @@ static void set_up_values_op
 	(struct Operator_Info* op_info ///< \ref Operator_Info.
 	);
 
+/** \brief Extract and return the geometry degree from \ref Simulation::geom_rep when it contains "fixed".
+ *  \return See brief. */
+static int extract_p_g_fixed
+	(const char* geom_rep ///< \ref Simulation::geom_rep.
+	);
+
 /// \brief Transpose the computed operators.
 static void transpose_operators
 	(struct Multiarray_Operator* op ///< Multiarray of operators.
@@ -471,7 +477,7 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 		else if (strcmp(sim->geom_rep,"superparametric2") == 0)
 			return p_s+2;
 		else if (strstr(sim->geom_rep,"fixed"))
-			EXIT_ADD_SUPPORT; // Find number in geom_rep (use something similar to 'convert_to_range_d').
+			return extract_p_g_fixed(sim->geom_rep);
 		else
 			EXIT_ERROR("Unsupported: %s\n",sim->geom_rep);
 		break;
@@ -1042,6 +1048,29 @@ static void set_up_values_op (struct Operator_Info* op_info)
 
 	op_info->values_op = (const struct const_Matrix_i*) values;
 }
+
+static int extract_p_g_fixed (const char* geom_rep)
+{
+	static int p_g = -1;
+	static bool requires_extract = true;
+	if (requires_extract) {
+		requires_extract = false;
+
+		long p = -1;
+		for (char* char_end = NULL; *geom_rep; ++geom_rep) {
+			if (isdigit(*geom_rep)) {
+				p = strtol(geom_rep,&char_end,10);
+				break;
+			}
+		}
+
+		assert(p >= 1);
+		assert(p <= 10); // Can be made flexible if necessary.
+		p_g = (int) p;
+	}
+	return p_g;
+}
+
 
 static void transpose_operators (struct Multiarray_Operator* op)
 {

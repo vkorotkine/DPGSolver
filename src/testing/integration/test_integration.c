@@ -300,7 +300,8 @@ void adapt_initial_mesh_if_required (struct Simulation*const sim)
 		adapt_hp(sim,ADAPT_S_H_COARSE,NULL);
 
 	destructor_const_Multiarray_d(adapt_data.xyz_ve_refine);
-	destructor_const_Vector_i(adapt_data.xyz_ve_ml);
+	destructor_conditional_const_Vector_i(adapt_data.xyz_ve_ml);
+	destructor_conditional_const_Vector_i(adapt_data.xyz_ve_p);
 }
 
 // Static functions ************************************************************************************************* //

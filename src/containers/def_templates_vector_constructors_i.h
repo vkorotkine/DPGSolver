@@ -38,6 +38,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define const_constructor_move_Vector_T            const_constructor_move_Vector_i
 #define const_constructor_move_const_Vector_T      const_constructor_move_const_Vector_i
 
-#define destructor_Vector_T       destructor_Vector_i
-#define destructor_const_Vector_T destructor_const_Vector_i
+#define destructor_Vector_T                   destructor_Vector_i
+#define destructor_const_Vector_T             destructor_const_Vector_i
+#define destructor_conditional_Vector_T       destructor_conditional_Vector_i
+#define destructor_conditional_const_Vector_T destructor_conditional_const_Vector_i
 ///\}

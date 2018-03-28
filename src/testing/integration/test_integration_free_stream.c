@@ -31,10 +31,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include "const_cast.h"
 #include "core.h"
 #include "math_functions.h"
 #include "simulation.h"
 #include "solve.h"
+#include "test_case.h"
 #include "visualization.h"
 
 // Static function declarations ************************************************************************************* //
@@ -61,16 +63,26 @@ static void check_free_stream
  *  "well-constructed" mesh is also made by Kopriva (which can be tested using \ref test_integration_non_conforming.c).
  *
  *
- *  From preliminary testing, neither the well constructed mesh (\ref CORRECT_NON_CONFORMING_GEOMETRY set to `true`),
- *  nor the use of a geometry order not higher than the solution order (i.e. not superparametric geometry) assumptions
- *  were required for this test to pass; these requirements are discussed by Kopriva (Assumption for Theorem 2 and
- *  Theorem 3, \cite Kopriva2006).
+ *  The following conclusions are noted from preliminary testing using a constant exact solution:
+ *  - The assumption of a well constructed mesh (\ref CORRECT_NON_CONFORMING_GEOMETRY set to `true`; assumption for
+ *    Theorem 2, \cite Kopriva2006) is required for this test to pass.
+ *  - The assumption that the geometry order must not be higher than the solution order (Assumption for Theorem 3,
+ *    \cite Kopriva2006) is required if the cubature order is limited to 2p. In 2D, using superparametric geometry of
+ *    one order higher (p_g = p_s+1) and GL face cubature results in the special case of still obtaining exact
+ *    integration (as GL integrates to 2p+1) and consequently satisfying the weak metric identity. Note that using any
+ *    higher geometry order requires an increased cubature order for this test to pass.
  *
- *  Further, it is noted that computed residual updates were zero (i.e. the test below passed) whenever the exact
- *  solution was of a degree less than or equal to the minimum polynomial degree in all volumes across the mesh. This
- *  can perhaps be interpreted as a high-order free-stream preservation.
+ *  The conclusions above remained valid on general non-conforming hp-adapted meshes (i.e. non-conforming in both h and
+ *  p).
  *
- *  \todo update comments after more testing.
+ *  "high-order" free-stream preservation (using an exact solution which is not a constant) is not achieved for the
+ *  current implementation, even when the cubature is exact. This implies, for example, that the exact solution given by
+ *  a linear profile advected along a constant advection field cannot be **exactly** represented by implementation.
+ *  However, it was observed that the infinity norm of the residual for the linear advection equation was converging
+ *  asymptotically at a rate of \f$O(h^{p+2})\f$. Noting that the lhs matrix is on the order of \f$O(h^{1})\f$, this
+ *  implies that the computed solution update is converging at \f$O(h^{-1}) O(h^{p+2}) = O(h^{p+1})\f$, the optimal
+ *  rate, which can be observed when running the convergence order test for the same mesh as used for the free-stream
+ *  preservation test.
  */
 int main
 	(int argc,   ///< Standard.
@@ -99,6 +111,9 @@ int main
 	struct Simulation* sim = NULL;
 	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,'r'); // destructed
 
+	struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
+	const_cast_b(&test_case->copy_initial_rhs,true);
+
 	solve_for_solution(sim);
 
 	output_visualization(sim,VIS_GEOM_EDGES);
@@ -121,6 +136,9 @@ static void check_free_stream (struct Test_Info*const test_info, const struct Si
 	UNUSED(test_info);
 	bool pass = true;
 	const double tol = 2e1*EPS;
+
+	struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
+	assert(test_case->copy_initial_rhs == true);
 
 	double max_norm_rhs = 0.0;
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {

@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "adaptation.h"
+#include "geometry.h"
 #include "intrusive.h"
 #include "multiarray_operator.h"
 #include "operator.h"
@@ -41,7 +42,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Compare the values of the geometry nodes on all faces.
+/** \brief Compare the values of the geometry related parameters on all faces.
+ *
+ *  The non-conformity correction is tested based on matching geometry nodes on all faces when interpolated from the
+ *  volume on either side of the face. The currently stored normal vector is compared with the recomputed normal vector
+ *  to ensure that conforming faces were updated if required.
+ */
 static void check_face_geometry
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
@@ -112,7 +118,8 @@ int main
 static void print_diff_geom
 	(const struct Face*const face,                     ///< \ref Face.
 	 const struct const_Multiarray_d*const geom_fg[2], ///< Face Geometry values interpolated from each volume.
-	 const double tol                                  ///< The tolerance for the difference check.
+	 const double tol,                                 ///< The tolerance for the difference check.
+	 const char*const diff_name                        ///< Name to be displayed while printing differences.
 	);
 
 static void check_face_geometry (const struct Simulation*const sim)
@@ -120,11 +127,25 @@ static void check_face_geometry (const struct Simulation*const sim)
 	bool pass = true;
 	const double tol = 5e3*EPS;
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		const struct Face*const face = (struct Face*) curr;
+		const struct Face*const face    = (struct Face*) curr;
+		struct Solver_Face*const s_face = (struct Solver_Face*) curr;
+
+		// Check normals
+		const struct const_Multiarray_d* normals_fc[2] =
+			{ constructor_copy_const_Multiarray_d(s_face->normals_fc), // destructed
+			  NULL, };
+		compute_geometry_face(s_face,sim);
+		normals_fc[1] = s_face->normals_fc;
+
+		if (diff_const_Multiarray_d(normals_fc[0],normals_fc[1],tol)) {
+			pass = false;
+			print_diff_geom(face,normals_fc,tol,"normals");
+		}
+		destructor_const_Multiarray_d(normals_fc[0]);
+
+		// Check matching non-conforming geometry
 		if (face->boundary || !face->curved)
 			continue;
-
-		const struct Solver_Face*const s_face = (struct Solver_Face*) curr;
 
 		const struct const_Multiarray_d* geom_fg[2] = {NULL,};
 		for (int i = 0; i < 2; ++i)
@@ -132,7 +153,7 @@ static void check_face_geometry (const struct Simulation*const sim)
 
 		if (diff_const_Multiarray_d(geom_fg[0],geom_fg[1],tol)) {
 			pass = false;
-			print_diff_geom(face,geom_fg,tol);
+			print_diff_geom(face,geom_fg,tol,"geom");
 		}
 
 		for (int i = 0; i < 2; ++i)
@@ -144,8 +165,10 @@ static void check_face_geometry (const struct Simulation*const sim)
 // Level 1 ********************************************************************************************************** //
 
 static void print_diff_geom
-	(const struct Face*const face, const struct const_Multiarray_d*const geom_fg[2], const double tol)
+	(const struct Face*const face, const struct const_Multiarray_d*const geom_fg[2], const double tol,
+	 const char*const diff_name)
 {
+	printf("\n\n\ndiff: %s\n\n",diff_name);
 	for (int i = 0; i < 2; ++i) {
 		const struct Volume*const vol          = face->neigh_info[i].volume;
 		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) vol;

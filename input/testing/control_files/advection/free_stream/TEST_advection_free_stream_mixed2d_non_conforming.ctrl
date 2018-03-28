@@ -16,7 +16,7 @@ mesh_path        ../meshes/
 
 # Simulation variables
 
-test_case_extension non_conforming
+test_case_extension non_conforming_hp
 
 interp_tp  GL
 interp_si  WSH
@@ -25,11 +25,12 @@ interp_pyr GLL
 basis_geom  lagrange
 basis_sol   lagrange
 
-geom_representation  isoparametric
+geom_representation  superparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
 p_ref    2 4
+p_cub_p  0 0
 
 fe_method 1
 
