@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_solution_advection_default.h"
 #include "peterson/def_templates_solution_advection_peterson.h"
+#include "free_stream_advection/def_templates_solution_free_stream_advection.h"
+#include "vortex_advection/def_templates_solution_vortex_advection.h"
 
 #if TYPE_RC == TYPE_REAL
 

@@ -22,7 +22,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "flux.h"
+#include "math_functions.h"
 #include "simulation.h"
+#include "solution_advection.h"
 #include "test_case.h"
 
 #include "test_complex_test_case.h"

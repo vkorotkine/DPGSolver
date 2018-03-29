@@ -21,7 +21,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "boundary.h"
 
+#include "math_functions.h"
 #include "simulation.h"
+#include "solution_advection.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //

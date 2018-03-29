@@ -113,6 +113,7 @@ If (pde_name == NAVIER_STOKES)
 		Physical Line (bc_curved+BC_NOSLIP_DIABATIC) = {1005:1008};
 	Else
 		Error("Unsupported geom_bc: %d",geom_bc); Exit;
+	EndIf
 Else
 	Error("Unsupported pde_name: %d",pde_name); Exit;
 EndIf

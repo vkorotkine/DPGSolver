@@ -68,7 +68,7 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 	assert(DIM == 2);
 
 	static int adv_type = -1;
-	static double scale = 0.0;
+	static bool use_poly = false;
 
 	static bool requires_input = true;
 	if (requires_input) {
@@ -79,8 +79,8 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 			adv_type = ADVECTION_TYPE_CONST;
 		else
 			EXIT_UNSUPPORTED;
-		scale = sol_data.u_scale;
-		assert(scale != 0.0);
+		if (sol_data.u_scale == 0.0)
+			use_poly = true;
 	}
 
 	// Compute the solution
@@ -96,10 +96,25 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 	Type* u = get_col_Multiarray_T(0,sol);
 	switch (adv_type) {
 	case ADVECTION_TYPE_VORTEX:
-		for (int i = 0; i < n_n; ++i) {
-			const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]);
-//			u[i] = scale*sin(0.1*r)*cos(0.3*r);
-			u[i] = 1.0;
+		if (!use_poly) {
+			const struct Sol_Data__Advection sol_data = get_sol_data_advection();
+			const double scale = sol_data.u_scale;
+			assert(scale != 0.0);
+			assert(sol_data.u_coef_polynomial4[0] == 0.0);
+			for (int i = 0; i < n_n; ++i) {
+				const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]);
+				u[i] = scale*sin(0.1*r)*cos(0.3*r);
+			}
+		} else {
+			const struct Sol_Data__Advection sol_data = get_sol_data_advection();
+			const double*c = sol_data.u_coef_polynomial4;
+			assert(c[0] != 0.0);
+			assert(sol_data.u_scale == 0.0);
+
+			for (int i = 0; i < n_n; ++i) {
+				const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]);
+				u[i] = c[0]*1.0 + c[1]*pow(r,1) + c[2]*pow(r,2) + c[3]*pow(r,3) + c[4]*pow(r,4);
+			}
 		}
 		break;
 	case ADVECTION_TYPE_CONST: {

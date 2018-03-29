@@ -144,5 +144,13 @@ void add_to_T (Type*const data, const Type c_add, const ptrdiff_t n_entries)
 		data[i] += c_add;
 }
 
+Type dot_T (const ptrdiff_t n, const Type*const a, const Type*const b)
+{
+	Type res = 0.0;
+	for (int i = 0; i < n; ++i)
+		res += a[i]*b[i];
+	return res;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

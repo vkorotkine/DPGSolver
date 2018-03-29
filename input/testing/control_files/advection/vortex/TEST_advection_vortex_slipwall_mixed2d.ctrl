@@ -1,0 +1,41 @@
+pde_name  advection
+pde_spec  steady/vortex
+
+geom_name n-cylinder_hollow_section
+geom_spec geom_ar_5-0/unaligned/slipwall
+
+dimension 2
+
+mesh_generator   n-cylinder_hollow_section/2d.geo
+mesh_format      gmsh
+mesh_domain      parametric
+mesh_type        mixed
+mesh_level       0 6
+mesh_path        ../meshes/
+
+
+# Simulation variables
+
+solution_extension vortex_poly
+#solution_extension vortex_1e-0
+
+interp_tp  GL
+interp_si  AO
+interp_pyr GLL
+
+basis_geom  lagrange
+basis_sol   lagrange
+
+geom_representation  fixed2
+geom_blending_tp     gordon_hall
+geom_blending_si     szabo_babuska_gen
+
+p_ref    0 3
+
+fe_method 1
+
+
+# Testing variables
+
+ml_range_test 0 4
+p_range_test  0 3

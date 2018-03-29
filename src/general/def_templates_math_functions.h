@@ -38,6 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define maximum_abs_T maximum_abs_d
 #define maximum_RT    maximum_dd
 #define add_to_T    add_to_d
+#define dot_T       dot_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -62,10 +63,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #define maximum_abs_T maximum_abs_c
 #define maximum_RT    maximum_dc
 #define add_to_T    add_to_c
+#define dot_T       dot_c
 ///\}
 
 #endif
 
 ///\{ \name Real Data types/Function names
+#define pow_R       pow
+
 #define equal_R     equal_d
+#define norm_R      norm_d
+#define dot_R       dot_d
 ///\}

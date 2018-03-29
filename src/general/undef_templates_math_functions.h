@@ -33,5 +33,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef maximum_abs_T
 #undef maximum_RT
 #undef add_to_T
+#undef dot_T
 
+#undef pow_R
 #undef equal_R
+#undef norm_R
+#undef dot_R

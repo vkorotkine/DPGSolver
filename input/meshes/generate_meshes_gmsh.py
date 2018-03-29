@@ -103,6 +103,8 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 		gmsh_setnumbers += get_gmsh_number("geom_bc_adiabatic_o",input_dir,0)
 	elif (mesh_name.find("/diabatic_o/") != -1):
 		gmsh_setnumbers += get_gmsh_number("geom_bc_diabatic_o",input_dir,0)
+	elif (mesh_name.find("/slipwall/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_bc_slipwall",input_dir,0)
 	else:
 		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
 

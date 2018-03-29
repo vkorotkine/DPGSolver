@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <assert.h>
+#include <math.h>
 
 #include "macros.h"
 #include "definitions_mesh.h"
@@ -28,6 +29,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 
 #include "def_templates_face_solver.h"
+
+#include "def_templates_math_functions.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -72,6 +75,75 @@ void constructor_Boundary_Value_T_advection_outflow
 		struct Multiarray_T* ds_ds = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_n,n_vr,n_vr}); // moved
 		set_to_value_Multiarray_T(ds_ds,1.0);
 		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds;
+	}
+	assert(c_m[2] == false);
+}
+
+void constructor_Boundary_Value_T_advection_slipwall
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
+	 const struct Simulation* sim)
+{
+	UNUSED(face);
+	UNUSED(sim);
+
+	static bool need_input = true;
+	static struct Sol_Data__Advection sol_data;
+	if (need_input) {
+		need_input = false;
+		read_data_advection(&sol_data);
+	}
+
+	const bool* c_m = bv_i->compute_member;
+	assert(c_m[0] == true);
+
+	const struct const_Multiarray_T* sol_l = bv_i->s;
+	const Type*const u_l = get_col_const_Multiarray_T(0,sol_l);
+
+	const ptrdiff_t n_n = sol_l->extents[0];
+	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,1}); // moved
+	Type*const u = get_col_Multiarray_T(0,sol);
+
+	const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,bv_i->xyz),
+	                                       get_col_const_Multiarray_R(1,bv_i->xyz),
+	                                       get_col_const_Multiarray_R(2,bv_i->xyz) );
+	const struct const_Multiarray_R* normals = bv_i->normals;
+	assert(normals->layout == 'R');
+
+	for (int n = 0; n < n_n; n++) {
+		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
+		const Real*const data_n = get_row_const_Multiarray_d(n,normals),
+		          *const b_adv  = sol_data.compute_b_adv(xyz_n);
+		const Real b_l2    = norm_R(DIM,b_adv,"L2"),
+		           b_dot_n = dot_R(DIM,b_adv,data_n);
+
+UNUSED(b_l2); UNUSED(b_dot_n);
+//		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,2.0)); // original (use vector: b/norm(b)^2)
+		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,1.0)); // modified (use vector: const*(n+b))
+//		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,0.0)); // modified (use vector: n/norm(n)^2 == n)
+//		u[n] = u_l[n]; // outflow
+//printf("%f %e\n",b_l2,b_dot_n);
+	}
+	bv->s = (struct const_Multiarray_T*)sol; // keep
+
+	if (c_m[1] == true) {
+		const ptrdiff_t n_n  = bv->s->extents[0],
+		                n_vr = bv->s->extents[1];
+		struct Multiarray_T* ds_ds = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_n,n_vr,n_vr}); // moved
+
+		for (int n = 0; n < n_n; n++) {
+			const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
+			const Real*const data_n = get_row_const_Multiarray_d(n,normals),
+				    *const b_adv  = sol_data.compute_b_adv(xyz_n);
+			const Real b_l2    = norm_R(DIM,b_adv,"L2"),
+				     b_dot_n = dot_R(DIM,b_adv,data_n);
+
+UNUSED(b_l2); UNUSED(b_dot_n);
+//			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,2.0);
+			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,1.0);
+//			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,0.0);
+//			ds_ds->data[n] = 1.0;
+		}
+		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds; // keep
 	}
 	assert(c_m[2] == false);
 }

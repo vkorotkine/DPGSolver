@@ -64,6 +64,7 @@ GEOM_ADV_PERIODIC = 11; // (ADV)ection (PERIODIC) through all faces
 
 GEOM_BC_ADIABATIC_O = 31; /// (B)oundary (C)ondition (ADIABATIC) (O)uter
 GEOM_BC_DIABATIC_O  = 32; /// (B)oundary (C)ondition (DIABATIC) (O)uter
+GEOM_BC_SLIPWALL    = 33; /// (B)oundary (C)ondition (SLIPWALL)
 
 GEOM_2BEXP_0 = 0;
 GEOM_2BEXP_1 = 1;

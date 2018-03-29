@@ -102,3 +102,10 @@ void add_to_T
 	 const Type c_add,         ///< The 'c'onstant to add to the data.
 	 const ptrdiff_t n_entries ///< The number of entries.
 	);
+
+/// \brief Return the dot product of the two input arrays.
+Type dot_T
+	(const ptrdiff_t n,  ///< The number of entries.
+	 const Type*const a, ///< The 1st input.
+	 const Type*const b  ///< The 2nd input.
+	);

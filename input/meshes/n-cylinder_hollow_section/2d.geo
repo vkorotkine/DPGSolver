@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_domain = PARAMETRIC; mesh_level = 1; mesh_type = MIXED; pde_name = ADVECTION; pde_spec = STEADY_VORTEX; geom_ar = 2.5; geom_unaligned = 1;
+//mesh_domain = PARAMETRIC; mesh_level = 1; mesh_type = MIXED; pde_name = ADVECTION; pde_spec = STEADY_VORTEX; geom_ar = 2.5; geom_unaligned = 1; geom_bc = GEOM_BC_SLIPWALL;
 
 // Geometry Specification
 If (pde_spec == STEADY_SUPERSONIC_VORTEX)
@@ -107,8 +107,14 @@ BC_Curved   = 2*BC_STEP_SC;
 If (pde_name == ADVECTION)
 	Physical Line (1*BC_STEP_SC+BC_OUTFLOW)      = {1001};
 	Physical Line (1*BC_STEP_SC+BC_INFLOW)       = {1002};
-	Physical Line (2*BC_STEP_SC+BC_INFLOW_ALT1)  = {1003:1004}; // Must be inflow for straight solution test case.
-	Physical Line (3*BC_STEP_SC+BC_OUTFLOW_ALT1) = {1005:1006};
+	If (geom_bc == GEOM_BC_SLIPWALL)
+		Physical Line (2*BC_STEP_SC+BC_SLIPWALL) = {1003:1004};
+		Physical Line (3*BC_STEP_SC+BC_SLIPWALL) = {1005:1006};
+	Else
+		Physical Line (2*BC_STEP_SC+BC_INFLOW_ALT1)  = {1003:1004}; // Must be inflow for straight solution test case.
+//		Physical Line (2*BC_STEP_SC+BC_OUTFLOW_ALT1)  = {1003:1004}; // Must be inflow for straight solution test case.
+		Physical Line (3*BC_STEP_SC+BC_OUTFLOW_ALT1) = {1005:1006};
+	EndIf
 ElseIf (pde_name == DIFFUSION)
 	Physical Line (1*BC_STEP_SC+BC_DIRICHLET)    = {1001,1002};
 	Physical Line (2*BC_STEP_SC+BC_NEUMANN)      = {1003:1004};
