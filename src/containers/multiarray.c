@@ -17,6 +17,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include <string.h>
+
+#include "definitions_alloc.h"
+
 #include "matrix.h"
 #include "vector.h"
 
@@ -101,6 +105,20 @@ ptrdiff_t compute_index_sub_container_pi
 		sub_indices_p[i] = sub_indices[i];
 
 	return compute_index_sub_container(order_i,order_o,extents,sub_indices_p);
+}
+
+void check_container_type (FILE* data_file, const char*const container_type)
+{
+	char line[STRLEN_MAX];
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
+
+	char expected_line[STRLEN_MAX];
+	strcpy(expected_line,"container ");
+	strcat(expected_line,container_type);
+
+	const bool found = ( strstr(line,expected_line) ? true : false );
+	if (!found)
+		EXIT_ERROR("Reading incorrect container type: %s. (expected: %s)",line,expected_line);
 }
 
 // Static functions ************************************************************************************************* //

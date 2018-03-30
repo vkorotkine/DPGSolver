@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 struct Vector_R;
 struct Matrix_T;
@@ -278,6 +279,39 @@ void set_const_Vector_from_Multiarray_T
 	 const ptrdiff_t*const sub_indices     ///< Defined for \ref set_Vector_from_Multiarray_T.
 	);
 #endif
+// File constructors ************************************************************************************************ //
+
+#if (defined(TYPE_RC) && TYPE_RC == TYPE_REAL) || !defined(TYPE_RC)
+/** \brief Constructor for a \ref Vector_T\* from data in the input file of the given name.
+ *  \return Standard. */
+struct Vector_T* constructor_file_name_Vector_T
+	(const char*const var_name,      ///< The name of the variable to be read in from the file.
+	 const char*const file_name_full ///< The name of the file (including the full path).
+	);
+
+/** \brief `const` version of \ref constructor_file_name_Vector_T.
+ *  \return Standard. */
+const struct const_Vector_T* constructor_file_name_const_Vector_T
+	(const char*const var_name,      ///< See brief.
+	 const char*const file_name_full ///< See brief.
+	);
+
+/** \brief Constructor for a \ref Vector_T\* from the current line in the input file.
+ *  \return Standard. */
+struct Vector_T* constructor_file_Vector_T
+	(FILE* data_file,           ///< The pointer to the file from which to read the data.
+	 const bool check_container ///< Flag for whether the container type should be checked.
+	);
+
+/** \brief `const` version of \ref constructor_file_Vector_T.
+ *  \return See brief. */
+const struct const_Vector_T* constructor_file_const_Vector_T
+	(FILE* data_file,           ///< See brief.
+	 const bool check_container ///< See brief.
+	);
+
+#endif
+
 // Destructors ****************************************************************************************************** //
 
 /// \brief Destructs a \ref Vector_T\*.

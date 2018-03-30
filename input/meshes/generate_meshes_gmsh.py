@@ -93,6 +93,8 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_xlr",input_dir,0)
 	elif (mesh_name.find("/y_l/") != -1):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_yl",input_dir,0)
+	elif (mesh_name.find("/xl_yr/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_adv_xl_yr",input_dir,0)
 	elif (mesh_name.find("/periodic/") != -1):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_periodic",input_dir,0)
 	else:

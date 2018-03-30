@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_solution.h"
 
 #include "multiarray.h"
+#include "vector.h"
 
 #include "boundary.h"
 #include "compute_error.h"
@@ -30,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "const_cast.h"
 #include "file_processing.h"
 #include "flux_advection.h"
+#include "math_functions.h"
 #include "numerical_flux_advection.h"
 #include "simulation.h"
 #include "solution.h"
@@ -76,6 +78,8 @@ void read_data_advection (struct Sol_Data__Advection*const sol_data)
 			read_skip_d_1(line,1,&sol_data->u_scale,1);
 		if (strstr(line,"u_coef_polynomial4"))
 			read_skip_d_1(line,1,sol_data->u_coef_polynomial4,5);
+		if (strstr(line,"b_coef_polynomial_odd"))
+			sol_data->b_coef_polynomial_odd = constructor_file_const_Vector_d(input_file,true); // leaked
 	}
 	fclose(input_file);
 
@@ -83,9 +87,10 @@ void read_data_advection (struct Sol_Data__Advection*const sol_data)
 		EXIT_ERROR("Did not find the required number of variables");
 
 	switch (advection_type) {
-		case ADVECTION_TYPE_CONST:  sol_data->compute_b_adv = compute_b_adv_constant; break;
-		case ADVECTION_TYPE_VORTEX: sol_data->compute_b_adv = compute_b_adv_vortex;   break;
-		default:                    EXIT_ERROR("Unsupported: %d\n",advection_type);   break;
+		case ADVECTION_TYPE_CONST:       sol_data->compute_b_adv = compute_b_adv_constant;    break;
+		case ADVECTION_TYPE_VORTEX:      sol_data->compute_b_adv = compute_b_adv_vortex;      break;
+		case ADVECTION_TYPE_VORTEX_POLY: sol_data->compute_b_adv = compute_b_adv_vortex_poly; break;
+		default:                         EXIT_ERROR("Unsupported: %d\n",advection_type);      break;
 	}
 }
 
@@ -151,8 +156,39 @@ const double* compute_b_adv_vortex (const double*const xyz)
 	             y = xyz[1],
 	             t = atan2(y,x);
 
-	IF_DIM_GE_1( b_adv[0] =  sin(t); )
-	IF_DIM_GE_2( b_adv[1] = -cos(t); )
+	IF_DIM_GE_1( b_adv[0] =  b_mag*sin(t); ) // Note:  sin(atan2(y,x)) ==  y/sqrt(x^2+y^2).
+	IF_DIM_GE_2( b_adv[1] = -b_mag*cos(t); ) //       -cos(atan2(y,x)) == -x/sqrt(x^2+y^2).
+
+	return b_adv;
+}
+
+const double* compute_b_adv_vortex_poly (const double*const xyz)
+{
+	assert(DIM == 2);
+
+	const struct Sol_Data__Advection sol_data = get_sol_data_advection();
+	const ptrdiff_t n_coef  = sol_data.b_coef_polynomial_odd->ext_0;
+	const double*const coef = sol_data.b_coef_polynomial_odd->data;
+	assert(n_coef > 0);
+	assert(coef[0] != 0.0);
+
+	if (n_coef > 1)
+		EXIT_ERROR("The advection velocity is no longer divergence free in this case.\n");
+	// Based on currenlty only being usable for n_coef = 1, there is nothing added by using this function over
+	// compute_b_adv_vortex... Possibly investigate higher-order divergence free, rotating field in future.
+
+	const double xyz_norm = pow(xyz[0]*xyz[0]+xyz[1]*xyz[1],0.5),
+	             x        = xyz[0]/xyz_norm,
+	             y        = xyz[1]/xyz_norm;
+
+	static double b_adv[DIM] = {0,};
+	for (int d = 0; d < DIM; ++d)
+		b_adv[d] = 0.0;
+
+	for (int i = 0; i < n_coef; ++i) {
+		IF_DIM_GE_1( b_adv[0] += coef[i]*pow(y,2*i+1) );
+		IF_DIM_GE_2( b_adv[1] -= coef[i]*pow(x,2*i+1) );
+	}
 
 	return b_adv;
 }

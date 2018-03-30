@@ -159,7 +159,6 @@ const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_x
 	const Real dxyz = 0.15;
 	for (int n = 0; n < n_n; ++n) {
 		if (DIM == 2) {
-//			x[n] = x_i[n] + (1.0-x_i[n])/2.0*dxyz*sin(PI*y_i[n]) + 4e0*(1.0+x_i[n])/2.0;
 			x[n] = x_i[n] + (1.0-x_i[n])/2.0*dxyz*cos(PI*x_i[n]+0.2)*cos(0.5*PI*y_i[n]+0.3)*sin(PI*y_i[n]);
 			y[n] = y_i[n] + 2.0*dxyz*cos(PI/2.0*y_i[n])*sin(0.25*PI*y_i[n]-0.1)*cos(PI/2.0*x_i[n]-0.2);
 		} else if (DIM == 3) {
@@ -168,6 +167,25 @@ const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_x
 			EXIT_UNSUPPORTED;
 		}
 	}
+	return (struct const_Multiarray_R*) xyz;
+}
+
+const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_xl_oct1_T
+	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+	 const struct Simulation* sim)
+{
+	struct Multiarray_R*const xyz = (struct Multiarray_R*)
+		constructor_xyz_trigonometric_cube_parametric_xl_T(n_type,xyz_i,s_vol,sim); // returned
+
+	Real*const xyz_a[DIM] = ARRAY_DIM( get_col_Multiarray_R(0,xyz),
+	                                   get_col_Multiarray_R(1,xyz),
+	                                   get_col_Multiarray_R(2,xyz) );
+
+	const ptrdiff_t n_n = xyz->extents[0];
+	for (int n = 0; n < n_n; ++n) {
+	for (int d = 0; d < DIM; ++d) {
+		xyz_a[d][n] = 0.5*(xyz_a[d][n]+1.0)+0.5;
+	}}
 	return (struct const_Multiarray_R*) xyz;
 }
 

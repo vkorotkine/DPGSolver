@@ -66,6 +66,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "multiarray_constructors.h"
 #include "multiarray_math.h"
@@ -144,6 +145,12 @@ ptrdiff_t compute_index_sub_container_pi
 	 const int order_o,             ///< Defined for \ref compute_index_sub_container.
 	 const ptrdiff_t*const extents, ///< Defined for \ref compute_index_sub_container.
 	 const int*const sub_indices    ///< Defined for \ref compute_index_sub_container.
+	);
+
+/// \brief Check that the container type is that which is expected.
+void check_container_type
+	(FILE* data_file,                ///< The file containing the data.
+	 const char*const container_type ///< The container type.
 	);
 
 #endif // DPG__multiarray_h__INCLUDED

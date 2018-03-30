@@ -52,6 +52,16 @@ const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_x
 	 const struct Simulation* sim            ///< See brief.
 	);
 
+/** \brief Version of \ref constructor_xyz_trigonometric_cube_parametric_xl_T with additional shift and scaling to use
+ *         only the first octant.
+ *  \return See brief. */
+const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_xl_oct1_T
+	(const char n_type,                      ///< See brief.
+	 const struct const_Multiarray_R* xyz_i, ///< See brief.
+	 const struct Solver_Volume_T* s_vol,    ///< See brief.
+	 const struct Simulation* sim            ///< See brief.
+	);
+
 /** \brief Version of \ref constructor_xyz_fptr_T for a parametric Joukowski to circle blended domain.
  *  \return See brief.
  *

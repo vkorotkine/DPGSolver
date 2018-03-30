@@ -22,51 +22,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdio.h>
 #include <stdbool.h>
 
+struct Vector_i;
+struct Vector_d;
 struct const_Vector_i;
-
-// Constructor functions ******************************************************************************************** //
-
-/** \brief Constructor for a \ref Vector_T\* from data in the input file of the given name.
- *  \return Standard. */
-struct Vector_d* constructor_file_name_Vector_d
-	(const char*const var_name,      ///< The name of the variable to be read in from the file.
-	 const char*const file_name_full ///< The name of the file (including the full path).
-	);
-
-/** \brief Constructor for a \ref Vector_T\* from data in the input file of the given name.
- *  \return Standard. */
-struct Vector_i* constructor_file_name_Vector_i
-	(const char*const var_name,      ///< The name of the variable to be read in from the file.
-	 const char*const file_name_full ///< The name of the file (including the full path).
-	);
-
-/** \brief Constructor for a \ref const_Vector_T\* from data in the input file of the given name.
- *  \return Standard. */
-const struct const_Vector_d* constructor_file_name_const_Vector_d
-	(const char*const var_name,      ///< The name of the variable to be read in from the file.
-	 const char*const file_name_full ///< The name of the file (including the full path).
-	);
-
-/** \brief Constructor for a \ref Vector_T\* from the current line in the input file.
- *  \return Standard. */
-struct Vector_d* constructor_file_Vector_d
-	(FILE* data_file,           ///< The pointer to the file from which to read the data.
-	 const bool check_container ///< Flag for whether the container type should be checked.
-	);
-
-/** \brief Constructor for a \ref Vector_T\* from the current line in the input file.
- *  \return Standard. */
-struct Vector_i* constructor_file_Vector_i
-	(FILE* data_file,           ///< The pointer to the file from which to read the data.
-	 const bool check_container ///< Flag for whether the container type should be checked.
-	);
-
-/** \brief `const` version of \ref constructor_file_Vector_i.
- *  \return See brief. */
-const struct const_Vector_i* constructor_file_const_Vector_i
-	(FILE* data_file,           ///< See brief.
-	 const bool check_container ///< See brief.
-	);
+struct const_Vector_d;
 
 // Difference functions ********************************************************************************************* //
 

@@ -60,6 +60,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_Vector_from_Multiarray_T                  set_Vector_from_Multiarray_d
 #define set_const_Vector_from_Multiarray_T            set_const_Vector_from_Multiarray_d
 
+#define constructor_file_name_Vector_T       constructor_file_name_Vector_d
+#define constructor_file_name_const_Vector_T constructor_file_name_const_Vector_d
+#define constructor_file_Vector_T            constructor_file_Vector_d
+#define constructor_file_const_Vector_T      constructor_file_const_Vector_d
+
 #define destructor_Vector_T       destructor_Vector_d
 #define destructor_const_Vector_T destructor_const_Vector_d
 #define destructor_conditional_Vector_T       destructor_conditional_Vector_d

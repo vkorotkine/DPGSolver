@@ -58,6 +58,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_Vector_from_Multiarray_T
 #undef set_const_Vector_from_Multiarray_T
 
+#undef constructor_file_name_Vector_T
+#undef constructor_file_name_const_Vector_T
+#undef constructor_file_Vector_T
+#undef constructor_file_const_Vector_T
+
 #undef destructor_Vector_T
 #undef destructor_const_Vector_T
 #undef destructor_conditional_Vector_T

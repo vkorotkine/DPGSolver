@@ -54,11 +54,12 @@ EXTENSION_ENABLED  = 1;
 
 GEOM_NONE = 0; // Dummy value
 
-GEOM_ADV_YL   = 1; // (ADV)ection (Y)-coord (L)eft
-GEOM_ADV_XL   = 2; // (ADV)ection (X)-coord (L)eft
-GEOM_ADV_XLR  = 5; // (ADV)ection (X)-coord (L)eft/(R)ight
-GEOM_ADV_XYL  = 3; // (ADV)ection (X)(Y)-coords (L)eft
-GEOM_ADV_XYZL = 4; // (ADV)ection (X)(Y)(Z)-coords (L)eft
+GEOM_ADV_YL    = 1; // (ADV)ection (Y)-coord (L)eft
+GEOM_ADV_XL    = 2; // (ADV)ection (X)-coord (L)eft
+GEOM_ADV_XLR   = 5; // (ADV)ection (X)-coord (L)eft/(R)ight
+GEOM_ADV_XYL   = 3; // (ADV)ection (X)(Y)-coords (L)eft
+GEOM_ADV_XL_YR = 6; // (ADV)ection (X)-coord (L)eft (Y)-coord (R)ight
+GEOM_ADV_XYZL  = 4; // (ADV)ection (X)(Y)(Z)-coords (L)eft
 
 GEOM_ADV_PERIODIC = 11; // (ADV)ection (PERIODIC) through all faces
 

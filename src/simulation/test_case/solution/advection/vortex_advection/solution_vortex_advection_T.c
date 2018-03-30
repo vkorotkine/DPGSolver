@@ -75,6 +75,8 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 		const struct Sol_Data__Advection sol_data = get_sol_data_advection();
 		if (sol_data.compute_b_adv == compute_b_adv_vortex)
 			adv_type = ADVECTION_TYPE_VORTEX;
+		else if (sol_data.compute_b_adv == compute_b_adv_vortex_poly)
+			adv_type = ADVECTION_TYPE_VORTEX_POLY;
 		else if (sol_data.compute_b_adv == compute_b_adv_constant)
 			adv_type = ADVECTION_TYPE_CONST;
 		else
@@ -95,7 +97,14 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 
 	Type* u = get_col_Multiarray_T(0,sol);
 	switch (adv_type) {
-	case ADVECTION_TYPE_VORTEX:
+	case ADVECTION_TYPE_VORTEX_POLY: {
+		assert(use_poly == true);
+		const struct Sol_Data__Advection sol_data = get_sol_data_advection();
+		const double*const c = sol_data.u_coef_polynomial4;
+		for (int i = 1; i < 4; ++i)
+			assert(c[i] == 0.0);
+		; // fallthrough
+	} case ADVECTION_TYPE_VORTEX:
 		if (!use_poly) {
 			const struct Sol_Data__Advection sol_data = get_sol_data_advection();
 			const double scale = sol_data.u_scale;
@@ -107,7 +116,7 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 			}
 		} else {
 			const struct Sol_Data__Advection sol_data = get_sol_data_advection();
-			const double*c = sol_data.u_coef_polynomial4;
+			const double*const c = sol_data.u_coef_polynomial4;
 			assert(c[0] != 0.0);
 			assert(sol_data.u_scale == 0.0);
 
@@ -119,7 +128,7 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 		break;
 	case ADVECTION_TYPE_CONST: {
 		const struct Sol_Data__Advection sol_data = get_sol_data_advection();
-		const double*c = sol_data.u_coef_polynomial4;
+		const double*const c = sol_data.u_coef_polynomial4;
 		assert(c[0] != 0.0);
 
 		for (int i = 0; i < n_n; ++i) {

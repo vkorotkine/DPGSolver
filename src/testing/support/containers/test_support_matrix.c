@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "file_processing.h"
 #include "math_functions.h"
 #include "matrix.h"
+#include "multiarray.h"
 
 #include "definitions_alloc.h"
 

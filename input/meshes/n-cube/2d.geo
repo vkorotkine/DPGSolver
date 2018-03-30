@@ -78,6 +78,11 @@ If (pde_name == ADVECTION)
 		Physical Line(bc_base+BC_INFLOW_ALT1)  = {2001};
 		Physical Line(bc_base+BC_OUTFLOW)      = {1003:1004};
 		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {2002};
+	ElseIf (geom_adv == GEOM_ADV_XL_YR)
+		Physical Line(bc_base+BC_INFLOW)       = {2001};
+		Physical Line(bc_base+BC_INFLOW_ALT1)  = {1003:1004};
+		Physical Line(bc_base+BC_OUTFLOW)      = {2002};
+		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {1001:1002};
 	Else
 		Error("Unsupported geom_adv: %d",geom_adv); Exit;
 	EndIf

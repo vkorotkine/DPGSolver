@@ -19,4 +19,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_xyz_cylinder_parametric_T
 #undef constructor_xyz_trigonometric_cube_parametric_T
 #undef constructor_xyz_trigonometric_cube_parametric_xl_T
+#undef constructor_xyz_trigonometric_cube_parametric_xl_oct1_T
 #undef constructor_xyz_joukowski_parametric_T

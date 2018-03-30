@@ -1,8 +1,8 @@
-pde_name  euler
-pde_spec  steady/free_stream
+pde_name  advection
+pde_spec  steady/vortex
 
 geom_name n-cube
-geom_spec x_lr
+geom_spec xl_yr/unaligned
 
 dimension 2
 
@@ -10,27 +10,27 @@ mesh_generator   n-cube/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        mixed
-mesh_level       0 5
+mesh_level       0 6
 mesh_path        ../meshes/
 
 
 # Simulation variables
 
-solution_extension subsonic
-test_case_extension subsonic
+#solution_extension vortex_poly
+solution_extension vortex_poly_b_poly
 
 interp_tp  GL
-interp_si  WSH
+interp_si  AO
 interp_pyr GLL
 
 basis_geom  lagrange
 basis_sol   lagrange
 
-geom_representation superparametric2
-geom_blending_tp    gordon_hall
-geom_blending_si    szabo_babuska_gen
+geom_representation  isoparametric
+geom_blending_tp     gordon_hall
+geom_blending_si     szabo_babuska_gen
 
-p_ref    0 2
+p_ref    0 3
 
 fe_method 1
 
@@ -38,4 +38,4 @@ fe_method 1
 # Testing variables
 
 ml_range_test 0 5
-p_range_test  0 1
+p_range_test  0 3

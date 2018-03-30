@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "mkl.h"
 
 #include "macros.h"
+#include "definitions_alloc.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -349,6 +350,72 @@ void set_const_Vector_from_Multiarray_T
 	set_Vector_from_Multiarray_T((struct Vector_T*)dest,(struct Multiarray_T*)src,sub_indices);
 }
 #endif
+
+// File constructors ************************************************************************************************ //
+
+#if (defined(TYPE_RC) && TYPE_RC == TYPE_REAL) || !defined(TYPE_RC)
+struct Vector_T* constructor_file_name_Vector_T (const char*const var_name, const char*const file_name_full)
+{
+	struct Vector_T* dest = NULL;
+
+	FILE* data_file = fopen_checked(file_name_full); // closed
+
+	bool found_var = false;
+
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),data_file) != NULL) {
+		if (strstr(line,var_name)) {
+			found_var = true;
+			dest = constructor_file_Vector_T(data_file,true);
+		}
+	}
+	fclose(data_file);
+
+	if (!found_var)
+		EXIT_ERROR("Did not find the '%s' variable in the file: %s",var_name,file_name_full);
+
+	return dest;
+}
+
+const struct const_Vector_T* constructor_file_name_const_Vector_T
+	(const char*const var_name, const char*const file_name_full)
+{
+	return (const struct const_Vector_T*) constructor_file_name_Vector_T(var_name,file_name_full);
+}
+
+struct Vector_T* constructor_file_Vector_T (FILE* data_file, const bool check_container)
+{
+	if (check_container)
+#ifdef TYPE_RC
+		check_container_type(data_file,"Vector_d");
+#else
+		check_container_type(data_file,"Vector_i");
+#endif
+
+	char line[STRLEN_MAX];
+	char* line_ptr[1] = {line};
+	if (fgets(line,sizeof(line),data_file) != NULL) {};
+
+	ptrdiff_t ext_0 = 0;
+	read_line_values_l(line_ptr,1,&ext_0,false);
+
+#ifdef TYPE_RC
+	double data[ext_0];
+	read_line_values_d(line_ptr,ext_0,data);
+	return constructor_copy_Vector_d_d(ext_0,data);
+#else
+	int data[ext_0];
+	read_line_values_i(line_ptr,ext_0,data,false);
+	return constructor_copy_Vector_i_i(ext_0,data);
+#endif
+}
+
+const struct const_Vector_T* constructor_file_const_Vector_T (FILE* data_file, const bool check_container)
+{
+	return (struct const_Vector_T*) constructor_file_Vector_T(data_file,check_container);
+}
+#endif
+
 // Destructors ****************************************************************************************************** //
 
 void destructor_Vector_T (struct Vector_T* a)

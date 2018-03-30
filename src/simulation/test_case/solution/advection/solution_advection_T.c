@@ -64,7 +64,13 @@ void set_function_pointers_solution_advection_T (struct Test_Case_T* test_case, 
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_advection_default_T;
 		test_case->constructor_Error_CE         = constructor_Error_CE_advection_all;
 	} else if (strstr(sim->pde_spec,"steady/vortex")) {
-		test_case->constructor_xyz              = constructor_xyz_cylinder_parametric_T;
+		if (strstr(sim->geom_name,"n-cube")) {
+			test_case->constructor_xyz = constructor_xyz_trigonometric_cube_parametric_xl_oct1_T;
+		} else if (strstr(sim->geom_name,"n-cylinder_hollow_section")) {
+			test_case->constructor_xyz = constructor_xyz_cylinder_parametric_T;
+		} else {
+			EXIT_ADD_SUPPORT;
+		}
 		test_case->constructor_sol              = constructor_const_sol_vortex_advection_T;
 		test_case->set_sol                      = set_sol_vortex_advection_T;
 		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;

@@ -76,20 +76,6 @@ char* set_print_name_container_member (const char*const name_container, int ind_
 	return print_name;
 }
 
-void check_container_type (FILE* data_file, const char*const container_type)
-{
-	char line[STRLEN_MAX];
-	if (fgets(line,sizeof(line),data_file) != NULL) {};
-
-	char expected_line[STRLEN_MAX];
-	strcpy(expected_line,"container ");
-	strcat(expected_line,container_type);
-
-	const bool found = ( strstr(line,expected_line) ? true : false );
-	if (!found)
-		EXIT_ERROR("Reading incorrect container type: %s. (expected: %s)",line,expected_line);
-}
-
 bool check_diff (const int n_entries, const bool*const differences, bool* pass)
 {
 	*pass = true;

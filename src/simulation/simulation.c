@@ -356,7 +356,7 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 	assert((strcmp(sim->geom_rep,"isoparametric")          == 0) ||
 	       (strcmp(sim->geom_rep,"superparametric")        == 0) ||
 	       (strcmp(sim->geom_rep,"superparametric_p_le_1") == 0) ||
-	       (strcmp(sim->geom_rep,"fixed")                  == 0));
+	       (strstr(sim->geom_rep,"fixed")                  != 0));
 
 	assert(sim->p_s_v[0] != P_INVALID);
 	assert(sim->p_s_v[1] != P_INVALID);

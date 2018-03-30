@@ -54,12 +54,6 @@ char* set_print_name_container_member
 	 const char*const name_member     ///< The name of the member.
 	);
 
-/// \brief Check that the container type is that which is expected.
-void check_container_type
-	(FILE* data_file,                ///< The file containing the data.
-	 const char*const container_type ///< The container type.
-	);
-
 /** \brief Check the entries of the input `differences` for `true` values.
  *  \return `true` if an entry in `differences` is `true`; `false` otherwise. */
 bool check_diff
