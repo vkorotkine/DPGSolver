@@ -148,5 +148,66 @@ UNUSED(b_l2); UNUSED(b_dot_n);
 	assert(c_m[2] == false);
 }
 
+void constructor_Boundary_Value_T_advection_upwind
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
+	 const struct Simulation* sim)
+{
+	UNUSED(face);
+
+	static bool need_input = true;
+	static struct Sol_Data__Advection sol_data;
+	if (need_input) {
+		need_input = false;
+		read_data_advection(&sol_data);
+	}
+
+	const bool* c_m = bv_i->compute_member;
+
+	assert(c_m[0] == true);
+	struct Multiarray_T*const s = (struct Multiarray_T*) constructor_sol_bv(bv_i->xyz,sim); // moved
+	const struct const_Multiarray_T*const s_i = constructor_copy_const_Multiarray_T(bv_i->s); // destructed
+
+	const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,bv_i->xyz),
+	                                       get_col_const_Multiarray_R(1,bv_i->xyz),
+	                                       get_col_const_Multiarray_R(2,bv_i->xyz) );
+	const struct const_Multiarray_R* normals = bv_i->normals;
+	assert(normals->layout == 'R');
+
+	const ptrdiff_t n_n = s->extents[0];
+	for (int n = 0; n < n_n; n++) {
+		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
+		const Real*const data_n = get_row_const_Multiarray_d(n,normals),
+			    *const b_adv  = sol_data.compute_b_adv(xyz_n);
+		const Real b_dot_n = dot_R(DIM,b_adv,data_n);
+
+		if (b_dot_n <= 0.0)
+			; // Inflow (do nothing)
+		else
+			s->data[n] = s_i->data[n];
+	}
+	destructor_const_Multiarray_T(s_i);
+	bv->s = (struct const_Multiarray_T*)s; // keep
+
+	if (c_m[1] == true) {
+		const ptrdiff_t n_n  = bv->s->extents[0],
+		                n_vr = bv->s->extents[1];
+		struct Multiarray_T* ds_ds = constructor_zero_Multiarray_T('C',3,(ptrdiff_t[]){n_n,n_vr,n_vr}); // moved
+
+		for (int n = 0; n < n_n; n++) {
+			const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
+			const Real*const data_n = get_row_const_Multiarray_d(n,normals),
+				    *const b_adv  = sol_data.compute_b_adv(xyz_n);
+			const Real b_dot_n = dot_R(DIM,b_adv,data_n);
+
+			if (b_dot_n <= 0.0)
+				; // Inflow (do nothing)
+			else
+				ds_ds->data[n] = 1.0;
+		}
+		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds; // keep
+	}
+	assert(c_m[2] == false);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

@@ -50,3 +50,14 @@ void constructor_Boundary_Value_T_advection_slipwall
 	 const struct Solver_Face_T* face,          ///< See brief.
 	 const struct Simulation* sim               ///< See brief.
 	);
+
+/** \brief Version of \ref constructor_Boundary_Value_fptr_T computing members using the upwind values.
+ *
+ *  Upwind values are determined based on the sign of \f$ b \cdot \hat{n} \f$.
+ */
+void constructor_Boundary_Value_T_advection_upwind
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face_T* face,          ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
+	);

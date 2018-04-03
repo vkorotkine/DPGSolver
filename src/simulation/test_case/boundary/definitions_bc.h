@@ -42,6 +42,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define BC_OUTFLOW      11
 #define BC_OUTFLOW_ALT1 12
 #define BC_OUTFLOW_ALT2 13
+#define BC_UPWIND       41
+#define BC_UPWIND_ALT1  42
+#define BC_UPWIND_ALT2  43
+#define BC_UPWIND_ALT3  44
 
 // Diffusion
 #define BC_DIRICHLET      21

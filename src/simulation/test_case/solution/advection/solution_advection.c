@@ -177,17 +177,27 @@ const double* compute_b_adv_vortex_poly (const double*const xyz)
 	// Based on currenlty only being usable for n_coef = 1, there is nothing added by using this function over
 	// compute_b_adv_vortex... Possibly investigate higher-order divergence free, rotating field in future.
 
-	const double xyz_norm = pow(xyz[0]*xyz[0]+xyz[1]*xyz[1],0.5),
-	             x        = xyz[0]/xyz_norm,
-	             y        = xyz[1]/xyz_norm;
+	const double xyz_norm = pow(xyz[0]*xyz[0]+xyz[1]*xyz[1],2.0),
+	             x        = xyz[0],
+	             y        = xyz[1];
 
 	static double b_adv[DIM] = {0,};
 	for (int d = 0; d < DIM; ++d)
 		b_adv[d] = 0.0;
 
 	for (int i = 0; i < n_coef; ++i) {
-		IF_DIM_GE_1( b_adv[0] += coef[i]*pow(y,2*i+1) );
-		IF_DIM_GE_2( b_adv[1] -= coef[i]*pow(x,2*i+1) );
+/// \todo Delete non-vortex and place in separate functions if used in future. Also remove non-divergence free options.
+// vortex
+		IF_DIM_GE_1( b_adv[0] += coef[i]*pow(y/xyz_norm,2*i+1) );
+		IF_DIM_GE_2( b_adv[1] -= coef[i]*pow(x/xyz_norm,2*i+1) );
+// doublet
+//b_adv[0] =  (y*y-x*x)/pow(x*x+y*y,2); b_adv[1] = -(2*x*y)/pow(x*x+y*y,2);
+// source
+//b_adv[0] = x/(x*x+y*y); b_adv[1] = y/(x*x+y*y);
+// other
+//b_adv[0] = -x*x; b_adv[1] = 2*x*y;
+//b_adv[0] = 2*x*y; //b_adv[1] = -y*y;
+//b_adv[0] = x*(3*y*y-x*x); b_adv[1] = y*(3*x*x-y*y);
 	}
 
 	return b_adv;

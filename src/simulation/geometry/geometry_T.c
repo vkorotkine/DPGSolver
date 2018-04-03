@@ -86,7 +86,15 @@ static void compute_cofactors_T
 
 /** \brief Constructor for the "xyz" coordinates at the 'f'ace 'c'ubature nodes with a possible correction ensuring that
  *         they are placed on the exact domain boundary in the case of curved boundary faces.
- *  \return See brief. */
+ *  \return See brief.
+ *
+ *  If the correction is not used, xyz-coordinate dependent boundary conditions on curved boundary faces are set based
+ *  on the approximate geometry. For Poisson solutions, this results in optimal convergence even when isoparametric
+ *  geometry is not used. For Advection solutions however, this correction seems to be introducing an error causing the
+ *  loss of free-stream preservation when a non-constant advection velocity is used.
+ *
+ *  \todo Investigate further and update comments above.
+ */
 static const struct const_Multiarray_R* constructor_xyz_fc_with_exact_boundary
 	(const struct Solver_Face_T*const s_face, ///< \ref Solver_Face_T.
 	 const struct Simulation*const sim        ///< \ref Simulation.
@@ -520,7 +528,8 @@ static const struct const_Multiarray_R* constructor_xyz_fc_with_exact_boundary
 	struct Multiarray_R*const xyz_fc = constructor_mm_NN1_Operator_Multiarray_R
 		(cv0_vg_fc,(struct Multiarray_R*)g_coef,'C',op_f,g_coef->order,NULL); // returned
 
-	if (is_face_bc_curved(face->bc)) {
+//	if (is_face_bc_curved(face->bc)) {
+	if (0) {
 		assert(face->neigh_info[0].ind_href == 0);
 
 		const char ce_type = 'f',

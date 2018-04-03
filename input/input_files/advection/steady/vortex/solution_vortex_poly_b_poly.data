@@ -5,4 +5,4 @@ u_coef_polynomial4    1.0   0.0   0.0   0.0   0.0
 
 b_coef_polynomial_odd
 container Vector_d
-1   1.0 1.0
+1   1.0

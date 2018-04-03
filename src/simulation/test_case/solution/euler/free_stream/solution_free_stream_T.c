@@ -259,7 +259,8 @@ static struct Multiarray_T* constructor_sol_free_stream_trig_x
 	for (int i = 0; i < n_n; ++i) {
 		const Real scale = 1e-1*PI,
 		           shift = -0.8712;
-
+/// \todo Delete unused and clean up.
+UNUSED(scale); UNUSED(shift); UNUSED(y); UNUSED(mag);
 #if 0
 		rho[i] = rho_fs + mag*sin(scale*y[i]+shift);
 		u[i]   = u_fs;// + mag*cos(scale*y[i]+shift);

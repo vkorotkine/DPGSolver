@@ -62,6 +62,7 @@ GEOM_ADV_XL_YR = 6; // (ADV)ection (X)-coord (L)eft (Y)-coord (R)ight
 GEOM_ADV_XYZL  = 4; // (ADV)ection (X)(Y)(Z)-coords (L)eft
 
 GEOM_ADV_PERIODIC = 11; // (ADV)ection (PERIODIC) through all faces
+GEOM_ADV_UPWIND   = 12; // (ADV)ection (UPWIND) for all faces
 
 GEOM_BC_ADIABATIC_O = 31; /// (B)oundary (C)ondition (ADIABATIC) (O)uter
 GEOM_BC_DIABATIC_O  = 32; /// (B)oundary (C)ondition (DIABATIC) (O)uter
@@ -113,6 +114,10 @@ BC_INFLOW_ALT2  = 3;
 BC_OUTFLOW      = 11;
 BC_OUTFLOW_ALT1 = 12;
 BC_OUTFLOW_ALT2 = 13;
+BC_UPWIND       = 41;
+BC_UPWIND_ALT1  = 42;
+BC_UPWIND_ALT2  = 43;
+BC_UPWIND_ALT3  = 44;
 
 BC_DIRICHLET      = 21; // Diffusion
 BC_DIRICHLET_ALT1 = 22;

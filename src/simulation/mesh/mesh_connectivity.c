@@ -140,6 +140,10 @@ bool check_pfe_boundary (const int bc, const bool include_periodic)
 	case BC_OUTFLOW:
 	case BC_OUTFLOW_ALT1:
 	case BC_OUTFLOW_ALT2:
+	case BC_UPWIND:
+	case BC_UPWIND_ALT1:
+	case BC_UPWIND_ALT2:
+	case BC_UPWIND_ALT3:
 	case BC_DIRICHLET:        // Diffusion
 	case BC_DIRICHLET_ALT1:
 	case BC_NEUMANN:
