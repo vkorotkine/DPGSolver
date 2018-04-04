@@ -43,6 +43,9 @@ struct Solver_Face_T {
 	/// Values of the physical xyz coordinates at the face cubature nodes.
 	const struct const_Multiarray_R*const xyz_fc;
 
+	/// Values of the physical xyz coordinates at the face cubature nodes on the exact domain boundary.
+	const struct const_Multiarray_R*const xyz_fc_ex_b;
+
 	/// Values of the outward pointing unit normal vector at the face cubature nodes.
 	const struct const_Multiarray_R*const normals_fc;
 

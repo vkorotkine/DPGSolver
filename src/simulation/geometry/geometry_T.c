@@ -84,6 +84,14 @@ static void compute_cofactors_T
 	 struct Multiarray_R* metrics         ///< Multiarray to be set to contain the metric terms.
 	);
 
+/** \brief Constructor for the "xyz" coordinates at the 'f'ace 'c'ubature nodes interpolated from the volume geometry
+ *         nodes.
+ *  \return See brief. */
+static const struct const_Multiarray_R* constructor_xyz_fc
+	(const struct Solver_Face_T*const s_face, ///< \ref Solver_Face_T.
+	 const struct Simulation*const sim        ///< \ref Simulation.
+	);
+
 /** \brief Constructor for the "xyz" coordinates at the 'f'ace 'c'ubature nodes with a possible correction ensuring that
  *         they are placed on the exact domain boundary in the case of curved boundary faces.
  *  \return See brief.
@@ -95,7 +103,7 @@ static void compute_cofactors_T
  *
  *  \todo Investigate further and update comments above.
  */
-static const struct const_Multiarray_R* constructor_xyz_fc_with_exact_boundary
+static const struct const_Multiarray_R* constructor_xyz_fc_on_exact_boundary
 	(const struct Solver_Face_T*const s_face, ///< \ref Solver_Face_T.
 	 const struct Simulation*const sim        ///< \ref Simulation.
 	);
@@ -237,8 +245,9 @@ void compute_geometry_face_T (struct Solver_Face_T* s_face, const struct Simulat
 	}
 
 	destructor_const_Multiarray_R(s_face->xyz_fc);
-	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc,
-	                                          constructor_xyz_fc_with_exact_boundary(s_face,sim)); // keep
+	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc,constructor_xyz_fc(s_face,sim)); // keep
+	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc_ex_b,
+	                                          constructor_xyz_fc_on_exact_boundary(s_face,sim)); // keep
 
 	const struct const_Multiarray_R* m_vm = s_vol->metrics_vm;
 	const struct const_Multiarray_R* metrics_fc =
@@ -499,7 +508,7 @@ static void compute_cofactors_T (struct const_Multiarray_R* jacobian, struct Mul
 	}
 }
 
-static const struct const_Multiarray_R* constructor_xyz_fc_with_exact_boundary
+static const struct const_Multiarray_R* constructor_xyz_fc
 	(const struct Solver_Face_T*const s_face, const struct Simulation*const sim)
 {
 	struct Face*const face             = (struct Face*) s_face;
@@ -525,11 +534,20 @@ static const struct const_Multiarray_R* constructor_xyz_fc_with_exact_boundary
 	const char op_f = 'd';
 
 	const struct const_Multiarray_R*const g_coef = s_vol->geom_coef;
-	struct Multiarray_R*const xyz_fc = constructor_mm_NN1_Operator_Multiarray_R
-		(cv0_vg_fc,(struct Multiarray_R*)g_coef,'C',op_f,g_coef->order,NULL); // returned
+	return constructor_mm_NN1_Operator_const_Multiarray_R(cv0_vg_fc,g_coef,'C',op_f,g_coef->order,NULL);
+}
 
-//	if (is_face_bc_curved(face->bc)) {
-	if (0) {
+static const struct const_Multiarray_R* constructor_xyz_fc_on_exact_boundary
+	(const struct Solver_Face_T*const s_face, const struct Simulation*const sim)
+{
+	struct Face*const face             = (struct Face*) s_face;
+	struct Volume*const vol            = face->neigh_info[0].volume;
+	struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) vol;
+
+	const int ind_lf = face->neigh_info[0].ind_lf;
+
+	struct Multiarray_R*const xyz_fc = constructor_copy_Multiarray_R((struct Multiarray_R*)s_face->xyz_fc);
+	if (is_face_bc_curved(face->bc)) {
 		assert(face->neigh_info[0].ind_href == 0);
 
 		const char ce_type = 'f',
@@ -548,7 +566,6 @@ static const struct const_Multiarray_R* constructor_xyz_fc_with_exact_boundary
 		destructor_const_Matrix_R(xyz_fc_diff);
 		destructor_static_Boundary_Comp_Elem_Data_T(&b_ce_d);
 	}
-
 	return (const struct const_Multiarray_R*) xyz_fc;
 }
 

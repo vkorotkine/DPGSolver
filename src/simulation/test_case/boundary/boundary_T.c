@@ -59,6 +59,7 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 	const int side_index = 0;
 	bv_i->normals = s_face->normals_fc;
 	bv_i->xyz     = s_face->xyz_fc;
+//	bv_i->xyz     = s_face->xyz_fc_ex_b;
 	bv_i->s       = constructor_s_fc_interp(s_face,sim,side_index); // destructed
 }
 

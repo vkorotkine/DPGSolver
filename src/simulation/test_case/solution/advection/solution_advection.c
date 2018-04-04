@@ -177,7 +177,8 @@ const double* compute_b_adv_vortex_poly (const double*const xyz)
 	// Based on currenlty only being usable for n_coef = 1, there is nothing added by using this function over
 	// compute_b_adv_vortex... Possibly investigate higher-order divergence free, rotating field in future.
 
-	const double xyz_norm = pow(xyz[0]*xyz[0]+xyz[1]*xyz[1],2.0),
+/// \todo Make the exponent flexible here but remove the flexibility in the polynomial order.
+	const double xyz_norm = pow(xyz[0]*xyz[0]+xyz[1]*xyz[1],0.0),
 	             x        = xyz[0],
 	             y        = xyz[1];
 

@@ -16,7 +16,7 @@ ARGV="RESULTS_navier_stokes_joukowski_full_dg_2D petsc_options_gmres_tol_1e-4"
 ARGV="euler/free_stream/TEST_Euler_FreeStream_ParametricMixed2D petsc_options_gmres_tol_1e-4"
 ARGV="advection/free_stream/TEST_advection_free_stream_mixed2d_non_conforming petsc_options_gmres_tol_1e-15"
 ARGV="advection/vortex/TEST_advection_vortex_slipwall_mixed2d petsc_options_gmres_tol_1e-15"
-ARGV="advection/vortex/TEST_advection_vortex_n_cube_mixed2d petsc_options_gmres_tol_1e-15"
+#ARGV="advection/vortex/TEST_advection_vortex_n_cube_mixed2d petsc_options_gmres_tol_1e-15"
 
 #EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_free_stream
 #ARGV="advection/vortex/TEST_advection_vortex_mixed2d petsc_options_gmres_tol_1e-15"

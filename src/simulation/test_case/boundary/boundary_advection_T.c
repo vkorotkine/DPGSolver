@@ -109,6 +109,7 @@ void constructor_Boundary_Value_T_advection_slipwall
 	const struct const_Multiarray_R* normals = bv_i->normals;
 	assert(normals->layout == 'R');
 
+	const double exp_bn = 1.0/3.0;
 	for (int n = 0; n < n_n; n++) {
 		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
 		const Real*const data_n = get_row_const_Multiarray_d(n,normals),
@@ -116,13 +117,20 @@ void constructor_Boundary_Value_T_advection_slipwall
 		const Real b_l2    = norm_R(DIM,b_adv,"L2"),
 		           b_dot_n = dot_R(DIM,b_adv,data_n);
 
+//printf("% .15e % .15e\n",b_dot_n,b_l2);
 UNUSED(b_l2); UNUSED(b_dot_n);
 //		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,2.0)); // original (use vector: b/norm(b)^2)
-		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,1.0)); // modified (use vector: const*(n+b))
+//		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,1.0)); // modified (use vector: const*(n+b))
+const double sign = ( n < 2 ? 1.0 : -1.0 );
+		u[n] = u_l[n]*(1.0-sign*2.0*pow_R(fabs(b_dot_n),exp_bn));
+//		u[n] = u_l[n]-2.0*pow_R(fabs(b_dot_n),exp_bn);
 //		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,0.0)); // modified (use vector: n/norm(n)^2 == n)
 //		u[n] = u_l[n]; // outflow
-//printf("%f %e\n",b_l2,b_dot_n);
+#if TYPE_RC == TYPE_REAL
+printf("%f % e % e\n",b_l2,b_dot_n,-sign*2.0*pow_R(fabs(b_dot_n),exp_bn));
+#endif
 	}
+printf("\n");
 	bv->s = (struct const_Multiarray_T*)sol; // keep
 
 	if (c_m[1] == true) {
@@ -139,7 +147,10 @@ UNUSED(b_l2); UNUSED(b_dot_n);
 
 UNUSED(b_l2); UNUSED(b_dot_n);
 //			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,2.0);
-			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,1.0);
+//			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,1.0);
+const double sign = ( n < 2 ? 1.0 : -1.0 );
+			ds_ds->data[n] = 1.0-sign*2.0*pow_R(fabs(b_dot_n),exp_bn);
+//			ds_ds->data[n] = 1.0;
 //			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,0.0);
 //			ds_ds->data[n] = 1.0;
 		}
