@@ -18,8 +18,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 #include <stddef.h>
+#include <math.h>
 
 #include "macros.h"
+#include "definitions_bc.h"
 
 
 #include "def_templates_multiarray.h"
@@ -101,6 +103,7 @@ void compute_Numerical_Flux_T_advection_upwind_jacobian
 	                                       get_col_const_Multiarray_R(1,xyz_Ma),
 	                                       get_col_const_Multiarray_R(2,xyz_Ma) );
 
+const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 	for (int n = 0; n < NnTotal; n++) {
 		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
 		const double*const b_adv = sol_data.compute_b_adv(xyz_n);
@@ -109,16 +112,31 @@ void compute_Numerical_Flux_T_advection_upwind_jacobian
 		for (int dim = 0; dim < DIM; dim++)
 			b_dot_n += b_adv[dim]*nL[n*DIM+dim];
 
-		if (b_dot_n >= 0.0) {
+//		if (b_dot_n >= 0.0) {
+		if (b_dot_n >= 1e-3) {
 			nFluxNum[n]     = b_dot_n*WL[n];
 			dnFluxNumdWL[n] = b_dot_n;
 			dnFluxNumdWR[n] = 0.0;
 		} else {
+switch (bc) {
+case BC_SLIPWALL:
+#if TYPE_RC == TYPE_REAL
+//printf("nf: % .3e % .3e % .3e % .3e % .3e\n",b_dot_n,WL[n]-WR[n],b_dot_n*(WL[n]-WR[n]),b_dot_n*WL[n],b_dot_n*WR[n]);
+#endif
+	nFluxNum[n]     = b_dot_n*WL[n];
+	dnFluxNumdWL[n] = b_dot_n;
+	dnFluxNumdWR[n] = 0.0;
+//	break;
+default:
 			nFluxNum[n]     = b_dot_n*WR[n];
 			dnFluxNumdWL[n] = 0.0;
 			dnFluxNumdWR[n] = b_dot_n;
+	break;
+}
 		}
 	}
+//if (bc == BC_SLIPWALL)
+//printf("\n");
 }
 
 // Static functions ************************************************************************************************* //

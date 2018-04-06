@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include "face.h"
+
 #include "boundary.h"
 
 #include "math_functions.h"

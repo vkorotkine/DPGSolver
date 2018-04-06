@@ -56,6 +56,9 @@ static const struct const_Multiarray_T* constructor_g_fc_interp
 void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 	(struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
+	const struct Face*const face = (struct Face*) s_face;
+	bv_i->bc = face->bc;
+
 	const int side_index = 0;
 	bv_i->normals = s_face->normals_fc;
 	bv_i->xyz     = s_face->xyz_fc;
@@ -66,6 +69,9 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 void constructor_Boundary_Value_Input_face_sg_fcl_interp_T
 	(struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
+	const struct Face*const face = (struct Face*) s_face;
+	bv_i->bc = face->bc;
+
 	const int side_index = 0;
 	bv_i->normals = s_face->normals_fc;
 	bv_i->xyz     = s_face->xyz_fc;

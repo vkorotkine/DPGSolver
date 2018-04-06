@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "gsl/gsl_math.h"
 
 #include "macros.h"
+#include "definitions_bc.h"
 #include "definitions_core.h"
 #include "definitions_physics.h"
 
@@ -1006,6 +1007,16 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 			           pL  = GM1*(EL-0.5*rhoL*V2L),
 			           HL  = (EL+pL)*rhoL_inv;
 
+#if TYPE_REAL == TYPE_RC
+const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
+if (bc == BC_SLIPWALL) {
+//	if (n == 0)
+//		printf("\n");
+if (fabs(pL-1.0/1.4) < 1e-3)
+//printf("% .3e % .3e % .3e\n",VnL,n1*(pL-1.0/1.4),n2*(pL-1.0/1.4));
+printf("% .3e\n",n2*(pL-1.0/1.4));
+}
+#endif
 			// Right VOLUME
 			Type const rhoR  = *rhoR_ptr++,
 			           rhouR = *rhouR_ptr++,

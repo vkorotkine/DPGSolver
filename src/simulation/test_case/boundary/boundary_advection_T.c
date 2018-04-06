@@ -109,7 +109,14 @@ void constructor_Boundary_Value_T_advection_slipwall
 	const struct const_Multiarray_R* normals = bv_i->normals;
 	assert(normals->layout == 'R');
 
-	const double exp_bn = 1.0/3.0;
+// Compute h
+double h = 0.0;
+for (int d = 0; d < DIM; ++d)
+	h += pow_R(xyz[d][0]-xyz[d][1],2.0);
+h = sqrt(h);
+
+	const double exp_bn = 0.0;
+UNUSED(exp_bn);
 	for (int n = 0; n < n_n; n++) {
 		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
 		const Real*const data_n = get_row_const_Multiarray_d(n,normals),
@@ -121,16 +128,17 @@ void constructor_Boundary_Value_T_advection_slipwall
 UNUSED(b_l2); UNUSED(b_dot_n);
 //		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,2.0)); // original (use vector: b/norm(b)^2)
 //		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,1.0)); // modified (use vector: const*(n+b))
-const double sign = ( n < 2 ? 1.0 : -1.0 );
-		u[n] = u_l[n]*(1.0-sign*2.0*pow_R(fabs(b_dot_n),exp_bn));
+//		u[n] = u_l[n]*(1.0-2.0*(1*sqrt(n)+1)*pow_R(fabs(b_dot_n),exp_bn));
+const bool condition = (n == n_n-1);
+		u[n] = u_l[n]*(1.0- ( condition ? (0*sqrt(n)+1)*pow_R(h,exp_bn) : 0));
+//		u[n] = u_l[n]; // outflow
 //		u[n] = u_l[n]-2.0*pow_R(fabs(b_dot_n),exp_bn);
 //		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,0.0)); // modified (use vector: n/norm(n)^2 == n)
-//		u[n] = u_l[n]; // outflow
 #if TYPE_RC == TYPE_REAL
-printf("%f % e % e\n",b_l2,b_dot_n,-sign*2.0*pow_R(fabs(b_dot_n),exp_bn));
+//printf("%f % e % e\n",b_l2,b_dot_n,-2.0*pow_R(fabs(b_dot_n),exp_bn));
 #endif
 	}
-printf("\n");
+//printf("\n");
 	bv->s = (struct const_Multiarray_T*)sol; // keep
 
 	if (c_m[1] == true) {
@@ -148,11 +156,12 @@ printf("\n");
 UNUSED(b_l2); UNUSED(b_dot_n);
 //			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,2.0);
 //			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,1.0);
-const double sign = ( n < 2 ? 1.0 : -1.0 );
-			ds_ds->data[n] = 1.0-sign*2.0*pow_R(fabs(b_dot_n),exp_bn);
+//			ds_ds->data[n] = 1.0-2.0*(1*sqrt(n)+1)*pow_R(fabs(b_dot_n),exp_bn);
+const bool condition = (n == n_n-1);
+			ds_ds->data[n] = 1.0- ( condition ? (0*sqrt(n)+1)*pow_R(h,exp_bn) : 0);
+//			ds_ds->data[n] = 1.0;
 //			ds_ds->data[n] = 1.0;
 //			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,0.0);
-//			ds_ds->data[n] = 1.0;
 		}
 		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds; // keep
 	}
