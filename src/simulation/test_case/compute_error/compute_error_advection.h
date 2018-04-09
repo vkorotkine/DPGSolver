@@ -28,4 +28,11 @@ struct Error_CE* constructor_Error_CE_advection_all
 	(const struct Simulation* sim ///< Defined for \ref constructor_Error_CE_fptr.
 	);
 
+/** \brief Version of \ref constructor_Error_CE_fptr checking the error of all supported linear advection variables and
+ *         the residual.
+ *  \return See brief. */
+struct Error_CE* constructor_Error_CE_advection_all_p_rhs
+	(const struct Simulation* sim ///< Defined for \ref constructor_Error_CE_fptr.
+	);
+
 #endif // DPG__compute_error_advection_h__INCLUDED

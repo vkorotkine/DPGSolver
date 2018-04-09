@@ -1007,16 +1007,6 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 			           pL  = GM1*(EL-0.5*rhoL*V2L),
 			           HL  = (EL+pL)*rhoL_inv;
 
-#if TYPE_REAL == TYPE_RC
-const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
-if (bc == BC_SLIPWALL) {
-//	if (n == 0)
-//		printf("\n");
-if (fabs(pL-1.0/1.4) < 1e-3)
-//printf("% .3e % .3e % .3e\n",VnL,n1*(pL-1.0/1.4),n2*(pL-1.0/1.4));
-printf("% .3e\n",n2*(pL-1.0/1.4));
-}
-#endif
 			// Right VOLUME
 			Type const rhoR  = *rhoR_ptr++,
 			           rhouR = *rhouR_ptr++,
@@ -1122,6 +1112,30 @@ printf("% .3e\n",n2*(pL-1.0/1.4));
 				*nF_ptr[IndnF++]++ = 0.5*(nF2 - dis2);
 				*nF_ptr[IndnF++]++ = 0.5*(nF3 - dis3);
 				*nF_ptr[IndnF++]++ = 0.5*(nF5 - dis5);
+#if TYPE_REAL == TYPE_RC
+const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
+if (bc == BC_SLIPWALL) {
+const bool enabled = false;
+
+const double h = num_flux_i->bv_l.h/4;
+#if 0
+const int p = 1;
+const int exponent = p;
+#else
+const int exponent = (int) NnTotal-1; // == p for 2D
+#endif
+
+for (int i = 0, IndnF = 0; i < 4; ++i) {
+	*(nF_ptr[IndnF]-1) += ( enabled ? 1e-3*pow(h,exponent) : 0 );
+	++IndnF;
+}
+//	if (n == 0)
+//		printf("\n");
+//if (fabs(pL-1.0/1.4) < 1e-3)
+//printf("% .3e % .3e % .3e\n",VnL,n1*(pL-1.0/1.4),n2*(pL-1.0/1.4));
+//printf("% .3e\n",n2*(pL-1.0/1.4));
+}
+#endif
 			}
 
 			Type dnF1dW[NEQ],  dnF2dW[NEQ],  dnF3dW[NEQ],  dnF5dW[NEQ],

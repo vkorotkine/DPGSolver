@@ -83,7 +83,6 @@ void constructor_Boundary_Value_T_advection_slipwall
 	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
 	 const struct Simulation* sim)
 {
-	UNUSED(face);
 	UNUSED(sim);
 
 	static bool need_input = true;
@@ -109,13 +108,8 @@ void constructor_Boundary_Value_T_advection_slipwall
 	const struct const_Multiarray_R* normals = bv_i->normals;
 	assert(normals->layout == 'R');
 
-// Compute h
-double h = 0.0;
-for (int d = 0; d < DIM; ++d)
-	h += pow_R(xyz[d][0]-xyz[d][1],2.0);
-h = sqrt(h);
-
-	const double exp_bn = 0.0;
+	const double h      = ((struct Face*)face)->h;
+	const double exp_bn = 1.0;
 UNUSED(exp_bn);
 	for (int n = 0; n < n_n; n++) {
 		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
@@ -129,8 +123,8 @@ UNUSED(b_l2); UNUSED(b_dot_n);
 //		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,2.0)); // original (use vector: b/norm(b)^2)
 //		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,1.0)); // modified (use vector: const*(n+b))
 //		u[n] = u_l[n]*(1.0-2.0*(1*sqrt(n)+1)*pow_R(fabs(b_dot_n),exp_bn));
-const bool condition = (n == n_n-1);
-		u[n] = u_l[n]*(1.0- ( condition ? (0*sqrt(n)+1)*pow_R(h,exp_bn) : 0));
+const bool condition = 1||(n == n_n-1);
+		u[n] = u_l[n]*(1.0- ( condition ? (1*sqrt(n)+1)*pow_R(h,exp_bn) : 0));
 //		u[n] = u_l[n]; // outflow
 //		u[n] = u_l[n]-2.0*pow_R(fabs(b_dot_n),exp_bn);
 //		u[n] = u_l[n]*(1.0-2.0*pow_R(b_dot_n/b_l2,0.0)); // modified (use vector: n/norm(n)^2 == n)
@@ -157,8 +151,8 @@ UNUSED(b_l2); UNUSED(b_dot_n);
 //			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,2.0);
 //			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,1.0);
 //			ds_ds->data[n] = 1.0-2.0*(1*sqrt(n)+1)*pow_R(fabs(b_dot_n),exp_bn);
-const bool condition = (n == n_n-1);
-			ds_ds->data[n] = 1.0- ( condition ? (0*sqrt(n)+1)*pow_R(h,exp_bn) : 0);
+const bool condition = 1||(n == n_n-1);
+			ds_ds->data[n] = 1.0- ( condition ? (1*sqrt(n)+1)*pow_R(h,exp_bn) : 0);
 //			ds_ds->data[n] = 1.0;
 //			ds_ds->data[n] = 1.0;
 //			ds_ds->data[n] = 1.0-2.0*pow_R(b_dot_n/b_l2,0.0);

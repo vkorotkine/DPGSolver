@@ -50,6 +50,8 @@ struct Volume {
 
 	const struct const_Multiarray_d*const xyz_ve; ///< The xyz coordinates of the volume vertices.
 
+	double h; ///< Measure of volume size (maximum edge length).
+
 	const struct Face*const faces[NFMAX][NSUBFMAX]; ///< Array of pointers to the neighbouring \ref Face containers.
 };
 
@@ -112,6 +114,12 @@ struct Volume* constructor_copy_Volume
 	(const struct Volume*const vol_i,   ///< The input \ref Volume.
 	 const struct Simulation*const sim, ///< \ref Simulation.
 	 const bool independent_elements    ///< Flag for whether
+	);
+
+/** \brief Compute and return the \ref Volume::h based on the element type and the vertex coordinates.
+ *  \return See brief. */
+double compute_h_volume
+	(const struct Volume*const vol ///< \ref Volume.
 	);
 
 #endif // DPG__volume_h__INCLUDED

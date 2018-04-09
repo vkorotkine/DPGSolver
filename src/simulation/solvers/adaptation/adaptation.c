@@ -2356,6 +2356,7 @@ static void constructor_Volume_h_ref
 
 	const_constructor_move_const_Multiarray_d(&vol->xyz_ve,
 		constructor_mm_NN1_Operator_const_Multiarray_d(vv0_vv_vv,xyz_ve_p2,'R','d',2,NULL)); // keep
+	vol->h = compute_h_volume(vol);
 
 	if (xyz_ve_p2 != xyz_ve_p2_i)
 		destructor_const_Multiarray_d(xyz_ve_p2);
@@ -2385,6 +2386,7 @@ static void constructor_Face_h_ref
 	face->neigh_info[0].ind_sref = 0;
 	face->neigh_info[0].ind_ord  = get_ind_ord_h_ref(0,face_p);
 	face->neigh_info[0].volume   = (struct Volume*) advance_Link(ind_child_0,a_s_vol_p_0->child_0);
+	face->h = compute_h_face(face);
 
 	if (!face->boundary) {
 		const struct Volume*const vol_p_1                     = face_p->neigh_info[1].volume;

@@ -67,7 +67,8 @@ struct Boundary_Value_Input_T {
 	const int n_eq,  ///< \ref Test_Case_T::n_eq.
 	          n_var; ///< \ref Test_Case_T::n_var.
 
-	int bc; ///< \ref Face::bc.
+	int bc;   ///< \ref Face::bc.
+	double h; ///< \ref Face::h.
 
 /// \todo geometry: Real -> Templated
 	const struct const_Multiarray_R* normals; ///< The unit normal vector components.

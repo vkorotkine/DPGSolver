@@ -33,4 +33,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_face_solver.h"
 #include "undef_templates_volume_solver.h"
 
+/** \brief Identical to \ref constructor_sol_v_T but for \ref Solver_Volume_T::rhs.
+ *  \return See brief. */
+struct Multiarray_d* constructor_rhs_v
+	(const struct Simulation* sim, ///< See brief.
+	 struct Solver_Volume* s_vol,  ///< See brief.
+	 const char node_kind          ///< See brief.
+	);
+
 #endif // DPG__solution_h__INCLUDED

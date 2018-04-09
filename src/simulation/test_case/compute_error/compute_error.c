@@ -224,7 +224,7 @@ void destructor_Error_CE_Helper (struct Error_CE_Helper* e_ce_h)
 struct Error_CE_Data* constructor_Error_CE_Data
 	(struct Error_CE_Helper* e_ce_h, const struct Simulation* sim)
 {
-	struct Error_CE_Data* e_ce_d = malloc(sizeof *e_ce_d); // destructed
+	struct Error_CE_Data* e_ce_d = calloc(1,sizeof *e_ce_d); // destructed
 
 	set_Solver_Volume_exact(e_ce_h->s_vol[1],e_ce_h->s_vol[0]);
 
@@ -236,13 +236,21 @@ struct Error_CE_Data* constructor_Error_CE_Data
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	test_case->set_sol(sim,*(e_ce_h->sol_cont));
 
+	if (test_case->copy_initial_rhs) {
+		e_ce_d->rhs[0] = constructor_rhs_v(sim,e_ce_h->s_vol[0],e_ce_h->sol_cont->node_kind); // destructed
+		e_ce_d->rhs[1] = constructor_zero_Multiarray_d('C',2,e_ce_d->rhs[0]->extents);        // destructed
+	}
+
 	return e_ce_d;
 }
 
 void destructor_Error_CE_Data (struct Error_CE_Data* e_ce_d)
 {
-	for (int i = 0; i < 2; ++i)
+	for (int i = 0; i < 2; ++i) {
 		destructor_Multiarray_d(e_ce_d->sol[i]);
+		if (e_ce_d->rhs[i])
+			destructor_Multiarray_d(e_ce_d->rhs[i]);
+	}
 	free(e_ce_d);
 }
 
@@ -347,8 +355,12 @@ static void destructor_Error_CE (struct Error_CE* error_ce)
 static double compute_domain_volume (const struct Simulation* sim)
 {
 	double domain_volume = 0.0;
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+//if(!((struct Volume*)curr)->boundary)
+//	continue;
 		domain_volume += compute_volume((struct Solver_Volume*) curr);
+
+	}
 	return domain_volume;
 }
 

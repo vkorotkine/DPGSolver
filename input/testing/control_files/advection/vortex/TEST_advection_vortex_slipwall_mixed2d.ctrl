@@ -31,8 +31,8 @@ geom_representation  isoparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_ref    0 5
-p_cub_p  2 2
+p_ref    3 3
+p_cub_p  0 0
 
 fe_method 1
 
@@ -40,4 +40,4 @@ fe_method 1
 # Testing variables
 
 ml_range_test 0 4
-p_range_test  0 5
+p_range_test  3 3

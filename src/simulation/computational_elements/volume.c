@@ -16,15 +16,16 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "volume.h"
-#include "definitions_elements.h"
-#include "intrusive.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "gsl/gsl_math.h"
 
 #include "macros.h"
 #include "definitions_bc.h"
 #include "definitions_core.h"
+#include "definitions_elements.h"
 #include "definitions_intrusive.h"
 #include "definitions_mesh.h"
 
@@ -32,15 +33,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
-#include "simulation.h"
+#include "face.h"
+#include "element.h"
+
+#include "const_cast.h"
+#include "geometry.h"
+#include "intrusive.h"
+#include "math_functions.h"
 #include "mesh.h"
 #include "mesh_readers.h"
 #include "mesh_connectivity.h"
 #include "mesh_vertices.h"
-#include "const_cast.h"
-#include "face.h"
-#include "element.h"
-#include "geometry.h"
+#include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -168,6 +172,7 @@ struct Volume* constructor_copy_Volume
 
 	const_constructor_move_const_Multiarray_d
 		(&volume->xyz_ve,constructor_copy_const_Multiarray_d(vol_i->xyz_ve)); // destructed
+	volume->h = vol_i->h;
 
 	for (int i = 0; i < NFMAX;    ++i) {
 	for (int j = 0; j < NSUBFMAX; ++j) {
@@ -192,6 +197,42 @@ void destructor_Volume (struct Volume* vol)
 {
 	destructor_Volume_link(vol);
 	free(vol);
+}
+
+double compute_h_volume (const struct Volume*const vol)
+{
+	const struct const_Element*const el          = vol->element;
+	const struct const_Multiarray_d*const xyz_ve = vol->xyz_ve;
+
+	if (DIM == 1) {
+		const double*const xyz_ve_a[] = { get_row_const_Multiarray_d(0,xyz_ve),
+		                                  get_row_const_Multiarray_d(1,xyz_ve), };
+
+		double xyz_ve_diff[DIM] = {0};
+		for (int d = 0; d < DIM; ++d)
+			xyz_ve_diff[d] = xyz_ve_a[0][d]-xyz_ve_a[1][d];
+		return norm_d(DIM,xyz_ve_diff,"L2");
+	} else {
+		const int n_e = el->n_e;
+		const struct const_Multiarray_Vector_i*const e_ve = el->e_ve;
+
+		double h = 0;
+		for (int e = 0; e < n_e; ++e) {
+			const int*const ind_ve = e_ve->data[e]->data;
+
+			assert(e_ve->data[e]->ext_0 == 2);
+			const double*const xyz_ve_a[] = { get_row_const_Multiarray_d(ind_ve[0],xyz_ve),
+			                                  get_row_const_Multiarray_d(ind_ve[1],xyz_ve), };
+
+			double xyz_ve_diff[DIM] = {0};
+			for (int d = 0; d < DIM; ++d)
+				xyz_ve_diff[d] = xyz_ve_a[0][d]-xyz_ve_a[1][d];
+			const double h_e = norm_d(DIM,xyz_ve_diff,"L2");
+			h = GSL_MAX(h,h_e);
+		}
+		return h;
+	}
+	EXIT_ERROR("Should not have reached this point.");
 }
 
 // Static functions ************************************************************************************************* //
@@ -275,6 +316,7 @@ static struct Volume* constructor_Volume
 	             check_if_boundary_v(vol_mi->to_lf,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
 	const_cast_b(&volume->curved,
 	             check_if_curved_v(sim->domain_type,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
+	volume->h = compute_h_volume(volume);
 
 	return volume;
 }

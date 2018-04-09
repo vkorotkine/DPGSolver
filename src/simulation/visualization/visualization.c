@@ -636,7 +636,7 @@ static void fprint_vtk_piece_sol_grad
 			fprintf_tn(file,1,"<PointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
 
 			struct Multiarray_i*const data_i =
-				constructor_empty_Multiarray_i(sol->layout,sol->order,sol->extents); // destructed
+				constructor_empty_Multiarray_i(sol->layout,2,(ptrdiff_t[]){sol->extents[0],1}); // destructed
 
 			set_to_value_Multiarray_i(data_i,vdv->index);
 			fprint_vtk_piece_sol_scalar_i(file,sp_type,(struct const_Multiarray_i*)data_i,"index");

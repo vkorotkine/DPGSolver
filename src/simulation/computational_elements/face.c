@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 #include <stdlib.h>
 #include <math.h>
+#include "gsl/gsl_math.h"
 
 #include "macros.h"
 #include "definitions_mesh.h"
@@ -205,6 +206,7 @@ struct Face* constructor_copy_Face
 	const_cast_b(&face->boundary,face_i->boundary);
 	const_cast_b(&face->curved,face_i->curved);
 	const_cast_i(&face->bc,face_i->bc);
+	face->h = face_i->h;
 
 	return face;
 }
@@ -289,6 +291,50 @@ bool is_face_wall_boundary (const struct Face*const face)
 	}
 }
 
+double compute_h_face (const struct Face*const face)
+{
+	if (DIM == 1)
+		return 1.0;
+
+	const struct Volume*const vol = (struct Volume*) face->neigh_info[0].volume;
+
+	const struct const_Element*const el_vol      = vol->element;
+	const struct const_Multiarray_d*const xyz_ve = vol->xyz_ve;
+
+	const struct const_Vector_i*const f_ve_lf = el_vol->f_ve->data[face->neigh_info[0].ind_lf];
+	if (DIM == 2) {
+		const double*const xyz_ve_a[] = { get_row_const_Multiarray_d(f_ve_lf->data[0],xyz_ve),
+		                                  get_row_const_Multiarray_d(f_ve_lf->data[1],xyz_ve), };
+
+		double xyz_ve_diff[DIM] = {0};
+		for (int d = 0; d < DIM; ++d)
+			xyz_ve_diff[d] = xyz_ve_a[0][d]-xyz_ve_a[1][d];
+		return norm_d(DIM,xyz_ve_diff,"L2");
+	} else if (DIM == 3) {
+		const struct const_Element*const el_face = face->element;
+		const int n_e = el_face->n_e;
+		const struct const_Multiarray_Vector_i*const e_ve = el_face->e_ve;
+
+		double h = 0;
+		for (int e = 0; e < n_e; ++e) {
+			const int ind_ve[2] = { f_ve_lf->data[e_ve->data[e]->data[0]],
+			                        f_ve_lf->data[e_ve->data[e]->data[1]], };
+
+			assert(e_ve->data[e]->ext_0 == 2);
+			const double*const xyz_ve_a[] = { get_row_const_Multiarray_d(ind_ve[0],xyz_ve),
+			                                  get_row_const_Multiarray_d(ind_ve[1],xyz_ve), };
+
+			double xyz_ve_diff[DIM] = {0};
+			for (int d = 0; d < DIM; ++d)
+				xyz_ve_diff[d] = xyz_ve_a[0][d]-xyz_ve_a[1][d];
+			const double h_e = norm_d(DIM,xyz_ve_diff,"L2");
+			h = GSL_MAX(h,h_e);
+		}
+		return h;
+	}
+	EXIT_ERROR("Should not have reached this point.");
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -346,6 +392,7 @@ static struct Face* constructor_Face
 	assert(!face->boundary || face->bc >= 0);
 
 	set_up_Face__Neigh_Info__ind_ord(face,face_mi->neigh_info[0].ind_lf_wp);
+	face->h = compute_h_face(face);
 
 	return face;
 }

@@ -55,6 +55,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 ///\{ \name Flags for whether certain outputs are enabled.
+#define PRINT_NORM_INF  false ///< Flag for whether the infinity norm of the solution update should be printed.
 #define OUTPUT_PETSC_AB false ///< Flag for Petsc data containers.
 #define OUTPUT_SOLUTION false ///< Flag for solution data on each element.
 #define EXIT_ON_OUTPUT  true  ///< Flag for whether the simulation should exit after outputting.
@@ -698,6 +699,15 @@ static void update_coef
 
 	PetscScalar y[ni];
 	VecGetValues(x,ni,ix,y);
+
+	if (PRINT_NORM_INF) {
+		const struct Volume*const vol = (struct Volume*)s_vol;
+		if (vol->index == 0) {
+			PetscReal norm_inf = 0;
+			VecNorm(x,NORM_INFINITY,&norm_inf);
+			printf("du inf norm: % .3e\n",norm_inf);
+		}
+	}
 
 	double relax = 1.0;
 	if (allow_relax) {

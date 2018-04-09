@@ -58,6 +58,7 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 {
 	const struct Face*const face = (struct Face*) s_face;
 	bv_i->bc = face->bc;
+	bv_i->h  = face->h;
 
 	const int side_index = 0;
 	bv_i->normals = s_face->normals_fc;
@@ -69,14 +70,10 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 void constructor_Boundary_Value_Input_face_sg_fcl_interp_T
 	(struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
-	const struct Face*const face = (struct Face*) s_face;
-	bv_i->bc = face->bc;
+	constructor_Boundary_Value_Input_face_s_fcl_interp_T(bv_i,s_face,sim); // destructed
 
 	const int side_index = 0;
-	bv_i->normals = s_face->normals_fc;
-	bv_i->xyz     = s_face->xyz_fc;
-	bv_i->s       = constructor_s_fc_interp(s_face,sim,side_index); // destructed
-	bv_i->g       = constructor_g_fc_interp(s_face,sim,side_index); // destructed
+	bv_i->g = constructor_g_fc_interp(s_face,sim,side_index); // destructed
 }
 
 void destructor_Boundary_Value_Input_T (struct Boundary_Value_Input_T* bv_i)

@@ -41,6 +41,8 @@ struct Face {
 
 	const int bc; ///< The boundary condition associated with the face (if relevant).
 
+	double h; ///< As for \ref Volume::h but for the face.
+
 	/// \brief Container for information relating to the neighbouring \ref Volume on either side of the \ref Face.
 	struct Neigh_Info {
 		/// Local face index in relation to the neighbouring volume.
@@ -173,6 +175,13 @@ struct Volume* get_volume_neighbour
 /** \brief Return `true` if the \ref Face is a wall boundary and `false` otherwise.
  *  \return See brief. */
 bool is_face_wall_boundary
+	(const struct Face*const face ///< \ref Face.
+	);
+
+/** \brief Compute and return the \ref Face::h based on the element type and the vertex coordinates of the neighbouring
+ *         volume.
+ *  \return See brief. */
+double compute_h_face
 	(const struct Face*const face ///< \ref Face.
 	);
 

@@ -65,6 +65,7 @@ struct Error_CE_Helper {
 /// Container holding information relating to the solution used to compute the error.
 struct Error_CE_Data {
 	struct Multiarray_d* sol[2]; ///< Pointers to the computed and exact solution data.
+	struct Multiarray_d* rhs[2]; ///< Pointers to the computed and exact rhs data.
 };
 
 // Interface functions ********************************************************************************************** //

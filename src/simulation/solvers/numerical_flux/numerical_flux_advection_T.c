@@ -112,22 +112,25 @@ const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 		for (int dim = 0; dim < DIM; dim++)
 			b_dot_n += b_adv[dim]*nL[n*DIM+dim];
 
-//		if (b_dot_n >= 0.0) {
-		if (b_dot_n >= 1e-3) {
+		if (b_dot_n >= 0.0) {
 			nFluxNum[n]     = b_dot_n*WL[n];
 			dnFluxNumdWL[n] = b_dot_n;
 			dnFluxNumdWR[n] = 0.0;
 		} else {
 switch (bc) {
-case BC_SLIPWALL:
+case BC_SLIPWALL: {
 #if TYPE_RC == TYPE_REAL
 //printf("nf: % .3e % .3e % .3e % .3e % .3e\n",b_dot_n,WL[n]-WR[n],b_dot_n*(WL[n]-WR[n]),b_dot_n*WL[n],b_dot_n*WR[n]);
 #endif
-	nFluxNum[n]     = b_dot_n*WL[n];
+	const double h = num_flux_i->bv_l.h;
+	const int p = 3;
+	UNUSED(h);
+
+	nFluxNum[n]     = b_dot_n*WL[n] + pow(h,p+1);
 	dnFluxNumdWL[n] = b_dot_n;
 	dnFluxNumdWR[n] = 0.0;
-//	break;
-default:
+	break;
+} default:
 			nFluxNum[n]     = b_dot_n*WR[n];
 			dnFluxNumdWL[n] = 0.0;
 			dnFluxNumdWR[n] = b_dot_n;
