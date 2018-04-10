@@ -22,6 +22,7 @@ struct Solver_Face_T;
 struct Simulation;
 
 /** \brief Version of \ref constructor_Boundary_Value_fptr_T computing members using the Riemann invariant values.
+ *
  *  Reference: (Section 2.2, \cite Carlson2011); note the typo in eq. (14).
  */
 void constructor_Boundary_Value_T_euler_riemann
@@ -32,8 +33,14 @@ void constructor_Boundary_Value_T_euler_riemann
 	);
 
 /** \brief Version of \ref constructor_Boundary_Value_fptr_T computing members using the slip wall values.
- *  The slip wall boundary condition sets the ghost state density and total energy equal to the internal values and uses
- *  the opposite normal velocity.
+ *
+ *  The slip wall boundary condition sets the ghost state variables as follows:
+ *  - density:  equal to internal density;
+ *  - pressure: equal to internal pressure;
+ *  - velocity: equal to internal velocity reflected along the tangent to the boundary.
+ *
+ *  \note As the density, pressure and velocity magnitude of the ghost state are all equal to those of the internal
+ *        state, it is immediately noted that the total energy of the ghost state is also equal to the internal value.
  */
 void constructor_Boundary_Value_T_euler_slipwall
 	(struct Boundary_Value_T* bv,               ///< See brief.

@@ -157,4 +157,10 @@ void correct_file_name_ml_p
 	 char*const file_name ///< The input file name.
 	);
 
+/// \brief Add the computed and exact specified variable to the solution data Multiarrays.
+void add_rhs_Error_CE_Data
+	(struct Error_CE_Data*const e_ce_d, ///< \ref Error_CE_Data.
+	 const struct Simulation*const sim  ///< \ref Simulation.
+	);
+
 #endif // DPG__compute_error_h__INCLUDED

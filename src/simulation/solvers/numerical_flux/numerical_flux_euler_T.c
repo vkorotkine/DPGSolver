@@ -1116,24 +1116,32 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 if (bc == BC_SLIPWALL) {
 const bool enabled = false;
+const bool symm    = true;
 
-const double h = num_flux_i->bv_l.h/4;
-#if 0
-const int p = 1;
+const double h     = num_flux_i->bv_l.h/4;
+const int p        = (int) NnTotal-1; // == p for 2D (for p_cub = 2p)
 const int exponent = p;
-#else
-const int exponent = (int) NnTotal-1; // == p for 2D
-#endif
 
+//const double scale = (symm ? 1 : sqrt(n+1))*5e-2;
+const double scale = (symm ? 1 : sqrt(n+1))*1e+0;
+//if (fabs(pL-1.0/1.4) < 1e-3) {
+if (fabs(pL-2.843109) < 1e-3) {
+	if (n == 0)
+		printf("\n");
+//printf("% .3e % .3e % .3e\n",VnL,n1*(pL-1.0/1.4),n2*(pL-1.0/1.4));
+//printf("% .3e % .3e % .3e % .3e % .3e % .3e % .3e\n",n1,n2,(pL-1.0/1.4),dis1,nF2,nF3,dis5);
+double nFl[] = { rhoL*VnL, rhoL*uL*VnL + n1*pL, rhoL*vL*VnL + n2*pL, (EL+pL)*VnL};
+//printf("% .3e % .3e % .3e % .3e % .3e\n",*(nF_ptr[0]-1)-nFl[0],*(nF_ptr[1]-1)-nFl[1],*(nF_ptr[2]-1)-nFl[2],*(nF_ptr[3]-1)-nFl[3],scale*sqrt(2+1)*pow(h,exponent));
+printf("% .3e % .3e % .3e % .3e % .3e\n",*(nF_ptr[0]-1),*(nF_ptr[1]-1),*(nF_ptr[2]-1),*(nF_ptr[3]-1),scale*sqrt(2+1)*pow(h,exponent));
+//printf("% .3e % .3e % .3e % .3e\n",0.5*nF1-nFl[0],0.5*nF2-nFl[1],0.5*nF3-nFl[2],0.5*nF5-nFl[3]);
+//printf("% .3e\n",VnL); // O(h^{p+1}) for both iso and super! => Not the problem.
+//printf("% .16e % .16e % .16e % .16e\n",n1,n2,uL,vL);
+//printf("% .15e % .15e % .15e % .15e \n",pL,n1*p,nF2,*(nF_ptr[1]-1));
+}
 for (int i = 0, IndnF = 0; i < 4; ++i) {
-	*(nF_ptr[IndnF]-1) += ( enabled ? 1e-3*pow(h,exponent) : 0 );
+	*(nF_ptr[IndnF]-1) += ( enabled ? scale*sqrt(i+1)*pow(h,exponent) : 0 );
 	++IndnF;
 }
-//	if (n == 0)
-//		printf("\n");
-//if (fabs(pL-1.0/1.4) < 1e-3)
-//printf("% .3e % .3e % .3e\n",VnL,n1*(pL-1.0/1.4),n2*(pL-1.0/1.4));
-//printf("% .3e\n",n2*(pL-1.0/1.4));
 }
 #endif
 			}

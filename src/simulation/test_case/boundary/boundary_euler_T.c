@@ -506,7 +506,7 @@ void constructor_Boundary_Value_T_euler_slipwall
 
 	for (int n = 0; n < n_n; n++) {
 		rho[n] = rho_l[n];
-		E[n]   = E_l[n];
+		E[n]   = E_l[n];   // Equivalent to setting p[n] = p_l[n] (See comments).
 
 		const double* data_n = get_row_const_Multiarray_d(n,normals);
 		const Type rhouvw_l[] = { rhou_l[n], (DIM > 1 ? rhov_l[n] : 0.0), (DIM > 2 ? rhow_l[n] : 0.0), };

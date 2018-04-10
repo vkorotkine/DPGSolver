@@ -53,6 +53,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** Flag for whether the solution should be reinitialized whenever \ref solve_for_solution is called.
+ *
+ *  \warning This should __only__ be enabled for testing purposes as it may significantly slow down convergence for
+ *           non-linear problems if the initial solution is not close to the exact solution, which is true for all but
+ *           the trivial cases.
+ */
+#define ALWAYS_SET_INITIAL true
+/// \todo REMOVE THIS WHEN FINISHED TESTING!
+
 /// \brief Set the memory of the rhs and lhs (if applicable) terms to zero for the volumes.
 static void zero_memory_volumes
 	(struct Intrusive_List* volumes ///< The list of volumes for which to set the memory.
@@ -80,7 +89,8 @@ void solve_for_solution (struct Simulation* sim)
 	assert(sim->faces->name   == IL_FACE_SOLVER);
 	assert(list_is_derived_from("solver",'e',sim));
 
-set_initial_solution(sim);
+	if (ALWAYS_SET_INITIAL)
+		set_initial_solution(sim);
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	switch (test_case->solver_proc) {

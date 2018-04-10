@@ -33,7 +33,14 @@ struct Error_CE_Data;
  *  This function should be used when the exact solution is available.
  */
 struct Error_CE* constructor_Error_CE_euler_all
-	(const struct Simulation* sim ///< Defined for \ref constructor_Error_CE_fptr.
+	(const struct Simulation* sim ///< See brief.
+	);
+
+/** \brief Version of \ref constructor_Error_CE_fptr checking the error of all supported Euler variables and each of
+ *         their residuals.
+ *  \return See brief. */
+struct Error_CE* constructor_Error_CE_euler_all_p_rhs
+	(const struct Simulation* sim ///< See brief.
 	);
 
 /** \brief Version of \ref constructor_Error_CE_fptr checking the error of the entropy.
