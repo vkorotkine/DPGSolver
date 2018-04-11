@@ -4,7 +4,7 @@
 
 
 # Compilers
-set(CMAKE_C_COMPILER "gcc")
+set(CMAKE_C_COMPILER "mpicc")
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED on)

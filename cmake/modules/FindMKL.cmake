@@ -13,6 +13,8 @@
 
 if(NOT MKL_FOUND)
 
+  include(FindPackageHandleStandardArgs)
+
   # If the user did not specify an MKL root directory, check for the MKLROOT
   # environment variable or the presence of /opt/intel/mkl.
   if(NOT MKL_ROOT_DIR OR NOT DEFINED MKL_ROOT_DIR)
