@@ -103,8 +103,9 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 		const double*const c = sol_data.u_coef_polynomial4;
 		for (int i = 1; i < 4; ++i)
 			assert(c[i] == 0.0);
-		; // fallthrough
-	} case ADVECTION_TYPE_VORTEX:
+	}
+		// fallthrough
+	case ADVECTION_TYPE_VORTEX:
 		if (!use_poly) {
 			const struct Sol_Data__Advection sol_data = get_sol_data_advection();
 			const double scale = sol_data.u_scale;

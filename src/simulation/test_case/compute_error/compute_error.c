@@ -297,7 +297,7 @@ const char* compute_error_file_name (const int error_type, const struct Simulati
 		break;
 	}
 
-	static char output_name[STRLEN_MAX];
+	static char output_name[5*STRLEN_MAX];
 	sprintf(output_name,"%s%s%c%s%c%s%s%s",
 	        name_part,sim->pde_name,'/',sim->pde_spec,'/',
 	        l2_spec,"l2_errors__",extract_name(sim->ctrl_name_full,true));

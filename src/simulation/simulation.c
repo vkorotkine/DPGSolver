@@ -414,8 +414,8 @@ static bool is_adaptive (const int var[2])
 
 static const char* get_input_path (struct Simulation*const sim)
 {
-	static char input_path[STRLEN_MAX];
-	sprintf(input_path,"%s%s%s%s%s%s",
+	static char input_path[4*STRLEN_MAX];
+	snprintf(input_path,sizeof(input_path),"%s%s%s%s%s%s",
 	        PROJECT_INPUT_DIR,"input_files/",sim->pde_name,"/",sim->pde_spec,"/");
 	return input_path;
 }

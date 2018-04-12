@@ -185,7 +185,7 @@ static void fprint_vtk_piece_sol_grad
 static void output_visualization_vtk_geom
 	(const char geom_type, const struct Simulation* sim, const bool use_test_case_path)
 {
-	static char output_part[STRLEN_MAX] = { 0, };
+	static char output_part[4*STRLEN_MAX] = { 0, };
 	if (!use_test_case_path) {
 		sprintf(output_part,"%s%c","geom_",geom_type);
 	} else {
@@ -279,7 +279,7 @@ static void output_visualization_vtk_normals (const struct Simulation* sim)
 static void output_visualization_vtk_sol (const struct Simulation* sim)
 {
 /// \todo Add output for trace unknowns also if present.
-	static char output_part[STRLEN_MAX] = { 0, };
+	static char output_part[4*STRLEN_MAX] = { 0, };
 	sprintf(output_part,"%s%c%s%c%s%s",
 	        sim->pde_name,'/',sim->pde_spec,'/',"sol_v__",extract_name(sim->ctrl_name_full,true));
 

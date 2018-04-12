@@ -912,6 +912,7 @@ static const struct const_Vector_i* constructor_ind_h_b_coords
 
 			ext_0 = n_ve_ce;
 			ind_h_b_coords = ind_h_b_coords_all[ind_ce][ind_h];
+			break;
 		} case 'e': {
 			enum { n_ve_ce = 2, n_ref_max = 3, n_ce_max = 6, };
 			assert(n_ref_max == element->n_ref_max_f);
@@ -1002,6 +1003,7 @@ static const struct const_Vector_i* constructor_ind_h_b_coords
 
 			ext_0 = n_ve_ce_all[ind_ce];
 			ind_h_b_coords = ind_h_b_coords_all[ind_ce][ind_h];
+			break;
 		} case 'e': {
 			enum { n_ve_ce = 2, n_ref_max = 3, n_ce_max = 8, };
 			assert(n_ref_max == element->n_ref_max_f);
