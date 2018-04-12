@@ -165,10 +165,7 @@ const struct const_Matrix_T* constructor_copy_extract_const_Matrix_T
 		ext_1 = i_max;
 	}
 
-	struct Matrix_T* dest = constructor_move_Matrix_T_T(layout,ext_0,ext_1,true,data); // returned
-	const struct const_Matrix_T*const dest_c = NULL;
-	const_constructor_move_Matrix_T(&dest_c,dest);
-	return dest_c;
+	return (struct const_Matrix_T*) constructor_move_Matrix_T_T(layout,ext_0,ext_1,true,data);
 }
 
 void const_constructor_copy_Matrix_T (const struct const_Matrix_T*const* dest, const struct const_Matrix_T*const src)

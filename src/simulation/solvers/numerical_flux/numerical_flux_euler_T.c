@@ -1112,6 +1112,7 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 				*nF_ptr[IndnF++]++ = 0.5*(nF2 - dis2);
 				*nF_ptr[IndnF++]++ = 0.5*(nF3 - dis3);
 				*nF_ptr[IndnF++]++ = 0.5*(nF5 - dis5);
+#if 0
 #if TYPE_REAL == TYPE_RC
 const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 if (bc == BC_SLIPWALL) {
@@ -1127,7 +1128,7 @@ const double p_ex = 1.0/1.4;
 if (fabs(pL-p_ex) < 1e-1) {
 
 //const double scale = (symm ? 1 : sqrt(n+1))*5e-2;
-const double scale = (symm ? 1 : sqrt(n+1))*1e+0;
+const double scale = (symm ? 1 : sqrt((int)n+1))*1e+0;
 UNUSED(scale);
 //for (int i = 0, IndnF = i; i < 4; ++i) {
 for (int i = 1, IndnF = i; i < 3; ++i) {
@@ -1145,7 +1146,7 @@ for (int i = 1, IndnF = i; i < 3; ++i) {
 	switch (n) {
 //	case 0: case 3: scale *= 2.0; break;
 //	case 1: case 2: scale *= 3.0; break;
-	default: scale *= sqrt(n+1); break;
+	default: scale *= sqrt((int)n+1); break;
 	}
 //	*(nF_ptr[IndnF]-1) *= (1 + ( enabled ? scale*pow(h,exponent) : 0 ));
 	*(nF_ptr[IndnF]-1) += (0 + ( enabled ? scale*pow(h,exponent) : 0 ));
@@ -1181,6 +1182,7 @@ printf("% .3e % .3e % .3e % .3e % .3e % .3e % .3e \n",0.5*nF2-nFl[1],*(nF_ptr[1]
 //printf("% .15e % .15e % .15e % .15e \n",pL,n1*p,nF2,*(nF_ptr[1]-1));
 }
 }
+#endif
 #endif
 			}
 

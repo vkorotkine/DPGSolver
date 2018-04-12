@@ -61,6 +61,8 @@ void copy_members_r_to_c_Solver_Face
 	const_constructor_move_const_Multiarray_d(
 		&s_face->xyz_fc,constructor_copy_const_Multiarray_d(s_face_r->xyz_fc)); // destructed
 	const_constructor_move_const_Multiarray_d(
+		&s_face->xyz_fc_ex_b,constructor_copy_const_Multiarray_d(s_face_r->xyz_fc_ex_b)); // destructed
+	const_constructor_move_const_Multiarray_d(
 		&s_face->normals_fc,constructor_copy_const_Multiarray_d(s_face_r->normals_fc)); // destructed
 	const_constructor_move_const_Multiarray_d(
 		&s_face->jacobian_det_fc,constructor_copy_const_Multiarray_d(s_face_r->jacobian_det_fc)); // destructed

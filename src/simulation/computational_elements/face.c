@@ -413,9 +413,7 @@ const struct const_Vector_i* compute_ve_inds_f
 	for (ptrdiff_t i = 0; i < i_max; ++i)
 		ve_inds_f->data[i] = ve_inds_v->data[f_ve_f->data[i]];
 
-	const struct const_Vector_i*const dest = NULL;
-	const_constructor_move_Vector_i(&dest,ve_inds_f); // returned
-	return dest;
+	return (struct const_Vector_i*) ve_inds_f;
 }
 
 // Level 1 ********************************************************************************************************** //

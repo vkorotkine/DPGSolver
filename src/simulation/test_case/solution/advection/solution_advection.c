@@ -181,6 +181,7 @@ const double* compute_b_adv_vortex_poly (const double*const xyz)
 	const double xyz_norm = pow(xyz[0]*xyz[0]+xyz[1]*xyz[1],0.0),
 	             x        = xyz[0],
 	             y        = xyz[1];
+UNUSED(x);
 
 	static double b_adv[DIM] = {0,};
 	for (int d = 0; d < DIM; ++d)
