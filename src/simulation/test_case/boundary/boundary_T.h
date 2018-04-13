@@ -73,6 +73,7 @@ struct Boundary_Value_Input_T {
 /// \todo geometry: Real -> Templated
 	const struct const_Multiarray_R* normals; ///< The unit normal vector components.
 	const struct const_Multiarray_R* xyz;     ///< The xyz coordinates.
+	const struct const_Multiarray_R* xyz_ex;  ///< \ref Solver_Face_T::xyz_fc_ex_b.
 
 	/// \ref Solver_Face_T::jacobian_det_fc. \todo Remove if unused (was possibly used only for testing purposes).
 	const struct const_Multiarray_R* jacobian_det_fc;

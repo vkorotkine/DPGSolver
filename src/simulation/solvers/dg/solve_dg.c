@@ -69,7 +69,7 @@ static void scale_rhs_by_m_inv
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
-/** \brief Compute the maximum value of the rhs term for the first variable.
+/** \brief Compute the maximum value of the rhs term for all variables.
  *  \return See brief. */
 static double compute_max_rhs
 	(const struct Simulation*const sim ///< \ref Simulation.
@@ -237,7 +237,7 @@ static double compute_max_rhs (const struct Simulation*const sim)
 		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
 
 		struct Multiarray_d* rhs = dg_s_vol->rhs;
-		double max_rhs_curr = norm_d(rhs->extents[0],rhs->data,"Inf");
+		double max_rhs_curr = norm_d(rhs->extents[0]*rhs->extents[1],rhs->data,"Inf");
 		if (max_rhs_curr > max_rhs)
 			max_rhs = max_rhs_curr;
 	}

@@ -64,6 +64,7 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 	bv_i->normals = s_face->normals_fc;
 	bv_i->xyz     = s_face->xyz_fc;
 //	bv_i->xyz     = s_face->xyz_fc_ex_b;
+	bv_i->xyz_ex  = s_face->xyz_fc_ex_b;
 	bv_i->s       = constructor_s_fc_interp(s_face,sim,side_index); // destructed
 
 	bv_i->jacobian_det_fc = s_face->jacobian_det_fc;

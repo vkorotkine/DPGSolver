@@ -1112,24 +1112,24 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 				*nF_ptr[IndnF++]++ = 0.5*(nF2 - dis2);
 				*nF_ptr[IndnF++]++ = 0.5*(nF3 - dis3);
 				*nF_ptr[IndnF++]++ = 0.5*(nF5 - dis5);
-#if 0
+#if 1
 #if TYPE_REAL == TYPE_RC
 const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 if (bc == BC_SLIPWALL) {
-const bool enabled = true;
+const bool enabled = false;
 const bool symm    = false;
 
 const double h     = num_flux_i->bv_l.h/4;
 const int p        = (int) NnTotal-1; // == p for 2D (for p_cub = 2p)
-const int exponent = p+1;
+const int exponent = p;
 
 const double p_ex = 1.0/1.4;
 //const double p_ex = 2.843109;
 if (fabs(pL-p_ex) < 1e-1) {
+//if (fabs(pL-p_ex) < 1e-1 && fabs(n1)>(1-2e-3) && fabs(n1)<1.00) {
 
-//const double scale = (symm ? 1 : sqrt(n+1))*5e-2;
-const double scale = (symm ? 1 : sqrt((int)n+1))*1e+0;
-UNUSED(scale);
+double scale_s = 0.0;
+if (enabled) {
 //for (int i = 0, IndnF = i; i < 4; ++i) {
 for (int i = 1, IndnF = i; i < 3; ++i) {
 //	*(nF_ptr[IndnF]-1) += ( enabled ? scale*sqrt(i+1)*pow(h,exponent) : 0 );
@@ -1137,9 +1137,9 @@ for (int i = 1, IndnF = i; i < 3; ++i) {
 	switch (i) {
 	case 0: case 3: scale *= 2.0; break;
 	case 1:
-		scale *= 3e3*n1; break;
+		scale *= 3e0; break;
 	case 2:
-		scale *= 3e3*n1; break;
+		scale *= 3e0; break;
 	default:        scale *= sqrt(i+1); break;
 	}
 
@@ -1147,12 +1147,16 @@ for (int i = 1, IndnF = i; i < 3; ++i) {
 //	case 0: case 3: scale *= 2.0; break;
 //	case 1: case 2: scale *= 3.0; break;
 	default: scale *= sqrt((int)n+1); break;
+//	default: scale *= 1; break;
 	}
-//	*(nF_ptr[IndnF]-1) *= (1 + ( enabled ? scale*pow(h,exponent) : 0 ));
-	*(nF_ptr[IndnF]-1) += (0 + ( enabled ? scale*pow(h,exponent) : 0 ));
-//	*(nF_ptr[IndnF]-1) += (0 - ( enabled ? 1e1*scale*pow(h,exponent) : 0 ));
+//	*(nF_ptr[IndnF]-1) *= 1 + scale*pow(h,exponent);
+//	*(nF_ptr[IndnF]-1) +=     1e-2*scale*pow(h,exponent);
+	*(nF_ptr[IndnF]-1) +=     1e2*scale*pow(h,exponent);
 	++IndnF;
-}
+
+	scale_s = scale;
+}}
+const double scale = scale_s;
 
 	const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,num_flux_i->bv_l.xyz),
 	                                       get_col_const_Multiarray_R(1,num_flux_i->bv_l.xyz),
@@ -1164,7 +1168,12 @@ for (int i = 1, IndnF = i; i < 3; ++i) {
 	const double rho_ex   = 1.0,
 	             uv_ex[2] = { 2.25*(-sin(th)),2.25*( cos(th)), },
 			 Vn_ex    = n_ex[0]*uv_ex[0] + n_ex[1]*uv_ex[1],
-			 nF2_ex   = rho_ex*Vn_ex*uv_ex[0] + p_ex*n_ex[0];
+			 V2_ex    = uv_ex[0]*uv_ex[0] + uv_ex[1]*uv_ex[1],
+			 E_ex     = p_ex/GM1 + 0.5*rho_ex*V2_ex,
+			 nF1_ex   = rho_ex*Vn_ex,
+			 nF2_ex   = rho_ex*Vn_ex*uv_ex[0] + p_ex*n_ex[0],
+			 nF3_ex   = rho_ex*Vn_ex*uv_ex[1] + p_ex*n_ex[1],
+			 nF5_ex   = Vn_ex*(p_ex+E_ex);
 
 	if (n == 0) {
 		printf("\n");
@@ -1172,14 +1181,31 @@ for (int i = 1, IndnF = i; i < 3; ++i) {
 	}
 //printf("% .3e % .3e % .3e\n",VnL,n1*(pL-1.0/1.4),n2*(pL-1.0/1.4));
 //printf("% .3e % .3e % .3e % .3e % .3e % .3e % .3e\n",n1,n2,(pL-1.0/1.4),dis1,nF2,nF3,dis5);
-double nFl[] = { rhoL*VnL, rhoL*uL*VnL + n1*pL, rhoL*vL*VnL + n2*pL, (EL+pL)*VnL};
+const double nFl[] = { rhoL*VnL, rhoL*uL*VnL + n1*pL, rhoL*vL*VnL + n2*pL, (EL+pL)*VnL};
+const double nFl_ex[] = { nF1_ex, nF2_ex, nF3_ex, nF5_ex, };
+if (0)
+printf("% .3e % .3e % .3e % .3e % .3e\n",
+       *(nF_ptr[0]-1)-nFl_ex[0],*(nF_ptr[1]-1)-nFl_ex[1],*(nF_ptr[2]-1)-nFl_ex[2],*(nF_ptr[3]-1)-nFl_ex[3],scale);
 //printf("% .3e % .3e % .3e % .3e % .3e\n",*(nF_ptr[0]-1)-nFl[0],*(nF_ptr[1]-1)-nFl[1],*(nF_ptr[2]-1)-nFl[2],*(nF_ptr[3]-1)-nFl[3],scale*sqrt(2+1)*pow(h,exponent));
 //printf("% .3e % .3e % .3e % .3e\n",*(nF_ptr[0]-1),*(nF_ptr[1]-1),*(nF_ptr[2]-1),*(nF_ptr[3]-1));
 //printf("% .3e % .3e % .3e % .3e\n",0.5*nF1-nFl[0],0.5*nF2-nFl[1],0.5*nF3-nFl[2],0.5*nF5-nFl[3]);
-printf("% .3e % .3e % .3e % .3e % .3e % .3e % .3e \n",0.5*nF2-nFl[1],*(nF_ptr[1]-1)-nFl[1],0.5*nF2-nF2_ex,*(nF_ptr[1]-1)-nF2_ex,nFl[1]-nF2_ex,*(nF_ptr[1]-1)/(n1*p),n1*p);
+//printf("% .3e % .3e % .3e % .3e % .3e % .3e % .3e \n",0.5*nF2-nFl[1],*(nF_ptr[1]-1)-nFl[1],0.5*nF2-nF2_ex,*(nF_ptr[1]-1)-nF2_ex,nFl[1]-nF2_ex,*(nF_ptr[1]-1)/(n1*p),n1*p);
 //printf("% .3e\n",VnL); // O(h^{p+1}) for both iso and super! => Not the problem.
 //printf("% .16e % .16e % .16e % .16e\n",n1,n2,uL,vL);
 //printf("% .15e % .15e % .15e % .15e \n",pL,n1*p,nF2,*(nF_ptr[1]-1));
+
+const double t_ex[2]    = { sin(th), -cos(th), };
+const double n_ex_dot_n = n1*n_ex[0] + n2*n_ex[1];
+const double t_ex_dot_n = n1*t_ex[0] + n2*t_ex[1];
+const double n1_p = n1*(1+scale*pow(h,exponent));
+const double n2_p = n2*(1+scale*pow(h,exponent));
+const double n_ex_dot_np = n1_p*n_ex[0] + n2_p*n_ex[1];
+const double t_ex_dot_np = n1_p*t_ex[0] + n2_p*t_ex[1];
+
+if (0)
+printf("% .3e % .3e % .3e % .3e % .3e % .3e\n",1.0-n_ex_dot_n,t_ex_dot_n,n1-n_ex[0],n2-n_ex[1],1.0-n_ex_dot_np,t_ex_dot_np);
+
+
 }
 }
 #endif
