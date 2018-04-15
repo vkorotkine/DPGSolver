@@ -59,6 +59,7 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 	const struct Face*const face = (struct Face*) s_face;
 	bv_i->bc = face->bc;
 	bv_i->h  = face->h;
+	bv_i->p  = s_face->p_ref;
 
 	const int side_index = 0;
 	bv_i->normals = s_face->normals_fc;

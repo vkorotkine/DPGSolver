@@ -30,7 +30,7 @@ geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
 p_ref    3 3
-p_cub_p  10 10
+p_cub_p  2 2
 
 fe_method 1
 
