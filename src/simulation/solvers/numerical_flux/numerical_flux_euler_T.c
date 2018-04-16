@@ -1117,7 +1117,6 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 if (bc == BC_SLIPWALL) {
 const bool enabled = true;
-const bool symm    = false;
 
 const double h     = num_flux_i->bv_l.h/4;
 const int p        = num_flux_i->bv_l.p;
@@ -1137,6 +1136,7 @@ if (fabs(pL-p_ex) < 1e-1) {
 	const Real t_ex[2] = { sin(th), -cos(th), };
 	const double t1    = -n2;
 	const double t2    =  n1;
+UNUSED(t1); UNUSED(t2);
 
 	const double rho_ex   = 1.0,
 	             uv_ex[2] = { 2.25*(-sin(th)),2.25*( cos(th)), },
@@ -1185,6 +1185,7 @@ const double scale = scale_s;
 //printf("% .3e % .3e % .3e\n",VnL,n1*(pL-1.0/1.4),n2*(pL-1.0/1.4));
 //printf("% .3e % .3e % .3e % .3e % .3e % .3e % .3e\n",n1,n2,(pL-1.0/1.4),dis1,nF2,nF3,dis5);
 const double nFl[] = { rhoL*VnL, rhoL*uL*VnL + n1*pL, rhoL*vL*VnL + n2*pL, (EL+pL)*VnL};
+UNUSED(nFl);
 const double nFl_ex[] = { nF1_ex, nF2_ex, nF3_ex, nF5_ex, };
 printf("% .3e % .3e % .3e % .3e % .3e %d\n",
        *(nF_ptr[0]-1)-nFl_ex[0],*(nF_ptr[1]-1)-nFl_ex[1],*(nF_ptr[2]-1)-nFl_ex[2],*(nF_ptr[3]-1)-nFl_ex[3],scale,p);
