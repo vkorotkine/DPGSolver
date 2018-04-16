@@ -78,6 +78,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	             "steady/default",
 	             "steady/free_stream",
 	             "steady/vortex",
+	             "steady/gaussian_bump",
 	             "default_steady",
 	             "demkowicz_dpg_ii",
 	            ]
@@ -100,6 +101,8 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_periodic",input_dir,0)
 	elif (mesh_name.find("/upwind/") != -1):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_upwind",input_dir,0)
+	elif (mesh_name.find("/x_lr_internal/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_adv_internal",input_dir,0)
 	else:
 		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
 

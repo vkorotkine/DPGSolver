@@ -20,8 +20,7 @@ ARGV="advection/vortex/TEST_advection_vortex_slipwall_mixed2d petsc_options_gmre
 ARGV="euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D_test petsc_options_gmres_tol_1e-15"
 #ARGV="advection/vortex/TEST_advection_vortex_n_cube_mixed2d petsc_options_gmres_tol_1e-15"
 
-#EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_free_stream
-#ARGV="advection/vortex/TEST_advection_vortex_mixed2d petsc_options_gmres_tol_1e-15"
+ARGV="euler/gaussian_bump/TEST_Euler_GaussianBump_ParametricMixed2D petsc_options_gmres_tol_1e-15"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

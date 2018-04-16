@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_alloc.h"
 #include "definitions_core.h"
 #include "definitions_math.h"
+#include "definitions_tol.h"
 
 
 #include "def_templates_geometry_parametric.h"
@@ -41,12 +42,39 @@ struct Geo_Data {
 	     r_i,      ///< Radius corresponding to the 'i'nner surface.
 	     r_o,      ///< Radius corresponding to the 'o'uter surface.
 	     s_offset; ///< The offset for the reference domain 's'-coordinate.
+
+	Real a, ///< Geometry parameter.
+	     b, ///< Geometry parameter.
+	     c, ///< Geometry parameter.
+	     h; ///< Geometry parameter ('h'eight generally).
 };
 
 /** \brief Return the statically allocated \ref Geo_Data container.
  *  \return See brief. */
 static struct Geo_Data get_geo_data
 	(const char*const geo_name ///< The name corresponding to the type of geometry for which to obtain data.
+	);
+
+/** \brief Return the estimate of the definite integral of the input function over the input range computed using
+ *         Romberg's method.
+ *  \return See brief.
+ *
+ *  The code was copied from the [Wikipedia implementation of Romberg's method][wikipedia_romberg].
+ *
+ *  <!-- References: -->
+ *  [wikipedia_romberg]: https://en.wikipedia.org/wiki/Romberg%27s_method#Implementation
+ */
+static Real romberg
+	(Real (*f)(Real), ///< Function to integration.
+	 const Real a,    ///< Lower limit.
+	 const Real b,    ///< Upper limit.
+	 const Real acc   ///< Accuracy tolerance.
+	);
+
+/** \brief Return the value of the arc length integrand for the Gaussian Bump function.
+ *  \return See brief. */
+static Real f_al_gaussian_bump
+	(const Real x ///< x-coordinate.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -265,11 +293,68 @@ const struct const_Multiarray_R* constructor_xyz_joukowski_parametric_T
 	return (struct const_Multiarray_R*) xyz;
 }
 
+const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
+	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+	 const struct Simulation* sim)
+{
+	UNUSED(n_type);
+	UNUSED(s_vol);
+	UNUSED(sim);
+	assert(DIM == 2); // Add support for 3D if required.
+	assert(DIM == xyz_i->extents[1]);
+
+	const ptrdiff_t n_n = xyz_i->extents[0];
+
+	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
+
+	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
+	          *const y_i = get_col_const_Multiarray_R(1,xyz_i);
+
+	Real*const x = get_col_Multiarray_R(0,xyz),
+	    *const y = get_col_Multiarray_R(1,xyz);
+
+	const struct Geo_Data geo_data = get_geo_data("gaussian_bump");
+/// \todo Likely only need a,b,c in the gaussian bump function (Make flexible to reduce bump height based on y coord).
+	const Real h       = geo_data.h,
+	           x_scale = geo_data.x_scale;
+
+	const Real al_total = romberg(f_al_gaussian_bump,-x_scale,x_scale,EPS);
+	printf("%f\n",al_total);
+EXIT_UNSUPPORTED;
+
+	for (int n = 0; n < n_n; ++n) {
+		const Real r = x_i[n],
+		           s = y_i[n];
+
+		const Real b_r[] = { 0.5*(1.0-r), 0.5*(1.0+r), },
+		           b_s[] = { 0.5*(1.0-s), 0.5*(1.0+s), };
+
+		// Gaussian bump contribution
+EXIT_UNSUPPORTED;
+		const Real x_g = 1.0;
+		const Real y_g = 1.0;
+
+
+		// Plane contribution
+		const Real x_p = x_i[n],
+		           y_p = h;
+
+		// Blended contribution
+		x[n] = x_g*b_r[0] + x_p*b_r[1];
+		y[n] = y_g*b_s[0] + y_p*b_s[1];
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
 /// \brief Read the required geometry data for the Joukowski parametric domain into the \ref Geo_Data.
 static void read_data_joukowski
+	(struct Geo_Data*const geo_data ///< \ref Geo_Data.
+	);
+
+/// \brief Read the required geometry data for the Gaussian bump parametric domain into the \ref Geo_Data.
+static void read_data_gaussian_bump
 	(struct Geo_Data*const geo_data ///< \ref Geo_Data.
 	);
 
@@ -281,11 +366,61 @@ static struct Geo_Data get_geo_data (const char*const geo_name)
 		need_input = false;
 		if (strcmp(geo_name,"joukowski") == 0)
 			read_data_joukowski(&geo_data);
+		else if (strcmp(geo_name,"gaussian_bump") == 0)
+			read_data_gaussian_bump(&geo_data);
 		else
 			EXIT_ERROR("Unsupported: %s.\n",geo_name);
 	}
-
 	return geo_data;
+}
+
+static Real romberg (Real (*f)(const Real), const Real a, const Real b, const Real acc)
+{
+	const size_t max_steps = 10;
+	Real R1[max_steps], R2[max_steps]; //buffers
+	Real *Rp = &R1[0], *Rc = &R2[0]; //Rp is previous row, Rc is current row
+	Real h = (b-a); //step size
+	Rp[0] = (f(a) + f(b))*h*.5; //first trapezoidal step
+
+	for (size_t i = 1; i < max_steps; ++i) {
+		h /= 2.0;
+		Real c = 0;
+		const size_t ep = 1UL << (i-1); //2^(i-1)
+		for (size_t j = 1; j <= ep; ++j)
+			c += f(a+(double)(2*j-1)*h);
+		Rc[0] = h*c + .5*Rp[0]; //R(i,0)
+
+		for (size_t j = 1; j <= i; ++j) {
+			Real n_k = pow(4.0,(double)j);
+			Rc[j] = (n_k*Rc[j-1] - Rp[j-1])/(n_k-1); //compute R(i,j)
+		}
+
+		if (i > 1 && fabs(Rp[i-1]-Rc[i]) < acc)
+			return Rc[i-1];
+
+		//swap Rn and Rc as we only need the last row
+		Real *rt = Rp;
+		Rp = Rc;
+		Rc = rt;
+	}
+
+	assert(fabs(Rp[max_steps-2]-Rp[max_steps-1]) < acc);
+	return Rp[max_steps-1]; //return our best guess
+}
+
+
+static Real f_al_gaussian_bump (const Real x)
+{
+	const struct Geo_Data geo_data = get_geo_data("gaussian_bump");
+
+	const Real a = geo_data.a,
+	           b = geo_data.b,
+	           c = geo_data.c;
+
+// 	const Real f     = a*exp(-1.0*pow(x-b,2.0)/(2.0*c*c));
+	const Real df_dx = a*(b-x)/(c*c)*exp(-1.0*pow(x-b,2.0)/(2.0*c*c));
+
+	return 1.0+df_dx*df_dx;
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -303,6 +438,26 @@ static void read_data_joukowski (struct Geo_Data*const geo_data)
 		read_skip_string_count_c_style_d("r_i",     &count_found,line,&geo_data->r_i);
 		read_skip_string_count_c_style_d("r_o",     &count_found,line,&geo_data->r_o);
 		read_skip_string_count_c_style_d("s_offset",&count_found,line,&geo_data->s_offset);
+	}
+	fclose(input_file);
+
+	assert(count_found == count_to_find);
+}
+
+static void read_data_gaussian_bump (struct Geo_Data*const geo_data)
+{
+	const int count_to_find = 5;
+
+	FILE* input_file = fopen_input('g',NULL,NULL); // closed
+
+	int count_found = 0;
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_string_count_c_style_d("a",      &count_found,line,&geo_data->a);
+		read_skip_string_count_c_style_d("b",      &count_found,line,&geo_data->b);
+		read_skip_string_count_c_style_d("c",      &count_found,line,&geo_data->c);
+		read_skip_string_count_c_style_d("h",      &count_found,line,&geo_data->h);
+		read_skip_string_count_c_style_d("x_scale",&count_found,line,&geo_data->x_scale);
 	}
 	fclose(input_file);
 

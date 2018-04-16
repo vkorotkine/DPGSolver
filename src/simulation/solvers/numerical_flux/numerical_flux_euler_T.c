@@ -1112,7 +1112,7 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 				*nF_ptr[IndnF++]++ = 0.5*(nF2 - dis2);
 				*nF_ptr[IndnF++]++ = 0.5*(nF3 - dis3);
 				*nF_ptr[IndnF++]++ = 0.5*(nF5 - dis5);
-#if 1
+#if 0
 #if TYPE_REAL == TYPE_RC
 const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 if (bc == BC_SLIPWALL) {
@@ -1126,6 +1126,10 @@ const double p_ex = 1.0/1.4;
 //const double p_ex = 2.843109;
 if (fabs(pL-p_ex) < 1e-1) {
 //if (fabs(pL-p_ex) < 1e-1 && fabs(n1)>(1-2e-3) && fabs(n1)<1.00) {
+	if (n == 0) {
+		printf("\n");
+//		print_const_Multiarray_R(num_flux_i->bv_l.jacobian_det_fc);
+	}
 
 	const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,num_flux_i->bv_l.xyz),
 	                                       get_col_const_Multiarray_R(1,num_flux_i->bv_l.xyz),
@@ -1148,8 +1152,48 @@ UNUSED(t1); UNUSED(t2);
 	             nF3_ex   = rho_ex*Vn_ex*uv_ex[1] + p_ex*n_ex[1],
 	             nF5_ex   = Vn_ex*(p_ex+E_ex);
 
-double scale_s = 0.0;
+//double scale_s = 0.0;
 if (enabled) {
+	const int pert_type = 2;
+
+	double*const nf_ptr[] = { nF_ptr[1]-1, nF_ptr[2]-1 };
+
+	const double c = 3e2*sqrt((int)n+1);
+	double scale[] = {c,c};
+	switch (pert_type) {
+	case 1: { // Add in scaled direction
+		scale[0] *= n1;
+		scale[1] *= n2;
+
+		for (int i = 0; i < 2; ++i)
+			*nf_ptr[i] += scale[i]*pow(h,exponent);
+	}
+	break;
+	case 2: {
+//		const double na[] = { n_ex[0], n_ex[1], };
+//		const double ta[] = { t_ex[0], t_ex[1], };
+		const double na[] = {  n1, n2, };
+		const double ta[] = { -n2, n1, };
+
+		const double nf_xy[] = { *nf_ptr[0], *nf_ptr[1], };
+//		double nf_rt[] = { n_ex[0]*nf_xy[0]+n_ex[1]*nf_xy[1], t_ex[0]*nf_xy[0]+t_ex[1]*nf_xy[1], };
+		double nf_rt[] = { na[0]*nf_xy[0]+na[1]*nf_xy[1], ta[0]*nf_xy[0]+ta[1]*nf_xy[1], };
+
+		scale[1] *= 1e-3;
+printf("% .3e % .3e % .3e % .3e % .3e\n",ta[0]-t_ex[0],ta[1]-t_ex[1],nf_rt[0]-p_ex,nf_rt[1],scale[1]*pow(h,exponent));
+//		nf_rt[0] += scale[0]*pow(h,exponent);
+		nf_rt[1] += scale[1]*pow(h,exponent);
+
+		for (int i = 0; i < 2; ++i)
+			*nf_ptr[i] = na[i]*nf_rt[0]+ta[i]*nf_rt[1];
+	}
+	break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+
+#if 0
 //for (int i = 0, IndnF = i; i < 4; ++i) {
 for (int i = 1, IndnF = i; i < 3; ++i) {
 //	*(nF_ptr[IndnF]-1) += ( enabled ? scale*sqrt(i+1)*pow(h,exponent) : 0 );
@@ -1157,9 +1201,9 @@ for (int i = 1, IndnF = i; i < 3; ++i) {
 	switch (i) {
 	case 0: case 3: scale *= 2.0; break;
 	case 1:
-		scale *= 3e0*n1; break;
+		scale *= 3e0; break;
 	case 2:
-		scale *= 3e0*n2; break;
+		scale *= 3e0; break;
 	default:        scale *= sqrt(i+1); break;
 	}
 
@@ -1175,20 +1219,18 @@ for (int i = 1, IndnF = i; i < 3; ++i) {
 	++IndnF;
 
 	scale_s = scale;
-}}
-const double scale = scale_s;
+}
+#endif
+}
 
-	if (n == 0) {
-		printf("\n");
-//		print_const_Multiarray_R(num_flux_i->bv_l.jacobian_det_fc);
-	}
 //printf("% .3e % .3e % .3e\n",VnL,n1*(pL-1.0/1.4),n2*(pL-1.0/1.4));
 //printf("% .3e % .3e % .3e % .3e % .3e % .3e % .3e\n",n1,n2,(pL-1.0/1.4),dis1,nF2,nF3,dis5);
 const double nFl[] = { rhoL*VnL, rhoL*uL*VnL + n1*pL, rhoL*vL*VnL + n2*pL, (EL+pL)*VnL};
 UNUSED(nFl);
 const double nFl_ex[] = { nF1_ex, nF2_ex, nF3_ex, nF5_ex, };
-printf("% .3e % .3e % .3e % .3e % .3e %d\n",
-       *(nF_ptr[0]-1)-nFl_ex[0],*(nF_ptr[1]-1)-nFl_ex[1],*(nF_ptr[2]-1)-nFl_ex[2],*(nF_ptr[3]-1)-nFl_ex[3],scale,p);
+UNUSED(nFl_ex);
+//printf("% .3e % .3e % .3e % .3e\n",
+//       *(nF_ptr[0]-1)-nFl_ex[0],*(nF_ptr[1]-1)-nFl_ex[1],*(nF_ptr[2]-1)-nFl_ex[2],*(nF_ptr[3]-1)-nFl_ex[3]);
 //printf("% .3e % .3e % .3e % .3e % .3e\n",*(nF_ptr[0]-1)-nFl[0],*(nF_ptr[1]-1)-nFl[1],*(nF_ptr[2]-1)-nFl[2],*(nF_ptr[3]-1)-nFl[3],scale*sqrt(2+1)*pow(h,exponent));
 //printf("% .3e % .3e % .3e % .3e\n",*(nF_ptr[0]-1),*(nF_ptr[1]-1),*(nF_ptr[2]-1),*(nF_ptr[3]-1));
 //printf("% .3e % .3e % .3e % .3e\n",0.5*nF1-nFl[0],0.5*nF2-nFl[1],0.5*nF3-nFl[2],0.5*nF5-nFl[3]);
@@ -1197,15 +1239,15 @@ printf("% .3e % .3e % .3e % .3e % .3e %d\n",
 //printf("% .16e % .16e % .16e % .16e\n",n1,n2,uL,vL);
 //printf("% .15e % .15e % .15e % .15e \n",pL,n1*p,nF2,*(nF_ptr[1]-1));
 
-const double n_ex_dot_n = n1*n_ex[0] + n2*n_ex[1];
-const double t_ex_dot_n = n1*t_ex[0] + n2*t_ex[1];
-const double n1_p = n1*(1+scale*pow(h,exponent));
-const double n2_p = n2*(1+scale*pow(h,exponent));
-const double n_ex_dot_np = n1_p*n_ex[0] + n2_p*n_ex[1];
-const double t_ex_dot_np = n1_p*t_ex[0] + n2_p*t_ex[1];
+//const double n_ex_dot_n = n1*n_ex[0] + n2*n_ex[1];
+//const double t_ex_dot_n = n1*t_ex[0] + n2*t_ex[1];
+//const double n1_p = n1*(1+scale*pow(h,exponent));
+//const double n2_p = n2*(1+scale*pow(h,exponent));
+//const double n_ex_dot_np = n1_p*n_ex[0] + n2_p*n_ex[1];
+//const double t_ex_dot_np = n1_p*t_ex[0] + n2_p*t_ex[1];
 
-if (0)
-printf("% .3e % .3e % .3e % .3e % .3e % .3e\n",1.0-n_ex_dot_n,t_ex_dot_n,n1-n_ex[0],n2-n_ex[1],1.0-n_ex_dot_np,t_ex_dot_np);
+//if (0)
+//printf("% .3e % .3e % .3e % .3e % .3e % .3e\n",1.0-n_ex_dot_n,t_ex_dot_n,n1-n_ex[0],n2-n_ex[1],1.0-n_ex_dot_np,t_ex_dot_np);
 
 
 }

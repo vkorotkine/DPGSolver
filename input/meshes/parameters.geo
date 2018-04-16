@@ -45,6 +45,7 @@ STEADY_TAYLOR_COUETTE         = 6;
 STEADY_JOUKOWSKI              = 7;
 STEADY_VORTEX                 = 8;
 STEADY_FREE_STREAM            = 9;
+STEADY_GAUSSIAN_BUMP          = 10;
 DEFAULT_STEADY                = 100; // Replace with STEADY_DEFAULT.
 DEMKOWICZ_DPG_II              = 101;
 
@@ -64,6 +65,7 @@ GEOM_ADV_XYZL  = 4; // (ADV)ection (X)(Y)(Z)-coords (L)eft
 
 GEOM_ADV_PERIODIC = 11; // (ADV)ection (PERIODIC) through all faces
 GEOM_ADV_UPWIND   = 12; // (ADV)ection (UPWIND) for all faces
+GEOM_ADV_INTERNAL = 13; // (ADV)ection (INTERNAL) flow BCs for inflow/outflow faces
 
 GEOM_BC_ADIABATIC_O = 31; /// (B)oundary (C)ondition (ADIABATIC) (O)uter
 GEOM_BC_DIABATIC_O  = 32; /// (B)oundary (C)ondition (DIABATIC) (O)uter
