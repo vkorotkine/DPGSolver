@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "boundary.h"
+#include "file_processing.h"
 #include "simulation.h"
 #include "solution_euler.h"
 #include "test_case.h"

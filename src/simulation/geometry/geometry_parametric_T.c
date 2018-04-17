@@ -49,6 +49,11 @@ struct Geo_Data {
 	     h; ///< Geometry parameter ('h'eight generally).
 };
 
+/// \brief Container for function data.
+struct Function_Data {
+	Real scale; ///< Scaling parameter
+};
+
 /** \brief Return the statically allocated \ref Geo_Data container.
  *  \return See brief. */
 static struct Geo_Data get_geo_data
@@ -61,20 +66,33 @@ static struct Geo_Data get_geo_data
  *
  *  The code was copied from the [Wikipedia implementation of Romberg's method][wikipedia_romberg].
  *
+ *  \note As curves being integrated here will likely always be C^{\infty}, using a high-order quadrature may be more
+ *        efficient. This can be tested if relevant after profiling.
+ *
  *  <!-- References: -->
  *  [wikipedia_romberg]: https://en.wikipedia.org/wiki/Romberg%27s_method#Implementation
  */
 static Real romberg
-	(Real (*f)(Real), ///< Function to integration.
-	 const Real a,    ///< Lower limit.
-	 const Real b,    ///< Upper limit.
-	 const Real acc   ///< Accuracy tolerance.
+	(Real (*f)(const Real x, const struct Function_Data*const f_data), ///< Function to integration.
+	 const Real a,                                                     ///< Lower limit.
+	 const Real b,                                                     ///< Upper limit.
+	 const Real acc,                                                   ///< Accuracy tolerance.
+	 const struct Function_Data*const f_data                           ///< \ref Function_Data.
+	);
+
+/** \brief Return the value of the Gaussian Bump function of given differentiation degree at the input coordinate.
+ *  \return See brief. */
+static Real f_gaussian_bump
+	(const Real x,                           ///< x-coordinate.
+	 const int diff_degree,                  ///< Differentiation degree.
+	 const struct Function_Data*const f_data ///< \ref Function_Data.
 	);
 
 /** \brief Return the value of the arc length integrand for the Gaussian Bump function.
  *  \return See brief. */
 static Real f_al_gaussian_bump
-	(const Real x ///< x-coordinate.
+	(const Real x,                           ///< x-coordinate.
+	 const struct Function_Data*const f_data ///< \ref Function_Data.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -314,13 +332,14 @@ const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 	    *const y = get_col_Multiarray_R(1,xyz);
 
 	const struct Geo_Data geo_data = get_geo_data("gaussian_bump");
-/// \todo Likely only need a,b,c in the gaussian bump function (Make flexible to reduce bump height based on y coord).
 	const Real h       = geo_data.h,
 	           x_scale = geo_data.x_scale;
 
-	const Real al_total = romberg(f_al_gaussian_bump,-x_scale,x_scale,EPS);
-	printf("%f\n",al_total);
-EXIT_UNSUPPORTED;
+	struct Function_Data f_data = { .scale = 1.0, };
+
+	const Real tol = 1e3*EPS;
+	const Real x_l      = -x_scale,
+	           x_total  = 2.0*x_scale;
 
 	for (int n = 0; n < n_n; ++n) {
 		const Real r = x_i[n],
@@ -329,31 +348,47 @@ EXIT_UNSUPPORTED;
 		const Real b_r[] = { 0.5*(1.0-r), 0.5*(1.0+r), },
 		           b_s[] = { 0.5*(1.0-s), 0.5*(1.0+s), };
 
-		// Gaussian bump contribution
-EXIT_UNSUPPORTED;
-		const Real x_g = 1.0;
-		const Real y_g = 1.0;
-
-
 		// Plane contribution
-		const Real x_p = x_i[n],
+		const Real x_p = x_scale*r,
 		           y_p = h;
+
+		// Gaussian bump contribution
+		Real x_g = x_p;
+		f_data.scale = b_s[0];
+		const Real al_total = romberg(f_al_gaussian_bump,x_l,x_scale,tol,&f_data);
+
+//printf("\n% .3e % .3e % .3e % .13e\n",f_data.scale,x_l,x_scale,al_total);
+		int count = 0;
+		for (Real newton_f = 1.0; fabs(newton_f) > tol; ) {
+			const Real al = romberg(f_al_gaussian_bump,x_l,x_g,tol,&f_data);
+			           newton_f     = 1.0/al_total*al - (x_p-x_l)/x_total;
+			const Real newton_df_dx = 1.0/al_total*f_al_gaussian_bump(x_g,&f_data);
+printf("%d % .10e % .3e % .3e\n",count,x_g,1.0/al_total*al,(x_p-x_l)/x_total);
+			x_g -= newton_f/newton_df_dx;
+
+			++count;
+			if (count > 50)
+				EXIT_ERROR("Newton's method not converging. Error: % .3e.",newton_f);
+		}
+		const Real y_g = GSL_MAX(EPS,f_gaussian_bump(x_g,0,&f_data));
 
 		// Blended contribution
 		x[n] = x_g*b_r[0] + x_p*b_r[1];
 		y[n] = y_g*b_s[0] + y_p*b_s[1];
+//printf("% .3e % .3e % .3e % .3e % .3e % .3e\n",al_total,x_g,x_p,y_g,y_p,(x_p-x_l)/x_total);
 	}
+	return (struct const_Multiarray_R*) xyz;
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/// \brief Read the required geometry data for the Joukowski parametric domain into the \ref Geo_Data.
+/// \brief Read the required geometry data for the Joukowski parametric domain into the \ref Geo_Data container.
 static void read_data_joukowski
 	(struct Geo_Data*const geo_data ///< \ref Geo_Data.
 	);
 
-/// \brief Read the required geometry data for the Gaussian bump parametric domain into the \ref Geo_Data.
+/// \brief Read the required geometry data for the Gaussian bump parametric domain into the \ref Geo_Data container.
 static void read_data_gaussian_bump
 	(struct Geo_Data*const geo_data ///< \ref Geo_Data.
 	);
@@ -374,20 +409,22 @@ static struct Geo_Data get_geo_data (const char*const geo_name)
 	return geo_data;
 }
 
-static Real romberg (Real (*f)(const Real), const Real a, const Real b, const Real acc)
+static Real romberg
+	(Real (*f)(const Real x, const struct Function_Data*const f_data), const Real a, const Real b, const Real acc,
+	 const struct Function_Data*const f_data)
 {
-	const size_t max_steps = 10;
+	const size_t max_steps = 20;
 	Real R1[max_steps], R2[max_steps]; //buffers
 	Real *Rp = &R1[0], *Rc = &R2[0]; //Rp is previous row, Rc is current row
 	Real h = (b-a); //step size
-	Rp[0] = (f(a) + f(b))*h*.5; //first trapezoidal step
+	Rp[0] = (f(a,f_data) + f(b,f_data))*h*.5; //first trapezoidal step
 
 	for (size_t i = 1; i < max_steps; ++i) {
 		h /= 2.0;
 		Real c = 0;
 		const size_t ep = 1UL << (i-1); //2^(i-1)
 		for (size_t j = 1; j <= ep; ++j)
-			c += f(a+(double)(2*j-1)*h);
+			c += f(a+(double)(2*j-1)*h,f_data);
 		Rc[0] = h*c + .5*Rp[0]; //R(i,0)
 
 		for (size_t j = 1; j <= i; ++j) {
@@ -408,19 +445,29 @@ static Real romberg (Real (*f)(const Real), const Real a, const Real b, const Re
 	return Rp[max_steps-1]; //return our best guess
 }
 
-
-static Real f_al_gaussian_bump (const Real x)
+static Real f_gaussian_bump (const Real x, const int diff_degree, const struct Function_Data*const f_data)
 {
 	const struct Geo_Data geo_data = get_geo_data("gaussian_bump");
+
+	const Real scale = f_data->scale;
 
 	const Real a = geo_data.a,
 	           b = geo_data.b,
 	           c = geo_data.c;
 
-// 	const Real f     = a*exp(-1.0*pow(x-b,2.0)/(2.0*c*c));
-	const Real df_dx = a*(b-x)/(c*c)*exp(-1.0*pow(x-b,2.0)/(2.0*c*c));
+	switch (diff_degree) {
+	case 0: return scale*a*exp(-1.0*pow(x-b,2.0)/(2.0*c*c));       break;
+	case 1: return scale*a*(b-x)/(c*c)*exp(-0.5*pow((x-b)/c,2.0)); break;
+	default:
+		EXIT_ERROR("Add support.\n");
+		break;
+	}
+}
 
-	return 1.0+df_dx*df_dx;
+static Real f_al_gaussian_bump (const Real x, const struct Function_Data*const f_data)
+{
+	const Real df_dx = f_gaussian_bump(x,1,f_data);
+	return sqrt(1.0 + df_dx*df_dx);
 }
 
 // Level 1 ********************************************************************************************************** //

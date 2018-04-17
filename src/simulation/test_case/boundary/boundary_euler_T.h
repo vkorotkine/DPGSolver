@@ -64,3 +64,28 @@ void constructor_Boundary_Value_T_euler_supersonic_outflow
 	 const struct Solver_Face_T* face,          ///< See brief.
 	 const struct Simulation* sim               ///< See brief.
 	);
+
+/** \brief Version of \ref constructor_Boundary_Value_fptr_T computing members by imposing the back pressure.
+ *
+ *  Reference: (Section 2.4, \cite Carlson2011).
+ */
+void constructor_Boundary_Value_T_euler_back_pressure
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face_T* face,          ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
+	);
+
+/** \brief Version of \ref constructor_Boundary_Value_fptr_T computing members by imposing the total temperature and
+ *         pressure.
+ *
+ *  Eqs. (38/47) (\cite Carlson2011) imply that the velocity should be normal to the boundary.
+ *
+ *  Reference: (Section 2.7, \cite Carlson2011); (Eqs. (3.9), (8.58), \cite Toro2009).
+ */
+void constructor_Boundary_Value_T_euler_total_tp
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face_T* face,          ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
+	);

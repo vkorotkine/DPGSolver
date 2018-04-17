@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <assert.h>
 #include <math.h>
+#include <string.h>
 
 #include "macros.h"
 #include "definitions_core.h"
@@ -40,11 +41,27 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NEQ  NEQ_EULER  ///< Number of equations.
 #define NVAR NVAR_EULER ///< Number of variables.
 
+/// \brief Container for boundary condition data.
+struct BC_Data {
+	Real p_back,  ///< Back pressure.
+	     t_total, ///< Total temperature.
+	     p_total, ///< Total pressure.
+	     r_s;     ///< Specific gas constant.
+};
+
+/** \brief Return the statically allocated \ref BC_Data container holding back pressure data.
+ *  \return See brief. */
+static struct BC_Data get_bc_data_back_pressure ( );
+
+/** \brief Return the statically allocated \ref BC_Data container holding total temperature/pressure data.
+ *  \return See brief. */
+static struct BC_Data get_bc_data_total_tp ( );
+
 /** \brief Compute the normal velocity.
  *  \return See brief. */
 static Type compute_Vn
-	(const double*const n, ///< Array of unit normal vector components.
-	 const Type*const uvw  ///< Array of velocity components.
+	(const Real*const n,  ///< Array of unit normal vector components.
+	 const Type*const uvw ///< Array of velocity components.
 	);
 
 /// \brief Set the velocity components from the input values.
@@ -56,7 +73,7 @@ static void set_uvw
 /** \brief Compute the tangential velocity components.
  *  \return See brief. */
 static void compute_Vt
-	(const double*const n, ///< Array of unit normal vector components.
+	(const Real*const n,   ///< Array of unit normal vector components.
 	 const Type Vn,        ///< Normal velocity.
 	 const Type*const uvw, ///< Total velocity components.
 	 Type*const uvw_t      ///< Set to tangential velocity components.
@@ -64,7 +81,7 @@ static void compute_Vt
 
 /// \brief Compute the velocity components from the normal and tangential components.
 static void compute_uvw
-	(const double*const n,   ///< Array of unit normal vector components.
+	(const Real*const n,     ///< Array of unit normal vector components.
 	 const Type Vn,          ///< Normal velocity.
 	 const Type*const uvw_t, ///< Tangential velocity components.
 	 Type*const*const uvw    ///< Set to total velocity components.
@@ -72,7 +89,7 @@ static void compute_uvw
 
 /// \brief Compute the velocity components as the velocity with the same tangential but opposite normal from the input.
 static void compute_opposite_normal_uvw
-	(const double*const n,   ///< Array of unit normal vector components.
+	(const Real*const n,     ///< Array of unit normal vector components.
 	 const Type Vn,          ///< Normal velocity.
 	 const Type*const uvw_i, ///< Input velocity components.
 	 Type*const*const uvw    ///< Set to total velocity components.
@@ -126,7 +143,7 @@ void constructor_Boundary_Value_T_euler_riemann
 		const Type c_l = sqrt_T(GAMMA*p_l[n]/rho_l[n]),
 		           c_r = sqrt_T(GAMMA*p_r[n]/rho_r[n]);
 
-		const double* data_n = get_row_const_Multiarray_d(n,normals);
+		const Real* data_n = get_row_const_Multiarray_d(n,normals);
 		const Type Vn_l = compute_Vn(data_n,uvw_l),
 		           Vn_r = compute_Vn(data_n,uvw_r);
 
@@ -170,15 +187,15 @@ void constructor_Boundary_Value_T_euler_riemann
 	struct Multiarray_T* ds_ds = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_n,NVAR,NVAR}); // keep
 
 	// Standard datatypes
-	unsigned int i, iMax, n, eq, var, ind_ds_ds;
+	unsigned int i, iMax, n, ind_ds_ds;
 	Type       rhoL, rhoL_inv, uL, vL, wL, V2L, pL, rhoR, uR, vR, wR, pR,
 	           cL, RL, VnL, cR, RR, VnR, c, Vn;
-	double     n1, n2, n3;
+	Real       n1, n2, n3;
 
 	// silence
 	n2 = n3 = 0.0;
 
-	const double* n_ptr = normals->data;
+	const Real* n_ptr = normals->data;
 
 	Type *ds_ds_ptr[NVAR*NVAR];
 	for (int ind = 0, vr_l = 0; vr_l < NVAR; vr_l++) {
@@ -230,14 +247,14 @@ void constructor_Boundary_Value_T_euler_riemann
 		if (abs_T(Vn) >= abs_T(c)) { // Supersonic
 			if (real_T(Vn) < 0.0) { // Inlet
 //printf("j: Sup Inlet\n");
-				for (var = 0; var < NVAR; var++) {
-				for (eq = 0; eq < NEQ; eq++) {
+				for (int var = 0; var < NVAR; var++) {
+				for (int eq = 0; eq < NEQ; eq++) {
 					*ds_ds_ptr[ind_ds_ds++] = 0.0;
 				}}
 			} else { // Outlet
 //printf("j: Sup Outlet\n");
-				for (var = 0; var < NVAR; var++) {
-				for (eq = 0; eq < NEQ; eq++) {
+				for (int var = 0; var < NVAR; var++) {
+				for (int eq = 0; eq < NEQ; eq++) {
 					if (var != eq)
 						*ds_ds_ptr[ind_ds_ds++] = 0.0;
 					else
@@ -260,7 +277,7 @@ void constructor_Boundary_Value_T_euler_riemann
 				dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;      dvLdW[4] = 0.0;
 				dwLdW[0] = -wL*rhoL_inv; dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = rhoL_inv; dwLdW[4] = 0.0;
 
-				for (var = 0; var < NVAR; var++) {
+				for (int var = 0; var < NVAR; var++) {
 					dpLdW[var] *= GM1;
 					dVnLdW[var] = duLdW[var]*n1 + dvLdW[var]*n2 + dwLdW[var]*n3;
 				}
@@ -275,7 +292,7 @@ void constructor_Boundary_Value_T_euler_riemann
 				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;
 				dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;
 
-				for (var = 0; var < NVAR; var++) {
+				for (int var = 0; var < NVAR; var++) {
 					dpLdW[var] *= GM1;
 					dVnLdW[var] = duLdW[var]*n1 + dvLdW[var]*n2;
 				}
@@ -288,7 +305,7 @@ void constructor_Boundary_Value_T_euler_riemann
 
 				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;
 
-				for (var = 0; var < NVAR; var++) {
+				for (int var = 0; var < NVAR; var++) {
 					dpLdW[var] *= GM1;
 					dVnLdW[var] = duLdW[var]*n1;
 				}
@@ -296,7 +313,7 @@ void constructor_Boundary_Value_T_euler_riemann
 				un = Vn*n1;
 			}
 
-			for (var = 0; var < NVAR; var++) {
+			for (int var = 0; var < NVAR; var++) {
 				dcLdW      = 0.5*GAMMA/(cL*rhoL*rhoL)*(dpLdW[var]*rhoL-pL*drhoLdW[var]);
 				dRLdW[var] = dVnLdW[var] + 2.0/GM1*dcLdW;
 				dcdW[var]  = 0.25*GM1*dRLdW[var];
@@ -308,7 +325,7 @@ void constructor_Boundary_Value_T_euler_riemann
 
 				sR  = sqrt_T(pR/pow_T(rhoR,GAMMA));
 				if (DIM == 3) {
-					for (var = 0; var < NVAR; var++) {
+					for (int var = 0; var < NVAR; var++) {
 						drhodW = pow_T(GAMMA,-1.0/GM1)*2.0/(GM1*sR)*pow_T(c/sR,-GM3/GM1)*dcdW[var];
 
 						rho = pow_T(c*c/(GAMMA*sR*sR),1.0/GM1);
@@ -334,7 +351,7 @@ void constructor_Boundary_Value_T_euler_riemann
 						*ds_ds_ptr[ind_ds_ds++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW+w*dwdW));
 					}
 				} else if (DIM == 2) {
-					for (var = 0; var < NVAR; var++) {
+					for (int var = 0; var < NVAR; var++) {
 						drhodW = pow_T(GAMMA,-1.0/GM1)*2.0/(GM1*sR)*pow_T(c/sR,-GM3/GM1)*dcdW[var];
 
 						rho = pow_T(c*c/(GAMMA*sR*sR),1.0/GM1);
@@ -356,7 +373,7 @@ void constructor_Boundary_Value_T_euler_riemann
 						*ds_ds_ptr[ind_ds_ds++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW));
 					}
 				} else if (DIM == 1) {
-					for (var = 0; var < NVAR; var++) {
+					for (int var = 0; var < NVAR; var++) {
 						drhodW = pow_T(GAMMA,-1.0/GM1)*2.0/(GM1*sR)*pow_T(c/sR,-GM3/GM1)*dcdW[var];
 
 						rho = pow_T(c*c/(GAMMA*sR*sR),1.0/GM1);
@@ -379,7 +396,7 @@ void constructor_Boundary_Value_T_euler_riemann
 
 				sL  = sqrt_T(pL/pow_T(rhoL,GAMMA));
 				if (DIM == 3) {
-					for (var = 0; var < NVAR; var++) {
+					for (int var = 0; var < NVAR; var++) {
 						dsLdW = 0.5*sqrt_T(pow_T(rhoL,GAMMA)/pL)/pow_T(rhoL,2.0*GAMMA)*
 								(dpLdW[var]*pow_T(rhoL,GAMMA)-GAMMA*pL*pow_T(rhoL,GM1)*drhoLdW[var]);
 
@@ -410,7 +427,7 @@ void constructor_Boundary_Value_T_euler_riemann
 						*ds_ds_ptr[ind_ds_ds++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW+w*dwdW));
 					}
 				} else if (DIM == 2) {
-					for (var = 0; var < NVAR; var++) {
+					for (int var = 0; var < NVAR; var++) {
 						dsLdW = 0.5*sqrt_T(pow_T(rhoL,GAMMA)/pL)/pow_T(rhoL,2.0*GAMMA)*
 								(dpLdW[var]*pow_T(rhoL,GAMMA)-GAMMA*pL*pow_T(rhoL,GM1)*drhoLdW[var]);
 
@@ -437,7 +454,7 @@ void constructor_Boundary_Value_T_euler_riemann
 						*ds_ds_ptr[ind_ds_ds++] = dpdW/GM1 + 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW));
 					}
 				} else if (DIM == 1) {
-					for (var = 0; var < NVAR; var++) {
+					for (int var = 0; var < NVAR; var++) {
 						dsLdW = 0.5*sqrt_T(pow_T(rhoL,GAMMA)/pL)/pow_T(rhoL,2.0*GAMMA)*
 								(dpLdW[var]*pow_T(rhoL,GAMMA)-GAMMA*pL*pow_T(rhoL,GM1)*drhoLdW[var]);
 
@@ -508,7 +525,7 @@ void constructor_Boundary_Value_T_euler_slipwall
 		rho[n] = rho_l[n];
 		E[n]   = E_l[n];   // Equivalent to setting p[n] = p_l[n] (See comments).
 
-		const double* data_n = get_row_const_Multiarray_d(n,normals);
+		const Real* data_n = get_row_const_Multiarray_d(n,normals);
 		const Type rhouvw_l[] = { rhou_l[n], (DIM > 1 ? rhov_l[n] : 0.0), (DIM > 2 ? rhow_l[n] : 0.0), };
 		const Type rhoVn_l = compute_Vn(data_n,rhouvw_l);
 
@@ -526,7 +543,7 @@ void constructor_Boundary_Value_T_euler_slipwall
 			ds_ds_ptr[ind] = &ds_ds->data[n_n*(ind)];
 			++ind;
 		}}
-		const double* n_ptr = get_row_const_Multiarray_d(0,normals);
+		const Real* n_ptr = get_row_const_Multiarray_d(0,normals);
 
 		if (DIM == 3) {
 			for (int n = 0; n < n_n; n++) {
@@ -753,10 +770,562 @@ void constructor_Boundary_Value_T_euler_supersonic_outflow
 	constructor_Boundary_Value_T_grad_from_internal(bv,bv_i,NVAR);
 }
 
+void constructor_Boundary_Value_T_euler_back_pressure
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
+	 const struct Simulation* sim)
+{
+	UNUSED(face);
+	UNUSED(sim);
+	const bool* c_m = bv_i->compute_member;
+	assert(c_m[0] == true);
+
+	const struct const_Multiarray_T* sol_l = bv_i->s;
+	const ptrdiff_t n_n = sol_l->extents[0];
+
+	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,NVAR}); // keep
+
+	const struct BC_Data bc_data = get_bc_data_back_pressure();
+	const Real p_back = bc_data.p_back;
+
+	Type const *const WL = sol_l->data;
+	Type       *const WB = sol->data;
+
+	Type rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, rhoB, cL, c2L, *WB_ptr[NVAR];
+	const Type *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr, *EL_ptr, *WL_ptr[NVAR];
+	MAYBE_UNUSED(rhovL_ptr);
+	MAYBE_UNUSED(rhowL_ptr);
+
+	for (int var = 0; var < NVAR; var++) {
+		WL_ptr[var] = &WL[var*n_n];
+		WB_ptr[var] = &WB[var*n_n];
+	}
+
+	Type zeros[n_n];
+	for (int n = 0; n < n_n; n++)
+		zeros[n] = 0.0;
+
+	rhoL_ptr  = WL_ptr[0];
+	rhouL_ptr = WL_ptr[1];
+	EL_ptr    = WL_ptr[DIM+1];
+
+	if (DIM == 3) {
+		rhovL_ptr = WL_ptr[2];
+		rhowL_ptr = WL_ptr[3];
+	} else if (DIM == 2) {
+		rhovL_ptr = WL_ptr[2];
+		rhowL_ptr = zeros;
+	} else if (DIM == 1) {
+		rhovL_ptr = zeros;
+		rhowL_ptr = zeros;
+	}
+
+	for (int n = 0; n < n_n; n++) {
+		int IndW = 0;
+
+		// Inner VOLUME
+		rhoL     = *rhoL_ptr++;
+		rhoL_inv = 1.0/rhoL;
+
+		uL   = (*rhouL_ptr++)*rhoL_inv;
+		vL   = (*rhovL_ptr++)*rhoL_inv;
+		wL   = (*rhowL_ptr++)*rhoL_inv;
+		EL   = *EL_ptr++;
+
+		V2L = uL*uL+vL*vL+wL*wL;
+		VL  = sqrt_T(V2L);
+
+		pL  = GM1*(EL-0.5*rhoL*V2L);
+
+		c2L = GAMMA*pL/rhoL;
+		cL  = sqrt_T(c2L);
+
+		if (abs_T(VL) >= abs_T(cL)) { // Supersonic
+			for (int var = 0; var < NVAR; var++) {
+				*WB_ptr[IndW] = *WL_ptr[IndW];
+				IndW++;
+			}
+		} else {
+			rhoB = GAMMA*p_back/c2L;
+
+			*WB_ptr[IndW++] = rhoB;
+			*WB_ptr[IndW++] = uL*rhoB;
+			if (DIM == 3) {
+				*WB_ptr[IndW++] = vL*rhoB;
+				*WB_ptr[IndW++] = wL*rhoB;
+			} else if (DIM == 2) {
+				*WB_ptr[IndW++] = vL*rhoB;
+			}
+			// Note: Using VL for the boundary
+			*WB_ptr[IndW++] = p_back/GM1+0.5*rhoB*V2L;
+		}
+
+		for (int var = 0; var < NVAR; var++) {
+			WL_ptr[var]++;
+			WB_ptr[var]++;
+		}
+	}
+	bv->s = (struct const_Multiarray_T*)sol;
+
+	if (c_m[1] == true) {
+
+	struct Multiarray_T* ds_ds = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_n,NVAR,NVAR}); // keep
+
+	Type *ds_ds_ptr[NVAR*NVAR];
+	for (int ind = 0, vr_l = 0; vr_l < NVAR; vr_l++) {
+		WL_ptr[vr_l] = &WL[vr_l*n_n];
+		for (int vr_r = 0; vr_r < NVAR; vr_r++) {
+			ds_ds_ptr[ind] = &ds_ds->data[n_n*(ind)];
+			++ind;
+		}
+	}
+
+	rhoL_ptr  = WL_ptr[0];
+	rhouL_ptr = WL_ptr[1];
+	EL_ptr    = WL_ptr[DIM+1];
+
+	if (DIM == 3) {
+		rhovL_ptr = WL_ptr[2];
+		rhowL_ptr = WL_ptr[3];
+	} else if (DIM == 2) {
+		rhovL_ptr = WL_ptr[2];
+		rhowL_ptr = zeros;
+	} else if (DIM == 1) {
+		rhovL_ptr = zeros;
+		rhowL_ptr = zeros;
+	}
+
+	for (int n = 0; n < n_n; n++) {
+		int InddWdW = 0;
+		Type rhoL, rhoL_inv, uL, vL, wL, EL, VL, V2L, pL, cL, c2L;
+
+		// Inner VOLUME
+		rhoL     = *rhoL_ptr++;
+		rhoL_inv = 1.0/rhoL;
+
+		uL   = (*rhouL_ptr++)*rhoL_inv;
+		vL   = (*rhovL_ptr++)*rhoL_inv;
+		wL   = (*rhowL_ptr++)*rhoL_inv;
+		EL   = *EL_ptr++;
+
+		V2L = uL*uL+vL*vL+wL*wL;
+		VL  = sqrt_T(V2L);
+
+		pL  = GM1*(EL-0.5*rhoL*V2L);
+
+
+		c2L = GAMMA*pL/rhoL;
+		cL  = sqrt_T(c2L);
+
+		if (abs_T(VL) >= abs_T(cL)) { // Supersonic
+			for (int var = 0; var < NVAR; var++) {
+			for (int eq = 0; eq < NEQ; eq++) {
+				if (var != eq)
+					*ds_ds_ptr[InddWdW++] = 0.0;
+				else
+					*ds_ds_ptr[InddWdW++] = 1.0;
+			}}
+		} else {
+			Type rho, u, v, w, V2, drhoLdW[NVAR], duLdW[NVAR], dvLdW[NVAR], dwLdW[NVAR], dpLdW[NVAR];
+
+			if (DIM == 3) {
+				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0; drhoLdW[4] = 0.0;
+				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = -wL; dpLdW[4]   = 1.0;
+
+				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;      duLdW[4] = 0.0;
+				dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;      dvLdW[4] = 0.0;
+				dwLdW[0] = -wL*rhoL_inv; dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = rhoL_inv; dwLdW[4] = 0.0;
+			} else if (DIM == 2) {
+				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0;
+				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = 1.0;
+
+				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;
+				dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;
+				dwLdW[0] = 0.0;          dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = 0.0;
+			} else if (DIM == 1) {
+				drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0;
+				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = 1.0;
+
+				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;
+				dvLdW[0] = 0.0;          dvLdW[1] = 0.0;      dvLdW[2] = 0.0;      dvLdW[3] = 0.0;
+				dwLdW[0] = 0.0;          dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = 0.0;
+			}
+			for (int var = 0; var < NVAR; var++)
+				dpLdW[var] *= GM1;
+
+			rho  = GAMMA*p_back/c2L;
+			u    = uL;
+			v    = vL;
+			w    = wL;
+			V2   = V2L;
+
+			for (int var = 0; var < NVAR; var++) {
+				Type drhodW, dudW, dvdW, dwdW, dc2LdW;
+
+				dc2LdW = GAMMA/(rhoL*rhoL)*(dpLdW[var]*rhoL-pL*drhoLdW[var]);
+				drhodW = -GAMMA*p_back/(c2L*c2L)*dc2LdW;
+
+				// Note: Using VL for the boundary
+				dudW   = duLdW[var];
+				dvdW   = dvLdW[var];
+				dwdW   = dwLdW[var];
+
+				*ds_ds_ptr[InddWdW++] = drhodW;
+
+				*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
+				*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
+				if (DIM == 3)
+					*ds_ds_ptr[InddWdW++] = drhodW*w + rho*dwdW;
+				*ds_ds_ptr[InddWdW++] = 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW+w*dwdW));
+			}
+		}
+
+		for (int i = 0, iMax = NEQ*NVAR; i < iMax; i++)
+			ds_ds_ptr[i]++;
+	}
+	bv->ds_ds = (const struct const_Multiarray_T*) ds_ds;
+
+	}
+	assert(c_m[2] == false);
+}
+
+void constructor_Boundary_Value_T_euler_total_tp
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
+	 const struct Simulation* sim)
+{
+	UNUSED(face);
+	UNUSED(sim);
+	const bool* c_m = bv_i->compute_member;
+	assert(c_m[0] == true);
+
+	const struct const_Multiarray_T* sol_l = bv_i->s;
+	const ptrdiff_t n_n = sol_l->extents[0];
+
+	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,NVAR}); // keep
+
+	const struct const_Multiarray_d* normals = bv_i->normals;
+	assert(normals->layout == 'R');
+
+	Real const *const nL = normals->data;
+
+	Type const *const WL = sol_l->data;
+	Type       *const WB = sol->data;
+
+	const struct BC_Data bc_data = get_bc_data_total_tp();
+	Real Rg      = bc_data.r_s,
+	     p_Total = bc_data.p_total,
+	     T_Total = bc_data.t_total;
+
+	// Standard datatypes
+	Type *WB_ptr[NVAR];
+	const Type *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr = NULL, *EL_ptr, *WL_ptr[NVAR];
+	const Real *n_ptr;
+
+	for (int var = 0; var < NVAR; var++) {
+		WL_ptr[var] = &WL[var*n_n];
+		WB_ptr[var] = &WB[var*n_n];
+	}
+
+	Type zeros[n_n];
+	for (int n = 0; n < n_n; n++)
+		zeros[n] = 0.0;
+
+	rhoL_ptr  = WL_ptr[0];
+	rhouL_ptr = WL_ptr[1];
+	rhovL_ptr = WL_ptr[2];
+	EL_ptr    = WL_ptr[DIM+1];
+
+	if (DIM == 3) {
+		rhowL_ptr = WL_ptr[3];
+	} else if (DIM == 2) {
+		rhowL_ptr = zeros;
+	}
+
+	n_ptr = nL;
+
+	for (int n = 0; n < n_n; n++) {
+		int IndW = 0;
+		Type rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL, cL, HL, VnL, RL;
+		Real n1, n2, n3;
+
+		// silence
+		n3 = 0.0;
+
+		rhoL = *rhoL_ptr++;
+		rhoL_inv = 1.0/rhoL;
+
+		uL   = (*rhouL_ptr++)*rhoL_inv;
+		vL   = (*rhovL_ptr++)*rhoL_inv;
+		wL   = (*rhowL_ptr++)*rhoL_inv;
+		EL   = *EL_ptr++;
+
+		V2L = uL*uL+vL*vL+wL*wL;
+
+		pL  = GM1*(EL-0.5*rhoL*V2L);
+		cL  = sqrt_T(GAMMA*pL/rhoL);
+
+		HL = (EL+pL)*rhoL_inv;
+
+		n1 = *n_ptr++;
+		n2 = *n_ptr++;
+		if (DIM == 3)
+			n3 = *n_ptr++;
+
+		VnL = uL*n1+vL*n2+wL*n3;
+
+		RL = VnL + 2.0/GM1*cL;
+
+		// Solve for c
+		Type aQ, bQ, cQ, term1, term2, cM, cP, c, Vn, M, T, p, rho, u, v, w, E;
+
+		aQ =  1.0 + 2.0/GM1;
+		bQ = -2.0*RL;
+		cQ =  0.5*GM1*(RL*RL - 2.0*HL);
+
+		term1 = -bQ/(2.0*aQ);
+		term2 = sqrt_T(bQ*bQ-4.0*aQ*cQ)/(2.0*aQ);
+
+		cM = term1-term2;
+		cP = term1+term2;
+
+		// c = max(cM,cP)
+		if (real_T(cM) > real_T(cP))
+			c = cM;
+		else
+			c = cP;
+
+		Vn = RL - 2.0/GM1*c;
+
+		M = Vn/c;
+
+		T = T_Total/(1+0.5*GM1*M*M);
+		p = p_Total*pow_T(T/T_Total,GAMMA/GM1);
+
+		rho = p/(Rg*T);
+		u   = Vn*n1;
+		v   = Vn*n2;
+		w   = Vn*n3;
+
+		E   = p/GM1+0.5*rho*(u*u+v*v+w*w);
+
+		*WB_ptr[IndW++] = rho;
+		*WB_ptr[IndW++] = rho*u;
+		*WB_ptr[IndW++] = rho*v;
+		if (DIM == 3)
+			*WB_ptr[IndW++] = rho*w;
+		*WB_ptr[IndW++] = E;
+
+		for (int var = 0; var < NVAR; var++)
+			WB_ptr[var]++;
+	}
+	bv->s = (struct const_Multiarray_T*)sol;
+
+	if (c_m[1] == true) {
+
+	struct Multiarray_T* ds_ds = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_n,NVAR,NVAR}); // keep
+
+	Type *ds_ds_ptr[NVAR*NVAR];
+	for (int ind = 0, vr_l = 0; vr_l < NVAR; vr_l++) {
+		WL_ptr[vr_l] = &WL[vr_l*n_n];
+		for (int vr_r = 0; vr_r < NVAR; vr_r++) {
+			ds_ds_ptr[ind] = &ds_ds->data[n_n*(ind)];
+			++ind;
+		}
+	}
+
+	rhoL_ptr  = WL_ptr[0];
+	rhouL_ptr = WL_ptr[1];
+	rhovL_ptr = WL_ptr[2];
+	EL_ptr    = WL_ptr[DIM+1];
+
+	if (DIM == 3) {
+		rhowL_ptr = WL_ptr[3];
+	} else if (DIM == 2) {
+		rhowL_ptr = zeros;
+	}
+
+	n_ptr = nL;
+
+	for (int n = 0; n < n_n; n++) {
+		int InddWdW = 0;
+		Type rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL, cL, HL, VnL, RL;
+		Real n1, n2, n3;
+
+		// silence
+		n3 = 0.0;
+
+		// Inner VOLUME
+		rhoL     = *rhoL_ptr++;
+		rhoL_inv = 1.0/rhoL;
+
+		uL   = (*rhouL_ptr++)*rhoL_inv;
+		vL   = (*rhovL_ptr++)*rhoL_inv;
+		wL   = (*rhowL_ptr++)*rhoL_inv;
+		EL   = *EL_ptr++;
+
+		V2L = uL*uL+vL*vL+wL*wL;
+
+		pL  = GM1*(EL-0.5*rhoL*V2L);
+		cL = sqrt_T(GAMMA*pL/rhoL);
+
+		HL = (EL+pL)*rhoL_inv;
+
+		n1 = *n_ptr++;
+		n2 = *n_ptr++;
+		if (DIM == 3)
+			n3 = *n_ptr++;
+
+		VnL = uL*n1+vL*n2+wL*n3;
+
+		RL = VnL + 2.0/GM1*cL;
+
+		// Solve for c
+		Type aQ, bQ, cQ, term1, term2, cM, cP, cMult, c, Vn, M, T, p, rho, u, v, w;
+
+		// silence
+		cMult = 0.0;
+
+		aQ =  1.0 + 2.0/GM1;
+		bQ = -2.0*RL;
+		cQ =  0.5*GM1*(RL*RL - 2.0*HL);
+
+		term1 = -bQ/(2.0*aQ);
+		term2 = sqrt_T(bQ*bQ-4*aQ*cQ)/(2.0*aQ);
+
+		cM = term1-term2;
+		cP = term1+term2;
+
+		// c = max(cM,cP)
+		if (real_T(cM) > real_T(cP)) {
+			c = cM;
+			cMult = -1.0;
+		} else {
+			c = cP;
+			cMult = 1.0;
+		}
+
+		Vn = RL - 2.0/GM1*c;
+
+		M = Vn/c;
+
+		T = T_Total/(1+0.5*GM1*M*M);
+		p = p_Total*pow_T(T/T_Total,GAMMA/GM1);
+
+		rho = p/(Rg*T);
+		u   = Vn*n1;
+		v   = Vn*n2;
+		w   = Vn*n3;
+
+
+		Type drhoLdW[NVAR], duLdW[NVAR], dvLdW[NVAR], dwLdW[NVAR], dELdW[NVAR], dpLdW[NVAR];
+
+		if (DIM == 3) {
+			drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0; drhoLdW[4] = 0.0;
+			dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = -wL; dpLdW[4]   = 1.0;
+			dELdW[0]   = 0.0;     dELdW[1]   = 0.0; dELdW[2]   = 0.0; dELdW[3]   = 0.0; dELdW[4]   = 1.0;
+
+			duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;      duLdW[4] = 0.0;
+			dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;      dvLdW[4] = 0.0;
+			dwLdW[0] = -wL*rhoL_inv; dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = rhoL_inv; dwLdW[4] = 0.0;
+		} else if (DIM == 2) {
+			drhoLdW[0] = 1.0;     drhoLdW[1] = 0.0; drhoLdW[2] = 0.0; drhoLdW[3] = 0.0;
+			dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = -vL; dpLdW[3]   = 1.0;
+			dELdW[0]   = 0.0;     dELdW[1]   = 0.0; dELdW[2]   = 0.0; dELdW[3]   = 1.0;
+
+			duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;      duLdW[3] = 0.0;
+			dvLdW[0] = -vL*rhoL_inv; dvLdW[1] = 0.0;      dvLdW[2] = rhoL_inv; dvLdW[3] = 0.0;
+			dwLdW[0] = 0.0;          dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = 0.0;
+		}
+		for (int var = 0; var < NVAR; var++)
+			dpLdW[var] *= GM1;
+
+		for (int var = 0; var < NVAR; var++) {
+			Type dcLdW, dHLdW, dVnLdW, dRLdW,
+			     dbQdW, dcQdW, dterm1dW, dterm2dW,
+			     dcdW, dVndW, dMdW, dTdW, dpdW,
+			     drhodW, dudW, dvdW, dwdW, dEdW;
+
+			dcLdW  = 0.5/cL*GAMMA*(dpLdW[var]*rhoL-pL*drhoLdW[var])*(rhoL_inv*rhoL_inv);
+			dHLdW  = ((dELdW[var]+dpLdW[var])*rhoL-(EL+pL)*drhoLdW[var])*(rhoL_inv*rhoL_inv);
+			dVnLdW = duLdW[var]*n1+dvLdW[var]*n2+dwLdW[var]*n3;
+
+			dRLdW = dVnLdW + 2.0/GM1*dcLdW;
+
+//			daQdW =  0.0;
+			dbQdW = -2.0*dRLdW;
+			dcQdW =  0.5*GM1*(2.0*RL*dRLdW - 2.0*dHLdW);
+
+			dterm1dW = -dbQdW/(2.0*aQ);
+			dterm2dW = 0.5/sqrt_T(bQ*bQ-4.0*aQ*cQ)*(2.0*bQ*dbQdW-4.0*aQ*dcQdW)/(2.0*aQ);
+
+			dcdW  = dterm1dW + cMult*dterm2dW;
+			dVndW = dRLdW - 2.0/GM1*dcdW;
+
+			dMdW = dVndW/c-Vn/(c*c)*dcdW;
+
+			dTdW = T_Total*(-1.0)*pow_T(1+0.5*GM1*M*M,-2.0)*0.5*GM1*2.0*M*dMdW;
+			dpdW = p_Total*GAMMA/GM1*pow_T(T/T_Total,GAMMA/GM1-1.0)*dTdW/T_Total;
+
+			drhodW = dpdW/(Rg*T)-p/(Rg*T*T)*dTdW;
+			dudW   = dVndW*n1;
+			dvdW   = dVndW*n2;
+			dwdW   = dVndW*n3;
+			dEdW   = dpdW/GM1+0.5*(drhodW*(u*u+v*v+w*w)+rho*2.0*(u*dudW+v*dvdW+w*dwdW));
+
+			*ds_ds_ptr[InddWdW++] = drhodW;
+
+			*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
+			*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
+			if (DIM == 3)
+				*ds_ds_ptr[InddWdW++] = drhodW*w + rho*dwdW;
+			*ds_ds_ptr[InddWdW++] = dEdW;
+		}
+
+		for (int i = 0, iMax = NEQ*NVAR; i < iMax; i++)
+			ds_ds_ptr[i]++;
+	}
+	bv->ds_ds = (const struct const_Multiarray_T*) ds_ds;
+
+	}
+	assert(c_m[2] == false);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static Type compute_Vn (const double*const n, const Type*const uvw)
+/// \brief Read the required bc data for the back pressure boundary condition into the \ref BC_Data container.
+static void read_data_back_pressure
+	(struct BC_Data*const bc_data ///< \ref BC_Data.
+	);
+
+/** \brief Read the required bc data for the total temperature/pressure boundary condition into the \ref BC_Data
+ *         container. */
+static void read_data_total_tp
+	(struct BC_Data*const bc_data ///< \ref BC_Data.
+	);
+
+static struct BC_Data get_bc_data_back_pressure ( )
+{
+	static struct BC_Data bc_data;
+	static bool need_input = true;
+	if (need_input) {
+		need_input = false;
+		read_data_back_pressure(&bc_data);
+	}
+	return bc_data;
+}
+
+static struct BC_Data get_bc_data_total_tp ( )
+{
+	static struct BC_Data bc_data;
+	static bool need_input = true;
+	if (need_input) {
+		need_input = false;
+		read_data_total_tp(&bc_data);
+	}
+	return bc_data;
+}
+
+static Type compute_Vn (const Real*const n, const Type*const uvw)
 {
 	Type Vn = 0.0;
 	for (int d = 0; d < DIM; ++d)
@@ -770,23 +1339,57 @@ static void set_uvw (const Type*const uvw_i, Type*const*const uvw)
 		*uvw[d] = uvw_i[d];
 }
 
-static void compute_Vt
-	(const double*const n, const Type Vn, const Type*const uvw, Type*const uvw_t)
+static void compute_Vt (const Real*const n, const Type Vn, const Type*const uvw, Type*const uvw_t)
 {
 	for (int d = 0; d < DIM; ++d)
 		uvw_t[d] = uvw[d] - Vn*n[d];
 }
 
-static void compute_uvw
-	(const double*const n, const Type Vn, const Type*const uvw_t, Type*const*const uvw)
+static void compute_uvw (const Real*const n, const Type Vn, const Type*const uvw_t, Type*const*const uvw)
 {
 	for (int d = 0; d < DIM; ++d)
 		*uvw[d] = Vn*n[d] + uvw_t[d];
 }
 
 static void compute_opposite_normal_uvw
-	(const double*const n, const Type Vn, const Type*const uvw_i, Type*const*const uvw)
+	(const Real*const n, const Type Vn, const Type*const uvw_i, Type*const*const uvw)
 {
 	for (int d = 0; d < DIM; ++d)
 		*uvw[d] = uvw_i[d] - 2.0*Vn*n[d];
+}
+
+// Level 1 ********************************************************************************************************** //
+
+static void read_data_back_pressure (struct BC_Data*const bc_data)
+{
+	const int count_to_find = 1;
+
+	FILE* input_file = fopen_input('s',NULL,NULL); // closed
+
+	int count_found = 0;
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_string_count_d("p_back",&count_found,line,&bc_data->p_back);
+	}
+	fclose(input_file);
+
+	assert(count_found == count_to_find);
+}
+
+static void read_data_total_tp (struct BC_Data*const bc_data)
+{
+	const int count_to_find = 3;
+
+	FILE* input_file = fopen_input('s',NULL,NULL); // closed
+
+	int count_found = 0;
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_string_count_d("t_total",&count_found,line,&bc_data->t_total);
+		read_skip_string_count_d("p_total",&count_found,line,&bc_data->p_total);
+		read_skip_string_count_d("r_s",    &count_found,line,&bc_data->r_s);
+	}
+	fclose(input_file);
+
+	assert(count_found == count_to_find);
 }

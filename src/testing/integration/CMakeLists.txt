@@ -73,6 +73,7 @@ add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "boundary_conditions_diffusion_1d" "i
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_diffusion_2d" "integration/TEST_Diffusion_Default_2d__ml0__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_euler_2d_riemann_slipwall" "integration/boundary_conditions/TEST_Euler_RiSl_2d__ml0__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_euler_2d_supersonic_in/out" "integration/boundary_conditions/TEST_Euler_SiSo_2d__ml0__p2")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_euler_2d_back_p_total_tp" "integration/boundary_conditions/TEST_Euler_BpTtp_2d__ml0__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_navier_stokes_2d_noslip_general/adiabatic" "integration/boundary_conditions/TEST_NavierStokes_NSGA_2d__ml0__p2")
 
 set (EXEC test_integration_non_conforming)
@@ -127,6 +128,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_S
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DPG_ParametricMixed2D__ml0__p3")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedMixed2D__ml0__p3")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_Conservative_DPG_BlendedMixed2D__ml1__p2")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/gaussian_bump/TEST_Euler_GaussianBump_ParametricMixed2D__ml1__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_DG_ParametricMixed2D__ml0__p2")
 
 set (EXEC test_integration_convergence)

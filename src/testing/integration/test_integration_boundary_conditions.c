@@ -146,7 +146,7 @@ int main
 		assert(!c_m[4]); // Add support.
 		assert(!c_m[5]); // Add support.
 		bool pass        = false;
-		const double tol = 1e1*EPS;
+		const double tol = 2e1*EPS;
 		const bool differences[] =
 			{ c_m[0] ? diff_const_Multiarray_d(num_flux_i->bv_r.s,    num_flux_i_cmplx_step->bv_r.s,    tol) : false,
 			  c_m[1] ? diff_const_Multiarray_d(num_flux_i->bv_r.ds_ds,num_flux_i_cmplx_step->bv_r.ds_ds,tol) : false,

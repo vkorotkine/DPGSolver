@@ -218,7 +218,11 @@ static void set_function_pointers_num_flux_bc_euler (struct Solver_Face_T* s_fac
 		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_euler_supersonic_outflow;
 		break;
 	case BC_BACKPRESSURE:
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_euler_back_pressure;
+		break;
 	case BC_TOTAL_TP:
+		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_euler_total_tp;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",face->bc);
 		break;
