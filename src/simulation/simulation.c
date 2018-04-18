@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <limits.h>
 #include <stdbool.h>
 #include "mpi.h"
+#include "gsl/gsl_math.h"
 
 #include "macros.h"
 #include "definitions_adaptation.h"
@@ -37,6 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "const_cast.h"
 #include "file_processing.h"
+#include "geometry.h"
 #include "intrusive.h"
 #include "mesh.h"
 #include "test_case.h"
@@ -60,6 +62,11 @@ static void set_simulation_mpi
 static void set_simulation_core
 	(struct Simulation*const sim, ///< Standard.
 	 const char*const ctrl_name   ///< Control file name (excluding the file extension).
+	);
+
+/// \brief Set additional parameters requiring that \ref set_up_fopen_input has been called.
+static void set_simulation_additional
+	(struct Simulation*const sim ///< Standard.
 	);
 
 /// \brief Set \ref Simulation parameters to invalid values so that it can be recognized if they were not read.
@@ -103,6 +110,7 @@ struct Simulation* constructor_Simulation__no_mesh (const char*const ctrl_name)
 	set_simulation_mpi(sim);
 	set_simulation_core(sim,ctrl_name);
 	set_up_fopen_input(sim->ctrl_name_full,get_input_path(sim));
+	set_simulation_additional(sim);
 
 	check_necessary_simulation_parameters(sim);
 	set_simulation_default(sim);
@@ -250,6 +258,7 @@ static void set_simulation_invalid (struct Simulation*const sim)
 	const_cast_c(sim->geom_rep,0);
 
 	const_cast_i_n(sim->p_ref,(int[]){P_INVALID,P_INVALID},2);
+	const_cast_i_n(sim->p_ig,(int[]){P_INVALID,P_INVALID},2);
 	const_cast_i_n(sim->p_s_v,(int[]){P_INVALID,P_INVALID},2);
 	const_cast_i_n(sim->p_s_f,(int[]){P_INVALID,P_INVALID},2);
 	const_cast_i_n(sim->p_sg_v,(int[]){P_INVALID,P_INVALID},2);
@@ -338,6 +347,16 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 	set_orders(sim);
 }
 
+static void set_simulation_additional (struct Simulation*const sim)
+{
+	if (is_internal_geom_straight()) {
+		const_cast_i(&sim->p_ig[0],GSL_MIN(sim->p_ref[0],1));
+		const_cast_i(&sim->p_ig[1],GSL_MAX(sim->p_ref[1],1));
+	} else {
+		const_cast_i_n(sim->p_ig,sim->p_ref,2);
+	}
+}
+
 static void check_necessary_simulation_parameters (struct Simulation*const sim)
 {
 	assert(sim->mpi_size >  0);
@@ -355,6 +374,7 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 	       (strcmp(sim->basis_sol,"bezier")      == 0));
 	assert((strcmp(sim->geom_rep,"isoparametric")          == 0) ||
 	       (strcmp(sim->geom_rep,"superparametric")        == 0) ||
+	       (strcmp(sim->geom_rep,"superparametric2")       == 0) ||
 	       (strcmp(sim->geom_rep,"superparametric_p_le_1") == 0) ||
 	       (strstr(sim->geom_rep,"fixed")                  != 0));
 

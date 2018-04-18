@@ -35,4 +35,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "geometry_parametric.h"
 #include "geometry_surface.h"
 
+/** \brief Return whether the internal faces of the mesh should use straight geometry as specified in the input file.
+ *  \return See brief. */
+bool is_internal_geom_straight ( );
+
 #endif // DPG__geometry_h__INCLUDED

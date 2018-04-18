@@ -135,6 +135,13 @@ struct Simulation {
 	 */
 	const int p_ref[2];
 
+	/** The minimal and maximal isoparametric geometry orders.
+	 *
+	 *  These orders differ from \ref Simulation::p_ref in the case where it is desired to use straight internal faces
+	 *  for a parametric mesh in the case of the solution order not including p = 1.
+	 */
+	const int p_ig[2];
+
 	const int p_s_v_p,  ///< The additive ((p)lus: +) constant of the volume solution order relative to p_ref.
 	          p_s_f_p,  ///< The additive ((p)lus: +) constant of the face   solution order relative to p_ref.
 	          p_sg_v_p, ///< The additive ((p)lus: +) constant of the volume solution gradient order relative to p_ref.

@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
+#include "def_templates_multiarray_math.h"
+
 // Static function declarations ************************************************************************************* //
 
 /// \brief Container for a vector with an associated index.
@@ -324,6 +326,34 @@ void copy_into_Multiarray_T (struct Multiarray_T*const dest, const struct const_
 	for (int i = 0; i < size; ++i)
 		dest->data[i] = src->data[i];
 }
+
+#ifdef TYPE_RC
+
+void update_rows_Multiarray_T
+	(struct Multiarray_T*const dest, const struct const_Multiarray_T*const src,
+	 const struct const_Vector_i*const row_inds)
+{
+	assert(dest->order == 2); // Can be made flexible if desired.
+	assert(src->order == 2);
+	assert(dest->extents[1] == src->extents[1]);
+	assert(row_inds->ext_0 == src->extents[0]);
+
+	const bool requires_transpose = ( dest->layout == 'C' ? true : false );
+	if (requires_transpose)
+		transpose_Multiarray_T(dest,true);
+
+	for (int i = 0; i < row_inds->ext_0; ++i) {
+		Type*const dest_row      = get_row_Multiarray_T(row_inds->data[i],dest);
+		const Type*const src_row = get_row_const_Multiarray_T(i,src);
+		for (int j = 0; j < src->extents[1]; ++j)
+			dest_row[j] = src_row[j];
+	}
+
+	if (requires_transpose)
+		transpose_Multiarray_T(dest,true);
+}
+
+#endif
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

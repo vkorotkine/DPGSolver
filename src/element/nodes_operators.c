@@ -264,6 +264,7 @@ static int compute_node_type
 	case 'r': // fallthrough
 	case 't': // fallthrough
 	case 'g': // fallthrough
+	case 'i': // fallthrough
 	case 'm': // fallthrough
 	case 'v':
 		return compute_node_type_std(op_io,element,sim);
@@ -319,6 +320,7 @@ static int compute_p_nodes (const struct Op_IO* op_io, const int node_type, cons
 	case 'r': // fallthrough
 	case 't': // fallthrough
 	case 'g': // fallthrough
+	case 'i': // fallthrough
 	case 'm': // fallthrough
 	case 'p': // fallthrough
 	case 'v':
@@ -463,8 +465,9 @@ static int compute_node_type_std
 		assert(op_io->p_op >= 0 && op_io->p_op <= 2);
 		return NODES_VERTEX;
 		break;
-	case 'm': // fallthrough
-	case 'g':
+	case 'g': // fallthrough
+	case 'i': // fallthrough
+	case 'm':
 		switch (s_type) {
 			case ST_TP:  return NODES_GLL; break;
 			case ST_SI:  return NODES_AO;  break;

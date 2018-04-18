@@ -105,7 +105,10 @@ int compute_face_geometry_order (const struct Solver_Face*const s_face)
 	assert(!face->boundary);
 	const struct Solver_Volume*const s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
 	                                              (struct Solver_Volume*) face->neigh_info[1].volume, };
-	return GSL_MIN(s_vol[0]->p_ref,s_vol[1]->p_ref);
+	if (is_internal_geom_straight())
+		return 1;
+	else
+		return GSL_MIN(s_vol[0]->p_ref,s_vol[1]->p_ref);
 }
 
 int compute_face_reference_order (const struct Solver_Face*const s_face)

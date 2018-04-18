@@ -236,4 +236,3 @@ void set_value_add_T
 	(Type*const dest, ///< See brief.
 	 const Type src   ///< See brief.
 	);
-

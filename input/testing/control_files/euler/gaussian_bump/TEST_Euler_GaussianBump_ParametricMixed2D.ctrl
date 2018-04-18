@@ -2,7 +2,7 @@ pde_name  euler
 pde_spec  steady/gaussian_bump
 
 geom_name n-cube
-geom_spec x_lr_internal
+geom_spec x_lr_internal/geom_ar_8-0
 
 dimension 2
 
@@ -10,11 +10,13 @@ mesh_generator   n-cube/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        quad
-mesh_level       1 4
+mesh_level       0 4
 mesh_path        ../meshes/
 
 
 # Simulation variables
+
+test_case_extension refinement
 
 interp_tp  GLL
 interp_si  AO
@@ -27,6 +29,7 @@ geom_representation  superparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
+
 p_ref    0 3
 
 fe_method 1
@@ -34,5 +37,5 @@ fe_method 1
 
 # Testing variables
 
-ml_range_test 1 2
+ml_range_test 0 2
 p_range_test  0 3

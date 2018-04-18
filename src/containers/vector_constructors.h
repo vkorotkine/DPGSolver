@@ -39,4 +39,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
 
+/** \brief Constructor the \ref Vector_i of column indices where each of the rows of the input matrix equals 1.0.
+ *  \return See brief. */
+const struct const_Vector_i* constructor_const_Vector_i_inds_eq_1_const_Matrix_d
+	(const struct const_Matrix_d*const a ///< Input matrix.
+	);
+
 #endif // DPG__vector_constructors_h__INCLUDED

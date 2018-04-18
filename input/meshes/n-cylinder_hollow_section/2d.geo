@@ -79,7 +79,7 @@ ElseIf (aspect_ratio == 20.0)
 	Transfinite Line {1001,1002} = 10*2^(mesh_level)+1 Using Progression prog_radial;
 	Transfinite Line {1007}      = 10*2^(mesh_level)+1 Using Progression prog_center;
 Else
-    Error("Unsupported aspect_ratio: %d",aspect_ratio); Exit;
+	Error("Unsupported aspect_ratio: %d",aspect_ratio); Exit;
 EndIf
 
 

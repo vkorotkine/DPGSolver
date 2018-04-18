@@ -43,10 +43,11 @@ struct Geo_Data {
 	     r_o,      ///< Radius corresponding to the 'o'uter surface.
 	     s_offset; ///< The offset for the reference domain 's'-coordinate.
 
-	Real a, ///< Geometry parameter.
-	     b, ///< Geometry parameter.
-	     c, ///< Geometry parameter.
-	     h; ///< Geometry parameter ('h'eight generally).
+	Real a,     ///< Geometry parameter.
+	     b,     ///< Geometry parameter.
+	     c,     ///< Geometry parameter.
+	     h,     ///< Geometry parameter ('h'eight generally).
+	     x_max; ///< Maximum range for the x-coordinates.
 };
 
 /// \brief Container for function data.
@@ -332,50 +333,44 @@ const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 	    *const y = get_col_Multiarray_R(1,xyz);
 
 	const struct Geo_Data geo_data = get_geo_data("gaussian_bump");
-	const Real h       = geo_data.h,
-	           x_scale = geo_data.x_scale;
+	const Real h     = geo_data.h,
+	           x_max = geo_data.x_max;
 
 	struct Function_Data f_data = { .scale = 1.0, };
 
-	const Real tol = 1e3*EPS;
-	const Real x_l      = -x_scale,
-	           x_total  = 2.0*x_scale;
+	const Real tol = 1e2*EPS;
+	const Real x_l     = -x_max,
+	           x_total = 2.0*x_max;
+	const Real al_total = romberg(f_al_gaussian_bump,x_l,x_max,tol,&f_data);
 
 	for (int n = 0; n < n_n; ++n) {
 		const Real r = x_i[n],
 		           s = y_i[n];
 
-		const Real b_r[] = { 0.5*(1.0-r), 0.5*(1.0+r), },
-		           b_s[] = { 0.5*(1.0-s), 0.5*(1.0+s), };
-
 		// Plane contribution
-		const Real x_p = x_scale*r,
+		const Real x_p = x_max*r,
 		           y_p = h;
 
 		// Gaussian bump contribution
 		Real x_g = x_p;
-		f_data.scale = b_s[0];
-		const Real al_total = romberg(f_al_gaussian_bump,x_l,x_scale,tol,&f_data);
 
-//printf("\n% .3e % .3e % .3e % .13e\n",f_data.scale,x_l,x_scale,al_total);
 		int count = 0;
 		for (Real newton_f = 1.0; fabs(newton_f) > tol; ) {
 			const Real al = romberg(f_al_gaussian_bump,x_l,x_g,tol,&f_data);
 			           newton_f     = 1.0/al_total*al - (x_p-x_l)/x_total;
 			const Real newton_df_dx = 1.0/al_total*f_al_gaussian_bump(x_g,&f_data);
-printf("%d % .10e % .3e % .3e\n",count,x_g,1.0/al_total*al,(x_p-x_l)/x_total);
 			x_g -= newton_f/newton_df_dx;
 
 			++count;
-			if (count > 50)
+			if (count > 10)
 				EXIT_ERROR("Newton's method not converging. Error: % .3e.",newton_f);
 		}
 		const Real y_g = GSL_MAX(EPS,f_gaussian_bump(x_g,0,&f_data));
 
 		// Blended contribution
-		x[n] = x_g*b_r[0] + x_p*b_r[1];
+		const Real b_s[] = { 0.5*(1.0-s), 0.5*(1.0+s), };
+		x[n] = x_g*b_s[0] + x_p*b_s[1];
 		y[n] = y_g*b_s[0] + y_p*b_s[1];
-//printf("% .3e % .3e % .3e % .3e % .3e % .3e\n",al_total,x_g,x_p,y_g,y_p,(x_p-x_l)/x_total);
 	}
 	return (struct const_Multiarray_R*) xyz;
 }
@@ -500,11 +495,11 @@ static void read_data_gaussian_bump (struct Geo_Data*const geo_data)
 	int count_found = 0;
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),input_file)) {
-		read_skip_string_count_c_style_d("a",      &count_found,line,&geo_data->a);
-		read_skip_string_count_c_style_d("b",      &count_found,line,&geo_data->b);
-		read_skip_string_count_c_style_d("c",      &count_found,line,&geo_data->c);
-		read_skip_string_count_c_style_d("h",      &count_found,line,&geo_data->h);
-		read_skip_string_count_c_style_d("x_scale",&count_found,line,&geo_data->x_scale);
+		read_skip_string_count_c_style_d("a",    &count_found,line,&geo_data->a);
+		read_skip_string_count_c_style_d("b",    &count_found,line,&geo_data->b);
+		read_skip_string_count_c_style_d("c",    &count_found,line,&geo_data->c);
+		read_skip_string_count_c_style_d("h",    &count_found,line,&geo_data->h);
+		read_skip_string_count_c_style_d("x_max",&count_found,line,&geo_data->x_max);
 	}
 	fclose(input_file);
 

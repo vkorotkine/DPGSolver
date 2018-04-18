@@ -118,6 +118,12 @@ static int convert_to_range
 	 const char*const name_range ///< Defined for \ref constructor_Operator_Info.
 	);
 
+/// \brief Set \ref Operator_Info::p_ref.
+static void set_p_ref
+	(struct Operator_Info*const op_info, ///< \ref Operator_Info.
+	 const struct Simulation*const sim   ///< \ref Simulation.
+	);
+
 /// \brief Set up \ref Operator_Info extents_* members.
 static void set_up_extents
 	(struct Operator_Info* op_info ///< \ref Operator_Info.
@@ -415,7 +421,7 @@ struct Operator_Info* constructor_Operator_Info
 	const_cast_i(&op_info->range_h, ranges[2]);
 	const_cast_i(&op_info->range_p, ranges[3]);
 
-	const_cast_i_n(op_info->p_ref,sim->p_ref,2);
+	set_p_ref(op_info,sim);
 	set_up_extents(op_info);
 	set_up_values_op(op_info);
 
@@ -460,7 +466,7 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 	case 'r': // g'r'adient
 		return p_op+sim->p_sg_v_p;
 		break;
-	case 'g': // geometry
+	case 'g': { // geometry
 		if (op_sc == 's')
 			return 1;
 
@@ -481,7 +487,17 @@ int compute_p_basis (const struct Op_IO* op_io, const struct Simulation* sim)
 		else
 			EXIT_ERROR("Unsupported: %s\n",sim->geom_rep);
 		break;
-	case 'm': { // metric
+	} case 'i': { // isoparametric geometry
+		if (op_sc == 's')
+			return 1;
+
+		const_cast_c(&op_io->kind,'s');
+		const int p_s = compute_p_basis(op_io,sim);
+		const_cast_c(&op_io->kind,'i');
+
+		return GSL_MAX(p_s,1);
+		break;
+	} case 'm': { // metric
 		const_cast_c(&op_io->kind,'g');
 		const int p_g = compute_p_basis(op_io,sim);
 		const_cast_c(&op_io->kind,'m');
@@ -553,9 +569,10 @@ bool op_should_use_L2 (const int*const op_values, const struct Op_IO* op_io)
 	if ((op_values[OP_IND_H+OP_IND_I] > op_values[OP_IND_H+OP_IND_O]) ||
 	    (op_values[OP_IND_P+OP_IND_I] > op_values[OP_IND_P+OP_IND_O])) {
 		switch (op_io[OP_IND_O].kind) {
-		case 'c':
-		case 'v':
-		case 'g':
+		case 'c': // fallthrough
+		case 'v': // fallthrough
+		case 'g': // fallthrough
+		case 'i':
 			// Do nothing.
 			break;
 		case 's': // fallthrough
@@ -894,6 +911,14 @@ static int convert_to_range (const char type_range, const char*const name_range)
 	return -1;
 }
 
+static void set_p_ref (struct Operator_Info*const op_info, const struct Simulation*const sim)
+{
+	if (op_info->op_io[OP_IND_I].kind == 'i' || op_info->op_io[OP_IND_O].kind == 'i')
+		const_cast_i_n(op_info->p_ref,sim->p_ig,2);
+	else
+		const_cast_i_n(op_info->p_ref,sim->p_ref,2);
+}
+
 static void set_up_extents (struct Operator_Info* op_info)
 {
 	const struct const_Element* element = op_info->element;
@@ -1138,6 +1163,7 @@ static const struct const_Matrix_d* constructor_cv
 	default:
 		switch (op_io->kind) {
 		case 'g': // fallthrough
+		case 'i': // fallthrough
 		case 'm':
 			basis_type = get_basis_i_from_s(sim->basis_geom);
 			break;

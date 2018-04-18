@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "const_cast.h"
 #include "element_solver.h"
+#include "file_processing.h"
 #include "intrusive.h"
 #include "operator.h"
 #include "multiarray_operator.h"
@@ -43,3 +44,19 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+bool is_internal_geom_straight ( )
+{
+	static bool igs = false;
+	static bool need_input = true;
+	if (need_input) {
+		char line[STRLEN_MAX];
+		FILE* input_file = fopen_input('t',NULL,NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line,"use_straight_internal_geometry"))
+				read_skip_const_b(line,&igs);
+		}
+		fclose(input_file);
+	}
+	return igs;
+}

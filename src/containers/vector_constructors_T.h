@@ -278,6 +278,7 @@ void set_const_Vector_from_Multiarray_T
 	 const struct const_Multiarray_T* src, ///< Defined for \ref set_Vector_from_Multiarray_T.
 	 const ptrdiff_t*const sub_indices     ///< Defined for \ref set_Vector_from_Multiarray_T.
 	);
+
 #endif
 // File constructors ************************************************************************************************ //
 

@@ -2,3 +2,7 @@ Petsc Solver Updates
 1) Compare assembly of Schur complement matrix as in
    [Petsc ex70](http://www.mcs.anl.gov/petsc/petsc-current/src/snes/examples/tutorials/ex70.c.html) with direct assembly
    if this is found to dominate solver cost.
+
+Internally straight
+1) Ensure that internally straight edges are correctly treated for non-conforming meshes where non-isoparametric
+geometry is used. I.e. ensure that non-conforming faces match after the linear correction.

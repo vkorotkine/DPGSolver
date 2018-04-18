@@ -142,7 +142,7 @@ const struct const_Multiarray_d* constructor_geom_fg
 	const struct Solver_Volume*const s_vol = (struct Solver_Volume*) face->neigh_info[side_index].volume;
 
 	const struct const_Multiarray_d*const geom_fg =
-		constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vgc_fgc,s_vol->geom_coef,'C','d',2,NULL); // ret.
+		constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vgc_fgc,s_vol->geom_coef,'C','d',2,NULL); // returned
 	if (side_index != side_index_dest) {
 		const struct const_Vector_i*const nc_fg = get_operator__nc_fg(side_index_dest,s_face,use_pg_face);
 		permute_Multiarray_d_V((struct Multiarray_d*)geom_fg,nc_fg,'R');
@@ -1602,13 +1602,6 @@ static const struct const_Vector_i* constructor_cc0_vgc_fgc_indices
 	 const struct Solver_Face*const s_face ///< \ref Solver_Face_T.
 	);
 
-/// \brief Correct the input 'geom_coef' using the 'geom_coef_new' values for the specified 'coef_inds'.
-static void update_Multiarray_d_rows
-	(struct Multiarray_d*const dest,            ///< Destination multiarray to be updated.
-	 const struct const_Multiarray_d*const src, ///< Source multiarray providing the updated values.
-	 const struct const_Vector_i*const row_inds ///< Indices of the rows to be updated.
-	);
-
 static void constructor_volumes_h_refine
 	(struct Adaptive_Solver_Volume*const a_s_vol_p, const struct Simulation*const sim)
 {
@@ -1897,7 +1890,6 @@ static void correct_non_conforming_face_geometry (const struct Solver_Face*const
 	const struct Solver_Volume*const s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
 	                                              (struct Solver_Volume*) face->neigh_info[1].volume, };
 
-	const int p_fg = compute_face_geometry_order(s_face);
 	for (int si = 0; si < 2; ++si) {
 		if (s_vol[si]->ml != ml)
 			continue;
@@ -1909,12 +1901,10 @@ static void correct_non_conforming_face_geometry (const struct Solver_Face*const
 		struct Adaptive_Solver_Volume*const a_s_vol = (struct Adaptive_Solver_Volume*) s_vol[si];
 		a_s_vol->updated_geom_nc = true;
 
-		assert((s_vol[si]->p_ref == p_fg) || (s_vol[si]->p_ref == p_fg+1));
-
 		const struct const_Multiarray_d*const geom_coef_fg = constructor_coef_fg_vol(si,s_face); // destructed
 		const struct const_Vector_i*const coef_inds = constructor_cc0_vgc_fgc_indices(si,s_face); // destructed
 
-		update_Multiarray_d_rows((struct Multiarray_d*)s_vol[si]->geom_coef,geom_coef_fg,coef_inds);
+		update_rows_Multiarray_d((struct Multiarray_d*)s_vol[si]->geom_coef,geom_coef_fg,coef_inds);
 
 		destructor_const_Multiarray_d(geom_coef_fg);
 		destructor_const_Vector_i(coef_inds);
@@ -1953,7 +1943,7 @@ static void correct_additional_non_conforming_face_geometry (const struct Simula
 				constructor_cc0_vgc_fgc_indices(si_neigh,s_face); // destructed
 
 			const struct Solver_Volume*const s_vol = (struct Solver_Volume*) a_s_vol[si_neigh];
-			update_Multiarray_d_rows((struct Multiarray_d*)s_vol->geom_coef,geom_coef_fg,coef_inds);
+			update_rows_Multiarray_d((struct Multiarray_d*)s_vol->geom_coef,geom_coef_fg,coef_inds);
 
 			destructor_const_Multiarray_d(geom_coef_fg);
 			destructor_const_Vector_i(coef_inds);
@@ -2157,56 +2147,7 @@ static const struct const_Vector_i* constructor_cc0_vgc_fgc_indices
 	(const int side_index, const struct Solver_Face*const s_face)
 {
 	const struct Operator*const cc0_vgc_fgc_op = get_operator__cc0_vgc_fgc(side_index,s_face);
-	const struct const_Matrix_d*const cc0_vgc_fgc = cc0_vgc_fgc_op->op_std;
-
-	const ptrdiff_t ext_0 = cc0_vgc_fgc->ext_0,
-	                ext_1 = cc0_vgc_fgc->ext_1;
-
-	struct Vector_i*const inds = constructor_empty_Vector_i(ext_0); // returned
-	for (int i = 0; i < ext_0; ++i) {
-		bool found = 0;
-		const double*const op_row = get_row_const_Matrix_d(i,cc0_vgc_fgc);
-		for (int j = 0; j < ext_1; ++j) {
-			if (equal_d(op_row[j],1.0,4e0*EPS)) {
-				found = 1;
-				inds->data[i] = j;
-				break;
-			}
-		}
-		if (!found) {
-			printf("Did not find the column corresponding to the face coefficient for row: %d.\n",i);
-			print_const_Matrix_d(cc0_vgc_fgc);
-			for (int j = 0; j < ext_1; ++j)
-				printf("%d % .3e % .3e\n",j,op_row[j],op_row[j]-1.0);
-			EXIT_UNSUPPORTED;
-		}
-	}
-
-	return (struct const_Vector_i*) inds;
-}
-
-static void update_Multiarray_d_rows
-	(struct Multiarray_d*const dest, const struct const_Multiarray_d*const src,
-	 const struct const_Vector_i*const row_inds)
-{
-	assert(dest->order == 2); // Can be made flexible if desired.
-	assert(src->order == 2);
-	assert(dest->extents[1] == src->extents[1]);
-	assert(row_inds->ext_0 == src->extents[0]);
-
-	const bool requires_transpose = ( dest->layout == 'C' ? true : false );
-	if (requires_transpose)
-		transpose_Multiarray_d(dest,true);
-
-	for (int i = 0; i < row_inds->ext_0; ++i) {
-		double*const dest_row      = get_row_Multiarray_d(row_inds->data[i],dest);
-		const double*const src_row = get_row_const_Multiarray_d(i,src);
-		for (int j = 0; j < src->extents[1]; ++j)
-			dest_row[j] = src_row[j];
-	}
-
-	if (requires_transpose)
-		transpose_Multiarray_d(dest,true);
+	return constructor_const_Vector_i_inds_eq_1_const_Matrix_d(cc0_vgc_fgc_op->op_std);
 }
 
 // Level 5 ********************************************************************************************************** //
@@ -2523,13 +2464,12 @@ static const struct Operator* get_operator__cc0_vgc_fgc (const int side_index, c
 
 	const int ind_lf   = face->neigh_info[side_index].ind_lf,
 	          ind_href = ( use_full_face ? 0 : face->neigh_info[side_index].ind_href );
-	const int p_v = s_vol->p_ref,
-	          p_f = s_vol->p_ref;
+	const int p_v = s_vol->p_ref;
 
 	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
 	assert(curved);
 
-	return get_Multiarray_Operator(g_e->cc0_vgc_fgc,(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
+	return get_Multiarray_Operator(g_e->cc0_vgc_fgc,(ptrdiff_t[]){ind_lf,ind_href,0,p_v,p_v});
 }
 
 // Level 6 ********************************************************************************************************** //
@@ -3016,7 +2956,6 @@ static const struct Operator* get_operator__vv0_fgc_fgc (const int side_index, c
 	          p_f    = s_vol->p_ref;
 	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
 	assert(curved == 1);
-	assert(p_f == p_fg+1);
 
 	return get_Multiarray_Operator(g_e->vv0_fgc_fgc,(ptrdiff_t[]){ind_e,ind_e,0,0,p_f,p_fg});
 }

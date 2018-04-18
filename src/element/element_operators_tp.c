@@ -195,7 +195,7 @@ const struct const_Matrix_d* constructor_op_std (const struct const_Multiarray_M
 
 		permute_Matrix_d((struct Matrix_d*)op_rs,perm_rs);
 	} else {
-		assert(d_op == 3);
+		assert(d_op == 3); // Sometimes triggered by missing sub-operator from the sub-element.
 		n_rows_op->data[ind_sub_op] = n_rows_sub[ind_sub_op];
 		op_rs = op_r;
 	}

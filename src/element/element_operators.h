@@ -41,6 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- 'b'oundary (placeholder for either 'e'dge or 'f'ace)
  *  - [2/5]: character denoting the kind of basis/nodes to be used (kind):
  *  	- 'g'eometry
+ *    - 'i'soparametric geometry (i.e. p_i = p_s)
  *  	- 'm'etric
  *  	- 'v'ertex (Only available as p1 nodes [5])
  *  	- 'p'lotting (Not available as a basis [2])

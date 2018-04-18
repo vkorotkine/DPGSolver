@@ -41,7 +41,7 @@ still have features not yet re-implemented in the new version, notably the 3D hp
 verification. The list of features that remains to be re-implemented can be found
 [here](todo_reimplementation.md).
 
-**It is recommened** to follow the [Coding Style Guidelines](STYLE.md) when making modifications to
+**It is recommended** to follow the [Coding Style Guidelines](STYLE.md) when making modifications to
 the code.
 
 ## Building/Running the Code

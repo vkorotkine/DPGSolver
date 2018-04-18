@@ -230,3 +230,14 @@ void copy_into_Multiarray_T
 	(struct Multiarray_T*const dest,           ///< The destination.
 	 const struct const_Multiarray_T*const src ///< The source.
 	);
+
+#ifdef TYPE_RC
+
+/// \brief Modify the input rows of the destination multiarray with those of the source.
+void update_rows_Multiarray_T
+	(struct Multiarray_T*const dest,            ///< Destination multiarray to be updated.
+	 const struct const_Multiarray_T*const src, ///< Source multiarray providing the updated values.
+	 const struct const_Vector_i*const row_inds ///< Indices of the rows to be updated.
+	);
+
+#endif
