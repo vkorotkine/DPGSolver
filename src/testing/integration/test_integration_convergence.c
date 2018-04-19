@@ -38,6 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "core.h"
 #include "file_processing.h"
 #include "geometry.h"
+#include "restart_writers.h"
 #include "simulation.h"
 #include "solve.h"
 #include "test_case.h"
@@ -51,7 +52,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DISPLAY_CONV 1 ///< Flag for whether the convergence orders should be displayed for these tests.
 
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
-#define ORDER_VIS_CONV_P      3
+#define ORDER_VIS_CONV_P      2
 #define ORDER_VIS_CONV_ML_MAX 4
 #define DISPLAY_GEOM          0 ///< Flag for whether the geometry should be output.
 ///\}
@@ -129,6 +130,9 @@ int main
 			printf("\ntest_integration_convergence (ml, p, dof): %d %d %td\n\n\n",ml,p,compute_dof(sim));
 
 		if ((ml == ml_ref[1]) && (p == p_ref[1])) {
+			const struct Restart_Info restart_info = { .ml = ml, .p = p, };
+			output_restart(sim,&restart_info);
+
 			set_convergence_order_discount(int_test_info);
 			bool pass = true;
 			check_convergence_orders(ERROR_STANDARD,&pass,&test_info,int_test_info,sim);

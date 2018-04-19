@@ -106,7 +106,8 @@ int compute_face_geometry_order (const struct Solver_Face*const s_face)
 	const struct Solver_Volume*const s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
 	                                              (struct Solver_Volume*) face->neigh_info[1].volume, };
 	if (is_internal_geom_straight())
-		return 1;
+		return 0;
+		// Use 0 so that superparametric (p_g = p_s + 1) is also treated properly for non-conforming meshes.
 	else
 		return GSL_MIN(s_vol[0]->p_ref,s_vol[1]->p_ref);
 }

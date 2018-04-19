@@ -17,17 +17,23 @@ exit_ratio_i 1e-5
 
 display_progress 1
 
-use_straight_internal_geometry 1 // Think about potential gap for non-conforming (superparametric) when this is enabled.
+use_straight_internal_geometry 0
 
 
 xyz_ve_refine:
 container Multiarray_d
-R 2 1 2
- 0.0  -1.0
+R 2 7 2
+ 0.0    -1.0
+-0.125  -1.0
+ 0.125  -1.0
+-0.250  -1.0
+ 0.250  -1.0
+ 0.0    -0.5
+ 0.0    -0.75
 
 
 xyz_ve_mesh_level:
 container Vector_i
-1   2
+7   1 1 1 1 1 1 1
 
 n_adapt_h_refine 0

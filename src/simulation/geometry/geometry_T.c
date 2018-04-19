@@ -458,8 +458,13 @@ static void compute_detJV_T (struct const_Multiarray_R* jacobian, struct Multiar
 		break;
 	}
 
-	for (ptrdiff_t i = 0; i < n_vals; ++i)
+	for (ptrdiff_t i = 0; i < n_vals; ++i) {
+#ifndef NDEBUG
+		if (j_det[i] < 0.0)
+			print_Multiarray_R(jacobian_det);
+#endif
 		assert(j_det[i] > 0.0);
+	}
 }
 
 static void compute_cofactors_T (struct const_Multiarray_R* jacobian, struct Multiarray_R* metrics)
@@ -669,18 +674,11 @@ static void correct_face_xyz_straight_T (struct Solver_Volume_T*const s_vol, con
 		const struct const_Multiarray_R*const f_geom_coef_p1 = constructor_f_geom_coef_p1(si,s_face,s_vol); // dest.
 		const struct const_Vector_i*const coef_inds = constructor_cc0_vgc_fgc_indices(si,s_face); // destructed
 
-//print_const_Multiarray_R(s_vol->geom_coef);
 		update_rows_Multiarray_R((struct Multiarray_R*)s_vol->geom_coef,f_geom_coef_p1,coef_inds);
 
-//printf("%d\n",s_vol->p_ref);
-//print_const_Multiarray_R(s_vol->geom_coef);
-//print_const_Multiarray_R(f_geom_coef_p1);
-//print_const_Vector_i(coef_inds);
-//EXIT_UNSUPPORTED;
 		destructor_const_Multiarray_R(f_geom_coef_p1);
 		destructor_const_Vector_i(coef_inds);
 	}
-//EXIT_ADD_SUPPORT;
 
 	correct_internal_xyz_blended_T(s_vol,sim);
 }

@@ -350,8 +350,14 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 static void set_simulation_additional (struct Simulation*const sim)
 {
 	if (is_internal_geom_straight()) {
-		const_cast_i(&sim->p_ig[0],GSL_MIN(sim->p_ref[0],1));
-		const_cast_i(&sim->p_ig[1],GSL_MAX(sim->p_ref[1],1));
+		const_cast_i(&sim->p_ig[0],GSL_MIN(sim->p_ref[0],0));
+		const_cast_i(&sim->p_ig[1],GSL_MAX(sim->p_ref[1],0));
+
+		// In the current implementation, non-conforming meshes will have gaps if this condition is not satisfied.
+		if (!((strcmp(sim->geom_rep,"isoparametric")          == 0) ||
+	            (strcmp(sim->geom_rep,"superparametric")        == 0) ||
+	            (strcmp(sim->geom_rep,"superparametric_p_le_1") == 0)))
+			EXIT_ERROR("Cannot use internally straight geometry for geom_rep: %s",sim->geom_rep);
 	} else {
 		const_cast_i_n(sim->p_ig,sim->p_ref,2);
 	}

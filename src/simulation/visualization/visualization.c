@@ -21,11 +21,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "macros.h"
 #include "definitions_alloc.h"
 #include "definitions_intrusive.h"
 #include "definitions_test_case.h"
+#include "definitions_tol.h"
 #include "definitions_visualization.h"
 
 #include "element_plotting.h"
@@ -633,9 +635,10 @@ static void fprint_vtk_piece_sol_grad
 			fprintf_tn(file,1,"</PCells>");
 
 			fprintf_tn(file,1,"<PPointData Scalars=\"Scalars\" Vectors=\"Vectors\">");
-			fprint_vtk_piece_sol_scalar(file,sp_type,NULL,"index");
-			fprint_vtk_piece_sol_scalar(file,sp_type,NULL,"p_ref");
-			fprint_vtk_piece_sol_scalar(file,sp_type,NULL,"ml");
+			const struct const_Multiarray_d dummy;
+			fprint_vtk_piece_sol_scalar(file,sp_type,&dummy,"index");
+			fprint_vtk_piece_sol_scalar(file,sp_type,&dummy,"p_ref");
+			fprint_vtk_piece_sol_scalar(file,sp_type,&dummy,"ml");
 			switch (pde_index) {
 			case PDE_ADVECTION:
 				fprint_vtk_piece_sol_scalar(file,sp_type,sol,"u");
@@ -1054,7 +1057,10 @@ void fprint_const_Multiarray_d_vtk_point
 				fprintf(file,"\t");
 			for (ptrdiff_t j = 0; j < 3; ++j) {
 				if (j < ext_1)
-					fprintf(file,print_format_d,data[j]);
+					if (fabs(data[j]) < EPS)
+						fprintf(file,print_format_d,EPS);
+					else
+						fprintf(file,print_format_d,data[j]);
 				else
 					fprintf(file," %d",0);
 			}
@@ -1076,7 +1082,10 @@ void fprint_const_Multiarray_d_vtk_point
 				new_line = false;
 			}
 
-			fprintf(file,print_format_d,data[i]);
+			if (fabs(data[i]) < EPS)
+				fprintf(file,print_format_d,EPS);
+			else
+				fprintf(file,print_format_d,data[i]);
 
 			if ((i+1)%8 == 0 || (i == ext_0-1)) {
 				fprintf(file,"\n");

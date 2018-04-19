@@ -46,6 +46,7 @@ struct Geo_Data {
 	Real a,     ///< Geometry parameter.
 	     b,     ///< Geometry parameter.
 	     c,     ///< Geometry parameter.
+	     d,     ///< Geometry parameter.
 	     h,     ///< Geometry parameter ('h'eight generally).
 	     x_max; ///< Maximum range for the x-coordinates.
 };
@@ -82,7 +83,11 @@ static Real romberg
 	);
 
 /** \brief Return the value of the Gaussian Bump function of given differentiation degree at the input coordinate.
- *  \return See brief. */
+ *  \return See brief.
+ *
+ *  \note An additional parameter is provided such that the bump can be scaled by a linear function to remove its
+ *        symmetry.
+ */
 static Real f_gaussian_bump
 	(const Real x,                           ///< x-coordinate.
 	 const int diff_degree,                  ///< Differentiation degree.
@@ -365,7 +370,7 @@ const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 			if (count > 10)
 				EXIT_ERROR("Newton's method not converging. Error: % .3e.",newton_f);
 		}
-		const Real y_g = GSL_MAX(EPS,f_gaussian_bump(x_g,0,&f_data));
+		const Real y_g = f_gaussian_bump(x_g,0,&f_data);
 
 		// Blended contribution
 		const Real b_s[] = { 0.5*(1.0-s), 0.5*(1.0+s), };
@@ -448,12 +453,21 @@ static Real f_gaussian_bump (const Real x, const int diff_degree, const struct F
 
 	const Real a = geo_data.a,
 	           b = geo_data.b,
-	           c = geo_data.c;
+	           c = geo_data.c,
+	           d = geo_data.d;
 
 	switch (diff_degree) {
-	case 0: return scale*a*exp(-1.0*pow(x-b,2.0)/(2.0*c*c));       break;
-	case 1: return scale*a*(b-x)/(c*c)*exp(-0.5*pow((x-b)/c,2.0)); break;
-	default:
+	case 0:
+		return scale*(1+d*(x-b))*a*exp(-1.0*pow(x-b,2.0)/(2.0*c*c));
+		break;
+	case 1: {
+		const Real df0 = (1+d*(x-b)),
+		           df1 = d,
+		           dg0 = a*exp(-1.0*pow(x-b,2.0)/(2.0*c*c)),
+		           dg1 = a*(b-x)/(c*c)*exp(-0.5*pow((x-b)/c,2.0));
+		return scale*(df1*dg0+df0*dg1);
+		break;
+	} default:
 		EXIT_ERROR("Add support.\n");
 		break;
 	}
@@ -488,7 +502,7 @@ static void read_data_joukowski (struct Geo_Data*const geo_data)
 
 static void read_data_gaussian_bump (struct Geo_Data*const geo_data)
 {
-	const int count_to_find = 5;
+	const int count_to_find = 6;
 
 	FILE* input_file = fopen_input('g',NULL,NULL); // closed
 
@@ -498,6 +512,7 @@ static void read_data_gaussian_bump (struct Geo_Data*const geo_data)
 		read_skip_string_count_c_style_d("a",    &count_found,line,&geo_data->a);
 		read_skip_string_count_c_style_d("b",    &count_found,line,&geo_data->b);
 		read_skip_string_count_c_style_d("c",    &count_found,line,&geo_data->c);
+		read_skip_string_count_c_style_d("d",    &count_found,line,&geo_data->d);
 		read_skip_string_count_c_style_d("h",    &count_found,line,&geo_data->h);
 		read_skip_string_count_c_style_d("x_max",&count_found,line,&geo_data->x_max);
 	}

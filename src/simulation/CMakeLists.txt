@@ -14,6 +14,8 @@ set	(SOURCE
 	 geometry/geometry_parametric.c
 	 geometry/geometry_surface.c
 
+	 restart/restart_writers.c
+
 	 solvers/compute_rlhs.c
 	 solvers/compute_face_rlhs.c
 	 solvers/compute_volume_rlhs.c

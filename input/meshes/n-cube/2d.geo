@@ -36,10 +36,17 @@ If (aspect_ratio == GMSH_DUMMY)
 	Transfinite Line{2003}      = 2^(mesh_level+1)+1 Using Progression prog_spec;
 	Transfinite Line{1003:1004} = 2^(mesh_level)+1   Using Progression prog_spec;
 Else
-	Transfinite Line{1001:1002} = aspect_ratio*2^(mesh_level)+1 Using Progression 1;
-	Transfinite Line{2001:2002} = 1*2^(mesh_level+1)+1          Using Progression 1.5;
-	Transfinite Line{2003}      = 1*2^(mesh_level+1)+1          Using Progression 1.5;
-	Transfinite Line{1003:1004} = aspect_ratio*2^(mesh_level)+1 Using Progression prog_spec;
+	If (aspect_ratio >= 1.0)
+		Transfinite Line{1001:1002} = aspect_ratio*2^(mesh_level)+1 Using Progression 1;
+		Transfinite Line{2001:2002} = 1*2^(mesh_level+1)+1          Using Progression 1;
+		Transfinite Line{2003}      = 1*2^(mesh_level+1)+1          Using Progression 1;
+		Transfinite Line{1003:1004} = aspect_ratio*2^(mesh_level)+1 Using Progression prog_spec;
+	Else
+		Transfinite Line{1001:1002} = 2^(mesh_level)+1 Using Progression 1;
+		Transfinite Line{2001:2002} = 1.0/aspect_ratio*2^(mesh_level+1)+1 Using Progression 1;
+		Transfinite Line{2003}      = 1.0/aspect_ratio*2^(mesh_level+1)+1 Using Progression 1;
+		Transfinite Line{1003:1004} = 2^(mesh_level)+1 Using Progression prog_spec;
+	EndIf
 EndIf
 
 Line Loop (4001) = {1001,2003,-1003,-2001};
