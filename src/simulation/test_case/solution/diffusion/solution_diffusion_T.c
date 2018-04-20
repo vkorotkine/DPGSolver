@@ -47,6 +47,7 @@ static void set_function_pointers_num_flux
 
 void set_function_pointers_solution_diffusion_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
+	const_cast_b(&test_case->has_analytical,true);
 	if (strstr(sim->pde_spec,"default_steady") ||
 	    strstr(sim->pde_spec,"steady/default")) {
 		test_case->constructor_xyz              = constructor_xyz_cylinder_parametric_T;

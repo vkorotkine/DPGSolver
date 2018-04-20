@@ -234,7 +234,7 @@ struct Error_CE_Data* constructor_Error_CE_Data
 	e_ce_h->sol_cont->sol    = e_ce_d->sol[1];
 	e_ce_h->sol_cont->volume = e_ce_h->s_vol[1];
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
-	test_case->set_sol(sim,*(e_ce_h->sol_cont));
+	test_case->set_sol_start(sim,*(e_ce_h->sol_cont));
 
 	if (test_case->copy_initial_rhs) {
 		e_ce_d->rhs[0] = constructor_rhs_v(sim,e_ce_h->s_vol[0],e_ce_h->sol_cont->node_kind); // destructed

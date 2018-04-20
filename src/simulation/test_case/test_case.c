@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "const_cast.h"
 #include "file_processing.h"
+#include "restart.h"
 #include "simulation.h"
 #include "solution_advection.h"
 #include "solution_diffusion.h"

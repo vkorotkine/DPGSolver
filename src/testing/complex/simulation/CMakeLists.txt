@@ -60,6 +60,7 @@ set	(SOURCE
 	 test_case/solution/euler/free_stream/test_complex_solution_free_stream.c
 	 test_case/solution/navier_stokes/test_complex_solution_navier_stokes.c
 	 test_case/solution/navier_stokes/taylor_couette/test_complex_solution_taylor_couette.c
+	 test_case/solution/restart/test_complex_restart.c
 	)
 
 set	(LIBS_DEPEND

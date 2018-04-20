@@ -30,6 +30,7 @@ include_directories(
 	complex/simulation/test_case/solution/diffusion
 	complex/simulation/test_case/solution/euler
 	complex/simulation/test_case/solution/navier_stokes
+	complex/simulation/test_case/solution/restart
 	complex/templates
 	integration
 	support

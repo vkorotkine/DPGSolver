@@ -89,12 +89,17 @@ set (EXEC test_integration_free_stream)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
-#set_target_properties(${EXEC} PROPERTIES COMPILE_FLAGS "-DTEST_FREE_STREAM") # TODO: Delete if unused.
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d__ml2__p3" "petsc_options_gmres_tol_1e-15")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_unaligned__ml2__p3" "petsc_options_gmres_tol_1e-15")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_trig_xl__ml2__p3" "petsc_options_gmres_tol_1e-15")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_non_conforming" "petsc_options_gmres_tol_1e-15")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_non_conforming_p4_super" "petsc_options_gmres_tol_1e-15") # Expected to be failing, but with free-stream error converging optimally.
+
+set (EXEC test_integration_restart)
+set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
+add_executable(${EXEC} ${EXEC}.c)
+target_link_libraries(${EXEC} ${LIBS_DEPEND})
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/restart/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D")
 
 # Potentially add test for equivalence between explicit/implicit computation of grad_coef.
 

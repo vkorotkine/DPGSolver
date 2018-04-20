@@ -47,6 +47,7 @@ static void set_function_pointers_num_flux_T
 
 void set_function_pointers_solution_advection_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
+	const_cast_b(&test_case->has_analytical,true);
 	test_case->set_grad = set_sg_do_nothing_T;
 	if (strstr(sim->pde_spec,"peterson")) {
 		test_case->constructor_xyz              = NULL;

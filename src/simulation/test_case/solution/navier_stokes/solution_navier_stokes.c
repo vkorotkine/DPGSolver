@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "boundary.h"
 #include "compute_error_euler.h"
 #include "compute_error_navier_stokes.h"
+#include "const_cast.h"
 #include "file_processing.h"
 #include "flux_euler.h"
 #include "flux_navier_stokes.h"

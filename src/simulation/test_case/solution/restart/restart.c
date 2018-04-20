@@ -12,41 +12,21 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-/** \file
- */
+///	\file
 
-#include "test_complex_solution_navier_stokes.h"
+#include "restart.h"
 
-#include "macros.h"
-#include "definitions_test_case.h"
+#include "multiarray.h"
 
-#include "compute_error_euler.h"
-#include "compute_error_navier_stokes.h"
-#include "const_cast.h"
-#include "file_processing.h"
 #include "simulation.h"
-#include "solution_navier_stokes.h"
-
-#include "complex_multiarray.h"
-
-#include "test_complex_flux_euler.h"
-#include "test_complex_flux_navier_stokes.h"
-#include "test_complex_geometry.h"
-#include "test_complex_geometry_parametric.h"
-#include "test_complex_numerical_flux_euler.h"
-#include "test_complex_numerical_flux_navier_stokes.h"
-#include "test_complex_solution.h"
-#include "test_complex_test_case.h"
-
-#include "free_stream/test_complex_solution_free_stream.h"
-#include "taylor_couette/test_complex_solution_taylor_couette.h"
+#include "solution.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_dc.h"
-#include "solution_navier_stokes_T.c"
+#include "def_templates_type_d.h"
+#include "restart_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

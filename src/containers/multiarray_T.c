@@ -327,6 +327,42 @@ void copy_into_Multiarray_T (struct Multiarray_T*const dest, const struct const_
 		dest->data[i] = src->data[i];
 }
 
+void push_back_Multiarray_T (struct Multiarray_T*const dest, const struct const_Multiarray_T*const src)
+{
+	assert(dest->order == src->order);
+	assert(dest->order == 2); // Can possibly be made flexible if needed.
+	assert(dest->layout == src->layout);
+
+	const int order = dest->order;
+	const char layout = dest->layout;
+	const ptrdiff_t*const extents_d_i = dest->extents,
+	               *const extents_s_i = src->extents;
+	ptrdiff_t extents_o[order];
+	ptrdiff_t rc_start = -1;
+	for (int i = 0; i < order; ++i)
+		extents_o[i] = extents_d_i[i];
+
+	int ind_mod[2];
+	if (layout == 'R') {
+		ind_mod[0] = 0;
+		ind_mod[1] = 1;
+	} else {
+		ind_mod[0] = 1;
+		ind_mod[1] = 0;
+	}
+	extents_o[ind_mod[0]] += extents_s_i[ind_mod[0]];
+	assert(extents_o[ind_mod[1]] == extents_s_i[ind_mod[1]]);
+	rc_start = extents_d_i[ind_mod[0]];
+
+	resize_Multiarray_T(dest,order,extents_o);
+	const Type* data_src = src->data;
+	Type* data_dest = ( layout == 'R' ? get_row_Multiarray_T(rc_start,dest) : get_col_Multiarray_T(rc_start,dest) );
+
+	const ptrdiff_t size = compute_size(src->order,src->extents);
+	for (int i = 0; i < size; ++i)
+		*data_dest++ = *data_src++;
+}
+
 #ifdef TYPE_RC
 
 void update_rows_Multiarray_T

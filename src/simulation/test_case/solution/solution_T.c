@@ -348,7 +348,7 @@ static void set_initial_v_sg_coef (struct Simulation* sim)
 
 		sol_cont.node_kind = 's';
 		sol_cont.sol       = s_vol->sol_coef;
-		test_case->set_sol(sim,sol_cont);
+		test_case->set_sol_start(sim,sol_cont);
 
 		sol_cont.node_kind = 'r';
 		sol_cont.sol       = s_vol->grad_coef;
@@ -513,7 +513,7 @@ static const struct const_Multiarray_T* constructor_nf
 
 	sol_cont.face = s_face;
 	sol_cont.sol  = sol_fs;
-	test_case->set_sol(sim,sol_cont);
+	test_case->set_sol_start(sim,sol_cont);
 
 	flux_i->s = (struct const_Multiarray_T*)sol_fs;
 	flux_i->xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed

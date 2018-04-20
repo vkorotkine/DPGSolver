@@ -23,8 +23,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Comparison function for std::qsort between `Type*` `a` and `b`.
  *  \return a - b.  */
 static int cmp_T
-	(const void *a, ///< Variable 1.
-	 const void *b  ///< Variable 2.
+	(const void* a, ///< Variable 1.
+	 const void* b  ///< Variable 2.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -241,7 +241,7 @@ bool find_val_Vector_T (const struct const_Vector_T*const src, const Type val, c
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static int cmp_T (const void *a, const void *b)
+static int cmp_T (const void* a, const void* b)
 {
 	return (int) ( *(Type*)a - *(Type*)b );
 }

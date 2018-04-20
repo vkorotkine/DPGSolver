@@ -24,7 +24,6 @@ include_directories(
 	simulation/geometry
 	simulation/mesh
 	simulation/operators
-	simulation/restart
 	simulation/solvers
 	simulation/solvers/adaptation
 	simulation/solvers/dg
@@ -39,6 +38,7 @@ include_directories(
 	simulation/test_case/solution/diffusion
 	simulation/test_case/solution/euler
 	simulation/test_case/solution/navier_stokes
+	simulation/test_case/solution/restart
 	simulation/visualization
 	testing
 	)

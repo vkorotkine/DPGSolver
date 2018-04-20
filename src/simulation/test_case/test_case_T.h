@@ -29,6 +29,12 @@ struct Simulation;
  *  As this container is a general template for many supported test cases, it is frequently the case that some of the
  *  function pointers are not necessary. In this case, they are set to point to functions which simply return
  *  immediately.
+ *
+ *  Regarding the solution related function pointers, different pointers are provided for the starting solution and the
+ *  run-time solution to avoid inefficient use of the restarted solution during run-time if applicable. For example,
+ *  when using the Riemann invariant boundary condition, the solution is constructed while solving for the boundary
+ *  numerical flux and the free-stream solution should be used despite this solution not being used for the
+ *  initialization or error computation. If no restart file is being used, the function pointers are set to be equal.
  */
 struct Test_Case_T {
 	const int pde_index;  ///< Index corresponding to \ref Simulation::pde_name.
@@ -60,6 +66,9 @@ struct Test_Case_T {
 
 	constructor_sol_fptr_T constructor_sol;  ///< Pointer to the function used to construct the solution.
 	constructor_sol_fptr_T constructor_grad; ///< Pointer to the function used to construct the solution gradient.
+
+	set_sol_fptr_T         set_sol_start;         ///< Pointer to function used to set the starting solution data.
+	constructor_sol_fptr_T constructor_sol_start; ///< Pointer to function used to construct the starting solution data.
 
 	// Geometry related parameters
 	/// The surface parametrization type to use for geometry blending. Options: see \ref definitions_geometry.h.
@@ -146,7 +155,8 @@ struct Test_Case_T {
 
 	// Miscellaneous parameters
 	const bool display_progress; ///< Flag for whether the solver progress should be displayed (in stdout).
-	const bool has_functional; ///< Flag for whether a functional error should be computed for the test case.
+	const bool has_functional;   ///< Flag for whether a functional error should be computed for the test case.
+	const bool has_analytical;   ///< Flag for whether the test case has an analytical solution.
 
 	/** Flag for whether the rhs term computed from the initial state should be copied to the \ref Solver_Volume_T\*s.
 	 *  This is used to check free-stream preservation, for example. */

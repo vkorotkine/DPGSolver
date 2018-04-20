@@ -66,6 +66,7 @@ void set_function_pointers_solution_navier_stokes_T (struct Test_Case_T* test_ca
 		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
 		test_case->constructor_Error_CE         = constructor_Error_CE_navier_stokes_uvwt;
+		const_cast_b(&test_case->has_analytical,true);
 	} else if (strstr(sim->pde_spec,"joukowski")) {
 		test_case->constructor_xyz                  = constructor_xyz_joukowski_parametric_T;
 		test_case->constructor_sol                  = constructor_const_sol_free_stream_T;

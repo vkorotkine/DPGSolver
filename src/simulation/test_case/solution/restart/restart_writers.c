@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "restart_writers.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,7 +25,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 
+#include "volume_solver.h"
+
 #include "file_processing.h"
+#include "intrusive.h"
 #include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
@@ -109,6 +113,18 @@ EXIT_UNSUPPORTED;
 static const struct Nodes_Info* constructor_Nodes_Info (const struct Simulation*const sim)
 {
 	struct Nodes_Info* nodes_info = calloc(1,sizeof(*nodes_info)); // free
+
+	struct Multiarray_d*const xyz_ve_red = constructor_empty_Multiarray_d('R',2,(ptrdiff_t[]){0,DIM}); // destructed
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Volume*const vol = (struct Volume*) curr;
+
+		push_back_Multiarray_d(xyz_ve_red,vol->xyz_ve);
+print_const_Multiarray_d(vol->xyz_ve);
+	}
+print_Multiarray_d(xyz_ve_red);
+	/// \todo sort by approximate nearest neighbor.
+
+	destructor_Multiarray_d(xyz_ve_red);
 
 //print_const_Multiarray_d(ni->nodes);
 EXIT_UNSUPPORTED; UNUSED(sim);

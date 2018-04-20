@@ -15,51 +15,30 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_complex_test_case.h"
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-#include "const_cast.h"
-#include "file_processing.h"
-#include "simulation.h"
-#include "test_case.h"
+#include "macros.h"
 
-#include "test_complex_restart.h"
-#include "test_complex_solution.h"
-#include "test_complex_solution_advection.h"
-#include "test_complex_solution_diffusion.h"
-#include "test_complex_solution_euler.h"
-#include "test_complex_solution_navier_stokes.h"
-#include "test_complex_test_case.h"
+#include "def_templates_restart.h"
+
+#include "def_templates_multiarray.h"
+#include "def_templates_solution.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_dc.h"
-#include "test_case_T.c"
-
-void convert_to_Test_Case_rc (struct Simulation* sim, const char type_rc_o)
+void set_sol_restart_T (const struct Simulation*const sim, struct Solution_Container_T sol_cont)
 {
-	struct Test_Case_rc* test_case_rc = sim->test_case_rc;
+	EXIT_ADD_SUPPORT; UNUSED(sim); UNUSED(sol_cont);
+}
 
-	switch (type_rc_o) {
-	case 'c':
-		assert(test_case_rc->is_real == true);
-		destructor_Test_Case(test_case_rc->tc);
-
-		const_cast_b(&test_case_rc->is_real,false);
-		test_case_rc->tc = (void*)constructor_Test_Case_c(sim); // keep
-		break;
-	case 'r':
-		assert(test_case_rc->is_real == false);
-		destructor_Test_Case_c(test_case_rc->tc);
-
-		const_cast_b(&test_case_rc->is_real,true);
-		test_case_rc->tc = (void*)constructor_Test_Case(sim); // keep
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %c.\n",type_rc_o);
-		break;
-	}
+const struct const_Multiarray_T* constructor_const_sol_restart_T
+	(const struct const_Multiarray_R*const xyz, const struct Simulation*const sim)
+{
+	EXIT_ADD_SUPPORT; UNUSED(sim); UNUSED(xyz); return NULL;
 }
 
 // Static functions ************************************************************************************************* //

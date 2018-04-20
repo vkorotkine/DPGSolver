@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_test_case.h"
 
 #include "def_templates_flux.h"
+#include "def_templates_restart.h"
 #include "def_templates_solution_advection.h"
 #include "def_templates_solution_diffusion.h"
 #include "def_templates_solution_euler.h"
@@ -120,6 +121,11 @@ static const bool* get_compute_member_Boundary_Value_Input
 	(const char type_ei,                 ///< 'e'xplicit/'i'mplicit type. Options: 'e', 'i'.
 	 struct Test_Case_T*const test_case, ///< \ref Test_Case_T.
 	 const struct Simulation*const sim   ///< \ref Simulation.
+	);
+
+/// \brief Set the function pointers relating to the solution used at the start of the simulation.
+static void set_function_pointers_start
+	(struct Test_Case_T*const test_case ///< \ref Test_Case_T.
 	);
 
 static void set_string_associations (struct Test_Case_T* test_case, const struct Simulation*const sim)
@@ -221,6 +227,8 @@ static void set_function_pointers (struct Test_Case_T* test_case, const struct S
 		case PDE_NAVIER_STOKES: set_function_pointers_solution_navier_stokes_T(test_case,sim); break;
 		default: EXIT_ERROR("Unsupported: %d\n",test_case->pde_index); break;
 	}
+
+	set_function_pointers_start(test_case);
 }
 
 static void read_test_case_parameters (struct Test_Case_T* test_case, const struct Simulation*const sim)
@@ -416,4 +424,27 @@ static const bool* get_compute_member_Boundary_Value_Input
 		break;
 	}
 	EXIT_ERROR("Should not have reached this point.\n");
+}
+
+static void set_function_pointers_start (struct Test_Case_T*const test_case)
+{
+	static bool need_input  = true;
+	static bool use_restart = false;
+	if (need_input) {
+		need_input = false;
+		char line[STRLEN_MAX];
+		FILE* input_file = input_file = fopen_input('t',NULL,NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line,"use_restart")) read_skip_const_b(line,&use_restart);
+		}
+		fclose(input_file);
+	}
+
+	if (!use_restart) {
+		test_case->set_sol_start         = test_case->set_sol;
+		test_case->constructor_sol_start = test_case->constructor_sol;
+	} else {
+		test_case->set_sol_start         = set_sol_restart_T;
+		test_case->constructor_sol_start = constructor_const_sol_restart_T;
+	}
 }
