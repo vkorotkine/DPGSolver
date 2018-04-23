@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 
+/// \brief Container for restart file related information.
 struct Restart_Info {
 	int ml; ///< 'm'esh 'l'evel for the restart file.
 	int p;  ///< 'p'olynomial degree for the restart file.

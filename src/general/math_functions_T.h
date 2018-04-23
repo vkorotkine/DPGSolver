@@ -103,7 +103,8 @@ void add_to_T
 	 const ptrdiff_t n_entries ///< The number of entries.
 	);
 
-/// \brief Return the dot product of the two input arrays.
+/** \brief Return the dot product of the two input arrays.
+ *  \return See brief. */
 Type dot_T
 	(const ptrdiff_t n,  ///< The number of entries.
 	 const Type*const a, ///< The 1st input.

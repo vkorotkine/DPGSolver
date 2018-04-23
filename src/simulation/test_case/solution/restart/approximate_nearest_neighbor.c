@@ -14,19 +14,32 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 /// \file
 
-#include "restart.h"
+#include "approximate_nearest_neighbor.h"
 
-#include "multiarray.h"
+#include "macros.h"
 
-#include "simulation.h"
-#include "solution.h"
+#include "matrix.h"
+#include "vector.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_d.h"
-#include "restart_T.c"
+const struct const_Vector_i* constructor_ann_indices
+	(const struct const_Matrix_d*const nodes_b, const struct const_Matrix_d*const nodes_s)
+{
+	/** The implementation is based on the minimalist [ANN algorithm of Chan].
+	 *
+	 *  <!-- References: -->
+	 *  [ANN algorithm of Chan]: ann/Chan2006_A_Minimalist's_Implementation_of_an_Approximate_Nearest_Neighbor_Algorithm_in_Fixed_Dimensions.pdf
+	 */
+
+EXIT_ADD_SUPPORT; UNUSED(nodes_b); UNUSED(nodes_s);
+// Might need floating point less than operator from thesis below. If they used the conversion to unsigned long long
+// however, it would be simpler to just imagine the Matrix_d*s and Matrix_ull*s and directly use Chan's code.
+// https://pdfs.semanticscholar.org/fbab/cbdac7002cd147c582915f8491771e254c3f.pdf
+
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

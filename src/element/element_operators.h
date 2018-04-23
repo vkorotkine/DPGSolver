@@ -32,7 +32,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  (t): Optional 't'ranspose.
  *  (i): Optional 'i'nput basis. Options: 'S'olution, 'B'ezier.
  *  (o): Optional 'o'output basis. Options: 'S'olution, 'B'ezier.
+ *
  *  \note For collocated schemes, `tw` operators also include premultiplication by the inverse weights.
+ *
  *  - [0]:   value for the order of differentiation (0 for no differentiation).
  *  - [1/4]: character denoting the type of computational element (ce):
  *  	- 'v'olume
@@ -41,7 +43,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  	- 'b'oundary (placeholder for either 'e'dge or 'f'ace)
  *  - [2/5]: character denoting the kind of basis/nodes to be used (kind):
  *  	- 'g'eometry
- *    - 'i'soparametric geometry (i.e. p_i = p_s)
+ *  	- 'i'soparametric geometry (i.e. p_i = p_s)
  *  	- 'm'etric
  *  	- 'v'ertex (Only available as p1 nodes [5])
  *  	- 'p'lotting (Not available as a basis [2])

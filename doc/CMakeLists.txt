@@ -6,9 +6,13 @@ if(DOXYGEN_FOUND)
 
 	# There was a problem with DOXYGEN_DOT_FOUND not being set even when dot was found. Try removing this after
 	# updating CMake version. This addition was not tested on a machine where dot was not present.
-	if (TARGET Doxygen::dot)
-		set(DOXYGEN_DOT_FOUND YES)
-	endif()
+#	if (TARGET Doxygen::dot)
+#		set(DOXYGEN_DOT_FOUND YES)
+#	endif()
+
+	# DOT disabled above as it significantly slows the document generation and does not add much in terms of useful
+	# info.
+	set(DOXYGEN_DOT_FOUND NO)
 
 	configure_file(${PROJECT_SOURCE_DIR}/doc/doxygen.cfg.in
 	               ${PROJECT_BINARY_DIR}/doc/doxygen.cfg @ONLY)

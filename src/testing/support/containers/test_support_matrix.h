@@ -34,6 +34,13 @@ struct Matrix_i* constructor_file_name_Matrix_i
 	 const char*const file_name_full ///< The name of the file (including the full path).
 	);
 
+/** \brief `const` version of \ref constructor_file_name_Matrix_i.
+ *  \return See brief.. */
+const struct const_Matrix_i* constructor_file_name_const_Matrix_i
+	(const char*const var_name,      ///< See brief.
+	 const char*const file_name_full ///< See brief.
+	);
+
 /** \brief Constructor for a \ref Matrix_T\* from data in the input file of the given name.
  *  \return Standard. */
 struct Matrix_d* constructor_file_name_Matrix_d

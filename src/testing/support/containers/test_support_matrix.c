@@ -60,6 +60,12 @@ struct Matrix_i* constructor_file_name_Matrix_i (const char*const var_name, cons
 	return dest;
 }
 
+const struct const_Matrix_i* constructor_file_name_const_Matrix_i
+	(const char*const var_name, const char*const file_name_full)
+{
+	return (const struct const_Matrix_i*) constructor_file_name_Matrix_i(var_name,file_name_full);
+}
+
 struct Matrix_d* constructor_file_name_Matrix_d (const char*const var_name, const char*const file_name_full)
 {
 	struct Matrix_d* dest = NULL;

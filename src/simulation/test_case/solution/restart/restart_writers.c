@@ -69,6 +69,7 @@ EXIT_UNSUPPORTED;
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+/// \brief Container for information related to the restart mesh nodes.
 struct Nodes_Info {
 	const struct const_Multiarray_d* nodes; ///< The xyz node coordinates.
 };

@@ -68,8 +68,8 @@ static struct Geo_Data get_geo_data
  *
  *  The code was copied from the [Wikipedia implementation of Romberg's method][wikipedia_romberg].
  *
- *  \note As curves being integrated here will likely always be C^{\infty}, using a high-order quadrature may be more
- *        efficient. This can be tested if relevant after profiling.
+ *  \note As curves being integrated here will likely always be \f$ C^{\infty} \f$, using a high-order quadrature may be
+ *        more efficient. This can be tested if relevant after profiling.
  *
  *  <!-- References: -->
  *  [wikipedia_romberg]: https://en.wikipedia.org/wiki/Romberg%27s_method#Implementation

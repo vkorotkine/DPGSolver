@@ -85,6 +85,7 @@ set	(SOURCE
 	 test_case/solution/euler/free_stream/solution_free_stream.c
 	 test_case/solution/navier_stokes/solution_navier_stokes.c
 	 test_case/solution/navier_stokes/taylor_couette/solution_taylor_couette.c
+	 test_case/solution/restart/approximate_nearest_neighbor.c
 	 test_case/solution/restart/restart.c
 	 test_case/solution/restart/restart_writers.c
 
