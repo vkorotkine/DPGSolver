@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 /** \brief Comparison function for std::qsort between `Type*` `a` and `b`.
- *  \return a - b.  */
+ *  \return Standard required return for comparator function of qsort. */
 static int cmp_T
 	(const void* a, ///< Variable 1.
 	 const void* b  ///< Variable 2.

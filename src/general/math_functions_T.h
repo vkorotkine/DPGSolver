@@ -20,6 +20,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <complex.h>
 
+#define POW2(a) ((a)*(a)) ///< General pow with exponent 2.
+
 /** \brief Compares input values for approximate equality using the relative infinity norm.
  *  \return `true` if the difference is less than the tolerance. */
 bool equal_T

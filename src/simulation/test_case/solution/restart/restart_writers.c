@@ -63,6 +63,24 @@ void output_restart (const struct Simulation*const sim, const struct Restart_Inf
 	else
 		EXIT_ERROR("Unsupported: %s\n",sim->mesh_name_full);
 
+/*
+Algorithm to sort the points (Should go in the reader portion).
+
+ImmutableList<Point> OrderByDistance(Point start, ImmutableSet<Point> points)
+{
+  var current = start;
+  var remaining = points;
+  var path = ImmutableList<Point>.Empty.Add(start);
+  while(!remaining.IsEmpty)
+  {
+    var next = Closest(current, remaining);
+    path = path.Add(next);
+    remaining = remaining.Remove(next);
+    current = next;
+  }
+  return path;
+}
+*/
 EXIT_UNSUPPORTED;
 }
 

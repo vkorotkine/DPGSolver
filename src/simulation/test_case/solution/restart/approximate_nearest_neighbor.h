@@ -27,12 +27,27 @@ You should have received a copy of the GNU General Public License along with DPG
 struct const_Vector_i;
 struct const_Matrix_d;
 
+/// \brief Container for 'A'pproximate 'N'earest 'N'eighbor input data.
+struct Input_ANN {
+	const struct const_Matrix_d* nodes_b;  ///< Background nodes.
+	const struct const_Matrix_d* nodes_s;  ///< Search nodes.
+};
+
 /** \brief Constructor for the \ref const_Vector_T\* (`int`) of 'a'pproximate 'n'earest 'n'eighbor indices for the input
  *         background and search node lists.
- *  \return See brief. */
+ *  \return See brief.
+ *
+ *  As the current implementation relies on the conversion of input scalar coordinates to integer values, it is expected
+ *  that this function should begin to give incorrect results when the length scales of the input nodes vary by more
+ *  than ~1e9.
+ */
 const struct const_Vector_i* constructor_ann_indices
-	(const struct const_Matrix_d*const nodes_b, ///< Background nodes.
-	 const struct const_Matrix_d*const nodes_s  ///< Search nodes.
+	(const struct Input_ANN*const ann_i ///< Standard.
+	);
+
+/// \brief Destructor for a \ref Input_ANN container.
+void destructor_Input_ANN
+	(struct Input_ANN*const ann_info ///< Standard.
 	);
 
 #endif // DPG__approximate_nearest_neighbor_h__INCLUDED

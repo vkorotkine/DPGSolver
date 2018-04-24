@@ -1,6 +1,9 @@
 // Timothy Chan 12/05
 // approximate nearest neighbors: the SSS method (static version)
 
+// May not be working in its current state. Verify with version implemented as part of the main code if it is desired to
+// check something here.
+
 #include <iostream>
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,8 +12,7 @@
 #include <limits.h>
 #include <limits>
 #define sq(x) (((float) (x))*((float) (x)))
-//#define MAX (1<<29)
-#define MAX INT_MAX
+#define MAX (1<<29)
 #define FLT_MAX std::numeric_limits<float>::max()
 #define EXIT ({ fflush(stdout); abort(); })
 
@@ -90,6 +92,7 @@ void SSS_query0(Point P[], int n, Point q)
 	       n,P[0][0],P[0][1],P[n-1][0],P[n-1][1],dist_sq_to_box(q, P[0],P[n-1])*sq(1+eps),r_sq);
 
 	if (n == 1 || dist_sq_to_box(q, P[0],P[n-1])*sq(1+eps) > r_sq) return; // p.3 line 3
+//	if (n == 1) return;
 	if (cmp_shuffle(&q, &P[n/2]) < 0) { // p.3 line 4
 //printf("lower\n");
 		SSS_query0(P,n/2,q);          // p.3 line 5 (binary search in lower half)
@@ -109,22 +112,53 @@ Point SSS_query(Point* P, int n, Point q) {
 	return ans;
 }
 
+static void print_nodes (const int n, const Point*const nodes, const char*const name)
+{
+	printf("Nodes (%s):\n",name);
+	for (int i = 0; i < n; ++i) {
+		const int* xyz_i = nodes[i];
+		for (int j = 0; j < d; ++j)
+			printf(" %19d ",xyz_i[j]);
+		printf("\n");
+	}
+	printf("\n");
+}
+
 #define n 16
 #define m 3
+
+#define SMALL
 
 int main (int argc, char** argv)
 {
 	const float eps = 0.0;
 
+#ifdef SMALL
 	const int p_scale = 4;
-	const int p_data[n][d] =
-		{ {0,0,}, {0,1,}, {0,2,}, {0,3,},
-		  {1,0,}, {1,1,}, {1,2,}, {1,3,},
-		  {2,0,}, {2,1,}, {2,2,}, {2,3,},
-		  {3,0,}, {3,1,}, {3,2,}, {3,3,},
-	      };
-	const int q_data[m][d] =
-		{ {13,9,}, {4,5,}, {0,8,}, };
+	const int p_data[n][d] = { {0,0,}, {1,0,}, {2,0,}, {3,0,}, {0,1,}, {1,1,}, {2,1,}, {3,1,}, 
+	                           {0,2,}, {1,2,}, {2,2,}, {3,2,}, {0,3,}, {1,3,}, {2,3,}, {3,3,}, };
+	const int q_data[m][d] = { {0,0,}, {1,0,}, {5,7,}, };
+#else
+	const double p_scale = 1e-6;
+	const int p_data[n][d] = {
+	{0,0,},
+	{0,1082130432,},
+	{0,1090519040,},
+	{0,1094713344,},
+	{1082130432,0,},
+	{1082130432,1082130432,},
+	{1082130432,1090519040,},
+	{1082130432,1094713344,},
+	{1090519040,0,},
+	{1090519040,1082130432,},
+	{1090519040,1090519040,},
+	{1090519040,1094713344,},
+	{1094713344,0,},
+	{1094713344,1082130432,},
+	{1094713344,1090519040,},
+	{1094713344,1094713344,}, };
+	const int q_data[m][d] = { {1095761920,1091567616,}, {1082130432,1084227584,}, {0,1090519040,}, };
+#endif
 
 	srand48(31415+n+m+d);
 	Point* P;
@@ -135,7 +169,9 @@ int main (int argc, char** argv)
 			P[i][j] = p_scale*p_data[i][j];
 	}
 
+print_nodes(n,P,"background");
 	SSS_preprocess(P,n);
+print_nodes(n,P,"background - sorted");
 
 	Point q;
 	q = new int[d];
@@ -148,23 +184,3 @@ int main (int argc, char** argv)
 	for (int i = 0; i < n; i++) delete P[i];
 	delete P; delete q;
 }
-
-/*
-
-Algorithm to sort the points.
-
-ImmutableList<Point> OrderByDistance(Point start, ImmutableSet<Point> points)
-{
-  var current = start;
-  var remaining = points;
-  var path = ImmutableList<Point>.Empty.Add(start);
-  while(!remaining.IsEmpty)
-  {
-    var next = Closest(current, remaining);
-    path = path.Add(next);
-    remaining = remaining.Remove(next);
-    current = next;
-  }
-  return path;
-}
-*/

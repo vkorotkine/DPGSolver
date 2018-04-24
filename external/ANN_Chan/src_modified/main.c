@@ -1,5 +1,8 @@
 // Converting to c and cleaning up.
 
+// May not be working in its current state. Verify with version implemented as part of the main code if it is desired to
+// check something here.
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,19 +11,22 @@
 #include <limits.h>
 #include <math.h>
 
-//#define SINGLE // single or double precision
+#define SINGLE // single or double precision
 #ifdef SINGLE
 	#define Real      float
-	#define Type      int
+//	#define Type      int
+	#define Type      float
 	#define Index     int
-	#define INDEX_MAX INT_MAX
+	#define INDEX_MIN 0
+	#define INDEX_MAX (INT_MAX/4)
 	#define REAL_MAX  FLT_MAX
 #else
 	#define Real      double
 //	#define Type      long long // Change to double after testing.
 	#define Type      double
 	#define Index     long long
-	#define INDEX_MAX LLONG_MAX
+	#define INDEX_MIN 0
+	#define INDEX_MAX (LLONG_MAX/4)
 	#define REAL_MAX  DBL_MAX
 #endif
 
@@ -37,6 +43,7 @@
 #define EXIT_ADD_SUPPORT ({printf("\n\nError: Add support.\n"), EXIT_MSG; })
 #define EXIT_ERROR(...)  ({printf("\n\nError: "); printf(__VA_ARGS__); printf("\n\n"); EXIT_MSG; })
 #define UNUSED(x)       (void)(x)
+#define EPS 1e-15
 
 
 // Static function declarations ************************************************************************************* //
@@ -89,6 +96,23 @@ static void SSS_query
 
 // Interface functions ********************************************************************************************** //
 
+static void print_nodes (const int n, const struct Node*const nodes, const char*const name)
+{
+	printf("Nodes (%s):\n",name);
+	for (int i = 0; i < n; ++i) {
+		const Index* xyz_i = nodes[i].xyz;
+		const Real*  xyz_r = (Real*) xyz_i;
+		for (int j = 0; j < DIM; ++j)
+#ifndef SINGLE
+			printf(" %19lld %.3e   ",xyz_i[j],xyz_r[j]);
+#else
+			printf(" %19d %.3e   ",xyz_i[j],xyz_r[j]);
+#endif
+		printf("\n");
+	}
+	printf("\n");
+}
+
 int main (int argc, char** argv)
 {
 	srand48(31415+N_B+N_S+DIM); // seed the random number generator.
@@ -100,8 +124,8 @@ int main (int argc, char** argv)
 		EXIT_ERROR("Incompatible sizes: %zu != %zu.",sizeof(Type),sizeof(Index));
 
 	const Type p_scale = 4;
-	Type p_data[N_B*DIM] = { 0,0, 0,1, 0,2, 0,3, 1,0, 1,1, 1,2, 1,3,
-	                         2,0, 2,1, 2,2, 2,3, 3,0, 3,1, 3.3,2, 3,3, };
+	Type p_data[N_B*DIM] = { EPS,2*EPS, 1+EPS,1, EPS,2, EPS,3, 1,EPS, 1,1, 1,2, 1,3,
+	                         2,EPS, 2,1, 2,2, 2,3, 3,EPS, 3,1, 3,2, 3,3, };
 	for (int i = 0; i < N_B*DIM; ++i)
 		p_data[i] *= p_scale;
 
@@ -111,27 +135,34 @@ int main (int argc, char** argv)
 		for (int j = 0; j < DIM; j++) {
 //			sss.p[i].xyz[j] = (Index) p_data[ind];
 			sss.p[i].xyz[j] = p_data_i[ind];
-const double* dbl = (double*) &p_data_i[ind];
-printf(" %llu %.3e   ",sss.p[i].xyz[j],*dbl);
 			++ind;
 		}
-		printf("\n");
 	}
 
 //	const Type q_data[N_S*DIM] = { 13.1, 8.9, };
-	const Type q_data[N_S*DIM] = { 13.3,9, 4,5, 0,8 };
+	const Type q_data[N_S*DIM] = { 13,9, 4,5, EPS,8 };
 	const Index* q_data_i = (Index*) q_data;
 	for (int i = 0, ind = 0; i < N_S; i++) {
 	for (int j = 0; j < DIM; j++) {
-//		sss.q[i].xyz[j] = (Index) q_data[ind++];
-		sss.q[i].xyz[j] = q_data_i[ind++];
+//		sss.q[i].xyz[j] = (Index) q_data[ind];
+		sss.q[i].xyz[j] = q_data_i[ind];
+		++ind;
 	}}
 
+print_nodes(N_B,sss.p,"background");
 	SSS_preprocess(&sss);
+print_nodes(N_B,sss.p,"background - sorted");
+print_nodes(N_S,sss.q,"search");
 
-const double max = DBL_MIN-1;
+#ifndef SINGLE
+const double max = DBL_MAX;
 const long long* max_ull = (long long*) &max;
-printf(" %llu %llu\n",INDEX_MAX,*max_ull);
+printf(" %lld %lld\n",INDEX_MAX,*max_ull);
+#else
+const float max = DBL_MAX;
+const int* max_i = (int*) &max;
+printf(" %d %d\n",INDEX_MAX,*max_i);
+#endif
 
 	for (int i = 0; i < N_S; i++) {
 		struct SSS_c sss_c =
@@ -143,7 +174,7 @@ printf(" %llu %llu\n",INDEX_MAX,*max_ull);
 		SSS_query(&sss_c);
 		const int f = sss_c.ind_ann;
 //		printf("%d %d %d %d\n",i,f,sss_c.ans->xyz[0],sss_c.ans->xyz[1]);
-//		printf("%d %d %llu %llu\n",i,f,sss_c.ans->xyz[0],sss_c.ans->xyz[1]);
+//		printf("%d %d %lld %lld\n",i,f,sss_c.ans->xyz[0],sss_c.ans->xyz[1]);
 		const Real* xyz = (Real*) sss_c.ans->xyz;
 		printf("%d %d % .3e % .3e\n",i,f,xyz[0],xyz[1]);
 	}
@@ -220,10 +251,15 @@ struct Node* p1 = sss->p;
 
 //	printf("% 3d % .3e % .3e\n",n_b,dist_sq_to_box(q, P[0],P[n-1])*sq(1+eps),r_sq);
 //	printf("% 3d %d %d %d %d % .3e % .3e\n",
-	printf("% 3d %llu %llu %llu %llu % .3e % .3e\n",
+#ifndef SINGLE
+	printf("% 3d %lld %lld %lld %lld % .3e % .3e\n",
+#else
+	printf("% 3d %d %d %d %d % .3e % .3e\n",
+#endif
 	       n_b,p1[0].xyz[0],p1[0].xyz[1],p1[n_b-1].xyz[0],p1[n_b-1].xyz[1],compute_r2_to_box(sss)*SQ(1+EPS_ANN),r2);
 
-	if (n_b == 1 || compute_r2_to_box(sss)*SQ(1+EPS_ANN) > r2)
+//	if (n_b == 1 || compute_r2_to_box(sss)*SQ(1+EPS_ANN) > r2)
+	if (n_b == 1)
 		return;
 
 	struct Node*const p = sss->p,
@@ -279,7 +315,7 @@ static void compute_distance_and_update (const int n, struct SSS_c*const sss)
 		const Real r = sqrt(z); // Chan p.3 line 2
 		for (int j = 0; j < DIM; j++) {
 			// a == q^{s-[r]} (p.3, line 9)
-			sss->a.xyz[j] = (q->xyz[j]   > r)         ? (q->xyz[j]-(Index)ceil(r)) : 0;
+			sss->a.xyz[j] = (q->xyz[j]   > r)         ? (q->xyz[j]-(Index)ceil(r)) : INDEX_MIN;
 
 			// b == q^{s+[r]} (p.3, line 6)
 			sss->b.xyz[j] = (q->xyz[j]+r < INDEX_MAX) ? (q->xyz[j]+(Index)ceil(r)) : INDEX_MAX;
