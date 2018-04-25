@@ -98,12 +98,12 @@ int main
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
 
 	struct Simulation* sim = NULL;
-	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,'r'); // destructed
+	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,'r',false); // destructed
 
 	adapt_initial_mesh_if_required(sim);
 	check_face_geometry(sim);
 
-	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,'r');
+	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,'r',false);
 
 	destructor_Integration_Test_Info(int_test_info);
 

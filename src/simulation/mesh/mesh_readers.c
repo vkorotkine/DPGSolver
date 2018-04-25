@@ -35,7 +35,6 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 #define OUTPUT_MESH_DATA false ///< Flag for whether data should be output.
-#define GMSH_N_TAGS 2          ///< Expected number of tags for elements in the gmsh file.
 
 /// \brief Holds data relating to elements in the gmsh file.
 struct Element_Data {
@@ -128,6 +127,56 @@ void destructor_Mesh_Data (struct Mesh_Data* mesh_data)
 		destructor_const_Matrix_i(mesh_data->periodic_corr);
 
 	free(mesh_data);
+}
+
+void reorder_nodes_gmsh (const int elem_type, struct Vector_i* node_nums)
+{
+	int gmsh_ordering[NVEMAX];
+
+	switch (elem_type) {
+		case POINT: case LINE: case TRI: case TET: case WEDGE:
+			return; // Do nothing.
+			break;
+#if DIM > 1
+		case QUAD: {
+			const int gmsh_ordering_l[] = {0,1,3,2};
+			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
+			break;
+		}
+#endif
+#if DIM > 2
+		case HEX: {
+			const int gmsh_ordering_l[] = {0,1,3,2,4,5,7,6};
+			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
+			break;
+		} case PYR: {
+			const int gmsh_ordering_l[] = {0,1,3,2,4};
+			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
+			break;
+		}
+#endif
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+	}
+	reorder_Vector_i(node_nums,gmsh_ordering);
+}
+
+int get_n_nodes (const int elem_type)
+{
+	switch (elem_type) {
+		case POINT: return 1; break;
+		case LINE:  return 2; break;
+		case TRI:   return 3; break;
+		case QUAD:  return 4; break;
+		case TET:   return 4; break;
+		case HEX:   return 8; break;
+		case WEDGE: return 6; break;
+		case PYR:   return 5; break;
+		default:
+			EXIT_UNSUPPORTED;
+			break;
+	}
 }
 
 // Static functions ************************************************************************************************* //
@@ -342,21 +391,6 @@ static struct Matrix_i* read_periodic (FILE* mesh_file, const int d)
 
 // Level 2 ********************************************************************************************************** //
 
-/** \brief Get the number of nodes specifying the geometry for the element of the given type.
- *	\return See brief.
- *
- *	The convention for the element type numbering is that of gmsh.
- */
-static int get_n_nodes
-	(const int elem_type ///< The element type.
-	);
-
-/// \brief Reorder the nodes such that they correspond to the ordering convention of this code.
-static void reorder_nodes
-	(const int elem_type, ///< Defined in \ref Mesh_Data.
-	 struct Vector_i* node_nums   ///< Defined in \ref Mesh_Data.
-	);
-
 static void fill_nodes (double*const node_row, char* line, const int d)
 {
 	discard_line_values(&line,1);
@@ -399,7 +433,7 @@ static void fill_elements (const ptrdiff_t row, struct Element_Data*const elem_d
 	resize_Vector_i(elem_data->node_nums->data[row],n_nodes);
 
 	read_line_values_i(&line,n_nodes,elem_data->node_nums->data[row]->data,true);
-	reorder_nodes(elem_data->elem_types->data[row],elem_data->node_nums->data[row]);
+	reorder_nodes_gmsh(elem_data->elem_types->data[row],elem_data->node_nums->data[row]);
 }
 
 static void skip_periodic_entity (FILE* file, char**const line, const int line_size)
@@ -410,57 +444,4 @@ static void skip_periodic_entity (FILE* file, char**const line, const int line_s
 	ptrdiff_t n_skip = strtol(*line,&endptr,10);
 
 	skip_lines_ptr(file,line,line_size,(int)n_skip);
-}
-
-// Level 3 ********************************************************************************************************** //
-
-static int get_n_nodes (const int elem_type)
-{
-	switch (elem_type) {
-		case POINT: return 1; break;
-		case LINE:  return 2; break;
-		case TRI:   return 3; break;
-		case QUAD:  return 4; break;
-		case TET:   return 4; break;
-		case HEX:   return 8; break;
-		case WEDGE: return 6; break;
-		case PYR:   return 5; break;
-		default:
-			EXIT_UNSUPPORTED;
-			break;
-	}
-}
-
-static void reorder_nodes (const int elem_type, struct Vector_i* node_nums)
-{
-	int gmsh_ordering[NVEMAX];
-
-	switch (elem_type) {
-		case POINT: case LINE: case TRI: case TET: case WEDGE:
-			// Do nothing.
-			return;
-			break;
-#if DIM > 1
-		case QUAD: {
-			const int gmsh_ordering_l[] = {0,1,3,2};
-			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
-			break;
-		}
-#endif
-#if DIM > 2
-		case HEX: {
-			const int gmsh_ordering_l[] = {0,1,3,2,4,5,7,6};
-			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
-			break;
-		} case PYR: {
-			const int gmsh_ordering_l[] = {0,1,3,2,4};
-			memcpy(gmsh_ordering,gmsh_ordering_l,sizeof(gmsh_ordering_l));
-			break;
-		}
-#endif
-		default:
-			EXIT_UNSUPPORTED;
-			break;
-	}
-	reorder_Vector_i(node_nums,gmsh_ordering);
 }

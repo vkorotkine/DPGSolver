@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "definitions_elements.h"
 #include "intrusive.h"
@@ -120,6 +121,12 @@ struct Volume* constructor_copy_Volume
  *  \return See brief. */
 double compute_h_volume
 	(const struct Volume*const vol ///< \ref Volume.
+	);
+
+/** \brief Compute and return the number of \ref Volume\*s.
+ *  \return See brief. */
+ptrdiff_t compute_n_volumes
+	(const struct Simulation*const sim ///< Standard.
 	);
 
 #endif // DPG__volume_h__INCLUDED

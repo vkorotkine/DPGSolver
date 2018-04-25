@@ -21,16 +21,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 
-/// \brief Container for restart file related information.
-struct Restart_Info {
-	int ml; ///< 'm'esh 'l'evel for the restart file.
-	int p;  ///< 'p'olynomial degree for the restart file.
-};
-
 /// \brief Output a restart file for the \ref Simulation.
 void output_restart
-	(const struct Simulation*const sim,           ///< \ref Simulation.
-	 const struct Restart_Info*const restart_info ///< \ref Restart_Info.
+	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 #endif // DPG__restart_writers_h__INCLUDED

@@ -4,3 +4,4 @@
 - Most simplicial blending functions: scott, lenoir
 - 3D verification
 - 3D hp adaptation
+- 3D metric computation (curl form)

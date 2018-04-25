@@ -109,7 +109,7 @@ int main
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
 
 	struct Simulation* sim = NULL;
-	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,'r'); // destructed
+	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,'r',false); // destructed
 
 	struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
 	const_cast_b(&test_case->copy_initial_rhs,true);
@@ -120,7 +120,7 @@ int main
 	output_visualization(sim,VIS_SOLUTION);
 	check_free_stream(&test_info,sim);
 
-	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,'r');
+	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,'r',false);
 
 	destructor_Integration_Test_Info(int_test_info);
 

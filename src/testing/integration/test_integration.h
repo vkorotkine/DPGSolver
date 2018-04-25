@@ -72,7 +72,8 @@ void structor_simulation
 	 const int p_prev,           ///< The order of the previous simulation.
 	 const int ml_prev,          ///< The mesh level of the previous simulation.
 	 const char*const ctrl_name, ///< The name of the control file (used for \ref constructor_Simulation).
-	 const char type_rc          ///< The 'r'eal/'c'omplex type of the simulation.
+	 const char type_rc,         ///< The 'r'eal/'c'omplex type of the simulation.
+	 const bool ignore_static    ///< Flag for whether if conditions based on static variables should be ignored.
 	);
 
 /** \brief Set the name of the current file to be used based on the adaptation type, order and mesh level.
@@ -88,6 +89,12 @@ const char* set_file_name_curr
 /// \brief Adapt the initial mesh if a adaptation parameters are provided in the input file.
 void adapt_initial_mesh_if_required
 	(struct Simulation*const sim ///< \ref Simulation.
+	);
+
+/// \brief Adapt to the maximum refinement levels in both h and p.
+void adapt_to_maximum_refinement
+	(struct Simulation*const sim,                           ///< \ref Standard.
+	 const struct Integration_Test_Info*const int_test_info ///< Standard.
 	);
 
 #endif // DPG__test_integration_h__INCLUDED

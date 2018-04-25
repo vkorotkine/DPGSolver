@@ -214,7 +214,7 @@ int main
 		const char type_rc = ( i == 0 ? 'r' : 'c' );
 
 		struct Simulation* sim = NULL;
-		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc); // destructed
+		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc,false); // destructed
 
 		struct F_Ptrs_and_Data* f_ptrs_data = constructor_F_Ptrs_and_Data(sim); // destructed
 
@@ -248,7 +248,7 @@ int main
 			for (int j = 0; j < 2; ++j)
 				destructor_Solver_Storage_Implicit(ssi[j]);
 		}
-		structor_simulation(&sim,'d',adapt_type,p,ml,p_prev,ml_prev,NULL,type_rc);
+		structor_simulation(&sim,'d',adapt_type,p,ml,p_prev,ml_prev,NULL,type_rc,false);
 	}
 
 	destructor_Integration_Test_Info(int_test_info);

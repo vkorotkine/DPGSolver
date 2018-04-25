@@ -12,6 +12,7 @@ mesh_domain      parametric
 mesh_type        mixed
 mesh_level       0 4
 mesh_path        ../meshes/
+restart_path     ../restart/euler/steady/supersonic_vortex/restart__ml2__p2.msh
 
 
 # Simulation variables
@@ -27,12 +28,12 @@ geom_representation  superparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_ref    1 3
+p_ref    1 2
 
 fe_method 1
 
 
 # Testing variables
 
-ml_range_test 0 4
-p_range_test  1 3
+ml_range_test 0 2
+p_range_test  1 2

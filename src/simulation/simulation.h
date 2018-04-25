@@ -215,6 +215,12 @@ struct Simulation* constructor_Simulation
 	(const char*const ctrl_name ///< The partial name of the control file.
 	);
 
+/** \brief Constructor for a \ref Simulation with the minimal required information from a restart file.
+ *  \return See brief. */
+struct Simulation* constructor_Simulation_restart
+	(const struct Simulation*const sim_main ///< The main \ref Simulation.
+	);
+
 /// \brief Destructor for \ref Simulation.
 void destructor_Simulation
 	(struct Simulation* sim ///< Standard.

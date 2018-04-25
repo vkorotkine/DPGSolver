@@ -100,6 +100,10 @@ static const char* get_input_path
 	(struct Simulation*const sim ///< Standard.
 	);
 
+/** \brief Return a stack allocated `char*` holding the name (including full path) of the restart file.
+ *  \return See brief. */
+static const char* get_restart_name ( );
+
 // Interface functions ********************************************************************************************** //
 
 struct Simulation* constructor_Simulation__no_mesh (const char*const ctrl_name)
@@ -131,6 +135,25 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 	set_Simulation_elements(sim,constructor_Elements(DIM)); // destructed
 
 	struct Mesh_Input mesh_input = set_Mesh_Input(sim);
+	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements); // destructed
+	remove_absent_Elements(sim->elements);
+
+	sim->volumes = constructor_Volumes(sim,mesh); // destructed
+	sim->faces   = constructor_Faces(sim,mesh);   // destructed
+
+	destructor_Mesh(mesh);
+
+	return sim;
+}
+
+struct Simulation* constructor_Simulation_restart (const struct Simulation*const sim_main)
+{
+	struct Simulation* sim = constructor_Simulation__no_mesh(sim_main->ctrl_name); // returned
+
+	set_Simulation_elements(sim,constructor_Elements(DIM)); // destructed
+
+	struct Mesh_Input mesh_input = set_Mesh_Input(sim);
+	mesh_input.mesh_name_full = get_restart_name();
 	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements); // destructed
 	remove_absent_Elements(sim->elements);
 
@@ -444,6 +467,25 @@ static const char* get_input_path (struct Simulation*const sim)
 	snprintf(input_path,sizeof(input_path),"%s%s%s%s%s%s",
 	        PROJECT_INPUT_DIR,"input_files/",sim->pde_name,"/",sim->pde_spec,"/");
 	return input_path;
+}
+
+static const char* get_restart_name ( )
+{
+	static char restart_path[STRLEN_MAX];
+	static bool needs_input = true;
+
+	if (needs_input) {
+		needs_input = false;
+		FILE* input_file = fopen_input('c',NULL,NULL); // closed
+		char line[STRLEN_MAX];
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line,"restart_path"))
+				read_skip_c(line,restart_path);
+		}
+		fclose(input_file);
+	}
+
+	return restart_path;
 }
 
 // Level 1 ********************************************************************************************************** //

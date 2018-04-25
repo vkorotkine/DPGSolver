@@ -41,4 +41,11 @@ struct Multiarray_d* constructor_rhs_v
 	 const char node_kind          ///< See brief.
 	);
 
+/** \brief Constructor for the solution coefficients in the Bezier basis.
+ *  \return See brief. */
+struct Multiarray_d* constructor_s_coef_bezier
+	(const struct Solver_Volume*const s_vol, ///< \ref Solver_Volume_T.
+	 const struct Simulation*const sim       ///< \ref Simulation.
+	);
+
 #endif // DPG__solution_h__INCLUDED

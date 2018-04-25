@@ -319,6 +319,21 @@ const struct const_Multiarray_T* constructor_const_grad_zero_T
 	return (struct const_Multiarray_T*) constructor_zero_Multiarray_T('C',3,(ptrdiff_t[]){n_n,n_var,DIM});
 }
 
+void set_to_zero_residual_T (const struct Simulation*const sim)
+{
+	assert(sim->volumes->name == IL_VOLUME_SOLVER);
+	assert(sim->faces->name   == IL_FACE_SOLVER);
+	assert(list_is_derived_from("solver",'e',sim));
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
+		struct Multiarray_T*const s_coef = s_vol->sol_coef;
+
+		destructor_conditional_Multiarray_T(s_vol->rhs);
+		s_vol->rhs = constructor_zero_Multiarray_T(s_coef->layout,s_coef->order,s_coef->extents); // keep
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

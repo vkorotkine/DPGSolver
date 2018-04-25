@@ -22,12 +22,13 @@ We would like to express our thanks to these other projects whose software we ar
 - <a href="http://www.mcs.anl.gov/research/projects/mpich2">MPICH</a>
 - <a href="https://software.intel.com/en-us/mkl">Intel (M)ath (K)ernel (L)ibrary</a>
 - <a href="https://www.gnu.org/software/gsl/">GNU GSL</a>
-- <a href="https://bitbucket.org/pjabardo/jacobi">Paulo Jabardo's libjacobi</a>
 - <a href="http://gmsh.info">Gmsh</a>
 - <a href="https://www.paraview.org">Paraview</a>
 - <a href="https://www.mcs.anl.gov/petsc/">PETSc</a>
 - <a href="http://valgrind.org/">Valgrind</a>
 - <a href="https://codedocs.xyz/">CodeDocs</a>
+- <a href="https://bitbucket.org/pjabardo/jacobi">Paulo Jabardo's libjacobi</a>
+- <a href="http://tmc.web.engr.illinois.edu/sss.ps">Timothy Chan's Minimalist Approximate Nearest Neighbor Algorithm</a>
 
 \todo Update the list.
 	- Add <a href="https://travis-ci.org/">Travis CI</a>

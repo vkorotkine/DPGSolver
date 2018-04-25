@@ -98,7 +98,7 @@ void destructor_Integration_Test_Info (struct Integration_Test_Info* int_test_in
 
 void structor_simulation
 	(struct Simulation** sim, const char mode, const int adapt_type, const int p, const int ml, const int p_prev,
-	 const int ml_prev, const char*const ctrl_name, const char type_rc)
+	 const int ml_prev, const char*const ctrl_name, const char type_rc, const bool ignore_static)
 {
 	assert(mode == 'c' || mode == 'd');
 	assert(type_rc == 'r' || type_rc == 'c');
@@ -108,7 +108,7 @@ void structor_simulation
 	} case ADAPT_0_FOR_H: {
 		if (mode == 'c') {
 			if (*sim != NULL)
-				structor_simulation(sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
+				structor_simulation(sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc,ignore_static);
 			*sim = constructor_Simulation(ctrl_name); // destructed
 			constructor_derived_Elements(*sim,IL_ELEMENT_SOLVER); // destructed
 			switch (type_rc) {
@@ -149,15 +149,15 @@ void structor_simulation
 	} case ADAPT_P:
 		assert(mode == 'c');
 		if (ml != ml_prev)
-			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
+			structor_simulation(sim,mode,ADAPT_0,p,ml,p_prev,ml_prev,ctrl_name,type_rc,ignore_static);
 		else
 			adapt_hp(*sim,ADAPT_S_P_REFINE,NULL);
 		break;
 	case ADAPT_H:
 		assert(mode == 'c');
 		static bool entered = false;
-		if (!entered) {
-			structor_simulation(sim,mode,ADAPT_0_FOR_H,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
+		if (!entered || ignore_static) {
+			structor_simulation(sim,mode,ADAPT_0_FOR_H,p,ml,p_prev,ml_prev,ctrl_name,type_rc,ignore_static);
 			entered = true;
 			return;
 		}
@@ -172,8 +172,8 @@ void structor_simulation
 	case ADAPT_HP: {
 		assert(mode == 'c');
 		static bool entered = false;
-		if (!entered) {
-			structor_simulation(sim,mode,ADAPT_0_FOR_H,p,ml,p_prev,ml_prev,ctrl_name,type_rc);
+		if (!entered || ignore_static) {
+			structor_simulation(sim,mode,ADAPT_0_FOR_H,p,ml,p_prev,ml_prev,ctrl_name,type_rc,ignore_static);
 			entered = true;
 			return;
 		}
@@ -302,6 +302,20 @@ void adapt_initial_mesh_if_required (struct Simulation*const sim)
 	destructor_const_Multiarray_d(adapt_data.xyz_ve_refine);
 	destructor_conditional_const_Vector_i(adapt_data.xyz_ve_ml);
 	destructor_conditional_const_Vector_i(adapt_data.xyz_ve_p);
+}
+
+void adapt_to_maximum_refinement (struct Simulation*const sim, const struct Integration_Test_Info*const int_test_info)
+{
+	const int*const p_ref  = int_test_info->p_ref,
+	         *const ml_ref = int_test_info->ml,
+		   *const ml_p_curr = sim->ml_p_curr;
+
+	for (int ml = ml_p_curr[0]; ml < ml_ref[1]; ++ml)
+		adapt_hp(sim,ADAPT_S_H_REFINE,NULL);
+	for (int p = ml_p_curr[1]; p < p_ref[1]; ++p)
+		adapt_hp(sim,ADAPT_S_P_REFINE,NULL);
+
+	set_ml_p_curr(ml_ref[1],p_ref[1],sim);
 }
 
 // Static functions ************************************************************************************************* //

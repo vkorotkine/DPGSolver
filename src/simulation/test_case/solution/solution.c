@@ -76,5 +76,22 @@ struct Multiarray_d* constructor_rhs_v (const struct Simulation* sim, struct Sol
 	return rhs_v;
 }
 
+struct Multiarray_d* constructor_s_coef_bezier
+	(const struct Solver_Volume*const s_vol, const struct Simulation*const sim)
+{
+UNUSED(sim);
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	const char op_format = 'd';
+
+	const struct Volume*const vol         = (struct Volume*) s_vol;
+	const struct Solver_Element*const s_e = (struct Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref;
+	const struct Operator*const ccSB0_vs_vs = get_Multiarray_Operator(s_e->ccSB0_vs_vs,(ptrdiff_t[]){0,0,p,p});
+
+	struct Multiarray_d*const s_coef = s_vol->sol_coef;
+	return constructor_mm_NN1_Operator_Multiarray_d(ccSB0_vs_vs,s_coef,'C',op_format,s_coef->order,NULL);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

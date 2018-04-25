@@ -45,6 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Solver_Face__nf_coef_T constructor_Solver_Face__nf_coef
 #define set_grad_zero_T                    set_grad_zero
 #define constructor_const_grad_zero_T      constructor_const_grad_zero
+#define set_to_zero_residual_T             set_to_zero_residual
 ///\}
 
 ///\{ \name Function names (pde specific)
@@ -80,6 +81,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Solver_Face__nf_coef_T constructor_Solver_Face__nf_coef_c
 #define set_grad_zero_T                    set_grad_zero_c
 #define constructor_const_grad_zero_T      constructor_const_grad_zero_c
+#define set_to_zero_residual_T             set_to_zero_residual_c
 ///\}
 
 ///\{ \name Function names (pde specific)

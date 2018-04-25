@@ -428,19 +428,7 @@ static const bool* get_compute_member_Boundary_Value_Input
 
 static void set_function_pointers_start (struct Test_Case_T*const test_case)
 {
-	static bool need_input  = true;
-	static bool use_restart = false;
-	if (need_input) {
-		need_input = false;
-		char line[STRLEN_MAX];
-		FILE* input_file = input_file = fopen_input('t',NULL,NULL); // closed
-		while (fgets(line,sizeof(line),input_file)) {
-			if (strstr(line,"use_restart")) read_skip_const_b(line,&use_restart);
-		}
-		fclose(input_file);
-	}
-
-	if (!use_restart) {
+	if (!using_restart()) {
 		test_case->set_sol_start         = test_case->set_sol;
 		test_case->constructor_sol_start = test_case->constructor_sol;
 	} else {

@@ -44,6 +44,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_Solver_Face__nf_coef_T
 #undef set_grad_zero_T
 #undef constructor_const_grad_zero_T
+#undef set_to_zero_residual_T
 ///\}
 
 ///\{ \name Function names (pde specific)

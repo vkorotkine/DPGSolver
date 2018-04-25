@@ -105,7 +105,7 @@ int main
 
 	// real
 	ind_rc = 0;
-	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc]); // destructed
+	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc],false); // destructed
 
 	((struct Test_Case*)sim[ind_rc]->test_case_rc->tc)->solver_method_curr = 'i';
 
@@ -114,7 +114,7 @@ int main
 
 	// complex
 	ind_rc = 1;
-	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc]); // destructed
+	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc],false); // destructed
 
 	((struct Test_Case_c*)sim[ind_rc]->test_case_rc->tc)->solver_method_curr = 'e';
 
@@ -185,12 +185,12 @@ if (!pass)
 
 	// complex
 	ind_rc = 1;
-	structor_simulation(&sim[ind_rc],'d',adapt_type,p,ml,0,0,NULL,type_rc[ind_rc]);
+	structor_simulation(&sim[ind_rc],'d',adapt_type,p,ml,0,0,NULL,type_rc[ind_rc],false);
 
 	// real
 	ind_rc = 0;
 	destructor_Numerical_Flux_Input(num_flux_i);
-	structor_simulation(&sim[ind_rc],'d',adapt_type,p,ml,0,0,NULL,type_rc[ind_rc]);
+	structor_simulation(&sim[ind_rc],'d',adapt_type,p,ml,0,0,NULL,type_rc[ind_rc],false);
 
 	destructor_Integration_Test_Info(int_test_info);
 	PetscFinalize();

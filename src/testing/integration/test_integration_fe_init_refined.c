@@ -52,11 +52,11 @@ int main
 
 	struct Simulation* sim = NULL;
 	const char type_rc = 'r';
-	structor_simulation(&sim,'c',ADAPT_H,0,0,-1,-1,ctrl_name,type_rc); // destructed
+	structor_simulation(&sim,'c',ADAPT_H,0,0,-1,-1,ctrl_name,type_rc,false); // destructed
 
 	const bool pass = compare_members_fe(&test_info,sim);
 
-	structor_simulation(&sim,'d',ADAPT_0,0,0,-1,-1,NULL,type_rc);
+	structor_simulation(&sim,'d',ADAPT_0,0,0,-1,-1,NULL,type_rc,false);
 
 	assert_condition(pass);
 	output_warning_count(&test_info);

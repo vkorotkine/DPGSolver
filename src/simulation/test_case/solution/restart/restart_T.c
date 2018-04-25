@@ -28,10 +28,22 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** \brief Get the pointer to a \ref Simulation constructed from the restart file.
+ *  \return See brief.
+ *
+ *  \note A \ref Simulation is contructed the first time that this function is entered and then simply returned for
+ *        every subsequent call to this function. This results in an expected, fixed size memory leak.
+ */
+static const struct Simulation* get_simulation_restart
+	(const struct Simulation*const sim ///< Standard.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void set_sol_restart_T (const struct Simulation*const sim, struct Solution_Container_T sol_cont)
 {
+	const struct Simulation*const sim_restart = get_simulation_restart(sim);
+UNUSED(sim_restart);
 	EXIT_ADD_SUPPORT; UNUSED(sim); UNUSED(sol_cont);
 }
 
@@ -43,3 +55,15 @@ const struct const_Multiarray_T* constructor_const_sol_restart_T
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static const struct Simulation* get_simulation_restart (const struct Simulation*const sim)
+{
+	static bool needs_computation = true;
+	static struct Simulation* sim_restart = NULL;
+	if (needs_computation) {
+		needs_computation = false;
+		sim_restart = constructor_Simulation_restart(sim); // leaked (static)
+EXIT_ADD_SUPPORT; // Destroy the operators if possible.
+	}
+	return sim_restart;
+}

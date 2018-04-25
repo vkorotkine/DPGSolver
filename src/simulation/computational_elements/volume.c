@@ -235,6 +235,14 @@ double compute_h_volume (const struct Volume*const vol)
 	EXIT_ERROR("Should not have reached this point.");
 }
 
+ptrdiff_t compute_n_volumes (const struct Simulation*const sim)
+{
+	ptrdiff_t n_v = 0;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
+		++n_v;
+	return n_v;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

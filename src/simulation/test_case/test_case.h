@@ -74,4 +74,8 @@ bool test_case_explicitly_enforces_conservation
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
+/** \brief Return whether the solution is being initialized from a restart file.
+ *  \return See brief. */
+bool using_restart ( );
+
 #endif // DPG__test_case_h__INCLUDED

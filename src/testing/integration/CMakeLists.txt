@@ -1,5 +1,6 @@
 set	(SOURCE
 	 test_integration.c
+	 test_integration_convergence_support.c
 	)
 
 set	(LIBS_DEPEND

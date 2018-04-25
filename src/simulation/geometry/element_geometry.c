@@ -107,7 +107,7 @@ void destructor_derived_Geometry_Element (struct Element* element_ptr)
 	destructor_Multiarray2_Operator(g_e->cv0_vg_vv);
 
 	destructor_Multiarray_Operator(g_e->cv0_vgc_fis);
-	destructor_Multiarray_Operator(g_e->vc0_fis_fgc);
+	destructor_Multiarray_Operator_conditional(g_e->vc0_fis_fgc);
 
 	const int n_fe = get_number_of_face_elements((struct const_Element*)element_ptr);
 	for (int i = 0; i < n_fe; ++i) {

@@ -108,7 +108,7 @@ int main
 
 	// real
 	ind_rc = 0;
-	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc]); // destructed
+	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc],false); // destructed
 	((struct Test_Case*)sim[ind_rc]->test_case_rc->tc)->solver_method_curr = 'i';
 
 	struct Flux_Input* flux_i = constructor_Flux_Input(sim[ind_rc]); // destructed
@@ -117,7 +117,7 @@ int main
 
 	// complex
 	ind_rc = 1;
-	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc]); // destructed
+	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc],false); // destructed
 	((struct Test_Case_c*)sim[ind_rc]->test_case_rc->tc)->solver_method_curr = 'e';
 
 	struct Flux_Input_c* flux_c_i = constructor_Flux_Input_c(sim[ind_rc]); // destructed
@@ -157,14 +157,14 @@ int main
 	ind_rc = 1;
 	destructor_Flux_Input_c_data_members(flux_c_i);
 	destructor_Flux_Input_c(flux_c_i);
-	structor_simulation(&sim[ind_rc],'d',adapt_type,p,ml,0,0,NULL,type_rc[ind_rc]);
+	structor_simulation(&sim[ind_rc],'d',adapt_type,p,ml,0,0,NULL,type_rc[ind_rc],false);
 
 	// real
 	ind_rc = 0;
 	destructor_Flux(flux);
 	destructor_Flux_Input_data_members(flux_i);
 	destructor_Flux_Input(flux_i);
-	structor_simulation(&sim[ind_rc],'d',adapt_type,p,ml,0,0,NULL,type_rc[ind_rc]);
+	structor_simulation(&sim[ind_rc],'d',adapt_type,p,ml,0,0,NULL,type_rc[ind_rc],false);
 
 	output_warning_count(&test_info);
 

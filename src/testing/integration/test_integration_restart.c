@@ -23,12 +23,19 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_base.h"
 #include "test_integration.h"
+#include "test_integration_convergence_support.h"
 
+#include "adaptation.h"
 #include "restart_writers.h"
 #include "simulation.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
+
+/// \brief Output a restart file for the initial solution for the finest mesh level and polynomial order.
+static void output_restart_finest
+	(const char*const ctrl_name ///< The name of the control file.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -48,12 +55,41 @@ int main
 	)
 {
 	PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
-
 	assert_condition_message(argc == 2,"Invalid number of input arguments");
 
-	const char* ctrl_name = argv[1];
+	output_restart_finest(argv[1]);
+	run_convergence_order_study(argc,argv,CONV_STUDY_RESTART);
 
-	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name);
+/*
+Algorithm to sort the points (Should go in the reader portion).
+
+ImmutableList<Point> OrderByDistance(Point start, ImmutableSet<Point> points)
+{
+  var current = start;
+  var remaining = points;
+  var path = ImmutableList<Point>.Empty.Add(start);
+  while(!remaining.IsEmpty)
+  {
+    var next = Closest(current, remaining);
+    path = path.Add(next);
+    remaining = remaining.Remove(next);
+    current = next;
+  }
+  return path;
+}
+*/
+EXIT_UNSUPPORTED;
+
+	PetscFinalize();
+	OUTPUT_SUCCESS;
+}
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
+
+static void output_restart_finest (const char*const ctrl_name)
+{
+	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name); // destructed
 
 	const int p  = int_test_info->p_ref[0],
 	          ml = int_test_info->ml[0],
@@ -64,29 +100,16 @@ int main
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
 
 	struct Simulation* sim = NULL;
-	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,'r'); // destructed
-	adapt_initial_mesh_if_required(sim);
-
-/// \todo Update the test when initial implementation is working.
-struct Test_Info test_info = { .n_warn = 0, };
-test_print_warning(&test_info,"Not performing full uniform hp refinement yet.");
+	const char type_rc = 'r';
+	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc,true); // destructed
 
 	const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
 	if (!test_case->has_analytical)
 		EXIT_ERROR("This test requires the use of a test case which has an analytical solution.");
 
-	const struct Restart_Info restart_info = { .ml = ml, .p = p, };
-	output_restart(sim,&restart_info);
-
-EXIT_UNSUPPORTED;
-
-	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,'r');
+	adapt_to_maximum_refinement(sim,int_test_info);
+	output_restart(sim);
+	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,type_rc,false);
 
 	destructor_Integration_Test_Info(int_test_info);
-
-	PetscFinalize();
-	OUTPUT_SUCCESS;
 }
-
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //

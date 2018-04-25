@@ -131,6 +131,9 @@ FILE* fopen_input (const char input_spec, const char*const ctrl_name_full_i, con
 		strcpy(input_path,input_path_i);
 		return NULL;
 		break;
+	} case 'c': {
+		input_name = ctrl_name_full;
+		break;
 	} case 'g': {
 		static char input_name_spec[STRLEN_MAX] = {0};
 		static bool need_set_up_name = true;

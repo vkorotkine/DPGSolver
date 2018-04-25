@@ -88,6 +88,22 @@ bool test_case_explicitly_enforces_conservation (const struct Simulation*const s
 	return false;
 }
 
+bool using_restart ( )
+{
+	static bool need_input  = true;
+	static bool use_restart = false;
+	if (need_input) {
+		need_input = false;
+		char line[STRLEN_MAX];
+		FILE* input_file = input_file = fopen_input('t',NULL,NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line,"use_restart")) read_skip_const_b(line,&use_restart);
+		}
+		fclose(input_file);
+	}
+	return use_restart;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

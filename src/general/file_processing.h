@@ -48,7 +48,8 @@ void set_up_fopen_input
 /** \brief Open the an input file based on the input parameters.
  *  \return See brief. */
 FILE* fopen_input
-	(const char input_spec,             ///< The input specifier. Options: 'g'eometry, 's'olution, 't'est case.
+	(const char input_spec,             /**< The input specifier.
+	                                     *   Options: 'c'ontrol, 'g'eometry, 's'olution, 't'est case. */
 	 const char*const ctrl_name_full_i, ///< Defined for \ref set_up_fopen_input.
 	 const char*const input_path_i      ///< Defined for \ref set_up_fopen_input.
 	);

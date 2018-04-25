@@ -19,8 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <float.h>
 
 #include "macros.h"
+#include "definitions_elements.h"
 #include "definitions_mesh.h"
 #include "definitions_tol.h"
 
@@ -28,11 +30,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "element.h"
 #include "volume_solver.h"
 
 #include "file_processing.h"
 #include "intrusive.h"
+#include "mesh_readers.h"
 #include "simulation.h"
+#include "solution.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -42,13 +47,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Write a restart file with the mesh component in gmsh format.
 static void output_restart_gmsh
-	(const struct Simulation*const sim,           ///< \ref Simulation.
-	 const struct Restart_Info*const restart_info ///< \ref Restart_Info.
+	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 // Interface functions ********************************************************************************************** //
 
-void output_restart (const struct Simulation*const sim, const struct Restart_Info*const restart_info)
+void output_restart (const struct Simulation*const sim)
 {
 	switch (sim->domain_type) {
 	case DOM_STRAIGHT:
@@ -62,29 +66,9 @@ void output_restart (const struct Simulation*const sim, const struct Restart_Inf
 	}
 
 	if (strstr(sim->mesh_name_full,".msh"))
-		output_restart_gmsh(sim,restart_info);
+		output_restart_gmsh(sim);
 	else
 		EXIT_ERROR("Unsupported: %s\n",sim->mesh_name_full);
-
-/*
-Algorithm to sort the points (Should go in the reader portion).
-
-ImmutableList<Point> OrderByDistance(Point start, ImmutableSet<Point> points)
-{
-  var current = start;
-  var remaining = points;
-  var path = ImmutableList<Point>.Empty.Add(start);
-  while(!remaining.IsEmpty)
-  {
-    var next = Closest(current, remaining);
-    path = path.Add(next);
-    remaining = remaining.Remove(next);
-    current = next;
-  }
-  return path;
-}
-*/
-EXIT_UNSUPPORTED;
 }
 
 // Static functions ************************************************************************************************* //
@@ -92,9 +76,14 @@ EXIT_UNSUPPORTED;
 
 /// \brief Container for information related to the restart mesh nodes.
 struct Nodes_Info {
-	const struct const_Multiarray_d* nodes;   ///< The xyz node coordinates.
+	const struct const_Matrix_d* nodes;       ///< The xyz node coordinates.
 	const struct const_Vector_i* inds_sorted; ///< The indices of the sorted coordinates.
 	const struct const_Vector_i* inds_unique; ///< The indices of the unique coordinates.
+};
+
+/// \brief Container for information related to the restart mesh elements.
+struct Elements_Info {
+	const struct const_Vector_i* types; ///< The element type indices.
 };
 
 /** \brief Constructor for the \ref Nodes_Info container.
@@ -108,28 +97,66 @@ static void destructor_Nodes_Info
 	(const struct Nodes_Info*const nodes_info ///< Standard.
 	);
 
+/** \brief Constructor for the \ref Elements_Info container.
+ *  \return See brief. */
+static const struct Elements_Info* constructor_Elements_Info
+	(const struct Simulation*const sim ///< \ref Simulation.
+	);
+
+/// \brief Destructor for the \ref Elements_Info container.
+static void destructor_Elements_Info
+	(const struct Elements_Info*const elements_info ///< Standard.
+	);
+
 /** \brief Return the name of the restart file.
  *  \return See brief. */
 static const char* compute_restart_name
-	(const int restart_type,            ///< The type of restart file. See options above.
-	 const struct Simulation*const sim, ///< \ref Simulation.
-	 const struct Restart_Info*const ri ///< \ref Restart_Info.
+	(const int restart_type,           ///< The type of restart file. See options above.
+	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
-static void output_restart_gmsh (const struct Simulation*const sim, const struct Restart_Info*const restart_info)
-{
-	const struct Nodes_Info*const ni = constructor_Nodes_Info(sim); // destructed
+/// \brief Print the format format to the gmsh file.
+static void fprintf_format_gmsh
+	(FILE* file ///< The file.
+	);
 
-	const char*const f_name = compute_restart_name(RESTART_GMSH,sim,restart_info);
+/// \brief Print the nodes to the gmsh file.
+static void fprintf_nodes_gmsh
+	(FILE* file,                      ///< The file.
+	 const struct Nodes_Info*const ni ///< Standard.
+	);
+
+/// \brief Print the elements to the gmsh file.
+static void fprintf_elements_gmsh
+	(FILE* file,                         ///< The file.
+	 const struct Nodes_Info*const ni,   ///< Standard.
+	 const struct Elements_Info*const ei ///< Standard.
+	);
+
+/// \brief Print the solution coefficients in the Bezier basis to the gmsh file.
+static void fprintf_solution_bezier_gmsh
+	(FILE* file,                       ///< The file.
+	 const struct Simulation*const sim ///< Standard.
+	);
+
+static void output_restart_gmsh (const struct Simulation*const sim)
+{
+	const struct Nodes_Info*const ni    = constructor_Nodes_Info(sim);    // destructed
+	const struct Elements_Info*const ei = constructor_Elements_Info(sim); // destructed
+
+	const char*const f_name = compute_restart_name(RESTART_GMSH,sim);
 
 	FILE* file = fopen_create_dir(f_name); // closed
-	fprintf(file,"$MeshFormat");
-	fprintf(file,"2.2 0 8");
-	fprintf(file,"$EndMeshFormat");
+
+	fprintf_format_gmsh(file);
+	fprintf_nodes_gmsh(file,ni);
+	fprintf_elements_gmsh(file,ni,ei);
+	fprintf_solution_bezier_gmsh(file,sim);
+
+	fclose(file);
 
 	destructor_Nodes_Info(ni);
-EXIT_UNSUPPORTED;
-	fclose(file);
+	destructor_Elements_Info(ei);
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -141,41 +168,56 @@ static const struct Nodes_Info* constructor_Nodes_Info (const struct Simulation*
 	struct Multiarray_d*const xyz_ve = constructor_empty_Multiarray_d('R',2,(ptrdiff_t[]){0,DIM}); // destructed
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		const struct Volume*const vol = (struct Volume*) curr;
-
 		push_back_Multiarray_d(xyz_ve,vol->xyz_ve);
 	}
-	nodes_info->nodes  = (struct const_Multiarray_d*) xyz_ve;
-
-//print_Multiarray_d(xyz_ve);
-	struct Matrix_d xyz_ve_M = interpret_Multiarray_as_Matrix_d(xyz_ve);
-	nodes_info->inds_sorted = row_sort_DIM_Matrix_d(&xyz_ve_M,true); // destructed
-//print_Multiarray_d(xyz_ve);
+	struct Matrix_d xyz_ve_tmp = interpret_Multiarray_as_Matrix_d(xyz_ve);
+	nodes_info->inds_sorted = row_sort_DIM_Matrix_d(&xyz_ve_tmp,true); // destructed
 	nodes_info->inds_unique = make_unique_row_Multiarray_d(xyz_ve,EPS,true); // destructed
-//print_Multiarray_d(xyz_ve);
 
+	const ptrdiff_t* e = xyz_ve->extents;
+	struct Matrix_d*const xyz_ve_M = constructor_move_Matrix_d_d('R',e[0],e[1],true,xyz_ve->data); // destructed
+	xyz_ve->owns_data = false;
+	nodes_info->nodes  = (struct const_Matrix_d*) xyz_ve_M;
 
-EXIT_UNSUPPORTED; UNUSED(sim);
+	destructor_Multiarray_d(xyz_ve);
 	return nodes_info;
 }
 
 static void destructor_Nodes_Info (const struct Nodes_Info*const nodes_info)
 {
-	destructor_const_Multiarray_d(nodes_info->nodes);
+	destructor_const_Matrix_d(nodes_info->nodes);
 	destructor_const_Vector_i(nodes_info->inds_sorted);
 	destructor_const_Vector_i(nodes_info->inds_unique);
 	free((void*)nodes_info);
 }
 
-static void destructor_Nodes_Info
-	(const struct Nodes_Info*const nodes_info ///< Standard.
-	);
+static const struct Elements_Info* constructor_Elements_Info (const struct Simulation*const sim)
+{
+	struct Elements_Info* elements_info = calloc(1,sizeof(*elements_info)); // free
+
+	struct Vector_i*const types = constructor_empty_Vector_i(0); // destructed
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Volume*const vol = (struct Volume*) curr;
+		push_back_Vector_i(types,vol->element->type,false,false);
+	}
+	elements_info->types = (struct const_Vector_i*) types;
+
+	return elements_info;
+}
+
+static void destructor_Elements_Info (const struct Elements_Info*const elements_info)
+{
+	destructor_const_Vector_i(elements_info->types);
+	free((void*)elements_info);
+}
+
 static const char* compute_restart_name
-	(const int restart_type, const struct Simulation*const sim, const struct Restart_Info*const ri)
+	(const int restart_type, const struct Simulation*const sim)
 {
 	static const char* name_path = "../restart/";
 
 	char ml_p_spec[STRLEN_MIN];
-	sprintf(ml_p_spec,"%s%d%s%d","__ml",ri->ml,"__p",ri->p);
+	sprintf(ml_p_spec,"%s%d%s%d","__ml",sim->ml_p_curr[0],"__p",sim->ml_p_curr[1]);
 
 	char name_ext[STRLEN_MIN];
 	switch (restart_type) {
@@ -187,4 +229,87 @@ static const char* compute_restart_name
 	sprintf(output_name,"%s%s%c%s%c%s%s%s",
 	        name_path,sim->pde_name,'/',sim->pde_spec,'/',"restart",ml_p_spec,name_ext);
 	return output_name;
+}
+
+static void fprintf_format_gmsh (FILE* file)
+{
+	fprintf(file,"$MeshFormat\n");
+	fprintf(file,"2.2 0 8\n");
+	fprintf(file,"$EndMeshFormat\n");
+}
+
+static void fprintf_nodes_gmsh (FILE* file, const struct Nodes_Info*const ni)
+{
+	const ptrdiff_t n_n = ni->nodes->ext_0;
+	fprintf(file,"$Nodes\n");
+	fprintf(file,"%td\n",n_n);
+	for (int n = 0; n < n_n; ++n) {
+		const double*const data_n = get_row_const_Matrix_d(n,ni->nodes);
+		fprintf(file,"%d",n+1);
+		for (int d = 0; d < DMAX; ++d)
+			fprintf(file," %g",( d < DIM ? data_n[d] : 0.0 ));
+		fprintf(file,"\n");
+	}
+	fprintf(file,"$EndNodes\n");
+}
+
+static void fprintf_elements_gmsh (FILE* file, const struct Nodes_Info*const ni, const struct Elements_Info*const ei)
+{
+	const struct const_Vector_i*const inds_s = ni->inds_sorted;
+	const struct const_Vector_i*const inds_u = ni->inds_unique;
+
+	int inds_data[NVEMAX] = { 0, };
+	struct Vector_i inds_ve = { .ext_0 = 0, .data = inds_data, };
+	int ind_n = 0;
+
+	const ptrdiff_t n_e = ei->types->ext_0;
+	fprintf(file,"$Elements\n");
+	fprintf(file,"%td\n",n_e);
+	for (int e = 0; e < n_e; ++e) {
+		const int e_type = ei->types->data[e];
+		fprintf(file,"%d %d",e+1,e_type);
+
+		fprintf(file," %d",GMSH_N_TAGS);
+		for (int i = 0; i < GMSH_N_TAGS; ++i)
+			fprintf(file," %d",0);
+
+		const int n_n = get_n_nodes(e_type);
+		for (int n = 0; n < n_n; ++n) {
+			inds_ve.data[n] = inds_u->data[inds_s->data[ind_n]]+1;
+			++ind_n;
+		}
+		inds_ve.ext_0 = n_n;
+		reorder_nodes_gmsh(e_type,&inds_ve);
+		for (int n = 0; n < n_n; ++n)
+			fprintf(file," %d",inds_ve.data[n]);
+		fprintf(file,"\n");
+	}
+	fprintf(file,"$EndElements\n");
+}
+
+static void fprintf_solution_bezier_gmsh (FILE* file, const struct Simulation*const sim)
+{
+	enum { n_dec = 15 };
+	const ptrdiff_t n_v = compute_n_volumes(sim);
+
+	fprintf(file,"$SolutionCoefficients\n");
+	fprintf(file,"%td\n",n_v);
+	int v = 0;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+		struct Multiarray_d*const s_coef = constructor_s_coef_bezier(s_vol,sim);
+		assert(s_coef->layout == 'C');
+
+		const int p_ref = s_vol->p_ref;
+		const ptrdiff_t n_dof = s_coef->extents[0],
+		                n_var = s_coef->extents[1];
+
+		fprintf(file,"%d %d %td %td",v+1,p_ref,n_dof,n_var);
+		for (int i = 0; i < n_dof*n_var; ++i)
+			fprintf(file," % .*e",n_dec,s_coef->data[i]);
+		fprintf(file,"\n");
+
+		++v;
+	}
+	fprintf(file,"$EndSolutionCoefficients\n");
 }

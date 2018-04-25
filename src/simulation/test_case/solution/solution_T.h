@@ -180,3 +180,8 @@ const struct const_Multiarray_T* constructor_const_grad_zero_T
 	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
+
+/// \brief Set the \ref Solver_Volume_T::rhs terms to zero.
+void set_to_zero_residual_T
+	(const struct Simulation*const sim ///< Standard.
+	);

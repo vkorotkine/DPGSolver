@@ -19,7 +19,11 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to mesh reader containers and functions.
  */
 
+struct Vector_i;
+
 #include <stddef.h>
+
+#define GMSH_N_TAGS 2 ///< Expected number of tags for elements in the gmsh file.
 
 /** \brief Holds data read from the mesh file.
  *
@@ -60,6 +64,21 @@ struct Mesh_Data* constructor_Mesh_Data
 /// \brief Destructor for \ref Mesh_Data\*.
 void destructor_Mesh_Data
 	(struct Mesh_Data* mesh_data ///< Standard.
+	);
+
+/// \brief Reorder the nodes such that they correspond to the ordering convention of this code.
+void reorder_nodes_gmsh
+	(const int elem_type,       ///< Defined in \ref Mesh_Data.
+	 struct Vector_i* node_nums ///< Defined in \ref Mesh_Data.
+	);
+
+/** \brief Get the number of nodes specifying the geometry for the element of the given type.
+ *	\return See brief.
+ *
+ *	The convention for the element type numbering is that of gmsh.
+ */
+int get_n_nodes
+	(const int elem_type ///< The element type.
 	);
 
 #endif // DPG__mesh_readers_h__INCLUDED
