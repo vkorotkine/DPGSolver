@@ -24,6 +24,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
+#include "math_functions.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //

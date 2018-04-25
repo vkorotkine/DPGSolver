@@ -62,6 +62,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef copy_into_Multiarray_T
 #undef update_rows_Multiarray_T
 #undef push_back_Multiarray_T
+#undef make_unique_row_Multiarray_T
 
 
 #undef Multiarray_R

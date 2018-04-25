@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_multiarray_math.h"
 
+#include "def_templates_math_functions.h"
+
 // Static function declarations ************************************************************************************* //
 
 /// \brief Container for a vector with an associated index.
@@ -152,26 +154,25 @@ struct Vector_i* sort_Multiarray_Vector_T (struct Multiarray_Vector_T* a, const 
 		sort_Vector_T(a->data[i]);
 
 	// sort the Vectors
-	int* ordering_i = NULL;
 	if (!return_indices) {
 		qsort(a->data,(size_t)size,sizeof(a->data[0]),cmp_Vector_T);
+		return NULL;
 	} else {
 		struct Vector_T_indexed** a_indexed = constructor_move_Vector_T_indexed(size,a->data); // destructed
 
 		qsort(a_indexed,(size_t)size,sizeof(a_indexed[0]),cmp_Vector_T_indexed);
 
-		ordering_i = malloc((size_t)size * sizeof *ordering_i); // keep
+		int*const ordering_i = malloc((size_t)size * sizeof *ordering_i); // keep
 		for (ptrdiff_t i = 0; i < size; ++i)
 			ordering_i[i] = (int)a_indexed[i]->index;
 
 		reorder_Multiarray_Vector_T(a,ordering_i);
 
 		destructor_Vector_T_indexed(a_indexed,size);
+
+		return constructor_move_Vector_i_i(size,true,ordering_i);
 	}
-
-	struct Vector_i* ordering = constructor_move_Vector_i_i(size,true,ordering_i); // returned
-
-	return ordering;
+	EXIT_ERROR("Should not have made it here.\n");
 }
 
 void reorder_Multiarray_Vector_T (struct Multiarray_Vector_T*const a, const int*const ordering)
@@ -364,6 +365,63 @@ void push_back_Multiarray_T (struct Multiarray_T*const dest, const struct const_
 }
 
 #ifdef TYPE_RC
+
+const struct const_Vector_i* make_unique_row_Multiarray_T
+	(struct Multiarray_T*const src, const Real tol, const bool return_indices)
+{
+	const ptrdiff_t ext_0 = src->extents[0],
+	                ext_1 = compute_size(src->order,src->extents)/ext_0;
+
+	int ind_u[ext_0];
+	ind_u[0] = 0;
+
+	int n_u = 1;
+	for (int i = 1; i < ext_0; ++i) {
+		Type*const data_u = get_row_Multiarray_T(ind_u[n_u-1],src);
+		Type*const data_i = get_row_Multiarray_T(i,src);
+
+		bool unique = false;
+		for (int j = 0; j < ext_1; ++j) {
+			if (!equal_T(data_u[j],data_i[j],tol)) {
+				unique = true;
+				break;
+			}
+		}
+		if (unique) {
+			ind_u[n_u] = i;
+			++n_u;
+		}
+	}
+
+	for (int i = 1; i < n_u; ++i) {
+		if (i == ind_u[i])
+			continue;
+
+		Type*const data_u = get_row_Multiarray_T(ind_u[i],src);
+		Type*const data_i = get_row_Multiarray_T(i,src);
+		for (int j = 0; j < ext_1; ++j)
+			data_i[j] = data_u[j];
+	}
+
+	const int order = src->order;
+	ptrdiff_t extents_new[order];
+	extents_new[0] = n_u;
+	for (int i = 1; i < order; ++i)
+		extents_new[i] = src->extents[i];
+
+	resize_Multiarray_T(src,order,extents_new);
+	if (!return_indices) {
+		return NULL;
+	} else {
+		int* indices = malloc((size_t)ext_0 * sizeof *indices); // keep
+		for (int i = 0, u = 0; i < ext_0; ++i) {
+			indices[i] = u;
+			if (u < n_u-1 && ind_u[u+1] == i+1)
+				++u;
+		}
+		return constructor_move_const_Vector_i_i(ext_0,true,indices);
+	}
+}
 
 void update_rows_Multiarray_T
 	(struct Multiarray_T*const dest, const struct const_Multiarray_T*const src,

@@ -12,7 +12,7 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-///	\file
+/// \file
 
 #include "restart_writers.h"
 
@@ -22,8 +22,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_mesh.h"
+#include "definitions_tol.h"
 
+#include "matrix.h"
 #include "multiarray.h"
+#include "vector.h"
 
 #include "volume_solver.h"
 
@@ -89,7 +92,9 @@ EXIT_UNSUPPORTED;
 
 /// \brief Container for information related to the restart mesh nodes.
 struct Nodes_Info {
-	const struct const_Multiarray_d* nodes; ///< The xyz node coordinates.
+	const struct const_Multiarray_d* nodes;   ///< The xyz node coordinates.
+	const struct const_Vector_i* inds_sorted; ///< The indices of the sorted coordinates.
+	const struct const_Vector_i* inds_unique; ///< The indices of the unique coordinates.
 };
 
 /** \brief Constructor for the \ref Nodes_Info container.
@@ -133,19 +138,22 @@ static const struct Nodes_Info* constructor_Nodes_Info (const struct Simulation*
 {
 	struct Nodes_Info* nodes_info = calloc(1,sizeof(*nodes_info)); // free
 
-	struct Multiarray_d*const xyz_ve_red = constructor_empty_Multiarray_d('R',2,(ptrdiff_t[]){0,DIM}); // destructed
+	struct Multiarray_d*const xyz_ve = constructor_empty_Multiarray_d('R',2,(ptrdiff_t[]){0,DIM}); // destructed
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		const struct Volume*const vol = (struct Volume*) curr;
 
-		push_back_Multiarray_d(xyz_ve_red,vol->xyz_ve);
-print_const_Multiarray_d(vol->xyz_ve);
+		push_back_Multiarray_d(xyz_ve,vol->xyz_ve);
 	}
-print_Multiarray_d(xyz_ve_red);
-	/// \todo sort by approximate nearest neighbor.
+	nodes_info->nodes  = (struct const_Multiarray_d*) xyz_ve;
 
-	destructor_Multiarray_d(xyz_ve_red);
+//print_Multiarray_d(xyz_ve);
+	struct Matrix_d xyz_ve_M = interpret_Multiarray_as_Matrix_d(xyz_ve);
+	nodes_info->inds_sorted = row_sort_DIM_Matrix_d(&xyz_ve_M,true); // destructed
+//print_Multiarray_d(xyz_ve);
+	nodes_info->inds_unique = make_unique_row_Multiarray_d(xyz_ve,EPS,true); // destructed
+//print_Multiarray_d(xyz_ve);
 
-//print_const_Multiarray_d(ni->nodes);
+
 EXIT_UNSUPPORTED; UNUSED(sim);
 	return nodes_info;
 }
@@ -153,6 +161,8 @@ EXIT_UNSUPPORTED; UNUSED(sim);
 static void destructor_Nodes_Info (const struct Nodes_Info*const nodes_info)
 {
 	destructor_const_Multiarray_d(nodes_info->nodes);
+	destructor_const_Vector_i(nodes_info->inds_sorted);
+	destructor_const_Vector_i(nodes_info->inds_unique);
 	free((void*)nodes_info);
 }
 

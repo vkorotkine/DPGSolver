@@ -22,6 +22,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "complex_matrix.h"
 #include "complex_vector.h"
 
+#include "test_complex_math_functions.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //

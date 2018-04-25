@@ -263,10 +263,8 @@ static void SSS_query (struct SSS_c*const sss)
 
 	compute_distance_and_update(n_b/2,sss);
 	const Real r2 = sss->r2;
-//UNUSED(r2);
 
 	if (n_b == 1 || compute_r2_to_box(sss)*POW2_R(1+EPS_ANN) > r2)
-//	if (n_b == 1)
 		return;
 
 	struct Node*const b = sss->b,

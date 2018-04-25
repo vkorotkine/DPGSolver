@@ -71,4 +71,15 @@ ptrdiff_t compute_index_Matrix
 	 const char layout      ///< Defined in \ref Matrix_T.
 	);
 
+/** \brief Sort the input 'Row'-major \ref Matrix_T\* having ext_1 == DIM such that the output is ordered by fastest
+ *         increasing 0th column, 1st column, etc.
+ *  \return Optionally return indices or `NULL`.
+ *
+ *  In the case of indices being returned, the values are such that: sorted[ind[i]] == unsorted[i].
+ */
+const struct const_Vector_i* row_sort_DIM_Matrix_d
+	(struct Matrix_d*const src, ///< The Matrix to be sorted.
+	 const bool return_indices  ///< Flag for whether the sorted indices should be returned.
+	);
+
 #endif // DPG__matrix_h__INCLUDED

@@ -17,6 +17,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "matrix.h"
 
+#include "definitions_core.h"
+
+#include "vector.h"
+
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
@@ -32,6 +36,19 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_matrix.h"
 
 // Static function declarations ************************************************************************************* //
+
+/// \brief Container for a DIM-dimensional node with an index.
+struct Node {
+	double xyz[DIM]; ///< The coordinates.
+	int index;       ///< The index of the node.
+};
+
+/** \brief Comparison function for std::qsort between `double*` `a` and `b` of length \ref DIM.
+ *  \return Standard required return for comparator function of qsort. */
+static int cmp_DIM_d
+	(const double*const a, ///< Variable 1.
+	 const double*const b  ///< Variable 2.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -62,5 +79,49 @@ ptrdiff_t compute_index_Matrix
 	return ( layout == 'R' ?  i*ext_1+j : j*ext_0+i );
 }
 
+const struct const_Vector_i* row_sort_DIM_Matrix_d (struct Matrix_d*const src, const bool return_indices)
+{
+	assert(src->layout == 'R');
+	assert(src->ext_1 == DIM);
+
+	const ptrdiff_t size = src->ext_0;
+	if (!return_indices) {
+		qsort(src->data,(size_t)size,DIM*sizeof(src->data[0]),(int (*)(const void *, const void *))cmp_DIM_d);
+		return NULL;
+	} else {
+		struct Node node_data[size];
+		for (int i = 0; i < size; ++i) {
+			double*const data_src = get_row_Matrix_d(i,src);
+			node_data[i].index = i;
+			for (int d = 0; d < DIM; ++d)
+				node_data[i].xyz[d] = data_src[d];
+		}
+		qsort(node_data,(size_t)size,sizeof(struct Node),(int (*)(const void *, const void *))cmp_DIM_d);
+
+		int*const ordering_i = malloc((size_t)size * sizeof *ordering_i); // keep
+		for (int i = 0; i < size; ++i) {
+//			ordering_i[i] = node_data[i].index;
+			ordering_i[node_data[i].index] = i;
+			double*const data_src = get_row_Matrix_d(i,src);
+			for (int d = 0; d < DIM; ++d)
+				data_src[d] = node_data[i].xyz[d];
+		}
+		return constructor_move_const_Vector_i_i(size,true,ordering_i);
+	}
+	EXIT_ERROR("Should not have made it here.\n");
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static int cmp_DIM_d (const double*const a, const double*const b)
+{
+	for (int d = DIM-1; d >= 0; --d) {
+//	for (int d = 0; d < DIM; ++d) {
+		if (a[d] < b[d])
+			return -1;
+		else if (a[d] > b[d])
+			return 1;
+	}
+	return 0;
+}

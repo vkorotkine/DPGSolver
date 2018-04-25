@@ -243,6 +243,14 @@ void push_back_Multiarray_T
 
 #ifdef TYPE_RC
 
+/** \brief Remove any non-unique rows from the row-sorted input multiarray and resize when finished.
+ *  \return Optionally return indices from input corresponding to unique entries or `NULL`. */
+const struct const_Vector_i* make_unique_row_Multiarray_T
+	(struct Multiarray_T*const src, ///< Standard.
+	 const Real tol,                ///< The tolerance with respect to which entries are unique.
+	 const bool return_indices      ///< Flag for whether the indices should be returned.
+	);
+
 /// \brief Modify the input rows of the destination multiarray with those of the source.
 void update_rows_Multiarray_T
 	(struct Multiarray_T*const dest,            ///< Destination multiarray to be updated.
