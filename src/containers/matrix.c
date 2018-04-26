@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "vector.h"
 
+#include "math_functions.h"
+
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
@@ -49,6 +51,8 @@ static int cmp_DIM_d
 	(const double*const a, ///< Variable 1.
 	 const double*const b  ///< Variable 2.
 	);
+
+double TOL_CMP_DIM_D = 0.0; ///< Tolerance used in \ref cmp_DIM_d.
 
 // Interface functions ********************************************************************************************** //
 
@@ -79,8 +83,10 @@ ptrdiff_t compute_index_Matrix
 	return ( layout == 'R' ?  i*ext_1+j : j*ext_0+i );
 }
 
-const struct const_Vector_i* row_sort_DIM_Matrix_d (struct Matrix_d*const src, const bool return_indices)
+const struct const_Vector_i* row_sort_DIM_Matrix_d
+	(struct Matrix_d*const src, const bool return_indices, const double tol)
 {
+	TOL_CMP_DIM_D = tol;
 	assert(src->layout == 'R');
 	assert(src->ext_1 == DIM);
 
@@ -118,6 +124,8 @@ static int cmp_DIM_d (const double*const a, const double*const b)
 {
 	for (int d = DIM-1; d >= 0; --d) {
 //	for (int d = 0; d < DIM; ++d) {
+		if (equal_d(a[d],b[d],TOL_CMP_DIM_D))
+			continue;
 		if (a[d] < b[d])
 			return -1;
 		else if (a[d] > b[d])

@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "face.h"
 #include "element.h"
 #include "volume_solver.h"
 
@@ -83,7 +84,11 @@ struct Nodes_Info {
 
 /// \brief Container for information related to the restart mesh elements.
 struct Elements_Info {
-	const struct const_Vector_i* types; ///< The element type indices.
+	const struct const_Vector_i* v_types; ///< The volume element type indices.
+
+	const struct const_Vector_i* f_types;              ///< The face element type indices.
+	const struct const_Vector_i* f_bcs;                ///< The face boundary condition type indices.
+	const struct const_Multiarray_Vector_i* ve_inds_f; ///< Vertex indices of the faces.
 };
 
 /** \brief Constructor for the \ref Nodes_Info container.
@@ -163,6 +168,7 @@ static void output_restart_gmsh (const struct Simulation*const sim)
 
 static const struct Nodes_Info* constructor_Nodes_Info (const struct Simulation*const sim)
 {
+	const double eps_node = 1e-10;
 	struct Nodes_Info* nodes_info = calloc(1,sizeof(*nodes_info)); // free
 
 	struct Multiarray_d*const xyz_ve = constructor_empty_Multiarray_d('R',2,(ptrdiff_t[]){0,DIM}); // destructed
@@ -171,8 +177,8 @@ static const struct Nodes_Info* constructor_Nodes_Info (const struct Simulation*
 		push_back_Multiarray_d(xyz_ve,vol->xyz_ve);
 	}
 	struct Matrix_d xyz_ve_tmp = interpret_Multiarray_as_Matrix_d(xyz_ve);
-	nodes_info->inds_sorted = row_sort_DIM_Matrix_d(&xyz_ve_tmp,true); // destructed
-	nodes_info->inds_unique = make_unique_row_Multiarray_d(xyz_ve,EPS,true); // destructed
+	nodes_info->inds_sorted = row_sort_DIM_Matrix_d(&xyz_ve_tmp,true,eps_node); // destructed
+	nodes_info->inds_unique = make_unique_row_Multiarray_d(xyz_ve,eps_node,true); // destructed
 
 	const ptrdiff_t* e = xyz_ve->extents;
 	struct Matrix_d*const xyz_ve_M = constructor_move_Matrix_d_d('R',e[0],e[1],true,xyz_ve->data); // destructed
@@ -195,19 +201,68 @@ static const struct Elements_Info* constructor_Elements_Info (const struct Simul
 {
 	struct Elements_Info* elements_info = calloc(1,sizeof(*elements_info)); // free
 
-	struct Vector_i*const types = constructor_empty_Vector_i(0); // destructed
+	struct Vector_i*const v_types = constructor_empty_Vector_i(0); // destructed
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		const struct Volume*const vol = (struct Volume*) curr;
-		push_back_Vector_i(types,vol->element->type,false,false);
+		push_back_Vector_i(v_types,vol->element->type,false,false);
 	}
-	elements_info->types = (struct const_Vector_i*) types;
+	elements_info->v_types = (struct const_Vector_i*) v_types;
+
+	struct Multiarray_Vector_i* ve_inds_v = constructor_empty_Multiarray_Vector_i(false,1,&v_types->ext_0); // dest.
+
+	int ind_ve_v = 0;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Volume*const vol = (struct Volume*) curr;
+
+		const ptrdiff_t ext_0 = vol->xyz_ve->extents[0];
+		struct Vector_i* ve_inds_lv = constructor_empty_Vector_i(ext_0); // moved
+		for (int i = 0; i < ext_0; ++i)
+			ve_inds_lv->data[i] = ind_ve_v++;
+		ve_inds_v->data[vol->index] = ve_inds_lv;
+	}
+
+	struct Vector_i*const f_types = constructor_empty_Vector_i(0), // destructed
+	               *const f_bcs   = constructor_empty_Vector_i(0); // destructed
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		const struct Face*const face = (struct Face*) curr;
+		if (!face->boundary)
+			continue;
+		push_back_Vector_i(f_types,face->element->type,false,false);
+		push_back_Vector_i(f_bcs,face->bc,false,false);
+	}
+	elements_info->f_types = (struct const_Vector_i*) f_types;
+	elements_info->f_bcs   = (struct const_Vector_i*) f_bcs;
+
+	struct Multiarray_Vector_i* ve_inds_f = constructor_empty_Multiarray_Vector_i(false,1,&f_types->ext_0); // dest.
+	int ind_f = 0;
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		const struct Face*const face = (struct Face*) curr;
+		if (!face->boundary)
+			continue;
+		const struct Volume*const vol = face->neigh_info[0].volume;
+		const int ind_lf = face->neigh_info[0].ind_lf;
+
+		const struct const_Vector_i*const f_ve_lf = vol->element->f_ve->data[ind_lf];
+		const ptrdiff_t ext_0 = f_ve_lf->ext_0;
+		struct Vector_i* ve_inds_lf = constructor_empty_Vector_i(ext_0); // moved
+		for (int i = 0; i < ext_0; ++i)
+			ve_inds_lf->data[i] = ve_inds_v->data[vol->index]->data[f_ve_lf->data[i]];
+		ve_inds_f->data[ind_f] = ve_inds_lf;
+		++ind_f;
+	}
+	destructor_Multiarray_Vector_i(ve_inds_v);
+	elements_info->ve_inds_f = (const struct const_Multiarray_Vector_i*) ve_inds_f;
 
 	return elements_info;
 }
 
 static void destructor_Elements_Info (const struct Elements_Info*const elements_info)
 {
-	destructor_const_Vector_i(elements_info->types);
+	destructor_const_Vector_i(elements_info->v_types);
+
+	destructor_const_Vector_i(elements_info->f_types);
+	destructor_const_Vector_i(elements_info->f_bcs);
+	destructor_const_Multiarray_Vector_i(elements_info->ve_inds_f);
 	free((void*)elements_info);
 }
 
@@ -260,14 +315,37 @@ static void fprintf_elements_gmsh (FILE* file, const struct Nodes_Info*const ni,
 
 	int inds_data[NVEMAX] = { 0, };
 	struct Vector_i inds_ve = { .ext_0 = 0, .data = inds_data, };
-	int ind_n = 0;
 
-	const ptrdiff_t n_e = ei->types->ext_0;
+	int ind_e = 0;
+	// faces
+	const ptrdiff_t n_ef = ei->f_types->ext_0,
+	                n_ev = ei->v_types->ext_0;
 	fprintf(file,"$Elements\n");
-	fprintf(file,"%td\n",n_e);
-	for (int e = 0; e < n_e; ++e) {
-		const int e_type = ei->types->data[e];
-		fprintf(file,"%d %d",e+1,e_type);
+	fprintf(file,"%td\n",n_ef+n_ev);
+
+	for (int e = 0; e < n_ef; ++e) {
+		const int e_type = ei->f_types->data[e];
+		fprintf(file,"%d %d",++ind_e,e_type);
+
+		fprintf(file," %d %d",GMSH_N_TAGS,ei->f_bcs->data[e]);
+		for (int i = 1; i < GMSH_N_TAGS; ++i)
+			fprintf(file," %d",0);
+
+		const struct const_Vector_i*const ve_inds_f = ei->ve_inds_f->data[e];
+		const ptrdiff_t n_n = ve_inds_f->ext_0;
+		for (int n = 0; n < n_n; ++n)
+			inds_ve.data[n] = inds_u->data[inds_s->data[ve_inds_f->data[n]]]+1;
+		inds_ve.ext_0 = n_n;
+		reorder_nodes_gmsh(e_type,&inds_ve);
+		for (int n = 0; n < n_n; ++n)
+			fprintf(file," %d",inds_ve.data[n]);
+		fprintf(file,"\n");
+	}
+
+	// volumes
+	for (int e = 0, ind_n = 0; e < n_ev; ++e) {
+		const int e_type = ei->v_types->data[e];
+		fprintf(file,"%d %d",++ind_e,e_type);
 
 		fprintf(file," %d",GMSH_N_TAGS);
 		for (int i = 0; i < GMSH_N_TAGS; ++i)

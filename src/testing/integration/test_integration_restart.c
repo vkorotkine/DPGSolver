@@ -109,6 +109,7 @@ static void output_restart_finest (const char*const ctrl_name)
 
 	adapt_to_maximum_refinement(sim,int_test_info);
 	output_restart(sim);
+
 	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,type_rc,false);
 
 	destructor_Integration_Test_Info(int_test_info);

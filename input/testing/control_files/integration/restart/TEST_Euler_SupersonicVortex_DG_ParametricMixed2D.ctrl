@@ -17,6 +17,8 @@ restart_path     ../restart/euler/steady/supersonic_vortex/restart__ml2__p2.msh
 
 # Simulation variables
 
+test_case_extension restart
+
 interp_tp  GLL
 interp_si  AO
 interp_pyr GLL

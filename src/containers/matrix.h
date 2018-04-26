@@ -79,7 +79,8 @@ ptrdiff_t compute_index_Matrix
  */
 const struct const_Vector_i* row_sort_DIM_Matrix_d
 	(struct Matrix_d*const src, ///< The Matrix to be sorted.
-	 const bool return_indices  ///< Flag for whether the sorted indices should be returned.
+	 const bool return_indices, ///< Flag for whether the sorted indices should be returned.
+	 const double tol           ///< The tolerance used to distinguish between values.
 	);
 
 #endif // DPG__matrix_h__INCLUDED
