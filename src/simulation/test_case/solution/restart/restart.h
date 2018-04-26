@@ -29,4 +29,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_solution.h"
 #include "undef_templates_multiarray.h"
 
+/** \brief Return a stack allocated `char*` holding the name (including full path) of the restart file.
+ *  \return See brief. */
+const char* get_restart_name ( );
+
 #endif // DPG__restart_h__INCLUDED

@@ -420,5 +420,24 @@ void reinterpret_const_Matrix_T (const struct const_Matrix_T* a, const ptrdiff_t
 	const_cast_ptrdiff(&a->ext_1,ext_1);
 }
 
+void set_to_row_avg_const_Matrix_T (Type*const data_avg, const struct const_Matrix_T*const src)
+{
+	assert(src->layout == 'R');
+	const ptrdiff_t ext_0 = src->ext_0,
+	                ext_1 = src->ext_1;
+
+	for (int j = 0; j < ext_1; ++j)
+		data_avg[j] = 0.0;
+
+	const Type* data_src = src->data;
+	for (int i = 0; i < ext_0; ++i) {
+		for (int j = 0; j < ext_1; ++j)
+			data_avg[j] += *data_src++;
+	}
+
+	for (int j = 0; j < ext_1; ++j)
+		data_avg[j] /= (Type)ext_0;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

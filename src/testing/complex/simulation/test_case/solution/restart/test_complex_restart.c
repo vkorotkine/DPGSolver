@@ -17,12 +17,23 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_restart.h"
 
+#include "matrix.h"
 #include "multiarray.h"
+#include "vector.h"
 
+#include "approximate_nearest_neighbor.h"
+#include "computational_elements.h"
+#include "const_cast.h"
+#include "element.h"
+#include "file_processing.h"
+#include "intrusive.h"
+#include "restart.h"
 #include "simulation.h"
 
 
 #include "complex_multiarray.h"
+
+#include "test_complex_volume_solver.h"
 
 #include "test_complex_solution.h"
 

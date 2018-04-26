@@ -44,6 +44,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define scale_Matrix_by_Vector_T   scale_Matrix_by_Vector_d
 #define mm_diag_T                  mm_diag_d
 #define reinterpret_const_Matrix_T reinterpret_const_Matrix_d
+#define set_to_row_avg_const_Matrix_T set_to_row_avg_const_Matrix_d
 
 #define update_layout_Multiarray_Matrix_T update_layout_Multiarray_Matrix_d
 ///\}
@@ -76,6 +77,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define scale_Matrix_by_Vector_T   scale_Matrix_by_Vector_c
 #define mm_diag_T                  mm_diag_c
 #define reinterpret_const_Matrix_T reinterpret_const_Matrix_c
+#define set_to_row_avg_const_Matrix_T set_to_row_avg_const_Matrix_c
 
 #define update_layout_Multiarray_Matrix_T update_layout_Multiarray_Matrix_c
 ///\}

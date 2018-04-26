@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <float.h>
 #include "gsl/gsl_math.h"
 
 #include "macros.h"
@@ -241,6 +242,52 @@ ptrdiff_t compute_n_volumes (const struct Simulation*const sim)
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
 		++n_v;
 	return n_v;
+}
+
+const struct const_Matrix_d* constructor_volume_xyz_min_max (const struct Simulation*const sim)
+{
+	enum { min = 0, max = 1, };
+	struct Matrix_d*const xyz_mm = constructor_empty_Matrix_d('R',2,DIM); // returned
+
+	double*const data_min = get_row_Matrix_d(0,xyz_mm),
+	      *const data_max = get_row_Matrix_d(1,xyz_mm);
+	for (int d = 0; d < DIM; ++d) {
+		data_min[d] = DBL_MAX;
+		data_max[d] = DBL_MIN;
+	}
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Volume*const vol = (struct Volume*) curr;
+		const struct const_Multiarray_d*const xyz_ve = vol->xyz_ve;
+
+		const ptrdiff_t ext_0 = xyz_ve->extents[0];
+		for (int i = 0; i < ext_0; ++i) {
+			const double*const data_ve = get_row_const_Multiarray_d(i,xyz_ve);
+			for (int d = 0; d < DIM; ++d) {
+				if (data_ve[d] < data_min[d])
+					data_min[d] = data_ve[d];
+				if (data_ve[d] > data_max[d])
+					data_max[d] = data_ve[d];
+			}
+		}
+	}
+	return (struct const_Matrix_d*) xyz_mm;
+}
+
+const struct const_Matrix_d* constructor_volume_centroids (const struct Simulation*const sim)
+{
+	const ptrdiff_t n_v = compute_n_volumes(sim);
+	struct Matrix_d*const centroids = constructor_empty_Matrix_d('R',n_v,DIM); // returned
+
+	int v = 0;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Volume*const vol = (struct Volume*) curr;
+		const struct const_Matrix_d xyz_ve = interpret_const_Multiarray_as_Matrix_d(vol->xyz_ve);
+
+		set_to_row_avg_const_Matrix_d(get_row_Matrix_d(v,centroids),&xyz_ve);
+		++v;
+	}
+	return (struct const_Matrix_d*) centroids;
 }
 
 // Static functions ************************************************************************************************* //

@@ -129,4 +129,17 @@ ptrdiff_t compute_n_volumes
 	(const struct Simulation*const sim ///< Standard.
 	);
 
+/** \brief Contructor for a \ref Matrix_T\* holding the values of the minimum and maximum xyz coordinates of the
+ *         volumes.
+ *  \return See brief. */
+const struct const_Matrix_d* constructor_volume_xyz_min_max
+	(const struct Simulation*const sim ///< Standard.
+	);
+
+/** \brief Contructor for a \ref Matrix_T\* holding the coordinates of the centroids of the volumes.
+ *  \return See brief. */
+const struct const_Matrix_d* constructor_volume_centroids
+	(const struct Simulation*const sim ///< Standard.
+	);
+
 #endif // DPG__volume_h__INCLUDED

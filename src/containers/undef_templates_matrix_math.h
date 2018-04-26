@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef scale_Matrix_by_Vector_T
 #undef mm_diag_T
 #undef reinterpret_const_Matrix_T
+#undef set_to_row_avg_const_Matrix_T
 
 #undef update_layout_Multiarray_Matrix_T
 

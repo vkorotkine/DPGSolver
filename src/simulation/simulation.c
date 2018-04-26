@@ -41,6 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "geometry.h"
 #include "intrusive.h"
 #include "mesh.h"
+#include "restart.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -99,10 +100,6 @@ static bool is_adaptive
 static const char* get_input_path
 	(struct Simulation*const sim ///< Standard.
 	);
-
-/** \brief Return a stack allocated `char*` holding the name (including full path) of the restart file.
- *  \return See brief. */
-static const char* get_restart_name ( );
 
 // Interface functions ********************************************************************************************** //
 
@@ -467,25 +464,6 @@ static const char* get_input_path (struct Simulation*const sim)
 	snprintf(input_path,sizeof(input_path),"%s%s%s%s%s%s",
 	        PROJECT_INPUT_DIR,"input_files/",sim->pde_name,"/",sim->pde_spec,"/");
 	return input_path;
-}
-
-static const char* get_restart_name ( )
-{
-	static char restart_path[STRLEN_MAX];
-	static bool needs_input = true;
-
-	if (needs_input) {
-		needs_input = false;
-		FILE* input_file = fopen_input('c',NULL,NULL); // closed
-		char line[STRLEN_MAX];
-		while (fgets(line,sizeof(line),input_file)) {
-			if (strstr(line,"restart_path"))
-				read_skip_c(line,restart_path);
-		}
-		fclose(input_file);
-	}
-
-	return restart_path;
 }
 
 // Level 1 ********************************************************************************************************** //

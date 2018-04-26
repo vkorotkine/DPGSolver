@@ -201,3 +201,9 @@ void reinterpret_const_Matrix_T
 	 const ptrdiff_t ext_0,          ///< The new value for `ext_0`.
 	 const ptrdiff_t ext_1           ///< The new value for `ext_1`.
 	);
+
+/// \brief Set the input average data pointer to the row average of the data of the source \ref const_Matrix_T\*.
+void set_to_row_avg_const_Matrix_T
+	(Type*const data_avg,                  ///< Pointer to array storing the average.
+	 const struct const_Matrix_T*const src ///< Source matrix.
+	);

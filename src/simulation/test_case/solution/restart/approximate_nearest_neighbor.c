@@ -43,7 +43,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define SINGLE ///< Definition to use `int` type for functions below.
 
-/// \{ \name Templating-related definitions.
+/** \{ \name Templating-related definitions.
+ *
+ *  The division by 4 in the maximum indices is required because:
+ *  - The shift results in all numbers potentially being increased (maximally) by a factor of 2;
+ *  - Something related to the subtraction requires an additional factor of 2?
+ */
 #ifdef SINGLE
 	#define Index     int
 	#define INDEX_MIN 0
@@ -57,7 +62,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define REAL_MAX DBL_MAX
 /// \}
 
-Index shift; ///< The shift to use. Global in this file as it must be used by \todo ref cmp_shuffle passed to qsort.
+static Index shift; ///< The shift to use. Global in this file as it must be used by \ref cmp_shuffle passed to qsort.
+
+/// \brief Set the value of the shift used for the ANN algorithm.
+static void set_shift ( );
 
 /** The accuracy tolerance for the approximate nearest neighbor search. Chosen based on the limitations of the
  *  conversion to `int`. */
@@ -67,45 +75,30 @@ Index shift; ///< The shift to use. Global in this file as it must be used by \t
 
 #define POW2_R(x) (((Real) (x))*((Real) (x))) ///< 'R'eal pow(x,2).
 
-/// \brief Container for a node represented in binary.
-struct Node {
-	Index xyz[DIM]; ///< The coordinates with type `Index`.
-	int index;      ///< The index.
-};
-
-/// \brief Container for 'S'hift-'S'huffle-'S'ort approximate nearest neighbor information.
-struct SSS {
-	ptrdiff_t ext_b; ///< The number of entries in \ref SSS::b.
-	ptrdiff_t ext_s; ///< The number of entries in \ref SSS::s.
-
-	const struct Node* b;  ///< The background nodes.
-	const struct Node* s;  ///< The search nodes.
-};
-
 /// \brief Container for the converging node list and current search node.
 struct SSS_c {
-	ptrdiff_t n_b;  ///< The number of background nodes.
-	struct Node* b; ///< The background nodes.
-	struct Node* s; ///< The pointer to the search node.
+	ptrdiff_t n_b;      ///< The number of background nodes.
+	struct Node_ANN* b; ///< The background nodes.
+	struct Node_ANN* s; ///< The pointer to the search node.
 
-	struct Node l; ///< Lower bounding node.
-	struct Node u; ///< Upper bounding node.
+	struct Node_ANN l; ///< Lower bounding node.
+	struct Node_ANN u; ///< Upper bounding node.
 
 	// ANN-related parameters
-	Real r2;          ///< The minimum squared Euclidian distance from the search node to computed background nodes.
-	int ind_ann;      ///< The current index of the approximate nearest neighbor.
-	struct Node* ann; ///< The pointer to approximate nearest neighbor node.
+	Real r2;     ///< The minimum squared Euclidian distance from the search node to computed background nodes.
+	int ind_ann; ///< The current index of the approximate nearest neighbor.
+	struct Node_ANN* ann; ///< The pointer to approximate nearest neighbor node.
 };
 
-/** \brief Constructor for a \ref SSS container.
+/** \brief Constructor for a \ref SSS_ANN container.
  *  \return See brief. */
-static const struct SSS* constructor_SSS
+static const struct SSS_ANN* constructor_SSS_ANN
 	(const struct Input_ANN*const ann_i ///< Standard.
 	);
 
-/// \brief Destructor for a \ref SSS container.
-static void destructor_SSS
-	(const struct SSS*const sss ///< Standard.
+/// \brief Destructor for a \ref SSS_ANN container.
+static void destructor_SSS_ANN
+	(const struct SSS_ANN*const sss ///< Standard.
 	);
 
 /** \brief Perform the binary search for the input node in the list of background nodes.
@@ -116,57 +109,11 @@ static void SSS_query
 	(struct SSS_c*const sss ///< Standard.
 	);
 
-// Interface functions ********************************************************************************************** //
-
-const struct const_Vector_i* constructor_ann_indices (const struct Input_ANN*const ann_i)
-{
-	const ptrdiff_t n_b = ann_i->nodes_b->ext_0,
-	                n_s = ann_i->nodes_s->ext_0;
-
-	srand48(BASE_SEED+n_b+n_s+DIM); // seed the random number generator.
-	shift = (Index) (drand48()*INDEX_MAX);
-
-	const struct SSS*const sss = constructor_SSS(ann_i); // destructed
-
-	struct Vector_i* ann_indices = constructor_empty_Vector_i(n_s); // returned
-	for (int n = 0; n < n_s; ++n) {
-		struct SSS_c sss_c =
-			{ .n_b = n_b,
-			  .b   = (struct Node*) sss->b,
-			  .s   = (struct Node*) &(sss->s[n]),
-			  .r2  = REAL_MAX,
-			};
-		SSS_query(&sss_c);
-		ann_indices->data[n] = sss_c.ann->index;
-	}
-	destructor_SSS(sss);
-
-	return (struct const_Vector_i*) ann_indices;
-}
-
-void destructor_Input_ANN (struct Input_ANN*const ann_info)
-{
-	destructor_const_Matrix_d(ann_info->nodes_b);
-	destructor_const_Matrix_d(ann_info->nodes_s);
-	free(ann_info);
-}
-
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-/// \brief Print an array of \ref Node\*s.
+/// \brief Print an array of \ref Node_ANN\*s.
 static void print_nodes
-	(const ptrdiff_t n,             ///< Array length.
-	 const struct Node*const nodes, ///< The array.
-	 const char*const name          ///< Name to display.
-	);
-
-/** \brief Constructor for a Matrix holding the values of the minimum and maximum node coordinates in each of the xyz
- *         coordinate directions; the last two rows are used to hold the average ((min+max)/2) and the difference
- *         (max-min).
- *  \return See brief. */
-static const struct const_Matrix_d* constructor_xyz_min_max
-	(const struct Input_ANN*const ann_i ///< Standard.
+	(const ptrdiff_t n,                 ///< Array length.
+	 const struct Node_ANN*const nodes, ///< The array.
+	 const char*const name              ///< Name to display.
 	);
 
 /** \brief Shuffle order comparison function for nodes.
@@ -184,6 +131,178 @@ static int cmp_shuffle
 	 Index* q  ///< The 2nd node (represented in binary).
 	);
 
+// Interface functions ********************************************************************************************** //
+
+const struct const_Vector_i* constructor_ann_indices (const struct Input_ANN*const ann_i)
+{
+	set_shift();
+
+	const ptrdiff_t n_b = ann_i->nodes_b->ext_0,
+	                n_s = ann_i->nodes_s->ext_0;
+
+	const struct SSS_ANN*const sss = constructor_SSS_ANN(ann_i); // destructed
+
+	struct Vector_i* ann_indices = constructor_empty_Vector_i(n_s); // returned
+	for (int n = 0; n < n_s; ++n) {
+		struct SSS_c sss_c =
+			{ .n_b = n_b,
+			  .b   = (struct Node_ANN*) sss->b,
+			  .s   = (struct Node_ANN*) &(sss->s[n]),
+			  .r2  = REAL_MAX,
+			};
+		SSS_query(&sss_c);
+		ann_indices->data[n] = sss_c.ann->index;
+	}
+	destructor_SSS_ANN(sss);
+
+	return (struct const_Vector_i*) ann_indices;
+}
+
+void destructor_Input_ANN (struct Input_ANN*const ann_info)
+{
+	destructor_const_Matrix_d(ann_info->nodes_b);
+	destructor_const_Matrix_d(ann_info->nodes_s);
+	free(ann_info);
+}
+
+void constructor_SSS_ANN_xyz (const struct Input_ANN*const ann_i, struct SSS_ANN*const sss)
+{
+	struct Matrix_d*const xyz_mm = constructor_empty_Matrix_d('R',4,DIM); // keep
+	double*const data_mm = xyz_mm->data;
+	for (int d = 0; d < DIM; ++d) {
+		data_mm[0*DIM+d] = DBL_MAX;
+		data_mm[1*DIM+d] = DBL_MIN;
+	}
+
+	for (int i = 0; i < 2; ++i) {
+		const struct const_Matrix_d*const b = ( i == 0 ? ann_i->nodes_b : ann_i->nodes_s );
+		if (b == NULL)
+			continue;
+		const ptrdiff_t n_b = b->ext_0;
+		for (int n = 0; n < n_b; ++n) {
+			const double*const data_n = get_row_const_Matrix_d(n,b);
+			for (int d = 0; d < DIM; ++d) {
+				if (data_n[d] < data_mm[0*DIM+d])
+					data_mm[0*DIM+d] = data_n[d];
+				if (data_n[d] > data_mm[1*DIM+d])
+					data_mm[1*DIM+d] = data_n[d];
+			}
+		}
+	}
+
+	for (int d = 0; d < DIM; ++d) {
+		data_mm[2*DIM+d] = 0.5*(data_mm[1*DIM+d] + data_mm[0*DIM+d]);
+		data_mm[3*DIM+d] =      data_mm[1*DIM+d] - data_mm[0*DIM+d];
+	}
+	sss->xyz_min_max = (struct const_Matrix_d*) xyz_mm;
+}
+
+void destructor_SSS_ANN_xyz (const struct SSS_ANN*const sss)
+{
+	destructor_const_Matrix_d(sss->xyz_min_max);
+}
+
+void constructor_SSS_ANN_b (const struct Input_ANN*const ann_i, struct SSS_ANN*const sss)
+{
+	enum { display = 0, };
+
+	const ptrdiff_t n_b = ann_i->nodes_b->ext_0;
+
+	sss->ext_b = n_b;
+	struct Node_ANN*const b = calloc((size_t)n_b,sizeof *(sss->b)); // moved
+
+	assert(ann_i->nodes_b != NULL);
+	const struct const_Matrix_d*const xyz_mm = sss->xyz_min_max;
+	const double*const xyz_avg = get_row_const_Matrix_d(2,xyz_mm),
+	            *const xyz_h   = get_row_const_Matrix_d(3,xyz_mm);
+
+	const double* data_b = ann_i->nodes_b->data;
+	for (int n = 0; n < n_b; ++n) {
+		b[n].index = n;
+		for (int d = 0; d < DIM; ++d) {
+			const double rst = 2.0/xyz_h[d]*(*data_b-xyz_avg[d]);
+			b[n].xyz[d] = (Index) (0.5*((1.0-rst)*INDEX_MIN+(1.0+rst)*INDEX_MAX));
+			++data_b;
+		}
+	}
+
+	if (display)
+		print_nodes((int)n_b,b,"background");
+	sort_nodes_ANN(n_b,b);
+	if (display)
+		print_nodes((int)n_b,b,"background - sorted");
+
+	sss->b = b; // keep
+}
+
+void destructor_SSS_ANN_b (const struct SSS_ANN*const sss)
+{
+	free((void*)sss->b);
+}
+
+void constructor_SSS_ANN_s (const struct Input_ANN*const ann_i, struct SSS_ANN*const sss)
+{
+	enum { display = 0, };
+
+	const ptrdiff_t n_s = ann_i->nodes_s->ext_0;
+
+	sss->ext_s = n_s;
+	struct Node_ANN*const s = calloc((size_t)n_s,sizeof *(sss->s)); // moved
+
+	assert(ann_i->nodes_s != NULL);
+	const struct const_Matrix_d*const xyz_mm = sss->xyz_min_max;
+	const double*const xyz_avg = get_row_const_Matrix_d(2,xyz_mm),
+	            *const xyz_h   = get_row_const_Matrix_d(3,xyz_mm);
+
+	const double* data_s = ann_i->nodes_s->data;
+	for (int n = 0; n < n_s; ++n) {
+		s[n].index = n;
+		for (int d = 0; d < DIM; ++d) {
+			const double rst = 2.0/xyz_h[d]*(*data_s-xyz_avg[d]);
+			s[n].xyz[d] = (Index) (0.5*((1.0-rst)*INDEX_MIN+(1.0+rst)*INDEX_MAX));
+			++data_s;
+		}
+	}
+
+	if (display)
+		print_nodes((int)n_s,s,"search");
+
+	sss->s = s; // keep
+}
+
+void destructor_SSS_ANN_s (const struct SSS_ANN*const sss)
+{
+	free((void*)sss->s);
+}
+
+void sort_nodes_ANN (const ptrdiff_t n_n, struct Node_ANN*const nodes)
+{
+	qsort((void*)nodes,(size_t)n_n,sizeof *nodes,(int (*)(const void *, const void *))cmp_shuffle);
+}
+
+const struct Nodes_Sorted_ANN* constructor_Nodes_Sorted_ANN (const struct const_Matrix_d*const nodes_i)
+{
+	set_shift();
+
+	struct SSS_ANN*const sss = calloc(1,sizeof *sss); // free
+
+	struct Input_ANN ann_i = { .nodes_b = nodes_i, .nodes_s = NULL, };
+
+	constructor_SSS_ANN_xyz(&ann_i,sss); // destructed
+	constructor_SSS_ANN_b(&ann_i,sss);   // destructed
+
+	destructor_SSS_ANN_xyz(sss);
+	destructor_SSS_ANN_b(sss);
+	free(sss);
+
+
+
+	EXIT_UNSUPPORTED; // Add unit test for this again using naive comparison.
+}
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
+
 /** \brief Compute the distance between the background node of index n and the search node and update
  *         ANN-related members of \ref SSS_c if the current node is closer than all previous. */
 static void compute_distance_and_update
@@ -197,61 +316,47 @@ Real compute_r2_to_box
 	(const struct SSS_c*const sss ///< Standard.
 	);
 
-static const struct SSS* constructor_SSS (const struct Input_ANN*const ann_i)
+/** \brief Performs 'm'ost 's'ignificant 'b'it "less than" comparison.
+ *  \return `true` if x < y; `false` otherwise.
+ *
+ *  [Chan] (p.4) proved: msb(x) < msb(y) iff ( x < y && x < (x^y) ).
+ *
+ *  <!-- References: -->
+ *  [Chan]: ann/Chan2006_A_Minimalist's_Implementation_of_an_ANN_Algorithm_in_Fixed_Dimensions.pdf
+ */
+inline static bool less_msb
+	(Index x, ///< 1st input.
+	 Index y  ///< 2nd input.
+	);
+
+static void set_shift ( )
+{
+	static bool needs_set = true;
+	if (needs_set) {
+		needs_set = false;
+		srand48(BASE_SEED+DIM); // seed the random number generator.
+		shift = (Index) (drand48()*INDEX_MAX);
+	}
+}
+
+static const struct SSS_ANN* constructor_SSS_ANN (const struct Input_ANN*const ann_i)
 {
 	enum { display = 0, };
 
-	struct SSS*const sss = calloc(1,sizeof *sss); // free
+	struct SSS_ANN*const sss = calloc(1,sizeof *sss); // free
 
-	const ptrdiff_t n_b = ann_i->nodes_b->ext_0,
-	                n_s = ann_i->nodes_s->ext_0;
-
-	sss->ext_b = n_b;
-	sss->ext_s = n_s;
-	struct Node*const b = calloc((size_t)n_b,sizeof *(sss->b)); // moved
-	struct Node*const s = calloc((size_t)n_s,sizeof *(sss->s)); // moved
-
-	const struct const_Matrix_d*const xyz_mm = constructor_xyz_min_max(ann_i); // destructed
-	const double*const xyz_avg = get_row_const_Matrix_d(2,xyz_mm),
-	            *const xyz_h   = get_row_const_Matrix_d(3,xyz_mm);
-
-	const double* data_b = ann_i->nodes_b->data,
-	            * data_s = ann_i->nodes_s->data;
-	for (int n = 0; n < n_b; ++n) {
-		b[n].index = n;
-		for (int d = 0; d < DIM; ++d) {
-			const double rst = 2.0/xyz_h[d]*(*data_b-xyz_avg[d]);
-			b[n].xyz[d] = (Index) (0.5*((1.0-rst)*INDEX_MIN+(1.0+rst)*INDEX_MAX));
-			++data_b;
-		}
-	}
-	for (int n = 0; n < n_s; ++n) {
-		for (int d = 0; d < DIM; ++d) {
-			const double rst = 2.0/xyz_h[d]*(*data_s-xyz_avg[d]);
-			s[n].xyz[d] = (Index) (0.5*((1.0-rst)*INDEX_MIN+(1.0+rst)*INDEX_MAX));
-			++data_s;
-		}
-	}
-	destructor_const_Matrix_d(xyz_mm);
-
-	if (display)
-		print_nodes((int)n_b,b,"background");
-	qsort((void*)b,(size_t)n_b,sizeof *b,(int (*)(const void *, const void *))cmp_shuffle);
-	if (display) {
-		print_nodes((int)n_b,b,"background - sorted");
-		print_nodes((int)n_s,s,"search");
-	}
-
-	sss->b = b; // free
-	sss->s = s; // free
+	constructor_SSS_ANN_xyz(ann_i,sss); // destructed
+	constructor_SSS_ANN_b(ann_i,sss);   // destructed
+	constructor_SSS_ANN_s(ann_i,sss);   // destructed
 
 	return sss;
 }
 
-static void destructor_SSS (const struct SSS*const sss)
+static void destructor_SSS_ANN (const struct SSS_ANN*const sss)
 {
-	free((void*)sss->b);
-	free((void*)sss->s);
+	destructor_SSS_ANN_xyz(sss);
+	destructor_SSS_ANN_b(sss);
+	destructor_SSS_ANN_s(sss);
 	free((void*)sss);
 }
 
@@ -267,7 +372,7 @@ static void SSS_query (struct SSS_c*const sss)
 	if (n_b == 1 || compute_r2_to_box(sss)*POW2_R(1+EPS_ANN) > r2)
 		return;
 
-	struct Node*const b = sss->b,
+	struct Node_ANN*const b = sss->b,
 	           *const s = sss->s;
 
 	if (cmp_shuffle(s->xyz,b[n_b/2].xyz) < 0) { // p.3 line 4
@@ -292,61 +397,17 @@ static void SSS_query (struct SSS_c*const sss)
 	}
 }
 
-// Level 1 ********************************************************************************************************** //
-
-/** \brief Performs 'm'ost 's'ignificant 'b'it "less than" comparison.
- *  \return `true` if x < y; `false` otherwise.
- *
- *  [Chan] (p.4) proved: msb(x) < msb(y) iff ( x < y && x < (x^y) ).
- *
- *  <!-- References: -->
- *  [Chan]: ann/Chan2006_A_Minimalist's_Implementation_of_an_ANN_Algorithm_in_Fixed_Dimensions.pdf
- */
-inline static bool less_msb
-	(Index x, ///< 1st input.
-	 Index y  ///< 2nd input.
-	);
-
-static void print_nodes (const ptrdiff_t n, const struct Node*const nodes, const char*const name)
+static void print_nodes (const ptrdiff_t n, const struct Node_ANN*const nodes, const char*const name)
 {
 	printf("Nodes (%s):\n",name);
 	for (int i = 0; i < n; ++i) {
 		const Index* xyz_i = nodes[i].xyz;
+		printf("%4d",nodes[i].index);
 		for (int j = 0; j < DIM; ++j)
 			printf(" %19d",xyz_i[j]);
 		printf("\n");
 	}
 	printf("\n");
-}
-
-static const struct const_Matrix_d* constructor_xyz_min_max (const struct Input_ANN*const ann_i)
-{
-	struct Matrix_d*const xyz_mm = constructor_empty_Matrix_d('R',4,DIM); // returned
-	double*const data_mm = xyz_mm->data;
-	for (int d = 0; d < DIM; ++d) {
-		data_mm[0*DIM+d] = DBL_MAX;
-		data_mm[1*DIM+d] = DBL_MIN;
-	}
-
-	for (int i = 0; i < 2; ++i) {
-		const struct const_Matrix_d*const b = ( i == 0 ? ann_i->nodes_b : ann_i->nodes_s );
-		const ptrdiff_t n_b = b->ext_0;
-		for (int n = 0; n < n_b; ++n) {
-			const double*const data_n = get_row_const_Matrix_d(n,b);
-			for (int d = 0; d < DIM; ++d) {
-				if (data_n[d] < data_mm[0*DIM+d])
-					data_mm[0*DIM+d] = data_n[d];
-				if (data_n[d] > data_mm[1*DIM+d])
-					data_mm[1*DIM+d] = data_n[d];
-			}
-		}
-	}
-
-	for (int d = 0; d < DIM; ++d) {
-		data_mm[2*DIM+d] = 0.5*(data_mm[1*DIM+d] + data_mm[0*DIM+d]);
-		data_mm[3*DIM+d] =      data_mm[1*DIM+d] - data_mm[0*DIM+d];
-	}
-	return (struct const_Matrix_d*) xyz_mm;
 }
 
 static int cmp_shuffle (Index* p, Index* q)
@@ -363,10 +424,12 @@ static int cmp_shuffle (Index* p, Index* q)
 	return p[j]-q[j];
 }
 
+// Level 1 ********************************************************************************************************** //
+
 static void compute_distance_and_update (const ptrdiff_t n, struct SSS_c*const sss)
 {
-	struct Node*const p = &(sss->b[n]),
-	           *const q = sss->s;
+	struct Node_ANN*const p = &(sss->b[n]),
+	               *const q = sss->s;
 
 	Real z = 0;
 	for (int j = 0; j < DIM; j++)
@@ -415,8 +478,6 @@ Real compute_r2_to_box (const struct SSS_c*const sss)
 	}
 	return z;
 }
-
-// Level 2 ********************************************************************************************************** //
 
 inline static bool less_msb (Index x, Index y)
 {
