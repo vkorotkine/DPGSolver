@@ -238,6 +238,13 @@ bool find_val_Vector_T (const struct const_Vector_T*const src, const Type val, c
 	return found;
 }
 
+void swap_vals_Vector_T (struct Vector_T*const src, const int r0, const int r1)
+{
+	const Type tmp = src->data[r0];
+	src->data[r0] = src->data[r1];
+	src->data[r1] = tmp;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

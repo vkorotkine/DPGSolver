@@ -116,7 +116,7 @@ void compute_geometry_face_T
 	);
 
 /** \brief Constructor for the high-order straight geometry values using the vertices of the p1 representation either as
- * \ref Volume::xyz_ve or the interpolation of \ref Solver_Volume_T::geom_coef to the vertex nodes.
+ *         \ref Volume::xyz_ve or the interpolation of \ref Solver_Volume_T::geom_coef to the vertex nodes.
  *  \return See brief. */
 const struct const_Multiarray_R* constructor_xyz_s_ho_T
 	(const char ve_rep,                        /**< Indicator for what nodes to use as the vertices. Options:

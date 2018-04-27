@@ -42,6 +42,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef push_back_Vector_T
 #undef push_back_Vector_Vector_T
 #undef find_val_Vector_T
+#undef swap_vals_Vector_T
 
 
 #undef Vector_R

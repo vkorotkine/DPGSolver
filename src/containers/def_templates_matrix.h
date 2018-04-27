@@ -58,6 +58,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_block_Matrix_T        set_block_Matrix_d
 #define set_block_Matrix_T_R      set_block_Matrix_d
 #define set_scaled_block_Matrix_T set_scaled_block_Matrix_d
+#define swap_rows_Matrix_T        swap_rows_Matrix_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -99,6 +100,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_block_Matrix_T_R          set_block_Matrix_c_d
 #define set_scaled_block_Matrix_T     set_scaled_block_Matrix_c
 #define set_block_Matrix_R_cmplx_step set_block_Matrix_d_cmplx_step
+#define swap_rows_Matrix_T            swap_rows_Matrix_c
 ///\}
 
 #endif

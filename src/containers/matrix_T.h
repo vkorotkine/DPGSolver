@@ -236,3 +236,10 @@ void set_value_add_T
 	(Type*const dest, ///< See brief.
 	 const Type src   ///< See brief.
 	);
+
+/// \brief Swap the values in the two input rows of the \ref Matrix_T\*.
+void swap_rows_Matrix_T
+	(struct Matrix_T*const src, ///< The input matrix.
+	 const int r0,              ///< The index of the 1st row.
+	 const int r1               ///< The index of the 2nd row.
+	);

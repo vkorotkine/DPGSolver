@@ -154,3 +154,10 @@ bool find_val_Vector_T
 	 const Type val,                         ///< The value to find.
 	 const bool sorted                      ///< Flag indicating whether the vector is sorted.
 	);
+
+/// \brief Swap the values in the two input entries of the \ref Vector_T\*.
+void swap_vals_Vector_T
+	(struct Vector_T*const src, ///< The input matrix.
+	 const int r0,              ///< The index of the 1st row.
+	 const int r1               ///< The index of the 2nd row.
+	);

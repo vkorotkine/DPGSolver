@@ -45,4 +45,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #define copy_data_Vector_T_Vector_T copy_data_Vector_i_Vector_i
 #define push_back_Vector_T          push_back_Vector_i
 #define find_val_Vector_T           find_val_Vector_i
+#define swap_vals_Vector_T          swap_vals_Vector_i
 ///\}

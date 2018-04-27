@@ -47,6 +47,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define push_back_Vector_T          push_back_Vector_d
 #define push_back_Vector_Vector_T   push_back_Vector_Vector_d
 #define find_val_Vector_T           find_val_Vector_d
+#define swap_vals_Vector_T          swap_vals_Vector_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -76,6 +77,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define push_back_Vector_T          push_back_Vector_c
 #define push_back_Vector_Vector_T   push_back_Vector_Vector_c
 #define find_val_Vector_T           find_val_Vector_c
+#define swap_vals_Vector_T          swap_vals_Vector_c
 ///\}
 
 #endif

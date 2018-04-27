@@ -55,7 +55,8 @@ void constructor_derived_Solver_Volume_T (struct Volume* volume_ptr, const struc
 	const_cast_i(&s_vol->p_ref,sim->p_ref[0]);
 	const_cast_i(&s_vol->ml,0);
 
-	const_constructor_move_Multiarray_R(&s_vol->geom_coef,constructor_default_Multiarray_R()); // destructed
+	const_constructor_move_Multiarray_R(&s_vol->geom_coef,constructor_default_Multiarray_R());    // destructed
+	const_constructor_move_Multiarray_R(&s_vol->geom_coef_p1,constructor_default_Multiarray_R()); // destructed
 	set_function_pointers_constructor_xyz_surface(s_vol,sim);
 
 	s_vol->sol_coef  = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0});   // destructed
@@ -79,6 +80,7 @@ void destructor_derived_Solver_Volume_T (struct Volume* volume_ptr)
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) volume_ptr;
 
 	destructor_const_Multiarray_R(s_vol->geom_coef);
+	destructor_const_Multiarray_R(s_vol->geom_coef_p1);
 	destructor_Multiarray_T(s_vol->sol_coef);
 	destructor_Multiarray_T(s_vol->grad_coef);
 	destructor_const_Multiarray_R(s_vol->metrics_vm);

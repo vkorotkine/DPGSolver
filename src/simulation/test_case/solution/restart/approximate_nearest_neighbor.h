@@ -58,8 +58,8 @@ struct SSS_ANN {
 
 /// \brief Container for output data from the constructor for a sorted list of nodes.
 struct Nodes_Sorted_ANN {
-	const struct const_Matrix_d* nodes;       ///< The sorted nodes.
-	const struct const_Vector_i* inds_sorted; ///< The indices of the sorted nodes in relation to the input nodes.
+	const struct const_Matrix_d* nodes;   ///< The sorted nodes.
+	const struct const_Vector_i* indices; ///< The indices of the sorted nodes in relation to the input nodes.
 };
 
 /** \brief Constructor for the \ref const_Vector_T\* (`int`) of 'a'pproximate 'n'earest 'n'eighbor indices for the input
@@ -72,6 +72,12 @@ struct Nodes_Sorted_ANN {
  */
 const struct const_Vector_i* constructor_ann_indices
 	(const struct Input_ANN*const ann_i ///< Standard.
+	);
+
+/** \brief Version of \ref constructor_ann_indices but using a \ref SSS_ANN input.
+ *  \return See brief. */
+const struct const_Vector_i* constructor_ann_indices_from_sss
+	(const struct SSS_ANN*const sss ///< Standard.
 	);
 
 /// \brief Destructor for a \ref Input_ANN container.
@@ -125,6 +131,11 @@ void sort_nodes_ANN
  *  \return See brief. */
 const struct Nodes_Sorted_ANN* constructor_Nodes_Sorted_ANN
 	(const struct const_Matrix_d*const nodes_i ///< Input unsorted nodes.
+	);
+
+/// \brief Destructor for a \ref Nodes_Sorted_ANN container.
+void destructor_Nodes_Sorted_ANN
+	(const struct Nodes_Sorted_ANN*const nsa ///< Standard.
 	);
 
 #endif // DPG__approximate_nearest_neighbor_h__INCLUDED

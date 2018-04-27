@@ -45,9 +45,11 @@ static struct Multiarray_T* constructor_sol_restart
 
 void set_sol_restart_T (const struct Simulation*const sim, struct Solution_Container_T sol_cont)
 {
+	sol_cont.using_restart = true;
 	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_restart(xyz,sim); // destructed
 	destructor_const_Multiarray_R(xyz);
+	sol_cont.using_restart = false;
 
 	update_Solution_Container_sol_T(&sol_cont,sol,sim);
 	destructor_Multiarray_T(sol);
@@ -56,6 +58,7 @@ void set_sol_restart_T (const struct Simulation*const sim, struct Solution_Conta
 const struct const_Multiarray_T* constructor_const_sol_restart_T
 	(const struct const_Multiarray_R*const xyz, const struct Simulation*const sim)
 {
+	EXIT_ADD_SUPPORT; // Ensure that the straight high-order coordinates are being passed here.
 	struct Multiarray_T* sol = constructor_sol_restart(xyz,sim); // returned
 	return (const struct const_Multiarray_T*) sol;
 }
@@ -69,6 +72,9 @@ const struct const_Multiarray_T* constructor_const_sol_restart_T
  */
 struct Restart_Info {
 	struct Simulation* sim; ///< A minimalist \ref Simulation set up from the restart file.
+
+	const ptrdiff_t n_v;                    ///< The 'n'umber of 'v'olumes.
+	struct Solver_Volume_T** solver_volume; ///< The array of solver volumes.
 
 	struct SSS_ANN* sss; ///< \ref SSS_ANN.
 };
@@ -90,20 +96,32 @@ static struct Multiarray_T* constructor_sol_restart
 
 /// \todo Make external
 	const struct const_Matrix_R xyz_M = interpret_const_Multiarray_as_Matrix_R(xyz);
-	struct Input_ANN ann_i = { .nodes_s = &xyz_M, };
-	constructor_SSS_ANN_s(&ann_i,ri.sss);
-	sort_nodes_ANN(ri.sss->ext_s,(struct Node_ANN*)ri.sss->s);
 
-	const ptrdiff_t ext_0 = xyz_M.ext_0;
-	struct Vector_i*const inds_sorted = constructor_empty_Vector_i(ext_0); // destructed
-	for (int i = 0; i < ext_0; ++i)
-		inds_sorted->data[i] = ri.sss->s[i].index;
+	const bool requires_transpose = ( xyz_M.layout == 'R' ? false : true );
+	if (requires_transpose)
+		transpose_Matrix_R((struct Matrix_R*)&xyz_M,true);
 
-print_Vector_i(inds_sorted);
-	destructor_Vector_i(inds_sorted);
+	// sorted input nodes.
+print_const_Matrix_R(&xyz_M);
+	const struct Nodes_Sorted_ANN* ns = constructor_Nodes_Sorted_ANN(&xyz_M);
 
+	// find nearest neighbors in background mesh
+	struct Input_ANN ann_i = { .nodes_s = ns->nodes, };
+	constructor_SSS_ANN_s(&ann_i,ri.sss); // destructed
 
-/* 1. copy sorted Matrix_R
+	const struct const_Vector_i*const ind_ann = constructor_ann_indices_from_sss(ri.sss); // destructed
+print_const_Vector_i(ind_ann);
+	destructor_const_Vector_i(ind_ann);
+
+	destructor_SSS_ANN_s(ri.sss); // destructed
+
+	if (requires_transpose)
+		transpose_Matrix_R((struct Matrix_R*)&xyz_M,true);
+
+print_const_Matrix_R(ns->nodes);
+print_const_Vector_i(ns->indices);
+
+/* 1. Make array of background volume pointers to avoid linked list iteration.
  * 2.
  *
  */
@@ -116,6 +134,11 @@ EXIT_UNSUPPORTED;
 }
 
 // Level 1 ********************************************************************************************************** //
+
+/// \brief Set the list of volumes in \ref Restart_Info.
+static void constructor_volume_list
+	(struct Restart_Info*const ri ///< Standard.
+	);
 
 /// \brief Set the required volume members from the restart file.
 static void initialize_volumes_restart
@@ -136,6 +159,7 @@ static struct Restart_Info get_Restart_Info (const struct Simulation*const sim)
 		ri.sim = constructor_Simulation_restart(sim); // leaked (static)
 		constructor_derived_computational_elements(ri.sim,IL_SOLVER); // leaked (static)
 
+		constructor_volume_list(&ri);
 		initialize_volumes_restart(ri.sim);
 		initialize_ann_background(&ri);
 
@@ -153,6 +177,19 @@ static void initialize_volumes_sol_coef
 	 const struct Simulation*const sim ///< Standard.
 	);
 
+static void constructor_volume_list (struct Restart_Info*const ri)
+{
+	const ptrdiff_t n_v = compute_n_volumes(ri->sim);
+
+	struct Solver_Volume_T**const s_vols = malloc((size_t) n_v * sizeof *s_vols); // keep
+
+	int n = 0;
+	for (struct Intrusive_Link* curr = ri->sim->volumes->first; curr; curr = curr->next)
+		s_vols[n++] = (struct Solver_Volume_T*) curr;
+
+	ri->solver_volume = s_vols;
+}
+
 static void initialize_volumes_restart (const struct Simulation*const sim)
 {
 	FILE* file = fopen_checked(get_restart_name()); // closed
@@ -169,6 +206,7 @@ static void initialize_ann_background (struct Restart_Info*const ri)
 {
 	const struct const_Matrix_d*const xyz_min_max = constructor_volume_xyz_min_max(ri->sim); // destructed
 	const struct const_Matrix_d*const centroids   = constructor_volume_centroids(ri->sim);   // destructed
+print_const_Matrix_d(centroids);
 
 	ri->sss = calloc(1,sizeof *ri->sss); // keep
 

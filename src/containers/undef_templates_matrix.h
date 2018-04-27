@@ -51,6 +51,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_block_Matrix_T_R
 #undef set_block_Matrix_R_cmplx_step
 #undef set_scaled_block_Matrix_T
+#undef swap_rows_Matrix_T
 
 
 #undef Matrix_R

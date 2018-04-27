@@ -55,6 +55,12 @@ static const struct const_Vector_i* constructor_ann_indices_naive
 	(const struct Input_ANN*const ann_i ///< Standard.
 	);
 
+/** \brief Constructor for a \ref Nodes_Sorted_ANN container using the naive O(n^2) nearest neighbor algorithm.
+ *  \return See brief. */
+static const struct Nodes_Sorted_ANN* constructor_Nodes_Sorted_naive
+	(const struct const_Matrix_d*const nodes_i ///< Input unsorted nodes.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 /** \test Performs unit testing for the approximate nearest neighbor functionality
@@ -71,25 +77,45 @@ int main
 {
 	assert_condition_message(argc == 2,"Invalid number of input arguments");
 
-	const struct Input_ANN*const ann_i    = constructor_file_Input_ANN(argv[1]);  // destructed
-	const struct const_Vector_i* nn_naive = constructor_ann_indices_naive(ann_i); // destructed
-	const struct const_Vector_i* nn_nlogn = constructor_ann_indices(ann_i);       // destructed
+	const struct Input_ANN*const ann_i = constructor_file_Input_ANN(argv[1]); // destructed
+	const struct const_Vector_i*const nn_naive = constructor_ann_indices_naive(ann_i), // destructed
+	                           *const nn_ann   = constructor_ann_indices(ann_i);       // destructed
+	const struct Nodes_Sorted_ANN*const nodes_sorted_naive = constructor_Nodes_Sorted_naive(ann_i->nodes_b), // dest.
+	                             *const nodes_sorted_ann   = constructor_Nodes_Sorted_ANN(ann_i->nodes_b);   // dest.
 
 	bool pass = true;
-	if (diff_const_Vector_i(nn_naive,nn_nlogn)) {
-		pass = false;
-
+	const double tol = EPS;
+	const bool* differences = (bool[])
+		{ diff_const_Vector_i(nn_naive,nn_ann),
+		  diff_const_Vector_i(nodes_sorted_naive->indices,nodes_sorted_ann->indices),
+		  diff_const_Matrix_d(nodes_sorted_naive->nodes,nodes_sorted_ann->nodes,tol),
+		};
+	if (check_diff(3,differences,&pass)) {
 		print_const_Matrix_d(ann_i->nodes_b);
 		print_const_Matrix_d(ann_i->nodes_s);
-		print_diff_const_Vector_i(nn_naive,nn_nlogn);
-		print_const_Vector_i(nn_naive);
-		print_const_Vector_i(nn_nlogn);
+		if (differences[0]) {
+			print_diff_const_Vector_i(nn_naive,nn_ann);
+			print_const_Vector_i(nn_naive);
+			print_const_Vector_i(nn_ann);
+		}
+		if (differences[1]) {
+			print_diff_const_Vector_i(nodes_sorted_naive->indices,nodes_sorted_ann->indices);
+			print_const_Vector_i(nodes_sorted_naive->indices);
+			print_const_Vector_i(nodes_sorted_ann->indices);
+		}
+		if (differences[2]) {
+			print_diff_const_Matrix_d(nodes_sorted_naive->nodes,nodes_sorted_ann->nodes,tol);
+			print_const_Matrix_d(nodes_sorted_naive->nodes);
+			print_const_Matrix_d(nodes_sorted_ann->nodes);
+		}
 	}
 	assert_condition(pass);
 
 	destructor_Input_ANN((struct Input_ANN*)ann_i);
 	destructor_const_Vector_i(nn_naive);
-	destructor_const_Vector_i(nn_nlogn);
+	destructor_const_Vector_i(nn_ann);
+	destructor_Nodes_Sorted_ANN(nodes_sorted_naive);
+	destructor_Nodes_Sorted_ANN(nodes_sorted_ann);
 
 	OUTPUT_SUCCESS;
 }
@@ -139,4 +165,46 @@ static const struct const_Vector_i* constructor_ann_indices_naive (const struct 
 	destructor_Matrix_d(d2);
 
 	return (struct const_Vector_i*) nn;
+}
+
+static const struct Nodes_Sorted_ANN* constructor_Nodes_Sorted_naive (const struct const_Matrix_d*const nodes_i)
+{
+	const ptrdiff_t n_n = nodes_i->ext_0;
+	struct Vector_i*const inds_sorted  = constructor_empty_Vector_i(n_n); // moved
+	int*const data_is = inds_sorted->data;
+	for (int i = 0; i < n_n; ++i)
+		inds_sorted->data[i] = i;
+
+	struct Matrix_d nodes_s = { .layout = 'R', .ext_0 = 1, .ext_1 = DIM, .owns_data = false, .data = NULL, };
+	struct Matrix_d*const nodes_b = constructor_copy_Matrix_d((struct Matrix_d*)nodes_i); // moved
+	double*const data_b0 = nodes_b->data;
+
+	assert(nodes_b->ext_1 == DIM);
+	for (int ind_s = 1; ind_s < n_n; ++ind_s) {
+		nodes_s.data   = get_row_Matrix_d(0,nodes_b);
+		nodes_b->data  = get_row_Matrix_d(1,nodes_b);
+		nodes_b->ext_0 -= 1;
+		inds_sorted->data  += 1;
+		inds_sorted->ext_0 -= 1;
+
+		struct Input_ANN ann_i = { .nodes_b = (struct const_Matrix_d*) nodes_b,
+		                           .nodes_s = (struct const_Matrix_d*) &nodes_s, };
+		const struct const_Vector_i* ind_n = constructor_ann_indices_naive(&ann_i); // destructed
+
+		swap_rows_Matrix_d(nodes_b,0,ind_n->data[0]);
+		swap_vals_Vector_i(inds_sorted,0,ind_n->data[0]);
+		destructor_const_Vector_i(ind_n);
+	}
+
+	nodes_b->ext_0 = n_n;
+	nodes_b->data  = data_b0;
+
+	inds_sorted->ext_0 = n_n;
+	inds_sorted->data  = data_is;
+
+	struct Nodes_Sorted_ANN*const nsa = calloc(1,sizeof *nsa); // returned
+	nsa->nodes   = (struct const_Matrix_d*) nodes_b;     // keep
+	nsa->indices = (struct const_Vector_i*) inds_sorted; // keep
+
+	return nsa;
 }

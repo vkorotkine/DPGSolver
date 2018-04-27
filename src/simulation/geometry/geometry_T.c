@@ -66,6 +66,12 @@ static compute_geom_coef_fptr_T set_fptr_geom_coef_T
 	 const bool volume_curved ///< \ref Volume::curved.
 	);
 
+/// \brief Version of \ref compute_geom_coef_fptr_T for degree 1 coefficients.
+static void compute_geom_coef_p1
+	(const struct Simulation*const sim, ///< See brief.
+	 struct Solver_Volume_T*const s_vol ///< See brief.
+	);
+
 /** \brief See return.
  *  \return The permutation required for conversion to the standard Jacobian ordering from the transposed ordering. */
 static const ptrdiff_t* set_jacobian_permutation
@@ -163,6 +169,7 @@ void compute_geometry_volume_T
 
 	if (recompute_geom_coef) {
 		compute_geom_coef_fptr_T compute_geom_coef = set_fptr_geom_coef_T(sim->domain_type,vol->curved);
+		compute_geom_coef_p1(sim,s_vol);
 		compute_geom_coef(sim,s_vol);
 	}
 
@@ -589,6 +596,23 @@ static void correct_face_xyz_straight_T
 	(struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
 	 const struct Simulation*const sim   ///< \ref Simulation.
 	);
+
+static void compute_geom_coef_p1 (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
+{
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	UNUSED(sim);
+	const char op_format = 'd';
+
+	struct Volume* vol = (struct Volume*) s_vol;
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
+
+	const struct Operator* vc0_vv_vgs = get_Multiarray_Operator(g_e->vc0_vv_vgs,(ptrdiff_t[]){0,0,1,1});
+
+	const struct const_Multiarray_R*const xyz_ve = vol->xyz_ve;
+	destructor_const_Multiarray_R(s_vol->geom_coef_p1);
+	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef_p1,
+		constructor_mm_NN1_Operator_const_Multiarray_R(vc0_vv_vgs,xyz_ve,'C',op_format,xyz_ve->order,NULL)); // keep
+}
 
 static void compute_geom_coef_straight_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
 {

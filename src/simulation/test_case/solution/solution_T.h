@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to functions used for solution specification (initialization).
  */
 
+#include <stdbool.h>
+
 struct const_Multiarray_R;
 struct const_Multiarray_T;
 struct Flux_Input_T;
@@ -71,6 +73,8 @@ struct Solution_Container_T {
 	char ce_type,   ///< The type of computational element associated with the solution data being set.
 	     cv_type,   ///< The format in which to return the solution. Options: 'c'oefficients, 'v'alues.
 	     node_kind; ///< The kind of nodes to be used. Options: 's'olution, 'c'ubature.
+
+	bool using_restart; ///< Flag for whether the solution is being computed from a restart file.
 
 	struct Solver_Volume_T* volume; ///< \ref Solver_Volume_T.
 	struct Solver_Face_T* face;     ///< \ref Solver_Face_T.

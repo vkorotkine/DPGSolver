@@ -283,7 +283,6 @@ void set_scaled_block_Matrix_T
 	}
 }
 
-
 void set_value_insert_T (Type*const dest, const Type src)
 {
 	*dest = src;
@@ -292,6 +291,21 @@ void set_value_insert_T (Type*const dest, const Type src)
 void set_value_add_T (Type*const dest, const Type src)
 {
 	*dest += src;
+}
+
+void swap_rows_Matrix_T (struct Matrix_T*const src, const int r0, const int r1)
+{
+	if (r0 == r1)
+		return;
+
+	const ptrdiff_t ext_1 = src->ext_1;
+	Type* data_r0 = get_row_Matrix_T(r0,src);
+	Type* data_r1 = get_row_Matrix_T(r1,src);
+	for (int i = 0; i < ext_1; ++i) {
+		const Type tmp = *data_r0;
+		*data_r0++ = *data_r1;
+		*data_r1++ = tmp;
+	}
 }
 
 // Static functions ************************************************************************************************* //

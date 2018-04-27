@@ -138,7 +138,12 @@ static void fprintf_elements_gmsh
 	 const struct Elements_Info*const ei ///< Standard.
 	);
 
-/// \brief Print the solution coefficients in the Bezier basis to the gmsh file.
+/** \brief Print the solution coefficients in the Bezier basis to the gmsh file.
+ *
+ *  The solution is outputted as Bezier basis coefficients (as opposed to nodal Lagrange basis values, for example) so
+ *  that the operator required to obtain the values at the nodes of a non-nested mesh can be computed directly from the
+ *  basis functions (without requiring the standard construction in \ref constructor_operators.c).
+ */
 static void fprintf_solution_bezier_gmsh
 	(FILE* file,                       ///< The file.
 	 const struct Simulation*const sim ///< Standard.
