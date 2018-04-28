@@ -56,14 +56,6 @@ static const struct const_Nodes* constructor_const_Nodes_tet
 	 const int node_type ///< Defined for \ref constructor_const_Nodes_si.
 	);
 
-/** \brief Constructor for a \ref Nodes container for the p1 reference element vertices for arbitrary element type.
- *  \return See brief. */
-static const struct const_Nodes* constructor_const_Nodes_vertices
-	(const int d,     ///< Defined in \ref constructor_Nodes_fptr.
-	 const int p,     ///< Defined in \ref constructor_Nodes_fptr.
-	 const int s_type ///< \ref Element::s_type.
-	);
-
 /** \brief Constructor for a \ref Nodes container for the plotting nodes for arbitrary element type.
  *  \return See brief. */
 static const struct const_Nodes* constructor_const_Nodes_plot
@@ -472,6 +464,97 @@ const struct const_Nodes* constructor_const_Nodes_pyr (const int d, const int p,
 		nodes->w = constructor_move_Vector_d_d(ext_0,true,wOut); // keep
 	else
 		nodes->w = NULL;
+
+	nodes->has_symms = false;
+	nodes->s = NULL;
+
+	return (const struct const_Nodes*) nodes;
+}
+
+const struct const_Nodes* constructor_const_Nodes_vertices (const int d, const int p, const int s_type)
+{
+	assert(p == 1 || p == 2);
+	const int node_type = NODES_VERTEX;
+
+	const double* rst = NULL;
+
+	switch (s_type) {
+	case ST_TP: {
+		static const double rst_LINE_p1[] = { -1.0,  1.0, };
+		static const double rst_QUAD_p1[] = { -1.0,  1.0, -1.0,  1.0,
+		                                      -1.0, -1.0,  1.0,  1.0, };
+		static const double rst_HEX_p1[]  = { -1.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0,  1.0,
+		                                      -1.0, -1.0,  1.0,  1.0, -1.0, -1.0,  1.0,  1.0,
+		                                      -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0,  1.0, };
+		static const double rst_LINE_p2[] = { -1.0,  0.0,  1.0, };
+		static const double rst_QUAD_p2[] = { -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0,
+		                                      -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0,};
+		static const double rst_HEX_p2[]  = { -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0,
+		                                      -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0, -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0, -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0,
+		                                      -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, };
+		if (d == 0)
+			rst = NULL;
+		else if (d == 1)
+			rst = ( p == 1 ? rst_LINE_p1 : rst_LINE_p2 );
+		else if (d == 2)
+			rst = ( p == 1 ? rst_QUAD_p1 : rst_QUAD_p2 );
+		else if (d == 3)
+			rst = ( p == 1 ? rst_HEX_p1 : rst_HEX_p2 );
+		else
+			EXIT_UNSUPPORTED;
+		break;
+	} case ST_SI: {
+		static const double rst_TRI_p1[] = { -1.0,        1.0,        0.0,
+		                                     -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, };
+		static const double rst_TET_p1[] = { -1.0,        1.0,        0.0,        0.0,
+		                                     -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3,  0.0,
+		                                     -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6,  3.0/SQRT6, };
+		static const double rst_TRI_p2[] = { -1.0,        0.0,        1.0,       -0.5,        0.5,        0.0,
+		                                     -1.0/SQRT3, -1.0/SQRT3, -1.0/SQRT3,  0.5/SQRT3,  0.5/SQRT3,  2.0/SQRT3, };
+		static const double rst_TET_p2[] = { -1.0,        0.0,        1.0,       -0.5,        0.5,        0.0,       -0.5,        0.5,        0.0,        0.0,
+		                                     -1.0/SQRT3, -1.0/SQRT3, -1.0/SQRT3,  0.5/SQRT3,  0.5/SQRT3,  2.0/SQRT3, -0.5/SQRT3, -0.5/SQRT3,  1.0/SQRT3,  0.0,
+		                                     -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6,  1.0/SQRT6,  1.0/SQRT6,  1.0/SQRT6,  3.0/SQRT6, };
+		if (d == 2)
+			rst = ( p == 1 ? rst_TRI_p1 : rst_TRI_p2 );
+		else if (d == 3)
+			rst = ( p == 1 ? rst_TET_p1 : rst_TET_p2 );
+		else
+			EXIT_UNSUPPORTED;
+		break;
+	} case ST_PYR: {
+		assert(p == 1); // ADD_SUPPORT for p2
+		assert(d == 3);
+		static const double rst_PYR[] = { -1.0,        1.0,       -1.0,        1.0,       0.0,
+		                                  -1.0,       -1.0,        1.0,        1.0,       0.0,
+		                                  -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, 4.0/5.0*SQRT2, };
+		rst = rst_PYR;
+		break;
+	} case ST_WEDGE: {
+		assert(p == 1); // ADD_SUPPORT for p2
+		assert(d == 3);
+		EXIT_ERROR("Should not be required. Here for reference only.\n");
+//		static const double rst_WEDGE[] = { -1.0,        1.0,        0.0,       -1.0,        1.0,        0.0,
+//		                                    -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3,
+//		                                    -1.0,       -1.0,       -1.0,        1.0,        1.0,        1.0, };
+//		rst = rst_WEDGE;
+		break;
+	} default:
+		EXIT_ERROR("Unsupported: %d\n",s_type);
+		break;
+	}
+
+	struct Nodes* nodes = calloc(1,sizeof *nodes); // returned
+
+	nodes->p         = p;
+	nodes->node_type = node_type;
+
+	const ptrdiff_t ext_0 = compute_n_basis(d,p,s_type);
+
+//	nodes->rst = constructor_copy_Matrix_d_d('C',ext_0,d,rst); // keep
+	nodes->rst = (struct Matrix_d*) constructor_move_const_Matrix_d_d('C',ext_0,d,false,rst); // keep
+
+	nodes->has_weights = false;
+	nodes->w = NULL;
 
 	nodes->has_symms = false;
 	nodes->s = NULL;
@@ -1031,97 +1114,6 @@ static const struct const_Nodes* constructor_const_Nodes_tet (const int p, const
 		nodes->w = constructor_move_Vector_d_d(ext_0,true,wOut); // keep
 	else
 		nodes->w = NULL;
-
-	nodes->has_symms = false;
-	nodes->s = NULL;
-
-	return (const struct const_Nodes*) nodes;
-}
-
-static const struct const_Nodes* constructor_const_Nodes_vertices (const int d, const int p, const int s_type)
-{
-	assert(p == 1 || p == 2);
-	const int node_type = NODES_VERTEX;
-
-	const double* rst = NULL;
-
-	switch (s_type) {
-	case ST_TP: {
-		static const double rst_LINE_p1[] = { -1.0,  1.0, };
-		static const double rst_QUAD_p1[] = { -1.0,  1.0, -1.0,  1.0,
-		                                      -1.0, -1.0,  1.0,  1.0, };
-		static const double rst_HEX_p1[]  = { -1.0,  1.0, -1.0,  1.0, -1.0,  1.0, -1.0,  1.0,
-		                                      -1.0, -1.0,  1.0,  1.0, -1.0, -1.0,  1.0,  1.0,
-		                                      -1.0, -1.0, -1.0, -1.0,  1.0,  1.0,  1.0,  1.0, };
-		static const double rst_LINE_p2[] = { -1.0,  0.0,  1.0, };
-		static const double rst_QUAD_p2[] = { -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0,
-		                                      -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0,};
-		static const double rst_HEX_p2[]  = { -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0, -1.0,  0.0,  1.0,
-		                                      -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0, -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0, -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0,
-		                                      -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0, -1.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0,  1.0, };
-		if (d == 0)
-			rst = NULL;
-		else if (d == 1)
-			rst = ( p == 1 ? rst_LINE_p1 : rst_LINE_p2 );
-		else if (d == 2)
-			rst = ( p == 1 ? rst_QUAD_p1 : rst_QUAD_p2 );
-		else if (d == 3)
-			rst = ( p == 1 ? rst_HEX_p1 : rst_HEX_p2 );
-		else
-			EXIT_UNSUPPORTED;
-		break;
-	} case ST_SI: {
-		static const double rst_TRI_p1[] = { -1.0,        1.0,        0.0,
-		                                     -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, };
-		static const double rst_TET_p1[] = { -1.0,        1.0,        0.0,        0.0,
-		                                     -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3,  0.0,
-		                                     -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6,  3.0/SQRT6, };
-		static const double rst_TRI_p2[] = { -1.0,        0.0,        1.0,       -0.5,        0.5,        0.0,
-		                                     -1.0/SQRT3, -1.0/SQRT3, -1.0/SQRT3,  0.5/SQRT3,  0.5/SQRT3,  2.0/SQRT3, };
-		static const double rst_TET_p2[] = { -1.0,        0.0,        1.0,       -0.5,        0.5,        0.0,       -0.5,        0.5,        0.0,        0.0,
-		                                     -1.0/SQRT3, -1.0/SQRT3, -1.0/SQRT3,  0.5/SQRT3,  0.5/SQRT3,  2.0/SQRT3, -0.5/SQRT3, -0.5/SQRT3,  1.0/SQRT3,  0.0,
-		                                     -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6, -1.0/SQRT6,  1.0/SQRT6,  1.0/SQRT6,  1.0/SQRT6,  3.0/SQRT6, };
-		if (d == 2)
-			rst = ( p == 1 ? rst_TRI_p1 : rst_TRI_p2 );
-		else if (d == 3)
-			rst = ( p == 1 ? rst_TET_p1 : rst_TET_p2 );
-		else
-			EXIT_UNSUPPORTED;
-		break;
-	} case ST_PYR: {
-		assert(p == 1); // ADD_SUPPORT for p2
-		assert(d == 3);
-		static const double rst_PYR[] = { -1.0,        1.0,       -1.0,        1.0,       0.0,
-		                                  -1.0,       -1.0,        1.0,        1.0,       0.0,
-		                                  -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, -SQRT2/5.0, 4.0/5.0*SQRT2, };
-		rst = rst_PYR;
-		break;
-	} case ST_WEDGE: {
-		assert(p == 1); // ADD_SUPPORT for p2
-		assert(d == 3);
-		EXIT_ERROR("Should not be required. Here for reference only.\n");
-//		static const double rst_WEDGE[] = { -1.0,        1.0,        0.0,       -1.0,        1.0,        0.0,
-//		                                    -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3, -1.0/SQRT3, -1.0/SQRT3,  2.0/SQRT3,
-//		                                    -1.0,       -1.0,       -1.0,        1.0,        1.0,        1.0, };
-//		rst = rst_WEDGE;
-		break;
-	} default:
-		EXIT_ERROR("Unsupported: %d\n",s_type);
-		break;
-	}
-
-	struct Nodes* nodes = calloc(1,sizeof *nodes); // returned
-
-	nodes->p         = p;
-	nodes->node_type = node_type;
-
-	const ptrdiff_t ext_0 = compute_n_basis(d,p,s_type);
-
-//	nodes->rst = constructor_copy_Matrix_d_d('C',ext_0,d,rst); // keep
-	nodes->rst = (struct Matrix_d*) constructor_move_const_Matrix_d_d('C',ext_0,d,false,rst); // keep
-
-	nodes->has_weights = false;
-	nodes->w = NULL;
 
 	nodes->has_symms = false;
 	nodes->s = NULL;

@@ -158,6 +158,14 @@ const struct const_Nodes* constructor_const_Nodes_pyr
 	 const int node_type ///< Defined in \ref constructor_Nodes_fptr.
 	);
 
+/** \brief Constructor for a \ref Nodes container for the p1 reference element vertices for arbitrary element type.
+ *  \return See brief. */
+const struct const_Nodes* constructor_const_Nodes_vertices
+	(const int d,     ///< Defined in \ref constructor_Nodes_fptr.
+	 const int p,     ///< Defined in \ref constructor_Nodes_fptr.
+	 const int s_type ///< \ref Element::s_type.
+	);
+
 /// \brief Destructor for a \ref Nodes\* container.
 void destructor_Nodes
 	(struct Nodes* nodes ///< Standard.

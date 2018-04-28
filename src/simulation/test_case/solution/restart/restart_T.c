@@ -126,10 +126,10 @@ print_const_Vector_i(ns->indices);
  *
  */
 
+EXIT_UNSUPPORTED;
 	destructor_SSS_ANN_s(ri.sss);
 
 
-EXIT_UNSUPPORTED;
 
 }
 

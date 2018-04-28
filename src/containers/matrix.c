@@ -45,7 +45,7 @@ struct Node {
 	int index;       ///< The index of the node.
 };
 
-/** \brief Comparison function for std::qsort between `double*` `a` and `b` of length \ref DIM.
+/** \brief Comparison function for std::qsort between `double*` `a` and `b` of length DIM.
  *  \return Standard required return for comparator function of qsort. */
 static int cmp_DIM_d
 	(const double*const a, ///< Variable 1.

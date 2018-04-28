@@ -93,7 +93,7 @@ void adapt_initial_mesh_if_required
 
 /// \brief Adapt to the maximum refinement levels in both h and p.
 void adapt_to_maximum_refinement
-	(struct Simulation*const sim,                           ///< \ref Standard.
+	(struct Simulation*const sim,                           ///< Standard.
 	 const struct Integration_Test_Info*const int_test_info ///< Standard.
 	);
 
