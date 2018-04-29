@@ -69,7 +69,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #endif
 
 ///\{ \name Real Data types/Function names
-#define pow_R       pow
+#define abs_R  fabs
+#define pow_R  pow
 
 #define equal_R     equal_d
 #define norm_R      norm_d

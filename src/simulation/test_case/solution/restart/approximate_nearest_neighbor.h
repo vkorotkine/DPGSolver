@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct const_Vector_i;
 struct const_Matrix_d;
+struct Matrix_d;
 
 /// \brief Container for 'A'pproximate 'N'earest 'N'eighbor input data.
 struct Input_ANN {
@@ -131,6 +132,13 @@ void sort_nodes_ANN
  *  \return See brief. */
 const struct Nodes_Sorted_ANN* constructor_Nodes_Sorted_ANN
 	(const struct const_Matrix_d*const nodes_i ///< Input unsorted nodes.
+	);
+
+/** \brief Version of \ref constructor_Nodes_Sorted_ANN transposing the input nodes to be row-major and then back if the
+ *         input is not row-major.
+ *  \return See brief. */
+const struct Nodes_Sorted_ANN* constructor_Nodes_Sorted_ANN_with_trans
+	(struct Matrix_d*const nodes_i ///< See brief.
 	);
 
 /// \brief Destructor for a \ref Nodes_Sorted_ANN container.

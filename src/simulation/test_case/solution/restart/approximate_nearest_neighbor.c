@@ -371,6 +371,19 @@ const struct Nodes_Sorted_ANN* constructor_Nodes_Sorted_ANN (const struct const_
 	return nsa;
 }
 
+const struct Nodes_Sorted_ANN* constructor_Nodes_Sorted_ANN_with_trans (struct Matrix_d*const nodes_i)
+{
+	const bool requires_transpose = ( nodes_i->layout == 'R' ? false : true );
+	if (requires_transpose)
+		transpose_Matrix_d(nodes_i,true);
+
+	const struct Nodes_Sorted_ANN*const ns = constructor_Nodes_Sorted_ANN((struct const_Matrix_d*)nodes_i);
+
+	if (requires_transpose)
+		transpose_Matrix_d(nodes_i,true);
+	return ns;
+}
+
 void destructor_Nodes_Sorted_ANN (const struct Nodes_Sorted_ANN*const nsa)
 {
 	destructor_const_Matrix_d(nsa->nodes);

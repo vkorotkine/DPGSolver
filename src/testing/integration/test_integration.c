@@ -308,7 +308,7 @@ void adapt_to_maximum_refinement (struct Simulation*const sim, const struct Inte
 {
 	const int*const p_ref  = int_test_info->p_ref,
 	         *const ml_ref = int_test_info->ml,
-		   *const ml_p_curr = sim->ml_p_curr;
+	         *const ml_p_curr = sim->ml_p_curr;
 
 	for (int ml = ml_p_curr[0]; ml < ml_ref[1]; ++ml)
 		adapt_hp(sim,ADAPT_S_H_REFINE,NULL);

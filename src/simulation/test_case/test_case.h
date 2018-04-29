@@ -78,4 +78,8 @@ bool test_case_explicitly_enforces_conservation
  *  \return See brief. */
 bool using_restart ( );
 
+/** \brief Return whether a restart file should be outputted.
+ *  \return See brief. */
+bool outputting_restart ( );
+
 #endif // DPG__test_case_h__INCLUDED

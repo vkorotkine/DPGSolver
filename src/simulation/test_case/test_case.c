@@ -104,6 +104,22 @@ bool using_restart ( )
 	return use_restart;
 }
 
+bool outputting_restart ( )
+{
+	static bool need_input  = true;
+	static bool output_restart = false;
+	if (need_input) {
+		need_input = false;
+		char line[STRLEN_MAX];
+		FILE* input_file = input_file = fopen_input('t',NULL,NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line,"output_restart")) read_skip_const_b(line,&output_restart);
+		}
+		fclose(input_file);
+	}
+	return output_restart;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "adaptation.h"
 #include "restart_writers.h"
 #include "simulation.h"
+#include "solution.h"
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -57,28 +58,14 @@ int main
 	PetscInitialize(&argc,&argv,PETSC_NULL,PETSC_NULL);
 	assert_condition_message(argc == 2,"Invalid number of input arguments");
 
+/* Would be better to output something significantly more accurate and run the convergence order tests normally.
+ * Perhaps two input files here:
+ * 1 - Fine mesh for restart writing. -> output_restart_finest
+ * 2 - Relatively coarse sequence for convergence testing. -> run_convergence_order_study.
+ */
 	output_restart_finest(argv[1]);
 	run_convergence_order_study(argc,argv,CONV_STUDY_RESTART);
-
-/*
-Algorithm to sort the points (Should go in the reader portion).
-
-ImmutableList<Point> OrderByDistance(Point start, ImmutableSet<Point> points)
-{
-  var current = start;
-  var remaining = points;
-  var path = ImmutableList<Point>.Empty.Add(start);
-  while(!remaining.IsEmpty)
-  {
-    var next = Closest(current, remaining);
-    path = path.Add(next);
-    remaining = remaining.Remove(next);
-    current = next;
-  }
-  return path;
-}
-*/
-EXIT_UNSUPPORTED;
+EXIT_UNSUPPORTED; // Why is the convergence only optimal in entropy? THINK.
 
 	PetscFinalize();
 	OUTPUT_SUCCESS;
@@ -106,9 +93,14 @@ static void output_restart_finest (const char*const ctrl_name)
 	const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
 	if (!test_case->has_analytical)
 		EXIT_ERROR("This test requires the use of a test case which has an analytical solution.");
+	if (using_restart() && outputting_restart())
+		EXIT_ERROR("%s %s","Setting the restarted solution from another restarted solution\n",
+		                   "instead of the analytical solution.");
 
 	adapt_to_maximum_refinement(sim,int_test_info);
-	output_restart(sim);
+	set_initial_solution(sim);
+	if (outputting_restart())
+		output_restart(sim);
 
 	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,type_rc,false);
 

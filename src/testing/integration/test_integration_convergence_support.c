@@ -101,7 +101,6 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 	case CONV_STUDY_SOLVE:
 		break; // Do nothing
 	case CONV_STUDY_RESTART:
-		ml_max = ml_ref[1]-1;
 		ignore_static = true;
 		break;
 	default:
@@ -113,7 +112,7 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 	for (int p = p_ref[0]; p <= p_ref[1]; ++p) {
 		const int adapt_type = int_test_info->adapt_type;
 		const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
-		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc,ignore_static); // dest.
+		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc,ignore_static); // d.
 		ignore_static = false;
 
 		switch (conv_study_type) {

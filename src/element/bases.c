@@ -945,14 +945,19 @@ constructor_basis_fptr get_constructor_basis_by_super_type (const int s_type, co
 			default:     EXIT_ERROR("Unsupported: %d\n",s_type);   break;
 		}
 	} else if (strcmp(ref_basis_name,"bezier") == 0) {
-		switch (s_type) {
-			case ST_TP:  return constructor_basis_tp_bezier; break;
-			case ST_SI:  return constructor_basis_si_bezier; break;
-			case ST_PYR: EXIT_ADD_SUPPORT; break;
-			default:     EXIT_ERROR("Unsupported: %d\n",s_type); break;
-		}
+		return get_constructor_basis_bezier_by_super_type(s_type);
 	}
 	EXIT_ERROR("Did not find the basis with the specified inputs: (%d, %s)\n",s_type,ref_basis_name);
+}
+
+constructor_basis_fptr get_constructor_basis_bezier_by_super_type (const int s_type)
+{
+	switch (s_type) {
+		case ST_TP:  return constructor_basis_tp_bezier;  break;
+		case ST_SI:  return constructor_basis_si_bezier;  break;
+		case ST_PYR: return constructor_basis_pyr_bezier; break;
+		default:     EXIT_ERROR("Unsupported: %d\n",s_type); break;
+	}
 }
 
 constructor_basis_fptr get_constructor_basis_by_super_type_i (const int s_type, const int ind_basis)

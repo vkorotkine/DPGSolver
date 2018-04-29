@@ -26,14 +26,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver.h"
 
 #include "approximate_nearest_neighbor.h"
+#include "bases.h"
 #include "computational_elements.h"
 #include "const_cast.h"
 #include "element.h"
 #include "file_processing.h"
 #include "geometry.h"
 #include "intrusive.h"
+#include "inverse_mapping.h"
+#include "math_functions.h"
 #include "simulation.h"
 #include "solution.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 

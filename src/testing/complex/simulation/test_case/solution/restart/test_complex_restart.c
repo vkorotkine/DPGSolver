@@ -22,21 +22,27 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "approximate_nearest_neighbor.h"
+#include "bases.h"
 #include "computational_elements.h"
 #include "const_cast.h"
 #include "element.h"
 #include "file_processing.h"
 #include "intrusive.h"
+#include "inverse_mapping.h"
+#include "math_functions.h"
 #include "restart.h"
 #include "simulation.h"
+#include "test_case.h"
 
 
+#include "complex_matrix.h"
 #include "complex_multiarray.h"
 
 #include "test_complex_face_solver.h"
 #include "test_complex_volume_solver.h"
 
 #include "test_complex_solution.h"
+#include "test_complex_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 

@@ -217,6 +217,12 @@ constructor_basis_fptr get_constructor_basis_by_super_type
 	 const char*const ref_basis_name ///< The name of the reference basis to be used.
 	);
 
+/** \brief Version of \ref get_constructor_basis_by_super_type for the bezier basis.
+ *  \return See brief. */
+constructor_basis_fptr get_constructor_basis_bezier_by_super_type
+	(const int s_type ///< See brief.
+	);
+
 /** \brief Same as \ref get_constructor_basis_by_super_type but with `int` input.
  *  \return See brief. */
 constructor_basis_fptr get_constructor_basis_by_super_type_i

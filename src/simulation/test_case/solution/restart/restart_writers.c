@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "mesh_readers.h"
 #include "simulation.h"
 #include "solution.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -55,6 +56,12 @@ static void output_restart_gmsh
 
 void output_restart (const struct Simulation*const sim)
 {
+	if (!outputting_restart()) {
+		printf("Restart outputting is currently disabled in the test_case data file.\n");
+		printf("Returning without outputting.\n");
+		return;
+	}
+
 	switch (sim->domain_type) {
 	case DOM_STRAIGHT:
 	case DOM_PARAMETRIC:
