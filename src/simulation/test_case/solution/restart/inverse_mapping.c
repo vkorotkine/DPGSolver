@@ -81,6 +81,14 @@ static void destructor_Inv_Map
 	(const struct Inv_Map*const im ///< Standard.
 	);
 
+/** \brief Version of \ref get_Newton_fptr for LINEs.
+ *  \return See brief. */
+static struct Newton get_Newton_line
+	(const struct const_Matrix_d*const ve, ///< See brief.
+	 const double*const xyz,               ///< See brief.
+	 const double*const rst                ///< See brief.
+	);
+
 /** \brief Version of \ref get_Newton_fptr for TRIs.
  *  \return See brief. */
 static struct Newton get_Newton_tri
@@ -89,7 +97,21 @@ static struct Newton get_Newton_tri
 	 const double*const rst                ///< See brief.
 	);
 
-/** \brief Version of \ref get_Newton_term_fptr for 2 dimensions.
+/** \brief Version of \ref get_Newton_fptr for QUADs.
+ *  \return See brief. */
+static struct Newton get_Newton_quad
+	(const struct const_Matrix_d*const ve, ///< See brief.
+	 const double*const xyz,               ///< See brief.
+	 const double*const rst                ///< See brief.
+	);
+
+/** \brief Version of \ref get_Newton_term_fptr for 1 dimensional term.
+ *  \return See brief. */
+static const double* get_Newton_term_1d
+	(const struct Newton*const newton ///< See brief.
+	);
+
+/** \brief Version of \ref get_Newton_term_fptr for 2 dimensional term.
  *  \return See brief. */
 static const double* get_Newton_term_2d
 	(const struct Newton*const newton ///< See brief.
@@ -150,7 +172,6 @@ struct Matrix_d* constructor_inverse_mapping_mutable
 			const double*const drst = im->get_Newton_term(&newton);
 			for (int d = 0; d < dim; ++d)
 				data_rst[d] -= drst[d];
-//printf("%d %d % .3e % .3e. % .3e % .3e\n",n,count,newton.res[0],newton.res[1],data_rst[0],data_rst[1]);
 		}
 		assert(count < count_max); // Not yet converged.
 	}
@@ -239,7 +260,8 @@ static const struct Inv_Map* constructor_Inv_Map (const int e_type)
 		im->dim    = 1;
 		im->s_type = ST_TP;
 		im->guess  = 1.0/2.0;
-EXIT_ADD_SUPPORT;
+		im->get_Newton      = get_Newton_line;
+		im->get_Newton_term = get_Newton_term_1d;
 		break;
 	case TRI:
 		im->dim    = 2;
@@ -252,7 +274,8 @@ EXIT_ADD_SUPPORT;
 		im->dim    = 2;
 		im->s_type = ST_TP;
 		im->guess  = 1.0/2.0;
-EXIT_ADD_SUPPORT;
+		im->get_Newton      = get_Newton_quad;
+		im->get_Newton_term = get_Newton_term_2d;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",e_type);
@@ -266,6 +289,35 @@ static void destructor_Inv_Map (const struct Inv_Map*const im)
 	free((void*)im);
 }
 
+static struct Newton get_Newton_line
+	(const struct const_Matrix_d*const ve, const double*const xyz, const double*const rst)
+{
+	assert(ve->layout == 'R');
+
+	enum { dim = 1, };
+	assert(ve->ext_1 == dim);
+
+	const double*const p  = xyz,
+	            *const p0 = ve->data,
+	            *const p1 = p0+dim;
+	const double r = rst[0];
+
+	static struct Newton newton;
+	double*const res = newton.res,
+	      *const jac = newton.jac;
+
+	int ind = 0;
+	for (int i = 0; i < dim; ++i) {
+		res[ind++] = p[i] - ( p0[i]*(1-r) + p1[i]*(r) );
+	}
+	ind = 0;
+	for (int i = 0; i < dim; ++i) {
+//		jac[ind++] = - ( p0[i]*(0-1) + p1[i]*(1) );
+		jac[ind++] = p0[i] - p1[i];
+	}
+	return newton;
+}
+
 static struct Newton get_Newton_tri
 	(const struct const_Matrix_d*const ve, const double*const xyz, const double*const rst)
 {
@@ -276,8 +328,8 @@ static struct Newton get_Newton_tri
 
 	const double*const p  = xyz,
 	            *const p0 = ve->data,
-	            *const p1 = p0+DIM,
-	            *const p2 = p1+DIM;
+	            *const p1 = p0+dim,
+	            *const p2 = p1+dim;
 	const double r = rst[0],
 	             s = rst[1];
 
@@ -297,23 +349,59 @@ static struct Newton get_Newton_tri
 		jac[ind++] = p0[i] - p2[i];
 	}
 	return newton;
+}
 
-/// Note this is for a QUAD.
-/*
+static struct Newton get_Newton_quad
+	(const struct const_Matrix_d*const ve, const double*const xyz, const double*const rst)
+{
+	assert(ve->layout == 'R');
+
+	enum { dim = 2, };
+	assert(ve->ext_1 == dim);
+
+	const double*const p  = xyz,
+	            *const p0 = ve->data,
+	            *const p1 = p0+dim,
+	            *const p2 = p1+dim,
+	            *const p3 = p2+dim;
+	const double r = rst[0],
+	             s = rst[1];
+
+	static struct Newton newton;
+	double*const res = newton.res,
+	      *const jac = newton.jac;
+
 	int ind = 0;
 	for (int i = 0; i < dim; ++i) {
-		res[ind++] = p[i] - ( p0[i]*(1-r)*(1-s) + p1[i]*(r)*(1-s)
-		                     +p2[i]*(1-r)*(s)   + p3[i]*(r)*(s)   );
+		res[ind++] = p[i] - ( p0[i]*(1-r)*(1-s) + p1[i]*(r)*(1-s) + p2[i]*(1-r)*(s) + p3[i]*(r)*(s) );
 	}
 	ind = 0;
 	for (int i = 0; i < dim; ++i) {
-		jac[ind++] = - ( p0[i]*(0-1)*(1-s) + p1[i]*(1)*(1-s)
-		                +p2[i]*(0-1)*(s)   + p3[i]*(1)*(s)   );
-		jac[ind++] = - ( p0[i]*(1-r)*(0-1) + p1[i]*(r)*(0-1)
-		                +p2[i]*(1-r)*(1)   + p3[i]*(r)*(1)   );
+//		jac[ind++] = - ( p0[i]*(0-1)*(1-s) + p1[i]*(1)*(1-s) + p2[i]*(0-1)*(s) + p3[i]*(1)*(s) );
+//		jac[ind++] = - ( p0[i]*(1-r)*(0-1) + p1[i]*(r)*(0-1) + p2[i]*(1-r)*(1) + p3[i]*(r)*(1) );
+		jac[ind++] = p0[i]*(1-s) - p1[i]*(1-s) + p2[i]*(s) - p3[i]*(s);
+		jac[ind++] = p0[i]*(1-r) + p1[i]*(r) - p2[i]*(1-r) - p3[i]*(r);
 	}
 	return newton;
-*/
+}
+
+static const double* get_Newton_term_1d (const struct Newton*const newton)
+{
+	enum { dim = 1, };
+	const double*const res = newton->res,
+	            *const jac = newton->jac;
+
+	const double inv_det_jac = 1.0/(jac[0]);
+	const double inv_jac[] = {  1.0, };
+
+	static double drst[dim] = { 0.0, };
+	for (int i = 0; i < dim; ++i) {
+		drst[i] = 0.0;
+		for (int j = 0; j < dim; ++j)
+			drst[i] += inv_jac[i*dim+j]*res[j];
+		drst[i] *= inv_det_jac;
+	}
+	return drst;
 }
 
 static const double* get_Newton_term_2d (const struct Newton*const newton)

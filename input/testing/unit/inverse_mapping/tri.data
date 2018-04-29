@@ -21,7 +21,7 @@ R 3 2
 
 rst_std:
 container Matrix_d
-C 5 2
+C 103 2
  0 0
  1 0
  0 1

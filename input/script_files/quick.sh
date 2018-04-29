@@ -26,7 +26,7 @@ EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_restart
 ARGV="integration/restart/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D"
 
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_unit_inverse_mapping
-ARGV="tri"
+ARGV="quad"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

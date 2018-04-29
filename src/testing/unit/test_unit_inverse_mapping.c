@@ -84,7 +84,7 @@ int main
 	const struct const_Matrix_d*const rst_symm = constructor_inverse_mapping(e,imd->ve_symm,imd->xyz_symm); // dest.
 
 	bool pass = true;
-	const double tol = 1e1*EPS;
+	const double tol = 1e3*EPS;
 	const bool* differences = (bool[])
 		{ diff_const_Matrix_d(imd->xyz_symm,rst_rand,tol),
 		  diff_const_Matrix_d(imd->xyz_symm,rst_std, tol),
