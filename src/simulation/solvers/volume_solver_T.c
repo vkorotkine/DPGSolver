@@ -68,6 +68,8 @@ void constructor_derived_Solver_Volume_T (struct Volume* volume_ptr, const struc
 		&s_vol->metrics_vc,constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
 	const_constructor_move_Multiarray_R(
 		&s_vol->jacobian_det_vc,constructor_empty_Multiarray_R('C',1,(ptrdiff_t[]){0})); // destructed
+	const_constructor_move_Multiarray_R(
+		&s_vol->metrics_vm_p1,constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){0,0,0})); // destructed
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	s_vol->flux_imbalance = constructor_empty_Vector_T(test_case->n_var); // destructed
@@ -86,6 +88,7 @@ void destructor_derived_Solver_Volume_T (struct Volume* volume_ptr)
 	destructor_const_Multiarray_R(s_vol->metrics_vm);
 	destructor_const_Multiarray_R(s_vol->metrics_vc);
 	destructor_const_Multiarray_R(s_vol->jacobian_det_vc);
+	destructor_const_Multiarray_R(s_vol->metrics_vm_p1);
 	destructor_Vector_T(s_vol->flux_imbalance);
 	destructor_Multiarray_T(s_vol->l_mult);
 	destructor_conditional_Multiarray_T(s_vol->rhs);

@@ -128,6 +128,25 @@ static void compute_unit_normals_and_det_T
 	                                                *   determinants. */
 	);
 
+/** \brief Set data relating to the p1 geometry of the input \ref Solver_Volume_T.
+ *
+ *  This function sets:
+ *  - \ref Solver_Volume_T::metrics_vm_p1;
+ */
+static void compute_geometry_volume_p1_T
+	(struct Solver_Volume_T*const s_vol ///< Standard.
+	);
+
+/** \brief Set data relating to the p1 geometry of the input \ref Solver_Face_T.
+ *
+ *  This function sets:
+ *  - \ref Solver_Face_T::normals_p1;
+ *  - \ref Solver_Face_T::jacobian_det_p1;
+ */
+static void compute_geometry_face_p1_T
+	(struct Solver_Face_T*const s_face ///< Standard.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 void set_up_solver_geometry_T (struct Simulation* sim)
@@ -148,6 +167,19 @@ void set_up_solver_geometry_T (struct Simulation* sim)
 		EXIT_ERROR("Disable output to continue.\n");
 	}
 #endif
+}
+
+void set_up_solver_geometry_p1_T (struct Simulation*const sim)
+{
+	assert(sim->volumes->name == IL_VOLUME_SOLVER);
+	assert(sim->faces->name   == IL_FACE_SOLVER);
+	assert(list_is_derived_from("solver",'e',sim));
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
+		compute_geometry_volume_p1_T((struct Solver_Volume_T*)curr);
+
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
+		compute_geometry_face_p1_T((struct Solver_Face_T*)curr);
 }
 
 void compute_unit_normals_T
@@ -258,7 +290,7 @@ void compute_geometry_face_T (struct Solver_Face_T* s_face, const struct Simulat
 
 	const struct const_Multiarray_R* m_vm = s_vol->metrics_vm;
 	const struct const_Multiarray_R* metrics_fc =
-		constructor_mm_NN1_Operator_const_Multiarray_R(ops.vv0_vm_fc,m_vm,'C',op_format,m_vm->order,NULL); // destructed
+		constructor_mm_NN1_Operator_const_Multiarray_R(ops.vv0_vm_fc,m_vm,'C',op_format,m_vm->order,NULL); // d.
 
 	compute_unit_normals_and_det_T(ind_lf,e->normals,metrics_fc,
 		(struct Multiarray_R*)s_face->normals_fc,(struct Multiarray_R*)s_face->jacobian_det_fc);
@@ -587,6 +619,49 @@ static void compute_unit_normals_and_det_T
 {
 	compute_normals_T(ind_lf,normals_ref,metrics_f,normals_f);
 	normalize_Multiarray_R(normals_f,"L2",true,jacobian_det_f);
+}
+
+static void compute_geometry_volume_p1_T (struct Solver_Volume_T*const s_vol)
+{
+	struct Volume* vol = (struct Volume*) s_vol;
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
+
+	const int d = ((struct const_Element*)g_e)->d;
+
+	const struct Multiarray_Operator cv1_vg_vm = set_MO_from_MO(g_e->cv1_vg_vm[0],1,(ptrdiff_t[]){0,0,1,1});
+
+	const ptrdiff_t n_vm = cv1_vg_vm.data[0]->op_std->ext_0;
+
+	const struct const_Multiarray_R*const geom_coef = s_vol->geom_coef_p1;
+	struct Multiarray_R* jacobian_vm = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_vm,d,d}); // destructed
+	for (ptrdiff_t row = 0; row < d; ++row)
+		mm_NN1C_Operator_Multiarray_R(cv1_vg_vm.data[row],geom_coef,jacobian_vm,'d',2,NULL,&row);
+
+	compute_cofactors_T((struct const_Multiarray_R*)jacobian_vm,(struct Multiarray_R*)s_vol->metrics_vm_p1);
+	destructor_Multiarray_R(jacobian_vm);
+}
+
+static void compute_geometry_face_p1_T (struct Solver_Face_T* s_face)
+{
+	struct Face* face             = (struct Face*) s_face;
+	struct Volume* vol            = face->neigh_info[0].volume;
+	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) vol;
+
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
+	struct const_Element* e            = (struct const_Element*) g_e;
+
+	const int ind_lf = face->neigh_info[0].ind_lf;
+
+	const struct Operator* vv0_vms_fgs = get_Multiarray_Operator(g_e->vv0_vms_fgs,(ptrdiff_t[]){ind_lf,0,0,1,1});
+
+	const struct const_Multiarray_R* m_vm = s_vol->metrics_vm_p1;
+	const struct const_Multiarray_R* metrics_p1 =
+		constructor_mm_NN1_Operator_const_Multiarray_R(vv0_vms_fgs,m_vm,'C','d',m_vm->order,NULL); // d.
+
+	compute_unit_normals_and_det_T(ind_lf,e->normals,metrics_p1,
+		(struct Multiarray_R*)s_face->normals_p1,(struct Multiarray_R*)s_face->jacobian_det_p1);
+
+	destructor_const_Multiarray_R(metrics_p1);
 }
 
 // Level 1 ********************************************************************************************************** //

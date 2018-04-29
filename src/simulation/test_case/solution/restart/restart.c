@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "face_solver.h"
 #include "volume_solver.h"
 
 #include "approximate_nearest_neighbor.h"
@@ -29,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "const_cast.h"
 #include "element.h"
 #include "file_processing.h"
+#include "geometry.h"
 #include "intrusive.h"
 #include "simulation.h"
 #include "solution.h"

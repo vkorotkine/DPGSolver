@@ -28,8 +28,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 
+#include "def_templates_face_solver.h"
 #include "def_templates_volume_solver.h"
 
+#include "def_templates_geometry.h"
 #include "def_templates_solution.h"
 
 // Static function declarations ************************************************************************************* //
@@ -111,9 +113,6 @@ print_const_Matrix_R(&xyz_M);
 
 	const struct const_Vector_i*const ind_ann = constructor_ann_indices_from_sss(ri.sss); // destructed
 print_const_Vector_i(ind_ann);
-	destructor_const_Vector_i(ind_ann);
-
-	destructor_SSS_ANN_s(ri.sss); // destructed
 
 	if (requires_transpose)
 		transpose_Matrix_R((struct Matrix_R*)&xyz_M,true);
@@ -121,13 +120,36 @@ print_const_Vector_i(ind_ann);
 print_const_Matrix_R(ns->nodes);
 print_const_Vector_i(ns->indices);
 
-/* 1. Make array of background volume pointers to avoid linked list iteration.
- * 2.
- *
+/// \todo Make external
+	const ptrdiff_t n_n = ns->nodes->ext_0;
+	for (int n = 0; n < n_n; ++n) {
+		const struct Solver_Volume_T*const s_vol_b = ri.solver_volume[ind_ann->data[n]];
+		const struct Volume*const vol_b            = (struct Volume*) s_vol_b;
+//printf("%d %d\n",n,vol_b->index);
+//print_const_Multiarray_R(s_vol_b->geom_coef_p1);
+		for (int i = 0; i < NFMAX;    ++i) {
+		for (int j = 0; j < NSUBFMAX; ++j) {
+			const struct Face*const face_b = vol_b->faces[i][j];
+			if (face_b == NULL)
+				continue;
+			const struct Solver_Face_T*const s_face_b = (struct Solver_Face_T*) face_b;
+
+			const int si = compute_side_index_face(face_b,vol_b);
+			const double scale_n = ( si == 0 ? 1.0 : -1.0 );
+printf("%d %d %d %f\n",i,j,si,scale_n);
+print_const_Multiarray_R(s_face_b->normals_p1);
+/* 1. Choose required node from s_vol_b->geom_coef_p1 to compute b-a.
+ * 2. Compute scale_n*((s_face_b->normals_p1) (dot) (b-a))
+ * 3. If positive and not boundary, go to next volume and repeat.
  */
+
+		}}
+EXIT_UNSUPPORTED;
+	}
 
 EXIT_UNSUPPORTED;
 	destructor_SSS_ANN_s(ri.sss);
+	destructor_const_Vector_i(ind_ann);
 
 
 
@@ -157,13 +179,16 @@ static struct Restart_Info get_Restart_Info (const struct Simulation*const sim)
 	if (needs_computation) {
 		needs_computation = false;
 		ri.sim = constructor_Simulation_restart(sim); // leaked (static)
+		constructor_derived_Elements(ri.sim,IL_ELEMENT_SOLVER); // destructed
 		constructor_derived_computational_elements(ri.sim,IL_SOLVER); // leaked (static)
 
+		set_up_solver_geometry_T(ri.sim);
+		set_up_solver_geometry_p1_T(ri.sim);
 		constructor_volume_list(&ri);
 		initialize_volumes_restart(ri.sim);
 		initialize_ann_background(&ri);
 
-		assert(ri.sim->elements->name == IL_ELEMENT);
+		destructor_derived_Elements(ri.sim,IL_ELEMENT);
 		destructor_const_Elements(ri.sim->elements);
 	}
 	return ri;
@@ -206,7 +231,6 @@ static void initialize_ann_background (struct Restart_Info*const ri)
 {
 	const struct const_Matrix_d*const xyz_min_max = constructor_volume_xyz_min_max(ri->sim); // destructed
 	const struct const_Matrix_d*const centroids   = constructor_volume_centroids(ri->sim);   // destructed
-print_const_Matrix_d(centroids);
 
 	ri->sss = calloc(1,sizeof *ri->sss); // keep
 

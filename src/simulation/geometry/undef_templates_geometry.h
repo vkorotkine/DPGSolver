@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_geom_coef_fptr_T
 
 #undef set_up_solver_geometry_T
+#undef set_up_solver_geometry_p1_T
 #undef compute_unit_normals_T
 #undef compute_geometry_volume_T
 #undef compute_geometry_face_T

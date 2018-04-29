@@ -44,6 +44,11 @@ void set_up_solver_geometry_T
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
+/// \brief Set up additional p1 geometry related parameters for volumes and faces.
+void set_up_solver_geometry_p1_T
+	(struct Simulation*const sim ///< Standard.
+	);
+
 /// \brief Compute the face unit normal vectors at the nodes corresponding to the given face metrics.
 void compute_unit_normals_T
 	(const int ind_lf,                             ///< Defined for \ref compute_unit_normals_and_det_T.

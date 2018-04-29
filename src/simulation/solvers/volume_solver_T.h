@@ -74,6 +74,9 @@ struct Solver_Volume_T {
 	/// The determinant of the geometry mapping Jacobian evaluated at the volume cubature nodes.
 	const struct const_Multiarray_R*const jacobian_det_vc;
 
+	/// Same as \ref Solver_Volume_T::metrics_vm but for the p1 geometry coefficients.
+	const struct const_Multiarray_R*const metrics_vm_p1;
+
 	struct Vector_T* flux_imbalance; ///< The values of the flux imbalances for each equation.
 	struct Multiarray_T* l_mult; ///< The values of the Lagrange multipliers used to enforce conservation.
 
