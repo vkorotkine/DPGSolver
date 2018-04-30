@@ -60,6 +60,11 @@ static const char* compute_header_spec_euler_all_p_rhs
 static const char* compute_header_spec_euler_entropy
 	();
 
+/** \brief Return a statically allocated `char*` holding the specific header for the entropy variable and the residuals.
+ *  \return See brief. */
+static const char* compute_header_spec_euler_entropy_p_rhs
+	();
+
 /** \brief Version of \ref constructor_Error_CE_fptr checking the error of pressure drag and lift coefficients where
  *         specified functionals may be removed.
  *  \return See brief. */
@@ -146,6 +151,39 @@ struct Error_CE* constructor_Error_CE_euler_entropy (const struct Simulation* si
 			for (int vr = 0; vr < DIM+2; ++vr) // Remove all except entropy.
 				remove_col_Multiarray_d(0,e_ce_d->sol[i]);
 		}
+
+		increment_sol_L2(e_ce_h,e_ce_d);
+		destructor_Error_CE_Data(e_ce_d);
+
+		update_domain_order(e_ce_h);
+	}
+
+	struct Error_CE* error_ce = constructor_Error_CE(e_ce_h,sim); // returned
+	destructor_Error_CE_Helper(e_ce_h);
+
+	return error_ce;
+}
+
+struct Error_CE* constructor_Error_CE_euler_entropy_p_rhs (const struct Simulation* sim)
+{
+	const int n_out = 1 + DIM+2;
+
+	struct Error_CE_Helper* e_ce_h = constructor_Error_CE_Helper(sim,n_out);
+	e_ce_h->header_spec = compute_header_spec_euler_entropy_p_rhs();
+	const_cast_i(&e_ce_h->error_type,ERROR_STANDARD);
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		e_ce_h->s_vol[0] = (struct Solver_Volume*) curr;
+		struct Error_CE_Data* e_ce_d = constructor_Error_CE_Data(e_ce_h,sim); // destructed
+
+		for (int i = 0; i < 2; ++i)
+			convert_variables(e_ce_d->sol[i],'c','p');
+		add_euler_variable_Error_CE_Data('s',e_ce_d,sim);
+		for (int i = 0; i < 2; ++i) {
+			for (int vr = 0; vr < DIM+2; ++vr) // Remove all except entropy.
+				remove_col_Multiarray_d(0,e_ce_d->sol[i]);
+		}
+		add_rhs_Error_CE_Data(e_ce_d,sim);
 
 		increment_sol_L2(e_ce_h,e_ce_d);
 		destructor_Error_CE_Data(e_ce_d);
@@ -248,6 +286,20 @@ static const char* compute_header_spec_euler_entropy ( )
 	return header_spec;
 }
 
+static const char* compute_header_spec_euler_entropy_p_rhs ( )
+{
+	static char header_spec[STRLEN_MAX];
+	int index = sprintf(header_spec,"%-14s","$s$");
+
+	index += sprintf(header_spec+index,"%-14s%-14s","$\\rho_{res}$","$u_{res}$");
+	if (DIM >= 2)
+		index += sprintf(header_spec+index,"%-14s","$v_{res}$");
+	if (DIM >= 3)
+		index += sprintf(header_spec+index,"%-14s","$w_{res}$");
+	sprintf(header_spec+index,"%-14s","$E_{res}$");
+
+	return header_spec;
+}
 struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
 	(const struct Simulation*const sim, const int remove_cd_cl)
 {

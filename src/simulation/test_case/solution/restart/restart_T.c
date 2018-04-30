@@ -166,6 +166,8 @@ static struct Restart_Info get_Restart_Info (const struct Simulation*const sim)
 	static bool needs_computation = true;
 	static struct Restart_Info ri;
 	if (needs_computation) {
+		printf("\tSetting up restart.\n");
+
 		needs_computation = false;
 		ri.sim = constructor_Simulation_restart(sim); // leaked (static)
 		constructor_derived_Elements(ri.sim,IL_ELEMENT_SOLVER); // destructed
@@ -179,6 +181,7 @@ static struct Restart_Info get_Restart_Info (const struct Simulation*const sim)
 
 		destructor_derived_Elements(ri.sim,IL_ELEMENT);
 //		destructor_const_Elements(ri.sim->elements); // leaked (static)
+		printf("\tFinished Setting up restart.\n\n");
 	}
 	return ri;
 }

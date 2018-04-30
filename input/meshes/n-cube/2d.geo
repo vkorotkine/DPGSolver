@@ -1,6 +1,6 @@
 Include "../parameters.geo";
 //mesh_level = 2; mesh_type = MIXED; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_XL; geom_unaligned = 1;
-//mesh_level = 1; mesh_type = MIXED; mesh_domain = PARAMETRIC; pde_name = EULER; geom_adv = GEOM_ADV_INTERNAL; geom_unaligned = 0;
+//mesh_level = 1; mesh_type = QUAD; mesh_domain = PARAMETRIC; pde_name = EULER; geom_adv = GEOM_ADV_INTERNAL; geom_unaligned = 0; geom_ar = 0.5;
 
 // Geometry Specification
 l = 1;
@@ -132,9 +132,10 @@ ElseIf (pde_name == EULER)
 		Physical Line(bc_base+BC_SLIPWALL) = {1001:1004};
 //		Physical Line(bc_straight+BC_RIEMANN) = {1001:1004};
 	ElseIf (geom_adv == GEOM_ADV_INTERNAL)
-		Physical Line(bc_base+BC_BACKPRESSURE) = {2002};
-		Physical Line(bc_base+BC_TOTAL_TP)     = {2001};
-		Physical Line(bc_base+BC_SLIPWALL)     = {1001:1004};
+		Physical Line(bc_straight+BC_BACKPRESSURE) = {2002};
+		Physical Line(bc_straight+BC_TOTAL_TP)     = {2001};
+		Physical Line(bc_base+BC_SLIPWALL)         = {1001:1002};
+		Physical Line(bc_straight+BC_SLIPWALL)     = {1003:1004};
 	Else
 		Error("Unsupported geom_adv: %d",geom_adv); Exit;
 	EndIf

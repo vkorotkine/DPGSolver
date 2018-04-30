@@ -384,11 +384,18 @@ static void fprintf_solution_bezier_gmsh (FILE* file, const struct Simulation*co
 
 	fprintf(file,"$SolutionCoefficients\n");
 	fprintf(file,"%td\n",n_v);
+
+	int ml = -1;
 	int v = 0;
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
 		struct Multiarray_d*const s_coef = constructor_s_coef_bezier(s_vol,sim);
 		assert(s_coef->layout == 'C');
+
+		if (v == 0)
+			ml = s_vol->ml;
+		if (ml != s_vol->ml)
+			EXIT_ERROR("Unsupported h-adapted mesh output as this is currently unsupported by the mesh readers.");
 
 		const int p_ref = s_vol->p_ref;
 		const ptrdiff_t n_dof = s_coef->extents[0],

@@ -1112,8 +1112,96 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 				*nF_ptr[IndnF++]++ = 0.5*(nF2 - dis2);
 				*nF_ptr[IndnF++]++ = 0.5*(nF3 - dis3);
 				*nF_ptr[IndnF++]++ = 0.5*(nF5 - dis5);
-#if 0
+
 #if TYPE_REAL == TYPE_RC
+
+// MAKE SURE TO DISABLE 'ALWAYS_SET_INITIAL' IN solve.c.
+
+#if 1 // Gaussian bump testing
+const int bc = num_flux_i->bv_l.bc;
+const int curved = bc / BC_STEP_SC;
+const int bc_name = bc % BC_STEP_SC;
+if (curved >= 2) {
+if (bc_name != BC_SLIPWALL)
+	EXIT_ERROR("Should not be occuring %d %d.\n",bc,bc_name);
+
+const bool enabled = true;
+const double h     = num_flux_i->bv_l.h/16;
+const int p        = num_flux_i->bv_l.p;
+const int exponent = p+1;
+
+const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,num_flux_i->bv_l.xyz),
+                                       get_col_const_Multiarray_R(1,num_flux_i->bv_l.xyz),
+                                       get_col_const_Multiarray_R(2,num_flux_i->bv_l.xyz) );
+const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
+
+if (enabled) {
+	if (n == 0)
+		printf("\n");
+
+	struct Function_Data_GP f_data = { .scale = 1.0, };
+
+	const double df_dx = f_gaussian_bump(xyz_n[0],1,&f_data);
+
+	double n_ex[] = { df_dx, -1.0, };
+	const double norm_n = sqrt(df_dx*df_dx+1*1);
+	for (int i = 0; i < 2; ++i)
+		n_ex[i] /= norm_n;
+	const double t_ex[] = { -n_ex[1], n_ex[0], };
+//printf("% .3e % .3e % .3e % .3e % .3e\n",xyz_n[0],n1,n2,n_ex[0],n_ex[1]);
+
+
+	const int pert_type = 2;
+
+	double*const nf_ptr[] = { nF_ptr[1]-1, nF_ptr[2]-1 };
+
+	const double c = 3e2*sqrt((int)n+1);
+	double scale[] = {c,c};
+	switch (pert_type) {
+	case 1: { // Add in scaled direction
+		scale[0] *= n1;
+		scale[1] *= n2;
+
+		for (int i = 0; i < 2; ++i)
+			*nf_ptr[i] += scale[i]*pow(h,exponent);
+	}
+	break;
+	case 2: {
+//		const double na[] = { n_ex[0], n_ex[1], };
+//		const double ta[] = { t_ex[0], t_ex[1], };
+		const double na[] = {  n1, n2, };
+		const double ta[] = { -n2, n1, };
+
+		const double nf_xy[] = { *nf_ptr[0], *nf_ptr[1], };
+//		double nf_rt[] = { n_ex[0]*nf_xy[0]+n_ex[1]*nf_xy[1], t_ex[0]*nf_xy[0]+t_ex[1]*nf_xy[1], };
+		double nf_rt[] = { na[0]*nf_xy[0]+na[1]*nf_xy[1], ta[0]*nf_xy[0]+ta[1]*nf_xy[1], };
+
+		if (exponent == p+0)
+			scale[0] *= 1e-3;
+		else if (exponent >= p+1)
+			scale[0] *= 1e-2;
+		else
+			EXIT_ADD_SUPPORT;
+		scale[1] *= 1e-4;
+printf("% .3e % .3e % .3e % .3e % .3e % .3e\n",ta[0]-t_ex[0],ta[1]-t_ex[1],nf_rt[0]-pL,nf_rt[1],scale[1]*pow(h,exponent),h);
+//		nf_rt[0] += scale[0]*pow(h,exponent);
+		nf_rt[1] += scale[1]*pow(h,exponent);
+
+		for (int i = 0; i < 2; ++i)
+			*nf_ptr[i] = na[i]*nf_rt[0]+ta[i]*nf_rt[1];
+	}
+	break;
+	default:
+		EXIT_UNSUPPORTED;
+		break;
+	}
+
+//EXIT_UNSUPPORTED;
+}
+}
+#endif
+
+#if 0 // Supersonic vortex testing.
 const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 if (bc == BC_SLIPWALL) {
 const bool enabled = true;

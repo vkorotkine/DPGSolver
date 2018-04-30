@@ -51,11 +51,6 @@ struct Geo_Data {
 	     x_max; ///< Maximum range for the x-coordinates.
 };
 
-/// \brief Container for function data.
-struct Function_Data {
-	Real scale; ///< Scaling parameter
-};
-
 /** \brief Return the statically allocated \ref Geo_Data container.
  *  \return See brief. */
 static struct Geo_Data get_geo_data
@@ -75,30 +70,18 @@ static struct Geo_Data get_geo_data
  *  [wikipedia_romberg]: https://en.wikipedia.org/wiki/Romberg%27s_method#Implementation
  */
 static Real romberg
-	(Real (*f)(const Real x, const struct Function_Data*const f_data), ///< Function to integration.
-	 const Real a,                                                     ///< Lower limit.
-	 const Real b,                                                     ///< Upper limit.
-	 const Real acc,                                                   ///< Accuracy tolerance.
-	 const struct Function_Data*const f_data                           ///< \ref Function_Data.
-	);
-
-/** \brief Return the value of the Gaussian Bump function of given differentiation degree at the input coordinate.
- *  \return See brief.
- *
- *  \note An additional parameter is provided such that the bump can be scaled by a linear function to remove its
- *        symmetry.
- */
-static Real f_gaussian_bump
-	(const Real x,                           ///< x-coordinate.
-	 const int diff_degree,                  ///< Differentiation degree.
-	 const struct Function_Data*const f_data ///< \ref Function_Data.
+	(Real (*f)(const Real x, const struct Function_Data_GP*const f_data), ///< Function to integration.
+	 const Real a,                                                        ///< Lower limit.
+	 const Real b,                                                        ///< Upper limit.
+	 const Real acc,                                                      ///< Accuracy tolerance.
+	 const struct Function_Data_GP*const f_data                           ///< \ref Function_Data_GP.
 	);
 
 /** \brief Return the value of the arc length integrand for the Gaussian Bump function.
  *  \return See brief. */
 static Real f_al_gaussian_bump
-	(const Real x,                           ///< x-coordinate.
-	 const struct Function_Data*const f_data ///< \ref Function_Data.
+	(const Real x,                              ///< x-coordinate.
+	 const struct Function_Data_GP*const f_data ///< \ref Function_Data_GP.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -341,7 +324,7 @@ const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 	const Real h     = geo_data.h,
 	           x_max = geo_data.x_max;
 
-	struct Function_Data f_data = { .scale = 1.0, };
+	struct Function_Data_GP f_data = { .scale = 1.0, };
 
 	const Real tol = 1e2*EPS;
 	const Real x_l     = -x_max,
@@ -410,8 +393,8 @@ static struct Geo_Data get_geo_data (const char*const geo_name)
 }
 
 static Real romberg
-	(Real (*f)(const Real x, const struct Function_Data*const f_data), const Real a, const Real b, const Real acc,
-	 const struct Function_Data*const f_data)
+	(Real (*f)(const Real x, const struct Function_Data_GP*const f_data), const Real a, const Real b, const Real acc,
+	 const struct Function_Data_GP*const f_data)
 {
 	const size_t max_steps = 20;
 	Real R1[max_steps], R2[max_steps]; //buffers
@@ -445,35 +428,7 @@ static Real romberg
 	return Rp[max_steps-1]; //return our best guess
 }
 
-static Real f_gaussian_bump (const Real x, const int diff_degree, const struct Function_Data*const f_data)
-{
-	const struct Geo_Data geo_data = get_geo_data("gaussian_bump");
-
-	const Real scale = f_data->scale;
-
-	const Real a = geo_data.a,
-	           b = geo_data.b,
-	           c = geo_data.c,
-	           d = geo_data.d;
-
-	switch (diff_degree) {
-	case 0:
-		return scale*(1+d*(x-b))*a*exp(-1.0*pow(x-b,2.0)/(2.0*c*c));
-		break;
-	case 1: {
-		const Real df0 = (1+d*(x-b)),
-		           df1 = d,
-		           dg0 = a*exp(-1.0*pow(x-b,2.0)/(2.0*c*c)),
-		           dg1 = a*(b-x)/(c*c)*exp(-0.5*pow((x-b)/c,2.0));
-		return scale*(df1*dg0+df0*dg1);
-		break;
-	} default:
-		EXIT_ERROR("Add support.\n");
-		break;
-	}
-}
-
-static Real f_al_gaussian_bump (const Real x, const struct Function_Data*const f_data)
+static Real f_al_gaussian_bump (const Real x, const struct Function_Data_GP*const f_data)
 {
 	const Real df_dx = f_gaussian_bump(x,1,f_data);
 	return sqrt(1.0 + df_dx*df_dx);

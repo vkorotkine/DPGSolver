@@ -75,7 +75,7 @@ struct Mesh_Data* constructor_Mesh_Data (const char*const mesh_name_full, const 
 	if (strstr(mesh_name_full,".msh"))
 		mesh_reader_gmsh(mesh_name_full,d,&mesh_data_l);
 	else
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Unsupported (mesh_name: %s)\n",mesh_name_full);
 
 	struct Mesh_Data* mesh_data = calloc(1,sizeof *mesh_data); // returned
 

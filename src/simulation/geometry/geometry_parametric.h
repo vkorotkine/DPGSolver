@@ -29,4 +29,21 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_volume_solver.h"
 #include "undef_templates_multiarray.h"
 
+/// \brief Container for function data.
+struct Function_Data_GP {
+	double scale; ///< Scaling parameter
+};
+
+/** \brief Return the value of the Gaussian Bump function of given differentiation degree at the input coordinate.
+ *  \return See brief.
+ *
+ *  \note An additional parameter is provided such that the bump can be scaled by a linear function to remove its
+ *        symmetry.
+ */
+double f_gaussian_bump
+	(const double x,                              ///< x-coordinate.
+	 const int diff_degree,                     ///< Differentiation degree.
+	 const struct Function_Data_GP*const f_data ///< \ref Function_Data_GP.
+	);
+
 #endif // DPG__geometry_parametric_h__INCLUDED
