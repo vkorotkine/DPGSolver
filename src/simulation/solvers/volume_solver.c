@@ -55,6 +55,8 @@ void copy_members_r_to_c_Solver_Volume
 
 	const_constructor_move_const_Multiarray_d
 		(&s_vol->geom_coef,constructor_copy_const_Multiarray_d(s_vol_r->geom_coef)); // destructed
+	const_constructor_move_const_Multiarray_d
+		(&s_vol->geom_coef_p1,constructor_copy_const_Multiarray_d(s_vol_r->geom_coef_p1)); // destructed
 
 	s_vol->sol_coef  = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->sol_coef);  // destructed
 	s_vol->grad_coef = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->grad_coef); // destructed
@@ -65,6 +67,8 @@ void copy_members_r_to_c_Solver_Volume
 		&s_vol->metrics_vc,constructor_copy_const_Multiarray_d(s_vol_r->metrics_vc)); // destructed
 	const_constructor_move_const_Multiarray_d(
 		&s_vol->jacobian_det_vc,constructor_copy_const_Multiarray_d(s_vol_r->jacobian_det_vc)); // destructed
+	const_constructor_move_const_Multiarray_d(
+		&s_vol->metrics_vm_p1,constructor_copy_const_Multiarray_d(s_vol_r->metrics_vm_p1)); // destructed
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	s_vol->flux_imbalance = constructor_empty_Vector_c(test_case->n_var); // destructed

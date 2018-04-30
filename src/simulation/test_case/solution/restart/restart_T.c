@@ -259,8 +259,9 @@ static void initialize_volumes_sol_coef
 	 const struct Simulation*const sim ///< Standard.
 	);
 
-/** \brief Return a pointer to a statically allocated arrow holding the vector of the difference between the input node
- *         coordinate data and the xyz vertex data for a vertex lying on the face under consideration. */
+/** \brief Return a pointer to a statically allocated array holding the vector of the difference between the input node
+ *         coordinate data and the xyz vertex data for a vertex lying on the face under consideration.
+ *  \return See brief. */
 static const Real* get_xyz_node_m_ve
 	(const int e_type,                            ///< \ref Element::type.
 	 const int ind_lf,                            ///< Index of the face under consideration.

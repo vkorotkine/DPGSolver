@@ -229,6 +229,8 @@ static void set_function_pointers (struct Test_Case_T* test_case, const struct S
 	}
 
 	set_function_pointers_start(test_case);
+	if (!using_restart())
+		test_case->constructor_Error_CE_restart_test = test_case->constructor_Error_CE;
 }
 
 static void read_test_case_parameters (struct Test_Case_T* test_case, const struct Simulation*const sim)

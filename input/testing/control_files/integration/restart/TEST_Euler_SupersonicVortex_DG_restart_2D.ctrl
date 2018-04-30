@@ -9,18 +9,18 @@ dimension 2
 mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
-mesh_type        mixed
-mesh_level       0 4
+mesh_type        quad
+mesh_level       0 5
 mesh_path        ../meshes/
-restart_path     ../restart/euler/steady/supersonic_vortex/restart__ml4__p6.msh
+restart_path     None
 
 
 # Simulation variables
 
-test_case_extension use_restart
+test_case_extension output_restart
 
 interp_tp  GLL
-interp_si  WSH
+interp_si  AO
 interp_pyr GLL
 
 basis_geom  bezier
@@ -30,7 +30,7 @@ geom_representation  superparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_ref    1 4
+p_ref    5 6
 
 fe_method 1
 
@@ -38,4 +38,4 @@ fe_method 1
 # Testing variables
 
 ml_range_test 0 4
-p_range_test  1 4
+p_range_test  5 6

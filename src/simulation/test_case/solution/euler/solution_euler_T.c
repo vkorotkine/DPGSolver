@@ -69,6 +69,7 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 		} else { // not yet supported
 			test_case->constructor_Error_CE         = constructor_Error_CE_euler_all;
 		}
+		test_case->constructor_Error_CE_restart_test = constructor_Error_CE_euler_all;
 		const_cast_b(&test_case->has_analytical,true);
 	} else if (strstr(sim->pde_spec,"free_stream")) {
 		test_case->constructor_xyz              = constructor_xyz_trigonometric_cube_parametric_xl_T;

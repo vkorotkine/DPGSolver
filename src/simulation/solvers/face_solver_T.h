@@ -56,7 +56,7 @@ struct Solver_Face_T {
 	/// As for \ref Solver_Face_T::normals_fc but corresponding to the p1 geometry.
 	const struct const_Multiarray_R*const normals_p1;
 
-	/// As for \ref Solver_Face_T::jacobian_def_fc but corresponding to the p1 geometry.
+	/// As for \ref Solver_Face_T::jacobian_det_fc but corresponding to the p1 geometry.
 	const struct const_Multiarray_R*const jacobian_det_p1;
 
 	/** Construct 'r'ight numerical flux input members at face cubature nodes as seen from the left volume.

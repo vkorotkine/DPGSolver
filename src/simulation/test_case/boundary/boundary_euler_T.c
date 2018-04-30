@@ -946,8 +946,8 @@ void constructor_Boundary_Value_T_euler_back_pressure
 				dpLdW[0]   = 0.5*V2L; dpLdW[1]   = -uL; dpLdW[2]   = 1.0;
 
 				duLdW[0] = -uL*rhoL_inv; duLdW[1] = rhoL_inv; duLdW[2] = 0.0;
-				dvLdW[0] = 0.0;          dvLdW[1] = 0.0;      dvLdW[2] = 0.0;      dvLdW[3] = 0.0;
-				dwLdW[0] = 0.0;          dwLdW[1] = 0.0;      dwLdW[2] = 0.0;      dwLdW[3] = 0.0;
+				dvLdW[0] = 0.0;          dvLdW[1] = 0.0;      dvLdW[2] = 0.0;
+				dwLdW[0] = 0.0;          dwLdW[1] = 0.0;      dwLdW[2] = 0.0;
 			}
 			for (int var = 0; var < NVAR; var++)
 				dpLdW[var] *= GM1;

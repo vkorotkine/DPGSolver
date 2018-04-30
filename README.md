@@ -121,6 +121,9 @@ BUILD$ ctest -V (Enable verbose output from tests)
 - Siva Nadarajah, siva.nadarajah (at) mcgill.ca
 - Philip Zwanenburg, philip.zwanenburg (at) mail.mcgill.ca
 
+If you would like to make your own contributions to the project, the best place to start is the 
+[getting started page](https://codedocs.xyz/PhilipZwanenburg/DPGSolver/md_doc_GETTING_STARTED.html).
+
 # License
 
 The code is licensed under the [GNU GPLv3](LICENSE.md) due to the dependence on the GNU GSL. If this

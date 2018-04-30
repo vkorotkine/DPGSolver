@@ -49,7 +49,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DISPLAY_CONV 1 ///< Flag for whether the convergence orders should be displayed for these tests.
 
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
-#define ORDER_VIS_CONV_P      2
+#define ORDER_VIS_CONV_P      3
 #define ORDER_VIS_CONV_ML_MAX 4
 #define DISPLAY_GEOM          0 ///< Flag for whether the geometry should be output.
 ///\}
@@ -119,12 +119,14 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 		case CONV_STUDY_SOLVE:
 			solve_for_solution(sim);
 			break;
-		case CONV_STUDY_RESTART:
+		case CONV_STUDY_RESTART: {
 			assert(using_restart() == true);
 			set_initial_solution(sim);
 			set_to_zero_residual(sim);
+			struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
+			test_case->constructor_Error_CE = test_case->constructor_Error_CE_restart_test;
 			break;
-		default:
+		} default:
 			EXIT_ERROR("Unsupported: %d\n",conv_study_type);
 			break;
 		}

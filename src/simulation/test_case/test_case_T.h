@@ -148,7 +148,10 @@ struct Test_Case_T {
 	/// Function pointer to the source flux imbalance computation function.
 	compute_source_rhs_fptr_T add_to_flux_imbalance_source;
 
-	constructor_Error_CE_fptr constructor_Error_CE; ///< Pointer to the function computing the error.
+	constructor_Error_CE_fptr constructor_Error_CE;         ///< Pointer to the function computing the error.
+
+	/// Pointer to the function computing the error when testing restart functionality.
+	constructor_Error_CE_fptr constructor_Error_CE_restart_test;
 
 	/// Pointer to the function computing the functional errors for the computational elements.
 	constructor_Error_CE_fptr constructor_Error_CE_functionals;
