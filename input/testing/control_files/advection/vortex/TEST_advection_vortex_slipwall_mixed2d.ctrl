@@ -2,14 +2,14 @@ pde_name  advection
 pde_spec  steady/vortex
 
 geom_name n-cylinder_hollow_section
-geom_spec geom_ar_5-0/unaligned/slipwall
+geom_spec geom_ar_5-0/slipwall
 
 dimension 2
 
 mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
-mesh_type        tri
+mesh_type        quad
 mesh_level       0 7
 mesh_path        ../meshes/
 
@@ -31,13 +31,13 @@ geom_representation  isoparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_ref    3 3
-p_cub_p  0 0
+p_ref    1 3
+p_cub_p  2 2
 
 fe_method 1
 
 
 # Testing variables
 
-ml_range_test 0 4
-p_range_test  3 3
+ml_range_test 0 3
+p_range_test  1 3

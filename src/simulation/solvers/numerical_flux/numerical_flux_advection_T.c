@@ -108,34 +108,44 @@ const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
 		const double*const b_adv = sol_data.compute_b_adv(xyz_n);
 
+
 		double b_dot_n = 0.0;
 		for (int dim = 0; dim < DIM; dim++)
 			b_dot_n += b_adv[dim]*nL[n*DIM+dim];
+
+const bool enabled = true;
+if (enabled) {
+if (bc == BC_SLIPWALL) {
+	const double h = num_flux_i->bv_l.h;
+	const int p    = num_flux_i->bv_l.p;
+	const int exponent = p;
+	const double scale = 1e-1;
+	UNUSED(h); UNUSED(exponent);
+#if TYPE_RC == TYPE_REAL
+static double b_dot_n0 = 0.0;
+if (n == 0)
+	b_dot_n0 = b_dot_n;
+//if (n == 2)
+//printf("\t\t\t\t %d % .3e % .3e % .3e % .3e % .3e\n",p,b_dot_n+b_dot_n0,b_dot_n,scale*pow(h,exponent),b_adv[0],b_adv[1]);
+#endif
+
+//	b_dot_n = 0; // O(h^{p_g}) error
+	for (int d = 0; d < DIM; ++d) b_dot_n += b_adv[d]*scale*pow(h,exponent); // Equivalent to adding error to normal
+//if (n == 0) // for p1
+//	b_dot_n += -scale*pow(h,exponent);
+//if (n == 2)
+//	b_dot_n += scale*pow(h,exponent);
+}
+}
 
 		if (b_dot_n >= 0.0) {
 			nFluxNum[n]     = b_dot_n*WL[n];
 			dnFluxNumdWL[n] = b_dot_n;
 			dnFluxNumdWR[n] = 0.0;
 		} else {
-switch (bc) {
-case BC_SLIPWALL: {
-#if TYPE_RC == TYPE_REAL
-//printf("nf: % .3e % .3e % .3e % .3e % .3e\n",b_dot_n,WL[n]-WR[n],b_dot_n*(WL[n]-WR[n]),b_dot_n*WL[n],b_dot_n*WR[n]);
-#endif
-	const double h = num_flux_i->bv_l.h;
-	const int p = 3;
-	UNUSED(h);
-
-	nFluxNum[n]     = b_dot_n*WL[n] + pow(h,p+1);
-	dnFluxNumdWL[n] = b_dot_n;
-	dnFluxNumdWR[n] = 0.0;
-	break;
-} default:
 			nFluxNum[n]     = b_dot_n*WR[n];
 			dnFluxNumdWL[n] = 0.0;
 			dnFluxNumdWR[n] = b_dot_n;
-	break;
-}
 		}
 	}
 //if (bc == BC_SLIPWALL)

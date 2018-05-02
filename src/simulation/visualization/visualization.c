@@ -852,9 +852,6 @@ void fprint_const_Multiarray_Vector_i_offsets (FILE* file, const int n_tab, cons
 static void fprint_vtk_piece_sol_scalar
 	(FILE* file, const char sp_type, const struct const_Multiarray_d* sol, const char*const data_name)
 {
-	if (sol == NULL)
-		return;
-
 	if (sp_type == 'p') {
 		fprint_vtk_DataArray_d(file,sp_type,data_name,NULL,false,'s');
 	} else if (sp_type == 's') {

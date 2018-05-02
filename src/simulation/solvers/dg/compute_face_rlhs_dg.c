@@ -252,6 +252,7 @@ static const struct const_Matrix_d* constructor_lhs_p_r_gs
 static void scale_by_Jacobian_nnf (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
 {
 	const struct const_Vector_d jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
+//print_const_Vector_d(&jacobian_det_fc);
 	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->nnf,&jacobian_det_fc,false);
 }
 

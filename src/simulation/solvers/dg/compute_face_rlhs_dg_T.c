@@ -167,6 +167,7 @@ if (!face->boundary)
 
 void compute_flux_imbalances_faces_dg_T (const struct Simulation*const sim)
 {
+return;
 	assert(list_is_derived_from("solver",'v',sim));
 	assert(list_is_derived_from("solver",'f',sim));
 	assert(list_is_derived_from("solver",'e',sim));
@@ -378,6 +379,8 @@ static struct Multiarray_T* constructor_partial_grad_fc_interp
  *  for the scheme to be stable (Theorem 2, \cite Brdar2012). */
 #define PENALTY_SCALING 1.01
 
+/// \todo Delete this.
+#include "definitions_bc.h"
 static void finalize_face_rhs_dg_T
 	(const int side_index, const struct Numerical_Flux_T*const num_flux, struct DG_Solver_Face_T*const dg_s_face,
 	 const struct Simulation*const sim)
@@ -395,6 +398,16 @@ UNUSED(sim);
 
 //printf("%d\n",vol->index);
 	mm_NNC_Operator_Multiarray_T(-1.0,1.0,tw0_vt_fc,num_flux->nnf,dg_s_vol->rhs,op_format,2,NULL,NULL);
+#if 0
+#if TYPE_RC == TYPE_REAL
+const int bc = face->bc % BC_STEP_SC;
+if (bc == BC_SLIPWALL) {
+//print_const_Multiarray_T(num_flux->nnf);
+//print_Multiarray_T(dg_s_vol->rhs);
+//print_const_Matrix_R(tw0_vt_fc->op_std);
+}
+#endif
+#endif
 //print_Multiarray_T(dg_s_vol->rhs);
 }
 

@@ -55,7 +55,8 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 ///\{ \name Flags for whether certain outputs are enabled.
-#define PRINT_NORM_INF  false ///< Flag for whether the infinity norm of the solution update should be printed.
+#define PRINT_NORM_INF_X  false ///< Flag for whether the infinity norm of the solution update should be printed.
+#define PRINT_NORM_INF_AB false ///< Flag for whether the infinity norms of the lhs (A) and rhs (b) should be printed.
 #define OUTPUT_PETSC_AB false ///< Flag for Petsc data containers.
 #define OUTPUT_SOLUTION true  ///< Flag for solution data on each element.
 #define EXIT_ON_OUTPUT  true  ///< Flag for whether the simulation should exit after outputting.
@@ -415,6 +416,13 @@ static PetscErrorCode solve_and_update
 
 		destructor_Schur_Data(ssi->b,schur_data);
 	}
+	if (PRINT_NORM_INF_AB) {
+		PetscReal norm_inf_A = 0,
+		          norm_inf_B = 0;
+		MatNorm(ssi->A,NORM_INFINITY,&norm_inf_A);
+		VecNorm(ssi->b,NORM_INFINITY,&norm_inf_B);
+		printf("A and b inf norms: % .3e % .3e\n",norm_inf_A,norm_inf_B);
+	}
 
 	update_coefs(x,sim);
 	destructor_petsc_x(x);
@@ -700,7 +708,7 @@ static void update_coef
 	PetscScalar y[ni];
 	VecGetValues(x,ni,ix,y);
 
-	if (PRINT_NORM_INF) {
+	if (PRINT_NORM_INF_X) {
 		const struct Volume*const vol = (struct Volume*)s_vol;
 		if (vol->index == 0) {
 			PetscReal norm_inf = 0;
