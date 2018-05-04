@@ -379,8 +379,6 @@ static struct Multiarray_T* constructor_partial_grad_fc_interp
  *  for the scheme to be stable (Theorem 2, \cite Brdar2012). */
 #define PENALTY_SCALING 1.01
 
-/// \todo Delete this.
-#include "definitions_bc.h"
 static void finalize_face_rhs_dg_T
 	(const int side_index, const struct Numerical_Flux_T*const num_flux, struct DG_Solver_Face_T*const dg_s_face,
 	 const struct Simulation*const sim)

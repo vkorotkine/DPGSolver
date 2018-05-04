@@ -1117,7 +1117,7 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 
 // MAKE SURE TO DISABLE 'ALWAYS_SET_INITIAL' IN solve.c.
 
-#if 1 // Gaussian bump testing
+#if 0 // Gaussian bump testing
 const int bc = num_flux_i->bv_l.bc;
 const int curved = bc / BC_STEP_SC;
 const int bc_name = bc % BC_STEP_SC;
