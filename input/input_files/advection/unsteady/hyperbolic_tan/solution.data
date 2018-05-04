@@ -1,0 +1,4 @@
+/// Solution parameters for test case: advection/periodic/hyperbolic_tan
+
+advection_type constant
+b_adv   0.5 0.0 0.0

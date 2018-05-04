@@ -81,6 +81,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	             "steady/gaussian_bump",
 	             "default_steady",
 	             "demkowicz_dpg_ii",
+	             "unsteady/hyperbolic_tan",
 	            ]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 

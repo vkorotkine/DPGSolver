@@ -41,6 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "free_stream_advection/solution_free_stream_advection.h"
 #include "peterson/solution_peterson.h"
 #include "vortex_advection/solution_vortex_advection.h"
+#include "hyperbolic_tan/solution_hyperbolic_tan.h"
 
 // Static function declarations ************************************************************************************* //
 

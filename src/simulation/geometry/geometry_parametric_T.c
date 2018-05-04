@@ -49,6 +49,9 @@ struct Geo_Data {
 	     d,     ///< Geometry parameter.
 	     h,     ///< Geometry parameter ('h'eight generally).
 	     x_max; ///< Maximum range for the x-coordinates.
+
+	Real xyz_l, ///< Left  xyz-coordinate.
+	     xyz_r; ///< Right xyz-coordinate.
 };
 
 /** \brief Return the statically allocated \ref Geo_Data container.
@@ -85,6 +88,43 @@ static Real f_al_gaussian_bump
 	);
 
 // Interface functions ********************************************************************************************** //
+
+const struct const_Multiarray_R* constructor_xyz_fixed_cube_parametric_T
+	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+	 const struct Simulation* sim)
+{
+	UNUSED(n_type);
+	UNUSED(s_vol);
+	UNUSED(sim);
+	assert(DIM == xyz_i->extents[1]);
+
+	const ptrdiff_t n_n = xyz_i->extents[0];
+
+	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
+
+	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
+	          *const y_i = ( DIM > 1 ? get_col_const_Multiarray_R(1,xyz_i) : NULL ),
+	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_R(2,xyz_i) : NULL );
+
+	Real*const x = get_col_Multiarray_R(0,xyz),
+	    *const y = ( DIM > 1 ? get_col_Multiarray_R(1,xyz) : NULL ),
+	    *const z = ( DIM > 2 ? get_col_Multiarray_R(2,xyz) : NULL );
+
+	struct Geo_Data geo_data = get_geo_data("fixed_cube");
+
+	const Real xyz_l = geo_data.xyz_l,
+	           xyz_r = geo_data.xyz_r;
+	const Real dxyz  = xyz_r-xyz_l;
+
+	for (int n = 0; n < n_n; ++n) {
+		const double dx = 0.5*(x_i[n]+1.0);
+		x[n] = xyz_l+dx*dxyz;
+
+		if (DIM > 1)
+			EXIT_ADD_SUPPORT; UNUSED(y); UNUSED(z); UNUSED(y_i); UNUSED(z_i);
+	}
+	return (struct const_Multiarray_R*) xyz;
+}
 
 const struct const_Multiarray_R* constructor_xyz_cylinder_parametric_T
 	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
@@ -376,6 +416,11 @@ static void read_data_gaussian_bump
 	(struct Geo_Data*const geo_data ///< \ref Geo_Data.
 	);
 
+/// \brief Read the required geometry data for the fixed cube parametric domain into the \ref Geo_Data container.
+static void read_data_fixed_cube
+	(struct Geo_Data*const geo_data ///< \ref Geo_Data.
+	);
+
 static struct Geo_Data get_geo_data (const char*const geo_name)
 {
 	static bool need_input = true;
@@ -386,6 +431,8 @@ static struct Geo_Data get_geo_data (const char*const geo_name)
 			read_data_joukowski(&geo_data);
 		else if (strcmp(geo_name,"gaussian_bump") == 0)
 			read_data_gaussian_bump(&geo_data);
+		else if (strcmp(geo_name,"fixed_cube") == 0)
+			read_data_fixed_cube(&geo_data);
 		else
 			EXIT_ERROR("Unsupported: %s.\n",geo_name);
 	}
@@ -470,6 +517,23 @@ static void read_data_gaussian_bump (struct Geo_Data*const geo_data)
 		read_skip_string_count_c_style_d("d",    &count_found,line,&geo_data->d);
 		read_skip_string_count_c_style_d("h",    &count_found,line,&geo_data->h);
 		read_skip_string_count_c_style_d("x_max",&count_found,line,&geo_data->x_max);
+	}
+	fclose(input_file);
+
+	assert(count_found == count_to_find);
+}
+
+static void read_data_fixed_cube (struct Geo_Data*const geo_data)
+{
+	const int count_to_find = 2;
+
+	FILE* input_file = fopen_input('g',NULL,NULL); // closed
+
+	int count_found = 0;
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_string_count_c_style_d("xyz_l",&count_found,line,&geo_data->xyz_l);
+		read_skip_string_count_c_style_d("xyz_r",&count_found,line,&geo_data->xyz_r);
 	}
 	fclose(input_file);
 

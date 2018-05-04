@@ -22,5 +22,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "peterson/undef_templates_solution_advection_peterson.h"
 #include "free_stream_advection/undef_templates_solution_free_stream_advection.h"
 #include "vortex_advection/undef_templates_solution_vortex_advection.h"
+#include "hyperbolic_tan/undef_templates_solution_hyperbolic_tan.h"
 
 #undef set_function_pointers_solution_advection_T

@@ -19,6 +19,15 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Solver_Volume_T;
 struct Simulation;
 
+/** \brief Version of \ref constructor_xyz_fptr_T for the n-cube scaled and translated to an arbitrary fixed cube.
+ *  \return See brief. */
+const struct const_Multiarray_R* constructor_xyz_fixed_cube_parametric_T
+	(const char n_type,                      ///< See brief.
+	 const struct const_Multiarray_R* xyz_i, ///< See brief.
+	 const struct Solver_Volume_T* s_vol,    ///< See brief.
+	 const struct Simulation* sim            ///< See brief.
+	);
+
 /** \brief Version of \ref constructor_xyz_fptr_T for the parametric cylinder.
  *  \return See brief.
  *

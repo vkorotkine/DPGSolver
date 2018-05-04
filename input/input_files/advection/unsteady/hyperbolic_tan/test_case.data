@@ -1,0 +1,11 @@
+/// Solver parameters for test case: advection/periodic/hyperbolic_tan
+
+solver_proc   explicit
+solver_type_e forward_euler
+
+num_flux_1st upwind
+
+time_step  1e-4
+time_final 5e-1
+
+display_progress 0

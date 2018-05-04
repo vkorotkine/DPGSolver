@@ -12,14 +12,21 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__solution_hyperbolic_tan_h__INCLUDED
+#define DPG__solution_hyperbolic_tan_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to parametric geometry functions.
+ *  \brief Provides the interface to functions used to set the solution for the hyperbolic_tan test case.
  */
 
-#undef constructor_xyz_fixed_cube_parametric_T
-#undef constructor_xyz_cylinder_parametric_T
-#undef constructor_xyz_trigonometric_cube_parametric_T
-#undef constructor_xyz_trigonometric_cube_parametric_xl_T
-#undef constructor_xyz_trigonometric_cube_parametric_xl_oct1_T
-#undef constructor_xyz_joukowski_parametric_T
-#undef constructor_xyz_gaussian_bump_parametric_T
+#include "def_templates_type_d.h"
+#include "def_templates_solution.h"
+#include "def_templates_solution_advection.h"
+#include "def_templates_multiarray.h"
+#include "solution_hyperbolic_tan_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_advection.h"
+#include "undef_templates_multiarray.h"
+
+#endif // DPG__solution_hyperbolic_tan_h__INCLUDED

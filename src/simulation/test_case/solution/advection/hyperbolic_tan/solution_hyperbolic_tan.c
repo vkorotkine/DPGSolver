@@ -15,34 +15,22 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_complex_solution_advection.h"
+#include "solution_hyperbolic_tan.h"
 
 #include "multiarray.h"
 
-#include "boundary.h"
-#include "compute_error.h"
-#include "compute_error_advection.h"
-#include "const_cast.h"
 #include "file_processing.h"
 #include "simulation.h"
 #include "solution.h"
-
-#include "test_complex_flux_advection.h"
-#include "test_complex_numerical_flux_advection.h"
-#include "test_complex_test_case.h"
-
-#include "test_complex_solution_advection_default.h"
-#include "free_stream_advection/test_complex_solution_free_stream_advection.h"
-#include "peterson/test_complex_solution_peterson.h"
-#include "vortex_advection/test_complex_solution_vortex_advection.h"
-#include "hyperbolic_tan/test_complex_solution_hyperbolic_tan.h"
+#include "solution_advection.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_dc.h"
-#include "solution_advection_T.c"
+#include "def_templates_type_d.h"
+#include "hyperbolic_tan/solution_hyperbolic_tan_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

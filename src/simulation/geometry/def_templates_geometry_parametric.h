@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
+#define constructor_xyz_fixed_cube_parametric_T                 constructor_xyz_fixed_cube_parametric
 #define constructor_xyz_cylinder_parametric_T                   constructor_xyz_cylinder_parametric
 #define constructor_xyz_trigonometric_cube_parametric_T         constructor_xyz_trigonometric_cube_parametric
 #define constructor_xyz_trigonometric_cube_parametric_xl_T      constructor_xyz_trigonometric_cube_parametric_xl
@@ -30,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
+#define constructor_xyz_fixed_cube_parametric_T                 constructor_xyz_fixed_cube_parametric_c
 #define constructor_xyz_cylinder_parametric_T                   constructor_xyz_cylinder_parametric_c
 #define constructor_xyz_trigonometric_cube_parametric_T         constructor_xyz_trigonometric_cube_parametric_c
 #define constructor_xyz_trigonometric_cube_parametric_xl_T      constructor_xyz_trigonometric_cube_parametric_xl_c

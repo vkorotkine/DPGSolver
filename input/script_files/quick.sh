@@ -20,6 +20,8 @@ ARGV="advection/vortex/TEST_advection_vortex_slipwall_mixed2d petsc_options_gmre
 #ARGV="advection/vortex/TEST_advection_vortex_n_cube_mixed2d petsc_options_gmres_tol_1e-15"
 #ARGV="euler/gaussian_bump/TEST_Euler_GaussianBump_ParametricMixed2D petsc_options_gmres_tol_1e-15"
 
+ARGV="advection/hyperbolic_tan/TEST_advection_hyperbolic_tan_1d petsc_options_gmres_tol_1e-15"
+
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"
 

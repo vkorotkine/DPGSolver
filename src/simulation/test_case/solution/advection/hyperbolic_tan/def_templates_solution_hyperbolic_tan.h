@@ -14,25 +14,21 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 /** \file
  *  \brief Provides the macro definitions used for c-style templating related to the solution functions for the
- *         linear advection equation.
+ *         linear advection equation (test case: hyperbolic_tan).
  */
-
-#include "def_templates_solution_advection_default.h"
-#include "peterson/def_templates_solution_advection_peterson.h"
-#include "free_stream_advection/def_templates_solution_free_stream_advection.h"
-#include "vortex_advection/def_templates_solution_vortex_advection.h"
-#include "hyperbolic_tan/def_templates_solution_hyperbolic_tan.h"
 
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
-#define set_function_pointers_solution_advection_T set_function_pointers_solution_advection
+#define set_sol_hyperbolic_tan_T               set_sol_hyperbolic_tan
+#define constructor_const_sol_hyperbolic_tan_T constructor_const_sol_hyperbolic_tan
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
-#define set_function_pointers_solution_advection_T set_function_pointers_solution_advection_c
+#define set_sol_hyperbolic_tan_T               set_sol_hyperbolic_tan_c
+#define constructor_const_sol_hyperbolic_tan_T constructor_const_sol_hyperbolic_tan_c
 ///\}
 
 #endif

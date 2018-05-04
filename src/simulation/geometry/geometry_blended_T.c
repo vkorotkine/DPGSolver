@@ -76,7 +76,8 @@ const struct const_Multiarray_R* constructor_xyz_blended_T
 
 void correct_internal_xyz_blended_T (struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
 {
-	assert(DIM >= 2);
+	if (DIM == 1)
+		return;
 
 	const char n_type = 'g';
 	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho_T('g',s_vol,sim); // destructed

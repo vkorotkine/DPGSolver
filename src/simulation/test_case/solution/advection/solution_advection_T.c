@@ -92,6 +92,14 @@ void set_function_pointers_solution_advection_T (struct Test_Case_T* test_case, 
 		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
 		test_case->constructor_Error_CE         = constructor_Error_CE_advection_all;
+	} else if (strstr(sim->pde_spec,"unsteady/hyperbolic_tan")) {
+		test_case->constructor_xyz              = constructor_xyz_fixed_cube_parametric_T;
+		test_case->constructor_sol              = constructor_const_sol_hyperbolic_tan_T;
+		test_case->set_sol                      = set_sol_hyperbolic_tan_T;
+		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
+		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
+		test_case->constructor_Error_CE         = constructor_Error_CE_advection_all;
+		const_cast_b(&test_case->has_analytical,true);
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}

@@ -125,15 +125,18 @@ if (bc == BC_SLIPWALL) {
 static double b_dot_n0 = 0.0;
 if (n == 0)
 	b_dot_n0 = b_dot_n;
+UNUSED(b_dot_n0);
 //if (n == 2)
-//printf("\t\t\t\t %d % .3e % .3e % .3e % .3e % .3e\n",p,b_dot_n+b_dot_n0,b_dot_n,scale*pow(h,exponent),b_adv[0],b_adv[1]);
+//printf("\t\t\t\t %d %d % .3e % .3e % .3e\n",n,p,b_dot_n+b_dot_n0,b_dot_n,scale*pow(h,exponent));
 #endif
 
 //	b_dot_n = 0; // O(h^{p_g}) error
-	for (int d = 0; d < DIM; ++d) b_dot_n += b_adv[d]*scale*pow(h,exponent); // Equivalent to adding error to normal
+	b_dot_n += scale*pow(h,exponent);
+//	for (int d = 0; d < DIM; ++d) b_dot_n += b_adv[d]*scale*pow(h,exponent); // Equivalent to adding error to normal
+//	for (int d = 0; d < DIM; ++d) b_dot_n += pow(b_adv[d],2)*scale*pow(h,exponent); // Equivalent to adding error to normal
 //if (n == 0) // for p1
 //	b_dot_n += -scale*pow(h,exponent);
-//if (n == 2)
+//else if (n <= 2)
 //	b_dot_n += scale*pow(h,exponent);
 }
 }

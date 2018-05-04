@@ -642,26 +642,38 @@ static void fprint_vtk_piece_sol_grad
 			switch (pde_index) {
 			case PDE_ADVECTION:
 				fprint_vtk_piece_sol_scalar(file,sp_type,sol,"u");
-				fprint_vtk_piece_sol_scalar(file,sp_type,rhs,"rhs_u");
 				break;
 			case PDE_DIFFUSION:
 				fprint_vtk_piece_sol_scalar(file,sp_type,sol,"u");
 				fprint_vtk_piece_grad_scalar(file,sp_type,grad);
-				fprint_vtk_piece_sol_scalar(file,sp_type,rhs,"rhs_u");
 				break;
 			case PDE_EULER:
 				fprint_vtk_piece_sol_euler(file,sp_type,sol);
-				fprint_vtk_piece_rhs_euler(file,sp_type,rhs);
 				break;
 			case PDE_NAVIER_STOKES:
 				fprint_vtk_piece_sol_euler(file,sp_type,sol);
 				fprint_vtk_piece_grad_navier_stokes(file,sp_type,sol,grad);
-				fprint_vtk_piece_rhs_euler(file,sp_type,rhs);
 				break;
 			default:
 				EXIT_ERROR("Unsupported: %d\n",pde_index);
 				break;
 			}
+			if (rhs) {
+				switch (pde_index) {
+				case PDE_ADVECTION: // fallthrough
+				case PDE_DIFFUSION:
+					fprint_vtk_piece_sol_scalar(file,sp_type,rhs,"rhs_u");
+					break;
+				case PDE_EULER: // fallthrough
+				case PDE_NAVIER_STOKES:
+					fprint_vtk_piece_rhs_euler(file,sp_type,rhs);
+					break;
+				default:
+					EXIT_ERROR("Unsupported: %d\n",pde_index);
+					break;
+				}
+			}
+
 			fprintf_tn(file,1,"</PPointData>");
 
 			fprintf(file,"\n");
@@ -713,25 +725,36 @@ static void fprint_vtk_piece_sol_grad
 			switch (pde_index) {
 			case PDE_ADVECTION:
 				fprint_vtk_piece_sol_scalar(file,sp_type,sol,"u");
-				fprint_vtk_piece_sol_scalar(file,sp_type,rhs,"rhs_u");
 				break;
 			case PDE_DIFFUSION:
 				fprint_vtk_piece_sol_scalar(file,sp_type,sol,"u");
 				fprint_vtk_piece_grad_scalar(file,sp_type,grad);
-				fprint_vtk_piece_sol_scalar(file,sp_type,rhs,"rhs_u");
 				break;
 			case PDE_EULER:
 				fprint_vtk_piece_sol_euler(file,sp_type,sol);
-				fprint_vtk_piece_rhs_euler(file,sp_type,rhs);
 				break;
 			case PDE_NAVIER_STOKES:
 				fprint_vtk_piece_sol_euler(file,sp_type,sol);
 				fprint_vtk_piece_grad_navier_stokes(file,sp_type,sol,grad);
-				fprint_vtk_piece_rhs_euler(file,sp_type,rhs);
 				break;
 			default:
 				EXIT_ERROR("Unsupported: %d\n",pde_index);
 				break;
+			}
+			if (rhs) {
+				switch (pde_index) {
+				case PDE_ADVECTION: // fallthrough
+				case PDE_DIFFUSION:
+					fprint_vtk_piece_sol_scalar(file,sp_type,rhs,"rhs_u");
+					break;
+				case PDE_EULER: // fallthrough
+				case PDE_NAVIER_STOKES:
+					fprint_vtk_piece_rhs_euler(file,sp_type,rhs);
+					break;
+				default:
+					EXIT_ERROR("Unsupported: %d\n",pde_index);
+					break;
+				}
 			}
 			fprintf_tn(file,1,"</PointData>");
 		} else if (se_type == 'e') {

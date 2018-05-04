@@ -81,6 +81,10 @@ void solve_explicit (struct Simulation* sim)
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	test_case->solver_method_curr = 'e';
+
+	test_case->time = 0.0;
+	set_initial_solution(sim);
+
 	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
 	constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
 
@@ -91,16 +95,17 @@ void solve_explicit (struct Simulation* sim)
 	assert(time_final >= 0.0);
 
 	double max_rhs0 = 0.0;
-
-	test_case->time = 0.0;
 	for (int t_step = 0; ; ++t_step) {
 		if (test_case->time + dt > time_final-1e3*EPS)
 			dt = time_final - test_case->time;
 		test_case->time += dt;
 
 		const double max_rhs = time_step(dt,sim);
-		if (t_step == 0)
+		if (t_step == 0) {
 			max_rhs0 = max_rhs;
+			if (test_case->copy_initial_rhs)
+				copy_rhs(sim,NULL);
+		}
 
 		display_progress(test_case,t_step,max_rhs,max_rhs0);
 		if (check_exit(test_case,max_rhs,max_rhs0))

@@ -52,6 +52,7 @@ set	(SOURCE
 	 test_case/solution/advection/peterson/test_complex_solution_peterson.c
 	 test_case/solution/advection/free_stream_advection/test_complex_solution_free_stream_advection.c
 	 test_case/solution/advection/vortex_advection/test_complex_solution_vortex_advection.c
+	 test_case/solution/advection/hyperbolic_tan/test_complex_solution_hyperbolic_tan.c
 	 test_case/solution/diffusion/test_complex_solution_diffusion.c
 	 test_case/solution/diffusion/default_steady/test_complex_solution_diffusion_default_steady.c
 	 test_case/solution/euler/test_complex_solution_euler.c
