@@ -13,6 +13,5 @@ use_schur_complement 1
 exit_tol_i   1e-13
 exit_ratio_i 1e-12
 
-has_functional 1
-
+has_functional 0
 display_progress 1

@@ -10,13 +10,14 @@ mesh_generator   n-cube/2d_boundary_layer.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        mixed
-mesh_level       0 3
+mesh_level       0 4
 mesh_path        ../meshes/
 
 
 # Simulation variables
 
 solution_extension subsonic
+test_case_extension no_functional
 
 interp_tp  GL
 interp_si  WSH

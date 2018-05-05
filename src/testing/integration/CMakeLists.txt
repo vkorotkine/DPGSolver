@@ -108,7 +108,7 @@ add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/restart/TEST_Euler_SupersonicVortex_DG_ParametricQuad2D")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/restart/TEST_Euler_SupersonicVortex_DG_ParametricTri2D_p_le_2")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/restart/TEST_Euler_SupersonicVortex_DG_ParametricTri2D")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/restart/TEST_Euler_SupersonicVortex_DG_ParametricTri2D") # Failing (May 4th, 2018)
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/restart/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D") # Fix general TRI above then re-enable
 
 # Potentially add test for equivalence between explicit/implicit computation of grad_coef.

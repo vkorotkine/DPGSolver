@@ -103,7 +103,6 @@ void compute_Numerical_Flux_T_advection_upwind_jacobian
 	                                       get_col_const_Multiarray_R(1,xyz_Ma),
 	                                       get_col_const_Multiarray_R(2,xyz_Ma) );
 
-const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 	for (int n = 0; n < NnTotal; n++) {
 		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
 		const double*const b_adv = sol_data.compute_b_adv(xyz_n);
@@ -113,8 +112,8 @@ const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 		for (int dim = 0; dim < DIM; dim++)
 			b_dot_n += b_adv[dim]*nL[n*DIM+dim];
 
-const bool enabled = true;
-if (enabled) {
+#if 0
+const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 if (bc == BC_SLIPWALL) {
 	const double h = num_flux_i->bv_l.h;
 	const int p    = num_flux_i->bv_l.p;
@@ -139,8 +138,7 @@ UNUSED(b_dot_n0);
 //else if (n <= 2)
 //	b_dot_n += scale*pow(h,exponent);
 }
-}
-
+#endif
 		if (b_dot_n >= 0.0) {
 			nFluxNum[n]     = b_dot_n*WL[n];
 			dnFluxNumdWL[n] = b_dot_n;

@@ -167,7 +167,6 @@ if (!face->boundary)
 
 void compute_flux_imbalances_faces_dg_T (const struct Simulation*const sim)
 {
-return;
 	assert(list_is_derived_from("solver",'v',sim));
 	assert(list_is_derived_from("solver",'f',sim));
 	assert(list_is_derived_from("solver",'e',sim));

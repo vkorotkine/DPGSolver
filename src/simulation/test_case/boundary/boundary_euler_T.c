@@ -972,7 +972,8 @@ void constructor_Boundary_Value_T_euler_back_pressure
 				*ds_ds_ptr[InddWdW++] = drhodW;
 
 				*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
-				*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
+				if (DIM >= 2)
+					*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
 				if (DIM == 3)
 					*ds_ds_ptr[InddWdW++] = drhodW*w + rho*dwdW;
 				*ds_ds_ptr[InddWdW++] = 0.5*(drhodW*V2+2.0*rho*(u*dudW+v*dvdW+w*dwdW));
@@ -1274,7 +1275,8 @@ void constructor_Boundary_Value_T_euler_total_tp
 			*ds_ds_ptr[InddWdW++] = drhodW;
 
 			*ds_ds_ptr[InddWdW++] = drhodW*u + rho*dudW;
-			*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
+			if (DIM >= 2)
+				*ds_ds_ptr[InddWdW++] = drhodW*v + rho*dvdW;
 			if (DIM == 3)
 				*ds_ds_ptr[InddWdW++] = drhodW*w + rho*dwdW;
 			*ds_ds_ptr[InddWdW++] = dEdW;

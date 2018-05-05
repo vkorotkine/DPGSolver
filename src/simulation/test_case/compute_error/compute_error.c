@@ -198,7 +198,7 @@ struct Error_CE_Helper* constructor_Error_CE_Helper (const struct Simulation* si
 	e_ce_h->sol_err = constructor_empty_Vector_d(n_out); // destructed
 	set_to_value_Vector_d(e_ce_h->sol_err,0.0);
 
-	e_ce_h->sol_cont = malloc(sizeof *e_ce_h->sol_cont); // free
+	e_ce_h->sol_cont = calloc(1,sizeof *e_ce_h->sol_cont); // free
 	const_cast_c(&e_ce_h->sol_cont->ce_type,'v');
 	const_cast_c(&e_ce_h->sol_cont->cv_type,'v');
 	const_cast_c(&e_ce_h->sol_cont->node_kind,'c');
