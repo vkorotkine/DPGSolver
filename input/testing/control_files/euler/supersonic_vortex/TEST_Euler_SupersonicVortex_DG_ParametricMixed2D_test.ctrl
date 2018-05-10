@@ -18,14 +18,14 @@ mesh_path        ../meshes/
 
 test_case_extension high_tol
 
-interp_tp  GL
-interp_si  WSH
+interp_tp  GLL
+interp_si  AO
 interp_pyr GLL
 
 basis_geom  bezier
 basis_sol   lagrange
 
-geom_representation  superparametric
+geom_representation  isoparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
@@ -37,5 +37,5 @@ fe_method 1
 
 # Testing variables
 
-ml_range_test 0 1 // possibly requires start on ml 1 for p1
+ml_range_test 0 3 // possibly requires start on ml 1 for p1
 p_range_test  3 3

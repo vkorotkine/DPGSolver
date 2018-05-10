@@ -48,6 +48,7 @@ static void set_function_pointers_num_flux
 void set_function_pointers_solution_diffusion_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
 	const_cast_b(&test_case->has_analytical,true);
+	const_cast_b(&test_case->copy_initial_rhs,true);
 	if (strstr(sim->pde_spec,"default_steady") ||
 	    strstr(sim->pde_spec,"steady/default")) {
 		test_case->constructor_xyz              = constructor_xyz_cylinder_parametric_T;
@@ -57,7 +58,7 @@ void set_function_pointers_solution_diffusion_T (struct Test_Case_T* test_case, 
 		test_case->set_grad                     = set_grad_diffusion_default_steady_T;
 		test_case->compute_source_rhs           = compute_source_rhs_diffusion_default_steady_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_diffusion_default_steady_T;
-		test_case->constructor_Error_CE         = constructor_Error_CE_diffusion_all;
+		test_case->constructor_Error_CE         = constructor_Error_CE_diffusion_all_p_rhs;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}

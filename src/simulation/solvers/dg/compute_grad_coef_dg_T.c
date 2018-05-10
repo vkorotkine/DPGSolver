@@ -509,8 +509,19 @@ static void add_face_grad_coef_f_to_volumes (const struct DG_Solver_Face_T*const
 	const struct Neigh_Info_DG*const ni = dg_s_face->neigh_info;
 
 	const int n_side = ( face->boundary ? 1 : 2 );
+#if 0
+if (face->neigh_info[0].volume->index == 0) {
+	printf("\n\n\t\t\t********************\n");
+	print_Multiarray_T(s_vol[0]->grad_coef);
+	print_Multiarray_T(ni[0].grad_coef_f);
+}
+#endif
 	for (int i = 0; i < n_side; ++i)
 		add_in_place_Multiarray_T(1.0,s_vol[i]->grad_coef,(struct const_Multiarray_T*)ni[i].grad_coef_f);
+#if 0
+if (face->neigh_info[0].volume->index == 0)
+	print_Multiarray_T(s_vol[0]->grad_coef);
+#endif
 }
 
 static void compute_g_coef_related_boundary
