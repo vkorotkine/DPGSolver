@@ -120,6 +120,9 @@ struct Simulation* constructor_Simulation__no_mesh (const char*const ctrl_name)
 	sim->volumes  = NULL;
 	sim->faces    = NULL;
 
+	// constructor_Test_Case_rc_real is where the test parameters are set. 
+	// That is, it is how the code knows that a gaussian bump case is being run.
+	// This is because, set_function_pointers is called in this function
 	sim->test_case_rc = constructor_Test_Case_rc_real(sim);
 
 	return sim;
@@ -134,6 +137,7 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 	struct Mesh_Input mesh_input = set_Mesh_Input(sim);
 	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements); // destructed
 	remove_absent_Elements(sim->elements);
+
 
 	sim->volumes = constructor_Volumes(sim,mesh); // destructed
 	sim->faces   = constructor_Faces(sim,mesh);   // destructed
@@ -318,7 +322,7 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 
 	int d = -1;
 
-	// Read information
+	// Read information from the control file
 	char line[STRLEN_MAX];
 	while (fgets(line,sizeof(line),ctrl_file)) {
 		if (strstr(line,"pde_name"))  read_skip_const_c_1(line,sim->pde_name);
@@ -492,6 +496,10 @@ static void set_domain_type
 
 static void set_mesh_parameters (struct Simulation*const sim)
 {
+
+	// Get the mesh parameters from the control file. Load this data into the
+	// mesh_ctrl_data struct
+
 	struct Mesh_Ctrl_Data mesh_ctrl_data;
 
 	// Read ctrl info

@@ -354,9 +354,13 @@ const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 
 	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
 
+	// xyz_i is the initial values for the xyz coordinates. These are, in 
+	// this function, the location on the parametric domain. 
 	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
 	          *const y_i = get_col_const_Multiarray_R(1,xyz_i);
 
+	// The physical location of the coordinates (on the physical domain, not 
+	// the parametric one)
 	Real*const x = get_col_Multiarray_R(0,xyz),
 	    *const y = get_col_Multiarray_R(1,xyz);
 

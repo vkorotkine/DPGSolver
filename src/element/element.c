@@ -344,9 +344,18 @@ void set_elements_present (const struct const_Intrusive_List* elements, const st
 {
 	int e_type = -1;
 
+	// Loop over all the element types. ext_0 gives the extent of the vector
+	// so we can get n_elem (number of elements) that way
+
 	const ptrdiff_t n_elem = elem_types->ext_0;
 	for (ptrdiff_t i = 0; i < n_elem; ++i) {
+		// Loop over the different types of elements
+
 		if (e_type != elem_types->data[i]) {
+			// Fill the elements list with the different element types.
+			// This will go through the list and set the flag for present to be
+			// true if the given element is present.
+			
 			e_type = elem_types->data[i];
 			set_element_present(e_type,elements);
 		}
@@ -355,6 +364,9 @@ void set_elements_present (const struct const_Intrusive_List* elements, const st
 
 void remove_absent_Elements (const struct const_Intrusive_List* elements)
 {
+	// Loop through the different types of elements. If an element is not
+	// present in the mesh, then remove it from the elements list.
+
 	for (const struct const_Intrusive_Link* curr = elements->first; curr; ) {
 		const struct const_Intrusive_Link* next = curr->next;
 		struct Element* element = (struct Element*) curr;
@@ -566,9 +578,14 @@ static struct Element* constructor_Element (const int elem_type)
 
 void set_element_present (const int e_type, const struct const_Intrusive_List* elements)
 {
+	// Get the element object based on the e_type and set that this 
+	// element is present
 	struct Element* element = (struct Element*) get_element_by_type(elements,e_type);
 	element->present = true;
 
+	// For certain elements, which are built on others, set their child elements
+	// to present as well. For instance, QUADS are built from LINEs, so if a QUAD 
+	// is present then the line element is also present (they form the faces)
 	switch (e_type) {
 	case POINT:
 		// Do nothing.

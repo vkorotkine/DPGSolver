@@ -1,5 +1,5 @@
-find_package(MPI REQUIRED)
-include_directories(${MPI_C_INCLUDE_PATH})
+#find_package(MPI REQUIRED)
+#include_directories(${MPI_C_INCLUDE_PATH})
 
 find_package(MKL REQUIRED)
 include_directories(${MKL_INCLUDE_DIRS})

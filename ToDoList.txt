@@ -1,0 +1,9 @@
+
+Wednesday:
+	(Done) - Run a Gaussian Bump Case at only one mesh level and P and process the results
+		- Trace through the setup process for the simulation and see how the code is set
+	- Use a quad mesh instead of a mixed one for the gaussian bump and visualize the results.
+	- Modify the bump parameters and run the case and verify the results
+	- Create a new parametric mapping for a converging diverging nozzle and verify the results. 
+
+Thursday:

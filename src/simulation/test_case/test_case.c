@@ -41,6 +41,10 @@ struct Test_Case_rc* constructor_Test_Case_rc_real (const struct Simulation* sim
 	struct Test_Case_rc* test_case_rc = malloc(sizeof *test_case_rc); // free
 
 	const_cast_b(&test_case_rc->is_real,true);
+
+	// This is a function pointer. constructor_Test_Case will call the
+	// templated function constructor_Test_Case_T which itself contains 
+	// set_function_pointers
 	test_case_rc->tc = (void*)constructor_Test_Case(sim); // destructed
 
 	return test_case_rc;

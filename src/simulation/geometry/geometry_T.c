@@ -721,6 +721,10 @@ static void compute_geom_coef_parametric_T (const struct Simulation*const sim, s
 {
 	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho_T('v',s_vol,sim); // destructed
 
+	// Here is where the geometry is set for the volume. We are first taking 
+	// the xyz values on the parametric domain and mapping them onto the 
+	// physical domain here. These xyz points are at the geometric node points
+	// (equidistant I believe)
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const struct const_Multiarray_R* xyz = test_case->constructor_xyz(0,xyz_s,s_vol,sim); // destructed
 	destructor_const_Multiarray_R(xyz_s);

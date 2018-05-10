@@ -73,7 +73,9 @@ struct Test_Case_T* constructor_Test_Case_T (const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = calloc(1,sizeof *test_case); // returned
 
+	// Set the PDE here (i.e. Euler, Navier Stokes, ...)
 	set_string_associations(test_case,sim);
+	
 	set_pde_related(test_case,sim);
 	set_method_related(test_case,sim);
 
