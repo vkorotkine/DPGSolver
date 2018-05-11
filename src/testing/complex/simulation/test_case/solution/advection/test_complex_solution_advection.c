@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "peterson/test_complex_solution_peterson.h"
 #include "vortex_advection/test_complex_solution_vortex_advection.h"
 #include "hyperbolic_tan/test_complex_solution_hyperbolic_tan.h"
+#include "gaussian_bump/test_complex_solution_gaussian_bump.h"
 
 // Static function declarations ************************************************************************************* //
 
