@@ -12,17 +12,23 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
 /** \file
- *  \brief Undefine macro definitions for c-style templated containers/functions relating to solution for the
- *         linear advection equation.
+ *  \brief Provides the macro definitions used for c-style templating related to the solution functions for the
+ *         linear advection equation (test case: gaussian_bump).
  */
 
-#include "undef_templates_solution_advection_default.h"
-#include "peterson/undef_templates_solution_advection_peterson.h"
-#include "free_stream_advection/undef_templates_solution_free_stream_advection.h"
-#include "vortex_advection/undef_templates_solution_vortex_advection.h"
-#include "hyperbolic_tan/undef_templates_solution_hyperbolic_tan.h"
-#include "gaussian_bump/undef_templates_solution_gaussian_bump.h"
+#if TYPE_RC == TYPE_REAL
 
-#undef set_function_pointers_solution_advection_T
+///\{ \name Function names
+#define set_sol_gaussian_bump_T               set_sol_gaussian_bump
+#define constructor_const_sol_gaussian_bump_T constructor_const_sol_gaussian_bump
+///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define set_sol_gaussian_bump_T               set_sol_gaussian_bump_c
+#define constructor_const_sol_gaussian_bump_T constructor_const_sol_gaussian_bump_c
+///\}
+
+#endif

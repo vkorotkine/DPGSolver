@@ -13,16 +13,20 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
+#ifndef DPG__solution_gaussian_bump_h__INCLUDED
+#define DPG__solution_gaussian_bump_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templated containers/functions relating to solution for the
- *         linear advection equation.
+ *  \brief Provides the interface to functions used to set the solution for the gaussian_bump test case.
  */
 
-#include "undef_templates_solution_advection_default.h"
-#include "peterson/undef_templates_solution_advection_peterson.h"
-#include "free_stream_advection/undef_templates_solution_free_stream_advection.h"
-#include "vortex_advection/undef_templates_solution_vortex_advection.h"
-#include "hyperbolic_tan/undef_templates_solution_hyperbolic_tan.h"
-#include "gaussian_bump/undef_templates_solution_gaussian_bump.h"
+#include "def_templates_type_d.h"
+#include "def_templates_solution.h"
+#include "def_templates_solution_advection.h"
+#include "def_templates_multiarray.h"
+#include "solution_gaussian_bump_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_advection.h"
+#include "undef_templates_multiarray.h"
 
-#undef set_function_pointers_solution_advection_T
+#endif // DPG__solution_gaussian_bump_h__INCLUDED

@@ -42,6 +42,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "peterson/solution_peterson.h"
 #include "vortex_advection/solution_vortex_advection.h"
 #include "hyperbolic_tan/solution_hyperbolic_tan.h"
+#include "gaussian_bump/solution_gaussian_bump.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -81,6 +82,14 @@ void read_data_advection (struct Sol_Data__Advection*const sol_data)
 			read_skip_d_1(line,1,sol_data->u_coef_polynomial4,5);
 		if (strstr(line,"b_coef_polynomial_odd"))
 			sol_data->b_coef_polynomial_odd = constructor_file_const_Vector_d(input_file,true); // leaked
+		if (strstr(line,"x_mean"))
+			read_skip_d_1(line,1,&sol_data->x_mean,1);
+		if (strstr(line,"x_stddev"))
+			read_skip_d_1(line,1,&sol_data->x_stddev,1);
+		if (strstr(line,"y_mean"))
+			read_skip_d_1(line,1,&sol_data->y_mean,1);
+		if (strstr(line,"y_stddev"))
+			read_skip_d_1(line,1,&sol_data->y_stddev,1);
 	}
 	fclose(input_file);
 

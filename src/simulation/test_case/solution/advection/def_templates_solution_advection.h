@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "free_stream_advection/def_templates_solution_free_stream_advection.h"
 #include "vortex_advection/def_templates_solution_vortex_advection.h"
 #include "hyperbolic_tan/def_templates_solution_hyperbolic_tan.h"
+#include "gaussian_bump/def_templates_solution_gaussian_bump.h"
 
 #if TYPE_RC == TYPE_REAL
 

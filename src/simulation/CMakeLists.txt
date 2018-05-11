@@ -78,6 +78,7 @@ set	(SOURCE
 	 test_case/solution/advection/peterson/solution_peterson.c
 	 test_case/solution/advection/vortex_advection/solution_vortex_advection.c
 	 test_case/solution/advection/hyperbolic_tan/solution_hyperbolic_tan.c
+	 test_case/solution/advection/gaussian_bump/solution_gaussian_bump.c
 	 test_case/solution/diffusion/solution_diffusion.c
 	 test_case/solution/diffusion/default_steady/solution_diffusion_default_steady.c
 	 test_case/solution/euler/solution_euler.c

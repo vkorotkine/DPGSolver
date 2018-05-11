@@ -1,0 +1,39 @@
+pde_name  advection
+pde_spec  unsteady/gaussian_bump
+
+geom_name n-cube
+geom_spec x_l
+
+dimension 1
+
+mesh_generator   n-cube/1d.geo
+mesh_format      gmsh
+mesh_domain      straight
+mesh_type        line
+mesh_level       5 6
+mesh_path        ../meshes/
+
+
+# Simulation variables
+
+interp_tp  GLL
+interp_si  AO
+interp_pyr GLL
+
+basis_geom  lagrange
+basis_sol   lagrange
+
+geom_representation  isoparametric
+geom_blending_tp     gordon_hall
+geom_blending_si     szabo_babuska_gen
+
+p_ref    1 5
+
+fe_method 1
+
+
+# Testing variables
+
+ml_range_test 5 5
+p_range_test  1 5
+

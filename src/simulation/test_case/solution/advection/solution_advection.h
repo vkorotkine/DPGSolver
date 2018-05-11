@@ -49,6 +49,10 @@ struct Sol_Data__Advection {
 
 	/// Coefficients for the odd polynomial advection velocity vector.
 	const struct const_Vector_d* b_coef_polynomial_odd;
+
+	double x_mean, x_stddev; /// Mean and standard deviation of Gaussian bump initial solution in x-direction
+	double y_mean, y_stddev; /// Mean and standard deviation of Gaussian bump initial solution in y-direction
+	double z_mean, z_stddev; /// Mean and standard deviation of Gaussian bump initial solution in y-direction
 };
 
 /** \brief Return the statically allocated \ref Sol_Data__Advection container.

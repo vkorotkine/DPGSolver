@@ -1,0 +1,11 @@
+/// Solver parameters for test case: advection/unsteady/gaussian_bump
+
+solver_proc   explicit
+solver_type_e ls_rk_54
+
+num_flux_1st upwind
+
+time_step  1e-2
+time_final 5e-1
+
+display_progress 1
