@@ -231,6 +231,8 @@ static double time_step_euler (const double dt, const struct Simulation* sim)
 
 	const double max_rhs = compute_rhs(sim);
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		// s_vol holds the data for the given volume
+		// s_vol_dg holds the dg related data, such as the RHS for the given volume
 		struct Solver_Volume*    s_vol    = (struct Solver_Volume*) curr;
 		struct DG_Solver_Volume* s_vol_dg = (struct DG_Solver_Volume*) curr;
 

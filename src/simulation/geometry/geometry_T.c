@@ -719,6 +719,10 @@ static void compute_geom_coef_blended_T (const struct Simulation*const sim, stru
 
 static void compute_geom_coef_parametric_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
 {
+
+	// I believe this is where the metric terms are starting to be set. Look 
+	// into this further
+
 	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho_T('v',s_vol,sim); // destructed
 
 	// Here is where the geometry is set for the volume. We are first taking 

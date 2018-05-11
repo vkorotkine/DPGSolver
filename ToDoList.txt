@@ -2,8 +2,20 @@
 Wednesday:
 	(Done) - Run a Gaussian Bump Case at only one mesh level and P and process the results
 		- Trace through the setup process for the simulation and see how the code is set
-	- Use a quad mesh instead of a mixed one for the gaussian bump and visualize the results.
-	- Modify the bump parameters and run the case and verify the results
-	- Create a new parametric mapping for a converging diverging nozzle and verify the results. 
 
 Thursday:
+	(Done) - Use a quad mesh instead of a mixed one for the gaussian bump and visualize the results.
+	(Done) - Modify the mesh refinement of the Quad mesh and see how the results turn out. 
+	- Create a NURBS mesh python generator. This mesh will need to be read into the DPG
+		code. The knot range will need to be -1 to 1 in order to use the 
+		parametric mapping option. Create a user_defined patch case
+	- Create a NURBS Gaussian Bump case. So, set the bottom wall using a NURBS function
+		and set the other three sides to be straight. Read the data points and form the 
+		parametric mapping. For the RBF, all these points will be the surface points (the
+		volume points will not be loaded from the NURBS file, they are specified on 
+		the parametric domain in the GMSH file). Also, might not need RBF since the design 
+		control points do not overlap (farfield, so they are really far). The parametric
+		domain will ensure, through the mapping, that the elements do not have a negative
+		jacobian.
+		
+Friday:

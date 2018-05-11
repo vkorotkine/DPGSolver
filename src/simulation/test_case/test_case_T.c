@@ -80,6 +80,10 @@ struct Test_Case_T* constructor_Test_Case_T (const struct Simulation* sim)
 	set_method_related(test_case,sim);
 
 	read_test_case_parameters(test_case,sim);
+
+	// Set the pointers to the correct functions based on the type of problem being
+	// solved. For instance, this will set pointers to the parametric mapping (if there is
+	// any) for the correct mapping function based on the geometry and case
 	set_function_pointers(test_case,sim);
 
 	test_case->solver_method_curr = 0;

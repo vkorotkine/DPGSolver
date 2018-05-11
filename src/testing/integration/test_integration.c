@@ -60,6 +60,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Integration_Test_Info* constructor_Integration_Test_Info (const char*const ctrl_name)
 {
+	// Load the information from the control file 
+
 	struct Integration_Test_Info* int_test_info = calloc(1,sizeof *int_test_info); // returned
 	int_test_info->ctrl_name = ctrl_name;
 
