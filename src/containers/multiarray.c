@@ -52,6 +52,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ptrdiff_t compute_size (const int order, const ptrdiff_t*const extents)
 {
+	// Order here refers to the dimension of the array
+	// Compute the total number of elements this multiarray can hold
+	// by multiplying all the dimensions. The length of the ith dimension is 
+	// stored in the extents ptrdiff_t array at the ith index.
+
 	ptrdiff_t size = 1;
 	for (ptrdiff_t i = 0; i < order; i++)
 		size *= extents[i];

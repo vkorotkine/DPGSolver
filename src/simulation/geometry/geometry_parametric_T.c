@@ -52,6 +52,9 @@ struct Geo_Data {
 
 	Real xyz_l, ///< Left  xyz-coordinate.
 	     xyz_r; ///< Right xyz-coordinate.
+
+	// NURBS Parametric Domain parameters:
+
 };
 
 /** \brief Return the statically allocated \ref Geo_Data container.
@@ -338,6 +341,67 @@ const struct const_Multiarray_R* constructor_xyz_joukowski_parametric_T
 			z[n] = z_i[n];
 	}
 	return (struct const_Multiarray_R*) xyz;
+}
+
+const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
+(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+	const struct Simulation* sim){
+
+	/*
+	Computes the parametric NURBS mapping from the parametric domain to the 
+	physical domain. 
+
+	Arguments:
+		n_type: -
+		xyz_i: The initial xyz points (on the parametric domain)
+		s_vol: The solver volume I think (check further)
+		sim: The simulation object
+
+	Return:
+		The matrix of the mapped xyz points (onto the physical domain)
+	*/
+
+	UNUSED(n_type);
+	UNUSED(s_vol);
+	UNUSED(sim);
+
+	// Number of columns on xyz_i matrix must be 2 (because we have a max of 2 dimensions)
+	assert(DIM == 2); // Add support for 3D if required.
+	assert(DIM == xyz_i->extents[1]);
+
+	// The number of rows on the xyz_i matrix
+	//const ptrdiff_t n_n = xyz_i->extents[0];
+
+	// Create an empty Multiarray (or a matrix) with the following properties:
+	//	- Layout = 'C' for column major
+	//  - Order = 2, referring to the fact that this matrix has 2 dimensions
+	//  - Extents = {n_n, DIM}, referring to the size of each dimension of the matrix, 
+	//			starting with the row dimension.
+	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
+
+	/*
+	// xyz_i is the initial values for the xyz coordinates. These are, in 
+	// this function, the location on the parametric domain. Here, get the first and 
+	// second column on the Multiarray xyz_i, which correspond to the x_i and y_i 
+	// values (const). 
+	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
+	          *const y_i = get_col_const_Multiarray_R(1,xyz_i);
+
+	// The physical location of the coordinates (on the physical domain, not 
+	// the parametric one). Get a reference to the x and y value columns in the
+	// multiarray.
+	Real*const x = get_col_Multiarray_R(0,xyz),
+	    *const y = get_col_Multiarray_R(1,xyz);
+
+	// Perhaps store the geo_data struct in the sim object.
+	// - If it is null, it means we need to read in the new geo_data
+	*/
+
+	// TEST:
+	// Print out the read NURBS parametric domain values
+
+	return (struct const_Multiarray_R*) xyz;
+
 }
 
 const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T

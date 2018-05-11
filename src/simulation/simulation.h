@@ -201,6 +201,9 @@ struct Simulation {
 	const struct const_Intrusive_List* elements; ///< Pointer to the head of the Element list.
 	struct Intrusive_List* volumes;              ///< Pointer to the head of the Volume  list.
 	struct Intrusive_List* faces;                ///< Pointer to the head of the Face    list.
+
+	struct Geo_Data* geometric_data; 			 ///< Pointer to the geometric data struct.
+
 };
 
 /** \brief Constructor for \ref Simulation omitting the construction of members dependent upon an input mesh.

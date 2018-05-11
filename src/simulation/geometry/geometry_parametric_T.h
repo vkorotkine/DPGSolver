@@ -95,3 +95,12 @@ const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 	 const struct Solver_Volume_T* s_vol,    ///< See brief.
 	 const struct Simulation* sim            ///< See brief.
 	);
+
+/** \brief Version of \ref constructor_xyz_fptr_T for a parametric NURBS patch domain.
+ *  \return See brief. */
+const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
+	(const char n_type,                      ///< See brief.
+	 const struct const_Multiarray_R* xyz_i, ///< See brief.
+	 const struct Solver_Volume_T* s_vol,    ///< See brief.
+	 const struct Simulation* sim            ///< See brief.
+	);

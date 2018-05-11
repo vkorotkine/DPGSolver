@@ -101,6 +101,19 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 		}
 test_case->constructor_Error_CE = constructor_Error_CE_euler_entropy;
 		test_case->constructor_Error_CE_restart_test = constructor_Error_CE_euler_entropy;
+	} else if (strstr(sim->pde_spec, "NURBS_Channel")) {
+		// Internal channel flow case using a NURBS parametric mapping
+		test_case->constructor_xyz              = constructor_xyz_NURBS_parametric_T;
+		test_case->constructor_sol              = constructor_const_sol_free_stream_T;
+		test_case->set_sol                      = set_sol_free_stream_T;
+		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
+		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
+		if (sim->method == METHOD_DG) {
+			const_cast_b(&test_case->copy_initial_rhs,true);
+			test_case->constructor_Error_CE = constructor_Error_CE_euler_entropy_p_rhs;
+		} else { // not yet supported
+			test_case->constructor_Error_CE = constructor_Error_CE_euler_entropy;
+		}
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}

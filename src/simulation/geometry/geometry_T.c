@@ -720,12 +720,15 @@ static void compute_geom_coef_blended_T (const struct Simulation*const sim, stru
 static void compute_geom_coef_parametric_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
 {
 
-	// I believe this is where the metric terms are starting to be set. Look 
-	// into this further
+	// MSB I believe this is where the metric terms are starting to be set. Look 
+	// into this further.
+
+	// I believe that this is called for each volume. 
+	// Does this mean we read the geometry file for each volume?
 
 	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho_T('v',s_vol,sim); // destructed
 
-	// Here is where the geometry is set for the volume. We are first taking 
+	// MSB Here is where the geometry is set for the volume. We are first taking 
 	// the xyz values on the parametric domain and mapping them onto the 
 	// physical domain here. These xyz points are at the geometric node points
 	// (equidistant I believe)

@@ -16,6 +16,11 @@ the parametric domain). Using the NURBS mapping, each element's vertices and fac
 will be found on the physical domain using their corresponding values on the 
 parametric domain.
 
+NOTE: 
+	The output file will contain a section with all the control points listed as well
+	as a connectivity section. This is done because it is possible for a patch to use
+	the same control points (if the spline is closed for instance)
+
 Optimization:
 	- The NURBS patch will be able to be used for optimization as well. To ease the process
 		and avoid the use of RBF, the patch will be such that there will be no RBF 
@@ -36,6 +41,7 @@ import sys
 CONST_Patch_Type = "user_defined_patch"
 CONST_EPS = 1E-9
 CONST_Output_file_name = "ChannelWithBump.nurbs_patch"
+
 
 def NURBS_patch(xi,eta,BasisFunctionsList, ControlPoints_and_Weights):
 
@@ -177,6 +183,13 @@ def output_file(patch_parameters):
 	num_xi_pts = len(ControlPoints_and_Weights)
 	num_eta_pts = len(ControlPoints_and_Weights[0])
 
+	# Load all the control points into a list (a connecitivity format will
+	# be used to load the points)
+	ControlPoints_and_Weights_list = []
+	for i in range(num_xi_pts):
+		for j in range(num_eta_pts):
+			ControlPoints_and_Weights_list.append(ControlPoints_and_Weights[i][j])
+
 	with open(CONST_Output_file_name, "w") as fp:
 
 		fp.write("**********************************\n")
@@ -188,30 +201,22 @@ def output_file(patch_parameters):
 		fp.write("Q(eta_order) %d \n" % Q)
 		fp.write("\n")
 
+		fp.write("Control Points \n")
+		fp.write("%d \n" % len(ControlPoints_and_Weights_list))  # The number of control points
+		for pt in ControlPoints_and_Weights_list:
+			fp.write("%.14e %.14e %.14e \n" % (pt[0], pt[1], pt[2]))
+		fp.write("\n")
+
+		# Information for the patch
 		fp.write("num_xi_pts %d \n"%(num_xi_pts))
 		fp.write("num_eta_pts %d \n"%(num_eta_pts))
 		fp.write("\n")
 		
-		fp.write("Control Point X Values (xi = increasing rows, eta = increasing cols)\n")
+		fp.write("Control Point Connectivity (xi (i index) correspond to rows and eta (j index) to cols. 0 based indexing) \n")
 		for i in range(num_xi_pts):
 			for j in range(num_eta_pts):
-				fp.write(" %.14e " % ControlPoints_and_Weights[i][j][0])
+				fp.write("%d " % ControlPoints_and_Weights_list.index(ControlPoints_and_Weights[i][j]))
 			fp.write("\n")
-
-		fp.write("Control Point Y Values (xi = increasing rows, eta = increasing cols)\n")
-		for i in range(num_xi_pts):
-			for j in range(num_eta_pts):
-				fp.write(" %.14e " % ControlPoints_and_Weights[i][j][1])
-			fp.write("\n")
-
-		fp.write("Control Point Weights Values (xi = increasing rows, eta = increasing cols)\n")
-		for i in range(num_xi_pts):
-			for j in range(num_eta_pts):
-				fp.write(" %.14e " % ControlPoints_and_Weights[i][j][2])
-			fp.write("\n")
-
-
-
 
 
 def main():

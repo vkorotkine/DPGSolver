@@ -54,6 +54,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ptrdiff_t* allocate_and_set_extents (const int order, const ptrdiff_t*const extents_i)
 {
+	// MSB The extents_i structure is an array of ptrdiff_t that holds the size of each 
+	// dimension of the multiarray. Here, I think the issue is that we need to move 
+	// a const ptrdiff_t values into a non const array.
 	ptrdiff_t* extents = malloc((size_t)order * sizeof *extents); // returned
 
 	for (ptrdiff_t i = 0; i < order; i++)
