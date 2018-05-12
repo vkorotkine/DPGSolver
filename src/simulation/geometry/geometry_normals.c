@@ -15,49 +15,39 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "geometry.h"
+#include "geometry_normals.h"
 
 #include "multiarray.h"
-#include "matrix.h"
-#include "vector.h"
 
-#include "computational_elements.h"
-#include "volume_solver.h"
 #include "face_solver.h"
 
-#include "const_cast.h"
-#include "element_solver.h"
 #include "file_processing.h"
-#include "geometry_normals.h"
-#include "intrusive.h"
-#include "operator.h"
-#include "multiarray_operator.h"
+#include "geometry_parametric.h"
+#include "math_functions.h"
 #include "simulation.h"
-#include "test_case.h"
-#include "visualization.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "geometry_T.c"
+#include "geometry_normals_T.c"
 
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-bool is_internal_geom_straight ( )
+bool using_exact_normals ( )
 {
-	static bool igs = false;
 	static bool need_input = true;
+	static bool flag       = false;
 	if (need_input) {
+		need_input = false;
 		char line[STRLEN_MAX];
-		FILE* input_file = fopen_input('t',NULL,NULL); // closed
+		FILE* input_file = input_file = fopen_input('t',NULL,NULL); // closed
 		while (fgets(line,sizeof(line),input_file)) {
-			if (strstr(line,"use_straight_internal_geometry"))
-				read_skip_const_b(line,&igs);
+			if (strstr(line,"use_exact_normals")) read_skip_const_b(line,&flag);
 		}
 		fclose(input_file);
 	}
-	return igs;
+	return flag;
 }
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //

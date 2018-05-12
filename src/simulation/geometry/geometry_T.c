@@ -35,6 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 
+#include "def_templates_geometry_normals.h"
 #include "def_templates_operators.h"
 #include "def_templates_test_case.h"
 
@@ -160,6 +161,8 @@ void set_up_solver_geometry_T (struct Simulation* sim)
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
 		compute_geometry_face_T((struct Solver_Face_T*)curr,sim);
+
+	correct_for_exact_normals_T(sim);
 
 #if TYPE_RC == TYPE_REAL
 	if (OUTPUT_GEOMETRY) {
@@ -350,6 +353,17 @@ const struct const_Multiarray_R* constructor_geom_coef_ho_T
 	const struct Operator* vc0_vgc_vgc = get_Multiarray_Operator(g_e->vc0_vgc_vgc,(ptrdiff_t[]){0,0,p,p});
 
 	return constructor_mm_NN1_Operator_const_Multiarray_R(vc0_vgc_vgc,geom_val,'C',op_format,geom_val->order,NULL);
+}
+
+void correct_for_exact_normals_T (const struct Simulation*const sim)
+{
+	if (!using_exact_normals())
+		return;
+
+	correct_for_exact_normal_fptr_T correct_for_exact_normal = set_correct_for_exact_normal_fptr_T(sim);
+
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
+		correct_for_exact_normal((struct Solver_Face_T*)curr);
 }
 
 // Static functions ************************************************************************************************* //

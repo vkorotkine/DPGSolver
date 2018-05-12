@@ -64,10 +64,10 @@ If (aspect_ratio == 1.0)
 	Transfinite Line {1001,1002} = 2*2^(mesh_level)+1  Using Progression prog_radial;
 	Transfinite Line {1007}      = 2*2^(mesh_level)+1  Using Progression prog_center;
 ElseIf (aspect_ratio == 2.5)
-	Transfinite Line {1003:1004} = 1*2^(mesh_level)+1  Using Progression 1;
-	Transfinite Line {1005:1006} = 1*2^(mesh_level)+1  Using Progression 1;
-	Transfinite Line {1001,1002} = 1*2^(mesh_level)+1  Using Progression prog_radial;
-	Transfinite Line {1007}      = 1*2^(mesh_level)+1  Using Progression prog_center;
+	Transfinite Line {1003:1004} = 1*2^(mesh_level+1)+1  Using Progression 1;
+	Transfinite Line {1005:1006} = 1*2^(mesh_level+1)+1  Using Progression 1;
+	Transfinite Line {1001,1002} = 1*2^(mesh_level+1)+1  Using Progression prog_radial;
+	Transfinite Line {1007}      = 1*2^(mesh_level+1)+1  Using Progression prog_center;
 ElseIf (aspect_ratio == 5.0)
 	Transfinite Line {1003:1004} = 2*2^(mesh_level)+1  Using Progression 1;
 	Transfinite Line {1005:1006} = 2*2^(mesh_level)+1  Using Progression 1;

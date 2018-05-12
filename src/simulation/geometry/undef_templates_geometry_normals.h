@@ -13,21 +13,11 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to geometry functions.
+ *  \brief Undefine macro definitions for c-style templating relating to exact normals.
  */
 
-#include "undef_templates_geometry_blended.h"
-#include "undef_templates_geometry_parametric.h"
-#include "undef_templates_geometry_surface.h"
+#undef correct_for_exact_normal_fptr_T
 
-#undef constructor_xyz_fptr_T
-#undef compute_geom_coef_fptr_T
-
-#undef set_up_solver_geometry_T
-#undef set_up_solver_geometry_p1_T
-#undef compute_unit_normals_T
-#undef compute_geometry_volume_T
-#undef compute_geometry_face_T
-#undef constructor_xyz_s_ho_T
-#undef constructor_geom_coef_ho_T
-#undef correct_for_exact_normals_T
+#undef set_correct_for_exact_normal_fptr_T
+#undef correct_for_exact_normal_cylinder_T
+#undef correct_for_exact_normal_gaussian_bump_T

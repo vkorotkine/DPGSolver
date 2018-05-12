@@ -13,6 +13,7 @@ set	(SOURCE
 	 geometry/geometry_blended.c
 	 geometry/geometry_parametric.c
 	 geometry/geometry_surface.c
+	 geometry/geometry_normals.c
 
 	 solvers/compute_rlhs.c
 	 solvers/compute_face_rlhs.c

@@ -137,3 +137,9 @@ const struct const_Multiarray_R* constructor_geom_coef_ho_T
 	 const struct Solver_Volume_T*const s_vol,  ///< \ref Solver_Volume_T.
 	 const struct Simulation*const sim          ///< \ref Simulation.
 	);
+
+/// \brief Modify the normals to correspond to the exact boundary normals.
+void correct_for_exact_normals_T
+	(const struct Simulation*const sim ///< Standard.
+	);
+

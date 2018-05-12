@@ -122,6 +122,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define Multiarray_R       Multiarray_d
 #define const_Multiarray_R const_Multiarray_d
 
+#define get_row_Multiarray_R          get_row_Multiarray_d
 #define get_row_const_Multiarray_R    get_row_const_Multiarray_d
 #define get_col_Multiarray_R          get_col_Multiarray_d
 #define get_col_const_Multiarray_R    get_col_const_Multiarray_d

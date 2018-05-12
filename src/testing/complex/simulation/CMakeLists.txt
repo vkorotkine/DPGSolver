@@ -7,6 +7,7 @@ set	(SOURCE
 	 geometry/test_complex_geometry_blended.c
 	 geometry/test_complex_geometry_parametric.c
 	 geometry/test_complex_geometry_surface.c
+	 geometry/test_complex_geometry_normals.c
 
 	 solvers/test_complex_compute_face_rhs.c
 	 solvers/test_complex_compute_volume_rhs.c

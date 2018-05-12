@@ -751,6 +751,7 @@ static void update_geometry_faces (struct Simulation* sim)
 
 		compute_geometry_face(s_face,sim);
 	}
+	correct_for_exact_normals(sim);
 }
 
 static void project_solution_volumes (struct Simulation* sim)

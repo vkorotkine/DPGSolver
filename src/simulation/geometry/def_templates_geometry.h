@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_geometry_face_T   compute_geometry_face
 #define constructor_xyz_s_ho_T     constructor_xyz_s_ho
 #define constructor_geom_coef_ho_T constructor_geom_coef_ho
+#define correct_for_exact_normals_T correct_for_exact_normals
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -54,6 +55,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_geometry_face_T   compute_geometry_face_c
 #define constructor_xyz_s_ho_T     constructor_xyz_s_ho_c
 #define constructor_geom_coef_ho_T constructor_geom_coef_ho_c
+#define correct_for_exact_normals_T correct_for_exact_normals_c
 ///\}
 
 #endif

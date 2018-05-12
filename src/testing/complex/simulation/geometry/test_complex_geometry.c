@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_face_solver.h"
 #include "test_complex_volume_solver.h"
 
+#include "test_complex_geometry_normals.h"
 #include "test_complex_test_case.h"
 
 
@@ -31,6 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "const_cast.h"
 #include "element_solver.h"
+#include "geometry_normals.h"
 #include "intrusive.h"
 #include "operator.h"
 #include "multiarray_operator.h"

@@ -79,7 +79,7 @@ def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming):
 		ctrl_matrix = ["p2-3", ]
 	elif (ar_val == 5.0):
 		ctrl_spec   = ["ar5_iso", "ar5_super", ]
-		ctrl_matrix = ["p2-3", ]
+		ctrl_matrix = ["p1-3", ]
 	elif (ar_val == 20.0):
 		ctrl_matrix = ["p2-3", ]
 		if (non_conforming != True):
