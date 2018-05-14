@@ -25,7 +25,7 @@ struct Simulation;
  *  \param s_face \ref Solver_Face_T.
  */
 typedef void (*correct_for_exact_normal_fptr_T)
-	(const struct Solver_Face_T*const s_face
+	(struct Solver_Face_T*const s_face
 	);
 
 /** \brief Return the appropriate \ref correct_for_exact_normal_fptr_T pointer based on the test case.
@@ -36,10 +36,10 @@ correct_for_exact_normal_fptr_T set_correct_for_exact_normal_fptr_T
 
 /// \brief Version of \ref correct_for_exact_normal_fptr_T for cylinder geometry.
 void correct_for_exact_normal_cylinder_T
-	(const struct Solver_Face_T*const s_face ///< See brief.
+	(struct Solver_Face_T*const s_face ///< See brief.
 	);
 
 /// \brief Version of \ref correct_for_exact_normal_fptr_T for Gaussian bump geometry.
 void correct_for_exact_normal_gaussian_bump_T
-	(const struct Solver_Face_T*const s_face ///< See brief.
+	(struct Solver_Face_T*const s_face ///< See brief.
 	);

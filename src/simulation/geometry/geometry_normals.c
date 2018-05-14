@@ -42,7 +42,7 @@ bool using_exact_normals ( )
 		char line[STRLEN_MAX];
 		FILE* input_file = input_file = fopen_input('t',NULL,NULL); // closed
 		while (fgets(line,sizeof(line),input_file)) {
-			if (strstr(line,"use_exact_normals")) read_skip_const_b(line,&flag);
+			if (strstr(line,"use_exact_normals_for_all")) read_skip_const_b(line,&flag);
 		}
 		fclose(input_file);
 	}

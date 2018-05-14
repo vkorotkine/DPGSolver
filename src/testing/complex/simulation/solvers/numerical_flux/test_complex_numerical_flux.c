@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "const_cast.h"
+#include "geometry_normals.h"
 #include "simulation.h"
 #include "test_case.h"
 

@@ -49,6 +49,12 @@ struct Solver_Face_T {
 	/// Values of the outward pointing unit normal vector at the face cubature nodes.
 	const struct const_Multiarray_R*const normals_fc;
 
+	/** Values of the exact outward pointing unit normal vector at the face cubature nodes.
+	 *
+	 *  Unused unless one of the exact normal flags is enabled (boundary, all).
+	 */
+	const struct const_Multiarray_R*const normals_fc_exact;
+
 	/** The determinant of the face geometry Jacobian evaluated at the face cubature nodes. See (eq. (B.6),
 	 *  \cite Zwanenburg2016) for the precise definition. */
 	const struct const_Multiarray_R*const jacobian_det_fc;

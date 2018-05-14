@@ -1113,6 +1113,47 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 				*nF_ptr[IndnF++]++ = 0.5*(nF3 - dis3);
 				*nF_ptr[IndnF++]++ = 0.5*(nF5 - dis5);
 
+#if 0
+const int bc = num_flux_i->bv_l.bc;
+const int curved = bc / BC_STEP_SC;
+const int bc_name = bc % BC_STEP_SC;
+if (curved >= 2) {
+if (bc_name != BC_SLIPWALL)
+	EXIT_ERROR("Should not be occuring %d %d.\n",bc,bc_name);
+
+	const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,num_flux_i->bv_l.xyz),
+	                                       get_col_const_Multiarray_R(1,num_flux_i->bv_l.xyz),
+	                                       get_col_const_Multiarray_R(2,num_flux_i->bv_l.xyz) );
+	const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
+	const Real th = atan2(xyz_n[1],xyz_n[0]);
+	const Real n_ex[2] = { -cos(th), -sin(th), };
+	const Real r = sqrt_T(xyz_n[0]*xyz_n[0]+xyz_n[1]*xyz_n[1]);
+
+//	printf("% .3e % .3e % .3e % .3e\n",nF1,nF5,disInter1,disInter2*Vn);
+//	printf(" % .3e % .3e % .3e % .3e\n",VnL,VnR,uL*n_ex[0]+vL*n_ex[1],uR*n_ex[0]+vR*n_ex[1]);
+	Real p_ex = 0.0;
+	if (abs_T(r-1.0) < 1e-1) {
+		p_ex = 1.0/1.4;
+//		printf(" % .3e % .3e % .3e\n",pL-p_ex,pL*n1-p_ex*n_ex[0],pL*n2-p_ex*n_ex[1]);
+//		printf(" % .3e % .3e\n",*(nF_ptr[1]-1)-p_ex*n_ex[0],*(nF_ptr[2]-1)-p_ex*n_ex[1]);
+		static Real n_ex0[2];
+		if (n == 0) {
+			n_ex0[0] = n_ex[0];
+			n_ex0[1] = n_ex[1];
+		}
+		if (n == 1) {
+//			printf(" % .3e % .3e % .3e % .3e\n",*(nF_ptr[1]-1)-p_ex*n_ex[0],*(nF_ptr[2]-1)-p_ex*n_ex[1],
+//			       *(nF_ptr[1]-1)-p_ex*n_ex0[0]+*(nF_ptr[1]-2)-p_ex*n_ex[0],
+//			       *(nF_ptr[2]-1)-p_ex*n_ex0[1]+*(nF_ptr[2]-2)-p_ex*n_ex[1]);
+		}
+	}
+//	*(nF_ptr[0]-1) = 0;
+//	*(nF_ptr[1]-1) = n1*pL;
+//	*(nF_ptr[2]-1) = n2*pL;
+//	*(nF_ptr[3]-1) = 0;
+}
+#endif
+
 #if TYPE_REAL == TYPE_RC
 
 // MAKE SURE TO DISABLE 'ALWAYS_SET_INITIAL' IN solve.c.

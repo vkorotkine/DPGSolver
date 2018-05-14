@@ -357,7 +357,7 @@ const struct const_Multiarray_R* constructor_geom_coef_ho_T
 
 void correct_for_exact_normals_T (const struct Simulation*const sim)
 {
-	if (!using_exact_normals())
+	if (!using_exact_normals() && !using_exact_normals_for_boundary())
 		return;
 
 	correct_for_exact_normal_fptr_T correct_for_exact_normal = set_correct_for_exact_normal_fptr_T(sim);

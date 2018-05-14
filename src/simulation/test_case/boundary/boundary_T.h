@@ -72,7 +72,8 @@ struct Boundary_Value_Input_T {
 	int p;    ///< \ref Solver_Face_T::p_ref.
 
 /// \todo geometry: Real -> Templated
-	const struct const_Multiarray_R* normals; ///< The unit normal vector components.
+	const struct const_Multiarray_R* normals;     ///< The unit normal vector components.
+	const struct const_Multiarray_R* normals_std; ///< Standard unit normal vector components (computed from metrics).
 	const struct const_Multiarray_R* xyz;     ///< The xyz coordinates.
 	const struct const_Multiarray_R* xyz_ex;  ///< \ref Solver_Face_T::xyz_fc_ex_b.
 

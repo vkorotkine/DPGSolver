@@ -73,6 +73,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef get_col_Multiarray_R
 #undef get_col_const_Multiarray_R
 #undef set_to_value_Multiarray_R
+#undef set_Multiarray_R
 
 #undef resize_Multiarray_R
 #undef interpret_const_Multiarray_as_Vector_R

@@ -107,6 +107,12 @@ struct Numerical_Flux_T* constructor_Numerical_Flux_T (const struct Numerical_Fl
 		n_i->dnnf_dg = (c_m[2] ? constructor_zero_Multiarray_T('C',4,(ptrdiff_t[]){n_n,n_eq,n_vr,DIM}) : NULL); // destructed
 	}
 
+	/// \todo Possibly remove this functionality (using different normal vectors for boundary and numerical flux).
+	if (!using_exact_normals()) {
+		if (num_flux_i->bv_l.normals_std)
+			*(void**)&num_flux_i->bv_l.normals = (void*)num_flux_i->bv_l.normals_std;
+	}
+
 	assert(num_flux_i->bv_l.s->extents[0] == num_flux_i->bv_l.normals->extents[0]);
 	num_flux_i->compute_Numerical_Flux(num_flux_i,num_flux);
 

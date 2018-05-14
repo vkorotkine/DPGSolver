@@ -31,7 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 
-/** \brief Return whether exact normals should be used.
+/** \brief Return whether exact boundary normals should be used in all functions for which they are required.
  *  \return See brief. */
 bool using_exact_normals ( );
 

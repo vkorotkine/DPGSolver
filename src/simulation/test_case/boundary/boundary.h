@@ -35,4 +35,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_operators.h"
 #include "undef_templates_face_solver.h"
 
+/** \brief Return whether exact boundary normals should be used for boundary condition computation.
+ *  \return See brief. */
+bool using_exact_normals_for_boundary ( );
+
 #endif // DPG__boundary_h__INCLUDED

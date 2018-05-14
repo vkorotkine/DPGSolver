@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "boundary.h"
 
+#include <string.h>
+#include "macros.h"
+
 #include "definitions_bc.h"
 
 #include "multiarray.h"
@@ -29,6 +32,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver.h"
 
 #include "compute_face_rlhs.h"
+#include "file_processing.h"
+#include "geometry_normals.h"
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
@@ -42,6 +47,27 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
+
+bool using_exact_normals_for_boundary ( )
+{
+	static bool need_input = true;
+	static bool flag       = false;
+	if (need_input) {
+		need_input = false;
+		char line[STRLEN_MAX];
+		FILE* input_file = input_file = fopen_input('t',NULL,NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line,"use_exact_normals_for_boundary")) read_skip_const_b(line,&flag);
+		}
+		fclose(input_file);
+
+		if (flag && using_exact_normals()) {
+			printf("*** Warning: Enabling exact boundary normals is redundant if exact normals are enabled. *** \n");
+			PRINT_FILELINE;
+		}
+	}
+	return flag;
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
