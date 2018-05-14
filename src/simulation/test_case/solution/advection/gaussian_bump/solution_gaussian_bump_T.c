@@ -90,7 +90,7 @@ static struct Multiarray_T* constructor_sol_gaussian_bump
 		IF_DIM_GE_1(pows = pow((x_t-sol_data.x_mean)/sol_data.x_stddev,2));
 		IF_DIM_GE_2(pows += pow((y_t-sol_data.y_mean)/sol_data.y_stddev,2));
 		IF_DIM_GE_3(pows += pow((z_t-sol_data.z_mean)/sol_data.z_stddev,2));
-		u[i] = exp(-0.5 * pows);
+		u[i] = 0.1*exp(-0.5 * pows);
 	}
 
 	return sol;

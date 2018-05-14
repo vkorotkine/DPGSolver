@@ -10,7 +10,7 @@ mesh_generator   n-cube/3d.geo
 mesh_format      gmsh
 mesh_domain      straight
 mesh_type        hex
-mesh_level       0 6
+mesh_level       0 4
 mesh_path        ../meshes/
 
 
@@ -27,13 +27,13 @@ geom_representation  isoparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_ref    0 5
+p_ref    0 4
 
 fe_method 1
 
 
 # Testing variables
 
-ml_range_test 0 6
-p_range_test  0 5
+ml_range_test 0 3
+p_range_test  0 4
 

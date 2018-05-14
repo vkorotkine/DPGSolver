@@ -1,10 +1,10 @@
 /// Solution parameters for test case: advection/unsteady/gaussian_bump
 
 advection_type constant
-b_adv 0.5 0.2 0.1
+b_adv 0.5 0.5 0.5
 x_mean 0.0
-x_stddev 0.1
+x_stddev 0.2
 y_mean 0.0
 y_stddev 0.2
-z_mean 0.1
-z_stddev 0.3
+z_mean 0.0
+z_stddev 0.2
