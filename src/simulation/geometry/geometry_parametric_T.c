@@ -369,6 +369,13 @@ const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
 	assert(DIM == 2); // Add support for 3D if required.
 	assert(DIM == xyz_i->extents[1]);
 
+	// MSB: Read the geometric data for the NURBS patch
+	const struct Geo_Data geo_data = get_geo_data("NURBS");
+
+	// TODO: Add in the mesh file reading here.
+
+	exit(0);
+
 	// The number of rows on the xyz_i matrix
 	//const ptrdiff_t n_n = xyz_i->extents[0];
 
@@ -377,7 +384,7 @@ const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
 	//  - Order = 2, referring to the fact that this matrix has 2 dimensions
 	//  - Extents = {n_n, DIM}, referring to the size of each dimension of the matrix, 
 	//			starting with the row dimension.
-	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
+	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){1,2}); // returned
 
 	/*
 	// xyz_i is the initial values for the xyz coordinates. These are, in 
@@ -400,6 +407,14 @@ const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
 	// TEST:
 	// Print out the read NURBS parametric domain values
 
+	printf("IN constructor_xyz_NURBS_parametric_T\n");
+
+	const Real tol_print_test = 1e-4;	
+	printf("xyz_i : \n");
+	print_const_Multiarray_d_tol(xyz_i, tol_print_test);
+
+	exit(0);
+
 	return (struct const_Multiarray_R*) xyz;
 
 }
@@ -418,16 +433,17 @@ const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 
 	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
 
-	// xyz_i is the initial values for the xyz coordinates. These are, in 
+	// MSB: xyz_i is the initial values for the xyz coordinates. These are, in 
 	// this function, the location on the parametric domain. 
 	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
 	          *const y_i = get_col_const_Multiarray_R(1,xyz_i);
 
-	// The physical location of the coordinates (on the physical domain, not 
+	// MSB: The physical location of the coordinates (on the physical domain, not 
 	// the parametric one)
 	Real*const x = get_col_Multiarray_R(0,xyz),
 	    *const y = get_col_Multiarray_R(1,xyz);
 
+	// MSB: Read the geometric data for the bump
 	const struct Geo_Data geo_data = get_geo_data("gaussian_bump");
 	const Real h     = geo_data.h,
 	           x_max = geo_data.x_max;

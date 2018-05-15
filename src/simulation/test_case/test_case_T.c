@@ -73,15 +73,18 @@ struct Test_Case_T* constructor_Test_Case_T (const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = calloc(1,sizeof *test_case); // returned
 
-	// Set the PDE here (i.e. Euler, Navier Stokes, ...)
+	// MSB: Set the PDE here (i.e. Euler, Navier Stokes, ...)
 	set_string_associations(test_case,sim);
 	
+	// MSB: Set some PDE related information (such as the number of equations, ...)
 	set_pde_related(test_case,sim);
 	set_method_related(test_case,sim);
 
+	// MSB: Read parameters from the .data file (normally test_case.data) in the 
+	// input_files directory
 	read_test_case_parameters(test_case,sim);
 
-	// Set the pointers to the correct functions based on the type of problem being
+	// MSB: Set the pointers to the correct functions based on the type of problem being
 	// solved. For instance, this will set pointers to the parametric mapping (if there is
 	// any) for the correct mapping function based on the geometry and case
 	set_function_pointers(test_case,sim);
@@ -241,6 +244,10 @@ static void set_function_pointers (struct Test_Case_T* test_case, const struct S
 
 static void read_test_case_parameters (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
+
+	// MSB Go into the input directory (not the control file) and read some test case 
+	// information in this method
+
 	const int count_to_find = 1;
 
 	int count_found = 0,
@@ -248,6 +255,7 @@ static void read_test_case_parameters (struct Test_Case_T* test_case, const stru
 	char line[STRLEN_MAX];
 	FILE* input_file = NULL;
 
+	// MSB Read the .data file here (sent in the falg 't')
 	input_file = fopen_input('t',NULL,NULL); // closed
 	while (fgets(line,sizeof(line),input_file)) {
 		read_skip_convert_const_i(line,"solver_proc",  &test_case->solver_proc,  &count_found);

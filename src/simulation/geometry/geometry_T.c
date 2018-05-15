@@ -155,6 +155,7 @@ void set_up_solver_geometry_T (struct Simulation* sim)
 	assert(sim->faces->name   == IL_FACE_SOLVER);
 	assert(list_is_derived_from("solver",'e',sim));
 
+	// MSB: Setup the geometry information for each volume
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
 		compute_geometry_volume_T(true,(struct Solver_Volume_T*)curr,sim);
 
@@ -200,8 +201,17 @@ void compute_geometry_volume_T
 	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
 
 	if (recompute_geom_coef) {
+
+		// MSB: Set the geometry coefficient pointer (which function will be used to 
+		// compute the geometric values and derivatives for the metrics)
 		compute_geom_coef_fptr_T compute_geom_coef = set_fptr_geom_coef_T(sim->domain_type,vol->curved);
+			
+		// MSB: Use the vertex values to compute the coefficients of the p1 geometry basis
+		// functions. 
 		compute_geom_coef_p1(sim,s_vol);
+
+		// MSB: Compute the xyz_hat values using the xyz_s values (values at the geometric
+		// nodes)
 		compute_geom_coef(sim,s_vol);
 	}
 
@@ -215,6 +225,17 @@ void compute_geometry_volume_T
 	const int p_g = ( curved ? p : 1 );
 
 	struct Ops {
+		// MSB: The operators created here are first:
+		// 	cv1 = coefficient to values (1st derivative)
+		//	vg = volume, geometry (geometry coefficients so xyz_hat)
+		//	vm = volume, metric (nodes to compute values at)
+		// So, this operator will take the coefficients and compute, using the 
+		// derivative of the basis function, the values of the metric terms at the volume
+		// metric nodes.
+
+		// MSB: Similarly, create an operator to compute the metrics at the vc nodes 
+		// (volume, cubature nodes). Also, compute an interpolation operator to go from
+		// values to values (0 derivative), from metric nodes to cubature nodes.
 		const struct Multiarray_Operator cv1_vg_vm;
 		const struct Multiarray_Operator cv1_vg_vc;
 		const struct Operator* vv0_vm_vc;
@@ -222,9 +243,13 @@ void compute_geometry_volume_T
 	          .cv1_vg_vc = set_MO_from_MO(g_e->cv1_vg_vc[curved],1,(ptrdiff_t[]){0,0,p,p_g}),
 	          .vv0_vm_vc = get_Multiarray_Operator(g_e->vv0_vm_vc[curved],(ptrdiff_t[]){0,0,p,p_g}), };
 
+	// MSB: Compute the number of metric and cubature nodes
 	const ptrdiff_t n_vm = ops.cv1_vg_vm.data[0]->op_std->ext_0,
 	                n_vc = ops.cv1_vg_vc.data[0]->op_std->ext_0;
 
+	// MSB: Create the multiarray struct to store the jacobians (will be of dimension d x d, and there
+	// will be a d x d matrix at each n_vm or n_vc metric or cubature nodes (to store these 
+	// metrics at))
 	struct Multiarray_R* jacobian_vm = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_vm,d,d}), // destructed
 	                   * jacobian_vc = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_vc,d,d}); // destructed
 
@@ -301,32 +326,81 @@ void compute_geometry_face_T (struct Solver_Face_T* s_face, const struct Simulat
 const struct const_Multiarray_R* constructor_xyz_s_ho_T
 	(const char ve_rep, const struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
 {
+
+	// MSB: Called from compute_geom_coef_parametric_T the ve_rep is 'v'
+
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	UNUSED(sim);
+
+	// MSB: Set the standard operator format
 	const char op_format = 'd';
 
+	// MSB: Create references to the volume's geoemtry element
 	struct Volume* vol = (struct Volume*) s_vol;
 	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
 
+	// MSB: The volume must be curved (for the parametric mapping case)
 	const bool curved = vol->curved;
 	const int p       = s_vol->p_ref;
 	assert(curved == true);
 
+	// MSB: Create an operator here:
+	//	vv0 = values to values (with no differentiation)
+	// 	vv = volume vertex values
+	// 	vg = volume geometry. Note that here, we do not specify if curved or not. This is because 
+	//		vg[0] holds the straight operator and vg[1] holds the curved operator.
+	// Here, we are getting the multiarray operator from v0_vv_vg[curved] (should be curved = 1) so 
+	// the operator should be for a curved element. p_o = p and p_i = 1, while h_o = h_i = 0.
 	const struct Operator* vv0_vv_vg = get_Multiarray_Operator(g_e->vv0_vv_vg[curved],(ptrdiff_t[]){0,0,p,1});
 	assert(ve_rep == 'v' || ve_rep == 'g');
+	
+	// MSB: In this if/else statement, compute the xyz_ve values
 	const struct const_Multiarray_R* xyz_ve = NULL;
 	if (ve_rep == 'v') {
+		// MSB: from compute_geom_coef_parametric_T we enter here
+		// Set the xyz vertex values
 		xyz_ve = vol->xyz_ve;
 	} else if (ve_rep == 'g') {
+		// MSB: If the ve_rep is 'g', then I believe this means that we want to use the geometry
+		// basis to compute the values of the vertices
+		// - First, if we have a curved volume, set the basis order accordingly.
+		//	If we have a straight element, the pg is 1 (linear basis used)
 		const int pg = ( curved ? p : 1 );
+
+		// MSB: Create an operator here. It has the following properties:
+		// 	cv0 = coefficient to values (with no differentiation)
+		// 	vg = volume, geometry
+		//	vv = volume, vertex
+		// So, we are going to go from the coefficients we have for the pg basis functions and we are 
+		// going to evaluate the basis at the vertex values to get the values at the volume vertex.
+		// Note, here, h_o = h_i = 0 again, but p_o = 1 and p_i = pg as expected (p_o should be 1 because 
+		// we are getting the values at the vertices)
 		const struct Operator* cv0_vg_vv = get_Multiarray_Operator(g_e->cv0_vg_vv[curved],(ptrdiff_t[]){0,0,1,pg});
 		const struct const_Multiarray_R*const g_coef = s_vol->geom_coef;
+		
+		// MSB: Multiply the operator to the g_coeff values to get the xyz_ve values
 		xyz_ve = constructor_mm_NN1_Operator_const_Multiarray_R(
 			cv0_vg_vv,g_coef,'C',op_format,g_coef->order,NULL); // destructed
 	}
 
+	// MSB: Compute the xyz_s values by applying the values to values operator to go from the
+	// vertices to the geometry values. This will compute the values of the geometry nodes
+	// For the parametric mapping case, this will compute first the values on the parametric domain
+	// equally spaced (using the vertices)
 	const struct const_Multiarray_R*const xyz_s =
 		constructor_mm_NN1_Operator_const_Multiarray_R(vv0_vv_vg,xyz_ve,'C',op_format,xyz_ve->order,NULL);
+
+	// MSB: Test here, print the xyz_ve and xyz_s matrices to see what is going on
+	/*
+	const Real tol_print_test = 1e-4;	
+	printf("xyz_ve : \n");
+	print_const_Multiarray_d_tol(xyz_ve, tol_print_test);
+
+	printf("xyz_s : \n");
+	print_const_Multiarray_d_tol(xyz_s, tol_print_test);	
+
+	exit(0);
+	*/
 
 	if (ve_rep == 'g')
 		destructor_const_Multiarray_R(xyz_ve);
@@ -338,8 +412,13 @@ const struct const_Multiarray_R* constructor_geom_coef_ho_T
 	(const struct const_Multiarray_R* geom_val, const struct Solver_Volume_T*const s_vol,
 	 const struct Simulation*const sim)
 {
+
+	// MSB: Compute the geometry coefficient values using the xyz values at the geometry nodes
+
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	UNUSED(sim);
+
+	// MSB: Standard operator format = 'd'
 	const char op_format = 'd';
 
 	struct Volume* vol = (struct Volume*) s_vol;
@@ -347,8 +426,16 @@ const struct const_Multiarray_R* constructor_geom_coef_ho_T
 
 	const int p = s_vol->p_ref;
 
+	// MSB: Construct the operator now to compute the geometry coefficient values.
+	// The operator has the following form:
+	// 	vc0 = values to coefficient (no derivative)
+	//	vgc = values at the volume geometry nodes (curved element)
+	//	vgc = coefficients for the volume geometry basis (curved element)
+	// In this case, h_o = h_i = 0, p_o = p_i = p (the input and output orders of the 
+	// basis are the same)
 	const struct Operator* vc0_vgc_vgc = get_Multiarray_Operator(g_e->vc0_vgc_vgc,(ptrdiff_t[]){0,0,p,p});
 
+	// Multiply the operator to the geom_val values (the xyz values) to compute the coefficients (xyz_hat values)
 	return constructor_mm_NN1_Operator_const_Multiarray_R(vc0_vgc_vgc,geom_val,'C',op_format,geom_val->order,NULL);
 }
 
@@ -418,6 +505,8 @@ static compute_geom_coef_fptr_T set_fptr_geom_coef_T (const int domain_type, con
 		else
 			return compute_geom_coef_blended_T;
 	} else if (domain_type == DOM_PARAMETRIC) {
+		// MSB: Set the geometry coefficient function pointer to be 
+		// that for the parametric mapping
 		return compute_geom_coef_parametric_T;
 	}
 
@@ -674,17 +763,41 @@ static void correct_face_xyz_straight_T
 
 static void compute_geom_coef_p1 (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
 {
+
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	UNUSED(sim);
+	
+	// MSB: Use a standard operator (flag is 'd')
 	const char op_format = 'd';
 
+
 	struct Volume* vol = (struct Volume*) s_vol;
+
+	// MSB: The Geometry_Element structure holds several Multiarray_operators. 
 	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
 
+	// MSB: Create an operator here. Based on the notation available in element_operators.h this is:
+	//	vc0 = values to coefficient, where the order of differentiation is 0 (no differentiation)
+	//	vv = volume, vertex nodes
+	//	vgs = volume, geometry basis, straight element
+	// - So, we are going to use the vertex nodes to compute the coefficients of the geometry basis
+	// functions as if we were using a p1 basis (if higher p, then we need more nodal locations 
+	// to determine the coefficients)
+	// - Each operator generated has an associated range which can be accessed using the following
+	// indeces: [h_o][h_i][p_o][p_i]. I believe the p_o and p_i are the p values for the input and 
+	// output basis (so here, we want both to be 1). h_o and h_i are output and input h levels perhaps
+	// for the element (I am not too sure, look into this further). Regardless, for both h_k values
+	// we set the values to be 0.
 	const struct Operator* vc0_vv_vgs = get_Multiarray_Operator(g_e->vc0_vv_vgs,(ptrdiff_t[]){0,0,1,1});
 
 	const struct const_Multiarray_R*const xyz_ve = vol->xyz_ve;
 	destructor_const_Multiarray_R(s_vol->geom_coef_p1);
+
+	// MSB: Compute an operator, multiarray multiplication, with the result being a multiarray.
+	// Move the multiarray into the geom_coef_p1 structure. Here, we are multiplying our opertor we
+	// just generated to the xyz_ve (the vertex points) to compute the coefficients. 
+	// xyz_ve->order = the number of dimensions of the xyz_ve multiarray (should be 2).
+	// Here, we construct the multiarray and move the data into the geom_coef_p1 structure.
 	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef_p1,
 		constructor_mm_NN1_Operator_const_Multiarray_R(vc0_vv_vgs,xyz_ve,'C',op_format,xyz_ve->order,NULL)); // keep
 }
@@ -720,24 +833,27 @@ static void compute_geom_coef_blended_T (const struct Simulation*const sim, stru
 static void compute_geom_coef_parametric_T (const struct Simulation*const sim, struct Solver_Volume_T*const s_vol)
 {
 
-	// MSB I believe this is where the metric terms are starting to be set. Look 
-	// into this further.
+	// MSB: This function is called when compute_geom_coef is called (without the p). 
+	// We will compute the geometry coefficient values here based on our parametric mapping
 
-	// I believe that this is called for each volume. 
-	// Does this mean we read the geometry file for each volume?
 
+	// MSB: Use the vertex points to interpolate to the geometry node points (xyz_s) 
 	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho_T('v',s_vol,sim); // destructed
 
-	// MSB Here is where the geometry is set for the volume. We are first taking 
-	// the xyz values on the parametric domain and mapping them onto the 
-	// physical domain here. These xyz points are at the geometric node points
-	// (equidistant I believe)
+	// MSB: Here is where the geometry is set for the volume. We are first taking 
+	// the xyz_s values on the parametric domain and mapping them onto the 
+	// physical domain here. These xyz points are at the geometric node points. 
+	// xyz will hold the values on the physical domain
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const struct const_Multiarray_R* xyz = test_case->constructor_xyz(0,xyz_s,s_vol,sim); // destructed
 	destructor_const_Multiarray_R(xyz_s);
 
 /// \todo add setup_bezier_mesh: Likely make this a separate function.
 
+	// MSB: Use the geometry node points to compute the geometry coefficients and store these
+	// values in geom_coef
+
+	// MSB: Destroy the old geom_coef values and compute the new ones (the xyz_hat values)
 	destructor_const_Multiarray_R(s_vol->geom_coef);
 	const_constructor_move_const_Multiarray_R(&s_vol->geom_coef,constructor_geom_coef_ho_T(xyz,s_vol,sim)); // keep
 	destructor_const_Multiarray_R(xyz);

@@ -38,7 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Mesh* constructor_Mesh (const struct Mesh_Input* mesh_input, const struct const_Intrusive_List* elements)
 {
 
-	// Here, if an element list is provided, then use it. If not, then
+	// MSB: Here, if an element list is provided, then use it. If not, then
 	// create a dummy one which will be used temporarily for mesh creation and 
 	// then destroyed.
 	bool elements_provided = true;
@@ -53,7 +53,7 @@ struct Mesh* constructor_Mesh (const struct Mesh_Input* mesh_input, const struct
 	*(struct Mesh_Connectivity**)& mesh->mesh_conn = constructor_Mesh_Connectivity(mesh->mesh_data,elements);
 	*(struct Mesh_Vertices**)&     mesh->mesh_vert = constructor_Mesh_Vertices(mesh,elements,mesh_input);
 
-	// Based on the mesh file, filter out from the list of elements. That is,
+	// MSB: Based on the mesh file, filter out from the list of elements. That is,
 	// find which elements are present in the mesh.
 	if (!elements_provided)
 		destructor_const_Elements(elements);

@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_xyz_trigonometric_cube_parametric_xl_oct1_T constructor_xyz_trigonometric_cube_parametric_xl_oct1
 #define constructor_xyz_joukowski_parametric_T                  constructor_xyz_joukowski_parametric
 #define constructor_xyz_gaussian_bump_parametric_T              constructor_xyz_gaussian_bump_parametric
+#define constructor_xyz_NURBS_parametric_T              		constructor_xyz_NURBS_parametric
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -38,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_xyz_trigonometric_cube_parametric_xl_oct1_T constructor_xyz_trigonometric_cube_parametric_xl_oct1_c
 #define constructor_xyz_joukowski_parametric_T                  constructor_xyz_joukowski_parametric_c
 #define constructor_xyz_gaussian_bump_parametric_T              constructor_xyz_gaussian_bump_parametric_c
+#define constructor_xyz_NURBS_parametric_T              		constructor_xyz_NURBS_parametric_c
 ///\}
 
 #endif

@@ -110,7 +110,10 @@ struct Simulation* constructor_Simulation__no_mesh (const char*const ctrl_name)
 	set_simulation_invalid(sim);
 	set_simulation_mpi(sim);
 	set_simulation_core(sim,ctrl_name);
-	set_up_fopen_input(sim->ctrl_name_full,get_input_path(sim));
+	
+	// MSB: Setup the control file absolute path and input directory path (for all other inputs
+	// such as the geo file and data files)
+ 	set_up_fopen_input(sim->ctrl_name_full,get_input_path(sim));
 	set_simulation_additional(sim);
 
 	check_necessary_simulation_parameters(sim);
@@ -120,7 +123,7 @@ struct Simulation* constructor_Simulation__no_mesh (const char*const ctrl_name)
 	sim->volumes  = NULL;
 	sim->faces    = NULL;
 
-	// constructor_Test_Case_rc_real is where the test parameters are set. 
+	// MSB: constructor_Test_Case_rc_real is where the test parameters are set. 
 	// That is, it is how the code knows that a gaussian bump case is being run.
 	// This is because, set_function_pointers is called in this function
 	sim->test_case_rc = constructor_Test_Case_rc_real(sim);
@@ -134,10 +137,13 @@ struct Simulation* constructor_Simulation (const char*const ctrl_name)
 
 	set_Simulation_elements(sim,constructor_Elements(DIM)); // destructed
 
+	// MSB: Setup the mesh for the simulation
 	struct Mesh_Input mesh_input = set_Mesh_Input(sim);
 	struct Mesh* mesh = constructor_Mesh(&mesh_input,sim->elements); // destructed
 	remove_absent_Elements(sim->elements);
 
+	// MSB: Create the face and volume data structures. The 
+	// geometry data will not have been added yet.
 	sim->volumes = constructor_Volumes(sim,mesh); // destructed
 	sim->faces   = constructor_Faces(sim,mesh);   // destructed
 
@@ -189,6 +195,10 @@ void destructor_Simulation (struct Simulation* sim)
 
 const char* set_ctrl_name_full (const char*const ctrl_name)
 {
+
+	// Return the absolute path to the ctrl file for the test
+	// case being run
+
 	static char ctrl_name_full[STRLEN_MAX] = { 0, };
 
 	strcpy(ctrl_name_full,PROJECT_INPUT_DIR);
@@ -317,6 +327,8 @@ static void set_simulation_mpi (struct Simulation*const sim)
 
 static void set_simulation_core (struct Simulation*const sim, const char*const ctrl_name)
 {
+	// Read the control file information
+
 	const_cast_c1(&sim->ctrl_name,ctrl_name);
 	sim->ctrl_name_full = set_ctrl_name_full(ctrl_name);
 	FILE *ctrl_file = fopen_checked(sim->ctrl_name_full);

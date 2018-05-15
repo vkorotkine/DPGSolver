@@ -55,6 +55,10 @@ const struct const_Multiarray_T* constructor_const_sol_free_stream_T
 
 void set_sol_free_stream_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
+
+	// MSB: Set the freestream solution data by loading it from the solution.data file
+	// in the input directory
+
 	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_free_stream(xyz,sim); // destructed
 	destructor_const_Multiarray_R(xyz);
@@ -116,10 +120,15 @@ static void read_data_free_stream
 
 static struct Sol_Data__fs get_sol_data ( )
 {
+
+	// MSB: Read the solution data from the input directory. Load the data
+	// into a static struct that is initialized here so that it will remain on
+	// the stack and can be accessed in other function calls.
 	static bool need_input = true;
 
 	static struct Sol_Data__fs sol_data;
 	if (need_input) {
+		// MSB: If we have not already read the file, then read it here
 		need_input = false;
 		read_data_free_stream(&sol_data);
 	}
@@ -151,8 +160,13 @@ static void read_data_free_stream (struct Sol_Data__fs*const sol_data)
 
 	int boundary_pert = -1;
 
+	// MSB: Find the solution.data file (if there is a solution file with 
+	// another name, then the extension will have been given in the ctrl file).
+	// Open the file and return the File pointer
 	FILE* input_file = fopen_input('s',NULL,NULL); // closed
 
+	// MSB: Read the parameters for the freestream from the file and load it into the
+	// sol_data struct (the struct that will hold the freestream solution data)
 	int count_found = 0,
 	    count_dummy = 0;
 	char line[STRLEN_MAX];

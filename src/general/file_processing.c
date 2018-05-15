@@ -153,6 +153,7 @@ FILE* fopen_input (const char input_spec, const char*const ctrl_name_full_i, con
 		static bool need_set_up_name = true;
 		set_up_input_name(input_spec,input_name_spec,&need_set_up_name,ctrl_name_full,input_path);
 
+		// MSB: Return the input name found for the test case data file
 		input_name = input_name_spec;
 		break;
 	} default:
@@ -657,7 +658,10 @@ static void set_up_input_name
 			sprintf(index+input_name_spec,"%s%s%s","solution_",extension,".data");
 		break;
 	} case 't': {
+		// MSB: Set the test case absolute file path and return it
 		const char*const extension = read_extension(ctrl_name_full,"test_case_extension");
+		// MSB: In our test case, we have no test_case_extension parameter so we will just read
+		// the test_case.data value (extension[0] will == 0)
 		if (extension[0] == 0)
 			sprintf(index+input_name_spec,"%s","test_case.data");
 		else

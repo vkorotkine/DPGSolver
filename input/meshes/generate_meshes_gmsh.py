@@ -79,6 +79,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	             "steady/free_stream",
 	             "steady/vortex",
 	             "steady/gaussian_bump",
+	             "steady/NURBS",
 	             "default_steady",
 	             "demkowicz_dpg_ii",
 	             "unsteady/hyperbolic_tan",

@@ -1,14 +1,34 @@
 
-Wednesday:
-	(Done) - Run a Gaussian Bump Case at only one mesh level and P and process the results
-		- Trace through the setup process for the simulation and see how the code is set
+Monday:
+	(Done) - Trace through the geometry coefficient portion of the code for the volume.
+	- Create a NURBS patch (invscid channel bump) test case.
+	- Load the NURBS patch into the code by reading in the knot, order and control
+		point data.
+		- Print data out to ensure it has been read correctly
+	- Generate the NURBS parametric mapping function. Compute the physical coordinate
+		locations using the mapping and validate by comparing to a plot of the 
+		patch.
+	- Use the chain rule to compute the metric terms in the volume of the element 
+		using the parametric mapping.
+	- Use the chain rule to compute metric terms on the face of the element.
+	- Run the NURBS bump test case and verify that the solution converges. 
+		Visualize the results.
 
-Thursday:
-	(Done) - Use a quad mesh instead of a mixed one for the gaussian bump and visualize the results.
-	(Done) - Modify the mesh refinement of the Quad mesh and see how the results turn out. 
-	- Create a NURBS mesh python generator. This mesh will need to be read into the DPG
-		code. The knot range will need to be -1 to 1 in order to use the 
-		parametric mapping option. Create a user_defined patch case
+Tuesday:
+	- Perform an orders convergence test to verify that the orders of accuracy hold
+		for the NURBS parametric mapping case.
+	- Create a NACA
+	- Create the method for computing the adjoint.
+		- Compute the 
+
+Wednesday:
+
+
+
+
+
+
+ToDo:
 	- Create a NURBS Gaussian Bump case. So, set the bottom wall using a NURBS function
 		and set the other three sides to be straight. Read the data points and form the 
 		parametric mapping. For the RBF, all these points will be the surface points (the
@@ -17,5 +37,5 @@ Thursday:
 		control points do not overlap (farfield, so they are really far). The parametric
 		domain will ensure, through the mapping, that the elements do not have a negative
 		jacobian.
-		
-Friday:
+
+

@@ -1,0 +1,15 @@
+/// Solution parameters for test case: euler/steady/gaussian_bump
+
+boundary_perturb_type none
+
+p_total 1.0
+t_total 1.0
+p_back  0.99
+r_s     1.0
+
+
+// Used for initial solution only (Should be more or less consistent with values above)
+density   1.0  // p_total/(r_s*t_total)
+pressure  1.0  // p_total
+mach      0.0  // ~= sqrt(2/GAMMA-1)
+theta_deg 0.0
