@@ -89,8 +89,11 @@ void solve_for_solution (struct Simulation* sim)
 	assert(sim->faces->name   == IL_FACE_SOLVER);
 	assert(list_is_derived_from("solver",'e',sim));
 
-	if (ALWAYS_SET_INITIAL)
+	if (ALWAYS_SET_INITIAL) {
+		printf("*** Warning: Always resetting to initial solution. *** \n");
+		PRINT_FILELINE;
 		set_initial_solution(sim);
+	}
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	switch (test_case->solver_proc) {

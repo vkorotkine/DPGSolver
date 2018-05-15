@@ -10,7 +10,7 @@ mesh_generator   n-cube/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        quad
-mesh_level       1 1
+mesh_level       2 2
 mesh_path        ../meshes/
 restart_path     ../restart/euler/steady/gaussian_bump/restart__ml4__p3.msh
 
@@ -38,5 +38,5 @@ fe_method 1
 
 # Testing variables
 
-ml_range_test 1 1
+ml_range_test 2 2
 p_range_test  2 2
