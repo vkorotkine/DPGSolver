@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Data types
+
 #define Multiarray_T       Multiarray_d
 #define const_Multiarray_T const_Multiarray_d
 

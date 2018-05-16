@@ -40,7 +40,7 @@ import sys
 # argument
 CONST_Patch_Type = "user_defined_patch"
 CONST_EPS = 1E-9
-CONST_Output_file_name = "ChannelWithBump.nurbs_patch"
+CONST_Output_file_name = "geometry_parameters.geo"
 
 
 def NURBS_patch(xi,eta,BasisFunctionsList, ControlPoints_and_Weights):
@@ -192,27 +192,33 @@ def output_file(patch_parameters):
 
 	with open(CONST_Output_file_name, "w") as fp:
 
-		fp.write("**********************************\n")
-		fp.write("         NURBS Patch File \n")
-		fp.write("**********************************\n")
-		fp.write("\n")
+		fp.write("/** Geometry parameters for test case: euler/steady/NURBS\n")
+		fp.write("*/\n\n")
 
+		# The order of the patch in each parameter direction
 		fp.write("P(xi_order) %d \n" % P)
 		fp.write("Q(eta_order) %d \n" % Q)
 		fp.write("\n")
 
-		fp.write("Control Points \n")
-		fp.write("%d \n" % len(ControlPoints_and_Weights_list))  # The number of control points
+		# The knot vectors
+		fp.write("knots_xi %d \n" % len(xiVector))
+		for val in xiVector:
+			fp.write("%.14e " % val)
+		fp.write("\n")
+		fp.write("knots_eta %d \n" % len(etaVector))
+		for val in etaVector:
+			fp.write("%.14e " % val)
+		fp.write("\n")
+		fp.write("\n")
+
+		# Control Point Data information
+		fp.write("Control Point Data %d \n" % len(ControlPoints_and_Weights_list))
 		for pt in ControlPoints_and_Weights_list:
 			fp.write("%.14e %.14e %.14e \n" % (pt[0], pt[1], pt[2]))
 		fp.write("\n")
 
-		# Information for the patch
-		fp.write("num_xi_pts %d \n"%(num_xi_pts))
-		fp.write("num_eta_pts %d \n"%(num_eta_pts))
-		fp.write("\n")
-		
-		fp.write("Control Point Connectivity (xi (i index) correspond to rows and eta (j index) to cols. 0 based indexing) \n")
+		# Connectivity Information	
+		fp.write("Control Point Connectivity %d %d\n" % (num_xi_pts, num_eta_pts))
 		for i in range(num_xi_pts):
 			for j in range(num_eta_pts):
 				fp.write("%d " % ControlPoints_and_Weights_list.index(ControlPoints_and_Weights[i][j]))

@@ -1,10 +1,14 @@
 
 Monday:
 	(Done) - Trace through the geometry coefficient portion of the code for the volume.
-	- Create a NURBS patch (invscid channel bump) test case.
-	- Load the NURBS patch into the code by reading in the knot, order and control
+	(Done) - Create a NURBS patch (invscid channel bump) test case.
+
+Tuesday:
+	(Done) - Load the NURBS patch into the code by reading in the knot, order and control
 		point data.
-		- Print data out to ensure it has been read correctly
+		(Done) - Print data out to ensure it has been read correctly
+		- See if the control point connectivity data can be read into an existing data
+			structure and, if so, transfer the data to there.
 	- Generate the NURBS parametric mapping function. Compute the physical coordinate
 		locations using the mapping and validate by comparing to a plot of the 
 		patch.
@@ -14,12 +18,12 @@ Monday:
 	- Run the NURBS bump test case and verify that the solution converges. 
 		Visualize the results.
 
-Tuesday:
+Wednesday:
 	- Perform an orders convergence test to verify that the orders of accuracy hold
 		for the NURBS parametric mapping case.
 	- Create a NACA
 	- Create the method for computing the adjoint.
-		- Compute the 
+		- Compute the adjoint for a target CL case objective function
 
 Wednesday:
 
