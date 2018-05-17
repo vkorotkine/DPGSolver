@@ -77,10 +77,8 @@ void read_data_advection (struct Sol_Data__Advection*const sol_data)
 		read_skip_convert_i(line,"advection_type",&advection_type,&count_found);
 		if (strstr(line,"u_scale"))
 			read_skip_d_1(line,1,&sol_data->u_scale,1);
-		if (strstr(line,"u_coef_polynomial4"))
-			read_skip_d_1(line,1,sol_data->u_coef_polynomial4,5);
-		if (strstr(line,"b_coef_polynomial_odd"))
-			sol_data->b_coef_polynomial_odd = constructor_file_const_Vector_d(input_file,true); // leaked
+		if (strstr(line,"use_constant_solution"))
+			read_skip_b(line,&sol_data->use_constant_solution);
 	}
 	fclose(input_file);
 
@@ -90,7 +88,6 @@ void read_data_advection (struct Sol_Data__Advection*const sol_data)
 	switch (advection_type) {
 		case ADVECTION_TYPE_CONST:       sol_data->compute_b_adv = compute_b_adv_constant;    break;
 		case ADVECTION_TYPE_VORTEX:      sol_data->compute_b_adv = compute_b_adv_vortex;      break;
-		case ADVECTION_TYPE_VORTEX_POLY: sol_data->compute_b_adv = compute_b_adv_vortex_poly; break;
 		default:                         EXIT_ERROR("Unsupported: %d\n",advection_type);      break;
 	}
 }
@@ -154,57 +151,22 @@ const double* compute_b_adv_vortex (const double*const xyz)
 	assert(DIM == 2);
 
 	const double x = xyz[0],
-	             y = xyz[1],
-	             t = atan2(y,x);
+	             y = xyz[1];
 
-	IF_DIM_GE_1( b_adv[0] =  b_mag*sin(t); ) // Note:  sin(atan2(y,x)) ==  y/sqrt(x^2+y^2).
-	IF_DIM_GE_2( b_adv[1] = -b_mag*cos(t); ) //       -cos(atan2(y,x)) == -x/sqrt(x^2+y^2).
-
-	return b_adv;
-}
-
-const double* compute_b_adv_vortex_poly (const double*const xyz)
-{
-	assert(DIM == 2);
-
-	const struct Sol_Data__Advection sol_data = get_sol_data_advection();
-	const ptrdiff_t n_coef  = sol_data.b_coef_polynomial_odd->ext_0;
-	const double*const coef = sol_data.b_coef_polynomial_odd->data;
-	assert(n_coef > 0);
-	assert(coef[0] != 0.0);
-
-	if (n_coef > 1)
-		EXIT_ERROR("The advection velocity is no longer divergence free in this case.\n");
-	// Based on currenlty only being usable for n_coef = 1, there is nothing added by using this function over
-	// compute_b_adv_vortex... Possibly investigate higher-order divergence free, rotating field in future.
-
-/// \todo Make the exponent flexible here but remove the flexibility in the polynomial order.
-	const double xyz_norm = pow(xyz[0]*xyz[0]+xyz[1]*xyz[1],0.0),
-	             x        = xyz[0],
-	             y        = xyz[1];
-UNUSED(x);
-
-	static double b_adv[DIM] = {0,};
-	for (int d = 0; d < DIM; ++d)
-		b_adv[d] = 0.0;
-
-	for (int i = 0; i < n_coef; ++i) {
-/// \todo Delete non-vortex and place in separate functions if used in future. Also remove non-divergence free options.
-// vortex
-		IF_DIM_GE_1( b_adv[0] += coef[i]*pow(y/xyz_norm,2*i+1) );
-		IF_DIM_GE_2( b_adv[1] -= coef[i]*pow(x/xyz_norm,2*i+1) );
-// doublet
-//b_adv[0] =  (y*y-x*x)/pow(x*x+y*y,2); b_adv[1] = -(2*x*y)/pow(x*x+y*y,2);
-// source
-//b_adv[0] = x/(x*x+y*y); b_adv[1] = y/(x*x+y*y);
-// other
-//b_adv[0] = -x*x; b_adv[1] = 2*x*y;
-//b_adv[0] = 2*x*y; //b_adv[1] = -y*y;
-//b_adv[0] = x*(3*y*y-x*x); b_adv[1] = y*(3*x*x-y*y);
-	}
+	// Denominator omitted to allow for exact GCL satisfaction.
+//	const double t = atan2(y,x);
+//	IF_DIM_GE_1( b_adv[0] =  b_mag*sin(t); ) // Note:  sin(atan2(y,x)) ==  y/sqrt(x^2+y^2).
+//	IF_DIM_GE_2( b_adv[1] = -b_mag*cos(t); ) //       -cos(atan2(y,x)) == -x/sqrt(x^2+y^2).
+	IF_DIM_GE_1( b_adv[0] =  b_mag*y; )
+	IF_DIM_GE_2( b_adv[1] = -b_mag*x; )
 
 	return b_adv;
 }
+
+/* Additional 2D Divergence free advection fields:
+ * - doublet: b_adv[0] =  (y*y-x*x)/pow(x*x+y*y,2); b_adv[1] = -(2*x*y)/pow(x*x+y*y,2);
+ * - other: b_adv[0] = -x*x; b_adv[1] = 2*x*y;
+ */
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

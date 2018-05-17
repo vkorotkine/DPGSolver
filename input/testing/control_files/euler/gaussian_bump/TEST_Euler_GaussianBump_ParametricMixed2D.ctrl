@@ -10,7 +10,7 @@ mesh_generator   n-cube/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        quad
-mesh_level       0 4
+mesh_level       2 4
 mesh_path        ../meshes/
 restart_path     ../restart/euler/steady/gaussian_bump/restart__ml4__p3.msh
 
@@ -18,7 +18,7 @@ restart_path     ../restart/euler/steady/gaussian_bump/restart__ml4__p3.msh
 # Simulation variables
 
 solution_extension  geom_ar_0-5
-test_case_extension refinement_exact_normals_for_boundary
+test_case_extension refinement_exact_normals
 
 interp_tp  GLL
 interp_si  AO
@@ -27,7 +27,7 @@ interp_pyr GLL
 basis_geom  bezier
 basis_sol   lagrange
 
-geom_representation  fixed1
+geom_representation  superparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
@@ -39,5 +39,5 @@ fe_method 1
 
 # Testing variables
 
-ml_range_test 0 4
+ml_range_test 2 4
 p_range_test  1 2

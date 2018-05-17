@@ -63,13 +63,17 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
 
-		if (sim->method == METHOD_DG) {
-			const_cast_b(&test_case->copy_initial_rhs,true);
-			test_case->constructor_Error_CE         = constructor_Error_CE_euler_all_p_rhs;
-		} else { // not yet supported
-			test_case->constructor_Error_CE         = constructor_Error_CE_euler_all;
+		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
+
+		const bool check_rhs = false;
+		if (check_rhs) {
+			if (sim->method == METHOD_DG) {
+				const_cast_b(&test_case->copy_initial_rhs,true);
+				test_case->constructor_Error_CE         = constructor_Error_CE_euler_all_p_rhs;
+			} else { // not yet supported
+				test_case->constructor_Error_CE         = constructor_Error_CE_euler_all;
+			}
 		}
-//test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
 		test_case->constructor_Error_CE_restart_test = constructor_Error_CE_euler_all;
 		const_cast_b(&test_case->has_analytical,true);
 	} else if (strstr(sim->pde_spec,"free_stream")) {

@@ -91,7 +91,6 @@ void solve_for_solution (struct Simulation* sim)
 
 	if (ALWAYS_SET_INITIAL) {
 		printf("*** Warning: Always resetting to initial solution. *** \n");
-		PRINT_FILELINE;
 		set_initial_solution(sim);
 	}
 

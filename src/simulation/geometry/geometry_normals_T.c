@@ -47,7 +47,8 @@ static void correct_normals_fc
 
 correct_for_exact_normal_fptr_T set_correct_for_exact_normal_fptr_T (const struct Simulation*const sim)
 {
-	if (strstr(sim->pde_spec,"supersonic_vortex")) {
+	if (strstr(sim->pde_spec,"supersonic_vortex") ||
+	    strstr(sim->pde_spec,"steady/vortex")) {
 		return correct_for_exact_normal_cylinder_T;
 	} else if (strstr(sim->pde_spec,"gaussian_bump")) {
 		return correct_for_exact_normal_gaussian_bump_T;

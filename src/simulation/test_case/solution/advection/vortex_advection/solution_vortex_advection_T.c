@@ -68,21 +68,20 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 	assert(DIM == 2);
 
 	static int adv_type = -1;
-	static bool use_poly = false;
+	static bool use_constant_solution = false;
+	static double u_scale = 0.0;
 
 	static bool requires_input = true;
 	if (requires_input) {
 		const struct Sol_Data__Advection sol_data = get_sol_data_advection();
 		if (sol_data.compute_b_adv == compute_b_adv_vortex)
 			adv_type = ADVECTION_TYPE_VORTEX;
-		else if (sol_data.compute_b_adv == compute_b_adv_vortex_poly)
-			adv_type = ADVECTION_TYPE_VORTEX_POLY;
 		else if (sol_data.compute_b_adv == compute_b_adv_constant)
 			adv_type = ADVECTION_TYPE_CONST;
 		else
 			EXIT_UNSUPPORTED;
-		if (sol_data.u_scale == 0.0)
-			use_poly = true;
+		use_constant_solution = sol_data.use_constant_solution;
+		u_scale = sol_data.u_scale;
 	}
 
 	// Compute the solution
@@ -96,49 +95,25 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 	          * y = get_col_const_Multiarray_R(1,xyz);
 
 	Type* u = get_col_Multiarray_T(0,sol);
+
+	const struct Sol_Data__Advection sol_data = get_sol_data_advection();
+	const double scale = sol_data.u_scale;
+	assert(scale != 0.0);
 	switch (adv_type) {
-	case ADVECTION_TYPE_VORTEX_POLY: {
-		assert(use_poly == true);
-		const struct Sol_Data__Advection sol_data = get_sol_data_advection();
-		const double*const c = sol_data.u_coef_polynomial4;
-		for (int i = 1; i < 4; ++i)
-			assert(c[i] == 0.0);
-	}
-		// fallthrough
 	case ADVECTION_TYPE_VORTEX:
-		if (!use_poly) {
-			const struct Sol_Data__Advection sol_data = get_sol_data_advection();
-			const double scale = sol_data.u_scale;
-			assert(scale != 0.0);
-			assert(sol_data.u_coef_polynomial4[0] == 0.0);
+		if (!use_constant_solution) {
 			for (int i = 0; i < n_n; ++i) {
 				const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]);
 				u[i] = scale*sin(0.1*r)*cos(0.3*r);
 			}
 		} else {
-			const struct Sol_Data__Advection sol_data = get_sol_data_advection();
-			const double*const c = sol_data.u_coef_polynomial4;
-			assert(c[0] != 0.0);
-			assert(sol_data.u_scale == 0.0);
-
-			for (int i = 0; i < n_n; ++i) {
-				const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]);
-				u[i] = c[0]*1.0 + c[1]*pow(r,1) + c[2]*pow(r,2) + c[3]*pow(r,3) + c[4]*pow(r,4);
-			}
+			for (int i = 0; i < n_n; ++i)
+				u[i] = scale;
 		}
 		break;
 	case ADVECTION_TYPE_CONST: {
-		const struct Sol_Data__Advection sol_data = get_sol_data_advection();
-		const double*const c = sol_data.u_coef_polynomial4;
-		assert(c[0] != 0.0);
-
-		for (int i = 0; i < n_n; ++i) {
-			u[i] = c[0]*1.0
-			     + c[1]*pow(y[i],1)
-			     + c[2]*pow(y[i],2)
-			     + c[3]*pow(y[i],3)
-			     + c[4]*pow(y[i],4);
-		}
+		for (int i = 0; i < n_n; ++i)
+			u[i] = scale*sin(0.1*y[i])*cos(0.3*y[i]);
 		break;
 	} default:
 		EXIT_ERROR("Unsupported: %d\n",adv_type);

@@ -38,6 +38,7 @@ deprecated/__pycache__/*
 deprecated/python/__pycache__/*
 src/processing/__pycache__/*
 src/processing/pre/__pycache__/*
+src/processing/post/__pycache__/*
 cmake/include/*
 */__pycache__/*
 *input/meshes/__pycache__/*

@@ -209,10 +209,16 @@ void read_skip_c_2
 	 const int n_var          ///< The number of entries to store in the `var` array.
 	);
 
-/// \brief Read a `const bool`, skipping the first string.
-void read_skip_const_b
+/// \brief Read a `bool`, skipping the first string.
+void read_skip_b
 	(const char*const line, ///< Line from which to read data.
-	 const bool*const var   ///< Variable in which to store data.
+	 bool*const var         ///< Variable in which to store data.
+	);
+
+/// \brief `const` version of \ref read_skip_b.
+void read_skip_const_b
+	(const char*const line, ///< See brief.
+	 const bool*const var   ///< See brief.
 	);
 
 /// \brief Read a `double`, optionally skipping strings and optionally removing trailing semicolons.

@@ -28,6 +28,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_test_case.h"
 
 
+#include <stdbool.h>
+
 #include "definitions_core.h"
 struct Simulation;
 
@@ -44,11 +46,9 @@ typedef const double* (*compute_b_adv_fptr)
 struct Sol_Data__Advection {
 	compute_b_adv_fptr compute_b_adv; ///< \ref compute_b_adv_fptr.
 
-	double u_scale; ///< Scaling constant for the solution.
-	double u_coef_polynomial4[5]; ///< Coefficients for the polynomial solution of maximal degree 4.
+	bool use_constant_solution; ///< Flag for whether a constant solution should be used.
 
-	/// Coefficients for the odd polynomial advection velocity vector.
-	const struct const_Vector_d* b_coef_polynomial_odd;
+	double u_scale; ///< Scaling constant for the solution.
 };
 
 /** \brief Return the statically allocated \ref Sol_Data__Advection container.
@@ -71,16 +71,6 @@ const double* compute_b_adv_constant
  *         cylinder.
  *  \return See brief. */
 const double* compute_b_adv_vortex
-	(const double*const xyz ///< See brief.
-	);
-
-/** \brief Version of \ref compute_b_adv_fptr for polynomial advection velocity with behaviour similar to that of
- *         \ref compute_b_adv_vortex.
- *  \return See brief.
- *
- *  \note In the special case of only the first coefficient being non-zero, the advection velocity from
- */
-const double* compute_b_adv_vortex_poly
 	(const double*const xyz ///< See brief.
 	);
 

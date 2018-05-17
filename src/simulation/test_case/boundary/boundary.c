@@ -61,10 +61,8 @@ bool using_exact_normals_for_boundary ( )
 		}
 		fclose(input_file);
 
-		if (flag && using_exact_normals()) {
+		if (flag && using_exact_normals())
 			printf("*** Warning: Enabling exact boundary normals is redundant if exact normals are enabled. *** \n");
-			PRINT_FILELINE;
-		}
 	}
 	return flag;
 }

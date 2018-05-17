@@ -137,7 +137,6 @@ static int get_define (const char*const def_str, const char*const def_type)
 	} else if (strcmp(def_type,"advection_type") == 0) {
 		if      (strcmp(def_str,"constant")          == 0) def_i = ADVECTION_TYPE_CONST;
 		else if (strcmp(def_str,"vortex")            == 0) def_i = ADVECTION_TYPE_VORTEX;
-		else if (strcmp(def_str,"vortex_polynomial") == 0) def_i = ADVECTION_TYPE_VORTEX_POLY;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else if (strcmp(def_type,"boundary_perturb_type") == 0) {

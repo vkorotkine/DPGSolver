@@ -78,18 +78,19 @@ static struct Multiarray_T* constructor_sol_free_stream_advection
 	for (int d = 1; d < DIM; ++d)
 		assert(b_adv[d] == 0);
 
-	const double*c = sol_data.u_coef_polynomial4;
-	assert(c[0] != 0.0);
-
 	const Real*const y = get_col_const_Multiarray_R(1,xyz);
 
 	Type* u = get_col_Multiarray_T(0,sol);
-	for (int i = 0; i < n_vs; ++i) {
-		u[i] = c[0]*1.0
-		     + c[1]*pow(y[i],1)
-		     + c[2]*pow(y[i],2)
-		     + c[3]*pow(y[i],3)
-		     + c[4]*pow(y[i],4);
+
+	const double scale = sol_data.u_scale;
+	const bool use_constant_solution = sol_data.use_constant_solution;
+	assert(scale != 0.0);
+	if (!use_constant_solution) {
+		for (int i = 0; i < n_vs; ++i)
+			u[i] = scale*sin(0.1*y[i])*cos(0.3*y[i]);
+	} else {
+		for (int i = 0; i < n_vs; ++i)
+			u[i] = scale;
 	}
 
 	return sol;

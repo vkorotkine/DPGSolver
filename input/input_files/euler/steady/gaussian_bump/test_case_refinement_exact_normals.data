@@ -20,8 +20,8 @@ output_restart   0
 use_restart      1
 
 use_straight_internal_geometry 0
-use_exact_normals_for_all 0
-use_exact_normals_for_boundary 1
+use_exact_normals_for_all 1
+use_exact_normals_for_boundary 0
 
 
 xyz_ve_refine:
