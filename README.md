@@ -119,9 +119,10 @@ BUILD$ ctest -V (Enable verbose output from tests)
 - Manmeet Bhabra
 - Cem Gormezano
 - Siva Nadarajah, siva.nadarajah (at) mcgill.ca
+- Doug Shi-Dong
 - Philip Zwanenburg, philip.zwanenburg (at) mail.mcgill.ca
 
-If you would like to make your own contributions to the project, the best place to start is the 
+If you would like to make your own contributions to the project, the best place to start is the
 [getting started page](https://codedocs.xyz/PhilipZwanenburg/DPGSolver/md_doc_GETTING_STARTED.html).
 
 # License

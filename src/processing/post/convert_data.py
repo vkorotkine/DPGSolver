@@ -27,12 +27,12 @@ class Output_Info:
 		self.set_var_names()
 
 	def set_type_specific_data (self):
-		if (self.type in ["std","ivs_adv","ivs_euler"]):
+		if (self.type in ["std","ivs_adv","ivs_euler_sv","ivs_euler_gb"]):
 			self.format = "table"
 		else:
 			assert 0,"Unsupported: "+str(self.type)
 
-		if (self.type in ["ivs_adv","ivs_euler"]):
+		if (self.type in ["ivs_adv","ivs_euler_sv","ivs_euler_gb"]):
 			self.sub_index = 0
 
 	def set_var_names (self):
@@ -43,10 +43,14 @@ class Output_Info:
 			                  "$L^2 (u)^{\\text{s}}_{p_c = 2(p+1)}$",
 			                  "$L^2 (u)^{\\text{i}}_{\\bm{\\hat{n}_{ex}}}$",
 			                  "$L^2 (u)^{\\text{s}}$",]
-		elif (self.type == "ivs_euler"):
+		elif (self.type == "ivs_euler_sv"):
 			self.var_names = ["$L^2 (\\rho)^{\\text{i}}$",
 			                  "$L^2 (\\rho)^{\\text{i}}_{\\bm{\\hat{n}_{ex}}}$",
 			                  "$L^2 (\\rho)^{\\text{s}}$",]
+		elif (self.type == "ivs_euler_gb"):
+			self.var_names = ["$L^2 (s)^{\\text{i}}$",
+			                  "$L^2 (s)^{\\text{s}}$",
+			                  "$L^2 (s)^{\\text{s}}_{\\bm{\\hat{n}_{ex}}}$",]
 
 class Input_Info:
 	"""Stores input data related information."""
@@ -68,10 +72,14 @@ class Input_Info:
 			                  "advection_steady_vortex_dg_2d_ar5_super_p_cub_p2/",
 			                  "advection_steady_vortex_dg_2d_ar5_iso_exact_normals/",
 			                  "advection_steady_vortex_dg_2d_ar5_super/",]
-		elif (self.type == "ivs_euler"):
+		elif (self.type == "ivs_euler_sv"):
 			self.rel_paths = ["euler_supersonic_vortex_dg_2d_ar5_iso/",
 			                  "euler_supersonic_vortex_dg_2d_ar5_iso_exact_normals/",
 			                  "euler_supersonic_vortex_dg_2d_ar5_super/",]
+		elif (self.type == "ivs_euler_gb"):
+			self.rel_paths = ["euler_gaussian_bump_dg_2d_ar5_iso/",
+			                  "euler_gaussian_bump_dg_2d_ar5_super/",
+			                  "euler_gaussian_bump_dg_2d_ar5_super_exact_normals/",]
 		else:
 			assert 0,"Unsupported: "+str(self.type)
 
@@ -312,7 +320,7 @@ def get_data_o (input_i,output_i):
 
 	if (output_i.type == "std"):
 		return input_i.data
-	elif (output_i.type in ["ivs_adv","ivs_euler"]):
+	elif (output_i.type in ["ivs_adv","ivs_euler_sv","ivs_euler_gb",]):
 		data_i = input_i.data
 
 		n_out  = len(data_i)
@@ -370,9 +378,10 @@ if __name__ == '__main__':
 	Command line arguments:
 	1. Path to the ROOT directory containing error data files.
 	2. The error data file type to be processed. Options:
-		- std: generate data for a single data file.
-		- ivs_adv: 'i'soparametric 'v's. 's'uperparametric linear advection case data.
-		- ivs_euler: 'i'soparametric 'v's. 's'uperparametric euler case data.
+		- std:          generate data for a single data file.
+		- ivs_adv:      'i'soparametric 'v's. 's'uperparametric linear advection case data.
+		- ivs_euler_sv: 'i'soparametric 'v's. 's'uperparametric euler ('s'upersonic 'v'ortex)
+		- ivs_euler_gb: 'i'soparametric 'v's. 's'uperparametric euler ('g'aussian 'b'ump)
 	"""
 
 	assert len(sys.argv) == 3,"\nIncorrect number of inputs. Should be:\n"\

@@ -5,7 +5,7 @@ geom_parametrization normal_proj
 solver_proc   implicit
 solver_type_i iterative
 lhs_terms     cfl_ramping
-cfl_initial   1e15
+cfl_initial   1e1
 
 num_flux_1st Roe-Pike
 test_norm    H0 H1_upwind

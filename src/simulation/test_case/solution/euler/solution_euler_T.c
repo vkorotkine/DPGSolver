@@ -104,7 +104,7 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 			test_case->constructor_Error_CE = constructor_Error_CE_euler_entropy;
 		}
 test_case->constructor_Error_CE = constructor_Error_CE_euler_entropy;
-test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
+//test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
 		test_case->constructor_Error_CE_restart_test = constructor_Error_CE_euler_entropy;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);

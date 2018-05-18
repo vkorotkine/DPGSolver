@@ -116,6 +116,20 @@ def run_euler_joukowski (cmd_line_params,ar_val):
 
 	execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
 
+def run_euler_gaussian_bump (cmd_line_params,ar_val):
+	""" Run the Euler Joukowski cases. """
+	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"euler","steady","gaussian_bump"])
+	test_case  = "euler_gaussian_bump_dg_2d"
+	petsc_opts = "petsc_options_gmres_tol_1e-2"
+
+	if (ar_val == 5):
+		ctrl_spec   = ["ar5_iso", "ar5_super", "ar5_super_exact_normals",]
+		ctrl_matrix = ["p1-3", ]
+	else:
+		sys.exit("Unsupported ar_val: \""+str(ar_val)+"\".")
+
+	execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
+
 def run_navier_stokes_taylor_couette (cmd_line_params,ar_val):
 	""" Run the Navier-Stokes Taylor-Couette cases. """
 	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"navier_stokes","steady","taylor_couette"])
@@ -196,6 +210,10 @@ if __name__ == "__main__":
 		run_euler_joukowski(clp,2)
 	if (jobs_name == "all" or "euler_joukowski_ar4" in jobs_name):
 		run_euler_joukowski(clp,4)
+
+	# Note: Possibly requires that restart file was previously output.
+	if (jobs_name == "all" or jobs_name == "all_paper" or "euler_gaussian_bump_ar5" in jobs_name):
+		run_euler_gaussian_bump(clp,5)
 
 	if (jobs_name == "all" or "navier_stokes_taylor_couette_ar1" in jobs_name):
 		run_navier_stokes_taylor_couette(clp,1)
