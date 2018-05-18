@@ -11,6 +11,9 @@ this function will not need to be that computationally efficient).
 
 """
 
+import numpy
+import matplotlib.pyplot as plt
+
 # Used for floating point comparison
 CONST_eps = 1E-14
 
@@ -37,6 +40,12 @@ def N_ip(i,p,t,tVector):
 	:return : Float for the value of the given basis function at the given point.
 	"""
 	
+	# Handle the case where t is close to the edges
+	if (abs(t-tVector[0]) < CONST_eps):
+		t = tVector[0] + CONST_eps
+	elif (abs(t-tVector[-1]) < CONST_eps):
+		t = tVector[-1] - CONST_eps
+
 	# Base case:
 	if p == 0:
 		if t < tVector[i+1] and t >= tVector[i]:
@@ -108,6 +117,81 @@ def weight_function(BSplineBasis, Weights, xi, eta):
 			
 	return value
 
+def get_BSpline_basis_functions_1D(P, xiVector):
+
+	"""
+	Get the B spline basis functions and return them as a list of 
+	lambda expressions. 
+
+	There are n = (len(xiVector) - P - 1) total basis functions
+
+	:param P: The order of the basis functions
+	:param xiVector: The knot vector
+
+	:return : The lambda expressions for the basis (in a list)
+	"""
+
+	n = len(xiVector) - P - 1
+	
+	if n <= 0:
+		raise ValueError("Insufficient number of basis functions")
+
+	N_Basis = []
+	for i in range(n):
+		N_ip_xi = lambda xi, i=i: N_ip(i, P, xi, xiVector)
+		N_Basis.append(N_ip_xi)
+
+	return N_Basis
+	
+def weight_function_1D(BSplineBasis, Weights, xi):
+
+	"""
+	Compute the weight function (1D) at a given point 
+	xi on the parametric knot domain
+
+	:param BSplineBasis: The list of B Spline Basis functions
+	:param Weights: The list of weights
+	:param xi: The value to evaluate the weight function
+
+	:return : The value of the weight function at the given xi point
+	"""
+
+	value = 0
+
+	for i in range(len(BSplineBasis)):
+		value = value + BSplineBasis[i](xi)*Weights[i]
+			
+	return value
+
+
+def get_NURBS_basis_functions_1D(P, xiVector, wVector):
+
+	"""
+	Get the NURBS basis functions and return them as a list of 
+	lambda expressions. 
+
+	There are n = (len(xiVector) - P - 1) total basis functions
+
+	:param P: The order of the basis functions
+	:param xiVector: The knot vector
+	:param wVector: The vector of weights
+
+	:return : The lambda expressions for the basis (in a list)
+	"""
+
+	BSplineBasis = get_BSpline_basis_functions_1D(P, xiVector)
+
+	# Compute the Weight function
+	w_func = lambda xi, BSplineBasis = BSplineBasis: weight_function_1D(BSplineBasis, wVector, xi)
+
+	NURBS_Basis = []
+	for i in range(len(BSplineBasis)):
+		R = lambda xi, i=i: \
+				(wVector[i] * BSplineBasis[i](xi))/w_func(xi)
+		NURBS_Basis.append(R)
+
+	return NURBS_Basis
+
 
 def get_NURBS_basis_functions(ControlPointsAndWeights, P, Q, xiVector, etaVector):
    
@@ -174,6 +258,46 @@ def get_NURBS_basis_functions(ControlPointsAndWeights, P, Q, xiVector, etaVector
 
 	return R_ij_pq
 
+def plot_basis_1D(basis_function_list, xi_min, xi_max):
+
+	"""
+	Plot the basis functions on the domain xi_min to 
+	xi_max
+
+	:param basis_function_list: The list of basis functions (lambda expressions)
+	:param xi_min: The lower limit of the domain to plot
+	:param xi_max: The upper limit of the domain to plot
+
+	:return : -
+	"""
+
+	num_plot_pts = 50
+	plot_pts = numpy.linspace(xi_min, xi_max, num_plot_pts)
+
+	for N_b in basis_function_list:
+
+		y_vals = []
+
+		for pt in plot_pts:
+			y_vals.append(N_b(pt))
+
+		plt.plot(plot_pts, y_vals)
+
+	plt.show(block=True)
+
+def test_basis():
+	
+	xi_vector = [-2,-2,-2,-1,0,1,2,2,2]
+	w_vector = [0.5, 1.75, 0.8, 1.8, 1.75]
+	P = 3
+
+	#basis_funcs = get_BSpline_basis_functions_1D(P, xi_vector)
+	basis_funcs = get_NURBS_basis_functions_1D(P, xi_vector, w_vector)
+
+	plot_basis_1D(basis_funcs, xi_vector[0], xi_vector[-1])
+
+if __name__ == "__main__":
+	test_basis()
 
 
 

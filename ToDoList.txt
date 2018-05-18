@@ -1,45 +1,157 @@
 
-Monday:
-	(Done) - Trace through the geometry coefficient portion of the code for the volume.
-	(Done) - Create a NURBS patch (invscid channel bump) test case.
 
-Tuesday:
-	(Done) - Load the NURBS patch into the code by reading in the knot, order and control
-		point data.
-		(Done) - Print data out to ensure it has been read correctly
-		- See if the control point connectivity data can be read into an existing data
-			structure and, if so, transfer the data to there.
-	- Generate the NURBS parametric mapping function. Compute the physical coordinate
-		locations using the mapping and validate by comparing to a plot of the 
-		patch.
+	(Done) - See if the control point connectivity data can be read into an 
+			existing data structure and, if so, transfer the data to there.
+
+	(Done) - Implement the B Spline basis function using the recursive definition
+
+		(Done) - Create a unit test for the B Spline basis function. Evaluate them 
+				in the python program and output the results into 
+				the Spline_bases.data file. 
+
+		(Done) - In 1D, give the knot vectors, P, and evaluate all the bases at 
+				a given xi point. Create python output.
+
+		(Done) - Implement the unit test in DPGSolver
+
+	(Done) - Implement the NURBS basis functions.
+		
+		(Done) - Take as input the B Spline basis values at the given xi 
+			value to find the NURBS basis value efficiently
+
+		(Done) - Create a unit test for the NURBS basis function. Evaluate them 
+				in the python program and output the results into the NURBS_bases.data
+				file. 
+		(Done) - In 1D, give the knot vectors, P, and evaluate all the bases at 
+				a given xi point. Create python output.
+
+		(Done) - Implement unit test in DPGSolver
+
+	- Implement B Spline basis function derivative. Use the recursive 
+		definition (1D case).
+
+		- Create a unit test for the B spline basis derivative. Do this by
+			computing the derivative of the basis functions at a given
+			set of xi points in a python file and output a .data file 
+			to be processed by the DPG code.
+
+		- Implement the unit test in DPGSolver.
+
+	- Implement NURBS basis function derivative. Use the recursive 
+		definition (1D case) and the chain rule.
+
+		- Create a unit test for the NURBS basis derivative. Do this by
+			computing the derivative of the basis functions at a given
+			set of xi points in a python file and output a .data file 
+			to be processed by the DPG code.
+
+		- Implement the unit test in DPGSolver.
+
+	- Generate the NURBS parametric mapping function. 
+
+		- Create a separate header file which will use the recursive definition
+			to compute the values of the NURBS basis functions at a given 
+			parametric coordinate (xi, eta)
+
+		- Create a unit test for the NURBS parametric mapping. Compute in a 
+			separate python file a simply case (1D and 2D for the mapping) and
+			in these, have a simply knot vector and xi,eta value to compute 
+			mapping at. Make sure the code performs the mapping as well and passes
+			the test.
+
+	- Generate the NURBS parametric mapping derivative
+
+		- As a first step, compute the mapping derivative/gradient by just
+			using the derivatives of the basis function. Eventually, 
+			possibly implement the more efficient algorithm from the 
+			NURBS book.
+
+		- Create a unit test to verify the derivative mapping. Form a 
+			simply case using a python code and find the partial 
+			derivatives at certain xi and eta points.
+			
+		- Implement unit test in DPGSolver.
+
 	- Use the chain rule to compute the metric terms in the volume of the element 
 		using the parametric mapping.
+
+		- Find the xi, eta values on the parametric domain of the cubature points
+			to compute the derivatives at. 
+
+		- Use the additional mapping from the parametric domain onto the 
+			parent domain to compute the derivatives of the mapping to form 
+			the metric terms.
+
+		- Create a python case that will compute the metrics as well (use lambda
+			functions). Verify the metric computation on one given element
+			by using the same mapping case from before and this one element.
+
 	- Use the chain rule to compute metric terms on the face of the element.
+
+		- Find the xi, eta values on the parametric domain of the face cubature 
+			points to compute the derivatives at. 
+
+		- Use the additional mapping from the parametric domain onto 
+			the parent domain to compute the derivatives of the mapping to 
+			form the face metric terms.
+
+		- Create a python case that will compute the metrics as well (use lambda
+			functions). Verify the metric computation on one given element
+			by using the same mapping case from before and this one element.
+
 	- Run the NURBS bump test case and verify that the solution converges. 
 		Visualize the results.
 
-Wednesday:
+
 	- Perform an orders convergence test to verify that the orders of accuracy hold
-		for the NURBS parametric mapping case.
-	- Create a NACA
-	- Create the method for computing the adjoint.
-		- Compute the adjoint for a target CL case objective function
+		for the NURBS parametric mapping case. Do the Gaussian Bump case first.
 
-Wednesday:
+	- Create a NACA 0012 airfoil patch
+
+		- Perform a NURBS spline approximation and fit the spline around the
+			the airfoil. Knot repeatedness not needed yet (will need to be done
+			for the leading edge eventually). Have the spline wrap around
+			from the trailing edge, under the airfoil, and back to the
+			trailing edge.
+
+		- Create the farfield as well as an o-grid. 
+
+		- Create the gmsh file to accompany the patch.
+
+			- Create slip wall boundary conditions at the bottom, farfield
+				at the top and then periodic at the line at which the patch
+				touches each other at rear of the airfoil.
 
 
+	- Create the lift coefficient objective function.
 
+		- Compute the lift by integrating the pressure on any face that had 
+			a slip wall BC. Then just sum up all the contributions. 
+
+		- Create a real version of the function first. Then, create 
+			a templated version so that the function may be called
+			with complex doubles (for the adjoint computation)
+
+	- Compute the adjoint for the lift coefficient case.
+
+		- Use the linearization of the LHS in the code
+
+		- Compute the linearization of the RHS by using the complex step
+			- Verify using finite differences. Create a unit test 
+				to verify linearization with finite differences. 
+				Eventually, perhaps, compute the linearization analytically
+
+		- Solve the adjoint using PETSc
+
+		- 
+
+Monday:
 
 
 
 ToDo:
-	- Create a NURBS Gaussian Bump case. So, set the bottom wall using a NURBS function
-		and set the other three sides to be straight. Read the data points and form the 
-		parametric mapping. For the RBF, all these points will be the surface points (the
-		volume points will not be loaded from the NURBS file, they are specified on 
-		the parametric domain in the GMSH file). Also, might not need RBF since the design 
-		control points do not overlap (farfield, so they are really far). The parametric
-		domain will ensure, through the mapping, that the elements do not have a negative
-		jacobian.
+	- Implement efficient NURBS mapping derivative using NURBS book 
+		algorithm which gets around the use of the derivative of the
+		basis functions.
 
 

@@ -33,6 +33,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_multiarray.h"
 
+#include "geometry_NURBS_parametric.h"
+
 // Static function declarations ************************************************************************************* //
 
 /// \brief Container for the geometric data required for the supported parametric cases.
@@ -55,17 +57,16 @@ struct Geo_Data {
 	// NURBS Parametric Domain parameters: (2D Domain for now only)
 	int P, Q;  ///< Order of the patch in the xi (P) and eta (Q) direction
 	
-	//  - The matrix holding the knot data
+	//  - The Multiarray holding the knot data
 	struct Multiarray_R *knots_xi, *knots_eta; 
 
-	//  - The matrix holding the control points and the weights
+	//  - The Multiarray holding the control points and the weights
 	struct Multiarray_R *control_points_and_weights; 
 
-	//  - The matrix holding the connectivity information for the control mesh. 
+	//  - The Multiarray holding the connectivity information for the control mesh. 
 	//		The xi control points correspond to the i index and eta control 
-	//		points to the j index. Data stored in column major form
-	int *control_point_connectivity;
-	int extent_control_pt_connectivity[2];
+	//		points to the j index. Data stored in row major form
+	struct Multiarray_i *control_point_connectivity;
 
 };
 
@@ -386,6 +387,7 @@ const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
 
 	UNUSED(geo_data);
 
+	test();
 
 	exit(0);
 
@@ -637,13 +639,12 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 	// we should be able to find
 	//	- P (order in the xi direction)
 	// 	- Q (order in the eta direction)
+	//	- knots_xi
+	//  - knots_eta
 	// 	- Control Points and Weights
 	//  - Control Point Connectivity
-	const int count_to_find = 4;
+	const int count_to_find = 6;
 	assert(DIM == 2);
-
-	printf("Entered NURBS geo_data reader method\n");
-	exit(0);
 
 	// Get the file pointer to the geometry file
 	FILE* input_file = fopen_input('g',NULL,NULL); // closed
@@ -651,7 +652,7 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 	int count_found = 0;
 	char line[STRLEN_MAX];
 
-	int i,j;
+	int i, len_knots_xi, len_knots_eta;
 
 	// Read in the information from the file
 	while (fgets(line,sizeof(line),input_file)) {
@@ -660,16 +661,37 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 		read_skip_string_count_i("P(xi_order)", &count_found, line, &geo_data->P);
 		read_skip_string_count_i("Q(eta_order)", &count_found, line, &geo_data->Q);
 
-		// Read the Control Point Data
-		if (strstr(line,"Control Point Data")){
+		// The knot vectors in the eta and xi directions:
+		if (strstr(line, "knots_xi")){
+			read_skip_string_count_i("knots_xi", &count_found, line, &len_knots_xi);
 			
-			// Found the control point data section
-			count_found++;
+			struct Multiarray_R* knots_xi = 
+					constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){len_knots_xi,1});
+			
+			fgets(line,sizeof(line),input_file);
+			read_skip_d_1(line, 0, get_col_Multiarray_d(0, knots_xi), len_knots_xi);
+			
+			geo_data->knots_xi = knots_xi;
+		}
 
+		if (strstr(line, "knots_eta")){
+			read_skip_string_count_i("knots_eta", &count_found, line, &len_knots_eta);
+			
+			struct Multiarray_R* knots_eta = 
+					constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){len_knots_eta,1});
+			
+			fgets(line,sizeof(line),input_file);
+			read_skip_d_1(line, 0, get_col_Multiarray_d(0, knots_eta), len_knots_eta);
+			
+			geo_data->knots_eta = knots_eta;
+		}
+
+		// Read the Control Point Data
+		if (strstr(line,"Control_Point_Data")){
+			
 			// Get the number of pts
 			int num_control_pts;
-			fgets(line,sizeof(line),input_file);
-			read_skip_i_1(line,0,&num_control_pts,1);
+			read_skip_string_count_i("Control_Point_Data", &count_found, line, &num_control_pts);
 
 			// Create the multiarray structure to hold the control point data
 			// NOTE: For now, only 2D patches can be read, so multiarray is of 
@@ -697,62 +719,38 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 		}
 
 		// Read the Control Point Connecitivity Data
-		if (strstr(line,"Control Point Connectivity")){
-
-			// Found the control point connectivity section
-			count_found++;
+		if (strstr(line,"Control_Point_Connectivity")){
 
 			// Get the number of xi and eta points
-			
-			fgets(line,sizeof(line),input_file);
-			read_skip_i_1(line,0,&geo_data->extent_control_pt_connectivity[0],1);
+			count_found++;  // Connectivity information was found
+			int extents[2] = {0,0};
+			read_skip_const_i_1(line,1,extents,2);
 
-			fgets(line,sizeof(line),input_file);
-			read_skip_i_1(line,0,&geo_data->extent_control_pt_connectivity[1],1);
+			// Create the multiarray structure to hold the connectivity data
+			// NOTE: For now, only 2D patches can be processed
+			struct Multiarray_i* control_point_connectivity = 
+				constructor_empty_Multiarray_i('R',2,(ptrdiff_t[]){extents[0], extents[1]});
 
-			// Read the connectivity information
-
-			// Since no multiarray_i struct exists, store this data in an integer
-			// pointer
-			geo_data->control_point_connectivity = malloc(
-				(size_t)geo_data->extent_control_pt_connectivity[0]*
-				(size_t)geo_data->extent_control_pt_connectivity[1]*
-				sizeof *geo_data->control_point_connectivity
-				);
-
-			// Read the connectivity data
-			for (i = 0; i < geo_data->extent_control_pt_connectivity[0]; i++){
+			// Read in the connectivity data line by line
+			for (i = 0; i < extents[0]; i++){
 				fgets(line,sizeof(line),input_file);
 
-				int *data;
-				data = malloc((size_t)geo_data->extent_control_pt_connectivity[1]* sizeof *data);
-
-				read_skip_i_1(line,0, data, geo_data->extent_control_pt_connectivity[1]);
-
-				for (j = 0; j < geo_data->extent_control_pt_connectivity[1]; j++){
-					geo_data->control_point_connectivity[i + j*geo_data->extent_control_pt_connectivity[0]] = data[j];
-				}
-
-				free(data);
-
+				read_skip_i_1(line,0, get_row_Multiarray_i(i, control_point_connectivity), extents[1]);
 			}
+
+			geo_data->control_point_connectivity = control_point_connectivity;
+
 		}
 	}
 	fclose(input_file);
 
-	/*
+	// Print the file data to verify that everything was read
+	/*	
 	printf("P = %d, Q = %d \n", geo_data->P, geo_data->Q);
-
+	print_Multiarray_d_tol(geo_data->knots_xi, 0.0);
+	print_Multiarray_d_tol(geo_data->knots_eta, 0.0);		
 	print_Multiarray_d_tol(geo_data->control_points_and_weights, 0.0);
-
-	for (i = 0; i < geo_data->extent_control_pt_connectivity[0]; i++){
-		for (j = 0; j < geo_data->extent_control_pt_connectivity[1]; j++){
-			printf("%d ", geo_data->control_point_connectivity[j*geo_data->extent_control_pt_connectivity[0] + i]);
-		}
-		printf("\n");
-	}
-
-	exit(0);
+	print_Multiarray_i(geo_data->control_point_connectivity);
 	*/
 
 	assert(count_found == count_to_find);

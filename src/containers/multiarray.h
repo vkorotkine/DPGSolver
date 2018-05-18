@@ -72,7 +72,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray_math.h"
 #include "multiarray_print.h"
 
-
 #include "def_templates_type_i.h"
 #include "def_templates_matrix_i.h"
 #include "def_templates_multiarray_i.h"

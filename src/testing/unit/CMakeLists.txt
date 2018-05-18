@@ -16,6 +16,8 @@ add_test_DPG(${EXEC} "pyr_orthonormal")
 add_test_DPG(${EXEC} "tp_bezier")
 add_test_DPG(${EXEC} "si_bezier")
 add_test_DPG(${EXEC} "pyr_bezier")
+add_test_DPG(${EXEC} "B_Spline_Basis_1D")
+add_test_DPG(${EXEC} "NURBS_Basis_1D")
 
 set (EXEC test_unit_nodes)
 set (LIBS_DEPEND Test_Base Test_Support_Containers Test_Support_Element)

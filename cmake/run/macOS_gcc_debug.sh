@@ -6,7 +6,11 @@ TOP_DIR="${PWD}/../.."
 # Modifiable parameters ****************************************************** #
 
 export MKLROOT=/opt/intel/mkl
-export PETSC_DIR=/Users/manmeetbhabra/Research_Codes/petsc-3.8.4
+
+# Mac:
+#export PETSC_DIR=/Users/manmeetbhabra/Research_Codes/petsc-3.8.4
+# Laptop:
+export PETSC_DIR=/Users/jm-034232/Research_Codes/petsc-3.8.4
 export PETSC_ARCH=arch-macOS-mkl-mpich-debug
 
 BUILD_DIR=${TOP_DIR}/build

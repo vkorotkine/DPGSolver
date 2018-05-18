@@ -12,6 +12,7 @@ set	(SOURCE
 	 geometry/geometry.c
 	 geometry/geometry_blended.c
 	 geometry/geometry_parametric.c
+	 geometry/geometry_NURBS_parametric.c
 	 geometry/geometry_surface.c
 
 	 solvers/compute_rlhs.c

@@ -33,6 +33,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_nodes.h"
 #include "definitions_tol.h"
 
+#include "file_processing.h"
+
 #include "multiarray.h"
 #include "matrix.h"
 #include "vector.h"
@@ -72,6 +74,28 @@ static void test_unit_basis_pyramid_bezier
 	(struct Test_Info*const test_info ///< \ref Test_Info.
 	);
 
+/// \brief Provides unit tests for the 1D B Spline basis function.
+static void test_unit_basis_B_Spline_1D
+	(struct Test_Info*const test_info ///< \ref Test_Info.
+	);
+
+/// \brief Provides unit tests for the 1D NURBS basis functions.
+static void test_unit_basis_NURBS_1D
+	(struct Test_Info*const test_info ///< \ref Test_Info.
+	);
+
+/// \brief Reads the given case from the .data file and runs it (B Spline basis).
+static int test_unit_basis_B_Spline_1D_run_case
+	(const char *const case_name,
+	const char*const file_name_full
+	);
+
+/// \brief Reads the given case from the .data file and runs it (NURBS basis).
+static int test_unit_basis_NURBS_1D_run_case
+	(const char *const case_name,
+	const char*const file_name_full
+	);
+
 // Interface functions ********************************************************************************************** //
 
 /** \test Performs unit testing for the bases (\ref test_unit_bases.c).
@@ -97,6 +121,10 @@ int main
 		test_unit_basis_simplex_bezier(&test_info);
 	else if (strcmp(test_name,"pyr_bezier") == 0)
 		test_unit_basis_pyramid_bezier(&test_info);
+	else if (strcmp(test_name,"B_Spline_Basis_1D") == 0)
+		test_unit_basis_B_Spline_1D(&test_info);
+	else if (strcmp(test_name,"NURBS_Basis_1D") == 0)
+		test_unit_basis_NURBS_1D(&test_info);
 	else
 		EXIT_ERROR("Invalid test name: %s\n",test_name);
 
@@ -969,4 +997,377 @@ static void destructor_Basis_Data_PYR_Bezier (struct Basis_Data_PYR_Bezier* b_da
 	destructor_const_Vector_d(b_data->p_34);
 	destructor_const_Multiarray_d(b_data->grad_coef_36);
 	free(b_data);
+}
+
+// B Spline / NURBS Basis *************************************************************************************************** //
+
+static void test_unit_basis_B_Spline_1D(struct Test_Info*const test_info){
+
+	/*
+	Run the unit test for the B Spline case (1D). A .data file will be read which contains
+	a set number of cases with different P, knot and xi values (value to evaluate the
+	basis at on the knot/parametric domain). The values for the basis function at the
+	given points has also been provided, which is what will be used as reference to 
+	verify the validity of the B spline basis implementation.
+
+	Arguments:
+		test_info = container for any test related information
+
+	Return:
+		- 
+	*/
+
+	UNUSED(test_info);
+
+	bool pass = true;
+
+	const char*const file_name_full = set_data_file_name_unit("bases/BSpline_bases");
+
+	if( !test_unit_basis_B_Spline_1D_run_case("B Spline Basis 1D - Case 1", file_name_full) ||
+		!test_unit_basis_B_Spline_1D_run_case("B Spline Basis 1D - Case 2", file_name_full) ||
+		!test_unit_basis_B_Spline_1D_run_case("B Spline Basis 1D - Case 3", file_name_full)){
+
+		// One of the cases returned false, so the unit test did not pass
+		pass = false;
+
+	}
+
+	assert_condition(pass);
+
+}
+
+static void test_unit_basis_NURBS_1D(struct Test_Info*const test_info){
+
+	/*
+	Run the unit test for the NURBS case (1D). A .data file will be read which contains
+	a set number of cases with different P, knot and xi values (value to evaluate the
+	basis at on the knot/parametric domain). The values for the basis function at the
+	given points has also been provided, which is what will be used as reference to 
+	verify the validity of the B spline basis implementation.
+
+	Arguments:
+		test_info = container for any test related information
+
+	Return:
+		- 
+	*/
+
+	UNUSED(test_info);
+
+	bool pass = true;
+
+	const char*const file_name_full = set_data_file_name_unit("bases/NURBS_bases");
+
+	if( !test_unit_basis_NURBS_1D_run_case("NURBS Basis 1D - Case 1", file_name_full) ||
+		!test_unit_basis_NURBS_1D_run_case("NURBS Basis 1D - Case 2", file_name_full) ||
+		!test_unit_basis_NURBS_1D_run_case("NURBS Basis 1D - Case 3", file_name_full)){
+
+		// One of the cases returned false, so the unit test did not pass
+		pass = false;
+
+	}
+
+	assert_condition(pass);
+
+}
+
+static int test_unit_basis_NURBS_1D_run_case(const char *const case_name, 
+	const char*const file_name_full){
+
+	/*
+	Read the test case from the .data file, set it up, and compare the 
+	reference results to the values computed using the methods in the 
+	code. This method will read and run the B spline test.
+
+	Arguments:
+		test_info = container for any test related information
+		case_name = String for the name of the case to run in the file
+		file_name_full = String for the absolute path to the file to open
+
+	Return:
+		An integer value of 1 for success and 0 for failure
+	*/
+
+	FILE* data_file = fopen_checked(file_name_full);
+
+	int num_variables_found = 0,
+		total_num_variables = 5;
+
+	// The information to be read from the file for the given case
+	int P = 0, 
+		num_knots, num_xi_vals, num_weights, num_Basis_vals, i;
+	
+	struct Multiarray_d *knots 			= NULL,
+						*xi_vals 		= NULL,
+						*weights 		= NULL, 
+						*Basis_vals_ref = NULL;
+
+	const struct const_Multiarray_d *BSpline_Basis_vals = NULL,
+									*NURBS_Basis_vals 	= NULL;
+
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),data_file)) {
+
+		if (strstr(line, case_name)){
+			// Found the desired case in the file. Read the 
+			// variables from the given section.
+
+			while(fgets(line,sizeof(line),data_file)){
+
+				// Load the information for each variable from the section
+				if (strstr(line, "knots")){
+					
+					num_variables_found++; 
+
+					// Load and read the knot data
+					read_skip_i_1(line, 1, &num_knots, 1);
+					knots = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_knots,1});
+					
+					fgets(line,sizeof(line),data_file);
+					read_skip_d_1(line, 0, get_col_Multiarray_d(0, knots), num_knots);
+
+				} else if(strstr(line, "P")){
+					
+					num_variables_found++;
+					
+					// Load and read the order information
+					read_skip_i_1(line, 1, &P, 1);
+
+				} else if(strstr(line, "xi_vals")){
+					
+					num_variables_found++;
+
+					// Load and read the xi values
+					read_skip_i_1(line, 1, &num_xi_vals, 1);
+					xi_vals = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_xi_vals,1});
+					
+					fgets(line,sizeof(line),data_file);
+					read_skip_d_1(line, 0, get_col_Multiarray_d(0, xi_vals), num_xi_vals);
+
+				} else if(strstr(line, "weights")){
+
+					num_variables_found++;
+
+					// Load and read the weights
+					read_skip_i_1(line, 1, &num_weights, 1);
+					weights = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_weights,1});
+					
+					fgets(line,sizeof(line),data_file);
+					read_skip_d_1(line, 0, get_col_Multiarray_d(0, weights), num_weights);
+
+				} else if(strstr(line, "Basis_vals")){
+					
+					num_variables_found++;
+					
+					// Load and read the reference basis function values
+					read_skip_i_1(line, 1, &num_Basis_vals, 1);
+					Basis_vals_ref = constructor_empty_Multiarray_d('R',2,(ptrdiff_t[]){num_xi_vals, num_Basis_vals});
+
+					for (i = 0; i < num_xi_vals; i++){
+						fgets(line,sizeof(line),data_file);
+						read_skip_d_1(line, 0, get_row_Multiarray_d(i, Basis_vals_ref), num_Basis_vals);
+					}
+
+					// Take the transpose of the multiarray and make it a multiarray
+					// that is in column major form
+					transpose_Multiarray_d(Basis_vals_ref, false);
+					transpose_Multiarray_d(Basis_vals_ref, true);
+
+
+				}
+
+				if (num_variables_found == total_num_variables)
+					break;
+
+			}
+
+			// Completed reading the required section of the file.
+			// Therefore, can now close the file.
+			break;
+		}
+	}
+
+	fclose(data_file);
+
+	// Compute the NURBS basis function values in the code
+	BSpline_Basis_vals = B_Spline_Basis_p(P, (struct const_Multiarray_d*)xi_vals, 
+		(struct const_Multiarray_d*)knots);
+	NURBS_Basis_vals = NURBS_Basis_p(BSpline_Basis_vals,(struct const_Multiarray_d*)weights);
+
+	// Subtract the Basis_vals computed from the reference values and 
+	// compute the norm. Subtract in place (since Basis_vals_ref is not
+	// const make this the multiarray that is subtracted in place)
+	subtract_in_place_Multiarray_d(Basis_vals_ref, NURBS_Basis_vals);
+
+	double L2_norm_difference = norm_Multiarray_d(Basis_vals_ref, "L2");
+
+	// Destruct the multiarrays
+	destructor_Multiarray_d(xi_vals);
+	destructor_Multiarray_d(knots);
+	destructor_Multiarray_d(Basis_vals_ref);
+	destructor_const_Multiarray_d(BSpline_Basis_vals);
+	destructor_const_Multiarray_d(NURBS_Basis_vals);
+
+	if (L2_norm_difference <= 100*EPS){
+		return 1;
+	} else{
+		return 0;
+	}
+
+	return 0;
+}
+
+static int test_unit_basis_B_Spline_1D_run_case(const char *const case_name, 
+	const char*const file_name_full){
+
+	/*
+	Read the test case from the .data file, set it up, and compare the 
+	reference results to the values computed using the methods in the 
+	code. This method will read and run the B spline test.
+
+	Arguments:
+		test_info = container for any test related information
+		case_name = String for the name of the case to run in the file
+		file_name_full = String for the absolute path to the file to open
+
+	Return:
+		An integer value of 1 for success and 0 for failure
+	*/
+
+	FILE* data_file = fopen_checked(file_name_full);
+
+	int num_variables_found = 0,
+		total_num_variables = 4;
+
+	// The information to be read from the file for the given case
+	int P = 0, 
+		num_knots, num_xi_vals, num_Basis_vals, i;
+	
+	struct Multiarray_d *knots 			= NULL,
+						*xi_vals 		= NULL, 
+						*Basis_vals_ref = NULL;
+
+	const struct const_Multiarray_d *Basis_vals = NULL;
+
+
+	char line[STRLEN_MAX];
+	while (fgets(line,sizeof(line),data_file)) {
+
+		if (strstr(line, case_name)){
+			// Found the desired case in the file. Read the 
+			// variables from the given section.
+
+			while(fgets(line,sizeof(line),data_file)){
+
+				// Load the information for each variable from the section
+				if (strstr(line, "knots")){
+					
+					num_variables_found++; 
+
+					// Load and read the knot data
+					read_skip_i_1(line, 1, &num_knots, 1);
+					knots = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_knots,1});
+					
+					fgets(line,sizeof(line),data_file);
+					read_skip_d_1(line, 0, get_col_Multiarray_d(0, knots), num_knots);
+
+				} else if(strstr(line, "P")){
+					
+					num_variables_found++;
+					
+					// Load and read the order information
+					read_skip_i_1(line, 1, &P, 1);
+
+				} else if(strstr(line, "xi_vals")){
+					
+					num_variables_found++;
+
+					// Load and read the xi values
+					read_skip_i_1(line, 1, &num_xi_vals, 1);
+					xi_vals = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_xi_vals,1});
+					
+					fgets(line,sizeof(line),data_file);
+					read_skip_d_1(line, 0, get_col_Multiarray_d(0, xi_vals), num_xi_vals);
+
+				} else if(strstr(line, "Basis_vals")){
+					
+					num_variables_found++;
+					
+					// Load and read the reference basis function values
+					read_skip_i_1(line, 1, &num_Basis_vals, 1);
+					Basis_vals_ref = constructor_empty_Multiarray_d('R',2,(ptrdiff_t[]){num_xi_vals, num_Basis_vals});
+
+					for (i = 0; i < num_xi_vals; i++){
+						fgets(line,sizeof(line),data_file);
+						read_skip_d_1(line, 0, get_row_Multiarray_d(i, Basis_vals_ref), num_Basis_vals);
+					}
+
+					print_Multiarray_d_tol(Basis_vals_ref, 0.0);
+
+					// Take the transpose of the multiarray and make it a multiarray
+					// that is in column major form
+					transpose_Multiarray_d(Basis_vals_ref, false);
+					transpose_Multiarray_d(Basis_vals_ref, true);
+
+				}
+
+				if (num_variables_found == total_num_variables)
+					break;
+
+			}
+
+			// Completed reading the required section of the file.
+			// Therefore, can now close the file.
+			break;
+		}
+	}
+
+	fclose(data_file);
+
+	// Compute the basis function values in the code
+	Basis_vals = B_Spline_Basis_p(P, (struct const_Multiarray_d*)xi_vals, 
+		(struct const_Multiarray_d*)knots);
+
+	// Subtract the Basis_vals computed from the reference values and 
+	// compute the norm. Subtract in place (since Basis_vals_ref is not
+	// const make this the multiarray that is subtracted in place)
+	subtract_in_place_Multiarray_d(Basis_vals_ref, Basis_vals);
+
+	double L2_norm_difference = norm_Multiarray_d(Basis_vals_ref, "L2");
+
+	// Destruct the multiarrays
+	destructor_Multiarray_d(xi_vals);
+	destructor_Multiarray_d(knots);
+	destructor_Multiarray_d(Basis_vals_ref);
+	destructor_const_Multiarray_d(Basis_vals);
+
+	if (L2_norm_difference <= 100*EPS){
+		return 1;
+	} else{
+		return 0;
+	}
+
+	/*
+	printf("NORM: %e \n", norm_Multiarray_d(Basis_vals_ref, "L2"));
+
+	printf("TEST FILE READING:\n\n");
+
+	printf(" - knots: \n");
+	print_Multiarray_d_tol(knots, 0.0);
+
+	printf(" - P: %d\n\n", P);
+
+	printf(" - xi_vals: \n");
+	print_Multiarray_d_tol(xi_vals, 0.0);
+
+	printf(" - Basis_vals_ref : \n");
+	print_Multiarray_d_tol(Basis_vals_ref, 0.0);
+
+	printf(" Basis_vals_ref_layout : %c \n", Basis_vals_ref->layout);
+
+	printf(" - Basis_vals : \n");
+	print_const_Multiarray_d_tol(Basis_vals, 0.0);
+	*/
+
+	return 0;
 }

@@ -60,7 +60,3 @@ build_3D/*
 build_test_1D/*
 build_test_2D/*
 build_test_3D/*
-
-ToDoList.txt
-
-cmake/run/macOS_gcc_debug.sh

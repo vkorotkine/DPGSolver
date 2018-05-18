@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
+struct const_Multiarray_d;
+
 /** \brief Function pointer to basis constructor function.
  *  \param p_b The order of the basis.
  *  \param rst The nodes at which the basis functions are evaluated.
@@ -242,5 +244,54 @@ constructor_grad_basis_fptr get_constructor_grad_basis_by_super_type
 int get_basis_i_from_s
  	(const char*const basis_name_s ///< The `char*` name of the basis.
 	);
+
+/** \brief Evaluate the B Spline basis function N_ip (ith basis function of 
+	order p) at the value xi on the parametric domain (or knot domain) 
+	
+	\return The value of the ith B Spline basis function at the given point xi on the 
+		parametric (knot) domain */
+double B_Spline_Basis_ip(
+	int i, ///< The index for which basis function to evaluate
+	int p, //< The order of the basis function
+	double xi, ///< The value on the knot domain to evaluate the basis at
+	const struct const_Multiarray_d* knots ///< The knot vector (stored as a multiarray)
+	);
+
+/** \brief Evaluates the Num_basis B Spline basis functions, of order p, at the given xi_vals.
+	Evaluates all the basis functions at all the given xi_vals provided. 
+
+	\return A multiarray containing the values of the basis functions at the required
+	xi values. The dimension of the multiarray is [num_basis x num_xi_vals]. 
+	Therefore, the i,j index corresponds to the ith B Spline basis function 
+	evaluated at the jth xi value */
+const struct const_Multiarray_d *B_Spline_Basis_p(
+	int p, ///< the order of the basis functions
+	const struct const_Multiarray_d* xi_vals, ///< The values (xi) at which to evaluate the basis functions at. Provided as a multiarray of dimension [num_xi_vals x 1]
+	const struct const_Multiarray_d* knots ///< The knot vector. Dimension of the multiarray is [num_knots x 1]
+	);
+
+/** \brief Evaluate the NURBS basis function R_ip (ith basis function of 
+	order p) at the value xi on the parametric domain (or knot domain) 
+
+	\return The value of the ith NURBS basis function at the given point xi on the 
+		parametric (knot) domain*/
+double NURBS_Basis_ip(
+	int i,  ///< The index for which basis function to evaluate
+	const struct const_Multiarray_d* B_Spline_Basis_values,  ///< The values of the B Spline basis functions at the required xi value
+	const struct const_Multiarray_d* weights ///< The NURBS basis function weights
+	);
+
+/** \brief Evaluates the num_basis NURBS basis functions, of order p, at the given xi_vals.
+	Evaluates all the basis functions at all the given xi_vals provided.
+
+	\return A multiarray containing the values of the basis functions at the required
+		xi values. The dimension of the multiarray is [num_basis x num_xi_vals]. 
+		Therefore, the i,j index corresponds to the ith NURBS basis function 
+		evaluated at the jth xi value */
+const struct const_Multiarray_d *NURBS_Basis_p(
+	const struct const_Multiarray_d* B_Spline_Basis_values, ///< The values of the B Spline basis functions at different xi values (on the knot domain)
+	const struct const_Multiarray_d* weights ///< The NURBS basis function weights
+	);
+
 
 #endif // DPG__bases_h__INCLUDED
