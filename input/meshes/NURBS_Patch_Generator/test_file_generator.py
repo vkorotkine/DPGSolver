@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import numpy
 
 
-def plot_basis_1D(basis_function_list, xi_min, xi_max):
+def plot_basis_1D(basis_function_list, xi_min, xi_max, title=None):
 
 	"""
 	Plot the basis functions on the domain xi_min to 
@@ -23,14 +23,12 @@ def plot_basis_1D(basis_function_list, xi_min, xi_max):
 	:param basis_function_list: The list of basis functions (lambda expressions)
 	:param xi_min: The lower limit of the domain to plot
 	:param xi_max: The upper limit of the domain to plot
+	:param title: The title of the plot
 
 	:return : -
 	"""
 
-	xi_min += 1E-14
-	xi_max -= 1E-14
-
-	num_plot_pts = 50
+	num_plot_pts = 250
 	plot_pts = numpy.linspace(xi_min, xi_max, num_plot_pts)
 
 	for N_b in basis_function_list:
@@ -42,8 +40,11 @@ def plot_basis_1D(basis_function_list, xi_min, xi_max):
 
 		plt.plot(plot_pts, y_vals)
 
+	if title is not None:
+		plt.title(title)
 
-	plt.show(block=True)
+	plt.grid()
+
 
 def write_test_results(fp, P, basis_functions, xi_vector, xi_vals, w_vector=None):
 
@@ -173,6 +174,58 @@ def output_BSpline_test_file():
 
 	write_test_results(fp, P_case_3, BSpline_basis, xi_vector, xi_vals)	
 
+
+	# ==================================
+	#          Case 1 - Derivative
+	# ==================================
+
+	fp.write("--------------------------------------------------------------------------------\n")
+	fp.write("B Spline Basis 1D Derivative - Case 1\n")
+	fp.write("\n")
+
+	# - In this case, we have n = m - p - 1 = 9 - 2 - 1 = 6 basis functions
+	xi_vector = [-2,-2,-2,-1,0,1,2,2,2]
+	xi_vals = [-2, -0.5, 0.25, 2]  # Location to evaluate the Basis functions at
+	P_case_1 = 2
+
+	del_BSpline_basis = Basis.get_derivative_BSpline_basis_functions_1D(P_case_1, xi_vector)
+
+	write_test_results(fp, P_case_1, del_BSpline_basis, xi_vector, xi_vals)
+
+	# ==================================
+	#          Case 2 - Derivative 
+	# ==================================
+
+	fp.write("--------------------------------------------------------------------------------\n")
+	fp.write("B Spline Basis 1D Derivative - Case 2\n")
+	fp.write("\n")
+
+	# - In this case, we have n = m - p - 1 = 9 - 3 - 1 = 5 basis functions
+	xi_vector = [-2,-2,-2,-1,0,1,2,2,2]
+	xi_vals = [-2, -0.5, 0.25, 2]  # Location to evaluate the Basis functions at
+	P_case_2 = 3
+
+	del_BSpline_basis = Basis.get_derivative_BSpline_basis_functions_1D(P_case_2, xi_vector)
+
+	write_test_results(fp, P_case_2, del_BSpline_basis, xi_vector, xi_vals)
+
+	# =================================
+	#          Case 3 - Derivative
+	# ==================================
+
+	fp.write("--------------------------------------------------------------------------------\n")
+	fp.write("B Spline Basis 1D Derivative - Case 3\n")
+	fp.write("\n")
+
+	# - In this case, we have n = m - p - 1 = 9 - 3 - 1 = 5 basis functions
+	xi_vector = [-2,-2,-2,-1,0,1,2,2,2]
+	xi_vals = [-2, -0.5, 0.25, 2]  # Location to evaluate the Basis functions at
+	P_case_3 = 4
+
+	del_BSpline_basis = Basis.get_derivative_BSpline_basis_functions_1D(P_case_3, xi_vector)
+
+	write_test_results(fp, P_case_3, del_BSpline_basis, xi_vector, xi_vals)	
+
 	#plot_basis_1D(BSpline_basis, xi_vector[0], xi_vector[-1])
 	#return
 
@@ -259,12 +312,107 @@ def output_NURBS_test_file():
 
 	write_test_results(fp, P_case_3, NURBS_basis, xi_vector, xi_vals, w_vector)	
 
+
+	# ==================================
+	#          Case 1 - Derivative
+	# ==================================
+
+	fp.write("--------------------------------------------------------------------------------\n")
+	fp.write("NURBS Basis 1D Derivative - Case 1\n")
+	fp.write("\n")
+
+	# - In this case, we have n = m - p - 1 = 9 - 2 - 1 = 6 basis functions
+	xi_vector = [-2,-2,-2,-1,0,1,2,2,2]
+	w_vector = [0.5, 1.75, 0.8, 1.8, 1.75, 1.5]
+	xi_vals = [-2, -0.5, 0.25, 2]  # Location to evaluate the Basis functions at
+	P_case_1 = 2
+
+	del_NURBS_basis = Basis.get_derivative_NURBS_basis_functions_1D(P_case_1, xi_vector, w_vector)
+
+	write_test_results(fp, P_case_1, del_NURBS_basis, xi_vector, xi_vals, w_vector)
+
+	# ==================================
+	#          Case 2 - Derivative
+	# ==================================
+
+	fp.write("--------------------------------------------------------------------------------\n")
+	fp.write("NURBS Basis 1D Derivative - Case 2\n")
+	fp.write("\n")
+
+	xi_vector = [-2,-2,-2,-1,0,1,2,2,2]
+	w_vector = [0.5, 1.75, 0.8, 1.8, 1.75]
+	xi_vals = [-2, -0.5, 0.25, 2]  # Location to evaluate the Basis functions at
+	P_case_2 = 3
+
+	del_NURBS_basis = Basis.get_derivative_NURBS_basis_functions_1D(P_case_2, xi_vector, w_vector)
+
+	write_test_results(fp, P_case_2, del_NURBS_basis, xi_vector, xi_vals, w_vector)
+
+	# ==================================
+	#          Case 3 - Derivative
+	# ==================================
+
+	fp.write("--------------------------------------------------------------------------------\n")
+	fp.write("NURBS Basis 1D Derivative - Case 3\n")
+	fp.write("\n")
+
+	xi_vector = [-2,-2,-2,-1,0,1,2,2,2]
+	w_vector = [0.5, 1.75, 0.8, 1.8]
+	xi_vals = [-2, -0.5, 0.25, 2]  # Location to evaluate the Basis functions at
+	P_case_3 = 4
+
+	del_NURBS_basis = Basis.get_derivative_NURBS_basis_functions_1D(P_case_3, xi_vector, w_vector)
+
+	write_test_results(fp, P_case_3, del_NURBS_basis, xi_vector, xi_vals, w_vector)	
+
 	fp.close()
 
+
+def tests():
+
+	"""
+	# B Spline Case:
+
+	xi_vector = [-2,-2,-2,-1,0,1,2,2,2]
+	xi_vals = [-2, -0.5, 0.25, 2]  # Location to evaluate the Basis functions at
+	P = 2
+
+	plt.figure(1)
+
+	del_BSpline_basis = Basis.get_derivative_BSpline_basis_functions_1D(P, xi_vector)
+	plot_basis_1D(del_BSpline_basis, xi_vector[0], xi_vector[-1], title="derivative")
+
+	plt.figure(2)
+
+	BSpline_basis = Basis.get_BSpline_basis_functions_1D(P, xi_vector)
+	plot_basis_1D(BSpline_basis, xi_vector[0], xi_vector[-1], title="basis")
+
+	plt.show(block=True)
+	"""
+
+	# NURBS Case:
+
+	xi_vector = [-2,-2,-2,-1,0,1,2,2,2]
+	xi_vals = [-2, -0.5, 0.25, 2]  # Location to evaluate the Basis functions at
+	w_vector = [0.5, 1.75, 0.8, 1.8, 1.75, 1.5]
+	P = 2
+
+	plt.figure(1)
+
+	del_NURBS_basis = Basis.get_derivative_NURBS_basis_functions_1D(P, xi_vector, w_vector)
+	plot_basis_1D(del_NURBS_basis, xi_vector[0], xi_vector[-1], title="Derivative")
+
+	plt.figure(2)
+
+	NURBS_basis = Basis.get_NURBS_basis_functions_1D(P, xi_vector, w_vector)
+	plot_basis_1D(NURBS_basis, xi_vector[0], xi_vector[-1], title="Basis")
+
+	plt.show(block=True)
 
 def main():
 	output_BSpline_test_file()
 	output_NURBS_test_file()
+	#tests()
 
 
 if __name__ == "__main__":

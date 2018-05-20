@@ -84,16 +84,28 @@ static void test_unit_basis_NURBS_1D
 	(struct Test_Info*const test_info ///< \ref Test_Info.
 	);
 
+/// \brief Provides unit tests for the 1D B Spline basis function derivative.
+static void test_unit_derivative_basis_B_Spline_1D
+	(struct Test_Info*const test_info ///< \ref Test_Info.
+	);
+
+/// \brief Provides unit tests for the 1D NURBS basis functions derivative.
+static void test_unit_derivative_basis_NURBS_1D
+	(struct Test_Info*const test_info ///< \ref Test_Info.
+	);
+
 /// \brief Reads the given case from the .data file and runs it (B Spline basis).
 static int test_unit_basis_B_Spline_1D_run_case
 	(const char *const case_name,
-	const char*const file_name_full
+	const char*const file_name_full,
+	const bool derivative_case
 	);
 
 /// \brief Reads the given case from the .data file and runs it (NURBS basis).
 static int test_unit_basis_NURBS_1D_run_case
 	(const char *const case_name,
-	const char*const file_name_full
+	const char*const file_name_full,
+	const bool derivative_case
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -125,6 +137,10 @@ int main
 		test_unit_basis_B_Spline_1D(&test_info);
 	else if (strcmp(test_name,"NURBS_Basis_1D") == 0)
 		test_unit_basis_NURBS_1D(&test_info);
+	else if (strcmp(test_name,"derivative_B_Spline_Basis_1D") == 0)
+		test_unit_derivative_basis_B_Spline_1D(&test_info);
+	else if (strcmp(test_name,"derivative_NURBS_Basis_1D") == 0)
+		test_unit_derivative_basis_NURBS_1D(&test_info);
 	else
 		EXIT_ERROR("Invalid test name: %s\n",test_name);
 
@@ -1023,9 +1039,9 @@ static void test_unit_basis_B_Spline_1D(struct Test_Info*const test_info){
 
 	const char*const file_name_full = set_data_file_name_unit("bases/BSpline_bases");
 
-	if( !test_unit_basis_B_Spline_1D_run_case("B Spline Basis 1D - Case 1", file_name_full) ||
-		!test_unit_basis_B_Spline_1D_run_case("B Spline Basis 1D - Case 2", file_name_full) ||
-		!test_unit_basis_B_Spline_1D_run_case("B Spline Basis 1D - Case 3", file_name_full)){
+	if( !test_unit_basis_B_Spline_1D_run_case("B Spline Basis 1D - Case 1", file_name_full, false) ||
+		!test_unit_basis_B_Spline_1D_run_case("B Spline Basis 1D - Case 2", file_name_full, false) ||
+		!test_unit_basis_B_Spline_1D_run_case("B Spline Basis 1D - Case 3", file_name_full, false)){
 
 		// One of the cases returned false, so the unit test did not pass
 		pass = false;
@@ -1035,6 +1051,43 @@ static void test_unit_basis_B_Spline_1D(struct Test_Info*const test_info){
 	assert_condition(pass);
 
 }
+
+
+static void test_unit_derivative_basis_B_Spline_1D(struct Test_Info*const test_info){
+
+	/*
+	Run the unit test for the derivative B Spline case (1D). A .data file will be read which contains
+	a set number of cases with different P, knot and xi values (value to evaluate the
+	basis at on the knot/parametric domain). The values for the basis function at the
+	given points has also been provided, which is what will be used as reference to 
+	verify the validity of the B spline basis implementation.
+
+	Arguments:
+		test_info = container for any test related information
+
+	Return:
+		- 
+	*/
+
+	UNUSED(test_info);
+
+	bool pass = true;
+
+	const char*const file_name_full = set_data_file_name_unit("bases/BSpline_bases");
+
+	if( !test_unit_basis_B_Spline_1D_run_case("B Spline Basis 1D Derivative - Case 1", file_name_full, true) ||
+		!test_unit_basis_B_Spline_1D_run_case("B Spline Basis 1D Derivative - Case 2", file_name_full, true) ||
+		!test_unit_basis_B_Spline_1D_run_case("B Spline Basis 1D Derivative - Case 3", file_name_full, true)){
+
+		// One of the cases returned false, so the unit test did not pass
+		pass = false;
+
+	}
+
+	assert_condition(pass);
+
+}
+
 
 static void test_unit_basis_NURBS_1D(struct Test_Info*const test_info){
 
@@ -1058,9 +1111,9 @@ static void test_unit_basis_NURBS_1D(struct Test_Info*const test_info){
 
 	const char*const file_name_full = set_data_file_name_unit("bases/NURBS_bases");
 
-	if( !test_unit_basis_NURBS_1D_run_case("NURBS Basis 1D - Case 1", file_name_full) ||
-		!test_unit_basis_NURBS_1D_run_case("NURBS Basis 1D - Case 2", file_name_full) ||
-		!test_unit_basis_NURBS_1D_run_case("NURBS Basis 1D - Case 3", file_name_full)){
+	if( !test_unit_basis_NURBS_1D_run_case("NURBS Basis 1D - Case 1", file_name_full, false) ||
+		!test_unit_basis_NURBS_1D_run_case("NURBS Basis 1D - Case 2", file_name_full, false) ||
+		!test_unit_basis_NURBS_1D_run_case("NURBS Basis 1D - Case 3", file_name_full, false)){
 
 		// One of the cases returned false, so the unit test did not pass
 		pass = false;
@@ -1071,8 +1124,45 @@ static void test_unit_basis_NURBS_1D(struct Test_Info*const test_info){
 
 }
 
+
+static void test_unit_derivative_basis_NURBS_1D(struct Test_Info*const test_info){
+
+	/*
+	Run the unit test for the derivative NURBS case (1D). A .data file will be read which contains
+	a set number of cases with different P, knot and xi values (value to evaluate the
+	basis at on the knot/parametric domain). The values for the basis function at the
+	given points has also been provided, which is what will be used as reference to 
+	verify the validity of the B spline basis implementation.
+
+	Arguments:
+		test_info = container for any test related information
+
+	Return:
+		- 
+	*/
+
+	UNUSED(test_info);
+
+	bool pass = true;
+
+	const char*const file_name_full = set_data_file_name_unit("bases/NURBS_bases");
+
+	if( !test_unit_basis_NURBS_1D_run_case("NURBS Basis 1D Derivative - Case 1", file_name_full, true) ||
+		!test_unit_basis_NURBS_1D_run_case("NURBS Basis 1D Derivative - Case 2", file_name_full, true) ||
+		!test_unit_basis_NURBS_1D_run_case("NURBS Basis 1D Derivative - Case 3", file_name_full, true)){
+
+		// One of the cases returned false, so the unit test did not pass
+		pass = false;
+
+	}
+
+	assert_condition(pass);
+
+}
+
+
 static int test_unit_basis_NURBS_1D_run_case(const char *const case_name, 
-	const char*const file_name_full){
+	const char*const file_name_full, const bool derivative_case){
 
 	/*
 	Read the test case from the .data file, set it up, and compare the 
@@ -1103,6 +1193,7 @@ static int test_unit_basis_NURBS_1D_run_case(const char *const case_name,
 						*Basis_vals_ref = NULL;
 
 	const struct const_Multiarray_d *BSpline_Basis_vals = NULL,
+									*derivative_BSpline_Basis_vals = NULL,
 									*NURBS_Basis_vals 	= NULL;
 
 	char line[STRLEN_MAX];
@@ -1173,6 +1264,8 @@ static int test_unit_basis_NURBS_1D_run_case(const char *const case_name,
 					transpose_Multiarray_d(Basis_vals_ref, false);
 					transpose_Multiarray_d(Basis_vals_ref, true);
 
+					printf("Read Basis Values : \n");
+					print_Multiarray_d_tol(Basis_vals_ref, 0.0);
 
 				}
 
@@ -1189,10 +1282,30 @@ static int test_unit_basis_NURBS_1D_run_case(const char *const case_name,
 
 	fclose(data_file);
 
-	// Compute the NURBS basis function values in the code
-	BSpline_Basis_vals = B_Spline_Basis_p(P, (struct const_Multiarray_d*)xi_vals, 
-		(struct const_Multiarray_d*)knots);
-	NURBS_Basis_vals = NURBS_Basis_p(BSpline_Basis_vals,(struct const_Multiarray_d*)weights);
+	// Compute the NURBS basis function values in the code. Check to see
+	// whether the derivatives should be tested or the basis functions
+
+	if (derivative_case){
+
+		// Testing the derivatives of the basis functions
+		BSpline_Basis_vals = B_Spline_Basis_p(P, (struct const_Multiarray_d*)xi_vals, 
+			(struct const_Multiarray_d*)knots);
+		derivative_BSpline_Basis_vals = derivative_B_Spline_Basis_p(P, (struct const_Multiarray_d*)xi_vals, 
+			(struct const_Multiarray_d*)knots);
+
+		NURBS_Basis_vals = derivative_NURBS_Basis_p(BSpline_Basis_vals, derivative_BSpline_Basis_vals, (struct const_Multiarray_d*)weights);
+
+	} else{
+
+		// Not testing the derivatives of the basis functions
+		BSpline_Basis_vals = B_Spline_Basis_p(P, (struct const_Multiarray_d*)xi_vals, 
+			(struct const_Multiarray_d*)knots);
+		NURBS_Basis_vals = NURBS_Basis_p(BSpline_Basis_vals,(struct const_Multiarray_d*)weights);
+
+	}
+
+	printf("Computed Basis Values : \n");
+	print_const_Multiarray_d_tol(NURBS_Basis_vals, 0.0);
 
 	// Subtract the Basis_vals computed from the reference values and 
 	// compute the norm. Subtract in place (since Basis_vals_ref is not
@@ -1208,17 +1321,27 @@ static int test_unit_basis_NURBS_1D_run_case(const char *const case_name,
 	destructor_const_Multiarray_d(BSpline_Basis_vals);
 	destructor_const_Multiarray_d(NURBS_Basis_vals);
 
+	if (derivative_case)
+		destructor_const_Multiarray_d(derivative_BSpline_Basis_vals);
+
 	if (L2_norm_difference <= 100*EPS){
+
+		printf("CASE PASSED \n");
 		return 1;
+
 	} else{
+
+		printf("CASE FAILED (L2_Norm = %e) \n", L2_norm_difference);
 		return 0;
+
 	}
 
 	return 0;
 }
 
+
 static int test_unit_basis_B_Spline_1D_run_case(const char *const case_name, 
-	const char*const file_name_full){
+	const char*const file_name_full, const bool derivative_case){
 
 	/*
 	Read the test case from the .data file, set it up, and compare the 
@@ -1229,6 +1352,8 @@ static int test_unit_basis_B_Spline_1D_run_case(const char *const case_name,
 		test_info = container for any test related information
 		case_name = String for the name of the case to run in the file
 		file_name_full = String for the absolute path to the file to open
+		derivative_case = If true, this means the derivatives of the basis functions
+			should be tested.
 
 	Return:
 		An integer value of 1 for success and 0 for failure
@@ -1302,12 +1427,13 @@ static int test_unit_basis_B_Spline_1D_run_case(const char *const case_name,
 						read_skip_d_1(line, 0, get_row_Multiarray_d(i, Basis_vals_ref), num_Basis_vals);
 					}
 
-					print_Multiarray_d_tol(Basis_vals_ref, 0.0);
-
 					// Take the transpose of the multiarray and make it a multiarray
 					// that is in column major form
 					transpose_Multiarray_d(Basis_vals_ref, false);
 					transpose_Multiarray_d(Basis_vals_ref, true);
+
+					printf("Read Basis Values : \n");
+					print_Multiarray_d_tol(Basis_vals_ref, 0.0);
 
 				}
 
@@ -1324,9 +1450,23 @@ static int test_unit_basis_B_Spline_1D_run_case(const char *const case_name,
 
 	fclose(data_file);
 
-	// Compute the basis function values in the code
-	Basis_vals = B_Spline_Basis_p(P, (struct const_Multiarray_d*)xi_vals, 
-		(struct const_Multiarray_d*)knots);
+	// Compute the basis function values in the code. Check to see whether
+	// the derivatives of the basis are what are being tested
+	if (derivative_case){
+
+		// Testing the derivatives of the basis functions
+		Basis_vals = derivative_B_Spline_Basis_p(P, (struct const_Multiarray_d*)xi_vals, 
+			(struct const_Multiarray_d*)knots);
+
+	} else{
+
+		// Not testing the derivatives of the basis functions
+		Basis_vals = B_Spline_Basis_p(P, (struct const_Multiarray_d*)xi_vals, 
+			(struct const_Multiarray_d*)knots);
+	}
+
+	printf("Computed Basis Values : \n");
+	print_const_Multiarray_d_tol(Basis_vals, 0.0);
 
 	// Subtract the Basis_vals computed from the reference values and 
 	// compute the norm. Subtract in place (since Basis_vals_ref is not
@@ -1342,9 +1482,15 @@ static int test_unit_basis_B_Spline_1D_run_case(const char *const case_name,
 	destructor_const_Multiarray_d(Basis_vals);
 
 	if (L2_norm_difference <= 100*EPS){
+
+		printf("CASE PASSED \n");
 		return 1;
+
 	} else{
+
+		printf("CASE FAILED (L2_Norm = %e) \n", L2_norm_difference);
 		return 0;
+
 	}
 
 	/*

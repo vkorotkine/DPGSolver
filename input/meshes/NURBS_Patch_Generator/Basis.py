@@ -15,7 +15,44 @@ import numpy
 import matplotlib.pyplot as plt
 
 # Used for floating point comparison
-CONST_eps = 1E-14
+CONST_eps = 1E-15
+
+
+
+def dN_ip(i,p,t,tVector):
+
+	"""
+	Compute the derivative of the B Spline basis function.
+
+	:param i: The ith basis function (B Spline) to use for the evaluation
+	:param p: The order of the basis functions
+	:param t: The value at which to evaluate the basis function at (will be
+		in the domain of the knot vector).
+	:param tVector: The knot vector (one dimension) for the basis.
+
+	:return : Float for the value of the given basis function at the given point.
+	"""
+
+	# First Term:
+	num1 = (p)*N_ip(i, p-1, t, tVector)
+	denom1 = tVector[i+p] - tVector[i]
+
+	if abs(num1) < CONST_eps and abs(denom1) < CONST_eps:
+		first_term = 0
+	else:
+		first_term = (num1/denom1)
+
+
+	# Second Term:
+	num2 = (p)*N_ip(i+1, p-1, t, tVector)
+	denom2 = tVector[i+p+1] - tVector[i+1]
+
+	if abs(num2) < CONST_eps and abs(denom2) < CONST_eps:
+		second_term = 0
+	else:
+		second_term = (num2/denom2)
+
+	return first_term - second_term
 
 
 def N_ip(i,p,t,tVector):
@@ -117,6 +154,7 @@ def weight_function(BSplineBasis, Weights, xi, eta):
 			
 	return value
 
+
 def get_BSpline_basis_functions_1D(P, xiVector):
 
 	"""
@@ -143,6 +181,42 @@ def get_BSpline_basis_functions_1D(P, xiVector):
 
 	return N_Basis
 	
+
+def get_derivative_BSpline_basis_functions_1D(P, xiVector):
+
+	"""
+	Return the lambda expressions for the derivatives of each 
+	B Spline basis function.
+
+	:param P: The order of the basis functions
+	:param xiVector: The knot vector
+
+	:return : The lambda expressions for the basis (in a list)
+	"""
+
+	n = len(xiVector) - P - 1
+	
+	if n <= 0:
+		raise ValueError("Insufficient number of basis functions")
+
+	del_N_Basis = []
+	for i in range(n):
+		dN_ip_xi = lambda xi, i=i: dN_ip(i, P, xi, xiVector)
+		del_N_Basis.append(dN_ip_xi)
+
+	return del_N_Basis
+
+
+def derivative_weight_function_1D(derivative_BSplineBasis, Weights, xi):
+
+	value = 0
+
+	for i in range(len(derivative_BSplineBasis)):
+		value = value + derivative_BSplineBasis[i](xi)*Weights[i]
+
+	return value
+
+
 def weight_function_1D(BSplineBasis, Weights, xi):
 
 	"""
@@ -191,6 +265,37 @@ def get_NURBS_basis_functions_1D(P, xiVector, wVector):
 		NURBS_Basis.append(R)
 
 	return NURBS_Basis
+
+
+def get_derivative_NURBS_basis_functions_1D(P, xiVector, wVector):
+
+	"""
+	Get the derivative of the NURBS basis functions
+
+	:param P: The order of the basis functions
+	:param xiVector: The knot vector
+	:param wVector: The vector of weightss
+
+	:return : -
+	"""
+
+	# Get the B spline basis functions and their derivatives
+	BSplineBasis = get_BSpline_basis_functions_1D(P, xiVector)
+	del_BSplineBasis = get_derivative_BSpline_basis_functions_1D(P, xiVector)
+
+	# Compute the Weight function and it derivative
+	w_func = lambda xi, BSplineBasis = BSplineBasis: weight_function_1D(BSplineBasis, wVector, xi)
+	del_w_func = lambda xi, del_BSplineBasis=del_BSplineBasis: derivative_weight_function_1D(del_BSplineBasis, wVector, xi)
+
+	# Compute the derivatives of the NURBS basis functions
+	del_NURBS_Basis = []
+	for i in range(len(BSplineBasis)):
+		del_R = lambda xi, i=i: \
+				(wVector[i] * ( w_func(xi)*del_BSplineBasis[i](xi) - 
+					del_w_func(xi)*BSplineBasis[i](xi)) / (w_func(xi)**2))
+		del_NURBS_Basis.append(del_R)
+
+	return del_NURBS_Basis
 
 
 def get_NURBS_basis_functions(ControlPointsAndWeights, P, Q, xiVector, etaVector):

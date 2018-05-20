@@ -1,5 +1,5 @@
 
-
+Thursday/Friday:
 	(Done) - See if the control point connectivity data can be read into an 
 			existing data structure and, if so, transfer the data to there.
 
@@ -27,26 +27,28 @@
 
 		(Done) - Implement unit test in DPGSolver
 
-	- Implement B Spline basis function derivative. Use the recursive 
+Saturday:
+	(Done) - Implement B Spline basis function derivative. Use the recursive 
 		definition (1D case).
 
-		- Create a unit test for the B spline basis derivative. Do this by
+		(Done) - Create a unit test for the B spline basis derivative. Do this by
 			computing the derivative of the basis functions at a given
 			set of xi points in a python file and output a .data file 
 			to be processed by the DPG code.
 
-		- Implement the unit test in DPGSolver.
+		(Done) - Implement the unit test in DPGSolver.
 
-	- Implement NURBS basis function derivative. Use the recursive 
+	(Done) - Implement NURBS basis function derivative. Use the recursive 
 		definition (1D case) and the chain rule.
 
-		- Create a unit test for the NURBS basis derivative. Do this by
+		(Done) - Create a unit test for the NURBS basis derivative. Do this by
 			computing the derivative of the basis functions at a given
 			set of xi points in a python file and output a .data file 
 			to be processed by the DPG code.
 
-		- Implement the unit test in DPGSolver.
+		(Done) - Implement the unit test in DPGSolver.
 
+Sunday:
 	- Generate the NURBS parametric mapping function. 
 
 		- Create a separate header file which will use the recursive definition
@@ -102,10 +104,7 @@
 	- Run the NURBS bump test case and verify that the solution converges. 
 		Visualize the results.
 
-
-	- Perform an orders convergence test to verify that the orders of accuracy hold
-		for the NURBS parametric mapping case. Do the Gaussian Bump case first.
-
+Monday:
 	- Create a NACA 0012 airfoil patch
 
 		- Perform a NURBS spline approximation and fit the spline around the
@@ -121,7 +120,6 @@
 			- Create slip wall boundary conditions at the bottom, farfield
 				at the top and then periodic at the line at which the patch
 				touches each other at rear of the airfoil.
-
 
 	- Create the lift coefficient objective function.
 
@@ -143,9 +141,8 @@
 
 		- Solve the adjoint using PETSc
 
-		- 
-
-Monday:
+	- Perform an orders convergence test to verify that the orders of accuracy hold
+		for the NURBS parametric mapping case. Do the Gaussian Bump case first.
 
 
 
