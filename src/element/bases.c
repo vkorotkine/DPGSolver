@@ -1253,6 +1253,192 @@ const struct const_Multiarray_d *derivative_B_Spline_Basis_p(int p,
 	return (struct const_Multiarray_d*) del_basis_values;
 }
 
+const struct const_Multiarray_d *grad_NURBS_basis_ij_pq(int i, int j, int p, int q, double xi, double eta, 
+	const struct const_Multiarray_d* knots_xi, const struct const_Multiarray_d* knots_eta, 
+	const struct const_Multiarray_d* weights){
+
+	/*
+	TODO: This method is quite inefficient at the moment. Revisit it in the future to 
+	implement a more algorithmically efficient approach.
+
+	Evaluate the gradient of the i,j 2D NURBS basis function at the point xi, eta on the 
+	knot domain. 
+
+	Arguments:
+		i = The index of the basis function along the xi direction
+		j = The index of the basis function along the eta direction
+		xi = The xi value on the knot domain to evaluate the basis function at
+		eta = The eta value on the knot domain to evaluate the basis function at
+		knots_xi = The knot vector for the xi direction. Will be of dimension [num_knots_xi x 1]
+		knots_eta = The knot vector for the eta direction. Will be of dimension [num_knots_eta x 1]
+		weights = The weights stored in a multiarray of dimension [num_xi_basis x num_eta_basis]. 
+			The rows (i) correspond to the xi basis functions and columns (j) to the eta basis 
+			functions. The multiarray is in column major form.
+
+	Return:
+		A multiarray holding the gradient values of the i,j basis function at the given point.
+		The returned multiarray is of dimension [DIM x 1] (for now DIM = 2), where the first 
+		index will be the partial with respect to xi and the second is the partial with 
+		respect to eta.
+	*/
+
+	// Get the value of the B Spline basis functions and their derivative in the xi direction:
+	struct Multiarray_d *xi_vals = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1,1});  // free
+	get_col_Multiarray_d(0, xi_vals)[0] = xi;
+
+	const struct const_Multiarray_d *N_p_xi = B_Spline_Basis_p(p, (const struct const_Multiarray_d*) xi_vals, 
+		knots_xi);  // free
+	const struct const_Multiarray_d *dN_p_xi = derivative_B_Spline_Basis_p(p, (const struct const_Multiarray_d*) xi_vals, 
+		knots_xi);  // free
+
+
+	// Get the value of the B Spline basis functions and their derivatives in the eta direction:
+	struct Multiarray_d *eta_vals = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1,1});  // free
+	get_col_Multiarray_d(0, eta_vals)[0] = eta;
+
+	const struct const_Multiarray_d *N_q_eta = B_Spline_Basis_p(q, (const struct const_Multiarray_d*) eta_vals, 
+		knots_eta);  // free
+	const struct const_Multiarray_d *dN_q_eta = derivative_B_Spline_Basis_p(q, (const struct const_Multiarray_d*) eta_vals, 
+		knots_eta);  // free
+
+
+	// Compute the weight function and its gradient
+	double 	w_func 			= 0,
+			w_func_del_xi 	= 0,
+			w_func_del_eta 	= 0;
+
+	double w_ij;
+	int index_i, index_j, num_i_basis, num_j_basis;
+
+	// The number of basis functions in each direction
+	num_i_basis = (int)N_p_xi->extents[0];
+	num_j_basis = (int)N_q_eta->extents[0];
+
+	const double *const N_p_xi_vals = get_col_const_Multiarray_d(0, N_p_xi);
+	const double *const dN_p_xi_vals = get_col_const_Multiarray_d(0, dN_p_xi);
+
+	const double *const N_q_eta_vals = get_col_const_Multiarray_d(0, N_q_eta);
+	const double *const dN_q_eta_vals = get_col_const_Multiarray_d(0, dN_q_eta);
+
+	for (index_i = 0; index_i < num_i_basis; index_i++){
+		for (index_j = 0; index_j < num_j_basis; index_j++){
+			
+			// Loop of the basis functions in the i and j directions
+
+			// The weight value for the given i,j index
+			w_ij = get_col_const_Multiarray_d(index_j, weights)[index_i];
+
+			w_func 			+= N_p_xi_vals[index_i]*N_q_eta_vals[index_j] * w_ij;
+			w_func_del_xi 	+= dN_p_xi_vals[index_i]*N_q_eta_vals[index_j] * w_ij;
+			w_func_del_eta 	+= N_p_xi_vals[index_i]*dN_q_eta_vals[index_j] * w_ij;
+
+		}
+	}
+
+	// Compute the partials of the basis function (i,j function)
+	
+	w_ij = get_col_const_Multiarray_d(j, weights)[i];
+
+	double R_ij_pq_del_xi = (w_ij*N_q_eta_vals[j]) * 
+		( (dN_p_xi_vals[i]*w_func - N_p_xi_vals[i]*w_func_del_xi) / 
+			(pow(w_func, 2.0)) );
+
+	double R_ij_pq_del_eta = (w_ij*N_p_xi_vals[i]) * 
+		( (dN_q_eta_vals[j]*w_func - N_q_eta_vals[j]*w_func_del_eta) / 
+			(pow(w_func, 2.0)) );
+
+	// Place the partial values into a multiarray to be returned
+	struct Multiarray_d *basis_grad_vals = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){2,1});  // free
+	
+	get_col_Multiarray_d(0, basis_grad_vals)[0] = R_ij_pq_del_xi;
+	get_col_Multiarray_d(0, basis_grad_vals)[1] = R_ij_pq_del_eta;
+	
+
+	// Free the allocated containers
+	destructor_Multiarray_d(xi_vals);
+	destructor_Multiarray_d(eta_vals);
+	destructor_const_Multiarray_d(N_p_xi);
+	destructor_const_Multiarray_d(dN_p_xi);
+	destructor_const_Multiarray_d(N_q_eta);	
+	destructor_const_Multiarray_d(dN_q_eta);
+
+	return (const struct const_Multiarray_d*)basis_grad_vals;
+
+}
+
+double NURBS_basis_ij_pq(int i, int j, int p, int q, double xi, double eta, 
+	const struct const_Multiarray_d* knots_xi, const struct const_Multiarray_d* knots_eta, 
+	const struct const_Multiarray_d* weights){
+
+	/*
+	TODO: This method is inefficient at the moment. Everytime a mapped location is desired on
+	the physical domain, it will need lots of calls to the B Spline basis functions which 
+	may be repeated. Adjust this function accordingly in the future to be able to perform
+	more efficiently.
+
+	Evaluate the i,j 2D NURBS basis function at the point xi, eta on the knot domain. 
+
+	Arguments:
+		i = The index of the basis function along the xi direction
+		j = The index of the basis function along the eta direction
+		xi = The xi value on the knot domain to evaluate the basis function at
+		eta = The eta value on the knot domain to evaluate the basis function at
+		knots_xi = The knot vector for the xi direction. Will be of dimension [num_knots_xi x 1]
+		knots_eta = The knot vector for the eta direction. Will be of dimension [num_knots_eta x 1]
+		weights = The weights stored in a multiarray of dimension [num_xi_basis x num_eta_basis]. 
+			The rows (i) correspond to the xi basis functions and columns (j) to the eta basis 
+			functions. The multiarray is in column major form.
+
+	Return:
+		The value of the i,j basis function at the given point
+	*/
+
+	// Get the value of the B Spline basis functions in the xi direction:
+	struct Multiarray_d *xi_vals = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1,1});  // free
+	get_col_Multiarray_d(0, xi_vals)[0] = xi;
+
+	const struct const_Multiarray_d *N_p_xi = B_Spline_Basis_p(p, (const struct const_Multiarray_d*) xi_vals, 
+		knots_xi);  // free
+
+	// Get the value of the B Spline basis functions in the eta direction:
+	struct Multiarray_d *eta_vals = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1,1});  // free
+	get_col_Multiarray_d(0, eta_vals)[0] = eta;
+
+	const struct const_Multiarray_d *N_q_eta = B_Spline_Basis_p(q, (const struct const_Multiarray_d*) eta_vals, 
+		knots_eta);  // free
+
+
+	// The denominator of the rational basis function
+	double weight_function = 0;
+	int index_i, index_j, num_i_basis, num_j_basis;
+
+	// The number of basis functions in each direction
+	num_i_basis = (int)N_p_xi->extents[0];
+	num_j_basis = (int)N_q_eta->extents[0];
+
+	const double *const N_p_xi_vals = get_col_const_Multiarray_d(0, N_p_xi);
+	const double *const N_q_eta_vals = get_col_const_Multiarray_d(0, N_q_eta);
+
+	for (index_i = 0; index_i < num_i_basis; index_i++){
+		for (index_j = 0; index_j < num_j_basis; index_j++){
+			// Loop of the basis functions in the i and j directions
+
+			weight_function += N_p_xi_vals[index_i]*N_q_eta_vals[index_j]*get_col_const_Multiarray_d(index_j, weights)[index_i];
+
+		}
+	}
+
+	double basis_val = (get_col_const_Multiarray_d(j, weights)[i]*N_p_xi_vals[i]*N_q_eta_vals[j])/weight_function;
+
+	// Free the allocated containers
+	destructor_Multiarray_d(xi_vals);
+	destructor_Multiarray_d(eta_vals);
+	destructor_const_Multiarray_d(N_p_xi);
+	destructor_const_Multiarray_d(N_q_eta);
+
+	return basis_val;
+
+}
 
 double NURBS_Basis_ip(int i, const struct const_Multiarray_d* B_Spline_Basis_values,
  const struct const_Multiarray_d* weights) {

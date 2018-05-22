@@ -308,6 +308,18 @@ double NURBS_Basis_ip(
 	);
 
 
+// Consut bases.c for documentation
+const struct const_Multiarray_d *grad_NURBS_basis_ij_pq(int i, int j, int p, int q, double xi, double eta, 
+	const struct const_Multiarray_d* knots_xi, const struct const_Multiarray_d* knots_eta, 
+	const struct const_Multiarray_d* weights);
+
+
+// Consult bases.c for documentation
+double NURBS_basis_ij_pq(int i, int j, int p, int q, double xi, double eta, 
+	const struct const_Multiarray_d* knots_xi, const struct const_Multiarray_d* knots_eta, 
+	const struct const_Multiarray_d* weights);
+
+
 /** \brief Evaluates the num_basis NURBS basis functions, of order p, at the given xi_vals.
 	Evaluates all the basis functions at all the given xi_vals provided.
 

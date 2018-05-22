@@ -48,31 +48,26 @@ Saturday:
 
 		(Done) - Implement the unit test in DPGSolver.
 
-Sunday:
-	- Generate the NURBS parametric mapping function. 
+Monday:
+	(Done) - Generate the NURBS parametric mapping function. 
 
-		- Create a separate header file which will use the recursive definition
+		(Done) - Create a separate header file which will use the recursive definition
 			to compute the values of the NURBS basis functions at a given 
 			parametric coordinate (xi, eta)
 
-		- Create a unit test for the NURBS parametric mapping. Compute in a 
-			separate python file a simply case (1D and 2D for the mapping) and
-			in these, have a simply knot vector and xi,eta value to compute 
-			mapping at. Make sure the code performs the mapping as well and passes
-			the test.
+		(Done) -  Compute in a separate python file the mapping function given the patch 
+			that is being read and see that the mapping is correct for some test points.
 
-	- Generate the NURBS parametric mapping derivative
+	(Done) - Generate the NURBS parametric mapping derivative
 
-		- As a first step, compute the mapping derivative/gradient by just
+		(Done) - As a first step, compute the mapping derivative/gradient by just
 			using the derivatives of the basis function. Eventually, 
 			possibly implement the more efficient algorithm from the 
 			NURBS book.
 
-		- Create a unit test to verify the derivative mapping. Form a 
-			simply case using a python code and find the partial 
-			derivatives at certain xi and eta points.
-			
-		- Implement unit test in DPGSolver.
+		(Done) -  Compute in a separate python file the derivative of the mapping 
+			function given the patch that is being read and see that the value 
+			is correct for some test points.
 
 	- Use the chain rule to compute the metric terms in the volume of the element 
 		using the parametric mapping.

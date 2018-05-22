@@ -298,6 +298,119 @@ def get_derivative_NURBS_basis_functions_1D(P, xiVector, wVector):
 	return del_NURBS_Basis
 
 
+def get_grad_NURBS_basis_functions(ControlPointsAndWeights, P, Q, xiVector, etaVector):
+
+	"""
+	Get the gradient of the NURBS basis functions. 
+
+	:param ControlPointsAndWeights: The matrix of control points and their weights.
+		i,j index of the matrix points to a lis to of the form [x,y,weight]
+	:param P: The order of the mesh in the xi direction
+	:param Q: The order of the mesh in the eta direction
+	:param xiVector: The knot vector for the xi direction
+	:param etaVector: The knot vector for the eta direction
+
+	:return : The lambda expressions for the gradient of the NURBS basis functions.
+		A matrix of basis functions will be returned of dimension [numI x numJ x 2]
+		where the i,j,k index holds the i,j NURBS basis function partial with respect
+		to the k parameter (k = 0 corresponds to xi, k = 1 corresponds to eta).
+
+	"""
+
+	# Get the number of control points in the i (xi) and j (eta) directions 
+	numI = len(ControlPointsAndWeights)
+	numJ = len(ControlPointsAndWeights[0])
+
+	# Get the 1D B Spline Basis functions
+	N_ip_list = get_BSpline_basis_functions_1D(P, xiVector)
+	N_jq_list = get_BSpline_basis_functions_1D(Q, etaVector)
+	
+	# Get the 1D B Spline Basis function derivatives
+	N_prime_ip_list = get_derivative_BSpline_basis_functions_1D(P, xiVector)
+	N_prime_jq_list = get_derivative_BSpline_basis_functions_1D(Q, etaVector)
+
+	# Collect the weights and place them in a matrix
+	weights = []
+	for i in range(numI):
+		colArray = []
+		for j in range(numJ):
+			colArray.append(ControlPointsAndWeights[i][j][2])
+		weights.append(colArray)
+
+	# Create the matrix structures to hold the B spline basis functions and 
+	# their gradients
+	N_ij_pq = []
+	N_ij_pq_del_xi = []  # Partial of basis with respect to xi
+	N_ij_pq_del_eta = []  # Partial of basis with respect to eta
+
+	for i in range(numI):
+		col_list = []
+
+		for j in range(numJ):
+			col_list.append(None)
+
+		N_ij_pq.append(col_list)
+		N_ij_pq_del_xi.append(col_list[:])
+		N_ij_pq_del_eta.append(col_list[:])
+
+	# Compute the basis functions and their gradients
+	for i in range(numI):
+
+		N_ip_xi = lambda xi, i=i: N_ip(i, P, xi, xiVector)    
+		dN_ip_xi = lambda xi, i=i: dN_ip(i, P, xi, xiVector)  
+
+		for j in range(numJ):
+
+			N_jq_eta = lambda eta, j=j: N_ip(j, Q, eta, etaVector)  
+			dN_jq_eta = lambda eta, j=j: dN_ip(j, Q, eta, etaVector)  
+
+			N_ij_pq_xieta = lambda xi,eta, N_ip_xi=N_ip_xi, N_jq_eta=N_jq_eta: \
+				(N_ip_xi(xi)*N_jq_eta(eta))
+			N_ij_pq_xieta_del_xi = lambda xi,eta, dN_ip_xi=dN_ip_xi, N_jq_eta=N_jq_eta: \
+				(dN_ip_xi(xi)*N_jq_eta(eta))
+			N_ij_pq_xieta_del_eta = lambda xi,eta, N_ip_xi=N_ip_xi, dN_jq_eta=dN_jq_eta: \
+				(N_ip_xi(xi)*dN_jq_eta(eta))
+
+			N_ij_pq[i][j] = N_ij_pq_xieta
+			N_ij_pq_del_xi[i][j] = N_ij_pq_xieta_del_xi
+			N_ij_pq_del_eta[i][j] = N_ij_pq_xieta_del_eta
+
+
+	# Get the weight function as well as its gradients
+	w_func = lambda xi, eta, N_ij_pq = N_ij_pq: weight_function(N_ij_pq, weights, xi, eta)
+	w_func_del_xi = lambda xi, eta, N_ij_pq_del_xi = N_ij_pq_del_xi: weight_function(N_ij_pq_del_xi, weights, xi, eta)
+	w_func_del_eta = lambda xi, eta, N_ij_pq_del_eta = N_ij_pq_del_eta: weight_function(N_ij_pq_del_eta, weights, xi, eta)
+
+	# Create the list for holding the gradient
+	R_ij_pq_grad = []
+
+	for i in range(numI):
+		col = []
+		for j in range(numJ):
+			col1 = []	
+			for k in range(2):	
+				col1.append(None)
+			col.append(col1)
+		R_ij_pq_grad.append(col)
+
+	# Use the chain rule to compute the gradient correctly
+	for i in range(numI):
+		for j in range(numJ):
+			
+			R_ij_pq_del_xi = lambda xi, eta, i=i, j=j: ( (weights[i][j]*N_jq_list[j](eta)) *
+			 	((N_prime_ip_list[i](xi) * w_func(xi, eta) - 
+			 		N_ip_list[i](xi) * w_func_del_xi(xi, eta))/(w_func(xi, eta)**2)))
+
+			R_ij_pq_del_eta = lambda xi, eta, i=i, j=j: ( (weights[i][j]*N_ip_list[i](xi)) *
+			 	((N_prime_jq_list[j](eta) * w_func(xi, eta) - 
+			 		N_jq_list[j](eta) * w_func_del_eta(xi, eta))/(w_func(xi, eta)**2)))
+
+			R_ij_pq_grad[i][j][0] = R_ij_pq_del_xi
+			R_ij_pq_grad[i][j][1] = R_ij_pq_del_eta
+
+	return R_ij_pq_grad
+
+
 def get_NURBS_basis_functions(ControlPointsAndWeights, P, Q, xiVector, etaVector):
    
 	"""

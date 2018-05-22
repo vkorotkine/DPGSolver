@@ -1493,27 +1493,5 @@ static int test_unit_basis_B_Spline_1D_run_case(const char *const case_name,
 
 	}
 
-	/*
-	printf("NORM: %e \n", norm_Multiarray_d(Basis_vals_ref, "L2"));
-
-	printf("TEST FILE READING:\n\n");
-
-	printf(" - knots: \n");
-	print_Multiarray_d_tol(knots, 0.0);
-
-	printf(" - P: %d\n\n", P);
-
-	printf(" - xi_vals: \n");
-	print_Multiarray_d_tol(xi_vals, 0.0);
-
-	printf(" - Basis_vals_ref : \n");
-	print_Multiarray_d_tol(Basis_vals_ref, 0.0);
-
-	printf(" Basis_vals_ref_layout : %c \n", Basis_vals_ref->layout);
-
-	printf(" - Basis_vals : \n");
-	print_const_Multiarray_d_tol(Basis_vals, 0.0);
-	*/
-
 	return 0;
 }

@@ -43,7 +43,7 @@ CONST_EPS = 1E-9
 CONST_Output_file_name = "geometry_parameters.geo"
 
 
-def NURBS_patch(xi,eta,BasisFunctionsList, ControlPoints_and_Weights):
+def NURBS_patch(xi,eta,BasisFunctionsList, ControlPoints_and_Weights, grad_index=None):
 
 	"""
 	Knowing the basis functions and locations of the points,
@@ -55,10 +55,14 @@ def NURBS_patch(xi,eta,BasisFunctionsList, ControlPoints_and_Weights):
 	:param ControlPoints_and_Weights: The list (list of lists in 2D) of Points. 
 		The i,j index of the Point structure points to a list of the form [x,y,weight], 
 		which correspond to the physical location and weight of a given control point
+	:param grad_index: An index value of 0 or 1 if the basis functions list provided 
+		contains a matrix of lists holding the gradients of the basis functions
 
 	:return: Value of the patch on the physical domain at the given xi,eta point on the 
-		parametric domain.
-		Using this function in a lambda expression will ease the plotting process
+		parametric domain. Using this function in a lambda expression will 
+		ease the plotting process. The return list has two dimensions [x, y]. If the 
+		gradients are provided, then the return list is [del_x, del_y], where del is the partial
+		with respect to whichever parameter (xi or eta) is specified by grad_index
 	"""
 
 	physical_val = [0,0]
@@ -69,7 +73,12 @@ def NURBS_patch(xi,eta,BasisFunctionsList, ControlPoints_and_Weights):
 	for i in range(numI):
 		for j in range(numJ):
 			for k in range(2):
-				physical_val[k] = physical_val[k] + BasisFunctionsList[i][j](xi,eta) * ControlPoints_and_Weights[i][j][k]
+
+				if grad_index is not None:
+					physical_val[k] = physical_val[k] + BasisFunctionsList[i][j][grad_index](xi,eta) * ControlPoints_and_Weights[i][j][k]
+
+				else:
+					physical_val[k] = physical_val[k] + BasisFunctionsList[i][j](xi,eta) * ControlPoints_and_Weights[i][j][k]
 
 	return physical_val
 
@@ -225,6 +234,63 @@ def output_file(patch_parameters):
 			fp.write("\n")
 
 
+def test():
+
+	"""
+	Test the patch and some parameters in it
+	"""
+
+	# Get the patch parameters
+	patch_parameters = user_defined_patch.get_patch_information()
+
+	xiVector = patch_parameters["xiVector"]
+	etaVector = patch_parameters["etaVector"]
+	ControlPoints_and_Weights = patch_parameters["ControlPoints_and_Weights"]
+	P = patch_parameters["P"]
+	Q = patch_parameters["Q"]
+
+	# Get the NURBS basis functions associated with each control point
+	NURBS_basis_functions = Basis.get_NURBS_basis_functions(ControlPoints_and_Weights, P, Q, xiVector, etaVector)
+
+	# Get the patch parametric function
+	NURBS_patch_function = lambda xi,eta,BasisFunctionsList=NURBS_basis_functions, \
+			ControlPoints_and_Weights=ControlPoints_and_Weights: \
+			NURBS_patch(xi,eta, BasisFunctionsList, ControlPoints_and_Weights)
+
+	
+	# Get the patch gradients
+	NURBS_basis_functions_grad = Basis.get_grad_NURBS_basis_functions(ControlPoints_and_Weights, P, Q, xiVector, etaVector)
+
+	NURBS_patch_function_del_xi = lambda xi,eta,BasisFunctionsList=NURBS_basis_functions_grad, \
+			ControlPoints_and_Weights=ControlPoints_and_Weights: \
+			NURBS_patch(xi,eta, BasisFunctionsList, ControlPoints_and_Weights, 0)
+
+	NURBS_patch_function_del_eta = lambda xi,eta,BasisFunctionsList=NURBS_basis_functions_grad, \
+			ControlPoints_and_Weights=ControlPoints_and_Weights: \
+			NURBS_patch(xi,eta, BasisFunctionsList, ControlPoints_and_Weights, 1)
+	
+	xi_test = -0.25
+	eta_test = 0.5
+
+	print "C(xi, eta)    : " + str(NURBS_patch_function(xi_test, eta_test))
+	print "C_xi(xi,eta)  : " + str(NURBS_patch_function_del_xi(xi_test, eta_test))
+	print "C_eta(xi,eta) : " + str(NURBS_patch_function_del_eta(xi_test, eta_test))
+	
+	return
+
+	# Finite difference tests
+	h = 1E-8
+	
+	del_x_del_xi_fd = (1./h) * (NURBS_patch_function(xi_test + h, eta_test)[0] - NURBS_patch_function(xi_test, eta_test)[0])
+	del_y_del_xi_fd = (1./h) * (NURBS_patch_function(xi_test + h, eta_test)[1] - NURBS_patch_function(xi_test, eta_test)[1])
+
+	del_x_del_eta_fd = (1./h) * (NURBS_patch_function(xi_test, eta_test + h)[0] - NURBS_patch_function(xi_test, eta_test)[0])
+	del_y_del_eta_fd = (1./h) * (NURBS_patch_function(xi_test, eta_test + h)[1] - NURBS_patch_function(xi_test, eta_test)[1])
+	
+	print "C_xi_fd(xi,eta)  : " + str([del_x_del_xi_fd, del_y_del_xi_fd])
+	print "C_eta_fd(xi,eta) : " + str([del_x_del_eta_fd, del_y_del_eta_fd])
+	
+
 def main():
 	
 	"""
@@ -261,7 +327,8 @@ def main():
 
 
 if __name__ == "__main__":
-	main()
+	#main()
+	test()
 
 
 

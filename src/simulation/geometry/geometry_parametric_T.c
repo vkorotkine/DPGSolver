@@ -35,6 +35,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "geometry_NURBS_parametric.h"
 
+
+
 // Static function declarations ************************************************************************************* //
 
 /// \brief Container for the geometric data required for the supported parametric cases.
@@ -58,10 +60,10 @@ struct Geo_Data {
 	int P, Q;  ///< Order of the patch in the xi (P) and eta (Q) direction
 	
 	//  - The Multiarray holding the knot data
-	struct Multiarray_R *knots_xi, *knots_eta; 
+	struct Multiarray_d *knots_xi, *knots_eta; 
 
 	//  - The Multiarray holding the control points and the weights
-	struct Multiarray_R *control_points_and_weights; 
+	struct Multiarray_d *control_points_and_weights; 
 
 	//  - The Multiarray holding the connectivity information for the control mesh. 
 	//		The xi control points correspond to the i index and eta control 
@@ -387,19 +389,30 @@ const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
 
 	UNUSED(geo_data);
 
-	test();
+	// The test point to evaluate the mapping at
+	struct Multiarray_d *xi_eta_i = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, 2});  // free
+	get_col_Multiarray_d(0, xi_eta_i)[0] = -0.25;
+	get_col_Multiarray_d(1, xi_eta_i)[0] = 0.5;
+	
+	const struct const_Multiarray_d *xyz = xyz_NURBS_patch_mapping((const struct const_Multiarray_d*)xi_eta_i, geo_data.P, geo_data.Q, 
+		(const struct const_Multiarray_d*)geo_data.knots_xi, 
+		(const struct const_Multiarray_d*)geo_data.knots_eta,
+		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
+		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
+
+	const struct const_Multiarray_d *grad_xyz = grad_xyz_NURBS_patch_mapping((const struct const_Multiarray_d*)xi_eta_i, geo_data.P, geo_data.Q, 
+		(const struct const_Multiarray_d*)geo_data.knots_xi, 
+		(const struct const_Multiarray_d*)geo_data.knots_eta,
+		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
+		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
+
+	printf("Mapped Values : \n");
+	print_const_Multiarray_d_tol(xyz, 0.0);
+
+	printf("Gradient Values : \n");
+	print_const_Multiarray_d_tol(grad_xyz, 0.0);
 
 	exit(0);
-
-	// The number of rows on the xyz_i matrix
-	//const ptrdiff_t n_n = xyz_i->extents[0];
-
-	// Create an empty Multiarray (or a matrix) with the following properties:
-	//	- Layout = 'C' for column major
-	//  - Order = 2, referring to the fact that this matrix has 2 dimensions
-	//  - Extents = {n_n, DIM}, referring to the size of each dimension of the matrix, 
-	//			starting with the row dimension.
-	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){1,2}); // returned
 
 	/*
 	// xyz_i is the initial values for the xyz coordinates. These are, in 
@@ -665,8 +678,8 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 		if (strstr(line, "knots_xi")){
 			read_skip_string_count_i("knots_xi", &count_found, line, &len_knots_xi);
 			
-			struct Multiarray_R* knots_xi = 
-					constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){len_knots_xi,1});
+			struct Multiarray_d* knots_xi = 
+					constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){len_knots_xi,1});
 			
 			fgets(line,sizeof(line),input_file);
 			read_skip_d_1(line, 0, get_col_Multiarray_d(0, knots_xi), len_knots_xi);
@@ -677,8 +690,8 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 		if (strstr(line, "knots_eta")){
 			read_skip_string_count_i("knots_eta", &count_found, line, &len_knots_eta);
 			
-			struct Multiarray_R* knots_eta = 
-					constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){len_knots_eta,1});
+			struct Multiarray_d* knots_eta = 
+					constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){len_knots_eta,1});
 			
 			fgets(line,sizeof(line),input_file);
 			read_skip_d_1(line, 0, get_col_Multiarray_d(0, knots_eta), len_knots_eta);
@@ -696,8 +709,8 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 			// Create the multiarray structure to hold the control point data
 			// NOTE: For now, only 2D patches can be read, so multiarray is of 
 			// dimension num_pts x (dim (for x,y values) + 1 (for the weights))
-			struct Multiarray_R* control_points_and_weights = 
-				constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){num_control_pts,DIM+1}); // saved
+			struct Multiarray_d* control_points_and_weights = 
+				constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_control_pts,DIM+1}); // saved
 
 			Real *x = get_col_Multiarray_d(0, control_points_and_weights),
 				 *y = get_col_Multiarray_d(1, control_points_and_weights),
@@ -737,6 +750,8 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 
 				read_skip_i_1(line,0, get_row_Multiarray_i(i, control_point_connectivity), extents[1]);
 			}
+
+			// TODO: Take the transpose but there is no transpose_Multiarray_i
 
 			geo_data->control_point_connectivity = control_point_connectivity;
 
