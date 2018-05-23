@@ -199,6 +199,7 @@ static void constructor_derived_Geometry_Element_tp (struct Element* element_ptr
 
 		s_e[i]->cv0_vgs_vcc = constructor_operators("cv0","vgs","vcc","H_1_P_1P", bs_e[i],sim); // destructed
 		s_e[i]->cv0_vgc_vcs = constructor_operators("cv0","vgc","vcs","H_1_P_PM1",bs_e[i],sim); // destructed
+		// MSB: Trace the construction of this operator:
 		s_e[i]->vv0_vms_vcc = constructor_operators("vv0","vms","vcc","H_1_P_1P", bs_e[i],sim); // destructed
 		s_e[i]->vv0_vmc_vcs = constructor_operators("vv0","vmc","vcs","H_1_P_PM1",bs_e[i],sim); // destructed
 		s_e[i]->vv0_vms_vgs = constructor_operators("vv0","vms","vgs","H_1_P_1",  bs_e[i],sim); // destructed

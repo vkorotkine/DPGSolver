@@ -104,3 +104,12 @@ const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
 	 const struct Solver_Volume_T* s_vol,    ///< See brief.
 	 const struct Simulation* sim            ///< See brief.
 	);
+
+// Consult geometry_parametric_T.c
+const struct const_Multiarray_R* constructor_grad_xyz_NURBS_parametric_T
+	(const char n_type, 
+	 const struct const_Multiarray_R* xyz_i,
+	 const struct Solver_Volume_T* s_vol,
+	 const struct Simulation* sim
+	);
+

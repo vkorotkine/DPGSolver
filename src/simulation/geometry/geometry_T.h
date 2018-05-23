@@ -108,6 +108,7 @@ void compute_geometry_volume_T
 	 const struct Simulation* sim    ///< \ref Simulation.
 	);
 
+
 /** \brief Compute the geometry of the \ref Solver_Face_T.
  *
  *  The following members are set:
@@ -119,6 +120,7 @@ void compute_geometry_face_T
 	(struct Solver_Face_T* s_face,     ///< \ref Solver_Face_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
+
 
 /** \brief Constructor for the high-order straight geometry values using the vertices of the p1 representation either as
  *         \ref Volume::xyz_ve or the interpolation of \ref Solver_Volume_T::geom_coef to the vertex nodes.

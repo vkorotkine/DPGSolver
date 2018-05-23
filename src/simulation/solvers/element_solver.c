@@ -55,6 +55,10 @@ void constructor_derived_Solver_Element (struct Element* element_ptr, const stru
 {
 	struct Solver_Element* s_e = (struct Solver_Element*) element_ptr;
 
+	// MSB : Calling the constructor with IL_ELEMENT_SOLVER. Now, 
+	// also call the constructor on any derived elements. This includes
+	// the geometry element and solution element to name a few.
+	
 	constructor_offset_derived_Element(constructor_derived_Adaptation_Element,
 		sizeof(struct Element),element_ptr,(struct Element*)&s_e->a_e,sim); // destructed
 	constructor_offset_derived_Element(constructor_derived_Geometry_Element,

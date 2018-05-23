@@ -358,6 +358,43 @@ const struct const_Multiarray_R* constructor_xyz_joukowski_parametric_T
 	return (struct const_Multiarray_R*) xyz;
 }
 
+const struct const_Multiarray_R* constructor_grad_xyz_NURBS_parametric_T
+(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+	const struct Simulation* sim){
+
+	/*
+	Computes the gradient terms of the parametric NURBS mapping from the parametric domain
+	to the physical domain. Need this function for now because geo_data is static. TODO: Store
+	geo_data in sim perhaps
+
+	Arguments:
+		n_type: -
+		xyz_i: The initial xyz points (on the parametric domain)
+		s_vol: The solver volume I think (check further)
+		sim: The simulation object
+
+	Return:
+		The matrix of the mapped xyz points (onto the physical domain)
+	*/
+
+	UNUSED(n_type);
+	UNUSED(s_vol);
+	UNUSED(sim);
+
+	// MSB: Read the geometric data for the NURBS patch
+	const struct Geo_Data geo_data = get_geo_data("NURBS");
+
+	const struct const_Multiarray_d *grad_xyz = grad_xyz_NURBS_patch_mapping(
+		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 
+		(const struct const_Multiarray_d*)geo_data.knots_xi, 
+		(const struct const_Multiarray_d*)geo_data.knots_eta,
+		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
+		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
+
+	return (const struct const_Multiarray_R*)grad_xyz;
+
+}
+
 const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
 (const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
 	const struct Simulation* sim){
@@ -387,8 +424,8 @@ const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
 	// MSB: Read the geometric data for the NURBS patch
 	const struct Geo_Data geo_data = get_geo_data("NURBS");
 
-	UNUSED(geo_data);
-
+	/*
+	// TESTING:
 	// The test point to evaluate the mapping at
 	struct Multiarray_d *xi_eta_i = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, 2});  // free
 	get_col_Multiarray_d(0, xi_eta_i)[0] = -0.25;
@@ -413,39 +450,24 @@ const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
 	print_const_Multiarray_d_tol(grad_xyz, 0.0);
 
 	exit(0);
-
-	/*
-	// xyz_i is the initial values for the xyz coordinates. These are, in 
-	// this function, the location on the parametric domain. Here, get the first and 
-	// second column on the Multiarray xyz_i, which correspond to the x_i and y_i 
-	// values (const). 
-	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
-	          *const y_i = get_col_const_Multiarray_R(1,xyz_i);
-
-	// The physical location of the coordinates (on the physical domain, not 
-	// the parametric one). Get a reference to the x and y value columns in the
-	// multiarray.
-	Real*const x = get_col_Multiarray_R(0,xyz),
-	    *const y = get_col_Multiarray_R(1,xyz);
-
-	// Perhaps store the geo_data struct in the sim object.
-	// - If it is null, it means we need to read in the new geo_data
 	*/
 
-	// TEST:
-	// Print out the read NURBS parametric domain values
+	
+	// xyz_i is the initial values for the xyz coordinates. These are, in 
+	// this function, the location on the parametric domain (or knot domain). Map these
+	// values onto the physical domain
 
-	printf("IN constructor_xyz_NURBS_parametric_T\n");
+	const struct const_Multiarray_d *xyz = xyz_NURBS_patch_mapping(
+		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 
+		(const struct const_Multiarray_d*)geo_data.knots_xi, 
+		(const struct const_Multiarray_d*)geo_data.knots_eta,
+		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
+		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
 
-	const Real tol_print_test = 1e-4;	
-	printf("xyz_i : \n");
-	print_const_Multiarray_d_tol(xyz_i, tol_print_test);
-
-	exit(0);
-
-	return (struct const_Multiarray_R*) xyz;
+	return (const struct const_Multiarray_R*)xyz;
 
 }
+
 
 const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,

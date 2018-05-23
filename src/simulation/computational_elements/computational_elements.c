@@ -98,6 +98,9 @@ static const struct const_Intrusive_Link* constructor_base_const_Intrusive_Link
 
 void constructor_derived_Elements (struct Simulation* sim, const int derived_name)
 {
+
+	// MSB : Tracing through from test_integration, derived_name = IL_ELEMENT_SOLVER
+	// 
 	struct Derived_Elements_Info de_i = get_c_Derived_Elements_Info(derived_name,sim);
 
 	const struct const_Intrusive_List* base = sim->elements;
@@ -170,8 +173,13 @@ void constructor_offset_derived_Element
 	(constructor_derived_Element_fptr cde, const size_t sizeof_base, const struct Element*const base_e,
 	 struct Element*const curr_e, const struct Simulation*const sim)
 {
+
+	// MSB : Tracing the program from IL_ELEMENT_SOLVER, this will be called. 
+	// The call will then move to calling the geometry constructor. 
+
 	memcpy(curr_e,base_e,sizeof_base);
 
+	// Construct the list of geometry elements
 	struct Intrusive_List* elements = constructor_empty_IL(IL_INVALID,NULL); // destructed
 
 	const ptrdiff_t curr_offset = BYTE_DIFF(curr_e,base_e);
@@ -185,6 +193,7 @@ void constructor_offset_derived_Element
 	set_element_pointers(elements);
 	destructor_IL(elements,false);
 
+	// Call the derived_element constructor
 	cde(curr_e,sim);
 }
 

@@ -181,6 +181,16 @@ const struct Multiarray_Operator* constructor_operators
 	(const char*const name_type, const char*const name_in, const char*const name_out, const char*const name_range,
 	 const struct const_Element* element, const struct Simulation* sim)
 {
+
+	// MSB: Function call to here is s_e[i]->vv0_vms_vcc = constructor_operators("vv0","vms","vcc","H_1_P_1P", bs_e[i],sim);
+	// name_type = vv0
+	// name_in = vms (volume, metric, straight)
+	// name_out = vcc (volume, cubature, curved)
+	// name_range = H_1_P_1P
+	// element = bs_e
+	// sim
+
+	// MSB: Get the operator information based on the strings passed in
 	struct Operator_Info* op_info =
 		constructor_Operator_Info(name_type,name_in,name_out,name_range,element,sim); // destructed
 	assert((op_info->range_d == OP_R_D_0) || (op_info->range_d == OP_R_D_ALL));
@@ -190,6 +200,7 @@ const struct Multiarray_Operator* constructor_operators
 	const ptrdiff_t row_max = op_info->values_op->ext_0;
 	for (ptrdiff_t row = 0; row < row_max; ) // row is incremented when setting the operators.
 		op_info->set_operator(&row,op,op_info,sim);
+	// set_operator is set in constructor_Operator_Info. It will point to set_operator_std
 
 	if (op_info->transpose)
 		transpose_operators((struct Multiarray_Operator*)op);
@@ -402,6 +413,8 @@ struct Operator_Info* constructor_Operator_Info
 	const_cast_i(&op_info->op_type,convert_to_type(name_type));
 	const_cast_b(&op_info->transpose,check_for_transpose(name_type,op_info->op_type));
 
+	// MSB : read the input and output name and split the strings up
+	// to figure out what the properties of the input and output are.
 	const_cast_c(&op_info->op_io[OP_IND_I].ce,  name_in[0]);
 	const_cast_c(&op_info->op_io[OP_IND_I].kind,name_in[1]);
 	const_cast_c(&op_info->op_io[OP_IND_I].sc,  name_in[2]);
@@ -410,6 +423,8 @@ struct Operator_Info* constructor_Operator_Info
 	const_cast_c(&op_info->op_io[OP_IND_O].kind,name_out[1]);
 	const_cast_c(&op_info->op_io[OP_IND_O].sc,  name_out[2]);
 
+	// MSB : Parse the range information and place it as 
+	// integers into the ranges[] array
 	const int ranges[] =
 		{ convert_to_range_d(name_type),
 		  convert_to_range_ce(name_in[0],name_out[0]),
@@ -674,6 +689,7 @@ static void set_operator_std
 	const int n_op       = get_n_op(op_info->range_d,op_info->element->d);
 	const struct const_Multiarray_Matrix_d* op_ioN = constructor_op_MMd(false,n_op); // destructed
 
+	// MSB: Will next enter this area of the code
 	if (!op_should_use_L2(op_values,op_info->op_io))
 		set_operator_std_interp(*ind_values,op_info,sim,op_ioN);
 	else

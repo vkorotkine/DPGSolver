@@ -90,6 +90,9 @@ ptrdiff_t compute_index_sub_matrix (const int order, const ptrdiff_t*const exten
 ptrdiff_t compute_index_sub_container
 	(const int order_i, const int order_o, const ptrdiff_t*const extents, const ptrdiff_t*const sub_indices)
 {
+
+	// MSB: No idea whats going on here
+
 	const ptrdiff_t*const extents_tail = &extents[order_o];
 
 	ptrdiff_t base = 1;
