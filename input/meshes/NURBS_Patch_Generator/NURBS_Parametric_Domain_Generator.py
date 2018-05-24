@@ -221,13 +221,13 @@ def output_file(patch_parameters):
 		fp.write("\n")
 
 		# Control Point Data information
-		fp.write("Control Point Data %d \n" % len(ControlPoints_and_Weights_list))
+		fp.write("Control_Point_Data %d \n" % len(ControlPoints_and_Weights_list))
 		for pt in ControlPoints_and_Weights_list:
 			fp.write("%.14e %.14e %.14e \n" % (pt[0], pt[1], pt[2]))
 		fp.write("\n")
 
 		# Connectivity Information	
-		fp.write("Control Point Connectivity %d %d\n" % (num_xi_pts, num_eta_pts))
+		fp.write("Control_Point_Connectivity %d %d\n" % (num_xi_pts, num_eta_pts))
 		for i in range(num_xi_pts):
 			for j in range(num_eta_pts):
 				fp.write("%d " % ControlPoints_and_Weights_list.index(ControlPoints_and_Weights[i][j]))
@@ -327,8 +327,8 @@ def main():
 
 
 if __name__ == "__main__":
-	#main()
-	test()
+	main()
+	#test()
 
 
 

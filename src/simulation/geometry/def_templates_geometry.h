@@ -33,7 +33,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_up_solver_geometry_p1_T set_up_solver_geometry_p1
 #define compute_unit_normals_T    compute_unit_normals
 #define compute_geometry_volume_T compute_geometry_volume
+#define compute_NURBS_geometry_volume_T compute_NURBS_geometry_volume
 #define compute_geometry_face_T   compute_geometry_face
+#define compute_NURBS_geometry_face_T   compute_NURBS_geometry_face
 #define constructor_xyz_s_ho_T     constructor_xyz_s_ho
 #define constructor_geom_coef_ho_T constructor_geom_coef_ho
 ///\}
@@ -51,7 +53,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_up_solver_geometry_p1_T set_up_solver_geometry_p1_c
 #define compute_unit_normals_T    compute_unit_normals_c
 #define compute_geometry_volume_T compute_geometry_volume_c
+#define compute_NURBS_geometry_volume_T compute_NURBS_geometry_volume_c
 #define compute_geometry_face_T   compute_geometry_face_c
+#define compute_NURBS_geometry_face_T   compute_NURBS_geometry_face_c
 #define constructor_xyz_s_ho_T     constructor_xyz_s_ho_c
 #define constructor_geom_coef_ho_T constructor_geom_coef_ho_c
 ///\}

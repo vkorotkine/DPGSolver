@@ -48,6 +48,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define OUTPUT_GEOMETRY false ///< Flag for whether the geometry should be output for visualization.
 
+// TODO: Read this parameter from the ctrl file. Will specify whether
+// a NURBS geometry is being worked with and, if so, then it will compute
+// all geometry parameters exactly using the NURBS mapping
+#define NURBS_geometry true
+
 /** \brief Pointer to functions computing \ref Solver_Volume_T::geom_coef.
  *  \param sim   \ref Simulation.
  *  \param s_vol \ref Solver_Volume_T.
@@ -162,13 +167,23 @@ void set_up_solver_geometry_T (struct Simulation* sim)
 	assert(list_is_derived_from("solver",'e',sim));
 
 	// MSB: Setup the geometry information for each volume
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
-		compute_geometry_volume_T(true,(struct Solver_Volume_T*)curr,sim);
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next){
+		if(NURBS_geometry){
+			compute_NURBS_geometry_volume_T(true,(struct Solver_Volume_T*)curr,sim);
+		} else{
+			compute_geometry_volume_T(true,(struct Solver_Volume_T*)curr,sim);
+		}
+	}
 
-	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next)
-		compute_geometry_face_T((struct Solver_Face_T*)curr,sim);
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next){
+		if(NURBS_geometry){
+			compute_NURBS_geometry_face_T((struct Solver_Face_T*)curr,sim);
+		} else{
+			compute_geometry_face_T((struct Solver_Face_T*)curr,sim);
+		}
+	}
+	exit(0);
 		
-
 #if TYPE_RC == TYPE_REAL
 	if (OUTPUT_GEOMETRY) {
 		output_visualization(sim,VIS_GEOM_VOLUMES);
@@ -198,21 +213,162 @@ void compute_unit_normals_T
 	normalize_Multiarray_R(normals_f,"L2",false,NULL);
 }
 
+void compute_NURBS_geometry_volume_T(const bool recompute_geom_coef, 
+	struct Solver_Volume_T* s_vol, const struct Simulation *sim){
+
+	UNUSED(sim);
+	UNUSED(recompute_geom_coef);
+	UNUSED(s_vol);
+
+	/*
+	If a NURBS geometry is being used, use the mapping to compute the metric
+	terms exactly at the volume cubature nodes
+	*/
+
+	// Obtain the location on the parent domain (xi_hat, eta_hat element of [-1,1])
+	// of the cubature nodes. NURBS geometries will use tensor product elements
+	// for now
+	// TODO: Find a way to get the node locations automatically without knowing
+	// that tensor product must be used beforehand. Use compute_node_type
+
+	// sim may be used to store a parameter establishing which type of operator to use for the computation.
+	const char op_format = 'd';
+	UNUSED(op_format);
+
+	struct Volume* vol = (struct Volume*) s_vol;
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
+
+	const int d = ((struct const_Element*)g_e)->d;
+
+	const struct const_Multiarray_R*const geom_coef = s_vol->geom_coef;
+	UNUSED(geom_coef);
+
+	const int p = s_vol->p_ref;
+
+	const bool curved = vol->curved;
+	const int p_g = ( curved ? p : 1 );
+
+	struct Multiarray_R *jacobian_vc = NULL;
+
+	/*
+	// Generate an Op_IO structure in order to get the node locations
+	const struct OpIO op_io;
+	op_io.ce = "v";
+	op_io.kind = "c";
+
+	if(vol->curved){
+		op_io.sc = "c";
+	} else{
+		op_io.sc = "s";
+	}
+	*/
+
+		
+	// Preprocessing:
+	// Although the exact metric terms will be used, here we will still set the geometry
+	// coefficients using the geometry basis functions and the parametric mapping. This
+	// is because some methods (such as the visualization method) require the coefficients
+	// to be defined. 
+	// NOTE: These coefficients will not be used for computing the metric terms.
+	
+
+	// Compute the chain rule mapping term (to the parent element)
+	const struct const_Multiarray_R*const xyz_ve = vol->xyz_ve;
+
+	double 	dxi_dxi_hat, deta_deta_hat, // Chain rule terms from mapping from knot domain onto parent domain
+			xi_range[2], eta_range[2];  // xi and eta limits for the element (knot domain)
+	for(ptrdiff_t i = 0; i < xyz_ve->extents[0]; i++){
+		if (i == 0){
+			xi_range[0]  = get_row_const_Multiarray_R(i, xyz_ve)[0];
+			eta_range[0] = get_row_const_Multiarray_R(i, xyz_ve)[1];
+			
+			xi_range[1]  = xi_range[0];
+			eta_range[1] = eta_range[0];
+
+		} else{
+			if (get_row_const_Multiarray_R(i, xyz_ve)[0] < xi_range[0])	 xi_range[0]  = get_row_const_Multiarray_R(i, xyz_ve)[0];
+			if (get_row_const_Multiarray_R(i, xyz_ve)[1] < eta_range[0]) eta_range[0] = get_row_const_Multiarray_R(i, xyz_ve)[1];
+			if (get_row_const_Multiarray_R(i, xyz_ve)[0] > xi_range[1])	 xi_range[1]  = get_row_const_Multiarray_R(i, xyz_ve)[0];
+			if (get_row_const_Multiarray_R(i, xyz_ve)[1] > eta_range[1]) eta_range[1] = get_row_const_Multiarray_R(i, xyz_ve)[1];
+		}
+	}
+
+	dxi_dxi_hat   = 0.5*(xi_range[1] - xi_range[0]);
+	deta_deta_hat = 0.5*(eta_range[1] - eta_range[0]);
+
+	// Place the node_c->rst values in a multiarray 
+	const struct const_Nodes *nodes_c = constructor_const_Nodes_tp(d, p_g, NODES_GL);
+	const struct const_Multiarray_d *rst_i = constructor_move_const_Multiarray_d_Matrix_d(nodes_c->rst);  // free
+	
+	const ptrdiff_t n_vc = rst_i->extents[0];
+
+	// TODO: Perhaps use an operator here. Going from vertex values to 
+	// cubature values. Figure out how to build this operator
+
+	// Map the node point locations from the parent domain ([-1 to 1]) 
+	// to the knot domain for this element
+	struct Multiarray_d *rst_knots_i = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_vc, 2}); // destructed
+	
+	for (ptrdiff_t i = 0; i < n_vc; i++){
+
+		// Map the xi and eta points
+		get_col_Multiarray_d(0, rst_knots_i)[i] = 
+			  get_col_const_Multiarray_d(0, rst_i)[i]*(xi_range[1] - xi_range[0])*0.5 
+			+ 0.5*(xi_range[1] + xi_range[0]);
+
+		get_col_Multiarray_d(1, rst_knots_i)[i] = 
+			  get_col_const_Multiarray_d(1, rst_i)[i]*(eta_range[1] - eta_range[0])*0.5 
+			+ 0.5*(eta_range[1] + eta_range[0]);
+	}
+	
+	// Compute the partial terms for the mapping
+	const struct const_Multiarray_R* grad_xyz = constructor_grad_xyz_NURBS_parametric_T(0, (const struct const_Multiarray_d*)rst_knots_i, s_vol, sim);
+
+	jacobian_vc = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_vc,d,d}); // destructed
+
+	Real* x_r = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){0,0})],
+	    * x_s = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){0,1})],
+	    * y_r = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){1,0})],
+	    * y_s = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){1,1})];
+	
+	for (ptrdiff_t i = 0; i < n_vc; ++i) {
+		x_r[i] = get_col_const_Multiarray_R(0, grad_xyz)[i]*dxi_dxi_hat;
+		x_s[i] = get_col_const_Multiarray_R(2, grad_xyz)[i]*deta_deta_hat;
+		y_r[i] = get_col_const_Multiarray_R(1, grad_xyz)[i]*dxi_dxi_hat;
+		y_s[i] = get_col_const_Multiarray_R(3, grad_xyz)[i]*deta_deta_hat;
+	}
+
+	// Store the volume metric data		
+	resize_Multiarray_R((struct Multiarray_R*)s_vol->metrics_vc,3,(ptrdiff_t[]){n_vc,d,d});
+	compute_detJV_T((struct const_Multiarray_R*)jacobian_vc,(struct Multiarray_R*)s_vol->jacobian_det_vc);
+	compute_cofactors_T((struct const_Multiarray_R*)jacobian_vc,(struct Multiarray_R*)s_vol->metrics_vc);
+
+	// Destruct allocated data structures
+	destructor_const_Nodes(nodes_c);
+	destructor_Multiarray_d(rst_knots_i);
+	destructor_const_Multiarray_d(grad_xyz);
+	destructor_Multiarray_d(jacobian_vc);
+
+	//printf("NURBS APPROACH\n");
+	//printf("jacobian_det_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->jacobian_det_vc);
+	//printf("metrics_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->metrics_vc);
+
+}
 
 void compute_geometry_volume_T
 	(const bool recompute_geom_coef, struct Solver_Volume_T* s_vol, const struct Simulation *sim)
 {
-	
-	// TODO: Read this parameter from the ctrl file. Will specify whether
-	// a NURBS geometry is being worked with and, if so, then it will compute
-	// all geometry parameters exactly using the NURBS mapping
-	bool NURBS_geometry = false;
-
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
 
 	struct Volume* vol = (struct Volume*) s_vol;
 	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
+
+	if (recompute_geom_coef) {
+		compute_geom_coef_fptr_T compute_geom_coef = set_fptr_geom_coef_T(sim->domain_type,vol->curved);
+		compute_geom_coef_p1(sim,s_vol);
+		compute_geom_coef(sim,s_vol);
+	}
 
 	const int d = ((struct const_Element*)g_e)->d;
 
@@ -223,137 +379,7 @@ void compute_geometry_volume_T
 	const bool curved = vol->curved;
 	const int p_g = ( curved ? p : 1 );
 
-	struct Multiarray_R *jacobian_vm = NULL,
-						*jacobian_vc = NULL;
-
-	if (NURBS_geometry){
-
-		/*
-		If a NURBS geometry is being used, use the mapping to compute the metric
-		terms exactly at the volume cubature nodes
-		*/
-
-		UNUSED(recompute_geom_coef);
-		UNUSED(sim);
-		UNUSED(s_vol);
-
-
-		// Obtain the location on the parent domain (xi_hat, eta_hat element of [-1,1])
-		// of the cubature nodes. NURBS geometries will use tensor product elements
-		// for now
-		// TODO: Find a way to get the node locations automatically without knowing
-		// that tensor product must be used beforehand. Use compute_node_type
-
-		/*
-		// Generate an Op_IO structure in order to get the node locations
-		const struct OpIO op_io;
-		op_io.ce = "v";
-		op_io.kind = "c";
-
-		if(vol->curved){
-			op_io.sc = "c";
-		} else{
-			op_io.sc = "s";
-		}
-		*/
-
-		// Compute the chain rule mapping term (to the parent element)
-		const struct const_Multiarray_R*const xyz_ve = vol->xyz_ve;
-
-		double dxi_dxi_hat, deta_deta_hat, xi_min, xi_max, eta_min, eta_max;
-
-		for(ptrdiff_t i = 0; i < xyz_ve->extents[0]; i++){
-
-			if (i == 0){
-				xi_min 	= get_row_const_Multiarray_R(i, xyz_ve)[0];
-				eta_min = get_row_const_Multiarray_R(i, xyz_ve)[1];
-				
-				xi_max = xi_min;
-				eta_max = eta_min;
-
-			} else{
-
-				if (get_row_const_Multiarray_R(i, xyz_ve)[0] < xi_min)	xi_min  = get_row_const_Multiarray_R(i, xyz_ve)[0];
-				if (get_row_const_Multiarray_R(i, xyz_ve)[1] < eta_min)	eta_min = get_row_const_Multiarray_R(i, xyz_ve)[1];
-				if (get_row_const_Multiarray_R(i, xyz_ve)[0] > xi_max)	xi_max  = get_row_const_Multiarray_R(i, xyz_ve)[0];
-				if (get_row_const_Multiarray_R(i, xyz_ve)[1] > eta_max)	eta_max = get_row_const_Multiarray_R(i, xyz_ve)[1];
-
-			}
-		}
-
-		dxi_dxi_hat = 0.5*(xi_max - xi_min);
-		deta_deta_hat = 0.5*(eta_max - eta_min);
-
-		const struct const_Nodes *nodes_c = constructor_const_Nodes_tp(d, p_g, NODES_GL);
-		print_const_Matrix_d_tol(nodes_c->rst, 0.0);
-
-		// Place the node_c->rst values in a multiarray 
-		const struct const_Multiarray_d *rst_i = constructor_move_const_Multiarray_d_Matrix_d(nodes_c->rst);  // free
-		
-		const ptrdiff_t n_vc = rst_i->extents[0];
-
-		// Compute the partial terms for the mapping
-		const struct const_Multiarray_R* grad_xyz = constructor_grad_xyz_NURBS_parametric_T(0, rst_i, s_vol, sim);
-
-		printf("grad_xyz: \n");
-		print_const_Multiarray_d_tol((const struct const_Multiarray_d*)grad_xyz, 0.0);
-
-		jacobian_vc = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_vc,d,d}); // destructed
-
-		Real* x_r = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){0,0})],
-		    * x_s = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){0,1})],
-		    * y_r = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){1,0})],
-		    * y_s = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){1,1})];
-		
-		for (ptrdiff_t i = 0; i < n_vc; ++i) {
-			x_r[i] = get_col_const_Multiarray_R(0, grad_xyz)[i]*dxi_dxi_hat;
-			x_s[i] = get_col_const_Multiarray_R(2, grad_xyz)[i]*deta_deta_hat;
-			y_r[i] = get_col_const_Multiarray_R(1, grad_xyz)[i]*dxi_dxi_hat;
-			y_s[i] = get_col_const_Multiarray_R(3, grad_xyz)[i]*deta_deta_hat;
-		}
-
-		// Store the volume metric data		
-		resize_Multiarray_R((struct Multiarray_R*)s_vol->metrics_vc,3,(ptrdiff_t[]){n_vc,d,d});
-	
-		compute_detJV_T((struct const_Multiarray_R*)jacobian_vc,(struct Multiarray_R*)s_vol->jacobian_det_vc);
-		compute_cofactors_T((struct const_Multiarray_R*)jacobian_vc,(struct Multiarray_R*)s_vol->metrics_vc);
-
-		// Destruct allocated data structures
-		destructor_const_Multiarray_d(grad_xyz);
-		destructor_Multiarray_d(jacobian_vc);
-		destructor_const_Nodes(nodes_c);
-		
-		return;
-
-	} 
-	
-	if (recompute_geom_coef) {
-
-		// MSB: Set the geometry coefficient pointer (which function will be used to 
-		// compute the geometric values and derivatives for the metrics)
-		compute_geom_coef_fptr_T compute_geom_coef = set_fptr_geom_coef_T(sim->domain_type,vol->curved);
-			
-		// MSB: Use the vertex values to compute the coefficients of the p1 geometry basis
-		// functions. 
-		compute_geom_coef_p1(sim,s_vol);
-
-		// MSB: Compute the xyz_hat values using the xyz_s values (values at the geometric
-		// nodes)
-		compute_geom_coef(sim,s_vol);
-	}
-
 	struct Ops {
-		// MSB: The operators created here are first:
-		// 	cv1 = coefficient to values (1st derivative)
-		//	vg = volume, geometry (geometry coefficients so xyz_hat)
-		//	vm = volume, metric (nodes to compute values at)
-		// So, this operator will take the coefficients and compute, using the 
-		// derivative of the basis function, the values of the metric terms at the volume
-		// metric nodes.
-
-		// MSB: Similarly, create an operator to compute the metrics at the vc nodes 
-		// (volume, cubature nodes). Also, compute an interpolation operator to go from
-		// values to values (0 derivative), from metric nodes to cubature nodes.
 		const struct Multiarray_Operator cv1_vg_vm;
 		const struct Multiarray_Operator cv1_vg_vc;
 		const struct Operator* vv0_vm_vc;
@@ -361,15 +387,11 @@ void compute_geometry_volume_T
 	          .cv1_vg_vc = set_MO_from_MO(g_e->cv1_vg_vc[curved],1,(ptrdiff_t[]){0,0,p,p_g}),
 	          .vv0_vm_vc = get_Multiarray_Operator(g_e->vv0_vm_vc[curved],(ptrdiff_t[]){0,0,p,p_g}), };
 
-	// MSB: Compute the number of metric and cubature nodes
 	const ptrdiff_t n_vm = ops.cv1_vg_vm.data[0]->op_std->ext_0,
 	                n_vc = ops.cv1_vg_vc.data[0]->op_std->ext_0;
 
-	// MSB: Create the multiarray struct to store the jacobians (will be of dimension d x d, and there
-	// will be a d x d matrix at each n_vm or n_vc metric or cubature nodes (to store these 
-	// metrics at))
-	jacobian_vm = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_vm,d,d}); // destructed
-	jacobian_vc = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_vc,d,d}); // destructed
+	struct Multiarray_R* jacobian_vm = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_vm,d,d}), // destructed
+	                   * jacobian_vc = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_vc,d,d}); // destructed
 
 	for (ptrdiff_t row = 0; row < d; ++row) {
 		mm_NN1C_Operator_Multiarray_R(ops.cv1_vg_vm.data[row],geom_coef,jacobian_vm,op_format,2,NULL,&row);
@@ -391,8 +413,173 @@ void compute_geometry_volume_T
 	mm_NN1C_Operator_Multiarray_R(
 		ops.vv0_vm_vc,met_vm,(struct Multiarray_R*)s_vol->metrics_vc,op_format,met_vm->order,NULL,NULL);
 
-	exit(0);
+	//printf("NORMAL APPROACH : \n");
+	//printf("jacobian_det_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->jacobian_det_vc);
+	//printf("metrics_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->metrics_vc);
+	//exit(0);
+}
 
+void compute_NURBS_geometry_face_T (struct Solver_Face_T* s_face,
+ const struct Simulation*const sim){
+
+	/*
+	If a NURBS geometry is being used, use the mapping to compute the metric
+	terms exactly on the face
+	*/
+
+	/*
+	Face Ordering for Quads (f is ind_lf (index of the local face))
+
+			 f = 3		
+			 ------
+	  f = 0 |	   | f = 1
+			|	   |
+		 	 ------
+			 f = 2
+	*/
+
+	UNUSED(sim);
+
+	const char op_format = 'd';
+	UNUSED(op_format);
+
+	assert((s_face->cub_type == 's') || (s_face->cub_type == 'c'));
+
+	struct Face* face             = (struct Face*) s_face;
+	struct Volume* vol            = face->neigh_info[0].volume;
+	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) vol;
+
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
+	struct const_Element* e            = (struct const_Element*) g_e;
+	
+	const int ind_lf = face->neigh_info[0].ind_lf;
+	const int p_v = s_vol->p_ref,
+	          p_f = s_face->p_ref;
+	UNUSED(p_v);
+
+	// TODO: Add asserts to make sure we are working with QUADS or LINES
+
+	// Get the limits of the element on the knot domain
+	const struct const_Multiarray_R*const xyz_ve = vol->xyz_ve;
+
+	double 	dxi_dxi_hat, deta_deta_hat, // Chain rule terms from mapping from knot domain onto parent domain
+			xi_range[2], eta_range[2];  // xi and eta limits for the element (knot domain)
+	for(ptrdiff_t i = 0; i < xyz_ve->extents[0]; i++){
+		if (i == 0){
+			xi_range[0]  = get_row_const_Multiarray_R(i, xyz_ve)[0];
+			eta_range[0] = get_row_const_Multiarray_R(i, xyz_ve)[1];
+			
+			xi_range[1]  = xi_range[0];
+			eta_range[1] = eta_range[0];
+
+		} else{
+			if (get_row_const_Multiarray_R(i, xyz_ve)[0] < xi_range[0])	 xi_range[0]  = get_row_const_Multiarray_R(i, xyz_ve)[0];
+			if (get_row_const_Multiarray_R(i, xyz_ve)[1] < eta_range[0]) eta_range[0] = get_row_const_Multiarray_R(i, xyz_ve)[1];
+			if (get_row_const_Multiarray_R(i, xyz_ve)[0] > xi_range[1])	 xi_range[1]  = get_row_const_Multiarray_R(i, xyz_ve)[0];
+			if (get_row_const_Multiarray_R(i, xyz_ve)[1] > eta_range[1]) eta_range[1] = get_row_const_Multiarray_R(i, xyz_ve)[1];
+		}
+	}
+
+	dxi_dxi_hat   = 0.5*(xi_range[1] - xi_range[0]);
+	deta_deta_hat = 0.5*(eta_range[1] - eta_range[0]);
+
+	// Need to get the face cubature nodes (fc). 
+	// Looking at the code, TP elements should use GL nodes (but add in the 
+	// capability for this to be found out automatically)
+	const struct const_Nodes *nodes_c = constructor_const_Nodes_tp(face->element->d, p_f, NODES_GL);
+	const struct const_Multiarray_d *rst_i = constructor_move_const_Multiarray_d_Matrix_d(nodes_c->rst);  // free
+	const ptrdiff_t n_fc = rst_i->extents[0];
+
+	// TODO: Perhaps use an operator here. Going from vertex values to 
+	// cubature values. Figure out how to build this operator
+
+	// Map the node point locations from the parent domain ([-1 to 1]) 
+	// to the knot domain for this element. Here, check which face we are on
+	struct Multiarray_d *rst_knots_i = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_fc, 2}); // destructed
+	
+	switch (ind_lf){
+		case 0:
+			// Face 0 : xi is fixed (left face)
+			for (ptrdiff_t i = 0; i < n_fc; i++){
+				get_col_Multiarray_d(0, rst_knots_i)[i] = xi_range[0];
+				get_col_Multiarray_d(1, rst_knots_i)[i] = get_col_const_Multiarray_d(0, rst_i)[i]*(eta_range[1] - eta_range[0])*0.5 
+															+ 0.5*(eta_range[1] + eta_range[0]);
+			}
+			break;
+
+		case 1:
+			// Face 1 : xi is fixed (right face)
+			for (ptrdiff_t i = 0; i < n_fc; i++){
+				get_col_Multiarray_d(0, rst_knots_i)[i] = xi_range[1];
+				get_col_Multiarray_d(1, rst_knots_i)[i] = get_col_const_Multiarray_d(0, rst_i)[i]*(eta_range[1] - eta_range[0])*0.5 
+															+ 0.5*(eta_range[1] + eta_range[0]);
+			}
+			break;
+
+		case 2:
+			// Face 2 : eta is fixed (bottom face)
+			for (ptrdiff_t i = 0; i < n_fc; i++){
+				get_col_Multiarray_d(0, rst_knots_i)[i] = get_col_const_Multiarray_d(0, rst_i)[i]*(xi_range[1] - xi_range[0])*0.5 
+															+ 0.5*(xi_range[1] + xi_range[0]);
+				get_col_Multiarray_d(1, rst_knots_i)[i] = eta_range[0];
+			}
+			break;
+
+		case 3:
+			// Face 3 : eta is fixed (top face)
+			for (ptrdiff_t i = 0; i < n_fc; i++){
+				get_col_Multiarray_d(0, rst_knots_i)[i] = get_col_const_Multiarray_d(0, rst_i)[i]*(xi_range[1] - xi_range[0])*0.5 
+															+ 0.5*(xi_range[1] + xi_range[0]);
+				get_col_Multiarray_d(1, rst_knots_i)[i] = eta_range[1];
+			}
+			break;
+
+		default:
+			EXIT_ERROR("Unsupported"); break;
+
+	}
+
+	//printf(" xi range  : %f, %f \n", xi_range[0], xi_range[1]);
+	//printf(" eta range : %f, %f \n", eta_range[0], eta_range[1]);
+	//printf("Nodes rst_i : \n"); print_const_Multiarray_d_tol(rst_i, 0.0);
+	//printf("Nodes rst face: %d \n", ind_lf); print_Multiarray_d_tol(rst_knots_i, 0.0);
+	//printf("Normals Ordering \n"); print_const_Multiarray_d_tol(e->normals, 0.0);
+	//printf("Entered compute_geometry_face_T\n");
+	//exit(0);
+
+	// Compute the geometry partial derivative terms
+	const struct const_Multiarray_R* grad_xyz = constructor_grad_xyz_NURBS_parametric_T(0, (const struct const_Multiarray_d*)rst_knots_i, s_vol, sim);
+
+	// printf("grad_xyz : \n"); print_const_Multiarray_d_tol(grad_xyz, 0.0);
+
+	struct Multiarray_R* metrics_fc = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_fc,2,2}); // destructed
+
+	Real* m_00 = &metrics_fc->data[compute_index_sub_container(3,1,metrics_fc->extents,(ptrdiff_t[]){0,0})],
+	    * m_01 = &metrics_fc->data[compute_index_sub_container(3,1,metrics_fc->extents,(ptrdiff_t[]){0,1})],
+	    * m_10 = &metrics_fc->data[compute_index_sub_container(3,1,metrics_fc->extents,(ptrdiff_t[]){1,0})],
+	    * m_11 = &metrics_fc->data[compute_index_sub_container(3,1,metrics_fc->extents,(ptrdiff_t[]){1,1})];
+	
+	for (ptrdiff_t i = 0; i < n_fc; ++i) {
+		m_00[i] =  get_col_const_Multiarray_R(3, grad_xyz)[i]*deta_deta_hat;  //  y_s
+		m_01[i] = -get_col_const_Multiarray_R(1, grad_xyz)[i]*dxi_dxi_hat;   // -y_r
+		m_10[i] = -get_col_const_Multiarray_R(2, grad_xyz)[i]*deta_deta_hat;  // -x_s
+		m_11[i] =  get_col_const_Multiarray_R(0, grad_xyz)[i]*dxi_dxi_hat;  //  x_r
+	}
+
+	compute_unit_normals_and_det_T(ind_lf,e->normals, (const struct const_Multiarray_R*)metrics_fc,
+		(struct Multiarray_R*)s_face->normals_fc,(struct Multiarray_R*)s_face->jacobian_det_fc);
+
+	/*
+	printf("NURBS APPROACH : \n");
+	printf("metrics_fc : \n"); print_Multiarray_R(metrics_fc);	
+	printf("normals_fc : %d \n", ind_lf); print_Multiarray_R((struct Multiarray_R*)s_face->normals_fc);	
+	printf("jacobian_det_fc : \n"); print_Multiarray_R((struct Multiarray_R*)s_face->jacobian_det_fc);
+
+	if (ind_lf == 3)
+		exit(0);
+	*/
+
+	destructor_Multiarray_R(metrics_fc);
 }
 
 void compute_geometry_face_T (struct Solver_Face_T* s_face, const struct Simulation*const sim)
@@ -434,17 +621,26 @@ void compute_geometry_face_T (struct Solver_Face_T* s_face, const struct Simulat
 	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc_ex_b,
 	                                          constructor_xyz_fc_on_exact_boundary(s_face,sim)); // keep
 
-	// MSB : Use the metrics_vm values to compute the values on the face 
-	// cubature nodes (fc) and then use these values to compute the normals
-	// and face determinants.
 	const struct const_Multiarray_R* m_vm = s_vol->metrics_vm;
 	const struct const_Multiarray_R* metrics_fc =
 		constructor_mm_NN1_Operator_const_Multiarray_R(ops.vv0_vm_fc,m_vm,'C',op_format,m_vm->order,NULL); // d.
 
+
 	compute_unit_normals_and_det_T(ind_lf,e->normals,metrics_fc,
 		(struct Multiarray_R*)s_face->normals_fc,(struct Multiarray_R*)s_face->jacobian_det_fc);
 
+	/*
+	printf("NORMAL APPROACH : \n");
+	printf("metrics_fc : \n"); print_const_Multiarray_R(metrics_fc);	
+	printf("normals_fc : %d \n", ind_lf); print_Multiarray_R((struct Multiarray_R*)s_face->normals_fc);	
+	printf("jacobian_det_fc : \n"); print_Multiarray_R((struct Multiarray_R*)s_face->jacobian_det_fc);
+
+	if (ind_lf == 3)
+		exit(0);
+	*/
+
 	destructor_const_Multiarray_R(metrics_fc);
+
 }
 
 const struct const_Multiarray_R* constructor_xyz_s_ho_T
