@@ -1,0 +1,31 @@
+#!/bin/bash
+
+TOP_DIR="${PWD}/../.."
+
+
+# Modifiable parameters ****************************************************** #
+
+# Must use mpich configured with --disable-checkpointing when running with valgrind otherwise there
+# is a clash between the two programs. See [this][https://stackoverflow.com/a/37643501/5983549] SO
+# answer. It seems that this is no longer required if using mpich-3.2.1.
+export CMAKE_PREFIX_PATH=/home/ddong/Libraries/mpich/mpich-3.2.1/build
+
+export PETSC_DIR=/home/ddong/Libraries/petsc/petsc-3.8.4
+export PETSC_ARCH=linux-mkl-mpich-release
+
+
+BUILD_DIR=${TOP_DIR}/build_test
+
+CMAKE_BUILD_TYPE=Release
+TOOLCHAIN_FILE=gcc.cmake
+
+# End Modifiable parameters ************************************************** #
+
+for dim in `seq 1 3`; do
+	BUILD_DIR_D=${BUILD_DIR}_${dim}D
+	mkdir -p ${BUILD_DIR_D} && cd ${BUILD_DIR_D}
+	cmake -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} \
+	      -D CMAKE_TOOLCHAIN_FILE=${TOP_DIR}/cmake/toolchains/${TOOLCHAIN_FILE} \
+	      -D BUILD_DIM=${dim} \
+	      ${TOP_DIR}
+done
