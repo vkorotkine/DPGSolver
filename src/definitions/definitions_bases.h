@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define BASIS_ORTHO    101 ///< The orthonormal basis.
 #define BASIS_LAGRANGE 102 ///< The Lagrange basis.
 #define BASIS_BEZIER   103 ///< The Bezier basis.
+#define BASIS_NURBS    104 ///< The NURBS basis.
 ///\}
 
 #endif // DPG__definitions_bases_h__INCLUDED

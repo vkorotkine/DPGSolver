@@ -63,6 +63,11 @@ struct Solver_Volume_T {
 	/// The coefficients of the solution gradient in the \ref Simulation::basis_sol.
 	struct Multiarray_T* grad_coef;
 
+	/// The knot vector used to represent the NURBS solution in the \ref Simulation::basis_sol.
+	struct Multiarray_T* knots;
+	/// The weight vector used to represent the NURBS solution in the \ref Simulation::basis_sol.
+	struct Multiarray_T* weights;
+
 	/** The metric terms (cofactors of the geometry Jacobian) used for transformation of integrals between physical
 	 *  and computational space stored at the (v)olume (m)etric nodes. */
 	const struct const_Multiarray_R*const metrics_vm;

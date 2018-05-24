@@ -21,6 +21,7 @@ ARGV="advection/vortex/TEST_advection_vortex_slipwall_mixed2d petsc_options_gmre
 #ARGV="euler/gaussian_bump/TEST_Euler_GaussianBump_ParametricMixed2D petsc_options_gmres_tol_1e-15"
 
 ARGV="advection/hyperbolic_tan/TEST_advection_hyperbolic_tan_1d petsc_options_gmres_tol_1e-15"
+ARGV="advection/gaussian_bump/dg/TEST_Advection_gaussian_bump2D petsc_options_gmres_default"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"
@@ -39,5 +40,5 @@ VALGRIND_OPTS="valgrind \
 
 # DO NOT MODIFY ANYTHING BELOW THIS LINE
 
-@MPIEXEC@ -n ${N_PROCS} ${VALGRIND_OPTS} ${EXECUTABLE} ${ARGV} ${LOGFILE}
+mpiexec -n ${N_PROCS} ${VALGRIND_OPTS} ${EXECUTABLE} ${ARGV} ${LOGFILE}
 #${VALGRIND_OPTS} @MPIEXEC@ -n ${N_PROCS} ${EXECUTABLE} ${ARGV} ${LOGFILE}

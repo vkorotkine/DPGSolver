@@ -103,7 +103,8 @@ struct Simulation {
 	/** The type of basis used for the solution representation. Options:
 	 *	- orthonormal;
 	 *	- lagrange;
-	 *	- bezier.
+	 *	- bezier;
+	 *	- nurbs.
 	 */
 	const char basis_sol[STRLEN_MIN];
 

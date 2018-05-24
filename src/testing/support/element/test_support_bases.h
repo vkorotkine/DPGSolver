@@ -113,6 +113,22 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_bezier_def
 	 const struct const_Matrix_d*const rst ///< See brief.
 	);
 
+/** \brief Constructor for a polynomial operator for the tensor-product NURBS basis from the basis function
+ *         definitions.
+ *  \return Standard. */
+const struct const_Matrix_d* constructor_basis_tp_nurbs_def
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
+	);
+
+/** \brief Constructor for polynomial operator(s) for the gradient(s) of the tensor-product NURSB basis from the basis
+ *         function definitions.
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_nurbs_def
+	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
+	);
+
 // Additional functions ********************************************************************************************* //
 
 /** \brief Constructor for the mass matrix of an orthonormal basis from the definition (i.e. the identity matrix).

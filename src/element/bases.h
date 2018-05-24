@@ -21,6 +21,17 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
+/// Container for the set of basis functions used to represent the geometry or the solution
+struct Basis {
+	int basis_type;	          ///< The basis type as defined in \ref definition_bases
+	int order;                ///< The order of the basis.
+	int n_functions;          ///< The number of basis functions in the 1D case. For polynomials, n_bf = order + 1.
+
+	int n_knot;               ///< The number of knots in the knot vector. Note: n_bf = n_k - (p_b+1)
+	struct Vector_d* knots;   ///< Knot vector used to form B-splines and NURBS
+	struct Vector_d* weights; ///< Weights associated with each basis to form NURBS. Weights of 1 result in B-spline.
+};
+
 /** \brief Function pointer to basis constructor function.
  *  \param p_b The order of the basis.
  *  \param rst The nodes at which the basis functions are evaluated.
@@ -28,7 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  The dimension of the basis functions is determined according to the dimension of the input nodes.
  */
 typedef const struct const_Matrix_d* (*constructor_basis_fptr)
-	(const int p_b,
+	(const struct Basis*const basis,
 	 const struct const_Matrix_d*const rst
 	);
 
@@ -37,7 +48,7 @@ typedef const struct const_Matrix_d* (*constructor_basis_fptr)
  *  \param rst Defined in \ref constructor_basis_fptr.
  */
 typedef const struct const_Multiarray_Matrix_d* (*constructor_grad_basis_fptr)
-	(const int p_b,
+	(const struct Basis*const basis,
 	 const struct const_Matrix_d*const rst
 	);
 
@@ -46,7 +57,7 @@ typedef const struct const_Multiarray_Matrix_d* (*constructor_grad_basis_fptr)
 /** \brief Constructor for a polynomial operator for a general basis of the given super type and basis type.
  *  \return Standard. */
 const struct const_Matrix_d* constructor_basis
-	(const int p_b,                         ///< Defined in \ref constructor_basis_fptr.
+	(const struct Basis*const basis,        ///< Defined in \ref constructor_basis_fptr.
 	 const struct const_Matrix_d*const rst, ///< Defined in \ref constructor_basis_fptr.
 	 const int s_type,                      ///< \ref Element::s_type.
 	 const char*const basis_type            ///< The basis type.
@@ -56,7 +67,7 @@ const struct const_Matrix_d* constructor_basis
  *         basis type.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis
-	(const int p_b,                         ///< Defined in \ref constructor_basis_fptr.
+	(const struct Basis*const basis,        ///< Defined in \ref constructor_basis_fptr.
 	 const struct const_Matrix_d*const rst, ///< Defined in \ref constructor_basis_fptr.
 	 const int s_type,                      ///< \ref Element::s_type.
 	 const char*const basis_type            ///< The basis type.
@@ -71,7 +82,7 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis
  *  The dimension of the basis functions is determined according to the dimension of the input nodes.
  */
 const struct const_Matrix_d* constructor_basis_tp_orthonormal
-	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	(const struct Basis*const basis,       ///< Defined in \ref constructor_basis_fptr.
 	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
@@ -79,7 +90,7 @@ const struct const_Matrix_d* constructor_basis_tp_orthonormal
  *         (derivative of normalized Legendre polynomials).
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
-	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	(const struct Basis*const basis,                        ///< Defined in \ref constructor_basis_fptr.
 	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
@@ -89,14 +100,14 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
  *  The dimension of the basis functions is determined according to the dimension of the input nodes.
  */
 const struct const_Matrix_d* constructor_basis_si_orthonormal
-	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	(const struct Basis*const basis,                        ///< Defined in \ref constructor_basis_fptr.
 	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for polynomial operators for the gradients of the simplex orthonomal basis.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal
-	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	(const struct Basis*const basis,                        ///< Defined in \ref constructor_basis_fptr.
 	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
@@ -106,14 +117,14 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal
  *  The dimension of the basis functions is determined according to the dimension of the input nodes.
  */
 const struct const_Matrix_d* constructor_basis_pyr_orthonormal
-	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	(const struct Basis*const basis,                        ///< Defined in \ref constructor_basis_fptr.
 	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 /** \brief Constructor for polynomial operators for the gradients of the pyramid orthonomal basis.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal
-	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	(const struct Basis*const basis,                        ///< Defined in \ref constructor_basis_fptr.
 	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
@@ -126,7 +137,7 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal
  *  The dimension of the basis functions is determined according to the dimension of the input nodes.
  */
 const struct const_Matrix_d* constructor_basis_tp_bezier
-	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	(const struct Basis*const basis,                        ///< Defined in \ref constructor_basis_fptr.
 	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
@@ -134,7 +145,7 @@ const struct const_Matrix_d* constructor_basis_tp_bezier
  *         Bernstein polynomials, (section 2.4 \cite Prautzsch2002)).
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
-	(const int p_b,                        ///< Defined in \ref constructor_basis_fptr.
+	(const struct Basis*const basis,                        ///< Defined in \ref constructor_basis_fptr.
 	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
@@ -145,29 +156,49 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
  *  extension of the Duffy-type transform for simplices (eq. (3.3), \cite Ainsworth2011).
  */
 const struct const_Matrix_d* constructor_basis_si_bezier
-	(const int p_b,                        ///< See brief.
+	(const struct Basis*const basis,                        ///< See brief.
 	 const struct const_Matrix_d*const rst ///< See brief.
 	);
 
 /** \brief Version of \ref constructor_grad_basis_fptr for the simplex bezier basis.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier
-	(const int p_b,                        ///< See brief.
+	(const struct Basis*const basis,                        ///< See brief.
 	 const struct const_Matrix_d*const rst ///< See brief.
 	);
 
 /** \brief Version of \ref constructor_basis_fptr for the pyramid bezier basis (section 3, \cite Chan2016_bez).
  *  \return Standard. */
 const struct const_Matrix_d* constructor_basis_pyr_bezier
-	(const int p_b,                        ///< See brief.
+	(const struct Basis*const basis,                        ///< See brief.
 	 const struct const_Matrix_d*const rst ///< See brief.
 	);
 
 /** \brief Version of \ref constructor_grad_basis_fptr for the pyramid bezier basis.
  *  \return Standard. */
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_bezier
-	(const int p_b,                        ///< See brief.
+	(const struct Basis*const basis,                        ///< See brief.
 	 const struct const_Matrix_d*const rst ///< See brief.
+	);
+
+// NURBS basis ***************************************************************************************************** //
+
+/** \brief Constructor for a polynomial operator for the tensor-product NURBS basis (\cite Piegl1995).
+ *  \return Standard.
+ *
+ *  The dimension of the basis functions is determined according to the dimension of the knot vector.
+ */
+const struct const_Matrix_d* constructor_basis_tp_nurbs
+	(const struct Basis*const basis,       ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
+	);
+
+/** \brief Constructor for polynomial operator(s) for the gradient(s) of the tensor-product bezier basis (derivatives of
+ *         Bernstein polynomials, (section 2.4 \cite Prautzsch2002)).
+ *  \return Standard. */
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_nurbs
+	(const struct Basis*const basis,       ///< Defined in \ref constructor_basis_fptr.
+	 const struct const_Matrix_d*const rst ///< Defined in \ref constructor_basis_fptr.
 	);
 
 // Helper functions ************************************************************************************************* //

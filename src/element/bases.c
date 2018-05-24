@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "multiarray.h"
 #include "matrix.h"
+#include "vector.h"
 
 #include "math_functions.h"
 
@@ -52,16 +53,27 @@ static double grad_bernstein_std
 	 const double r ///< The reference coordinate in [-1,1].
 	);
 
+/** \brief Cox-de-boor algorithm used to evaluate B-Spline
+ *  \return See brief. */
+static double coxdeboor
+	(const int order, ///< The order.
+	 const struct Basis*const basis, ///< The basis containing knots and weights data.
+	 const int i,     ///< The index.
+	 const double r   ///< The reference coordinate in [-1,1].
+	 );
+
 // Interface functions ********************************************************************************************** //
 // Constructor functions ******************************************************************************************** //
 // Tensor-Product Orthonormal *************************************************************************************** //
 
-const struct const_Matrix_d* constructor_basis_tp_orthonormal (const int p_b, const struct const_Matrix_d*const rst)
+const struct const_Matrix_d* constructor_basis_tp_orthonormal 
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
 
-	const int d   = (int)rst->ext_1,
-	          pp1 = p_b+1;
+	const int d    = (int)rst->ext_1,
+	          p_b  = (int)basis->order,
+	          n_bf = (int)basis->n_functions;
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
@@ -78,9 +90,9 @@ const struct const_Matrix_d* constructor_basis_tp_orthonormal (const int p_b, co
 		            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
 
 		for (int n = 0; n < n_n; ++n) {
-		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
-		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
-		for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*pp1,1),pp1); i < i_max; ++i) {
+		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*n_bf,1),n_bf); k < k_max; ++k) {
+		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*n_bf,1),n_bf); j < j_max; ++j) {
+		for (int i = 0, i_max = GSL_MIN(GSL_MAX((d-0)*n_bf,1),n_bf); i < i_max; ++i) {
 			           *phi_data  = jac_jacobi_normalized(r[n],i,0.0,0.0);
 			if (d > 1) *phi_data *= jac_jacobi_normalized(s[n],j,0.0,0.0);
 			if (d > 2) *phi_data *= jac_jacobi_normalized(t[n],k,0.0,0.0);
@@ -92,12 +104,13 @@ const struct const_Matrix_d* constructor_basis_tp_orthonormal (const int p_b, co
 }
 
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
-	(const int p_b, const struct const_Matrix_d*const rst)
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
 
 	const int d   = (int)rst->ext_1,
-	          pp1 = p_b+1;
+	          p_b = (int)basis->order,
+	          n_bf = basis->n_functions;
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
@@ -116,13 +129,13 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
 
 	if (d == 1) {
 		for (int n = 0; n < n_n; ++n) {
-		for (int i = 0; i < pp1; ++i) {
+		for (int i = 0; i < n_bf; ++i) {
 			*grad_phi_data[0]++ = jac_djacobi_normalized (r[n],i,0.0,0.0);
 		}}
 	} else if (d == 2) {
 		for (int n = 0; n < n_n; ++n) {
-		for (int j = 0; j < pp1; ++j) {
-		for (int i = 0; i < pp1; ++i) {
+		for (int j = 0; j < n_bf; ++j) {
+		for (int i = 0; i < n_bf; ++i) {
 			*grad_phi_data[0]++ = jac_djacobi_normalized(r[n],i,0.0,0.0)
 			                     *jac_jacobi_normalized (s[n],j,0.0,0.0);
 			*grad_phi_data[1]++ = jac_jacobi_normalized (r[n],i,0.0,0.0)
@@ -130,9 +143,9 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
 		}}}
 	} else if (d == 3) {
 		for (int n = 0; n < n_n; ++n) {
-		for (int k = 0; k < pp1; ++k) {
-		for (int j = 0; j < pp1; ++j) {
-		for (int i = 0; i < pp1; ++i) {
+		for (int k = 0; k < n_bf; ++k) {
+		for (int j = 0; j < n_bf; ++j) {
+		for (int i = 0; i < n_bf; ++i) {
 			*grad_phi_data[0]++ = jac_djacobi_normalized(r[n],i,0.0,0.0)
 			                     *jac_jacobi_normalized (s[n],j,0.0,0.0)
 			                     *jac_jacobi_normalized (t[n],k,0.0,0.0);
@@ -150,11 +163,13 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_orthonormal
 
 // Simplex Orthonormal ********************************************************************************************** //
 
-const struct const_Matrix_d* constructor_basis_si_orthonormal (const int p_b, const struct const_Matrix_d*const rst)
+const struct const_Matrix_d* constructor_basis_si_orthonormal
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
 
-	const int d   = (int)rst->ext_1;
+	const int d   = (int)rst->ext_1,
+	          p_b = (int)basis->order;
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_SI);
 
@@ -189,11 +204,12 @@ const struct const_Matrix_d* constructor_basis_si_orthonormal (const int p_b, co
 }
 
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal
-	(const int p_b, const struct const_Matrix_d*const rst)
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
 
-	const int d   = (int)rst->ext_1;
+	const int d   = (int)rst->ext_1,
+              p_b = (int)basis->order;
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_SI);
 
@@ -337,11 +353,13 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_orthonormal
 
 // Pyramid Orthonormal ********************************************************************************************** //
 
-const struct const_Matrix_d* constructor_basis_pyr_orthonormal (const int p_b, const struct const_Matrix_d*const rst)
+const struct const_Matrix_d* constructor_basis_pyr_orthonormal
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
 
-	const int d = (int)rst->ext_1;
+	const int d   = (int)rst->ext_1,
+	          p_b = (int)basis->order;
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_PYR);
 
@@ -374,11 +392,12 @@ const struct const_Matrix_d* constructor_basis_pyr_orthonormal (const int p_b, c
 }
 
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal
-	(const int p_b, const struct const_Matrix_d*const rst)
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
 
-	const int d = (int)rst->ext_1;
+	const int d   = (int)rst->ext_1,
+	          p_b = (int)basis->order;
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_PYR);
 
@@ -475,12 +494,14 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_orthonormal
 
 // Tensor-Product Bezier ******************************************************************************************** //
 
-const struct const_Matrix_d* constructor_basis_tp_bezier (const int p_b, const struct const_Matrix_d*const rst)
+const struct const_Matrix_d* constructor_basis_tp_bezier
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
 
-	const int d   = (int)rst->ext_1,
-	          pp1 = p_b+1;
+	const int d    = (int)rst->ext_1,
+	          p_b  = (int)basis->order,
+	          n_bf = (int)basis->n_functions;
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
@@ -497,9 +518,9 @@ const struct const_Matrix_d* constructor_basis_tp_bezier (const int p_b, const s
 		*phi_data = 1.0;
 	} else {
 		for (int n = 0; n < n_n; ++n) {
-		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*pp1,1),pp1); k < k_max; ++k) {
-		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*pp1,1),pp1); j < j_max; ++j) {
-		for (int i = 0; i < pp1; ++i) {
+		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*n_bf,1),n_bf); k < k_max; ++k) {
+		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*n_bf,1),n_bf); j < j_max; ++j) {
+		for (int i = 0; i < n_bf; ++i) {
 			           *phi_data  = bernstein_std(p_b,i,r[n]);
 			if (d > 1) *phi_data *= bernstein_std(p_b,j,s[n]);
 			if (d > 2) *phi_data *= bernstein_std(p_b,k,t[n]);
@@ -511,12 +532,13 @@ const struct const_Matrix_d* constructor_basis_tp_bezier (const int p_b, const s
 }
 
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
-	(const int p_b, const struct const_Matrix_d*const rst)
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
 
 	const int d   = (int)rst->ext_1,
-	          pp1 = p_b+1;
+	          p_b = (int)basis->order,
+	          n_bf = basis->n_functions;
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_TP);
 
@@ -535,13 +557,13 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
 
 	if (d == 1) {
 		for (int n = 0; n < n_n; ++n) {
-		for (int i = 0; i < pp1; ++i) {
+		for (int i = 0; i < n_bf; ++i) {
 			*grad_phi_data[0]++ = grad_bernstein_std(p_b,i,r[n]);
 		}}
 	} else if (d == 2) {
 		for (int n = 0; n < n_n; ++n) {
-		for (int j = 0; j < pp1; ++j) {
-		for (int i = 0; i < pp1; ++i) {
+		for (int j = 0; j < n_bf; ++j) {
+		for (int i = 0; i < n_bf; ++i) {
 			*grad_phi_data[0]++ = grad_bernstein_std(p_b,i,r[n])
 			                     *bernstein_std     (p_b,j,s[n]);
 			*grad_phi_data[1]++ = bernstein_std     (p_b,i,r[n])
@@ -549,9 +571,9 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
 		}}}
 	} else if (d == 3) {
 		for (int n = 0; n < n_n; ++n) {
-		for (int k = 0; k < pp1; ++k) {
-		for (int j = 0; j < pp1; ++j) {
-		for (int i = 0; i < pp1; ++i) {
+		for (int k = 0; k < n_bf; ++k) {
+		for (int j = 0; j < n_bf; ++j) {
+		for (int i = 0; i < n_bf; ++i) {
 			*grad_phi_data[0]++ = grad_bernstein_std(p_b,i,r[n])
 			                     *bernstein_std     (p_b,j,s[n])
 			                     *bernstein_std     (p_b,k,t[n]);
@@ -569,11 +591,13 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_bezier
 
 // Simplex Bezier *************************************************************************************************** //
 
-const struct const_Matrix_d* constructor_basis_si_bezier (const int p_b, const struct const_Matrix_d*const rst)
+const struct const_Matrix_d* constructor_basis_si_bezier
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
 
-	const int d   = (int)rst->ext_1;
+	const int d   = (int)rst->ext_1,
+	          p_b = (int)basis->order;
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_SI);
 
@@ -608,11 +632,12 @@ const struct const_Matrix_d* constructor_basis_si_bezier (const int p_b, const s
 }
 
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier
-	(const int p_b, const struct const_Matrix_d*const rst)
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
 
-	const int d   = (int)rst->ext_1;
+	const int d   = (int)rst->ext_1,
+	          p_b = (int)basis->order;
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_SI);
 
@@ -702,11 +727,13 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_si_bezier
 
 // Pyramid Bezier *************************************************************************************************** //
 
-const struct const_Matrix_d* constructor_basis_pyr_bezier (const int p_b, const struct const_Matrix_d*const rst)
+const struct const_Matrix_d* constructor_basis_pyr_bezier
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
 
-	const int d = (int)rst->ext_1;
+	const int d   = (int)rst->ext_1,
+	          p_b = (int)basis->order;
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_PYR);
 
@@ -738,11 +765,12 @@ const struct const_Matrix_d* constructor_basis_pyr_bezier (const int p_b, const 
 }
 
 const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_bezier
-	(const int p_b, const struct const_Matrix_d*const rst)
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
 {
 	assert(rst->layout == 'C');
 
-	const int d = (int)rst->ext_1;
+	const int d   = (int)rst->ext_1,
+	          p_b = (int)basis->order;
 	const ptrdiff_t n_n = rst->ext_0,
 	                n_b = compute_n_basis(d,p_b,ST_PYR);
 
@@ -797,6 +825,102 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_bezier
 	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
 }
 
+// Tensor-Product NURBS ********************************************************************************************* //
+
+const struct const_Matrix_d* constructor_basis_tp_nurbs
+	(const struct Basis*const basis, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const int d    = (int)rst->ext_1,
+	          p_b  = (int)basis->order,
+	          n_bf = (int)basis->n_functions;
+	const ptrdiff_t n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_TP);
+
+	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('R',n_n,n_b); // returned
+	double* phi_data = phi_rst->data;
+
+	const double*const r = get_col_const_Matrix_d(0,rst),
+	            *const s = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
+	            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
+
+	if (d == 0) {
+		assert(n_n == 1);
+		assert(n_b == 1);
+		*phi_data = 1.0;
+	} else {
+		for (int n = 0; n < n_n; ++n) {
+		for (int k = 0, k_max = GSL_MIN(GSL_MAX((d-2)*n_bf,1),n_bf); k < k_max; ++k) {
+		for (int j = 0, j_max = GSL_MIN(GSL_MAX((d-1)*n_bf,1),n_bf); j < j_max; ++j) {
+		for (int i = 0; i < n_bf; ++i) {
+			           *phi_data  = coxdeboor(p_b,basis,i,r[n]);
+			if (d > 1) *phi_data *= coxdeboor(p_b,basis,j,s[n]);
+			if (d > 2) *phi_data *= coxdeboor(p_b,basis,k,t[n]);
+			++phi_data;
+		}}}}
+	}
+
+	return (const struct const_Matrix_d*) phi_rst;
+}
+
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_nurbs
+	(const struct Basis*const basis,  const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const int d    = (int)rst->ext_1,
+	          p_b  = (int)basis->order,
+	          n_bf = (int)basis->n_functions;
+	const ptrdiff_t n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_TP);
+
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	const double*const r = get_col_const_Matrix_d(0,rst),
+	            *const s = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
+	            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
+
+	if (d == 1) {
+		for (int n = 0; n < n_n; ++n) {
+		for (int i = 0; i < n_bf; ++i) {
+			*grad_phi_data[0]++ = grad_bernstein_std(p_b,i,r[n]);
+		}}
+	} else if (d == 2) {
+		for (int n = 0; n < n_n; ++n) {
+		for (int j = 0; j < n_bf; ++j) {
+		for (int i = 0; i < n_bf; ++i) {
+			*grad_phi_data[0]++ = grad_bernstein_std(p_b,i,r[n])
+			                     *bernstein_std     (p_b,j,s[n]);
+			*grad_phi_data[1]++ = bernstein_std     (p_b,i,r[n])
+			                     *grad_bernstein_std(p_b,j,s[n]);
+		}}}
+	} else if (d == 3) {
+		for (int n = 0; n < n_n; ++n) {
+		for (int k = 0; k < n_bf; ++k) {
+		for (int j = 0; j < n_bf; ++j) {
+		for (int i = 0; i < n_bf; ++i) {
+			*grad_phi_data[0]++ = grad_bernstein_std(p_b,i,r[n])
+			                     *bernstein_std     (p_b,j,s[n])
+			                     *bernstein_std     (p_b,k,t[n]);
+			*grad_phi_data[1]++ = bernstein_std     (p_b,i,r[n])
+			                     *grad_bernstein_std(p_b,j,s[n])
+			                     *bernstein_std     (p_b,k,t[n]);
+			*grad_phi_data[2]++ = bernstein_std     (p_b,i,r[n])
+			                     *bernstein_std     (p_b,j,s[n])
+			                     *grad_bernstein_std(p_b,k,t[n]);
+		}}}}
+	}
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
+}
 // Helper functions ************************************************************************************************* //
 
 ptrdiff_t compute_n_basis (const int d, const int p_b, const int super_type)
@@ -946,6 +1070,14 @@ constructor_basis_fptr get_constructor_basis_by_super_type (const int s_type, co
 		}
 	} else if (strcmp(ref_basis_name,"bezier") == 0) {
 		return get_constructor_basis_bezier_by_super_type(s_type);
+	} else if (strcmp(ref_basis_name,"nurbs") == 0) {
+		switch (s_type) {
+			//case ST_TP:  return constructor_basis_tp_orthonormal;  break;
+			case ST_TP:  return constructor_basis_tp_nurbs;  break;
+			// need to return nurbs, but number of references for constructor_basis_fptr needs to match in bases.h
+			default:     EXIT_ERROR("Must use tensor product for NURBS. Currently using s_type = %d",s_type); break;
+		}
+
 	}
 	EXIT_ERROR("Did not find the basis with the specified inputs: (%d, %s)\n",s_type,ref_basis_name);
 }
@@ -969,6 +1101,9 @@ constructor_basis_fptr get_constructor_basis_by_super_type_i (const int s_type, 
 	case BASIS_BEZIER:
 		return get_constructor_basis_by_super_type(s_type,"bezier");
 		break;
+	case BASIS_NURBS:
+		return get_constructor_basis_by_super_type(s_type,"nurbs");
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",ind_basis);
 		break;
@@ -983,6 +1118,8 @@ constructor_grad_basis_fptr get_constructor_grad_basis_by_super_type (const int 
 			return  constructor_grad_basis_tp_orthonormal;
 		else if (strcmp(ref_basis_name,"bezier") == 0)
 			return  constructor_grad_basis_tp_bezier;
+		else if (strcmp(ref_basis_name,"nurbs") == 0)
+			return  constructor_grad_basis_tp_nurbs;
 	} else if (s_type == ST_SI) {
 		return  constructor_grad_basis_si_orthonormal;
 	} else if (s_type == ST_PYR) {
@@ -1001,6 +1138,8 @@ int get_basis_i_from_s (const char*const basis_name_s)
 		basis_name_i = BASIS_LAGRANGE;
 	else if (strcmp(basis_name_s,"bezier") == 0)
 		basis_name_i = BASIS_BEZIER;
+	else if (strcmp(basis_name_s,"nurbs") == 0)
+		basis_name_i = BASIS_NURBS;
 	else
 		EXIT_ERROR("Unsupported: %s\n",basis_name_s);
 
@@ -1021,4 +1160,27 @@ static double bernstein_std (const int p, const int i, const double r)
 static double grad_bernstein_std (const int p, const int i, const double r)
 {
 	return 0.5*p*(bernstein_std(p-1,i-1,r) - bernstein_std(p-1,i,r));
+}
+
+static double coxdeboor 
+	(const int order, // Passing order because we do not want to modify the Basis struct nor copy it down the recursion
+	 const struct Basis*const basis, 
+	 const int i,
+	 const double r)
+{
+   	if (order==0) {
+   		if (r <= basis->knots->data[i] && r < basis->knots->data[i+1]) return 1.0;
+   		return 0.0;
+   	}
+   
+   	double B, B1, B2, denominator1, denominator2;
+   	B1 = coxdeboor(order-1,basis,i  ,r);
+   	B2 = coxdeboor(order-1,basis,i+1,r);
+   	denominator1 = basis->knots->data[i+order] - basis->knots->data[i];
+   	denominator2 = basis->knots->data[i+order+1] - basis->knots->data[i+1];
+   	B = 0.0;
+   	if (denominator1 != 0) B = B + B1*(r-basis->knots->data[i])/denominator1;
+   	if (denominator2 != 0) B = B + B2*(r-basis->knots->data[i+order+1])/denominator2;
+   
+   	return B;
 }

@@ -1548,6 +1548,245 @@ const struct const_Multiarray_Matrix_d* constructor_grad_basis_pyr_bezier_def
 	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
 }
 
+// Tensor-Product NURBS ********************************************************************************************* //
+
+const struct const_Matrix_d* constructor_basis_tp_nurbs_def (const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_TP);
+
+	struct Matrix_d* phi_rst = constructor_empty_Matrix_d('R',n_n,n_b); // returned
+	double* phi_data = phi_rst->data;
+
+	const double*const r = get_col_const_Matrix_d(0,rst),
+	            *const s = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
+	            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
+
+	for (ptrdiff_t i = 0; i < n_n; ++i) {
+		const double r_i = r[i],
+		             s_i = ( d > 1 ? s[i] : 0.0),
+		             t_i = ( d > 2 ? t[i] : 0.0);
+
+		const double b0r = (1.0-r_i)/2.0,
+		             b1r = (1.0+r_i)/2.0,
+		             b0s = ( d > 1 ? (1.0-s_i)/2.0 : 0.0 ),
+		             b1s = ( d > 1 ? (1.0+s_i)/2.0 : 0.0 ),
+		             b0t = ( d > 2 ? (1.0-t_i)/2.0 : 0.0 ),
+		             b1t = ( d > 2 ? (1.0+t_i)/2.0 : 0.0 );
+
+		if (d == 1 && p_b == 3) {
+			*phi_data++ =     pow(b0r,3.0)*pow(b1r,0.0);
+			*phi_data++ = 3.0*pow(b0r,2.0)*pow(b1r,1.0);
+			*phi_data++ = 3.0*pow(b0r,1.0)*pow(b1r,2.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,3.0);
+		} else if (d == 2 && p_b == 2) {
+			*phi_data++ =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,2.0)*pow(b1s,0.0);
+			*phi_data++ = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,2.0)*pow(b1s,0.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,2.0)*pow(b1s,0.0);
+			*phi_data++ =     pow(b0r,2.0)*pow(b1r,0.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0);
+			*phi_data++ = 2.0*pow(b0r,1.0)*pow(b1r,1.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,2.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0);
+			*phi_data++ =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,0.0)*pow(b1s,2.0);
+			*phi_data++ = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,0.0)*pow(b1s,2.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,0.0)*pow(b1s,2.0);
+		} else if (d == 3 && p_b == 2) {
+			*phi_data++ =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,2.0)*pow(b1s,0.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+			*phi_data++ = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,2.0)*pow(b1s,0.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,2.0)*pow(b1s,0.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+			*phi_data++ =     pow(b0r,2.0)*pow(b1r,0.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+			*phi_data++ = 2.0*pow(b0r,1.0)*pow(b1r,1.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,2.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+			*phi_data++ =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,0.0)*pow(b1s,2.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+			*phi_data++ = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,0.0)*pow(b1s,2.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,0.0)*pow(b1s,2.0) *     pow(b0t,2.0)*pow(b1t,0.0);
+			*phi_data++ =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,2.0)*pow(b1s,0.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+			*phi_data++ = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,2.0)*pow(b1s,0.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,2.0)*pow(b1s,0.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+			*phi_data++ =     pow(b0r,2.0)*pow(b1r,0.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+			*phi_data++ = 2.0*pow(b0r,1.0)*pow(b1r,1.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,2.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+			*phi_data++ =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,0.0)*pow(b1s,2.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+			*phi_data++ = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,0.0)*pow(b1s,2.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,0.0)*pow(b1s,2.0) * 2.0*pow(b0t,1.0)*pow(b1t,1.0);
+			*phi_data++ =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,2.0)*pow(b1s,0.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+			*phi_data++ = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,2.0)*pow(b1s,0.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,2.0)*pow(b1s,0.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+			*phi_data++ =     pow(b0r,2.0)*pow(b1r,0.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+			*phi_data++ = 2.0*pow(b0r,1.0)*pow(b1r,1.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,2.0) * 2.0*pow(b0s,1.0)*pow(b1s,1.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+			*phi_data++ =     pow(b0r,2.0)*pow(b1r,0.0) *     pow(b0s,0.0)*pow(b1s,2.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+			*phi_data++ = 2.0*pow(b0r,1.0)*pow(b1r,1.0) *     pow(b0s,0.0)*pow(b1s,2.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+			*phi_data++ =     pow(b0r,0.0)*pow(b1r,2.0) *     pow(b0s,0.0)*pow(b1s,2.0) *     pow(b0t,0.0)*pow(b1t,2.0);
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+
+	return (const struct const_Matrix_d*) phi_rst;
+}
+
+const struct const_Multiarray_Matrix_d* constructor_grad_basis_tp_nurbs_def
+	(const int p_b, const struct const_Matrix_d*const rst)
+{
+	assert(rst->layout == 'C');
+
+	const int d = (int)rst->ext_1;
+	const ptrdiff_t n_n = rst->ext_0,
+	                n_b = compute_n_basis(d,p_b,ST_TP);
+
+	struct Multiarray_Matrix_d* grad_phi_rst =
+		constructor_empty_Multiarray_Matrix_d(false,1,(ptrdiff_t[]){d}); // returned
+
+	double* grad_phi_data[d];
+	for (int dim = 0; dim < d; ++dim) {
+		grad_phi_rst->data[dim] = constructor_empty_Matrix_d('R',n_n,n_b); // keep
+		grad_phi_data[dim] = grad_phi_rst->data[dim]->data;
+	}
+
+	const double*const r = get_col_const_Matrix_d(0,rst),
+	            *const s = ( d > 1 ? get_col_const_Matrix_d(1,rst) : NULL),
+	            *const t = ( d > 2 ? get_col_const_Matrix_d(2,rst) : NULL);
+
+	for (ptrdiff_t i = 0; i < n_n; ++i) {
+		const double r_i = r[i],
+		             s_i = ( d > 1 ? s[i] : 0.0),
+		             t_i = ( d > 2 ? t[i] : 0.0);
+
+		const double b0r = (1.0-r_i)/2.0,
+		             b1r = (1.0+r_i)/2.0,
+		             b0s = ( d > 1 ? (1.0-s_i)/2.0 : 0.0 ),
+		             b1s = ( d > 1 ? (1.0+s_i)/2.0 : 0.0 ),
+		             b0t = ( d > 2 ? (1.0-t_i)/2.0 : 0.0 ),
+		             b1t = ( d > 2 ? (1.0+t_i)/2.0 : 0.0 );
+		if (d == 1 && p_b == 3) {
+			*grad_phi_data[0]++ = 0.5*    (-3.0*pow(b0r,2.0)*pow(b1r,0.0) + 0.0);
+			*grad_phi_data[0]++ = 0.5*3.0*(-2.0*pow(b0r,1.0)*pow(b1r,1.0) + 1.0*pow(b0r,2.0)*pow(b1r,0.0));
+			*grad_phi_data[0]++ = 0.5*3.0*(-1.0*pow(b0r,0.0)*pow(b1r,2.0) + 2.0*pow(b0r,1.0)*pow(b1r,1.0));
+			*grad_phi_data[0]++ = 0.5*    ( 0.0                           + 3.0*pow(b0r,0.0)*pow(b1r,2.0));
+		} else if (d == 2 && p_b == 2) {
+			*grad_phi_data[0]++ = 0.5*    (-2.0*pow(b0r,1.0)*pow(b1r,0.0) + 0.0)
+			                    *               pow(b0s,2.0)*pow(b1s,0.0);
+			*grad_phi_data[0]++ = 0.5*2.0*(-1.0*pow(b0r,0.0)*pow(b1r,1.0) + 1.0*pow(b0r,1.0)*pow(b1r,0.0))
+			                    *               pow(b0s,2.0)*pow(b1s,0.0);
+			*grad_phi_data[0]++ = 0.5*    ( 0.0                           + 2.0*pow(b0r,0.0)*pow(b1r,1.0))
+			                    *               pow(b0s,2.0)*pow(b1s,0.0);
+			*grad_phi_data[0]++ = 0.5*    (-2.0*pow(b0r,1.0)*pow(b1r,0.0) + 0.0)
+			                    *           2.0*pow(b0s,1.0)*pow(b1s,1.0);
+			*grad_phi_data[0]++ = 0.5*2.0*(-1.0*pow(b0r,0.0)*pow(b1r,1.0) + 1.0*pow(b0r,1.0)*pow(b1r,0.0))
+			                    *           2.0*pow(b0s,1.0)*pow(b1s,1.0);
+			*grad_phi_data[0]++ = 0.5*    ( 0.0                           + 2.0*pow(b0r,0.0)*pow(b1r,1.0))
+			                    *           2.0*pow(b0s,1.0)*pow(b1s,1.0);
+			*grad_phi_data[0]++ = 0.5*    (-2.0*pow(b0r,1.0)*pow(b1r,0.0) + 0.0)
+			                    *               pow(b0s,0.0)*pow(b1s,2.0);
+			*grad_phi_data[0]++ = 0.5*2.0*(-1.0*pow(b0r,0.0)*pow(b1r,1.0) + 1.0*pow(b0r,1.0)*pow(b1r,0.0))
+			                    *               pow(b0s,0.0)*pow(b1s,2.0);
+			*grad_phi_data[0]++ = 0.5*    ( 0.0                           + 2.0*pow(b0r,0.0)*pow(b1r,1.0))
+			                    *               pow(b0s,0.0)*pow(b1s,2.0);
+
+			*grad_phi_data[1]++ =               pow(b0r,2.0)*pow(b1r,0.0)
+			                    * 0.5*    (-2.0*pow(b0s,1.0)*pow(b1s,0.0) + 0.0);
+			*grad_phi_data[1]++ =           2.0*pow(b0r,1.0)*pow(b1r,1.0)
+			                    * 0.5*    (-2.0*pow(b0s,1.0)*pow(b1s,0.0) + 0.0);
+			*grad_phi_data[1]++ =               pow(b0r,0.0)*pow(b1r,2.0)
+			                    * 0.5*    (-2.0*pow(b0s,1.0)*pow(b1s,0.0) + 0.0);
+			*grad_phi_data[1]++ =               pow(b0r,2.0)*pow(b1r,0.0)
+			                    * 0.5*2.0*(-1.0*pow(b0s,0.0)*pow(b1s,1.0) + 1.0*pow(b0s,1.0)*pow(b1s,0.0));
+			*grad_phi_data[1]++ =           2.0*pow(b0r,1.0)*pow(b1r,1.0)
+			                    * 0.5*2.0*(-1.0*pow(b0s,0.0)*pow(b1s,1.0) + 1.0*pow(b0s,1.0)*pow(b1s,0.0));
+			*grad_phi_data[1]++ =               pow(b0r,0.0)*pow(b1r,2.0)
+			                    * 0.5*2.0*(-1.0*pow(b0s,0.0)*pow(b1s,1.0) + 1.0*pow(b0s,1.0)*pow(b1s,0.0));
+			*grad_phi_data[1]++ =               pow(b0r,2.0)*pow(b1r,0.0)
+			                    * 0.5*    ( 0.0                           + 2.0*pow(b0s,0.0)*pow(b1s,1.0));
+			*grad_phi_data[1]++ =           2.0*pow(b0r,1.0)*pow(b1r,1.0)
+			                    * 0.5*    ( 0.0                           + 2.0*pow(b0s,0.0)*pow(b1s,1.0));
+			*grad_phi_data[1]++ =               pow(b0r,0.0)*pow(b1r,2.0)
+			                    * 0.5*    ( 0.0                           + 2.0*pow(b0s,0.0)*pow(b1s,1.0));
+		} else if (d == 3 && p_b == 1) {
+			*grad_phi_data[0]++ = 0.5*(-1.0*pow(b0r,0.0)*pow(b1r,0.0) + 0.0)
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[0]++ = 0.5*( 0.0                           + 1.0*pow(b0r,0.0)*pow(b1r,0.0))
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[0]++ = 0.5*(-1.0*pow(b0r,0.0)*pow(b1r,0.0) + 0.0)
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[0]++ = 0.5*( 0.0                           + 1.0*pow(b0r,0.0)*pow(b1r,0.0))
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[0]++ = 0.5*(-1.0*pow(b0r,0.0)*pow(b1r,0.0) + 0.0)
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+			*grad_phi_data[0]++ = 0.5*( 0.0                           + 1.0*pow(b0r,0.0)*pow(b1r,0.0))
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+			*grad_phi_data[0]++ = 0.5*(-1.0*pow(b0r,0.0)*pow(b1r,0.0) + 0.0)
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+			*grad_phi_data[0]++ = 0.5*( 0.0                           + 1.0*pow(b0r,0.0)*pow(b1r,0.0))
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+
+			*grad_phi_data[1]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    * 0.5*(-1.0*pow(b0s,0.0)*pow(b1s,0.0) + 0.0)
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[1]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    * 0.5*(-1.0*pow(b0s,0.0)*pow(b1s,0.0) + 0.0)
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[1]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0s,0.0)*pow(b1s,0.0))
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[1]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0s,0.0)*pow(b1s,0.0))
+			                    *           pow(b0t,1.0)*pow(b1t,0.0);
+			*grad_phi_data[1]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    * 0.5*(-1.0*pow(b0s,0.0)*pow(b1s,0.0) + 0.0)
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+			*grad_phi_data[1]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    * 0.5*(-1.0*pow(b0s,0.0)*pow(b1s,0.0) + 0.0)
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+			*grad_phi_data[1]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0s,0.0)*pow(b1s,0.0))
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+			*grad_phi_data[1]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0s,0.0)*pow(b1s,0.0))
+			                    *           pow(b0t,0.0)*pow(b1t,1.0);
+
+			*grad_phi_data[2]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    * 0.5*(-1.0*pow(b0t,0.0)*pow(b1t,0.0) + 0.0);
+			*grad_phi_data[2]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    * 0.5*(-1.0*pow(b0t,0.0)*pow(b1t,0.0) + 0.0);
+			*grad_phi_data[2]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    * 0.5*(-1.0*pow(b0t,0.0)*pow(b1t,0.0) + 0.0);
+			*grad_phi_data[2]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    * 0.5*(-1.0*pow(b0t,0.0)*pow(b1t,0.0) + 0.0);
+			*grad_phi_data[2]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0t,0.0)*pow(b1t,0.0));
+			*grad_phi_data[2]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    *           pow(b0s,1.0)*pow(b1s,0.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0t,0.0)*pow(b1t,0.0));
+			*grad_phi_data[2]++ =           pow(b0r,1.0)*pow(b1r,0.0)
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0t,0.0)*pow(b1t,0.0));
+			*grad_phi_data[2]++ =           pow(b0r,0.0)*pow(b1r,1.0)
+			                    *           pow(b0s,0.0)*pow(b1s,1.0)
+			                    * 0.5*( 0.0                           + 1.0*pow(b0t,0.0)*pow(b1t,0.0));
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+	}
+
+	return (const struct const_Multiarray_Matrix_d*) grad_phi_rst;
+}
+
 // Additional functions ********************************************************************************************* //
 
 const struct const_Matrix_d* constructor_mass_orthonormal_def (const int d, const int p_b, const int super_type)

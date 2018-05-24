@@ -32,6 +32,7 @@ syntax keyword Special Intrusive_Link const_Intrusive_Link
 
 
 syntax keyword Identifier Element const_Element
+syntax keyword Identifier Basis
 syntax keyword Identifier Geometry_Element
 syntax keyword Identifier Plotting_Element
 syntax keyword Identifier Solution_Element

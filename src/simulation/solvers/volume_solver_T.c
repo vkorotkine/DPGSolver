@@ -62,6 +62,10 @@ void constructor_derived_Solver_Volume_T (struct Volume* volume_ptr, const struc
 	s_vol->sol_coef  = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0});   // destructed
 	s_vol->grad_coef = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // destructed
 
+	// NURBS-specific data
+	s_vol->knots  = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0});	// destructed maybe??? line 92
+	s_vol->weights = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0});	// destructed maybe??? line 93
+
 	const_constructor_move_Multiarray_R(
 		&s_vol->metrics_vm,constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
 	const_constructor_move_Multiarray_R(
@@ -85,6 +89,8 @@ void destructor_derived_Solver_Volume_T (struct Volume* volume_ptr)
 	destructor_const_Multiarray_R(s_vol->geom_coef_p1);
 	destructor_Multiarray_T(s_vol->sol_coef);
 	destructor_Multiarray_T(s_vol->grad_coef);
+	destructor_Multiarray_T(s_vol->knots);
+	destructor_Multiarray_T(s_vol->weights);
 	destructor_const_Multiarray_R(s_vol->metrics_vm);
 	destructor_const_Multiarray_R(s_vol->metrics_vc);
 	destructor_const_Multiarray_R(s_vol->jacobian_det_vc);
