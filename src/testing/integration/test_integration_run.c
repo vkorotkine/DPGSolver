@@ -103,7 +103,10 @@ static void run_case (int argc, char** argv) {
 	int p = p_ref[0];
 
 	const int adapt_type = int_test_info->adapt_type;
-	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
+	//const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
+	// MSB: Want to correct the ctrl file name because we want to add the mesh level and p
+	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,true,ctrl_name);
+
 	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc,ignore_static);
 	solve_for_solution(sim);
 

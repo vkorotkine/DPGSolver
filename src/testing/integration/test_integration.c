@@ -117,9 +117,7 @@ void structor_simulation
 			case 'r':
 				constructor_derived_computational_elements(*sim,IL_SOLVER); // destructed
 				set_up_solver_geometry(*sim);
-				printf("completed set_up_solver_geometry\n");
 				set_initial_solution(*sim);
-				printf("completed set_initial_solution\n");
 				break; // dest.
 			case 'c':
 				constructor_derived_computational_elements_c(*sim,IL_SOLVER); // destructed
@@ -250,7 +248,7 @@ const char* set_file_name_curr
 		assert(strstr(file_name_curr,"__p") == NULL);
 		break;
 	default:
-		EXIT_ERROR("Unsupported: %d\n",adapt_type);
+		EXIT_ERROR("Unsupported Adapt Type: %d\n",adapt_type);
 		break;
 	}
 

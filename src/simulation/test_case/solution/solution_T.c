@@ -441,6 +441,9 @@ UNUSED(sim);
 	}
 	const int n_vs = (int)cv0_vg_vX->op_std->ext_0;
 
+	// MSB: geom_coef used here to find xyz values at the given node locations.
+	// 	TODO: See if this needs to be addressed if a NURBS geometry is being used.
+
 	const struct const_Multiarray_R*const geom_coef = ( !using_restart ? s_vol->geom_coef : s_vol->geom_coef_p1 );
 	struct Multiarray_R* xyz_v = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_vs,d}); // returned
 	mm_NN1C_Operator_Multiarray_R(cv0_vg_vX,geom_coef,xyz_v,op_format,geom_coef->order,NULL,NULL);

@@ -1,34 +1,27 @@
 
-Wednesday:
-	(Done) - Use the chain rule to compute the metric terms in the volume of the element 
-		using the parametric mapping.
 
-		(Done) - Find the xi, eta values on the parametric domain of the cubature points
-			to compute the derivatives at. 
-
-		(Done) - Use the additional mapping from the parametric domain onto the 
-			parent domain to compute the derivatives of the mapping to form 
-			the metric terms.
-
-		(Done) - Use a P1 NURBS Patch to compare the metric terms with as a first step
-
-	- Use the chain rule to compute metric terms on the face of the element.
-
-		- Find the xi, eta values on the parametric domain of the face cubature 
-			points to compute the derivatives at. 
-
-		- Use the additional mapping from the parametric domain onto 
-			the parent domain to compute the derivatives of the mapping to 
-			form the face metric terms.
-
-		- Create a python case that will compute the metrics as well (use lambda
-			functions). Verify the metric computation on one given element
-			by using the same mapping case from before and this one element.
-
-	- Run the NURBS bump test case and verify that the solution converges. 
+Thursday/Friday:
+	(Done) - Run the NURBS bump test case and verify that the solution converges. 
 		Visualize the results.
 
-Monday:
+		- geom_coef seems to be a parameter that is used throughout the code. The issue is
+			that this term is not found using the NURBS mapping. So, I am unsure of what 
+			effect that is having on the solution.
+
+
+	- Run an orders of accuracy test using the new metric computation with the NURBS bump
+		case and see if the orders are conserved or not.
+
+		(Done) - Run the test for the case without NURBS metrics
+		
+			(Done) - Convergence looked alright for superparametric mesh (isoparametric did 
+				not converge)
+
+		- Issues with NURBS metric convergence. Need to find a way to either do adaptation
+			using the NURBS metrics or read a new file every time. The issue has been that
+			reading a new file each time for some reason gives different results from 
+			doing adaption for the non-metric case. See Philip about this.
+	
 	- Create a NACA 0012 airfoil patch
 
 		- Perform a NURBS spline approximation and fit the spline around the
@@ -44,6 +37,14 @@ Monday:
 			- Create slip wall boundary conditions at the bottom, farfield
 				at the top and then periodic at the line at which the patch
 				touches each other at rear of the airfoil.
+
+		- Run the airfoil case and check whether the flow converges.
+
+
+
+
+
+
 
 	- Create the lift coefficient objective function.
 
@@ -65,14 +66,19 @@ Monday:
 
 		- Solve the adjoint using PETSc
 
-	- Perform an orders convergence test to verify that the orders of accuracy hold
-		for the NURBS parametric mapping case. Do the Gaussian Bump case first.
-
 
 
 ToDo:
 	- Implement efficient NURBS mapping derivative using NURBS book 
 		algorithm which gets around the use of the derivative of the
 		basis functions.
-
+	- Alternate approach of using the NURBS metric terms
+		- Compute the metric terms using the NURBS mapping at the metric nodes. This will
+				now form a basis that can be used to find the values at any other nodes. 
+		- Issue is, how to get the geom_coef values using the metric terms.
+			- Traditionally what is done: 
+				- For the volume cubature nodes, we use an operator to go 
+					from vm (volume metric) to vc (volume cubature). 
+				- For the face, we once again interpolate from the vm (volume metric)
+					to the fc (face cubature) nodes. 
 

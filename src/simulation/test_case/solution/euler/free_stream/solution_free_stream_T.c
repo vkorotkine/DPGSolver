@@ -59,7 +59,10 @@ void set_sol_free_stream_T (const struct Simulation* sim, struct Solution_Contai
 	// MSB: Set the freestream solution data by loading it from the solution.data file
 	// in the input directory
 
+	// MSB: Get the xyz values here (need to see what effect to take care of if using
+	// NURBS geometry)
 	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+	
 	struct Multiarray_T* sol = constructor_sol_free_stream(xyz,sim); // destructed
 	destructor_const_Multiarray_R(xyz);
 
@@ -182,6 +185,7 @@ static void read_data_free_stream (struct Sol_Data__fs*const sol_data)
 
 	sol_data->theta *= PI/180.0;
 
+	// MSB: Here, set the constructor_sol function pointer.
 	switch (boundary_pert) {
 	case BOUNDARY_PERTURB_TYPE_NONE:
 		sol_data->constructor_sol = constructor_sol_free_stream_const;
@@ -203,6 +207,9 @@ static void read_data_free_stream (struct Sol_Data__fs*const sol_data)
 static struct Multiarray_T* constructor_sol_free_stream_const
 	(const struct const_Multiarray_R* xyz, const struct Simulation* sim, const struct Sol_Data__fs*const sol_data)
 {
+
+	// MSB: It seems that xyz is used only for computing the number of nodes that we 
+	// need to set the solution for. We do not actually use the physical location
 	const ptrdiff_t n_n = xyz->extents[0];
 	assert(DIM == xyz->extents[1]);
 

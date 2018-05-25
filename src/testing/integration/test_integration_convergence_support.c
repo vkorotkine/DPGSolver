@@ -95,6 +95,9 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 	int ml_prev = ml_ref[0]-1,
 	    p_prev  = p_ref[0]-1;
 
+	//printf("Start Convergence Order Test\n");
+	//exit(0);
+
 	bool ignore_static = false;
 	int ml_max = ml_ref[1];
 	switch (conv_study_type) {
@@ -110,8 +113,18 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 
 	for (int ml = ml_ref[0]; ml <= ml_max; ++ml) {
 	for (int p = p_ref[0]; p <= p_ref[1]; ++p) {
+
+		printf("Start Run : ml = %d, p = %d \n", ml, p);
+
+		//MSB: Convergence test, adapt_type should be HP. Try
+		// ADAPT_0 because we want to set the mesh file each time
+		
 		const int adapt_type = int_test_info->adapt_type;
+		//const int adapt_type = ADAPT_0;
+		
 		const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
+		//const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,true,ctrl_name);
+
 		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc,ignore_static); // d.
 		ignore_static = false;
 
@@ -141,8 +154,10 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 		output_error(sim);
 		output_error_functionals(sim);
 
-		if (DISPLAY_CONV)
-			printf("\ntest_integration_convergence (ml, p, dof): %d %d %td\n\n\n",ml,p,compute_dof(sim));
+		if (DISPLAY_CONV){
+			printf("\ntest_integration_convergence (ml, p, dof): %d %d %td\n\n\n",ml,p,compute_dof(sim)); 
+			fflush(stdout);
+		}
 
 		if ((ml == ml_max) && (p == p_ref[1])) {
 			output_restart(sim);

@@ -309,7 +309,13 @@ def main():
 	"""
 
 	# Get the patch parameters
-	patch_parameters = user_defined_patch.get_patch_information()
+	if CONST_Patch_Type == "user_defined_patch":
+		patch_parameters = user_defined_patch.get_patch_information()
+	elif CONST_Patch_Type == "airfoil_patch":
+		pass
+	else:
+		raise ValueError("Unknown Patch Type")
+
 
 	# Parse command line arguments
 	if len(sys.argv) == 1:

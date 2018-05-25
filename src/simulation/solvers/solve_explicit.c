@@ -107,9 +107,15 @@ void solve_explicit (struct Simulation* sim)
 				copy_rhs(sim,NULL);
 		}
 
-		display_progress(test_case,t_step,max_rhs,max_rhs0);
-		if (check_exit(test_case,max_rhs,max_rhs0))
+		if (t_step%100 == 0){
+			// Display the progress every 100 time steps
+			display_progress(test_case,t_step,max_rhs,max_rhs0);
+			fflush(stdout);
+		}
+		if (check_exit(test_case,max_rhs,max_rhs0)){
+			display_progress(test_case,t_step,max_rhs,max_rhs0);
 			break;
+		}
 	}
 
 	destructor_derived_computational_elements(sim,IL_SOLVER);

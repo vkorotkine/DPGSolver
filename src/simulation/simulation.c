@@ -229,7 +229,7 @@ struct Mesh_Input set_Mesh_Input (const struct Simulation*const sim)
 
 int compute_adapt_type (const int p_ref[2], const int ml[2])
 {
-	// See whether the p and ml values are different (meaning that 
+	// MSB: See whether the p and ml values are different (meaning that 
 	// refinement/adaptive capabilities are needed)
 	const bool p_adapt = is_adaptive(p_ref),
 	           h_adapt = is_adaptive(ml);
