@@ -31,15 +31,19 @@ Optimization:
 """
 
 import Basis
+
 import User_Defined_Patch
 import Airfoil_Patch
+import Internal_Channel_Patch
+
 import numpy
 import matplotlib.pyplot as plt
 import sys
 
 # The type of patch to use. Perhaps take this as a command line
 # argument
-CONST_Patch_Type = "User_Defined_Patch"
+CONST_Patch_Type = "Internal_Channel_Patch"
+#CONST_Patch_Type = "User_Defined_Patch"
 #CONST_Patch_Type = "Airfoil_Patch"
 CONST_EPS = 1E-9
 CONST_Output_file_name = "geometry_parameters.geo"
@@ -316,6 +320,8 @@ def main():
 		patch_parameters = User_Defined_Patch.get_patch_information()
 	elif CONST_Patch_Type == "Airfoil_Patch":
 		patch_parameters = Airfoil_Patch.get_patch_information()
+	elif CONST_Patch_Type == "Internal_Channel_Patch":
+		patch_parameters = Internal_Channel_Patch.get_patch_information()
 	else:
 		raise ValueError("Unknown Patch Type")
 

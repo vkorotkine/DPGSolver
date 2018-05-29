@@ -1,5 +1,5 @@
 """
-Module: airfoil_patch.py
+Module: Airfoil_Patch.py
 ------------------------------------------
 
 Creates a NURBS patch around an airfoil. Use a least squares approach to determine the 
@@ -44,7 +44,7 @@ CONST_Airfoil_Type = "NACA0012"
 
 CONST_QUADRATURE_P = 35
 
-# Plot Parameters
+# Plot Parameters (for testing)
 CONST_PlotXRange = [-0.7, 0.7]
 CONST_PlotYRange = [-0.3, 0.3]
 

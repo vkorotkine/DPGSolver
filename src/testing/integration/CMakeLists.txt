@@ -164,6 +164,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "diffusion/steady/default/dg/TEST_Dif
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/periodic_vortex/TEST_Euler_PeriodicVortex_QUAD__ml0__p2" "petsc_options_empty")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml1__p2" "petsc_options_gmres_default")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_Conservative_DPG_BlendedMixed2D__ml1" "petsc_options_gmres_r120") # Having difficulty converging
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DPG_ParametricMixed2D__ml0" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedMixed2D__ml1" "petsc_options_gmres_default")

@@ -23,63 +23,6 @@ import math
 # ==============================================
 
 """
-# BUMP Patch
-
-# Knot Vectors (xi, eta)
-xiVector = [-1,-1,-1,-0.5,0,0,0.5,1,1,1]
-etaVector = [-1,-1,-1,1,1,1]
-
-# Control Points and Weights
-# Order is ControlPoints[i][j]. i increases along xi and j along eta direction
-#	[x, y, weight]
-ControlPoints_and_Weights = [
-[[0,0,1],               [0,2,1]],
-[[1,0,1],               [1,2,1]],
-[[2,0.5,1./math.sqrt(2)], [2,2,1]],
-[[3,0.5,1],               [3,2,1]],
-[[4,0.5,1./math.sqrt(2)], [4,2,1]],
-[[5,0,1],               [5,2,1]],
-[[6,0,1],               [6,2,1]]
-]
-
-# The order of the NURBS surface being made
-# - P = xi direction order
-# - Q = eta direction order
-# NOTE: 
-# 	n = number of control points in given xi or eta direction
-#	p = order in given xi or eta direction
-# 	m = length of knot vector
-# 		Then, n + p + 1 = m -> Relation that must hold true
-P = len(xiVector) - 1 - len(ControlPoints_and_Weights)
-Q = len(etaVector) - 1 - len(ControlPoints_and_Weights[0])
-"""
-
-"""
-# Test P = 1 Patch
-# Knot Vectors (xi, eta)
-xiVector = [-1,-1,0,1,1]
-etaVector = [-1,-1,1,1]
-
-# Control Points and Weights
-# Order is ControlPoints[i][j]. i increases along xi and j along eta direction
-#	[x, y, weight]
-ControlPoints_and_Weights = [
-[[0,0,1],               [0,2,1]],
-[[1,0.5,1],             [1,2,1]],
-[[2,0,1],               [2,2,1]]
-]
-
-# The order of the NURBS surface being made
-# - P = xi direction order
-# - Q = eta direction order
-# NOTE: 
-# 	n = number of control points in given xi or eta direction
-#	p = order in given xi or eta direction
-# 	m = length of knot vector
-# 		Then, n + p + 1 = m -> Relation that must hold true
-P = len(xiVector) - 1 - len(ControlPoints_and_Weights)
-Q = len(etaVector) - 1 - len(ControlPoints_and_Weights[0])
-"""
 
 # BUMP Patch
 
@@ -110,6 +53,8 @@ ControlPoints_and_Weights = [
 # 		Then, n + p + 1 = m -> Relation that must hold true
 P = len(xiVector) - 1 - len(ControlPoints_and_Weights)
 Q = len(etaVector) - 1 - len(ControlPoints_and_Weights[0])
+
+"""
 
 def get_patch_information():
 

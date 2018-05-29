@@ -60,7 +60,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** Flag for whether \ref correct_non_conforming_geometry should be executed.
  *  **This should only be disabled for comparative testing purposes.** See non-conforming and geometry related tests for
  *  additional relevant comments. */
-#define CORRECT_NON_CONFORMING_GEOMETRY false
+#define CORRECT_NON_CONFORMING_GEOMETRY true
 
 /** \brief Return the maximum number of global adaptation calls which must be made in order to achieve the adaptation
  *         strategy.
@@ -1543,7 +1543,7 @@ static bool volume_will_be_1_irregular (const struct Adaptive_Solver_Volume*cons
 
 static void correct_non_conforming_geometry (const struct Simulation*const sim)
 {
-	if (!CORRECT_NON_CONFORMING_GEOMETRY)
+	if (!CORRECT_NON_CONFORMING_GEOMETRY || NURBS_geometry)
 		return;
 	if (DIM == 1)
 		return;

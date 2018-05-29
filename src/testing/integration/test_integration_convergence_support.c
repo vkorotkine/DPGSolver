@@ -49,7 +49,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DISPLAY_CONV 1 ///< Flag for whether the convergence orders should be displayed for these tests.
 
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
-#define ORDER_VIS_CONV_P      0
+#define ORDER_VIS_CONV_P      2
 #define ORDER_VIS_CONV_ML_MAX 8
 #define DISPLAY_GEOM          0 ///< Flag for whether the geometry should be output.
 ///\}
@@ -95,9 +95,6 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 	int ml_prev = ml_ref[0]-1,
 	    p_prev  = p_ref[0]-1;
 
-	//printf("Start Convergence Order Test\n");
-	//exit(0);
-
 	bool ignore_static = false;
 	int ml_max = ml_ref[1];
 	switch (conv_study_type) {
@@ -115,9 +112,6 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 	for (int p = p_ref[0]; p <= p_ref[1]; ++p) {
 
 		printf("Start Run : ml = %d, p = %d \n", ml, p);
-
-		//MSB: Convergence test, adapt_type should be HP. Try
-		// ADAPT_0 because we want to set the mesh file each time
 		
 		const int adapt_type = int_test_info->adapt_type;
 		//const int adapt_type = ADAPT_0;  // MSB: Addition
@@ -153,9 +147,6 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 
 		output_error(sim);
 		output_error_functionals(sim);
-
-		// MSB: Output the solution for testing purposes
-		output_visualization(sim,VIS_SOLUTION);
 
 		if (DISPLAY_CONV){
 			printf("\ntest_integration_convergence (ml, p, dof): %d %d %td\n\n\n",ml,p,compute_dof(sim)); 
