@@ -111,6 +111,9 @@ static struct Multiarray_T* constructor_sol_free_stream
 {
 	assert(DIM >= 2);
 	const struct Sol_Data__fs sol_data = get_sol_data();
+	
+	// MSB: Return sol data at given location using the free stream
+	// parameters read from the solution.data file
 	return sol_data.constructor_sol(xyz,sim,&sol_data);
 }
 
@@ -211,7 +214,14 @@ static struct Multiarray_T* constructor_sol_free_stream_const
 	// MSB: It seems that xyz is used only for computing the number of nodes that we 
 	// need to set the solution for. We do not actually use the physical location
 	const ptrdiff_t n_n = xyz->extents[0];
+
+	if(DIM != xyz->extents[1]){
+		printf("xyz array : \n"); print_const_Multiarray_d(xyz);
+		printf("DIM : %d \n", DIM);
+	}	
+
 	assert(DIM == xyz->extents[1]);
+
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const int n_var = test_case->n_var;

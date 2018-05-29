@@ -112,9 +112,9 @@ static void run_case (int argc, char** argv) {
 
 	// Output the results in graphical format
 	output_visualization(sim,VIS_GEOM_EDGES);
-	output_visualization(sim,VIS_SOLUTION);
 	output_visualization(sim,VIS_GEOM_VOLUMES);
 	output_visualization(sim,VIS_NORMALS);
+	output_visualization(sim,VIS_SOLUTION);
 
 	output_error(sim);
 	output_error_functionals(sim);

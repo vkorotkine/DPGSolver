@@ -424,35 +424,6 @@ const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
 	// MSB: Read the geometric data for the NURBS patch
 	const struct Geo_Data geo_data = get_geo_data("NURBS");
 
-	/*
-	// TESTING:
-	// The test point to evaluate the mapping at
-	struct Multiarray_d *xi_eta_i = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, 2});  // free
-	get_col_Multiarray_d(0, xi_eta_i)[0] = -0.25;
-	get_col_Multiarray_d(1, xi_eta_i)[0] = 0.5;
-	
-	const struct const_Multiarray_d *xyz = xyz_NURBS_patch_mapping((const struct const_Multiarray_d*)xi_eta_i, geo_data.P, geo_data.Q, 
-		(const struct const_Multiarray_d*)geo_data.knots_xi, 
-		(const struct const_Multiarray_d*)geo_data.knots_eta,
-		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
-		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
-
-	const struct const_Multiarray_d *grad_xyz = grad_xyz_NURBS_patch_mapping((const struct const_Multiarray_d*)xi_eta_i, geo_data.P, geo_data.Q, 
-		(const struct const_Multiarray_d*)geo_data.knots_xi, 
-		(const struct const_Multiarray_d*)geo_data.knots_eta,
-		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
-		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
-
-	printf("Mapped Values : \n");
-	print_const_Multiarray_d_tol(xyz, 0.0);
-
-	printf("Gradient Values : \n");
-	print_const_Multiarray_d_tol(grad_xyz, 0.0);
-
-	exit(0);
-	*/
-
-	
 	// xyz_i is the initial values for the xyz coordinates. These are, in 
 	// this function, the location on the parametric domain (or knot domain). Map these
 	// values onto the physical domain
@@ -699,13 +670,15 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 		// The knot vectors in the eta and xi directions:
 		if (strstr(line, "knots_xi")){
 			read_skip_string_count_i("knots_xi", &count_found, line, &len_knots_xi);
-			
+				
 			struct Multiarray_d* knots_xi = 
 					constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){len_knots_xi,1});
 			
-			fgets(line,sizeof(line),input_file);
-			read_skip_d_1(line, 0, get_col_Multiarray_d(0, knots_xi), len_knots_xi);
-			
+			for (i = 0; i < len_knots_xi; i++){
+				fgets(line,sizeof(line),input_file);  // read the next line
+				read_skip_d_1(line, 0, &get_col_Multiarray_d(0, knots_xi)[i], 1);
+			}
+
 			geo_data->knots_xi = knots_xi;
 		}
 
@@ -715,10 +688,13 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 			struct Multiarray_d* knots_eta = 
 					constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){len_knots_eta,1});
 			
-			fgets(line,sizeof(line),input_file);
-			read_skip_d_1(line, 0, get_col_Multiarray_d(0, knots_eta), len_knots_eta);
+			for (i = 0; i < len_knots_eta; i++){
+				fgets(line,sizeof(line),input_file);  // read the next line
+				read_skip_d_1(line, 0, &get_col_Multiarray_d(0, knots_eta)[i], 1);
+			}
 			
 			geo_data->knots_eta = knots_eta;
+
 		}
 
 		// Read the Control Point Data
@@ -782,7 +758,8 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 	fclose(input_file);
 
 	// Print the file data to verify that everything was read
-	/*	
+	
+	/*
 	printf("P = %d, Q = %d \n", geo_data->P, geo_data->Q);
 	print_Multiarray_d_tol(geo_data->knots_xi, 0.0);
 	print_Multiarray_d_tol(geo_data->knots_eta, 0.0);		

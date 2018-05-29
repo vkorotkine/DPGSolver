@@ -120,10 +120,10 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 		// ADAPT_0 because we want to set the mesh file each time
 		
 		const int adapt_type = int_test_info->adapt_type;
-		//const int adapt_type = ADAPT_0;
+		//const int adapt_type = ADAPT_0;  // MSB: Addition
 		
 		const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
-		//const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,true,ctrl_name);
+		//const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,true,ctrl_name); // MSB: Addition
 
 		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc,ignore_static); // d.
 		ignore_static = false;
@@ -154,6 +154,9 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 		output_error(sim);
 		output_error_functionals(sim);
 
+		// MSB: Output the solution for testing purposes
+		output_visualization(sim,VIS_SOLUTION);
+
 		if (DISPLAY_CONV){
 			printf("\ntest_integration_convergence (ml, p, dof): %d %d %td\n\n\n",ml,p,compute_dof(sim)); 
 			fflush(stdout);
@@ -173,6 +176,9 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 
 		p_prev  = p;
 		ml_prev = ml;
+
+		// MSB: Print the progress
+		fflush(stdout);
 	}}
 	destructor_Integration_Test_Info(int_test_info);
 }

@@ -10,7 +10,7 @@ mesh_generator   n-cube/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        quad
-mesh_level       1 5
+mesh_level       0 0
 mesh_path        ../meshes/
 
 # Simulation variables
@@ -33,5 +33,5 @@ fe_method 1
 
 # Testing variables
 
-ml_range_test 1 5
+ml_range_test 0 0
 p_range_test  3 3

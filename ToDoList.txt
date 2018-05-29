@@ -1,50 +1,63 @@
 
 
-Thursday/Friday:
+Weekend:
 	(Done) - Run the NURBS bump test case and verify that the solution converges. 
 		Visualize the results.
+
+		(Done) - Compare the metric and normal terms using the NURBS approach and normal 
+			method. They should be of similar orders of magnitude
 
 		- geom_coef seems to be a parameter that is used throughout the code. The issue is
 			that this term is not found using the NURBS mapping. So, I am unsure of what 
 			effect that is having on the solution.
 
+	(Done) - Create a NACA 0012 airfoil patch
 
-	- Run an orders of accuracy test using the new metric computation with the NURBS bump
-		case and see if the orders are conserved or not.
+		(Done) - Use a B Spline to represent the airfoil. Perform a continuous least squares 
+			approximation to find the location to place the control points at. Since
+			a B Spline will be used for this, the weights of all control points should
+			be 1.
 
-		(Done) - Run the test for the case without NURBS metrics
-		
-			(Done) - Convergence looked alright for superparametric mesh (isoparametric did 
-				not converge)
+		(Done) - Use a NURBS circle representation for the farfield (so we still have a NURBS
+			patch we are working with). This will create a o-grid.
 
-		- Issues with NURBS metric convergence. Need to find a way to either do adaptation
-			using the NURBS metrics or read a new file every time. The issue has been that
-			reading a new file each time for some reason gives different results from 
-			doing adaption for the non-metric case. See Philip about this.
-	
-	- Create a NACA 0012 airfoil patch
+	(Done) - Run the NACA 0012 Airfoil Patch Case
 
-		- Perform a NURBS spline approximation and fit the spline around the
-			the airfoil. Knot repeatedness not needed yet (will need to be done
-			for the leading edge eventually). Have the spline wrap around
-			from the trailing edge, under the airfoil, and back to the
-			trailing edge.
+		(Done) - Create the gmsh file to accompany the patch.
 
-		- Create the farfield as well as an o-grid. 
-
-		- Create the gmsh file to accompany the patch.
-
-			- Create slip wall boundary conditions at the bottom, farfield
+			(Done) - Create slip wall boundary conditions at the bottom, farfield
 				at the top and then periodic at the line at which the patch
 				touches each other at rear of the airfoil.
 
-		- Run the airfoil case and check whether the flow converges.
+		(Done) - Set the case test parameters in solution.data (for the farfield conditions)
 
+		(Done) - Add the correct function pointers in the code for the given test case
 
+			(Done) - See where the reimann bc information is read. I believe it is from 
+				boundary_euler_T.c as this function, based on the boundary condition,
+				will read the solution.data file and use those parameters for setting
+				the BC values.
 
+		(Done) - Run the airfoil case and check whether the flow converges.
 
+	- Create a boundary layer mesh for NACA airfoil case
 
+		- Have the mesh be identical to the non-boundary layer version (in terms of
+			boundary conditions) but now have more elements near the airfoil 
+			surface. 
 
+		- Rerun the cases for P2 and visualize the results
+
+	- Verify implementation with Philip for the metric terms. We just need that 
+		the metric terms are found using the NURBS mapping, that is all.
+
+	- Figure out whats going on with the orders of accuarcy tests
+
+	- Create a python plotting program for the orders case
+
+		- Use as input parameters the test keyword as well as the mesh and p levels.
+			Read the data directly from the errors folder (provide an absolute path)
+			and plot the orders data.
 
 	- Create the lift coefficient objective function.
 
@@ -60,13 +73,40 @@ Thursday/Friday:
 		- Use the linearization of the LHS in the code
 
 		- Compute the linearization of the RHS by using the complex step
+			
 			- Verify using finite differences. Create a unit test 
 				to verify linearization with finite differences. 
 				Eventually, perhaps, compute the linearization analytically
 
 		- Solve the adjoint using PETSc
 
+			- Output PETSc convergence for the adjoint solve
 
+		- Plot the density adjoint variation
+
+	- Create a python program for running cases without adaptation for the convergence
+		test.
+
+		- Take the test keyword as input along with the mesh levels. Note that the 
+			cases will have to have been added to ctests for the test_integration_run
+			case. 
+
+		- Run each case using ctest and collect the results (this way we can get by
+			the iffy aspects of mesh adaptation)
+
+	- Complete orders of accuracy tests
+
+		- When not using adaptation, the results for different mesh levels differ. This
+			is not the case for the entropy L2 error however (for some reason). All other 
+			L2 errors differ however (except for the first mesh level). Check with 
+			Philip to see why this might be the case.
+
+		(Done) - Include if statement in adaptation to handle the case where a NURBS geometry
+			is being used and the metric terms should be found using the mapping
+
+			(Done) - Check that orders hold for this case (NURBS mapping with adaptation)
+
+			- Verify the validity of the placement/implementation with Philip
 
 ToDo:
 	- Implement efficient NURBS mapping derivative using NURBS book 

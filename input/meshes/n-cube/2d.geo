@@ -136,6 +136,18 @@ ElseIf (pde_name == EULER)
 		Physical Line(bc_straight+BC_TOTAL_TP)     = {2001};
 		Physical Line(bc_base+BC_SLIPWALL)         = {1001:1002};
 		Physical Line(bc_straight+BC_SLIPWALL)     = {1003:1004};
+	ElseIf (geom_adv == GEOM_NURBS_AIRFOIL_O_GRID)
+		// Periodic left and right x face
+		//Physical Line(bc_base+BC_BACKPRESSURE) = {2001};
+		//Physical Line(bc_base+BC_TOTAL_TP) = {2002};
+		
+		Physical Line(bc_base+PERIODIC_XL) = {2001};
+	 	Physical Line(bc_base+PERIODIC_XR) = {2002};
+		Periodic Line {2002} = {2001}; // Periodic (x)
+
+		// Slipwall for bottom face and reimann for top
+		Physical Line (bc_base+BC_SLIPWALL)         = {1001:1002};
+		Physical Line (bc_base+BC_RIEMANN) = {1003:1004};
 	Else
 		Error("Unsupported geom_adv: %d",geom_adv); Exit;
 	EndIf

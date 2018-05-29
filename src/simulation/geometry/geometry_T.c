@@ -48,10 +48,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define OUTPUT_GEOMETRY false ///< Flag for whether the geometry should be output for visualization.
 
-// TODO: Read this parameter from the ctrl file. Will specify whether
-// a NURBS geometry is being worked with and, if so, then it will compute
-// all geometry parameters exactly using the NURBS mapping
-#define NURBS_geometry true
+#define OUTPUT_METRIC_TERMS false
 
 /** \brief Pointer to functions computing \ref Solver_Volume_T::geom_coef.
  *  \param sim   \ref Simulation.
@@ -182,6 +179,8 @@ void set_up_solver_geometry_T (struct Simulation* sim)
 			compute_geometry_face_T((struct Solver_Face_T*)curr,sim);
 		}
 	}
+
+	//printf("completed geometry setup\n");
 	//exit(0);
 		
 #if TYPE_RC == TYPE_REAL
@@ -268,6 +267,7 @@ void compute_NURBS_geometry_volume_T(const bool recompute_geom_coef,
 		compute_geom_coef(sim,s_vol);
 	}
 
+
 	const int d = ((struct const_Element*)g_e)->d;
 
 	const struct const_Multiarray_R*const geom_coef = s_vol->geom_coef;
@@ -279,7 +279,6 @@ void compute_NURBS_geometry_volume_T(const bool recompute_geom_coef,
 	const int p_g = ( curved ? p : 1 );
 
 	struct Multiarray_R *jacobian_vc = NULL;
-
 
 	// Compute the chain rule mapping term (to the parent element)
 	const struct const_Multiarray_R*const xyz_ve = vol->xyz_ve;
@@ -361,12 +360,13 @@ void compute_NURBS_geometry_volume_T(const bool recompute_geom_coef,
 	destructor_const_Multiarray_d(grad_xyz);
 	destructor_Multiarray_d(jacobian_vc);
 
-	/*
-	// Testing:
-	printf("NURBS APPROACH\n");
-	printf("jacobian_det_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->jacobian_det_vc);
-	printf("metrics_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->metrics_vc);
-	*/
+	if(OUTPUT_METRIC_TERMS){
+		// Testing:
+		printf("NURBS APPROACH\n");
+		printf("jacobian_det_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->jacobian_det_vc);
+		printf("metrics_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->metrics_vc);
+	}
+
 }
 
 void compute_geometry_volume_T
@@ -427,13 +427,14 @@ void compute_geometry_volume_T
 	mm_NN1C_Operator_Multiarray_R(
 		ops.vv0_vm_vc,met_vm,(struct Multiarray_R*)s_vol->metrics_vc,op_format,met_vm->order,NULL,NULL);
 	
-	/*
-	// Testing:
-	printf("NORMAL APPROACH : \n");
-	printf("jacobian_det_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->jacobian_det_vc);
-	printf("metrics_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->metrics_vc);
-	exit(0);
-	*/
+	if(OUTPUT_METRIC_TERMS){
+		// Testing:
+		printf("NORMAL APPROACH : \n");
+		printf("jacobian_det_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->jacobian_det_vc);
+		printf("metrics_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->metrics_vc);
+		//exit(0);
+	}
+
 }
 
 void compute_NURBS_geometry_face_T (struct Solver_Face_T* s_face,
@@ -592,17 +593,24 @@ void compute_NURBS_geometry_face_T (struct Solver_Face_T* s_face,
 	compute_unit_normals_and_det_T(ind_lf,e->normals, (const struct const_Multiarray_R*)metrics_fc,
 		(struct Multiarray_R*)s_face->normals_fc,(struct Multiarray_R*)s_face->jacobian_det_fc);
 
-	/*
-	// Testing:
-	printf("NURBS APPROACH : \n");
-	printf("vertices : \n"); print_const_Multiarray_R(vol->xyz_ve);
-	printf("metrics_fc : \n"); print_Multiarray_R(metrics_fc);	
-	printf("normals_fc : %d \n", ind_lf); print_Multiarray_R((struct Multiarray_R*)s_face->normals_fc);	
-	printf("jacobian_det_fc : \n"); print_Multiarray_R((struct Multiarray_R*)s_face->jacobian_det_fc);
+	// Compute the face xyz values. 
+	// TODO: Look into this further and make sure it works with the NURBS implementation
+	destructor_const_Multiarray_R(s_face->xyz_fc);
+	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc,constructor_xyz_fc(s_face,sim)); // keep
+	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc_ex_b,
+	                                          constructor_xyz_fc_on_exact_boundary(s_face,sim)); // keep
 
-	if (ind_lf == 3)
-		exit(0);
-	*/
+	if(OUTPUT_METRIC_TERMS){
+		// Testing:
+		printf("NURBS APPROACH : \n");
+		printf("vertices : \n"); print_const_Multiarray_R(vol->xyz_ve);
+		printf("metrics_fc : \n"); print_Multiarray_R(metrics_fc);	
+		printf("normals_fc : %d \n", ind_lf); print_Multiarray_R((struct Multiarray_R*)s_face->normals_fc);	
+		printf("jacobian_det_fc : \n"); print_Multiarray_R((struct Multiarray_R*)s_face->jacobian_det_fc);
+
+		//if (ind_lf == 3)
+		//	exit(0);
+	}
 
 	// Destruct allocated data structures:
 	destructor_Multiarray_d(rst_knots_i);
@@ -636,6 +644,9 @@ void compute_geometry_face_T (struct Solver_Face_T* s_face, const struct Simulat
 	const int p_v = s_vol->p_ref,
 	          p_f = s_face->p_ref;
 
+	// MSB: Create the operators here. The first operator cv0_vg_fc is for converting coefficients
+	// for volume geometry basis functions to get the values at the face cubature nodes. The second
+	// operator vv0_vm_fc is for going from metric values in the volume to face cubature values.
 	const int curved_f = (s_face->cub_type == 's' ? 0 : 1);
 	if (!vol->curved) {
 		ops.cv0_vg_fc = get_Multiarray_Operator(g_e->cv0_vgs_fc[curved_f],(ptrdiff_t[]){ind_lf,0,0,p_f,1});
@@ -645,11 +656,14 @@ void compute_geometry_face_T (struct Solver_Face_T* s_face, const struct Simulat
 		ops.vv0_vm_fc = get_Multiarray_Operator(g_e->vv0_vmc_fc[curved_f],(ptrdiff_t[]){ind_lf,0,0,p_f,p_v});
 	}
 
+	// MSB: Get the face xyz values at the cubature nodes 
 	destructor_const_Multiarray_R(s_face->xyz_fc);
 	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc,constructor_xyz_fc(s_face,sim)); // keep
 	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc_ex_b,
 	                                          constructor_xyz_fc_on_exact_boundary(s_face,sim)); // keep
 
+
+	// MSB: Get the face metric terms from the volume metric terms
 	const struct const_Multiarray_R* m_vm = s_vol->metrics_vm;
 	const struct const_Multiarray_R* metrics_fc =
 		constructor_mm_NN1_Operator_const_Multiarray_R(ops.vv0_vm_fc,m_vm,'C',op_format,m_vm->order,NULL); // d.
@@ -658,16 +672,17 @@ void compute_geometry_face_T (struct Solver_Face_T* s_face, const struct Simulat
 	compute_unit_normals_and_det_T(ind_lf,e->normals,metrics_fc,
 		(struct Multiarray_R*)s_face->normals_fc,(struct Multiarray_R*)s_face->jacobian_det_fc);
 
-	/*
-	//Testing
-	printf("NORMAL APPROACH : \n");
-	printf("vertices : \n"); print_const_Multiarray_R(vol->xyz_ve);
-	printf("metrics_fc : \n"); print_const_Multiarray_R(metrics_fc);	
-	printf("normals_fc : %d \n", ind_lf); print_Multiarray_R((struct Multiarray_R*)s_face->normals_fc);	
-	printf("jacobian_det_fc : \n"); print_Multiarray_R((struct Multiarray_R*)s_face->jacobian_det_fc);
-	if (ind_lf == 3)
-		exit(0);
-	*/
+	if(OUTPUT_METRIC_TERMS){
+		//Testing
+		printf("NORMAL APPROACH : \n");
+		printf("vertices : \n"); print_const_Multiarray_R(vol->xyz_ve);
+		printf("metrics_fc : \n"); print_const_Multiarray_R(metrics_fc);	
+		printf("normals_fc : %d \n", ind_lf); print_Multiarray_R((struct Multiarray_R*)s_face->normals_fc);	
+		printf("jacobian_det_fc : \n"); print_Multiarray_R((struct Multiarray_R*)s_face->jacobian_det_fc);
+		
+		//if (ind_lf == 3)
+		//	exit(0);
+	}
 
 	// Destruct allocated data structures:
 	destructor_const_Multiarray_R(metrics_fc);
@@ -1187,7 +1202,6 @@ static void compute_geom_coef_parametric_T (const struct Simulation*const sim, s
 
 	// MSB: This function is called when compute_geom_coef is called (without the p). 
 	// We will compute the geometry coefficient values here based on our parametric mapping
-
 
 	// MSB: Use the vertex points to interpolate to the geometry node points (xyz_s) 
 	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho_T('v',s_vol,sim); // destructed

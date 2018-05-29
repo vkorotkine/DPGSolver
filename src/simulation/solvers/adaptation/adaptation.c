@@ -54,10 +54,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+//MSB: Set this parameter to false to try and see if adaptation can be used with the NURBS
+// parametric mesh case.
+
 /** Flag for whether \ref correct_non_conforming_geometry should be executed.
  *  **This should only be disabled for comparative testing purposes.** See non-conforming and geometry related tests for
  *  additional relevant comments. */
-#define CORRECT_NON_CONFORMING_GEOMETRY true
+#define CORRECT_NON_CONFORMING_GEOMETRY false
 
 /** \brief Return the maximum number of global adaptation calls which must be made in order to achieve the adaptation
  *         strategy.
@@ -117,6 +120,7 @@ void adapt_hp (struct Simulation* sim, const int adapt_strategy, const struct Ad
 
 	constructor_derived_computational_elements(sim,IL_SOLVER_ADAPTIVE); // destructed
 
+	// MSB: On the call to compute_max_n_adapt from the orders of convergence test, we get 1
 	const int n_adapt = compute_max_n_adapt(adapt_strategy,adapt_data);
 	for (int i = 0; i < n_adapt; ++i) {
 		if(!mark_volumes_to_adapt(sim,adapt_strategy,adapt_data))
@@ -263,7 +267,7 @@ static int compute_max_n_adapt (const int adapt_strategy, const struct Adaptatio
 	case ADAPT_S_P_COARSE: // fallthrough
 	case ADAPT_S_H_REFINE: // fallthrough
 	case ADAPT_S_H_COARSE:
-		return 1;
+		return 1; // MSB: 1 is returned for the orders convergence test
 	case ADAPT_S_XYZ_VE: {
 		const struct const_Vector_i*const xyz_ve_ml = adapt_data->xyz_ve_ml,
 		                           *const xyz_ve_p  = adapt_data->xyz_ve_p;
@@ -366,21 +370,60 @@ static bool mark_volumes_to_adapt
 
 static void adapt_hp_volumes (struct Simulation* sim)
 {
+	// MSB: To_Show_Philip
+
+	// MSB: Perform the adaptation
+	// - Here, we will get the xyz_ve_p2 values and use this to find the 
+	// 	xyz_ve values of the refined volumes.
 	update_hp_members_volumes(sim);
+
+	// MSB: Update the list by adding in the volume structures for the new volumes.
+	// This means new volumes will be added to the linked list structure holding them
 	update_list_volumes(sim);
+
+	// MSB: Update the geometry information for the given volume (metric terms). 
+	// Here is where we will potentially add in the NURBS metric computation
+	// option to be able to perform refinement using the NURBS mapping approach
 	update_geometry_volumes(sim);
+
+	// MSB: Use the operator cc0_vs_vs (coefficient to coefficient of type 
+	// volume solution to volume solution) to get the coefficients of the solution
+	// basis functions for the updated volume (split volume)
 	project_solution_volumes(sim);
+
+	// MSB: Now that there are new volume elements in the volume list, 
+	// modify the index of the volumes in the list.
 	update_index_volumes(sim);
 }
 
 static void adapt_hp_faces (struct Simulation* sim)
 {
+	// MSB: To_Show_Philip
+
+	// MSB: Create the child faces from the parent ones that were adapted. 
+	// Create the intrusive linked list first.
 	update_hp_members_faces(sim);
+
+	// MSB: Update the intrusive list of faces by adding in face data structures
+	// for the child faces from the refined elements
 	update_list_existing_faces(sim);
+
+	// MSB: Get the coefficients for the solution for the refined face by projecting
+	// the solution.
 	project_solution_faces(sim);
+
+	// MSB: For the volumes in the mesh, after the adaptation, set the pointers to the
+	// faces (newly created) in the adaptation process
 	update_volume_face_pointers(sim);
+
+	// MSB: Add face data structures to the face linked list
 	update_list_new_faces(sim);
+
+	// MSB: Compute the geometry/metric terms for the new faces
 	update_geometry_faces(sim);
+
+	// MSB: With new faces now in the face linked list, update the indeces of the faces
+	// in the list
 	update_index_faces(sim);
 }
 
@@ -612,7 +655,7 @@ static void correct_non_conforming_geometry
 	);
 
 static void update_hp_members_volumes (const struct Simulation* sim)
-{
+{	
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Adaptive_Solver_Volume* a_s_vol = (struct Adaptive_Solver_Volume*) curr;
 
@@ -621,6 +664,9 @@ static void update_hp_members_volumes (const struct Simulation* sim)
 			continue;
 
 		a_s_vol->updated = true;
+
+		// MSB: Loop through the volumes in the mesh. If we need to adapt the given volume,
+		// we will be at this point, where we will either p refine or h refine it
 		switch (adapt_type) {
 		case ADAPT_P_REFINE: // fallthrough
 		case ADAPT_P_COARSE:
@@ -733,7 +779,14 @@ static void update_geometry_volumes (struct Simulation* sim)
 			continue;
 
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-		compute_geometry_volume(true,s_vol,sim);
+
+		// MSB: Test this out here. We want to compute, for the adapted volume, the 
+		// metrics using the NURBS mapping (for the NURBS enhanced case)
+		if(NURBS_geometry){
+			compute_NURBS_geometry_volume(true,s_vol,sim);
+		}else{
+			compute_geometry_volume(true,s_vol,sim);
+		}
 	}
 }
 
@@ -749,7 +802,14 @@ static void update_geometry_faces (struct Simulation* sim)
 		if (adapt_type == ADAPT_NONE)
 			continue;
 
-		compute_geometry_face(s_face,sim);
+		// MSB: Test this out here. We want to compute, for the adapted face, the 
+		// metrics using the NURBS mapping (for the NURBS enhanced case)
+		if(NURBS_geometry){
+			compute_NURBS_geometry_face(s_face,sim);
+		} else{
+			compute_geometry_face(s_face,sim);
+		}
+		
 	}
 }
 
@@ -1617,6 +1677,12 @@ static void constructor_volumes_h_refine
 	struct Intrusive_List* volumes_c = constructor_empty_IL(IL_VOLUME_SOLVER_ADAPTIVE,NULL); // destructed
 
 	const int n_children = get_n_children(vol_p->element);
+
+	// MSB: Here, we are getting the vertices of the parent volume (P1). Use these
+	// to find the P2 vertices (there should be (p+1)^2 in 2D). Then, these new
+	// points (equidistant for vertices) will be used to split up this orginal
+	// parent volume into 4 volumes
+
 	for (int n = 1; n <= n_children; ++n) {
 
 		push_back_IL(volumes_c,(struct Intrusive_Link*)

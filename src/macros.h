@@ -59,4 +59,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define OUTPUT_SUCCESS ({printf("\n\nSuccessful termination.\n\n\n");})
 ///\}
 
+
+// MSB: Temporary flag to be used for NURBS geometries. Will eventually be read
+// from a file
+// TODO: Read this parameter from the ctrl file. Will specify whether
+// a NURBS geometry is being worked with and, if so, then it will compute
+// all geometry parameters exactly using the NURBS mapping
+#define NURBS_geometry true
+
 #endif // DPG__macros_h__INCLUDED

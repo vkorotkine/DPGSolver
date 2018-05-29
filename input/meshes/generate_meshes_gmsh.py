@@ -80,6 +80,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	             "steady/vortex",
 	             "steady/gaussian_bump",
 	             "steady/NURBS",
+	             "steady/NURBS_Airfoil",
 	             "default_steady",
 	             "demkowicz_dpg_ii",
 	             "unsteady/hyperbolic_tan",
@@ -105,6 +106,8 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_upwind",input_dir,0)
 	elif (mesh_name.find("/x_lr_internal/") != -1):
 		gmsh_setnumbers += get_gmsh_number("geom_adv_internal",input_dir,0)
+	elif (mesh_name.find("/nurbs_airfoil_o_grid/") != -1):
+		gmsh_setnumbers += get_gmsh_number("geom_nurbs_airfoil_o_grid",input_dir,0)
 	else:
 		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
 

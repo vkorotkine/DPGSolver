@@ -1,8 +1,8 @@
 pde_name  euler
-pde_spec  steady/NURBS
+pde_spec  steady/NURBS_Airfoil
 
 geom_name n-cube
-geom_spec x_lr_internal
+geom_spec nurbs_airfoil_o_grid
 
 dimension 2
 
@@ -10,7 +10,7 @@ mesh_generator   n-cube/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        quad
-mesh_level       1 5
+mesh_level       0 0
 mesh_path        ../meshes/
 
 # Simulation variables
@@ -26,12 +26,12 @@ geom_representation  isoparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_ref    3 3
+p_ref    2 2
 
 fe_method 1
 
 
 # Testing variables
 
-ml_range_test 1 5
-p_range_test  3 3
+ml_range_test 0 0
+p_range_test  2 2

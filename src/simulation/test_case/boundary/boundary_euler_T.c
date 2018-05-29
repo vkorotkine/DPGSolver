@@ -107,6 +107,9 @@ void constructor_Boundary_Value_T_euler_riemann
 
 	const struct const_Multiarray_d* xyz = bv_i->xyz;
 	const struct const_Multiarray_T* sol_l = bv_i->s;
+	
+	// MSB: Set the right solution by reading the data from the solution.data
+	// file
 	const struct const_Multiarray_T* sol_r = constructor_sol_bv(xyz,sim); // destructed
 
 	const struct const_Multiarray_d* normals = bv_i->normals;

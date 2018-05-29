@@ -207,6 +207,31 @@ def get_derivative_BSpline_basis_functions_1D(P, xiVector):
 	return del_N_Basis
 
 
+def get_Spline_Function(xi, control_pts, basis_functions):
+
+	"""
+	Get the value of the spline at the given xi value. This is for a
+	parametric spline curve (1D). 
+
+	:param xi: Value on the knot domain to evaluate the spline at
+	:param control_pts: The list of n control points
+	:param basis_functions: The list of n basis functions
+
+	:return: Tuple for x,y values at the given xi point
+	"""
+
+	x_val = 0
+	y_val = 0
+
+	for i in range(len(basis_functions)):
+
+		basis_val = basis_functions[i](xi)
+		x_val += basis_val * control_pts[i][0]
+		y_val += basis_val * control_pts[i][1]
+
+	return (x_val, y_val)
+
+
 def derivative_weight_function_1D(derivative_BSplineBasis, Weights, xi):
 
 	value = 0

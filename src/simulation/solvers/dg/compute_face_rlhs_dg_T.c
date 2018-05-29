@@ -131,7 +131,6 @@ void compute_face_rlhs_dg_T
 		struct Solver_Face_T* s_face       = (struct Solver_Face_T*) curr;
 		struct DG_Solver_Face_T* dg_s_face = (struct DG_Solver_Face_T*) curr;
 UNUSED(face);
-//printf("face: %d\n",face->index);
 
 		constructor_Numerical_Flux_Input_data_dg_T(num_flux_i,dg_s_face,sim,has_2nd_order); // destructed
 #if 0
@@ -205,6 +204,7 @@ void constructor_Numerical_Flux_Input_data_dg_T
 		constructor_Boundary_Value_Input_g_face_fcl(&num_flux_i->bv_l,dg_s_face,sim); // destructed
 		constructor_Boundary_Value_g_face_fcl(&num_flux_i->bv_r,dg_s_face,sim);       // destructed
 	}
+
 	constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed
 }
 

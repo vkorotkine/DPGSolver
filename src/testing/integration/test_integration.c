@@ -117,6 +117,7 @@ void structor_simulation
 			case 'r':
 				constructor_derived_computational_elements(*sim,IL_SOLVER); // destructed
 				set_up_solver_geometry(*sim);
+				//printf("completed set_up_solver_geometry\n"); exit(0);
 				set_initial_solution(*sim);
 				break; // dest.
 			case 'c':
@@ -175,6 +176,12 @@ void structor_simulation
 		assert(mode == 'c');
 		static bool entered = false;
 		if (!entered || ignore_static) {
+			// MSB: ignore_static = false in the test_integration_convergence test
+			// because we are not restarting a case. Also, the static bool entered will
+			// be set to true so on the next call to the function this will not be entered.
+			// Therefore, on the first call, the mesh will be run using ADAPT_0 to initialize
+			// everything and then after that, adaptation will be used.
+
 			structor_simulation(sim,mode,ADAPT_0_FOR_H,p,ml,p_prev,ml_prev,ctrl_name,type_rc,ignore_static);
 			entered = true;
 			return;

@@ -100,7 +100,6 @@ void constructor_derived_Elements (struct Simulation* sim, const int derived_nam
 {
 
 	// MSB : Tracing through from test_integration, derived_name = IL_ELEMENT_SOLVER
-	// 
 	struct Derived_Elements_Info de_i = get_c_Derived_Elements_Info(derived_name,sim);
 
 	const struct const_Intrusive_List* base = sim->elements;

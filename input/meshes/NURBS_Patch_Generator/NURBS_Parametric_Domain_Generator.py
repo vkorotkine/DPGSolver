@@ -31,14 +31,16 @@ Optimization:
 """
 
 import Basis
-import user_defined_patch
+import User_Defined_Patch
+import Airfoil_Patch
 import numpy
 import matplotlib.pyplot as plt
 import sys
 
 # The type of patch to use. Perhaps take this as a command line
 # argument
-CONST_Patch_Type = "user_defined_patch"
+CONST_Patch_Type = "User_Defined_Patch"
+#CONST_Patch_Type = "Airfoil_Patch"
 CONST_EPS = 1E-9
 CONST_Output_file_name = "geometry_parameters.geo"
 
@@ -121,7 +123,7 @@ def plot_patch(patch_parameters):
 			eta_distinct_values.append(eta_val)
 
 	# Discretize the xi and eta domains so we can plot the lines
-	num_linspace_pts = 50
+	num_linspace_pts = 20
 	eta_linspace = numpy.linspace(etaVector[0]+CONST_EPS, etaVector[-1]-CONST_EPS, num_linspace_pts)
 	xi_linspace = numpy.linspace(xiVector[0]+CONST_EPS, xiVector[-1]-CONST_EPS, num_linspace_pts)
 
@@ -197,7 +199,8 @@ def output_file(patch_parameters):
 	ControlPoints_and_Weights_list = []
 	for i in range(num_xi_pts):
 		for j in range(num_eta_pts):
-			ControlPoints_and_Weights_list.append(ControlPoints_and_Weights[i][j])
+			if ControlPoints_and_Weights[i][j] not in ControlPoints_and_Weights_list:
+				ControlPoints_and_Weights_list.append(ControlPoints_and_Weights[i][j])
 
 	with open(CONST_Output_file_name, "w") as fp:
 
@@ -212,11 +215,11 @@ def output_file(patch_parameters):
 		# The knot vectors
 		fp.write("knots_xi %d \n" % len(xiVector))
 		for val in xiVector:
-			fp.write("%.14e " % val)
+			fp.write("%.14e \n" % val)
 		fp.write("\n")
 		fp.write("knots_eta %d \n" % len(etaVector))
 		for val in etaVector:
-			fp.write("%.14e " % val)
+			fp.write("%.14e \n" % val)
 		fp.write("\n")
 		fp.write("\n")
 
@@ -309,13 +312,12 @@ def main():
 	"""
 
 	# Get the patch parameters
-	if CONST_Patch_Type == "user_defined_patch":
-		patch_parameters = user_defined_patch.get_patch_information()
-	elif CONST_Patch_Type == "airfoil_patch":
-		pass
+	if CONST_Patch_Type == "User_Defined_Patch":
+		patch_parameters = User_Defined_Patch.get_patch_information()
+	elif CONST_Patch_Type == "Airfoil_Patch":
+		patch_parameters = Airfoil_Patch.get_patch_information()
 	else:
 		raise ValueError("Unknown Patch Type")
-
 
 	# Parse command line arguments
 	if len(sys.argv) == 1:

@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_level = 1; mesh_type = MIXED; mesh_domain = PARAMETRIC; pde_name = EULER; geom_conformal = GEOM_CONFORMAL_FULL; pde_spec = STEADY_JOUKOWSKI;
+mesh_level = 1; mesh_type = QUAD; mesh_domain = PARAMETRIC; pde_name = EULER; geom_conformal = GEOM_CONFORMAL_FULL; pde_spec = STEADY_JOUKOWSKI;
 
 // Geometry Specification
 If (pde_name == EULER && pde_spec == STEADY_JOUKOWSKI)

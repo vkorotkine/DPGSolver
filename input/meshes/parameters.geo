@@ -68,6 +68,7 @@ GEOM_ADV_XYZL  = 4; // (ADV)ection (X)(Y)(Z)-coords (L)eft
 GEOM_ADV_PERIODIC = 11; // (ADV)ection (PERIODIC) through all faces
 GEOM_ADV_UPWIND   = 12; // (ADV)ection (UPWIND) for all faces
 GEOM_ADV_INTERNAL = 13; // (ADV)ection (INTERNAL) flow BCs for inflow/outflow faces
+GEOM_NURBS_AIRFOIL_O_GRID = 14; // NURBS airfoil o-grid
 
 GEOM_BC_ADIABATIC_O = 31; /// (B)oundary (C)ondition (ADIABATIC) (O)uter
 GEOM_BC_DIABATIC_O  = 32; /// (B)oundary (C)ondition (DIABATIC) (O)uter
