@@ -3,7 +3,6 @@
 geom_parametrization normal_proj
 
 solver_proc   implicit
-//solver _ proc   explicit->implicit
 solver_type_i iterative
 solver_type_e ssp_rk_33
 lhs_terms     cfl_ramping
@@ -11,7 +10,6 @@ cfl_initial   1e1
 
 time_step  0.0025
 time_final 1E10
-//exit _ tol _ e  9E-2
 exit_tol_e  9E-2
 
 num_flux_1st Roe-Pike

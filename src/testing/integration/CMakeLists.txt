@@ -197,6 +197,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_Paramet
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml3__p3" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml4__p3" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml0__p2" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p2" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p2" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p2" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml4__p2" "petsc_options_gmres_default")

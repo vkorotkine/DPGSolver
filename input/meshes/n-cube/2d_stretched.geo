@@ -31,21 +31,21 @@ aspect_ratio = geom_ar;
 
 Printf("aspect_ratio ~= %g.",aspect_ratio);
 If (aspect_ratio == GMSH_DUMMY)
-	Transfinite Line{1001:1002} = 2^(mesh_level)+1   Using Progression 1;
-	Transfinite Line{2001:2002} = 2^(mesh_level+1)+1 Using Progression 1;
-	Transfinite Line{2003}      = 2^(mesh_level+1)+1 Using Progression prog_spec;
-	Transfinite Line{1003:1004} = 2^(mesh_level)+1   Using Progression prog_spec;
+	Transfinite Line{1001:1002} = 2^(mesh_level)*2+1   Using Progression 1;
+	Transfinite Line{2001:2002} = 2^(mesh_level+1)+1 Using Progression 1.3;
+	Transfinite Line{2003}      = 2^(mesh_level+1)+1 Using Progression 1.3;
+	Transfinite Line{1003:1004} = 2^(mesh_level)*2+1   Using Progression prog_spec;
 Else
 	If (aspect_ratio >= 1.0)
-		Transfinite Line{1001:1002} = aspect_ratio*2^(mesh_level)+1 Using Progression 1;
-		Transfinite Line{2001:2002} = 1*2^(mesh_level+1)+1          Using Progression 1;
-		Transfinite Line{2003}      = 1*2^(mesh_level+1)+1          Using Progression 1;
-		Transfinite Line{1003:1004} = aspect_ratio*2^(mesh_level)+1 Using Progression prog_spec;
+		Transfinite Line{1001:1002} = aspect_ratio*2^(mesh_level)*2+1 Using Progression 1;
+		Transfinite Line{2001:2002} = 1*2^(mesh_level+1)+1          Using Progression 1.3;
+		Transfinite Line{2003}      = 1*2^(mesh_level+1)+1          Using Progression 1.3;
+		Transfinite Line{1003:1004} = aspect_ratio*2^(mesh_level)*2+1 Using Progression prog_spec;
 	Else
-		Transfinite Line{1001:1002} = 2^(mesh_level)+1 Using Progression 1;
-		Transfinite Line{2001:2002} = 1.0/aspect_ratio*2^(mesh_level+1)+1 Using Progression 1.2;
-		Transfinite Line{2003}      = 1.0/aspect_ratio*2^(mesh_level+1)+1 Using Progression 1.2;
-		Transfinite Line{1003:1004} = 2^(mesh_level)+1 Using Progression prog_spec;
+		Transfinite Line{1001:1002} = 2^(mesh_level)*2+1 Using Progression 1;
+		Transfinite Line{2001:2002} = 1.0/aspect_ratio*2^(mesh_level+1)+1 Using Progression 1.3;
+		Transfinite Line{2003}      = 1.0/aspect_ratio*2^(mesh_level+1)+1 Using Progression 1.3;
+		Transfinite Line{1003:1004} = 2^(mesh_level)*2+1 Using Progression prog_spec;
 	EndIf
 EndIf
 
@@ -66,8 +66,6 @@ ElseIf (mesh_type == MIXED)
 Else
 	Error("Unsupported mesh_type: %d",mesh_type); Exit;
 EndIf
-
-
 
 // Physical parameters for '.msh' file
 bc_straight =   BC_STEP_SC;

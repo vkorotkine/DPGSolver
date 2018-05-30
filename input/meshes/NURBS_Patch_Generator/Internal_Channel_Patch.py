@@ -47,7 +47,6 @@ CONST_DELTA_Y = 0.5  # How much to lift middle points by
 
 # ==================================================
 
-
 def get_channel_top_parameters():
 
 	"""

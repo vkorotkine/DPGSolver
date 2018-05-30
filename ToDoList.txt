@@ -44,15 +44,15 @@
 		(Done) - Create a bump case with a straight entrance to allow for the inflow 
 			boundary condition to be satisfied properly. 
 
-	- Create a python plotting program for the orders case
+	(Done) - Create a python plotting program for the orders case
 
-		- Use as input parameters the test keyword as well as the mesh and p levels.
+		(Done) - Use as input parameters the test keyword as well as the mesh and p levels.
 			Read the data directly from the errors folder (provide an absolute path)
 			and plot the orders data.
 
-		- Output a table with the order and error results
+		(Done) - Output a table with the order and error results
 
-	- Create a boundary layer mesh for NACA airfoil case
+	- Create a stretched mesh for NACA airfoil case
 
 		- Do this by creating a new 2D.geo file with a line that has 
 			Using Progression 1.2 to allow for the grid to stretch in the 

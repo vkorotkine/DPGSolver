@@ -6,7 +6,7 @@ geom_spec nurbs_airfoil_o_grid
 
 dimension 2
 
-mesh_generator   n-cube/2d.geo
+mesh_generator   n-cube/2d_stretched.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        quad
