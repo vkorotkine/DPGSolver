@@ -297,6 +297,12 @@ static struct Derived_Elements_Info get_c_Derived_Elements_Info (const int deriv
 		de_info.sizeof_derived = sizeof(struct DPG_Solver_Element);
 		de_info.constructor_derived_Element = constructor_derived_DPG_Solver_Element;
 		break;
+	case IL_ELEMENT_SOLVER_OPG:
+		assert(sim->elements->name == IL_ELEMENT_SOLVER);
+		de_info.sizeof_base    = sizeof(struct Solver_Element);
+		de_info.sizeof_derived = sizeof(struct OPG_Solver_Element);
+		de_info.constructor_derived_Element = constructor_derived_OPG_Solver_Element;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_name);
 		break;

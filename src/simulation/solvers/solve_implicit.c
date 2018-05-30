@@ -193,6 +193,10 @@ static void constructor_derived_elements_comp_elements (struct Simulation* sim)
 		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DPG);       // destructed
 		constructor_derived_computational_elements(sim,IL_SOLVER_DPG); // destructed
 		break;
+	case METHOD_OPG:
+		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_OPG);       // destructed
+		constructor_derived_computational_elements(sim,IL_SOLVER_OPG); // destructed
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
 		break;

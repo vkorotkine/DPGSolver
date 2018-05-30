@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_level = 2; mesh_type = MIXED; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_XL; geom_unaligned = 1;
+//mesh_level = 2; mesh_type = MIXED; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_XL; geom_unaligned = 1; geom_ar = 0.5;
 //mesh_level = 1; mesh_type = QUAD; mesh_domain = PARAMETRIC; pde_name = EULER; geom_adv = GEOM_ADV_INTERNAL; geom_unaligned = 0; geom_ar = 0.5;
 
 // Geometry Specification
@@ -22,7 +22,7 @@ Line(2002) = {2,4};
 Line(2003) = {5,6};
 
 If (!geom_unaligned)
-	prog_spec = 1;
+	prog_spec = 1.0;
 Else
 	prog_spec = 1.1;
 EndIf

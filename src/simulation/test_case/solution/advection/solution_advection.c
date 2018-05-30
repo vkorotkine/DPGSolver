@@ -152,6 +152,7 @@ const double* compute_b_adv_vortex (const double*const xyz)
 
 	const double x = xyz[0],
 	             y = xyz[1];
+MAYBE_UNUSED(x);
 
 	// Denominator omitted to allow for exact GCL satisfaction.
 //	const double t = atan2(y,x);

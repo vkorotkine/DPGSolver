@@ -45,6 +45,8 @@ set	(SOURCE
 	 solvers/dpg/solve_dpg.c
 	 solvers/dpg/volume_solver_dpg.c
 
+	 solvers/opg/element_solver_opg.c
+
 	 solvers/numerical_flux/numerical_flux.c
 	 solvers/numerical_flux/numerical_flux_advection.c
 	 solvers/numerical_flux/numerical_flux_diffusion.c

@@ -5,11 +5,11 @@ TOP_DIR="${PWD}/../.."
 
 # Modifiable parameters ****************************************************** #
 
-export MKLROOT=/Users/philip/Desktop/research_codes/mkl/mkl_2017_3/mkl
-export PETSC_DIR=/Users/philip/Desktop/research_codes/petsc/petsc-3.8.2
+export MKLROOT=/Users/philip/Desktop/research_codes/mkl/mkl_2018_2/mkl
+export PETSC_DIR=/Users/philip/Desktop/research_codes/petsc/petsc-3.9.2
 export PETSC_ARCH=arch-macOS-mkl-mpich-debug
 
-BUILD_DIR=${TOP_DIR}/build
+BUILD_DIR=${TOP_DIR}/build_debug
 
 CMAKE_BUILD_TYPE=Debug
 TOOLCHAIN_FILE=gcc.cmake

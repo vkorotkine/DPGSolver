@@ -69,7 +69,6 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 
 	static int adv_type = -1;
 	static bool use_constant_solution = false;
-	static double u_scale = 0.0;
 
 	static bool requires_input = true;
 	if (requires_input) {
@@ -81,7 +80,6 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 		else
 			EXIT_UNSUPPORTED;
 		use_constant_solution = sol_data.use_constant_solution;
-		u_scale = sol_data.u_scale;
 	}
 
 	// Compute the solution

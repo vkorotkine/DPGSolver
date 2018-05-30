@@ -33,7 +33,7 @@ geom_blending_si     szabo_babuska_gen
 p_ref    1 3
 p_cub_p  0 0
 
-fe_method 1
+method_name optimal_petrov_galerkin
 
 
 # Testing variables

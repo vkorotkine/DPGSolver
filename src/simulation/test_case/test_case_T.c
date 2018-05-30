@@ -205,7 +205,8 @@ static void set_method_related (struct Test_Case_T*const test_case, const struct
 		if (test_case->has_2nd_order)
 			const_cast_b(&test_case->required_unknowns[2],true);
 		break;
-	case METHOD_DPG:
+	case METHOD_DPG: // fallthrough
+	case METHOD_OPG:
 		const_cast_b(&test_case->required_unknowns[1],true);
 		if (test_case->has_2nd_order) {
 			for (int i = 2; i < MAX_N_UNKNOWNS; ++i)
@@ -287,7 +288,8 @@ static void correct_invalid_test_case_parameters (struct Test_Case_T* test_case,
 	case METHOD_DG:
 		const_cast_b(&test_case->use_schur_complement,false);
 		break;
-	case METHOD_DPG:
+	case METHOD_DPG: // fallthrough
+	case METHOD_OPG:
 		break; // Do nothing.
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);

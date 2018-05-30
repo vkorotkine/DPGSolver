@@ -79,7 +79,7 @@ void set_function_pointers_solution_advection_T (struct Test_Case_T* test_case, 
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
 
 		test_case->constructor_Error_CE         = constructor_Error_CE_advection_all;
-//		test_case->constructor_Error_CE         = constructor_Error_CE_advection_all_p_rhs;
+		test_case->constructor_Error_CE         = constructor_Error_CE_advection_all_p_rhs;
 	} else if (strstr(sim->pde_spec,"steady/free_stream")) {
 		if (strstr(sim->geom_name,"n-cube")) {
 			test_case->constructor_xyz = constructor_xyz_trigonometric_cube_parametric_xl_T;
@@ -126,6 +126,19 @@ static void set_function_pointers_num_flux_T (struct Test_Case_T* test_case, con
 		case NUM_FLUX_UPWIND:
 			test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_T_advection_upwind;
 			test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_T_advection_upwind_jacobian;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
+			break;
+		}
+		break;
+	case METHOD_OPG:
+		// As above, but jacobian not needed
+		test_case->compute_Numerical_Flux = compute_Numerical_Flux_1_T;
+		switch (test_case->ind_num_flux[0]) {
+		case NUM_FLUX_UPWIND:
+			test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_T_advection_upwind;
+			test_case->compute_Numerical_Flux_i[0] = NULL;
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);

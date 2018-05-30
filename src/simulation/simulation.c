@@ -320,6 +320,7 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 
 	// Read information
 	char line[STRLEN_MAX];
+	int dummy = 0;
 	while (fgets(line,sizeof(line),ctrl_file)) {
 		if (strstr(line,"pde_name"))  read_skip_const_c_1(line,sim->pde_name);
 		if (strstr(line,"pde_spec"))  read_skip_const_c_1(line,sim->pde_spec);
@@ -354,7 +355,9 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"p_cub_p"))  read_skip_const_i_1(line,1,sim->p_c_p,2);
 		if (strstr(line,"p_test_p")) read_skip_const_i_1(line,1,sim->p_t_p,2);
 
+		// fe_method (kept for backward compatibility) and method_name specify the same information.
 		if (strstr(line,"fe_method")) read_skip_const_i_1(line,1,&sim->method,1);
+		read_skip_convert_const_i(line,"method_name",&sim->method,&dummy);
 
 		if (strstr(line,"collocated")) read_skip_const_b(line,&sim->collocated);
 	}
@@ -411,7 +414,7 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 	assert((sim->method == METHOD_DPG) || (sim->p_t_p[0] == P_INVALID && sim->p_t_p[1] == P_INVALID));
 
 	assert((sim->method == METHOD_DG)   || (sim->method == METHOD_HDG) ||
-	       (sim->method == METHOD_HDPG) || (sim->method == METHOD_DPG));
+	       (sim->method == METHOD_HDPG) || (sim->method == METHOD_DPG) || (sim->method == METHOD_OPG));
 }
 
 static void set_simulation_default (struct Simulation*const sim)

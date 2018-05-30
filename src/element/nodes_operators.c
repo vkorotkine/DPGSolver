@@ -951,6 +951,7 @@ static const struct const_Vector_i* constructor_ind_h_b_coords
 			EXIT_ERROR("Unsupported: %c.\n",ce);
 			break;
 		}
+		break;
 	case PYR:
 		switch (ce) {
 		case 'v': {

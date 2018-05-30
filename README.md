@@ -32,6 +32,7 @@
 - Methods:
 	- Discontinuous Galerkin (DG);
 	- Discontinuous Petrov Galerkin (DPG).
+	- Optimal Petrov Galerkin (OPG).
 - Supported Partial Differential Equations: Advection, Diffusion, Euler, Navier-Stokes.
 - Supported elements: LINEs, TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
 - Supported refinements: isotropic h (size) or p (order).
@@ -47,15 +48,17 @@ the code.
 ## Building/Running the Code
 
 The code has been succesfully built in the following environments:
-- linux (ubuntu 16.04);
-- macOS (Sierra 10.12.5).
+- linux (ubuntu 16.04 and later);
+- macOS (Sierra 10.12.5 and later).
+
+Please consult the [installation instructions](INSTALL.md) for details concerning required software.
 
 ### Build using CMake
 
 An out-of-source build must be performed using the [sample scripts](cmake/run) by executing the
 appropriate bash script. For example, to configure for the debug build for macOS:
 ```sh
-$ ROOT/cmake/run$ sh macOS_gcc_debug.sh
+$ ROOT/cmake/run$ ./macOS_gcc_debug.sh
 ```
 
 **A customized script file may be required** if CMake is unable to locate required software which

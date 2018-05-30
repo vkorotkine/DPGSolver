@@ -325,7 +325,7 @@ static void copy_error_files_for_conv_study
 	if (!int_test_info->conv_study_extension)
 		return;
 
-	char command[2*STRLEN_MAX];
+	char command[3*STRLEN_MAX];
 	const char*const input_name_i = compute_error_input_name_root(int_test_info,error_type,true,sim),
 	          *const input_name_o = compute_error_input_name_root(int_test_info,error_type,false,sim);
 

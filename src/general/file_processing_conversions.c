@@ -144,6 +144,12 @@ static int get_define (const char*const def_str, const char*const def_type)
 		else if (strcmp(def_str,"trigonometric_x") == 0) def_i = BOUNDARY_PERTURB_TYPE_TRIG_X;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"method_name") == 0) {
+		if      (strcmp(def_str,"discontinous_galerkin")         == 0) def_i = METHOD_DG;
+		else if (strcmp(def_str,"discontinuous_petrov_galerkin") == 0) def_i = METHOD_DPG;
+		else if (strcmp(def_str,"optimal_petrov_galerkin")       == 0) def_i = METHOD_OPG;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",def_type);
 	}

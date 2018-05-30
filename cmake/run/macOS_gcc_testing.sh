@@ -7,12 +7,12 @@ TOP_DIR="${PWD}/../.."
 
 export MKLROOT=/Users/philip/Desktop/research_codes/mkl/mkl_2017_3/mkl
 export PETSC_DIR=/Users/philip/Desktop/research_codes/petsc/petsc-3.8.3
-
 export PETSC_ARCH=arch-macOS-mkl-mpich-release
-BUILD_DIR=${TOP_DIR}/build_test
+
+BUILD_DIR=${TOP_DIR}/build
 
 #export PETSC_ARCH=arch-macOS-mkl-mpich-viennacl-release
-#BUILD_DIR=${TOP_DIR}/build_test_vienna
+#BUILD_DIR=${TOP_DIR}/build_vienna
 
 CMAKE_BUILD_TYPE=Release
 TOOLCHAIN_FILE=gcc.cmake

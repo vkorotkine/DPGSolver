@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define METHOD_HDG  2
 #define METHOD_HDPG 3
 #define METHOD_DPG  4
+#define METHOD_OPG  5
 ///\}
 
 #define MAX_N_UNKNOWNS 4 ///< The 'max'imum 'n'umber of 'unknowns' (i.e. solution/gradient variables).

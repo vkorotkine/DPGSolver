@@ -127,7 +127,7 @@ void correct_for_exact_normal_gaussian_bump_T (struct Solver_Face_T*const s_face
 		struct Function_Data_GP f_data = { .scale = 1.0, };
 		const Real df_dx = f_gaussian_bump(xyz_n[0],1,&f_data);
 
-		Real n_ex[] = { df_dx, -1.0, };
+		Real n_ex[] = { df_dx, -1.0, 0.0, };
 		const Real norm_n = sqrt(n_ex[0]*n_ex[0]+n_ex[1]*n_ex[1]);
 		for (int i = 0; i < 2; ++i)
 			n_ex[i] /= norm_n;
