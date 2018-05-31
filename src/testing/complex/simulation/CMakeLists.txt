@@ -23,9 +23,13 @@ set	(SOURCE
 	 solvers/dg/test_complex_volume_solver_dg.c
 
 	 solvers/dpg/test_complex_compute_all_rhs_dpg.c
-	 solvers/dpg/test_complex_solve_dpg.c
 	 solvers/dpg/test_complex_face_solver_dpg.c
+	 solvers/dpg/test_complex_solve_dpg.c
 	 solvers/dpg/test_complex_volume_solver_dpg.c
+
+	 solvers/opg/test_complex_face_solver_opg.c
+	 solvers/opg/test_complex_solve_opg.c
+	 solvers/opg/test_complex_volume_solver_opg.c
 
 	 solvers/numerical_flux/test_complex_numerical_flux.c
 	 solvers/numerical_flux/test_complex_numerical_flux_advection.c

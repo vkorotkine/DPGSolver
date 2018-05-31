@@ -32,6 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_flux.h"
 #include "def_templates_operators.h"
+#include "def_templates_solve.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -52,6 +53,11 @@ static void set_initial_f_nf_coef
 /// \brief Set up the exact \ref Solver_Face_T::nf_fc if possible.
 static void set_exact_f_nf_fc
 	(struct Simulation* sim ///< \ref Simulation.
+	);
+
+/// \brief Set up the initial \ref Solver_Volume_T::test_s_coef and \todo ref Solver_Volume_T::test_g_coef.
+static void set_initial_v_test_sg_coef
+	(struct Simulation*const sim ///< \ref Simulation.
 	);
 
 /** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vg_vc operator.
@@ -129,11 +135,13 @@ void set_initial_solution_T (struct Simulation* sim)
 	case METHOD_DG:
 		set_initial_v_sg_coef(sim);
 		break;
-	case METHOD_DPG: // fallthrough
-	case METHOD_OPG:
+	case METHOD_DPG:
 		set_initial_v_sg_coef(sim);
 		set_initial_f_nf_coef(sim);
 		set_exact_f_nf_fc(sim);
+		// fallthrough
+	case METHOD_OPG:
+		set_initial_v_test_sg_coef(sim);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
@@ -403,6 +411,22 @@ static void set_exact_f_nf_fc (struct Simulation* sim)
 		s_face->nf_fc = constructor_nf(s_face,'c',flux_i,sim); // keep
 	}
 	destructor_Flux_Input_T(flux_i);
+}
+
+static void set_initial_v_test_sg_coef (struct Simulation*const sim)
+{
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_var = test_case->n_var;
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
+		const struct Operator*const tw0_vt_vc = get_operator__tw0_vt_vc_T(s_vol);
+
+		const ptrdiff_t ext_0 = tw0_vt_vc->op_std->ext_0,
+		                extents[] = { ext_0, n_var, };
+		resize_Multiarray_T(s_vol->test_s_coef,s_vol->test_s_coef->order,extents);
+		set_to_value_Multiarray_T(s_vol->test_s_coef,0.0);
+	}
 }
 
 static const struct Operator* get_operator__cv0_vg_vc (const struct Solver_Volume_T* s_vol)

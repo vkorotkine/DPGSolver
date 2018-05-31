@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_solve_dg.h"
 #include "test_complex_solve_dpg.h"
+#include "test_complex_solve_opg.h"
 #include "test_complex_test_case.h"
 
 

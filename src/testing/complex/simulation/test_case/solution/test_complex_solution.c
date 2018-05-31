@@ -47,6 +47,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_flux.h"
 #include "test_complex_operators.h"
 #include "test_complex_solution.h"
+#include "test_complex_solve.h"
 #include "test_complex_test_case.h"
 
 // Static function declarations ************************************************************************************* //

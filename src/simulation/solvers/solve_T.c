@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_solve_dg.h"
 #include "def_templates_solve_dpg.h"
+#include "def_templates_solve_opg.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -96,7 +97,7 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const str
 
 ptrdiff_t compute_dof_T (const struct Simulation* sim)
 {
-	assert((sim->method == METHOD_DG) || (sim->method == METHOD_DPG)); // Ensure that all is working correctly if modified.
+	assert((sim->method == METHOD_DG) || (sim->method == METHOD_DPG) || (sim->method == METHOD_OPG));
 	ptrdiff_t dof = 0;
 	dof += compute_dof_volumes(sim);
 	dof += compute_dof_faces(sim);
@@ -109,6 +110,7 @@ void update_ind_dof_T (const struct Simulation* sim)
 	switch (sim->method) {
 	case METHOD_DG:  update_ind_dof_dg_T(sim);  break;
 	case METHOD_DPG: update_ind_dof_dpg_T(sim); break;
+	case METHOD_OPG: update_ind_dof_opg_T(sim); break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;
@@ -156,6 +158,7 @@ static struct Vector_i* constructor_nnz (const struct Simulation* sim)
 	switch (sim->method) {
 	case METHOD_DG:  nnz = constructor_nnz_dg_T(sim);  break;
 	case METHOD_DPG: nnz = constructor_nnz_dpg_T(sim); break;
+	case METHOD_OPG: nnz = constructor_nnz_opg_T(sim); break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;

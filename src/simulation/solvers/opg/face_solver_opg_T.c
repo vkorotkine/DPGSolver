@@ -15,25 +15,25 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_complex_computational_elements.h"
+#include <assert.h>
 
-#include "test_complex_face_solver_dg.h"
-#include "test_complex_face_solver_dpg.h"
-#include "test_complex_face_solver_opg.h"
-#include "test_complex_volume_solver_dg.h"
-#include "test_complex_volume_solver_dpg.h"
-#include "test_complex_volume_solver_opg.h"
+#include "macros.h"
 
-#include "computational_elements.h"
-#include "intrusive.h"
-#include "simulation.h"
+#include "def_templates_face_solver_opg.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_dc.h"
-#include "computational_elements_T.c"
+void constructor_derived_OPG_Solver_Face_T (struct Face* face_ptr, const struct Simulation* sim)
+{
+	UNUSED(face_ptr); UNUSED(sim);
+}
+
+void destructor_derived_OPG_Solver_Face_T (struct Face* face_ptr)
+{
+	UNUSED(face_ptr);
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

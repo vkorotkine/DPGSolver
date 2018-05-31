@@ -12,21 +12,16 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
 /** \file
- *  \brief Provides the interface to functions used to solve for the solution using the 'd'iscontinuous 'p'etrov
- *         'g'alerkin method.
+ *  \brief Undefine macro definitions for c-style templating relating to \ref OPG_Solver_Volume_T containers/functions.
  */
 
-struct Simulation;
-struct Solver_Storage_Implicit;
+///\{ \name Data types
+#undef OPG_Solver_Volume_T
+///\}
 
-/// \brief Update \ref Solver_Volume_T::ind_dof and \ref Solver_Face_T::ind_dof for the dpg method.
-void update_ind_dof_dpg_T
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/** \brief Version of \ref constructor_nnz for the dpg method.
- *  \return See brief. */
-struct Vector_i* constructor_nnz_dpg_T
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
+///\{ \name Function names
+#undef constructor_derived_OPG_Solver_Volume_T
+#undef destructor_derived_OPG_Solver_Volume_T
+///\}

@@ -15,25 +15,43 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_complex_computational_elements.h"
+#include "test_complex_solve_opg.h"
 
-#include "test_complex_face_solver_dg.h"
-#include "test_complex_face_solver_dpg.h"
+#include "complex_multiarray.h"
+
 #include "test_complex_face_solver_opg.h"
-#include "test_complex_volume_solver_dg.h"
-#include "test_complex_volume_solver_dpg.h"
 #include "test_complex_volume_solver_opg.h"
 
-#include "computational_elements.h"
+#include "test_complex_boundary.h"
+#include "test_complex_boundary_advection.h"
+#include "test_complex_boundary_euler.h"
+#include "test_support_computational_elements.h"
+#include "test_support_multiarray.h"
+#include "test_complex_test_case.h"
+
+
+#include <assert.h>
+
+#include "macros.h"
+#include "definitions_intrusive.h"
+#include "definitions_tol.h"
+#include "definitions_test_integration.h"
+
+#include "multiarray.h"
+#include "vector.h"
+
+#include "const_cast.h"
 #include "intrusive.h"
 #include "simulation.h"
+#include "solve.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_dc.h"
-#include "computational_elements_T.c"
+#include "solve_opg_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

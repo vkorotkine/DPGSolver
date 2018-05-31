@@ -12,21 +12,22 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__test_complex_face_solver_opg_h__INCLUDED
+#define DPG__test_complex_face_solver_opg_h__INCLUDED
 /** \file
- *  \brief Provides the interface to functions used to solve for the solution using the 'd'iscontinuous 'p'etrov
- *         'g'alerkin method.
+ *  \brief Provides the interface for the real \ref OPG_Solver_Face_T container and associated functions.
  */
 
-struct Simulation;
-struct Solver_Storage_Implicit;
+#include "test_complex_face_solver.h"
 
-/// \brief Update \ref Solver_Volume_T::ind_dof and \ref Solver_Face_T::ind_dof for the dpg method.
-void update_ind_dof_dpg_T
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
+#include "def_templates_type_dc.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_face_solver_opg.h"
+#include "face_solver_opg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_opg.h"
 
-/** \brief Version of \ref constructor_nnz for the dpg method.
- *  \return See brief. */
-struct Vector_i* constructor_nnz_dpg_T
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
+
+#endif // DPG__test_complex_face_solver_opg_h__INCLUDED

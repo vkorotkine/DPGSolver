@@ -15,25 +15,30 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_complex_computational_elements.h"
+#include "macros.h"
 
-#include "test_complex_face_solver_dg.h"
-#include "test_complex_face_solver_dpg.h"
-#include "test_complex_face_solver_opg.h"
-#include "test_complex_volume_solver_dg.h"
-#include "test_complex_volume_solver_dpg.h"
-#include "test_complex_volume_solver_opg.h"
+#include "def_templates_volume_solver_opg.h"
 
-#include "computational_elements.h"
-#include "intrusive.h"
-#include "simulation.h"
+#include "def_templates_multiarray.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_dc.h"
-#include "computational_elements_T.c"
+void constructor_derived_OPG_Solver_Volume_T (struct Volume* volume_ptr, const struct Simulation* sim)
+{
+	struct OPG_Solver_Volume_T* opg_s_vol = (struct OPG_Solver_Volume_T*) volume_ptr;
+	UNUSED(sim);
+
+	opg_s_vol->test_s_coef = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0}); // destructed
+}
+
+void destructor_derived_OPG_Solver_Volume_T (struct Volume* volume_ptr)
+{
+	struct OPG_Solver_Volume_T* opg_s_vol = (struct OPG_Solver_Volume_T*) volume_ptr;
+
+	destructor_Multiarray_T(opg_s_vol->test_s_coef);
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

@@ -32,6 +32,9 @@ struct Solver_Volume_T {
 	 *  global dof. */
 	const ptrdiff_t ind_dof_constraint;
 
+	/// The index of the first degree of freedom (dof) of test functions for the volume.
+	const ptrdiff_t ind_dof_test;
+
 	/// The reference order of the volume. Need not be equal to the order of the solution in the volume.
 	const int p_ref;
 
@@ -81,6 +84,10 @@ struct Solver_Volume_T {
 	struct Multiarray_T* l_mult; ///< The values of the Lagrange multipliers used to enforce conservation.
 
 	struct Multiarray_T* rhs; ///< The rhs terms.
+
+	/** Optimal test function coefficients for the solution. These are included here and not in derived Solver Volumes
+	 *  so that they may be used outside of the solver functions (visualization, comparison, etc). */
+	struct Multiarray_T* test_s_coef;
 };
 
 /// \brief Constructor for a derived \ref Solver_Volume_T.

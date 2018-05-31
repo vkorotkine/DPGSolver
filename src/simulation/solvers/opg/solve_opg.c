@@ -15,25 +15,32 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_complex_computational_elements.h"
+#include "solve_opg.h"
 
-#include "test_complex_face_solver_dg.h"
-#include "test_complex_face_solver_dpg.h"
-#include "test_complex_face_solver_opg.h"
-#include "test_complex_volume_solver_dg.h"
-#include "test_complex_volume_solver_dpg.h"
-#include "test_complex_volume_solver_opg.h"
+#include <assert.h>
 
-#include "computational_elements.h"
+#include "macros.h"
+
+#include "face_solver.h"
+#include "volume_solver.h"
+
+#include "multiarray.h"
+#include "vector.h"
+
+#include "compute_source_rlhs_dg.h"
+#include "const_cast.h"
 #include "intrusive.h"
 #include "simulation.h"
+#include "solve.h"
+#include "solve_implicit.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_dc.h"
-#include "computational_elements_T.c"
+#include "def_templates_type_d.h"
+#include "solve_opg_T.c"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

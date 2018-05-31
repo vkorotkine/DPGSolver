@@ -50,6 +50,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "solve_dg.h"
 #include "solve_dpg.h"
+#include "solve_opg.h"
 
 // Static function declarations ************************************************************************************* //
 

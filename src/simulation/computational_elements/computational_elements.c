@@ -20,9 +20,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "face_solver_adaptive.h"
 #include "face_solver_dg.h"
 #include "face_solver_dpg.h"
+#include "face_solver_opg.h"
 #include "volume_solver_adaptive.h"
 #include "volume_solver_dg.h"
 #include "volume_solver_dpg.h"
+#include "volume_solver_opg.h"
 
 #include "element.h"
 #include "element_geometry.h"
@@ -32,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element_solver.h"
 #include "element_solver_dg.h"
 #include "element_solver_dpg.h"
+#include "element_solver_opg.h"
 
 #include "intrusive.h"
 #include "simulation.h"

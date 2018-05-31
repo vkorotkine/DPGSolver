@@ -28,9 +28,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_face_solver.h"
 #include "def_templates_face_solver_dg.h"
 #include "def_templates_face_solver_dpg.h"
+#include "def_templates_face_solver_opg.h"
 #include "def_templates_volume_solver.h"
 #include "def_templates_volume_solver_dg.h"
 #include "def_templates_volume_solver_dpg.h"
+#include "def_templates_volume_solver_opg.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -268,6 +270,18 @@ static struct Derived_Comp_Elements_Info get_c_Derived_Comp_Elements_Info
 		de_info.constructor_derived_Volume = constructor_derived_DPG_Solver_Volume_T;
 		de_info.constructor_derived_Face   = constructor_derived_DPG_Solver_Face_T;
 		break;
+	case IL_SOLVER_OPG:
+		assert(sim->volumes->name == IL_VOLUME_SOLVER);
+		assert(sim->faces->name   == IL_FACE_SOLVER);
+		de_info.list_name[0] = IL_VOLUME_SOLVER_OPG;
+		de_info.list_name[1] = IL_FACE_SOLVER_OPG;
+		de_info.sizeof_base[0] = sizeof(struct Solver_Volume_T);
+		de_info.sizeof_base[1] = sizeof(struct Solver_Face_T);
+		de_info.sizeof_derived[0] = sizeof(struct OPG_Solver_Volume_T);
+		de_info.sizeof_derived[1] = sizeof(struct OPG_Solver_Face_T);
+		de_info.constructor_derived_Volume = constructor_derived_OPG_Solver_Volume_T;
+		de_info.constructor_derived_Face   = constructor_derived_OPG_Solver_Face_T;
+		break;
 #if TYPE_RC == TYPE_REAL
 	case IL_SOLVER_ADAPTIVE:
 		assert(sim->volumes->name == IL_VOLUME_SOLVER);
@@ -327,6 +341,11 @@ static struct Derived_Comp_Elements_Info get_d_Derived_Comp_Elements_Info
 		assert(base_category == IL_SOLVER);
 		de_info.destructor_derived_Volume = destructor_derived_DPG_Solver_Volume_T;
 		de_info.destructor_derived_Face   = destructor_derived_DPG_Solver_Face_T;
+		break;
+	case IL_SOLVER_OPG:
+		assert(base_category == IL_SOLVER);
+		de_info.destructor_derived_Volume = destructor_derived_OPG_Solver_Volume_T;
+		de_info.destructor_derived_Face   = destructor_derived_OPG_Solver_Face_T;
 		break;
 #if TYPE_RC == TYPE_REAL
 	case IL_SOLVER_ADAPTIVE:
@@ -397,6 +416,10 @@ static int get_list_category (const struct Simulation* sim)
 	case IL_VOLUME_SOLVER_DPG:
 		assert(f_name == IL_FACE_SOLVER_DPG);
 		ce_name = IL_SOLVER_DPG;
+		break;
+	case IL_VOLUME_SOLVER_OPG:
+		assert(f_name == IL_FACE_SOLVER_OPG);
+		ce_name = IL_SOLVER_OPG;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",v_name);
