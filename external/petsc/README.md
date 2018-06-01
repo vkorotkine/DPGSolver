@@ -11,7 +11,7 @@ The following packages must have previously been installed:
 
 - Clone PETSc in a suitable location using the command specified on the
   [PETSc download page][PETSc_download].
-- From the PETSc ROOT directory, configure using the provided [configure files](external/petsc/configure_files).
+- From the PETSc ROOT directory, configure using the provided [configure files](configure_files).
   PETSC_ARCH will be set to the name of your configure file. Note that minor customization may be required for your
   system:
 
@@ -32,8 +32,7 @@ in PETSC_ROOT.
 
 ## Options files
 
-When required, the name of a PETSc options file from
-[DPGROOT/external/petsc/options_files](external/petsc/options_files)
-**without the `.txt` file extension** should be passed as argv[2].
+When required, the name of a PETSc options file from [available options files](options_files) **without the `.txt` file
+extension** should be passed as argv[2].
 
 [PETSc_download]: https://www.mcs.anl.gov/petsc/download/index.html
