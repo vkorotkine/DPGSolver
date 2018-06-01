@@ -1,81 +1,15 @@
 
-	(Done) - Run the NURBS bump test case and verify that the solution converges. 
-		Visualize the results.
+	- Create a test for the optimization run similar to test_integration_run
 
-		(Done) - Compare the metric and normal terms using the NURBS approach and normal 
-			method. They should be of similar orders of magnitude
+	(Done) - Create the lift coefficient objective function.
 
-	(Done) - Create a NACA 0012 airfoil patch
-
-		(Done) - Use a B Spline to represent the airfoil. Perform a continuous least squares 
-			approximation to find the location to place the control points at. Since
-			a B Spline will be used for this, the weights of all control points should
-			be 1.
-
-		(Done) - Use a NURBS circle representation for the farfield (so we still have a NURBS
-			patch we are working with). This will create a o-grid.
-
-	(Done) - Run the NACA 0012 Airfoil Patch Case
-
-		(Done) - Create the gmsh file to accompany the patch.
-
-			(Done) - Create slip wall boundary conditions at the bottom, farfield
-				at the top and then periodic at the line at which the patch
-				touches each other at rear of the airfoil.
-
-		(Done) - Set the case test parameters in solution.data (for the farfield conditions)
-
-		(Done) - Add the correct function pointers in the code for the given test case
-
-			(Done) - See where the reimann bc information is read. I believe it is from 
-				boundary_euler_T.c as this function, based on the boundary condition,
-				will read the solution.data file and use those parameters for setting
-				the BC values.
-
-		(Done) - Run the airfoil case and check whether the flow converges.
-
-	(Done) - Get the orders of convergence of the NURBS patch bump case
-
-		(Done) - Get the ADAPT_0 case and ADAPT_HP case to create the same results
-
-		(Done) - Remove the implemented ADAPT_0 case and run the case as Philip had 
-			described
-
-		(Done) - Create a bump case with a straight entrance to allow for the inflow 
-			boundary condition to be satisfied properly. 
-
-	(Done) - Create a python plotting program for the orders case
-
-		(Done) - Use as input parameters the test keyword as well as the mesh and p levels.
-			Read the data directly from the errors folder (provide an absolute path)
-			and plot the orders data.
-
-		(Done) - Output a table with the order and error results
-
-	- Create a stretched mesh for NACA airfoil case
-
-		- Do this by creating a new 2D.geo file with a line that has 
-			Using Progression 1.2 to allow for the grid to stretch in the 
-			normal direction.
-
-		- Have the mesh be identical to the non-boundary layer version (in terms of
-			boundary conditions) but now have more elements near the airfoil 
-			surface. 
-
-		- Rerun the cases for P2 and visualize the results
-
-	- Create the lift coefficient objective function.
-
-		- Compute the lift by integrating the pressure on any face that had 
+		(Done) - Compute the lift by integrating the pressure on any face that had 
 			a slip wall BC. Then just sum up all the contributions. 
 
-		- Create a lift coefficient function similar to that which is in solution_euler.c.
-			Reason being that we need to make the function templated eventually.
-
-		- Make the lift coefficient function templated (so it can handle complex variables
-			and normal vector terms)
-
 	- Compute the adjoint for the lift coefficient case.
+
+		- Make the lift coefficient function templated (so it can handle complex
+		variables and normal vector terms)
 
 		- Use the linearization of the LHS in the code
 
@@ -91,7 +25,8 @@
 
 		- Plot the density adjoint variation
 
-	
+	- Try to get a transonic case running for the airfoil case with a shock
+		(to be used potentially for a drag optimization)
 
 
 
@@ -121,4 +56,28 @@ ToDo:
 					from vm (volume metric) to vc (volume cubature). 
 				- For the face, we once again interpolate from the vm (volume metric)
 					to the fc (face cubature) nodes. 
+
+
+Optimization Cases:
+
+	- Accompanying the .geo file will need to be an optimization.data file which will
+		hold which NURBS control points should be treated as design variables and
+		what their degrees of freedom are (use the control point indeces in the 
+		.geo file)
+
+	- Will set function pointers to the objective function to be used in the 
+		optimization. This way, can easily switch between optimizing one 
+		objective to another. If each objective is templated properly, then
+		computing the partials of the objective will be simple.
+
+			- Simply, take as input to the function the pointer to the objective
+				function and then perform all the complex steps to find all the
+				terms of the RHS and sensitivity equation terms.
+
+			- Return a multiarray with the data (RHS and sensitivity equation terms)
+
+
+
+
+
 

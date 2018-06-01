@@ -15,6 +15,9 @@ set	(SOURCE
 	 geometry/geometry_NURBS_parametric.c
 	 geometry/geometry_surface.c
 
+	 optimization/objective_functions.c
+	 optimization/optimize.c
+
 	 solvers/compute_rlhs.c
 	 solvers/compute_face_rlhs.c
 	 solvers/compute_volume_rlhs.c

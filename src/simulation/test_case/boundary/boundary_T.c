@@ -68,6 +68,10 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 	bv_i->xyz_ex  = s_face->xyz_fc_ex_b;
 	bv_i->s       = constructor_s_fc_interp(s_face,sim,side_index); // destructed
 
+	// TODO: Add bv_i->s_c here to store the complex solution state. Or, 
+	// perhaps make bv_i->s templated? Same for the normals (will need complex
+	// normals )
+
 	bv_i->jacobian_det_fc = s_face->jacobian_det_fc;
 }
 

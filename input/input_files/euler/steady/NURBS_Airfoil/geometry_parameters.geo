@@ -1,6 +1,8 @@
 /** Geometry parameters for test case: euler/steady/NURBS
 */
 
+area_ref = 1.0;
+
 P(xi_order) 2 
 Q(eta_order) 1 
 
