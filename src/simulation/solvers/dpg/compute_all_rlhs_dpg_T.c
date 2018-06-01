@@ -239,19 +239,6 @@ void compute_flux_imbalances_faces_dpg_T (struct Simulation*const sim)
 	test_case->solver_method_curr = 0;
 }
 
-struct Multiarray_Operator get_operator__cv1_vt_vc__rlhs_T (const struct DPG_Solver_Volume_T* dpg_s_vol)
-{
-	struct Volume* vol            = (struct Volume*) dpg_s_vol;
-	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) vol;
-
-	const struct DPG_Solver_Element* dpg_s_e = (struct DPG_Solver_Element*) vol->element;
-
-	const int p      = s_vol->p_ref,
-	          curved = vol->curved;
-
-	return set_MO_from_MO(dpg_s_e->cv1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
-}
-
 const struct const_Matrix_R* constructor_lhs_l_internal_face_dpg_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct DPG_Solver_Face_T* dpg_s_face)
 {
@@ -720,7 +707,8 @@ static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 	const int n_eq = test_case->n_eq,
 	          n_vr = test_case->n_var;
 
-	const struct Multiarray_Operator cv1_vt_vc = get_operator__cv1_vt_vc__rlhs_T(dpg_s_vol);
+	struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) dpg_s_vol;
+	const struct Multiarray_Operator cv1_vt_vc = get_operator__cv1_vt_vc_T(s_vol);
 
 	const ptrdiff_t ext_0 = cv1_vt_vc.data[0]->op_std->ext_0,
 	                ext_1 = cv1_vt_vc.data[0]->op_std->ext_1;
@@ -745,7 +733,6 @@ static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 	}}
 	destructor_Matrix_T(cv1r_l);
 
-	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) dpg_s_vol;
 	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
 	const struct const_Vector_R J_vc  = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
 

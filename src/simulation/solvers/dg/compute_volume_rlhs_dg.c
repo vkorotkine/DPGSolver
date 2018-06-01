@@ -33,6 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
+#include "solve.h"
 #include "solve_dg.h"
 #include "test_case.h"
 
@@ -71,7 +72,7 @@ static void compute_rlhs_12
 // Level 0 ********************************************************************************************************** //
 
 /// \brief Version of \ref compute_rlhs_dg_fptr_T computing the rhs term.
-static void compute_rhs
+static void compute_rhs_all
 	(const struct Flux_Ref*const flux_r,     ///< See brief.
 	 struct DG_Solver_Volume*const dg_s_vol, ///< See brief.
 	 const struct Simulation*const sim       ///< See brief.
@@ -98,7 +99,7 @@ static void compute_rlhs_1
 	(const struct Flux_Ref*const flux_r, struct DG_Solver_Volume*const dg_s_vol,
 	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
 {
-	compute_rhs(flux_r,dg_s_vol,sim);
+	compute_rhs_all(flux_r,dg_s_vol,sim);
 	compute_lhs_1(flux_r,dg_s_vol,ssi,sim);
 }
 
@@ -106,7 +107,7 @@ static void compute_rlhs_2
 	(const struct Flux_Ref*const flux_r, struct DG_Solver_Volume*const dg_s_vol,
 	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
 {
-	compute_rhs(flux_r,dg_s_vol,sim);
+	compute_rhs_all(flux_r,dg_s_vol,sim);
 	compute_lhs_2(flux_r,dg_s_vol,ssi,sim);
 }
 
@@ -114,7 +115,7 @@ static void compute_rlhs_12
 	(const struct Flux_Ref*const flux_r, struct DG_Solver_Volume*const dg_s_vol,
 	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
 {
-	compute_rhs(flux_r,dg_s_vol,sim);
+	compute_rhs_all(flux_r,dg_s_vol,sim);
 	compute_lhs_1(flux_r,dg_s_vol,ssi,sim);
 	compute_lhs_2(flux_r,dg_s_vol,ssi,sim);
 }
@@ -140,7 +141,7 @@ static void add_to_petsc_Mat_offdiagonal_volume_2
 	 const struct Simulation*const sim          ///< \ref Simulation.
 	);
 
-static void compute_rhs
+static void compute_rhs_all
 	(const struct Flux_Ref*const flux_r, struct DG_Solver_Volume*const dg_s_vol, const struct Simulation*const sim)
 {
 	UNUSED(sim);
@@ -168,7 +169,7 @@ assert(sim->collocated == false); // Add support in future.
 
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) dg_s_vol;
 	struct Matrix_d*const lhs = constructor_lhs_v_1(flux_r,s_vol,sim); // destructed
-	set_petsc_Mat_row_col(ssi,s_vol,0,s_vol,0);
+	set_petsc_Mat_row_col_dg(ssi,s_vol,0,s_vol,0);
 	add_to_petsc_Mat(ssi,(struct const_Matrix_d*)lhs);
 	destructor_Matrix_d(lhs);
 }
@@ -192,7 +193,7 @@ static void compute_lhs_2
 print_const_Matrix_d(lhs_i);
 #endif
 
-	set_petsc_Mat_row_col(ssi,s_vol,0,s_vol,0);
+	set_petsc_Mat_row_col_dg(ssi,s_vol,0,s_vol,0);
 	add_to_petsc_Mat(ssi,lhs_i);
 	destructor_const_Matrix_d(lhs_i);
 
@@ -281,7 +282,7 @@ printf("face: %d %d %d\n",((struct Volume*)s_vol_i)->index,((struct Volume*)s_vo
 print_const_Matrix_d(lhs_o);
 #endif
 
-		set_petsc_Mat_row_col(ssi,s_vol_i,0,s_vol_o,0);
+		set_petsc_Mat_row_col_dg(ssi,s_vol_i,0,s_vol_o,0);
 		add_to_petsc_Mat(ssi,lhs_o);
 		destructor_const_Matrix_d(lhs_o);
 	}}

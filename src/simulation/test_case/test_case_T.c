@@ -285,11 +285,11 @@ static void read_test_case_parameters (struct Test_Case_T* test_case, const stru
 static void correct_invalid_test_case_parameters (struct Test_Case_T* test_case, const struct Simulation* sim)
 {
 	switch (sim->method) {
-	case METHOD_DG:
+	case METHOD_DG:  // fallthrough
+	case METHOD_OPG:
 		const_cast_b(&test_case->use_schur_complement,false);
 		break;
-	case METHOD_DPG: // fallthrough
-	case METHOD_OPG:
+	case METHOD_DPG:
 		break; // Do nothing.
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);

@@ -12,29 +12,41 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to volume rlhs computing functions.
+ *  \brief Provides the macro definitions used for c-style templating related to the rlhs computing functions for the opg
+ *         volumes.
  */
 
+#if TYPE_RC == TYPE_REAL
+
 ///\{ \name Data types
-#undef S_Params_Volume_Structor_T
-#undef Flux_Ref_T
+#define S_Params_T S_Params
 ///\}
 
 ///\{ \name Function pointers
-#undef constructor_sol_vc_fptr_T
-#undef destructor_sol_vc_fptr_T
+#define compute_rlhs_opg_fptr_T compute_rlhs_opg_fptr
 ///\}
 
 ///\{ \name Function names
-#undef set_S_Params_Volume_Structor_T
-#undef constructor_Flux_Ref_vol_T
-#undef destructor_Flux_Ref_T
-#undef constructor_lhs_v_1_T
-#undef constructor_lhs_p_v_2_T
-#undef get_operator__cv0_vs_vc_T
-#undef get_operator__cv0_vr_vc_T
-#undef get_operator__tw1_vt_vc_T
-#undef get_operator__cv1_vt_vc_T
+#define compute_volume_rlhs_opg_T compute_volume_rlhs_opg
+
+#define set_s_params_T     set_s_params
 ///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Data types
+#define S_Params_T S_Params_c
+///\}
+
+///\{ \name Function pointers
+#define compute_rlhs_opg_fptr_T compute_rlhs_opg_fptr_c
+///\}
+
+///\{ \name Function names
+#define compute_volume_rlhs_opg_T compute_volume_rlhs_opg_c
+
+#define set_s_params_T     set_s_params_c
+///\}
+
+#endif

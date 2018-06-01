@@ -45,6 +45,7 @@ set	(SOURCE
 	 solvers/dpg/solve_dpg.c
 	 solvers/dpg/volume_solver_dpg.c
 
+	 solvers/opg/compute_volume_rlhs_opg.c
 	 solvers/opg/face_solver_opg.c
 	 solvers/opg/element_solver_opg.c
 	 solvers/opg/solve_opg.c

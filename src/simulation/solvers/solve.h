@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 struct Vector_i;
+struct const_Matrix_d;
 struct Solver_Volume;
 
 /// \brief Container holding members relating to memory storage for the implicit solver.
@@ -70,14 +71,14 @@ double compute_rhs
  *  inverse mass matrix**.
  */
 double compute_rlhs
-	(const struct Simulation* sim,             ///< \ref Simulation.
-	 struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	(const struct Simulation* sim,       ///< Standard.
+	 struct Solver_Storage_Implicit* ssi ///< Standard.
 	);
 
 /// \brief Copy the the rhs terms from to the base \ref Solver_Volume_T::rhs for all volumes.
 void copy_rhs
-	(const struct Simulation*const sim,       ///< \ref Simulation.
-	 struct Solver_Storage_Implicit*const ssi ///< \ref Solver_Storage_Implicit.
+	(const struct Simulation*const sim,       ///< Standard.
+	 struct Solver_Storage_Implicit*const ssi ///< Standard.
 	);
 
 /** \brief Enforce physical constraints on the unknowns if required.
@@ -92,7 +93,7 @@ void enforce_positivity_highorder
 
 /// \brief Destructor for a \ref Solver_Storage_Implicit container.
 void destructor_Solver_Storage_Implicit
-	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	(struct Solver_Storage_Implicit* ssi ///< Standard.
 	);
 
 /// \brief Increment the corresponding rows of `nnz` by the input number of columns.
@@ -105,7 +106,7 @@ void increment_nnz
 
 /// \brief Assemble \ref Solver_Storage_Implicit::A and \ref Solver_Storage_Implicit::b.
 void petsc_mat_vec_assemble
-	(struct Solver_Storage_Implicit* s_store_i ///< \ref Solver_Storage_Implicit.
+	(struct Solver_Storage_Implicit* ssi ///< Standard.
 	);
 
 /** \brief Compute the number of 'd'egrees 'o'f 'f'reedom of all of the \ref Solver_Volume_T::sol_coef's.
@@ -127,6 +128,18 @@ ptrdiff_t compute_dof_schur
  */
 void compute_flux_imbalances
 	(struct Simulation*const sim ///< \ref Simulation.
+	);
+
+/** \brief Compute the maximum value of the rhs term from \ref Solver_Storage_Implicit::b.
+ *  \return See brief. */
+double compute_max_rhs_from_ssi
+	(const struct Solver_Storage_Implicit*const ssi ///< Standard.
+	);
+
+/// \brief Add lhs values to the petsc Mat at the appropriate location.
+void add_to_petsc_Mat
+	(const struct Solver_Storage_Implicit*const ssi, ///< \ref Solver_Storage_Implicit.
+	 const struct const_Matrix_d*const lhs           ///< The matrix containing the lhs data.
 	);
 
 #endif // DPG__solve_h__INCLUDED

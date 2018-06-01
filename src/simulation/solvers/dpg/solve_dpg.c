@@ -38,12 +38,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Compute the maximum value of the rhs term.
- *  \return See brief. */
-static double compute_max_rhs
-	(const struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
-	);
-
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
@@ -52,7 +46,7 @@ static double compute_max_rhs
 double compute_rlhs_dpg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
 {
 	compute_all_rlhs_dpg(sim,ssi,sim->volumes);
-	return compute_max_rhs(ssi);
+	return compute_max_rhs_from_ssi(ssi);
 }
 
 void compute_flux_imbalances_dpg (struct Simulation*const sim)
@@ -63,10 +57,3 @@ void compute_flux_imbalances_dpg (struct Simulation*const sim)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static double compute_max_rhs (const struct Solver_Storage_Implicit* ssi)
-{
-	double max_rhs = 0.0;
-	VecNorm(ssi->b,NORM_INFINITY,&max_rhs);
-	return max_rhs;
-}

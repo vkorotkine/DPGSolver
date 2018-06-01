@@ -322,6 +322,18 @@ struct Multiarray_Operator get_operator__tw1_vt_vc_T (const struct Solver_Volume
 	return set_MO_from_MO(e->tw1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
 }
 
+struct Multiarray_Operator get_operator__cv1_vt_vc_T (const struct Solver_Volume_T*const s_vol)
+{
+	struct Volume* vol = (struct Volume*) s_vol;
+
+	const struct Solver_Element*const s_e = (struct Solver_Element*) vol->element;
+
+	const int p      = s_vol->p_ref,
+	          curved = vol->curved;
+
+	return set_MO_from_MO(s_e->cv1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

@@ -37,6 +37,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__cv0_vs_vc_T      get_operator__cv0_vs_vc
 #define get_operator__cv0_vr_vc_T      get_operator__cv0_vr_vc
 #define get_operator__tw1_vt_vc_T      get_operator__tw1_vt_vc
+#define get_operator__cv1_vt_vc_T      get_operator__cv1_vt_vc
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -60,6 +61,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__cv0_vs_vc_T      get_operator__cv0_vs_vc_c
 #define get_operator__cv0_vr_vc_T      get_operator__cv0_vr_vc_c
 #define get_operator__tw1_vt_vc_T      get_operator__tw1_vt_vc_c
+#define get_operator__cv1_vt_vc_T      get_operator__cv1_vt_vc_c
 ///\}
 
 #endif

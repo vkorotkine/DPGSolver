@@ -71,7 +71,7 @@ static void scale_rhs_by_m_inv
 
 /** \brief Compute the maximum value of the rhs term for all variables.
  *  \return See brief. */
-static double compute_max_rhs
+static double compute_max_rhs_dg
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
@@ -132,7 +132,7 @@ double compute_rhs_dg (const struct Simulation* sim)
 	compute_rlhs_common_dg(sim,NULL);
 	scale_rhs_by_m_inv(sim);
 
-	return compute_max_rhs(sim);
+	return compute_max_rhs_dg(sim);
 }
 
 double compute_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
@@ -141,34 +141,15 @@ double compute_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Impl
 	compute_CFL_ramping(ssi,sim);
 	fill_petsc_Vec_b_dg(sim,ssi);
 
-	return compute_max_rhs(sim);
+	return compute_max_rhs_dg(sim);
 }
 
-void set_petsc_Mat_row_col
+void set_petsc_Mat_row_col_dg
 	(struct Solver_Storage_Implicit*const ssi, const struct Solver_Volume* v_l, const int eq,
 	 const struct Solver_Volume* v_r, const int vr)
 {
 	ssi->row = (int)(v_l->ind_dof+v_l->sol_coef->extents[0]*eq);
 	ssi->col = (int)(v_r->ind_dof+v_r->sol_coef->extents[0]*vr);
-}
-
-void add_to_petsc_Mat (const struct Solver_Storage_Implicit*const ssi, const struct const_Matrix_d* lhs)
-{
-	assert(lhs->layout == 'R');
-	const ptrdiff_t ext_0 = lhs->ext_0,
-	                ext_1 = lhs->ext_1;
-
-	PetscInt idxm[ext_0],
-	         idxn[ext_1];
-
-	for (int i = 0; i < ext_0; ++i)
-		idxm[i] = ssi->row+i;
-
-	for (int i = 0; i < ext_1; ++i)
-		idxn[i] = ssi->col+i;
-
-	const PetscScalar*const vv = lhs->data;
-	MatSetValues(ssi->A,(PetscInt)ext_0,idxm,(PetscInt)ext_1,idxn,vv,ADD_VALUES);
 }
 
 void compute_flux_imbalances_dg (const struct Simulation*const sim)
@@ -230,7 +211,7 @@ static void scale_rhs_by_m_inv (const struct Simulation*const sim)
 		scale_rhs_by_m_inv_col(sim);
 }
 
-static double compute_max_rhs (const struct Simulation*const sim)
+static double compute_max_rhs_dg (const struct Simulation*const sim)
 {
 	double max_rhs = 0.0;
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
@@ -271,7 +252,7 @@ static void compute_CFL_ramping (struct Solver_Storage_Implicit*const ssi, const
 	if (test_case->lhs_terms != LHS_CFL_RAMPING)
 		return;
 
-	const double max_rhs = compute_max_rhs(sim);
+	const double max_rhs = compute_max_rhs_dg(sim);
 	const int n_eq = test_case->n_eq;
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
@@ -284,7 +265,7 @@ static void compute_CFL_ramping (struct Solver_Storage_Implicit*const ssi, const
 		const struct const_Matrix_d*const m_dt = constructor_copy_scale_const_Matrix_d(dg_s_vol->m,-1.0/dt); // dest.
 
 		for (int eq = 0; eq < n_eq; ++eq) {
-			set_petsc_Mat_row_col(ssi,s_vol,eq,s_vol,eq);
+			set_petsc_Mat_row_col_dg(ssi,s_vol,eq,s_vol,eq);
 			add_to_petsc_Mat(ssi,(struct const_Matrix_d*)m_dt);
 		}
 		destructor_const_Matrix_d(m_dt);

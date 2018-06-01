@@ -13,13 +13,17 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to dpg rlhs computing functions.
+ *  \brief Provides templated functions used for computing the volume contributions to the right and left-hand side
+ *         (rlhs) terms of the OPG scheme.
  */
 
-#undef compute_all_rlhs_dpg_T
-#undef constructor_lhs_l_internal_face_dpg_T
-#undef compute_n_dof_nf_T
-#undef constructor_petsc_idxm_dpg_T
-#undef add_to_rlhs__face_T
-#undef compute_flux_imbalances_faces_dpg_T
-#undef add_to_rlhs__face_boundary_T
+struct Simulation;
+struct Solver_Storage_Implicit;
+struct Intrusive_List;
+
+/// \brief Compute the volume contributions to the rhs and lhs terms for the OPG scheme.
+void compute_volume_rlhs_opg_T
+	(const struct Simulation* sim,        ///< \ref Simulation.
+	 struct Solver_Storage_Implicit* ssi, ///< \ref Solver_Storage_Implicit.
+	 struct Intrusive_List* volumes       ///< The list of volumes.
+	);

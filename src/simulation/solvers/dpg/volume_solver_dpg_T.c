@@ -20,9 +20,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
+
+#include "def_templates_compute_all_rlhs_dpg.h"
+#include "def_templates_compute_volume_rlhs.h"
 #include "def_templates_volume_solver.h"
 #include "def_templates_volume_solver_dpg.h"
-#include "def_templates_compute_all_rlhs_dpg.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -62,13 +64,13 @@ void destructor_derived_DPG_Solver_Volume_T (struct Volume* volume_ptr)
 
 static const struct const_Matrix_R* constructor_norm_op_H0 (const struct DPG_Solver_Volume_T* dpg_s_vol)
 {
-	struct Volume* vol                       = (struct Volume*) dpg_s_vol;
-	struct Solver_Volume_T* s_vol            = (struct Solver_Volume_T*) dpg_s_vol;
-	const struct DPG_Solver_Element* dpg_s_e = (struct DPG_Solver_Element*) vol->element;
+	struct Volume* vol               = (struct Volume*) dpg_s_vol;
+	struct Solver_Volume_T* s_vol    = (struct Solver_Volume_T*) dpg_s_vol;
+	const struct Solver_Element* s_e = (struct Solver_Element*) vol->element;
 
 	const int p      = s_vol->p_ref,
 	          curved = vol->curved;
-	const struct Operator* cv0_vt_vc = get_Multiarray_Operator(dpg_s_e->cv0_vt_vc[curved],(ptrdiff_t[]){0,0,p,p});
+	const struct Operator* cv0_vt_vc = get_Multiarray_Operator(s_e->cv0_vt_vc[curved],(ptrdiff_t[]){0,0,p,p});
 	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
 
 	const struct const_Vector_R jacobian_det_vc = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
@@ -88,7 +90,7 @@ static const struct const_Matrix_R* constructor_norm_op_H1 (const struct DPG_Sol
 {
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) dpg_s_vol;
 
-	const struct Multiarray_Operator cv1_vt_vc = get_operator__cv1_vt_vc__rlhs_T(dpg_s_vol);
+	const struct Multiarray_Operator cv1_vt_vc = get_operator__cv1_vt_vc_T(s_vol);
 	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
 	const struct const_Vector_R J_vc  = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
 

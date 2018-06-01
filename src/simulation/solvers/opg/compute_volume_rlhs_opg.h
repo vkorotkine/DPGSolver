@@ -12,14 +12,18 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__compute_volume_rlhs_opg_h__INCLUDED
+#define DPG__compute_volume_rlhs_opg_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to dpg rlhs computing functions.
+ *  \brief Provides real functions used for computing the volume contributions to the right and left-hand side
+ *         (rlhs) terms of the OPG scheme.
  */
 
-#undef compute_all_rlhs_dpg_T
-#undef constructor_lhs_l_internal_face_dpg_T
-#undef compute_n_dof_nf_T
-#undef constructor_petsc_idxm_dpg_T
-#undef add_to_rlhs__face_T
-#undef compute_flux_imbalances_faces_dpg_T
-#undef add_to_rlhs__face_boundary_T
+#include "def_templates_type_d.h"
+#include "def_templates_compute_volume_rlhs_opg.h"
+#include "compute_volume_rlhs_opg_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_compute_volume_rlhs_opg.h"
+
+#endif // DPG__compute_volume_rlhs_opg_h__INCLUDED

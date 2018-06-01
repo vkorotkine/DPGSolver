@@ -28,8 +28,6 @@ struct DPG_Solver_Element {
 	const struct Solver_Element element; ///< Base \ref Solver_Element.
 
 	// Volume rlhs
-	const struct Multiarray_Operator* cv0_vt_vc[2];   ///< See notation in \ref element_operators.h.
-	const struct Multiarray_Operator* cv1_vt_vc[2];   ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cvcv0_vs_vc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cvcv1_vt_vc[2]; ///< See notation in \ref element_operators.h.
 

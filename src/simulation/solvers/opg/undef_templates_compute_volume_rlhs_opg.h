@@ -13,13 +13,19 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to dpg rlhs computing functions.
+ *  \brief Undefine macro definitions for c-style templating relating to rlhs computing functions for the opg volumes.
  */
 
-#undef compute_all_rlhs_dpg_T
-#undef constructor_lhs_l_internal_face_dpg_T
-#undef compute_n_dof_nf_T
-#undef constructor_petsc_idxm_dpg_T
-#undef add_to_rlhs__face_T
-#undef compute_flux_imbalances_faces_dpg_T
-#undef add_to_rlhs__face_boundary_T
+///\{ \name Data types
+#undef S_Params_T
+///\}
+
+///\{ \name Function pointers
+#undef compute_rlhs_opg_fptr_T
+///\}
+
+///\{ \name Function names
+#undef compute_volume_rlhs_opg_T
+
+#undef set_s_params_T
+///\}

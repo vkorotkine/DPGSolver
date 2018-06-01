@@ -131,14 +131,15 @@ double compute_rhs (const struct Simulation* sim)
 	return max_rhs;
 }
 
-double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
+double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
 {
 	double max_rhs = 0.0;
 
 	zero_memory_volumes(sim->volumes);
 	switch (sim->method) {
-		case METHOD_DG:  max_rhs = compute_rlhs_dg(sim,s_store_i);    break;
-		case METHOD_DPG: max_rhs = compute_rlhs_dpg(sim,s_store_i);   break;
+		case METHOD_DG:  max_rhs = compute_rlhs_dg(sim,ssi);    break;
+		case METHOD_DPG: max_rhs = compute_rlhs_dpg(sim,ssi);   break;
+		case METHOD_OPG: max_rhs = compute_rlhs_opg(sim,ssi);   break;
 		default:         EXIT_ERROR("Unsupported: %d\n",sim->method); break;
 	}
 
@@ -278,6 +279,32 @@ void compute_flux_imbalances (struct Simulation*const sim)
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
 		break;
 	}
+}
+
+double compute_max_rhs_from_ssi (const struct Solver_Storage_Implicit*const ssi)
+{
+	double max_rhs = 0.0;
+	VecNorm(ssi->b,NORM_INFINITY,&max_rhs);
+	return max_rhs;
+}
+
+void add_to_petsc_Mat (const struct Solver_Storage_Implicit*const ssi, const struct const_Matrix_d*const lhs)
+{
+	assert(lhs->layout == 'R');
+	const ptrdiff_t ext_0 = lhs->ext_0,
+	                ext_1 = lhs->ext_1;
+
+	PetscInt idxm[ext_0],
+	         idxn[ext_1];
+
+	for (int i = 0; i < ext_0; ++i)
+		idxm[i] = ssi->row+i;
+
+	for (int i = 0; i < ext_1; ++i)
+		idxn[i] = ssi->col+i;
+
+	const PetscScalar*const vv = lhs->data;
+	MatSetValues(ssi->A,(PetscInt)ext_0,idxm,(PetscInt)ext_1,idxn,vv,ADD_VALUES);
 }
 
 // Static functions ************************************************************************************************* //

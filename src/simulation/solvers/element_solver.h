@@ -43,6 +43,9 @@ struct Solver_Element {
 
 	const struct const_Multiarray_Vector_d* w_vc[2]; ///< Weights for 'v'olume 'c'ubature.
 
+	const struct Multiarray_Operator* cv0_vt_vc[2];   ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv1_vt_vc[2];   ///< See notation in \ref element_operators.h.
+
 	// Face rlhs
 	const struct Multiarray_Operator* cv0_vs_fc[2];   ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vr_fc[2];   ///< See notation in \ref element_operators.h.

@@ -26,4 +26,23 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_type.h"
 #include "undef_templates_solve_opg.h"
 
+struct OPG_Solver_Volume;
+
+/** \brief Version of \ref compute_rlhs for the opg method.
+ *  \return See brief. */
+double compute_rlhs_opg
+	(const struct Simulation*const sim,       ///< Standard.
+	 struct Solver_Storage_Implicit*const ssi ///< Standard.
+	);
+
+/** \brief Set the values of \ref Solver_Storage_Implicit::row and Solver_Storage_Implicit::col based on the input
+ *         volumes and eq, var indices. */
+void set_petsc_Mat_row_col_opg
+	(struct Solver_Storage_Implicit*const ssi, ///< \ref Solver_Storage_Implicit.
+	 const struct OPG_Solver_Volume*const v_l, ///< The left \ref Solver_Volume_T.
+	 const int eq,                             ///< The index of the equation.
+	 const struct OPG_Solver_Volume*const v_r, ///< The right \ref Solver_Volume_T.
+	 const int vr                              ///< The index of the variable.
+	);
+
 #endif // DPG__solve_opg_h__INCLUDED

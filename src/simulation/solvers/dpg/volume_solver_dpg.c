@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "operator.h"
 #include "simulation.h"
 #include "compute_all_rlhs_dpg.h"
+#include "compute_volume_rlhs.h"
 
 #include "test_complex_volume_solver_dpg.h"
 

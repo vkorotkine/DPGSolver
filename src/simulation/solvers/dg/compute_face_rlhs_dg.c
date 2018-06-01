@@ -35,6 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "numerical_flux.h"
 #include "operator.h"
 #include "simulation.h"
+#include "solve.h"
 #include "solve_dg.h"
 #include "test_case.h"
 
@@ -291,7 +292,7 @@ static void finalize_lhs_1_f_dg
 
 	struct Solver_Volume* s_vol[2] = { (struct Solver_Volume*) face->neigh_info[0].volume,
 	                                   (struct Solver_Volume*) face->neigh_info[1].volume, };
-	set_petsc_Mat_row_col(ssi,s_vol[side_index[0]],0,s_vol[side_index[1]],0);
+	set_petsc_Mat_row_col_dg(ssi,s_vol[side_index[0]],0,s_vol[side_index[1]],0);
 	add_to_petsc_Mat(ssi,(struct const_Matrix_d*)lhs);
 
 	destructor_Matrix_d(lhs);
@@ -323,7 +324,7 @@ print_const_Matrix_d(lhs_i);
 //EXIT_UNSUPPORTED;
 #endif
 
-	set_petsc_Mat_row_col(ssi,s_vol[side_index[0]],0,s_vol[0],0);
+	set_petsc_Mat_row_col_dg(ssi,s_vol[side_index[0]],0,s_vol[0],0);
 	add_to_petsc_Mat(ssi,lhs_i);
 	destructor_const_Matrix_d(lhs_i);
 
@@ -336,7 +337,7 @@ print_const_Matrix_d(lhs_i);
 printf("%d %d\n",((struct Volume*)s_vol[side_index[0]])->index,((struct Volume*)s_vol[1])->index);
 print_const_Matrix_d(lhs_i);
 #endif
-		set_petsc_Mat_row_col(ssi,s_vol[side_index[0]],0,s_vol[1],0);
+		set_petsc_Mat_row_col_dg(ssi,s_vol[side_index[0]],0,s_vol[1],0);
 		add_to_petsc_Mat(ssi,lhs_i);
 		destructor_const_Matrix_d(lhs_i);
 	}

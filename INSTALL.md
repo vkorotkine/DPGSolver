@@ -11,7 +11,7 @@ build/run the code is composed of the following:
 - Gmsh
 - Python3
 
-While it should be possible to install the majority of the packages using either `homebrew' (macOS) or `apt' (Ubuntu)
+While it should be possible to install the majority of the packages using either `homebrew` (macOS) or `apt` (Ubuntu)
 the following may need to be built manually:
 - Intel MKL ([Download page](https://software.intel.com/en-us/mkl) or
 [install using apt](https://software.intel.com/en-us/articles/installing-intel-free-libs-and-python-apt-repo))

@@ -119,3 +119,10 @@ const struct Operator* get_operator__cv0_vs_vc_T
 struct Multiarray_Operator get_operator__tw1_vt_vc_T
 	(const struct Solver_Volume_T* s_vol ///< The current volume.
 	);
+
+/** \brief Get the appropriate sub-range of the \ref Solver_Element::cv1_vt_vc operators.
+ *  \return See brief. */
+struct Multiarray_Operator get_operator__cv1_vt_vc_T
+	(const struct Solver_Volume_T*const s_vol ///< The current volume.
+	);
+
