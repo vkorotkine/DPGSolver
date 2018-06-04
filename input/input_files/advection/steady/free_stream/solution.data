@@ -4,3 +4,4 @@ advection_type constant
 b_adv   1.0 0.0 0.0
 
 use_constant_solution 1
+u_scale 1.0

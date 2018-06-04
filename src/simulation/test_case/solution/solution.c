@@ -50,7 +50,7 @@ struct Multiarray_d* constructor_rhs_v (const struct Simulation* sim, struct Sol
 	assert(list_is_derived_from("solver",'e',sim));
 	assert((node_kind == 'c')); // Add support for other node kinds if required.
 
-	assert(s_vol->rhs != NULL);
+	assert(s_vol->rhs_0 != NULL);
 
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
@@ -66,7 +66,7 @@ struct Multiarray_d* constructor_rhs_v (const struct Simulation* sim, struct Sol
 	// a coefficient.
 	const struct Operator* cv0_vs_vX = get_Multiarray_Operator(s_e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
 
-	const struct const_Multiarray_T*const rhs_coef = (struct const_Multiarray_T*) s_vol->rhs;
+	const struct const_Multiarray_T*const rhs_coef = (struct const_Multiarray_T*) s_vol->rhs_0;
 
 	const ptrdiff_t ext_0 = cv0_vs_vX->op_std->ext_0,
 	                ext_1 = rhs_coef->extents[1];

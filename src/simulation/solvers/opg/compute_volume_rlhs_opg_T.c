@@ -37,25 +37,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Function pointer to the function used to evaluate the rhs and lhs terms.
- *
- *  \param flux_r    \ref Flux_Ref_T.
- *  \param opg_s_vol \ref OPG_Solver_Volume_T.
- *  \param ssi       \ref Solver_Storage_Implicit.
- *  \param sim       \ref Simulation.
- */
-typedef void (*compute_rlhs_opg_fptr_T)
-	(const struct Flux_Ref_T*const flux_r,
-	 struct OPG_Solver_Volume_T*const opg_s_vol,
-	 struct Solver_Storage_Implicit*const ssi,
-	 const struct Simulation*const sim
-	);
-
 /// \brief Container for solver-related parameters.
 struct S_Params_T {
 	struct S_Params_Volume_Structor_T spvs; ///< \ref S_Params_Volume_Structor_T.
 
-	compute_rlhs_opg_fptr_T compute_rlhs; ///< Pointer to the appropriate function.
+	compute_rlhs_v_fptr_T compute_rlhs; ///< Pointer to the appropriate function.
 };
 
 /** \brief Set the parameters of \ref S_Params_T.
@@ -76,13 +62,12 @@ void compute_volume_rlhs_opg_T
 	struct Flux_Input_T* flux_i = constructor_Flux_Input_T(sim); // destructed
 
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume_T* s_vol         = (struct Solver_Volume_T*) curr;
-		struct OPG_Solver_Volume_T* opg_s_vol = (struct OPG_Solver_Volume_T*) curr;
+		struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) curr;
 
 		struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_T(&s_params.spvs,flux_i,s_vol,sim);
 
 		// Compute the rhs and the lhs terms.
-		s_params.compute_rlhs(flux_r,opg_s_vol,ssi,sim);
+		s_params.compute_rlhs(flux_r,s_vol,ssi);
 		destructor_Flux_Ref_T(flux_r);
 	}
 	destructor_Flux_Input_T(flux_i);
@@ -90,14 +75,6 @@ void compute_volume_rlhs_opg_T
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-/// \brief Version of \ref compute_rlhs_opg_fptr_T computing only the rhs term.
-static void compute_rhs_all
-	(const struct Flux_Ref_T*const flux_r,       ///< See brief.
-	 struct OPG_Solver_Volume_T*const opg_s_vol, ///< See brief.
-	 struct Solver_Storage_Implicit*const ssi,   ///< See brief.
-	 const struct Simulation*const sim           ///< See brief.
-	);
 
 static struct S_Params_T set_s_params_T (const struct Simulation*const sim)
 {
@@ -109,7 +86,7 @@ static struct S_Params_T set_s_params_T (const struct Simulation*const sim)
 	switch (test_case->solver_method_curr) {
 #if TYPE_RC == TYPE_COMPLEX
 	case 'e':
-		s_params.compute_rlhs = compute_rhs_all;
+		s_params.compute_rlhs = compute_rhs_v_dg_like_T;
 		break;
 #elif TYPE_RC == TYPE_REAL
 	case 'i':
@@ -129,28 +106,4 @@ static struct S_Params_T set_s_params_T (const struct Simulation*const sim)
 	}
 
 	return s_params;
-}
-
-// Level 1 ********************************************************************************************************** //
-
-static void compute_rhs_all
-	(const struct Flux_Ref_T*const flux_r, struct OPG_Solver_Volume_T*const opg_s_vol,
-	 struct Solver_Storage_Implicit*const ssi, const struct Simulation* sim)
-{
-	UNUSED(sim);
-
-	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) opg_s_vol;
-	const struct Multiarray_Operator tw1_vt_vc = get_operator__tw1_vt_vc_T(s_vol);
-
-	// sim may be used to store a parameter establishing which type of operator to use for the computation.
-	const char op_format = 'd';
-
-	const ptrdiff_t extents[] = { tw1_vt_vc.data[0]->op_std->ext_0, flux_r->fr->extents[1], };
-	struct Multiarray_T*const rhs = constructor_zero_Multiarray_T('C',2,extents); // destructed;
-	for (ptrdiff_t dim = 0; dim < DIM; ++dim)
-		mm_NNC_Operator_Multiarray_T(1.0,1.0,tw1_vt_vc.data[dim],flux_r->fr,rhs,op_format,2,&dim,NULL);
-
-	UNUSED(ssi);
-	// Try to use the same function as DG to avoid duplication (think about face/source terms).
-	EXIT_UNSUPPORTED; // Add -ve rhs to ssi->b.
 }

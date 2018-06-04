@@ -19,36 +19,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
-///\{ \name Data types
-#define S_Params_T S_Params
-///\}
-
-///\{ \name Function pointers
-#define compute_rlhs_dg_fptr_T compute_rlhs_dg_fptr
-///\}
-
 ///\{ \name Function names
 #define compute_volume_rlhs_dg_T compute_volume_rlhs_dg
-
-#define set_s_params_T     set_s_params
-#define compute_rhs_v_dg_T compute_rhs_v_dg
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
-///\{ \name Data types
-#define S_Params_T S_Params_c
-///\}
-
-///\{ \name Function pointers
-#define compute_rlhs_dg_fptr_T compute_rlhs_dg_fptr_c
-///\}
-
 ///\{ \name Function names
 #define compute_volume_rlhs_dg_T compute_volume_rlhs_dg_c
-
-#define set_s_params_T     set_s_params_c
-#define compute_rhs_v_dg_T compute_rhs_v_dg_c
 ///\}
 
 #endif

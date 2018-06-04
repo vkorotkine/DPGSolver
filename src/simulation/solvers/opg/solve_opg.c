@@ -43,6 +43,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 double compute_rlhs_opg (const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi)
 {
+	initialize_zero_memory_volumes(sim->volumes);
 	compute_volume_rlhs_opg(sim,ssi,sim->volumes);
 	EXIT_ADD_SUPPORT;
 

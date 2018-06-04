@@ -161,11 +161,10 @@ void compute_flux_imbalances_dg (const struct Simulation*const sim)
 void copy_rhs_dg (const struct Simulation*const sim)
 {
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume*const s_vol             = (struct Solver_Volume*) curr;
-		const struct DG_Solver_Volume*const dg_s_vol = (struct DG_Solver_Volume*) curr;
+		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
 
-		destructor_conditional_Multiarray_d(s_vol->rhs);
-		s_vol->rhs = constructor_copy_Multiarray_T(dg_s_vol->rhs); // keep
+		destructor_conditional_Multiarray_d(s_vol->rhs_0);
+		s_vol->rhs_0 = constructor_copy_Multiarray_T(s_vol->rhs); // keep
 	}
 }
 
@@ -192,7 +191,7 @@ static double compute_dt_cfl_constrained
 
 static void compute_rlhs_common_dg (const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi)
 {
-	zero_memory_volumes(sim->volumes);
+	initialize_zero_memory_volumes(sim->volumes);
 	compute_grad_coef_dg(sim,sim->volumes,sim->faces);
 	compute_volume_rlhs_dg(sim,ssi,sim->volumes);
 	compute_face_rlhs_dg(sim,ssi,sim->faces);
@@ -215,9 +214,9 @@ static double compute_max_rhs_dg (const struct Simulation*const sim)
 {
 	double max_rhs = 0.0;
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
+		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
 
-		struct Multiarray_d* rhs = dg_s_vol->rhs;
+		struct Multiarray_d* rhs = s_vol->rhs;
 		double max_rhs_curr = norm_d(rhs->extents[0]*rhs->extents[1],rhs->data,"Inf");
 		if (max_rhs_curr > max_rhs)
 			max_rhs = max_rhs_curr;
@@ -229,7 +228,7 @@ static void fill_petsc_Vec_b_dg (const struct Simulation*const sim, struct Solve
 {
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		const int ind_dof        = (int)((struct Solver_Volume*)curr)->ind_dof;
-		struct Multiarray_d* rhs = ((struct DG_Solver_Volume*)curr)->rhs;
+		struct Multiarray_d* rhs = ((struct Solver_Volume*)curr)->rhs;
 
 		const int ni = (int)compute_size(rhs->order,rhs->extents);
 
@@ -290,19 +289,19 @@ static double compute_max_rhs_ratio
 static void scale_rhs_by_m_inv_std (const struct Simulation*const sim)
 {
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
-		mm_NN1C_overwrite_Multiarray_d(dg_s_vol->m_inv,&dg_s_vol->rhs);
+		struct Solver_Volume*const s_vol       = (struct Solver_Volume*) curr;
+		struct DG_Solver_Volume*const dg_s_vol = (struct DG_Solver_Volume*) curr;
+		mm_NN1C_overwrite_Multiarray_d(dg_s_vol->m_inv,&s_vol->rhs);
 	}
 }
 
 static void scale_rhs_by_m_inv_col (const struct Simulation*const sim)
 {
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume* s_vol       = (struct Solver_Volume*) curr;
-		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
+		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
 
 		const struct const_Vector_d jac_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
-		scale_Multiarray_by_Vector_d('L',1.0,dg_s_vol->rhs,&jac_det_vc,true);
+		scale_Multiarray_by_Vector_d('L',1.0,s_vol->rhs,&jac_det_vc,true);
 	}
 }
 

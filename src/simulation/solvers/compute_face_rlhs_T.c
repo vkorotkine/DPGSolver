@@ -31,11 +31,19 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_boundary.h"
 #include "def_templates_numerical_flux.h"
+#include "def_templates_operators.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
 #define PRINT_OPERATORS 0 ///< Enable to print operators to terminal.
+
+/// \brief Finalize the rhs term contribution from the \ref Face.
+static void finalize_face_rhs_dg_like_T
+	(const int side_index,                         ///< The index of the side of the face under consideration.
+	 const struct Numerical_Flux_T*const num_flux, ///< Defined for \ref compute_rlhs_f_fptr_T.
+	 struct Solver_Face_T*const s_face             ///< Defined for \ref compute_rlhs_f_fptr_T.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -272,5 +280,42 @@ void add_to_flux_imbalance_face_nf_w_T
 	destructor_const_Vector_T(nnf_integral_sum);
 }
 
+void compute_rhs_f_dg_like_T
+	(const struct Numerical_Flux_T*const num_flux, struct Solver_Face_T*const s_face,
+	 struct Solver_Storage_Implicit*const ssi)
+{
+	UNUSED(ssi);
+
+	const struct Face* face = (struct Face*) s_face;
+	finalize_face_rhs_dg_like_T(0,num_flux,s_face);
+	if (!face->boundary) {
+		permute_Multiarray_T_fc((struct Multiarray_T*)num_flux->nnf,'R',1,(struct Solver_Face_T*)face);
+		scale_Multiarray_T((struct Multiarray_T*)num_flux->nnf,-1.0); // Use "-ve" normal.
+		finalize_face_rhs_dg_like_T(1,num_flux,s_face);
+	}
+}
+
+void permute_Multiarray_T_fc
+	(struct Multiarray_T* data, const char perm_layout, const int side_index_dest,
+	 const struct Solver_Face_T*const s_face)
+{
+	const struct const_Vector_i* nc_fc = get_operator__nc_fc_T(side_index_dest,s_face);
+	permute_Multiarray_T_V(data,nc_fc,perm_layout);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void finalize_face_rhs_dg_like_T
+	(const int side_index, const struct Numerical_Flux_T*const num_flux, struct Solver_Face_T*const s_face)
+{
+	const struct Face*const face = (struct Face*) s_face;
+
+	const struct Operator* tw0_vt_fc = get_operator__tw0_vt_fc_T(side_index,s_face);
+
+	const char op_format = get_set_op_format(0);
+
+	struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) face->neigh_info[side_index].volume;
+
+	mm_NNC_Operator_Multiarray_T(-1.0,1.0,tw0_vt_fc,num_flux->nnf,s_vol->rhs,op_format,2,NULL,NULL);
+}

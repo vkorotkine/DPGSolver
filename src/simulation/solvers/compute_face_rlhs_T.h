@@ -21,10 +21,24 @@ struct const_Vector_R;
 struct Matrix_R;
 struct Matrix_T;
 struct const_Matrix_T;
+struct Multiarray_T;
 struct Solver_Face_T;
 struct Numerical_Flux_Input_T;
 struct Numerical_Flux_T;
 struct Simulation;
+struct Solver_Storage_Implicit;
+
+/** \brief Pointer to the function used to evaluate the rhs (and optionally lhs) face terms.
+ *
+ *  \param num_flux \ref Numerical_Flux_T.
+ *  \param s_face   \ref Solver_Face_T.
+ *  \param ssi      \ref Solver_Storage_Implicit.
+ */
+typedef void (*compute_rlhs_f_fptr_T)
+	(const struct Numerical_Flux_T*const num_flux,
+	 struct Solver_Face_T*const s_face,
+	 struct Solver_Storage_Implicit*const ssi
+	);
 
 /** \brief Get the pointer to the appropriate \ref Solver_Element::tw0_vt_fc operator.
  *  \return See brief. */
@@ -89,8 +103,8 @@ void destructor_Numerical_Flux_Input_data_T
 struct Matrix_T* constructor_lhs_f_1_T
 	(const int side_index[2],                 /**< The indices of the affectee, affector, respectively. See the
 	                                           *   comments in \ref compute_face_rlhs_dg.h for the convention. */
-	 const struct Numerical_Flux_T* num_flux, ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Solver_Face_T* s_face       ///< Defined for \ref compute_rlhs_fptr.
+	 const struct Numerical_Flux_T* num_flux, ///< Defined for \ref compute_rlhs_f_fptr.
+	 const struct Solver_Face_T* s_face       ///< Defined for \ref compute_rlhs_f_fptr.
 	);
 
 /** \brief Constructor for the partial lhs face term of 2nd order equations only (i.e. flux having dependence only on
@@ -102,8 +116,8 @@ struct Matrix_T* constructor_lhs_f_1_T
  */
 struct Matrix_T* constructor_lhs_p_f_2_T
 	(const int side_index[2],                 ///< Defined for \ref constructor_lhs_f_1_T.
-	 const struct Numerical_Flux_T* num_flux, ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Solver_Face_T* s_face       ///< Defined for \ref compute_rlhs_fptr.
+	 const struct Numerical_Flux_T* num_flux, ///< Defined for \ref compute_rlhs_f_fptr.
+	 const struct Solver_Face_T* s_face       ///< Defined for \ref compute_rlhs_f_fptr.
 	);
 
 /** \brief Combine the input face cubature weights and normal flux values and add to the corresponding \ref
@@ -112,4 +126,24 @@ void add_to_flux_imbalance_face_nf_w_T
 	(const struct const_Matrix_T*const nf_fc, ///< The normal flux evaluated at the face cubature nodes.
 	 const struct const_Vector_R*const w_fc,  ///< The face cubature weights.
 	 const struct Solver_Face_T*const s_face  ///< The current face.
+	);
+
+/** \brief Version of \ref compute_rlhs_f_fptr_T computing only the rhs term.
+ *
+ *  The function is "dg-like" in the sense that it computes the rhs term as for the DG scheme, but can be used with test
+ *  space not equal to trial space (Petrov-Galerkin).
+ */
+void compute_rhs_f_dg_like_T
+	(const struct Numerical_Flux_T*const num_flux, ///< See brief.
+	 struct Solver_Face_T*const s_face,            ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi      ///< See brief.
+	);
+
+/** \brief Permute the input multiarray such that its ordering is such that it is in the reference coordinates of the
+ *         face cubature nodes of the opposite volume. */
+void permute_Multiarray_T_fc
+	(struct Multiarray_T* data,              ///< The data to be permuted.
+	 const char perm_layout,                 ///< Defined for \ref permute_Multiarray_T_V.
+	 const int side_index_dest,              ///< The side index of the destination.
+	 const struct Solver_Face_T*const s_face ///< \ref Solver_Face_T.
 	);

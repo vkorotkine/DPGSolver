@@ -42,10 +42,8 @@ void compute_source_rhs_dg (const struct Simulation* sim)
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		const struct Solver_Volume* s_vol       = (struct Solver_Volume*) curr;
-		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
-
-		test_case->compute_source_rhs(sim,s_vol,dg_s_vol->rhs);
+		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+		test_case->compute_source_rhs(sim,s_vol,s_vol->rhs);
 	}
 }
 

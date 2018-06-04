@@ -68,7 +68,6 @@ void constructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr, const st
 	const int order = s_vol->sol_coef->order;
 	ptrdiff_t* extents = s_vol->sol_coef->extents;
 
-	dg_s_vol->rhs        = constructor_empty_Multiarray_T('C',order,extents); // destructed
 	dg_s_vol->sol_coef_p =
 		( needed_members.sol_coef_p ? constructor_empty_Multiarray_T('C',order,extents) : NULL ); // destructed
 
@@ -94,7 +93,6 @@ void destructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr)
 {
 	struct DG_Solver_Volume_T* dg_s_vol = (struct DG_Solver_Volume_T*) volume_ptr;
 
-	destructor_Multiarray_T(dg_s_vol->rhs);
 	destructor_conditional_Multiarray_T(dg_s_vol->sol_coef_p);
 	destructor_conditional_const_Matrix_R(dg_s_vol->m_inv);
 	destructor_conditional_const_Matrix_R(dg_s_vol->m);

@@ -18,7 +18,9 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 struct Flux_Input_T;
+struct Flux_Ref_T;
 struct Simulation;
+struct Solver_Storage_Implicit;
 struct Volume;
 struct Solver_Volume_T;
 
@@ -26,11 +28,9 @@ struct Solver_Volume_T;
  *  \return Standard.
  *
  *  \param s_vol The current volume.
- *  \param sim   \ref Simulation.
  */
 typedef const struct const_Multiarray_T* (*constructor_sol_vc_fptr_T)
-	(const struct Solver_Volume_T* s_vol,
-	 const struct Simulation* sim
+	(const struct Solver_Volume_T*const s_vol
 	);
 
 /** \brief Function pointer to the destructor for the solution evaluated at the volume cubature nodes.
@@ -39,6 +39,18 @@ typedef const struct const_Multiarray_T* (*constructor_sol_vc_fptr_T)
  */
 typedef void (*destructor_sol_vc_fptr_T)
 	(const struct const_Multiarray_T* sol_vc
+	);
+
+/** \brief Pointer to the function used to evaluate the rhs (and optionally lhs) volume terms.
+ *
+ *  \param flux_r \ref Flux_Ref_T.
+ *  \param s_vol  \ref Solver_Volume_T.
+ *  \param ssi    \ref Solver_Storage_Implicit.
+ */
+typedef void (*compute_rlhs_v_fptr_T)
+	(const struct Flux_Ref_T*const flux_r,
+	 struct Solver_Volume_T*const s_vol,
+	 struct Solver_Storage_Implicit*const ssi
 	);
 
 /// \brief Container for volume solver parameters related to con/de'structor's.
@@ -80,13 +92,23 @@ void destructor_Flux_Ref_T
 	(struct Flux_Ref_T* flux_ref ///< Standard.
 	);
 
+/** \brief Version of \ref compute_rlhs_v_fptr_T computing only the rhs term.
+ *
+ *  The function is "dg-like" in the sense that it computes the rhs term as for the DG scheme, but can be used with test
+ *  space not equal to trial space (Petrov-Galerkin).
+ */
+void compute_rhs_v_dg_like_T
+	(const struct Flux_Ref_T*const flux_r,    ///< See brief.
+	 struct Solver_Volume_T*const s_vol,      ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi ///< See brief.
+	);
+
 /** \brief Constructor for the lhs volume term of 1st order equations only (i.e. flux having dependence only on \ref
  *         Solver_Volume_T::sol_coef.
  *  \return See brief. */
 struct Matrix_T* constructor_lhs_v_1_T
-	(const struct Flux_Ref_T* flux_r,     ///< \ref Flux_Ref_T.
-	 const struct Solver_Volume_T* s_vol, ///< \ref Solver_Volume_T.
-	 const struct Simulation* sim         ///< \ref Simulation.
+	(const struct Flux_Ref_T*const flux_r,    ///< \ref Flux_Ref_T.
+	 const struct Solver_Volume_T*const s_vol ///< \ref Solver_Volume_T.
 	);
 
 /** \brief Constructor for the partial lhs volume term of 2nd order equations only (i.e. flux having dependence only on
@@ -97,9 +119,8 @@ struct Matrix_T* constructor_lhs_v_1_T
  *  d_g_coef__d_s_coef terms in order to obtain the final lhs terms.
  */
 struct Matrix_T* constructor_lhs_p_v_2_T
-	(const struct Flux_Ref_T*const flux_r,     ///< \ref Flux_Ref_T.
-	 const struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
-	 const struct Simulation*const sim         ///< \ref Simulation.
+	(const struct Flux_Ref_T*const flux_r,    ///< \ref Flux_Ref_T.
+	 const struct Solver_Volume_T*const s_vol ///< \ref Solver_Volume_T.
 	);
 
 /** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vr_vc operator.
@@ -125,4 +146,3 @@ struct Multiarray_Operator get_operator__tw1_vt_vc_T
 struct Multiarray_Operator get_operator__cv1_vt_vc_T
 	(const struct Solver_Volume_T*const s_vol ///< The current volume.
 	);
-

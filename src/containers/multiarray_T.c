@@ -328,6 +328,21 @@ void copy_into_Multiarray_T (struct Multiarray_T*const dest, const struct const_
 		dest->data[i] = src->data[i];
 }
 
+#ifdef TYPE_RC
+void copy_into_Multiarray_T_from_R (struct Multiarray_T*const dest, const struct const_Multiarray_R*const src)
+{
+	assert(dest->order == src->order);
+	for (int i = 0; i < src->order; ++i)
+		assert(dest->extents[i] == src->extents[i]);
+	assert(dest->layout == src->layout);
+	assert(dest->owns_data == true);
+
+	const ptrdiff_t size = compute_size(src->order,src->extents);
+	for (int i = 0; i < size; ++i)
+		dest->data[i] = src->data[i];
+}
+#endif
+
 void push_back_Multiarray_T (struct Multiarray_T*const dest, const struct const_Multiarray_T*const src)
 {
 	assert(dest->order == src->order);

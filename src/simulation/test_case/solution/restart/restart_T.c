@@ -427,7 +427,10 @@ static void read_sol_coef_bezier (struct Solver_Volume_T*const s_vol, char* line
 #if TYPE_RC == TYPE_REAL
 	read_line_values_d(&line,compute_size(order,exts),s_coef->data);
 #else
-	EXIT_ADD_SUPPORT;
+	struct Multiarray_R*const s_coef_R = constructor_empty_Multiarray_R(s_coef->layout,order,exts); // destructed
+	read_line_values_d(&line,compute_size(order,exts),s_coef_R->data);
+	copy_into_Multiarray_T_from_R(s_coef,(struct const_Multiarray_R*)s_coef_R);
+	destructor_Multiarray_R(s_coef_R);
 #endif
 }
 

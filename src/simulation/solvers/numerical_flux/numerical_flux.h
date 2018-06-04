@@ -33,4 +33,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_boundary.h"
 #include "undef_templates_flux.h"
 
+/** \brief Return a statically allocated array of `int*` holding the values of the numerical flux indices.
+ *  \return See brief.
+ *
+ *  Passing a non-NULL input for `new_vals` sets the statically allocated array to the contained values.
+ */
+const int* get_set_ind_num_flux
+	(const int*const new_vals ///< New values.
+	);
+
 #endif // DPG__numerical_flux_h__INCLUDED

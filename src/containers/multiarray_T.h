@@ -231,6 +231,14 @@ void copy_into_Multiarray_T
 	 const struct const_Multiarray_T*const src ///< The source.
 	);
 
+#ifdef TYPE_RC
+/// \brief Copy data from the source into the destination \ref Multiarray_T.
+void copy_into_Multiarray_T_from_R
+	(struct Multiarray_T*const dest,           ///< The destination.
+	 const struct const_Multiarray_R*const src ///< The source.
+	);
+#endif
+
 /** \brief Push the source multiarray to the back of the destination multiarray.
  *
  *  For row-major inputs, the destination multiarray has its number of rows increased.

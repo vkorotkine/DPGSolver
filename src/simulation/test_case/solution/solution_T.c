@@ -135,13 +135,13 @@ void set_initial_solution_T (struct Simulation* sim)
 	case METHOD_DG:
 		set_initial_v_sg_coef(sim);
 		break;
+	case METHOD_OPG:
+		set_initial_v_test_sg_coef(sim);
+		// fallthrough
 	case METHOD_DPG:
 		set_initial_v_sg_coef(sim);
 		set_initial_f_nf_coef(sim);
 		set_exact_f_nf_fc(sim);
-		// fallthrough
-	case METHOD_OPG:
-		set_initial_v_test_sg_coef(sim);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
@@ -341,8 +341,8 @@ void set_to_zero_residual_T (const struct Simulation*const sim)
 		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
 		struct Multiarray_T*const s_coef = s_vol->sol_coef;
 
-		destructor_conditional_Multiarray_T(s_vol->rhs);
-		s_vol->rhs = constructor_zero_Multiarray_T(s_coef->layout,s_coef->order,s_coef->extents); // keep
+		destructor_conditional_Multiarray_T(s_vol->rhs_0);
+		s_vol->rhs_0 = constructor_zero_Multiarray_T(s_coef->layout,s_coef->order,s_coef->extents); // keep
 	}
 }
 

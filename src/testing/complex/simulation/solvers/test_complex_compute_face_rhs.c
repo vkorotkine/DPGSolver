@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_complex_boundary.h"
 #include "test_complex_numerical_flux.h"
+#include "test_complex_operators.h"
 #include "test_complex_test_case.h"
 
 

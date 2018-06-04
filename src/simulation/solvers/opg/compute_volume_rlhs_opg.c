@@ -41,10 +41,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Version of \ref compute_rlhs_opg_fptr_T computing the rhs and lhs terms for 1st order equations only.
 static void compute_rlhs_1
-	(const struct Flux_Ref*const flux_r,       ///< See brief.
-	 struct OPG_Solver_Volume*const opg_s_vol, ///< See brief.
-	 struct Solver_Storage_Implicit*const ssi, ///< See brief.
-	 const struct Simulation*const sim         ///< See brief.
+	(const struct Flux_Ref*const flux_r,      ///< See brief.
+	 struct Solver_Volume*const s_vol,        ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi ///< See brief.
 	);
 
 // Interface functions ********************************************************************************************** //
@@ -59,16 +58,15 @@ static void compute_rlhs_1
 static void compute_lhs_1
 	(const struct Flux_Ref*const flux_r,       ///< See brief.
 	 struct OPG_Solver_Volume*const opg_s_vol, ///< See brief.
-	 struct Solver_Storage_Implicit*const ssi, ///< See brief.
-	 const struct Simulation*const sim         ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi  ///< See brief.
 	);
 
 static void compute_rlhs_1
-	(const struct Flux_Ref*const flux_r, struct OPG_Solver_Volume*const opg_s_vol,
-	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
+	(const struct Flux_Ref*const flux_r, struct Solver_Volume*const s_vol, struct Solver_Storage_Implicit*const ssi)
 {
-	compute_rhs_all(flux_r,opg_s_vol,ssi,sim);
-	compute_lhs_1(flux_r,opg_s_vol,ssi,sim);
+	struct OPG_Solver_Volume*const opg_s_vol = (struct OPG_Solver_Volume*) s_vol;
+	compute_rhs_v_dg_like(flux_r,s_vol,ssi);
+	compute_lhs_1(flux_r,opg_s_vol,ssi);
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -76,18 +74,17 @@ static void compute_rlhs_1
 /** \brief Constructor for the volume contribution to the lhs term for 1st order equations.
  *  \return See brief. */
 static const struct const_Matrix_d* constructor_lhs_v_1_opg
-	(const struct Flux_Ref*const flux_r,             ///< Standard.
-	 const struct OPG_Solver_Volume*const opg_s_vol, ///< Standard.
-	 const struct Simulation*const sim               ///< Standard.
+	(const struct Flux_Ref*const flux_r,            ///< Standard.
+	 const struct OPG_Solver_Volume*const opg_s_vol ///< Standard.
 	);
 
 static void compute_lhs_1
 	(const struct Flux_Ref*const flux_r, struct OPG_Solver_Volume*const opg_s_vol,
-	 struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
+	 struct Solver_Storage_Implicit*const ssi)
 {
-	assert(sim->collocated == false); // Ensure that premultiplication by inv(w_vc) is not present if true.
+	assert(get_set_collocated(NULL) == false); // Ensure that premultiplication by inv(w_vc) is not present if true.
 
-	const struct const_Matrix_d*const lhs = constructor_lhs_v_1_opg(flux_r,opg_s_vol,sim); // destructed
+	const struct const_Matrix_d*const lhs = constructor_lhs_v_1_opg(flux_r,opg_s_vol); // destructed
 	set_petsc_Mat_row_col_opg(ssi,opg_s_vol,0,opg_s_vol,0);
 	add_to_petsc_Mat(ssi,lhs);
 	destructor_const_Matrix_d(lhs);
@@ -96,12 +93,11 @@ static void compute_lhs_1
 // Level 2 ********************************************************************************************************** //
 
 static const struct const_Matrix_d* constructor_lhs_v_1_opg
-	(const struct Flux_Ref*const flux_r, const struct OPG_Solver_Volume*const opg_s_vol,
-	 const struct Simulation*const sim)
+	(const struct Flux_Ref*const flux_r, const struct OPG_Solver_Volume*const opg_s_vol)
 {
-	const struct Test_Case*const test_case = (struct Test_Case*)sim->test_case_rc->tc;
-	const int n_eq = test_case->n_eq,
-	          n_vr = test_case->n_var;
+	const int*const n_var_eq = get_set_n_var_eq(NULL);
+	const int n_vr = n_var_eq[0],
+	          n_eq = n_var_eq[1];
 
 	struct Solver_Volume* s_vol = (struct Solver_Volume*) opg_s_vol;
 	const struct Multiarray_Operator cv1_vt_vc = get_operator__cv1_vt_vc(s_vol);

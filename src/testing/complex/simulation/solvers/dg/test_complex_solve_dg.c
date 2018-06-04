@@ -184,7 +184,7 @@ static struct Intrusive_List* constructor_Faces_local (const struct Volume* vol,
 static void compute_rhs_cmplx_step_dg
 	(struct Intrusive_List* volumes_local, struct Intrusive_List* faces_local, const struct Simulation* sim)
 {
-	zero_memory_volumes(volumes_local);
+	initialize_zero_memory_volumes(volumes_local);
 	compute_grad_coef_dg_c(sim,volumes_local,faces_local);
 	switch (CHECK_LIN) {
 	case CHECK_LIN_VOLUME:
@@ -222,8 +222,7 @@ static void set_col_lhs_cmplx_step_dg
 
 		PetscInt idxn[1] = { ssi->col, };
 
-		struct DG_Solver_Volume_c* dg_s_vol_r = (struct DG_Solver_Volume_c*) curr_r;
-		struct Multiarray_c* rhs_r = dg_s_vol_r->rhs;
+		struct Multiarray_c* rhs_r = s_vol_r->rhs;
 		PetscScalar vv[ext_0];
 		for (int i = 0; i < ext_0; ++i)
 			vv[i] = cimag(rhs_r->data[i])/CX_STEP;

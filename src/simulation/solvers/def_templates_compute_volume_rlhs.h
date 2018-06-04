@@ -26,12 +26,14 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function pointers
 #define constructor_sol_vc_fptr_T constructor_sol_vc_fptr
 #define destructor_sol_vc_fptr_T  destructor_sol_vc_fptr
+#define compute_rlhs_v_fptr_T     compute_rlhs_v_fptr
 ///\}
 
 ///\{ \name Function names
 #define set_S_Params_Volume_Structor_T set_S_Params_Volume_Structor
 #define constructor_Flux_Ref_vol_T     constructor_Flux_Ref_vol
 #define destructor_Flux_Ref_T          destructor_Flux_Ref
+#define compute_rhs_v_dg_like_T        compute_rhs_v_dg_like
 #define constructor_lhs_v_1_T          constructor_lhs_v_1
 #define constructor_lhs_p_v_2_T        constructor_lhs_p_v_2
 #define get_operator__cv0_vs_vc_T      get_operator__cv0_vs_vc
@@ -50,12 +52,14 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function pointers
 #define constructor_sol_vc_fptr_T constructor_sol_vc_fptr_c
 #define destructor_sol_vc_fptr_T  destructor_sol_vc_fptr_c
+#define compute_rlhs_v_fptr_T     compute_rlhs_v_fptr_c
 ///\}
 
 ///\{ \name Function names
 #define set_S_Params_Volume_Structor_T set_S_Params_Volume_Structor_c
 #define constructor_Flux_Ref_vol_T     constructor_Flux_Ref_vol_c
 #define destructor_Flux_Ref_T          destructor_Flux_Ref_c
+#define compute_rhs_v_dg_like_T        compute_rhs_v_dg_like_c
 #define constructor_lhs_v_1_T          constructor_lhs_v_1_c
 #define constructor_lhs_p_v_2_T        constructor_lhs_p_v_2_c
 #define get_operator__cv0_vs_vc_T      get_operator__cv0_vs_vc_c

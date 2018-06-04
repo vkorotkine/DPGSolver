@@ -19,42 +19,26 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
-///\{ \name Data types
-#define Num_Flux_T Num_Flux
-#define S_Params_T S_Params
-///\}
-
 ///\{ \name Function pointers
 #define scale_by_Jacobian_fptr_T scale_by_Jacobian_fptr
-#define compute_rlhs_fptr_T      compute_rlhs_fptr
 ///\}
 
 ///\{ \name Function names
 #define compute_face_rlhs_dg_T                     compute_face_rlhs_dg
 #define compute_flux_imbalances_faces_dg_T         compute_flux_imbalances_faces_dg
 #define constructor_Numerical_Flux_Input_data_dg_T constructor_Numerical_Flux_Input_data_dg
-
-#define compute_rhs_f_dg_T compute_rhs_f_dg
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
-///\{ \name Data types
-#define Num_Flux_T Num_Flux_c
-#define S_Params_T S_Params_c
-///\}
-
 ///\{ \name Function pointers
 #define scale_by_Jacobian_fptr_T scale_by_Jacobian_fptr_c
-#define compute_rlhs_fptr_T      compute_rlhs_fptr_c
 ///\}
 
 ///\{ \name Function names
 #define compute_face_rlhs_dg_T                     compute_face_rlhs_dg_c
 #define compute_flux_imbalances_faces_dg_T         compute_flux_imbalances_faces_dg_c
 #define constructor_Numerical_Flux_Input_data_dg_T constructor_Numerical_Flux_Input_data_dg_c
-
-#define compute_rhs_f_dg_T compute_rhs_f_dg_c
 ///\}
 
 #endif

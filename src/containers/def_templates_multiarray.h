@@ -63,6 +63,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define interpret_const_Multiarray_as_slice_T  interpret_const_Multiarray_as_slice_d
 #define interpret_Multiarray_slice_as_Vector_T interpret_Multiarray_slice_as_Vector_d
 #define copy_into_Multiarray_T                 copy_into_Multiarray_d
+#define copy_into_Multiarray_T_from_R          copy_into_Multiarray_d_from_d
 #define push_back_Multiarray_T                 push_back_Multiarray_d
 #define make_unique_row_Multiarray_T           make_unique_row_Multiarray_d
 #define update_rows_Multiarray_T               update_rows_Multiarray_d
@@ -111,6 +112,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define interpret_const_Multiarray_as_slice_T  interpret_const_Multiarray_as_slice_c
 #define interpret_Multiarray_slice_as_Vector_T interpret_Multiarray_slice_as_Vector_c
 #define copy_into_Multiarray_T                 copy_into_Multiarray_c
+#define copy_into_Multiarray_T_from_R          copy_into_Multiarray_c_from_d
 #define push_back_Multiarray_T                 push_back_Multiarray_c
 #define make_unique_row_Multiarray_T           make_unique_row_Multiarray_c
 #define update_rows_Multiarray_T               update_rows_Multiarray_c

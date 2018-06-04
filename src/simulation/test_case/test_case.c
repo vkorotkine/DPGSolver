@@ -121,6 +121,29 @@ bool outputting_restart ( )
 	return output_restart;
 }
 
+const int* get_set_n_var_eq (const int*const new_vals)
+{
+	static int n_var_eq[2] = { -1, -1, };
+	if (new_vals) {
+		for (int i = 0; i < 2; ++i) {
+			assert(new_vals[i] > 0);
+			assert(new_vals[i] <= DIM+2);
+			n_var_eq[i] = new_vals[i];
+		}
+	}
+	return n_var_eq;
+}
+
+const bool* get_set_has_1st_2nd_order (const bool*const new_vals)
+{
+	static bool has_1st_2nd_order[2] = { false, false, };
+	if (new_vals) {
+		for (int i = 0; i < 2; ++i)
+			has_1st_2nd_order[i] = new_vals[i];
+	}
+	return has_1st_2nd_order;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

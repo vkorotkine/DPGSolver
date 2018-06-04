@@ -35,6 +35,10 @@ struct Simulation;
  *  when using the Riemann invariant boundary condition, the solution is constructed while solving for the boundary
  *  numerical flux and the free-stream solution should be used despite this solution not being used for the
  *  initialization or error computation. If no restart file is being used, the function pointers are set to be equal.
+ *
+ * \todo Remove: n_var, n_eq, ind_num_flux from Test_Case_T in favor of using the static function for retrieval.
+ *       This should eliminate a large number of instances where Simulation/Test_Case_T are passed as function
+ *       arguments.
  */
 struct Test_Case_T {
 	const int pde_index;  ///< Index corresponding to \ref Simulation::pde_name.

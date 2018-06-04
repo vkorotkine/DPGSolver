@@ -90,8 +90,7 @@ void update_ind_dof_opg_T (const struct Simulation* sim)
 
 struct Vector_i* constructor_nnz_opg_T (const struct Simulation* sim)
 {
-	struct Test_Case_T* test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
-	assert(test_case->has_2nd_order == false); // Add support.
+	assert(get_set_has_1st_2nd_order(NULL)[1] == false); // Add support.
 
 	const ptrdiff_t dof = compute_dof_test(sim);
 	struct Vector_i* nnz = constructor_zero_Vector_i(dof); // returned

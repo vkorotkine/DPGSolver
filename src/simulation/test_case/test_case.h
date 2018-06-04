@@ -82,4 +82,26 @@ bool using_restart ( );
  *  \return See brief. */
 bool outputting_restart ( );
 
+/** \brief Return a statically allocated array of `int*` holding the values of the number of variables/equations.
+ *  \return See brief.
+ *
+ *  n_variables = out[0]
+ *  n_equations = out[1]
+ *
+ *  Passing a non-NULL input for `new_vals` sets the statically allocated array to the contained values.
+ */
+const int* get_set_n_var_eq
+	(const int*const new_vals ///< New values.
+	);
+
+/** \brief Return a statically allocated array of `bool*` holding the values of the flags for whether the PDE under
+ *         consideration has 1st and/or 2nd order components.
+ *  \return See brief.
+ *
+ *  Passing a non-NULL input for `new_vals` sets the statically allocated array to the contained values.
+ */
+const bool* get_set_has_1st_2nd_order
+	(const bool*const new_vals ///< New values.
+	);
+
 #endif // DPG__test_case_h__INCLUDED

@@ -39,7 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_compute_face_rlhs.h"
 #include "def_templates_compute_volume_rlhs.h"
 #include "def_templates_flux.h"
-#include "def_templates_multiarray_operator_d.h"
+#include "def_templates_operators.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_test_case.h"
 
@@ -72,7 +72,7 @@ typedef const struct Norm_DPG* (*constructor_norm_DPG_fptr)
  *  \param sim       \ref Simulation.
  *  \param sim_c     The complex \ref Simulation (may be NULL).
  */
-typedef void (*compute_rlhs_fptr)
+typedef void (*compute_rlhs_dpg_fptr)
 	(const struct S_Params_DPG* s_params,
 	 struct Flux_Input_T* flux_i,
 	 const struct DPG_Solver_Volume_T* dpg_s_vol,
@@ -86,7 +86,7 @@ struct S_Params_DPG {
 	struct S_Params_Volume_Structor_T spvs; ///< \ref S_Params_Volume_Structor_T.
 
 	constructor_norm_DPG_fptr constructor_norm_DPG; ///< Pointer to the appropriate function.
-	compute_rlhs_fptr compute_rlhs;                 ///< Pointer to the appropriate function.
+	compute_rlhs_dpg_fptr compute_rlhs;             ///< Pointer to the appropriate function.
 };
 
 /// \brief Container for DPG norm-related parameters.
@@ -401,7 +401,7 @@ void add_to_rlhs__face_boundary_T
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/// \brief Version of \ref compute_rlhs_fptr computing rhs and lhs terms for 1st order equations only.
+/// \brief Version of \ref compute_rlhs_dpg_fptr computing rhs and lhs terms for 1st order equations only.
 static void compute_rlhs_1
 	(const struct S_Params_DPG* s_params,         ///< See brief.
 	 struct Flux_Input_T* flux_i,                 ///< See brief.
@@ -626,16 +626,16 @@ static void increment_lhs_boundary_face
 /** \brief Constructor for the rhs \ref Vector_T with volume contributions from 1st order equations included.
  *  \return See brief. */
 static struct Vector_T* constructor_rhs_v_1
-	(const struct Flux_Ref_T* flux_r,     ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Solver_Volume_T* s_vol, ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Simulation* sim         ///< Defined for \ref compute_rlhs_fptr.
+	(const struct Flux_Ref_T* flux_r,     ///< Defined for \ref compute_rlhs_dpg_fptr.
+	 const struct Solver_Volume_T* s_vol, ///< Defined for \ref compute_rlhs_dpg_fptr.
+	 const struct Simulation* sim         ///< Defined for \ref compute_rlhs_dpg_fptr.
 	);
 
 /// \brief Increment the rhs terms with the source contribution.
 static void increment_rhs_source
 	(struct Vector_T* rhs,                ///< Holds the values of the rhs.
-	 const struct Solver_Volume_T* s_vol, ///< Defined for \ref compute_rlhs_fptr.
-	 const struct Simulation* sim         ///< Defined for \ref compute_rlhs_fptr.
+	 const struct Solver_Volume_T* s_vol, ///< Defined for \ref compute_rlhs_dpg_fptr.
+	 const struct Simulation* sim         ///< Defined for \ref compute_rlhs_dpg_fptr.
 	);
 
 /** \brief Constructor for the negated DPG rhs \ref Vector_T, including contributions from conservation enforcement if
@@ -783,8 +783,8 @@ static void compute_rlhs_1
 
 	const struct Norm_DPG* norm = s_params->constructor_norm_DPG(dpg_s_vol,flux_r,sim); // destructed
 
-	struct Vector_T* rhs_std = constructor_rhs_v_1(flux_r,s_vol,sim);   // destructed
-	struct Matrix_T* lhs_std = constructor_lhs_v_1_T(flux_r,s_vol,sim); // destructed
+	struct Vector_T* rhs_std = constructor_rhs_v_1(flux_r,s_vol,sim); // destructed
+	struct Matrix_T* lhs_std = constructor_lhs_v_1_T(flux_r,s_vol);   // destructed
 
 	add_to_rlhs__face_T(rhs_std,&lhs_std,dpg_s_vol,sim,true);
 	increment_rhs_source(rhs_std,s_vol,sim);

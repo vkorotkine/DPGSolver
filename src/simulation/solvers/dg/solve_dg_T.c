@@ -36,11 +36,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Set the memory of the rhs and lhs (if applicable) terms to zero for the volumes.
-static void zero_memory_volumes
-	(struct Intrusive_List* volumes ///< The list of volumes for which to set the memory.
-	);
-
 // Interface functions ********************************************************************************************** //
 
 void update_ind_dof_dg_T (const struct Simulation* sim)
@@ -90,19 +85,5 @@ struct Vector_i* constructor_nnz_dg_T (const struct Simulation* sim)
 	return nnz;
 }
 
-void permute_Multiarray_T_fc
-	(struct Multiarray_T* data, const char perm_layout, const int side_index_dest,
-	 const struct Solver_Face_T* s_face)
-{
-	const struct const_Vector_i* nc_fc = get_operator__nc_fc_T(side_index_dest,s_face);
-	permute_Multiarray_T_V(data,nc_fc,perm_layout);
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static void zero_memory_volumes (struct Intrusive_List* volumes)
-{
-	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next)
-		set_to_value_Multiarray_T(((struct DG_Solver_Volume_T*)curr)->rhs,0.0);
-}

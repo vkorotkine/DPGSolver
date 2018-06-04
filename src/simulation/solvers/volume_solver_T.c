@@ -74,7 +74,9 @@ void constructor_derived_Solver_Volume_T (struct Volume* volume_ptr, const struc
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	s_vol->flux_imbalance = constructor_empty_Vector_T(test_case->n_var); // destructed
 	s_vol->l_mult = constructor_zero_Multiarray_T('C',1,(ptrdiff_t[]){test_case->n_eq}); // destructed
-	s_vol->rhs = NULL;
+
+	s_vol->rhs   = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0}); // destructed
+	s_vol->rhs_0 = NULL;
 	s_vol->test_s_coef = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0}); // destructed
 }
 
@@ -92,7 +94,8 @@ void destructor_derived_Solver_Volume_T (struct Volume* volume_ptr)
 	destructor_const_Multiarray_R(s_vol->metrics_vm_p1);
 	destructor_Vector_T(s_vol->flux_imbalance);
 	destructor_Multiarray_T(s_vol->l_mult);
-	destructor_conditional_Multiarray_T(s_vol->rhs);
+	destructor_Multiarray_T(s_vol->rhs);
+	destructor_conditional_Multiarray_T(s_vol->rhs_0);
 	destructor_Multiarray_T(s_vol->test_s_coef);
 }
 

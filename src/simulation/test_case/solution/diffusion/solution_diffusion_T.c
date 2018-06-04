@@ -62,6 +62,9 @@ void set_function_pointers_solution_diffusion_T (struct Test_Case_T* test_case, 
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}
+	// Remove the residual convergence monitoring if present as it converges at p+d-1 (suboptimal for DIM == 1).
+	if (DIM == 1)
+		test_case->constructor_Error_CE = constructor_Error_CE_diffusion_all;
 
 	test_case->compute_Flux = compute_Flux_2_T;
 	test_case->compute_Flux_iv[0] = NULL;

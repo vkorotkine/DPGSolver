@@ -266,6 +266,32 @@ void set_ml_p_curr
 	 struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Return the value of the statically allocated operator format to be used.
+ *  \return See brief.
+ *
+ *  Passing a non-zero value for `new_format` sets the statically allocated operator format to that value.
+ */
+char get_set_op_format
+	(const char new_format ///< New format. Options: 'd'efault, 's'tandard, 't'ensor-product, 'c'ompressed sparse row.
+	);
 
+/** \brief Return a statically allocated `bool` flag indicating whether collocated interpolation and cubature nodes are
+ *         being used.
+ *  \return See brief.
+ *
+ *  Passing a non-NULL value for `new_val` sets the statically allocated value to that pointed to by the input.
+ */
+bool get_set_collocated
+	(const bool*const new_val ///< Pointer to new value.
+	);
+
+/** \brief Return a statically allocated `int` referring to the solver method being used.
+ *  \return See brief.
+ *
+ *  Passing a non-NULL input for `new_val` sets the statically value to that of the input.
+ */
+int get_set_method
+	(const int*const new_val ///< The new value if non-NULL.
+	);
 
 #endif // DPG__Simulation_h__INCLUDED

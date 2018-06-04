@@ -83,7 +83,8 @@ struct Solver_Volume_T {
 	struct Vector_T* flux_imbalance; ///< The values of the flux imbalances for each equation.
 	struct Multiarray_T* l_mult; ///< The values of the Lagrange multipliers used to enforce conservation.
 
-	struct Multiarray_T* rhs; ///< The rhs terms.
+	struct Multiarray_T* rhs;   ///< The rhs terms.
+	struct Multiarray_T* rhs_0; ///< The rhs terms computed from the initial solution.
 
 	/** Optimal test function coefficients for the solution. These are included here and not in derived Solver Volumes
 	 *  so that they may be used outside of the solver functions (visualization, comparison, etc). */

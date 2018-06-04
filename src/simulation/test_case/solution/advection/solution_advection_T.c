@@ -105,6 +105,12 @@ void set_function_pointers_solution_advection_T (struct Test_Case_T* test_case, 
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}
 
+	if (sim->method == METHOD_DPG) {
+		printf("*** Warning: Disabling computation of rhs_0 error for DPG. Add support.***\n");
+		const_cast_b(&test_case->copy_initial_rhs,false);
+		test_case->constructor_Error_CE = constructor_Error_CE_advection_all;
+	}
+
 	test_case->compute_Flux = compute_Flux_1_T;
 	test_case->compute_Flux_iv[0] = compute_Flux_T_advection;
 

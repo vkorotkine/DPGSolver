@@ -16,6 +16,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Undefine macro definitions for c-style templating relating to face rlhs computing functions.
  */
 
+///\{ \name Function pointers
+#undef compute_rlhs_f_fptr_T
+///\}
+
 #undef get_operator__tw0_vt_fc_T
 #undef get_operator__cv0_vs_fc_T
 #undef get_operator__cv0_vr_fc_T
@@ -27,3 +31,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_lhs_f_1_T
 #undef constructor_lhs_p_f_2_T
 #undef add_to_flux_imbalance_face_nf_w_T
+#undef compute_rhs_f_dg_like_T
+#undef permute_Multiarray_T_fc

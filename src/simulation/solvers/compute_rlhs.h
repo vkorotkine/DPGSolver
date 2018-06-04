@@ -36,8 +36,7 @@ void add_to_lhs_p_r
 	(const double alpha,                             ///< Scaling constant.
 	 const struct const_Matrix_d*const dgc_dsc[DIM], ///< The linearization term.
 	 struct Matrix_d*const lhs_p_r,                  ///< The 'r'ight 'p'artial term for the lhs matrix.
-	 const bool boundary_face_term,                  ///< Flag for whether the entry is from a boundary face.
-	 const struct Simulation*const sim               ///< \ref Simulation.
+	 const bool boundary_face_term                   ///< Flag for whether the entry is from a boundary face.
 	);
 
 #endif // DPG__compute_rlhs_h__INCLUDED

@@ -78,6 +78,7 @@ struct Test_Case_T* constructor_Test_Case_T (const struct Simulation* sim)
 	set_method_related(test_case,sim);
 
 	read_test_case_parameters(test_case,sim);
+	get_set_ind_num_flux(test_case->ind_num_flux);
 	set_function_pointers(test_case,sim);
 
 	test_case->solver_method_curr = 0;
@@ -178,6 +179,8 @@ static void set_pde_related (struct Test_Case_T* test_case, const struct Simulat
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
 		break;
 	}
+	get_set_n_var_eq((int[]){test_case->n_var,test_case->n_eq});
+	get_set_has_1st_2nd_order((bool[]){test_case->has_1st_order,test_case->has_2nd_order});
 
 	const bool* flux_comp_mem_e = get_compute_member_Flux_Input('e',test_case,sim),
 	          * flux_comp_mem_i = get_compute_member_Flux_Input('i',test_case,sim);

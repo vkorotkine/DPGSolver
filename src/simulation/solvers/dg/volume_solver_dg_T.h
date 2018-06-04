@@ -25,7 +25,6 @@ struct DG_Solver_Volume_T {
 	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume_T.
 
 	struct Multiarray_T* sol_coef_p; ///< The coefficients of the solution at a previous Runge-Kutta stage.
-	struct Multiarray_T* rhs;        ///< The rhs terms.
 
 	// Terms required for explicit runs.
 	const struct const_Matrix_R* m_inv; ///< The inverse mass matrix.
