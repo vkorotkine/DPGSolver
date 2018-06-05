@@ -529,6 +529,36 @@ def plot_spline(spline_function, xi_range, control_points):
 	plt.scatter(x_ctrl_pt, y_ctrl_pt)
 
 
+def get_optimization_pts(ControlPoints_and_Weights):
+
+	"""
+	Go through the Control Point net and set the points that will 
+	act as the optimization control points. This method will combine
+	the points into a list and also specify each point's degrees of 
+	freedom. 
+
+	:param ControlPoints_and_Weights: The net (matrix) of control points and
+		weights.
+
+	:return : A list with the control points for the optimization. The list
+		will hold tuples of the form (cntrl_pt, dof_x_bool, dof_y_bool)
+		where dof_x_bool = 0 if the x direction cannot be used as a degree of 
+		freedom and is 1 if it can be (same for dof_y_bool)
+	"""
+
+	# For the Airfoil case, the trailing edge will be fixed and all other points
+	# will be able to freely move in the y direction
+
+	optimization_control_pt_list = []
+
+	num_airfoil_pts = len(ControlPoints_and_Weights) - 1  # Subtract one because first and last pt identical
+
+	for i in range(1,num_airfoil_pts):
+		optimization_control_pt_list.append((ControlPoints_and_Weights[i][0], 0, 1))
+
+	return optimization_control_pt_list
+
+
 def get_patch_information():
 
 	"""
@@ -577,12 +607,18 @@ def get_patch_information():
 	ControlPoints_and_Weights[-1][0] = ControlPoints_and_Weights[0][0]
 	ControlPoints_and_Weights[-1][1] = ControlPoints_and_Weights[0][1]
 
+
+	# Get the list of optimization control points
+	optimization_control_pt_list = get_optimization_pts(ControlPoints_and_Weights)
+
 	patch_parameters = {
 		"xiVector" : xiVector,
 		"etaVector" : etaVector,
 		"ControlPoints_and_Weights" : ControlPoints_and_Weights,
 		"P" : P,
-		"Q" : Q
+		"Q" : Q,
+		"Optimization_ControlPoints_and_Weights" : optimization_control_pt_list,
+		"area_ref" : 1.0
 	}
 
 	return patch_parameters

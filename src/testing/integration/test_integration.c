@@ -117,7 +117,6 @@ void structor_simulation
 			case 'r':
 				constructor_derived_computational_elements(*sim,IL_SOLVER); // destructed
 				set_up_solver_geometry(*sim);
-				//printf("completed set_up_solver_geometry\n"); exit(0);
 				set_initial_solution(*sim);
 				break; // dest.
 			case 'c':

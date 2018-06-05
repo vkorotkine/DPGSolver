@@ -49,6 +49,7 @@ include_directories(
 	testing/complex/containers
 	testing/complex/simulation/computational_elements
 	testing/complex/simulation/geometry
+	testing/complex/simulation/operators
 	testing/complex/simulation/solvers
 	testing/complex/simulation/solvers/dpg
 	testing/complex/simulation/solvers/numerical_flux
@@ -56,7 +57,9 @@ include_directories(
 	testing/complex/simulation/test_case/boundary
 	testing/complex/simulation/test_case/flux
 	testing/complex/simulation/test_case/solution
+	testing/complex/simulation/test_case/solution/euler
 	testing/complex/templates
+	testing/integration
 	)
 
 configure_file_h_in(${PROJECT_SOURCE_DIR}/src/ definitions_core.h.in)

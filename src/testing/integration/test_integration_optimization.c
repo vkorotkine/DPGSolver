@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_base.h"
 #include "test_integration.h"
+#include "definitions_adaptation.h"
 #include "test_integration_convergence_support.h"
 
 #include "solve.h"
@@ -55,6 +56,9 @@ int main
 	PetscInitialize(&argc,&argv,petsc_options_name,PETSC_NULL);
 
 	run_test_case(argc,argv);
+
+	printf("\n\n   TEMPORARY EXIT\n\n");
+	exit(0);
 
 	PetscFinalize();
 	OUTPUT_SUCCESS;
@@ -123,9 +127,13 @@ static void run_test_case(int argc, char** argv) {
 	output_error_functionals(sim);
 	*/
 
-	optimize((const struct Simulation*)sim, ctrl_name_curr);
-
 	destructor_Integration_Test_Info(int_test_info);
+
+	optimize(sim);
+
+	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,type_rc,ignore_static);
+
+
 }
 
 // Level 0 ********************************************************************************************************** //

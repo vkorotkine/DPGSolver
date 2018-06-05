@@ -109,6 +109,26 @@ void solve_implicit (struct Simulation* sim)
 	test_case->solver_method_curr = 0;
 }
 
+void compute_rlhs_adjoint(struct Simulation* sim, struct Solver_Storage_Implicit* ssi){
+
+	/*
+	Compute the RLHS for the adjoint computation (it will only use the LHS). This
+	extra method is needed because certain static variables (such as constructor_derived_elements_comp_elements)
+	are needed for compute_rlhs to be called.
+	*/
+
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	test_case->solver_method_curr = 'i';
+	constructor_derived_elements_comp_elements(sim); // destructed
+	
+	compute_rlhs(sim,ssi);
+	petsc_mat_vec_assemble(ssi);
+
+	destructor_derived_elements_comp_elements(sim);
+	test_case->solver_method_curr = 0;
+
+}
+
 bool check_symmetric (const struct Simulation* sim)
 {
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
@@ -298,14 +318,6 @@ static Vec constructor_petsc_x
 /// \brief Destructor for the `x` petsc Vec.
 static void destructor_petsc_x
 	(Vec x ///< Standard.
-	);
-
-/** \brief Constructor for a petsc `KSP` context.
- *  \return The Petsc error code. */
-static PetscErrorCode constructor_petsc_ksp
-	(KSP*const ksp,               ///< Pointer to the Petsc KSP.
-	 Mat A,                       ///< The matrix.
-	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /// \brief Update the values of coefficients based on the computed increment.
@@ -519,7 +531,7 @@ static void destructor_petsc_x (Vec x)
 	VecDestroy(&x);
 }
 
-static PetscErrorCode constructor_petsc_ksp (KSP*const ksp, Mat A, const struct Simulation* sim)
+PetscErrorCode constructor_petsc_ksp (KSP*const ksp, Mat A, const struct Simulation* sim)
 {
 	CHKERRQ(MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY));
 	CHKERRQ(MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY));

@@ -28,9 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_tol.h"
 
 #include "def_templates_geometry_parametric.h"
-
 #include "def_templates_volume_solver.h"
-
 #include "def_templates_multiarray.h"
 
 #include "geometry_NURBS_parametric.h"
@@ -63,7 +61,10 @@ struct Geo_Data {
 	struct Multiarray_d *knots_xi, *knots_eta; 
 
 	//  - The Multiarray holding the control points and the weights
-	struct Multiarray_d *control_points_and_weights; 
+	struct Multiarray_d *control_points_and_weights;
+	// TODO: Hold a complex version of the control_points_and_weights here
+
+
 
 	//  - The Multiarray holding the connectivity information for the control mesh. 
 	//		The xi control points correspond to the i index and eta control 
@@ -383,6 +384,10 @@ const struct const_Multiarray_R* constructor_grad_xyz_NURBS_parametric_T
 
 	// MSB: Read the geometric data for the NURBS patch
 	const struct Geo_Data geo_data = get_geo_data("NURBS");
+
+	// TODO: Add if statement here for using either the real or complex version
+	// of the control_points_and_weights based on which version of the function is
+	// being called
 
 	const struct const_Multiarray_d *grad_xyz = grad_xyz_NURBS_patch_mapping(
 		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 

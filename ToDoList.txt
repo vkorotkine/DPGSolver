@@ -1,29 +1,93 @@
-
-	- Create a test for the optimization run similar to test_integration_run
+	(Done) - Create a test for the optimization run similar to test_integration_run
 
 	(Done) - Create the lift coefficient objective function.
 
 		(Done) - Compute the lift by integrating the pressure on any face that had 
 			a slip wall BC. Then just sum up all the contributions. 
 
-	- Compute the adjoint for the lift coefficient case.
+	(Done) - Create an Optimization data structure
 
-		- Make the lift coefficient function templated (so it can handle complex
-		variables and normal vector terms)
+		(Done) - Create a typedef function pointer for the objective function (make a target CL
+			objective function). Make a function pointer to a real version and complex
+			version of the function.
 
-		- Use the linearization of the LHS in the code
+		(Done) - Make the function pointer in the optimization data structure point to the 
+			real objective function.
 
-		- Compute the linearization of the RHS by using the complex step
-			
-			- Verify using finite differences. Create a unit test 
-				to verify linearization with finite differences. 
-				Eventually, perhaps, compute the linearization analytically
+		(Done) - Test typedef function pointer to make sure it returns the value of the function
+			properly.
 
-		- Solve the adjoint using PETSc
+	(Done) - Create the complex version of the objective functions (will template later)
 
-			- Output PETSc convergence for the adjoint solve
+	(Done) - Compute adjoint RHS using complex step
 
-		- Plot the density adjoint variation
+		(Done) - Loop over only the volumes that have a boundary face (for now, implement it 
+			as if the target Cl objective is being used).
+
+		(Done) - Apply complex perturbation to the state vector components
+
+		(Done) - Compute each term of the RHS using this approach.
+
+	(Done) - Use the real version of the implementation o compute the adjoint
+
+		(Done) - Use finite differences to obtain the terms of the RHS. 
+
+	(Done) - Compare results to the finite difference approach.
+
+	(Done) - Solve the Adjoint equation
+
+		(Done) - Take the transpose of the LHS and solve the equation to find the adjoint
+
+	(Done) - Use valgrind to fix all memory leaks up until now in the implementation
+
+	(Done) - Generate the design variable point connectivity (and their dofs). Place this in
+		the .geo file. It will only be used by the optimization routines.
+
+	(Done) - In the optimization setup, read all the geo_data data. 
+
+	- Create a method for updating geo_data which will update the geo_data struct information 
+			using the data held in optimization_case.
+
+	- Speed up the NURBS geometry setup
+
+		- modify how grad_NURBS_xyz is called by making it more efficient in terms
+			of B Spline calls. 
+
+		- modify how NURBS_xyz is called by making it more efficient in terms of the
+			number of B Spline calls.
+
+	- Compute the sensitivities using finite differences
+
+		- Compute the Residual linearization with respect to the design control 
+				points. 
+
+		- Compute the objective function linearization with respect to the design
+				control points.
+
+
+
+	- Compute the gradient of the objective function using the adjoint and the 
+		sensitivity equation.
+
+	- Compute the gradient of the objective function using a brute force algorithm.
+		Compare the output to the values obtained using the adjoint approach.
+
+	- Use steepest descent to converge to an optimal solution.
+
+	- Implement BFGS and use it to converge to an optimal solution.
+
+	- Implement the NLPQLP wrapper into the code and use it to converge to the optimal
+		solution.
+
+
+	
+
+
+
+
+
+
+
 
 	- Try to get a transonic case running for the airfoil case with a shock
 		(to be used potentially for a drag optimization)
@@ -56,7 +120,15 @@ ToDo:
 					from vm (volume metric) to vc (volume cubature). 
 				- For the face, we once again interpolate from the vm (volume metric)
 					to the fc (face cubature) nodes. 
+	- Template the objective function section
 
+	- Create the optimization.data file from the NURBS patch generator
+
+		- Add in the information for the type of optimization, so that we know which 
+			objective function to set the function pointer to.
+
+		- Add an option for what type of approach to use for the optimization (ex: BFGS, 
+			steepest descent, NLPQLP). Read in this parameter from the file.
 
 Optimization Cases:
 

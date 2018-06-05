@@ -3,6 +3,6 @@
 
 struct Simulation;
 
-void optimize(const struct Simulation* sim, const char*const ctrl_file_name);
+void optimize(struct Simulation* sim);
 
 #endif // DPG__optimize_h__INCLUDED

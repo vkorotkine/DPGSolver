@@ -42,12 +42,12 @@ import sys
 
 # The type of patch to use. Perhaps take this as a command line
 # argument
-CONST_Patch_Type = "Internal_Channel_Patch"
+#CONST_Patch_Type = "Internal_Channel_Patch"
 #CONST_Patch_Type = "User_Defined_Patch"
-#CONST_Patch_Type = "Airfoil_Patch"
+CONST_Patch_Type = "Airfoil_Patch"
 CONST_EPS = 1E-9
-CONST_Output_file_name = "geometry_parameters.geo"
 
+CONST_Output_file_name = "geometry_parameters.geo"
 
 def NURBS_patch(xi,eta,BasisFunctionsList, ControlPoints_and_Weights, grad_index=None):
 
@@ -186,6 +186,10 @@ def output_file(patch_parameters):
 	read this file and use the values to perform the parametric
 	mapping
 
+	NOTE: Optimization_ControlPoints_and_Weights is a key that, when present, 
+		corresponds to the control points used for the optimization. If this 
+		data is present, then print it as well in the .geo file
+
 	:param patch_parameters: The parameters used to define the patch
 	"""
 
@@ -239,7 +243,22 @@ def output_file(patch_parameters):
 			for j in range(num_eta_pts):
 				fp.write("%d " % ControlPoints_and_Weights_list.index(ControlPoints_and_Weights[i][j]))
 			fp.write("\n")
+		fp.write("\n")
 
+		if "Optimization_ControlPoints_and_Weights" in patch_parameters:
+			
+			#Optimization Information
+			optimization_data_tuples = patch_parameters['Optimization_ControlPoints_and_Weights']
+
+			fp.write("Optimization_Point_Connectivity %d\n" % (len(optimization_data_tuples)))
+			for data_tuple in optimization_data_tuples:
+				fp.write("%d %d %d \n" % (ControlPoints_and_Weights_list.index(data_tuple[0]), data_tuple[1], data_tuple[2]))
+			fp.write("\n")	
+
+		if "area_ref" in patch_parameters:
+			fp.write("area_ref = %e;" % patch_parameters['area_ref'])
+			fp.write("\n")
+			
 
 def test():
 

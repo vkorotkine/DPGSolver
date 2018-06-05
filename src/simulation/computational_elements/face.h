@@ -90,6 +90,11 @@ struct Face {
 		 */
 		int ind_ord;
 
+		// MSB: Even though we have struct Volume* volume; here, this is actually a pointer to a
+		// solver_volume. Since, solver_volumes can be cast as a volume we can still store it here.
+		// But, since we are actually storing a solver_volume, it is possible to cast this volume
+		// to a solver_volume (as in constructor_s_fc_interp). 
+
 		/// Pointer to the neighbouring \ref Volume. The second pointer is `NULL` for a boundary face.
 		struct Volume* volume;
 	} neigh_info[2]; /**< \ref Neigh_Info. The information for the first index `neigh_info[0]` relates to the Volume

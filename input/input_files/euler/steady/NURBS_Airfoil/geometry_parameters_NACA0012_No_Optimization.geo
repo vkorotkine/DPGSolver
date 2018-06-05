@@ -1,6 +1,8 @@
 /** Geometry parameters for test case: euler/steady/NURBS
 */
 
+area_ref = 1.0;
+
 P(xi_order) 2 
 Q(eta_order) 1 
 
@@ -117,30 +119,3 @@ Control_Point_Connectivity 25 2
 44 45 
 46 47 
 0 1 
-
-Optimization_Point_Connectivity 23
-2 0 1 
-4 0 1 
-6 0 1 
-8 0 1 
-10 0 1 
-12 0 1 
-14 0 1 
-16 0 1 
-18 0 1 
-20 0 1 
-22 0 1 
-24 0 1 
-26 0 1 
-28 0 1 
-30 0 1 
-32 0 1 
-34 0 1 
-36 0 1 
-38 0 1 
-40 0 1 
-42 0 1 
-44 0 1 
-46 0 1 
-
-area_ref = 1.000000e+00;

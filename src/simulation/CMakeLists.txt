@@ -17,6 +17,10 @@ set	(SOURCE
 
 	 optimization/objective_functions.c
 	 optimization/optimize.c
+	 optimization/optimization_case.c
+	 optimization/objective_functions.c
+	 optimization/adjoint.c
+	 optimization/sensitivities.c
 
 	 solvers/compute_rlhs.c
 	 solvers/compute_face_rlhs.c

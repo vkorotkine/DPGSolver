@@ -41,6 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element_operators.h"
 #include "definitions_nodes.h"
 #include "nodes.h"
+
 #include "geometry_NURBS_parametric.h"
 
 
@@ -356,6 +357,7 @@ void compute_NURBS_geometry_volume_T(const bool recompute_geom_coef,
 
 	// Destruct allocated data structures
 	destructor_const_Nodes(nodes_c);
+	destructor_const_Multiarray_d(rst_i);
 	destructor_Multiarray_d(rst_knots_i);
 	destructor_const_Multiarray_d(grad_xyz);
 	destructor_Multiarray_d(jacobian_vc);
@@ -613,6 +615,7 @@ void compute_NURBS_geometry_face_T (struct Solver_Face_T* s_face,
 	}
 
 	// Destruct allocated data structures:
+	destructor_const_Multiarray_d(rst_i);
 	destructor_Multiarray_d(rst_knots_i);
 	destructor_const_Nodes(nodes_c);
 	destructor_const_Multiarray_d(grad_xyz);

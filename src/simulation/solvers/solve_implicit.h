@@ -50,14 +50,30 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 #include "petscmat.h"
+#include "petscksp.h"
+#include "petscsys.h"
 
 struct Simulation;
 struct Solver_Storage_Implicit;
 struct Vector_i;
 
+
 /// \brief Solve for the solution using an implicit solver.
 void solve_implicit
 	(struct Simulation* sim ///< \ref Simulation.
+	);
+
+void compute_rlhs_adjoint
+	(struct Simulation* sim, 
+	struct Solver_Storage_Implicit* s_store_i
+	);
+
+/** \brief Constructor for a petsc `KSP` context.
+ *  \return The Petsc error code. */
+PetscErrorCode constructor_petsc_ksp
+	(KSP*const ksp,               ///< Pointer to the Petsc KSP.
+	 Mat A,                       ///< The matrix.
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 /** \brief Check whether the matrix under consideration is symmetric based on \ref Simulation::method and

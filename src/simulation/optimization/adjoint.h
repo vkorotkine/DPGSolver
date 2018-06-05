@@ -13,18 +13,16 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__definitions_tol_h__INCLUDED
-#define DPG__definitions_tol_h__INCLUDED
-/**	\file
- *	\brief Provides the definitions relating to tolerances.
- */
+#ifndef DPG__adjoint_h__INCLUDED
+#define DPG__adjoint_h__INCLUDED
 
-///\{ \name Tolerance values used throughout.
-#define EPS      1.0e-15
-#define SQRT_EPS 3.162277660168379e-08
-#define CX_STEP  1e-30                 ///< Magnitude of the complex step to take for Jacobian evaluation.
-#define FINITE_DIFF_STEP  1e-8                 ///< Magnitude of the finite difference step to take for Jacobian evaluation.
+struct Optimization_Case;
 
-///\}
+// Consult corresponding .c file for documentation documentation
+void setup_adjoint(struct Optimization_Case *optimization_case);
 
-#endif // DPG__definitions_tol_h__INCLUDED
+void solve_adjoint(struct Optimization_Case *optimization_case);
+
+#endif // DPG__adjoint_h__INCLUDED
+
+

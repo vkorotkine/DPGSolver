@@ -89,7 +89,7 @@ static int find_bc_match
 struct Intrusive_List* constructor_Volumes (struct Simulation*const sim, const struct Mesh*const mesh)
 {
 
-	// Create an IL (list) for the volume elements.
+	// MSB: Create an IL (list) for the volume elements.
 	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME,NULL); // returned
 
 	const struct const_Vector_i*const            elem_types = mesh->mesh_data->elem_types;
@@ -108,7 +108,7 @@ struct Intrusive_List* constructor_Volumes (struct Simulation*const sim, const s
 			  .to_lf     = v_to_lf->data[v],
 			};
 
-		// Push back into the list the new volume. Send to the volume constructor 
+		// MSB: Push back into the list the new volume. Send to the volume constructor 
 		// the information it needs, which is held in the Volume_mesh_info struct
 		push_back_IL(volumes,(struct Intrusive_Link*) constructor_Volume(sim,mesh,&vol_mi,v));
 	}
@@ -361,31 +361,31 @@ static struct Volume* constructor_Volume
 
 	struct Volume* volume = calloc(1,sizeof *volume); // returned
 
-	// volume->index is a constant, so set the value of that constant (the index)
+	// MSB: volume->index is a constant, so set the value of that constant (the index)
 	// using the given index value.
 	const_cast_i(&volume->index,index);
 
-	// Load the xyz values of the vertices into the volume using the indeces of the
+	// MSB: Load the xyz values of the vertices into the volume using the indeces of the
 	// nodes that form the vertices for the volume (vol_mi->ve_ind) and the total list
 	// of nodes.
 	const_constructor_move_Multiarray_d(&volume->xyz_ve,constructor_volume_vertices(vol_mi->ve_inds,nodes)); // dest.
 
 	for (int i = 0; i < NFMAX;    ++i) {
-		// loop through the faces
+		// MSB: loop through the faces
 	for (int j = 0; j < NSUBFMAX; ++j) {
-		// total number of sub faces you can create from h refinement
+		// MSB: total number of sub faces you can create from h refinement
 		// for the given face
 		const_cast_Face(&volume->faces[i][j],NULL);
 	}}
 
-	// Set the element pointer (a constant) to be the correct element that this volume
+	// MSB: Set the element pointer (a constant) to be the correct element that this volume
 	// corresponds to
 	const_cast_const_Element(&volume->element,get_element_by_type(sim->elements,vol_mi->elem_type));
 
 	volume->bc_faces = constructor_bc_faces(volume->element,vol_mi->to_lf);
 	volume->bc_edges = constructor_bc_edges(volume->element,vol_mi->ve_inds,mesh_vert);
 
-	// Flag the boundaries for this volume accordingly. If it is on a boundary,
+	// MSB: Flag the boundaries for this volume accordingly. If it is on a boundary,
 	// then the volume is a boundary volume. Similarly, if any face is curved,
 	// flag the volume as being curved.
 /// \todo Change the check_if_boundary/check_if_curved functions to use bc_faces/bc_edges.

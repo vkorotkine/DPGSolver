@@ -159,12 +159,28 @@ void destructor_derived_Elements (struct Simulation* sim, const int base_name)
 struct Intrusive_Link* constructor_derived_Intrusive_Link
 	(struct Intrusive_Link* base, const size_t sizeof_base, const size_t sizeof_derived)
 {
+
+	// MSB: For the case of volume_solvers, this function is called with
+	// - base = an intrusive link element (of a volume)
+	// - sizeof_base = sizeof(struct Volume)
+	// - sizeof_derived = sizeof(struct Solver_Volume_T);
+	// Here we will first create an intrusive link the size of Solver_Volume_T.
+	// How can we be sure that size of Solver_Volume_T is at least bigger than the size
+	// of an Instrusive_Link struct? Because Solver_Volume_T has a volume object which 
+	// itself has an Intrusive_Link struct (so size must be bigger).
+
 	struct Intrusive_Link* derived = calloc(1,sizeof_derived); // returned
 	memcpy(derived,base,sizeof_base); // shallow copy of the base.
 
+	// MSB: Into the derived structure, copy the base data. This will be the 
+	// volume data (for the volume struct). 
+
+	// MSB: Set the derived pointer for the base (volume struct) to point to the
+	// derived data.
 	assert(base->derived == NULL);
 	base->derived = derived;
 
+	//MSB: Return the derived element. This is the Solver_Volume object
 	return derived;
 }
 

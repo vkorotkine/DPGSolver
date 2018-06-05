@@ -125,7 +125,7 @@ const struct const_Multiarray_d *grad_xyz_NURBS_patch_mapping(
 
 				// Evaluate the i,j NURBS basis function gradient
 				grad_vals = grad_NURBS_basis_ij_pq(i, j, P, Q, xi, eta, 
-					knots_xi, knots_eta, (const struct const_Multiarray_d*)control_pts_w);
+					knots_xi, knots_eta, (const struct const_Multiarray_d*)control_pts_w);  // free
 
 				// partial with respect to xi:
 				x_xi += get_col_const_Multiarray_d(0, grad_vals)[0] * get_col_Multiarray_d(j, control_pts_x)[i];
@@ -135,6 +135,7 @@ const struct const_Multiarray_d *grad_xyz_NURBS_patch_mapping(
 				x_eta += get_col_const_Multiarray_d(0, grad_vals)[1] * get_col_Multiarray_d(j, control_pts_x)[i];
 				y_eta += get_col_const_Multiarray_d(0, grad_vals)[1] * get_col_Multiarray_d(j, control_pts_y)[i];
 
+				destructor_const_Multiarray_d(grad_vals);
 			}
 		}
 

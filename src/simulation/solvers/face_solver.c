@@ -70,7 +70,6 @@ void copy_members_r_to_c_Solver_Face
 		&s_face->normals_p1,constructor_copy_const_Multiarray_d(s_face_r->normals_p1)); // destructed
 	const_constructor_move_const_Multiarray_d(
 		&s_face->jacobian_det_p1,constructor_copy_const_Multiarray_d(s_face_r->jacobian_det_p1)); // destructed
-
 	set_function_pointers_face_num_flux_c(s_face,sim);
 
 	s_face->nf_fc = constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->nf_fc); // destructed
