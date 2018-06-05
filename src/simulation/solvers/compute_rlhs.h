@@ -27,6 +27,24 @@ struct Matrix_d;
 struct const_Matrix_d;
 struct Simulation;
 
+/** \brief Compute the source contributions to the rhs term as required by the DG scheme.
+ *
+ *  The function is "dg-like" in the sense that it computes the rhs term as for the DG scheme, but can be used with test
+ *  space not equal to trial space (Petrov-Galerkin).
+ *
+ *  Updates:
+ *  - \ref Solver_Volume_T::rhs.
+ */
+void compute_source_rhs_dg_like
+	(const struct Simulation*const sim ///< \ref Simulation.
+	);
+
+/** \brief Compute the maximum absolute value of the rhs term stored in \ref Solver_Volume_T::rhs.
+ *  \return See brief. */
+double compute_max_rhs_dg_like
+	(const struct Simulation*const sim ///< \ref Simulation.
+	);
+
 /** \brief Add a contribution to the d_grad_coef__d_s_coef matrix, the 'r'ight matrix in the 'p'artial 'l'eft-'h'and
  *         's'ide entry for a volume/face.
  *

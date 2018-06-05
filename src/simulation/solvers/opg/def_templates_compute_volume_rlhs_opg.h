@@ -19,11 +19,19 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
+///\{ \name Data types
+#define S_Params_T S_Params
+///\}
+
 ///\{ \name Function names
 #define compute_volume_rlhs_opg_T compute_volume_rlhs_opg
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Data types
+#define S_Params_T S_Params_c
+///\}
 
 ///\{ \name Function names
 #define compute_volume_rlhs_opg_T compute_volume_rlhs_opg_c

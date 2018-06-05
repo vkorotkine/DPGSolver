@@ -169,10 +169,16 @@ void initialize_zero_memory_volumes_T (struct Intrusive_List* volumes)
 
 		struct Multiarray_T* ref_coef = NULL;
 		switch (get_set_method(NULL)) {
-			case METHOD_DG:  ref_coef = s_vol->sol_coef;    break;
-			case METHOD_OPG: ref_coef = s_vol->test_s_coef; break;
-			case METHOD_DPG: // fallthrough (add support)
-			default:         EXIT_ERROR("Unsupported: %d\n",get_set_method(NULL)); break;
+		case METHOD_DG:  // fallthrough
+		case METHOD_DPG:
+			ref_coef = s_vol->sol_coef;
+			break;
+		case METHOD_OPG:
+			ref_coef = s_vol->test_s_coef;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",get_set_method(NULL));
+			break;
 		}
 
 		resize_Multiarray_T(s_vol->rhs,ref_coef->order,ref_coef->extents);

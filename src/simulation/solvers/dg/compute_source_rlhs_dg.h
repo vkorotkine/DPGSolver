@@ -22,17 +22,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Simulation;
 
-/** \brief Compute the source contributions to the rhs term for the DG scheme.
- *
- *  \warning Should not be used for non-linear sources.
- *
- *  Updates:
- *  - \ref DG_Solver_Volume_T::rhs.
- */
-void compute_source_rhs_dg
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
 /// \brief Compute the contribution of the source term integrals to the flux imbalances for the DG scheme.
 void compute_flux_imbalances_source_dg
 	(const struct Simulation*const sim ///< \ref Simulation.

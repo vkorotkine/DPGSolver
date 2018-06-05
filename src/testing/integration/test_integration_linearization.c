@@ -314,6 +314,7 @@ static void compute_lhs_analytical
 {
 	structor_derived_Elements(sim,f_ptrs_data,'c'); // destructed
 	constructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_method); // destructed
+	initialize_zero_memory_volumes(sim->volumes);
 	switch (sim->method) {
 	case METHOD_DG:
 		f_ptrs_data->compute_grad_coef(sim,sim->volumes,sim->faces);

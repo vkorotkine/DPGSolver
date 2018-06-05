@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 
 #include "macros.h"
+#include "definitions_test_case.h"
 
 #include "face_solver.h"
 #include "volume_solver_opg.h"
@@ -27,6 +28,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "compute_face_rlhs_opg.h"
+#include "compute_rlhs.h"
 #include "compute_volume_rlhs_opg.h"
 #include "const_cast.h"
 #include "simulation.h"
@@ -35,6 +38,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
+
+/** \brief Fill \ref Solver_Storage_Implicit::b with the negated rhs values.
+ *
+ *  See comments in \ref solve_implicit.h for why the negated values are used here.
+ */
+static void fill_petsc_Vec_b_opg
+	(const struct Simulation*const sim,       ///< Standard.
+	 struct Solver_Storage_Implicit*const ssi ///< Standard.
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -45,12 +57,23 @@ double compute_rlhs_opg (const struct Simulation*const sim, struct Solver_Storag
 {
 	initialize_zero_memory_volumes(sim->volumes);
 	compute_volume_rlhs_opg(sim,ssi,sim->volumes);
-	EXIT_ADD_SUPPORT;
+	compute_face_rlhs_opg(sim,ssi,sim->faces);
+	compute_source_rhs_dg_like(sim);
+	fill_petsc_Vec_b_opg(sim,ssi);
 
-	UNUSED(sim);
-	EXIT_UNSUPPORTED; // add_to_petsc_Mat_Vec_opg (should be similar to what is done for dpg, likely in compute_rlhs)
+	struct Test_Case*const test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	switch (test_case->lhs_terms) {
+	case LHS_FULL_NEWTON:
+		break; // Do nothing
+	case LHS_CFL_RAMPING:
+		printf("*** Warning: CFL ramping not performed for the OPG method. ***\n");
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",test_case->lhs_terms);
+		break;
+	}
 
-	return compute_max_rhs_from_ssi(ssi);
+	return compute_max_rhs_dg_like(sim);
 }
 
 void set_petsc_Mat_row_col_opg
@@ -59,9 +82,30 @@ void set_petsc_Mat_row_col_opg
 {
 	const struct Solver_Volume*const sv_l = (struct Solver_Volume*) v_l,
 	                          *const sv_r = (struct Solver_Volume*) v_r;
-	ssi->row = (int)(sv_l->ind_dof_test+v_l->test_s_coef->extents[0]*eq);
-	ssi->col = (int)(sv_r->ind_dof_test+v_r->test_s_coef->extents[0]*vr);
+	ssi->row = (int)(sv_l->ind_dof_test+sv_l->test_s_coef->extents[0]*eq);
+	ssi->col = (int)(sv_r->ind_dof_test+sv_r->test_s_coef->extents[0]*vr);
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void fill_petsc_Vec_b_opg (const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi)
+{
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const int ind_dof        = (int)((struct Solver_Volume*)curr)->ind_dof_test;
+		const struct Multiarray_d*const rhs = ((struct Solver_Volume*)curr)->rhs;
+
+		const int ni = (int)compute_size(rhs->order,rhs->extents);
+
+		PetscInt    ix[ni];
+		PetscScalar y[ni];
+
+		for (int i = 0; i < ni; ++i) {
+			ix[i] = ind_dof+i;
+			y[i]  = -(rhs->data[i]);
+		}
+
+		VecSetValues(ssi->b,ni,ix,y,INSERT_VALUES);
+	}
+}
+

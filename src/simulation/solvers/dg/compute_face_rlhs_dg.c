@@ -59,21 +59,21 @@ static void scale_by_Jacobian_i12
 	 const struct Solver_Face*const s_face ///< See brief.
 	);
 
-/// \brief Version of \ref compute_rlhs_f_fptr computing the rhs and lhs terms for 1st order equations only.
+/// \brief Version of \ref compute_rlhs_f_fptr_T computing the rhs and lhs terms for 1st order equations only.
 static void compute_rlhs_1
 	(const struct Numerical_Flux*const num_flux, ///< See brief.
 	 struct Solver_Face*const s_face,            ///< See brief.
 	 struct Solver_Storage_Implicit*const ssi    ///< See brief.
 	);
 
-/// \brief Version of \ref compute_rlhs_f_fptr computing the rhs and lhs terms for 2nd order equations only.
+/// \brief Version of \ref compute_rlhs_f_fptr_T computing the rhs and lhs terms for 2nd order equations only.
 static void compute_rlhs_2
 	(const struct Numerical_Flux*const num_flux, ///< See brief.
 	 struct Solver_Face*const s_face,            ///< See brief.
 	 struct Solver_Storage_Implicit*const ssi    ///< See brief.
 	);
 
-/// \brief Version of \ref compute_rlhs_f_fptr computing the rhs and lhs terms for both 1st and 2nd order equations.
+/// \brief Version of \ref compute_rlhs_f_fptr_T computing the rhs and lhs terms for both 1st and 2nd order equations.
 static void compute_rlhs_12
 	(const struct Numerical_Flux*const num_flux, ///< See brief.
 	 struct Solver_Face*const s_face,            ///< See brief.
@@ -106,14 +106,14 @@ static void scale_by_Jacobian_dnnf_dg
 	 const struct Solver_Face*const s_face ///< See brief.
 	);
 
-/// \brief Version of \ref compute_rlhs_f_fptr computing the lhs terms for 1st order equations only.
+/// \brief Version of \ref compute_rlhs_f_fptr_T computing the lhs terms for 1st order equations only.
 static void compute_lhs_1
 	(const struct Numerical_Flux*const num_flux, ///< See brief.
 	 struct DG_Solver_Face*const dg_s_face,      ///< See brief.
 	 struct Solver_Storage_Implicit*const ssi    ///< See brief.
 	);
 
-/// \brief Version of \ref compute_rlhs_f_fptr computing the lhs terms for 2nd order equations only.
+/// \brief Version of \ref compute_rlhs_f_fptr_T computing the lhs terms for 2nd order equations only.
 static void compute_lhs_2
 	(const struct Numerical_Flux*const num_flux, ///< See brief.
 	 struct DG_Solver_Face*const dg_s_face,      ///< See brief.
@@ -173,17 +173,17 @@ static void compute_rlhs_12
 static void finalize_lhs_1_f_dg
 	(const int side_index[2],               /**< The indices of the affectee, affector, respectively. See the
 	                                         *   comments in \ref compute_face_rlhs_dg.h for the convention. */
-	 const struct Numerical_Flux* num_flux, ///< Defined for \ref compute_rlhs_f_fptr.
-	 struct DG_Solver_Face* dg_s_face,      ///< Defined for \ref compute_rlhs_f_fptr.
-	 struct Solver_Storage_Implicit* ssi    ///< Defined for \ref compute_rlhs_f_fptr.
+	 const struct Numerical_Flux* num_flux, ///< Defined for \ref compute_rlhs_f_fptr_T.
+	 struct DG_Solver_Face* dg_s_face,      ///< Defined for \ref compute_rlhs_f_fptr_T.
+	 struct Solver_Storage_Implicit* ssi    ///< Defined for \ref compute_rlhs_f_fptr_T.
 	);
 
 /// \brief Finalize the 2nd order lhs term contribution from the \ref Face for the dg scheme.
 static void finalize_lhs_2_f_dg
 	(const int side_index[2],                     ///< Defined for \ref finalize_lhs_1_f_dg.
-	 const struct Numerical_Flux*const num_flux,  ///< Defined for \ref compute_rlhs_f_fptr.
-	 const struct DG_Solver_Face*const dg_s_face, ///< Defined for \ref compute_rlhs_f_fptr.
-	 struct Solver_Storage_Implicit*const ssi     ///< Defined for \ref compute_rlhs_f_fptr.
+	 const struct Numerical_Flux*const num_flux,  ///< Defined for \ref compute_rlhs_f_fptr_T.
+	 const struct DG_Solver_Face*const dg_s_face, ///< Defined for \ref compute_rlhs_f_fptr_T.
+	 struct Solver_Storage_Implicit*const ssi     ///< Defined for \ref compute_rlhs_f_fptr_T.
 	);
 
 static void compute_lhs_1

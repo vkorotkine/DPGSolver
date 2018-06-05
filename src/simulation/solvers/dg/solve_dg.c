@@ -43,6 +43,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_grad_coef_dg.h"
 #include "compute_volume_rlhs_dg.h"
 #include "compute_face_rlhs_dg.h"
+#include "compute_rlhs.h"
 #include "compute_source_rlhs_dg.h"
 #include "const_cast.h"
 #include "intrusive.h"
@@ -66,12 +67,6 @@ static void compute_rlhs_common_dg
 
 /// \brief Scale the rhs terms by the the inverse mass matrices (for explicit schemes).
 static void scale_rhs_by_m_inv
-	(const struct Simulation*const sim ///< \ref Simulation.
-	);
-
-/** \brief Compute the maximum value of the rhs term for all variables.
- *  \return See brief. */
-static double compute_max_rhs_dg
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
@@ -132,7 +127,7 @@ double compute_rhs_dg (const struct Simulation* sim)
 	compute_rlhs_common_dg(sim,NULL);
 	scale_rhs_by_m_inv(sim);
 
-	return compute_max_rhs_dg(sim);
+	return compute_max_rhs_dg_like(sim);
 }
 
 double compute_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
@@ -141,7 +136,7 @@ double compute_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Impl
 	compute_CFL_ramping(ssi,sim);
 	fill_petsc_Vec_b_dg(sim,ssi);
 
-	return compute_max_rhs_dg(sim);
+	return compute_max_rhs_dg_like(sim);
 }
 
 void set_petsc_Mat_row_col_dg
@@ -156,16 +151,6 @@ void compute_flux_imbalances_dg (const struct Simulation*const sim)
 {
 	compute_flux_imbalances_faces_dg(sim);
 	compute_flux_imbalances_source_dg(sim);
-}
-
-void copy_rhs_dg (const struct Simulation*const sim)
-{
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
-
-		destructor_conditional_Multiarray_d(s_vol->rhs_0);
-		s_vol->rhs_0 = constructor_copy_Multiarray_T(s_vol->rhs); // keep
-	}
 }
 
 // Static functions ************************************************************************************************* //
@@ -195,7 +180,7 @@ static void compute_rlhs_common_dg (const struct Simulation*const sim, struct So
 	compute_grad_coef_dg(sim,sim->volumes,sim->faces);
 	compute_volume_rlhs_dg(sim,ssi,sim->volumes);
 	compute_face_rlhs_dg(sim,ssi,sim->faces);
-	compute_source_rhs_dg(sim);
+	compute_source_rhs_dg_like(sim);
 }
 
 static void scale_rhs_by_m_inv (const struct Simulation*const sim)
@@ -208,20 +193,6 @@ static void scale_rhs_by_m_inv (const struct Simulation*const sim)
 		scale_rhs_by_m_inv_std(sim);
 	else
 		scale_rhs_by_m_inv_col(sim);
-}
-
-static double compute_max_rhs_dg (const struct Simulation*const sim)
-{
-	double max_rhs = 0.0;
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
-
-		struct Multiarray_d* rhs = s_vol->rhs;
-		double max_rhs_curr = norm_d(rhs->extents[0]*rhs->extents[1],rhs->data,"Inf");
-		if (max_rhs_curr > max_rhs)
-			max_rhs = max_rhs_curr;
-	}
-	return max_rhs;
 }
 
 static void fill_petsc_Vec_b_dg (const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi)
@@ -251,7 +222,7 @@ static void compute_CFL_ramping (struct Solver_Storage_Implicit*const ssi, const
 	if (test_case->lhs_terms != LHS_CFL_RAMPING)
 		return;
 
-	const double max_rhs = compute_max_rhs_dg(sim);
+	const double max_rhs = compute_max_rhs_dg_like(sim);
 	const int n_eq = test_case->n_eq;
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {

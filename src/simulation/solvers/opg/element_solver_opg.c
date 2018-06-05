@@ -76,6 +76,8 @@ void destructor_derived_OPG_Solver_Element (struct Element* element_ptr)
 
 	destructor_Multiarray2_Operator(opg_s_e->cv0_vt_vc);
 	destructor_Multiarray2_Operator(opg_s_e->cv1_vt_vc);
+
+	destructor_Multiarray2_Operator(opg_s_e->cv0_vt_fc);
 }
 
 // Static functions ************************************************************************************************* //
@@ -86,11 +88,14 @@ static void constructor_derived_OPG_Solver_Element_std (struct Element* element_
 	struct const_Element* e = (struct const_Element*) element_ptr;
 	struct OPG_Solver_Element* opg_s_e = (struct OPG_Solver_Element*) element_ptr;
 
-	opg_s_e->cv0_vt_vc[0] = constructor_operators("cv0","vtA","vcs","H_1_P_PM0",e,sim); // destructed
-	opg_s_e->cv0_vt_vc[1] = constructor_operators("cv0","vtA","vcc","H_1_P_PM0",e,sim); // destructed
+	opg_s_e->cv0_vt_vc[0] = constructor_operators("cv0","vtA","vcs","H_CF_P_PM1",e,sim); // destructed
+	opg_s_e->cv0_vt_vc[1] = constructor_operators("cv0","vtA","vcc","H_CF_P_PM1",e,sim); // destructed
 
 	opg_s_e->cv1_vt_vc[0] = constructor_operators("cv1","vtA","vcs","H_1_P_PM0",e,sim); // destructed
 	opg_s_e->cv1_vt_vc[1] = constructor_operators("cv1","vtA","vcc","H_1_P_PM0",e,sim); // destructed
+
+	opg_s_e->cv0_vt_fc[0] = constructor_operators("cv0","vtA","fcs","H_CF_P_PM1",e,sim); // destructed
+	opg_s_e->cv0_vt_fc[1] = constructor_operators("cv0","vtA","fcc","H_CF_P_PM1",e,sim); // destructed
 }
 
 static void constructor_derived_OPG_Solver_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
@@ -117,6 +122,15 @@ static void constructor_derived_OPG_Solver_Element_tp (struct Element* element_p
 	set_operators_tp(&ops_tp,opg_s_se[0]->cv0_vt_vc[1],opg_s_se[0]->cv1_vt_vc[1],
 	                         opg_s_se[1]->cv0_vt_vc[1],opg_s_se[1]->cv1_vt_vc[1]);
 	opg_s_e->cv1_vt_vc[1] = constructor_operators_tp("cv1","vtA","vcc","H_1_P_PM0",e,sim,&ops_tp); // destructed
+
+
+	set_operators_tp(&ops_tp,opg_s_se[0]->cv0_vt_vc[0],opg_s_se[0]->cv0_vt_fc[0],
+	                         opg_s_se[1]->cv0_vt_vc[0],opg_s_se[1]->cv0_vt_fc[0]);
+	opg_s_e->cv0_vt_fc[0] = constructor_operators_tp("cv0","vsA","fcs","H_CF_P_PM1",e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,opg_s_se[0]->cv0_vt_vc[1],opg_s_se[0]->cv0_vt_fc[1],
+	                         opg_s_se[1]->cv0_vt_vc[1],opg_s_se[1]->cv0_vt_fc[1]);
+	opg_s_e->cv0_vt_fc[1] = constructor_operators_tp("cv0","vsA","fcc","H_CF_P_PM1",e,sim,&ops_tp); // destructed
 }
 
 static void constructor_derived_OPG_Solver_Element_common (struct Element* element_ptr, const struct Simulation* sim)

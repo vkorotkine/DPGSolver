@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__tw0_vt_fc_T               get_operator__tw0_vt_fc
 #define get_operator__cv0_vs_fc_T               get_operator__cv0_vs_fc
 #define get_operator__cv0_vr_fc_T               get_operator__cv0_vr_fc
+#define get_operator__cv0_ff_fc_T               get_operator__cv0_ff_fc
 #define permute_Matrix_T_fc                     permute_Matrix_d_fc
 #define permute_Matrix_R_fc                     permute_Matrix_d_fc
 #define get_operator__nc_fc_T                   get_operator__nc_fc
@@ -48,6 +49,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__tw0_vt_fc_T               get_operator__tw0_vt_fc_c
 #define get_operator__cv0_vs_fc_T               get_operator__cv0_vs_fc_c
 #define get_operator__cv0_vr_fc_T               get_operator__cv0_vr_fc_c
+#define get_operator__cv0_ff_fc_T               get_operator__cv0_ff_fc_c
 #define permute_Matrix_T_fc                     permute_Matrix_c_fc
 #define permute_Matrix_R_fc                     permute_Matrix_d_fc_c
 #define get_operator__nc_fc_T                   get_operator__nc_fc_c

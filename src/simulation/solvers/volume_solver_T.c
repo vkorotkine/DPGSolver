@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_volume_solver.h"
 
+#include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
 
@@ -107,6 +108,43 @@ const struct const_Vector_d* get_operator__w_vc__s_e_T (const struct Solver_Volu
 	const int p      = s_vol->p_ref,
 	          curved = vol->curved;
 	return get_const_Multiarray_Vector_d(s_e->w_vc[curved],(ptrdiff_t[]){0,0,p,p});
+}
+
+const struct const_Matrix_R* constructor_mass_T (const struct Solver_Volume_T* s_vol)
+{
+	struct Volume* vol               = (struct Volume*) s_vol;
+	const struct Solver_Element* s_e = (struct Solver_Element*) vol->element;
+
+	const int p      = s_vol->p_ref,
+	          curved = vol->curved;
+	const struct Operator* cv0_vs_vc = get_Multiarray_Operator(s_e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
+	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
+
+	const struct const_Vector_R jacobian_det_vc = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
+	const struct const_Vector_R* wJ_vc = constructor_dot_mult_const_Vector_R(1.0,w_vc,&jacobian_det_vc,1); // dest.
+
+	const struct const_Matrix_R* m_l = cv0_vs_vc->op_std;
+	const struct const_Matrix_R* m_r = constructor_mm_diag_const_Matrix_R(1.0,m_l,wJ_vc,'L',false); // destructed
+	destructor_const_Vector_R(wJ_vc);
+
+	const struct const_Matrix_R* mass = constructor_mm_const_Matrix_R('T','N',1.0,m_l,m_r,'R'); // returned
+	destructor_const_Matrix_R(m_r);
+
+	return mass;
+}
+
+const struct const_Matrix_R* constructor_inverse_mass_T
+	(const struct Solver_Volume_T*const s_vol, const struct const_Matrix_R*const mass)
+{
+	const struct const_Matrix_R* m_inv = NULL;
+	if (mass) {
+		m_inv = constructor_inverse_const_Matrix_R(mass); // returned
+	} else {
+		const struct const_Matrix_R* mass = constructor_mass_T(s_vol); // destructed
+		m_inv = constructor_inverse_const_Matrix_R(mass); // returned
+		destructor_const_Matrix_R(mass);
+	}
+	return m_inv;
 }
 
 // Static functions ************************************************************************************************* //

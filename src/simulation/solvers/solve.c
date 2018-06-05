@@ -149,9 +149,17 @@ double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implici
 void copy_rhs (const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi)
 {
 	switch (sim->method) {
-		case METHOD_DG:  copy_rhs_dg(sim); break;
+		case METHOD_DG: // fallthrough
+		case METHOD_OPG:
+			break; // Do nothing
 		case METHOD_DPG: EXIT_ADD_SUPPORT; UNUSED(ssi); break;
 		default:         EXIT_ERROR("Unsupported: %d\n",sim->method); break;
+	}
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+
+		destructor_conditional_Multiarray_d(s_vol->rhs_0);
+		s_vol->rhs_0 = constructor_copy_Multiarray_T(s_vol->rhs); // keep
 	}
 }
 

@@ -12,19 +12,10 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to \ref Solver_Volume_T containers/functions.
+ *  \brief Undefine macro definitions for c-style templating relating to rlhs computing functions for the opg faces.
  */
 
-///\{ \name Data types
-#undef Solver_Volume_T
-///\}
-
 ///\{ \name Function names
-#undef constructor_derived_Solver_Volume_T
-#undef destructor_derived_Solver_Volume_T
-#undef get_operator__w_vc__s_e_T
-#undef constructor_mass_T
-#undef constructor_inverse_mass_T
+#undef compute_face_rlhs_opg_T
 ///\}

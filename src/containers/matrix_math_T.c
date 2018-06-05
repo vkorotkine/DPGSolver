@@ -283,7 +283,7 @@ void scale_Matrix_T_by_Vector_R
 				*data_col++ *= val;
 		}
 	} else {
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Unsupported side: %c. Options: 'L', 'R'.\n",side);
 	}
 	if (transpose_a)
 		transpose_Matrix_T(a,true);

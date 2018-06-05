@@ -107,3 +107,16 @@ void destructor_derived_Solver_Volume_T
 const struct const_Vector_d* get_operator__w_vc__s_e_T
 	(const struct Solver_Volume_T* s_vol ///< The current volume.
 	);
+
+/** \brief Constructor for the mass matrix of the input volume.
+ *  \return See brief. */
+const struct const_Matrix_R* constructor_mass_T
+	(const struct Solver_Volume_T*const s_vol ///< Standard.
+	);
+
+/** \brief Constructor for the inverse mass matrix of the input volume.
+ *  \return See brief. */
+const struct const_Matrix_R* constructor_inverse_mass_T
+	(const struct Solver_Volume_T*const s_vol, ///< Standard.
+	 const struct const_Matrix_R*const mass    ///< Mass matrix. Input if available, otherwise pass `NULL`.
+	);

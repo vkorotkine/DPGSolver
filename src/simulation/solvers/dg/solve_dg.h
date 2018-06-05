@@ -63,9 +63,4 @@ void compute_flux_imbalances_dg
 	(const struct Simulation*const sim ///< See brief.
 	);
 
-/// \brief Version of \ref copy_rhs for the \ref DG_Solver_Volume_T\*s.
-void copy_rhs_dg
-	(const struct Simulation*const sim ///< \ref Simulation.
-	);
-
 #endif // DPG__solve_dg_h__INCLUDED

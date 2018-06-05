@@ -101,13 +101,6 @@ static struct S_Params_DPG set_s_params_dpg
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Get the pointer to the appropriate \ref DPG_Solver_Element::cv0_ff_fc operator.
- *  \return See brief. */
-static const struct Operator* get_operator__cv0_ff_fc
-	(const int side_index,                      ///< The index of the side of the face under consideration.
-	 const struct DPG_Solver_Face_T* dpg_s_face ///< The current face.
-	);
-
 /// \brief Set the values of the global indices corresponding to the current unknown.
 static void set_idxm
 	(int* ind_idxm,                  ///< Pointer to the index in `idxm`.
@@ -248,7 +241,7 @@ const struct const_Matrix_R* constructor_lhs_l_internal_face_dpg_T
 
 	const int side_index = compute_side_index_face(face,vol);
 	const struct Operator* tw0_vt_fc_op = get_operator__tw0_vt_fc_T(side_index,s_face),
-	                     * cv0_ff_fc_op = get_operator__cv0_ff_fc(side_index,dpg_s_face);
+	                     * cv0_ff_fc_op = get_operator__cv0_ff_fc_T(side_index,s_face);
 
 	struct Matrix_R* cv0_ff_fc = constructor_copy_Matrix_R((struct Matrix_R*)cv0_ff_fc_op->op_std); // destructed
 
@@ -477,21 +470,6 @@ static struct S_Params_DPG set_s_params_dpg (const struct Simulation* sim)
 	return s_params;
 }
 
-static const struct Operator* get_operator__cv0_ff_fc
-	(const int side_index, const struct DPG_Solver_Face_T* dpg_s_face)
-{
-	const struct Face* face            = (struct Face*) dpg_s_face;
-	const struct Solver_Face_T* s_face = (struct Solver_Face_T*) dpg_s_face;
-	const struct Volume* vol           = face->neigh_info[side_index].volume;
-	const struct DPG_Solver_Element* e = (struct DPG_Solver_Element*) vol->element;
-
-	const int ind_e  = get_face_element_index(face),
-	          p_f    = s_face->p_ref;
-	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
-
-	return get_Multiarray_Operator(e->cv0_ff_fc[curved],(ptrdiff_t[]){ind_e,ind_e,0,0,p_f,p_f});
-}
-
 static void set_idxm (int* ind_idxm, struct Vector_i* idxm, const int ind_dof, const struct Multiarray_T* coef)
 {
 	if (coef == NULL)
@@ -538,7 +516,7 @@ static void add_to_flux_imbalance (const struct Solver_Face_T*const s_face, cons
 	const struct const_Vector_R* wJ_fc = constructor_dot_mult_const_Vector_R(1.0,w_fc,&jacobian_det_fc,1); // destructed
 
 	if (!face->boundary) {
-		const struct Operator* cv0_ff_fc = get_operator__cv0_ff_fc(0,dpg_s_face);
+		const struct Operator* cv0_ff_fc = get_operator__cv0_ff_fc_T(0,s_face);
 		const struct const_Matrix_T nf_coef_M =
 			interpret_const_Multiarray_as_Matrix_T((struct const_Multiarray_T*)s_face->nf_coef);
 		const struct const_Matrix_T* nf_M =

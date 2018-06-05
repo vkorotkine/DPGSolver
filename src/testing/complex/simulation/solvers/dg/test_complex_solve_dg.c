@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_complex_compute_volume_rhs_dg.h"
 #include "test_support_computational_elements.h"
 #include "test_support_multiarray.h"
+#include "test_complex_solve.h"
 #include "test_complex_test_case.h"
 
 #include "multiarray.h"
@@ -184,7 +185,7 @@ static struct Intrusive_List* constructor_Faces_local (const struct Volume* vol,
 static void compute_rhs_cmplx_step_dg
 	(struct Intrusive_List* volumes_local, struct Intrusive_List* faces_local, const struct Simulation* sim)
 {
-	initialize_zero_memory_volumes(volumes_local);
+	initialize_zero_memory_volumes_c(volumes_local);
 	compute_grad_coef_dg_c(sim,volumes_local,faces_local);
 	switch (CHECK_LIN) {
 	case CHECK_LIN_VOLUME:

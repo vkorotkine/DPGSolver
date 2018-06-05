@@ -44,18 +44,6 @@ static struct Needed_Members set_needed_members
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Constructor for the mass matrix of the input volume.
- *  \return See brief. */
-static const struct const_Matrix_R* constructor_mass
-	(const struct Solver_Volume_T* s_vol ///< \ref Solver_Volume_T.
-	);
-
-/** \brief Constructor for the inverse mass matrix of the input volume.
- *  \return See brief. */
-static const struct const_Matrix_R* constructor_inverse_mass
-	(const struct DG_Solver_Volume_T* dg_s_vol ///< \ref DG_Solver_Volume_T.
-	);
-
 // Interface functions ********************************************************************************************** //
 
 void constructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr, const struct Simulation* sim)
@@ -71,8 +59,8 @@ void constructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr, const st
 	dg_s_vol->sol_coef_p =
 		( needed_members.sol_coef_p ? constructor_empty_Multiarray_T('C',order,extents) : NULL ); // destructed
 
-	dg_s_vol->m     = ( needed_members.m     ? constructor_mass(s_vol) : NULL );            // destructed
-	dg_s_vol->m_inv = ( needed_members.m_inv ? constructor_inverse_mass(dg_s_vol) : NULL ); // destructed
+	dg_s_vol->m     = ( needed_members.m     ? constructor_mass_T(s_vol) : NULL );                     // destructed
+	dg_s_vol->m_inv = ( needed_members.m_inv ? constructor_inverse_mass_T(s_vol,dg_s_vol->m) : NULL ); // destructed
 
 	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
 	if (test_case->has_2nd_order) {
@@ -155,40 +143,4 @@ static struct Needed_Members set_needed_members (const struct Simulation* sim)
 		needed_members.m = true;
 
 	return needed_members;
-}
-
-static const struct const_Matrix_R* constructor_mass (const struct Solver_Volume_T* s_vol)
-{
-	struct Volume* vol               = (struct Volume*) s_vol;
-	const struct Solver_Element* s_e = (struct Solver_Element*) vol->element;
-
-	const int p      = s_vol->p_ref,
-	          curved = vol->curved;
-	const struct Operator* cv0_vs_vc = get_Multiarray_Operator(s_e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
-	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
-
-	const struct const_Vector_R jacobian_det_vc = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
-	const struct const_Vector_R* wJ_vc = constructor_dot_mult_const_Vector_R(1.0,w_vc,&jacobian_det_vc,1); // destructed
-
-	const struct const_Matrix_R* m_l = cv0_vs_vc->op_std;
-	const struct const_Matrix_R* m_r = constructor_mm_diag_const_Matrix_R(1.0,m_l,wJ_vc,'L',false); // destructed
-	destructor_const_Vector_R(wJ_vc);
-
-	const struct const_Matrix_R* mass = constructor_mm_const_Matrix_R('T','N',1.0,m_l,m_r,'R'); // returned
-	destructor_const_Matrix_R(m_r);
-
-	return mass;
-}
-
-static const struct const_Matrix_R* constructor_inverse_mass (const struct DG_Solver_Volume_T* dg_s_vol)
-{
-	const struct const_Matrix_R* m_inv = NULL;
-	if (dg_s_vol->m) {
-		m_inv = constructor_inverse_const_Matrix_R(dg_s_vol->m); // returned
-	} else {
-		const struct const_Matrix_R* m = constructor_mass((struct Solver_Volume_T*)dg_s_vol); // destructed
-		m_inv = constructor_inverse_const_Matrix_R(m); // returned
-		destructor_const_Matrix_R(m);
-	}
-	return m_inv;
 }

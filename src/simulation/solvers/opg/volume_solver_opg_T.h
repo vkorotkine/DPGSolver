@@ -22,8 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 struct OPG_Solver_Volume_T {
 	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume_T.
 
-	/// The coefficients of the test functions associated with the solution.
-	struct Multiarray_T* test_s_coef;
+	const struct const_Matrix_R* m_inv; ///< The inverse mass matrix.
 };
 
 /// \brief Constructor for a derived \ref OPG_Solver_Volume_T.

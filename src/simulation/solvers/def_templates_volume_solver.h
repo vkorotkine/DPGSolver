@@ -27,6 +27,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_derived_Solver_Volume_T constructor_derived_Solver_Volume
 #define destructor_derived_Solver_Volume_T  destructor_derived_Solver_Volume
 #define get_operator__w_vc__s_e_T           get_operator__w_vc__s_e
+#define constructor_mass_T                  constructor_mass
+#define constructor_inverse_mass_T          constructor_inverse_mass
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -39,6 +41,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_derived_Solver_Volume_T constructor_derived_Solver_Volume_c
 #define destructor_derived_Solver_Volume_T  destructor_derived_Solver_Volume_c
 #define get_operator__w_vc__s_e_T           get_operator__w_vc__s_e_c
+#define constructor_mass_T                  constructor_mass_c
+#define constructor_inverse_mass_T          constructor_inverse_mass_c
 ///\}
 
 #endif

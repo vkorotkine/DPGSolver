@@ -25,9 +25,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "matrix.h"
 #include "multiarray.h"
+#include "vector.h"
 
 #include "const_cast.h"
 #include "geometry_blended.h"
+#include "multiarray_operator.h"
+#include "operator.h"
 #include "simulation.h"
 #include "test_case.h"
 

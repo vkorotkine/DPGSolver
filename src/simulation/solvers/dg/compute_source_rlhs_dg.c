@@ -35,18 +35,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void compute_source_rhs_dg (const struct Simulation* sim)
-{
-	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
-
-	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
-
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
-		test_case->compute_source_rhs(sim,s_vol,s_vol->rhs);
-	}
-}
-
 void compute_flux_imbalances_source_dg (const struct Simulation*const sim)
 {
 	assert(list_is_derived_from("solver",'v',sim));

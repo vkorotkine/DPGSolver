@@ -238,9 +238,8 @@ const struct const_Vector_T* get_const_Multiarray_Vector_T
 
 struct Vector_T interpret_Multiarray_as_Vector_T (struct Multiarray_T*const a_Ma)
 {
-	assert(a_Ma->order == 1);
 	struct Vector_T a =
-		{ .ext_0     = a_Ma->extents[0],
+		{ .ext_0     = compute_size(a_Ma->order,a_Ma->extents),
 		  .owns_data = false,
 		  .data      = a_Ma->data, };
 	return a;

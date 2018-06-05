@@ -61,6 +61,13 @@ const struct Operator* get_operator__cv0_vr_fc_T
 	 const struct Solver_Face_T* s_face ///< The current \ref Face.
 	);
 
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_ff_fc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_ff_fc_T
+	(const int side_index,                   ///< The index of the side of the face under consideration.
+	 const struct Solver_Face_T*const s_face ///< The current face.
+	);
+
 /** \brief Permute the input matrix such that its ordering is such that it is in the reference coordinates of the
  *         face cubature nodes of the opposite volume. */
 void permute_Matrix_T_fc
@@ -103,8 +110,8 @@ void destructor_Numerical_Flux_Input_data_T
 struct Matrix_T* constructor_lhs_f_1_T
 	(const int side_index[2],                 /**< The indices of the affectee, affector, respectively. See the
 	                                           *   comments in \ref compute_face_rlhs_dg.h for the convention. */
-	 const struct Numerical_Flux_T* num_flux, ///< Defined for \ref compute_rlhs_f_fptr.
-	 const struct Solver_Face_T* s_face       ///< Defined for \ref compute_rlhs_f_fptr.
+	 const struct Numerical_Flux_T* num_flux, ///< Defined for \ref compute_rlhs_f_fptr_T.
+	 const struct Solver_Face_T* s_face       ///< Defined for \ref compute_rlhs_f_fptr_T.
 	);
 
 /** \brief Constructor for the partial lhs face term of 2nd order equations only (i.e. flux having dependence only on
@@ -116,8 +123,8 @@ struct Matrix_T* constructor_lhs_f_1_T
  */
 struct Matrix_T* constructor_lhs_p_f_2_T
 	(const int side_index[2],                 ///< Defined for \ref constructor_lhs_f_1_T.
-	 const struct Numerical_Flux_T* num_flux, ///< Defined for \ref compute_rlhs_f_fptr.
-	 const struct Solver_Face_T* s_face       ///< Defined for \ref compute_rlhs_f_fptr.
+	 const struct Numerical_Flux_T* num_flux, ///< Defined for \ref compute_rlhs_f_fptr_T.
+	 const struct Solver_Face_T* s_face       ///< Defined for \ref compute_rlhs_f_fptr_T.
 	);
 
 /** \brief Combine the input face cubature weights and normal flux values and add to the corresponding \ref

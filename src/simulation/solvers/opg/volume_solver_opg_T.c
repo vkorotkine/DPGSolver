@@ -19,7 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_volume_solver_opg.h"
 
+#include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
+
+#include "def_templates_volume_solver.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -27,17 +30,18 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void constructor_derived_OPG_Solver_Volume_T (struct Volume* volume_ptr, const struct Simulation* sim)
 {
-	struct OPG_Solver_Volume_T* opg_s_vol = (struct OPG_Solver_Volume_T*) volume_ptr;
+	struct Solver_Volume_T*const s_vol         = (struct Solver_Volume_T*) volume_ptr;
+	struct OPG_Solver_Volume_T*const opg_s_vol = (struct OPG_Solver_Volume_T*) volume_ptr;
 	UNUSED(sim);
 
-	opg_s_vol->test_s_coef = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0}); // destructed
+	opg_s_vol->m_inv = constructor_inverse_mass_T(s_vol,NULL); // destructed
 }
 
 void destructor_derived_OPG_Solver_Volume_T (struct Volume* volume_ptr)
 {
 	struct OPG_Solver_Volume_T* opg_s_vol = (struct OPG_Solver_Volume_T*) volume_ptr;
 
-	destructor_Multiarray_T(opg_s_vol->test_s_coef);
+	destructor_const_Matrix_R(opg_s_vol->m_inv);
 }
 
 // Static functions ************************************************************************************************* //

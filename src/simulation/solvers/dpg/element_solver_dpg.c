@@ -77,8 +77,6 @@ void destructor_derived_DPG_Solver_Element (struct Element* element_ptr)
 	destructor_Multiarray2_Operator(dpg_s_e->cvcv0_vs_vc);
 	destructor_Multiarray2_Operator(dpg_s_e->cvcv1_vt_vc);
 
-	destructor_Multiarray2_Operator(dpg_s_e->cv0_ff_fc);
-
 	destructor_const_Multiarray_Vector_d(dpg_s_e->ones_coef_vt);
 }
 
@@ -107,9 +105,6 @@ static void constructor_derived_DPG_Solver_Element_common (struct Element* eleme
 
 	dpg_s_e->cvcv1_vt_vc[0] = constructor_operators_tens3(s_e->cv0_vs_vc[0],s_e->cv1_vt_vc[0]); // destructed
 	dpg_s_e->cvcv1_vt_vc[1] = constructor_operators_tens3(s_e->cv0_vs_vc[1],s_e->cv1_vt_vc[1]); // destructed
-
-	dpg_s_e->cv0_ff_fc[0] = constructor_operators("cv0","ffA","fcs","H_1_P_PM0",e,sim); // destructed
-	dpg_s_e->cv0_ff_fc[1] = constructor_operators("cv0","ffA","fcc","H_1_P_PM0",e,sim); // destructed
 
 	dpg_s_e->ones_coef_vt = constructor_operators_ones_coef("vtA",e,sim); // destructed
 }

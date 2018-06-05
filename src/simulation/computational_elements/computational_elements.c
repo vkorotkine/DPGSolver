@@ -198,9 +198,10 @@ bool list_is_derived_from (const char*const name_desired, const char list_type, 
 	case 'e':
 		if (strcmp(name_desired,"solver") == 0) {
 			switch (sim->elements->name) {
-			case IL_ELEMENT_SOLVER:    // fallthrough
-			case IL_ELEMENT_SOLVER_DG: // fallthrough
-			case IL_ELEMENT_SOLVER_DPG:
+			case IL_ELEMENT_SOLVER:     // fallthrough
+			case IL_ELEMENT_SOLVER_DG:  // fallthrough
+			case IL_ELEMENT_SOLVER_DPG: // fallthrough
+			case IL_ELEMENT_SOLVER_OPG:
 				is_derived_from = true;
 				break;
 			default:
@@ -214,9 +215,10 @@ bool list_is_derived_from (const char*const name_desired, const char list_type, 
 	case 'f':
 		if (strcmp(name_desired,"solver") == 0) {
 			switch (sim->faces->name) {
-			case IL_FACE_SOLVER:    // fallthrough
-			case IL_FACE_SOLVER_DG: // fallthrough
-			case IL_FACE_SOLVER_DPG:
+			case IL_FACE_SOLVER:     // fallthrough
+			case IL_FACE_SOLVER_DG:  // fallthrough
+			case IL_FACE_SOLVER_DPG: // fallthrough
+			case IL_FACE_SOLVER_OPG:
 				is_derived_from = true;
 				break;
 			default:
@@ -230,9 +232,10 @@ bool list_is_derived_from (const char*const name_desired, const char list_type, 
 	case 'v':
 		if (strcmp(name_desired,"solver") == 0) {
 			switch (sim->volumes->name) {
-			case IL_VOLUME_SOLVER:    // fallthrough
-			case IL_VOLUME_SOLVER_DG: // fallthrough
-			case IL_VOLUME_SOLVER_DPG:
+			case IL_VOLUME_SOLVER:     // fallthrough
+			case IL_VOLUME_SOLVER_DG:  // fallthrough
+			case IL_VOLUME_SOLVER_DPG: // fallthrough
+			case IL_VOLUME_SOLVER_OPG:
 				is_derived_from = true;
 				break;
 			default:
