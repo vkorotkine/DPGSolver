@@ -109,7 +109,7 @@ void solve_implicit (struct Simulation* sim)
 	test_case->solver_method_curr = 0;
 }
 
-void compute_rlhs_adjoint(struct Simulation* sim, struct Solver_Storage_Implicit* ssi){
+void compute_rlhs_optimization(struct Simulation* sim, struct Solver_Storage_Implicit* ssi){
 
 	/*
 	Compute the RLHS for the adjoint computation (it will only use the LHS). This

@@ -118,7 +118,7 @@ Control_Point_Connectivity 25 2
 46 47 
 0 1 
 
-Optimization_Point_Connectivity 23
+Optimization_Point_Connectivity 22
 2 0 1 
 4 0 1 
 6 0 1 
@@ -130,7 +130,6 @@ Optimization_Point_Connectivity 23
 18 0 1 
 20 0 1 
 22 0 1 
-24 0 1 
 26 0 1 
 28 0 1 
 30 0 1 

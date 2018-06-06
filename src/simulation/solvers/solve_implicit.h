@@ -63,7 +63,7 @@ void solve_implicit
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
-void compute_rlhs_adjoint
+void compute_rlhs_optimization
 	(struct Simulation* sim, 
 	struct Solver_Storage_Implicit* s_store_i
 	);

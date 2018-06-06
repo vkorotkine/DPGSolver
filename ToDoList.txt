@@ -45,36 +45,41 @@
 
 	(Done) - In the optimization setup, read all the geo_data data. 
 
-	- Create a method for updating geo_data which will update the geo_data struct information 
+	(Done) - Create a method for updating geo_data which will update the geo_data struct information 
 			using the data held in optimization_case.
 
-	- Speed up the NURBS geometry setup
+	(Done) - Create a modified grad_NURBS_xyz to make it more efficient in terms
+		of B Spline calls. 
 
-		- modify how grad_NURBS_xyz is called by making it more efficient in terms
-			of B Spline calls. 
+	(Done) - Create a modified NURBS_xyz to make it more efficient in terms of the
+		number of B Spline calls.
 
-		- modify how NURBS_xyz is called by making it more efficient in terms of the
-			number of B Spline calls.
+	(Done) - Compute the sensitivities using finite differences
 
-	- Compute the sensitivities using finite differences
-
-		- Compute the Residual linearization with respect to the design control 
-				points. 
-
-		- Compute the objective function linearization with respect to the design
+		(Done) - Compute the objective function linearization with respect to the design
 				control points.
 
+		(Done) - Compute the Residual linearization with respect to the design control 
+				points. 
 
-
-	- Compute the gradient of the objective function using the adjoint and the 
+	(Done) - Compute the gradient of the objective function using the adjoint and the 
 		sensitivity equation.
 
-	- Compute the gradient of the objective function using a brute force algorithm.
-		Compare the output to the values obtained using the adjoint approach.
+	(Done) - Compute the gradient of the objective function using a brute force algorithm.
+
+		(Done) - Ensure values obtained is equivalent to the adjoint approach.
+
+	- Use valgrind to check to make sure there are no memory leaks.
 
 	- Use steepest descent to converge to an optimal solution.
 
 	- Implement BFGS and use it to converge to an optimal solution.
+
+	- Implement NURBS book derivative computation to see if that approach for 
+			computing patch derivatives is faster.
+
+	- Use the NURBS mapping with the efficient derivative computation to optimize the 
+		given patch.
 
 	- Implement the NLPQLP wrapper into the code and use it to converge to the optimal
 		solution.

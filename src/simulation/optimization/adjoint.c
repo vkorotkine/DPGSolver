@@ -120,7 +120,7 @@ void setup_adjoint(struct Optimization_Case *optimization_case){
 
 	struct Simulation* sim = optimization_case->sim;
 	struct Solver_Storage_Implicit* ssi = constructor_Solver_Storage_Implicit(sim); // destructed
-	compute_rlhs_adjoint(sim, ssi);
+	compute_rlhs_optimization(sim, ssi);
 
 	// Copy the LHS values into a new Matrix and transpose it
 	Mat LHS = ssi->A;
@@ -184,7 +184,7 @@ void solve_adjoint(struct Optimization_Case *optimization_case){
 	int iteration_ksp;
 	KSPGetIterationNumber(ksp, &iteration_ksp);
 	
-	printf(" ADJOINT SOLVE (iter : %d ) \n", iteration_ksp);
+	printf("Adjoint Solved (iter : %d ) \n", iteration_ksp);fflush(stdout);
 
 	//printf("Get Residual History\n");
 	//KSPGetResidualHistory(ksp, &ksp_residual, &n_ksp_residual);

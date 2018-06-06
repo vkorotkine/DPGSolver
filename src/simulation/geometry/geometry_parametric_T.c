@@ -63,6 +63,7 @@ struct Geo_Data {
 	//  - The Multiarray holding the control points and the weights
 	struct Multiarray_d *control_points_and_weights;
 	// TODO: Hold a complex version of the control_points_and_weights here
+	// 	Or, perhaps need to just use templated version of geo_data (look into this)
 
 
 
@@ -359,6 +360,43 @@ const struct const_Multiarray_R* constructor_xyz_joukowski_parametric_T
 	return (struct const_Multiarray_R*) xyz;
 }
 
+void update_geo_data_NURBS_parametric_T(const struct const_Multiarray_R* ctrl_pts_and_weights){
+
+	/*
+	Update the NURBS data held in the geo_data structure. This method
+	is used with the optimization routines for updating the information 
+	about the NURBS patch by adjusting the location of the control points and
+	weights to allow for shape optimization to take place.
+
+	NOTE: For now, only the real version of the function will work (need to still 
+		make adjustments to account for the complex version)
+	
+	TODO: Make this function templated
+
+	Arguments:
+		ctrl_pts_and_weights = The multiarray holding the updated control points and weights.
+			If calling the real version of the function, the cntrl point data should be real and 
+			should be copied into the real version of the geo_data (opposite if complex).
+
+	Return:
+		-
+	*/
+
+	struct Geo_Data geo_data = get_geo_data("NURBS");  // get static geo_data struct
+
+	struct Multiarray_d *dest = geo_data.control_points_and_weights;
+
+	for (int i = 0; i < (int)dest->extents[0]; i++){
+		for(int j = 0; j < (int)dest->extents[1]; j++){
+
+			get_col_Multiarray_d(j, dest)[i] = get_col_const_Multiarray_R(j, ctrl_pts_and_weights)[i];
+
+		}
+	}
+
+
+}
+
 const struct const_Multiarray_R* constructor_grad_xyz_NURBS_parametric_T
 (const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
 	const struct Simulation* sim){
@@ -382,19 +420,25 @@ const struct const_Multiarray_R* constructor_grad_xyz_NURBS_parametric_T
 	UNUSED(s_vol);
 	UNUSED(sim);
 
-	// MSB: Read the geometric data for the NURBS patch
+	// Read the geometric data for the NURBS patch
 	const struct Geo_Data geo_data = get_geo_data("NURBS");
 
-	// TODO: Add if statement here for using either the real or complex version
-	// of the control_points_and_weights based on which version of the function is
-	// being called
+	const struct const_Multiarray_d *grad_xyz = grad_xyz_NURBS_patch_mapping_efficient(
+		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 
+		(const struct const_Multiarray_d*)geo_data.knots_xi, 
+		(const struct const_Multiarray_d*)geo_data.knots_eta,
+		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
+		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
 
+	/*
+	//old approach
 	const struct const_Multiarray_d *grad_xyz = grad_xyz_NURBS_patch_mapping(
 		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 
 		(const struct const_Multiarray_d*)geo_data.knots_xi, 
 		(const struct const_Multiarray_d*)geo_data.knots_eta,
 		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
 		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
+	*/
 
 	return (const struct const_Multiarray_R*)grad_xyz;
 
@@ -426,19 +470,29 @@ const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
 	assert(DIM == 2); // Add support for 3D if required.
 	assert(DIM == xyz_i->extents[1]);
 
-	// MSB: Read the geometric data for the NURBS patch
+	// Read the geometric data for the NURBS patch
 	const struct Geo_Data geo_data = get_geo_data("NURBS");
 
 	// xyz_i is the initial values for the xyz coordinates. These are, in 
 	// this function, the location on the parametric domain (or knot domain). Map these
 	// values onto the physical domain
+	
+	const struct const_Multiarray_d *xyz = xyz_NURBS_patch_mapping_efficient(
+		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 
+		(const struct const_Multiarray_d*)geo_data.knots_xi, 
+		(const struct const_Multiarray_d*)geo_data.knots_eta,
+		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
+		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
 
+	/*
+	//old approach
 	const struct const_Multiarray_d *xyz = xyz_NURBS_patch_mapping(
 		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 
 		(const struct const_Multiarray_d*)geo_data.knots_xi, 
 		(const struct const_Multiarray_d*)geo_data.knots_eta,
 		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
 		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
+	*/
 
 	return (const struct const_Multiarray_R*)xyz;
 

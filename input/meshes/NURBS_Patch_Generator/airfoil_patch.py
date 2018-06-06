@@ -549,12 +549,18 @@ def get_optimization_pts(ControlPoints_and_Weights):
 	# For the Airfoil case, the trailing edge will be fixed and all other points
 	# will be able to freely move in the y direction
 
+	# The leading edge will also be fixed (although the spline does not interpolate
+	# this location)
+
 	optimization_control_pt_list = []
 
 	num_airfoil_pts = len(ControlPoints_and_Weights) - 1  # Subtract one because first and last pt identical
 
+	leading_edge_pt_index = int(len(ControlPoints_and_Weights)/2)
+
 	for i in range(1,num_airfoil_pts):
-		optimization_control_pt_list.append((ControlPoints_and_Weights[i][0], 0, 1))
+		if i != leading_edge_pt_index:
+			optimization_control_pt_list.append((ControlPoints_and_Weights[i][0], 0, 1))
 
 	return optimization_control_pt_list
 

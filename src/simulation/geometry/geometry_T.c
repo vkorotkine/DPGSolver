@@ -598,6 +598,7 @@ void compute_NURBS_geometry_face_T (struct Solver_Face_T* s_face,
 	// Compute the face xyz values. 
 	// TODO: Look into this further and make sure it works with the NURBS implementation
 	destructor_const_Multiarray_R(s_face->xyz_fc);
+	destructor_const_Multiarray_R(s_face->xyz_fc_ex_b);
 	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc,constructor_xyz_fc(s_face,sim)); // keep
 	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc_ex_b,
 	                                          constructor_xyz_fc_on_exact_boundary(s_face,sim)); // keep

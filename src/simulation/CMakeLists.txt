@@ -21,6 +21,7 @@ set	(SOURCE
 	 optimization/objective_functions.c
 	 optimization/adjoint.c
 	 optimization/sensitivities.c
+	 optimization/optimization_minimizers.c
 
 	 solvers/compute_rlhs.c
 	 solvers/compute_face_rlhs.c

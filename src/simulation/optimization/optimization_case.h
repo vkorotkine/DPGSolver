@@ -12,9 +12,9 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-/** \file
- *  \brief Provides container(s) and functions relating to the optimization cases.
- */
+
+#ifndef DPG__optimization_case_h__INCLUDED
+#define DPG__optimization_case_h__INCLUDED
 
 #include "objective_functions.h"
 
@@ -34,6 +34,7 @@ struct Optimization_Case {
 
 	objective_function_fptr 	objective_function;  ///< Function pointer to the real objective function
 	objective_function_fptr_c 	objective_function_c;  ///< Function pointer to the complex objective function
+
 
 	// Pointers to the real (sim) and complex (sim_c) objects. 
 	// A complex counterpart is needed for the complex step.
@@ -71,7 +72,6 @@ struct Optimization_Case {
 	// Adjoint Data Structures
 	// 		RHS = [dI/dW] (will be set and used to initialize the petsc vector for the RHS)
 	// 		Chi = Adjoint (will be set only after the adjoint is solved)
-	// 		LHS = [dR/dW]^T  (Will not be used)
 	// - Lifetime of structures:
 	//		- All PETSc structures will be constructed in setup_adjoint and destructed in
 	//			solve_adjoint
@@ -79,7 +79,7 @@ struct Optimization_Case {
 	//		- Chi will be constructed in constructor_Optimization_Case and will be destructed
 	//			in destructor_Optimization_Case (it is used in the whole optimization sequence)
 
-	struct Multiarray_d *RHS, *Chi, *LHS;
+	struct Multiarray_d *RHS, *Chi;
 
 	Mat LHS_petsc; // [dR/dW]^T
 	Vec RHS_petsc; // [dI/dW]
@@ -89,6 +89,10 @@ struct Optimization_Case {
 	// Sensitivity Data Structures
 	struct Multiarray_d  *dR_dXp,  // Sensitivity of the residual 
 						 *dI_dXp;  // Sensitivity of the objective function
+
+
+	// Gradient of the objective with respect to the design variables
+	struct Multiarray_d *grad_I;
 
 };
 
@@ -103,3 +107,5 @@ struct Optimization_Case {
 struct Optimization_Case* constructor_Optimization_Case (const struct Simulation* sim);
 
 void destructor_Optimization_Case (struct Optimization_Case* optimization_case);
+
+#endif // DPG__optimization_case_h__INCLUDED

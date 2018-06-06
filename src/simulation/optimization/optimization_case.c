@@ -107,7 +107,12 @@ void destructor_Optimization_Case (struct Optimization_Case* optimization_case){
 	*/
 
 	// Destroy the geometry data
-	// TODO: Implement this portion
+	destructor_Multiarray_d(optimization_case->geo_data.knots_xi);
+	destructor_Multiarray_d(optimization_case->geo_data.knots_eta);
+	destructor_Multiarray_d(optimization_case->geo_data.control_points_and_weights);
+	destructor_Multiarray_c(optimization_case->geo_data.control_points_and_weights_c);
+	destructor_Multiarray_i(optimization_case->geo_data.control_point_connectivity);
+	destructor_Multiarray_i(optimization_case->geo_data.control_points_optimization);
 
 	// Destroy the simulation. Note that the p and ml values are not used when 
 	// the solution is being destructed

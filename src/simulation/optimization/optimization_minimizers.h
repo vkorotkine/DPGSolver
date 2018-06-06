@@ -12,17 +12,14 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-/** \file
- *  \brief Undefine macro definitions for c-style templating relating to parametric geometry functions.
- */
 
-#undef constructor_xyz_fixed_cube_parametric_T
-#undef constructor_xyz_cylinder_parametric_T
-#undef constructor_xyz_trigonometric_cube_parametric_T
-#undef constructor_xyz_trigonometric_cube_parametric_xl_T
-#undef constructor_xyz_trigonometric_cube_parametric_xl_oct1_T
-#undef constructor_xyz_joukowski_parametric_T
-#undef constructor_xyz_gaussian_bump_parametric_T
-#undef update_geo_data_NURBS_parametric_T
-#undef constructor_xyz_NURBS_parametric_T
-#undef constructor_grad_xyz_NURBS_parametric_T
+
+#ifndef DPG__optimization_minimizers_h__INCLUDED
+#define DPG__optimization_minimizers_h__INCLUDED
+
+struct Optimization_Case;
+
+
+void gradient_descent(struct Optimization_Case *optimization_case, int design_iteration);
+
+#endif // DPG__optimization_minimizers_h__INCLUDED

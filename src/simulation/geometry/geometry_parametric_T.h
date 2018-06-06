@@ -96,6 +96,10 @@ const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 	 const struct Simulation* sim            ///< See brief.
 	);
 
+void update_geo_data_NURBS_parametric_T
+	(const struct const_Multiarray_R* ctrl_pts_and_weights
+	);
+
 /** \brief Version of \ref constructor_xyz_fptr_T for a parametric NURBS patch domain.
  *  \return See brief. */
 const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T

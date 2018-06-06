@@ -308,10 +308,20 @@ double NURBS_Basis_ip(
 	);
 
 
-// Consut bases.c for documentation
+// Consult bases.c for documentation
+const struct const_Multiarray_d *grad_NURBS_basis_pq(const struct const_Multiarray_d* N_p_xi,
+	const struct const_Multiarray_d* dN_p_xi, const struct const_Multiarray_d* N_q_eta,
+	const struct const_Multiarray_d* dN_q_eta,const struct const_Multiarray_d* weights);
+
+// Consult bases.c for documentation
 const struct const_Multiarray_d *grad_NURBS_basis_ij_pq(int i, int j, int p, int q, double xi, double eta, 
 	const struct const_Multiarray_d* knots_xi, const struct const_Multiarray_d* knots_eta, 
 	const struct const_Multiarray_d* weights);
+
+
+// Consult bases.c for documentation
+const struct const_Multiarray_d *NURBS_basis_pq(const struct const_Multiarray_d* N_p_xi, 
+	const struct const_Multiarray_d* N_q_eta, const struct const_Multiarray_d* weights);
 
 
 // Consult bases.c for documentation
