@@ -55,11 +55,6 @@ static void set_exact_f_nf_fc
 	(struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Set up the initial \ref Solver_Volume_T::test_s_coef and \todo ref Solver_Volume_T::test_g_coef.
-static void set_initial_v_test_sg_coef
-	(struct Simulation*const sim ///< \ref Simulation.
-	);
-
 /** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vg_vc operator.
  *  \return See brief. */
 static const struct Operator* get_operator__cv0_vg_vc
@@ -346,6 +341,23 @@ void set_to_zero_residual_T (const struct Simulation*const sim)
 	}
 }
 
+void set_initial_v_test_sg_coef_T (struct Simulation*const sim)
+{
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_var = test_case->n_var;
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
+		const struct Operator*const tw0_vt_vc = get_operator__tw0_vt_vc_T(s_vol);
+
+		const ptrdiff_t ext_0 = tw0_vt_vc->op_std->ext_0,
+		                extents[] = { ext_0, n_var, };
+		resize_Multiarray_T(s_vol->test_s_coef,s_vol->test_s_coef->order,extents);
+		set_to_value_Multiarray_T(s_vol->test_s_coef,0.0);
+	}
+	assert(get_set_has_1st_2nd_order(NULL)[1] == false); // Add support.
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -411,22 +423,6 @@ static void set_exact_f_nf_fc (struct Simulation* sim)
 		s_face->nf_fc = constructor_nf(s_face,'c',flux_i,sim); // keep
 	}
 	destructor_Flux_Input_T(flux_i);
-}
-
-static void set_initial_v_test_sg_coef (struct Simulation*const sim)
-{
-	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
-	const int n_var = test_case->n_var;
-
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
-		const struct Operator*const tw0_vt_vc = get_operator__tw0_vt_vc_T(s_vol);
-
-		const ptrdiff_t ext_0 = tw0_vt_vc->op_std->ext_0,
-		                extents[] = { ext_0, n_var, };
-		resize_Multiarray_T(s_vol->test_s_coef,s_vol->test_s_coef->order,extents);
-		set_to_value_Multiarray_T(s_vol->test_s_coef,0.0);
-	}
 }
 
 static const struct Operator* get_operator__cv0_vg_vc (const struct Solver_Volume_T* s_vol)

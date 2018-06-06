@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume.h"
 #include "volume_solver.h"
 
+#include "compute_volume_rlhs.h"
 #include "flux.h"
 #include "geometry.h"
 #include "multiarray_operator.h"
@@ -55,24 +56,18 @@ struct Multiarray_d* constructor_rhs_v (const struct Simulation* sim, struct Sol
 	// sim may be used to store a parameter establishing which type of operator to use for the computation.
 	const char op_format = 'd';
 
-	struct Volume* vol = (struct Volume*) s_vol;
-	const struct Solution_Element* s_e = &((struct Solver_Element*)vol->element)->s_e;
-
-	const int curved = vol->curved,
-	          p      = s_vol->p_ref;
-
 	// If there is some odd behaviour when using this function, think further about whether the rhs term is a
 	// coefficient or a value. Based on the case of identity mass matrix for the explicit scheme, it seems that rhs is
 	// a coefficient.
-	const struct Operator* cv0_vs_vX = get_Multiarray_Operator(s_e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
+	const struct Operator*const cv0_vt_vc = get_operator__cv0_vt_vc(s_vol);
 
 	const struct const_Multiarray_T*const rhs_coef = (struct const_Multiarray_T*) s_vol->rhs_0;
 
-	const ptrdiff_t ext_0 = cv0_vs_vX->op_std->ext_0,
+	const ptrdiff_t ext_0 = cv0_vt_vc->op_std->ext_0,
 	                ext_1 = rhs_coef->extents[1];
 
 	struct Multiarray_T* rhs_v = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){ext_0,ext_1}); // returned
-	mm_NN1C_Operator_Multiarray_T(cv0_vs_vX,rhs_coef,rhs_v,op_format,rhs_coef->order,NULL,NULL);
+	mm_NN1C_Operator_Multiarray_T(cv0_vt_vc,rhs_coef,rhs_v,op_format,rhs_coef->order,NULL,NULL);
 
 	return rhs_v;
 }
@@ -80,9 +75,8 @@ struct Multiarray_d* constructor_rhs_v (const struct Simulation* sim, struct Sol
 struct Multiarray_d* constructor_s_coef_bezier
 	(const struct Solver_Volume*const s_vol, const struct Simulation*const sim)
 {
-UNUSED(sim);
-	// sim may be used to store a parameter establishing which type of operator to use for the computation.
-	const char op_format = 'd';
+	UNUSED(sim);
+	const char op_format = get_set_op_format(0);
 
 	const struct Volume*const vol         = (struct Volume*) s_vol;
 	const struct Solver_Element*const s_e = (struct Solver_Element*) vol->element;

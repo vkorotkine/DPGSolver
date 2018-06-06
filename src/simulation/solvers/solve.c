@@ -60,7 +60,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *           non-linear problems if the initial solution is not close to the exact solution, which is true for all but
  *           the trivial cases.
  */
-#define ALWAYS_SET_INITIAL true
+#define ALWAYS_SET_INITIAL false
 /// \todo REMOVE THIS WHEN FINISHED TESTING! (Replace with restart file where applicable)
 
 /// \brief Set the memory of the rhs and lhs (if applicable) terms to zero for the volumes.
@@ -93,6 +93,18 @@ void solve_for_solution (struct Simulation* sim)
 	if (ALWAYS_SET_INITIAL) {
 		printf("*** Warning: Always resetting to initial solution. *** \n");
 		set_initial_solution(sim);
+#if 0
+for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+	struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+	set_to_value_Multiarray_T(s_vol->sol_coef,0.0);
+	set_to_value_Multiarray_T(s_vol->test_s_coef,0.0);
+}
+#include "face_solver.h"
+for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+	struct Solver_Face*const s_face = (struct Solver_Face*) curr;
+	set_to_value_Multiarray_T(s_face->nf_coef,0.0);
+}
+#endif
 	}
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;

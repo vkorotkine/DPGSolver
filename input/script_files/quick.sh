@@ -20,7 +20,7 @@ ARGV="euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D_t
 ARGV="advection/vortex/TEST_advection_vortex_mixed2d petsc_options_gmres_tol_1e-15"
 #ARGV="euler/gaussian_bump/TEST_Euler_GaussianBump_ParametricMixed2D petsc_options_gmres_tol_1e-15"
 
-ARGV="advection/vortex/TEST_opg_advection_vortex_mixed2d petsc_options_gmres_tol_1e-15"
+ARGV="advection/default/opg/TEST_opg_advection_default__mixed2d petsc_options_cg_tol_1e-15"
 
 #ARGV="advection/hyperbolic_tan/TEST_advection_hyperbolic_tan_1d petsc_options_gmres_tol_1e-15"
 #ARGV="diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_Mixed2D petsc_options_cg_ilu1"

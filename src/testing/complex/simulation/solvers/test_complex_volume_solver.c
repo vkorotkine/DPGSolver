@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "complex_multiarray.h"
 #include "complex_vector.h"
+#include "test_complex_compute_volume_rhs.h"
 #include "test_complex_test_case.h"
 
 #include "element_solver.h"

@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along with DPG
 /// \brief Container for data relating to the OPG solver faces.
 struct OPG_Solver_Face_T {
 	struct Solver_Face_T face; ///< The base \ref Solver_Face_T.
+
+	const struct const_Matrix_R* m_inv; ///< The inverse mass matrix.
 };
 
 /// \brief Constructor for a derived \ref OPG_Solver_Face_T.

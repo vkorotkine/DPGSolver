@@ -24,10 +24,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_type_dc.h"
 #include "def_templates_face_solver.h"
 #include "def_templates_face_solver_opg.h"
+#include "def_templates_matrix.h"
 #include "face_solver_opg_T.h"
 #include "undef_templates_type.h"
 #include "undef_templates_face_solver.h"
 #include "undef_templates_face_solver_opg.h"
+#include "undef_templates_matrix.h"
 
 
 #endif // DPG__test_complex_face_solver_opg_h__INCLUDED

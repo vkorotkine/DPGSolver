@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "compute_volume_rlhs.h"
 #include "const_cast.h"
 #include "geometry_blended.h"
 #include "multiarray_operator.h"

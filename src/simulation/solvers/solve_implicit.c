@@ -712,6 +712,7 @@ static void update_coef_test_s_v (Vec x, const struct Simulation*const sim)
 {
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume* s_vol = (struct Solver_Volume*)curr;
+		set_to_value_Multiarray_d(s_vol->test_s_coef,0.0);
 		update_coef((int)s_vol->ind_dof_test,s_vol->test_s_coef,x,false,s_vol,sim);
 	}
 }

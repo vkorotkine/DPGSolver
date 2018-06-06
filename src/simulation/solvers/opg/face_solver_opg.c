@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "face_solver_opg.h"
 
+#include "matrix.h"
+#include "multiarray.h"
+#include "vector.h"
+
+#include "compute_face_rlhs.h"
+#include "operator.h"
 #include "simulation.h"
 
 // Static function declarations ************************************************************************************* //

@@ -296,6 +296,16 @@ const struct Operator* get_operator__cv0_vs_vc_T (const struct Solver_Volume_T* 
 	return get_Multiarray_Operator(e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
 }
 
+const struct Operator* get_operator__cv0_vt_vc_T (const struct Solver_Volume_T*const s_vol)
+{
+	const struct Volume*const vol       = (struct Volume*) s_vol;
+	const struct Solver_Element*const e = (struct Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref,
+	          curved = vol->curved;
+	return get_Multiarray_Operator(e->cv0_vt_vc[curved],(ptrdiff_t[]){0,0,p,p});
+}
+
 const struct Operator* get_operator__cv0_vr_vc_T (const struct Solver_Volume_T* s_vol)
 {
 	const struct Volume* vol       = (struct Volume*) s_vol;

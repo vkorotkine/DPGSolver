@@ -46,6 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_grad_zero_T                    set_grad_zero
 #define constructor_const_grad_zero_T      constructor_const_grad_zero
 #define set_to_zero_residual_T             set_to_zero_residual
+#define set_initial_v_test_sg_coef_T       set_initial_v_test_sg_coef
 ///\}
 
 ///\{ \name Function names (pde specific)
@@ -82,6 +83,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_grad_zero_T                    set_grad_zero_c
 #define constructor_const_grad_zero_T      constructor_const_grad_zero_c
 #define set_to_zero_residual_T             set_to_zero_residual_c
+#define set_initial_v_test_sg_coef_T       set_initial_v_test_sg_coef_c
 ///\}
 
 ///\{ \name Function names (pde specific)

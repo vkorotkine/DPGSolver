@@ -159,6 +159,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_QUAD" "petsc_options_cg_icc")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_Mixed2D" "petsc_options_cg_icc")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_Conservative_DPG_Mixed2D__ml0" "petsc_options_cg_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/vortex/TEST_opg_advection_vortex_mixed2d" "petsc_options_cg_tol_1e-15")
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_LINE" "petsc_options_cg_ilu1")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_Mixed2D__ml0" "petsc_options_cg_ilu1")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/periodic_vortex/TEST_Euler_PeriodicVortex_QUAD__ml0__p2" "petsc_options_empty")

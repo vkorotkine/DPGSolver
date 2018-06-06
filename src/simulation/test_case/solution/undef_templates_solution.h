@@ -45,6 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_grad_zero_T
 #undef constructor_const_grad_zero_T
 #undef set_to_zero_residual_T
+#undef set_initial_v_test_sg_coef_T
 ///\}
 
 ///\{ \name Function names (pde specific)

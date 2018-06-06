@@ -64,13 +64,9 @@ void destructor_derived_DPG_Solver_Volume_T (struct Volume* volume_ptr)
 
 static const struct const_Matrix_R* constructor_norm_op_H0 (const struct DPG_Solver_Volume_T* dpg_s_vol)
 {
-	struct Volume* vol               = (struct Volume*) dpg_s_vol;
-	struct Solver_Volume_T* s_vol    = (struct Solver_Volume_T*) dpg_s_vol;
-	const struct Solver_Element* s_e = (struct Solver_Element*) vol->element;
+	struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) dpg_s_vol;
 
-	const int p      = s_vol->p_ref,
-	          curved = vol->curved;
-	const struct Operator* cv0_vt_vc = get_Multiarray_Operator(s_e->cv0_vt_vc[curved],(ptrdiff_t[]){0,0,p,p});
+	const struct Operator*const cv0_vt_vc = get_operator__cv0_vt_vc_T(s_vol);
 	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
 
 	const struct const_Vector_R jacobian_det_vc = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);

@@ -18,7 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  *  \brief Provides the interface to functions used to solve for the solution using implicit procedures.
  *
- *  An outline of exact what terms are stored for the implicit solve follows. The code was originally implemented for
+ *  An outline of exactly what terms are stored for the implicit solve follows. The code was originally implemented for
  *  explicit schemes where the unsteady term is to be updated according to:
  *  \f[
  *  	\frac{\partial s_{coef}}{\partial t} = \text{rhs}.
@@ -33,7 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \f{eqnarray*}{
  *  	0 = \text{rhs}(s_{coef,exact}) &\approx& \text{rhs}(s_{coef})
  *  	                                + \frac{\partial \text{rhs}}{\partial s_{coef}}|_{s_{coef}}\ \Delta(s_{coef})\\
- *  	                              &\approx& \text{rhs}(s_{coef}) + \text{lhs}(s_{coef})\ \Delta(s_{coef}),
+ *  	                               &\approx& \text{rhs}(s_{coef}) + \text{lhs}(s_{coef})\ \Delta(s_{coef}),
  *  \f}
  *
  *  the corresponding linear system is:

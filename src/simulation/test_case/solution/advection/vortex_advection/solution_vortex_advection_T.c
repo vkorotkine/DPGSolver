@@ -102,7 +102,7 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 		if (!use_constant_solution) {
 			for (int i = 0; i < n_n; ++i) {
 				const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]);
-				u[i] = scale*sin(0.1*r)*cos(0.3*r);
+				u[i] = scale*sin(1.1e1*r)*cos(1.3e1*r);
 			}
 		} else {
 			for (int i = 0; i < n_n; ++i)

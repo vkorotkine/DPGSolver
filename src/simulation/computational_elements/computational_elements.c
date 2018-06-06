@@ -364,6 +364,10 @@ static struct Derived_Elements_Info get_d_Derived_Elements_Info (const int base_
 		assert(base_name == IL_ELEMENT_SOLVER);
 		de_info.destructor_derived_Element = destructor_derived_DPG_Solver_Element;
 		break;
+	case IL_ELEMENT_SOLVER_OPG:
+		assert(base_name == IL_ELEMENT_SOLVER);
+		de_info.destructor_derived_Element = destructor_derived_OPG_Solver_Element;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_name);
 		break;

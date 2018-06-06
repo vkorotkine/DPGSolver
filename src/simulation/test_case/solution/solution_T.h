@@ -189,3 +189,8 @@ const struct const_Multiarray_T* constructor_const_grad_zero_T
 void set_to_zero_residual_T
 	(const struct Simulation*const sim ///< Standard.
 	);
+
+/// \brief Set up the initial \ref Solver_Volume_T::test_s_coef and \todo ref Solver_Volume_T::test_g_coef.
+void set_initial_v_test_sg_coef_T
+	(struct Simulation*const sim ///< \ref Simulation.
+	);

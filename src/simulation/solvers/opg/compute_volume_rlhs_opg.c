@@ -66,32 +66,35 @@ void update_coef_s_v_opg (const struct Simulation*const sim)
 		struct OPG_Solver_Volume*const opg_s_vol = (struct OPG_Solver_Volume*) curr;
 
 		struct Flux_Ref_T*const flux_r = constructor_Flux_Ref_vol(&s_params.spvs,flux_i,s_vol,sim);
-		const struct const_Matrix_d*const op_v1_opg = constructor_test_diff_op_1v_opg(flux_r,s_vol,true); // dest.
+
+		// Note: Inverse Jacobian determinant from this operator cancels with that from the integral below (both
+		//       omitted).
+		const struct const_Matrix_d*const op_v1_opg = constructor_test_diff_op_1v_opg(flux_r,s_vol,false); // dest.
 		destructor_Flux_Ref_T(flux_r);
 
 		struct Vector_d test_s_coef_V = interpret_Multiarray_as_Vector_d(s_vol->test_s_coef);
-		const struct const_Vector_d*const test_s_vc_V =
-			constructor_mv_const_Vector_d('N',1.0,op_v1_opg,(struct const_Vector_d*)&test_s_coef_V); // destructed
+		const struct const_Vector_d*const s_vc_V =
+			constructor_mv_const_Vector_d('N',-1.0,op_v1_opg,(struct const_Vector_d*)&test_s_coef_V); // destructed
 		destructor_const_Matrix_d(op_v1_opg);
 
 		struct Multiarray_d*const s_coef = s_vol->sol_coef;
-		const struct const_Multiarray_d*const test_s_vc =
-			constructor_move_const_Multiarray_d_d('C',s_coef->order,s_coef->extents,false,test_s_vc_V->data); // d.
+		const ptrdiff_t*const ext_s = s_coef->extents;
+		const ptrdiff_t extents[2] = { (s_vc_V->ext_0)/ext_s[1], ext_s[1], };
+		const struct const_Multiarray_d*const s_vc =
+			constructor_move_const_Multiarray_d_d('C',2,extents,false,s_vc_V->data); // destructed
 
 		const struct Operator*const cv0_vs_vc = get_operator__cv0_vs_vc_T(s_vol);
 		const struct const_Matrix_d*const op_proj_L2 =
 			constructor_mm_const_Matrix_d('N','T',1.0,opg_s_vol->m_inv,cv0_vs_vc->op_std,'R'); // destructed
 
 		const struct const_Vector_d*const w_vc = get_operator__w_vc__s_e_T(s_vol);
-		const struct const_Vector_d j_det_vc   = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
-		const struct const_Vector_d* wJ_vc     = constructor_dot_mult_const_Vector_d(1.0,w_vc,&j_det_vc,1); // dest.
-		scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)test_s_vc,wJ_vc,false);
-		destructor_const_Vector_d(wJ_vc);
+		scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)s_vc,w_vc,false);
 
-		mm_NNC_Multiarray_d(1.0,0.0,op_proj_L2,test_s_vc,s_vol->sol_coef);
+		mm_NNC_Multiarray_d(1.0,0.0,op_proj_L2,s_vc,s_vol->sol_coef);
+
 		destructor_const_Matrix_d(op_proj_L2);
-		destructor_const_Multiarray_d(test_s_vc);
-		destructor_const_Vector_d(test_s_vc_V);
+		destructor_const_Multiarray_d(s_vc);
+		destructor_const_Vector_d(s_vc_V);
 	}
 	destructor_Flux_Input_T(flux_i);
 }
@@ -120,7 +123,7 @@ const struct const_Matrix_d* constructor_test_diff_op_1v_opg
 		for (int dim = 0; dim < DIM; ++dim) {
 			const ptrdiff_t ind =
 				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
-			dfr_ds.data = (Type*)&dfr_ds_Ma->data[ind];
+			dfr_ds.data = (double*)&dfr_ds_Ma->data[ind];
 			mm_diag_d('L',1.0,1.0,cv1_vt_vc.data[dim]->op_std,(struct const_Vector_d*)&dfr_ds,cv1r_l,false);
 		}
 		set_block_Matrix_d(cv1r,eq*ext_0,vr*ext_1,
@@ -188,19 +191,17 @@ static const struct const_Matrix_d* constructor_lhs_v_1_opg
 
 	const int n_vr = get_set_n_var_eq(NULL)[0];
 
-	const struct const_Vector_d* w_vc = get_operator__w_vc__s_e(s_vol);
-	const struct const_Vector_d J_vc  = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
+	const struct const_Vector_d*const w_vc = get_operator__w_vc__s_e(s_vol);
+	const struct const_Vector_d J_vc       = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
 
-	const struct const_Vector_d* J_inv_vc = constructor_inverse_const_Vector_d(&J_vc);                   // destructed
-	const struct const_Vector_d* wJ_vc    = constructor_dot_mult_const_Vector_d(1.0,w_vc,J_inv_vc,n_vr); // destructed
+	const struct const_Vector_d*const J_inv_vc = constructor_inverse_const_Vector_d(&J_vc);                   // dest.
+	const struct const_Vector_d*const wJ_vc    = constructor_dot_mult_const_Vector_d(1.0,w_vc,J_inv_vc,n_vr); // dest.
 	destructor_const_Vector_d(J_inv_vc);
 
-	const struct const_Matrix_d* n1_lt =
-		constructor_mm_diag_const_Matrix_d_d(1.0,cv1r,wJ_vc,'L',false); // destructed
+	const struct const_Matrix_d*const n1_lt = constructor_mm_diag_const_Matrix_d_d(1.0,cv1r,wJ_vc,'L',false); // dest.
 	destructor_const_Vector_d(wJ_vc);
 
-	const struct const_Matrix_d*const lhs =
-		constructor_mm_const_Matrix_d('T','N',1.0,n1_lt,cv1r,'R'); // returned
+	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('T','N',-1.0,n1_lt,cv1r,'R'); // returned
 	destructor_const_Matrix_d(n1_lt);
 	destructor_const_Matrix_d(cv1r);
 
