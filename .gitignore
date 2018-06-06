@@ -40,6 +40,8 @@ src/processing/__pycache__/*
 src/processing/pre/__pycache__/*
 src/processing/post/__pycache__/*
 cmake/include/*
+cmake/run/parameters*
+!cmake/run/parameters_example.sh
 */__pycache__/*
 *input/meshes/__pycache__/*
 src/processing/post/*.txt
