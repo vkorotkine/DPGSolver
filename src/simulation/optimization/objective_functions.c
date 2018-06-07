@@ -102,7 +102,24 @@ static const struct const_Multiarray_c* compute_Cl_Cd_c(const struct Simulation*
 
 // Temporary macro for the target CL for the target lift
 // coefficient optimization case
-#define TARGET_CL 0.24
+#define TARGET_CL 0.2
+
+double compute_Cl(const struct Simulation* sim){
+
+	/*
+	Compute the Cl value.
+	TODO: We do not need this for the optimization (we use objective_function_target_Cl
+	for that) but find a way to include this in the monitor process.
+	*/
+
+	const struct const_Multiarray_d* Cl_Cd = compute_Cl_Cd(sim);
+
+	double Cl = Cl_Cd->data[0];
+
+	destructor_const_Multiarray_d(Cl_Cd);
+	return Cl;
+
+}
 
 double objective_function_target_Cl(const struct Simulation* sim){
 
@@ -204,23 +221,24 @@ static const struct const_Multiarray_d* compute_Cl_Cd(const struct Simulation* s
 		const struct const_Multiarray_d* pv_fc = constructor_s_fc_interp(s_face,sim,0);
 		convert_variables((struct Multiarray_d*)pv_fc,'c','p');
 		
-		// Get the normals (n) at the face cubature (fc) nodes
-		const struct const_Multiarray_d* n_fc = s_face->normals_fc;
+		// Get the normals (n) at the face cubature (fc) nodes and jacobian values
+		const struct const_Multiarray_d* n_fc 		= s_face->normals_fc;
+		const struct const_Multiarray_d* jac_det_fc = s_face->jacobian_det_fc;
 
 		num_fc = (int) pv_fc->extents[0]; // number of face cubature (fc) nodes
 
 		// Pressure (p) at face cubature (fc) nodes as an array
 		const double *p_fc_i = get_col_const_Multiarray_d(pv_fc->extents[1]-1,pv_fc);
 
-		// Integrate the pressure multiplied by the negative of the normal component.
+		// Integrate the pressure multiplied by the the normal component (into airfoil face).
 		// Compute the integral using quadrature
 		const struct const_Vector_d*const w_fc = get_operator__w_fc__s_e(s_face);
 
 		for (i = 0; i < num_fc; i++){
 			const double*const n = get_row_const_Multiarray_d(i,n_fc);
 
-			Force_A += -1.0*p_fc_i[i]*n[0] *  w_fc->data[i];
-			Force_N += -1.0*p_fc_i[i]*n[1] *  w_fc->data[i];
+			Force_A += 1.0*p_fc_i[i]*n[0] * jac_det_fc->data[i] * w_fc->data[i];
+			Force_N += 1.0*p_fc_i[i]*n[1] * jac_det_fc->data[i] * w_fc->data[i];
 
 		}
 
@@ -291,8 +309,9 @@ static const struct const_Multiarray_c* compute_Cl_Cd_c(const struct Simulation*
 		// TODO: Use the complex normals and metrics after to handle the complex
 		// geometry
 
-		// Get the normals (n) at the face cubature (fc) nodes
+		// Get the normals (n) at the face cubature (fc) nodes and jacobian values
 		const struct const_Multiarray_d* n_fc = s_face->normals_fc;
+		const struct const_Multiarray_d* jac_det_fc = s_face->jacobian_det_fc;
 
 		num_fc = (int) pv_fc_c->extents[0]; // number of face cubature (fc) nodes
 
@@ -306,14 +325,13 @@ static const struct const_Multiarray_c* compute_Cl_Cd_c(const struct Simulation*
 		for (i = 0; i < num_fc; i++){
 			const double*const n = get_row_const_Multiarray_d(i,n_fc);
 
-			Force_A += -1.0*p_fc_c_i[i]*n[0] *  w_fc->data[i];
-			Force_N += -1.0*p_fc_c_i[i]*n[1] *  w_fc->data[i];
+			Force_A += 1.0*p_fc_c_i[i]*n[0] * jac_det_fc->data[i] * w_fc->data[i];
+			Force_N += 1.0*p_fc_c_i[i]*n[1] * jac_det_fc->data[i] * w_fc->data[i];
 
 		}
 
 		// Destroy the allocated vectors
 		destructor_const_Multiarray_c(pv_fc_c);
-
 	}
 
 	// Get the lift and drag by taking into account the angle of attack 

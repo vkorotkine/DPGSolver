@@ -65,10 +65,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "sensitivities.h"
 #include "optimization_minimizers.h"
 
+#include "objective_functions.h"
+
 
 // TODO: Read from the optimization.data file
 #define CONST_L2_GRAD_EXIT 1E-8
-#define MAX_NUM_DESIGN_ITERS 200
+#define CONST_OBJECTIVE_FUNC_EXIT 1E-12
+#define MAX_NUM_DESIGN_ITERS 250
 
 // Static function declarations ************************************************************************************* //
 
@@ -103,16 +106,19 @@ void optimize(struct Simulation* sim){
 	struct Optimization_Case *optimization_case = setup_optimization(sim);
 	copy_data_r_to_c_sim(optimization_case->sim, optimization_case->sim_c);
 
+	preprocessor_minimizer(optimization_case);
 
-	// ================================
-	//      Optimization Routine
-	// ================================
 
 	int design_iteration = 0;
 	double L2_grad, objective_func_value;
 
 	objective_func_value = optimization_case->objective_function(sim);
-	printf(" INITIAL -> obj_func : %e  \n", objective_func_value);
+	printf(" INITIAL -> obj_func : %e  , Cl: %f \n", objective_func_value, compute_Cl(sim));
+
+
+	// ================================
+	//      Optimization Routine
+	// ================================
 
 	while(true){
 
@@ -133,18 +139,17 @@ void optimize(struct Simulation* sim){
 		optimization_case->grad_I = compute_gradient(optimization_case);  // free
 
 
-		// Find the search direction, step length, and modify the geometry
-		gradient_descent(optimization_case, design_iteration);
-
-
-		// Solve the flow on the updated geometry
-		solve_implicit(sim);
+		// Find the search direction, step length. Then modify the geometry and solve the flow
+		//gradient_descent(optimization_case, design_iteration);
+		BFGS_minimizer(optimization_case, design_iteration);
 
 
 		// Compute optimization values to keep track and for the exit condition
 		L2_grad = norm_Multiarray_d(optimization_case->grad_I, "L2");
 		objective_func_value = optimization_case->objective_function(sim);
-		printf(" L2_grad : %e   obj_func : %e  \n", L2_grad, objective_func_value);
+		printf(" L2_grad : %e   obj_func : %e  ", L2_grad, objective_func_value);
+		printf(" Cl : %f ", compute_Cl(sim));  // temporary monitoring
+		printf("\n");
 
 
 		// Destruct allocated data structures:
@@ -153,13 +158,10 @@ void optimize(struct Simulation* sim){
 
 
 		// Exit condition
-		if (L2_grad < CONST_L2_GRAD_EXIT || design_iteration > MAX_NUM_DESIGN_ITERS)
+		if (L2_grad < CONST_L2_GRAD_EXIT || 
+			objective_func_value < CONST_OBJECTIVE_FUNC_EXIT ||
+			design_iteration >= MAX_NUM_DESIGN_ITERS)
 			break;
-
-
-		// Output the NURBS patch
-
-
 
 		design_iteration++;
 
@@ -169,20 +171,19 @@ void optimize(struct Simulation* sim){
 	//         Postprocessing
 	// ================================
 
+	postprocessor_minimizer(optimization_case);
+
+
+	output_visualization(sim,VIS_GEOM_EDGES);
+	output_visualization(sim,VIS_GEOM_VOLUMES);
+	output_visualization(sim,VIS_NORMALS);
+	output_visualization(sim,VIS_SOLUTION);
 
 	// Clear allocated structures:
 	destructor_Optimization_Case(optimization_case);
 	
 	// Unused functions:
 	UNUSED(test_compute_brute_force_gradient);
-
-	/*
-	double I_val = optimization_case->objective_function(optimization_case->sim);
-	double complex I_val_c = optimization_case->objective_function_c(optimization_case->sim_c);
-	
-	printf("I   : %e \n", I_val);
-	printf("I_c : %e + %e * i\n", creal(I_val_c), cimag(I_val_c));
-	*/
 
 }
 
@@ -330,7 +331,7 @@ static struct Multiarray_d* compute_gradient(struct Optimization_Case* optimizat
 		is in column major form.
 	*/
 
-	int num_design_dofs = (int)optimization_case->dI_dXp->extents[1];
+	int num_design_dofs = optimization_case->num_design_pts_dofs;
 
 	struct Multiarray_d *Chi_T, *grad_I, *Chi_T_dot_dR_dXp;
 	grad_I = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, num_design_dofs});  // returned

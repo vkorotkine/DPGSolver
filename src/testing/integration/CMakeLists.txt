@@ -209,5 +209,9 @@ target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p2" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml4__p2" "petsc_options_gmres_default")
 
+# - Temporary: Set the time limit to be 3 hours for the optimization cases
+set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p2 PROPERTIES TIMEOUT 10800) 
+
+
 # Add tests:
 # - equivalence operators.

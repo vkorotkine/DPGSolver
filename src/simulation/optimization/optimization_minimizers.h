@@ -19,7 +19,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Optimization_Case;
 
+void preprocessor_minimizer(struct Optimization_Case* optimization_case);
+
+void postprocessor_minimizer(struct Optimization_Case* optimization_case);
 
 void gradient_descent(struct Optimization_Case *optimization_case, int design_iteration);
+
+void BFGS_minimizer(struct Optimization_Case *optimization_case, int design_iteration);
 
 #endif // DPG__optimization_minimizers_h__INCLUDED

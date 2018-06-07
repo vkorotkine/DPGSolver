@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "petscmat.h"
 
 struct Multiarray_d;
+struct Matrix_d;
 
 /** \brief Container for test case specific information.
  *
@@ -31,6 +32,8 @@ struct Multiarray_d;
  */
 
 struct Optimization_Case {
+
+	int num_design_pts_dofs; // The number of design control point degrees of freedom
 
 	objective_function_fptr 	objective_function;  ///< Function pointer to the real objective function
 	objective_function_fptr_c 	objective_function_c;  ///< Function pointer to the complex objective function
@@ -42,7 +45,10 @@ struct Optimization_Case {
 	struct Simulation *sim_c;
 
 
-	// The geometry data
+	// =================================
+	//      Geometry Data Structures
+	// =================================
+
 	struct Geo_Data {
 
 		// NURBS Parametric Domain orders in the xi direction (P) and 
@@ -69,7 +75,10 @@ struct Optimization_Case {
 	} geo_data;
 
 
-	// Adjoint Data Structures
+	// =================================
+	//     Adjoint Data Structures
+	// =================================
+
 	// 		RHS = [dI/dW] (will be set and used to initialize the petsc vector for the RHS)
 	// 		Chi = Adjoint (will be set only after the adjoint is solved)
 	// - Lifetime of structures:
@@ -85,14 +94,27 @@ struct Optimization_Case {
 	Vec RHS_petsc; // [dI/dW]
 	Vec Chi_petsc; // Chi (Adjoint)
 
-
-	// Sensitivity Data Structures
+	// =================================
+	//    Sensitivity Data Structures
+	// =================================
+	
 	struct Multiarray_d  *dR_dXp,  // Sensitivity of the residual 
 						 *dI_dXp;  // Sensitivity of the objective function
 
 
 	// Gradient of the objective with respect to the design variables
 	struct Multiarray_d *grad_I;
+
+
+	// =================================
+	// Optimization Minimizer Structures
+	// =================================
+
+	struct Matrix_d *Laplacian_Matrix;
+
+	// BFGS Data structures
+	struct Matrix_d *B_k_inv, *s_k, *grad_f_k;
+
 
 };
 

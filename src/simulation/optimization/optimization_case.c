@@ -89,6 +89,27 @@ struct Optimization_Case* constructor_Optimization_Case (const struct Simulation
 	optimization_case->Chi = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){RHS_size_ex_0,1});
 
 
+
+	// Get the number of design dofs
+	int num_design_pt_dofs = 0;
+
+	struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
+	int n_pts = (int)ctrl_pts_opt->extents[0];
+	
+	for (int i = 0; i < n_pts; i++){
+		// Loop over the design points
+
+		for (int j = 1; j <= 2; j++){
+			// Loop over the degrees of freedom for the design point
+
+			if (get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+				num_design_pt_dofs++;
+		}
+	}
+
+	optimization_case->num_design_pts_dofs = num_design_pt_dofs;
+
+
 	return optimization_case;
 
 }

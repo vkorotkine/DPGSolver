@@ -128,25 +128,11 @@ static void constructor_dI_dXp_and_dR_dXp_finite_diff(struct Optimization_Case *
 	// =================================================
 
 	struct Simulation *sim = optimization_case->sim;
-
-	// - Compute the number of design points dofs (total number of dofs for the
-	// 		optimization, which corresponds to the size of the dI_dXp vectors)
-	int num_design_pt_dofs = 0;
-
+	int num_design_pt_dofs = optimization_case->num_design_pts_dofs;
+	
 	struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
 	int *ctrl_pt_indeces = get_col_Multiarray_i(0, ctrl_pts_opt);
 	int n_pts = (int)ctrl_pts_opt->extents[0];
-	
-	for (int i = 0; i < n_pts; i++){
-		// Loop over the design points
-
-		for (int j = 1; j <= 2; j++){
-			// Loop over the degrees of freedom for the design point
-
-			if (get_col_Multiarray_i(j, ctrl_pts_opt)[i])
-				num_design_pt_dofs++;
-		}
-	}
 
 	// Create the dI_dXp and dR_dXp multiarrays
 	struct Multiarray_d* dI_dXp = constructor_empty_Multiarray_d('R',2,(ptrdiff_t[]){1, num_design_pt_dofs});

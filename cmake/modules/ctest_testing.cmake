@@ -47,5 +47,6 @@ function(add_test_DPG_w_path exec_path test_exec)
 	else ()
 		message(FATAL_ERROR "Invalid number of command line arguments." )
 	endif()
+
 endfunction()
 

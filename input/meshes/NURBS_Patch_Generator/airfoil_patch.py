@@ -25,8 +25,9 @@ import scipy.integrate
 # The properties of the patch in the xi direction (which
 # traverses around the airfoil from the trailing edge, bottom
 # surface to the leading edge and back)
-CONST_P = 2
+CONST_P = 3
 CONST_NUM_CONTROL_PTS_XI = 25
+
 
 # Properties of the patch in the eta direction (eta increases in the 
 # normal direction from the airfoil surface to the farfield)
@@ -36,11 +37,13 @@ CONST_ETA_KNOTS = [-1, -1, 1, 1]
 
 CONST_R_FARFIELD = 20.
 
+CONST_CONTINUOUS_APPROXIMATION = True
+
 # ==================================================
 
 
-CONST_Airfoil_Type = "NACA0012"
 #CONST_Airfoil_Type = "NACA4412"
+CONST_Airfoil_Type = "NACA0012"
 
 CONST_QUADRATURE_P = 35
 
@@ -360,8 +363,6 @@ def get_BSpline_control_points_discrete_least_square(BSpline_Basis, knots, n):
 	for i in range(n-2):
 		Control_Pts[i+1] = (control_pts_x[i][0], control_pts_y[i][0])
 
-	sys.exit(0)
-
 	return Control_Pts
 
 
@@ -408,8 +409,10 @@ def get_airfoil_BSpline_parameters():
 	BSpline_Basis = Basis.get_BSpline_basis_functions_1D(p, knots)
 
 	# Compute the control points using a least square approximation
-	#control_points = get_BSpline_control_points_discrete_least_square(BSpline_Basis, knots, n)
-	control_points = get_BSpline_control_points_continuous_least_square(BSpline_Basis, knots, n, airfoil_parametric_equation)
+	if not CONST_CONTINUOUS_APPROXIMATION:
+		control_points = get_BSpline_control_points_discrete_least_square(BSpline_Basis, knots, n)
+	else:
+		control_points = get_BSpline_control_points_continuous_least_square(BSpline_Basis, knots, n, airfoil_parametric_equation)
 
 	# Get the lambda expression for the spline
 	spline_function = lambda xi, BSpline_Basis=BSpline_Basis, control_points=control_points: \
@@ -649,8 +652,8 @@ def test():
 
 	plt.grid()
 
-	#plt.gca().set_xlim(CONST_PlotXRange)
-	#plt.gca().set_ylim(CONST_PlotYRange)
+	plt.gca().set_xlim(CONST_PlotXRange)
+	plt.gca().set_ylim(CONST_PlotYRange)
 
 	plt.show(block=True)
 

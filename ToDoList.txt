@@ -69,9 +69,10 @@
 
 		(Done) - Ensure values obtained is equivalent to the adjoint approach.
 
-	- Use valgrind to check to make sure there are no memory leaks.
+	(Done) - Use valgrind to check to make sure there are no memory leaks.
 
-	- Use steepest descent to converge to an optimal solution.
+	(Done) - Use steepest descent to converge to an optimal solution.
+		-> Solution didn't converge by getting there (slowly). Will mvoe onto BFGS and NLPQLP
 
 	- Implement BFGS and use it to converge to an optimal solution.
 

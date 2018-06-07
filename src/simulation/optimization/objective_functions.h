@@ -42,6 +42,7 @@ typedef double (*objective_function_fptr)
 
 
 // Real and complex versions of the target CL objective function
+double compute_Cl(const struct Simulation* sim);
 double objective_function_target_Cl(const struct Simulation* sim); 
 double complex objective_function_target_Cl_c(const struct Simulation* sim); 
 
