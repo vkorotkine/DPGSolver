@@ -25,6 +25,7 @@ CONST_OPTIMIZATION_FILE = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSol
 
 # Location of the initial geometry file
 CONST_INITIAL_PATCH_FILE = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/input/input_files/euler/steady/NURBS_Airfoil/geometry_parameters.geo"
+CONST_OPTIMIZATION_FILE = CONST_INITIAL_PATCH_FILE
 
 # The points (on the knot domain) to plot
 CONST_ISOCURVE_PTS = []

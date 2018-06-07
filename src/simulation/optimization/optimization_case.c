@@ -134,6 +134,7 @@ void destructor_Optimization_Case (struct Optimization_Case* optimization_case){
 	destructor_Multiarray_c(optimization_case->geo_data.control_points_and_weights_c);
 	destructor_Multiarray_i(optimization_case->geo_data.control_point_connectivity);
 	destructor_Multiarray_i(optimization_case->geo_data.control_points_optimization);
+	destructor_Multiarray_d(optimization_case->geo_data.control_points_optimization_lims);
 
 	// Destroy the simulation. Note that the p and ml values are not used when 
 	// the solution is being destructed
@@ -172,8 +173,9 @@ static void read_geometry_data(struct Optimization_Case* optimization_case){
 	// 	- Control Points and Weights
 	//  - Control Point Connectivity
 	// 	- Optimization_Point_Connectivity
+	// 	- Optimization_Point_Limit
 
-	const int count_to_find = 7;
+	const int count_to_find = 8;
 	assert(DIM == 2);
 
 	// Get the file pointer to the geometry file
@@ -303,6 +305,33 @@ static void read_geometry_data(struct Optimization_Case* optimization_case){
 			}
 
 			optimization_case->geo_data.control_points_optimization = optimization_pts;
+		}
+
+		// Read the Optimization Point Limits Data
+		if (strstr(line,"Optimization_Point_Limit")){
+			
+			int num_opt_pts;
+			read_skip_string_count_i("Optimization_Point_Limit", &count_found, line, &num_opt_pts);
+
+			// Multiarray structure to hold the optimization control point data.
+			struct Multiarray_d* optimization_pts_lims = 
+				constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_opt_pts,2}); // saved
+
+			double 	*low_lim 	= get_col_Multiarray_d(0, optimization_pts_lims),
+					*high_lim 	= get_col_Multiarray_d(1, optimization_pts_lims);
+
+			// Read the pt data line by line
+			for (i = 0; i < num_opt_pts; i++){
+				fgets(line,sizeof(line),input_file);
+				
+				double line_data[3] = {0, 0, 0};
+				read_skip_d_1(line, 0, line_data, 3);
+
+				low_lim[i]  = line_data[1];
+				high_lim[i] = line_data[2];
+			}
+
+			optimization_case->geo_data.control_points_optimization_lims = optimization_pts_lims;
 		}
 	}
 

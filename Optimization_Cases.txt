@@ -1,0 +1,38 @@
+
+NURBS Patch (No NURBS Metrics)
+
+P = 1:
+	ml = 1 (16x10)
+	L2_grad : 8.300625e-01   obj_func : 6.165795e-11   Cl : 0.199989  Passed   98.90 sec
+	Design Iter = 22
+
+P = 2:
+	ml = 1 (16x10)
+	L2_grad : 9.423516e-01   obj_func : 3.144931e-11   Cl : 0.200008  Passed  312.55 sec
+	Design Iter = 12
+
+P = 3:
+	ml = 1 (16x10)
+	L2_grad : 1.009334e+00   obj_func : 1.351768e-10   Cl : 0.200016  Passed  1053.16 sec
+	Design Iter = 11
+
+
+NURBS Patch (NURBS Metrics)
+
+P = 2:
+	ml = 1 (16x10)
+	L2_grad : 6.223862e-03   obj_func : 1.712319e-12   Cl : 0.350002  Passed   98.15 sec
+	Design Iter : 4
+
+P = 3:
+	ml = 1 (16x10)
+	L2_grad : 8.564109e+00   obj_func : 3.562614e-10   Cl : 0.350027  Passed  464.03 sec
+	Design Iter : 17 
+
+
+
+
+
+
+
+

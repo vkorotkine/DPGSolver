@@ -69,8 +69,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 
 // TODO: Read from the optimization.data file
-#define CONST_L2_GRAD_EXIT 1E-8
-#define CONST_OBJECTIVE_FUNC_EXIT 1E-12
+#define CONST_L2_GRAD_EXIT 1E-10
+#define CONST_OBJECTIVE_FUNC_EXIT 1E-10
 #define MAX_NUM_DESIGN_ITERS 250
 
 // Static function declarations ************************************************************************************* //
@@ -83,6 +83,18 @@ static void copy_data_r_to_c_sim(struct Simulation* sim, struct Simulation* sim_
 static struct Multiarray_d* compute_gradient(struct Optimization_Case* optimization_case);
 
 static struct Multiarray_d* test_compute_brute_force_gradient(struct Optimization_Case* optimization_case);
+
+static void optimize_line_search_method(struct Optimization_Case* optimization_case);
+
+
+// NLPQLP Specific Static Functions
+static void optimize_NLPQLP(struct Optimization_Case *optimization_case);
+static void preprocess_optimize_NLPQLP(struct Optimization_Case *optimization_case);
+static void postprocess_optimize_NLPQLP(struct Optimization_Case *optimization_case);
+static void compute_function_values_NLPQLP(struct Optimization_Case *optimization_case);
+static void compute_gradient_values_NLPQLP(struct Optimization_Case *optimization_case);
+static void write_NLPQLP_input_file(struct Optimization_Case *optimization_case);
+//static void process_NLPQLP_output_file(struct Optimization_Case *optimization_case);
 
 // Interface functions ********************************************************************************************** //
 
@@ -100,14 +112,499 @@ void optimize(struct Simulation* sim){
 		- 
 	*/
 
-	// ================================
-	//         Preprocessing
-	// ================================
+	// Preprocessing
 	struct Optimization_Case *optimization_case = setup_optimization(sim);
 	copy_data_r_to_c_sim(optimization_case->sim, optimization_case->sim_c);
 
-	preprocessor_minimizer(optimization_case);
+	// Optimization routine
+	//optimize_line_search_method(optimization_case);
+	optimize_NLPQLP(optimization_case);
 
+
+	// Post Processing
+	output_visualization(sim,VIS_GEOM_EDGES);
+	output_visualization(sim,VIS_GEOM_VOLUMES);
+	output_visualization(sim,VIS_NORMALS);
+	output_visualization(sim,VIS_SOLUTION);
+
+
+	// Clear allocated structures:
+	destructor_Optimization_Case(optimization_case);
+
+	
+	// Unused functions:
+	UNUSED(test_compute_brute_force_gradient);
+	UNUSED(optimize_line_search_method);
+	UNUSED(optimize_NLPQLP);
+
+}
+
+
+// Static functions ************************************************************************************************* //
+
+
+static void optimize_NLPQLP(struct Optimization_Case *optimization_case){
+
+	/*
+	Interface with NLPQLP and use it to perform the shape optimization.
+
+	Arguments:
+		optimization_case = The data structure with the optimization data
+	*/
+
+	struct Simulation *sim = optimization_case->sim;
+
+	preprocess_optimize_NLPQLP(optimization_case);
+
+	// Optimization routine
+	int design_iteration = 0;
+	
+	while (true){
+
+		printf("Design Iteration: %d \n", design_iteration);
+
+
+
+	}
+
+	write_NLPQLP_input_file(optimization_case);
+	exit(0);
+
+
+	postprocess_optimize_NLPQLP(optimization_case);
+
+
+}
+
+static void preprocess_optimize_NLPQLP(struct Optimization_Case *optimization_case){
+	
+	/*
+	Initialize the NLPQLP data and allocate the data structures needed for the NLPQLP
+	optimization. Place all data structures in optimization_case.
+
+	Arguments:
+		optimization_case = The data structure with the optimization data
+
+	Return:
+		-
+	*/
+
+	// ========================================
+	//       Optimization Parameters
+	// ========================================
+
+	// Setup the optimization parameters
+	int NP = 1;  // Number of processors
+
+	// Number of design variable dofs
+	int N = optimization_case->num_design_pts_dofs;
+	int NMAX = N + 1;
+	
+	// Constrained Optimization Problem with
+	// constraint that consecutive design variables must be within delta_y 
+	// limit
+	
+	// NOTE: This only handles the case where all design points move only in the 
+	//		y direction (1 dof)
+
+	// Consider an unconstrained optimization problem first
+
+	//int CONST_M = CONST_N-2;
+	int M = 0;
+	int ME = 0;
+
+
+	// Independent Optimization Parameters:
+	optimization_case->NLPQLP_data.NP 		= NP;
+	optimization_case->NLPQLP_data.N 		= N;
+	optimization_case->NLPQLP_data.NMAX 	= NMAX;
+	optimization_case->NLPQLP_data.M 		= M;
+	optimization_case->NLPQLP_data.ME 		= ME;
+
+
+
+	// Dependent Optimization Parameters:
+	optimization_case->NLPQLP_data.IFAIL 	= 0;  // Initial value is 0
+	optimization_case->NLPQLP_data.MODE 	= 0;
+	optimization_case->NLPQLP_data.MNN2 	= M + N + N + 2;
+
+
+
+	// Remaining Optimization Parameters 
+	// Set these up using default values (can be overwritten)
+	optimization_case->NLPQLP_data.IOUT 	= 6;
+	optimization_case->NLPQLP_data.MAXIT 	= 100;
+	optimization_case->NLPQLP_data.MAXFUN 	= 10;
+	optimization_case->NLPQLP_data.MAXNM 	= 10;
+	optimization_case->NLPQLP_data.LQL 		= 1;
+	optimization_case->NLPQLP_data.IPRINT 	= 0;
+
+	optimization_case->NLPQLP_data.ACC 		= 1E-8;
+	optimization_case->NLPQLP_data.ACCQP 	= 1E-14;
+	optimization_case->NLPQLP_data.STPMIN 	= 1E-10;
+	optimization_case->NLPQLP_data.RHO 		= 0.0;
+
+
+
+	// Memory Objects (initialize with zeros)
+	optimization_case->NLPQLP_data.X 	= constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, NMAX});
+	set_to_value_Multiarray_d(optimization_case->NLPQLP_data.X, 0.0);	
+
+	optimization_case->NLPQLP_data.XL 	= constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, NMAX});
+	set_to_value_Multiarray_d(optimization_case->NLPQLP_data.XL, 0.0);	
+
+	optimization_case->NLPQLP_data.XU 	= constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, NMAX});
+	set_to_value_Multiarray_d(optimization_case->NLPQLP_data.XU, 0.0);	
+
+
+
+	optimization_case->NLPQLP_data.F = 0;
+
+	optimization_case->NLPQLP_data.G 	= constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, M});
+	set_to_value_Multiarray_d(optimization_case->NLPQLP_data.G, 0.0);	
+
+	optimization_case->NLPQLP_data.dF 	= constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, NMAX});
+	set_to_value_Multiarray_d(optimization_case->NLPQLP_data.dF, 0.0);		
+
+	optimization_case->NLPQLP_data.dG 	= constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){M, NMAX});
+	set_to_value_Multiarray_d(optimization_case->NLPQLP_data.dG, 0.0);	
+
+
+
+	optimization_case->NLPQLP_data.C 	= constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){NMAX, NMAX});
+	set_to_value_Multiarray_d(optimization_case->NLPQLP_data.C, 0.0);	
+
+	optimization_case->NLPQLP_data.U 	= constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, optimization_case->NLPQLP_data.MNN2});
+	set_to_value_Multiarray_d(optimization_case->NLPQLP_data.U, 0.0);	
+
+	optimization_case->NLPQLP_data.D 	= constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, NMAX});
+	set_to_value_Multiarray_d(optimization_case->NLPQLP_data.D, 0.0);	
+
+
+
+	optimization_case->NLPQLP_data.LWA = 3*(optimization_case->NLPQLP_data.N+1)*(optimization_case->NLPQLP_data.N+1)/2 + 
+			33*(optimization_case->NLPQLP_data.N+1) + 9*optimization_case->NLPQLP_data.M + 150;
+	optimization_case->NLPQLP_data.LWA = optimization_case->NLPQLP_data.LWA*10;	
+	
+	optimization_case->NLPQLP_data.WA 	= constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, optimization_case->NLPQLP_data.LWA});
+	set_to_value_Multiarray_d(optimization_case->NLPQLP_data.WA, 0.0);	
+
+
+
+	optimization_case->NLPQLP_data.LKWA = N + 25;
+	optimization_case->NLPQLP_data.LKWA = optimization_case->NLPQLP_data.LKWA*10;	
+	
+	optimization_case->NLPQLP_data.KWA 	= constructor_empty_Multiarray_i('C',2,(ptrdiff_t[]){1, optimization_case->NLPQLP_data.LKWA});
+	set_to_value_Multiarray_i(optimization_case->NLPQLP_data.KWA, 0.0);	
+
+
+
+	optimization_case->NLPQLP_data.LACTIV = 2*optimization_case->NLPQLP_data.M + 10;
+	optimization_case->NLPQLP_data.ACTIVE   = constructor_empty_Multiarray_i('C',2,(ptrdiff_t[]){1, optimization_case->NLPQLP_data.LACTIV});
+	set_to_value_Multiarray_i(optimization_case->NLPQLP_data.ACTIVE, 0.0);	
+
+
+	// ========================================
+	//         Load Optimization Data
+	// ========================================
+
+	// Load the design point data
+	struct Multiarray_d* ctrl_pts_and_w = optimization_case->geo_data.control_points_and_weights;
+	struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
+	struct Multiarray_d* ctrl_pts_lims = optimization_case->geo_data.control_points_optimization_lims;
+	int n_pts = (int)ctrl_pts_opt->extents[0];
+
+	int ctrl_pt_index;
+	int vec_index = 0;
+
+	for (int i = 0; i < n_pts; i++){
+		// Loop over the design points
+
+		for (int j = 1; j <= 2; j++){
+			// Loop over the degrees of freedom for the design point
+
+			if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+				continue;
+
+			ctrl_pt_index = get_col_Multiarray_i(0, ctrl_pts_opt)[i];
+
+			optimization_case->NLPQLP_data.X->data[vec_index] = get_col_Multiarray_d(j-1, ctrl_pts_and_w)[ctrl_pt_index];
+			optimization_case->NLPQLP_data.XL->data[vec_index] = get_col_Multiarray_d(0, ctrl_pts_lims)[vec_index];
+			optimization_case->NLPQLP_data.XU->data[vec_index] = get_col_Multiarray_d(1, ctrl_pts_lims)[vec_index];
+
+			vec_index++;
+		}
+	}
+
+	// Set the initial Hessian approximation to be a large multiple of the 
+	// identity matrix to keep the step length small
+	for (int i = 0; i < optimization_case->NLPQLP_data.NMAX; i++){
+		get_col_Multiarray_d(i, optimization_case->NLPQLP_data.C)[i] = 500.;
+	}
+	optimization_case->NLPQLP_data.MODE = 1;
+
+
+	// Set the initial function values and gradient values
+	compute_function_values_NLPQLP(optimization_case);
+	compute_gradient_values_NLPQLP(optimization_case);
+
+}
+
+
+static void postprocess_optimize_NLPQLP(struct Optimization_Case *optimization_case){
+
+	/*
+	Postprocess the NLPQLP data and deallocate the data structures created for the NLPQLP
+	optimization.
+
+	Arguments:
+		optimization_case = The data structure with the optimization data
+
+	Return:
+		-
+	*/
+
+	destructor_Multiarray_d(optimization_case->NLPQLP_data.X);
+	destructor_Multiarray_d(optimization_case->NLPQLP_data.XL);
+	destructor_Multiarray_d(optimization_case->NLPQLP_data.XU);
+	destructor_Multiarray_d(optimization_case->NLPQLP_data.G);
+	destructor_Multiarray_d(optimization_case->NLPQLP_data.U);
+	destructor_Multiarray_d(optimization_case->NLPQLP_data.D);
+	destructor_Multiarray_d(optimization_case->NLPQLP_data.WA);
+
+	destructor_Multiarray_i(optimization_case->NLPQLP_data.KWA);
+	destructor_Multiarray_i(optimization_case->NLPQLP_data.ACTIVE);
+
+}
+
+static void compute_function_values_NLPQLP(struct Optimization_Case *optimization_case){
+
+	/*
+	Compute the objective function value and constraint function values. Load the data
+	into optimization_case NLPQLP data structure.
+
+	Arguments:
+		optimization_case = The data structure with the optimization data
+
+	Return:
+		-
+	*/
+
+	// Objective Function:
+	optimization_case->NLPQLP_data.F = optimization_case->objective_function(optimization_case->sim);
+
+	// Constraint Functions:
+
+	// TODO: Implement constraint functions to be added to the optimization
+
+}
+
+
+static void compute_gradient_values_NLPQLP(struct Optimization_Case *optimization_case){
+
+	/*
+	Compute the gradient of the objective function and constraint functions. Load the data
+	into optimization_case NLPQLP data structure.
+
+	Arguments:
+		optimization_case = The data structure with the optimization data
+
+	Return:
+		-
+	*/
+
+	// =================================
+	//    Objective Function Gradient
+	// =================================
+
+	setup_adjoint(optimization_case);
+	solve_adjoint(optimization_case);
+
+
+	// Compute dI_dXp and dR_dXp
+	compute_sensitivities(optimization_case);
+
+	// Use the adjoint and sensitivities to find the gradient of the objective function
+	struct Multiarray_d* grad_I = compute_gradient(optimization_case);  // free
+
+	// Load the gradient data into the NLPQLP data structure
+	for (int i = 0; i < optimization_case->num_design_pts_dofs; i++)
+		optimization_case->NLPQLP_data.dF->data[i] = grad_I->data[i];
+
+	destructor_Multiarray_d(grad_I);
+
+	// =================================
+	//    Constraint Function Gradient
+	// =================================
+
+	// TODO: Implement constraint functions for the optimization
+
+}
+
+
+static void write_NLPQLP_input_file(struct Optimization_Case *optimization_case){
+
+	/*
+	Write the file that will be read by the NLPQLP program.
+
+	NOTE: Uses absolute paths to the input and output files here 
+		in the optimization directory
+	TODO: Read the path to the NLPQLP directory from an optimization.data file
+
+	Arguments:
+		optimization_case = The data structure with the optimization information
+
+	Return:
+		-
+	*/
+
+	char output_name[STRLEN_MAX] = { 0, };
+	strcpy(output_name,"../../NLPQLP_Optimizer/");
+	strcat(output_name,"INPUT.txt");
+
+	FILE *fp;
+
+	char lql_string[100];
+	int i, j;
+
+	if ((fp = fopen(output_name,"w")) == NULL)
+		printf("Error: File %s did not open.\n", output_name), exit(1);
+
+	// Optimizer Properties
+	fprintf(fp, "NP \t N \t NMAX \t M \t ME \t IFAIL \t MODE \n");
+	fprintf(fp, "%d \t %d \t %d \t %d \t %d \t %d \t %d \n", 
+		optimization_case->NLPQLP_data.NP, optimization_case->NLPQLP_data.N, 
+		optimization_case->NLPQLP_data.NMAX, optimization_case->NLPQLP_data.M,
+		optimization_case->NLPQLP_data.ME, optimization_case->NLPQLP_data.IFAIL, 
+		optimization_case->NLPQLP_data.MODE);
+	fprintf(fp, "\n");
+
+	fprintf(fp, "LWA \t LKWA \t LACTIV \t IOUT \t ACC \t ACCQP \n");
+	fprintf(fp, "%d \t %d \t %d \t %d \t %e \t %e \n", 
+		optimization_case->NLPQLP_data.LWA, optimization_case->NLPQLP_data.LKWA, 
+		optimization_case->NLPQLP_data.LACTIV, optimization_case->NLPQLP_data.IOUT, 
+		optimization_case->NLPQLP_data.ACC, optimization_case->NLPQLP_data.ACCQP);
+	fprintf(fp, "\n");
+
+	if(optimization_case->NLPQLP_data.LQL){
+		strcpy(lql_string, "T");
+	} else{
+		strcpy(lql_string, "F");
+	}
+
+	fprintf(fp, "STPMIN \t MAXIT \t MAXFUN \t MAXNM \t RHO \t LQL \t IPRINT \n");
+	fprintf(fp, "%e \t %d \t %d \t %d \t %e \t %s \t %d \n", 
+		optimization_case->NLPQLP_data.STPMIN, optimization_case->NLPQLP_data.MAXIT, 
+		optimization_case->NLPQLP_data.MAXFUN, optimization_case->NLPQLP_data.MAXNM,
+		optimization_case->NLPQLP_data.RHO, lql_string, optimization_case->NLPQLP_data.IPRINT);
+	fprintf(fp, "\n");
+
+	// Design Variable Values
+	fprintf(fp, "X \t XL \t XU \n");
+	for (i = 0; i < optimization_case->NLPQLP_data.NMAX; i++){
+		fprintf(fp, "%.14e \t %.14e \t %.14e \n", 
+			optimization_case->NLPQLP_data.X->data[i], 
+			optimization_case->NLPQLP_data.XL->data[i], 
+			optimization_case->NLPQLP_data.XU->data[i]);
+	}
+	fprintf(fp, "\n");
+
+	// Objective Function Evaluation
+	fprintf(fp, "F \n");
+	fprintf(fp, "%.14e \n", optimization_case->NLPQLP_data.F);
+	fprintf(fp, "\n");
+
+	// Constraint Function Evaluations
+	fprintf(fp, "G \n");
+	for (i = 0; i < optimization_case->NLPQLP_data.M; i++)
+		fprintf(fp, "%.14e \n", optimization_case->NLPQLP_data.G->data[i]);
+	fprintf(fp, "\n");
+
+	// Gradient Objective Function
+	fprintf(fp, "dF \n");
+	for (i = 0; i < optimization_case->NLPQLP_data.NMAX; i++)
+		fprintf(fp, "%.14e ", optimization_case->NLPQLP_data.dF->data[i]);
+	fprintf(fp, "\n \n");
+
+	// Gradient Constraint Functions (Column Major Ordering)
+	fprintf(fp, "dG \n");
+	for (i = 0; i < optimization_case->NLPQLP_data.M; i++){
+		for (j = 0; j < optimization_case->NLPQLP_data.NMAX; j++){
+
+			fprintf(fp, "%.14e ", get_col_Multiarray_d(j, optimization_case->NLPQLP_data.dG)[i]);
+		}
+		fprintf(fp, "\n");
+	}
+	fprintf(fp, "\n");
+
+	// Hessian Approximation (C)
+	fprintf(fp, "C \n");
+	for (i = 0; i < optimization_case->NLPQLP_data.NMAX; i++){
+		for (j = 0; j < optimization_case->NLPQLP_data.NMAX; j++){
+			fprintf(fp, "%.14e ", get_col_Multiarray_d(j, optimization_case->NLPQLP_data.C)[i]);
+		}
+		fprintf(fp, "\n");
+	}
+	fprintf(fp, "\n");
+
+	// Multipliers (U)
+	fprintf(fp, "U \n");
+	for (i = 0; i < optimization_case->NLPQLP_data.MNN2; i++){
+		fprintf(fp, "%.14e \n", optimization_case->NLPQLP_data.U->data[i]);
+	}
+	fprintf(fp, "\n");
+
+	// D Structure
+	fprintf(fp, "D \n");
+	for (i = 0; i < optimization_case->NLPQLP_data.NMAX; i++){
+		fprintf(fp, "%.14e \n", optimization_case->NLPQLP_data.D->data[i]);
+	}
+	fprintf(fp, "\n");
+
+	// WA Structure
+	fprintf(fp, "WA \n");
+	for (i = 0; i < optimization_case->NLPQLP_data.LWA; i++){
+		fprintf(fp, "%.14e \n", optimization_case->NLPQLP_data.WA->data[i]);
+	}
+	fprintf(fp, "\n");
+
+	// KWA Structure
+	fprintf(fp, "KWA \n");
+	for (i = 0; i < optimization_case->NLPQLP_data.LKWA; i++){
+		fprintf(fp, "%d \n", optimization_case->NLPQLP_data.KWA->data[i]);
+	}
+	fprintf(fp, "\n");
+
+	// Active
+	fprintf(fp, "ACTIVE \n");
+	for (i = 0; i < optimization_case->NLPQLP_data.LACTIV; i++){
+		if (optimization_case->NLPQLP_data.ACTIVE->data[i])
+			fprintf(fp, "T\n");
+		else
+			fprintf(fp, "F\n");
+	}
+	fprintf(fp, "\n");
+
+	fclose(fp);
+
+}
+
+
+static void optimize_line_search_method(struct Optimization_Case* optimization_case){
+
+	/*
+	Use a line search method (gradient descent or BFGS) to find the optimal shape
+
+	Arguments:
+		optimization_case = The data structure holding all optimization data
+
+	Return:
+		-
+	*/
+
+	struct Simulation *sim = optimization_case->sim;
+
+	preprocessor_minimizer(optimization_case);
 
 	int design_iteration = 0;
 	double L2_grad, objective_func_value;
@@ -115,6 +612,12 @@ void optimize(struct Simulation* sim){
 	objective_func_value = optimization_case->objective_function(sim);
 	printf(" INITIAL -> obj_func : %e  , Cl: %f \n", objective_func_value, compute_Cl(sim));
 
+	/*
+	output_visualization(sim,VIS_GEOM_EDGES);
+	output_visualization(sim,VIS_GEOM_VOLUMES);
+	output_visualization(sim,VIS_NORMALS);
+	output_visualization(sim,VIS_SOLUTION);
+	*/
 
 	// ================================
 	//      Optimization Routine
@@ -142,6 +645,10 @@ void optimize(struct Simulation* sim){
 		// Find the search direction, step length. Then modify the geometry and solve the flow
 		//gradient_descent(optimization_case, design_iteration);
 		BFGS_minimizer(optimization_case, design_iteration);
+
+
+		// Copy the new data from the real to the complex structures (for new complex)
+		copy_data_r_to_c_sim(optimization_case->sim, optimization_case->sim_c);
 
 
 		// Compute optimization values to keep track and for the exit condition
@@ -172,23 +679,7 @@ void optimize(struct Simulation* sim){
 	// ================================
 
 	postprocessor_minimizer(optimization_case);
-
-
-	output_visualization(sim,VIS_GEOM_EDGES);
-	output_visualization(sim,VIS_GEOM_VOLUMES);
-	output_visualization(sim,VIS_NORMALS);
-	output_visualization(sim,VIS_SOLUTION);
-
-	// Clear allocated structures:
-	destructor_Optimization_Case(optimization_case);
-	
-	// Unused functions:
-	UNUSED(test_compute_brute_force_gradient);
-
 }
-
-
-// Static functions ************************************************************************************************* //
 
 
 static void copy_data_r_to_c_sim(struct Simulation* sim, struct Simulation* sim_c){

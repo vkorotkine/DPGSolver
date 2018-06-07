@@ -102,7 +102,7 @@ static const struct const_Multiarray_c* compute_Cl_Cd_c(const struct Simulation*
 
 // Temporary macro for the target CL for the target lift
 // coefficient optimization case
-#define TARGET_CL 0.2
+#define TARGET_CL 0.35
 
 double compute_Cl(const struct Simulation* sim){
 

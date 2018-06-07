@@ -76,14 +76,35 @@
 
 	- Implement BFGS and use it to converge to an optimal solution.
 
+	- Create a 20 x 10 grid and see how well the flow resolves on it
+
+	- Add output for convergence so that it can be plotted to see how the 
+		convergence progressed.
+
+	- Add spline plotter to visualize the optimal solutions 
+
+	- Do P2 flow convergence on 20 x 10 grid
+
+	- Do P3 flow convergence on 20 x 10 grid
+
+	- Do P1 flow convergence on 20 x 10 grid
+
+	- Do P2 flow convergence with NURBS metric computation
+
+	- Do P3 flow convergence with NURBS metric computation
+
+	- Do P1 flow convergence with NURBS metric computation
+
+	- Implement the NLPQLP wrapper into the code
+
+		-  Do P2 flow convergence and use it to converge to the optimal
+			solution.
+			
 	- Implement NURBS book derivative computation to see if that approach for 
 			computing patch derivatives is faster.
 
 	- Use the NURBS mapping with the efficient derivative computation to optimize the 
 		given patch.
-
-	- Implement the NLPQLP wrapper into the code and use it to converge to the optimal
-		solution.
 
 
 	

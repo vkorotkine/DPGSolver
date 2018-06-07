@@ -44,9 +44,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define CONST_BFGS_STEP_SIZE_INIT 1.0
 #define CONST_WOLFE_CONDITION_C 1E-4
 #define CONST_WOLFE_CONDITION_RHO 1E-1
-#define CONST_WOLFE_CONDITION_ALPHA_MIN 1E-9
+#define CONST_WOLFE_CONDITION_ALPHA_MIN 1.5E-3
 #define MAX_NORM_P 1E-2
-#define NUM_SMOOTHING_ITER_BFGS 4
+#define NUM_SMOOTHING_ITER_BFGS 0
 
 // Static function declarations ************************************************************************************* //
 
@@ -267,19 +267,7 @@ void BFGS_minimizer(struct Optimization_Case *optimization_case, int design_iter
 
 	// TEMPORARY ADDITIONs:
 
-	// 1) Apply the smoothing
-	for (int i = 0; i < NUM_SMOOTHING_ITER_BFGS; i++){
-		mm_d('N', 'N', 1.0, 0.0,
-			(const struct const_Matrix_d*const)optimization_case->Laplacian_Matrix,
-			(const struct const_Matrix_d*const)p_k,
-			p_k_smooth);
-
-		for (int j = 0; j < num_design_pts_dofs; j++)
-			p_k->data[j] = p_k_smooth->data[j];
-
-	}
-
-	// 2) Make the max norm (euclidean) of the P vector MAX_NORM_P
+	// Make the max norm (euclidean) of the P vector MAX_NORM_P
 	double norm_P = 0.0;
 	for (int i = 0; i < num_design_pts_dofs; i++){
 		norm_P += p_k->data[i] * p_k->data[i];
@@ -453,7 +441,7 @@ static double backtracking_line_search(struct Optimization_Case* optimization_ca
 			break;
 
 		// If the step length was below a constant minimum value stop the line search
-		if (alpha < CONST_WOLFE_CONDITION_ALPHA_MIN){
+		if (alpha <= CONST_WOLFE_CONDITION_ALPHA_MIN){
 			printf("\n\n EXITING BACKTRACK -> CONST_WOLFE_CONDITION_ALPHA_MIN \n\n");
 			break;
 		}

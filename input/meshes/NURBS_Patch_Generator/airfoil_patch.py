@@ -25,8 +25,8 @@ import scipy.integrate
 # The properties of the patch in the xi direction (which
 # traverses around the airfoil from the trailing edge, bottom
 # surface to the leading edge and back)
-CONST_P = 3
-CONST_NUM_CONTROL_PTS_XI = 25
+CONST_P = 2
+CONST_NUM_CONTROL_PTS_XI = 15
 
 
 # Properties of the patch in the eta direction (eta increases in the 
@@ -565,7 +565,26 @@ def get_optimization_pts(ControlPoints_and_Weights):
 		if i != leading_edge_pt_index:
 			optimization_control_pt_list.append((ControlPoints_and_Weights[i][0], 0, 1))
 
-	return optimization_control_pt_list
+
+	# Place the limits on each design variable
+	# TODO: For now, only y can be adjusted so set those limits. In the future
+	# implement the general case
+	optimization_control_pt_limit_list = []
+	
+	y_max = CONST_R_FARFIELD
+	y_min = -1.0*CONST_R_FARFIELD
+
+	for i in range(len(optimization_control_pt_list)):
+
+		pt = optimization_control_pt_list[i][0]
+
+		# Each design point will remain in their half
+		if pt[1] >= 0:
+			optimization_control_pt_limit_list.append((pt, 0.0, y_max))
+		else:
+			optimization_control_pt_limit_list.append((pt, y_min, 0.0))
+
+	return optimization_control_pt_list, optimization_control_pt_limit_list
 
 
 def get_patch_information():
@@ -618,7 +637,7 @@ def get_patch_information():
 
 
 	# Get the list of optimization control points
-	optimization_control_pt_list = get_optimization_pts(ControlPoints_and_Weights)
+	optimization_control_pt_list, optimization_control_pt_limit_list = get_optimization_pts(ControlPoints_and_Weights)
 
 	patch_parameters = {
 		"xiVector" : xiVector,
@@ -627,6 +646,7 @@ def get_patch_information():
 		"P" : P,
 		"Q" : Q,
 		"Optimization_ControlPoints_and_Weights" : optimization_control_pt_list,
+		"Optimization_ControlPoints_Limits" : optimization_control_pt_limit_list,
 		"area_ref" : 1.0
 	}
 

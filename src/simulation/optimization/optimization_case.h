@@ -72,6 +72,10 @@ struct Optimization_Case {
 		// 1 if it can.
 		struct Multiarray_i *control_points_optimization;
 
+		// The limits for the dofs (ordering is the same as control_points_optimization)
+		// NOTE: For now, we only consider y displacements here
+		struct Multiarray_d *control_points_optimization_lims;
+
 	} geo_data;
 
 
@@ -115,6 +119,35 @@ struct Optimization_Case {
 	// BFGS Data structures
 	struct Matrix_d *B_k_inv, *s_k, *grad_f_k;
 
+
+	// =================================
+	//     NLPQLP Data Structures
+	// =================================
+
+	struct NLPQLP_Data{
+
+		// Optimization Parameters
+		int NP, N, NMAX, M, ME, IFAIL, MODE, MNN2;
+		int IOUT, MAXIT, MAXFUN, MAXNM, LQL, IPRINT;
+		double ACC, ACCQP, STPMIN, RHO;
+
+		// Design Points and their limits
+		struct Multiarray_d *X, *XL, *XU;
+
+		// Objective and Constraint function values
+		double F;
+		struct Multiarray_d *G, *dF, *dG;
+
+		// NLPQLP Structures
+		struct Multiarray_d *C,	*U, *D,	*WA;
+
+		struct Multiarray_i *KWA, *ACTIVE;
+
+		int LWA, LKWA, LACTIV;
+
+		//struct Matrix_d *A_Smoothing;  // Smoothing matrix
+
+	} NLPQLP_data;
 
 };
 

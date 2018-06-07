@@ -255,10 +255,17 @@ def output_file(patch_parameters):
 				fp.write("%d %d %d \n" % (ControlPoints_and_Weights_list.index(data_tuple[0]), data_tuple[1], data_tuple[2]))
 			fp.write("\n")	
 
+			optimization_control_pt_limit_tuples = patch_parameters['Optimization_ControlPoints_Limits']
+			fp.write("Optimization_Point_Limit %d\n" % (len(optimization_control_pt_limit_tuples)))
+			for data_tuple in optimization_control_pt_limit_tuples:
+				fp.write("%d %e %e \n" % (ControlPoints_and_Weights_list.index(data_tuple[0]), data_tuple[1], data_tuple[2]))
+			fp.write("\n")	
+
+
 		if "area_ref" in patch_parameters:
 			fp.write("area_ref = %e;" % patch_parameters['area_ref'])
 			fp.write("\n")
-			
+
 
 def test():
 
