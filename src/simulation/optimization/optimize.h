@@ -19,7 +19,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DPG__optimize_h__INCLUDED
 
 struct Simulation;
+struct Optimization_Case;
 
 void optimize(struct Simulation* sim);
+void output_NURBS_patch_information(struct Optimization_Case* optimization_case);
 
 #endif // DPG__optimize_h__INCLUDED

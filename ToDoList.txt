@@ -74,53 +74,75 @@
 	(Done) - Use steepest descent to converge to an optimal solution.
 		-> Solution didn't converge by getting there (slowly). Will mvoe onto BFGS and NLPQLP
 
-	- Implement BFGS and use it to converge to an optimal solution.
+	(Done) - Implement BFGS and use it to converge to an optimal solution.
 
-	- Create a 20 x 10 grid and see how well the flow resolves on it
+	(Done) - Create a 20 x 10 grid and see how well the flow resolves on it
 
-	- Add output for convergence so that it can be plotted to see how the 
-		convergence progressed.
+	(Done) - Write Python plotter and add output for convergence so that it can be 
+		plotted to see how the convergence progressed.
 
-	- Add spline plotter to visualize the optimal solutions 
+	(Done) - Write Python spline plotter to visualize the optimal solutions 
 
-	- Do P2 flow convergence on 20 x 10 grid
+	(Done) - Do P2 flow convergence on 16 x 10 grid
 
-	- Do P3 flow convergence on 20 x 10 grid
+		(Done) - Complete the results with NURBS Metrics
 
-	- Do P1 flow convergence on 20 x 10 grid
+		(Done) - Complete the results without NURBS Metrics
 
-	- Do P2 flow convergence with NURBS metric computation
+		- Complete the results without NURBS Metrics Superparametric
 
-	- Do P3 flow convergence with NURBS metric computation
+		(Done) - Plot and store results in folder
 
-	- Do P1 flow convergence with NURBS metric computation
+	(Done) - Do P3 flow convergence on 20 x 10 grid
 
-	- Implement the NLPQLP wrapper into the code
+		(Done) - Complete the results with NURBS Metrics
 
-		-  Do P2 flow convergence and use it to converge to the optimal
-			solution.
-			
+		(Done) - Complete the results without NURBS Metrics
+
+	(Done) - Implement the NLPQLP wrapper into the code
+
+		(Done) - Complete input file writing function
+
+		(Done) - Complete output file processing function
+
+		(Done) - Complete coupling with NLPQLP and see one design iteration
+
+	- Run Valgrind to check memory leaks with NLPQLP
+
+	- Perform unconstrained NLPQLP optimization
+
+		- Complete P2 results (20 x 10 grid) with NURBS metrics
+
+		- Complete P2 results (20 x 10 grid) without NURBS metrics
+
+	- Implement the Pitching Moment computation
+		
+	- Create poster with thesis results
+
+	- Clean up code optimization structure with NLPQLP
+
+
+Naming Convention:
+	[initial_shape]_[optimization_type]_[P]_[ml/Dimension]_[NURBS_Metric]_[Optimizer_and_info]
+
+
+
+
+
+
+
+
+
+
+
 	- Implement NURBS book derivative computation to see if that approach for 
 			computing patch derivatives is faster.
 
 	- Use the NURBS mapping with the efficient derivative computation to optimize the 
 		given patch.
 
-
-	
-
-
-
-
-
-
-
-
 	- Try to get a transonic case running for the airfoil case with a shock
 		(to be used potentially for a drag optimization)
-
-
-
 
 	- Check implementation of metric terms (NURBS) to ensure that the NURBS 
 		mapping is used for the metrics properly.

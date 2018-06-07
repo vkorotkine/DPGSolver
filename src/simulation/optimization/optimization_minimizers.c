@@ -38,6 +38,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "solve_implicit.h"
 
+#include "optimize.h"
+
 
 // TODO: Read this from the optimization.data file
 #define CONST_GRADIENT_DESCENT_STEP_SIZE_INIT 1E-3
@@ -49,8 +51,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NUM_SMOOTHING_ITER_BFGS 0
 
 // Static function declarations ************************************************************************************* //
-
-static void output_NURBS_patch_information(struct Optimization_Case* optimization_case);
 
 static double backtracking_line_search(struct Optimization_Case* optimization_case, 
 	double* p_k, double* grad_f_k, double alpha);
@@ -462,61 +462,5 @@ static double backtracking_line_search(struct Optimization_Case* optimization_ca
 
 }
 
-static void output_NURBS_patch_information(struct Optimization_Case* optimization_case){
-
-	struct Simulation *sim = optimization_case->sim;
-
-	char f_name[4*STRLEN_MAX] = { 0, };
-	sprintf(f_name,"%s%c%s%c%s", sim->pde_name,'/',sim->pde_spec,'/',"NURBS_Patch");
-
-	char output_name[STRLEN_MAX] = { 0, };
-	strcpy(output_name,"../output/");
-	strcat(output_name,"paraview/");
-	strcat(output_name,f_name);
-
-	FILE* fp;
-	if ((fp = fopen(output_name,"w")) == NULL)
-		printf("Error: File %s did not open.\n", output_name), exit(1);
-
-	// Print the patch information
-	fprintf(fp, "P(xi_order) %d\n", optimization_case->geo_data.P);
-	fprintf(fp, "Q(eta_order) %d\n", optimization_case->geo_data.Q);
-	fprintf(fp, "\n");
-
-	fprintf(fp, "knots_xi %d\n", (int)optimization_case->geo_data.knots_xi->extents[0]);
-	for (int i = 0; i < (int)optimization_case->geo_data.knots_xi->extents[0]; i++){
-		fprintf(fp, "%.14e\n", optimization_case->geo_data.knots_xi->data[i]);
-	}
-	fprintf(fp, "\n");
-
-	fprintf(fp, "knots_eta %d\n", (int)optimization_case->geo_data.knots_eta->extents[0]);
-	for (int i = 0; i < (int)optimization_case->geo_data.knots_eta->extents[0]; i++){
-		fprintf(fp, "%.14e\n", optimization_case->geo_data.knots_eta->data[i]);
-	}
-	fprintf(fp, "\n");
-
-	fprintf(fp, "Control_Point_Data %d \n", (int)optimization_case->geo_data.control_points_and_weights->extents[0]);
-	for (int i = 0; i < (int)optimization_case->geo_data.control_points_and_weights->extents[0]; i++){
-		fprintf(fp, "%.14e %.14e %.14e\n", 
-			get_col_Multiarray_d(0, optimization_case->geo_data.control_points_and_weights)[i],
-			get_col_Multiarray_d(1, optimization_case->geo_data.control_points_and_weights)[i],
-			get_col_Multiarray_d(2, optimization_case->geo_data.control_points_and_weights)[i]
-			);
-	}
-	fprintf(fp, "\n");
-
-	fprintf(fp, "Control_Point_Connectivity %d %d\n", 
-		(int)optimization_case->geo_data.control_point_connectivity->extents[0],
-		(int)optimization_case->geo_data.control_point_connectivity->extents[1]);
-	for (int i = 0; i < (int)optimization_case->geo_data.control_point_connectivity->extents[0]; i++){
-		for (int j = 0; j < (int)optimization_case->geo_data.control_point_connectivity->extents[1]; j++){
-			fprintf(fp, "%d ", get_row_Multiarray_i(i, optimization_case->geo_data.control_point_connectivity)[j]);
-		}
-		fprintf(fp, "\n");
-	}
-
-	fclose(fp);
-
-}
 
 
