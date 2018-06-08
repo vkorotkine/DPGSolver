@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "test_complex_face_solver_opg.h"
+#include "test_complex_volume_solver.h"
 
 #include "test_complex_compute_face_rhs.h"
 
@@ -23,6 +24,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "element_solver_opg.h"
+#include "volume_solver.h"
+
+#include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
 

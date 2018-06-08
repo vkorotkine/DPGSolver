@@ -59,6 +59,10 @@ struct Solver_Face_T {
 	 *  \cite Zwanenburg2016) for the precise definition. */
 	const struct const_Multiarray_R*const jacobian_det_fc;
 
+	/** The determinant of the volume geometry Jacobian evaluated at the face cubature nodes. This is the same as \ref
+	 *  Solver_Volume_T::jacobian_det_vc but evaluated at the face cubature nodes. */
+	const struct const_Multiarray_R* vol_jacobian_det_fc;
+
 	/// As for \ref Solver_Face_T::normals_fc but corresponding to the p1 geometry.
 	const struct const_Multiarray_R*const normals_p1;
 

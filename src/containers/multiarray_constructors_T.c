@@ -55,6 +55,12 @@ struct Multiarray_T* constructor_empty_Multiarray_T
 	return constructor_empty_Multiarray_T_dyn_extents(layout,order,extents);
 }
 
+const struct const_Multiarray_T* constructor_empty_const_Multiarray_T
+	(const char layout, const int order, const ptrdiff_t*const extents_i)
+{
+	return (struct const_Multiarray_T*) constructor_empty_Multiarray_T(layout,order,extents_i);
+}
+
 struct Multiarray_T* constructor_empty_Multiarray_T_dyn_extents
 	(const char layout, const int order, const ptrdiff_t*const extents)
 {

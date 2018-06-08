@@ -26,6 +26,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define constructor_derived_OPG_Solver_Face_T constructor_derived_OPG_Solver_Face
 #define destructor_derived_OPG_Solver_Face_T  destructor_derived_OPG_Solver_Face
+
+#define get_operator__cv1_vt_fc_T get_operator__cv1_vt_fc
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -37,6 +39,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define constructor_derived_OPG_Solver_Face_T constructor_derived_OPG_Solver_Face_c
 #define destructor_derived_OPG_Solver_Face_T  destructor_derived_OPG_Solver_Face_c
+
+#define get_operator__cv1_vt_fc_T get_operator__cv1_vt_fc_c
 ///\}
 
 #endif

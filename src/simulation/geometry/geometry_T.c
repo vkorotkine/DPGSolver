@@ -129,6 +129,11 @@ static void compute_unit_normals_and_det_T
 	                                                *   determinants. */
 	);
 
+/// \brief Compute \ref Solver_Face_T::vol_jacobian_det_fc.
+static void compute_vol_jacobian_det_fc_T
+	(struct Solver_Face_T*const s_face ///< Standard.
+	);
+
 /** \brief Set data relating to the p1 geometry of the input \ref Solver_Volume_T.
  *
  *  This function sets:
@@ -196,8 +201,7 @@ void compute_unit_normals_T
 void compute_geometry_volume_T
 	(const bool recompute_geom_coef, struct Solver_Volume_T* s_vol, const struct Simulation *sim)
 {
-	// sim may be used to store a parameter establishing which type of operator to use for the computation.
-	const char op_format = 'd';
+	const char op_format = get_set_op_format(0);
 
 	struct Volume* vol = (struct Volume*) s_vol;
 	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
@@ -298,6 +302,8 @@ void compute_geometry_face_T (struct Solver_Face_T* s_face, const struct Simulat
 
 	compute_unit_normals_and_det_T(ind_lf,e->normals,metrics_fc,
 		(struct Multiarray_R*)s_face->normals_fc,(struct Multiarray_R*)s_face->jacobian_det_fc);
+
+	compute_vol_jacobian_det_fc_T(s_face);
 
 	destructor_const_Multiarray_R(metrics_fc);
 }
@@ -634,6 +640,38 @@ static void compute_unit_normals_and_det_T
 {
 	compute_normals_T(ind_lf,normals_ref,metrics_f,normals_f);
 	normalize_Multiarray_R(normals_f,"L2",true,jacobian_det_f);
+}
+
+static void compute_vol_jacobian_det_fc_T (struct Solver_Face_T*const s_face)
+{
+	const char op_format = 'd'; // Tensor-product operators potentially not provided.
+
+	struct Face*const face                   = (struct Face*) s_face;
+	const struct Volume*const vol            = (struct Volume*) face->neigh_info[0].volume;
+	const struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) face->neigh_info[0].volume;
+	const struct Geometry_Element*const g_e  = &((struct Solver_Element*)vol->element)->g_e;
+
+	const bool curved = vol->curved;
+	const int p_g = ( curved ? s_vol->p_ref : 1 ),
+	          p = s_face->p_ref,
+	          ind_lf = face->neigh_info[0].ind_lf;
+
+	const struct Multiarray_Operator* g_e__cv1_vg_fc = (!curved ? g_e->cv1_vgs_fc[curved] : g_e->cv1_vgc_fc[curved]);
+//print_Multiarray_Operator(g_e__cv1_vg_fc);
+printf("%d %p\n",curved,g_e__cv1_vg_fc);
+printf("%d %d %d% d %d\n",ind_lf,0,0,p,p_g);
+	const struct Multiarray_Operator cv1_vg_fc = set_MO_from_MO(g_e__cv1_vg_fc,1,(ptrdiff_t[]){ind_lf,0,0,p,p_g});
+
+	const ptrdiff_t n_fc = cv1_vg_fc.data[0]->op_std->ext_0;
+
+	struct Multiarray_R*const jac_fc = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_fc,DIM,DIM}); // dest.
+
+	for (ptrdiff_t row = 0; row < DIM; ++row)
+		mm_NN1C_Operator_Multiarray_R(cv1_vg_fc.data[row],s_vol->geom_coef,jac_fc,op_format,2,NULL,&row);
+
+	const ptrdiff_t*const perm = set_jacobian_permutation(DIM);
+	permute_Multiarray_R(jac_fc,perm,jac_fc->layout);
+	compute_detJV_T((struct const_Multiarray_R*)jac_fc,(struct Multiarray_R*)s_face->vol_jacobian_det_fc);
 }
 
 static void compute_geometry_volume_p1_T (struct Solver_Volume_T*const s_vol)

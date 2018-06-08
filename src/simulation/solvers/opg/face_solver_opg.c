@@ -21,7 +21,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "element_solver_opg.h"
+#include "volume_solver.h"
+
 #include "compute_face_rlhs.h"
+#include "multiarray_operator.h"
 #include "operator.h"
 #include "simulation.h"
 

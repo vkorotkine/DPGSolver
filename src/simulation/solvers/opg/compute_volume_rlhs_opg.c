@@ -73,28 +73,28 @@ void update_coef_s_v_opg (const struct Simulation*const sim)
 		destructor_Flux_Ref_T(flux_r);
 
 		struct Vector_d test_s_coef_V = interpret_Multiarray_as_Vector_d(s_vol->test_s_coef);
-		const struct const_Vector_d*const s_vc_V =
+		const struct const_Vector_d*const ds_vc_V =
 			constructor_mv_const_Vector_d('N',-1.0,op_v1_opg,(struct const_Vector_d*)&test_s_coef_V); // destructed
 		destructor_const_Matrix_d(op_v1_opg);
 
 		struct Multiarray_d*const s_coef = s_vol->sol_coef;
 		const ptrdiff_t*const ext_s = s_coef->extents;
-		const ptrdiff_t extents[2] = { (s_vc_V->ext_0)/ext_s[1], ext_s[1], };
-		const struct const_Multiarray_d*const s_vc =
-			constructor_move_const_Multiarray_d_d('C',2,extents,false,s_vc_V->data); // destructed
+		const ptrdiff_t extents[2] = { (ds_vc_V->ext_0)/ext_s[1], ext_s[1], };
+		const struct const_Multiarray_d*const ds_vc =
+			constructor_move_const_Multiarray_d_d('C',2,extents,false,ds_vc_V->data); // destructed
 
 		const struct Operator*const cv0_vs_vc = get_operator__cv0_vs_vc_T(s_vol);
 		const struct const_Matrix_d*const op_proj_L2 =
 			constructor_mm_const_Matrix_d('N','T',1.0,opg_s_vol->m_inv,cv0_vs_vc->op_std,'R'); // destructed
 
 		const struct const_Vector_d*const w_vc = get_operator__w_vc__s_e_T(s_vol);
-		scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)s_vc,w_vc,false);
+		scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)ds_vc,w_vc,false);
 
-		mm_NNC_Multiarray_d(1.0,0.0,op_proj_L2,s_vc,s_vol->sol_coef);
+		mm_NNC_Multiarray_d(1.0,1.0,op_proj_L2,ds_vc,s_vol->sol_coef);
 
 		destructor_const_Matrix_d(op_proj_L2);
-		destructor_const_Multiarray_d(s_vc);
-		destructor_const_Vector_d(s_vc_V);
+		destructor_const_Multiarray_d(ds_vc);
+		destructor_const_Vector_d(ds_vc_V);
 	}
 	destructor_Flux_Input_T(flux_i);
 }

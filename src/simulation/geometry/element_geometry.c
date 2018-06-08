@@ -93,6 +93,8 @@ void destructor_derived_Geometry_Element (struct Element* element_ptr)
 	destructor_Multiarray2_Operator(g_e->vv0_vms_fc);
 	destructor_Multiarray2_Operator(g_e->vv0_vmc_fc);
 	destructor_Multiarray_Operator(g_e->vv0_vms_fgs);
+	destructor_Multiarray2_Operator(g_e->cv1_vgs_fc);
+	destructor_Multiarray2_Operator(g_e->cv1_vgc_fc);
 
 	destructor_Multiarray_Operator_conditional(g_e->vv0_fv_vgc);
 	destructor_Multiarray_Operator_conditional(g_e->vv0_vv_fgc);
@@ -154,10 +156,14 @@ static void constructor_derived_Geometry_Element_std (struct Element* element_pt
 	g_e->vv0_vm_vc[0] = constructor_operators("vv0","vms","vcs","H_1_P_1P", b_e,sim); // destructed
 	g_e->vv0_vm_vc[1] = constructor_operators("vv0","vmc","vcc","H_1_P_PM1",b_e,sim); // destructed
 
-	g_e->cv0_vgs_fc[0] = constructor_operators("cv0","vgs","fcs","H_1_P_1P", b_e,sim); // destructed
-	g_e->cv0_vgs_fc[1] = constructor_operators("cv0","vgs","fcc","H_1_P_1P", b_e,sim); // destructed
-	g_e->cv0_vgc_fc[0] = constructor_operators("cv0","vgc","fcs","H_1_P_PM1",b_e,sim); // destructed
-	g_e->cv0_vgc_fc[1] = constructor_operators("cv0","vgc","fcc","H_1_P_PM1",b_e,sim); // destructed
+	g_e->cv0_vgs_fc[0] = constructor_operators("cv0","vgs","fcs","H_1_P_1PPM1",b_e,sim); // destructed
+	g_e->cv0_vgs_fc[1] = constructor_operators("cv0","vgs","fcc","H_1_P_1PPM1",b_e,sim); // destructed
+	g_e->cv0_vgc_fc[0] = constructor_operators("cv0","vgc","fcs","H_1_P_PM1",  b_e,sim); // destructed
+	g_e->cv0_vgc_fc[1] = constructor_operators("cv0","vgc","fcc","H_1_P_PM1",  b_e,sim); // destructed
+	g_e->cv1_vgs_fc[0] = constructor_operators("cv1","vgs","fcs","H_1_P_1PPM1",b_e,sim); // destructed
+	g_e->cv1_vgs_fc[1] = constructor_operators("cv1","vgs","fcc","H_1_P_1PPM1",b_e,sim); // destructed
+	g_e->cv1_vgc_fc[0] = constructor_operators("cv1","vgc","fcs","H_1_P_PM1",  b_e,sim); // destructed
+	g_e->cv1_vgc_fc[1] = constructor_operators("cv1","vgc","fcc","H_1_P_PM1",  b_e,sim); // destructed
 
 	g_e->vv0_vms_fc[0] = constructor_operators("vv0","vms","fcs","H_1_P_1P", b_e,sim); // destructed
 	g_e->vv0_vms_fc[1] = constructor_operators("vv0","vms","fcc","H_1_P_1P", b_e,sim); // destructed
@@ -252,6 +258,9 @@ static void constructor_derived_Geometry_Element_tp (struct Element* element_ptr
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vc[1],s_e[0]->cv0_vgc_fc[1],s_e[1]->cv0_vg_vc[1],s_e[1]->cv0_vgc_fc[1]);
 	g_e->cv0_vgc_fc[1] = constructor_operators_tp("cv0","vgc","fcc","H_1_P_PM1",b_e,sim,&ops_tp); // destructed
+
+	// No tensor-product operators currently provided for cv1_vgs_fc, cv1_vgc_fc as this requires implementation of
+	// functionality to construct tp operators from 8 inputs... Implement if this becomes important.
 
 	set_operators_tp(&ops_tp,s_e[0]->vv0_vm_vc[0],s_e[0]->vv0_vms_fc[0],s_e[1]->vv0_vm_vc[0],s_e[1]->vv0_vms_fc[0]);
 	g_e->vv0_vms_fc[0] = constructor_operators_tp("vv0","vms","fcs","H_1_P_1P",b_e,sim,&ops_tp); // destructed

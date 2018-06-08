@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_default_const_Multiarray_Matrix_T constructor_default_const_Multiarray_Matrix_d
 
 #define constructor_empty_Multiarray_T                constructor_empty_Multiarray_d
+#define constructor_empty_const_Multiarray_T          constructor_empty_const_Multiarray_d
 #define constructor_empty_Multiarray_T_dyn_extents    constructor_empty_Multiarray_d_dyn_extents
 #define constructor_empty_Multiarray_Vector_T         constructor_empty_Multiarray_Vector_d
 #define constructor_empty_const_Multiarray_Vector_T   constructor_empty_const_Multiarray_Vector_d
@@ -87,6 +88,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_default_const_Multiarray_Matrix_T constructor_default_const_Multiarray_Matrix_c
 
 #define constructor_empty_Multiarray_T                constructor_empty_Multiarray_c
+#define constructor_empty_const_Multiarray_T          constructor_empty_const_Multiarray_c
 #define constructor_empty_Multiarray_T_dyn_extents    constructor_empty_Multiarray_c_dyn_extents
 #define constructor_empty_Multiarray_Vector_T         constructor_empty_Multiarray_Vector_c
 #define constructor_empty_const_Multiarray_Vector_T   constructor_empty_const_Multiarray_Vector_c
@@ -147,7 +149,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define constructor_default_Multiarray_R              constructor_default_Multiarray_d
 
-#define constructor_empty_Multiarray_R constructor_empty_Multiarray_d
+#define constructor_empty_Multiarray_R       constructor_empty_Multiarray_d
+#define constructor_empty_const_Multiarray_R constructor_empty_const_Multiarray_d
 
 #define constructor_copy_Multiarray_R          constructor_copy_Multiarray_d
 #define constructor_copy_const_Multiarray_R    constructor_copy_const_Multiarray_d

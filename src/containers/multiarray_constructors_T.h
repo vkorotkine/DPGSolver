@@ -70,6 +70,14 @@ struct Multiarray_T* constructor_empty_Multiarray_T
 	 const ptrdiff_t*const extents_i ///< The input extents.
 	);
 
+/** \brief `const` version of \ref constructor_empty_Multiarray_T.
+ *  \return Standard. */
+const struct const_Multiarray_T* constructor_empty_const_Multiarray_T
+	(const char layout,              ///< See brief.
+	 const int order,                ///< See brief.
+	 const ptrdiff_t*const extents_i ///< See brief.
+	);
+
 /** \brief Constructor for an empty \ref Multiarray_T\* with extents having been previously dynamically allocated.
  *  \return Standard. */
 struct Multiarray_T* constructor_empty_Multiarray_T_dyn_extents

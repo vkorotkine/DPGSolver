@@ -60,7 +60,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *           non-linear problems if the initial solution is not close to the exact solution, which is true for all but
  *           the trivial cases.
  */
-#define ALWAYS_SET_INITIAL false
+#define ALWAYS_SET_INITIAL true
 /// \todo REMOVE THIS WHEN FINISHED TESTING! (Replace with restart file where applicable)
 
 /// \brief Set the memory of the rhs and lhs (if applicable) terms to zero for the volumes.

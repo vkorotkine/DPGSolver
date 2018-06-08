@@ -174,6 +174,14 @@ const struct const_Vector_T* constructor_inverse_const_Vector_T
 	(const struct const_Vector_T* src ///< See brief.
 	);
 
+/** \brief Constructor for a \ref const_Vector_T\* which is defined as the input vector appended to itself the input
+ *         number of times. */
+const struct const_Vector_T* constructor_repeated_const_Vector_T
+	(const Type alpha,                    ///< Scaling constant.
+	 const struct const_Vector_T*const a, ///< The input vector.
+	 const int n_repeated                 ///< The number of times the sub-vector should be repeated.
+	);
+
 /** \brief Constructor for a \ref const_Vector_T\* using an element-wise multiplication of each entry of the inputs.
  *  \return See brief. */
 const struct const_Vector_T* constructor_dot_mult_const_Vector_T
