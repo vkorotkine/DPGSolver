@@ -15,27 +15,16 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_complex_test_case.h"
+#include "test_case_c.h"
 
 #include "const_cast.h"
 #include "file_processing.h"
 #include "simulation.h"
 #include "test_case.h"
 
-#include "test_complex_restart.h"
-#include "test_complex_solution.h"
-#include "test_complex_solution_advection.h"
-#include "test_complex_solution_diffusion.h"
-#include "test_complex_solution_euler.h"
-#include "test_complex_solution_navier_stokes.h"
-#include "test_complex_test_case.h"
-
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
-
-#include "def_templates_type_dc.h"
-#include "test_case_T.c"
 
 void convert_to_Test_Case_rc (struct Simulation* sim, const char type_rc_o)
 {

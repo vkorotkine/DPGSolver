@@ -21,19 +21,11 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_compute_all_rlhs_dpg.h"
-#include "def_templates_volume_solver.h"
-#include "def_templates_volume_solver_dpg.h"
-#include "def_templates_face_solver_dpg.h"
-#include "def_templates_matrix.h"
-#include "def_templates_vector.h"
 #include "compute_all_rlhs_dpg_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_compute_all_rlhs_dpg.h"
-#include "undef_templates_volume_solver.h"
-#include "undef_templates_volume_solver_dpg.h"
-#include "undef_templates_face_solver_dpg.h"
-#include "undef_templates_matrix.h"
-#include "undef_templates_vector.h"
+
+#include "def_templates_type_dc.h"
+#include "compute_all_rlhs_dpg_T.h"
+#include "undef_templates_type.h"
 
 #endif // DPG__compute_all_rlhs_dpg_h__INCLUDED

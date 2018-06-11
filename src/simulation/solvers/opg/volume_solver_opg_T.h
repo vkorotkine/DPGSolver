@@ -18,6 +18,11 @@ You should have received a copy of the GNU General Public License along with DPG
  *  These volumes are needed by the 'O'ptimal 'P'etrov 'G'alerkin solver functions.
  */
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_volume_solver_opg.h"
+
 /// \brief Container for data relating to the OPG solver volumes.
 struct OPG_Solver_Volume_T {
 	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume_T.
@@ -35,3 +40,8 @@ void constructor_derived_OPG_Solver_Volume_T
 void destructor_derived_OPG_Solver_Volume_T
 	(struct Volume* volume_ptr ///< Pointer to the volume.
 	);
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_opg.h"

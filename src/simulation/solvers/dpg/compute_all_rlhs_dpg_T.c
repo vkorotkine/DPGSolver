@@ -964,3 +964,21 @@ static const struct const_Matrix_T* constructor_l_mult_M
 
 	return lhs_l_mult_M;
 }
+
+#include "undef_templates_compute_all_rlhs_dpg.h"
+
+#include "undef_templates_face_solver_dpg.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver_dpg.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_compute_face_rlhs.h"
+#include "undef_templates_compute_volume_rlhs.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_operators.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_test_case.h"

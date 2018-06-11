@@ -20,14 +20,12 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_geometry_normals.h"
-#include "def_templates_face_solver.h"
-#include "def_templates_multiarray.h"
 #include "geometry_normals_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_geometry_normals.h"
-#include "undef_templates_face_solver.h"
-#include "undef_templates_multiarray.h"
+
+#include "def_templates_type_dc.h"
+#include "geometry_normals_T.h"
+#include "undef_templates_type.h"
 
 #include <stdbool.h>
 

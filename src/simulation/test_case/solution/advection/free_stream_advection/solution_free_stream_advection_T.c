@@ -95,3 +95,9 @@ static struct Multiarray_T* constructor_sol_free_stream_advection
 
 	return sol;
 }
+
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_advection.h"
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_test_case.h"

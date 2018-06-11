@@ -1395,3 +1395,12 @@ static void read_data_total_tp (struct BC_Data*const bc_data)
 
 	assert(count_found == count_to_find);
 }
+
+#include "undef_templates_boundary.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_face_solver.h"
+
+#include "undef_templates_math_functions.h"
+#include "undef_templates_solution.h"

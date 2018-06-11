@@ -20,14 +20,12 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_solution_navier_stokes.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_test_case.h"
 #include "solution_navier_stokes_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_solution_navier_stokes.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_test_case.h"
+
+#include "def_templates_type_dc.h"
+#include "solution_navier_stokes_T.h"
+#include "undef_templates_type.h"
 
 ///\{ \name Constant associated with the Sutherland formala to compute the viscosity.
 #define C1_SUTHERLAND 8e-2 ///< (eq. (1.56), \cite Toro2009) after division by mu_0 ~= 18.27e-6 [Pa*s].

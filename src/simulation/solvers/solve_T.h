@@ -18,6 +18,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
+#include "def_templates_solve.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_volume_solver.h"
+
 struct Simulation;
 struct const_Multiarray_T;
 struct Solver_Volume_T;
@@ -59,3 +63,7 @@ void initialize_zero_memory_volumes_T
 	(struct Intrusive_List* volumes ///< The list of volumes for which to set the memory.
 	);
 
+
+#include "undef_templates_solve.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_volume_solver.h"

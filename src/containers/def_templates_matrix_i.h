@@ -17,8 +17,12 @@ You should have received a copy of the GNU General Public License along with DPG
  *         containers/functions.
  */
 
+#ifdef TYPE_I
 #include "def_templates_matrix_constructors_i.h"
 #include "def_templates_matrix_print_i.h"
+#endif
+
+#if TYPE_I == TYPE_II
 
 ///\{ \name Data types
 #define Matrix_T       Matrix_i
@@ -60,3 +64,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_block_Matrix_T   set_block_Matrix_i
 #define set_block_Matrix_T_R set_block_Matrix_i
 ///\}
+
+#endif

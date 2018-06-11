@@ -411,3 +411,15 @@ static const struct const_Matrix_R* constructor_xyz_diff_T
 
 	return xyz_diff;
 }
+
+#include "undef_templates_geometry_blended.h"
+
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_geometry.h"
+#include "undef_templates_operators.h"
+#include "undef_templates_test_case.h"

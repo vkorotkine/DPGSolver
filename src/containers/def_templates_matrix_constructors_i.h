@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *         functions.
  */
 
+#if TYPE_I == TYPE_II
+
 ///\{ \name Function names
 #define constructor_default_Matrix_T       constructor_default_Matrix_i
 #define constructor_default_const_Matrix_T constructor_default_const_Matrix_i
@@ -45,3 +47,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Matrix_T       destructor_Matrix_i
 #define destructor_const_Matrix_T destructor_const_Matrix_i
 ///\}
+
+#endif

@@ -87,3 +87,12 @@ struct Vector_i* constructor_nnz_dg_T (const struct Simulation* sim)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_solve_dg.h"
+
+#include "undef_templates_compute_face_rlhs.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dg.h"
+
+#include "undef_templates_multiarray.h"

@@ -83,6 +83,11 @@ static void correct_coef
 
 #include "def_templates_type_d.h"
 #include "solve_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "solve_T.c"
+#include "undef_templates_type.h"
 
 void solve_for_solution (struct Simulation* sim)
 {

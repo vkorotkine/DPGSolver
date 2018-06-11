@@ -18,6 +18,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  These faces are needed by the 'O'ptimal 'P'etrov 'G'alerkin solver functions.
  */
 
+#include "def_templates_face_solver.h"
+#include "def_templates_face_solver_opg.h"
+#include "def_templates_matrix.h"
+
 /// \brief Container for data relating to the OPG solver faces.
 struct OPG_Solver_Face_T {
 	struct Solver_Face_T face; ///< The base \ref Solver_Face_T.
@@ -42,3 +46,7 @@ struct Multiarray_Operator get_operator__cv1_vt_fc_T
 	(const int side_index,                           ///< The index of the side of the face under consideration.
 	 const struct OPG_Solver_Face_T*const opg_s_face ///< Standard.
 	);
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_opg.h"
+#include "undef_templates_matrix.h"

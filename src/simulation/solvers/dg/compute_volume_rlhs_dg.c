@@ -64,6 +64,11 @@ static void compute_rlhs_12
 
 #include "def_templates_type_d.h"
 #include "compute_volume_rlhs_dg_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "compute_volume_rlhs_dg_T.c"
+#include "undef_templates_type.h"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

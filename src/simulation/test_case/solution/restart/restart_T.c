@@ -466,3 +466,16 @@ static int get_ind_ve (const int e_type, const int ind_lf)
 		break;
 	}
 }
+
+#include "undef_templates_restart.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_geometry.h"
+#include "undef_templates_math_functions.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_test_case.h"

@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides templated functions relating to diffusion fluxes.
  */
 
+#include "def_templates_flux.h"
+
 struct Flux_Input_T;
 struct mutable_Flux_T;
 
@@ -32,3 +34,5 @@ void compute_Flux_T_diffusion
 	(const struct Flux_Input_T* flux_i, ///< See brief.
 	 struct mutable_Flux_T* flux        ///< See brief.
 	);
+
+#include "undef_templates_flux.h"

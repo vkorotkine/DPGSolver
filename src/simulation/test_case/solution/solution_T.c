@@ -675,3 +675,15 @@ static const struct const_Multiarray_R* constructor_metrics_ff (const struct Sol
 	const struct const_Multiarray_R* m_vm = s_vol->metrics_vm;
 	return constructor_mm_NN1_Operator_const_Multiarray_R(vv0_vm_ff,m_vm,'C','d',m_vm->order,NULL);
 }
+
+#include "undef_templates_solution.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_flux.h"
+#include "undef_templates_operators.h"
+#include "undef_templates_solve.h"
+#include "undef_templates_test_case.h"

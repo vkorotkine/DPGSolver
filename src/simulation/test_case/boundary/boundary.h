@@ -24,16 +24,12 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 #include "def_templates_type_d.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_boundary.h"
-#include "def_templates_operators.h"
-#include "def_templates_face_solver.h"
 #include "boundary_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_boundary.h"
-#include "undef_templates_operators.h"
-#include "undef_templates_face_solver.h"
+
+#include "def_templates_type_dc.h"
+#include "boundary_T.h"
+#include "undef_templates_type.h"
 
 /** \brief Return whether exact boundary normals should be used for boundary condition computation.
  *  \return See brief. */

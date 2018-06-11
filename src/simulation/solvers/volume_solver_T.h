@@ -18,6 +18,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_geometry.h"
+#include "def_templates_volume_solver.h"
+
 /** \brief Container for data relating to the solver volumes.
  *  \note Certain members are declared `const` despite requiring modification for adaptive simulations. Only members
  *        changing with every solver iteration are `mutable`.
@@ -120,3 +126,9 @@ const struct const_Matrix_R* constructor_inverse_mass_T
 	(const struct Solver_Volume_T*const s_vol, ///< Standard.
 	 const struct const_Matrix_R*const mass    ///< Mass matrix. Input if available, otherwise pass `NULL`.
 	);
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_geometry.h"
+#include "undef_templates_volume_solver.h"

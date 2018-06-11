@@ -22,17 +22,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "geometry.h"
 
 #include "def_templates_type_d.h"
-#include "def_templates_geometry_blended.h"
-#include "def_templates_geometry.h"
-#include "def_templates_volume_solver.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_matrix.h"
 #include "geometry_blended_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_geometry_blended.h"
-#include "undef_templates_geometry.h"
-#include "undef_templates_volume_solver.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_matrix.h"
+
+#include "def_templates_type_dc.h"
+#include "geometry_blended_T.h"
+#include "undef_templates_type.h"
 
 #endif // DPG__geometry_blended_h__INCLUDED

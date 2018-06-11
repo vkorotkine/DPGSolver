@@ -18,6 +18,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 
+#include "def_templates_geometry.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_multiarray.h"
+
 struct Simulation;
 struct Intrusive_List;
 struct Solver_Volume_T;
@@ -143,3 +148,7 @@ void correct_for_exact_normals_T
 	(const struct Simulation*const sim ///< Standard.
 	);
 
+#include "undef_templates_geometry.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_multiarray.h"

@@ -21,11 +21,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_face_solver.h"
 #include "def_templates_face_solver_dg.h"
+#include "def_templates_volume_solver.h"
 
 #include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
-
-#include "def_templates_volume_solver.h"
 
 #include "def_templates_test_case.h"
 
@@ -80,3 +79,12 @@ void destructor_derived_DG_Solver_Face_T (struct Face* face_ptr)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_dg.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_test_case.h"

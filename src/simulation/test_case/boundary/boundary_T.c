@@ -178,3 +178,15 @@ static const struct const_Multiarray_T* constructor_g_fc_interp
 
 	return constructor_mm_NN1_Operator_const_Multiarray_T(cv0_vr_fc,g_coef,'C',op_format,g_coef->order,NULL);
 }
+
+#include "undef_templates_boundary.h"
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_compute_face_rlhs.h"
+#include "undef_templates_operators.h"
+#include "undef_templates_solve_dg.h"

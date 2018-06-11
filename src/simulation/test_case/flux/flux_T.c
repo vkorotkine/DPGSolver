@@ -134,3 +134,9 @@ void compute_Flux_12_T (const struct Flux_Input_T* flux_i, struct mutable_Flux_T
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_flux.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_test_case.h"

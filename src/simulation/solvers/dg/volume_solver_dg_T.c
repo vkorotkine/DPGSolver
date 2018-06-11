@@ -144,3 +144,10 @@ static struct Needed_Members set_needed_members (const struct Simulation* sim)
 
 	return needed_members;
 }
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dg.h"
+#include "undef_templates_test_case.h"

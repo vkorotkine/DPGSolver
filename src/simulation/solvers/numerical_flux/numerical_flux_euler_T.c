@@ -1795,3 +1795,12 @@ static Type max_abs_T (const Type a, const Type b)
 		c *= -1.0;
 	return c;
 }
+
+#include "undef_templates_numerical_flux.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_const_cast_d.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_math_functions.h"

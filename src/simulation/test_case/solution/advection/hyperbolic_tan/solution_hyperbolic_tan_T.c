@@ -90,3 +90,9 @@ static struct Multiarray_T* constructor_sol_hyperbolic_tan
 
 	return sol;
 }
+
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_advection.h"
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_test_case.h"

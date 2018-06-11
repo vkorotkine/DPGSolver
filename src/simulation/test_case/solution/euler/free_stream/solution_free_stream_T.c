@@ -294,3 +294,11 @@ UNUSED(x);
 
 	return sol;
 }
+
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_euler.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_math_functions.h"
+#include "undef_templates_test_case.h"

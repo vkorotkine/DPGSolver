@@ -37,6 +37,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "volume_solver_dpg_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "volume_solver_dpg_T.c"
+#include "undef_templates_type.h"
 
 void copy_members_r_to_c_DPG_Solver_Volume
 	(struct DPG_Solver_Volume_c*const dpg_s_vol, const struct DPG_Solver_Volume*const dpg_s_vol_r,

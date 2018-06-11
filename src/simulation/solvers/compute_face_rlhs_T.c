@@ -332,3 +332,17 @@ static void finalize_face_rhs_dg_like_T
 
 	mm_NNC_Operator_Multiarray_T(-1.0,1.0,tw0_vt_fc,num_flux->nnf,s_vol->rhs,op_format,2,NULL,NULL);
 }
+
+#include "undef_templates_compute_face_rlhs.h"
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_operators.h"
+#include "undef_templates_test_case.h"

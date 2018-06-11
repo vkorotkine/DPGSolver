@@ -45,6 +45,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "numerical_flux_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "numerical_flux_T.c"
+#include "undef_templates_type.h"
 
 const int* get_set_ind_num_flux (const int*const new_vals)
 {

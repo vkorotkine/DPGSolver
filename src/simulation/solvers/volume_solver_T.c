@@ -171,3 +171,13 @@ static void set_function_pointers_constructor_xyz_surface
 		EXIT_ERROR("Unsupported: %d\n",sim->domain_type);
 	}
 }
+
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_compute_volume_rlhs.h"
+#include "undef_templates_geometry.h"
+#include "undef_templates_test_case.h"

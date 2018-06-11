@@ -23,6 +23,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "def_templates_vector.h"
+
 /// \brief Templated Vector.
 struct Vector_T {
 	ptrdiff_t ext_0; ///< Defined in \ref Matrix_T.
@@ -161,3 +163,5 @@ void swap_vals_Vector_T
 	 const int r0,              ///< The index of the 1st row.
 	 const int r1               ///< The index of the 2nd row.
 	);
+
+#include "undef_templates_vector.h"

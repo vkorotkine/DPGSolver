@@ -521,3 +521,13 @@ static const Type* compute_uvw_ex_rotating (const Real xyz[DIM], const struct Ex
 	uvw[1] =  cos(th)*Vt;
 	return uvw;
 }
+
+#include "undef_templates_boundary.h"
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_face_solver.h"
+
+#include "undef_templates_math_functions.h"
+#include "undef_templates_solution.h"

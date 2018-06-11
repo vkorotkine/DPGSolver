@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *         functions.
  */
 
+#if TYPE_I == TYPE_II
+
 ///\{ \name Function names
 #define check_Matrix_extents_zero_T check_Matrix_extents_zero_i
 
@@ -27,3 +29,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #define print_to_file_Matrix_T       print_to_file_Matrix_i
 #define print_to_file_const_Matrix_T print_to_file_const_Matrix_i
 ///\}
+
+#endif

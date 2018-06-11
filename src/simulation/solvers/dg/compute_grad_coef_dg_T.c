@@ -684,3 +684,21 @@ static Real get_sol_scale (const int side_index, const int sol_index, const int 
 		break;
 	}
 }
+
+#include "undef_templates_compute_grad_coef_dg.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_dg.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dg.h"
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_compute_face_rlhs.h"
+#include "undef_templates_compute_face_rlhs_dg.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_solve.h"
+#include "undef_templates_test_case.h"

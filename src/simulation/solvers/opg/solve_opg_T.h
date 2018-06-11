@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *         'g'alerkin method.
  */
 
+#include "def_templates_solve_opg.h"
+
 struct Simulation;
 struct Solver_Storage_Implicit;
 
@@ -30,3 +32,5 @@ void update_ind_dof_opg_T
 struct Vector_i* constructor_nnz_opg_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
+
+#include "undef_templates_solve_opg.h"

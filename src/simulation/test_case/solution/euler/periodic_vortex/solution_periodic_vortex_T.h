@@ -16,6 +16,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to templated functions used to set the solution for the periodic vortex test case.
  */
 
+#include "def_templates_solution.h"
+#include "def_templates_solution_euler.h"
+
 struct Simulation;
 struct Solution_Container_T;
 
@@ -24,3 +27,6 @@ void set_sol_periodic_vortex_T
 	(const struct Simulation* sim,        ///< Defined for \ref set_sol_fptr_T.
 	 struct Solution_Container_T sol_cont ///< Defined for \ref set_sol_fptr_T.
 	);
+
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_euler.h"

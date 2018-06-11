@@ -324,3 +324,11 @@ static void set_data_taylor_couette (struct Sol_Data__tc*const sol_data)
 	const Real Cp = compute_cp_ideal_gas(sol_data->r_s);
 	sol_data->kappa = compute_kappa_const_cp(sol_data->mu,Cp,sol_data->Pr);
 }
+
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_navier_stokes.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_math_functions.h"
+#include "undef_templates_test_case.h"

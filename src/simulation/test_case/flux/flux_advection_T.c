@@ -204,3 +204,7 @@ static void compute_Flux_advection_1
 	IF_DIM_GE_2( *dfds_ptr[ind++] += b_adv[1] );
 	IF_DIM_GE_3( *dfds_ptr[ind++] += b_adv[2] );
 }
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_flux.h"

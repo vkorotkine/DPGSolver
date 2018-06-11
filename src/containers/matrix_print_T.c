@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_tol.h"
 
+#include "def_templates_matrix.h"
+
 // Static function declarations ************************************************************************************* //
 
 ///\{ \name The number of decimal places to display.
@@ -238,3 +240,5 @@ static bool check_Matrix_extents_zero_T (const ptrdiff_t ext_0, const ptrdiff_t 
 		return true;
 	return false;
 }
+
+#include "undef_templates_matrix.h"

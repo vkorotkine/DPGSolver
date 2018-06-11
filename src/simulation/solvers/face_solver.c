@@ -34,15 +34,17 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "simulation.h"
 #include "test_case.h"
 
-#include "test_complex_face_solver.h"
-#include "complex_multiarray.h"
-
 // Static function declarations ************************************************************************************* //
 
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
 #include "face_solver_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "face_solver_T.c"
+#include "undef_templates_type.h"
 
 // Interface functions ********************************************************************************************** //
 
@@ -59,20 +61,20 @@ void copy_members_r_to_c_Solver_Face
 	s_face->nf_coef = constructor_copy_Multiarray_c_Multiarray_d(s_face_r->nf_coef); // destructed
 
 	const_constructor_move_const_Multiarray_c(
-		&s_face->xyz_fc,constructor_copy_const_Multiarray_d_Multiarray_c(s_face_r->xyz_fc)); // destructed
+		&s_face->xyz_fc,constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->xyz_fc)); // destructed
 	const_constructor_move_const_Multiarray_c(
-		&s_face->xyz_fc_ex_b,constructor_copy_const_Multiarray_d_Multiarray_c(s_face_r->xyz_fc_ex_b)); // destructed
+		&s_face->xyz_fc_ex_b,constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->xyz_fc_ex_b)); // destructed
 	const_constructor_move_const_Multiarray_c(
-		&s_face->normals_fc,constructor_copy_const_Multiarray_d_Multiarray_c(s_face_r->normals_fc)); // destructed
+		&s_face->normals_fc,constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->normals_fc)); // destructed
 	const_constructor_move_const_Multiarray_c(
-		&s_face->normals_fc_exact,constructor_copy_const_Multiarray_d_Multiarray_c(s_face_r->normals_fc_exact)); // destructed
+		&s_face->normals_fc_exact,constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->normals_fc_exact)); // destructed
 	const_constructor_move_const_Multiarray_c(
-		&s_face->jacobian_det_fc,constructor_copy_const_Multiarray_d_Multiarray_c(s_face_r->jacobian_det_fc)); // destructed
-	s_face->vol_jacobian_det_fc = constructor_copy_const_Multiarray_d_Multiarray_c(s_face_r->vol_jacobian_det_fc); // destructed
+		&s_face->jacobian_det_fc,constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->jacobian_det_fc)); // destructed
+	s_face->vol_jacobian_det_fc = constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->vol_jacobian_det_fc); // destructed
 	const_constructor_move_const_Multiarray_c(
-		&s_face->normals_p1,constructor_copy_const_Multiarray_d_Multiarray_c(s_face_r->normals_p1)); // destructed
+		&s_face->normals_p1,constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->normals_p1)); // destructed
 	const_constructor_move_const_Multiarray_c(
-		&s_face->jacobian_det_p1,constructor_copy_const_Multiarray_d_Multiarray_c(s_face_r->jacobian_det_p1)); // destructed
+		&s_face->jacobian_det_p1,constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->jacobian_det_p1)); // destructed
 
 	set_function_pointers_face_num_flux_c(s_face,sim);
 

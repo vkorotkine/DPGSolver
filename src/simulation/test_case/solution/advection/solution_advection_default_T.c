@@ -283,3 +283,14 @@ static const struct const_Multiarray_T* constructor_source_advection_default_2d_
 
 	return (struct const_Multiarray_T*)source;
 }
+
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_advection.h"
+
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_operators.h"
+#include "undef_templates_solve.h"
+#include "undef_templates_test_case.h"

@@ -74,46 +74,17 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
-struct Vector_T;
-struct Matrix_T;
-struct Multiarray_Vector_T;
-struct Multiarray_Matrix_T;
-struct const_Vector_i;
-struct const_Vector_T;
-struct const_Matrix_T;
-struct const_Multiarray_T;
-struct const_Multiarray_Vector_T;
-struct const_Multiarray_Matrix_T;
-
 #include "def_templates_type_d.h"
-#include "def_templates_matrix.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_vector.h"
 #include "multiarray_constructors_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_matrix.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_vector.h"
 
 #include "def_templates_type_dc.h"
-#include "def_templates_matrix.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_vector.h"
 #include "multiarray_constructors_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_matrix.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_vector.h"
 
 #include "def_templates_type_i.h"
-#include "def_templates_matrix_i.h"
-#include "def_templates_multiarray_i.h"
-#include "def_templates_vector_i.h"
 #include "multiarray_constructors_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_matrix.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_vector.h"
 
 /** \brief Allocated and set the `extents` for a `Multiarray_*`.
  *  \return See brief. */

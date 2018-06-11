@@ -17,6 +17,13 @@ You should have received a copy of the GNU General Public License along with DPG
  *         of supported schemes.
  */
 
+#include "def_templates_compute_face_rlhs.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_numerical_flux.h"
+
 struct const_Vector_R;
 struct Matrix_R;
 struct Matrix_T;
@@ -154,3 +161,10 @@ void permute_Multiarray_T_fc
 	 const int side_index_dest,              ///< The side index of the destination.
 	 const struct Solver_Face_T*const s_face ///< \ref Solver_Face_T.
 	);
+
+#include "undef_templates_compute_face_rlhs.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_numerical_flux.h"

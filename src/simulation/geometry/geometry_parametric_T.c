@@ -29,9 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 
 #include "def_templates_geometry_parametric.h"
-
 #include "def_templates_volume_solver.h"
-
 #include "def_templates_multiarray.h"
 
 // Static function declarations ************************************************************************************* //
@@ -539,3 +537,7 @@ static void read_data_fixed_cube (struct Geo_Data*const geo_data)
 
 	assert(count_found == count_to_find);
 }
+
+#include "undef_templates_geometry_parametric.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_multiarray.h"

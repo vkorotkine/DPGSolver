@@ -19,6 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+
 struct Multiarray_T;
 struct const_Vector_i;
 struct const_Vector_R;
@@ -158,3 +162,7 @@ Type norm_Multiarray_T
 	(const struct Multiarray_T*const src, ///< See brief.
 	 const char*const norm_type           ///< See brief.
 	);
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"

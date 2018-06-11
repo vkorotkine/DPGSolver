@@ -265,3 +265,12 @@ static void set_function_pointers_num_flux_bc_navier_stokes (struct Solver_Face_
 		break;
 	}
 }
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_test_case.h"

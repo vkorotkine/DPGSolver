@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides templated functions relating to euler fluxes.
  */
 
+#include "def_templates_flux.h"
+
 struct Flux_Input_T;
 struct mutable_Flux_T;
 
@@ -43,3 +45,5 @@ Type compute_V2_from_rhouvw_T
 	(const Type rho,         ///< The density.
 	 const Type*const rhouvw ///< The array of momentum components.
 	);
+
+#include "undef_templates_flux.h"

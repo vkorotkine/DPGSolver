@@ -16,6 +16,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to templated functions used for exact normals.
  */
 
+#include "def_templates_geometry.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_multiarray.h"
+
 struct Solver_Face_T;
 struct Simulation;
 
@@ -43,3 +47,7 @@ void correct_for_exact_normal_cylinder_T
 void correct_for_exact_normal_gaussian_bump_T
 	(struct Solver_Face_T*const s_face ///< See brief.
 	);
+
+#include "undef_templates_geometry.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_multiarray.h"

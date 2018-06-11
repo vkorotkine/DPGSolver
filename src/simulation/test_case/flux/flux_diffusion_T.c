@@ -209,3 +209,7 @@ static void compute_Flux_diffusion_1
 	IF_DIM_GE_3( *dfdg_ptr[ind++] -= 0.0 );
 	IF_DIM_GE_3( *dfdg_ptr[ind++] -= 1.0 );
 }
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_flux.h"

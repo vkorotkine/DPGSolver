@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Function names (general)
+#undef constructor_sol_bv
 #undef constructor_Boundary_Value_Input_face_s_fcl_interp_T
 #undef constructor_Boundary_Value_Input_face_sg_fcl_interp_T
 #undef destructor_Boundary_Value_Input_T

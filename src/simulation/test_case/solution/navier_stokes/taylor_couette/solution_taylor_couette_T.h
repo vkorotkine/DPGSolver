@@ -17,6 +17,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  (Section 7, \cite Illingworth1950).
  */
 
+#include "def_templates_solution.h"
+#include "def_templates_solution_navier_stokes.h"
+#include "def_templates_multiarray.h"
+
 struct const_Multiarray_R;
 struct const_Multiarray_T;
 struct Simulation;
@@ -47,3 +51,7 @@ const struct const_Multiarray_T* constructor_const_grad_taylor_couette_T
 	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
+
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_navier_stokes.h"
+#include "undef_templates_multiarray.h"

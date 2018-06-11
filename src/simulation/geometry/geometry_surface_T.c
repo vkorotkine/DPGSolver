@@ -28,15 +28,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_tol.h"
 
 
-#include "def_templates_geometry_blended.h"
-#include "def_templates_geometry_surface.h"
-
+#include "def_templates_geometry.h"
 #include "def_templates_volume_solver.h"
-
 #include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
-
 #include "def_templates_operators.h"
 #include "def_templates_test_case.h"
 
@@ -241,3 +237,11 @@ static ptrdiff_t find_boundary_vertex_index
 		transpose_Matrix_R((struct Matrix_R*)xyz_ve,true);
 	return ind_ve;
 }
+
+#include "undef_templates_geometry.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_operators.h"
+#include "undef_templates_test_case.h"

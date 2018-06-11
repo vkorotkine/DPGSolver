@@ -121,6 +121,11 @@ static void compute_CFL_ramping
 
 #include "def_templates_type_d.h"
 #include "solve_dg_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "solve_dg_T.c"
+#include "undef_templates_type.h"
 
 double compute_rhs_dg (const struct Simulation* sim)
 {

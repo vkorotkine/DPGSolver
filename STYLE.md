@@ -42,14 +42,32 @@ int const*const p = NULL; // avoid
 Several functions in the code are templated such that they may be used for multiple data types
 (integer, floating-point, complex floating-point), eliminating significant code duplication. In
 these cases, the various function declarations/definitions are set by including the templated files
-(`*_T.h` and `*_T.c`) with specialized definition (`def_*`) and undefinition (`undef_*`) macro files
-in the associated header/implementation files.
+(`*_T.h` and `*_T.c`) wrapped within `def_*' and `undef_*` header files for the variable of the
+specified type. For example, to define the 'd'ouble matrix functions one has in the source file:
+```c
+#include "def_templates_type_d.h" // type: 'd'ouble
+#include "matrix_T.c"
+#include "undef_templates_type.h"
+```
+and in the header file:
+```c
+#include "def_templates_type_d.h"
+#include "matrix_T.h"
+#include "undef_templates_type.h"
+```
+respectively. __Note that def/undef headers specific to the file should be included within the
+templated file__ with def header files placed at the top of the file (before all declarations) and
+undef header files placed at the end of the file (after all function definitions).
 
 While this greatly reduces redundant code, it results in potential confusion when specialized
 versions of the functions are called in the code despite their declarations not explicitly appearing
 in any header file. Thus, it is recommended to search the documentation for function names *without*
 the trailing specialization indicator (i.e. function_name`_*`) when the full function name is not
 being found using `grep` for example.
+
+Finally, in order to avoid having to provide templated names for static functions, it is recommended
+to create a separate `.c` and `.h` file for each data type and simply include all of the header
+files in the default `.c` and `.h` file whenever many static functions are present.
 
 ### Directory Structure
 

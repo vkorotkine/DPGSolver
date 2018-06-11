@@ -19,6 +19,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  converting from physical to reference space.
  */
 
+#include "def_templates_multiarray.h"
+#include "def_templates_flux.h"
+
 struct Flux_Input_T;
 struct mutable_Flux_T;
 struct Simulation;
@@ -129,3 +132,6 @@ void compute_Flux_12_T
 	 struct mutable_Flux_T* flux        ///< See brief.
 	);
 
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_flux.h"

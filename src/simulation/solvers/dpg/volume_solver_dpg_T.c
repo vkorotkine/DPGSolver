@@ -107,3 +107,12 @@ static const struct const_Matrix_R* constructor_norm_op_H1 (const struct DPG_Sol
 
 	return (struct const_Matrix_R*) H1;
 }
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_compute_all_rlhs_dpg.h"
+#include "undef_templates_compute_volume_rlhs.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dpg.h"

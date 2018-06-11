@@ -28,7 +28,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_alloc.h"
 
-#include "complex_multiarray.h"
 #include "matrix.h"
 #include "multiarray.h"
 #include "vector.h"

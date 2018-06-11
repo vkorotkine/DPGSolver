@@ -13,21 +13,11 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_complex_solve_dg_h__INCLUDED
-#define DPG__test_complex_solve_dg_h__INCLUDED
+#ifndef DPG__solve_dg_c_h__INCLUDED
+#define DPG__solve_dg_c_h__INCLUDED
 /** \file
- *  \brief Provides `complex` versions of functions defined in \ref solve_dg.h.
+ *  \brief Provides additional `complex` functions for the dg solver functionality.
  */
-
-#include "def_templates_type_dc.h"
-#include "def_templates_solve_dg.h"
-#include "def_templates_face_solver.h"
-#include "def_templates_multiarray.h"
-#include "solve_dg_T.h"
-#include "undef_templates_type.h"
-#include "undef_templates_solve_dg.h"
-#include "undef_templates_face_solver.h"
-#include "undef_templates_multiarray.h"
 
 struct Simulation;
 struct Solver_Storage_Implicit;
@@ -43,4 +33,4 @@ void compute_lhs_cmplx_step_dg
 	 struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
 	);
 
-#endif // DPG__test_complex_solve_dg_h__INCLUDED
+#endif // DPG__solve_dg_c_h__INCLUDED

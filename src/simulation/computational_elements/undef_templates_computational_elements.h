@@ -16,5 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Undefine macro definitions for c-style templating relating to def_templates_computational_elements.h.
  */
 
+#undef Derived_Comp_Elements_Info
+
 #undef constructor_derived_computational_elements_T
 #undef destructor_derived_computational_elements_T

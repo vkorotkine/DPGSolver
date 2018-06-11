@@ -46,6 +46,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 
+#include "def_templates_compute_face_rlhs_dg.h"
+#include "def_templates_numerical_flux.h"
+#include "def_templates_face_solver_dg.h"
+
 struct Simulation;
 struct Solver_Storage_Implicit;
 struct Intrusive_List;
@@ -72,3 +76,7 @@ void constructor_Numerical_Flux_Input_data_dg_T
 	 const struct Simulation*const sim,              ///< \ref Simulation.
 	 const bool compute_gradient                     ///< Flag for whether the gradient members should be computed.
 	);
+
+#include "undef_templates_compute_face_rlhs_dg.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_face_solver_dg.h"

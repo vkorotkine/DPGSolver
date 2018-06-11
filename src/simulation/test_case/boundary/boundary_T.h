@@ -18,6 +18,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 
+#include "def_templates_multiarray.h"
+#include "def_templates_boundary.h"
+#include "def_templates_operators.h"
+#include "def_templates_face_solver.h"
+
 struct Boundary_Value_Input_T;
 struct Boundary_Value_T;
 struct Solver_Face_T;
@@ -178,3 +183,8 @@ void constructor_Boundary_Value_T_grad_from_internal
 	 const int n_var                            ///< The number of variables.
 	);
 
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_operators.h"
+#include "undef_templates_face_solver.h"

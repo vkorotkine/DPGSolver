@@ -18,6 +18,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_boundary.h"
+#include "def_templates_face_solver.h"
+
 /** \brief Container for data relating to the solver faces.
  *  \note Certain members are declared `const` despite requiring modification for adaptive simulations. Only members
  *        changing with every solver iteration are `mutable`.
@@ -108,3 +113,8 @@ void set_function_pointers_face_num_flux_T
 const struct const_Vector_R* get_operator__w_fc__s_e_T
 	(const struct Solver_Face_T*const s_face ///< The current face.
 	);
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_face_solver.h"

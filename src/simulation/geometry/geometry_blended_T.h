@@ -18,6 +18,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 
+#include "def_templates_geometry.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_matrix.h"
+
 struct Solver_Volume_T;
 struct Simulation;
 
@@ -125,3 +130,8 @@ void correct_internal_xyz_blended_T
 	(struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
 	 const struct Simulation*const sim   ///< \ref Simulation.
 	);
+
+#include "undef_templates_geometry.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_matrix.h"

@@ -106,10 +106,26 @@ static const struct const_Matrix_d* constructor_norm_DPG_dN_ds__h1_upwind
 	 const struct Simulation* sim               ///< See brief.
 	);
 
+#if TYPE_RC == TYPE_COMPLEX
+/** \brief Version of \ref add_to_petsc_Mat_Vec_dpg setting a single column of Solver_Storage_Implicit::A to the values
+ *         computed using the complex step rhs. */
+static void add_to_petsc_Mat_dpg_c
+	(const struct Solver_Volume_c* s_vol,  ///< See brief.
+	 const struct const_Vector_c* rhs_neg, ///< See brief.
+	 struct Solver_Storage_Implicit* ssi,  ///< See brief.
+	 const struct Simulation*const sim     ///< See brief.
+		);
+#endif
+
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
 #include "compute_all_rlhs_dpg_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "compute_all_rlhs_dpg_T.c"
+#include "undef_templates_type.h"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
@@ -368,6 +384,25 @@ static const struct const_Matrix_d* constructor_norm_DPG_dN_ds__h1_upwind
 
 	return (struct const_Matrix_d*) dN_ds;
 }
+
+#if TYPE_RC == TYPE_COMPLEX
+static void add_to_petsc_Mat_dpg_c
+	(const struct Solver_Volume_c* s_vol, const struct const_Vector_c* rhs_neg, struct Solver_Storage_Implicit* ssi,
+	 const struct Simulation*const sim)
+{
+	const ptrdiff_t ext_0 = rhs_neg->ext_0;
+
+	const struct const_Vector_i* idxm = constructor_petsc_idxm_dpg_c(ext_0,s_vol,sim); // destructed.
+
+	PetscScalar rhs_c_data[ext_0];
+	for (int i = 0; i < ext_0; ++i)
+		rhs_c_data[i] = cimag((-rhs_neg->data[i])/CX_STEP);
+
+	MatSetValues(ssi->A,(PetscInt)ext_0,idxm->data,1,&ssi->col,rhs_c_data,ADD_VALUES);
+
+	destructor_const_Vector_i(idxm);
+}
+#endif
 
 // Level 1 ********************************************************************************************************** //
 

@@ -498,3 +498,16 @@ static const struct Operator* get_operator__cv0_vg_vc_T (const struct Solver_Vol
 	          p_i = ( curved ? p : 1 );
 	return get_Multiarray_Operator(e->cv0_vg_vc[curved],(ptrdiff_t[]){0,0,p,p_i});
 }
+
+#include "undef_templates_compute_volume_rlhs.h"
+
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_flux.h"
+#include "undef_templates_math_functions.h"
+#include "undef_templates_operators.h"
+#include "undef_templates_test_case.h"

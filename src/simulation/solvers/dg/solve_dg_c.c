@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_complex_solve_dg.h"
+#include "solve_dg_c.h"
 
 #include <assert.h>
 
@@ -24,23 +24,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_intrusive.h"
 #include "definitions_tol.h"
 #include "definitions_test_integration.h"
-
-#include "complex_multiarray.h"
-
-#include "test_complex_face_solver_dg.h"
-#include "test_complex_volume_solver_dg.h"
-
-#include "test_complex_boundary.h"
-#include "test_complex_boundary_advection.h"
-#include "test_complex_boundary_euler.h"
-#include "test_complex_compute_face_rhs.h"
-#include "test_complex_compute_grad_coef_dg.h"
-#include "test_complex_compute_face_rhs_dg.h"
-#include "test_complex_compute_volume_rhs_dg.h"
-#include "test_support_computational_elements.h"
-#include "test_support_multiarray.h"
-#include "test_complex_solve.h"
-#include "test_complex_test_case.h"
 
 #include "multiarray.h"
 #include "vector.h"
@@ -88,9 +71,6 @@ static void set_col_lhs_cmplx_step_dg
 	);
 
 // Interface functions ********************************************************************************************** //
-
-#include "def_templates_type_dc.h"
-#include "solve_dg_T.c"
 
 void perturb_solution_dg (const struct Simulation* sim)
 {

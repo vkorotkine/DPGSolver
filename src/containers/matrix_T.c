@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_tol.h"
 
+#include "def_templates_matrix.h"
 // Static function declarations ************************************************************************************* //
 
 /** \brief Pointer to value setting functions with scaling.
@@ -320,3 +321,5 @@ static void set_scaled_value_add_T (const Type alpha, Type*const dest, const Typ
 {
 	*dest += alpha*src;
 }
+
+#include "undef_templates_matrix.h"

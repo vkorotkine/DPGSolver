@@ -443,3 +443,12 @@ static void set_function_pointers_start (struct Test_Case_T*const test_case)
 		test_case->constructor_sol_start = constructor_const_sol_restart_T;
 	}
 }
+
+#include "undef_templates_test_case.h"
+
+#include "undef_templates_flux.h"
+#include "undef_templates_restart.h"
+#include "undef_templates_solution_advection.h"
+#include "undef_templates_solution_diffusion.h"
+#include "undef_templates_solution_euler.h"
+#include "undef_templates_solution_navier_stokes.h"

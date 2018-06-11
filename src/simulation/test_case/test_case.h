@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides container(s) and functions relating to the test cases.
  */
 
+#include "test_case_c.h"
+
 #include "boundary.h"
 #include "flux.h"
 #include "geometry.h"
@@ -27,20 +29,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_error.h"
 
 #include "def_templates_type_d.h"
-#include "def_templates_boundary.h"
-#include "def_templates_flux.h"
-#include "def_templates_geometry.h"
-#include "def_templates_numerical_flux.h"
-#include "def_templates_solution.h"
-#include "def_templates_test_case.h"
 #include "test_case_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_boundary.h"
-#include "undef_templates_flux.h"
-#include "undef_templates_geometry.h"
-#include "undef_templates_numerical_flux.h"
-#include "undef_templates_solution.h"
-#include "undef_templates_test_case.h"
+
+#include "def_templates_type_dc.h"
+#include "test_case_T.h"
+#include "undef_templates_type.h"
 
 /** \brief Container providing an additional layer of dereferencing to either a 'r'eal or 'c'omplex \ref Test_Case_T.
  *  This container is provided so that \ref Simulation does not need to be templated.

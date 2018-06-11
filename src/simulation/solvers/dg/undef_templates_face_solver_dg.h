@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Data types
 #undef DG_Solver_Face_T
+#undef Neigh_Info_DG
 ///\}
 
 ///\{ \name Function names

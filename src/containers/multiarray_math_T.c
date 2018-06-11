@@ -19,6 +19,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_math_functions.h"
+
 // Static function declarations ************************************************************************************* //
 
 /// \brief `mutable` version of \ref reinterpret_const_Multiarray_as_Matrix_T.
@@ -265,3 +270,8 @@ static void reinterpret_Matrix_as_Multiarray_T
 	a->owns_data = a_M->owns_data;
 	a->data      = a_M->data;
 }
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_math_functions.h"

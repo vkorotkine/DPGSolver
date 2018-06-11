@@ -154,3 +154,10 @@ static const struct const_Multiarray_T* constructor_grad_bv
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	return test_case->constructor_grad(xyz,sim); // returned
 }
+
+#include "undef_templates_boundary.h"
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_face_solver.h"

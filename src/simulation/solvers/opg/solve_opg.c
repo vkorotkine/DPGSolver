@@ -52,6 +52,11 @@ static void fill_petsc_Vec_b_opg
 
 #include "def_templates_type_d.h"
 #include "solve_opg_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "solve_opg_T.c"
+#include "undef_templates_type.h"
 
 double compute_rlhs_opg (const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi)
 {
@@ -108,4 +113,3 @@ static void fill_petsc_Vec_b_opg (const struct Simulation*const sim, struct Solv
 		VecSetValues(ssi->b,ni,ix,y,INSERT_VALUES);
 	}
 }
-

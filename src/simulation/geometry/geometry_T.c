@@ -924,3 +924,14 @@ static const struct Operator* get_operator__cc0_vgc_fgc (const int side_index, c
 
 	return get_Multiarray_Operator(g_e->cc0_vgc_fgc,(ptrdiff_t[]){ind_lf,0,0,p_v,p_v});
 }
+
+#include "undef_templates_geometry.h"
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_operators.h"
+#include "undef_templates_test_case.h"

@@ -21,7 +21,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <string.h>
 
 #include "macros.h"
-//#include "definitions_alloc.h"
 #include "definitions_bc.h"
 #include "definitions_core.h"
 #include "definitions_math.h"
@@ -152,3 +151,11 @@ static void correct_normals_fc (struct Solver_Face_T*const s_face)
 		return;
 	set_Multiarray_R((struct Multiarray_R*)s_face->normals_fc,s_face->normals_fc_exact);
 }
+
+#include "undef_templates_geometry_normals.h"
+
+#include "undef_templates_face_solver.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_math_functions.h"

@@ -156,3 +156,12 @@ static void set_function_pointers_num_flux_T (struct Test_Case_T* test_case, con
 		break;
 	}
 }
+
+#include "undef_templates_solution_advection.h"
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_geometry.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_test_case.h"

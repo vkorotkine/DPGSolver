@@ -460,3 +460,14 @@ static void update_face_pointers (struct Intrusive_Link* link)
 		face->neigh_info[i].volume = derived;
 	}
 }
+
+#include "undef_templates_computational_elements.h"
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_dg.h"
+#include "undef_templates_face_solver_dpg.h"
+#include "undef_templates_face_solver_opg.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dg.h"
+#include "undef_templates_volume_solver_dpg.h"
+#include "undef_templates_volume_solver_opg.h"

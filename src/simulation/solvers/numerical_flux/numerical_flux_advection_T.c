@@ -155,3 +155,9 @@ UNUSED(b_dot_n0);
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_numerical_flux.h"
+
+#include "undef_templates_boundary.h"

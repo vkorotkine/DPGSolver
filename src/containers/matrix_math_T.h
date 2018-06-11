@@ -19,6 +19,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "def_templates_matrix.h"
+#include "def_templates_vector.h"
+
 struct Matrix_T;
 struct Vector_T;
 struct const_Matrix_R;
@@ -207,3 +210,6 @@ void set_to_row_avg_const_Matrix_T
 	(Type*const data_avg,                  ///< Pointer to array storing the average.
 	 const struct const_Matrix_T*const src ///< Source matrix.
 	);
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_vector.h"

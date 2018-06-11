@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the multiarray math functions.
  */
 
+#if defined TYPE_RC
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
@@ -72,3 +73,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #define permute_Multiarray_R                     permute_Multiarray_d
 #define reinterpret_const_Multiarray_as_Matrix_R reinterpret_const_Multiarray_as_Matrix_d
 ///\}
+
+#endif

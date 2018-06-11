@@ -20,6 +20,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <complex.h>
 
+#include "def_templates_math_functions.h"
+
 #define POW2(a) ((a)*(a)) ///< General pow with exponent 2.
 
 /** \brief Compares input values for approximate equality using the relative infinity norm.
@@ -112,3 +114,5 @@ Type dot_T
 	 const Type*const a, ///< The 1st input.
 	 const Type*const b  ///< The 2nd input.
 	);
+
+#include "undef_templates_math_functions.h"

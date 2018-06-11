@@ -29,6 +29,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include "definitions_core.h"
 
+#include "def_templates_multiarray.h"
+#include "def_templates_operators.h"
+
 struct const_Multiarray_T;
 struct Multiarray_T;
 struct const_Multiarray_Matrix_T;
@@ -118,3 +121,5 @@ void mm_NN1_Operator_Multiarray_T
 	 const ptrdiff_t* sub_inds_c         ///< The sub-indices of the `c` multiarray if required.
 	);
 
+#include "undef_templates_multiarray.h"
+#include "undef_templates_operators.h"

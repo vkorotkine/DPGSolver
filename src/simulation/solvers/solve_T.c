@@ -260,3 +260,17 @@ static ptrdiff_t compute_dof_test_volumes (const struct Simulation*const sim)
 	}
 	return dof;
 }
+
+#include "undef_templates_solve.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_solve_dg.h"
+#include "undef_templates_solve_dpg.h"
+#include "undef_templates_solve_opg.h"
+#include "undef_templates_test_case.h"

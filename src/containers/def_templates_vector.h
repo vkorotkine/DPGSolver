@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_vector_math.h"
 #include "def_templates_vector_print.h"
 
+#if defined TYPE_RC
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Data types
@@ -86,3 +87,40 @@ You should have received a copy of the GNU General Public License along with DPG
 #define Vector_R       Vector_d
 #define const_Vector_R const_Vector_d
 ///\}
+
+
+#elif defined TYPE_I
+
+#if TYPE_I == TYPE_II
+
+///\{ \name Data types
+#define Vector_T       Vector_i
+#define const_Vector_T const_Vector_i
+#define Vector_R       Vector_d
+#define const_Vector_R const_Vector_d
+///\}
+
+///\{ \name Function names
+#define cmp_T cmp_i
+
+#define reorder_Vector_T            reorder_Vector_i
+#define resize_Vector_T             resize_Vector_i
+#define set_to_zero_Vector_T        set_to_zero_Vector_i
+#define set_to_data_Vector_T        set_to_data_Vector_i
+#define set_to_value_Vector_T       set_to_value_Vector_i
+#define sort_Vector_T               sort_Vector_i
+#define sum_Vector_T                sum_Vector_i
+#define prod_Vector_T               prod_Vector_i
+#define prod_const_Vector_T         prod_const_Vector_i
+#define check_equal_Vector_T        check_equal_Vector_i
+#define check_equal_Vector_T_T      check_equal_Vector_i_i
+#define cmp_Vector_T                cmp_Vector_i
+#define copy_data_Vector_T_Vector_T copy_data_Vector_i_Vector_i
+#define push_back_Vector_T          push_back_Vector_i
+#define find_val_Vector_T           find_val_Vector_i
+#define swap_vals_Vector_T          swap_vals_Vector_i
+///\}
+
+#endif
+
+#endif

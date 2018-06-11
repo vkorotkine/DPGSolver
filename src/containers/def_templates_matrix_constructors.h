@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the matrix constructor functions.
  */
 
+#if defined TYPE_RC
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
@@ -172,3 +173,40 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_const_Matrix_R             destructor_const_Matrix_d
 #define destructor_conditional_const_Matrix_R destructor_conditional_const_Matrix_d
 ///\}
+
+
+#elif defined TYPE_I
+#if TYPE_I == TYPE_II
+
+///\{ \name Function names
+#define constructor_default_Matrix_T       constructor_default_Matrix_i
+#define constructor_default_const_Matrix_T constructor_default_const_Matrix_i
+
+#define constructor_empty_Matrix_T constructor_empty_Matrix_i
+
+#define constructor_copy_Matrix_T_T             constructor_copy_Matrix_i_i
+#define constructor_copy_const_Matrix_T_T       constructor_copy_const_Matrix_i_i
+#define constructor_copy_Matrix_T               constructor_copy_Matrix_i
+#define constructor_copy_const_Matrix_T         constructor_copy_const_Matrix_i
+#define constructor_copy_extract_const_Matrix_T constructor_copy_extract_const_Matrix_i
+#define const_constructor_copy_Matrix_T         const_constructor_copy_Matrix_i
+#define constructor_copy_Matrix_T_Matrix_R       constructor_copy_Matrix_i_Matrix_i
+#define constructor_copy_const_Matrix_T_Matrix_R constructor_copy_const_Matrix_i_Matrix_i
+
+#define constructor_move_Matrix_T_T           constructor_move_Matrix_i_i
+#define constructor_move_const_Matrix_T_T     constructor_move_const_Matrix_i_i
+#define const_constructor_move_Matrix_T       const_constructor_move_Matrix_i
+#define const_constructor_move_const_Matrix_T const_constructor_move_const_Matrix_i
+
+#define set_Matrix_from_Multiarray_T              set_Matrix_from_Multiarray_i
+#define set_const_Matrix_from_Multiarray_T        set_const_Matrix_from_Multiarray_i
+#define set_Matrix_from_Multiarray_Matrix_T       set_Matrix_from_Multiarray_Matrix_i
+#define set_const_Matrix_from_Multiarray_Matrix_T set_const_Matrix_from_Multiarray_Matrix_i
+
+#define destructor_Matrix_T       destructor_Matrix_i
+#define destructor_const_Matrix_T destructor_const_Matrix_i
+///\}
+
+#endif
+
+#endif

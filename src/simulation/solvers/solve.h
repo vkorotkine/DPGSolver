@@ -20,14 +20,12 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_solve.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_volume_solver.h"
 #include "solve_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_solve.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_volume_solver.h"
+
+#include "def_templates_type_dc.h"
+#include "solve_T.h"
+#include "undef_templates_type.h"
 
 #include "petscmat.h"
 #include "petscvec.h"

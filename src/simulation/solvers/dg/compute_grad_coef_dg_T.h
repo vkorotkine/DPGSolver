@@ -38,6 +38,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  integrated-by-parts **twice** form.
  */
 
+#include "def_templates_compute_grad_coef_dg.h"
+
 struct Simulation;
 struct Intrusive_List;
 
@@ -47,3 +49,5 @@ void compute_grad_coef_dg_T
 	 struct Intrusive_List*const volumes, ///< The list of volumes.
 	 struct Intrusive_List*const faces    ///< The list of faces.
 	);
+
+#include "undef_templates_compute_grad_coef_dg.h"

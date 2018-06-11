@@ -35,6 +35,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "test_case_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "test_case_T.c"
+#include "undef_templates_type.h"
 
 struct Test_Case_rc* constructor_Test_Case_rc_real (const struct Simulation* sim)
 {
@@ -146,4 +151,3 @@ const bool* get_set_has_1st_2nd_order (const bool*const new_vals)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-

@@ -16,6 +16,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to templated functions used for parametric geometry processing.
  */
 
+#include "def_templates_geometry.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_multiarray.h"
+
 struct Solver_Volume_T;
 struct Simulation;
 
@@ -95,3 +99,7 @@ const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 	 const struct Solver_Volume_T* s_vol,    ///< See brief.
 	 const struct Simulation* sim            ///< See brief.
 	);
+
+#include "undef_templates_geometry.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_multiarray.h"

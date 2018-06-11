@@ -16,6 +16,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides templated functions relating to the linear Advection solutions.
  */
 
+#include "def_templates_solution_advection.h"
+#include "def_templates_test_case.h"
+
 struct Test_Case_T;
 struct Simulation;
 
@@ -24,3 +27,6 @@ void set_function_pointers_solution_advection_T
 	(struct Test_Case_T* test_case,    ///< \ref Test_Case_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
+
+#include "undef_templates_solution_advection.h"
+#include "undef_templates_test_case.h"

@@ -22,7 +22,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
-#include "def_templates_matrix_math.h"
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -598,3 +600,7 @@ void destructor_conditional_const_Matrix_T (const struct const_Matrix_T* a)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"

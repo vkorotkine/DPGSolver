@@ -230,3 +230,9 @@ static void set_data_periodic_vortex (struct Sol_Data__pv*const sol_data)
 
 	sol_data->con = 0.1*V_inf;
 }
+
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_euler.h"
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_test_case.h"

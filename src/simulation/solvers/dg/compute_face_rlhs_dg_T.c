@@ -320,3 +320,21 @@ static Real compute_scaling_weak_gradient (const struct DG_Solver_Face_T*const d
 	}
 }
 
+
+#include "undef_templates_compute_face_rlhs_dg.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_dg.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dg.h"
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_compute_face_rlhs.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_operators.h"
+#include "undef_templates_solve_dg.h"
+#include "undef_templates_test_case.h"

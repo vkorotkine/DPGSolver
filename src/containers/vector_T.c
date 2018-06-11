@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
+#include "def_templates_vector.h"
+
 // Static function declarations ************************************************************************************* //
 
 /** \brief Comparison function for std::qsort between `Type*` `a` and `b`.
@@ -252,3 +254,5 @@ static int cmp_T (const void* a, const void* b)
 {
 	return (int) ( *(Type*)a - *(Type*)b );
 }
+
+#include "undef_templates_vector.h"

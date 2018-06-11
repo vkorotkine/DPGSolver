@@ -20,14 +20,12 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_solution_euler.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_test_case.h"
 #include "solution_euler_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_solution_euler.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_test_case.h"
+
+#include "def_templates_type_dc.h"
+#include "solution_euler_T.h"
+#include "undef_templates_type.h"
 
 struct Multiarray_d;
 struct const_Multiarray_d;

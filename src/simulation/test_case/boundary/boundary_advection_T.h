@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *         linear advection equation.
  */
 
+#include "def_templates_boundary.h"
+#include "def_templates_face_solver.h"
+
 struct Boundary_Value_Input_T;
 struct Boundary_Value_T;
 struct Solver_Face_T;
@@ -61,3 +64,6 @@ void constructor_Boundary_Value_T_advection_upwind
 	 const struct Solver_Face_T* face,          ///< See brief.
 	 const struct Simulation* sim               ///< See brief.
 	);
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_face_solver.h"

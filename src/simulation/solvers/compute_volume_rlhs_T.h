@@ -17,6 +17,12 @@ You should have received a copy of the GNU General Public License along with DPG
  *         (rlhs) terms of supported schemes.
  */
 
+#include "def_templates_compute_volume_rlhs.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_flux.h"
+
 struct Flux_Input_T;
 struct Flux_Ref_T;
 struct Simulation;
@@ -152,3 +158,9 @@ struct Multiarray_Operator get_operator__tw1_vt_vc_T
 struct Multiarray_Operator get_operator__cv1_vt_vc_T
 	(const struct Solver_Volume_T*const s_vol ///< The current volume.
 	);
+
+#include "undef_templates_compute_volume_rlhs.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_flux.h"

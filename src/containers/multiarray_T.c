@@ -19,8 +19,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
-#include "def_templates_multiarray_math.h"
-
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
 #include "def_templates_math_functions.h"
 
 // Static function declarations ************************************************************************************* //
@@ -528,3 +529,8 @@ static ptrdiff_t compute_total_entries (const struct Multiarray_Vector_T*const s
 
 	return count;
 }
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_math_functions.h"

@@ -19,6 +19,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 #include "definitions_test_case.h"
 
+#include "def_templates_boundary.h"
+#include "def_templates_flux.h"
+#include "def_templates_geometry.h"
+#include "def_templates_numerical_flux.h"
+#include "def_templates_solution.h"
+#include "def_templates_test_case.h"
+
 struct Simulation;
 
 /** \brief Container for test case specific information.
@@ -186,3 +193,10 @@ void increment_pointers_T
 	(const int n_ptr,       ///< The number of pointers.
 	 const Type**const ptrs ///< Pointer to the array of pointers.
 	);
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_geometry.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_test_case.h"

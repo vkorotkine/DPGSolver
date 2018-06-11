@@ -25,6 +25,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_tol.h"
 
+#include "def_templates_math_functions.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -154,3 +156,5 @@ Type dot_T (const ptrdiff_t n, const Type*const a, const Type*const b)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_math_functions.h"

@@ -291,3 +291,16 @@ static void set_function_pointers_num_flux (struct Test_Case_T* test_case, const
 		break;
 	}
 }
+
+#include "undef_templates_solution_euler.h"
+#include "undef_templates_solution_navier_stokes.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_geometry.h"
+#include "undef_templates_math_functions.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_test_case.h"

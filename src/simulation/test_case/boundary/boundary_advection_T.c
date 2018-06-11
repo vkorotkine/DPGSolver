@@ -225,3 +225,11 @@ void constructor_Boundary_Value_T_advection_upwind
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_boundary.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_face_solver.h"
+
+#include "undef_templates_math_functions.h"

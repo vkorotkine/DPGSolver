@@ -32,12 +32,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_case.h"
 
 #include "test_complex_volume_solver.h"
-#include "complex_multiarray.h"
-#include "complex_vector.h"
 
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
+#include "volume_solver_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
 #include "volume_solver_T.c"
 #include "undef_templates_type.h"
 

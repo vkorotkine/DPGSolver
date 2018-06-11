@@ -18,6 +18,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 
+#include "def_templates_solution.h"
+#include "def_templates_flux.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_volume_solver.h"
+
 struct const_Multiarray_R;
 struct const_Multiarray_T;
 struct Flux_Input_T;
@@ -194,3 +200,9 @@ void set_to_zero_residual_T
 void set_initial_v_test_sg_coef_T
 	(struct Simulation*const sim ///< \ref Simulation.
 	);
+
+#include "undef_templates_solution.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"

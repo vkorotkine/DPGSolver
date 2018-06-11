@@ -22,24 +22,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 
 #include "def_templates_type_d.h"
-#include "def_templates_matrix.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_vector.h"
 #include "multiarray_math_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_matrix.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_vector.h"
 
 #include "def_templates_type_dc.h"
-#include "def_templates_matrix.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_vector.h"
 #include "multiarray_math_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_matrix.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_vector.h"
 
 /** \brief Compute the extents of the output multiarray from a matrix-multiarray multiplication.
  *  \return Dynamically allocated extents. */

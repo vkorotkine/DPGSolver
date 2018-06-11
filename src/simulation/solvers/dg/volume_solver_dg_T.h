@@ -20,6 +20,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "definitions_core.h"
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_volume_solver_dg.h"
+
 /// \brief Container for data relating to the DG solver volumes.
 struct DG_Solver_Volume_T {
 	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume_T.
@@ -46,3 +52,9 @@ void constructor_derived_DG_Solver_Volume_T
 void destructor_derived_DG_Solver_Volume_T
 	(struct Volume* volume_ptr ///< Pointer to the volume.
 	);
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dg.h"

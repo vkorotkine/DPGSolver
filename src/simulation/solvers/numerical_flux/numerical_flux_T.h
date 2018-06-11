@@ -16,11 +16,16 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides templated containers and functions relating to the supported numerical fluxes.
  */
 
+#include <stdbool.h>
+
+#include "def_templates_numerical_flux.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_boundary.h"
+#include "def_templates_flux.h"
+
 struct Numerical_Flux_Input_T;
 struct mutable_Numerical_Flux_T;
 struct Simulation;
-
-#include <stdbool.h>
 
 /** \brief Function pointer to \ref Numerical_Flux_T computing functions.
  *  \return Standard.
@@ -122,3 +127,8 @@ void compute_Numerical_Flux_12_T
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
 	);
+
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_flux.h"

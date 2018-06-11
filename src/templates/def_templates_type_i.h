@@ -18,5 +18,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "definitions_templates_type.h"
 
-#define Type int    ///< Type parameter.
-#define Real double ///< Real type parameter.
+#define Type int       ///< Type parameter.
+#define Real double    ///< Real type parameter.
+#define TYPE_I TYPE_II ///< Integer type parameter ('I'nt)

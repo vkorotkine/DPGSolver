@@ -18,6 +18,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  These faces are needed by the 'D'iscontinuous 'P'etrov 'G'alerkin solver functions.
  */
 
+#include "def_templates_face_solver.h"
+#include "def_templates_face_solver_dpg.h"
+
 /// \brief Container for data relating to the DPG solver faces.
 struct DPG_Solver_Face_T {
 	struct Solver_Face_T face; ///< The base \ref Solver_Face_T.
@@ -33,3 +36,6 @@ void constructor_derived_DPG_Solver_Face_T
 void destructor_derived_DPG_Solver_Face_T
 	(struct Face* face_ptr ///< Pointer to the face.
 	);
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_dpg.h"

@@ -1143,3 +1143,9 @@ static void compute_Flux_navier_stokes_1g
 		}
 	}}
 }
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_flux.h"
+#include "undef_templates_math_functions.h"
+#include "undef_templates_solution_navier_stokes.h"

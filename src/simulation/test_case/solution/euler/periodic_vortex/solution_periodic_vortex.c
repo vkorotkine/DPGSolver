@@ -36,6 +36,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "periodic_vortex/solution_periodic_vortex_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "periodic_vortex/solution_periodic_vortex_T.c"
+#include "undef_templates_type.h"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

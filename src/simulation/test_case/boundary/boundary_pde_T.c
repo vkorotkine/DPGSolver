@@ -17,7 +17,6 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_multiarray.h"
-
 #include "def_templates_test_case.h"
 
 /** \brief Constructor for the Multiarray_\* holding the solution at the given xyz coordinates.
@@ -30,3 +29,6 @@ static const struct const_Multiarray_T* constructor_sol_bv
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	return test_case->constructor_sol(xyz,sim); // returned
 }
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_test_case.h"

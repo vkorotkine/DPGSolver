@@ -17,6 +17,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *         'd'iscontinuous 'g'alerkin method.
  */
 
+#include "def_templates_solve_dg.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_multiarray.h"
+
 struct Multiarray_T;
 struct Solver_Face_T;
 struct Simulation;
@@ -31,3 +35,7 @@ void update_ind_dof_dg_T
 struct Vector_i* constructor_nnz_dg_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
+
+#include "undef_templates_solve_dg.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_multiarray.h"

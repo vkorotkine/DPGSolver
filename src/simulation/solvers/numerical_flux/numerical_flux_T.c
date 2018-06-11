@@ -261,3 +261,12 @@ static void combine_num_flux_boundary_dnnf_dg_s_T
 		return;
 	EXIT_ADD_SUPPORT; UNUSED(num_flux);
 }
+
+#include "undef_templates_numerical_flux.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_math_functions.h"
+#include "undef_templates_test_case.h"

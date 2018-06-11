@@ -104,3 +104,13 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 
 	return s_params;
 }
+
+#include "undef_templates_compute_volume_rlhs_dg.h"
+
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dg.h"
+
+#include "undef_templates_compute_volume_rlhs.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_test_case.h"
+#include "undef_templates_operators.h"

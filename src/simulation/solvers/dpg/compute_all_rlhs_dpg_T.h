@@ -20,6 +20,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "def_templates_compute_all_rlhs_dpg.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_volume_solver_dpg.h"
+#include "def_templates_face_solver_dpg.h"
+#include "def_templates_matrix.h"
+#include "def_templates_vector.h"
+
 struct Simulation;
 struct Solver_Storage_Implicit;
 struct Intrusive_List;
@@ -84,3 +91,10 @@ void add_to_rlhs__face_boundary_T
 	 struct Matrix_T* rhs,                        ///< The rhs matrix contribution for the current volume/faces.
 	 const struct Simulation*const sim            ///< \ref Simulation.
 	);
+
+#include "undef_templates_compute_all_rlhs_dpg.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dpg.h"
+#include "undef_templates_face_solver_dpg.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_vector.h"

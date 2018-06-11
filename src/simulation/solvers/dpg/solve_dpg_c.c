@@ -15,21 +15,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "test_complex_solve_dpg.h"
-
-#include "complex_multiarray.h"
-
-#include "test_complex_face_solver_dpg.h"
-#include "test_complex_volume_solver_dpg.h"
-
-#include "test_complex_boundary.h"
-#include "test_complex_boundary_advection.h"
-#include "test_complex_boundary_euler.h"
-#include "test_complex_compute_all_rhs_dpg.h"
-#include "test_support_computational_elements.h"
-#include "test_support_multiarray.h"
-#include "test_complex_test_case.h"
-
+#include "solve_dpg_c.h"
 
 #include <assert.h>
 
@@ -66,12 +52,8 @@ static struct Intrusive_List* constructor_Volumes_local_f
 
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_dc.h"
-#include "solve_dpg_T.c"
-
 void perturb_solution_dpg (const struct Simulation* sim)
 {
-/// \todo template this but as part of test_complex_solve_dpg_T such that functions are not accessible to the main code.
 	if (sim->test_case_rc->is_real) {
 		struct Test_Case* test_case = (struct Test_Case*) sim->test_case_rc->tc;
 		assert(test_case->has_2nd_order == false); // Add support.

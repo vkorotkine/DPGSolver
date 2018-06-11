@@ -46,3 +46,10 @@ void destructor_derived_OPG_Solver_Volume_T (struct Volume* volume_ptr)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_volume_solver_opg.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_volume_solver.h"

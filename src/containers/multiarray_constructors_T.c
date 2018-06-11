@@ -21,6 +21,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_core.h"
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_operators.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -609,3 +614,8 @@ void destructor_const_Multiarray2_Matrix_T (const struct const_Multiarray_Matrix
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_operators.h"

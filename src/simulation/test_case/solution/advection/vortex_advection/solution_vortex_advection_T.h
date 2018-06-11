@@ -16,6 +16,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to functions used to set the solution for the vortex_advection test case.
  */
 
+#include "def_templates_solution.h"
+#include "def_templates_solution_advection.h"
+#include "def_templates_multiarray.h"
+
 struct const_Multiarray_T;
 struct const_Multiarray_R;
 struct Simulation;
@@ -33,3 +37,7 @@ const struct const_Multiarray_T* constructor_const_sol_vortex_advection_T
 	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
+
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_advection.h"
+#include "undef_templates_multiarray.h"

@@ -428,3 +428,14 @@ static void read_data_default_diffusion (struct Sol_Data__dd*const sol_data)
 	if (count_found != count_to_find)
 		EXIT_ERROR("Did not find the required number of variables");
 }
+
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_diffusion.h"
+
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_operators.h"
+#include "undef_templates_solve.h"
+#include "undef_templates_test_case.h"
