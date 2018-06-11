@@ -97,9 +97,6 @@ static void constructor_derived_OPG_Solver_Element_std (struct Element* element_
 
 	opg_s_e->cv0_vt_fc[0] = constructor_operators("cv0","vtA","fcs","H_CF_P_PM1",e,sim); // destructed
 	opg_s_e->cv0_vt_fc[1] = constructor_operators("cv0","vtA","fcc","H_CF_P_PM1",e,sim); // destructed
-
-	opg_s_e->cv1_vt_fc[0] = constructor_operators("cv1","vtA","fcs","H_CF_P_PM1",e,sim); // destructed
-	opg_s_e->cv1_vt_fc[1] = constructor_operators("cv1","vtA","fcc","H_CF_P_PM1",e,sim); // destructed
 }
 
 static void constructor_derived_OPG_Solver_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
@@ -135,12 +132,15 @@ static void constructor_derived_OPG_Solver_Element_tp (struct Element* element_p
 	set_operators_tp(&ops_tp,opg_s_se[0]->cv0_vt_vc[1],opg_s_se[0]->cv0_vt_fc[1],
 	                         opg_s_se[1]->cv0_vt_vc[1],opg_s_se[1]->cv0_vt_fc[1]);
 	opg_s_e->cv0_vt_fc[1] = constructor_operators_tp("cv0","vsA","fcc","H_CF_P_PM1",e,sim,&ops_tp); // destructed
-
-	// No tensor-product operators currently provided for cv1_vt_fc as this requires implementation of
-	// functionality to construct tp operators from 8 inputs... Implement if this becomes important.
 }
 
 static void constructor_derived_OPG_Solver_Element_common (struct Element* element_ptr, const struct Simulation* sim)
 {
-	UNUSED(element_ptr); UNUSED(sim);
+	struct const_Element*const e = (struct const_Element*) element_ptr;
+	struct OPG_Solver_Element*const opg_s_e = (struct OPG_Solver_Element*) element_ptr;
+
+	// Can be moved to the standard functions once the functionality for 8 tensor-product operator inputs becomes
+	// supported.
+	opg_s_e->cv1_vt_fc[0] = constructor_operators("cv1","vtA","fcs","H_CF_P_PM1",e,sim); // destructed
+	opg_s_e->cv1_vt_fc[1] = constructor_operators("cv1","vtA","fcc","H_CF_P_PM1",e,sim); // destructed
 }

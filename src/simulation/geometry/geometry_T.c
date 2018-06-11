@@ -657,9 +657,6 @@ static void compute_vol_jacobian_det_fc_T (struct Solver_Face_T*const s_face)
 	          ind_lf = face->neigh_info[0].ind_lf;
 
 	const struct Multiarray_Operator* g_e__cv1_vg_fc = (!curved ? g_e->cv1_vgs_fc[curved] : g_e->cv1_vgc_fc[curved]);
-//print_Multiarray_Operator(g_e__cv1_vg_fc);
-printf("%d %p\n",curved,g_e__cv1_vg_fc);
-printf("%d %d %d% d %d\n",ind_lf,0,0,p,p_g);
 	const struct Multiarray_Operator cv1_vg_fc = set_MO_from_MO(g_e__cv1_vg_fc,1,(ptrdiff_t[]){ind_lf,0,0,p,p_g});
 
 	const ptrdiff_t n_fc = cv1_vg_fc.data[0]->op_std->ext_0;

@@ -56,9 +56,9 @@ Please consult the [installation instructions](INSTALL.md) for details concernin
 ### Build using CMake
 
 An out-of-source build must be performed using the [sample scripts](cmake/run) by executing the
-appropriate bash script. For example, to configure for the debug build for macOS:
+appropriate bash script. For example, to configure for the debug build:
 ```sh
-$ ROOT/cmake/run$ ./macOS_gcc_debug.sh
+$ ROOT/cmake/run$ ./debug.sh
 ```
 
 **A customized script file may be required** if CMake is unable to locate required software which

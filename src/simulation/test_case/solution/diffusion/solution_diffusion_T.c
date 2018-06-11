@@ -58,7 +58,8 @@ void set_function_pointers_solution_diffusion_T (struct Test_Case_T* test_case, 
 		test_case->set_grad                     = set_grad_diffusion_default_steady_T;
 		test_case->compute_source_rhs           = compute_source_rhs_diffusion_default_steady_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_diffusion_default_steady_T;
-		test_case->constructor_Error_CE         = constructor_Error_CE_diffusion_all_p_rhs;
+		/* test_case->constructor_Error_CE         = constructor_Error_CE_diffusion_all_p_rhs; */
+		test_case->constructor_Error_CE         = constructor_Error_CE_diffusion_all;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}
