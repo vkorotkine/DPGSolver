@@ -22,6 +22,7 @@
          (tab-width . 8)
          (fill-column . 120)
          (eval . (add-hook 'c-mode-local-vars-hook  (lambda () (c-set-offset 'topmost-intro-cont '+))))
+         (eval . (add-hook 'c-mode-local-vars-hook  (lambda () (modify-syntax-entry ?_ "w")))) ; Make _ symbols count as part of words in c-mode.
          )
       )
  (c-mode (helm-make-build-dir . "build_debug_2D"))

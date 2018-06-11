@@ -107,7 +107,7 @@ static void destructor_sol_vc_col
  *  \ref compute_geometry_volume_T for the ordering of the metric terms if desired.
  */
 static struct Flux_Ref_T* constructor_Flux_Ref
-	(const struct const_Multiarray_R* m, ///< The metric terms.
+	(const struct const_Multiarray_T* m, ///< The metric terms.
 	 const struct Flux_T* flux           ///< The physical \ref Flux_T.
 	);
 
@@ -431,7 +431,7 @@ static void destructor_sol_vc_col (const struct const_Multiarray_T* sol_vc)
 	UNUSED(sol_vc);
 }
 
-static struct Flux_Ref_T* constructor_Flux_Ref (const struct const_Multiarray_R* m, const struct Flux_T* flux)
+static struct Flux_Ref_T* constructor_Flux_Ref (const struct const_Multiarray_T* m, const struct Flux_T* flux)
 {
 	assert(flux->f != NULL);
 	assert(m->extents[0] == flux->f->extents[0]);

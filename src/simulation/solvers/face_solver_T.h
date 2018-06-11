@@ -41,33 +41,33 @@ struct Solver_Face_T {
 	struct Multiarray_T* s_coef;  ///< The coefficients of the solution in the \ref Simulation::basis_sol.
 
 	/// Values of the physical xyz coordinates at the face cubature nodes.
-	const struct const_Multiarray_R*const xyz_fc;
+	const struct const_Multiarray_T*const xyz_fc;
 
 	/// Values of the physical xyz coordinates at the face cubature nodes on the exact domain boundary.
-	const struct const_Multiarray_R*const xyz_fc_ex_b;
+	const struct const_Multiarray_T*const xyz_fc_ex_b;
 
 	/// Values of the outward pointing unit normal vector at the face cubature nodes.
-	const struct const_Multiarray_R*const normals_fc;
+	const struct const_Multiarray_T*const normals_fc;
 
 	/** Values of the exact outward pointing unit normal vector at the face cubature nodes.
 	 *
 	 *  Unused unless one of the exact normal flags is enabled (boundary, all).
 	 */
-	const struct const_Multiarray_R*const normals_fc_exact;
+	const struct const_Multiarray_T*const normals_fc_exact;
 
 	/** The determinant of the face geometry Jacobian evaluated at the face cubature nodes. See (eq. (B.6),
 	 *  \cite Zwanenburg2016) for the precise definition. */
-	const struct const_Multiarray_R*const jacobian_det_fc;
+	const struct const_Multiarray_T*const jacobian_det_fc;
 
 	/** The determinant of the volume geometry Jacobian evaluated at the face cubature nodes. This is the same as \ref
 	 *  Solver_Volume_T::jacobian_det_vc but evaluated at the face cubature nodes. */
-	const struct const_Multiarray_R* vol_jacobian_det_fc;
+	const struct const_Multiarray_T* vol_jacobian_det_fc;
 
 	/// As for \ref Solver_Face_T::normals_fc but corresponding to the p1 geometry.
-	const struct const_Multiarray_R*const normals_p1;
+	const struct const_Multiarray_T*const normals_p1;
 
 	/// As for \ref Solver_Face_T::jacobian_det_fc but corresponding to the p1 geometry.
-	const struct const_Multiarray_R*const jacobian_det_p1;
+	const struct const_Multiarray_T*const jacobian_det_p1;
 
 	/** Construct 'r'ight numerical flux input members at face cubature nodes as seen from the left volume.
 	 *

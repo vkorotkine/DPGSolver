@@ -6,3 +6,6 @@ Petsc Solver Updates
 Internally straight
 1) Ensure that internally straight edges are correctly treated for non-conforming meshes where non-isoparametric
 geometry is used. I.e. ensure that non-conforming faces match after the linear correction.
+
+Code Updates
+1) Delete all functions in the src/testing/complex directory path.

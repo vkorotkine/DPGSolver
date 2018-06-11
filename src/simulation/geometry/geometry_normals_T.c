@@ -66,10 +66,10 @@ void correct_for_exact_normal_cylinder_T (struct Solver_Face_T*const s_face)
 	if (!face->boundary || face->bc < BC_CURVED_START)
 		return;
 
-	const struct const_Multiarray_R*const xyz_fc     = s_face->xyz_fc;
-	const struct const_Multiarray_R*const normals_fc = s_face->normals_fc;
+	const struct const_Multiarray_T*const xyz_fc     = s_face->xyz_fc;
+	const struct const_Multiarray_T*const normals_fc = s_face->normals_fc;
 
-	destructor_const_Multiarray_R(s_face->normals_fc_exact);
+	destructor_const_Multiarray_T(s_face->normals_fc_exact);
 	struct Multiarray_R*const normals_fc_exact = constructor_copy_Multiarray_R((struct Multiarray_R*)normals_fc); // k
 	const_constructor_move_Multiarray_R(&s_face->normals_fc_exact,normals_fc_exact);
 
@@ -109,10 +109,10 @@ void correct_for_exact_normal_gaussian_bump_T (struct Solver_Face_T*const s_face
 	if (!face->boundary || face->bc < BC_CURVED_START)
 		return;
 
-	const struct const_Multiarray_R*const xyz_fc     = s_face->xyz_fc;
-	const struct const_Multiarray_R*const normals_fc = s_face->normals_fc;
+	const struct const_Multiarray_T*const xyz_fc     = s_face->xyz_fc;
+	const struct const_Multiarray_T*const normals_fc = s_face->normals_fc;
 
-	destructor_const_Multiarray_R(s_face->normals_fc_exact);
+	destructor_const_Multiarray_T(s_face->normals_fc_exact);
 	struct Multiarray_R*const normals_fc_exact = constructor_copy_Multiarray_R((struct Multiarray_R*)normals_fc); // k
 	const_constructor_move_Multiarray_R(&s_face->normals_fc_exact,normals_fc_exact);
 

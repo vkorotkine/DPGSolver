@@ -93,6 +93,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
 
+#include "def_templates_type_dc.h"
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "multiarray_T.h"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
 // Interface functions ********************************************************************************************** //
 
 /** \brief Computes the `size`, which is the product of the `extents`.

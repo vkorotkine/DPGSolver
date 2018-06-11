@@ -38,6 +38,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_vector.h"
 #include "undef_templates_operators.h"
 
+#include "def_templates_type_dc.h"
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_operators.h"
+#include "multiarray_constructors_T.c"
+#include "undef_templates_type.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_operators.h"
+
 #include "def_templates_type_i.h"
 #include "def_templates_matrix_i.h"
 #include "def_templates_multiarray_i.h"

@@ -48,14 +48,14 @@ struct Solver_Volume_T {
 	 *  	- boundary volumes: the coefficients of the *blended* face geometry of order k_g.
 	 *  - DOM_PARAMETRIC: the coefficients of the mapped geometry of order k_g.
 	 */
-	const struct const_Multiarray_R*const geom_coef;
+	const struct const_Multiarray_T*const geom_coef;
 
 	/** The geometry coefficients corresponding to \ref Volume::xyz_ve (degree: p = 1). For each of the
 	 *  supported \ref Simulation::domain_type options, geom_coef represents:
 	 *  - DOM_STRAIGHT: the interpolation of xyz_ve into the geometry basis of order p_g.
 	 *  - DOM_PARAMETRIC: the high-order geometry __before__ being mapped through the parametrization.
 	 */
-	const struct const_Multiarray_R*const geom_coef_p1;
+	const struct const_Multiarray_T*const geom_coef_p1;
 
 	/// Pointer to function used to construct the parametrized surface geometry values (Set to NULL if not requried).
 	constructor_xyz_surface_fptr_T constructor_xyz_surface;
@@ -68,17 +68,17 @@ struct Solver_Volume_T {
 
 	/** The metric terms (cofactors of the geometry Jacobian) used for transformation of integrals between physical
 	 *  and computational space stored at the (v)olume (m)etric nodes. */
-	const struct const_Multiarray_R*const metrics_vm;
+	const struct const_Multiarray_T*const metrics_vm;
 
 	/** The metric terms (cofactors of the geometry Jacobian) used for transformation of integrals between physical
 	 *  and computational space stored at the (v)olume (c)ubature nodes. */
-	const struct const_Multiarray_R*const metrics_vc;
+	const struct const_Multiarray_T*const metrics_vc;
 
 	/// The determinant of the geometry mapping Jacobian evaluated at the volume cubature nodes.
-	const struct const_Multiarray_R*const jacobian_det_vc;
+	const struct const_Multiarray_T*const jacobian_det_vc;
 
 	/// Same as \ref Solver_Volume_T::metrics_vm but for the p1 geometry coefficients.
-	const struct const_Multiarray_R*const metrics_vm_p1;
+	const struct const_Multiarray_T*const metrics_vm_p1;
 
 	struct Vector_T* flux_imbalance; ///< The values of the flux imbalances for each equation.
 	struct Multiarray_T* l_mult; ///< The values of the Lagrange multipliers used to enforce conservation.
