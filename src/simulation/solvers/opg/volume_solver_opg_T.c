@@ -41,7 +41,7 @@ void destructor_derived_OPG_Solver_Volume_T (struct Volume* volume_ptr)
 {
 	struct OPG_Solver_Volume_T* opg_s_vol = (struct OPG_Solver_Volume_T*) volume_ptr;
 
-	destructor_const_Matrix_R(opg_s_vol->m_inv);
+	destructor_const_Matrix_T(opg_s_vol->m_inv);
 }
 
 // Static functions ************************************************************************************************* //

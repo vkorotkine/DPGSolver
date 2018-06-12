@@ -216,8 +216,9 @@ void const_constructor_copy_Multiarray_T
 	struct Multiarray_T* dest_m = constructor_move_Multiarray_T_T(src->layout,src->order,src->extents,true,data);
 	const_constructor_move_Multiarray_T(dest,dest_m);
 }
-#if TYPE_RC == TYPE_COMPLEX
-struct Multiarray_T* constructor_copy_Multiarray_T_Multiarray_R (struct Multiarray_R* src)
+
+#ifdef TYPE_RC
+struct Multiarray_T* constructor_copy_Multiarray_T_Multiarray_R (const struct Multiarray_R*const src)
 {
 	const ptrdiff_t size = compute_size(src->order,src->extents);
 	Type* data = malloc((size_t)size * sizeof *data); // moved
@@ -233,6 +234,7 @@ const struct const_Multiarray_T* constructor_copy_const_Multiarray_T_Multiarray_
 	return (struct const_Multiarray_T*) constructor_copy_Multiarray_T_Multiarray_R((struct Multiarray_R*)src);
 }
 #endif
+
 // Move constructors ************************************************************************************************ //
 
 struct Multiarray_T* constructor_move_Multiarray_T_T
@@ -522,14 +524,14 @@ const struct const_Multiarray_T* constructor_mm_tp_NN1C_const_Multiarray_T
 #endif
 // Destructors ****************************************************************************************************** //
 
-void destructor_Multiarray_T (struct Multiarray_T* a)
+void destructor_Multiarray_T (const struct Multiarray_T* a)
 {
 	assert(a != NULL);
 
 	free(a->extents);
 	if (a->owns_data)
 		free(a->data);
-	free(a);
+	free((void*)a);
 }
 
 void destructor_const_Multiarray_T (const struct const_Multiarray_T* a)

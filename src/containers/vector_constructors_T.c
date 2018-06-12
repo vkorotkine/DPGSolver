@@ -240,6 +240,27 @@ const struct const_Vector_T* constructor_dot_mult_const_Vector_T
 	return (const struct const_Vector_T*) constructor_move_Vector_T_T(ext_0_rep,true,data_c);
 }
 
+const struct const_Vector_T* constructor_dot_mult_const_Vector_T_RT
+	(const Type alpha, const struct const_Vector_R* a, const struct const_Vector_T* b, const int n_repeated)
+{
+	assert(a->ext_0 == b->ext_0);
+
+	const ptrdiff_t ext_0     = a->ext_0,
+	                ext_0_rep = n_repeated*ext_0;
+	Type* data_c = malloc((size_t)ext_0_rep * sizeof *data_c); // moved
+
+	for (ptrdiff_t i = 0; i < ext_0; ++i)
+		data_c[i] = alpha*a->data[i]*b->data[i];
+
+	for (int n = 1; n < n_repeated; ++n) {
+		const ptrdiff_t ind_c = ext_0*n;
+		for (ptrdiff_t i = 0; i < ext_0; ++i)
+			data_c[ind_c+i] = data_c[i];
+	}
+
+	return (const struct const_Vector_T*) constructor_move_Vector_T_T(ext_0_rep,true,data_c);
+}
+
 struct Vector_T* constructor_sum_Vectors_Vector_T
 	(const Type alpha_0, struct Vector_T*const src_0, const Type alpha_1, struct Vector_T*const src_1)
 {

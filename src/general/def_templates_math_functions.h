@@ -29,7 +29,9 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define equal_T     equal_d
 #define norm_T      norm_d
+#define norm_R_from_T norm_d_from_d
 #define norm_diff_T norm_diff_d
+#define norm_diff_RT norm_diff_dd
 #define max_abs_T   max_abs_d
 #define z_yxpz_T    z_yxpz
 #define z_yxpz_RTT  z_yxpz
@@ -39,6 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define maximum_RT    maximum_dd
 #define add_to_T    add_to_d
 #define dot_T       dot_d
+#define dot_R_from_RT dot_d_from_dd
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -54,7 +57,9 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define equal_T     equal_c
 #define norm_T      norm_c
+#define norm_R_from_T norm_d_from_c
 #define norm_diff_T norm_diff_c
+#define norm_diff_RT norm_diff_dc
 #define max_abs_T   max_abs_c
 #define z_yxpz_T    z_yxpz_c
 #define z_yxpz_RTT  z_yxpz_dcc
@@ -64,15 +69,19 @@ You should have received a copy of the GNU General Public License along with DPG
 #define maximum_RT    maximum_dc
 #define add_to_T    add_to_c
 #define dot_T       dot_c
+#define dot_R_from_RT dot_d_from_dc
 ///\}
 
 #endif
 
 ///\{ \name Real Data types/Function names
 #define abs_R  fabs
+#define sqrt_R sqrt
 #define pow_R  pow
 
 #define equal_R     equal_d
 #define norm_R      norm_d
+#define norm_diff_R norm_diff_d
 #define dot_R       dot_d
+#define max_abs_R   max_abs_d
 ///\}

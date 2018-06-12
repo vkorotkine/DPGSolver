@@ -31,8 +31,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "simulation.h"
 #include "test_case.h"
 
-#include "test_complex_volume_solver.h"
-
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
@@ -58,28 +56,20 @@ void copy_members_r_to_c_Solver_Volume
 
 	destructor_derived_Solver_Volume_c((struct Volume*)s_vol);
 
-	const_constructor_move_const_Multiarray_d
-		(&s_vol->geom_coef,constructor_copy_const_Multiarray_d(s_vol_r->geom_coef)); // destructed
-	const_constructor_move_const_Multiarray_d
-		(&s_vol->geom_coef_p1,constructor_copy_const_Multiarray_d(s_vol_r->geom_coef_p1)); // destructed
+	s_vol->geom_coef       = constructor_copy_const_Multiarray_c_Multiarray_d(s_vol_r->geom_coef);       // dest.
+	s_vol->geom_coef_p1    = constructor_copy_const_Multiarray_c_Multiarray_d(s_vol_r->geom_coef_p1);    // dest.
+	s_vol->sol_coef        = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->sol_coef);              // dest.
+	s_vol->grad_coef       = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->grad_coef);             // dest.
+	s_vol->metrics_vm      = constructor_copy_const_Multiarray_c_Multiarray_d(s_vol_r->metrics_vm);      // dest.
+	s_vol->metrics_vc      = constructor_copy_const_Multiarray_c_Multiarray_d(s_vol_r->metrics_vc);      // dest.
+	s_vol->jacobian_det_vc = constructor_copy_const_Multiarray_c_Multiarray_d(s_vol_r->jacobian_det_vc); // dest.
+	s_vol->metrics_vm_p1   = constructor_copy_const_Multiarray_c_Multiarray_d(s_vol_r->metrics_vm_p1);   // dest.
 
-	s_vol->sol_coef  = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->sol_coef);  // destructed
-	s_vol->grad_coef = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->grad_coef); // destructed
-
-	const_constructor_move_const_Multiarray_d(
-		&s_vol->metrics_vm,constructor_copy_const_Multiarray_d(s_vol_r->metrics_vm)); // destructed
-	const_constructor_move_const_Multiarray_d(
-		&s_vol->metrics_vc,constructor_copy_const_Multiarray_d(s_vol_r->metrics_vc)); // destructed
-	const_constructor_move_const_Multiarray_d(
-		&s_vol->jacobian_det_vc,constructor_copy_const_Multiarray_d(s_vol_r->jacobian_det_vc)); // destructed
-	const_constructor_move_const_Multiarray_d(
-		&s_vol->metrics_vm_p1,constructor_copy_const_Multiarray_d(s_vol_r->metrics_vm_p1)); // destructed
-
-	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	struct Test_Case*const test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	s_vol->flux_imbalance = constructor_empty_Vector_c(test_case->n_var); // destructed
-	s_vol->l_mult = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->l_mult); // destructed
-	s_vol->rhs         = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->rhs); // destructed
-	s_vol->test_s_coef = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->test_s_coef); // destructed
+	s_vol->l_mult         = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->l_mult); // destructed
+	s_vol->rhs            = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->rhs); // destructed
+	s_vol->test_s_coef    = constructor_copy_Multiarray_c_Multiarray_d(s_vol_r->test_s_coef); // destructed
 }
 
 // Static functions ************************************************************************************************* //

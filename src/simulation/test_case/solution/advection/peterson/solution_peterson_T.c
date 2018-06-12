@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_solution_advection.h"
 
 #include "def_templates_multiarray.h"
+#include "def_templates_math_functions.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -36,23 +37,23 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \return See brief. */
 static struct Multiarray_T* constructor_sol_peterson
 	(const struct Simulation* sim,        ///< Defined for \ref set_sol_peterson_T.
-	 const struct const_Multiarray_R* xyz ///< xyz coordinates at which to evaluate the solution.
+	 const struct const_Multiarray_T* xyz ///< xyz coordinates at which to evaluate the solution.
 	);
 
 // Interface functions ********************************************************************************************** //
 
 void set_sol_peterson_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
-	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+	const struct const_Multiarray_T* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_peterson(sim,xyz); // destructed
-	destructor_const_Multiarray_R(xyz);
+	destructor_const_Multiarray_T(xyz);
 
 	update_Solution_Container_sol_T(&sol_cont,sol,sim);
 	destructor_Multiarray_T(sol);
 }
 
 const struct const_Multiarray_T* constructor_const_sol_peterson_T
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
 	struct Multiarray_T* sol = constructor_sol_peterson(sim,xyz); // returned
 	return (const struct const_Multiarray_T*) sol;
@@ -62,11 +63,11 @@ const struct const_Multiarray_T* constructor_const_sol_peterson_T
 // Level 0 ********************************************************************************************************** //
 
 static struct Multiarray_T* constructor_sol_peterson
-	(const struct Simulation* sim, const struct const_Multiarray_R* xyz)
+	(const struct Simulation* sim, const struct const_Multiarray_T* xyz)
 {
 	assert(DIM == 2);
 
-	const struct Sol_Data__Advection sol_data = get_sol_data_advection();
+	const struct Sol_Data__Advection_T sol_data = get_sol_data_advection_T();
 
 	// Compute the solution
 	const ptrdiff_t n_vs = xyz->extents[0];
@@ -75,17 +76,17 @@ static struct Multiarray_T* constructor_sol_peterson
 
 	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_vs,n_var}); // returned
 
-	assert(sol_data.compute_b_adv == compute_b_adv_constant);
+	assert(sol_data.compute_b_adv == compute_b_adv_constant_T);
 
 	const Real*const b_adv = sol_data.compute_b_adv(NULL);
 	assert((b_adv[0] == 0.0) && (b_adv[1] == 1.0)); /* Can be made flexible in future but solution below must be
 	                                                 * modified. */
 
-	const Real* x = get_col_const_Multiarray_R(0,xyz);
+	const Type* x = get_col_const_Multiarray_T(0,xyz);
 
 	Type* u = get_col_Multiarray_T(0,sol);
 	for (int i = 0; i < n_vs; ++i)
-		u[i] = sin(2.15*x[i]+0.23);
+		u[i] = sin(2.15*real_T(x[i])+0.23);
 
 	return sol;
 }
@@ -94,4 +95,5 @@ static struct Multiarray_T* constructor_sol_peterson
 #include "undef_templates_solution_advection.h"
 
 #include "undef_templates_multiarray.h"
+#include "undef_templates_math_functions.h"
 #include "undef_templates_test_case.h"

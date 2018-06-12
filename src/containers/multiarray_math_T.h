@@ -74,6 +74,15 @@ void scale_Multiarray_T_by_Vector_R
 	 struct Multiarray_T*const a,         ///< See brief.
 	 const struct const_Vector_R*const b, ///< See brief.
 	 const bool invert_diag               ///< See brief.
+		);
+
+/// \brief 'T'ype version of \ref scale_Multiarray_T_by_Vector_R.
+void scale_Multiarray_by_Vector_T
+	(const char side,                     ///< See brief.
+	 const Real alpha,                    ///< See brief.
+	 struct Multiarray_T*const a,         ///< See brief.
+	 const struct const_Vector_T*const b, ///< See brief.
+	 const bool invert_diag               ///< See brief.
 	);
 
 /// \brief Sets `a = a + alpha*b`.
@@ -83,11 +92,18 @@ void add_in_place_Multiarray_T
 	 const struct const_Multiarray_T* b ///< Multiarray to add to array to be modified.
 	);
 
-/// \brief Sets `a = a * alpha*b` where input `b` is of `Real` type.
-void multiply_in_place_Multiarray_TR
+/// \brief sets `a = a * alpha*b` where input `b` is of `real` type.
+void multiply_in_place_Multiarray_T
 	(const Type alpha,                       ///< Scaling constant.
 	 struct Multiarray_T*const a,            ///< Multiarray to be modified.
-	 const struct const_Multiarray_R*const b ///< Multiarray to add to array to be modified.
+	 const struct const_Multiarray_T*const b ///< Multiarray to add to array to be modified.
+		);
+
+/// \brief 'T'ype-'R'eal version of \ref multiply_in_place_Multiarray_T.
+void multiply_in_place_Multiarray_TR
+	(const Type alpha,                       ///< See brief.
+	 struct Multiarray_T*const a,            ///< See brief.
+	 const struct const_Multiarray_R*const b ///< See brief.
 	);
 
 /// \brief Subtract the 2nd from the 1st multiarray in-place.
@@ -113,6 +129,15 @@ void mm_NNC_Multiarray_T
 	 const struct const_Matrix_R*const a,     ///< Defined for \ref mm_T.
 	 const struct const_Multiarray_T*const b, ///< Input `b`.
 	 struct Multiarray_T*const c              ///< Output `c`.
+	);
+
+/// \brief `version` of \ref mm_NNC_Multiarray_T for 'T'ype-'T'ype-'T'ype output and inputs.
+void mm_NNC_Multiarray_TTT
+	(const Real alpha,                        ///< See brief.
+	 const Real beta,                         ///< See brief.
+	 const struct const_Matrix_T*const a,     ///< See brief.
+	 const struct const_Multiarray_T*const b, ///< See brief.
+	 struct Multiarray_T*const c              ///< See brief.
 	);
 
 /** \brief Perform a matrix-matrix multiplication on a \ref const_Multiarray_T\*, interpreting the input multiarray as a

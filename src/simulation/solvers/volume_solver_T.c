@@ -57,21 +57,17 @@ void constructor_derived_Solver_Volume_T (struct Volume* volume_ptr, const struc
 	const_cast_i(&s_vol->p_ref,sim->p_ref[0]);
 	const_cast_i(&s_vol->ml,0);
 
-	const_constructor_move_Multiarray_R(&s_vol->geom_coef,constructor_default_Multiarray_R());    // destructed
-	const_constructor_move_Multiarray_R(&s_vol->geom_coef_p1,constructor_default_Multiarray_R()); // destructed
+	s_vol->geom_coef    = constructor_default_const_Multiarray_T(); // destructed
+	s_vol->geom_coef_p1 = constructor_default_const_Multiarray_T(); // destructed
 	set_function_pointers_constructor_xyz_surface(s_vol,sim);
 
 	s_vol->sol_coef  = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0});   // destructed
 	s_vol->grad_coef = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // destructed
 
-	const_constructor_move_Multiarray_R(
-		&s_vol->metrics_vm,constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
-	const_constructor_move_Multiarray_R(
-		&s_vol->metrics_vc,constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){0,0,0}));  // destructed
-	const_constructor_move_Multiarray_R(
-		&s_vol->jacobian_det_vc,constructor_empty_Multiarray_R('C',1,(ptrdiff_t[]){0})); // destructed
-	const_constructor_move_Multiarray_R(
-		&s_vol->metrics_vm_p1,constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){0,0,0})); // destructed
+	s_vol->metrics_vm      = constructor_empty_const_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // destructed
+	s_vol->metrics_vc      = constructor_empty_const_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // destructed
+	s_vol->jacobian_det_vc = constructor_empty_const_Multiarray_T('C',1,(ptrdiff_t[]){0});     // destructed
+	s_vol->metrics_vm_p1   = constructor_empty_const_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // destructed
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	s_vol->flux_imbalance = constructor_empty_Vector_T(test_case->n_var); // destructed
@@ -86,14 +82,14 @@ void destructor_derived_Solver_Volume_T (struct Volume* volume_ptr)
 {
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) volume_ptr;
 
-	destructor_const_Multiarray_R(s_vol->geom_coef);
-	destructor_const_Multiarray_R(s_vol->geom_coef_p1);
+	destructor_const_Multiarray_T(s_vol->geom_coef);
+	destructor_const_Multiarray_T(s_vol->geom_coef_p1);
 	destructor_Multiarray_T(s_vol->sol_coef);
 	destructor_Multiarray_T(s_vol->grad_coef);
-	destructor_const_Multiarray_R(s_vol->metrics_vm);
-	destructor_const_Multiarray_R(s_vol->metrics_vc);
-	destructor_const_Multiarray_R(s_vol->jacobian_det_vc);
-	destructor_const_Multiarray_R(s_vol->metrics_vm_p1);
+	destructor_const_Multiarray_T(s_vol->metrics_vm);
+	destructor_const_Multiarray_T(s_vol->metrics_vc);
+	destructor_const_Multiarray_T(s_vol->jacobian_det_vc);
+	destructor_const_Multiarray_T(s_vol->metrics_vm_p1);
 	destructor_Vector_T(s_vol->flux_imbalance);
 	destructor_Multiarray_T(s_vol->l_mult);
 	destructor_Multiarray_T(s_vol->rhs);
@@ -111,34 +107,34 @@ const struct const_Vector_d* get_operator__w_vc__s_e_T (const struct Solver_Volu
 	return get_const_Multiarray_Vector_d(s_e->w_vc[curved],(ptrdiff_t[]){0,0,p,p});
 }
 
-const struct const_Matrix_R* constructor_mass_T (const struct Solver_Volume_T* s_vol)
+const struct const_Matrix_T* constructor_mass_T (const struct Solver_Volume_T* s_vol)
 {
-	const struct Operator*const cv0_vs_vc = get_operator__cv0_vs_vc_T(s_vol);
+	const struct Operator*const cv0_vs_vc  = get_operator__cv0_vs_vc_T(s_vol);
 	const struct const_Vector_R*const w_vc = get_operator__w_vc__s_e_T(s_vol);
-	const struct const_Vector_R jac_det_vc = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
+	const struct const_Vector_T jac_det_vc = interpret_const_Multiarray_as_Vector_T(s_vol->jacobian_det_vc);
 
-	const struct const_Vector_R*const wJ_vc = constructor_dot_mult_const_Vector_R(1.0,w_vc,&jac_det_vc,1); // dest.
+	const struct const_Vector_T*const wJ_vc = constructor_dot_mult_const_Vector_T_RT(1.0,w_vc,&jac_det_vc,1); // dest.
 
 	const struct const_Matrix_R*const m_l = cv0_vs_vc->op_std;
-	const struct const_Matrix_R*const m_r = constructor_mm_diag_const_Matrix_R(1.0,m_l,wJ_vc,'L',false); // destructed
-	destructor_const_Vector_R(wJ_vc);
+	const struct const_Matrix_T*const m_r = constructor_mm_diag_const_Matrix_R_T(1.0,m_l,wJ_vc,'L',false); // destructed
+	destructor_const_Vector_T(wJ_vc);
 
-	const struct const_Matrix_R*const mass = constructor_mm_const_Matrix_R('T','N',1.0,m_l,m_r,'R'); // returned
-	destructor_const_Matrix_R(m_r);
+	const struct const_Matrix_T*const mass = constructor_mm_RT_const_Matrix_T('T','N',1.0,m_l,m_r,'R'); // returned
+	destructor_const_Matrix_T(m_r);
 
 	return mass;
 }
 
-const struct const_Matrix_R* constructor_inverse_mass_T
-	(const struct Solver_Volume_T*const s_vol, const struct const_Matrix_R*const mass)
+const struct const_Matrix_T* constructor_inverse_mass_T
+	(const struct Solver_Volume_T*const s_vol, const struct const_Matrix_T*const mass)
 {
-	const struct const_Matrix_R* m_inv = NULL;
+	const struct const_Matrix_T* m_inv = NULL;
 	if (mass) {
-		m_inv = constructor_inverse_const_Matrix_R(mass); // returned
+		m_inv = constructor_inverse_const_Matrix_T(mass); // returned
 	} else {
-		const struct const_Matrix_R*const mass = constructor_mass_T(s_vol); // destructed
-		m_inv = constructor_inverse_const_Matrix_R(mass); // returned
-		destructor_const_Matrix_R(mass);
+		const struct const_Matrix_T*const mass = constructor_mass_T(s_vol); // destructed
+		m_inv = constructor_inverse_const_Matrix_T(mass); // returned
+		destructor_const_Matrix_T(mass);
 	}
 	return m_inv;
 }

@@ -77,13 +77,13 @@ struct Boundary_Value_Input_T {
 	int p;    ///< \ref Solver_Face_T::p_ref.
 
 /// \todo geometry: Real -> Templated
-	const struct const_Multiarray_R* normals;     ///< The unit normal vector components.
-	const struct const_Multiarray_R* normals_std; ///< Standard unit normal vector components (computed from metrics).
-	const struct const_Multiarray_R* xyz;     ///< The xyz coordinates.
-	const struct const_Multiarray_R* xyz_ex;  ///< \ref Solver_Face_T::xyz_fc_ex_b.
+	const struct const_Multiarray_T* normals;     ///< The unit normal vector components.
+	const struct const_Multiarray_T* normals_std; ///< Standard unit normal vector components (computed from metrics).
+	const struct const_Multiarray_T* xyz;     ///< The xyz coordinates.
+	const struct const_Multiarray_T* xyz_ex;  ///< \ref Solver_Face_T::xyz_fc_ex_b.
 
 	/// \ref Solver_Face_T::jacobian_det_fc. \todo Remove if unused (was possibly used only for testing purposes).
-	const struct const_Multiarray_R* jacobian_det_fc;
+	const struct const_Multiarray_T* jacobian_det_fc;
 
 	const struct const_Multiarray_T* s; ///< The solution variables.
 	const struct const_Multiarray_T* g; ///< The solution gradient variables.

@@ -263,8 +263,8 @@ static Real compute_scaling_weak_gradient
 static void scale_by_Jacobian_e_T
 	(struct Numerical_Flux_T*const num_flux, const struct Solver_Face_T*const s_face)
 {
-	const struct const_Vector_R jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
-	scale_Multiarray_T_by_Vector_R('L',1.0,(struct Multiarray_T*)num_flux->nnf,&jacobian_det_fc,false);
+	const struct const_Vector_T jacobian_det_fc = interpret_const_Multiarray_as_Vector_T(s_face->jacobian_det_fc);
+	scale_Multiarray_by_Vector_T('L',1.0,(struct Multiarray_T*)num_flux->nnf,&jacobian_det_fc,false);
 }
 
 static struct Multiarray_T* constructor_partial_grad_fc_interp

@@ -19,10 +19,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
-///\{ \name Function pointers
-#define scale_by_Jacobian_fptr_T scale_by_Jacobian_fptr
-///\}
-
 ///\{ \name Function names
 #define compute_face_rlhs_dg_T                     compute_face_rlhs_dg
 #define compute_flux_imbalances_faces_dg_T         compute_flux_imbalances_faces_dg
@@ -41,10 +37,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_scaling_weak_gradient compute_scaling_weak_gradient
 
 #elif TYPE_RC == TYPE_COMPLEX
-
-///\{ \name Function pointers
-#define scale_by_Jacobian_fptr_T scale_by_Jacobian_fptr_c
-///\}
 
 ///\{ \name Function names
 #define compute_face_rlhs_dg_T                     compute_face_rlhs_dg_c

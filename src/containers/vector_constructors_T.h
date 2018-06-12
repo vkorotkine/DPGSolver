@@ -193,6 +193,15 @@ const struct const_Vector_T* constructor_dot_mult_const_Vector_T
 	 const struct const_Vector_T* a, ///< The 1st input.
 	 const struct const_Vector_T* b, ///< The 2nd input.
 	 const int n_repeated            ///< The number of times the sub-vector should be repeated.
+		);
+
+/** \brief `version` of \ref constructor_dot_mult_const_Vector_T taking 'R'eal and 'T'ype inputs.
+ *  \return See brief. */
+const struct const_Vector_T* constructor_dot_mult_const_Vector_T_RT
+	(const Type alpha,               ///< See brief.
+	 const struct const_Vector_R* a, ///< See brief.
+	 const struct const_Vector_T* b, ///< See brief.
+	 const int n_repeated            ///< See brief.
 	);
 
 /** \brief Constructs a \ref Vector_T\* as the sum of the entries of the two inputs scaled by the input constants.

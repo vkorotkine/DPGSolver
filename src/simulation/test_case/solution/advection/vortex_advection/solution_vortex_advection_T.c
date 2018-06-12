@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_solution_advection.h"
 
 #include "def_templates_multiarray.h"
+#include "def_templates_math_functions.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -37,23 +38,23 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \return See brief. */
 static struct Multiarray_T* constructor_sol_vortex_advection
 	(const struct Simulation* sim,        ///< Defined for \ref set_sol_vortex_advection_T.
-	 const struct const_Multiarray_R* xyz ///< xyz coordinates at which to evaluate the solution.
+	 const struct const_Multiarray_T* xyz ///< xyz coordinates at which to evaluate the solution.
 	);
 
 // Interface functions ********************************************************************************************** //
 
 void set_sol_vortex_advection_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
-	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+	const struct const_Multiarray_T* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_vortex_advection(sim,xyz); // destructed
-	destructor_const_Multiarray_R(xyz);
+	destructor_const_Multiarray_T(xyz);
 
 	update_Solution_Container_sol_T(&sol_cont,sol,sim);
 	destructor_Multiarray_T(sol);
 }
 
 const struct const_Multiarray_T* constructor_const_sol_vortex_advection_T
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
 	struct Multiarray_T* sol = constructor_sol_vortex_advection(sim,xyz); // returned
 	return (const struct const_Multiarray_T*) sol;
@@ -63,7 +64,7 @@ const struct const_Multiarray_T* constructor_const_sol_vortex_advection_T
 // Level 0 ********************************************************************************************************** //
 
 static struct Multiarray_T* constructor_sol_vortex_advection
-	(const struct Simulation* sim, const struct const_Multiarray_R* xyz)
+	(const struct Simulation* sim, const struct const_Multiarray_T* xyz)
 {
 	assert(DIM == 2);
 
@@ -72,10 +73,10 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 
 	static bool requires_input = true;
 	if (requires_input) {
-		const struct Sol_Data__Advection sol_data = get_sol_data_advection();
-		if (sol_data.compute_b_adv == compute_b_adv_vortex)
+		const struct Sol_Data__Advection_T sol_data = get_sol_data_advection_T();
+		if (sol_data.compute_b_adv == compute_b_adv_vortex_T)
 			adv_type = ADVECTION_TYPE_VORTEX;
-		else if (sol_data.compute_b_adv == compute_b_adv_constant)
+		else if (sol_data.compute_b_adv == compute_b_adv_constant_T)
 			adv_type = ADVECTION_TYPE_CONST;
 		else
 			EXIT_UNSUPPORTED;
@@ -89,19 +90,19 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 
 	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,n_var}); // returned
 
-	const Real* x = get_col_const_Multiarray_R(0,xyz),
-	          * y = get_col_const_Multiarray_R(1,xyz);
+	const Type* x = get_col_const_Multiarray_T(0,xyz),
+	          * y = get_col_const_Multiarray_T(1,xyz);
 
 	Type* u = get_col_Multiarray_T(0,sol);
 
-	const struct Sol_Data__Advection sol_data = get_sol_data_advection();
+	const struct Sol_Data__Advection_T sol_data = get_sol_data_advection_T();
 	const double scale = sol_data.u_scale;
 	assert(scale != 0.0);
 	switch (adv_type) {
 	case ADVECTION_TYPE_VORTEX:
 		if (!use_constant_solution) {
 			for (int i = 0; i < n_n; ++i) {
-				const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]);
+				const Real r  = sqrt(real_T(x[i])*real_T(x[i])+real_T(y[i])*real_T(y[i]));
 				u[i] = scale*sin(1.1e1*r)*cos(1.3e1*r);
 			}
 		} else {
@@ -111,7 +112,7 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 		break;
 	case ADVECTION_TYPE_CONST: {
 		for (int i = 0; i < n_n; ++i)
-			u[i] = scale*sin(0.1*y[i])*cos(0.3*y[i]);
+			u[i] = scale*sin(0.1*real_T(y[i]))*cos(0.3*real_T(y[i]));
 		break;
 	} default:
 		EXIT_ERROR("Unsupported: %d\n",adv_type);
@@ -125,4 +126,5 @@ static struct Multiarray_T* constructor_sol_vortex_advection
 #include "undef_templates_solution_advection.h"
 
 #include "undef_templates_multiarray.h"
+#include "undef_templates_math_functions.h"
 #include "undef_templates_test_case.h"

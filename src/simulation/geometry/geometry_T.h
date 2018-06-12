@@ -57,7 +57,7 @@ void set_up_solver_geometry_p1_T
 /// \brief Compute the face unit normal vectors at the nodes corresponding to the given face metrics.
 void compute_unit_normals_T
 	(const int ind_lf,                             ///< Defined for \ref compute_unit_normals_and_det_T.
-	 const struct const_Multiarray_T* normals_ref, ///< Defined for \ref compute_unit_normals_and_det_T.
+	 const struct const_Multiarray_R* normals_ref, ///< Defined for \ref compute_unit_normals_and_det_T.
 	 const struct const_Multiarray_T* metrics_f,   ///< Defined for \ref compute_unit_normals_and_det_T.
 	 struct Multiarray_T* normals_f                ///< Defined for \ref compute_unit_normals_and_det_T.
 	);

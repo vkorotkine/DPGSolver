@@ -50,8 +50,8 @@ void constructor_derived_DG_Solver_Face_T (struct Face* face_ptr, const struct S
 
 			if (test_case->solver_method_curr == 'i') {
 				for (int i = 0; i < DIM; ++i) {
-					ni->d_g_coef_f__d_s_coef[0][i] = constructor_empty_const_Matrix_R('R',0,0); // destructed
-					ni->d_g_coef_f__d_s_coef[1][i] = constructor_empty_const_Matrix_R('R',0,0); // destructed
+					ni->d_g_coef_f__d_s_coef[0][i] = constructor_empty_const_Matrix_T('R',0,0); // destructed
+					ni->d_g_coef_f__d_s_coef[1][i] = constructor_empty_const_Matrix_T('R',0,0); // destructed
 				}
 			} else {
 				assert(test_case->solver_method_curr == 'e');
@@ -71,8 +71,8 @@ void destructor_derived_DG_Solver_Face_T (struct Face* face_ptr)
 
 		destructor_conditional_Multiarray_T(ni->grad_coef_f);
 		for (int i = 0; i < DIM; ++i) {
-			destructor_conditional_const_Matrix_R(ni->d_g_coef_f__d_s_coef[0][i]);
-			destructor_conditional_const_Matrix_R(ni->d_g_coef_f__d_s_coef[1][i]);
+			destructor_conditional_const_Matrix_T(ni->d_g_coef_f__d_s_coef[0][i]);
+			destructor_conditional_const_Matrix_T(ni->d_g_coef_f__d_s_coef[1][i]);
 		}
 	}
 }

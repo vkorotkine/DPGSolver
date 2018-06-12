@@ -176,7 +176,7 @@ void copy_rhs (const struct Simulation*const sim, struct Solver_Storage_Implicit
 		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
 
 		destructor_conditional_Multiarray_d(s_vol->rhs_0);
-		s_vol->rhs_0 = constructor_copy_Multiarray_T(s_vol->rhs); // keep
+		s_vol->rhs_0 = constructor_copy_Multiarray_d(s_vol->rhs); // keep
 	}
 }
 

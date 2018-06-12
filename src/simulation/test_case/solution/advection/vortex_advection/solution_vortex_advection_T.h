@@ -21,7 +21,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 
 struct const_Multiarray_T;
-struct const_Multiarray_R;
 struct Simulation;
 struct Solution_Container_T;
 
@@ -34,7 +33,7 @@ void set_sol_vortex_advection_T
 /** \brief Function to be used for \ref Test_Case_T::constructor_sol for the vortex_advection test case.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_sol_vortex_advection_T
-	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	(const struct const_Multiarray_T* xyz, ///< Defined for \ref constructor_sol_fptr_T.
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
 

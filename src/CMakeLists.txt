@@ -42,6 +42,7 @@ include_directories(
 	simulation/test_case/solution/restart
 	simulation/visualization
 	testing
+	testing/integration
 	)
 
 configure_file_h_in(${PROJECT_SOURCE_DIR}/src/ definitions_core.h.in)

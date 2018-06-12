@@ -25,16 +25,26 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
-///\{ \name Function names
-#define set_function_pointers_solution_advection_T set_function_pointers_solution_advection
-///\}
+#define compute_b_adv_fptr_T compute_b_adv_fptr_d
+#define Sol_Data__Advection_T Sol_Data__Advection_d
+#define set_function_pointers_solution_advection_T set_function_pointers_solution_advection_d
+#define get_sol_data_advection_T get_sol_data_advection_d
+#define read_data_advection_T read_data_advection_d
+#define compute_b_adv_constant_T compute_b_adv_constant_d
+#define compute_b_adv_vortex_T compute_b_adv_vortex_d
 
 #define set_function_pointers_num_flux_T set_function_pointers_num_flux_T
 
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
+#define compute_b_adv_fptr_T compute_b_adv_fptr_c
+#define Sol_Data__Advection_T Sol_Data__Advection_c
 #define set_function_pointers_solution_advection_T set_function_pointers_solution_advection_c
+#define get_sol_data_advection_T get_sol_data_advection_c
+#define read_data_advection_T read_data_advection_c
+#define compute_b_adv_constant_T compute_b_adv_constant_c
+#define compute_b_adv_vortex_T compute_b_adv_vortex_c
 ///\}
 
 #define set_function_pointers_num_flux_T set_function_pointers_num_flux_T_c

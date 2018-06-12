@@ -62,6 +62,28 @@ const struct const_Multiarray_T* constructor_mm_NN1_Operator_const_Multiarray_T
 	 const ptrdiff_t* sub_inds_b         ///< See brief.
 	);
 
+/** \brief `version` of \ref constructor_mm_NN1_Operator_Multiarray_T taking a 'R'eal input.
+ *  \return See brief. */
+struct Multiarray_T* constructor_mm_NN1_Operator_Multiarray_T_Multiarray_R
+	(const struct Operator* op,    ///< \ref Operator.
+	 const struct Multiarray_R* b, ///< The input multiarray.
+	 const char layout_c,          ///< The desired layout of the output `c`.
+	 const char op_format,         ///< The operator format to be used.
+	 const int order_sub_ma,       ///< The order of each of the sub-multiarrays to be operated on.
+	 const ptrdiff_t* sub_inds_b   ///< The sub-indices of the `b` multiarray if required.
+	);
+
+/** \brief `const` version of \ref constructor_mm_NN1_Operator_Multiarray_T_Multiarray_R.
+ *  \return See brief. */
+const struct const_Multiarray_T* constructor_mm_NN1_Operator_const_Multiarray_T_Multiarray_R
+	(const struct Operator* op,          ///< See brief.
+	 const struct const_Multiarray_R* b, ///< See brief.
+	 const char layout_c,                ///< See brief.
+	 const char op_format,               ///< See brief.
+	 const int order_sub_ma,             ///< See brief.
+	 const ptrdiff_t* sub_inds_b         ///< See brief.
+	);
+
 // General functions ************************************************************************************************ //
 
 /// \brief Set the input arrays to hold the number of rows and columns of the tensor-product operators.

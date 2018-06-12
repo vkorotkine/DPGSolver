@@ -44,10 +44,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /** \brief Version of \ref constructor_xyz_fptr_T used for the blended curved surface geometry corrections.
  *  \return See brief. */
-static const struct const_Multiarray_R* constructor_xyz_blended_ce
+static const struct const_Multiarray_T* constructor_xyz_blended_ce
 	(const char ce_type,                     ///< The surface computational element type.
 	 const char n_type,                      ///< Defined for \ref constructor_xyz_fptr_T.
-	 const struct const_Multiarray_R* xyz_i, ///< Defined for \ref constructor_xyz_fptr_T.
+	 const struct const_Multiarray_T* xyz_i, ///< Defined for \ref constructor_xyz_fptr_T.
 	 const struct Solver_Volume_T* s_vol,    ///< Defined for \ref constructor_xyz_fptr_T.
 	 const bool use_existing_as_surf,        ///< Defined for \ref constructor_xyz_surf_diff_T.
 	 const bool boundary_only,               ///< Flag for whether only domain boundary entities should be checked.
@@ -56,20 +56,20 @@ static const struct const_Multiarray_R* constructor_xyz_blended_ce
 
 // Interface functions ********************************************************************************************** //
 
-const struct const_Multiarray_R* constructor_xyz_blended_T
-	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+const struct const_Multiarray_T* constructor_xyz_blended_T
+	(const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim)
 {
 	assert(DIM >= 2);
 	assert(DIM == xyz_i->extents[1]);
 
-	const struct const_Multiarray_R*const xyz_e =
+	const struct const_Multiarray_T*const xyz_e =
 		( DIM == DMAX ? constructor_xyz_blended_ce('e',n_type,xyz_i,s_vol,false,true,sim) : xyz_i ); // dest.
 
-	const struct const_Multiarray_R*const xyz =
+	const struct const_Multiarray_T*const xyz =
 		constructor_xyz_blended_ce('f',n_type,xyz_e,s_vol,false,true,sim); // returned
 	if (DIM == DMAX)
-		destructor_const_Multiarray_R(xyz_e);
+		destructor_const_Multiarray_T(xyz_e);
 
 	return xyz;
 }
@@ -80,19 +80,19 @@ void correct_internal_xyz_blended_T (struct Solver_Volume_T*const s_vol, const s
 		return;
 
 	const char n_type = 'g';
-	const struct const_Multiarray_R* xyz_s = constructor_xyz_s_ho_T('g',s_vol,sim); // destructed
+	const struct const_Multiarray_T* xyz_s = constructor_xyz_s_ho_T('g',s_vol,sim); // destructed
 	assert(DIM == xyz_s->extents[1]);
 
-	const struct const_Multiarray_R*const xyz =
+	const struct const_Multiarray_T*const xyz =
 		constructor_xyz_blended_ce('f',n_type,xyz_s,s_vol,true,false,sim); // destructed
-	destructor_const_Multiarray_R(xyz_s);
+	destructor_const_Multiarray_T(xyz_s);
 
-	const struct const_Multiarray_R* geom_coef = constructor_geom_coef_ho_T(xyz,s_vol,sim); // destructed
-	destructor_const_Multiarray_R(xyz);
+	const struct const_Multiarray_T* geom_coef = constructor_geom_coef_ho_T(xyz,s_vol,sim); // destructed
+	destructor_const_Multiarray_T(xyz);
 
-	set_Multiarray_d((struct Multiarray_d*)s_vol->geom_coef,geom_coef);
+	set_Multiarray_T((struct Multiarray_T*)s_vol->geom_coef,geom_coef);
 
-	destructor_const_Multiarray_R(geom_coef);
+	destructor_const_Multiarray_T(geom_coef);
 }
 
 struct Boundary_Comp_Elem_Data_T constructor_static_Boundary_Comp_Elem_Data_T
@@ -185,12 +185,12 @@ void set_Boundary_Comp_Elem_operators_T
 	}
 }
 
-const struct const_Matrix_R* constructor_xyz_surf_diff_T
-	(const struct Boundary_Comp_Elem_Data_T*const b_ce_d, const struct const_Matrix_R*const xyz_i,
+const struct const_Matrix_T* constructor_xyz_surf_diff_T
+	(const struct Boundary_Comp_Elem_Data_T*const b_ce_d, const struct const_Matrix_T*const xyz_i,
 	 const struct Solver_Volume_T*const s_vol, const char n_type, const bool use_existing_as_surf,
 	 const struct Simulation*const sim)
 {
-	const struct const_Matrix_R* xyz_b = NULL;
+	const struct const_Matrix_T* xyz_b = NULL;
 	if (!use_existing_as_surf) {
 		assert(s_vol->constructor_xyz_surface != NULL);
 
@@ -210,28 +210,28 @@ const struct const_Matrix_R* constructor_xyz_surf_diff_T
 
 		xyz_b = s_vol->constructor_xyz_surface(&b_p_d); // destructed
 	} else {
-		const struct const_Matrix_R g_coef = interpret_const_Multiarray_as_Matrix_R(s_vol->geom_coef);
-		xyz_b = constructor_mm_const_Matrix_R('N','N',1.0,b_ce_d->cv0_vgc_bgc->op_std,&g_coef,'C'); // dest.
+		const struct const_Matrix_T g_coef = interpret_const_Multiarray_as_Matrix_T(s_vol->geom_coef);
+		xyz_b = constructor_mm_RT_const_Matrix_T('N','N',1.0,b_ce_d->cv0_vgc_bgc->op_std,&g_coef,'C'); // dest.
 	}
 
-	struct Matrix_R* xyz_surf_diff = NULL;
+	struct Matrix_T* xyz_surf_diff = NULL;
 	switch (n_type) {
 	case 'g': // fallthrough
 	case 'v':
-		xyz_surf_diff = constructor_mm_Matrix_R('N','N',-1.0,b_ce_d->vv0_vX_bX->op_std,xyz_i,'C'); // returned
+		xyz_surf_diff = constructor_mm_RT_Matrix_T('N','N',-1.0,b_ce_d->vv0_vX_bX->op_std,xyz_i,'C'); // returned
 		break;
 	case 'c':
-		xyz_surf_diff = constructor_copy_Matrix_R((struct Matrix_R*)xyz_i); // returned
-		scale_Matrix_R(xyz_surf_diff,-1.0);
+		xyz_surf_diff = constructor_copy_Matrix_T((struct Matrix_T*)xyz_i); // returned
+		scale_Matrix_T(xyz_surf_diff,-1.0);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %c",n_type);
 		break;
 	}
-	add_in_place_Matrix_R(1.0,xyz_surf_diff,xyz_b);
-	destructor_const_Matrix_R(xyz_b);
+	add_in_place_Matrix_T(1.0,xyz_surf_diff,xyz_b);
+	destructor_const_Matrix_T(xyz_b);
 
-	return (struct const_Matrix_R*) xyz_surf_diff;
+	return (struct const_Matrix_T*) xyz_surf_diff;
 }
 
 // Static functions ************************************************************************************************* //
@@ -265,17 +265,17 @@ static const struct const_Vector_R* constructor_blend_values
 /** \brief Constructor for a \ref const_Matrix_T\* storing the difference between the corrected and current geometry
  *         nodal values with volume geometry nodes projected to the boundary.
  *  \return See brief. */
-static const struct const_Matrix_R* constructor_xyz_diff_T
+static const struct const_Matrix_T* constructor_xyz_diff_T
 	(const struct Boundary_Comp_Elem_Data_T*const b_ce_d, ///< \ref Boundary_Comp_Elem_Data_T.
-	 const struct const_Matrix_R*const xyz_i,             ///< Input xyz coordinates.
+	 const struct const_Matrix_T*const xyz_i,             ///< Input xyz coordinates.
 	 const struct Solver_Volume_T*const s_vol,            ///< The current \ref Solver_Volume_T.
 	 const char n_type,                                   ///< \ref Blended_Parametric_Data_T::n_type.
 	 const bool use_existing_as_surf,                     ///< Defined for \ref constructor_xyz_surf_diff_T.
 	 const struct Simulation*const sim                    ///< \ref Simulation.
 	);
 
-static const struct const_Multiarray_R* constructor_xyz_blended_ce
-	(const char ce_type, const char n_type, const struct const_Multiarray_R* xyz_i,
+static const struct const_Multiarray_T* constructor_xyz_blended_ce
+	(const char ce_type, const char n_type, const struct const_Multiarray_T* xyz_i,
 	 const struct Solver_Volume_T* s_vol, const bool use_existing_as_surf, const bool boundary_only,
 	 const struct Simulation* sim)
 {
@@ -286,8 +286,8 @@ static const struct const_Multiarray_R* constructor_xyz_blended_ce
 	struct Boundary_Comp_Elem_Data_T b_ce_d =
 		constructor_static_Boundary_Comp_Elem_Data_T(ce_type,n_type,p_geom,s_vol); // destructed
 
-	struct Multiarray_R* xyz = constructor_copy_Multiarray_R((struct Multiarray_R*)xyz_i); // returned
-	struct Matrix_R xyz_M = interpret_Multiarray_as_Matrix_R(xyz);
+	struct Multiarray_T* xyz = constructor_copy_Multiarray_T((struct Multiarray_T*)xyz_i); // returned
+	struct Matrix_T xyz_M = interpret_Multiarray_as_Matrix_T(xyz);
 
 	const ptrdiff_t n_n = xyz_i->extents[0];
 	for (int p = p_min; p <= p_geom; ++p) {
@@ -298,23 +298,23 @@ static const struct const_Multiarray_R* constructor_xyz_blended_ce
 		set_Boundary_Comp_Elem_operators_T(&b_ce_d,s_vol,ce_type,n_type,p,b);
 
 		const struct const_Vector_R*const blend_values = constructor_blend_values(b,n_n,&b_ce_d); // destructed
-		const struct const_Matrix_R*const xyz_diff =
-			constructor_xyz_diff_T(&b_ce_d,(struct const_Matrix_R*)&xyz_M,s_vol,n_type,
+		const struct const_Matrix_T*const xyz_diff =
+			constructor_xyz_diff_T(&b_ce_d,(struct const_Matrix_T*)&xyz_M,s_vol,n_type,
 			                       use_existing_as_surf,sim); // destructed
 
 		for (int d = 0; d < DIM; ++d) {
-			Real*const data_xyz            = get_col_Matrix_R(d,&xyz_M);
-			const Real*const data_xyz_diff = get_col_const_Matrix_R(d,xyz_diff);
+			Type*const data_xyz            = get_col_Matrix_T(d,&xyz_M);
+			const Type*const data_xyz_diff = get_col_const_Matrix_T(d,xyz_diff);
 			for (int n = 0; n < n_n; ++n)
 				data_xyz[n] += blend_values->data[n]*data_xyz_diff[n];
 		}
 
 		destructor_const_Vector_d(blend_values);
-		destructor_const_Matrix_R(xyz_diff);
+		destructor_const_Matrix_T(xyz_diff);
 	}}
 	destructor_static_Boundary_Comp_Elem_Data_T(&b_ce_d);
 
-	return (struct const_Multiarray_R*) xyz;
+	return (struct const_Multiarray_T*) xyz;
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -397,17 +397,17 @@ static const struct const_Vector_R* constructor_blend_values
 	return (struct const_Vector_d*) blend_values;
 }
 
-static const struct const_Matrix_R* constructor_xyz_diff_T
-	(const struct Boundary_Comp_Elem_Data_T*const b_ce_d, const struct const_Matrix_R*const xyz_i,
+static const struct const_Matrix_T* constructor_xyz_diff_T
+	(const struct Boundary_Comp_Elem_Data_T*const b_ce_d, const struct const_Matrix_T*const xyz_i,
 	 const struct Solver_Volume_T*const s_vol, const char n_type, const bool use_existing_as_surf,
 	 const struct Simulation*const sim)
 {
-	const struct const_Matrix_R*const xyz_surf_diff =
+	const struct const_Matrix_T*const xyz_surf_diff =
 		constructor_xyz_surf_diff_T(b_ce_d,xyz_i,s_vol,n_type,use_existing_as_surf,sim); // destructed
 
-	const struct const_Matrix_R*const xyz_diff =
-		constructor_mm_const_Matrix_R('N','N',1.0,b_ce_d->vv0_bX_vX->op_std,xyz_surf_diff,'C'); // returned
-	destructor_const_Matrix_R(xyz_surf_diff);
+	const struct const_Matrix_T*const xyz_diff =
+		constructor_mm_RT_const_Matrix_T('N','N',1.0,b_ce_d->vv0_bX_vX->op_std,xyz_surf_diff,'C'); // returned
+	destructor_const_Matrix_T(xyz_surf_diff);
 
 	return xyz_diff;
 }

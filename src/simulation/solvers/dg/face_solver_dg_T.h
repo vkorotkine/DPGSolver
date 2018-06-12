@@ -42,7 +42,7 @@ struct DG_Solver_Face_T {
 		 *        and a single entry is stored for all combinations. However, for boundary faces, as the boundary
 		 *        values of the ghost state generally depend on all solution variables, all entries are required.
 		 */
-		const struct const_Matrix_R* d_g_coef_f__d_s_coef[2][DIM];
+		const struct const_Matrix_T* d_g_coef_f__d_s_coef[2][DIM];
 	} neigh_info[2]; ///< \ref Neigh_Info_DG. Uses the same indexing convention as that of \ref Face::neigh_info.
 };
 

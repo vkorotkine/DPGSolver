@@ -23,7 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_volume_rlhs_opg_T compute_volume_rlhs_opg
 ///\}
 
-#define S_Params_T S_Params_T
+#define S_Params_T S_Params
 #define set_s_params_T set_s_params_T
 
 #elif TYPE_RC == TYPE_COMPLEX

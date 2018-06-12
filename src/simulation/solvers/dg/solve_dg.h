@@ -20,8 +20,6 @@ You should have received a copy of the GNU General Public License along with DPG
  *         method.
  */
 
-#include "solve_dg_c.h"
-
 #include "def_templates_type_d.h"
 #include "solve_dg_T.h"
 #include "undef_templates_type.h"

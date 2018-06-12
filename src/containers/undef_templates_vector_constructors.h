@@ -45,6 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_inverse_Vector_T
 #undef constructor_inverse_const_Vector_T
 #undef constructor_dot_mult_const_Vector_T
+#undef constructor_dot_mult_const_Vector_T_RT
 #undef constructor_repeated_const_Vector_T
 #undef constructor_sum_Vectors_Vector_T
 #undef constructor_sum_Vectors_const_Vector_T

@@ -70,7 +70,7 @@ void constructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr, const st
 
 		if (test_case->solver_method_curr == 'i') {
 			for (int i = 0; i < DIM; ++i)
-				dg_s_vol->d_g_coef_v__d_s_coef[i] = constructor_empty_const_Matrix_R('R',0,0); // destructed
+				dg_s_vol->d_g_coef_v__d_s_coef[i] = constructor_empty_const_Matrix_T('R',0,0); // destructed
 		} else {
 			assert(test_case->solver_method_curr == 'e');
 		}
@@ -82,11 +82,11 @@ void destructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr)
 	struct DG_Solver_Volume_T* dg_s_vol = (struct DG_Solver_Volume_T*) volume_ptr;
 
 	destructor_conditional_Multiarray_T(dg_s_vol->sol_coef_p);
-	destructor_conditional_const_Matrix_R(dg_s_vol->m_inv);
-	destructor_conditional_const_Matrix_R(dg_s_vol->m);
+	destructor_conditional_const_Matrix_T(dg_s_vol->m_inv);
+	destructor_conditional_const_Matrix_T(dg_s_vol->m);
 	destructor_conditional_Multiarray_T(dg_s_vol->grad_coef_v);
 	for (int i = 0; i < DIM; ++i)
-		destructor_conditional_const_Matrix_R(dg_s_vol->d_g_coef_v__d_s_coef[i]);
+		destructor_conditional_const_Matrix_T(dg_s_vol->d_g_coef_v__d_s_coef[i]);
 }
 
 // Static functions ************************************************************************************************* //

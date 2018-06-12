@@ -32,14 +32,14 @@ struct DG_Solver_Volume_T {
 
 	struct Multiarray_T* sol_coef_p; ///< The coefficients of the solution at a previous Runge-Kutta stage.
 
-	const struct const_Matrix_R* m_inv; ///< The inverse mass matrix.
-	const struct const_Matrix_R* m;     ///< The mass matrix.
+	const struct const_Matrix_T* m_inv; ///< The inverse mass matrix.
+	const struct const_Matrix_T* m;     ///< The mass matrix.
 
 	// Terms required for 2nd order PDE terms.
 	struct Multiarray_T* grad_coef_v; ///< The volume contribution to the solution gradient coefficients.
 
 	/// Linearization of \ref DG_Solver_Volume_T::grad_coef_v wrt \ref Solver_Volume_T::sol_coef.
-	const struct const_Matrix_R* d_g_coef_v__d_s_coef[DIM];
+	const struct const_Matrix_T* d_g_coef_v__d_s_coef[DIM];
 };
 
 /// \brief Constructor for a derived \ref DG_Solver_Volume_T.

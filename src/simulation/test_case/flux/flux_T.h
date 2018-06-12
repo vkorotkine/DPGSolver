@@ -60,7 +60,7 @@ struct Flux_Input_T {
 
 	const struct const_Multiarray_T* s;   ///< The solution variables.
 	const struct const_Multiarray_T* g;   ///< The solution gradient variables.
-	const struct const_Multiarray_R* xyz; ///< The xyz-coordinates.
+	const struct const_Multiarray_T* xyz; ///< The xyz-coordinates.
 
 	compute_Flux_fptr_T compute_Flux;     ///< \ref compute_Flux_fptr_T calling appropriate 1st/2nd order functions.
 	compute_Flux_fptr_T compute_Flux_1st; ///< \ref compute_Flux_fptr_T for the 1st order fluxes.

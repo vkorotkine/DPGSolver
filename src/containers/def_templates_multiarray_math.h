@@ -29,10 +29,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #define permute_Multiarray_T                     permute_Multiarray_d
 #define permute_Multiarray_T_V                   permute_Multiarray_d_V
 #define scale_Multiarray_T_by_Vector_R           scale_Multiarray_by_Vector_d
+#define scale_Multiarray_by_Vector_T             scale_Multiarray_by_Vector_d_2
 #define add_in_place_Multiarray_T                add_in_place_Multiarray_d
+#define multiply_in_place_Multiarray_T           multiply_in_place_Multiarray_d
 #define multiply_in_place_Multiarray_TR          multiply_in_place_Multiarray_dd
 #define subtract_in_place_Multiarray_T           subtract_in_place_Multiarray_d
 #define mm_NNC_Multiarray_T                      mm_NNC_Multiarray_d
+#define mm_NNC_Multiarray_TTT                    mm_NNC_Multiarray_ddd
 #define mm_NN1C_Multiarray_T                     mm_NN1C_Multiarray_d
 #define mm_NN1C_overwrite_Multiarray_T           mm_NN1C_overwrite_Multiarray_d
 #define reinterpret_const_Multiarray_as_Matrix_T reinterpret_const_Multiarray_as_Matrix_d
@@ -53,10 +56,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #define permute_Multiarray_T                     permute_Multiarray_c
 #define permute_Multiarray_T_V                   permute_Multiarray_c_V
 #define scale_Multiarray_T_by_Vector_R           scale_Multiarray_c_by_Vector_d
+#define scale_Multiarray_by_Vector_T             scale_Multiarray_c_by_Vector_c
 #define add_in_place_Multiarray_T                add_in_place_Multiarray_c
+#define multiply_in_place_Multiarray_T           multiply_in_place_Multiarray_c
 #define multiply_in_place_Multiarray_TR          multiply_in_place_Multiarray_cd
 #define subtract_in_place_Multiarray_T           subtract_in_place_Multiarray_c
 #define mm_NNC_Multiarray_T                      mm_NNC_Multiarray_c
+#define mm_NNC_Multiarray_TTT                    mm_NNC_Multiarray_ccc
 #define mm_NN1C_Multiarray_T                     mm_NN1C_Multiarray_c
 #define mm_NN1C_overwrite_Multiarray_T           mm_NN1C_overwrite_Multiarray_c
 #define reinterpret_const_Multiarray_as_Matrix_T reinterpret_const_Multiarray_as_Matrix_c

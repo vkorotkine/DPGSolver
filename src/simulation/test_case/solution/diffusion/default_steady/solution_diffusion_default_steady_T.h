@@ -25,7 +25,6 @@ struct Simulation;
 struct Solution_Container_T;
 struct Solver_Volume_T;
 struct Multiarray_T;
-struct const_Multiarray_R;
 
 /// \brief Function to be used for \ref Test_Case_T::set_sol for the default steady diffusion solution.
 void set_sol_diffusion_default_steady_T
@@ -42,14 +41,14 @@ void set_grad_diffusion_default_steady_T
 /** \brief \ref Test_Case_T::constructor_sol for the default steady diffusion solution.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_sol_diffusion_default_steady_T
-	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	(const struct const_Multiarray_T* xyz, ///< Defined for \ref constructor_sol_fptr_T.
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
 
 /** \brief \ref Test_Case_T::constructor_grad for the default steady diffusion solution gradient.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_grad_diffusion_default_steady_T
-	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	(const struct const_Multiarray_T* xyz, ///< Defined for \ref constructor_sol_fptr_T.
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
 

@@ -44,6 +44,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_copy_Multiarray_Vector_T_T constructor_copy_Multiarray_Vector_d_d
 #define constructor_copy_Multiarray_Vector_T   constructor_copy_Multiarray_Vector_d
 #define const_constructor_copy_Multiarray_T    const_constructor_copy_Multiarray_d
+#define constructor_copy_Multiarray_T_Multiarray_R       constructor_copy_Multiarray_d_Multiarray_d
+#define constructor_copy_const_Multiarray_T_Multiarray_R constructor_copy_const_Multiarray_d_Multiarray_d
 
 #define constructor_move_Multiarray_T_T                  constructor_move_Multiarray_d_d
 #define constructor_move_const_Multiarray_T_T            constructor_move_const_Multiarray_d_d

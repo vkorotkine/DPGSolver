@@ -53,21 +53,14 @@ void constructor_derived_Solver_Face_T (struct Face* face_ptr, const struct Simu
 
 	s_face->nf_coef = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0});   // destructed
 
-	const_constructor_move_Multiarray_R(
-		&s_face->xyz_fc,constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){0,0}));        // destructed
-	const_constructor_move_Multiarray_R(
-		&s_face->xyz_fc_ex_b,constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){0,0}));   // destructed
-	const_constructor_move_Multiarray_R(
-		&s_face->normals_fc,constructor_empty_Multiarray_R('R',2,(ptrdiff_t[]){0,0}));    // destructed
-	const_constructor_move_Multiarray_R(
-		&s_face->normals_fc_exact,constructor_empty_Multiarray_R('R',2,(ptrdiff_t[]){0,0}));    // destructed
-	const_constructor_move_Multiarray_R(
-		&s_face->jacobian_det_fc,constructor_empty_Multiarray_R('C',1,(ptrdiff_t[]){0})); // destructed
-	s_face->vol_jacobian_det_fc = constructor_empty_const_Multiarray_R('C',1,(ptrdiff_t[]){0}); // destructed
-	const_constructor_move_Multiarray_R(
-		&s_face->normals_p1,constructor_empty_Multiarray_R('R',2,(ptrdiff_t[]){0,0}));    // destructed
-	const_constructor_move_Multiarray_R(
-		&s_face->jacobian_det_p1,constructor_empty_Multiarray_R('C',1,(ptrdiff_t[]){0})); // destructed
+	s_face->xyz_fc              = constructor_empty_const_Multiarray_T('C',2,(ptrdiff_t[]){0,0}); // destructed
+	s_face->xyz_fc_ex_b         = constructor_empty_const_Multiarray_T('C',2,(ptrdiff_t[]){0,0}); // destructed
+	s_face->normals_fc          = constructor_empty_const_Multiarray_T('R',2,(ptrdiff_t[]){0,0}); // destructed
+	s_face->normals_fc_exact    = constructor_empty_const_Multiarray_T('R',2,(ptrdiff_t[]){0,0}); // destructed
+	s_face->jacobian_det_fc     = constructor_empty_const_Multiarray_T('C',1,(ptrdiff_t[]){0});   // destructed
+	s_face->vol_jacobian_det_fc = constructor_empty_const_Multiarray_T('C',1,(ptrdiff_t[]){0});   // destructed
+	s_face->normals_p1          = constructor_empty_const_Multiarray_T('R',2,(ptrdiff_t[]){0,0}); // destructed
+	s_face->jacobian_det_p1     = constructor_empty_const_Multiarray_T('C',1,(ptrdiff_t[]){0});   // destructed
 
 	set_function_pointers_face_num_flux_T(s_face,sim);
 
@@ -80,14 +73,14 @@ void destructor_derived_Solver_Face_T (struct Face* face_ptr)
 
 	destructor_Multiarray_T(face->nf_coef);
 
-	destructor_const_Multiarray_R(face->xyz_fc);
-	destructor_const_Multiarray_R(face->xyz_fc_ex_b);
-	destructor_const_Multiarray_R(face->normals_fc);
-	destructor_const_Multiarray_R(face->normals_fc_exact);
-	destructor_const_Multiarray_R(face->jacobian_det_fc);
-	destructor_const_Multiarray_R(face->vol_jacobian_det_fc);
-	destructor_const_Multiarray_R(face->normals_p1);
-	destructor_const_Multiarray_R(face->jacobian_det_p1);
+	destructor_const_Multiarray_T(face->xyz_fc);
+	destructor_const_Multiarray_T(face->xyz_fc_ex_b);
+	destructor_const_Multiarray_T(face->normals_fc);
+	destructor_const_Multiarray_T(face->normals_fc_exact);
+	destructor_const_Multiarray_T(face->jacobian_det_fc);
+	destructor_const_Multiarray_T(face->vol_jacobian_det_fc);
+	destructor_const_Multiarray_T(face->normals_p1);
+	destructor_const_Multiarray_T(face->jacobian_det_p1);
 
 	destructor_conditional_const_Multiarray_T(face->nf_fc);
 }

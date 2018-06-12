@@ -37,14 +37,12 @@ set	(SOURCE
 	 solvers/dg/element_solver_dg.c
 	 solvers/dg/face_solver_dg.c
 	 solvers/dg/solve_dg.c
-	 solvers/dg/solve_dg_c.c
 	 solvers/dg/volume_solver_dg.c
 
 	 solvers/dpg/compute_all_rlhs_dpg.c
 	 solvers/dpg/face_solver_dpg.c
 	 solvers/dpg/element_solver_dpg.c
 	 solvers/dpg/solve_dpg.c
-	 solvers/dpg/solve_dpg_c.c
 	 solvers/dpg/volume_solver_dpg.c
 
 	 solvers/opg/compute_volume_rlhs_opg.c

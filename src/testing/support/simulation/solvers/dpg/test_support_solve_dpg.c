@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "solve_dpg_c.h"
+#include "test_support_solve_dpg.h"
 
 #include <assert.h>
 

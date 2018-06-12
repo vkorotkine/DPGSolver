@@ -215,11 +215,12 @@ void const_constructor_copy_Multiarray_T
 	(const struct const_Multiarray_T*const* dest, ///< Destination.
 	 const struct const_Multiarray_T*const src    ///< Source.
 	);
-#if TYPE_RC == TYPE_COMPLEX
+
+#ifdef TYPE_RC
 /** \brief Copy constructor for a \ref Multiarray_T\* from a real \ref Multiarray_T\*.
  *  \return Standard. */
 struct Multiarray_T* constructor_copy_Multiarray_T_Multiarray_R
-	(struct Multiarray_R* src ///< Source.
+	(const struct Multiarray_R*const src ///< Source.
 	);
 
 /** \brief `const` version of \ref constructor_copy_Multiarray_T_Multiarray_R.
@@ -228,6 +229,7 @@ const struct const_Multiarray_T* constructor_copy_const_Multiarray_T_Multiarray_
 	(const struct const_Multiarray_R* src ///< See brief.
 	);
 #endif
+
 // Move constructors ************************************************************************************************ //
 
 /** \brief Move constructor for a \ref Multiarray_T\* from a `Type*`.
@@ -413,7 +415,7 @@ const struct const_Multiarray_T* constructor_mm_tp_NN1C_const_Multiarray_T
 
 /// \brief Destructs a \ref Multiarray_T\*.
 void destructor_Multiarray_T
-	(struct Multiarray_T* a ///< Standard.
+	(const struct Multiarray_T* a ///< Standard.
 	);
 
 /// \brief Destructs a \ref const_Multiarray_T\*.

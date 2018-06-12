@@ -60,7 +60,7 @@ static struct BC_Data get_bc_data_total_tp ( );
 /** \brief Compute the normal velocity.
  *  \return See brief. */
 static Type compute_Vn
-	(const Real*const n,  ///< Array of unit normal vector components.
+	(const Type*const n,  ///< Array of unit normal vector components.
 	 const Type*const uvw ///< Array of velocity components.
 	);
 
@@ -73,7 +73,7 @@ static void set_uvw
 /** \brief Compute the tangential velocity components.
  *  \return See brief. */
 static void compute_Vt
-	(const Real*const n,   ///< Array of unit normal vector components.
+	(const Type*const n,   ///< Array of unit normal vector components.
 	 const Type Vn,        ///< Normal velocity.
 	 const Type*const uvw, ///< Total velocity components.
 	 Type*const uvw_t      ///< Set to tangential velocity components.
@@ -81,7 +81,7 @@ static void compute_Vt
 
 /// \brief Compute the velocity components from the normal and tangential components.
 static void compute_uvw
-	(const Real*const n,     ///< Array of unit normal vector components.
+	(const Type*const n,     ///< Array of unit normal vector components.
 	 const Type Vn,          ///< Normal velocity.
 	 const Type*const uvw_t, ///< Tangential velocity components.
 	 Type*const*const uvw    ///< Set to total velocity components.
@@ -89,7 +89,7 @@ static void compute_uvw
 
 /// \brief Compute the velocity components as the velocity with the same tangential but opposite normal from the input.
 static void compute_opposite_normal_uvw
-	(const Real*const n,     ///< Array of unit normal vector components.
+	(const Type*const n,     ///< Array of unit normal vector components.
 	 const Type Vn,          ///< Normal velocity.
 	 const Type*const uvw_i, ///< Input velocity components.
 	 Type*const*const uvw    ///< Set to total velocity components.
@@ -105,11 +105,11 @@ void constructor_Boundary_Value_T_euler_riemann
 	const bool* c_m = bv_i->compute_member;
 	assert(c_m[0] == true);
 
-	const struct const_Multiarray_d* xyz = bv_i->xyz;
+	const struct const_Multiarray_T* xyz = bv_i->xyz;
 	const struct const_Multiarray_T* sol_l = bv_i->s;
 	const struct const_Multiarray_T* sol_r = constructor_sol_bv(xyz,sim); // destructed
 
-	const struct const_Multiarray_d* normals = bv_i->normals;
+	const struct const_Multiarray_T* normals = bv_i->normals;
 	assert(normals->layout == 'R');
 
 	convert_variables_T((struct Multiarray_T*)sol_l,'c','p');
@@ -143,7 +143,7 @@ void constructor_Boundary_Value_T_euler_riemann
 		const Type c_l = sqrt_T(GAMMA*p_l[n]/rho_l[n]),
 		           c_r = sqrt_T(GAMMA*p_r[n]/rho_r[n]);
 
-		const Real* data_n = get_row_const_Multiarray_d(n,normals);
+		const Type* data_n = get_row_const_Multiarray_T(n,normals);
 		const Type Vn_l = compute_Vn(data_n,uvw_l),
 		           Vn_r = compute_Vn(data_n,uvw_r);
 
@@ -190,12 +190,12 @@ void constructor_Boundary_Value_T_euler_riemann
 	unsigned int i, iMax, n, ind_ds_ds;
 	Type       rhoL, rhoL_inv, uL, vL, wL, V2L, pL, rhoR, uR, vR, wR, pR,
 	           cL, RL, VnL, cR, RR, VnR, c, Vn;
-	Real       n1, n2, n3;
+	Type       n1, n2, n3;
 
 	// silence
 	n2 = n3 = 0.0;
 
-	const Real* n_ptr = normals->data;
+	const Type* n_ptr = normals->data;
 
 	Type *ds_ds_ptr[NVAR*NVAR];
 	for (int ind = 0, vr_l = 0; vr_l < NVAR; vr_l++) {
@@ -518,14 +518,14 @@ void constructor_Boundary_Value_T_euler_slipwall
 	    *const rhow = (DIM > 2 ? get_col_Multiarray_T(3,sol) : NULL),
 	    *const E    = get_col_Multiarray_T(NVAR-1,sol);
 
-	const struct const_Multiarray_d* normals = bv_i->normals;
+	const struct const_Multiarray_T* normals = bv_i->normals;
 	assert(normals->layout == 'R');
 
 	for (int n = 0; n < n_n; n++) {
 		rho[n] = rho_l[n];
 		E[n]   = E_l[n];   // Equivalent to setting p[n] = p_l[n] (See comments).
 
-		const Real* data_n = get_row_const_Multiarray_d(n,normals);
+		const Type* data_n = get_row_const_Multiarray_T(n,normals);
 		const Type rhouvw_l[] = { rhou_l[n], (DIM > 1 ? rhov_l[n] : 0.0), (DIM > 2 ? rhow_l[n] : 0.0), };
 		const Type rhoVn_l = compute_Vn(data_n,rhouvw_l);
 
@@ -543,7 +543,7 @@ void constructor_Boundary_Value_T_euler_slipwall
 			ds_ds_ptr[ind] = &ds_ds->data[n_n*(ind)];
 			++ind;
 		}}
-		const Real* n_ptr = get_row_const_Multiarray_d(0,normals);
+		const Type* n_ptr = get_row_const_Multiarray_T(0,normals);
 
 		if (DIM == 3) {
 			for (int n = 0; n < n_n; n++) {
@@ -663,7 +663,7 @@ void constructor_Boundary_Value_T_euler_supersonic_inflow
 	const bool* c_m = bv_i->compute_member;
 	assert(c_m[0] == true);
 
-	const struct const_Multiarray_d* xyz = bv_i->xyz;
+	const struct const_Multiarray_T* xyz = bv_i->xyz;
 	const struct const_Multiarray_T* sol_r = constructor_sol_bv(xyz,sim); // destructed
 
 	const ptrdiff_t n_n = xyz->extents[0];
@@ -712,7 +712,7 @@ void constructor_Boundary_Value_T_euler_supersonic_outflow
 	const bool* c_m = bv_i->compute_member;
 	assert(c_m[0] == true);
 
-	const struct const_Multiarray_d* xyz = bv_i->xyz;
+	const struct const_Multiarray_T* xyz = bv_i->xyz;
 	const struct const_Multiarray_T* sol_l = bv_i->s;
 
 	const ptrdiff_t n_n = xyz->extents[0];
@@ -1003,10 +1003,10 @@ void constructor_Boundary_Value_T_euler_total_tp
 
 	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,NVAR}); // keep
 
-	const struct const_Multiarray_d* normals = bv_i->normals;
+	const struct const_Multiarray_T* normals = bv_i->normals;
 	assert(normals->layout == 'R');
 
-	Real const *const nL = normals->data;
+	Type const *const nL = normals->data;
 
 	Type const *const WL = sol_l->data;
 	Type       *const WB = sol->data;
@@ -1019,7 +1019,7 @@ void constructor_Boundary_Value_T_euler_total_tp
 	// Standard datatypes
 	Type *WB_ptr[NVAR];
 	const Type *rhoL_ptr, *rhouL_ptr, *rhovL_ptr, *rhowL_ptr = NULL, *EL_ptr, *WL_ptr[NVAR];
-	const Real *n_ptr;
+	const Type *n_ptr;
 
 	for (int var = 0; var < NVAR; var++) {
 		WL_ptr[var] = &WL[var*n_n];
@@ -1046,7 +1046,7 @@ void constructor_Boundary_Value_T_euler_total_tp
 	for (int n = 0; n < n_n; n++) {
 		int IndW = 0;
 		Type rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL, cL, HL, VnL, RL;
-		Real n1, n2, n3;
+		Type n1, n2, n3;
 
 		// silence
 		n3 = 0.0;
@@ -1149,7 +1149,7 @@ void constructor_Boundary_Value_T_euler_total_tp
 	for (int n = 0; n < n_n; n++) {
 		int InddWdW = 0;
 		Type rhoL, rhoL_inv, uL, vL, wL, EL, V2L, pL, cL, HL, VnL, RL;
-		Real n1, n2, n3;
+		Type n1, n2, n3;
 
 		// silence
 		n3 = 0.0;
@@ -1327,7 +1327,7 @@ static struct BC_Data get_bc_data_total_tp ( )
 	return bc_data;
 }
 
-static Type compute_Vn (const Real*const n, const Type*const uvw)
+static Type compute_Vn (const Type*const n, const Type*const uvw)
 {
 	Type Vn = 0.0;
 	for (int d = 0; d < DIM; ++d)
@@ -1341,20 +1341,20 @@ static void set_uvw (const Type*const uvw_i, Type*const*const uvw)
 		*uvw[d] = uvw_i[d];
 }
 
-static void compute_Vt (const Real*const n, const Type Vn, const Type*const uvw, Type*const uvw_t)
+static void compute_Vt (const Type*const n, const Type Vn, const Type*const uvw, Type*const uvw_t)
 {
 	for (int d = 0; d < DIM; ++d)
 		uvw_t[d] = uvw[d] - Vn*n[d];
 }
 
-static void compute_uvw (const Real*const n, const Type Vn, const Type*const uvw_t, Type*const*const uvw)
+static void compute_uvw (const Type*const n, const Type Vn, const Type*const uvw_t, Type*const*const uvw)
 {
 	for (int d = 0; d < DIM; ++d)
 		*uvw[d] = Vn*n[d] + uvw_t[d];
 }
 
 static void compute_opposite_normal_uvw
-	(const Real*const n, const Type Vn, const Type*const uvw_i, Type*const*const uvw)
+	(const Type*const n, const Type Vn, const Type*const uvw_i, Type*const*const uvw)
 {
 	for (int d = 0; d < DIM; ++d)
 		*uvw[d] = uvw_i[d] - 2.0*Vn*n[d];

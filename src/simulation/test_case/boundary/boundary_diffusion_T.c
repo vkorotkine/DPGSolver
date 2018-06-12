@@ -33,12 +33,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_face_solver.h"
 
+#include "def_templates_test_case.h"
+
 // Static function declarations ************************************************************************************* //
 
 /** \brief Constructor for the Multiarray_\* holding the solution gradient at the given xyz coordinates.
  *  \return See brief. */
 static const struct const_Multiarray_T* constructor_grad_bv
-	(const struct const_Multiarray_d* xyz, ///< xyz coordinates.
+	(const struct const_Multiarray_T* xyz, ///< xyz coordinates.
 	 const struct Simulation* sim          ///< \ref Simulation.
 	);
 
@@ -49,7 +51,7 @@ void constructor_Boundary_Value_T_diffusion_dirichlet
 	 const struct Simulation* sim)
 {
 	UNUSED(face);
-	const struct const_Multiarray_d*const xyz = bv_i->xyz;
+	const struct const_Multiarray_T*const xyz = bv_i->xyz;
 	const bool*const c_m = bv_i->compute_member;
 
 	assert(c_m[0] == true);
@@ -99,7 +101,7 @@ void constructor_Boundary_Value_T_diffusion_neumann
 	 const struct Simulation* sim)
 {
 	UNUSED(face);
-	const struct const_Multiarray_d*const xyz = bv_i->xyz;
+	const struct const_Multiarray_T*const xyz = bv_i->xyz;
 	const bool*const c_m = bv_i->compute_member;
 
 	assert(c_m[0] == true);
@@ -149,7 +151,7 @@ void constructor_Boundary_Value_T_diffusion_neumann
 // Level 0 ********************************************************************************************************** //
 
 static const struct const_Multiarray_T* constructor_grad_bv
-	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	return test_case->constructor_grad(xyz,sim); // returned
@@ -161,3 +163,5 @@ static const struct const_Multiarray_T* constructor_grad_bv
 #include "undef_templates_vector.h"
 
 #include "undef_templates_face_solver.h"
+
+#include "undef_templates_test_case.h"

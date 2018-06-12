@@ -23,4 +23,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "boundary_diffusion_T.h"
 #include "undef_templates_type.h"
 
+#include "def_templates_type_dc.h"
+#include "boundary_diffusion_T.h"
+#include "undef_templates_type.h"
+
 #endif // DPG__boundary_diffusion_h__INCLUDED

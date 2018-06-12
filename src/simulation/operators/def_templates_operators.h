@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define constructor_mm_NN1_Operator_Multiarray_T       constructor_mm_NN1_Operator_Multiarray_d
 #define constructor_mm_NN1_Operator_const_Multiarray_T constructor_mm_NN1_Operator_const_Multiarray_d
+#define constructor_mm_NN1_Operator_Multiarray_T_Multiarray_R constructor_mm_NN1_Operator_Multiarray_d_Multiarray_d
+#define constructor_mm_NN1_Operator_const_Multiarray_T_Multiarray_R constructor_mm_NN1_Operator_const_Multiarray_d_Multiarray_d
 
 #define set_ops_tp_n_rows_cols_T set_ops_tp_n_rows_cols
 
@@ -34,6 +36,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define constructor_mm_NN1_Operator_Multiarray_T       constructor_mm_NN1_Operator_Multiarray_c
 #define constructor_mm_NN1_Operator_const_Multiarray_T constructor_mm_NN1_Operator_const_Multiarray_c
+#define constructor_mm_NN1_Operator_Multiarray_T_Multiarray_R constructor_mm_NN1_Operator_Multiarray_c_Multiarray_d
+#define constructor_mm_NN1_Operator_const_Multiarray_T_Multiarray_R constructor_mm_NN1_Operator_const_Multiarray_c_Multiarray_d
 
 #define set_ops_tp_n_rows_cols_T set_ops_tp_n_rows_cols_c
 

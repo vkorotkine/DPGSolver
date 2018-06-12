@@ -25,10 +25,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef permute_Multiarray_T
 #undef permute_Multiarray_T_V
 #undef scale_Multiarray_T_by_Vector_R
+#undef scale_Multiarray_by_Vector_T
 #undef add_in_place_Multiarray_T
+#undef multiply_in_place_Multiarray_T
 #undef multiply_in_place_Multiarray_TR
 #undef subtract_in_place_Multiarray_T
 #undef mm_NNC_Multiarray_T
+#undef mm_NNC_Multiarray_TTT
 #undef mm_NN1C_Multiarray_T
 #undef mm_NN1C_overwrite_Multiarray_T
 #undef reinterpret_const_Multiarray_as_Matrix_T

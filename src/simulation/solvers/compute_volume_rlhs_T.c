@@ -73,7 +73,7 @@ static const struct const_Multiarray_T* constructor_grad_vc_col
 
 /** \brief Constructor for the xyz coordinates evaluated at the 'v'olume 'c'ubature nodes.
  *  \return See brief. */
-static const struct const_Multiarray_R* constructor_xyz_vc
+static const struct const_Multiarray_T* constructor_xyz_vc
 	(const struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
 	 const struct Simulation*const sim         ///< \ref Simulation.
 	);
@@ -172,7 +172,7 @@ struct Flux_Ref_T* constructor_Flux_Ref_vol_T
 	struct Flux_T* flux = constructor_Flux_T(flux_i); // destructed
 	spvs->destructor_sol_vc(flux_i->s);
 	spvs->destructor_grad_vc(flux_i->g);
-	destructor_conditional_const_Multiarray_R(flux_i->xyz);
+	destructor_conditional_const_Multiarray_T(flux_i->xyz);
 
 	// Compute the reference fluxes (and optionally their Jacobians) at the volume cubature nodes.
 	struct Flux_Ref_T* flux_r = constructor_Flux_Ref(s_vol->metrics_vc,flux);
@@ -345,7 +345,7 @@ struct Multiarray_Operator get_operator__cv1_vt_vc_T (const struct Solver_Volume
 /** \brief Constructor for a \ref const_Multiarray_T\* of reference flux from physical flux.
  *  \return See brief. */
 static const struct const_Multiarray_T* constructor_flux_ref_T
-	(const struct const_Multiarray_R* m, ///< Defined for \ref constructor_Flux_Ref.
+	(const struct const_Multiarray_T* m, ///< Defined for \ref constructor_Flux_Ref.
 	 const struct const_Multiarray_T* f  ///< The physical flux data.
 	);
 
@@ -391,7 +391,7 @@ static const struct const_Multiarray_T* constructor_grad_vc_col (const struct So
 	return (const struct const_Multiarray_T*) s_vol->grad_coef;
 }
 
-static const struct const_Multiarray_R* constructor_xyz_vc
+static const struct const_Multiarray_T* constructor_xyz_vc
 	(const struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
 {
 	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
@@ -410,10 +410,10 @@ static const struct const_Multiarray_R* constructor_xyz_vc
 
 	const struct Operator*const cv0_vg_vc = get_operator__cv0_vg_vc_T(s_vol);
 
-	const struct const_Multiarray_R*const g_coef = s_vol->geom_coef;
+	const struct const_Multiarray_T*const g_coef = s_vol->geom_coef;
 
 	const char op_format = get_set_op_format(0);
-	return constructor_mm_NN1_Operator_const_Multiarray_R(cv0_vg_vc,g_coef,'C',op_format,g_coef->order,NULL);
+	return constructor_mm_NN1_Operator_const_Multiarray_T(cv0_vg_vc,g_coef,'C',op_format,g_coef->order,NULL);
 }
 
 static void destructor_NULL (const struct const_Multiarray_T* sol_vc)
@@ -449,7 +449,7 @@ static struct Flux_Ref_T* constructor_Flux_Ref (const struct const_Multiarray_T*
 // Level 1 ********************************************************************************************************** //
 
 static const struct const_Multiarray_T* constructor_flux_ref_T
-	(const struct const_Multiarray_R* m, const struct const_Multiarray_T* f)
+	(const struct const_Multiarray_T* m, const struct const_Multiarray_T* f)
 {
 	assert(f->layout == 'C');
 
@@ -477,9 +477,10 @@ static const struct const_Multiarray_T* constructor_flux_ref_T
 			for (int dim1 = 0; dim1 < DIM; ++dim1) {
 				const int ind_m  = dim0*DIM+dim1,
 				          ind_fp = (ind_f*DIM)+dim1;
-				z_yxpz_RTT(n_n,get_col_const_Multiarray_R(ind_m,m),
-				               get_col_const_Multiarray_T(ind_fp,f),
-				               get_col_Multiarray_T(ind_fr,fr));
+				z_yxpz_T(n_n,
+				         get_col_const_Multiarray_T(ind_m,m),
+				         get_col_const_Multiarray_T(ind_fp,f),
+				         get_col_Multiarray_T(ind_fr,fr));
 			}
 		}
 		++ind_f;

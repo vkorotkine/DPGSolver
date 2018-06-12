@@ -46,7 +46,7 @@ void compute_all_rlhs_dpg_T
 /** \brief Construct the lhs left operator for the internal face dof for the dpg scheme.
  *  \return See brief. */
 /// \todo make static
-const struct const_Matrix_R* constructor_lhs_l_internal_face_dpg_T
+const struct const_Matrix_T* constructor_lhs_l_internal_face_dpg_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, ///< Pointer to the current volume.
 	 const struct DPG_Solver_Face_T* dpg_s_face   ///< Pointer to the current face.
 	);

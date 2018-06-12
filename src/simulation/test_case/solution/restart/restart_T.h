@@ -20,7 +20,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_solution.h"
 #include "def_templates_multiarray.h"
 
-struct const_Multiarray_R;
 struct const_Multiarray_T;
 struct Simulation;
 struct Solution_Container_T;
@@ -34,7 +33,7 @@ void set_sol_restart_T
 /** \brief Function to be used for \ref Test_Case_T::constructor_sol_start for a restarted solution.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_sol_restart_T
-	(const struct const_Multiarray_R*const xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	(const struct const_Multiarray_T*const xyz, ///< Defined for \ref constructor_sol_fptr_T.
 	 const struct Simulation*const sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
 

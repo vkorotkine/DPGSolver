@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_geometry_parametric.h"
 #include "def_templates_volume_solver.h"
 #include "def_templates_multiarray.h"
+#include "def_templates_math_functions.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -87,8 +88,8 @@ static Real f_al_gaussian_bump
 
 // Interface functions ********************************************************************************************** //
 
-const struct const_Multiarray_R* constructor_xyz_fixed_cube_parametric_T
-	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+const struct const_Multiarray_T* constructor_xyz_fixed_cube_parametric_T
+	(const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim)
 {
 	UNUSED(n_type);
@@ -98,15 +99,15 @@ const struct const_Multiarray_R* constructor_xyz_fixed_cube_parametric_T
 
 	const ptrdiff_t n_n = xyz_i->extents[0];
 
-	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
+	struct Multiarray_T* xyz = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
 
-	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
-	          *const y_i = ( DIM > 1 ? get_col_const_Multiarray_R(1,xyz_i) : NULL ),
-	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_R(2,xyz_i) : NULL );
+	const Type*const x_i = get_col_const_Multiarray_T(0,xyz_i),
+	          *const y_i = ( DIM > 1 ? get_col_const_Multiarray_T(1,xyz_i) : NULL ),
+	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_T(2,xyz_i) : NULL );
 
-	Real*const x = get_col_Multiarray_R(0,xyz),
-	    *const y = ( DIM > 1 ? get_col_Multiarray_R(1,xyz) : NULL ),
-	    *const z = ( DIM > 2 ? get_col_Multiarray_R(2,xyz) : NULL );
+	Type*const x = get_col_Multiarray_T(0,xyz),
+	    *const y = ( DIM > 1 ? get_col_Multiarray_T(1,xyz) : NULL ),
+	    *const z = ( DIM > 2 ? get_col_Multiarray_T(2,xyz) : NULL );
 
 	struct Geo_Data geo_data = get_geo_data("fixed_cube");
 
@@ -115,17 +116,17 @@ const struct const_Multiarray_R* constructor_xyz_fixed_cube_parametric_T
 	const Real dxyz  = xyz_r-xyz_l;
 
 	for (int n = 0; n < n_n; ++n) {
-		const double dx = 0.5*(x_i[n]+1.0);
+		const double dx = 0.5*(real_T(x_i[n])+1.0);
 		x[n] = xyz_l+dx*dxyz;
 
 		if (DIM > 1)
 			EXIT_ADD_SUPPORT; UNUSED(y); UNUSED(z); UNUSED(y_i); UNUSED(z_i);
 	}
-	return (struct const_Multiarray_R*) xyz;
+	return (struct const_Multiarray_T*) xyz;
 }
 
-const struct const_Multiarray_R* constructor_xyz_cylinder_parametric_T
-	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+const struct const_Multiarray_T* constructor_xyz_cylinder_parametric_T
+	(const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim)
 {
 	UNUSED(n_type);
@@ -136,18 +137,18 @@ const struct const_Multiarray_R* constructor_xyz_cylinder_parametric_T
 
 	const ptrdiff_t n_n = xyz_i->extents[0];
 
-	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
+	struct Multiarray_T* xyz = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
 
-	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
-	          *const y_i = get_col_const_Multiarray_R(1,xyz_i),
-	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_R(2,xyz_i) : NULL );
+	const Type*const x_i = get_col_const_Multiarray_T(0,xyz_i),
+	          *const y_i = get_col_const_Multiarray_T(1,xyz_i),
+	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_T(2,xyz_i) : NULL );
 
-	Real*const x = get_col_Multiarray_R(0,xyz),
-	    *const y = get_col_Multiarray_R(1,xyz),
-	    *const z = ( DIM > 2 ? get_col_Multiarray_R(2,xyz) : NULL );
+	Type*const x = get_col_Multiarray_T(0,xyz),
+	    *const y = get_col_Multiarray_T(1,xyz),
+	    *const z = ( DIM > 2 ? get_col_Multiarray_T(2,xyz) : NULL );
 
 	for (int n = 0; n < n_n; ++n) {
-		const Real xy[2] = { x_i[n], y_i[n], };
+		const Real xy[2] = { real_T(x_i[n]), real_T(y_i[n]), };
 
 		const Real r = GSL_MAX(fabs(xy[0]),fabs(xy[1]));
 
@@ -168,11 +169,11 @@ const struct const_Multiarray_R* constructor_xyz_cylinder_parametric_T
 		if (DIM > 2)
 			z[n] = z_i[n];
 	}
-	return (struct const_Multiarray_R*) xyz;
+	return (struct const_Multiarray_T*) xyz;
 }
 
-const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_T
-	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+const struct const_Multiarray_T* constructor_xyz_trigonometric_cube_parametric_T
+	(const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim)
 {
 	UNUSED(n_type);
@@ -183,20 +184,20 @@ const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_T
 
 	const ptrdiff_t n_n = xyz_i->extents[0];
 
-	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
+	struct Multiarray_T* xyz = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
 
-	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
-	          *const y_i = ( DIM > 1 ? get_col_const_Multiarray_R(1,xyz_i) : NULL ),
-	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_R(2,xyz_i) : NULL );
+	const Type*const x_i = get_col_const_Multiarray_T(0,xyz_i),
+	          *const y_i = ( DIM > 1 ? get_col_const_Multiarray_T(1,xyz_i) : NULL ),
+	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_T(2,xyz_i) : NULL );
 
-	Real*const x = get_col_Multiarray_R(0,xyz),
-	    *const y = ( DIM > 1 ? get_col_Multiarray_R(1,xyz) : NULL ),
-	    *const z = ( DIM > 2 ? get_col_Multiarray_R(2,xyz) : NULL );
+	Type*const x = get_col_Multiarray_T(0,xyz),
+	    *const y = ( DIM > 1 ? get_col_Multiarray_T(1,xyz) : NULL ),
+	    *const z = ( DIM > 2 ? get_col_Multiarray_T(2,xyz) : NULL );
 
 	const Real dxyz = 0.05;
 	for (int n = 0; n < n_n; ++n) {
 		if (DIM == 2) {
-			x[n] = x_i[n] + dxyz*sin(PI*y_i[n]);
+			x[n] = x_i[n] + dxyz*sin(PI*real_T(y_i[n]));
 			y[n] = y_i[n];
 		} else if (DIM == 3) {
 			EXIT_ADD_SUPPORT; UNUSED(z_i); UNUSED(z);
@@ -204,11 +205,11 @@ const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_T
 			EXIT_UNSUPPORTED;
 		}
 	}
-	return (struct const_Multiarray_R*) xyz;
+	return (struct const_Multiarray_T*) xyz;
 }
 
-const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_xl_T
-	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+const struct const_Multiarray_T* constructor_xyz_trigonometric_cube_parametric_xl_T
+	(const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim)
 {
 	UNUSED(n_type);
@@ -219,51 +220,53 @@ const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_x
 
 	const ptrdiff_t n_n = xyz_i->extents[0];
 
-	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
+	struct Multiarray_T* xyz = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
 
-	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
-	          *const y_i = ( DIM > 1 ? get_col_const_Multiarray_R(1,xyz_i) : NULL ),
-	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_R(2,xyz_i) : NULL );
+	const Type*const x_i = get_col_const_Multiarray_T(0,xyz_i),
+	          *const y_i = ( DIM > 1 ? get_col_const_Multiarray_T(1,xyz_i) : NULL ),
+	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_T(2,xyz_i) : NULL );
 
-	Real*const x = get_col_Multiarray_R(0,xyz),
-	    *const y = ( DIM > 1 ? get_col_Multiarray_R(1,xyz) : NULL ),
-	    *const z = ( DIM > 2 ? get_col_Multiarray_R(2,xyz) : NULL );
+	Type*const x = get_col_Multiarray_T(0,xyz),
+	    *const y = ( DIM > 1 ? get_col_Multiarray_T(1,xyz) : NULL ),
+	    *const z = ( DIM > 2 ? get_col_Multiarray_T(2,xyz) : NULL );
 
 	const Real dxyz = 0.15;
 	for (int n = 0; n < n_n; ++n) {
+		const Real x_r = real_T(x_i[n]),
+		           y_r = real_T(y_i[n]);
 		if (DIM == 2) {
-			x[n] = x_i[n] + (1.0-x_i[n])/2.0*dxyz*cos(PI*x_i[n]+0.2)*cos(0.5*PI*y_i[n]+0.3)*sin(PI*y_i[n]);
-			y[n] = y_i[n] + 2.0*dxyz*cos(PI/2.0*y_i[n])*sin(0.25*PI*y_i[n]-0.1)*cos(PI/2.0*x_i[n]-0.2);
+			x[n] = x_i[n] + (1.0-x_r)/2.0*dxyz*cos(PI*x_r+0.2)*cos(0.5*PI*y_r+0.3)*sin(PI*y_r);
+			y[n] = y_i[n] + 2.0*dxyz*cos(PI/2.0*y_r)*sin(0.25*PI*y_r-0.1)*cos(PI/2.0*x_r-0.2);
 		} else if (DIM == 3) {
 			EXIT_ADD_SUPPORT; UNUSED(z_i); UNUSED(z);
 		} else {
 			EXIT_UNSUPPORTED;
 		}
 	}
-	return (struct const_Multiarray_R*) xyz;
+	return (struct const_Multiarray_T*) xyz;
 }
 
-const struct const_Multiarray_R* constructor_xyz_trigonometric_cube_parametric_xl_oct1_T
-	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+const struct const_Multiarray_T* constructor_xyz_trigonometric_cube_parametric_xl_oct1_T
+	(const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim)
 {
-	struct Multiarray_R*const xyz = (struct Multiarray_R*)
+	struct Multiarray_T*const xyz = (struct Multiarray_T*)
 		constructor_xyz_trigonometric_cube_parametric_xl_T(n_type,xyz_i,s_vol,sim); // returned
 
-	Real*const xyz_a[DIM] = ARRAY_DIM( get_col_Multiarray_R(0,xyz),
-	                                   get_col_Multiarray_R(1,xyz),
-	                                   get_col_Multiarray_R(2,xyz) );
+	Type*const xyz_a[DIM] = ARRAY_DIM( get_col_Multiarray_T(0,xyz),
+	                                   get_col_Multiarray_T(1,xyz),
+	                                   get_col_Multiarray_T(2,xyz) );
 
 	const ptrdiff_t n_n = xyz->extents[0];
 	for (int n = 0; n < n_n; ++n) {
 	for (int d = 0; d < DIM; ++d) {
 		xyz_a[d][n] = 0.5*(xyz_a[d][n]+1.0)+0.5;
 	}}
-	return (struct const_Multiarray_R*) xyz;
+	return (struct const_Multiarray_T*) xyz;
 }
 
-const struct const_Multiarray_R* constructor_xyz_joukowski_parametric_T
-	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+const struct const_Multiarray_T* constructor_xyz_joukowski_parametric_T
+	(const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim)
 {
 	UNUSED(n_type);
@@ -274,23 +277,23 @@ const struct const_Multiarray_R* constructor_xyz_joukowski_parametric_T
 
 	const ptrdiff_t n_n = xyz_i->extents[0];
 
-	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
+	struct Multiarray_T* xyz = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
 
-	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
-	          *const y_i = get_col_const_Multiarray_R(1,xyz_i),
-	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_R(2,xyz_i) : NULL );
+	const Type*const x_i = get_col_const_Multiarray_T(0,xyz_i),
+	          *const y_i = get_col_const_Multiarray_T(1,xyz_i),
+	          *const z_i = ( DIM > 2 ? get_col_const_Multiarray_T(2,xyz_i) : NULL );
 
-	Real*const x = get_col_Multiarray_R(0,xyz),
-	    *const y = get_col_Multiarray_R(1,xyz),
-	    *const z = ( DIM > 2 ? get_col_Multiarray_R(2,xyz) : NULL );
+	Type*const x = get_col_Multiarray_T(0,xyz),
+	    *const y = get_col_Multiarray_T(1,xyz),
+	    *const z = ( DIM > 2 ? get_col_Multiarray_T(2,xyz) : NULL );
 
 	struct Geo_Data geo_data = get_geo_data("joukowski");
 
 	const Real x_scale  = geo_data.x_scale,
 	           r_i      = geo_data.r_i,
 	           r_o      = geo_data.r_o,
-		     s_offset = geo_data.s_offset,
-		     center_x = 1.0-r_i; // The Joukowski transformation requires that the point (0,1) is included.
+	           s_offset = geo_data.s_offset,
+	           center_x = 1.0-r_i; // The Joukowski transformation requires that the point (0,1) is included.
 
 	const Real center_x_c  = -x_scale,
 	           zeta_tail   = center_x+r_i, // theta = 0.0 in equation for zeta below.
@@ -301,9 +304,9 @@ const struct const_Multiarray_R* constructor_xyz_joukowski_parametric_T
 	for (int n = 0; n < n_n; ++n) {
 		assert(y_i[n] != 0.0);
 
-		const int sign_y = ( y_i[n] > 0 ? 1 : -1 );
-		const Real r = x_i[n],
-		           s = fabs(y_i[n])-s_offset;
+		const int sign_y = ( real_T(y_i[n]) > 0 ? 1 : -1 );
+		const Real r = real_T(x_i[n]),
+		           s = fabs(real_T(y_i[n]))-s_offset;
 
 		if (r <= 0.0) {
 			const Real b_r[] = { -r, 1.0+r, },
@@ -335,11 +338,11 @@ const struct const_Multiarray_R* constructor_xyz_joukowski_parametric_T
 		if (DIM > 2)
 			z[n] = z_i[n];
 	}
-	return (struct const_Multiarray_R*) xyz;
+	return (struct const_Multiarray_T*) xyz;
 }
 
-const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
-	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+const struct const_Multiarray_T* constructor_xyz_gaussian_bump_parametric_T
+	(const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim)
 {
 	UNUSED(n_type);
@@ -350,13 +353,13 @@ const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 
 	const ptrdiff_t n_n = xyz_i->extents[0];
 
-	struct Multiarray_R* xyz = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
+	struct Multiarray_T* xyz = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,DIM}); // returned
 
-	const Real*const x_i = get_col_const_Multiarray_R(0,xyz_i),
-	          *const y_i = get_col_const_Multiarray_R(1,xyz_i);
+	const Type*const x_i = get_col_const_Multiarray_T(0,xyz_i),
+	          *const y_i = get_col_const_Multiarray_T(1,xyz_i);
 
-	Real*const x = get_col_Multiarray_R(0,xyz),
-	    *const y = get_col_Multiarray_R(1,xyz);
+	Type*const x = get_col_Multiarray_T(0,xyz),
+	    *const y = get_col_Multiarray_T(1,xyz);
 
 	const struct Geo_Data geo_data = get_geo_data("gaussian_bump");
 	const Real h     = geo_data.h,
@@ -370,8 +373,8 @@ const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 	const Real al_total = romberg(f_al_gaussian_bump,x_l,x_max,tol,&f_data);
 
 	for (int n = 0; n < n_n; ++n) {
-		const Real r = x_i[n],
-		           s = y_i[n];
+		const Real r = real_T(x_i[n]),
+		           s = real_T(y_i[n]);
 
 		// Plane contribution
 		const Real x_p = x_max*r,
@@ -398,7 +401,7 @@ const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
 		x[n] = x_g*b_s[0] + x_p*b_s[1];
 		y[n] = y_g*b_s[0] + y_p*b_s[1];
 	}
-	return (struct const_Multiarray_R*) xyz;
+	return (struct const_Multiarray_T*) xyz;
 }
 
 // Static functions ************************************************************************************************* //
@@ -541,3 +544,4 @@ static void read_data_fixed_cube (struct Geo_Data*const geo_data)
 #include "undef_templates_geometry_parametric.h"
 #include "undef_templates_volume_solver.h"
 #include "undef_templates_multiarray.h"
+#include "undef_templates_math_functions.h"

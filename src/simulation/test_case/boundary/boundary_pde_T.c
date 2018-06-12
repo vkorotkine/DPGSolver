@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Constructor for the Multiarray_\* holding the solution at the given xyz coordinates.
  *  \return See brief. */
 static const struct const_Multiarray_T* constructor_sol_bv
-	(const struct const_Multiarray_d* xyz, ///< xyz coordinates.
+	(const struct const_Multiarray_T* xyz, ///< xyz coordinates.
 	 const struct Simulation* sim          ///< \ref Simulation.
 	)
 {

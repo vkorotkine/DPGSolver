@@ -3,6 +3,9 @@ set	(SOURCE
 	 computational_elements/test_support_face.c
 	 computational_elements/test_support_volume.c
 
+	 solvers/dg/test_support_solve_dg.c
+	 solvers/dpg/test_support_solve_dpg.c
+
 	 ../intrusive/test_support_intrusive.c
 	)
 

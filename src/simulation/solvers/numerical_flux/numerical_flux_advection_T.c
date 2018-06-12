@@ -22,13 +22,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "definitions_bc.h"
+#include "definitions_core.h"
 
 
 #include "def_templates_multiarray.h"
 
-#include "def_templates_numerical_flux.h"
-
 #include "def_templates_boundary.h"
+#include "def_templates_math_functions.h"
+#include "def_templates_numerical_flux.h"
+#include "def_templates_solution_advection.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -38,35 +40,35 @@ void compute_Numerical_Flux_T_advection_upwind
 	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {
 	static bool need_input = true;
-	static struct Sol_Data__Advection sol_data;
+	static struct Sol_Data__Advection_T sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(&sol_data);
+		read_data_advection_T(&sol_data);
 	}
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->bv_l.normals->data;
+	Type const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
 
 	Type       *const nFluxNum = num_flux->nnf->data;
 
-	const struct const_Multiarray_d*const xyz_Ma = num_flux_i->bv_l.xyz;
-	const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,xyz_Ma),
-	                                       get_col_const_Multiarray_R(1,xyz_Ma),
-	                                       get_col_const_Multiarray_R(2,xyz_Ma) );
+	const struct const_Multiarray_T*const xyz_Ma = num_flux_i->bv_l.xyz;
+	const Type*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_T(0,xyz_Ma),
+	                                       get_col_const_Multiarray_T(1,xyz_Ma),
+	                                       get_col_const_Multiarray_T(2,xyz_Ma) );
 
 	for (int n = 0; n < NnTotal; n++) {
-		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
-		const double*const b_adv = sol_data.compute_b_adv(xyz_n);
+		const Type xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
+		const Real*const b_adv = sol_data.compute_b_adv(xyz_n);
 
-		double b_dot_n = 0.0;
+		Type b_dot_n = 0.0;
 		for (int dim = 0; dim < DIM; dim++)
 			b_dot_n += b_adv[dim]*nL[n*DIM+dim];
 
-		if (b_dot_n >= 0.0)
+		if (real_T(b_dot_n) >= 0.0)
 			nFluxNum[n] = b_dot_n*WL[n];
 		else
 			nFluxNum[n] = b_dot_n*WR[n];
@@ -78,15 +80,15 @@ void compute_Numerical_Flux_T_advection_upwind_jacobian
 	)
 {
 	static bool need_input = true;
-	static struct Sol_Data__Advection sol_data;
+	static struct Sol_Data__Advection_T sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(&sol_data);
+		read_data_advection_T(&sol_data);
 	}
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->bv_l.normals->data;
+	Type const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
@@ -98,20 +100,21 @@ void compute_Numerical_Flux_T_advection_upwind_jacobian
 	assert(dnFluxNumdWL != NULL);
 	assert(dnFluxNumdWR != NULL);
 
-	const struct const_Multiarray_d*const xyz_Ma = num_flux_i->bv_l.xyz;
-	const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,xyz_Ma),
-	                                       get_col_const_Multiarray_R(1,xyz_Ma),
-	                                       get_col_const_Multiarray_R(2,xyz_Ma) );
+	const struct const_Multiarray_T*const xyz_Ma = num_flux_i->bv_l.xyz;
+	const Type*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_T(0,xyz_Ma),
+	                                       get_col_const_Multiarray_T(1,xyz_Ma),
+	                                       get_col_const_Multiarray_T(2,xyz_Ma) );
 
 	for (int n = 0; n < NnTotal; n++) {
-		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
+		const Type xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
 		const double*const b_adv = sol_data.compute_b_adv(xyz_n);
 
 
-		double b_dot_n = 0.0;
+		Type b_dot_n = 0.0;
 		for (int dim = 0; dim < DIM; dim++)
 			b_dot_n += b_adv[dim]*nL[n*DIM+dim];
 
+/// \todo DELETE THIS FOR CLEAN UP.
 #if 0
 const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
 if (bc == BC_SLIPWALL) {
@@ -121,7 +124,7 @@ if (bc == BC_SLIPWALL) {
 	const double scale = 1e-1;
 	UNUSED(h); UNUSED(exponent);
 #if TYPE_RC == TYPE_REAL
-static double b_dot_n0 = 0.0;
+static Type b_dot_n0 = 0.0;
 if (n == 0)
 	b_dot_n0 = b_dot_n;
 UNUSED(b_dot_n0);
@@ -139,7 +142,7 @@ UNUSED(b_dot_n0);
 //	b_dot_n += scale*pow(h,exponent);
 }
 #endif
-		if (b_dot_n >= 0.0) {
+		if (real_T(b_dot_n) >= 0.0) {
 			nFluxNum[n]     = b_dot_n*WL[n];
 			dnFluxNumdWL[n] = b_dot_n;
 			dnFluxNumdWR[n] = 0.0;
@@ -158,6 +161,7 @@ UNUSED(b_dot_n0);
 
 #include "undef_templates_multiarray.h"
 
-#include "undef_templates_numerical_flux.h"
-
 #include "undef_templates_boundary.h"
+#include "undef_templates_math_functions.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_solution_advection.h"

@@ -66,13 +66,13 @@ struct Multiarray_d* constructor_rhs_v (const struct Simulation* sim, struct Sol
 	// a coefficient.
 	const struct Operator*const cv0_vt_vc = get_operator__cv0_vt_vc(s_vol);
 
-	const struct const_Multiarray_T*const rhs_coef = (struct const_Multiarray_T*) s_vol->rhs_0;
+	const struct const_Multiarray_d*const rhs_coef = (struct const_Multiarray_d*) s_vol->rhs_0;
 
 	const ptrdiff_t ext_0 = cv0_vt_vc->op_std->ext_0,
 	                ext_1 = rhs_coef->extents[1];
 
-	struct Multiarray_T* rhs_v = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){ext_0,ext_1}); // returned
-	mm_NN1C_Operator_Multiarray_T(cv0_vt_vc,rhs_coef,rhs_v,op_format,rhs_coef->order,NULL,NULL);
+	struct Multiarray_d* rhs_v = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){ext_0,ext_1}); // returned
+	mm_NN1C_Operator_Multiarray_d(cv0_vt_vc,rhs_coef,rhs_v,op_format,rhs_coef->order,NULL,NULL);
 
 	return rhs_v;
 }

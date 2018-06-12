@@ -44,14 +44,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /** \brief Return the positive minimum value of the two inputs.
  *  \return See brief. */
-static Type min_abs_T
+static Type min_abs_real_T
 	(const Type a, ///< First value in the comparison.
 	 const Type b  ///< Second value in the comparison.
 	);
 
 /** \brief Return the positive maximum value of the two inputs.
  *  \return See brief. */
-static Type max_abs_T
+static Type max_abs_real_T
 	(const Type a, ///< First value in the comparison.
 	 const Type b  ///< Second value in the comparison.
 	);
@@ -63,7 +63,7 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 {
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->bv_l.normals->data;
+	Type const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
@@ -78,7 +78,7 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 	           *rhouR_ptr = &WR[NnTotal*1],
 	           *ER_ptr    = &WR[NnTotal*(DIM+1)];
 
-	double const *n_ptr = nL;
+	Type const *n_ptr = nL;
 
 	struct Flux_Input_T* flux_i = malloc(sizeof *flux_i); // free
 	flux_i->s = constructor_move_const_Multiarray_T_T('C',2,(ptrdiff_t[]){1,NEQ},false,NULL); // destructed
@@ -143,9 +143,9 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 			else
 				maxV = maxlR;
 
-			double const n1 = *n_ptr++,
-			             n2 = *n_ptr++,
-			             n3 = *n_ptr++;
+			Type const n1 = *n_ptr++,
+			           n2 = *n_ptr++,
+			           n3 = *n_ptr++;
 
 			Type WLn[] = {rhoL, rhouL, rhovL, rhowL, EL},
 			     FLn[NEQ*DIM];
@@ -226,8 +226,8 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 			else
 				maxV = maxlR;
 
-			double const n1 = *n_ptr++,
-			             n2 = *n_ptr++;
+			Type const n1 = *n_ptr++,
+			           n2 = *n_ptr++;
 
 			Type WLn[] = {rhoL, rhouL, rhovL, EL},
 			     FLn[NEQ*DIM];
@@ -295,7 +295,7 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 			else
 				maxV = maxlR;
 
-			double const n1 = *n_ptr++;
+			Type const n1 = *n_ptr++;
 
 			Type WLn[] = {rhoL, rhouL, EL},
 			     FLn[NEQ*DIM];
@@ -333,7 +333,7 @@ void compute_Numerical_Flux_T_euler_roe_pike
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->bv_l.normals->data;
+	Type const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
@@ -348,7 +348,7 @@ void compute_Numerical_Flux_T_euler_roe_pike
 	           *rhouR_ptr = &WR[NnTotal*1],
 	           *ER_ptr    = &WR[NnTotal*(DIM+1)];
 
-	double const *n_ptr = nL;
+	Type const *n_ptr = nL;
 
 	Type *nF_ptr[NEQ];
 	for (int eq = 0; eq < NEQ; eq++)
@@ -362,9 +362,9 @@ void compute_Numerical_Flux_T_euler_roe_pike
 		           *rhowR_ptr = &WR[NnTotal*3];
 
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			double const n1 = *n_ptr++,
-			             n2 = *n_ptr++,
-			             n3 = *n_ptr++;
+			Type const n1 = *n_ptr++,
+			           n2 = *n_ptr++,
+			           n3 = *n_ptr++;
 
 			// Left VOLUME
 			Type const rhoL  = *rhoL_ptr++,
@@ -417,8 +417,8 @@ void compute_Numerical_Flux_T_euler_roe_pike
 			           c   = sqrt_T(c2);
 
 			// Compute eigenvalues (with entropy fix)
-			const Type l1   = min_abs_T(VnL-c,Vn-c),
-			           l5   = max_abs_T(VnR+c,Vn+c),
+			const Type l1   = min_abs_real_T(VnL-c,Vn-c),
+			           l5   = max_abs_real_T(VnR+c,Vn+c),
 			           l234 = ( real_T(Vn) > 0.0 ? Vn : -Vn );
 
 			Type const drho  = rhoR-rhoL,
@@ -466,8 +466,8 @@ void compute_Numerical_Flux_T_euler_roe_pike
 		           *rhovR_ptr = &WR[NnTotal*2];
 
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			double const n1 = *n_ptr++,
-			             n2 = *n_ptr++;
+			Type const n1 = *n_ptr++,
+			           n2 = *n_ptr++;
 
 			// Left VOLUME
 			Type const rhoL  = *rhoL_ptr++,
@@ -514,8 +514,8 @@ void compute_Numerical_Flux_T_euler_roe_pike
 			           c   = sqrt_T(c2);
 
 			// Compute eigenvalues (with entropy fix)
-			const Type l1   = min_abs_T(VnL-c,Vn-c),
-			           l5   = max_abs_T(VnR+c,Vn+c),
+			const Type l1   = min_abs_real_T(VnL-c,Vn-c),
+			           l5   = max_abs_real_T(VnR+c,Vn+c),
 			           l234 = ( real_T(Vn) > 0.0 ? Vn : -Vn );
 
 			Type const drho  = rhoR-rhoL,
@@ -555,7 +555,7 @@ void compute_Numerical_Flux_T_euler_roe_pike
 		}
 	} else if (DIM == 1) {
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			double const n1 = *n_ptr++;
+			Type const n1 = *n_ptr++;
 
 			// Left VOLUME
 			Type const rhoL  = *rhoL_ptr++,
@@ -598,8 +598,8 @@ void compute_Numerical_Flux_T_euler_roe_pike
 			           c   = sqrt_T(c2);
 
 			// Compute eigenvalues (with entropy fix)
-			const Type l1   = min_abs_T(VnL-c,Vn-c),
-			           l5   = max_abs_T(VnR+c,Vn+c),
+			const Type l1   = min_abs_real_T(VnL-c,Vn-c),
+			           l5   = max_abs_real_T(VnR+c,Vn+c),
 			           l234 = ( real_T(Vn) > 0.0 ? Vn : -Vn );
 
 			Type const drho  = rhoR-rhoL,
@@ -643,7 +643,7 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->bv_l.normals->data;
+	Type const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
@@ -660,7 +660,7 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 	           *rhouR_ptr = &WR[NnTotal*1],
 	           *ER_ptr    = &WR[NnTotal*(DIM+1)];
 
-	double const *n_ptr = nL;
+	Type const *n_ptr = nL;
 
 	Type *nF_ptr[NEQ];
 	if (nFluxNum != NULL) {
@@ -691,9 +691,9 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 		           *rhowR_ptr = &WR[NnTotal*3];
 
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			double const n1 = *n_ptr++,
-			             n2 = *n_ptr++,
-			             n3 = *n_ptr++;
+			Type const n1 = *n_ptr++,
+			           n2 = *n_ptr++,
+			           n3 = *n_ptr++;
 
 			// Left VOLUME
 			Type const rhoL  = *rhoL_ptr++,
@@ -987,8 +987,8 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 		             *rhovR_ptr = &WR[NnTotal*2];
 
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			double const n1 = *n_ptr++,
-			             n2 = *n_ptr++;
+			Type const n1 = *n_ptr++,
+			           n2 = *n_ptr++;
 
 			// Left VOLUME
 			Type const rhoL  = *rhoL_ptr++,
@@ -1154,6 +1154,7 @@ if (bc_name != BC_SLIPWALL)
 }
 #endif
 
+/// \todo DELETE THIS FOR CLEAN UP.
 #if TYPE_REAL == TYPE_RC
 
 // MAKE SURE TO DISABLE 'ALWAYS_SET_INITIAL' IN solve.c.
@@ -1528,7 +1529,7 @@ UNUSED(nFl_ex);
 		}
 	} else if (DIM == 1) {
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			double const n1 = *n_ptr++;
+			Type const n1 = *n_ptr++;
 
 			// Left VOLUME
 			Type const rhoL  = *rhoL_ptr++,
@@ -1780,7 +1781,7 @@ UNUSED(nFl_ex);
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static Type min_abs_T (const Type a, const Type b)
+static Type min_abs_real_T (const Type a, const Type b)
 {
 	Type c = ( abs_T(a) < abs_T(b) ? a : b );
 	if (real_T(c) < 0.0)
@@ -1788,7 +1789,7 @@ static Type min_abs_T (const Type a, const Type b)
 	return c;
 }
 
-static Type max_abs_T (const Type a, const Type b)
+static Type max_abs_real_T (const Type a, const Type b)
 {
 	Type c = ( abs_T(a) > abs_T(b) ? a : b );
 	if (real_T(c) < 0.0)
@@ -1801,6 +1802,6 @@ static Type max_abs_T (const Type a, const Type b)
 #include "undef_templates_multiarray.h"
 
 #include "undef_templates_boundary.h"
-#include "undef_templates_const_cast_d.h"
+#include "undef_templates_const_cast.h"
 #include "undef_templates_flux.h"
 #include "undef_templates_math_functions.h"
