@@ -5,7 +5,6 @@ set	(SOURCE
 	 simulation.c
 
 	 computational_elements/computational_elements.c
-	 computational_elements/computational_elements_c.c
 	 computational_elements/face.c
 	 computational_elements/volume.c
 
@@ -62,6 +61,7 @@ set	(SOURCE
 	 solvers/numerical_flux/numerical_flux_navier_stokes.c
 
 	 test_case/test_case.c
+	 test_case/test_case_c.c
 
 	 test_case/boundary/boundary.c
 	 test_case/boundary/boundary_advection.c

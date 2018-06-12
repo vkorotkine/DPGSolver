@@ -23,10 +23,24 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_face_rlhs_opg_T compute_face_rlhs_opg
 ///\}
 
+#define S_Params_T S_Params_T
+#define Num_Flux_T Num_Flux_T
+#define set_s_params_T set_s_params_T
+#define constructor_Numerical_Flux_OPG_T constructor_Numerical_Flux_OPG_T
+#define scale_by_Jacobian_e_T scale_by_Jacobian_e_T
+#define constructor_Numerical_Flux_Input_data_opg_T constructor_Numerical_Flux_Input_data_opg_T
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define compute_face_rlhs_opg_T compute_face_rlhs_opg_c
 ///\}
+
+#define S_Params_T S_Params_T_c
+#define Num_Flux_T Num_Flux_T_c
+#define set_s_params_T set_s_params_T_c
+#define constructor_Numerical_Flux_OPG_T constructor_Numerical_Flux_OPG_T_c
+#define scale_by_Jacobian_e_T scale_by_Jacobian_e_T_c
+#define constructor_Numerical_Flux_Input_data_opg_T constructor_Numerical_Flux_Input_data_opg_T_c
 
 #endif

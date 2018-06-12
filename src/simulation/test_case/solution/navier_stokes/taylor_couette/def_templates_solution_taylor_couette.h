@@ -26,6 +26,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_grad_taylor_couette_T constructor_const_grad_taylor_couette
 ///\}
 
+#define constructor_sol_taylor_couette constructor_sol_taylor_couette
+#define constructor_grad_taylor_couette constructor_grad_taylor_couette
+#define Sol_Data__tc Sol_Data__tc
+#define get_sol_data get_sol_data
+#define read_data_taylor_couette read_data_taylor_couette
+#define set_data_taylor_couette set_data_taylor_couette
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
@@ -34,5 +41,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_taylor_couette_T  constructor_const_sol_taylor_couette_c
 #define constructor_const_grad_taylor_couette_T constructor_const_grad_taylor_couette_c
 ///\}
+
+#define constructor_sol_taylor_couette constructor_sol_taylor_couette_c
+#define constructor_grad_taylor_couette constructor_grad_taylor_couette_c
+#define Sol_Data__tc Sol_Data__tc_c
+#define get_sol_data get_sol_data_c
+#define read_data_taylor_couette read_data_taylor_couette_c
+#define set_data_taylor_couette set_data_taylor_couette_c
 
 #endif

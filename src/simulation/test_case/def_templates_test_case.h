@@ -28,6 +28,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #define increment_pointers_T    increment_pointers
 ///\}
 
+#define set_string_associations set_string_associations
+#define set_pde_related set_pde_related
+#define set_method_related set_method_related
+#define set_function_pointers set_function_pointers
+#define read_test_case_parameters read_test_case_parameters
+#define correct_invalid_test_case_parameters correct_invalid_test_case_parameters
+#define get_compute_member_Flux_Input get_compute_member_Flux_Input
+#define get_compute_member_Boundary_Value_Input get_compute_member_Boundary_Value_Input
+#define set_function_pointers_start set_function_pointers_start
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Data types
@@ -40,5 +50,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #define increment_pointers_T    increment_pointers_c
 ///\}
 
-#endif
+#define set_string_associations set_string_associations_c
+#define set_pde_related set_pde_related_c
+#define set_method_related set_method_related_c
+#define set_function_pointers set_function_pointers_c
+#define read_test_case_parameters read_test_case_parameters_c
+#define correct_invalid_test_case_parameters correct_invalid_test_case_parameters_c
+#define get_compute_member_Flux_Input get_compute_member_Flux_Input_c
+#define get_compute_member_Boundary_Value_Input get_compute_member_Boundary_Value_Input_c
+#define set_function_pointers_start set_function_pointers_start_c
 
+#endif

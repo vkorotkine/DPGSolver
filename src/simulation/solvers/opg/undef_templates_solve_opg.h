@@ -18,3 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef update_ind_dof_opg_T
 #undef constructor_nnz_opg_T
+
+#undef update_ind_dof_opg_test
+#undef compute_dof_test
+#undef compute_dof_volumes_test

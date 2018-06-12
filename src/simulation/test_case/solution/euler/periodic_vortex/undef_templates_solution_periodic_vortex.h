@@ -19,3 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #undef set_sol_periodic_vortex_T
+
+#undef constructor_sol_periodic_vortex_T
+#undef Sol_Data__pv
+#undef get_sol_data
+#undef set_xy_c
+#undef read_data_periodic_vortex
+#undef set_data_periodic_vortex

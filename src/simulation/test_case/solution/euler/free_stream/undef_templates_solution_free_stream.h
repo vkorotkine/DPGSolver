@@ -19,3 +19,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef set_sol_free_stream_T
 #undef constructor_const_sol_free_stream_T
+
+#undef constructor_sol_free_stream
+#undef mutable_constructor_sol_fs_fptr_T
+#undef Sol_Data__fs
+#undef get_sol_data
+#undef read_data_free_stream
+#undef constructor_sol_free_stream_const
+#undef constructor_sol_free_stream_trig_x

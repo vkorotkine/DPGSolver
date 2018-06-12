@@ -63,6 +63,30 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic  constructor_Boundary_Value_navier_stokes_no_slip_flux_diabatic
 ///\}
 
+#define constructor_s_fc_interp constructor_s_fc_interp
+#define constructor_g_fc_interp constructor_g_fc_interp
+#define constructor_grad_bv constructor_grad_bv
+#define BC_Data BC_Data
+#define get_bc_data_back_pressure get_bc_data_back_pressure
+#define get_bc_data_total_tp get_bc_data_total_tp
+#define compute_Vn compute_Vn
+#define set_uvw set_uvw
+#define compute_Vt compute_Vt
+#define compute_uvw compute_uvw
+#define compute_opposite_normal_uvw compute_opposite_normal_uvw
+#define read_data_back_pressure read_data_back_pressure
+#define read_data_total_tp read_data_total_tp
+#define compute_uvw_ex_fptr compute_uvw_ex_fptr
+#define Exact_Boundary_Data Exact_Boundary_Data
+#define set_Exact_Boundary_Data set_Exact_Boundary_Data
+#define constructor_Boundary_Value_T_navier_stokes_no_slip_all_general constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
+#define constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
+#define read_and_set_data_diabatic_flux read_and_set_data_diabatic_flux
+#define read_and_set_data_no_slip_rotating read_and_set_data_no_slip_rotating
+#define read_and_set_data_rho_E read_and_set_data_rho_E
+#define compute_uvw_ex_zero compute_uvw_ex_zero
+#define compute_uvw_ex_rotating compute_uvw_ex_rotating
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Data types
@@ -108,5 +132,29 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Boundary_Value_T_navier_stokes_no_slip_flux_adiabatic constructor_Boundary_Value_c_navier_stokes_no_slip_flux_adiabatic
 #define constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic  constructor_Boundary_Value_c_navier_stokes_no_slip_flux_diabatic
 ///\}
+
+#define constructor_s_fc_interp constructor_s_fc_interp_c
+#define constructor_g_fc_interp constructor_g_fc_interp_c
+#define constructor_grad_bv constructor_grad_bv_c
+#define BC_Data BC_Data_c
+#define get_bc_data_back_pressure get_bc_data_back_pressure_c
+#define get_bc_data_total_tp get_bc_data_total_tp_c
+#define compute_Vn compute_Vn_c
+#define set_uvw set_uvw_c
+#define compute_Vt compute_Vt_c
+#define compute_uvw compute_uvw_c
+#define compute_opposite_normal_uvw compute_opposite_normal_uvw_c
+#define read_data_back_pressure read_data_back_pressure_c
+#define read_data_total_tp read_data_total_tp_c
+#define compute_uvw_ex_fptr compute_uvw_ex_fptr_c
+#define Exact_Boundary_Data Exact_Boundary_Data_c
+#define set_Exact_Boundary_Data set_Exact_Boundary_Data_c
+#define constructor_Boundary_Value_T_navier_stokes_no_slip_all_general constructor_Boundary_Value_T_navier_stokes_no_slip_all_general_c
+#define constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general_c
+#define read_and_set_data_diabatic_flux read_and_set_data_diabatic_flux_c
+#define read_and_set_data_no_slip_rotating read_and_set_data_no_slip_rotating_c
+#define read_and_set_data_rho_E read_and_set_data_rho_E_c
+#define compute_uvw_ex_zero compute_uvw_ex_zero_c
+#define compute_uvw_ex_rotating compute_uvw_ex_rotating_c
 
 #endif

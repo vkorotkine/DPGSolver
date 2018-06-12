@@ -195,7 +195,7 @@ void compute_unit_normals_T
 	 struct Multiarray_T* normals_f)
 {
 	compute_normals_T(ind_lf,normals_ref,metrics_f,normals_f);
-	normalize_Multiarray_R(normals_f,"L2",false,NULL);
+	normalize_Multiarray_T(normals_f,"L2",false,NULL);
 }
 
 void compute_geometry_volume_T
@@ -639,7 +639,7 @@ static void compute_unit_normals_and_det_T
 	 struct Multiarray_T* normals_f, struct Multiarray_T* jacobian_det_f)
 {
 	compute_normals_T(ind_lf,normals_ref,metrics_f,normals_f);
-	normalize_Multiarray_R(normals_f,"L2",true,jacobian_det_f);
+	normalize_Multiarray_T(normals_f,"L2",true,jacobian_det_f);
 }
 
 static void compute_vol_jacobian_det_fc_T (struct Solver_Face_T*const s_face)

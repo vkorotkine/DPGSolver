@@ -41,3 +41,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef get_operator__tw1_vt_vc_T
 #undef get_operator__cv1_vt_vc_T
 ///\}
+
+#undef constructor_NULL
+#undef constructor_sol_vc_interp
+#undef constructor_grad_vc_interp
+#undef constructor_sol_vc_col
+#undef constructor_grad_vc_col
+#undef constructor_xyz_vc
+#undef destructor_NULL
+#undef destructor_sol_vc_interp
+#undef destructor_sol_vc_col
+#undef constructor_Flux_Ref
+#undef constructor_flux_ref_T
+#undef get_operator__cv0_vg_vc_T

@@ -25,3 +25,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_Boundary_Comp_Elem_operators_T
 #undef constructor_xyz_surf_diff_T
 #undef correct_internal_xyz_blended_T
+
+#undef constructor_xyz_blended_ce
+#undef compute_p_base_min
+#undef constructor_blend_values
+#undef constructor_xyz_diff_T

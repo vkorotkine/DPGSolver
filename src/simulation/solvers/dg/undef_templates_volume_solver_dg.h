@@ -25,3 +25,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_derived_DG_Solver_Volume_T
 #undef destructor_derived_DG_Solver_Volume_T
 ///\}
+
+#undef Needed_Members
+#undef set_needed_members

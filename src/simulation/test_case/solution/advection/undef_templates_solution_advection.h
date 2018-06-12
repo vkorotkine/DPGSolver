@@ -25,3 +25,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "hyperbolic_tan/undef_templates_solution_hyperbolic_tan.h"
 
 #undef set_function_pointers_solution_advection_T
+
+#undef set_function_pointers_num_flux_T

@@ -27,3 +27,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_viscosity_type_T
 #undef compute_mu_constant_T
 #undef compute_mu_sutherland_T
+
+#undef set_function_pointers_num_flux

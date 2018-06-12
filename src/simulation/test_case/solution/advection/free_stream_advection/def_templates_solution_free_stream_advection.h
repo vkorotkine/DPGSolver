@@ -24,11 +24,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_free_stream_advection_T constructor_const_sol_free_stream_advection
 ///\}
 
+#define constructor_sol_free_stream_advection constructor_sol_free_stream_advection
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define set_sol_free_stream_advection_T               set_sol_free_stream_advection_c
 #define constructor_const_sol_free_stream_advection_T constructor_const_sol_free_stream_advection_c
 ///\}
+
+#define constructor_sol_free_stream_advection constructor_sol_free_stream_advection_c
 
 #endif

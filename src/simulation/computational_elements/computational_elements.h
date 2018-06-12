@@ -20,8 +20,6 @@ You should have received a copy of the GNU General Public License along with DPG
  *         and their derived types.
  */
 
-#include "computational_elements_c.h"
-
 #include "def_templates_type_d.h"
 #include "computational_elements_T.h"
 #include "undef_templates_type.h"

@@ -19,3 +19,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #undef compute_volume_rlhs_opg_T
 ///\}
+
+#undef S_Params_T
+#undef set_s_params_T

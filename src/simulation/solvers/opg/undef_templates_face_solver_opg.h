@@ -27,3 +27,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef get_operator__cv1_vt_fc_T
 ///\}
+
+#undef constructor_inverse_mass_face_T
+#undef constructor_mass_face_T

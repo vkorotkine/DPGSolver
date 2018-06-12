@@ -28,6 +28,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define correct_for_exact_normal_gaussian_bump_T correct_for_exact_normal_gaussian_bump_d
 ///\}
 
+#define correct_normals_fc correct_normals_fc
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function pointers
@@ -39,5 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define correct_for_exact_normal_cylinder_T      correct_for_exact_normal_cylinder_c
 #define correct_for_exact_normal_gaussian_bump_T correct_for_exact_normal_gaussian_bump_c
 ///\}
+
+#define correct_normals_fc correct_normals_fc_c
 
 #endif

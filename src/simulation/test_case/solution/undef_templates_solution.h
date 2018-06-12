@@ -51,3 +51,17 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names (pde specific)
 #undef convert_variables_T
 ///\}
+
+#undef set_initial_v_sg_coef
+#undef set_initial_f_nf_coef
+#undef set_exact_f_nf_fc
+#undef get_operator__cv0_vg_vc
+#undef constructor_xyz_v
+#undef constructor_xyz_f
+#undef compute_coef_from_val_vs
+#undef compute_coef_from_val_vg
+#undef constructor_nf
+#undef compute_coef_from_val_ff
+#undef constructor_normals_ff
+#undef constructor_n_dot_f
+#undef constructor_metrics_ff

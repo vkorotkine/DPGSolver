@@ -31,6 +31,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_inverse_mass_T          constructor_inverse_mass
 ///\}
 
+#define set_function_pointers_constructor_xyz_surface set_function_pointers_constructor_xyz_surface
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Data types
@@ -44,5 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_mass_T                  constructor_mass_c
 #define constructor_inverse_mass_T          constructor_inverse_mass_c
 ///\}
+
+#define set_function_pointers_constructor_xyz_surface set_function_pointers_constructor_xyz_surface_c
 
 #endif

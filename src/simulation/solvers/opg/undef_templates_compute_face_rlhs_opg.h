@@ -19,3 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #undef compute_face_rlhs_opg_T
 ///\}
+
+#undef S_Params_T
+#undef Num_Flux_T
+#undef set_s_params_T
+#undef constructor_Numerical_Flux_OPG_T
+#undef scale_by_Jacobian_e_T
+#undef constructor_Numerical_Flux_Input_data_opg_T

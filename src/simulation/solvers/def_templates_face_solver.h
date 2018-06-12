@@ -30,6 +30,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__w_fc__s_e_T             get_operator__w_fc__s_e
 ///\}
 
+#define set_function_pointers_num_flux_bc set_function_pointers_num_flux_bc
+#define set_function_pointers_num_flux_bc_advection set_function_pointers_num_flux_bc_advection
+#define set_function_pointers_num_flux_bc_diffusion set_function_pointers_num_flux_bc_diffusion
+#define set_function_pointers_num_flux_bc_euler set_function_pointers_num_flux_bc_euler
+#define set_function_pointers_num_flux_bc_navier_stokes set_function_pointers_num_flux_bc_navier_stokes
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Data types
@@ -42,5 +48,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_function_pointers_face_num_flux_T set_function_pointers_face_num_flux_c
 #define get_operator__w_fc__s_e_T             get_operator__w_fc__s_e_c
 ///\}
+
+#define set_function_pointers_num_flux_bc set_function_pointers_num_flux_bc_c
+#define set_function_pointers_num_flux_bc_advection set_function_pointers_num_flux_bc_advection_c
+#define set_function_pointers_num_flux_bc_diffusion set_function_pointers_num_flux_bc_diffusion_c
+#define set_function_pointers_num_flux_bc_euler set_function_pointers_num_flux_bc_euler_c
+#define set_function_pointers_num_flux_bc_navier_stokes set_function_pointers_num_flux_bc_navier_stokes_c
 
 #endif

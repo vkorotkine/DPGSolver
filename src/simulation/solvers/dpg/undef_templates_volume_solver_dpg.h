@@ -25,3 +25,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_derived_DPG_Solver_Volume_T
 #undef destructor_derived_DPG_Solver_Volume_T
 ///\}
+
+#undef constructor_norm_op_H0
+#undef constructor_norm_op_H1

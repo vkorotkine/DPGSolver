@@ -28,3 +28,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_mass_T
 #undef constructor_inverse_mass_T
 ///\}
+
+#undef set_function_pointers_constructor_xyz_surface

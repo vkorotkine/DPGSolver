@@ -23,11 +23,19 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_nnz_opg_T constructor_nnz_opg
 ///\}
 
+#define update_ind_dof_opg_test update_ind_dof_opg_test
+#define compute_dof_test compute_dof_test
+#define compute_dof_volumes_test compute_dof_volumes_test
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define update_ind_dof_opg_T  update_ind_dof_opg_c
 #define constructor_nnz_opg_T constructor_nnz_opg_c
 ///\}
+
+#define update_ind_dof_opg_test update_ind_dof_opg_test_c
+#define compute_dof_test compute_dof_test_c
+#define compute_dof_volumes_test compute_dof_volumes_test_c
 
 #endif

@@ -24,11 +24,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_peterson_T constructor_const_sol_peterson
 ///\}
 
+#define constructor_sol_peterson constructor_sol_peterson
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define set_sol_peterson_T               set_sol_peterson_c
 #define constructor_const_sol_peterson_T constructor_const_sol_peterson_c
 ///\}
+
+#define constructor_sol_peterson constructor_sol_peterson_c
 
 #endif

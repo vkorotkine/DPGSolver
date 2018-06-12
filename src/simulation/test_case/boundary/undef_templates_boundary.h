@@ -60,3 +60,27 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_Boundary_Value_T_navier_stokes_no_slip_flux_adiabatic
 #undef constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic
 ///\}
+
+#undef constructor_s_fc_interp
+#undef constructor_g_fc_interp
+#undef constructor_grad_bv
+#undef BC_Data
+#undef get_bc_data_back_pressure
+#undef get_bc_data_total_tp
+#undef compute_Vn
+#undef set_uvw
+#undef compute_Vt
+#undef compute_uvw
+#undef compute_opposite_normal_uvw
+#undef read_data_back_pressure
+#undef read_data_total_tp
+#undef compute_uvw_ex_fptr
+#undef Exact_Boundary_Data
+#undef set_Exact_Boundary_Data
+#undef constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
+#undef constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
+#undef read_and_set_data_diabatic_flux
+#undef read_and_set_data_no_slip_rotating
+#undef read_and_set_data_rho_E
+#undef compute_uvw_ex_zero
+#undef compute_uvw_ex_rotating

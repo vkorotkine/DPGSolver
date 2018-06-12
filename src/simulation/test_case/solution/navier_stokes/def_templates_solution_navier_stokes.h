@@ -34,6 +34,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_mu_sutherland_T                        compute_mu_sutherland_d
 ///\}
 
+#define set_function_pointers_num_flux set_function_pointers_num_flux
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function pointers
@@ -48,5 +50,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_mu_constant_T                          compute_mu_constant_c
 #define compute_mu_sutherland_T                        compute_mu_sutherland_c
 ///\}
+
+#define set_function_pointers_num_flux set_function_pointers_num_flux_c
 
 #endif

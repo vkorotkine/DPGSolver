@@ -27,8 +27,8 @@ struct Simulation;
 struct Intrusive_List;
 struct Solver_Volume_T;
 struct Solver_Face_T;
-struct Multiarray_R;
-struct const_Multiarray_R;
+struct Multiarray_T;
+struct const_Multiarray_T;
 
 /** \brief Pointer to functions constructing the physical xyz coordinates from parametric/straight element coordinates.
  *
@@ -37,9 +37,9 @@ struct const_Multiarray_R;
  *  \param s_vol  \ref Solver_Volume_T.
  *  \param sim    \ref Simulation.
  */
-typedef const struct const_Multiarray_R* (*constructor_xyz_fptr_T)
+typedef const struct const_Multiarray_T* (*constructor_xyz_fptr_T)
 	(const char n_type,
-	 const struct const_Multiarray_R* xyz_i,
+	 const struct const_Multiarray_T* xyz_i,
 	 const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim
 	);
@@ -57,9 +57,9 @@ void set_up_solver_geometry_p1_T
 /// \brief Compute the face unit normal vectors at the nodes corresponding to the given face metrics.
 void compute_unit_normals_T
 	(const int ind_lf,                             ///< Defined for \ref compute_unit_normals_and_det_T.
-	 const struct const_Multiarray_R* normals_ref, ///< Defined for \ref compute_unit_normals_and_det_T.
-	 const struct const_Multiarray_R* metrics_f,   ///< Defined for \ref compute_unit_normals_and_det_T.
-	 struct Multiarray_R* normals_f                ///< Defined for \ref compute_unit_normals_and_det_T.
+	 const struct const_Multiarray_T* normals_ref, ///< Defined for \ref compute_unit_normals_and_det_T.
+	 const struct const_Multiarray_T* metrics_f,   ///< Defined for \ref compute_unit_normals_and_det_T.
+	 struct Multiarray_T* normals_f                ///< Defined for \ref compute_unit_normals_and_det_T.
 	);
 
 /** \brief Compute the geometry of the \ref Solver_Volume_T.
@@ -128,7 +128,7 @@ void compute_geometry_face_T
 /** \brief Constructor for the high-order straight geometry values using the vertices of the p1 representation either as
  *         \ref Volume::xyz_ve or the interpolation of \ref Solver_Volume_T::geom_coef to the vertex nodes.
  *  \return See brief. */
-const struct const_Multiarray_R* constructor_xyz_s_ho_T
+const struct const_Multiarray_T* constructor_xyz_s_ho_T
 	(const char ve_rep,                        /**< Indicator for what nodes to use as the vertices. Options:
 	                                            *   'v'ertices, interpolated 'g'eometry coefficient. */
 	 const struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
@@ -137,8 +137,8 @@ const struct const_Multiarray_R* constructor_xyz_s_ho_T
 
 /** \brief Constructor for the high-order geometry coefficients from the input values.
  *  \return See brief. */
-const struct const_Multiarray_R* constructor_geom_coef_ho_T
-	(const struct const_Multiarray_R* geom_val, ///< The geometry values.
+const struct const_Multiarray_T* constructor_geom_coef_ho_T
+	(const struct const_Multiarray_T* geom_val, ///< The geometry values.
 	 const struct Solver_Volume_T*const s_vol,  ///< \ref Solver_Volume_T.
 	 const struct Simulation*const sim          ///< \ref Simulation.
 	);

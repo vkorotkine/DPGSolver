@@ -26,3 +26,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_function_pointers_face_num_flux_T
 #undef get_operator__w_fc__s_e_T
 ///\}
+
+#undef set_function_pointers_num_flux_bc
+#undef set_function_pointers_num_flux_bc_advection
+#undef set_function_pointers_num_flux_bc_diffusion
+#undef set_function_pointers_num_flux_bc_euler
+#undef set_function_pointers_num_flux_bc_navier_stokes

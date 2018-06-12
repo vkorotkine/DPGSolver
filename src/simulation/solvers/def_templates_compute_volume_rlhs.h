@@ -43,6 +43,19 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__cv1_vt_vc_T      get_operator__cv1_vt_vc
 ///\}
 
+#define constructor_NULL constructor_NULL
+#define constructor_sol_vc_interp constructor_sol_vc_interp
+#define constructor_grad_vc_interp constructor_grad_vc_interp
+#define constructor_sol_vc_col constructor_sol_vc_col
+#define constructor_grad_vc_col constructor_grad_vc_col
+#define constructor_xyz_vc constructor_xyz_vc
+#define destructor_NULL destructor_NULL
+#define destructor_sol_vc_interp destructor_sol_vc_interp
+#define destructor_sol_vc_col destructor_sol_vc_col
+#define constructor_Flux_Ref constructor_Flux_Ref
+#define constructor_flux_ref_T constructor_flux_ref_T
+#define get_operator__cv0_vg_vc_T get_operator__cv0_vg_vc_T
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Data types
@@ -69,5 +82,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__tw1_vt_vc_T      get_operator__tw1_vt_vc_c
 #define get_operator__cv1_vt_vc_T      get_operator__cv1_vt_vc_c
 ///\}
+
+#define constructor_NULL constructor_NULL_c
+#define constructor_sol_vc_interp constructor_sol_vc_interp_c
+#define constructor_grad_vc_interp constructor_grad_vc_interp_c
+#define constructor_sol_vc_col constructor_sol_vc_col_c
+#define constructor_grad_vc_col constructor_grad_vc_col_c
+#define constructor_xyz_vc constructor_xyz_vc_c
+#define destructor_NULL destructor_NULL_c
+#define destructor_sol_vc_interp destructor_sol_vc_interp_c
+#define destructor_sol_vc_col destructor_sol_vc_col_c
+#define constructor_Flux_Ref constructor_Flux_Ref_c
+#define constructor_flux_ref_T constructor_flux_ref_T_c
+#define get_operator__cv0_vg_vc_T get_operator__cv0_vg_vc_T_c
 
 #endif

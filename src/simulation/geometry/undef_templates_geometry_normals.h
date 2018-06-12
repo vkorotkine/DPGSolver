@@ -21,3 +21,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_correct_for_exact_normal_fptr_T
 #undef correct_for_exact_normal_cylinder_T
 #undef correct_for_exact_normal_gaussian_bump_T
+
+#undef correct_normals_fc

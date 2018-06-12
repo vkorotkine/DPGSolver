@@ -23,3 +23,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_xyz_trigonometric_cube_parametric_xl_oct1_T
 #undef constructor_xyz_joukowski_parametric_T
 #undef constructor_xyz_gaussian_bump_parametric_T
+
+#undef Geo_Data
+#undef get_geo_data
+#undef romberg
+#undef f_al_gaussian_bump
+#undef read_data_joukowski
+#undef read_data_gaussian_bump
+#undef read_data_fixed_cube

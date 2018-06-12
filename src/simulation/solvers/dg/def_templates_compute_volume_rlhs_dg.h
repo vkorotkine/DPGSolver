@@ -23,10 +23,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_volume_rlhs_dg_T compute_volume_rlhs_dg
 ///\}
 
+#define S_Params_T S_Params_T
+#define set_s_params_T set_s_params_T
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define compute_volume_rlhs_dg_T compute_volume_rlhs_dg_c
 ///\}
+
+#define S_Params_T S_Params_T_c
+#define set_s_params_T set_s_params_T_c
 
 #endif

@@ -24,11 +24,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_hyperbolic_tan_T constructor_const_sol_hyperbolic_tan
 ///\}
 
+#define constructor_sol_hyperbolic_tan constructor_sol_hyperbolic_tan
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define set_sol_hyperbolic_tan_T               set_sol_hyperbolic_tan_c
 #define constructor_const_sol_hyperbolic_tan_T constructor_const_sol_hyperbolic_tan_c
 ///\}
+
+#define constructor_sol_hyperbolic_tan constructor_sol_hyperbolic_tan_c
 
 #endif
