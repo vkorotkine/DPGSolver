@@ -67,3 +67,33 @@ release_3d:
 doc:
 	@echo "\nRunning Doxygen in build_debug_3d.\n"
 	cd ../build_debug_3d && make -j doc
+
+# Execution
+.PHONY: quick_debug_1d quick_debug_2d quick_debug_3d quick_1d quick_2d quick_3d memcheck_1d memcheck_2d memcheck_3d
+
+quick_debug_1d: fast_debug_1d
+	cd ../build_debug_1d/script_files && ./quick.sh
+
+quick_debug_2d: fast_debug_2d
+	cd ../build_debug_2d/script_files && ./quick.sh
+
+quick_debug_3d: fast_debug_3d
+	cd ../build_debug_3d/script_files && ./quick.sh
+
+memcheck_debug_1d: fast_debug_1d
+	cd ../build_debug_1d/script_files && ./memcheck.sh
+
+memcheck_debug_2d: fast_debug_2d
+	cd ../build_debug_2d/script_files && ./memcheck.sh
+
+memcheck_debug_3d: fast_debug_3d
+	cd ../build_debug_3d/script_files && ./memcheck.sh
+
+quick_1d: fast_debug_1d
+	cd ../build_1d/script_files && ./quick.sh
+
+quick_2d: fast_debug_2d
+	cd ../build_2d/script_files && ./quick.sh
+
+quick_3d: fast_debug_3d
+	cd ../build_3d/script_files && ./quick.sh

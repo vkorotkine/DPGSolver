@@ -24,9 +24,6 @@ ARGV="advection/vortex/TEST_opg_advection_vortex_mixed2d petsc_options_gmres_tol
 ARGV="advection/default/opg/TEST_opg_advection_default__mixed2d petsc_options_cg_tol_1e-15"
 ARGV="advection/default/opg/TEST_opg_advection_default__mixed2d petsc_options_gmres_tol_1e-15"
 
-EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_linearization
-ARGV="euler/gaussian_bump/TEST_Euler_GaussianBump_ParametricMixed2D__ml0__p2"
-
 #ARGV="advection/hyperbolic_tan/TEST_advection_hyperbolic_tan_1d petsc_options_gmres_tol_1e-15"
 #ARGV="diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_Mixed2D petsc_options_cg_ilu1"
 #ARGV="navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_DG_ParametricTRI petsc_options_gmres_default"

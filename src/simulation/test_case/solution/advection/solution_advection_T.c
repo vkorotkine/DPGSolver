@@ -245,26 +245,14 @@ MAYBE_UNUSED(x);
 static void set_function_pointers_num_flux_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
 	switch (sim->method) {
-	case METHOD_DG: // fallthrough
-	case METHOD_DPG:
+	case METHOD_DG:  // fallthrough
+	case METHOD_DPG: // fallthrough
+	case METHOD_OPG:
 		test_case->compute_Numerical_Flux = compute_Numerical_Flux_1_T;
 		switch (test_case->ind_num_flux[0]) {
 		case NUM_FLUX_UPWIND:
 			test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_T_advection_upwind;
 			test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_T_advection_upwind_jacobian;
-			break;
-		default:
-			EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
-			break;
-		}
-		break;
-	case METHOD_OPG:
-		// As above, but jacobian not needed
-		test_case->compute_Numerical_Flux = compute_Numerical_Flux_1_T;
-		switch (test_case->ind_num_flux[0]) {
-		case NUM_FLUX_UPWIND:
-			test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_T_advection_upwind;
-			test_case->compute_Numerical_Flux_i[0] = NULL;
 			break;
 		default:
 			EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);

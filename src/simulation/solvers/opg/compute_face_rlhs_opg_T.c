@@ -90,8 +90,7 @@ void compute_face_rlhs_opg_T
 	struct S_Params_T s_params = set_s_params_T(sim);
 
 	struct Test_Case_T*const test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
-	const char solver_method_prev = test_case->solver_method_curr;
-	test_case->solver_method_curr = 'e';
+	assert(test_case->solver_method_curr == 'i');
 
 	struct Numerical_Flux_Input_T*const num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
 
@@ -105,8 +104,6 @@ void compute_face_rlhs_opg_T
 		destructor_Numerical_Flux_T(num_flux);
 	}
 	destructor_Numerical_Flux_Input_T(num_flux_i);
-
-	test_case->solver_method_curr = solver_method_prev;
 }
 
 // Static functions ************************************************************************************************* //
@@ -187,8 +184,6 @@ static void constructor_Numerical_Flux_Input_data_opg_T
 	(struct Numerical_Flux_Input_T*const num_flux_i, const struct Solver_Face_T*const s_face,
 	 const struct Simulation*const sim)
 {
-	const struct Test_Case_T*const test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
-	assert(test_case->solver_method_curr == 'e'); // linearization of numerical flux terms is not needed.
 	if (get_set_has_1st_2nd_order(NULL)[1])
 		EXIT_ADD_SUPPORT;
 	constructor_Numerical_Flux_Input_data_T(num_flux_i,s_face,sim); // destructed

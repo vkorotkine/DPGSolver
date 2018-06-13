@@ -356,6 +356,9 @@ const struct const_Matrix_d* constructor_lhs_f_1_b
 static struct const_Matrix_d* constructor_lhs_f_1_b_l
 	(const struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
 {
+	const struct Face*const face = (struct Face*) s_face;
+	assert(face->boundary);
+
 	const int*const n_vr_eq = get_set_n_var_eq(NULL);
 	const int n_vr = n_vr_eq[0],
 	          n_eq = n_vr_eq[1];
