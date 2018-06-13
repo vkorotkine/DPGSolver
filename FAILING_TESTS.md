@@ -11,4 +11,4 @@ Please see the comments in [test_integration_restart.c](src/testing/integration/
 
 The convergence orders are tending towards the expected optimal orders but require finer meshes than those
 currently used to be within the required tolerance as specified by the 'ACCEPTABLE_DISCOUNT' parameter in
-[test_integration_convergence_support.c](src/testing/integration/test_integration_covergence_support.c).
+[test_integration_convergence_support.c](src/testing/integration/test_integration_convergence_support.c).

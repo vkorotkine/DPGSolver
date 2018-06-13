@@ -19,5 +19,5 @@ the following may need to be built manually:
 - Gmsh ([Download page](http://gmsh.info/#Download))
 
 The compressed files should be downloaded from the pages linked above and installed using the available gui or standard
-configure, make, make install. Example detailed instructions for the PETSc installation are provided in the 
-[PETSc README](external/petsc/) file.
+configure, make, make install. Example detailed instructions for the PETSc installation are provided in the
+[PETSc README](external/petsc/README.md) file.
