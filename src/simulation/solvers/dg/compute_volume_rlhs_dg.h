@@ -24,4 +24,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_volume_rlhs_dg_T.h"
 #include "undef_templates_type.h"
 
+#include "def_templates_type_dc.h"
+#include "compute_volume_rlhs_dg_T.h"
+#include "undef_templates_type.h"
+
 #endif // DPG__compute_volume_rlhs_dg_h__INCLUDED

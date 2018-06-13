@@ -40,14 +40,14 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Return a \ref Multiarray_T\* container holding the solution values at the input coordinates.
  *  \return See brief. */
 static struct Multiarray_T* constructor_sol_free_stream
-	(const struct const_Multiarray_R* xyz, ///< xyz coordinates at which to evaluate the solution.
+	(const struct const_Multiarray_T* xyz, ///< xyz coordinates at which to evaluate the solution.
 	 const struct Simulation* sim          ///< \ref Simulation.
 	);
 
 // Interface functions ********************************************************************************************** //
 
 const struct const_Multiarray_T* constructor_const_sol_free_stream_T
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
 	struct Multiarray_T* sol = constructor_sol_free_stream(xyz,sim); // returned
 	return (const struct const_Multiarray_T*) sol;
@@ -55,9 +55,9 @@ const struct const_Multiarray_T* constructor_const_sol_free_stream_T
 
 void set_sol_free_stream_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
-	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+	const struct const_Multiarray_T* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_free_stream(xyz,sim); // destructed
-	destructor_const_Multiarray_R(xyz);
+	destructor_const_Multiarray_T(xyz);
 
 	update_Solution_Container_sol_T(&sol_cont,sol,sim);
 	destructor_Multiarray_T(sol);
@@ -76,7 +76,7 @@ struct Sol_Data__fs;
  *  \param sol_data \ref Sol_Data__fs.
  */
 typedef struct Multiarray_T* (*mutable_constructor_sol_fs_fptr_T)
-	(const struct const_Multiarray_R*const xyz,
+	(const struct const_Multiarray_T*const xyz,
 	 const struct Simulation*const sim,
 	 const struct Sol_Data__fs*const sol_data
 	);
@@ -100,7 +100,7 @@ static struct Sol_Data__fs get_sol_data
 	( );
 
 static struct Multiarray_T* constructor_sol_free_stream
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
 	assert(DIM >= 2);
 	const struct Sol_Data__fs sol_data = get_sol_data();
@@ -132,7 +132,7 @@ static struct Sol_Data__fs get_sol_data ( )
 /** \brief Version of \ref constructor_sol_free_stream with a constant profile along the boundaries.
  *  \return See brief. */
 static struct Multiarray_T* constructor_sol_free_stream_const
-	(const struct const_Multiarray_R*const xyz, ///< See brief.
+	(const struct const_Multiarray_T*const xyz, ///< See brief.
 	 const struct Simulation*const sim,         ///< See brief.
 	 const struct Sol_Data__fs*const sol_data   ///< Defined for \ref mutable_constructor_sol_fs_fptr_T.
 	);
@@ -140,7 +140,7 @@ static struct Multiarray_T* constructor_sol_free_stream_const
 /** \brief Version of \ref constructor_sol_free_stream with a trigonometric profile along the x-coordinate boundaries.
  *  \return See brief. */
 static struct Multiarray_T* constructor_sol_free_stream_trig_x
-	(const struct const_Multiarray_R*const xyz, ///< See brief.
+	(const struct const_Multiarray_T*const xyz, ///< See brief.
 	 const struct Simulation*const sim,         ///< See brief.
 	 const struct Sol_Data__fs*const sol_data   ///< Defined for \ref mutable_constructor_sol_fs_fptr_T.
 	);
@@ -187,7 +187,7 @@ static void read_data_free_stream (struct Sol_Data__fs*const sol_data)
 // Level 3 ********************************************************************************************************** //
 
 static struct Multiarray_T* constructor_sol_free_stream_const
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim, const struct Sol_Data__fs*const sol_data)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim, const struct Sol_Data__fs*const sol_data)
 {
 	const ptrdiff_t n_n = xyz->extents[0];
 	assert(DIM == xyz->extents[1]);
@@ -227,7 +227,7 @@ static struct Multiarray_T* constructor_sol_free_stream_const
 }
 
 static struct Multiarray_T* constructor_sol_free_stream_trig_x
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim, const struct Sol_Data__fs*const sol_data)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim, const struct Sol_Data__fs*const sol_data)
 {
 	const ptrdiff_t n_n = xyz->extents[0];
 	assert(DIM == xyz->extents[1]);
@@ -237,8 +237,8 @@ static struct Multiarray_T* constructor_sol_free_stream_trig_x
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const int n_var = test_case->n_var;
 
-	const Real*const x = get_col_const_Multiarray_R(0,xyz),
-	          *const y = get_col_const_Multiarray_R(1,xyz);
+	const Type*const x = get_col_const_Multiarray_T(0,xyz),
+	          *const y = get_col_const_Multiarray_T(1,xyz);
 
 	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,n_var}); // returned
 

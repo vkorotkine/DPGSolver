@@ -37,6 +37,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define const_constructor_copy_Matrix_T          const_constructor_copy_Matrix_d
 #define constructor_copy_Matrix_T_Matrix_R       constructor_copy_Matrix_d_Matrix_d
 #define constructor_copy_const_Matrix_T_Matrix_R constructor_copy_const_Matrix_d_Matrix_d
+#define constructor_copy_Matrix_R_Matrix_T       constructor_copy_Matrix_d_Matrix_d_2
+#define constructor_copy_const_Matrix_R_Matrix_T constructor_copy_const_Matrix_d_Matrix_d_2
 #define constructor_copy_permute_Matrix_T        constructor_copy_permute_Matrix_d
 #define constructor_copy_permute_const_Matrix_T  constructor_copy_permute_const_Matrix_d
 
@@ -105,6 +107,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define const_constructor_copy_Matrix_T          const_constructor_copy_Matrix_c
 #define constructor_copy_Matrix_T_Matrix_R       constructor_copy_Matrix_c_Matrix_d
 #define constructor_copy_const_Matrix_T_Matrix_R constructor_copy_const_Matrix_c_Matrix_d
+#define constructor_copy_Matrix_R_Matrix_T       constructor_copy_Matrix_d_Matrix_c
+#define constructor_copy_const_Matrix_R_Matrix_T constructor_copy_const_Matrix_d_Matrix_c
 #define constructor_copy_permute_Matrix_T        constructor_copy_permute_Matrix_c
 #define constructor_copy_permute_const_Matrix_T  constructor_copy_permute_const_Matrix_c
 
@@ -200,6 +204,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define const_constructor_copy_Matrix_T         const_constructor_copy_Matrix_i
 #define constructor_copy_Matrix_T_Matrix_R       constructor_copy_Matrix_i_Matrix_i
 #define constructor_copy_const_Matrix_T_Matrix_R constructor_copy_const_Matrix_i_Matrix_i
+#define constructor_copy_Matrix_R_Matrix_T       constructor_copy_Matrix_d_Matrix_i
+#define constructor_copy_const_Matrix_R_Matrix_T constructor_copy_const_Matrix_d_Matrix_i
 
 #define constructor_move_Matrix_T_T           constructor_move_Matrix_i_i
 #define constructor_move_const_Matrix_T_T     constructor_move_const_Matrix_i_i
@@ -214,6 +220,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Matrix_T       destructor_Matrix_i
 #define destructor_const_Matrix_T destructor_const_Matrix_i
 ///\}
+
+#define constructor_move_Matrix_R_R           constructor_move_Matrix_d_d
 
 #endif
 

@@ -12,7 +12,8 @@ mesh_domain      parametric
 mesh_type        quad
 mesh_level       1 1
 mesh_path        ../meshes/
-restart_path     ../restart/euler/steady/gaussian_bump/restart__ml4__p3.msh
+restart_path     ../restart/euler/steady/gaussian_bump/restart__ml2__p2.msh
+# change the restart path back to using ml4_p3 when finished debugging.
 
 
 # Simulation variables

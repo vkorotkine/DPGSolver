@@ -115,12 +115,24 @@ struct Matrix_T* constructor_copy_Matrix_T_T
  *  \return See brief. */
 struct Matrix_T* constructor_copy_Matrix_T_Matrix_R
 	(struct Matrix_R* src ///< The source matrix.
-	);
+		);
 
 /** \brief `const` version of \ref constructor_copy_Matrix_T_Matrix_R.
  *  \return See brief. */
 const struct const_Matrix_T* constructor_copy_const_Matrix_T_Matrix_R
 	(const struct const_Matrix_R* src ///< See brief.
+		);
+
+/** \brief Copy constructor for a 'R'eal \ref Matrix_T\* from a 'T'ype \ref Matrix_T\*.
+ *  \return See brief. */
+struct Matrix_R* constructor_copy_Matrix_R_Matrix_T
+	(struct Matrix_T*const src ///< The source matrix.
+	);
+
+/** \brief `const` version of \ref constructor_copy_Matrix_R_Matrix_T.
+ *  \return See brief. */
+const struct const_Matrix_R* constructor_copy_const_Matrix_R_Matrix_T
+	(const struct const_Matrix_T*const src ///< See brief.
 	);
 
 /** \brief `const` version of \ref constructor_copy_Matrix_T_T.

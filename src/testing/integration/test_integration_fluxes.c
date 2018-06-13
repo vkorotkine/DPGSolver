@@ -33,14 +33,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 
 #include "flux.h"
+#include "math_functions.h"
 #include "simulation.h"
 #include "test_case.h"
-
-#include "complex_multiarray.h"
-
-#include "test_complex_flux.h"
-#include "test_complex_math_functions.h"
-#include "test_complex_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -222,14 +217,14 @@ static void constructor_Flux_Input_c_data_members (struct Flux_Input_c*const flu
 {
 	flux_c_i->s   = constructor_copy_const_Multiarray_c_Multiarray_d(flux_i->s);
 	flux_c_i->g   = constructor_copy_const_Multiarray_c_Multiarray_d(flux_i->g);
-	flux_c_i->xyz = constructor_copy_const_Multiarray_d(flux_i->xyz);
+	flux_c_i->xyz = constructor_copy_const_Multiarray_c_Multiarray_d(flux_i->xyz);
 }
 
 static void destructor_Flux_Input_c_data_members (struct Flux_Input_c*const flux_c_i)
 {
 	destructor_const_Multiarray_c(flux_c_i->s);
 	destructor_const_Multiarray_c(flux_c_i->g);
-	destructor_const_Multiarray_d(flux_c_i->xyz);
+	destructor_const_Multiarray_c(flux_c_i->xyz);
 }
 
 static struct Flux* constructor_Flux_cmplx_step (struct Flux_Input_c*const flux_i_c, struct Flux_Input*const flux_i)

@@ -200,7 +200,7 @@ void convert_variables_T (struct Multiarray_T* vars, const char type_i, const ch
 }
 
 const struct const_Multiarray_T* constructor_const_functionals_cd_cl_zero_T
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
 	UNUSED(sim);
 	const ptrdiff_t n_n = xyz->extents[0];

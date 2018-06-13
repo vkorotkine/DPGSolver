@@ -21,7 +21,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_solution_navier_stokes.h"
 #include "def_templates_multiarray.h"
 
-struct const_Multiarray_R;
 struct const_Multiarray_T;
 struct Simulation;
 struct Solution_Container_T;
@@ -41,14 +40,14 @@ void set_grad_taylor_couette_T
 /** \brief Function to be used for \ref Test_Case_T::constructor_sol for the taylor-couette test case.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_sol_taylor_couette_T
-	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	(const struct const_Multiarray_T* xyz, ///< Defined for \ref constructor_sol_fptr_T.
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
 
 /** \brief Function to be used for \ref Test_Case_T::constructor_grad for the taylor-couette test case.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_grad_taylor_couette_T
-	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	(const struct const_Multiarray_T* xyz, ///< Defined for \ref constructor_sol_fptr_T.
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
 

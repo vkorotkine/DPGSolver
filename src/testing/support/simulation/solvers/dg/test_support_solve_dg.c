@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "test_support_solve_dg.h"
+#include "test_support_multiarray.h"
+#include "test_support_computational_elements.h"
 
 #include <assert.h>
 
@@ -28,9 +30,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "face_solver_dg.h"
 #include "volume_solver_dg.h"
 
 #include "compute_face_rlhs.h"
+#include "compute_face_rlhs_dg.h"
+#include "compute_grad_coef_dg.h"
+#include "compute_volume_rlhs_dg.h"
 #include "const_cast.h"
 #include "intrusive.h"
 #include "simulation.h"

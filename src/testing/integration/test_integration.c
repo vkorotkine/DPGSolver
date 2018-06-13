@@ -31,10 +31,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_simulation.h"
 
 #include "test_base.h"
-#include "test_complex_computational_elements.h"
-#include "test_complex_geometry.h"
-#include "test_complex_solution.h"
-#include "test_complex_test_case.h"
 #include "test_support_multiarray.h"
 #include "test_support_vector.h"
 
@@ -48,6 +44,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "file_processing.h"
 #include "geometry.h"
 #include "simulation.h"
+#include "test_case_c.h"
 #include "solution.h"
 
 // Static function declarations ************************************************************************************* //

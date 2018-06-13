@@ -33,6 +33,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef const_constructor_copy_Matrix_T
 #undef constructor_copy_Matrix_T_Matrix_R
 #undef constructor_copy_const_Matrix_T_Matrix_R
+#undef constructor_copy_Matrix_R_Matrix_T
+#undef constructor_copy_const_Matrix_R_Matrix_T
 #undef constructor_copy_permute_Matrix_T
 #undef constructor_copy_permute_const_Matrix_T
 

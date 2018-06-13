@@ -763,7 +763,7 @@ static void compute_geom_coef_blended_T (const struct Simulation*const sim, stru
 	destructor_const_Multiarray_T(xyz_s);
 
 	destructor_const_Multiarray_T(s_vol->geom_coef);
-	const_constructor_move_const_Multiarray_T(&s_vol->geom_coef,constructor_geom_coef_ho_T(xyz,s_vol,sim)); // keep
+	s_vol->geom_coef = constructor_geom_coef_ho_T(xyz,s_vol,sim); // keep
 	destructor_const_Multiarray_T(xyz);
 }
 
@@ -778,7 +778,7 @@ static void compute_geom_coef_parametric_T (const struct Simulation*const sim, s
 /// \todo add setup_bezier_mesh: Likely make this a separate function.
 
 	destructor_const_Multiarray_T(s_vol->geom_coef);
-	const_constructor_move_const_Multiarray_T(&s_vol->geom_coef,constructor_geom_coef_ho_T(xyz,s_vol,sim)); // keep
+	s_vol->geom_coef = constructor_geom_coef_ho_T(xyz,s_vol,sim); // keep
 	destructor_const_Multiarray_T(xyz);
 
 	if (is_internal_geom_straight()) {

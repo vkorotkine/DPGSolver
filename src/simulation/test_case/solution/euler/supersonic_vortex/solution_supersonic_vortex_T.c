@@ -39,14 +39,14 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Return a \ref Multiarray_T\* container holding the solution values at the input coordinates.
  *  \return See brief. */
 static struct Multiarray_T* constructor_sol_supersonic_vortex
-	(const struct const_Multiarray_R* xyz, ///< xyz coordinates at which to evaluate the solution.
+	(const struct const_Multiarray_T* xyz, ///< xyz coordinates at which to evaluate the solution.
 	 const struct Simulation* sim          ///< \ref Simulation.
 	);
 
 // Interface functions ********************************************************************************************** //
 
 const struct const_Multiarray_T* constructor_const_sol_supersonic_vortex_T
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
 	struct Multiarray_T* sol = constructor_sol_supersonic_vortex(xyz,sim); // returned
 	return (const struct const_Multiarray_T*) sol;
@@ -54,9 +54,9 @@ const struct const_Multiarray_T* constructor_const_sol_supersonic_vortex_T
 
 void set_sol_supersonic_vortex_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
-	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+	const struct const_Multiarray_T* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_supersonic_vortex(xyz,sim); // destructed
-	destructor_const_Multiarray_R(xyz);
+	destructor_const_Multiarray_T(xyz);
 
 	update_Solution_Container_sol_T(&sol_cont,sol,sim);
 	destructor_Multiarray_T(sol);
@@ -80,7 +80,7 @@ static struct Sol_Data__sv get_sol_data
 	( );
 
 static struct Multiarray_T* constructor_sol_supersonic_vortex
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
 	assert(DIM >= 2);
 	const struct Sol_Data__sv sol_data = get_sol_data();
@@ -89,8 +89,8 @@ static struct Multiarray_T* constructor_sol_supersonic_vortex
 	const ptrdiff_t n_n = xyz->extents[0];
 	assert(DIM == xyz->extents[1]);
 
-	const Real* x = get_col_const_Multiarray_R(0,xyz),
-	          * y = get_col_const_Multiarray_R(1,xyz);
+	const Type* x = get_col_const_Multiarray_T(0,xyz),
+	          * y = get_col_const_Multiarray_T(1,xyz);
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const int n_var = test_case->n_var;

@@ -5,6 +5,7 @@ set	(SOURCE
 
 set	(LIBS_DEPEND
 	 Simulation
+	 Test_Support_Containers
 	)
 
 set (LIB Test_Integration)
@@ -47,7 +48,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_straight_2d_quad_pe
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_blended_2d_mixed")
 
 set (EXEC test_integration_fluxes)
-set (LIBS_DEPEND Test_Base Test_Integration Test_Complex_Simulation)
+set (LIBS_DEPEND Test_Base Test_Integration)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "flux_advection_1d" "integration/TEST_Advection_Default_1d__ml0__p2")
@@ -63,7 +64,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_navier_stokes_2d" "integration/
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_navier_stokes_sutherland_2d" "integration/TEST_NavierStokes_Sutherland_2d__ml0__p0") # TODO: Change this to use DPG such that Hessians are also tested.
 
 set (EXEC test_integration_boundary_conditions)
-set (LIBS_DEPEND Test_Base Test_Integration Test_Complex_Simulation)
+set (LIBS_DEPEND Test_Base Test_Integration)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "boundary_conditions_advection_1d" "integration/TEST_Advection_Default_1d__ml0__p2")
@@ -123,11 +124,11 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_S
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_Conservative_DPG_BlendedMixed2D__ml1__p2" "petsc_options_gmres_default")
 
 set (EXEC test_integration_linearization)
-set (LIBS_DEPEND ${LIBS_BASE} 
-     Simulation 
-     Test_Complex_Simulation 
-     Test_Integration 
+set (LIBS_DEPEND ${LIBS_BASE}
+     Simulation
+     Test_Integration
      Test_Support_General
+     Test_Support_Simulation
     )
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
@@ -154,7 +155,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dg/TEST_Advection
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml0__p0" "petsc_options_cg_ilu1") # Incomplete Cholesky was slower than LU.
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/dg/TEST_Advection_Default_DG_LINE" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/dpg/TEST_Advection_Demkowicz_DPGII_LINE" "petsc_options_cg_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_TRI" "petsc_options_cg_ilu1") 
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_TRI" "petsc_options_cg_ilu1")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_non_conforming_p4_super" "petsc_options_gmres_tol_1e-15")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_QUAD" "petsc_options_cg_icc")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_Mixed2D" "petsc_options_cg_icc")

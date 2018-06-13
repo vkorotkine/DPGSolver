@@ -134,6 +134,23 @@ const struct const_Matrix_T* constructor_copy_const_Matrix_T_Matrix_R (const str
 	return (struct const_Matrix_T*) constructor_copy_Matrix_T_Matrix_R((struct Matrix_R*)src);
 }
 
+struct Matrix_R* constructor_copy_Matrix_R_Matrix_T (struct Matrix_T*const src)
+{
+	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
+	const Type*const data_src = src->data;
+
+	Real*const data = calloc((size_t)size , sizeof *data); // keep
+	for (ptrdiff_t i = 0; i < size; i++)
+		data[i] = data_src[i];
+
+	return constructor_move_Matrix_R_R(src->layout,src->ext_0,src->ext_1,true,data);
+}
+
+const struct const_Matrix_R* constructor_copy_const_Matrix_R_Matrix_T (const struct const_Matrix_T*const src)
+{
+	return (struct const_Matrix_R*) constructor_copy_Matrix_R_Matrix_T((struct Matrix_T*)src);
+}
+
 const struct const_Matrix_T* constructor_copy_const_Matrix_T (const struct const_Matrix_T*const src)
 {
 	return (const struct const_Matrix_T*) constructor_copy_Matrix_T((struct Matrix_T*)src);
