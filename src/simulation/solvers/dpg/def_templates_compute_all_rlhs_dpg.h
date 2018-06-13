@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define add_to_rlhs__face_boundary_T          add_to_rlhs__face_boundary
 ///\}
 
+///\{ \name Static names
 #define constructor_norm_DPG_fptr constructor_norm_DPG_fptr
 #define compute_rlhs_dpg_fptr compute_rlhs_dpg_fptr
 #define S_Params_DPG S_Params_DPG
@@ -51,6 +52,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Norm_DPG destructor_Norm_DPG
 #define get_operator__ones_coef_vt get_operator__ones_coef_vt
 #define constructor_l_mult_M constructor_l_mult_M
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -64,6 +66,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define add_to_rlhs__face_boundary_T          add_to_rlhs__face_boundary_c
 ///\}
 
+///\{ \name Static names
 #define constructor_norm_DPG_fptr constructor_norm_DPG_fptr_c
 #define compute_rlhs_dpg_fptr compute_rlhs_dpg_fptr_c
 #define S_Params_DPG S_Params_DPG_c
@@ -87,5 +90,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Norm_DPG destructor_Norm_DPG_c
 #define get_operator__ones_coef_vt get_operator__ones_coef_vt_c
 #define constructor_l_mult_M constructor_l_mult_M_c
+///\}
 
 #endif

@@ -63,6 +63,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic  constructor_Boundary_Value_navier_stokes_no_slip_flux_diabatic
 ///\}
 
+///\{ \name Static names
 #define constructor_s_fc_interp constructor_s_fc_interp
 #define constructor_g_fc_interp constructor_g_fc_interp
 #define constructor_grad_bv constructor_grad_bv
@@ -86,6 +87,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define read_and_set_data_rho_E read_and_set_data_rho_E
 #define compute_uvw_ex_zero compute_uvw_ex_zero
 #define compute_uvw_ex_rotating compute_uvw_ex_rotating
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -133,6 +135,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic  constructor_Boundary_Value_c_navier_stokes_no_slip_flux_diabatic
 ///\}
 
+///\{ \name Static names
 #define constructor_s_fc_interp constructor_s_fc_interp_c
 #define constructor_g_fc_interp constructor_g_fc_interp_c
 #define constructor_grad_bv constructor_grad_bv_c
@@ -156,5 +159,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define read_and_set_data_rho_E read_and_set_data_rho_E_c
 #define compute_uvw_ex_zero compute_uvw_ex_zero_c
 #define compute_uvw_ex_rotating compute_uvw_ex_rotating_c
+///\}
 
 #endif

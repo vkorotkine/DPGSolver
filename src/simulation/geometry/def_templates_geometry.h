@@ -38,6 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define correct_for_exact_normals_T correct_for_exact_normals
 ///\}
 
+///\{ \name Static names
 #define compute_geom_coef_fptr_T compute_geom_coef_fptr_T
 #define compute_normals_T compute_normals_T
 #define set_fptr_geom_coef_T set_fptr_geom_coef_T
@@ -60,6 +61,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__cv0_vgc_fis get_operator__cv0_vgc_fis
 #define get_operator__vc0_fis_fgc get_operator__vc0_fis_fgc
 #define get_operator__cc0_vgc_fgc get_operator__cc0_vgc_fgc
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -78,6 +80,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define correct_for_exact_normals_T correct_for_exact_normals_c
 ///\}
 
+///\{ \name Static names
 #define compute_geom_coef_fptr_T compute_geom_coef_fptr_T_c
 #define compute_normals_T compute_normals_T_c
 #define set_fptr_geom_coef_T set_fptr_geom_coef_T_c
@@ -100,5 +103,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__cv0_vgc_fis get_operator__cv0_vgc_fis_c
 #define get_operator__vc0_fis_fgc get_operator__vc0_fis_fgc_c
 #define get_operator__cc0_vgc_fgc get_operator__cc0_vgc_fgc_c
+///\}
 
 #endif

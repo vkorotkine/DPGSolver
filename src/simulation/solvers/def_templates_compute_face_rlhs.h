@@ -39,7 +39,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define permute_Multiarray_T_fc                 permute_Multiarray_d_fc
 ///\}
 
+///\{ \name Static names
 #define finalize_face_rhs_dg_like_T finalize_face_rhs_dg_like_T
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -64,6 +66,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define permute_Multiarray_T_fc                 permute_Multiarray_c_fc
 ///\}
 
+///\{ \name Static names
 #define finalize_face_rhs_dg_like_T finalize_face_rhs_dg_like_T_c
+///\}
 
 #endif

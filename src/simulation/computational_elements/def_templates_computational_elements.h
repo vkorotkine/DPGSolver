@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_derived_computational_elements_T  destructor_derived_computational_elements
 ///\}
 
+///\{ \name Static names
 #define Derived_Comp_Elements_Info                 Derived_Comp_Elements_Info
 #define get_c_Derived_Comp_Elements_Info           get_c_Derived_Comp_Elements_Info
 #define get_d_Derived_Comp_Elements_Info           get_d_Derived_Comp_Elements_Info
@@ -33,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_list_category                          get_list_category
 #define update_volume_pointers                     update_volume_pointers
 #define update_face_pointers                       update_face_pointers
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -41,6 +43,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_derived_computational_elements_T  destructor_derived_computational_elements_c
 ///\}
 
+///\{ \name Static names
 #define Derived_Comp_Elements_Info                 Derived_Comp_Elements_Info_c
 #define get_c_Derived_Comp_Elements_Info           get_c_Derived_Comp_Elements_Info_c
 #define get_d_Derived_Comp_Elements_Info           get_d_Derived_Comp_Elements_Info_c
@@ -51,5 +54,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_list_category                          get_list_category_c
 #define update_volume_pointers                     update_volume_pointers_c
 #define update_face_pointers                       update_face_pointers_c
+///\}
 
 #endif

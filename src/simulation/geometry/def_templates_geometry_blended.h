@@ -32,10 +32,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define correct_internal_xyz_blended_T               correct_internal_xyz_blended
 ///\}
 
+///\{ \name Static names
 #define constructor_xyz_blended_ce constructor_xyz_blended_ce
 #define compute_p_base_min         compute_p_base_min
 #define constructor_blend_values   constructor_blend_values
 #define constructor_xyz_diff_T     constructor_xyz_diff_T
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -53,9 +55,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define correct_internal_xyz_blended_T               correct_internal_xyz_blended_c
 ///\}
 
+///\{ \name Static names
 #define constructor_xyz_blended_ce constructor_xyz_blended_ce_c
 #define compute_p_base_min         compute_p_base_min_c
 #define constructor_blend_values   constructor_blend_values_c
 #define constructor_xyz_diff_T     constructor_xyz_diff_T_c
+///\}
 
 #endif

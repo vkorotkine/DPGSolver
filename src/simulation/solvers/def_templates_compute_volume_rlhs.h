@@ -43,6 +43,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__cv1_vt_vc_T      get_operator__cv1_vt_vc
 ///\}
 
+///\{ \name Static names
 #define constructor_NULL constructor_NULL
 #define constructor_sol_vc_interp constructor_sol_vc_interp
 #define constructor_grad_vc_interp constructor_grad_vc_interp
@@ -55,6 +56,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Flux_Ref constructor_Flux_Ref
 #define constructor_flux_ref_T constructor_flux_ref_T
 #define get_operator__cv0_vg_vc_T get_operator__cv0_vg_vc_T
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -83,6 +85,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__cv1_vt_vc_T      get_operator__cv1_vt_vc_c
 ///\}
 
+///\{ \name Static names
 #define constructor_NULL constructor_NULL_c
 #define constructor_sol_vc_interp constructor_sol_vc_interp_c
 #define constructor_grad_vc_interp constructor_grad_vc_interp_c
@@ -95,5 +98,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Flux_Ref constructor_Flux_Ref_c
 #define constructor_flux_ref_T constructor_flux_ref_T_c
 #define get_operator__cv0_vg_vc_T get_operator__cv0_vg_vc_T_c
+///\}
 
 #endif

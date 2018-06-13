@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define increment_pointers_T    increment_pointers
 ///\}
 
+///\{ \name Static names
 #define set_string_associations set_string_associations
 #define set_pde_related set_pde_related
 #define set_method_related set_method_related
@@ -37,6 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_compute_member_Flux_Input get_compute_member_Flux_Input
 #define get_compute_member_Boundary_Value_Input get_compute_member_Boundary_Value_Input
 #define set_function_pointers_start set_function_pointers_start
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -50,6 +52,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define increment_pointers_T    increment_pointers_c
 ///\}
 
+///\{ \name Static names
 #define set_string_associations set_string_associations_c
 #define set_pde_related set_pde_related_c
 #define set_method_related set_method_related_c
@@ -59,5 +62,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_compute_member_Flux_Input get_compute_member_Flux_Input_c
 #define get_compute_member_Boundary_Value_Input get_compute_member_Boundary_Value_Input_c
 #define set_function_pointers_start set_function_pointers_start_c
+///\}
 
 #endif

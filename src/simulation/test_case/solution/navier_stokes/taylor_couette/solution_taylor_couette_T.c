@@ -229,8 +229,8 @@ static struct Multiarray_T* constructor_grad_taylor_couette
 			     p  = p_ptr[i];
 		assert(equal_T(Vt,v_ptr[i]/(cos(th)),EPS));
 
-		const Real dr_dX[]  = { x[i]/r, y[i]/r, },
-		           dth_dX[] = { -y[i]/(r*r), x[i]/(r*r), };
+		const Real dr_dX[]  = { x_i/r, y_i/r, },
+		           dth_dX[] = { -y_i/(r*r), x_i/(r*r), };
 
 		const Real dVt_dr = c*(-1.0/(r*r)-1.0/(r_o*r_o)),
 		           dt_dr  = -c*c*mu/kappa*(2.0/r*(1.0/(r_o*r_o)-1.0/(r*r)))+dTdr_o*r_o/r;

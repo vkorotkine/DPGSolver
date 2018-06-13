@@ -28,7 +28,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define correct_for_exact_normal_gaussian_bump_T correct_for_exact_normal_gaussian_bump_d
 ///\}
 
+///\{ \name Static names
 #define correct_normals_fc correct_normals_fc
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -42,6 +44,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define correct_for_exact_normal_gaussian_bump_T correct_for_exact_normal_gaussian_bump_c
 ///\}
 
+///\{ \name Static names
 #define correct_normals_fc correct_normals_fc_c
+///\}
 
 #endif

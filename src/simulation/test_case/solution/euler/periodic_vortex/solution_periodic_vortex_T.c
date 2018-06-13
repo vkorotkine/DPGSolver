@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_solution_euler.h"
 
 #include "def_templates_multiarray.h"
+#include "def_templates_math_functions.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -121,7 +122,7 @@ static struct Multiarray_T* constructor_sol_periodic_vortex_T
 		           r_v     = sol_data.r_v,
 		           con     = sol_data.con;
 
-		const Real r2 = (pow(x[i]-x_c,2.0)+pow(y[i]-y_c,2.0))/(r_v*r_v);
+		const Real r2 = (pow(real_T(x[i])-x_c,2.0)+pow(real_T(y[i])-y_c,2.0))/(r_v*r_v);
 
 		rho[i] = rho_inf;
 		u[i]   = u_inf - con*(y[i]-y_c)/(r_v*r_v)*exp(-0.5*r2);
@@ -235,4 +236,5 @@ static void set_data_periodic_vortex (struct Sol_Data__pv*const sol_data)
 #include "undef_templates_solution_euler.h"
 
 #include "undef_templates_multiarray.h"
+#include "undef_templates_math_functions.h"
 #include "undef_templates_test_case.h"

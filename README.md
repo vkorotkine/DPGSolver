@@ -27,6 +27,10 @@
 	</tr>
 </table>
 
+<a href="http://spacemacs.org">
+<img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg"
+alt="Built with Spacemacs">
+</a>
 
 ## Code Description
 - Methods:
@@ -110,7 +114,8 @@ An alternative make target is provided to run tests with --output-on-failure:
 BUILD$ make check
 ```
 
-Additional useful commands are:
+All tests should be passing other than those listed in the [documented failing tests file](FAILING_TESTS.md). Additional
+useful commands are:
 ```sh
 BUILD$ ctest -N (List the tests that would be run but not actually run them)
 BUILD$ ctest -R <regex> (Run tests matching regular expression)

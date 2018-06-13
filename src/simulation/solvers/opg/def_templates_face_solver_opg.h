@@ -30,8 +30,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__cv1_vt_fc_T get_operator__cv1_vt_fc
 ///\}
 
+///\{ \name Static names
 #define constructor_inverse_mass_face_T constructor_inverse_mass_face_T
 #define constructor_mass_face_T constructor_mass_face_T
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -46,7 +48,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__cv1_vt_fc_T get_operator__cv1_vt_fc_c
 ///\}
 
+///\{ \name Static names
 #define constructor_inverse_mass_face_T constructor_inverse_mass_face_T_c
 #define constructor_mass_face_T constructor_mass_face_T_c
+///\}
 
 #endif

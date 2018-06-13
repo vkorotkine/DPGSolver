@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_xyz_gaussian_bump_parametric_T              constructor_xyz_gaussian_bump_parametric
 ///\}
 
+///\{ \name Static names
 #define Geo_Data Geo_Data
 #define get_geo_data get_geo_data
 #define romberg romberg
@@ -35,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define read_data_joukowski read_data_joukowski
 #define read_data_gaussian_bump read_data_gaussian_bump
 #define read_data_fixed_cube read_data_fixed_cube
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -48,6 +50,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_xyz_gaussian_bump_parametric_T              constructor_xyz_gaussian_bump_parametric_c
 ///\}
 
+///\{ \name Static names
 #define Geo_Data Geo_Data_c
 #define get_geo_data get_geo_data_c
 #define romberg romberg_c
@@ -55,5 +58,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define read_data_joukowski read_data_joukowski_c
 #define read_data_gaussian_bump read_data_gaussian_bump_c
 #define read_data_fixed_cube read_data_fixed_cube_c
+///\}
 
 #endif

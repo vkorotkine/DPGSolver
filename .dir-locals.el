@@ -25,5 +25,5 @@
          (eval . (add-hook 'c-mode-local-vars-hook  (lambda () (modify-syntax-entry ?_ "w")))) ; Make _ symbols count as part of words in c-mode.
          )
       )
- (c-mode (helm-make-build-dir . "build_debug_2D"))
+ (c-mode (helm-make-build-dir . "emacs"))
  )

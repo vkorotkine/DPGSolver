@@ -26,12 +26,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #define add_to_flux_imbalance_source_advection_default_T add_to_flux_imbalance_source_advection_default
 ///\}
 
+///\{ \name Static names
 #define constructor_sol_advection_default_T constructor_sol_advection_default_T
 #define constructor_source_advection_default_T constructor_source_advection_default_T
 #define constructor_sol_advection_default_1d_T constructor_sol_advection_default_1d_T
 #define constructor_sol_advection_default_2d_T constructor_sol_advection_default_2d_T
 #define constructor_source_advection_default_1d_T constructor_source_advection_default_1d_T
 #define constructor_source_advection_default_2d_T constructor_source_advection_default_2d_T
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -42,11 +44,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #define add_to_flux_imbalance_source_advection_default_T add_to_flux_imbalance_source_advection_default_c
 ///\}
 
+///\{ \name Static names
 #define constructor_sol_advection_default_T constructor_sol_advection_default_T_c
 #define constructor_source_advection_default_T constructor_source_advection_default_T_c
 #define constructor_sol_advection_default_1d_T constructor_sol_advection_default_1d_T_c
 #define constructor_sol_advection_default_2d_T constructor_sol_advection_default_2d_T_c
 #define constructor_source_advection_default_1d_T constructor_source_advection_default_1d_T_c
 #define constructor_source_advection_default_2d_T constructor_source_advection_default_2d_T_c
+///\}
 
 #endif

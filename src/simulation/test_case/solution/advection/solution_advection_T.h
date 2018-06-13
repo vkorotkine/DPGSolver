@@ -35,7 +35,7 @@ typedef const Real* (*compute_b_adv_fptr_T)
 
 /// \brief Container for solution data relating to linear advection solutions.
 struct Sol_Data__Advection_T {
-	compute_b_adv_fptr_T compute_b_adv; ///< \ref compute_b_adv_fptr.
+	compute_b_adv_fptr_T compute_b_adv; ///< \ref compute_b_adv_fptr_T.
 
 	bool use_constant_solution; ///< Flag for whether a constant solution should be used.
 
@@ -48,23 +48,23 @@ void set_function_pointers_solution_advection_T
 	 const struct Simulation*const sim ///< \ref Simulation.
 		);
 
-/** \brief Return the statically allocated \ref Sol_Data__Advection container.
+/** \brief Return the statically allocated \ref Sol_Data__Advection_T container.
  *  \return See brief. */
 struct Sol_Data__Advection_T get_sol_data_advection_T
 	( );
 
-/// \brief Read the required solution data into the \ref Sol_Data__Advection container.
+/// \brief Read the required solution data into the \ref Sol_Data__Advection_T container.
 void read_data_advection_T
-	(struct Sol_Data__Advection_T*const sol_data ///< \ref Sol_Data__Advection.
+	(struct Sol_Data__Advection_T*const sol_data ///< \ref Sol_Data__Advection_T.
 	);
 
-/** \brief Version of \ref compute_b_adv_fptr for constant advection velocity throughout the domain.
+/** \brief Version of \ref compute_b_adv_fptr_T for constant advection velocity throughout the domain.
  *  \return See brief. */
 const Real* compute_b_adv_constant_T
 	(const Type*const xyz ///< See brief.
 		);
 
-/** \brief Version of \ref compute_b_adv_fptr for constant magnitude advection velocity with angle varying over a
+/** \brief Version of \ref compute_b_adv_fptr_T for constant magnitude advection velocity with angle varying over a
  *         cylinder.
  *  \return See brief. */
 const Real* compute_b_adv_vortex_T

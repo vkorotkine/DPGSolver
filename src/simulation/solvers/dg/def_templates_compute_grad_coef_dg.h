@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_grad_coef_dg_T compute_grad_coef_dg
 ///\}
 
+///\{ \name Static names
 #define compute_grad_coef_volumes compute_grad_coef_volumes
 #define compute_grad_coef_faces compute_grad_coef_faces
 #define get_operator__cv1_vs_vc get_operator__cv1_vs_vc
@@ -39,6 +40,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_m_inv_tw0_vt_fc constructor_m_inv_tw0_vt_fc
 #define get_jn_fc_V get_jn_fc_V
 #define get_sol_scale get_sol_scale
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -46,6 +48,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_grad_coef_dg_T compute_grad_coef_dg_c
 ///\}
 
+///\{ \name Static names
 #define compute_grad_coef_volumes compute_grad_coef_volumes_c
 #define compute_grad_coef_faces compute_grad_coef_faces_c
 #define get_operator__cv1_vs_vc get_operator__cv1_vs_vc_c
@@ -62,5 +65,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_m_inv_tw0_vt_fc constructor_m_inv_tw0_vt_fc_c
 #define get_jn_fc_V get_jn_fc_V_c
 #define get_sol_scale get_sol_scale_c
+///\}
 
 #endif

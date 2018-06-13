@@ -30,8 +30,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_xyz_surface_cylinder_normal_proj_T constructor_xyz_surface_cylinder_normal_proj_d
 ///\}
 
+///\{ \name Static names
 #define compute_radius_from_xyz_ve compute_radius_from_xyz_ve
 #define find_boundary_vertex_index find_boundary_vertex_index
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -47,7 +49,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_xyz_surface_cylinder_normal_proj_T constructor_xyz_surface_cylinder_normal_proj_c
 ///\}
 
+///\{ \name Static names
 #define compute_radius_from_xyz_ve compute_radius_from_xyz_ve_c
 #define find_boundary_vertex_index find_boundary_vertex_index_c
+///\}
 
 #endif

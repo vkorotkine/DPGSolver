@@ -59,6 +59,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Numerical_Flux_T_navier_stokes_central_jacobian compute_Numerical_Flux_navier_stokes_central_jacobian
 ///\}
 
+///\{ \name Static names
 #define combine_num_flux_boundary_T combine_num_flux_boundary_T
 #define combine_num_flux_boundary_dnnf_ds_T combine_num_flux_boundary_dnnf_ds_T
 #define combine_num_flux_boundary_dnnf_dg_g_T combine_num_flux_boundary_dnnf_dg_g_T
@@ -75,6 +76,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_Numerical_Flux_Energy_member set_Numerical_Flux_Energy_member
 #define min_abs_real_T min_abs_real_T
 #define max_abs_real_T max_abs_real_T
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -119,6 +121,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Numerical_Flux_T_navier_stokes_central_jacobian compute_Numerical_Flux_c_navier_stokes_central_jacobian
 ///\}
 
+///\{ \name Static names
 #define combine_num_flux_boundary_T combine_num_flux_boundary_T_c
 #define combine_num_flux_boundary_dnnf_ds_T combine_num_flux_boundary_dnnf_ds_T_c
 #define combine_num_flux_boundary_dnnf_dg_g_T combine_num_flux_boundary_dnnf_dg_g_T_c
@@ -135,5 +138,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_Numerical_Flux_Energy_member set_Numerical_Flux_Energy_member_c
 #define min_abs_real_T min_abs_real_T_c
 #define max_abs_real_T max_abs_real_T_c
+///\}
 
 #endif

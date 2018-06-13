@@ -9,7 +9,7 @@ The majority of the coding style choices were selected based on the
 
 - Tabs are NOT expanded to spaces.
 
-- The limit on the length of lines is 120 columns.
+- The limit on the length of lines is 120 columns (with 8 space tabs).
 	- 120 seemed justifiable based on the size of current terminal screens.
 	- Longer lines are sometimes (but rarely) used when declaring/passing arguments to
 	  functions.

@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Numerical_Flux_Input_data_dg_T constructor_Numerical_Flux_Input_data_dg
 ///\}
 
+///\{ \name Static names
 #define scale_by_Jacobian_fptr_T scale_by_Jacobian_fptr_T
 #define S_Params_T S_Params_T
 #define Num_Flux_T Num_Flux_T
@@ -35,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define scale_by_Jacobian_e_T scale_by_Jacobian_e_T
 #define constructor_partial_grad_fc_interp constructor_partial_grad_fc_interp
 #define compute_scaling_weak_gradient compute_scaling_weak_gradient
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -44,6 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Numerical_Flux_Input_data_dg_T constructor_Numerical_Flux_Input_data_dg_c
 ///\}
 
+///\{ \name Static names
 #define scale_by_Jacobian_fptr_T scale_by_Jacobian_fptr_T_c
 #define S_Params_T S_Params_T_c
 #define Num_Flux_T Num_Flux_T_c
@@ -54,5 +57,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define scale_by_Jacobian_e_T scale_by_Jacobian_e_T_c
 #define constructor_partial_grad_fc_interp constructor_partial_grad_fc_interp_c
 #define compute_scaling_weak_gradient compute_scaling_weak_gradient_c
+///\}
 
 #endif

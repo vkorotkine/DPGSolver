@@ -50,6 +50,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_V2_from_rhouvw_T compute_V2_from_rhouvw
 ///\}
 
+///\{ \name Static names
 #define Flux_Data_Advection Flux_Data_Advection
 #define Flux_Data_Diffusion Flux_Data_Diffusion
 #define Flux_Data_Euler Flux_Data_Euler
@@ -106,6 +107,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Flux_navier_stokes_0 compute_Flux_navier_stokes_0
 #define compute_Flux_navier_stokes_1s compute_Flux_navier_stokes_1s
 #define compute_Flux_navier_stokes_1g compute_Flux_navier_stokes_1g
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -141,6 +143,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_V2_from_rhouvw_T compute_V2_from_rhouvw_c
 ///\}
 
+///\{ \name Static names
 #define Flux_Data_Advection Flux_Data_Advection_c
 #define Flux_Data_Diffusion Flux_Data_Diffusion_c
 #define Flux_Data_Euler Flux_Data_Euler_c
@@ -197,5 +200,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Flux_navier_stokes_0 compute_Flux_navier_stokes_0_c
 #define compute_Flux_navier_stokes_1s compute_Flux_navier_stokes_1s_c
 #define compute_Flux_navier_stokes_1g compute_Flux_navier_stokes_1g_c
+///\}
 
 #endif

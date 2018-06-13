@@ -141,7 +141,13 @@ struct Matrix_R* constructor_copy_Matrix_R_Matrix_T (struct Matrix_T*const src)
 
 	Real*const data = calloc((size_t)size , sizeof *data); // keep
 	for (ptrdiff_t i = 0; i < size; i++)
+#if TYPE_RC == TYPE_COMPLEX
+		data[i] = creal(data_src[i]);
+#elif TYPE_RC == TYPE_REAL || TYPE_I == TYPE_II
 		data[i] = data_src[i];
+#else
+		EXIT_ADD_SUPPORT;
+#endif
 
 	return constructor_move_Matrix_R_R(src->layout,src->ext_0,src->ext_1,true,data);
 }

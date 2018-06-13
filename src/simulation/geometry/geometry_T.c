@@ -668,6 +668,7 @@ static void compute_vol_jacobian_det_fc_T (struct Solver_Face_T*const s_face)
 	const ptrdiff_t*const perm = set_jacobian_permutation(DIM);
 	permute_Multiarray_T(jac_fc,perm,jac_fc->layout);
 	compute_detJV_T((struct const_Multiarray_T*)jac_fc,(struct Multiarray_T*)s_face->vol_jacobian_det_fc);
+	destructor_Multiarray_T(jac_fc);
 }
 
 static void compute_geometry_volume_p1_T (struct Solver_Volume_T*const s_vol)

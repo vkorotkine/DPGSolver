@@ -262,14 +262,14 @@ static const struct Operator* get_operator__cv0_vt_fc (const int side_index, con
 // Level 2 ********************************************************************************************************** //
 
 /** \brief Constructor for the 'l'eft term of the lhs contribution from the boundary faces.
- *  \return The operator corresponding to test_s' \frac{dnnf_ds}. */
+ *  \return The operator corresponding to test_s' frac{dnnf_ds}. */
 static struct const_Matrix_d* constructor_lhs_f_1_b_l
 	(const struct Numerical_Flux*const num_flux, ///< Standard.
 	 const struct Solver_Face*const s_face       ///< Standard.
 	);
 
 /** \brief Constructor for the 'r'ight term of the lhs contribution from the boundary faces.
- *  \return The operator corresponding to \frac{d s}{d test_s_coef} = - df_ds' (dot) cv1_vt_fc. */
+ *  \return The operator corresponding to frac{d s}{d test_s_coef} = - df_ds' (dot) cv1_vt_fc. */
 static struct const_Matrix_d* constructor_lhs_f_1_b_r
 	(const struct Solver_Face*const s_face ///< Standard.
 	);

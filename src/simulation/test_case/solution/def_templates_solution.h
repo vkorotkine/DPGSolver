@@ -49,6 +49,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_initial_v_test_sg_coef_T       set_initial_v_test_sg_coef
 ///\}
 
+///\{ \name Static names
 #define set_initial_v_sg_coef set_initial_v_sg_coef
 #define set_initial_f_nf_coef set_initial_f_nf_coef
 #define set_exact_f_nf_fc set_exact_f_nf_fc
@@ -62,6 +63,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_normals_ff constructor_normals_ff
 #define constructor_n_dot_f constructor_n_dot_f
 #define constructor_metrics_ff constructor_metrics_ff
+///\}
 
 ///\{ \name Function names (pde specific)
 #define convert_variables_T convert_variables
@@ -104,6 +106,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define convert_variables_T convert_variables_c
 ///\}
 
+///\{ \name Static names
 #define set_initial_v_sg_coef set_initial_v_sg_coef_c
 #define set_initial_f_nf_coef set_initial_f_nf_coef_c
 #define set_exact_f_nf_fc set_exact_f_nf_fc_c
@@ -117,5 +120,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_normals_ff constructor_normals_ff_c
 #define constructor_n_dot_f constructor_n_dot_f_c
 #define constructor_metrics_ff constructor_metrics_ff_c
+///\}
 
 #endif

@@ -30,7 +30,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_solution_euler.h"
 
 #include "def_templates_multiarray.h"
-
 #include "def_templates_math_functions.h"
 #include "def_templates_test_case.h"
 
@@ -107,8 +106,10 @@ static struct Multiarray_T* constructor_sol_supersonic_vortex
 		           rho_i = sol_data.rho_i,
 		           V_i   = sol_data.V_i;
 
-		const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]),
-		           t  = atan2(y[i],x[i]),
+		const Real x_i = real_T(x[i]),
+		           y_i = real_T(y[i]);
+		const Real r  = sqrt(x_i*x_i+y_i*y_i),
+		           t  = atan2(y_i,x_i),
 		           Vt = -V_i/r;
 
 		rho[i] = rho_i*pow(1.0+0.5*GM1*m_i*m_i*(1.0-pow(r_i/r,2.0)),1.0/GM1);
@@ -179,6 +180,5 @@ static void read_data_supersonic_vortex (struct Sol_Data__sv*const sol_data)
 #include "undef_templates_solution_euler.h"
 
 #include "undef_templates_multiarray.h"
-
 #include "undef_templates_math_functions.h"
 #include "undef_templates_test_case.h"

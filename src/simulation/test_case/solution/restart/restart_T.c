@@ -121,7 +121,7 @@ static struct Multiarray_T* constructor_sol_restart
 
 	const struct const_Matrix_T xyz_M = interpret_const_Multiarray_as_Matrix_T(xyz);
 	const struct const_Matrix_R*const xyz_M_R = constructor_copy_const_Matrix_R_Matrix_T(&xyz_M); // destructed
-	const struct Nodes_Sorted_ANN*const ns = constructor_Nodes_Sorted_ANN_with_trans((struct Matrix_R*)&xyz_M); // d
+	const struct Nodes_Sorted_ANN*const ns = constructor_Nodes_Sorted_ANN_with_trans((struct Matrix_R*)xyz_M_R); // d
 	destructor_const_Matrix_R(xyz_M_R);
 
 	struct Input_ANN ann_i = { .nodes_s = ns->nodes, };

@@ -24,7 +24,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_hyperbolic_tan_T constructor_const_sol_hyperbolic_tan
 ///\}
 
+///\{ \name Static names
 #define constructor_sol_hyperbolic_tan constructor_sol_hyperbolic_tan
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -33,6 +35,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_hyperbolic_tan_T constructor_const_sol_hyperbolic_tan_c
 ///\}
 
+///\{ \name Static names
 #define constructor_sol_hyperbolic_tan constructor_sol_hyperbolic_tan_c
+///\}
 
 #endif

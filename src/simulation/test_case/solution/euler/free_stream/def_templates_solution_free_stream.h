@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_free_stream_T constructor_const_sol_free_stream
 ///\}
 
+///\{ \name Static names
 #define constructor_sol_free_stream constructor_sol_free_stream
 #define mutable_constructor_sol_fs_fptr_T mutable_constructor_sol_fs_fptr_T
 #define Sol_Data__fs Sol_Data__fs
@@ -31,6 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define read_data_free_stream read_data_free_stream
 #define constructor_sol_free_stream_const constructor_sol_free_stream_const
 #define constructor_sol_free_stream_trig_x constructor_sol_free_stream_trig_x
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -39,6 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_free_stream_T constructor_const_sol_free_stream_c
 ///\}
 
+///\{ \name Static names
 #define constructor_sol_free_stream constructor_sol_free_stream_c
 #define mutable_constructor_sol_fs_fptr_T mutable_constructor_sol_fs_fptr_T_c
 #define Sol_Data__fs Sol_Data__fs_c
@@ -46,5 +49,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define read_data_free_stream read_data_free_stream_c
 #define constructor_sol_free_stream_const constructor_sol_free_stream_const_c
 #define constructor_sol_free_stream_trig_x constructor_sol_free_stream_trig_x_c
+///\}
 
 #endif

@@ -179,7 +179,9 @@ const struct const_Vector_T* constructor_inverse_const_Vector_T
 	);
 
 /** \brief Constructor for a \ref const_Vector_T\* which is defined as the input vector appended to itself the input
- *         number of times. */
+ *         number of times.
+ *  \return See brief.
+ */
 const struct const_Vector_T* constructor_repeated_const_Vector_T
 	(const Type alpha,                    ///< Scaling constant.
 	 const struct const_Vector_T*const a, ///< The input vector.

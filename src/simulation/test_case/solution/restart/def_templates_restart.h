@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_restart_T constructor_const_sol_restart_d
 ///\}
 
+///\{ \name Static names
 #define constructor_sol_restart constructor_sol_restart
 #define Restart_Info Restart_Info
 #define get_Restart_Info get_Restart_Info
@@ -40,6 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_xyz_node_m_ve get_xyz_node_m_ve
 #define read_sol_coef_bezier read_sol_coef_bezier
 #define get_ind_ve get_ind_ve
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -52,6 +54,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_restart_T constructor_const_sol_restart_c
 ///\}
 
+///\{ \name Static names
 #define constructor_sol_restart constructor_sol_restart_c
 #define Restart_Info Restart_Info_c
 #define get_Restart_Info get_Restart_Info_c
@@ -65,5 +68,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_xyz_node_m_ve get_xyz_node_m_ve_c
 #define read_sol_coef_bezier read_sol_coef_bezier_c
 #define get_ind_ve get_ind_ve_c
+///\}
 
 #endif

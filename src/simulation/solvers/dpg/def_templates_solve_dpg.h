@@ -23,10 +23,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_nnz_dpg_T constructor_nnz_dpg
 ///\}
 
+///\{ \name Static names
 #define increment_nnz_off_diag increment_nnz_off_diag
 #define increment_nnz_off_diag_constraint increment_nnz_off_diag_constraint
 #define increment_nnz_off_diag_v increment_nnz_off_diag_v
 #define increment_nnz_off_diag_f increment_nnz_off_diag_f
+///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
@@ -35,9 +37,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_nnz_dpg_T constructor_nnz_dpg_c
 ///\}
 
+///\{ \name Static names
 #define increment_nnz_off_diag increment_nnz_off_diag_c
 #define increment_nnz_off_diag_constraint increment_nnz_off_diag_constraint_c
 #define increment_nnz_off_diag_v increment_nnz_off_diag_v_c
 #define increment_nnz_off_diag_f increment_nnz_off_diag_f_c
+///\}
 
 #endif
