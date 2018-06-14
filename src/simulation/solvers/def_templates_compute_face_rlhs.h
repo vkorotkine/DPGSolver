@@ -37,6 +37,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define add_to_flux_imbalance_face_nf_w_T       add_to_flux_imbalance_face_nf_w
 #define compute_rhs_f_dg_like_T                 compute_rhs_f_dg_like
 #define permute_Multiarray_T_fc                 permute_Multiarray_d_fc
+#define constructor_Flux_Input_data_f_T constructor_Flux_Input_data_f_d
+#define destructor_Flux_Input_data_f_T destructor_Flux_Input_data_f_d
 ///\}
 
 ///\{ \name Static names
@@ -64,6 +66,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define add_to_flux_imbalance_face_nf_w_T       add_to_flux_imbalance_face_nf_w_c
 #define compute_rhs_f_dg_like_T                 compute_rhs_f_dg_like_c
 #define permute_Multiarray_T_fc                 permute_Multiarray_c_fc
+#define constructor_Flux_Input_data_f_T constructor_Flux_Input_data_f_c
+#define destructor_Flux_Input_data_f_T destructor_Flux_Input_data_f_c
 ///\}
 
 ///\{ \name Static names

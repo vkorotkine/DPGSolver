@@ -21,19 +21,11 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_compute_face_rlhs_opg.h"
-#include "def_templates_numerical_flux.h"
-#include "def_templates_face_solver_opg.h"
 #include "compute_face_rlhs_opg_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_compute_face_rlhs_opg.h"
-#include "undef_templates_numerical_flux.h"
-#include "undef_templates_face_solver_opg.h"
 
-/** \brief Update the values of \ref Solver_Face_T::nf_coef based on the updated \ref Solver_Volume_T::test_s_coef
- *         values. */
-void update_coef_nf_f_opg
-	(const struct Simulation*const sim ///< Standard.
-	);
+#include "def_templates_type_dc.h"
+#include "compute_face_rlhs_opg_T.h"
+#include "undef_templates_type.h"
 
 #endif // DPG__compute_face_rlhs_opg_h__INCLUDED

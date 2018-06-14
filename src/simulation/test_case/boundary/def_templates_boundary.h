@@ -28,8 +28,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function pointers
 #define constructor_Boundary_Value_Input_face_fptr_T constructor_Boundary_Value_Input_face_fptr
 #define constructor_Boundary_Value_fptr_T            constructor_Boundary_Value_fptr
-
-#define constructor_s_fc_interp_T constructor_s_fc_interp
 ///\}
 
 ///\{ \name Function names
@@ -40,6 +38,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Boundary_Value_s_fcl_interp_T             constructor_Boundary_Value_s_fcl_interp
 #define destructor_Boundary_Value_T                           destructor_Boundary_Value
 #define constructor_Boundary_Value_T_grad_from_internal       constructor_Boundary_Value_grad_from_internal
+#define constructor_s_fc_interp_T constructor_s_fc_interp_d
+#define constructor_g_fc_interp_T constructor_g_fc_interp_d
 ///\}
 
 ///\{ \name Function names (pde specific)
@@ -64,8 +64,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Static names
-#define constructor_s_fc_interp constructor_s_fc_interp
-#define constructor_g_fc_interp constructor_g_fc_interp
 #define constructor_grad_bv constructor_grad_bv
 #define BC_Data BC_Data
 #define get_bc_data_back_pressure get_bc_data_back_pressure
@@ -100,8 +98,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function pointers
 #define constructor_Boundary_Value_Input_face_fptr_T constructor_Boundary_Value_Input_c_face_fptr
 #define constructor_Boundary_Value_fptr_T            constructor_Boundary_Value_c_fptr
-
-#define constructor_s_fc_interp_T constructor_s_fc_interp_c
 ///\}
 
 ///\{ \name Function names
@@ -112,6 +108,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Boundary_Value_s_fcl_interp_T             constructor_Boundary_Value_c_s_fcl_interp
 #define destructor_Boundary_Value_T                           destructor_Boundary_Value_c
 #define constructor_Boundary_Value_T_grad_from_internal       constructor_Boundary_Value_c_grad_from_internal
+#define constructor_s_fc_interp_T constructor_s_fc_interp_c
+#define constructor_g_fc_interp_T constructor_g_fc_interp_c
 ///\}
 
 ///\{ \name Function names
@@ -136,8 +134,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Static names
-#define constructor_s_fc_interp constructor_s_fc_interp_c
-#define constructor_g_fc_interp constructor_g_fc_interp_c
 #define constructor_grad_bv constructor_grad_bv_c
 #define BC_Data BC_Data_c
 #define get_bc_data_back_pressure get_bc_data_back_pressure_c

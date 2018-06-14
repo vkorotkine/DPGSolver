@@ -34,5 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef add_to_flux_imbalance_face_nf_w_T
 #undef compute_rhs_f_dg_like_T
 #undef permute_Multiarray_T_fc
+#undef constructor_Flux_Input_data_f_T
+#undef destructor_Flux_Input_data_f_T
 
 #undef finalize_face_rhs_dg_like_T

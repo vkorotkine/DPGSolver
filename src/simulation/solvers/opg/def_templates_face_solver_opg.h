@@ -27,7 +27,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_derived_OPG_Solver_Face_T constructor_derived_OPG_Solver_Face
 #define destructor_derived_OPG_Solver_Face_T  destructor_derived_OPG_Solver_Face
 
-#define get_operator__cv1_vt_fc_T get_operator__cv1_vt_fc
+#define get_operator__cv0_vt_fc_T get_operator__cv0_vt_fc_d
+#define get_operator__cv1_vt_fc_T get_operator__cv1_vt_fc_d
 ///\}
 
 ///\{ \name Static names
@@ -45,6 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_derived_OPG_Solver_Face_T constructor_derived_OPG_Solver_Face_c
 #define destructor_derived_OPG_Solver_Face_T  destructor_derived_OPG_Solver_Face_c
 
+#define get_operator__cv0_vt_fc_T get_operator__cv0_vt_fc_c
 #define get_operator__cv1_vt_fc_T get_operator__cv1_vt_fc_c
 ///\}
 

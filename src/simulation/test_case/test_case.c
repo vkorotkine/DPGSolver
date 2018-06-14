@@ -149,5 +149,13 @@ const bool* get_set_has_1st_2nd_order (const bool*const new_vals)
 	return has_1st_2nd_order;
 }
 
+int get_set_pde_index (const int*const new_val)
+{
+	static int pde_index = -1;
+	if (new_val)
+		pde_index = *new_val;
+	return pde_index;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

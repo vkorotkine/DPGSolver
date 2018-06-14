@@ -76,7 +76,6 @@ struct Boundary_Value_Input_T {
 	double h; ///< \ref Face::h.
 	int p;    ///< \ref Solver_Face_T::p_ref.
 
-/// \todo geometry: Real -> Templated
 	const struct const_Multiarray_T* normals;     ///< The unit normal vector components.
 	const struct const_Multiarray_T* normals_std; ///< Standard unit normal vector components (computed from metrics).
 	const struct const_Multiarray_T* xyz;     ///< The xyz coordinates.
@@ -183,6 +182,19 @@ void constructor_Boundary_Value_T_grad_from_internal
 	 const int n_var                            ///< The number of variables.
 	);
 
+/** \brief Constructor for the solution interpolating from the neighbouring volume to the face cubature nodes.
+ *  \return See brief. */
+const struct const_Multiarray_T* constructor_s_fc_interp_T
+	(const int side_index,                 ///< The index of the side of the face under consideration.
+	 const struct Solver_Face_T*const face ///< Standard.
+	);
+
+/** \brief Constructor for the solution gradient interpolating from the neighbouring volume to the face cubature nodes.
+ *  \return See brief. */
+const struct const_Multiarray_T* constructor_g_fc_interp_T
+	(const int side_index,                 ///< The index of the side of the face under consideration.
+	 const struct Solver_Face_T*const face ///< Standard.
+	);
 
 #include "undef_templates_multiarray.h"
 #include "undef_templates_boundary.h"

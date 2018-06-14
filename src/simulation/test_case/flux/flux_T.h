@@ -112,6 +112,11 @@ struct Flux_T* constructor_Flux_T
 /// \brief Destructor for a \ref Flux_T container.
 void destructor_Flux_T
 	(struct Flux_T* flux ///< Standard.
+		);
+
+/// \brief Destructor for a \ref Flux_T container if the input is non-NULL, otherwise simply return.
+void destructor_conditional_Flux_T
+	(struct Flux_T* flux ///< Standard.
 	);
 
 /// \brief Version of \ref compute_Flux_fptr_T for 1st order fluxes only.

@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Flux_Input_T  destructor_Flux_Input
 #define constructor_Flux_T       constructor_Flux
 #define destructor_Flux_T        destructor_Flux
+#define destructor_conditional_Flux_T destructor_conditional_Flux
 #define compute_Flux_1_T         compute_Flux_1
 #define compute_Flux_2_T         compute_Flux_2
 #define compute_Flux_12_T        compute_Flux_12
@@ -127,6 +128,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Flux_Input_T  destructor_Flux_Input_c
 #define constructor_Flux_T       constructor_Flux_c
 #define destructor_Flux_T        destructor_Flux_c
+#define destructor_conditional_Flux_T destructor_conditional_Flux_c
 #define compute_Flux_1_T         compute_Flux_c_1
 #define compute_Flux_2_T         compute_Flux_c_2
 #define compute_Flux_12_T        compute_Flux_c_12

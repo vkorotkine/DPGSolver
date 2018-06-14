@@ -38,6 +38,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_Boundary_Value_s_fcl_interp_T
 #undef destructor_Boundary_Value_T
 #undef constructor_Boundary_Value_T_grad_from_internal
+#undef constructor_s_fc_interp_T
+#undef constructor_g_fc_interp_T
 ///\}
 
 ///\{ \name Function names (pde specific)

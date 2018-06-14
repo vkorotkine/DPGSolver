@@ -36,27 +36,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Constructor for the solution interpolating from the neighbouring volume to the face cubature nodes.
- *  \return See brief. */
-static const struct const_Multiarray_T* constructor_s_fc_interp
-	(const struct Solver_Face_T* face, ///< Defined for \ref constructor_Boundary_Value_Input_face_s_fcl_interp_T.
-	 const struct Simulation* sim,     ///< Defined for \ref constructor_Boundary_Value_Input_face_s_fcl_interp_T.
-	 const int side_index              ///< The index of the side of the face under consideration.
-	);
-
-/** \brief Constructor for the solution gradient interpolating from the neighbouring volume to the face cubature nodes.
- *  \return See brief. */
-static const struct const_Multiarray_T* constructor_g_fc_interp
-	(const struct Solver_Face_T* face, ///< Defined for \ref constructor_Boundary_Value_Input_face_s_fcl_interp_T.
-	 const struct Simulation* sim,     ///< Defined for \ref constructor_Boundary_Value_Input_face_s_fcl_interp_T.
-	 const int side_index              ///< The index of the side of the face under consideration.
-	);
-
 // Interface functions ********************************************************************************************** //
 
 void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 	(struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* s_face, const struct Simulation* sim)
 {
+	UNUSED(sim);
 	const struct Face*const face = (struct Face*) s_face;
 	bv_i->bc = face->bc;
 	bv_i->h  = face->h;
@@ -71,7 +56,7 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 	}
 	bv_i->xyz     = s_face->xyz_fc;
 	bv_i->xyz_ex  = s_face->xyz_fc_ex_b;
-	bv_i->s       = constructor_s_fc_interp(s_face,sim,side_index); // destructed
+	bv_i->s       = constructor_s_fc_interp_T(side_index,s_face); // destructed
 
 	bv_i->jacobian_det_fc = s_face->jacobian_det_fc;
 }
@@ -82,7 +67,7 @@ void constructor_Boundary_Value_Input_face_sg_fcl_interp_T
 	constructor_Boundary_Value_Input_face_s_fcl_interp_T(bv_i,s_face,sim); // destructed
 
 	const int side_index = 0;
-	bv_i->g = constructor_g_fc_interp(s_face,sim,side_index); // destructed
+	bv_i->g = constructor_g_fc_interp_T(side_index,s_face); // destructed
 }
 
 void destructor_Boundary_Value_Input_T (struct Boundary_Value_Input_T* bv_i)
@@ -95,10 +80,11 @@ void constructor_Boundary_Value_s_fcl_interp_T
 	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* s_face,
 	 const struct Simulation* sim)
 {
+	UNUSED(sim);
 	UNUSED(bv_i);
 	const int side_index = 1;
 
-	struct Multiarray_T* sol_r_fcr = (struct Multiarray_T*) constructor_s_fc_interp(s_face,sim,side_index); // moved
+	struct Multiarray_T* sol_r_fcr = (struct Multiarray_T*) constructor_s_fc_interp_T(side_index,s_face); // moved
 	permute_Multiarray_T_fc(sol_r_fcr,'R',side_index,s_face);
 
 	bv->s     = (const struct const_Multiarray_T*)sol_r_fcr; // destructed
@@ -144,17 +130,11 @@ void constructor_Boundary_Value_T_grad_from_internal
 	assert(c_m[5] == false);
 }
 
-// Static functions ************************************************************************************************* //
-// Level 0 ********************************************************************************************************** //
-
-static const struct const_Multiarray_T* constructor_s_fc_interp
-	(const struct Solver_Face_T* s_face, const struct Simulation* sim, const int side_index)
+const struct const_Multiarray_T* constructor_s_fc_interp_T (const int side_index, const struct Solver_Face_T*const s_face)
 {
 	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc_T(side_index,s_face);
 
-	// sim may be used to store a parameter establishing which type of operator to use for the computation.
-	UNUSED(sim);
-	const char op_format = 'd';
+	const char op_format = get_set_op_format(0);
 
 	struct Solver_Volume_T* s_volume = (struct Solver_Volume_T*) ((struct Face*)s_face)->neigh_info[side_index].volume;
 
@@ -163,14 +143,11 @@ static const struct const_Multiarray_T* constructor_s_fc_interp
 	return constructor_mm_NN1_Operator_const_Multiarray_T(cv0_vs_fc,s_coef,'C',op_format,s_coef->order,NULL);
 }
 
-static const struct const_Multiarray_T* constructor_g_fc_interp
-	(const struct Solver_Face_T* s_face, const struct Simulation* sim, const int side_index)
+const struct const_Multiarray_T* constructor_g_fc_interp_T (const int side_index, const struct Solver_Face_T*const s_face)
 {
 	const struct Operator* cv0_vr_fc = get_operator__cv0_vr_fc_T(side_index,s_face);
 
-	// sim may be used to store a parameter establishing which type of operator to use for the computation.
-	UNUSED(sim);
-	const char op_format = 'd';
+	const char op_format = get_set_op_format(0);
 
 	struct Solver_Volume_T* s_volume = (struct Solver_Volume_T*) ((struct Face*)s_face)->neigh_info[side_index].volume;
 
@@ -178,6 +155,9 @@ static const struct const_Multiarray_T* constructor_g_fc_interp
 
 	return constructor_mm_NN1_Operator_const_Multiarray_T(cv0_vr_fc,g_coef,'C',op_format,g_coef->order,NULL);
 }
+
+// Static functions ************************************************************************************************* //
+// Level 0 ********************************************************************************************************** //
 
 #include "undef_templates_boundary.h"
 

@@ -25,6 +25,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "boundary.h"
+#include "flux.h"
 #include "multiarray_operator.h"
 #include "numerical_flux.h"
 #include "operator.h"

@@ -142,6 +142,7 @@ static void set_string_associations (struct Test_Case_T* test_case, const struct
 		const_cast_i(&test_case->pde_index,PDE_NAVIER_STOKES);
 	else
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_name);
+	get_set_pde_index(&test_case->pde_index);
 }
 
 static void set_pde_related (struct Test_Case_T* test_case, const struct Simulation* sim)

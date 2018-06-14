@@ -98,4 +98,13 @@ const bool* get_set_has_1st_2nd_order
 	(const bool*const new_vals ///< New values.
 	);
 
+/** \brief Return a statically allocated `int` holding the value of the pde index.
+ *  \return See brief.
+ *
+ *  Passing a non-NULL input for `new_val` sets the statically allocated int to the value.
+ */
+int get_set_pde_index
+	(const int*const new_val ///< New value.
+		);
+
 #endif // DPG__test_case_h__INCLUDED

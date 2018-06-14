@@ -30,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_vector.h"
 
 #include "def_templates_boundary.h"
+#include "def_templates_flux.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_operators.h"
 #include "def_templates_test_case.h"
@@ -316,6 +317,23 @@ void permute_Multiarray_T_fc
 	permute_Multiarray_T_V(data,nc_fc,perm_layout);
 }
 
+void constructor_Flux_Input_data_f_T
+	(const int side_index, struct Flux_Input_T*const flux_i, const struct Solver_Face_T*const s_face)
+{
+	assert(side_index == 0); // Add support (Potentially need permutation).
+
+	flux_i->s = constructor_s_fc_interp_T(side_index,s_face); // destructed
+	if (get_set_has_1st_2nd_order(NULL)[1])
+		flux_i->g = constructor_g_fc_interp_T(side_index,s_face); // destructed
+	flux_i->xyz = s_face->xyz_fc;
+}
+
+void destructor_Flux_Input_data_f_T (struct Flux_Input_T*const flux_i)
+{
+	destructor_const_Multiarray_T(flux_i->s);
+	destructor_conditional_const_Multiarray_T(flux_i->g);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -343,6 +361,7 @@ static void finalize_face_rhs_dg_like_T
 #include "undef_templates_vector.h"
 
 #include "undef_templates_boundary.h"
+#include "undef_templates_flux.h"
 #include "undef_templates_numerical_flux.h"
 #include "undef_templates_operators.h"
 #include "undef_templates_test_case.h"
