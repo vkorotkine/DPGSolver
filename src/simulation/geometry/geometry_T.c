@@ -298,14 +298,15 @@ void compute_geometry_face_T (struct Solver_Face_T* s_face, const struct Simulat
 
 	const struct const_Multiarray_T* m_vm = s_vol->metrics_vm;
 	const struct const_Multiarray_T* metrics_fc =
-		constructor_mm_NN1_Operator_const_Multiarray_T(ops.vv0_vm_fc,m_vm,'C',op_format,m_vm->order,NULL); // d.
+		constructor_mm_NN1_Operator_const_Multiarray_T(ops.vv0_vm_fc,m_vm,'C',op_format,m_vm->order,NULL); // keep
+
+	destructor_const_Multiarray_T(s_face->metrics_fc);
+	s_face->metrics_fc = metrics_fc;
 
 	compute_unit_normals_and_det_T(ind_lf,e->normals,metrics_fc,
 		(struct Multiarray_T*)s_face->normals_fc,(struct Multiarray_T*)s_face->jacobian_det_fc);
 
 	compute_vol_jacobian_det_fc_T(s_face);
-
-	destructor_const_Multiarray_T(metrics_fc);
 }
 
 const struct const_Multiarray_T* constructor_xyz_s_ho_T

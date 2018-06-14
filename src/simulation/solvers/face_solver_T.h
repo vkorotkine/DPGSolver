@@ -68,6 +68,9 @@ struct Solver_Face_T {
 	 *  Solver_Volume_T::jacobian_det_vc but evaluated at the face cubature nodes. */
 	const struct const_Multiarray_T* vol_jacobian_det_fc;
 
+	/// The volume metric terms interpolated to the face cubature nodes.
+	const struct const_Multiarray_T* metrics_fc;
+
 	/// As for \ref Solver_Face_T::normals_fc but corresponding to the p1 geometry.
 	const struct const_Multiarray_T* normals_p1;
 

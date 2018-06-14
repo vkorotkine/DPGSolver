@@ -59,6 +59,7 @@ void constructor_derived_Solver_Face_T (struct Face* face_ptr, const struct Simu
 	s_face->normals_fc_exact    = constructor_empty_const_Multiarray_T('R',2,(ptrdiff_t[]){0,0}); // destructed
 	s_face->jacobian_det_fc     = constructor_empty_const_Multiarray_T('C',1,(ptrdiff_t[]){0});   // destructed
 	s_face->vol_jacobian_det_fc = constructor_empty_const_Multiarray_T('C',1,(ptrdiff_t[]){0});   // destructed
+	s_face->metrics_fc          = constructor_empty_const_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // destructed
 	s_face->normals_p1          = constructor_empty_const_Multiarray_T('R',2,(ptrdiff_t[]){0,0}); // destructed
 	s_face->jacobian_det_p1     = constructor_empty_const_Multiarray_T('C',1,(ptrdiff_t[]){0});   // destructed
 
@@ -79,6 +80,7 @@ void destructor_derived_Solver_Face_T (struct Face* face_ptr)
 	destructor_const_Multiarray_T(face->normals_fc_exact);
 	destructor_const_Multiarray_T(face->jacobian_det_fc);
 	destructor_const_Multiarray_T(face->vol_jacobian_det_fc);
+	destructor_const_Multiarray_T(face->metrics_fc);
 	destructor_const_Multiarray_T(face->normals_p1);
 	destructor_const_Multiarray_T(face->jacobian_det_p1);
 

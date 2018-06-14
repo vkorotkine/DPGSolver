@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume.h"
 #include "volume_solver_opg.h"
 
+#include "compute_rlhs.h"
 #include "computational_elements.h"
 #include "compute_rlhs.h"
 #include "compute_face_rlhs.h"
@@ -267,7 +268,8 @@ static const struct const_Matrix_d* constructor_lhs_f_1_b
 	const struct const_Matrix_d*const lhs_l  = constructor_lhs_f_1_b_l(num_flux,s_face); // destructed
 	const struct const_Matrix_d*const lhs_r  = constructor_lhs_f_1_b_r(flux,s_face);     // destructed
 
-	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('N','N',1.0,lhs_l,lhs_r,'R'); // returned
+	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('N','N',-1.0,lhs_l,lhs_r,'R'); // returned
+	print_const_Matrix_d(lhs);
 	destructor_const_Matrix_d(lhs_l);
 	destructor_const_Matrix_d(lhs_r);
 
@@ -309,6 +311,7 @@ static struct const_Matrix_d* constructor_lhs_f_1_b_l
 	}}
 	destructor_Matrix_d(tw0_nf);
 
+	// scale by jacobian_det_fc.
 	const struct const_Vector_d j_det_fc    = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
 	const struct const_Vector_d*const jr_fc = constructor_repeated_const_Vector_d(1.0,&j_det_fc,n_vr); // destructed
 
@@ -321,6 +324,9 @@ static struct const_Matrix_d* constructor_lhs_f_1_b_l
 static struct const_Matrix_d* constructor_lhs_f_1_b_r
 	(const struct Flux*const flux, const struct Solver_Face*const s_face)
 {
+	const struct Face*const face = (struct Face*) s_face;
+	assert(face->boundary);
+
 	const int*const n_vr_eq = get_set_n_var_eq(NULL);
 	const int n_vr = n_vr_eq[0],
 	          n_eq = n_vr_eq[1];
@@ -333,10 +339,8 @@ static struct const_Matrix_d* constructor_lhs_f_1_b_r
 	struct Matrix_d*const ds_dtc = constructor_empty_Matrix_d('R',ext_0,ext_1);           // destructed
 	struct Matrix_d*const lhs_r  = constructor_empty_Matrix_d('R',n_vr*ext_0,n_eq*ext_1); // returned
 
-	UNUSED(flux);
-EXIT_ADD_SUPPORT;
-//	const struct const_Multiarray_d*const dfr_ds_Ma = flux_r->dfr_ds;
-	const struct const_Multiarray_d*const dfr_ds_Ma = NULL;
+	const struct Flux_Ref*const flux_r = constructor_Flux_Ref(s_face->metrics_fc,flux); // destructed
+	const struct const_Multiarray_d*const dfr_ds_Ma = flux_r->dfr_ds;
 	struct Vector_d dfr_ds = { .ext_0 = dfr_ds_Ma->extents[0], .owns_data = false, .data = NULL, };
 
 	for (int vr = 0; vr < n_vr; ++vr) {
@@ -352,8 +356,10 @@ EXIT_ADD_SUPPORT;
 		set_block_Matrix_d(lhs_r,vr*ext_0,eq*ext_1,
 		                   (struct const_Matrix_d*)ds_dtc,0,0,ds_dtc->ext_0,ds_dtc->ext_1,'i');
 	}}
+	destructor_Flux_Ref((void*)flux_r);
 	destructor_Matrix_d(ds_dtc);
 
+	// scale by inv(volume_jacobian_det_fc).
 	const struct const_Vector_d j_det_fc    = interpret_const_Multiarray_as_Vector_d(s_face->vol_jacobian_det_fc);
 	const struct const_Vector_d*const jr_fc = constructor_repeated_const_Vector_d(1.0,&j_det_fc,n_vr); // destructed
 

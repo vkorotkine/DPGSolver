@@ -68,14 +68,6 @@ struct S_Params_Volume_Structor_T {
 	destructor_sol_vc_fptr_T  destructor_grad_vc;  ///< Pointer to the appropriate function.
 };
 
-/// \brief Container for the reference flux related parameters.
-struct Flux_Ref_T {
-	const struct const_Multiarray_T* fr;       ///< The reference flux.
-	const struct const_Multiarray_T* dfr_ds;   ///< The reference flux Jacobians with respect to the solution.
-	const struct const_Multiarray_T* dfr_dg;   ///< The reference flux Jacobians with respect to the solution gradients.
-	const struct const_Multiarray_T* d2fr_ds2; ///< The reference flux Hessians  with respect to the solution.
-};
-
 // Interface functions ********************************************************************************************** //
 
 /// \brief Set the parameters of \ref S_Params_Volume_Structor_T.
@@ -91,11 +83,6 @@ struct Flux_Ref_T* constructor_Flux_Ref_vol_T
 	 struct Flux_Input_T* flux_i,                   ///< \ref Flux_Input_T.
 	 const struct Solver_Volume_T* s_vol,           ///< \ref Solver_Volume_T.
 	 const struct Simulation* sim                   ///< \ref Simulation.
-	);
-
-/// \brief Destructor for a \ref Flux_Ref_T container.
-void destructor_Flux_Ref_T
-	(struct Flux_Ref_T* flux_ref ///< Standard.
 	);
 
 /** \brief Version of \ref compute_rlhs_v_fptr_T computing only the rhs term.

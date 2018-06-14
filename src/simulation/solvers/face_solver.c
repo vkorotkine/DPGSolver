@@ -66,6 +66,7 @@ void copy_members_r_to_c_Solver_Face
 	s_face->normals_fc_exact    = constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->normals_fc_exact);    // d.
 	s_face->jacobian_det_fc     = constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->jacobian_det_fc);     // d.
 	s_face->vol_jacobian_det_fc = constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->vol_jacobian_det_fc); // d.
+	s_face->metrics_fc          = constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->metrics_fc);          // d.
 	s_face->normals_p1          = constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->normals_p1);          // d.
 	s_face->jacobian_det_p1     = constructor_copy_const_Multiarray_c_Multiarray_d(s_face_r->jacobian_det_p1);     // d.
 

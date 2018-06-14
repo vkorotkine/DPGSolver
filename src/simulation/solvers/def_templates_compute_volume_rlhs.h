@@ -53,7 +53,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_NULL destructor_NULL
 #define destructor_sol_vc_interp destructor_sol_vc_interp
 #define destructor_sol_vc_col destructor_sol_vc_col
-#define constructor_Flux_Ref constructor_Flux_Ref
 #define constructor_flux_ref_T constructor_flux_ref_T
 #define get_operator__cv0_vg_vc_T get_operator__cv0_vg_vc_T
 ///\}
@@ -95,7 +94,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_NULL destructor_NULL_c
 #define destructor_sol_vc_interp destructor_sol_vc_interp_c
 #define destructor_sol_vc_col destructor_sol_vc_col_c
-#define constructor_Flux_Ref constructor_Flux_Ref_c
 #define constructor_flux_ref_T constructor_flux_ref_T_c
 #define get_operator__cv0_vg_vc_T get_operator__cv0_vg_vc_T_c
 ///\}

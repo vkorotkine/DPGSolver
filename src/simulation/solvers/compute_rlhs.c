@@ -36,6 +36,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
+#include "def_templates_type_d.h"
+#include "compute_rlhs_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "compute_rlhs_T.c"
+#include "undef_templates_type.h"
+
 void compute_source_rhs_dg_like (const struct Simulation*const sim)
 {
 	assert(list_is_derived_from("solver",'v',sim));

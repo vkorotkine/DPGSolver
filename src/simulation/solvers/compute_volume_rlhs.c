@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver.h"
 #include "element_solver.h"
 
+#include "compute_rlhs.h"
 #include "flux.h"
 #include "intrusive.h"
 #include "math_functions.h"

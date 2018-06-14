@@ -111,7 +111,7 @@ const struct const_Matrix_d* constructor_test_diff_op_1v_opg
 	const ptrdiff_t ext_0 = cv1_vt_vc.data[0]->op_std->ext_0,
 	                ext_1 = cv1_vt_vc.data[0]->op_std->ext_1;
 
-	struct Matrix_d* cv1r = constructor_empty_Matrix_d('R',n_vr*ext_0,n_eq*ext_1); // moved/destructed
+	struct Matrix_d* cv1r = constructor_empty_Matrix_d('R',n_vr*ext_0,n_eq*ext_1); // returned
 
 	struct Matrix_d* cv1r_l = constructor_empty_Matrix_d('R',ext_0,ext_1); // destructed
 	const struct const_Multiarray_d* dfr_ds_Ma = flux_r->dfr_ds;
@@ -126,20 +126,20 @@ const struct const_Matrix_d* constructor_test_diff_op_1v_opg
 			dfr_ds.data = (double*)&dfr_ds_Ma->data[ind];
 			mm_diag_d('L',1.0,1.0,cv1_vt_vc.data[dim]->op_std,(struct const_Vector_d*)&dfr_ds,cv1r_l,false);
 		}
-		set_block_Matrix_d(cv1r,eq*ext_0,vr*ext_1,
+		/** \note Building the right operator here (as opposed to the left in \ref constructor_lhs_v_1_T). The
+		 *  flux Jacobian terms are thus transposed by swapping the 'eq' and 'vr' indices. */
+		set_block_Matrix_d(cv1r,vr*ext_0,eq*ext_1,
 		                   (struct const_Matrix_d*)cv1r_l,0,0,cv1r_l->ext_0,cv1r_l->ext_1,'i');
 	}}
 	destructor_Matrix_d(cv1r_l);
 
-	const struct const_Matrix_d* op = NULL;
-	if (!include_det_j) {
-		op = (struct const_Matrix_d*) cv1r;
-	} else {
+	if (include_det_j) {
 		const struct const_Vector_d J_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
-		op = constructor_mm_diag_const_Matrix_d_d(1.0,(struct const_Matrix_d*)cv1r,&J_vc,'L',true); // returned
-		destructor_Matrix_d(cv1r);
+		const struct const_Vector_d*const Jr_vc = constructor_repeated_const_Vector_d(1.0,&J_vc,n_vr); // dest.
+		scale_Matrix_by_Vector_d('L',1.0,cv1r,Jr_vc,true);
+		destructor_const_Vector_d(Jr_vc);
 	}
-	return op;
+	return (struct const_Matrix_d*) cv1r;
 }
 
 // Static functions ************************************************************************************************* //
@@ -194,9 +194,8 @@ static const struct const_Matrix_d* constructor_lhs_v_1_opg
 	const struct const_Vector_d*const w_vc = get_operator__w_vc__s_e(s_vol);
 	const struct const_Vector_d J_vc       = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
 
-	const struct const_Vector_d*const J_inv_vc = constructor_inverse_const_Vector_d(&J_vc);                   // dest.
-	const struct const_Vector_d*const wJ_vc    = constructor_dot_mult_const_Vector_d(1.0,w_vc,J_inv_vc,n_vr); // dest.
-	destructor_const_Vector_d(J_inv_vc);
+	const struct const_Vector_d*const wJ_vc =
+		constructor_dot_mult_inverse_2nd_const_Vector_d(1.0,w_vc,&J_vc,n_vr); // destructed
 
 	const struct const_Matrix_d*const n1_lt = constructor_mm_diag_const_Matrix_d_d(1.0,cv1r,wJ_vc,'L',false); // dest.
 	destructor_const_Vector_d(wJ_vc);

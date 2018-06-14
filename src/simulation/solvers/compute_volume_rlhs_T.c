@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 
 #include "def_templates_compute_volume_rlhs.h"
+#include "def_templates_compute_rlhs.h"
 
 #include "def_templates_volume_solver.h"
 
@@ -93,24 +94,6 @@ static void destructor_sol_vc_col
 	(const struct const_Multiarray_T* sol_vc ///< To be destructed.
 	);
 
-/** \brief Constructor for a \ref Flux_Ref_T container.
- *  \return See brief.
- *
- *  This function constructs the reference fluxes by multiplying the fluxes with the appropriate metric terms as
- *  specified by Zwanenburg et al. (eq. (B.3), \cite Zwanenburg2016).
- *
- *  The memory layout of the reference flux and reference flux Jacobian terms is that of the corresponding physical flux
- *  terms with the second extent (dim) moved to the last extent. For example:
- *  - df_ds: (nodes,dim,eq,var) -> dfr_ds: (nodes,eq,var,dim).
- *  This memory layout was chosen such that terms are grouped by dimension, allowing for differentiation operators to be
- *  applied efficiently; note that **this is not the same ordering as that used for the physical flux**. Please consult
- *  \ref compute_geometry_volume_T for the ordering of the metric terms if desired.
- */
-static struct Flux_Ref_T* constructor_Flux_Ref
-	(const struct const_Multiarray_T* m, ///< The metric terms.
-	 const struct Flux_T* flux           ///< The physical \ref Flux_T.
-	);
-
 // Interface functions ********************************************************************************************** //
 
 void set_S_Params_Volume_Structor_T (struct S_Params_Volume_Structor_T* spvs, const struct Simulation* sim)
@@ -175,19 +158,10 @@ struct Flux_Ref_T* constructor_Flux_Ref_vol_T
 	destructor_conditional_const_Multiarray_T(flux_i->xyz);
 
 	// Compute the reference fluxes (and optionally their Jacobians) at the volume cubature nodes.
-	struct Flux_Ref_T* flux_r = constructor_Flux_Ref(s_vol->metrics_vc,flux);
+	struct Flux_Ref_T* flux_r = constructor_Flux_Ref_T(s_vol->metrics_vc,flux);
 	destructor_Flux_T(flux);
 
 	return flux_r;
-}
-
-void destructor_Flux_Ref_T (struct Flux_Ref_T* flux_ref)
-{
-	destructor_conditional_const_Multiarray_T(flux_ref->fr);
-	destructor_conditional_const_Multiarray_T(flux_ref->dfr_ds);
-	destructor_conditional_const_Multiarray_T(flux_ref->dfr_dg);
-	destructor_conditional_const_Multiarray_T(flux_ref->d2fr_ds2);
-	free(flux_ref);
 }
 
 void compute_rhs_v_dg_like_T
@@ -342,13 +316,6 @@ struct Multiarray_Operator get_operator__cv1_vt_vc_T (const struct Solver_Volume
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Constructor for a \ref const_Multiarray_T\* of reference flux from physical flux.
- *  \return See brief. */
-static const struct const_Multiarray_T* constructor_flux_ref_T
-	(const struct const_Multiarray_T* m, ///< Defined for \ref constructor_Flux_Ref.
-	 const struct const_Multiarray_T* f  ///< The physical flux data.
-	);
-
 /** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vg_vc operator.
  *  \return See brief. */
 static const struct Operator* get_operator__cv0_vg_vc_T
@@ -431,63 +398,7 @@ static void destructor_sol_vc_col (const struct const_Multiarray_T* sol_vc)
 	UNUSED(sol_vc);
 }
 
-static struct Flux_Ref_T* constructor_Flux_Ref (const struct const_Multiarray_T* m, const struct Flux_T* flux)
-{
-	assert(flux->f != NULL);
-	assert(m->extents[0] == flux->f->extents[0]);
-
-	struct Flux_Ref_T* flux_r = calloc(1,sizeof *flux_r); // returned
-
-	flux_r->fr       = ( flux->f       ? constructor_flux_ref_T(m,flux->f)       : NULL );
-	flux_r->dfr_ds   = ( flux->df_ds   ? constructor_flux_ref_T(m,flux->df_ds)   : NULL );
-	flux_r->dfr_dg   = ( flux->df_dg   ? constructor_flux_ref_T(m,flux->df_dg)   : NULL );
-	flux_r->d2fr_ds2 = ( flux->d2f_ds2 ? constructor_flux_ref_T(m,flux->d2f_ds2) : NULL );
-
-	return flux_r;
-}
-
 // Level 1 ********************************************************************************************************** //
-
-static const struct const_Multiarray_T* constructor_flux_ref_T
-	(const struct const_Multiarray_T* m, const struct const_Multiarray_T* f)
-{
-	assert(f->layout == 'C');
-
-	const int order = f->order;
-	ptrdiff_t extents[order];
-	for (int i = 0; i < order; ++i) {
-		if (i == 0)
-			extents[i] = f->extents[i];
-		else if (i == 1)
-			extents[order-1] = f->extents[i];
-		else
-			extents[i-1] = f->extents[i];
-	}
-
-	struct Multiarray_T* fr = constructor_zero_Multiarray_T('C',order,extents); // returned
-
-	const int n_n   = (int)extents[0];
-	const int n_col = (int)compute_size(order,extents)/(n_n*DIM);
-	assert(extents[order-1] == DIM);
-
-	int ind_f = 0;
-	for (int col = 0; col < n_col; ++col) {
-		for (int dim0 = 0; dim0 < DIM; ++dim0) {
-			const int ind_fr = (ind_f+dim0*n_col);
-			for (int dim1 = 0; dim1 < DIM; ++dim1) {
-				const int ind_m  = dim0*DIM+dim1,
-				          ind_fp = (ind_f*DIM)+dim1;
-				z_yxpz_T(n_n,
-				         get_col_const_Multiarray_T(ind_m,m),
-				         get_col_const_Multiarray_T(ind_fp,f),
-				         get_col_Multiarray_T(ind_fr,fr));
-			}
-		}
-		++ind_f;
-	}
-
-	return (const struct const_Multiarray_T*) fr;
-}
 
 static const struct Operator* get_operator__cv0_vg_vc_T (const struct Solver_Volume_T* s_vol)
 {
@@ -501,6 +412,7 @@ static const struct Operator* get_operator__cv0_vg_vc_T (const struct Solver_Vol
 }
 
 #include "undef_templates_compute_volume_rlhs.h"
+#include "undef_templates_compute_rlhs.h"
 
 #include "undef_templates_volume_solver.h"
 

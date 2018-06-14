@@ -197,7 +197,7 @@ const struct const_Vector_T* constructor_dot_mult_const_Vector_T
 	 const int n_repeated            ///< The number of times the sub-vector should be repeated.
 		);
 
-/** \brief `version` of \ref constructor_dot_mult_const_Vector_T taking 'R'eal and 'T'ype inputs.
+/** \brief Version of \ref constructor_dot_mult_const_Vector_T taking 'R'eal and 'T'ype inputs.
  *  \return See brief. */
 const struct const_Vector_T* constructor_dot_mult_const_Vector_T_RT
 	(const Type alpha,               ///< See brief.
@@ -205,6 +205,16 @@ const struct const_Vector_T* constructor_dot_mult_const_Vector_T_RT
 	 const struct const_Vector_T* b, ///< See brief.
 	 const int n_repeated            ///< See brief.
 	);
+
+/** \brief Version of \ref constructor_dot_mult_const_Vector_T which inverts the entries of the 2nd input while
+ *         performing the dot product.
+ *  \return See brief. */
+const struct const_Vector_T* constructor_dot_mult_inverse_2nd_const_Vector_T
+	(const Type alpha,                    ///< See brief.
+	 const struct const_Vector_T*const a, ///< See brief.
+	 const struct const_Vector_T*const b, ///< The 2nd input (inverted in dot product).
+	 const int n_repeated                 ///< See brief.
+		);
 
 /** \brief Constructs a \ref Vector_T\* as the sum of the entries of the two inputs scaled by the input constants.
  *  \return See brief. */
