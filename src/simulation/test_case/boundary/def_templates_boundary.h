@@ -45,7 +45,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names (pde specific)
 #define constructor_Boundary_Value_T_advection_inflow   constructor_Boundary_Value_advection_inflow
 #define constructor_Boundary_Value_T_advection_outflow  constructor_Boundary_Value_advection_outflow
-#define constructor_Boundary_Value_T_advection_slipwall constructor_Boundary_Value_advection_slipwall
 #define constructor_Boundary_Value_T_advection_upwind   constructor_Boundary_Value_advection_upwind
 
 #define constructor_Boundary_Value_T_diffusion_dirichlet constructor_Boundary_Value_diffusion_dirichlet
@@ -115,7 +114,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define constructor_Boundary_Value_T_advection_inflow   constructor_Boundary_Value_c_advection_inflow
 #define constructor_Boundary_Value_T_advection_outflow  constructor_Boundary_Value_c_advection_outflow
-#define constructor_Boundary_Value_T_advection_slipwall constructor_Boundary_Value_c_advection_slipwall
 #define constructor_Boundary_Value_T_advection_upwind   constructor_Boundary_Value_c_advection_upwind
 
 #define constructor_Boundary_Value_T_diffusion_dirichlet constructor_Boundary_Value_c_diffusion_dirichlet

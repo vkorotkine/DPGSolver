@@ -233,6 +233,7 @@ static void finalize_lhs_1_f_opg
 	const struct OPG_Solver_Volume*const opg_s_vol[2] = { (struct OPG_Solver_Volume*) face->neigh_info[0].volume,
 	                                                      (struct OPG_Solver_Volume*) face->neigh_info[1].volume, };
 
+	// Implicit assumption here that nf == jump_test_s
 	const struct const_Matrix_d*const lhs_r =
 		constructor_mm_diag_const_Matrix_d_d(1.0,ops->cv0_vt_fc[side_index[1]],ops->wJ_fc,'L',false); // destructed
 

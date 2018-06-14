@@ -114,34 +114,6 @@ void compute_Numerical_Flux_T_advection_upwind_jacobian
 		for (int dim = 0; dim < DIM; dim++)
 			b_dot_n += b_adv[dim]*nL[n*DIM+dim];
 
-/// \todo DELETE THIS FOR CLEAN UP.
-#if 0
-const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
-if (bc == BC_SLIPWALL) {
-	const double h = num_flux_i->bv_l.h;
-	const int p    = num_flux_i->bv_l.p;
-	const int exponent = p;
-	const double scale = 1e-1;
-	UNUSED(h); UNUSED(exponent);
-#if TYPE_RC == TYPE_REAL
-static Type b_dot_n0 = 0.0;
-if (n == 0)
-	b_dot_n0 = b_dot_n;
-UNUSED(b_dot_n0);
-//if (n == 2)
-//printf("\t\t\t\t %d %d % .3e % .3e % .3e\n",n,p,b_dot_n+b_dot_n0,b_dot_n,scale*pow(h,exponent));
-#endif
-
-//	b_dot_n = 0; // O(h^{p_g}) error
-	b_dot_n += scale*pow(h,exponent);
-//	for (int d = 0; d < DIM; ++d) b_dot_n += b_adv[d]*scale*pow(h,exponent); // Equivalent to adding error to normal
-//	for (int d = 0; d < DIM; ++d) b_dot_n += pow(b_adv[d],2)*scale*pow(h,exponent); // Equivalent to adding error to normal
-//if (n == 0) // for p1
-//	b_dot_n += -scale*pow(h,exponent);
-//else if (n <= 2)
-//	b_dot_n += scale*pow(h,exponent);
-}
-#endif
 		if (real_T(b_dot_n) >= 0.0) {
 			nFluxNum[n]     = b_dot_n*WL[n];
 			dnFluxNumdWL[n] = b_dot_n;
@@ -152,8 +124,6 @@ UNUSED(b_dot_n0);
 			dnFluxNumdWR[n] = b_dot_n;
 		}
 	}
-//if (bc == BC_SLIPWALL)
-//printf("\n");
 }
 
 // Static functions ************************************************************************************************* //

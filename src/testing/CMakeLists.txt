@@ -13,26 +13,6 @@ target_link_libraries(${LIB} ${LIBS_DEPEND})
 
 
  include_directories(
-# 	complex/containers
-# 	complex/general
-# 	complex/simulation/computational_elements
-# 	complex/simulation/geometry
-# 	complex/simulation/operators
-# 	complex/simulation/solvers
-# 	complex/simulation/solvers/dg
-# 	complex/simulation/solvers/dpg
-# 	complex/simulation/solvers/opg
-# 	complex/simulation/solvers/numerical_flux
-# 	complex/simulation/test_case
-# 	complex/simulation/test_case/boundary
-# 	complex/simulation/test_case/flux
-# 	complex/simulation/test_case/solution
-# 	complex/simulation/test_case/solution/advection
-# 	complex/simulation/test_case/solution/diffusion
-# 	complex/simulation/test_case/solution/euler
-# 	complex/simulation/test_case/solution/navier_stokes
-# 	complex/simulation/test_case/solution/restart
-# 	complex/templates
  	integration
  	support
  	support/containers

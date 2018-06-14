@@ -173,11 +173,14 @@ static void set_function_pointers_num_flux_bc_advection (struct Solver_Face_T* s
 	case BC_OUTFLOW: case BC_OUTFLOW_ALT1: case BC_OUTFLOW_ALT2:
 		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_advection_outflow;
 		break;
-	case BC_SLIPWALL:
-		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_advection_slipwall;
-		break;
 	case BC_UPWIND: case BC_UPWIND_ALT1: case BC_UPWIND_ALT2: case BC_UPWIND_ALT3:
 		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_advection_upwind;
+		break;
+	case BC_SLIPWALL:
+		printf("This BC was deprecated and removed from the code.\n");
+		printf("You are possibly using a mesh/control file which was created before the removal.\n");
+		printf("Please deprecate/delete any code functionality which allowed you to reach this point.\n");
+		EXIT_UNSUPPORTED;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",face->bc);
