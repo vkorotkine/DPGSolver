@@ -188,6 +188,7 @@ static struct S_Params_T set_s_params_T (const struct Simulation*const sim)
 	struct Test_Case_T*const test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 
 	switch (test_case->solver_method_curr) {
+/// \todo Uncomment the preprocessor directives once the complex version of the function is added.
 //#if TYPE_RC == TYPE_COMPLEX
 	case 'e':
 		s_params.compute_rlhs = compute_rhs_f_opg_dg_like_T;

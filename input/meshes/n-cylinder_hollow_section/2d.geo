@@ -105,16 +105,10 @@ BC_Straight =   BC_STEP_SC;
 BC_Curved   = 2*BC_STEP_SC;
 
 If (pde_name == ADVECTION)
-	Physical Line (1*BC_STEP_SC+BC_OUTFLOW)      = {1001};
-	Physical Line (1*BC_STEP_SC+BC_INFLOW)       = {1002};
-	If (geom_bc == GEOM_BC_SLIPWALL)
-		Physical Line (2*BC_STEP_SC+BC_SLIPWALL) = {1003:1004};
-		Physical Line (3*BC_STEP_SC+BC_SLIPWALL) = {1005:1006};
-	Else
-		Physical Line (2*BC_STEP_SC+BC_INFLOW_ALT1)  = {1003:1004}; // Must be inflow for straight solution test case.
-//		Physical Line (2*BC_STEP_SC+BC_OUTFLOW_ALT1)  = {1003:1004}; // Must be inflow for straight solution test case.
-		Physical Line (3*BC_STEP_SC+BC_OUTFLOW_ALT1) = {1005:1006};
-	EndIf
+	Physical Line (1*BC_STEP_SC+BC_UPWIND)      = {1001};
+	Physical Line (1*BC_STEP_SC+BC_UPWIND_ALT1) = {1002};
+  Physical Line (2*BC_STEP_SC+BC_UPWIND_ALT2) = {1003:1004};
+  Physical Line (3*BC_STEP_SC+BC_UPWIND_ALT3) = {1005:1006};
 ElseIf (pde_name == DIFFUSION)
 	Physical Line (1*BC_STEP_SC+BC_DIRICHLET)    = {1001,1002};
 	Physical Line (2*BC_STEP_SC+BC_NEUMANN)      = {1003:1004};

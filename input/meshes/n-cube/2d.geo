@@ -79,34 +79,10 @@ Else
 EndIf
 
 If (pde_name == ADVECTION)
-	If (geom_adv == GEOM_ADV_XL)
-		Physical Line(bc_base+BC_INFLOW)       = {2001};
-		Physical Line(bc_base+BC_OUTFLOW)      = {2002};
-		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {1001,1002};
-		Physical Line(bc_base+BC_OUTFLOW_ALT2) = {1003,1004};
-	ElseIf (geom_adv == GEOM_ADV_YL)
-		Physical Line(bc_base+BC_INFLOW)       = {1001,1002};
-		Physical Line(bc_base+BC_OUTFLOW)      = {2001};
-		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {2002};
-		Physical Line(bc_base+BC_OUTFLOW_ALT2) = {1003,1004};
-	ElseIf (geom_adv == GEOM_ADV_XYL)
-		Physical Line(bc_base+BC_INFLOW)       = {1001:1002};
-		Physical Line(bc_base+BC_INFLOW_ALT1)  = {2001};
-		Physical Line(bc_base+BC_OUTFLOW)      = {1003:1004};
-		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {2002};
-	ElseIf (geom_adv == GEOM_ADV_XL_YR)
-		Physical Line(bc_base+BC_INFLOW)       = {2001};
-		Physical Line(bc_base+BC_INFLOW_ALT1)  = {1003:1004};
-		Physical Line(bc_base+BC_OUTFLOW)      = {2002};
-		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {1001:1002};
-	ElseIf (geom_adv == GEOM_ADV_UPWIND)
-		Physical Line(bc_base+BC_UPWIND)      = {2001};
-		Physical Line(bc_base+BC_UPWIND_ALT1) = {1003:1004};
-		Physical Line(bc_base+BC_UPWIND_ALT2) = {2002};
-		Physical Line(bc_base+BC_UPWIND_ALT3) = {1001:1002};
-	Else
-		Error("Unsupported geom_adv: %d",geom_adv); Exit;
-	EndIf
+	Physical Line(bc_base+BC_UPWIND)      = {2001};
+	Physical Line(bc_base+BC_UPWIND_ALT1) = {2002};
+	Physical Line(bc_base+BC_UPWIND_ALT2) = {1001,1002};
+	Physical Line(bc_base+BC_UPWIND_ALT3) = {1003,1004};
 ElseIf (pde_name == DIFFUSION)
 	Physical Line(bc_base+BC_DIRICHLET)      = {1001:1002};
 	Physical Line(bc_base+BC_DIRICHLET_ALT1) = {2001};

@@ -19,8 +19,8 @@ bc_base = bc_straight;
 
 If (pde_name == ADVECTION)
 	If (geom_adv == GEOM_ADV_XL)
-		Physical Point(bc_base+BC_INFLOW)  = {1};
-		Physical Point(bc_base+BC_OUTFLOW) = {2};
+		Physical Point(bc_base+BC_UPWIND)      = {1};
+		Physical Point(bc_base+BC_UPWIND_ALT1) = {2};
 	ElseIf (geom_adv == GEOM_ADV_PERIODIC)
 		Physical Point(bc_base+PERIODIC_XL) = {1};
 		Physical Point(bc_base+PERIODIC_XR) = {2};

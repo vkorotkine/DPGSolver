@@ -202,6 +202,7 @@ static const struct const_Matrix_d* constructor_lhs_v_1_opg
 	const struct const_Matrix_d*const n1_lt = constructor_mm_diag_const_Matrix_d_d(1.0,cv1r,wJ_vc,'L',false); // dest.
 	destructor_const_Vector_d(wJ_vc);
 
+	// -ve sign from the definition of u == - test_diff_op*test_s_coef.
 	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('T','N',-1.0,n1_lt,cv1r,'R'); // returned
 	destructor_const_Matrix_d(n1_lt);
 	destructor_const_Matrix_d(cv1r);

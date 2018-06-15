@@ -37,49 +37,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void constructor_Boundary_Value_T_advection_inflow
-	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
-	 const struct Simulation* sim)
-{
-	UNUSED(face);
-	const struct const_Multiarray_T*const xyz = bv_i->xyz;
-	const bool* c_m = bv_i->compute_member;
-
-	assert(c_m[0] == true);
-	bv->s = constructor_sol_bv(xyz,sim); // keep
-
-	if (c_m[1] == true) {
-		const ptrdiff_t n_n  = bv->s->extents[0],
-		                n_vr = bv->s->extents[1];
-		struct Multiarray_T* ds_ds = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_n,n_vr,n_vr}); // moved
-		set_to_value_Multiarray_T(ds_ds,0.0);
-		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds; // keep
-	}
-	assert(c_m[2] == false);
-}
-
-void constructor_Boundary_Value_T_advection_outflow
-	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
-	 const struct Simulation* sim)
-{
-	UNUSED(face);
-	UNUSED(sim);
-
-	const bool* c_m = bv_i->compute_member;
-
-	assert(c_m[0] == true);
-	bv->s = constructor_copy_const_Multiarray_T(bv_i->s); // keep
-
-	if (c_m[1] == true) {
-		const ptrdiff_t n_n  = bv->s->extents[0],
-		                n_vr = bv->s->extents[1];
-		struct Multiarray_T* ds_ds = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_n,n_vr,n_vr}); // moved
-		set_to_value_Multiarray_T(ds_ds,1.0);
-		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds;
-	}
-	assert(c_m[2] == false);
-}
-
 void constructor_Boundary_Value_T_advection_upwind
 	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
 	 const struct Simulation* sim)
