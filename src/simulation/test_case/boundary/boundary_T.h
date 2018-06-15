@@ -185,15 +185,15 @@ void constructor_Boundary_Value_T_grad_from_internal
 /** \brief Constructor for the solution interpolating from the neighbouring volume to the face cubature nodes.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_s_fc_interp_T
-	(const int side_index,                 ///< The index of the side of the face under consideration.
-	 const struct Solver_Face_T*const face ///< Standard.
+	(const int side_index,                   ///< The index of the side of the face under consideration.
+	 const struct Solver_Face_T*const s_face ///< Standard.
 	);
 
 /** \brief Constructor for the solution gradient interpolating from the neighbouring volume to the face cubature nodes.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_g_fc_interp_T
-	(const int side_index,                 ///< The index of the side of the face under consideration.
-	 const struct Solver_Face_T*const face ///< Standard.
+	(const int side_index,                   ///< The index of the side of the face under consideration.
+	 const struct Solver_Face_T*const s_face ///< Standard.
 	);
 
 #include "undef_templates_multiarray.h"

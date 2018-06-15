@@ -69,31 +69,33 @@ doc:
 	cd ../build_debug_3D && make -j doc
 
 # Execution
-.PHONY: quick_debug_1D quick_debug_2D quick_debug_3D quick_1D quick_2D quick_3D memcheck_1D memcheck_2D memcheck_3D
+.PHONY: run_quick_debug_1D run_quick_debug_2D run_quick_debug_3D
+.PHONY: run_quick_1D run_quick_2D run_quick_3D
+.PHONY: run_memcheck_1D run_memcheck_2D run_memcheck_3D
 
-quick_debug_1D: fast_debug_1D
+run_quick_debug_1D: fast_debug_1D
 	cd ../build_debug_1D/script_files && ./quick.sh
 
-quick_debug_2D: fast_debug_2D
+run_quick_debug_2D: fast_debug_2D
 	cd ../build_debug_2D/script_files && ./quick.sh
 
-quick_debug_3D: fast_debug_3D
+run_quick_debug_3D: fast_debug_3D
 	cd ../build_debug_3D/script_files && ./quick.sh
 
-memcheck_debug_1D: fast_debug_1D
+run_memcheck_debug_1D: fast_debug_1D
 	cd ../build_debug_1D/script_files && ./memcheck.sh
 
-memcheck_debug_2D: fast_debug_2D
+run_memcheck_debug_2D: fast_debug_2D
 	cd ../build_debug_2D/script_files && ./memcheck.sh
 
-memcheck_debug_3D: fast_debug_3D
+run_memcheck_debug_3D: fast_debug_3D
 	cd ../build_debug_3D/script_files && ./memcheck.sh
 
-quick_1D: fast_debug_1D
+run_quick_1D: fast_debug_1D
 	cd ../build_1D/script_files && ./quick.sh
 
-quick_2D: fast_debug_2D
+run_quick_2D: fast_debug_2D
 	cd ../build_2D/script_files && ./quick.sh
 
-quick_3D: fast_debug_3D
+run_quick_3D: fast_debug_3D
 	cd ../build_3D/script_files && ./quick.sh

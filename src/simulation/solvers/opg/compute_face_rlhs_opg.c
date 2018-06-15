@@ -170,6 +170,8 @@ static void compute_lhs_1_b
 {
 	const struct Face*const face = (struct Face*) s_face;
 	assert(face->boundary);
+	/* printf("Warning: never adding boundary terms.\n"); */
+	/* return; */
 
 	const struct const_Matrix_d*const lhs = constructor_lhs_f_1_b(flux,num_flux,s_face); // destructed
 
@@ -269,6 +271,7 @@ static const struct const_Matrix_d* constructor_lhs_f_1_b
 	const struct const_Matrix_d*const lhs_r  = constructor_lhs_f_1_b_r(flux,s_face);     // destructed
 
 	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('N','N',-1.0,lhs_l,lhs_r,'R'); // returned
+	printf("face lhs b\n");
 	print_const_Matrix_d(lhs);
 	destructor_const_Matrix_d(lhs_l);
 	destructor_const_Matrix_d(lhs_r);
