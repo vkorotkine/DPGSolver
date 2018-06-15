@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the matrix print functions.
  */
 
+#if defined TYPE_RC
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
@@ -48,3 +49,22 @@ You should have received a copy of the GNU General Public License along with DPG
 #define print_Matrix_R           print_Matrix_d
 #define print_const_Matrix_R     print_const_Matrix_d
 ///\}
+
+
+#elif defined TYPE_I
+#if TYPE_I == TYPE_II
+
+///\{ \name Function names
+#define check_Matrix_extents_zero_T check_Matrix_extents_zero_i
+
+#define print_Matrix_T_tol           print_Matrix_i_tol
+#define print_const_Matrix_T_tol     print_const_Matrix_i_tol
+#define print_Matrix_T               print_Matrix_i
+#define print_const_Matrix_T         print_const_Matrix_i
+#define print_to_file_Matrix_T       print_to_file_Matrix_i
+#define print_to_file_const_Matrix_T print_to_file_const_Matrix_i
+///\}
+
+#endif
+
+#endif

@@ -19,3 +19,5 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef set_sol_vortex_advection_T
 #undef constructor_const_sol_vortex_advection_T
+
+#undef constructor_sol_vortex_advection

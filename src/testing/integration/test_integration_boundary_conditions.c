@@ -40,18 +40,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "computational_elements.h"
 #include "compute_face_rlhs.h"
 #include "intrusive.h"
+#include "math_functions.h"
 #include "numerical_flux.h"
 #include "simulation.h"
 #include "test_case.h"
-
-#include "complex_multiarray.h"
-
-#include "test_complex_face_solver.h"
-
-#include "test_complex_compute_face_rhs.h"
-#include "test_complex_numerical_flux.h"
-#include "test_complex_math_functions.h"
-#include "test_complex_test_case.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -369,8 +361,8 @@ static void set_to_zero_Boundary_Value
 static void constructor_Numerical_Flux_Input_c_data_members_l
 	(struct Numerical_Flux_Input_c*const num_flux_c_i, struct Numerical_Flux_Input*const num_flux_i)
 {
-	num_flux_c_i->bv_l.normals = constructor_copy_const_Multiarray_d(num_flux_i->bv_l.normals);
-	num_flux_c_i->bv_l.xyz     = constructor_copy_const_Multiarray_d(num_flux_i->bv_l.xyz);
+	num_flux_c_i->bv_l.normals = constructor_copy_const_Multiarray_c_Multiarray_d(num_flux_i->bv_l.normals);
+	num_flux_c_i->bv_l.xyz     = constructor_copy_const_Multiarray_c_Multiarray_d(num_flux_i->bv_l.xyz);
 	num_flux_c_i->bv_l.s       = constructor_copy_const_Multiarray_c_Multiarray_d(num_flux_i->bv_l.s);
 	if (num_flux_i->bv_l.g)
 		num_flux_c_i->bv_l.g = constructor_copy_const_Multiarray_c_Multiarray_d(num_flux_i->bv_l.g);
@@ -378,8 +370,8 @@ static void constructor_Numerical_Flux_Input_c_data_members_l
 
 static void destructor_Numerical_Flux_Input_c_data_members_l (struct Numerical_Flux_Input_c*const num_flux_c_i)
 {
-	destructor_const_Multiarray_d(num_flux_c_i->bv_l.normals);
-	destructor_const_Multiarray_d(num_flux_c_i->bv_l.xyz);
+	destructor_const_Multiarray_c(num_flux_c_i->bv_l.normals);
+	destructor_const_Multiarray_c(num_flux_c_i->bv_l.xyz);
 	destructor_const_Multiarray_c(num_flux_c_i->bv_l.s);
 	destructor_conditional_const_Multiarray_c(num_flux_c_i->bv_l.g);
 }

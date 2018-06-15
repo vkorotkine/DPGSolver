@@ -18,6 +18,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 
+#include "def_templates_multiarray.h"
+#include "def_templates_boundary.h"
+#include "def_templates_operators.h"
+#include "def_templates_face_solver.h"
+
 struct Boundary_Value_Input_T;
 struct Boundary_Value_T;
 struct Solver_Face_T;
@@ -71,13 +76,13 @@ struct Boundary_Value_Input_T {
 	double h; ///< \ref Face::h.
 	int p;    ///< \ref Solver_Face_T::p_ref.
 
-/// \todo geometry: Real -> Templated
-	const struct const_Multiarray_R* normals; ///< The unit normal vector components.
-	const struct const_Multiarray_R* xyz;     ///< The xyz coordinates.
-	const struct const_Multiarray_R* xyz_ex;  ///< \ref Solver_Face_T::xyz_fc_ex_b.
+	const struct const_Multiarray_T* normals;     ///< The unit normal vector components.
+	const struct const_Multiarray_T* normals_std; ///< Standard unit normal vector components (computed from metrics).
+	const struct const_Multiarray_T* xyz;     ///< The xyz coordinates.
+	const struct const_Multiarray_T* xyz_ex;  ///< \ref Solver_Face_T::xyz_fc_ex_b.
 
 	/// \ref Solver_Face_T::jacobian_det_fc. \todo Remove if unused (was possibly used only for testing purposes).
-	const struct const_Multiarray_R* jacobian_det_fc;
+	const struct const_Multiarray_T* jacobian_det_fc;
 
 	const struct const_Multiarray_T* s; ///< The solution variables.
 	const struct const_Multiarray_T* g; ///< The solution gradient variables.
@@ -177,3 +182,21 @@ void constructor_Boundary_Value_T_grad_from_internal
 	 const int n_var                            ///< The number of variables.
 	);
 
+/** \brief Constructor for the solution interpolating from the neighbouring volume to the face cubature nodes.
+ *  \return See brief. */
+const struct const_Multiarray_T* constructor_s_fc_interp_T
+	(const int side_index,                   ///< The index of the side of the face under consideration.
+	 const struct Solver_Face_T*const s_face ///< Standard.
+	);
+
+/** \brief Constructor for the solution gradient interpolating from the neighbouring volume to the face cubature nodes.
+ *  \return See brief. */
+const struct const_Multiarray_T* constructor_g_fc_interp_T
+	(const int side_index,                   ///< The index of the side of the face under consideration.
+	 const struct Solver_Face_T*const s_face ///< Standard.
+	);
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_operators.h"
+#include "undef_templates_face_solver.h"

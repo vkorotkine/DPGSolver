@@ -22,6 +22,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ Options for the type of "solution" procedure to use for the convergence study.
 #define CONV_STUDY_SOLVE   101 ///< Solve for the solution in the standard manner.
 #define CONV_STUDY_RESTART 102 ///< Use the restarted solution to check convergence orders.
+
+#define CONV_STUDY_SOLVE_NO_CHECK 201 ///< Run the convergence order routine without checking the convergence orders.
 ///\}
 
 /// \brief Perform a convergence order study of the specified type based on the control file parameters.

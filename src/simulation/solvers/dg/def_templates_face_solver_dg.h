@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Data types
 #define DG_Solver_Face_T DG_Solver_Face
+#define Neigh_Info_DG    Neigh_Info_DG
 ///\}
 
 ///\{ \name Function names
@@ -32,6 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Data types
 #define DG_Solver_Face_T DG_Solver_Face_c
+#define Neigh_Info_DG    Neigh_Info_DG_c
 ///\}
 
 ///\{ \name Function names

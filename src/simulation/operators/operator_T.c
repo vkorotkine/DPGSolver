@@ -22,9 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 #include "definitions_tol.h"
 
-
 #include "def_templates_operators.h"
-
 #include "def_templates_multiarray.h"
 
 // Static function declarations ************************************************************************************* //
@@ -51,6 +49,26 @@ const struct const_Multiarray_T* constructor_mm_NN1_Operator_const_Multiarray_T
 {
 	return (const struct const_Multiarray_T*) constructor_mm_NN1_Operator_Multiarray_T(
 		op,(struct Multiarray_T*)b,layout_c,op_format,order_sub_ma,sub_inds_b);
+}
+
+struct Multiarray_T* constructor_mm_NN1_Operator_Multiarray_T_Multiarray_R
+	(const struct Operator* op, const struct Multiarray_R* b, const char layout_c, const char op_format,
+	 const int order_sub_ma, const ptrdiff_t* sub_inds_b)
+{
+	const struct Multiarray_T*const b_T = constructor_copy_Multiarray_T_Multiarray_R(b); // destructed
+	struct Multiarray_T*const c =
+	constructor_mm_NN1_Operator_Multiarray_T(op,b_T,layout_c,op_format,order_sub_ma,sub_inds_b); // returned
+	destructor_Multiarray_T(b_T);
+
+	return c;
+}
+
+const struct const_Multiarray_T* constructor_mm_NN1_Operator_const_Multiarray_T_Multiarray_R
+	(const struct Operator* op, const struct const_Multiarray_R* b, const char layout_c, const char op_format,
+	 const int order_sub_ma, const ptrdiff_t* sub_inds_b)
+{
+	return (const struct const_Multiarray_T*) constructor_mm_NN1_Operator_Multiarray_T_Multiarray_R(
+		op,(struct Multiarray_R*)b,layout_c,op_format,order_sub_ma,sub_inds_b);
 }
 
 // General functions ************************************************************************************************ //
@@ -171,3 +189,6 @@ void mm_NN1_Operator_Multiarray_T
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_operators.h"
+#include "undef_templates_multiarray.h"

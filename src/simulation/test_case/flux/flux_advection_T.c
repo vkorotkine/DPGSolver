@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 
 #include "def_templates_flux.h"
+#include "def_templates_solution_advection.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -62,10 +63,10 @@ static compute_Flux_Advection_fptr get_compute_Flux_Advection_fptr
 void compute_Flux_T_advection (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
 {
 	static bool need_input = true;
-	static struct Sol_Data__Advection sol_data;
+	static struct Sol_Data__Advection_T sol_data;
 	if (need_input) {
 		need_input = false;
-		read_data_advection(&sol_data);
+		read_data_advection_T(&sol_data);
 	}
 
 	const struct const_Multiarray_T*const s = flux_i->s;
@@ -101,13 +102,13 @@ void compute_Flux_T_advection (const struct Flux_Input_T* flux_i, struct mutable
 	assert(c_m[5] == false); // 1st order.
 
 	assert(flux_i->xyz != NULL);
-	const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,flux_i->xyz),
-	                                       get_col_const_Multiarray_R(1,flux_i->xyz),
-	                                       get_col_const_Multiarray_R(2,flux_i->xyz) );
+	const Type*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_T(0,flux_i->xyz),
+	                                       get_col_const_Multiarray_T(1,flux_i->xyz),
+	                                       get_col_const_Multiarray_T(2,flux_i->xyz) );
 
 	const ptrdiff_t n_n = s->extents[0];
 	for (ptrdiff_t n = 0; n < n_n; ++n) {
-		const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
+		const Type xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
 		struct Flux_Data_Advection flux_data =
 			{ .u     = u_p[n],
 			  .b_adv = sol_data.compute_b_adv(xyz_n),
@@ -204,3 +205,8 @@ static void compute_Flux_advection_1
 	IF_DIM_GE_2( *dfds_ptr[ind++] += b_adv[1] );
 	IF_DIM_GE_3( *dfds_ptr[ind++] += b_adv[2] );
 }
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_flux.h"
+#include "undef_templates_solution_advection.h"

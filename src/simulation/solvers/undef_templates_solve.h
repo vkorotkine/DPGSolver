@@ -21,3 +21,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_Solver_Storage_Implicit_T
 #undef add_to_flux_imbalance_source_T
 #undef get_operator__tw0_vt_vc_T
+#undef initialize_zero_memory_volumes_T
+
+#undef constructor_nnz
+#undef compute_dof_volumes
+#undef compute_dof_faces
+#undef compute_dof_volumes_l_mult
+#undef compute_dof_test_T
+#undef compute_dof_test_volumes

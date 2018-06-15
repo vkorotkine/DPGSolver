@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_solution_advection.h"
 
 #include "def_templates_multiarray.h"
+#include "def_templates_math_functions.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -36,23 +37,23 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \return See brief. */
 static struct Multiarray_T* constructor_sol_free_stream_advection
 	(const struct Simulation* sim,        ///< Defined for \ref set_sol_free_stream_advection_T.
-	 const struct const_Multiarray_R* xyz ///< xyz coordinates at which to evaluate the solution.
+	 const struct const_Multiarray_T* xyz ///< xyz coordinates at which to evaluate the solution.
 	);
 
 // Interface functions ********************************************************************************************** //
 
 void set_sol_free_stream_advection_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
-	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+	const struct const_Multiarray_T* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_free_stream_advection(sim,xyz); // destructed
-	destructor_const_Multiarray_R(xyz);
+	destructor_const_Multiarray_T(xyz);
 
 	update_Solution_Container_sol_T(&sol_cont,sol,sim);
 	destructor_Multiarray_T(sol);
 }
 
 const struct const_Multiarray_T* constructor_const_sol_free_stream_advection_T
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
 	struct Multiarray_T* sol = constructor_sol_free_stream_advection(sim,xyz); // returned
 	return (const struct const_Multiarray_T*) sol;
@@ -62,9 +63,9 @@ const struct const_Multiarray_T* constructor_const_sol_free_stream_advection_T
 // Level 0 ********************************************************************************************************** //
 
 static struct Multiarray_T* constructor_sol_free_stream_advection
-	(const struct Simulation* sim, const struct const_Multiarray_R* xyz)
+	(const struct Simulation* sim, const struct const_Multiarray_T* xyz)
 {
-	const struct Sol_Data__Advection sol_data = get_sol_data_advection();
+	const struct Sol_Data__Advection_T sol_data = get_sol_data_advection_T();
 
 	// Compute the solution
 	const ptrdiff_t n_vs = xyz->extents[0];
@@ -73,24 +74,32 @@ static struct Multiarray_T* constructor_sol_free_stream_advection
 
 	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_vs,n_var}); // returned
 
-	assert(sol_data.compute_b_adv == compute_b_adv_constant);
-	const double*const b_adv = compute_b_adv_constant(NULL);
+	assert(sol_data.compute_b_adv == compute_b_adv_constant_T);
+	const double*const b_adv = compute_b_adv_constant_T(NULL);
 	for (int d = 1; d < DIM; ++d)
 		assert(b_adv[d] == 0);
 
-	const double*c = sol_data.u_coef_polynomial4;
-	assert(c[0] != 0.0);
-
-	const Real*const y = get_col_const_Multiarray_R(1,xyz);
+	const Type*const y = get_col_const_Multiarray_T(1,xyz);
 
 	Type* u = get_col_Multiarray_T(0,sol);
-	for (int i = 0; i < n_vs; ++i) {
-		u[i] = c[0]*1.0
-		     + c[1]*pow(y[i],1)
-		     + c[2]*pow(y[i],2)
-		     + c[3]*pow(y[i],3)
-		     + c[4]*pow(y[i],4);
+
+	const double scale = sol_data.u_scale;
+	const bool use_constant_solution = sol_data.use_constant_solution;
+	assert(scale != 0.0);
+	if (!use_constant_solution) {
+		for (int i = 0; i < n_vs; ++i)
+			u[i] = scale*sin(0.1*real_T(y[i]))*cos(0.3*real_T(y[i]));
+	} else {
+		for (int i = 0; i < n_vs; ++i)
+			u[i] = scale;
 	}
 
 	return sol;
 }
+
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_advection.h"
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_math_functions.h"
+#include "undef_templates_test_case.h"

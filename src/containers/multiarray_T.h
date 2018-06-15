@@ -19,6 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+
 struct const_Vector_R;
 
 /// \brief Templated Multiarray.
@@ -231,6 +235,14 @@ void copy_into_Multiarray_T
 	 const struct const_Multiarray_T*const src ///< The source.
 	);
 
+#ifdef TYPE_RC
+/// \brief Copy data from the source into the destination \ref Multiarray_T.
+void copy_into_Multiarray_T_from_R
+	(struct Multiarray_T*const dest,           ///< The destination.
+	 const struct const_Multiarray_R*const src ///< The source.
+	);
+#endif
+
 /** \brief Push the source multiarray to the back of the destination multiarray.
  *
  *  For row-major inputs, the destination multiarray has its number of rows increased.
@@ -259,3 +271,7 @@ void update_rows_Multiarray_T
 	);
 
 #endif
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"

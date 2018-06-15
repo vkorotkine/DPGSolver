@@ -29,15 +29,17 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 
 ///\{ \name Print the file name, function and line number.
-#define PRINT_FILELINE   ({ printf("\n\nPrinting at: FILE: %s, FUNCTION: %s (LINE: %d)\n\n\n",__FILE__,__func__,__LINE__); })
+#define PRINT_FILELINE   ({ printf("%s:%d",__FILE__,__LINE__); fflush(stdout); })
 ///\}
 
 ///\{ \name Exit from the code.
 #define EXIT_MSG         ({ PRINT_FILELINE; fflush(stdout); abort(); })
-#define EXIT_UNSUPPORTED ({printf("\n\nError: Unsupported.\n"), EXIT_MSG; })
-#define EXIT_ADD_SUPPORT ({printf("\n\nError: Add support.\n"), EXIT_MSG; })
-#define EXIT_DEPRECATED  ({printf("\n\nError: Deprecated.\n"), EXIT_MSG; })
-#define EXIT_ERROR(...)  ({printf("\n\nError: "); printf(__VA_ARGS__); printf("\n\n"); EXIT_MSG; })
+#define EXIT             ({ PRINT_FILELINE; printf(": Error: Exit DPG.\n"); abort(); })
+#define EXIT_ADD_SUPPORT ({ PRINT_FILELINE; printf(": Error: Add support.\n"); abort(); })
+#define EXIT_UNSUPPORTED ({ PRINT_FILELINE; printf(": Error: Unsupported.\n"); abort(); })
+#define EXIT_DEPRECATED  ({ PRINT_FILELINE; printf(": Error: Deprecated.\n"); abort(); })
+
+#define EXIT_ERROR(...)  ({ PRINT_FILELINE; printf(": Error: "); printf(__VA_ARGS__); printf("\n"); abort(); })
 ///\}
 
 ///\{ \name Mark unused variables.

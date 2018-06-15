@@ -23,3 +23,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_xyz_surface_cylinder_radial_proj_T
 #undef constructor_xyz_surface_cylinder_arc_length_T
 #undef constructor_xyz_surface_cylinder_normal_proj_T
+
+#undef compute_radius_from_xyz_ve
+#undef find_boundary_vertex_index

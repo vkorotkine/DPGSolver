@@ -28,6 +28,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_derived_DG_Solver_Volume_T  destructor_derived_DG_Solver_Volume
 ///\}
 
+///\{ \name Static names
+#define Needed_Members Needed_Members
+#define set_needed_members set_needed_members
+///\}
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Data types
@@ -37,6 +42,11 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define constructor_derived_DG_Solver_Volume_T constructor_derived_DG_Solver_Volume_c
 #define destructor_derived_DG_Solver_Volume_T  destructor_derived_DG_Solver_Volume_c
+///\}
+
+///\{ \name Static names
+#define Needed_Members Needed_Members_c
+#define set_needed_members set_needed_members_c
 ///\}
 
 #endif

@@ -24,6 +24,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Solver_Storage_Implicit_T constructor_Solver_Storage_Implicit
 #define add_to_flux_imbalance_source_T        add_to_flux_imbalance_source
 #define get_operator__tw0_vt_vc_T             get_operator__tw0_vt_vc
+#define initialize_zero_memory_volumes_T      initialize_zero_memory_volumes
+///\}
+
+///\{ \name Static names
+#define constructor_nnz constructor_nnz
+#define compute_dof_volumes compute_dof_volumes
+#define compute_dof_faces compute_dof_faces
+#define compute_dof_volumes_l_mult compute_dof_volumes_l_mult
+#define compute_dof_test_T compute_dof_test_T
+#define compute_dof_test_volumes compute_dof_test_volumes
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -34,6 +44,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Solver_Storage_Implicit_T constructor_Solver_Storage_Implicit_c
 #define add_to_flux_imbalance_source_T        add_to_flux_imbalance_source_c
 #define get_operator__tw0_vt_vc_T             get_operator__tw0_vt_vc_c
+#define initialize_zero_memory_volumes_T      initialize_zero_memory_volumes_c
+///\}
+
+///\{ \name Static names
+#define constructor_nnz constructor_nnz_c
+#define compute_dof_volumes compute_dof_volumes_c
+#define compute_dof_faces compute_dof_faces_c
+#define compute_dof_volumes_l_mult compute_dof_volumes_l_mult_c
+#define compute_dof_test_T compute_dof_test_T_c
+#define compute_dof_test_volumes compute_dof_test_volumes_c
 ///\}
 
 #endif

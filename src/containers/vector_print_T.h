@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdio.h>
 
+#include "def_templates_vector.h"
+
 struct Vector_T;
 struct const_Vector_T;
 
@@ -58,3 +60,5 @@ void fprint_Vector_T
 	 struct Vector_T* a ///< Defined for \ref fprint_const_Vector_T.
 	);
 #endif
+
+#include "undef_templates_vector.h"

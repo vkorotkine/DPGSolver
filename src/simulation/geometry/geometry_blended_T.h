@@ -18,6 +18,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 
+#include "def_templates_geometry.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_matrix.h"
+
 struct Solver_Volume_T;
 struct Simulation;
 
@@ -73,9 +78,9 @@ struct Blended_Parametric_Data_T {
 
 /** \brief Version of \ref constructor_xyz_fptr_T for the blended curved volume geometry.
  *  \return See brief. */
-const struct const_Multiarray_R* constructor_xyz_blended_T
+const struct const_Multiarray_T* constructor_xyz_blended_T
 	(const char n_type,                      ///< See brief.
-	 const struct const_Multiarray_R* xyz_i, ///< See brief.
+	 const struct const_Multiarray_T* xyz_i, ///< See brief.
 	 const struct Solver_Volume_T* s_vol,    ///< See brief.
 	 const struct Simulation* sim            ///< See brief.
 	);
@@ -108,9 +113,9 @@ void set_Boundary_Comp_Elem_operators_T
 /** \brief Constructor for a \ref const_Matrix_T\* storing the difference between the surface xyz values for the current
  *         and exact boundary.
  *  \return See brief. */
-const struct const_Matrix_R* constructor_xyz_surf_diff_T
+const struct const_Matrix_T* constructor_xyz_surf_diff_T
 	(const struct Boundary_Comp_Elem_Data_T*const b_ce_d, ///< \ref Boundary_Comp_Elem_Data_T.
-	 const struct const_Matrix_R*const xyz_i,             ///< Input xyz coordinates.
+	 const struct const_Matrix_T*const xyz_i,             ///< Input xyz coordinates.
 	 const struct Solver_Volume_T*const s_vol,            ///< The current \ref Solver_Volume_T.
 	 const char n_type,                                   ///< \ref Blended_Parametric_Data_T::n_type.
 	 const bool use_existing_as_surf,                     /**< Flag for whether the existing high-order geometry
@@ -125,3 +130,8 @@ void correct_internal_xyz_blended_T
 	(struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
 	 const struct Simulation*const sim   ///< \ref Simulation.
 	);
+
+#include "undef_templates_geometry.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_matrix.h"

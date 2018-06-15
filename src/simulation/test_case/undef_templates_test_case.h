@@ -26,3 +26,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef destructor_Test_Case_T
 #undef increment_pointers_T
 ///\}
+
+#undef set_string_associations
+#undef set_pde_related
+#undef set_method_related
+#undef set_function_pointers
+#undef read_test_case_parameters
+#undef correct_invalid_test_case_parameters
+#undef get_compute_member_Flux_Input
+#undef get_compute_member_Boundary_Value_Input
+#undef set_function_pointers_start

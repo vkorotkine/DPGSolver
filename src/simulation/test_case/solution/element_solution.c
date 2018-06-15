@@ -120,7 +120,8 @@ static void constructor_derived_Solution_Element_std (struct Element* element_pt
 	switch (sim->method) {
 	case METHOD_DG:
 		break; // Do nothing.
-	case METHOD_DPG:
+	case METHOD_DPG: // fallthrough
+	case METHOD_OPG:
 		e->cv0_vg_ff[0] = constructor_operators("cv0","vgs","ffA","H_1_P_1PPM1",b_e,sim); // destructed
 		e->cv0_vg_ff[1] = constructor_operators("cv0","vgc","ffA","H_1_P_PM1",  b_e,sim); // destructed
 		e->vv0_vm_ff[0] = constructor_operators("vv0","vms","ffA","H_1_P_1PPM1",b_e,sim); // destructed
@@ -181,7 +182,8 @@ static void constructor_derived_Solution_Element_tp (struct Element* element_ptr
 	switch (sim->method) {
 	case METHOD_DG:
 		break; // Do nothing.
-	case METHOD_DPG:
+	case METHOD_DPG: // fallthrough
+	case METHOD_OPG:
 		for (int i = 0; i < 2; ++i) {
 			if (s_e[i]->cv0_vg_vf[0] != NULL)
 				continue;
@@ -229,7 +231,8 @@ static void constructor_derived_Solution_Element_common (struct Element* element
 	switch (sim->method) {
 	case METHOD_DG:
 		break; // Do nothing.
-	case METHOD_DPG:
+	case METHOD_DPG: // fallthrough
+	case METHOD_OPG:
 		e->vc0_ff_ff = constructor_operators("vc0","ffA","ffA","H_1_P_PM0",b_e,sim); // destructed
 		break;
 	default:

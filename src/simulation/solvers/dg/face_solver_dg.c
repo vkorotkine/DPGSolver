@@ -31,6 +31,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "face_solver_dg_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "face_solver_dg_T.c"
+#include "undef_templates_type.h"
 
 // Interface functions ********************************************************************************************** //
 

@@ -20,7 +20,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define update_ind_dof_dg_T     update_ind_dof_dg
-#define permute_Multiarray_T_fc permute_Multiarray_d_fc
 #define constructor_nnz_dg_T    constructor_nnz_dg
 ///\}
 
@@ -28,7 +27,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define update_ind_dof_dg_T     update_ind_dof_dg_c
-#define permute_Multiarray_T_fc permute_Multiarray_c_fc
 #define constructor_nnz_dg_T    constructor_nnz_dg_c
 ///\}
 

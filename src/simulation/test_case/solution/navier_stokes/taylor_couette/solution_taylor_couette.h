@@ -20,13 +20,11 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_solution.h"
-#include "def_templates_solution_navier_stokes.h"
-#include "def_templates_multiarray.h"
 #include "solution_taylor_couette_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_solution.h"
-#include "undef_templates_solution_navier_stokes.h"
-#include "undef_templates_multiarray.h"
+
+#include "def_templates_type_dc.h"
+#include "solution_taylor_couette_T.h"
+#include "undef_templates_type.h"
 
 #endif // DPG__solution_taylor_couette_h__INCLUDED

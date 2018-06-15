@@ -20,6 +20,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_tol.h"
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -146,3 +150,7 @@ void fprint_const_Multiarray_Vector_T (FILE* file, const int n_tab, const struct
 #endif
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"

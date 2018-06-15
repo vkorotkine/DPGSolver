@@ -29,24 +29,16 @@ You should have received a copy of the GNU General Public License along with DPG
 // Templated functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "def_templates_matrix.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_vector.h"
 #include "vector_constructors_T.c"
 #include "undef_templates_type.h"
-#include "undef_templates_matrix.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_vector.h"
+
+#include "def_templates_type_dc.h"
+#include "vector_constructors_T.c"
+#include "undef_templates_type.h"
 
 #include "def_templates_type_i.h"
-#include "def_templates_matrix_i.h"
-#include "def_templates_multiarray_i.h"
-#include "def_templates_vector_i.h"
 #include "vector_constructors_T.c"
 #include "undef_templates_type.h"
-#include "undef_templates_matrix.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_vector.h"
 
 // Static function declarations ************************************************************************************* //
 

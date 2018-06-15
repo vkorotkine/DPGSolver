@@ -21,3 +21,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_grad_taylor_couette_T
 #undef constructor_const_sol_taylor_couette_T
 #undef constructor_const_grad_taylor_couette_T
+
+#undef constructor_sol_taylor_couette
+#undef constructor_grad_taylor_couette
+#undef Sol_Data__tc
+#undef get_sol_data
+#undef read_data_taylor_couette
+#undef set_data_taylor_couette

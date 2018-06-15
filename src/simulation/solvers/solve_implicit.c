@@ -40,6 +40,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "computational_elements.h"
+#include "compute_volume_rlhs_opg.h"
+#include "compute_face_rlhs_opg.h"
 #include "intrusive.h"
 #include "math_functions.h"
 #include "multiarray_operator.h"
@@ -49,6 +51,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "solve.h"
 #include "solve_dg.h"
 #include "solve_dpg.h"
+#include "solve_opg.h"
 #include "test_case.h"
 #include "visualization.h"
 
@@ -137,7 +140,8 @@ bool check_symmetric (const struct Simulation* sim)
 	switch (pde_index) {
 	case PDE_ADVECTION:
 		switch (sim->method) {
-		case METHOD_DG:
+		case METHOD_DG:  // fallthrough
+		case METHOD_OPG:
 			return false;
 			break;
 		case METHOD_DPG:
@@ -153,11 +157,23 @@ bool check_symmetric (const struct Simulation* sim)
 		break;
 	case PDE_EULER:         // fallthrough
 	case PDE_NAVIER_STOKES:
-		// From some previous testing, it is possible that the LHS matrix is symmetric when the test norm is
-		// not a function of the solution but this will generally not be the case, notably for the quasi-optimal
-		// test norm.
-		return false;
-		break;
+		switch (sim->method) {
+		case METHOD_DG:
+			return false;
+			break;
+		case METHOD_DPG:
+			// From some previous testing, it is possible that the LHS matrix is symmetric when the test norm is
+			// not a function of the solution but this will generally not be the case, notably for the
+			// quasi-optimal test norm.
+			return false;
+			break;
+		case METHOD_OPG:
+			EXIT_ADD_SUPPORT; // Likely not symmetric as a result of the boundary conditions.
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",sim->method);
+			break;
+		}
 	default:
 		EXIT_ERROR("Unsupported: %d\n",pde_index);
 		break;
@@ -215,6 +231,10 @@ static void constructor_derived_elements_comp_elements (struct Simulation* sim)
 	case METHOD_DPG:
 		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DPG);       // destructed
 		constructor_derived_computational_elements(sim,IL_SOLVER_DPG); // destructed
+		break;
+	case METHOD_OPG:
+		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_OPG);       // destructed
+		constructor_derived_computational_elements(sim,IL_SOLVER_OPG); // destructed
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
@@ -484,6 +504,12 @@ static void update_coef_l_mult_v
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
+/// \brief Update the values of \ref Solver_Volume_T::test_s_coef based on the computed increment.
+static void update_coef_test_s_v
+	(Vec x,                            ///< Petsc Vec holding the solution coefficient increments.
+	 const struct Simulation*const sim ///< Standard.
+	);
+
 static void output_petsc_schur (Mat A, Vec b, const struct Simulation* sim)
 {
 	struct Schur_Data* schur_data = constructor_Schur_Data(A,b,sim); // destructed
@@ -577,7 +603,13 @@ static void update_coefs (Vec x, const struct Simulation* sim)
 		update_coef_s_v(x,sim);
 		update_coef_nf_f(x,sim);
 		update_coef_l_mult_v(x,sim);
-		assert(((struct Test_Case*)sim->test_case_rc->tc)->has_2nd_order == false); // Add support.
+		assert(get_set_has_1st_2nd_order(NULL)[1] == false); // Add support.
+		break;
+	case METHOD_OPG:
+		update_coef_test_s_v(x,sim);
+		update_coef_s_v_opg(sim);
+		update_coef_nf_f_opg(sim);
+		assert(get_set_has_1st_2nd_order(NULL)[1] == false); // Add support.
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
@@ -688,6 +720,15 @@ static void update_coef_l_mult_v (Vec x, const struct Simulation*const sim)
 		struct Solver_Volume* s_vol = (struct Solver_Volume*)curr;
 
 		update_coef((int)s_vol->ind_dof_constraint,s_vol->l_mult,x,false,NULL,NULL);
+	}
+}
+
+static void update_coef_test_s_v (Vec x, const struct Simulation*const sim)
+{
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* s_vol = (struct Solver_Volume*)curr;
+		set_to_value_Multiarray_d(s_vol->test_s_coef,0.0);
+		update_coef((int)s_vol->ind_dof_test,s_vol->test_s_coef,x,false,s_vol,sim);
 	}
 }
 

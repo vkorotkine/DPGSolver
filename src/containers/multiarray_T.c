@@ -19,8 +19,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
-#include "def_templates_multiarray_math.h"
-
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
 #include "def_templates_math_functions.h"
 
 // Static function declarations ************************************************************************************* //
@@ -238,9 +239,8 @@ const struct const_Vector_T* get_const_Multiarray_Vector_T
 
 struct Vector_T interpret_Multiarray_as_Vector_T (struct Multiarray_T*const a_Ma)
 {
-	assert(a_Ma->order == 1);
 	struct Vector_T a =
-		{ .ext_0     = a_Ma->extents[0],
+		{ .ext_0     = compute_size(a_Ma->order,a_Ma->extents),
 		  .owns_data = false,
 		  .data      = a_Ma->data, };
 	return a;
@@ -327,6 +327,21 @@ void copy_into_Multiarray_T (struct Multiarray_T*const dest, const struct const_
 	for (int i = 0; i < size; ++i)
 		dest->data[i] = src->data[i];
 }
+
+#ifdef TYPE_RC
+void copy_into_Multiarray_T_from_R (struct Multiarray_T*const dest, const struct const_Multiarray_R*const src)
+{
+	assert(dest->order == src->order);
+	for (int i = 0; i < src->order; ++i)
+		assert(dest->extents[i] == src->extents[i]);
+	assert(dest->layout == src->layout);
+	assert(dest->owns_data == true);
+
+	const ptrdiff_t size = compute_size(src->order,src->extents);
+	for (int i = 0; i < size; ++i)
+		dest->data[i] = src->data[i];
+}
+#endif
 
 void push_back_Multiarray_T (struct Multiarray_T*const dest, const struct const_Multiarray_T*const src)
 {
@@ -514,3 +529,8 @@ static ptrdiff_t compute_total_entries (const struct Multiarray_Vector_T*const s
 
 	return count;
 }
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_math_functions.h"

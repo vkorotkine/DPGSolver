@@ -39,3 +39,6 @@ void destructor_derived_DPG_Solver_Face_T (struct Face* face_ptr)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_dpg.h"

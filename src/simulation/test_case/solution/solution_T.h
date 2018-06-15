@@ -18,7 +18,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 
-struct const_Multiarray_R;
+#include "def_templates_solution.h"
+#include "def_templates_flux.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_volume_solver.h"
+
 struct const_Multiarray_T;
 struct Flux_Input_T;
 struct Simulation;
@@ -33,7 +38,7 @@ struct Solution_Container_T;
  *  \param sim \ref Simulation.
  */
 typedef const struct const_Multiarray_T* (*constructor_sol_fptr_T)
-	(const struct const_Multiarray_R* xyz,
+	(const struct const_Multiarray_T* xyz,
 	 const struct Simulation* sim
 	);
 
@@ -44,7 +49,7 @@ typedef const struct const_Multiarray_T* (*constructor_sol_fptr_T)
  *  \param sim See brief.
  */
 typedef struct Multiarray_T* (*mutable_constructor_sol_fptr_T)
-	(const struct const_Multiarray_R* xyz,
+	(const struct const_Multiarray_T* xyz,
 	 const struct Simulation* sim
 	);
 
@@ -87,7 +92,7 @@ struct Solution_Container_T {
 /** \brief Version of \ref constructor_sol_fptr_T to be used what a call to this function should be invalid.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_sol_invalid_T
-	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	(const struct const_Multiarray_T* xyz, ///< Defined for \ref constructor_sol_fptr_T.
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
 
@@ -117,7 +122,7 @@ void set_sg_zero_T
 /** \brief Contructor for a \ref const_Multiarray_T\* holding the xyz coordinates associated with the
  *         \ref Solution_Container_T.
  *  \return See brief. */
-const struct const_Multiarray_R* constructor_xyz_sol_T
+const struct const_Multiarray_T* constructor_xyz_sol_T
 	(const struct Simulation* sim, ///< \ref Simulation.
 	 const struct Solution_Container_T* sol_cont ///< \ref Solution_Container_T.
 	);
@@ -160,7 +165,7 @@ void update_Solution_Container_grad_T
 
 /** \brief Constructor for the xyz coordinates evaluated at the volume cubature nodes using interpolation.
  *  \return See brief. */
-const struct const_Multiarray_R* constructor_xyz_vc_interp_T
+const struct const_Multiarray_T* constructor_xyz_vc_interp_T
 	(const struct Solver_Volume_T* s_vol, ///< The current volume.
 	 const struct Simulation* sim       ///< \ref Simulation.
 	);
@@ -181,7 +186,7 @@ void set_grad_zero_T
 /** \brief Function to be used for \ref Test_Case_T::constructor_grad for test cases with zero gradients.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_grad_zero_T
-	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	(const struct const_Multiarray_T* xyz, ///< Defined for \ref constructor_sol_fptr_T.
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
 
@@ -189,3 +194,14 @@ const struct const_Multiarray_T* constructor_const_grad_zero_T
 void set_to_zero_residual_T
 	(const struct Simulation*const sim ///< Standard.
 	);
+
+/// \brief Set up the initial \ref Solver_Volume_T::test_s_coef and \todo ref Solver_Volume_T::test_g_coef.
+void set_initial_v_test_sg_coef_T
+	(struct Simulation*const sim ///< \ref Simulation.
+	);
+
+#include "undef_templates_solution.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"

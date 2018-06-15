@@ -74,12 +74,8 @@ void destructor_derived_DPG_Solver_Element (struct Element* element_ptr)
 
 	struct DPG_Solver_Element* dpg_s_e = (struct DPG_Solver_Element*) element_ptr;
 
-	destructor_Multiarray2_Operator(dpg_s_e->cv0_vt_vc);
-	destructor_Multiarray2_Operator(dpg_s_e->cv1_vt_vc);
 	destructor_Multiarray2_Operator(dpg_s_e->cvcv0_vs_vc);
 	destructor_Multiarray2_Operator(dpg_s_e->cvcv1_vt_vc);
-
-	destructor_Multiarray2_Operator(dpg_s_e->cv0_ff_fc);
 
 	destructor_const_Multiarray_Vector_d(dpg_s_e->ones_coef_vt);
 }
@@ -89,39 +85,12 @@ void destructor_derived_DPG_Solver_Element (struct Element* element_ptr)
 
 static void constructor_derived_DPG_Solver_Element_std (struct Element* element_ptr, const struct Simulation* sim)
 {
-	struct const_Element* e = (struct const_Element*) element_ptr;
-	struct DPG_Solver_Element* dpg_s_e = (struct DPG_Solver_Element*) element_ptr;
-
-	dpg_s_e->cv0_vt_vc[0] = constructor_operators("cv0","vtA","vcs","H_1_P_PM0",e,sim); // destructed
-	dpg_s_e->cv0_vt_vc[1] = constructor_operators("cv0","vtA","vcc","H_1_P_PM0",e,sim); // destructed
-	dpg_s_e->cv1_vt_vc[0] = constructor_operators("cv1","vtA","vcs","H_1_P_PM0",e,sim); // destructed
-	dpg_s_e->cv1_vt_vc[1] = constructor_operators("cv1","vtA","vcc","H_1_P_PM0",e,sim); // destructed
+	UNUSED(element_ptr); UNUSED(sim);
 }
 
 static void constructor_derived_DPG_Solver_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
 {
-	struct DPG_Solver_Element* dpg_s_e = (struct DPG_Solver_Element*) element_ptr;
-
-	const struct const_Element* e          = (const struct const_Element*) element_ptr;
-	const struct const_Element* se[2]      = { e->sub_element[0], e->sub_element[1], };
-	struct DPG_Solver_Element* dpg_s_se[2] = { (struct DPG_Solver_Element*) se[0],
-	                                           (struct DPG_Solver_Element*) se[1], };
-
-	struct Operators_TP ops_tp;
-
-	set_operators_tp(&ops_tp,dpg_s_se[0]->cv0_vt_vc[0],NULL,dpg_s_se[1]->cv0_vt_vc[0],NULL);
-	dpg_s_e->cv0_vt_vc[0] = constructor_operators_tp("cv0","vtA","vcs","H_1_P_PM0",e,sim,&ops_tp); // destructed
-
-	set_operators_tp(&ops_tp,dpg_s_se[0]->cv0_vt_vc[1],NULL,dpg_s_se[1]->cv0_vt_vc[1],NULL);
-	dpg_s_e->cv0_vt_vc[1] = constructor_operators_tp("cv0","vtA","vcc","H_1_P_PM0",e,sim,&ops_tp); // destructed
-
-	set_operators_tp(&ops_tp,dpg_s_se[0]->cv0_vt_vc[0],dpg_s_se[0]->cv1_vt_vc[0],
-	                         dpg_s_se[1]->cv0_vt_vc[0],dpg_s_se[1]->cv1_vt_vc[0]);
-	dpg_s_e->cv1_vt_vc[0] = constructor_operators_tp("cv1","vtA","vcs","H_1_P_PM0",e,sim,&ops_tp); // destructed
-
-	set_operators_tp(&ops_tp,dpg_s_se[0]->cv0_vt_vc[1],dpg_s_se[0]->cv1_vt_vc[1],
-	                         dpg_s_se[1]->cv0_vt_vc[1],dpg_s_se[1]->cv1_vt_vc[1]);
-	dpg_s_e->cv1_vt_vc[1] = constructor_operators_tp("cv1","vtA","vcc","H_1_P_PM0",e,sim,&ops_tp); // destructed
+	UNUSED(element_ptr); UNUSED(sim);
 }
 
 static void constructor_derived_DPG_Solver_Element_common (struct Element* element_ptr, const struct Simulation* sim)
@@ -134,11 +103,8 @@ static void constructor_derived_DPG_Solver_Element_common (struct Element* eleme
 	dpg_s_e->cvcv0_vs_vc[0] = constructor_operators_tens3(s_e->cv0_vs_vc[0],s_e->cv0_vs_vc[0]); // destructed
 	dpg_s_e->cvcv0_vs_vc[1] = constructor_operators_tens3(s_e->cv0_vs_vc[1],s_e->cv0_vs_vc[1]); // destructed
 
-	dpg_s_e->cvcv1_vt_vc[0] = constructor_operators_tens3(s_e->cv0_vs_vc[0],dpg_s_e->cv1_vt_vc[0]); // destructed
-	dpg_s_e->cvcv1_vt_vc[1] = constructor_operators_tens3(s_e->cv0_vs_vc[1],dpg_s_e->cv1_vt_vc[1]); // destructed
-
-	dpg_s_e->cv0_ff_fc[0] = constructor_operators("cv0","ffA","fcs","H_1_P_PM0",e,sim); // destructed
-	dpg_s_e->cv0_ff_fc[1] = constructor_operators("cv0","ffA","fcc","H_1_P_PM0",e,sim); // destructed
+	dpg_s_e->cvcv1_vt_vc[0] = constructor_operators_tens3(s_e->cv0_vs_vc[0],s_e->cv1_vt_vc[0]); // destructed
+	dpg_s_e->cvcv1_vt_vc[1] = constructor_operators_tens3(s_e->cv0_vs_vc[1],s_e->cv1_vt_vc[1]); // destructed
 
 	dpg_s_e->ones_coef_vt = constructor_operators_ones_coef("vtA",e,sim); // destructed
 }

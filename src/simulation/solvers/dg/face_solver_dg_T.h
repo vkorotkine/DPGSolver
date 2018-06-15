@@ -20,6 +20,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "definitions_core.h"
 
+#include "def_templates_face_solver.h"
+#include "def_templates_face_solver_dg.h"
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+
 /// \brief Container for data relating to the DG solver faces.
 struct DG_Solver_Face_T {
 	struct Solver_Face_T face; ///< The base \ref Solver_Face_T.
@@ -37,7 +42,7 @@ struct DG_Solver_Face_T {
 		 *        and a single entry is stored for all combinations. However, for boundary faces, as the boundary
 		 *        values of the ghost state generally depend on all solution variables, all entries are required.
 		 */
-		const struct const_Matrix_R* d_g_coef_f__d_s_coef[2][DIM];
+		const struct const_Matrix_T* d_g_coef_f__d_s_coef[2][DIM];
 	} neigh_info[2]; ///< \ref Neigh_Info_DG. Uses the same indexing convention as that of \ref Face::neigh_info.
 };
 
@@ -51,3 +56,8 @@ void constructor_derived_DG_Solver_Face_T
 void destructor_derived_DG_Solver_Face_T
 	(struct Face* face_ptr ///< Pointer to the face.
 	);
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_dg.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"

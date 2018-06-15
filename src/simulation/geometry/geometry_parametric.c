@@ -26,6 +26,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "geometry_parametric_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "geometry_parametric_T.c"
+#include "undef_templates_type.h"
 
 double f_gaussian_bump (const double x, const int diff_degree, const struct Function_Data_GP*const f_data)
 {

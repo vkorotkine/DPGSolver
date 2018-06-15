@@ -230,3 +230,12 @@ static void increment_nnz_off_diag_f
 		increment_nnz(nnz,s_face->ind_dof,n_rows,size_nf_n);
 	}}
 }
+
+#include "undef_templates_solve_dpg.h"
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_test_case.h"

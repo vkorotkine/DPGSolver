@@ -26,3 +26,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef update_geo_data_NURBS_parametric_T
 #undef constructor_xyz_NURBS_parametric_T
 #undef constructor_grad_xyz_NURBS_parametric_T
+
+#undef Geo_Data
+#undef get_geo_data
+#undef romberg
+#undef f_al_gaussian_bump
+#undef read_data_joukowski
+#undef read_data_gaussian_bump
+#undef read_data_fixed_cube

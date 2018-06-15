@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_face_solver.h"
 #include "def_templates_volume_solver.h"
 
+#include "def_templates_computational_elements.h"
 #include "def_templates_geometry.h"
 #include "def_templates_math_functions.h"
 #include "def_templates_solution.h"
@@ -44,7 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Return a \ref Multiarray_T\* container holding the solution values at the input coordinates.
  *  \return See brief. */
 static struct Multiarray_T* constructor_sol_restart
-	(const struct const_Multiarray_R* xyz, ///< xyz coordinates at which to evaluate the solution.
+	(const struct const_Multiarray_T* xyz, ///< xyz coordinates at which to evaluate the solution.
 	 const struct Simulation* sim          ///< \ref Simulation.
 	);
 
@@ -53,9 +54,9 @@ static struct Multiarray_T* constructor_sol_restart
 void set_sol_restart_T (const struct Simulation*const sim, struct Solution_Container_T sol_cont)
 {
 	sol_cont.using_restart = true;
-	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+	const struct const_Multiarray_T* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_restart(xyz,sim); // destructed
-	destructor_const_Multiarray_R(xyz);
+	destructor_const_Multiarray_T(xyz);
 	sol_cont.using_restart = false;
 
 	update_Solution_Container_sol_T(&sol_cont,sol,sim);
@@ -63,7 +64,7 @@ void set_sol_restart_T (const struct Simulation*const sim, struct Solution_Conta
 }
 
 const struct const_Multiarray_T* constructor_const_sol_restart_T
-	(const struct const_Multiarray_R*const xyz, const struct Simulation*const sim)
+	(const struct const_Multiarray_T*const xyz, const struct Simulation*const sim)
 {
 	EXIT_ADD_SUPPORT; // Ensure that the straight high-order coordinates are being passed here.
 	struct Multiarray_T* sol = constructor_sol_restart(xyz,sim); // returned
@@ -114,12 +115,14 @@ static struct Multiarray_T* constructor_sol_restart_from_background
 	);
 
 static struct Multiarray_T* constructor_sol_restart
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
 	struct Restart_Info ri = get_Restart_Info(sim);
 
-	const struct const_Matrix_R xyz_M = interpret_const_Multiarray_as_Matrix_R(xyz);
-	const struct Nodes_Sorted_ANN*const ns = constructor_Nodes_Sorted_ANN_with_trans((struct Matrix_R*)&xyz_M); // d
+	const struct const_Matrix_T xyz_M = interpret_const_Multiarray_as_Matrix_T(xyz);
+	const struct const_Matrix_R*const xyz_M_R = constructor_copy_const_Matrix_R_Matrix_T(&xyz_M); // destructed
+	const struct Nodes_Sorted_ANN*const ns = constructor_Nodes_Sorted_ANN_with_trans((struct Matrix_R*)xyz_M_R); // d
+	destructor_const_Matrix_R(xyz_M_R);
 
 	struct Input_ANN ann_i = { .nodes_s = ns->nodes, };
 	constructor_SSS_ANN_s(&ann_i,ri.sss); // destructed
@@ -171,7 +174,10 @@ static struct Restart_Info get_Restart_Info (const struct Simulation*const sim)
 		needs_computation = false;
 		ri.sim = constructor_Simulation_restart(sim); // leaked (static)
 		constructor_derived_Elements(ri.sim,IL_ELEMENT_SOLVER); // destructed
-		constructor_derived_computational_elements(ri.sim,IL_SOLVER); // leaked (static)
+#if TYPE_RC == TYPE_COMPLEX
+		convert_to_Test_Case_rc(ri.sim,'c'); // converted back
+#endif
+		constructor_derived_computational_elements_T(ri.sim,IL_SOLVER); // leaked (static)
 
 		set_up_solver_geometry_T(ri.sim);
 		set_up_solver_geometry_p1_T(ri.sim);
@@ -338,9 +344,9 @@ static void update_ind_vol_b
 			const int si = compute_side_index_face(face_b,vol_b);
 			const double scale_n = ( si == 0 ? 1.0 : -1.0 );
 
-			const Real*const data_n_p1      = s_face_b->normals_p1->data;
+			const Type*const data_n_p1      = s_face_b->normals_p1->data;
 			const Real*const data_node_m_ve = get_xyz_node_m_ve(e_type,i,data_node,xyz_ve);
-			const Real n_dot_diff = scale_n*dot_R(DIM,data_n_p1,data_node_m_ve);
+			const Real n_dot_diff = scale_n*dot_R_from_RT(DIM,data_node_m_ve,data_n_p1);
 
 			if (n_dot_diff > max_n_dot_diff) {
 				*ind_vol_b = get_volume_neighbour(vol_b,face_b)->index;
@@ -427,7 +433,10 @@ static void read_sol_coef_bezier (struct Solver_Volume_T*const s_vol, char* line
 #if TYPE_RC == TYPE_REAL
 	read_line_values_d(&line,compute_size(order,exts),s_coef->data);
 #else
-	EXIT_ADD_SUPPORT;
+	struct Multiarray_R*const s_coef_R = constructor_empty_Multiarray_R(s_coef->layout,order,exts); // destructed
+	read_line_values_d(&line,compute_size(order,exts),s_coef_R->data);
+	copy_into_Multiarray_T_from_R(s_coef,(struct const_Multiarray_R*)s_coef_R);
+	destructor_Multiarray_R(s_coef_R);
 #endif
 }
 
@@ -463,3 +472,17 @@ static int get_ind_ve (const int e_type, const int ind_lf)
 		break;
 	}
 }
+
+#include "undef_templates_restart.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_computational_elements.h"
+#include "undef_templates_geometry.h"
+#include "undef_templates_math_functions.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_test_case.h"

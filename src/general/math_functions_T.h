@@ -20,6 +20,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <complex.h>
 
+#include "def_templates_math_functions.h"
+
 #define POW2(a) ((a)*(a)) ///< General pow with exponent 2.
 
 /** \brief Compares input values for approximate equality using the relative infinity norm.
@@ -36,6 +38,14 @@ Type norm_T
 	(const ptrdiff_t n_entries, ///< The number of entries.
 	 const Type*const data,     ///< The data.
 	 const char*const norm_type ///< The norm type. Options: "L2", "Inf".
+		);
+
+/** \brief `version` of \ref norm_T computing the 'R'eal norm from an input array of input 'T'ype.
+ *  \return See brief. */
+Real norm_R_from_T
+	(const ptrdiff_t n_entries, ///< The number of entries.
+	 const Type*const data,     ///< The data.
+	 const char*const norm_type ///< The norm type. Options: "L2", "Inf".
 	);
 
 /** \brief Computes the relative norm of the difference between the input `Type*` data with the specified norm type.
@@ -43,6 +53,15 @@ Type norm_T
 Type norm_diff_T
 	(const ptrdiff_t n_entries, ///< The number of entries.
 	 const Type*const data_0,   ///< The data for input 0.
+	 const Type*const data_1,   ///< The data for input 1.
+	 const char*const norm_type ///< The norm type. Options: "Inf".
+		);
+
+/** \brief `version` of \ref norm_diff_T taking one 'R'eal input and one 'T'ype input acting on the real components.
+ *  \return See brief. */
+Real norm_diff_RT
+	(const ptrdiff_t n_entries, ///< The number of entries.
+	 const Real*const data_0,   ///< The data for input 0.
 	 const Type*const data_1,   ///< The data for input 1.
 	 const char*const norm_type ///< The norm type. Options: "Inf".
 	);
@@ -111,4 +130,14 @@ Type dot_T
 	(const ptrdiff_t n,  ///< The number of entries.
 	 const Type*const a, ///< The 1st input.
 	 const Type*const b  ///< The 2nd input.
+		);
+
+/** \brief `version` of \ref dot_T return the 'R'eal dot product 'R'eal and 'T'ype input arrays.
+ *  \return See brief. */
+Real dot_R_from_RT
+	(const ptrdiff_t n,  ///< The number of entries.
+	 const Real*const a, ///< The 1st input.
+	 const Type*const b  ///< The 2nd input.
 	);
+
+#include "undef_templates_math_functions.h"

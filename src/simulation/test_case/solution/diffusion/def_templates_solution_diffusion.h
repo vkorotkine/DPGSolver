@@ -25,10 +25,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_function_pointers_solution_diffusion_T set_function_pointers_solution_diffusion
 ///\}
 
+///\{ \name Static names
+#define set_function_pointers_num_flux set_function_pointers_num_flux
+///\}
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define set_function_pointers_solution_diffusion_T set_function_pointers_solution_diffusion_c
+///\}
+
+///\{ \name Static names
+#define set_function_pointers_num_flux set_function_pointers_num_flux_c
 ///\}
 
 #endif

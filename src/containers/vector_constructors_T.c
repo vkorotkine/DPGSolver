@@ -22,6 +22,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_alloc.h"
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -200,6 +204,21 @@ const struct const_Vector_T* constructor_inverse_const_Vector_T (const struct co
 	return (struct const_Vector_T*) constructor_inverse_Vector_T(src);
 }
 
+const struct const_Vector_T* constructor_repeated_const_Vector_T
+	(const Type alpha, const struct const_Vector_T*const a, const int n_repeated)
+{
+	const ptrdiff_t ext_0     = a->ext_0,
+	                ext_0_rep = n_repeated*ext_0;
+	Type*const data_c = malloc((size_t)ext_0_rep * sizeof *data_c); // moved
+
+	for (int ind = 0, n = 0; n < n_repeated; ++n) {
+	for (int i = 0; i < ext_0; ++i) {
+		data_c[ind++] = alpha*a->data[i];
+	}}
+
+	return (const struct const_Vector_T*) constructor_move_Vector_T_T(ext_0_rep,true,data_c);
+}
+
 const struct const_Vector_T* constructor_dot_mult_const_Vector_T
 	(const Type alpha, const struct const_Vector_T* a, const struct const_Vector_T* b, const int n_repeated)
 {
@@ -211,6 +230,49 @@ const struct const_Vector_T* constructor_dot_mult_const_Vector_T
 
 	for (ptrdiff_t i = 0; i < ext_0; ++i)
 		data_c[i] = alpha*a->data[i]*b->data[i];
+
+	for (int n = 1; n < n_repeated; ++n) {
+		const ptrdiff_t ind_c = ext_0*n;
+		for (ptrdiff_t i = 0; i < ext_0; ++i)
+			data_c[ind_c+i] = data_c[i];
+	}
+
+	return (const struct const_Vector_T*) constructor_move_Vector_T_T(ext_0_rep,true,data_c);
+}
+
+const struct const_Vector_T* constructor_dot_mult_const_Vector_T_RT
+	(const Type alpha, const struct const_Vector_R* a, const struct const_Vector_T* b, const int n_repeated)
+{
+	assert(a->ext_0 == b->ext_0);
+
+	const ptrdiff_t ext_0     = a->ext_0,
+	                ext_0_rep = n_repeated*ext_0;
+	Type* data_c = malloc((size_t)ext_0_rep * sizeof *data_c); // moved
+
+	for (ptrdiff_t i = 0; i < ext_0; ++i)
+		data_c[i] = alpha*a->data[i]*b->data[i];
+
+	for (int n = 1; n < n_repeated; ++n) {
+		const ptrdiff_t ind_c = ext_0*n;
+		for (ptrdiff_t i = 0; i < ext_0; ++i)
+			data_c[ind_c+i] = data_c[i];
+	}
+
+	return (const struct const_Vector_T*) constructor_move_Vector_T_T(ext_0_rep,true,data_c);
+}
+
+const struct const_Vector_T* constructor_dot_mult_inverse_2nd_const_Vector_T
+	(const Type alpha, const struct const_Vector_T*const a, const struct const_Vector_T*const b,
+	 const int n_repeated)
+{
+	assert(a->ext_0 == b->ext_0);
+
+	const ptrdiff_t ext_0     = a->ext_0,
+	                ext_0_rep = n_repeated*ext_0;
+	Type* data_c = malloc((size_t)ext_0_rep * sizeof *data_c); // moved
+
+	for (ptrdiff_t i = 0; i < ext_0; ++i)
+		data_c[i] = alpha*a->data[i]/b->data[i];
 
 	for (int n = 1; n < n_repeated; ++n) {
 		const ptrdiff_t ind_c = ext_0*n;
@@ -449,3 +511,7 @@ void destructor_conditional_const_Vector_T (const struct const_Vector_T* a)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"

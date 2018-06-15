@@ -28,15 +28,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_tol.h"
 
 
-#include "def_templates_geometry_blended.h"
-#include "def_templates_geometry_surface.h"
-
+#include "def_templates_geometry.h"
 #include "def_templates_volume_solver.h"
-
 #include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
-
+#include "def_templates_math_functions.h"
 #include "def_templates_operators.h"
 #include "def_templates_test_case.h"
 
@@ -80,30 +77,30 @@ constructor_xyz_surface_fptr_T set_constructor_xyz_surface_fptr_T
 	return ptr;
 }
 
-const struct const_Matrix_R* constructor_xyz_surface_mapped_T
+const struct const_Matrix_T* constructor_xyz_surface_mapped_T
 	(const struct Blended_Parametric_Data_T*const b_p_d)
 {
 	assert(b_p_d->n_type == 'c');
 
-	const struct const_Multiarray_R*const xyz_ve_fcc = constructor_mm_NN1_Operator_const_Multiarray_R
+	const struct const_Multiarray_T*const xyz_ve_fcc = constructor_mm_NN1_Operator_const_Multiarray_T_Multiarray_R
 		(b_p_d->vv0_vv_fcc,b_p_d->xyz_ve,'C','d',b_p_d->xyz_ve->order,NULL); // destructed
 
-	const struct const_Multiarray_R*const xyz_fcc_Ma = b_p_d->constructor_xyz(0,xyz_ve_fcc,NULL,NULL); // destructed
-	destructor_const_Multiarray_R(xyz_ve_fcc);
+	const struct const_Multiarray_T*const xyz_fcc_Ma = b_p_d->constructor_xyz(0,xyz_ve_fcc,NULL,NULL); // destructed
+	destructor_const_Multiarray_T(xyz_ve_fcc);
 
 	const ptrdiff_t ext_0 = xyz_fcc_Ma->extents[0],
 	                ext_1 = xyz_fcc_Ma->extents[1];
-	const struct const_Matrix_R*const xyz_surf = constructor_default_const_Matrix_R(); // returned
-	reinterpret_const_Multiarray_as_Matrix_R(xyz_fcc_Ma,xyz_surf,ext_0,ext_1);
+	const struct const_Matrix_T*const xyz_surf = constructor_default_const_Matrix_T(); // returned
+	reinterpret_const_Multiarray_as_Matrix_T(xyz_fcc_Ma,xyz_surf,ext_0,ext_1);
 	const_cast_b(&xyz_surf->owns_data,true);
 
 	const_cast_b(&xyz_fcc_Ma->owns_data,false);
-	destructor_const_Multiarray_R(xyz_fcc_Ma);
+	destructor_const_Multiarray_T(xyz_fcc_Ma);
 
 	return xyz_surf;
 }
 
-const struct const_Matrix_R* constructor_xyz_surface_cylinder_radial_proj_T
+const struct const_Matrix_T* constructor_xyz_surface_cylinder_radial_proj_T
 	(const struct Blended_Parametric_Data_T*const b_p_d)
 {
 	const struct const_Matrix_R xyz_ve_M = interpret_const_Multiarray_as_Matrix_R(b_p_d->xyz_ve);
@@ -130,12 +127,12 @@ const struct const_Matrix_R* constructor_xyz_surface_cylinder_radial_proj_T
 	                dim = xyz_ve_b->ext_1;
 	assert(dim >= 2);
 
-	struct Matrix_R* xyz_surf = constructor_empty_Matrix_R('R',n_n,dim); // returned
+	struct Matrix_T* xyz_surf = constructor_empty_Matrix_T('R',n_n,dim); // returned
 	for (int n = 0; n < n_n; ++n) {
 		const double*const xyz_b = get_row_const_Matrix_R(n,xyz_ve_b);
 		const double theta = atan2(xyz_b[1],xyz_b[0]);
 
-		double*const xyz_s = get_row_Matrix_R(n,xyz_surf);
+		Type*const xyz_s = get_row_Matrix_T(n,xyz_surf);
 		xyz_s[0] = r*cos(theta);
 		xyz_s[1] = r*sin(theta);
 		if (dim == DMAX)
@@ -145,11 +142,11 @@ const struct const_Matrix_R* constructor_xyz_surface_cylinder_radial_proj_T
 		destructor_const_Matrix_R(xyz_ve_b);
 	destructor_const_Matrix_R(xyz_ve_bX);
 
-	transpose_Matrix_R(xyz_surf,true);
-	return (struct const_Matrix_R*) xyz_surf;
+	transpose_Matrix_T(xyz_surf,true);
+	return (struct const_Matrix_T*) xyz_surf;
 }
 
-const struct const_Matrix_R* constructor_xyz_surface_cylinder_arc_length_T
+const struct const_Matrix_T* constructor_xyz_surface_cylinder_arc_length_T
 	(const struct Blended_Parametric_Data_T*const b_p_d)
 {
 // test for arc length: Should be the same as \theta parametrization for circle.
@@ -160,7 +157,7 @@ const struct const_Matrix_R* constructor_xyz_surface_cylinder_arc_length_T
 UNUSED(b_p_d); EXIT_ADD_SUPPORT;
 }
 
-const struct const_Matrix_R* constructor_xyz_surface_cylinder_normal_proj_T
+const struct const_Matrix_T* constructor_xyz_surface_cylinder_normal_proj_T
 	(const struct Blended_Parametric_Data_T*const b_p_d)
 {
 //	1. Interpolate xyz_ve to boundary (vv0_vv_bgc);
@@ -188,16 +185,18 @@ static double compute_radius_from_xyz_ve
 	double r = 0.0;
 	switch (b_p_d->domain_type) {
 	case DOM_BLENDED:
-		r = norm_d(n_component_radius,get_row_const_Matrix_R(ind_b,xyz),"L2");
+		r = norm_R(n_component_radius,get_row_const_Matrix_R(ind_b,xyz),"L2");
 		break;
 	case DOM_PARAMETRIC: {
-		const ptrdiff_t extents[] = { 1, xyz->ext_1, };
-		const double*const data = get_row_const_Matrix_R(ind_b,xyz);
-		const struct const_Multiarray_R xyz_Ma = { .order = 2, .extents = extents, .layout = 'C', .data = data, };
-		const struct const_Multiarray_R* xyz_surf = b_p_d->constructor_xyz(0,&xyz_Ma,NULL,NULL); // destructed
+		const struct const_Matrix_T*const xyz_T = constructor_copy_const_Matrix_T_Matrix_R(xyz); // destructed
+		const ptrdiff_t extents[] = { 1, xyz_T->ext_1, };
+		const Type*const data = get_row_const_Matrix_T(ind_b,xyz_T);
+		const struct const_Multiarray_T xyz_Ma = { .order = 2, .extents = extents, .layout = 'C', .data = data, };
+		const struct const_Multiarray_T* xyz_surf = b_p_d->constructor_xyz(0,&xyz_Ma,NULL,NULL); // destructed
+		destructor_const_Matrix_T(xyz_T);
 
-		r = norm_d(n_component_radius,xyz_surf->data,"L2");
-		destructor_const_Multiarray_R(xyz_surf);
+		r = norm_R_from_T(n_component_radius,xyz_surf->data,"L2");
+		destructor_const_Multiarray_T(xyz_surf);
 		break;
 	} default:
 		EXIT_ERROR("Unsupported: %d\n",b_p_d->domain_type);
@@ -224,10 +223,10 @@ static ptrdiff_t find_boundary_vertex_index
 		transpose_Matrix_R((struct Matrix_R*)xyz_ve,true);
 
 	for (int n = 0; !found && n < n_n; ++n) {
-		const double*const data_xyz = get_row_const_Matrix_R(n,xyz);
+		const Real*const data_xyz = get_row_const_Matrix_R(n,xyz);
 		for (int ve = 0; ve < n_ve; ++ve) {
-			const double*const data_xyz_ve = get_row_const_Matrix_R(ve,xyz_ve);
-			const double diff = norm_diff_d(dim,data_xyz_ve,data_xyz,"Inf");
+			const Real*const data_xyz_ve = get_row_const_Matrix_R(ve,xyz_ve);
+			const Real diff = norm_diff_R(dim,data_xyz_ve,data_xyz,"Inf");
 			if (diff < EPS) {
 				found = true;
 				ind_ve = n;
@@ -241,3 +240,12 @@ static ptrdiff_t find_boundary_vertex_index
 		transpose_Matrix_R((struct Matrix_R*)xyz_ve,true);
 	return ind_ve;
 }
+
+#include "undef_templates_geometry.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_math_functions.h"
+#include "undef_templates_operators.h"
+#include "undef_templates_test_case.h"

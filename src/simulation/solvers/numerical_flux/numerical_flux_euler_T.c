@@ -44,14 +44,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /** \brief Return the positive minimum value of the two inputs.
  *  \return See brief. */
-static Type min_abs_T
+static Type min_abs_real_T
 	(const Type a, ///< First value in the comparison.
 	 const Type b  ///< Second value in the comparison.
 	);
 
 /** \brief Return the positive maximum value of the two inputs.
  *  \return See brief. */
-static Type max_abs_T
+static Type max_abs_real_T
 	(const Type a, ///< First value in the comparison.
 	 const Type b  ///< Second value in the comparison.
 	);
@@ -63,7 +63,7 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 {
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->bv_l.normals->data;
+	Type const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
@@ -78,7 +78,7 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 	           *rhouR_ptr = &WR[NnTotal*1],
 	           *ER_ptr    = &WR[NnTotal*(DIM+1)];
 
-	double const *n_ptr = nL;
+	Type const *n_ptr = nL;
 
 	struct Flux_Input_T* flux_i = malloc(sizeof *flux_i); // free
 	flux_i->s = constructor_move_const_Multiarray_T_T('C',2,(ptrdiff_t[]){1,NEQ},false,NULL); // destructed
@@ -143,9 +143,9 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 			else
 				maxV = maxlR;
 
-			double const n1 = *n_ptr++,
-			             n2 = *n_ptr++,
-			             n3 = *n_ptr++;
+			Type const n1 = *n_ptr++,
+			           n2 = *n_ptr++,
+			           n3 = *n_ptr++;
 
 			Type WLn[] = {rhoL, rhouL, rhovL, rhowL, EL},
 			     FLn[NEQ*DIM];
@@ -226,8 +226,8 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 			else
 				maxV = maxlR;
 
-			double const n1 = *n_ptr++,
-			             n2 = *n_ptr++;
+			Type const n1 = *n_ptr++,
+			           n2 = *n_ptr++;
 
 			Type WLn[] = {rhoL, rhouL, rhovL, EL},
 			     FLn[NEQ*DIM];
@@ -295,7 +295,7 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 			else
 				maxV = maxlR;
 
-			double const n1 = *n_ptr++;
+			Type const n1 = *n_ptr++;
 
 			Type WLn[] = {rhoL, rhouL, EL},
 			     FLn[NEQ*DIM];
@@ -333,7 +333,7 @@ void compute_Numerical_Flux_T_euler_roe_pike
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->bv_l.normals->data;
+	Type const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
@@ -348,7 +348,7 @@ void compute_Numerical_Flux_T_euler_roe_pike
 	           *rhouR_ptr = &WR[NnTotal*1],
 	           *ER_ptr    = &WR[NnTotal*(DIM+1)];
 
-	double const *n_ptr = nL;
+	Type const *n_ptr = nL;
 
 	Type *nF_ptr[NEQ];
 	for (int eq = 0; eq < NEQ; eq++)
@@ -362,9 +362,9 @@ void compute_Numerical_Flux_T_euler_roe_pike
 		           *rhowR_ptr = &WR[NnTotal*3];
 
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			double const n1 = *n_ptr++,
-			             n2 = *n_ptr++,
-			             n3 = *n_ptr++;
+			Type const n1 = *n_ptr++,
+			           n2 = *n_ptr++,
+			           n3 = *n_ptr++;
 
 			// Left VOLUME
 			Type const rhoL  = *rhoL_ptr++,
@@ -417,8 +417,8 @@ void compute_Numerical_Flux_T_euler_roe_pike
 			           c   = sqrt_T(c2);
 
 			// Compute eigenvalues (with entropy fix)
-			const Type l1   = min_abs_T(VnL-c,Vn-c),
-			           l5   = max_abs_T(VnR+c,Vn+c),
+			const Type l1   = min_abs_real_T(VnL-c,Vn-c),
+			           l5   = max_abs_real_T(VnR+c,Vn+c),
 			           l234 = ( real_T(Vn) > 0.0 ? Vn : -Vn );
 
 			Type const drho  = rhoR-rhoL,
@@ -466,8 +466,8 @@ void compute_Numerical_Flux_T_euler_roe_pike
 		           *rhovR_ptr = &WR[NnTotal*2];
 
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			double const n1 = *n_ptr++,
-			             n2 = *n_ptr++;
+			Type const n1 = *n_ptr++,
+			           n2 = *n_ptr++;
 
 			// Left VOLUME
 			Type const rhoL  = *rhoL_ptr++,
@@ -514,8 +514,8 @@ void compute_Numerical_Flux_T_euler_roe_pike
 			           c   = sqrt_T(c2);
 
 			// Compute eigenvalues (with entropy fix)
-			const Type l1   = min_abs_T(VnL-c,Vn-c),
-			           l5   = max_abs_T(VnR+c,Vn+c),
+			const Type l1   = min_abs_real_T(VnL-c,Vn-c),
+			           l5   = max_abs_real_T(VnR+c,Vn+c),
 			           l234 = ( real_T(Vn) > 0.0 ? Vn : -Vn );
 
 			Type const drho  = rhoR-rhoL,
@@ -555,7 +555,7 @@ void compute_Numerical_Flux_T_euler_roe_pike
 		}
 	} else if (DIM == 1) {
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			double const n1 = *n_ptr++;
+			Type const n1 = *n_ptr++;
 
 			// Left VOLUME
 			Type const rhoL  = *rhoL_ptr++,
@@ -598,8 +598,8 @@ void compute_Numerical_Flux_T_euler_roe_pike
 			           c   = sqrt_T(c2);
 
 			// Compute eigenvalues (with entropy fix)
-			const Type l1   = min_abs_T(VnL-c,Vn-c),
-			           l5   = max_abs_T(VnR+c,Vn+c),
+			const Type l1   = min_abs_real_T(VnL-c,Vn-c),
+			           l5   = max_abs_real_T(VnR+c,Vn+c),
 			           l234 = ( real_T(Vn) > 0.0 ? Vn : -Vn );
 
 			Type const drho  = rhoR-rhoL,
@@ -643,7 +643,7 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 
 	const ptrdiff_t NnTotal = num_flux_i->bv_l.s->extents[0];
 
-	double const *const nL = num_flux_i->bv_l.normals->data;
+	Type const *const nL = num_flux_i->bv_l.normals->data;
 
 	Type const *const WL = num_flux_i->bv_l.s->data,
 	           *const WR = num_flux_i->bv_r.s->data;
@@ -660,7 +660,7 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 	           *rhouR_ptr = &WR[NnTotal*1],
 	           *ER_ptr    = &WR[NnTotal*(DIM+1)];
 
-	double const *n_ptr = nL;
+	Type const *n_ptr = nL;
 
 	Type *nF_ptr[NEQ];
 	if (nFluxNum != NULL) {
@@ -691,9 +691,9 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 		           *rhowR_ptr = &WR[NnTotal*3];
 
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			double const n1 = *n_ptr++,
-			             n2 = *n_ptr++,
-			             n3 = *n_ptr++;
+			Type const n1 = *n_ptr++,
+			           n2 = *n_ptr++,
+			           n3 = *n_ptr++;
 
 			// Left VOLUME
 			Type const rhoL  = *rhoL_ptr++,
@@ -987,8 +987,8 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 		             *rhovR_ptr = &WR[NnTotal*2];
 
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			double const n1 = *n_ptr++,
-			             n2 = *n_ptr++;
+			Type const n1 = *n_ptr++,
+			           n2 = *n_ptr++;
 
 			// Left VOLUME
 			Type const rhoL  = *rhoL_ptr++,
@@ -1112,236 +1112,6 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 				*nF_ptr[IndnF++]++ = 0.5*(nF2 - dis2);
 				*nF_ptr[IndnF++]++ = 0.5*(nF3 - dis3);
 				*nF_ptr[IndnF++]++ = 0.5*(nF5 - dis5);
-
-#if TYPE_REAL == TYPE_RC
-
-// MAKE SURE TO DISABLE 'ALWAYS_SET_INITIAL' IN solve.c.
-
-#if 0 // Gaussian bump testing
-const int bc = num_flux_i->bv_l.bc;
-const int curved = bc / BC_STEP_SC;
-const int bc_name = bc % BC_STEP_SC;
-if (curved >= 2) {
-if (bc_name != BC_SLIPWALL)
-	EXIT_ERROR("Should not be occuring %d %d.\n",bc,bc_name);
-
-const bool enabled = true;
-const double h     = num_flux_i->bv_l.h/16;
-const int p        = num_flux_i->bv_l.p;
-const int exponent = p+1;
-
-const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,num_flux_i->bv_l.xyz),
-                                       get_col_const_Multiarray_R(1,num_flux_i->bv_l.xyz),
-                                       get_col_const_Multiarray_R(2,num_flux_i->bv_l.xyz) );
-const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
-
-if (enabled) {
-	if (n == 0)
-		printf("\n");
-
-	struct Function_Data_GP f_data = { .scale = 1.0, };
-
-	const double df_dx = f_gaussian_bump(xyz_n[0],1,&f_data);
-
-	double n_ex[] = { df_dx, -1.0, };
-	const double norm_n = sqrt(df_dx*df_dx+1*1);
-	for (int i = 0; i < 2; ++i)
-		n_ex[i] /= norm_n;
-	const double t_ex[] = { -n_ex[1], n_ex[0], };
-//printf("% .3e % .3e % .3e % .3e % .3e\n",xyz_n[0],n1,n2,n_ex[0],n_ex[1]);
-
-
-	const int pert_type = 2;
-
-	double*const nf_ptr[] = { nF_ptr[1]-1, nF_ptr[2]-1 };
-
-	const double c = 3e2*sqrt((int)n+1);
-	double scale[] = {c,c};
-	switch (pert_type) {
-	case 1: { // Add in scaled direction
-		scale[0] *= n1;
-		scale[1] *= n2;
-
-		for (int i = 0; i < 2; ++i)
-			*nf_ptr[i] += scale[i]*pow(h,exponent);
-	}
-	break;
-	case 2: {
-//		const double na[] = { n_ex[0], n_ex[1], };
-//		const double ta[] = { t_ex[0], t_ex[1], };
-		const double na[] = {  n1, n2, };
-		const double ta[] = { -n2, n1, };
-
-		const double nf_xy[] = { *nf_ptr[0], *nf_ptr[1], };
-//		double nf_rt[] = { n_ex[0]*nf_xy[0]+n_ex[1]*nf_xy[1], t_ex[0]*nf_xy[0]+t_ex[1]*nf_xy[1], };
-		double nf_rt[] = { na[0]*nf_xy[0]+na[1]*nf_xy[1], ta[0]*nf_xy[0]+ta[1]*nf_xy[1], };
-
-		if (exponent == p+0)
-			scale[0] *= 1e-3;
-		else if (exponent >= p+1)
-			scale[0] *= 1e-2;
-		else
-			EXIT_ADD_SUPPORT;
-		scale[1] *= 1e-4;
-printf("% .3e % .3e % .3e % .3e % .3e % .3e\n",ta[0]-t_ex[0],ta[1]-t_ex[1],nf_rt[0]-pL,nf_rt[1],scale[1]*pow(h,exponent),h);
-//		nf_rt[0] += scale[0]*pow(h,exponent);
-		nf_rt[1] += scale[1]*pow(h,exponent);
-
-		for (int i = 0; i < 2; ++i)
-			*nf_ptr[i] = na[i]*nf_rt[0]+ta[i]*nf_rt[1];
-	}
-	break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
-
-//EXIT_UNSUPPORTED;
-}
-}
-#endif
-
-#if 0 // Supersonic vortex testing.
-const int bc = num_flux_i->bv_l.bc % BC_STEP_SC;
-if (bc == BC_SLIPWALL) {
-const bool enabled = true;
-
-const double h     = num_flux_i->bv_l.h/4;
-const int p        = num_flux_i->bv_l.p;
-const int exponent = p+1;
-
-const double p_ex = 1.0/1.4;
-//const double p_ex = 2.843109;
-if (fabs(pL-p_ex) < 1e-1) {
-//if (fabs(pL-p_ex) < 1e-1 && fabs(n1)>(1-2e-3) && fabs(n1)<1.00) {
-	if (n == 0) {
-		printf("\n");
-//		print_const_Multiarray_R(num_flux_i->bv_l.jacobian_det_fc);
-	}
-
-	const Real*const xyz[DIM] = ARRAY_DIM( get_col_const_Multiarray_R(0,num_flux_i->bv_l.xyz),
-	                                       get_col_const_Multiarray_R(1,num_flux_i->bv_l.xyz),
-	                                       get_col_const_Multiarray_R(2,num_flux_i->bv_l.xyz) );
-	const Real xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
-	const Real th = atan2(xyz_n[1],xyz_n[0]);
-	const Real n_ex[2] = { -cos(th), -sin(th), };
-	const Real t_ex[2] = { sin(th), -cos(th), };
-	const double t1    = -n2;
-	const double t2    =  n1;
-UNUSED(t1); UNUSED(t2);
-
-	const double rho_ex   = 1.0,
-	             uv_ex[2] = { 2.25*(-sin(th)),2.25*( cos(th)), },
-	             Vn_ex    = n_ex[0]*uv_ex[0] + n_ex[1]*uv_ex[1],
-	             V2_ex    = uv_ex[0]*uv_ex[0] + uv_ex[1]*uv_ex[1],
-	             E_ex     = p_ex/GM1 + 0.5*rho_ex*V2_ex,
-	             nF1_ex   = rho_ex*Vn_ex,
-	             nF2_ex   = rho_ex*Vn_ex*uv_ex[0] + p_ex*n_ex[0],
-	             nF3_ex   = rho_ex*Vn_ex*uv_ex[1] + p_ex*n_ex[1],
-	             nF5_ex   = Vn_ex*(p_ex+E_ex);
-
-//double scale_s = 0.0;
-if (enabled) {
-	const int pert_type = 2;
-
-	double*const nf_ptr[] = { nF_ptr[1]-1, nF_ptr[2]-1 };
-
-	const double c = 3e2*sqrt((int)n+1);
-	double scale[] = {c,c};
-	switch (pert_type) {
-	case 1: { // Add in scaled direction
-		scale[0] *= n1;
-		scale[1] *= n2;
-
-		for (int i = 0; i < 2; ++i)
-			*nf_ptr[i] += scale[i]*pow(h,exponent);
-	}
-	break;
-	case 2: {
-//		const double na[] = { n_ex[0], n_ex[1], };
-//		const double ta[] = { t_ex[0], t_ex[1], };
-		const double na[] = {  n1, n2, };
-		const double ta[] = { -n2, n1, };
-
-		const double nf_xy[] = { *nf_ptr[0], *nf_ptr[1], };
-//		double nf_rt[] = { n_ex[0]*nf_xy[0]+n_ex[1]*nf_xy[1], t_ex[0]*nf_xy[0]+t_ex[1]*nf_xy[1], };
-		double nf_rt[] = { na[0]*nf_xy[0]+na[1]*nf_xy[1], ta[0]*nf_xy[0]+ta[1]*nf_xy[1], };
-
-		scale[1] *= 1e-3;
-printf("% .3e % .3e % .3e % .3e % .3e\n",ta[0]-t_ex[0],ta[1]-t_ex[1],nf_rt[0]-p_ex,nf_rt[1],scale[1]*pow(h,exponent));
-//		nf_rt[0] += scale[0]*pow(h,exponent);
-		nf_rt[1] += scale[1]*pow(h,exponent);
-
-		for (int i = 0; i < 2; ++i)
-			*nf_ptr[i] = na[i]*nf_rt[0]+ta[i]*nf_rt[1];
-	}
-	break;
-	default:
-		EXIT_UNSUPPORTED;
-		break;
-	}
-
-#if 0
-//for (int i = 0, IndnF = i; i < 4; ++i) {
-for (int i = 1, IndnF = i; i < 3; ++i) {
-//	*(nF_ptr[IndnF]-1) += ( enabled ? scale*sqrt(i+1)*pow(h,exponent) : 0 );
-	double scale = 1.0;
-	switch (i) {
-	case 0: case 3: scale *= 2.0; break;
-	case 1:
-		scale *= 3e0; break;
-	case 2:
-		scale *= 3e0; break;
-	default:        scale *= sqrt(i+1); break;
-	}
-
-	switch (n) {
-//	case 0: case 3: scale *= 2.0; break;
-//	case 1: case 2: scale *= 3.0; break;
-	default: scale *= sqrt((int)n+1); break;
-//	default: scale *= 1; break;
-	}
-//	*(nF_ptr[IndnF]-1) *= 1 + scale*pow(h,exponent);
-//	*(nF_ptr[IndnF]-1) +=     1e-2*scale*pow(h,exponent);
-	*(nF_ptr[IndnF]-1) +=     1e2*scale*pow(h,exponent);
-	++IndnF;
-
-	scale_s = scale;
-}
-#endif
-}
-
-//printf("% .3e % .3e % .3e\n",VnL,n1*(pL-1.0/1.4),n2*(pL-1.0/1.4));
-//printf("% .3e % .3e % .3e % .3e % .3e % .3e % .3e\n",n1,n2,(pL-1.0/1.4),dis1,nF2,nF3,dis5);
-const double nFl[] = { rhoL*VnL, rhoL*uL*VnL + n1*pL, rhoL*vL*VnL + n2*pL, (EL+pL)*VnL};
-UNUSED(nFl);
-const double nFl_ex[] = { nF1_ex, nF2_ex, nF3_ex, nF5_ex, };
-UNUSED(nFl_ex);
-//printf("% .3e % .3e % .3e % .3e\n",
-//       *(nF_ptr[0]-1)-nFl_ex[0],*(nF_ptr[1]-1)-nFl_ex[1],*(nF_ptr[2]-1)-nFl_ex[2],*(nF_ptr[3]-1)-nFl_ex[3]);
-//printf("% .3e % .3e % .3e % .3e % .3e\n",*(nF_ptr[0]-1)-nFl[0],*(nF_ptr[1]-1)-nFl[1],*(nF_ptr[2]-1)-nFl[2],*(nF_ptr[3]-1)-nFl[3],scale*sqrt(2+1)*pow(h,exponent));
-//printf("% .3e % .3e % .3e % .3e\n",*(nF_ptr[0]-1),*(nF_ptr[1]-1),*(nF_ptr[2]-1),*(nF_ptr[3]-1));
-//printf("% .3e % .3e % .3e % .3e\n",0.5*nF1-nFl[0],0.5*nF2-nFl[1],0.5*nF3-nFl[2],0.5*nF5-nFl[3]);
-//printf("% .3e % .3e % .3e % .3e % .3e % .3e % .3e \n",0.5*nF2-nFl[1],*(nF_ptr[1]-1)-nFl[1],0.5*nF2-nF2_ex,*(nF_ptr[1]-1)-nF2_ex,nFl[1]-nF2_ex,*(nF_ptr[1]-1)/(n1*p),n1*p);
-//printf("% .3e\n",VnL); // O(h^{p+1}) for both iso and super! => Not the problem.
-//printf("% .16e % .16e % .16e % .16e\n",n1,n2,uL,vL);
-//printf("% .15e % .15e % .15e % .15e \n",pL,n1*p,nF2,*(nF_ptr[1]-1));
-
-//const double n_ex_dot_n = n1*n_ex[0] + n2*n_ex[1];
-//const double t_ex_dot_n = n1*t_ex[0] + n2*t_ex[1];
-//const double n1_p = n1*(1+scale*pow(h,exponent));
-//const double n2_p = n2*(1+scale*pow(h,exponent));
-//const double n_ex_dot_np = n1_p*n_ex[0] + n2_p*n_ex[1];
-//const double t_ex_dot_np = n1_p*t_ex[0] + n2_p*t_ex[1];
-
-//if (0)
-//printf("% .3e % .3e % .3e % .3e % .3e % .3e\n",1.0-n_ex_dot_n,t_ex_dot_n,n1-n_ex[0],n2-n_ex[1],1.0-n_ex_dot_np,t_ex_dot_np);
-
-
-}
-}
-#endif
-#endif
 			}
 
 			Type dnF1dW[NEQ],  dnF2dW[NEQ],  dnF3dW[NEQ],  dnF5dW[NEQ],
@@ -1487,7 +1257,7 @@ UNUSED(nFl_ex);
 		}
 	} else if (DIM == 1) {
 		for (ptrdiff_t n = 0; n < NnTotal; n++) {
-			double const n1 = *n_ptr++;
+			Type const n1 = *n_ptr++;
 
 			// Left VOLUME
 			Type const rhoL  = *rhoL_ptr++,
@@ -1739,7 +1509,7 @@ UNUSED(nFl_ex);
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static Type min_abs_T (const Type a, const Type b)
+static Type min_abs_real_T (const Type a, const Type b)
 {
 	Type c = ( abs_T(a) < abs_T(b) ? a : b );
 	if (real_T(c) < 0.0)
@@ -1747,10 +1517,19 @@ static Type min_abs_T (const Type a, const Type b)
 	return c;
 }
 
-static Type max_abs_T (const Type a, const Type b)
+static Type max_abs_real_T (const Type a, const Type b)
 {
 	Type c = ( abs_T(a) > abs_T(b) ? a : b );
 	if (real_T(c) < 0.0)
 		c *= -1.0;
 	return c;
 }
+
+#include "undef_templates_numerical_flux.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_const_cast.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_math_functions.h"

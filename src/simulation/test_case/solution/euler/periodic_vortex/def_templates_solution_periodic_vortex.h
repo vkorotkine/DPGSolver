@@ -23,10 +23,28 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_sol_periodic_vortex_T set_sol_periodic_vortex
 ///\}
 
+///\{ \name Static names
+#define constructor_sol_periodic_vortex_T constructor_sol_periodic_vortex_T
+#define Sol_Data__pv Sol_Data__pv
+#define get_sol_data get_sol_data
+#define set_xy_c set_xy_c
+#define read_data_periodic_vortex read_data_periodic_vortex
+#define set_data_periodic_vortex set_data_periodic_vortex
+///\}
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define set_sol_periodic_vortex_T set_sol_periodic_vortex_c
+///\}
+
+///\{ \name Static names
+#define constructor_sol_periodic_vortex_T constructor_sol_periodic_vortex_T_c
+#define Sol_Data__pv Sol_Data__pv_c
+#define get_sol_data get_sol_data_c
+#define set_xy_c set_xy_c_c
+#define read_data_periodic_vortex read_data_periodic_vortex_c
+#define set_data_periodic_vortex set_data_periodic_vortex_c
 ///\}
 
 #endif

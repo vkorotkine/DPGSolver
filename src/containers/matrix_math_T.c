@@ -25,6 +25,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
+#include "def_templates_math_functions.h"
+#include "def_templates_matrix.h"
+#include "def_templates_vector.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -283,7 +287,7 @@ void scale_Matrix_T_by_Vector_R
 				*data_col++ *= val;
 		}
 	} else {
-		EXIT_UNSUPPORTED;
+		EXIT_ERROR("Unsupported side: %c. Options: 'L', 'R'.\n",side);
 	}
 	if (transpose_a)
 		transpose_Matrix_T(a,true);
@@ -441,3 +445,7 @@ void set_to_row_avg_const_Matrix_T (Type*const data_avg, const struct const_Matr
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_math_functions.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_vector.h"

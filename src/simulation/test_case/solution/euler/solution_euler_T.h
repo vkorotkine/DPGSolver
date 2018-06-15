@@ -16,10 +16,13 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides templated functions relating to the Euler solutions.
  */
 
+#include "def_templates_solution_euler.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_test_case.h"
+
 struct Test_Case_T;
 struct Simulation;
 struct Multiarray_T;
-struct const_Multiarray_R;
 struct const_Multiarray_T;
 
 /// \brief Set the solution function pointer members of an Euler \ref Test_Case_T.
@@ -43,6 +46,10 @@ void convert_variables_T
 /** \brief Function to be used for constructing functionals of zero drag/lift coefficients.
  *  \return See brief. */
 const struct const_Multiarray_T* constructor_const_functionals_cd_cl_zero_T
-	(const struct const_Multiarray_R* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	(const struct const_Multiarray_T* xyz, ///< Defined for \ref constructor_sol_fptr_T.
 	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
 	);
+
+#include "undef_templates_solution_euler.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_test_case.h"

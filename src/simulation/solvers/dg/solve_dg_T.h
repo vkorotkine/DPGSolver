@@ -17,6 +17,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *         'd'iscontinuous 'g'alerkin method.
  */
 
+#include "def_templates_solve_dg.h"
+#include "def_templates_face_solver.h"
+#include "def_templates_multiarray.h"
+
 struct Multiarray_T;
 struct Solver_Face_T;
 struct Simulation;
@@ -32,11 +36,6 @@ struct Vector_i* constructor_nnz_dg_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Permute the input multiarray such that its ordering is such that it is in the reference coordinates of the
- *         face cubature nodes of the opposite volume. */
-void permute_Multiarray_T_fc
-	(struct Multiarray_T* data,         ///< The data to be permuted.
-	 const char perm_layout,            ///< Defined for \ref permute_Multiarray_T_V.
-	 const int side_index_dest,         ///< The side index of the destination.
-	 const struct Solver_Face_T* s_face ///< \ref Solver_Face_T.
-	);
+#include "undef_templates_solve_dg.h"
+#include "undef_templates_face_solver.h"
+#include "undef_templates_multiarray.h"

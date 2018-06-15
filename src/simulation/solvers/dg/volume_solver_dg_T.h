@@ -20,24 +20,26 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "definitions_core.h"
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_volume_solver_dg.h"
+
 /// \brief Container for data relating to the DG solver volumes.
 struct DG_Solver_Volume_T {
 	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume_T.
 
 	struct Multiarray_T* sol_coef_p; ///< The coefficients of the solution at a previous Runge-Kutta stage.
-	struct Multiarray_T* rhs;        ///< The rhs terms.
 
-	// Terms required for explicit runs.
-	const struct const_Matrix_R* m_inv; ///< The inverse mass matrix.
-
-	// Terms potentially required for implicit runs.
-	const struct const_Matrix_R* m; ///< The mass matrix.
+	const struct const_Matrix_T* m_inv; ///< The inverse mass matrix.
+	const struct const_Matrix_T* m;     ///< The mass matrix.
 
 	// Terms required for 2nd order PDE terms.
 	struct Multiarray_T* grad_coef_v; ///< The volume contribution to the solution gradient coefficients.
 
 	/// Linearization of \ref DG_Solver_Volume_T::grad_coef_v wrt \ref Solver_Volume_T::sol_coef.
-	const struct const_Matrix_R* d_g_coef_v__d_s_coef[DIM];
+	const struct const_Matrix_T* d_g_coef_v__d_s_coef[DIM];
 };
 
 /// \brief Constructor for a derived \ref DG_Solver_Volume_T.
@@ -50,3 +52,9 @@ void constructor_derived_DG_Solver_Volume_T
 void destructor_derived_DG_Solver_Volume_T
 	(struct Volume* volume_ptr ///< Pointer to the volume.
 	);
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dg.h"

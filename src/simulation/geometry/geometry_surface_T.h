@@ -16,6 +16,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to templated functions used for surface geometry processing.
  */
 
+#include "def_templates_geometry.h"
+#include "def_templates_matrix.h"
+
 struct Blended_Parametric_Data_T;
 
 /** \brief Pointer to functions constructing the boundary xyz coordinates from the required members of the \ref
@@ -23,7 +26,7 @@ struct Blended_Parametric_Data_T;
  *
  *  \param b_p_d \ref Blended_Parametric_Data_T.
  */
-typedef const struct const_Matrix_R* (*constructor_xyz_surface_fptr_T)
+typedef const struct const_Matrix_T* (*constructor_xyz_surface_fptr_T)
 	(const struct Blended_Parametric_Data_T*const b_p_d
 	);
 
@@ -39,24 +42,27 @@ constructor_xyz_surface_fptr_T set_constructor_xyz_surface_fptr_T
 
 /** \brief Version of \ref constructor_xyz_surface_fptr_T using the parametric mapping.
  *  \return See brief. */
-const struct const_Matrix_R* constructor_xyz_surface_mapped_T
+const struct const_Matrix_T* constructor_xyz_surface_mapped_T
 	(const struct Blended_Parametric_Data_T*const b_p_d ///< See brief.
 	);
 
 /** \brief Version of \ref constructor_xyz_surface_fptr_T for n-cylinder surfaces (\ref GEOM_PRM_RADIAL_PROJ).
  *  \return See brief. */
-const struct const_Matrix_R* constructor_xyz_surface_cylinder_radial_proj_T
+const struct const_Matrix_T* constructor_xyz_surface_cylinder_radial_proj_T
 	(const struct Blended_Parametric_Data_T*const b_p_d ///< See brief.
 	);
 
 /** \brief Version of \ref constructor_xyz_surface_fptr_T for n-cylinder surfaces (\ref GEOM_PRM_ARC_LENGTH).
  *  \return See brief. */
-const struct const_Matrix_R* constructor_xyz_surface_cylinder_arc_length_T
+const struct const_Matrix_T* constructor_xyz_surface_cylinder_arc_length_T
 	(const struct Blended_Parametric_Data_T*const b_p_d ///< See brief.
 	);
 
 /** \brief Version of \ref constructor_xyz_surface_fptr_T for n-cylinder surfaces (\ref GEOM_PRM_NORMAL_PROJ).
  *  \return See brief. */
-const struct const_Matrix_R* constructor_xyz_surface_cylinder_normal_proj_T
+const struct const_Matrix_T* constructor_xyz_surface_cylinder_normal_proj_T
 	(const struct Blended_Parametric_Data_T*const b_p_d ///< See brief.
 	);
+
+#include "undef_templates_geometry.h"
+#include "undef_templates_matrix.h"

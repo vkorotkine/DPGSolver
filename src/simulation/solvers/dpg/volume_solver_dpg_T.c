@@ -20,21 +20,23 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
+
+#include "def_templates_compute_all_rlhs_dpg.h"
+#include "def_templates_compute_volume_rlhs.h"
 #include "def_templates_volume_solver.h"
 #include "def_templates_volume_solver_dpg.h"
-#include "def_templates_compute_all_rlhs_dpg.h"
 
 // Static function declarations ************************************************************************************* //
 
 /** \brief Constructor for the H0 norm operator of the input volume.
  *  \return See brief. */
-static const struct const_Matrix_R* constructor_norm_op_H0
+static const struct const_Matrix_T* constructor_norm_op_H0
 	(const struct DPG_Solver_Volume_T* dpg_s_vol ///< \ref DPG_Solver_Volume_T.
 	);
 
 /** \brief Constructor for the H1 norm operator of the input volume.
  *  \return See brief. */
-static const struct const_Matrix_R* constructor_norm_op_H1
+static const struct const_Matrix_T* constructor_norm_op_H1
 	(const struct DPG_Solver_Volume_T* dpg_s_vol ///< \ref DPG_Solver_Volume_T.
 	);
 
@@ -53,59 +55,64 @@ void destructor_derived_DPG_Solver_Volume_T (struct Volume* volume_ptr)
 {
 	struct DPG_Solver_Volume_T* dpg_s_vol = (struct DPG_Solver_Volume_T*) volume_ptr;
 
-	destructor_const_Matrix_R(dpg_s_vol->norm_op_H0);
-	destructor_const_Matrix_R(dpg_s_vol->norm_op_H1);
+	destructor_const_Matrix_T(dpg_s_vol->norm_op_H0);
+	destructor_const_Matrix_T(dpg_s_vol->norm_op_H1);
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static const struct const_Matrix_R* constructor_norm_op_H0 (const struct DPG_Solver_Volume_T* dpg_s_vol)
+static const struct const_Matrix_T* constructor_norm_op_H0 (const struct DPG_Solver_Volume_T* dpg_s_vol)
 {
-	struct Volume* vol                       = (struct Volume*) dpg_s_vol;
-	struct Solver_Volume_T* s_vol            = (struct Solver_Volume_T*) dpg_s_vol;
-	const struct DPG_Solver_Element* dpg_s_e = (struct DPG_Solver_Element*) vol->element;
+	struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) dpg_s_vol;
 
-	const int p      = s_vol->p_ref,
-	          curved = vol->curved;
-	const struct Operator* cv0_vt_vc = get_Multiarray_Operator(dpg_s_e->cv0_vt_vc[curved],(ptrdiff_t[]){0,0,p,p});
+	const struct Operator*const cv0_vt_vc = get_operator__cv0_vt_vc_T(s_vol);
 	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
 
-	const struct const_Vector_R jacobian_det_vc = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
-	const struct const_Vector_R* wJ_vc = constructor_dot_mult_const_Vector_R(1.0,w_vc,&jacobian_det_vc,1); // destructed
+	const struct const_Vector_T jacobian_det_vc = interpret_const_Multiarray_as_Vector_T(s_vol->jacobian_det_vc);
+	const struct const_Vector_T* wJ_vc = constructor_dot_mult_const_Vector_T_RT(1.0,w_vc,&jacobian_det_vc,1); // destructed
 
 	const struct const_Matrix_R* H0_l = cv0_vt_vc->op_std;
-	const struct const_Matrix_R* H0_r = constructor_mm_diag_const_Matrix_R(1.0,H0_l,wJ_vc,'L',false); // destructed
-	destructor_const_Vector_R(wJ_vc);
+	const struct const_Matrix_T* H0_r = constructor_mm_diag_const_Matrix_R_T(1.0,H0_l,wJ_vc,'L',false); // destructed
+	destructor_const_Vector_T(wJ_vc);
 
-	const struct const_Matrix_R* H0 = constructor_mm_const_Matrix_R('T','N',1.0,H0_l,H0_r,'R'); // returned
-	destructor_const_Matrix_R(H0_r);
+	const struct const_Matrix_T* H0 = constructor_mm_RT_const_Matrix_T('T','N',1.0,H0_l,H0_r,'R'); // returned
+	destructor_const_Matrix_T(H0_r);
 
 	return H0;
 }
 
-static const struct const_Matrix_R* constructor_norm_op_H1 (const struct DPG_Solver_Volume_T* dpg_s_vol)
+static const struct const_Matrix_T* constructor_norm_op_H1 (const struct DPG_Solver_Volume_T* dpg_s_vol)
 {
 	struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) dpg_s_vol;
 
-	const struct Multiarray_Operator cv1_vt_vc = get_operator__cv1_vt_vc__rlhs_T(dpg_s_vol);
+	const struct Multiarray_Operator cv1_vt_vc = get_operator__cv1_vt_vc_T(s_vol);
 	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
-	const struct const_Vector_R J_vc  = interpret_const_Multiarray_as_Vector_R(s_vol->jacobian_det_vc);
+	const struct const_Vector_T J_vc  = interpret_const_Multiarray_as_Vector_T(s_vol->jacobian_det_vc);
 
-	const struct const_Vector_R* J_inv_vc = constructor_inverse_const_Vector_R(&J_vc);                // destructed
-	const struct const_Vector_R* wJ_vc    = constructor_dot_mult_const_Vector_R(1.0,w_vc,J_inv_vc,1); // destructed
-	destructor_const_Vector_R(J_inv_vc);
+	const struct const_Vector_T* J_inv_vc = constructor_inverse_const_Vector_T(&J_vc);                // destructed
+	const struct const_Vector_T* wJ_vc    = constructor_dot_mult_const_Vector_T_RT(1.0,w_vc,J_inv_vc,1); // destructed
+	destructor_const_Vector_T(J_inv_vc);
 
-	struct Matrix_R* H1 = (struct Matrix_R*) constructor_norm_op_H0(dpg_s_vol); // returned
+	struct Matrix_T* H1 = (struct Matrix_T*) constructor_norm_op_H0(dpg_s_vol); // returned
 
 	for (int d = 0; d < DIM; ++d) {
 		const struct const_Matrix_R* H1_l = cv1_vt_vc.data[d]->op_std;
-		const struct const_Matrix_R* H1_r =
-			constructor_mm_diag_const_Matrix_R(1.0,H1_l,wJ_vc,'L',false); // destructed
-		mm_R('T','N',1.0,1.0,H1_l,H1_r,H1);
-		destructor_const_Matrix_R(H1_r);
+		const struct const_Matrix_T* H1_r =
+			constructor_mm_diag_const_Matrix_R_T(1.0,H1_l,wJ_vc,'L',false); // destructed
+		mm_RTT('T','N',1.0,1.0,H1_l,H1_r,H1);
+		destructor_const_Matrix_T(H1_r);
 	}
-	destructor_const_Vector_R(wJ_vc);
+	destructor_const_Vector_T(wJ_vc);
 
-	return (struct const_Matrix_R*) H1;
+	return (struct const_Matrix_T*) H1;
 }
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_compute_all_rlhs_dpg.h"
+#include "undef_templates_compute_volume_rlhs.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dpg.h"

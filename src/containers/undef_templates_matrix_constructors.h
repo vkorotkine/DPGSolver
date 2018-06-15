@@ -33,6 +33,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef const_constructor_copy_Matrix_T
 #undef constructor_copy_Matrix_T_Matrix_R
 #undef constructor_copy_const_Matrix_T_Matrix_R
+#undef constructor_copy_Matrix_R_Matrix_T
+#undef constructor_copy_const_Matrix_R_Matrix_T
 #undef constructor_copy_permute_Matrix_T
 #undef constructor_copy_permute_const_Matrix_T
 
@@ -58,12 +60,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_mm_const_Matrix_T
 #undef constructor_mm_RT_Matrix_T
 #undef constructor_mm_RT_const_Matrix_T
+#undef constructor_mm_TR_Matrix_T
+#undef constructor_mm_TR_const_Matrix_T
 #undef constructor_mm_NN1R_Matrix_T
 #undef constructor_mm_NN1R_const_Matrix_T
 #undef constructor_mm_NN1C_Matrix_T
 #undef constructor_mm_NN1C_const_Matrix_T
 #undef constructor_mm_diag_Matrix_T_R
 #undef constructor_mm_diag_const_Matrix_T_R
+#undef constructor_mm_diag_Matrix_R_T
+#undef constructor_mm_diag_const_Matrix_R_T
 #undef constructor_mm_diag_Matrix_T
 #undef constructor_mm_diag_const_Matrix_T
 #undef set_Matrix_from_Multiarray_T

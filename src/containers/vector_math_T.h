@@ -18,6 +18,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdbool.h>
 
+#include "def_templates_vector.h"
+#include "def_templates_matrix.h"
+
 struct Vector_T;
 struct Vector_R;
 struct const_Vector_T;
@@ -88,3 +91,6 @@ void set_to_sum_Vector_T
 	 struct Vector_T*const dest,            ///< The destination vector.
 	 const bool zero_initial                ///< Flag for whether the initial data should be zero'ed.
 	);
+
+#include "undef_templates_vector.h"
+#include "undef_templates_matrix.h"

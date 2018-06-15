@@ -21,6 +21,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_core.h"
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_operators.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -53,6 +58,12 @@ struct Multiarray_T* constructor_empty_Multiarray_T
 {
 	ptrdiff_t*const extents = allocate_and_set_extents(order,extents_i); // keep
 	return constructor_empty_Multiarray_T_dyn_extents(layout,order,extents);
+}
+
+const struct const_Multiarray_T* constructor_empty_const_Multiarray_T
+	(const char layout, const int order, const ptrdiff_t*const extents_i)
+{
+	return (struct const_Multiarray_T*) constructor_empty_Multiarray_T(layout,order,extents_i);
 }
 
 struct Multiarray_T* constructor_empty_Multiarray_T_dyn_extents
@@ -205,8 +216,9 @@ void const_constructor_copy_Multiarray_T
 	struct Multiarray_T* dest_m = constructor_move_Multiarray_T_T(src->layout,src->order,src->extents,true,data);
 	const_constructor_move_Multiarray_T(dest,dest_m);
 }
-#if TYPE_RC == TYPE_COMPLEX
-struct Multiarray_T* constructor_copy_Multiarray_T_Multiarray_R (struct Multiarray_R* src)
+
+#ifdef TYPE_RC
+struct Multiarray_T* constructor_copy_Multiarray_T_Multiarray_R (const struct Multiarray_R*const src)
 {
 	const ptrdiff_t size = compute_size(src->order,src->extents);
 	Type* data = malloc((size_t)size * sizeof *data); // moved
@@ -222,6 +234,7 @@ const struct const_Multiarray_T* constructor_copy_const_Multiarray_T_Multiarray_
 	return (struct const_Multiarray_T*) constructor_copy_Multiarray_T_Multiarray_R((struct Multiarray_R*)src);
 }
 #endif
+
 // Move constructors ************************************************************************************************ //
 
 struct Multiarray_T* constructor_move_Multiarray_T_T
@@ -511,14 +524,14 @@ const struct const_Multiarray_T* constructor_mm_tp_NN1C_const_Multiarray_T
 #endif
 // Destructors ****************************************************************************************************** //
 
-void destructor_Multiarray_T (struct Multiarray_T* a)
+void destructor_Multiarray_T (const struct Multiarray_T* a)
 {
 	assert(a != NULL);
 
 	free(a->extents);
 	if (a->owns_data)
 		free(a->data);
-	free(a);
+	free((void*)a);
 }
 
 void destructor_const_Multiarray_T (const struct const_Multiarray_T* a)
@@ -603,3 +616,8 @@ void destructor_const_Multiarray2_Matrix_T (const struct const_Multiarray_Matrix
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_operators.h"

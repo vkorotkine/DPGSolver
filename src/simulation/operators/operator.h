@@ -22,6 +22,16 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include "definitions_core.h"
 
+struct Operator;
+
+#include "def_templates_type_d.h"
+#include "operator_T.h"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "operator_T.h"
+#include "undef_templates_type.h"
+
 struct const_Multiarray_d;
 struct Multiarray_d;
 struct const_Multiarray_Matrix_c;
@@ -41,14 +51,6 @@ struct mutable_Operator {
 };
 
 // Templated functions ********************************************************************************************** //
-
-#include "def_templates_type_d.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_operators.h"
-#include "operator_T.h"
-#include "undef_templates_type.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_operators.h"
 
 // Interface functions ********************************************************************************************** //
 // Destructors ****************************************************************************************************** //

@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides templated functions relating to Navier-Stokes numerical fluxes.
  */
 
+#include "def_templates_numerical_flux.h"
+
 struct Numerical_Flux_Input_T;
 struct mutable_Numerical_Flux_T;
 
@@ -32,3 +34,5 @@ void compute_Numerical_Flux_T_navier_stokes_central_jacobian
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
 	);
+
+#include "undef_templates_numerical_flux.h"

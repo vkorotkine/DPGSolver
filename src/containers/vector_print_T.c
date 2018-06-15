@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_tol.h"
 
-#include "matrix_print_T.h"
+#include "def_templates_vector.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -88,3 +88,5 @@ void fprint_Vector_T (FILE* file, const int n_tab, struct Vector_T* a)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_vector.h"

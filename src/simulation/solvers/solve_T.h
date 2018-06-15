@@ -18,9 +18,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
+#include "def_templates_solve.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_volume_solver.h"
+
 struct Simulation;
 struct const_Multiarray_T;
 struct Solver_Volume_T;
+struct Intrusive_List;
 
 /** \brief Constructor for a \ref Solver_Storage_Implicit container.
  *  \return See brief. */
@@ -52,3 +57,13 @@ void add_to_flux_imbalance_source_T
 const struct Operator* get_operator__tw0_vt_vc_T
 	(const struct Solver_Volume_T* s_vol ///< The current volume.
 	);
+
+/// \brief Set the memory of the rhs and lhs (if applicable) terms to zero for the volumes.
+void initialize_zero_memory_volumes_T
+	(struct Intrusive_List* volumes ///< The list of volumes for which to set the memory.
+	);
+
+
+#include "undef_templates_solve.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_volume_solver.h"

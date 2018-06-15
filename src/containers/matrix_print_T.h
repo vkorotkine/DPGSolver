@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdio.h>
 #include <complex.h>
 
+#include "def_templates_matrix.h"
+
 struct Matrix_T;
 struct const_Matrix_T;
 
@@ -67,3 +69,5 @@ void print_imag
 	(const double complex val ///< The complex value.
 	);
 #endif
+
+#include "undef_templates_matrix.h"

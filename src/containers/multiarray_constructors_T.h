@@ -19,6 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+
 struct Vector_T;
 struct Matrix_T;
 struct Multiarray_R;
@@ -68,6 +72,14 @@ struct Multiarray_T* constructor_empty_Multiarray_T
 	(const char layout,              ///< Defined in \ref Multiarray_T.
 	 const int order,                ///< Defined in \ref Multiarray_T.
 	 const ptrdiff_t*const extents_i ///< The input extents.
+	);
+
+/** \brief `const` version of \ref constructor_empty_Multiarray_T.
+ *  \return Standard. */
+const struct const_Multiarray_T* constructor_empty_const_Multiarray_T
+	(const char layout,              ///< See brief.
+	 const int order,                ///< See brief.
+	 const ptrdiff_t*const extents_i ///< See brief.
 	);
 
 /** \brief Constructor for an empty \ref Multiarray_T\* with extents having been previously dynamically allocated.
@@ -203,11 +215,12 @@ void const_constructor_copy_Multiarray_T
 	(const struct const_Multiarray_T*const* dest, ///< Destination.
 	 const struct const_Multiarray_T*const src    ///< Source.
 	);
-#if TYPE_RC == TYPE_COMPLEX
+
+#ifdef TYPE_RC
 /** \brief Copy constructor for a \ref Multiarray_T\* from a real \ref Multiarray_T\*.
  *  \return Standard. */
 struct Multiarray_T* constructor_copy_Multiarray_T_Multiarray_R
-	(struct Multiarray_R* src ///< Source.
+	(const struct Multiarray_R*const src ///< Source.
 	);
 
 /** \brief `const` version of \ref constructor_copy_Multiarray_T_Multiarray_R.
@@ -216,6 +229,7 @@ const struct const_Multiarray_T* constructor_copy_const_Multiarray_T_Multiarray_
 	(const struct const_Multiarray_R* src ///< See brief.
 	);
 #endif
+
 // Move constructors ************************************************************************************************ //
 
 /** \brief Move constructor for a \ref Multiarray_T\* from a `Type*`.
@@ -401,7 +415,7 @@ const struct const_Multiarray_T* constructor_mm_tp_NN1C_const_Multiarray_T
 
 /// \brief Destructs a \ref Multiarray_T\*.
 void destructor_Multiarray_T
-	(struct Multiarray_T* a ///< Standard.
+	(const struct Multiarray_T* a ///< Standard.
 	);
 
 /// \brief Destructs a \ref const_Multiarray_T\*.
@@ -453,3 +467,7 @@ void destructor_const_Multiarray_Matrix_T
 void destructor_const_Multiarray2_Matrix_T
 	(const struct const_Multiarray_Matrix_T* a[2] ///< Standard.
 	);
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"

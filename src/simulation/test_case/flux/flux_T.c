@@ -116,6 +116,13 @@ void destructor_Flux_T (struct Flux_T* flux)
 	free(flux);
 }
 
+void destructor_conditional_Flux_T (struct Flux_T* flux)
+{
+	if (flux == NULL)
+		return;
+	destructor_Flux_T(flux);
+}
+
 void compute_Flux_1_T (const struct Flux_Input_T* flux_i, struct mutable_Flux_T* flux)
 {
 	flux_i->compute_Flux_1st(flux_i,flux);
@@ -134,3 +141,9 @@ void compute_Flux_12_T (const struct Flux_Input_T* flux_i, struct mutable_Flux_T
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_flux.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_test_case.h"

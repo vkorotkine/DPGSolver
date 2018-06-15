@@ -20,14 +20,12 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_restart.h"
-#include "def_templates_solution.h"
-#include "def_templates_multiarray.h"
 #include "restart_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_restart.h"
-#include "undef_templates_solution.h"
-#include "undef_templates_multiarray.h"
+
+#include "def_templates_type_dc.h"
+#include "restart_T.h"
+#include "undef_templates_type.h"
 
 /** \brief Return a stack allocated `char*` holding the name (including full path) of the restart file.
  *  \return See brief. */

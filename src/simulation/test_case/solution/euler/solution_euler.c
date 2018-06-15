@@ -63,6 +63,11 @@ static double get_specific_gas_constant
 
 #include "def_templates_type_d.h"
 #include "solution_euler_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "solution_euler_T.c"
+#include "undef_templates_type.h"
 
 void compute_entropy (struct Multiarray_d* s, const struct const_Multiarray_d* vars, const char var_type)
 {

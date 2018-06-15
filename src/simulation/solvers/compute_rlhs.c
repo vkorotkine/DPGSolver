@@ -17,24 +17,64 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "compute_rlhs.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 
 #include "matrix.h"
+#include "multiarray.h"
 
-#include "simulation.h"
+#include "volume_solver.h"
+
+#include "computational_elements.h"
+#include "intrusive.h"
+#include "math_functions.h"
 #include "test_case.h"
+#include "simulation.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
+#include "def_templates_type_d.h"
+#include "compute_rlhs_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "compute_rlhs_T.c"
+#include "undef_templates_type.h"
+
+void compute_source_rhs_dg_like (const struct Simulation*const sim)
+{
+	assert(list_is_derived_from("solver",'v',sim));
+
+	struct Test_Case*const test_case = (struct Test_Case*)sim->test_case_rc->tc;
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+		test_case->compute_source_rhs(sim,s_vol,s_vol->rhs);
+	}
+}
+
+double compute_max_rhs_dg_like (const struct Simulation*const sim)
+{
+	double max_rhs = 0.0;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+
+		struct Multiarray_d* rhs = s_vol->rhs;
+		double max_rhs_curr = norm_d(compute_size(rhs->order,rhs->extents),rhs->data,"Inf");
+		if (max_rhs_curr > max_rhs)
+			max_rhs = max_rhs_curr;
+	}
+	return max_rhs;
+}
+
 void add_to_lhs_p_r
 	(const double alpha, const struct const_Matrix_d*const dgc_dsc[DIM], struct Matrix_d*const lhs_p_r,
-	 const bool boundary_face_term, const struct Simulation*const sim)
+	 const bool boundary_face_term)
 {
-	const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
-	const int n_vr = test_case->n_var;
+	const int n_vr = get_set_n_var_eq(NULL)[0];
 	if (!boundary_face_term) {
 		for (int d_g = 0; d_g < DIM; ++d_g) {
 			const struct const_Matrix_d*const lhs_p_l = dgc_dsc[d_g];

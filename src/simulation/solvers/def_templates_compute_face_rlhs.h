@@ -18,10 +18,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
+///\{ \name Function pointers
+#define compute_rlhs_f_fptr_T compute_rlhs_f_fptr
+///\}
+
 ///\{ \name Function names
 #define get_operator__tw0_vt_fc_T               get_operator__tw0_vt_fc
 #define get_operator__cv0_vs_fc_T               get_operator__cv0_vs_fc
 #define get_operator__cv0_vr_fc_T               get_operator__cv0_vr_fc
+#define get_operator__cv0_ff_fc_T               get_operator__cv0_ff_fc
 #define permute_Matrix_T_fc                     permute_Matrix_d_fc
 #define permute_Matrix_R_fc                     permute_Matrix_d_fc
 #define get_operator__nc_fc_T                   get_operator__nc_fc
@@ -30,14 +35,27 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_lhs_f_1_T                   constructor_lhs_f_1
 #define constructor_lhs_p_f_2_T                 constructor_lhs_p_f_2
 #define add_to_flux_imbalance_face_nf_w_T       add_to_flux_imbalance_face_nf_w
+#define compute_rhs_f_dg_like_T                 compute_rhs_f_dg_like
+#define permute_Multiarray_T_fc                 permute_Multiarray_d_fc
+#define constructor_Flux_Input_data_f_T constructor_Flux_Input_data_f_d
+#define destructor_Flux_Input_data_f_T destructor_Flux_Input_data_f_d
+///\}
+
+///\{ \name Static names
+#define finalize_face_rhs_dg_like_T finalize_face_rhs_dg_like_T
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function pointers
+#define compute_rlhs_f_fptr_T compute_rlhs_f_fptr_c
+///\}
 
 ///\{ \name Function names
 #define get_operator__tw0_vt_fc_T               get_operator__tw0_vt_fc_c
 #define get_operator__cv0_vs_fc_T               get_operator__cv0_vs_fc_c
 #define get_operator__cv0_vr_fc_T               get_operator__cv0_vr_fc_c
+#define get_operator__cv0_ff_fc_T               get_operator__cv0_ff_fc_c
 #define permute_Matrix_T_fc                     permute_Matrix_c_fc
 #define permute_Matrix_R_fc                     permute_Matrix_d_fc_c
 #define get_operator__nc_fc_T                   get_operator__nc_fc_c
@@ -46,6 +64,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_lhs_f_1_T                   constructor_lhs_f_1_c
 #define constructor_lhs_p_f_2_T                 constructor_lhs_p_f_2_c
 #define add_to_flux_imbalance_face_nf_w_T       add_to_flux_imbalance_face_nf_w_c
+#define compute_rhs_f_dg_like_T                 compute_rhs_f_dg_like_c
+#define permute_Multiarray_T_fc                 permute_Multiarray_c_fc
+#define constructor_Flux_Input_data_f_T constructor_Flux_Input_data_f_c
+#define destructor_Flux_Input_data_f_T destructor_Flux_Input_data_f_c
+///\}
+
+///\{ \name Static names
+#define finalize_face_rhs_dg_like_T finalize_face_rhs_dg_like_T_c
 ///\}
 
 #endif

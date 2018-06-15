@@ -252,6 +252,30 @@ void set_ml_p_curr (const int ml, const int p, struct Simulation* sim)
 	const_cast_i_n(sim->ml_p_curr,(int[]){ml,p},2);
 }
 
+char get_set_op_format (const char new_format)
+{
+	static char op_format = 'd';
+	if (new_format)
+		op_format = new_format;
+	return op_format;
+}
+
+bool get_set_collocated (const bool*const new_val)
+{
+	static bool collocated = false;
+	if (new_val)
+		collocated = *new_val;
+	return collocated;
+}
+
+int get_set_method (const int*const new_val)
+{
+	static int method = -1;
+	if (new_val)
+		method = *new_val;
+	return method;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -337,6 +361,7 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 
 	// Read information from the control file
 	char line[STRLEN_MAX];
+	int dummy = 0;
 	while (fgets(line,sizeof(line),ctrl_file)) {
 		if (strstr(line,"pde_name"))  read_skip_const_c_1(line,sim->pde_name);
 		if (strstr(line,"pde_spec"))  read_skip_const_c_1(line,sim->pde_spec);
@@ -371,7 +396,9 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"p_cub_p"))  read_skip_const_i_1(line,1,sim->p_c_p,2);
 		if (strstr(line,"p_test_p")) read_skip_const_i_1(line,1,sim->p_t_p,2);
 
+		// fe_method (kept for backward compatibility) and method_name specify the same information.
 		if (strstr(line,"fe_method")) read_skip_const_i_1(line,1,&sim->method,1);
+		read_skip_convert_const_i(line,"method_name",&sim->method,&dummy);
 
 		if (strstr(line,"collocated")) read_skip_const_b(line,&sim->collocated);
 	}
@@ -382,6 +409,8 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 
 	set_mesh_parameters(sim);
 	set_orders(sim);
+	get_set_collocated(&sim->collocated);
+	get_set_method(&sim->method);
 }
 
 static void set_simulation_additional (struct Simulation*const sim)
@@ -425,10 +454,11 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 	assert(sim->p_s_v[1] != P_INVALID);
 	assert(sim->p_s_v[1] >= sim->p_s_v[0]);
 
-	assert((sim->method == METHOD_DPG) || (sim->p_t_p[0] == P_INVALID && sim->p_t_p[1] == P_INVALID));
+	assert((sim->method == METHOD_DPG) || (sim->method == METHOD_OPG) ||
+	       (sim->p_t_p[0] == P_INVALID && sim->p_t_p[1] == P_INVALID));
 
 	assert((sim->method == METHOD_DG)   || (sim->method == METHOD_HDG) ||
-	       (sim->method == METHOD_HDPG) || (sim->method == METHOD_DPG));
+	       (sim->method == METHOD_HDPG) || (sim->method == METHOD_DPG) || (sim->method == METHOD_OPG));
 }
 
 static void set_simulation_default (struct Simulation*const sim)

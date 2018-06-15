@@ -20,9 +20,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "face_solver_adaptive.h"
 #include "face_solver_dg.h"
 #include "face_solver_dpg.h"
+#include "face_solver_opg.h"
 #include "volume_solver_adaptive.h"
 #include "volume_solver_dg.h"
 #include "volume_solver_dpg.h"
+#include "volume_solver_opg.h"
 
 #include "element.h"
 #include "element_geometry.h"
@@ -32,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element_solver.h"
 #include "element_solver_dg.h"
 #include "element_solver_dpg.h"
+#include "element_solver_opg.h"
 
 #include "intrusive.h"
 #include "simulation.h"
@@ -40,6 +43,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "computational_elements_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "computational_elements_T.c"
+#include "undef_templates_type.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -219,9 +227,10 @@ bool list_is_derived_from (const char*const name_desired, const char list_type, 
 	case 'e':
 		if (strcmp(name_desired,"solver") == 0) {
 			switch (sim->elements->name) {
-			case IL_ELEMENT_SOLVER:    // fallthrough
-			case IL_ELEMENT_SOLVER_DG: // fallthrough
-			case IL_ELEMENT_SOLVER_DPG:
+			case IL_ELEMENT_SOLVER:     // fallthrough
+			case IL_ELEMENT_SOLVER_DG:  // fallthrough
+			case IL_ELEMENT_SOLVER_DPG: // fallthrough
+			case IL_ELEMENT_SOLVER_OPG:
 				is_derived_from = true;
 				break;
 			default:
@@ -235,9 +244,10 @@ bool list_is_derived_from (const char*const name_desired, const char list_type, 
 	case 'f':
 		if (strcmp(name_desired,"solver") == 0) {
 			switch (sim->faces->name) {
-			case IL_FACE_SOLVER:    // fallthrough
-			case IL_FACE_SOLVER_DG: // fallthrough
-			case IL_FACE_SOLVER_DPG:
+			case IL_FACE_SOLVER:     // fallthrough
+			case IL_FACE_SOLVER_DG:  // fallthrough
+			case IL_FACE_SOLVER_DPG: // fallthrough
+			case IL_FACE_SOLVER_OPG:
 				is_derived_from = true;
 				break;
 			default:
@@ -251,9 +261,10 @@ bool list_is_derived_from (const char*const name_desired, const char list_type, 
 	case 'v':
 		if (strcmp(name_desired,"solver") == 0) {
 			switch (sim->volumes->name) {
-			case IL_VOLUME_SOLVER:    // fallthrough
-			case IL_VOLUME_SOLVER_DG: // fallthrough
-			case IL_VOLUME_SOLVER_DPG:
+			case IL_VOLUME_SOLVER:     // fallthrough
+			case IL_VOLUME_SOLVER_DG:  // fallthrough
+			case IL_VOLUME_SOLVER_DPG: // fallthrough
+			case IL_VOLUME_SOLVER_OPG:
 				is_derived_from = true;
 				break;
 			default:
@@ -321,6 +332,12 @@ static struct Derived_Elements_Info get_c_Derived_Elements_Info (const int deriv
 		de_info.sizeof_derived = sizeof(struct DPG_Solver_Element);
 		de_info.constructor_derived_Element = constructor_derived_DPG_Solver_Element;
 		break;
+	case IL_ELEMENT_SOLVER_OPG:
+		assert(sim->elements->name == IL_ELEMENT_SOLVER);
+		de_info.sizeof_base    = sizeof(struct Solver_Element);
+		de_info.sizeof_derived = sizeof(struct OPG_Solver_Element);
+		de_info.constructor_derived_Element = constructor_derived_OPG_Solver_Element;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_name);
 		break;
@@ -375,6 +392,10 @@ static struct Derived_Elements_Info get_d_Derived_Elements_Info (const int base_
 	case IL_ELEMENT_SOLVER_DPG:
 		assert(base_name == IL_ELEMENT_SOLVER);
 		de_info.destructor_derived_Element = destructor_derived_DPG_Solver_Element;
+		break;
+	case IL_ELEMENT_SOLVER_OPG:
+		assert(base_name == IL_ELEMENT_SOLVER);
+		de_info.destructor_derived_Element = destructor_derived_OPG_Solver_Element;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",derived_name);

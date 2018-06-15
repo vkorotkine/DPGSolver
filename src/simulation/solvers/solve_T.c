@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_solve_dg.h"
 #include "def_templates_solve_dpg.h"
+#include "def_templates_solve_opg.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -47,19 +48,19 @@ You should have received a copy of the GNU General Public License along with DPG
  *         system matrix.
  *  \return See brief. */
 static struct Vector_i* constructor_nnz
-	(const struct Simulation* sim ///< \ref Simulation.
+	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 /** \brief Compute the number of 'd'egrees 'o'f 'f'reedom in the volume computational elements.
  *  \return See brief. */
 static ptrdiff_t compute_dof_volumes
-	(const struct Simulation* sim ///< \ref Simulation.
+	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 /** \brief Compute the number of 'd'egrees 'o'f 'f'reedom in the face computational elements.
  *  \return See brief. */
 static ptrdiff_t compute_dof_faces
-	(const struct Simulation* sim ///< \ref Simulation.
+	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 /** \brief Compute the number of 'd'egrees 'o'f 'f'reedom in the 'L'agrange 'mult'iplier members of the volume
@@ -69,23 +70,36 @@ static ptrdiff_t compute_dof_volumes_l_mult
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
+/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom of the test space.
+ *  \return See brief. */
+static ptrdiff_t compute_dof_test_T
+	(const struct Simulation*const sim ///< \ref Simulation.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const struct Simulation* sim)
 {
 	assert(sizeof(PetscInt) == sizeof(int)); // Ensure that all is working correctly if this is removed.
 
-	const ptrdiff_t dof = compute_dof_T(sim);
 	update_ind_dof_T(sim);
 	struct Vector_i* nnz = constructor_nnz(sim); // destructed
+	const ptrdiff_t dof_solve = nnz->ext_0;
+
+	switch (sim->method) {
+		case METHOD_DG:  // fallthrough
+		case METHOD_DPG: assert(dof_solve == compute_dof_T(sim));      break;
+		case METHOD_OPG: assert(dof_solve == compute_dof_test_T(sim)); break;
+		default:         EXIT_ERROR("Unsupported: %d.\n",sim->method); break;
+	}
 
 	struct Solver_Storage_Implicit* ssi = calloc(1,sizeof *ssi); // free
 
-	MatCreateSeqAIJ(MPI_COMM_WORLD,(PetscInt)dof,(PetscInt)dof,0,nnz->data,&ssi->A); // destructed
+	MatCreateSeqAIJ(MPI_COMM_WORLD,(PetscInt)dof_solve,(PetscInt)dof_solve,0,nnz->data,&ssi->A); // destructed
 	MatSetFromOptions(ssi->A);
 	MatSetUp(ssi->A);
 
-	VecCreateSeq(MPI_COMM_WORLD,(PetscInt)dof,&ssi->b); // destructed
+	VecCreateSeq(MPI_COMM_WORLD,(PetscInt)dof_solve,&ssi->b); // destructed
 	VecSetFromOptions(ssi->b);
 	VecSetUp(ssi->b);
 
@@ -96,7 +110,7 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const str
 
 ptrdiff_t compute_dof_T (const struct Simulation* sim)
 {
-	assert((sim->method == METHOD_DG) || (sim->method == METHOD_DPG)); // Ensure that all is working correctly if modified.
+	assert((sim->method == METHOD_DG) || (sim->method == METHOD_DPG) || (sim->method == METHOD_OPG));
 	ptrdiff_t dof = 0;
 	dof += compute_dof_volumes(sim);
 	dof += compute_dof_faces(sim);
@@ -109,6 +123,7 @@ void update_ind_dof_T (const struct Simulation* sim)
 	switch (sim->method) {
 	case METHOD_DG:  update_ind_dof_dg_T(sim);  break;
 	case METHOD_DPG: update_ind_dof_dpg_T(sim); break;
+	case METHOD_OPG: update_ind_dof_opg_T(sim); break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;
@@ -147,15 +162,46 @@ const struct Operator* get_operator__tw0_vt_vc_T (const struct Solver_Volume_T* 
 	return get_Multiarray_Operator(e->tw0_vt_vc[curved],(ptrdiff_t[]){0,0,p,p});
 }
 
+void initialize_zero_memory_volumes_T (struct Intrusive_List* volumes)
+{
+	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) curr;
+
+		struct Multiarray_T* ref_coef = NULL;
+		switch (get_set_method(NULL)) {
+		case METHOD_DG:  // fallthrough
+		case METHOD_DPG:
+			ref_coef = s_vol->sol_coef;
+			break;
+		case METHOD_OPG:
+			ref_coef = s_vol->test_s_coef;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",get_set_method(NULL));
+			break;
+		}
+
+		resize_Multiarray_T(s_vol->rhs,ref_coef->order,ref_coef->extents);
+		set_to_value_Multiarray_T(s_vol->rhs,0.0);
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static struct Vector_i* constructor_nnz (const struct Simulation* sim)
+/** \brief Compute the number of 'd'egrees 'o'f 'f'reedom for the volume test functions.
+ *  \return See brief. */
+static ptrdiff_t compute_dof_test_volumes
+	(const struct Simulation*const sim ///< \ref Simulation.
+	);
+
+static struct Vector_i* constructor_nnz (const struct Simulation*const sim)
 {
 	struct Vector_i* nnz = NULL;
 	switch (sim->method) {
 	case METHOD_DG:  nnz = constructor_nnz_dg_T(sim);  break;
 	case METHOD_DPG: nnz = constructor_nnz_dpg_T(sim); break;
+	case METHOD_OPG: nnz = constructor_nnz_opg_T(sim); break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;
@@ -163,7 +209,7 @@ static struct Vector_i* constructor_nnz (const struct Simulation* sim)
 	return nnz;
 }
 
-static ptrdiff_t compute_dof_volumes (const struct Simulation* sim)
+static ptrdiff_t compute_dof_volumes (const struct Simulation*const sim)
 {
 	ptrdiff_t dof = 0;
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
@@ -173,7 +219,7 @@ static ptrdiff_t compute_dof_volumes (const struct Simulation* sim)
 	return dof;
 }
 
-static ptrdiff_t compute_dof_faces (const struct Simulation* sim)
+static ptrdiff_t compute_dof_faces (const struct Simulation*const sim)
 {
 	ptrdiff_t dof = 0;
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
@@ -194,3 +240,37 @@ static ptrdiff_t compute_dof_volumes_l_mult (const struct Simulation*const sim)
 	}
 	return dof;
 }
+
+static ptrdiff_t compute_dof_test_T (const struct Simulation*const sim)
+{
+	assert(sim->method == METHOD_OPG);
+	ptrdiff_t dof = 0;
+	dof += compute_dof_test_volumes(sim);
+	return dof;
+}
+
+// Level 1 ********************************************************************************************************** //
+
+static ptrdiff_t compute_dof_test_volumes (const struct Simulation*const sim)
+{
+	ptrdiff_t dof = 0;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
+		dof += compute_size(s_vol->test_s_coef->order,s_vol->test_s_coef->extents);
+	}
+	return dof;
+}
+
+#include "undef_templates_solve.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_solve_dg.h"
+#include "undef_templates_solve_dpg.h"
+#include "undef_templates_solve_opg.h"
+#include "undef_templates_test_case.h"

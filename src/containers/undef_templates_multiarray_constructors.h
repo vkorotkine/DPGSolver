@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_default_const_Multiarray_Matrix_T
 
 #undef constructor_empty_Multiarray_T
+#undef constructor_empty_const_Multiarray_T
 #undef constructor_empty_Multiarray_T_dyn_extents
 #undef constructor_empty_Multiarray_Vector_T
 #undef constructor_empty_const_Multiarray_Vector_T

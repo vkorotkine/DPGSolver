@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the vector constructor functions.
  */
 
+#if defined TYPE_RC
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
@@ -47,6 +48,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_inverse_Vector_T                  constructor_inverse_Vector_d
 #define constructor_inverse_const_Vector_T            constructor_inverse_const_Vector_d
 #define constructor_dot_mult_const_Vector_T           constructor_dot_mult_const_Vector_d
+#define constructor_dot_mult_const_Vector_T_RT        constructor_dot_mult_const_Vector_d_dd
+#define constructor_dot_mult_inverse_2nd_const_Vector_T constructor_dot_mult_inverse_2nd_const_Vector_d
+#define constructor_repeated_const_Vector_T           constructor_repeated_const_Vector_d
 #define constructor_sum_Vectors_Vector_T              constructor_sum_Vectors_Vector_d
 #define constructor_sum_Vectors_const_Vector_T        constructor_sum_Vectors_const_Vector_d
 #define constructor_sum_Vector_T_const_Matrix_T       constructor_sum_Vector_d_const_Matrix_d
@@ -102,6 +106,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_inverse_Vector_T                  constructor_inverse_Vector_c
 #define constructor_inverse_const_Vector_T            constructor_inverse_const_Vector_c
 #define constructor_dot_mult_const_Vector_T           constructor_dot_mult_const_Vector_c
+#define constructor_dot_mult_const_Vector_T_RT        constructor_dot_mult_const_Vector_d_dc
+#define constructor_dot_mult_inverse_2nd_const_Vector_T constructor_dot_mult_inverse_2nd_const_Vector_c
+#define constructor_repeated_const_Vector_T           constructor_repeated_const_Vector_c
 #define constructor_sum_Vectors_Vector_T              constructor_sum_Vectors_Vector_c
 #define constructor_sum_Vectors_const_Vector_T        constructor_sum_Vectors_const_Vector_c
 #define constructor_sum_Vector_T_const_Matrix_T       constructor_sum_Vector_c_const_Matrix_c
@@ -128,6 +135,48 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define constructor_inverse_const_Vector_R            constructor_inverse_const_Vector_d
 #define constructor_dot_mult_const_Vector_R           constructor_dot_mult_const_Vector_d
+#define constructor_repeated_const_Vector_R           constructor_repeated_const_Vector_d
 
 #define destructor_const_Vector_R destructor_const_Vector_d
 ///\}
+
+
+#elif defined TYPE_I
+
+#if TYPE_I == TYPE_II
+
+///\{ \name Function names
+#define constructor_default_Vector_T       constructor_default_Vector_i
+#define constructor_default_const_Vector_T constructor_default_const_Vector_i
+#define constructor_default_Vector_T_2     constructor_default_Vector_i_2
+
+#define constructor_empty_Vector_T constructor_empty_Vector_i
+
+#define constructor_zero_Vector_T constructor_zero_Vector_i
+
+#define constructor_copy_Vector_T         constructor_copy_Vector_i
+#define constructor_copy_const_Vector_T   constructor_copy_const_Vector_i
+#define constructor_copy_Vector_T_T       constructor_copy_Vector_i_i
+#define constructor_copy_const_Vector_T_T constructor_copy_const_Vector_i_i
+
+#define constructor_move_Vector_T_T                constructor_move_Vector_i_i
+#define constructor_move_const_Vector_T_T          constructor_move_const_Vector_i_i
+#define constructor_move_const_Vector_Matrix_row_T constructor_move_const_Vector_Matrix_row_i
+#define constructor_move_Vector_T_Matrix_T         constructor_move_Vector_i_Matrix_i
+#define const_constructor_move_Vector_T            const_constructor_move_Vector_i
+#define const_constructor_move_const_Vector_T      const_constructor_move_const_Vector_i
+
+#define constructor_file_name_Vector_T       constructor_file_name_Vector_i
+#define constructor_file_name_const_Vector_T constructor_file_name_const_Vector_i
+#define constructor_file_Vector_T            constructor_file_Vector_i
+#define constructor_file_const_Vector_T      constructor_file_const_Vector_i
+
+#define destructor_Vector_T                   destructor_Vector_i
+#define destructor_const_Vector_T             destructor_const_Vector_i
+#define destructor_conditional_Vector_T       destructor_conditional_Vector_i
+#define destructor_conditional_const_Vector_T destructor_conditional_const_Vector_i
+///\}
+
+#endif
+
+#endif

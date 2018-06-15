@@ -59,6 +59,25 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Numerical_Flux_T_navier_stokes_central_jacobian compute_Numerical_Flux_navier_stokes_central_jacobian
 ///\}
 
+///\{ \name Static names
+#define combine_num_flux_boundary_T combine_num_flux_boundary_T
+#define combine_num_flux_boundary_dnnf_ds_T combine_num_flux_boundary_dnnf_ds_T
+#define combine_num_flux_boundary_dnnf_dg_g_T combine_num_flux_boundary_dnnf_dg_g_T
+#define combine_num_flux_boundary_dnnf_dg_s_T combine_num_flux_boundary_dnnf_dg_s_T
+#define combine_num_flux_boundary_T combine_num_flux_boundary_T
+#define Fluxes_LR Fluxes_LR
+#define constructor_Fluxes_LR constructor_Fluxes_LR
+#define destructor_Fluxes_LR destructor_Fluxes_LR
+#define set_Numerical_Flux_member set_Numerical_Flux_member
+#define set_provided_Numerical_Flux_members set_provided_Numerical_Flux_members
+#define set_provided_Numerical_Flux_jacobian_members set_provided_Numerical_Flux_jacobian_members
+#define compute_Numerical_Flux_T_central compute_Numerical_Flux_T_central
+#define compute_Numerical_Flux_T_central_jacobian compute_Numerical_Flux_T_central_jacobian
+#define set_Numerical_Flux_Energy_member set_Numerical_Flux_Energy_member
+#define min_abs_real_T min_abs_real_T
+#define max_abs_real_T max_abs_real_T
+///\}
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Data types
@@ -100,6 +119,25 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define compute_Numerical_Flux_T_navier_stokes_central          compute_Numerical_Flux_c_navier_stokes_central
 #define compute_Numerical_Flux_T_navier_stokes_central_jacobian compute_Numerical_Flux_c_navier_stokes_central_jacobian
+///\}
+
+///\{ \name Static names
+#define combine_num_flux_boundary_T combine_num_flux_boundary_T_c
+#define combine_num_flux_boundary_dnnf_ds_T combine_num_flux_boundary_dnnf_ds_T_c
+#define combine_num_flux_boundary_dnnf_dg_g_T combine_num_flux_boundary_dnnf_dg_g_T_c
+#define combine_num_flux_boundary_dnnf_dg_s_T combine_num_flux_boundary_dnnf_dg_s_T_c
+#define combine_num_flux_boundary_T combine_num_flux_boundary_T_c
+#define Fluxes_LR Fluxes_LR_c
+#define constructor_Fluxes_LR constructor_Fluxes_LR_c
+#define destructor_Fluxes_LR destructor_Fluxes_LR_c
+#define set_Numerical_Flux_member set_Numerical_Flux_member_c
+#define set_provided_Numerical_Flux_members set_provided_Numerical_Flux_members_c
+#define set_provided_Numerical_Flux_jacobian_members set_provided_Numerical_Flux_jacobian_members_c
+#define compute_Numerical_Flux_T_central compute_Numerical_Flux_T_central_c
+#define compute_Numerical_Flux_T_central_jacobian compute_Numerical_Flux_T_central_jacobian_c
+#define set_Numerical_Flux_Energy_member set_Numerical_Flux_Energy_member_c
+#define min_abs_real_T min_abs_real_T_c
+#define max_abs_real_T max_abs_real_T_c
 ///\}
 
 #endif

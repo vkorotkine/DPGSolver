@@ -25,15 +25,32 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function pointers
 #undef constructor_sol_vc_fptr_T
 #undef destructor_sol_vc_fptr_T
+#undef compute_rlhs_v_fptr_T
 ///\}
 
 ///\{ \name Function names
 #undef set_S_Params_Volume_Structor_T
 #undef constructor_Flux_Ref_vol_T
 #undef destructor_Flux_Ref_T
+#undef compute_rhs_v_dg_like_T
 #undef constructor_lhs_v_1_T
 #undef constructor_lhs_p_v_2_T
 #undef get_operator__cv0_vs_vc_T
+#undef get_operator__cv0_vt_vc_T
 #undef get_operator__cv0_vr_vc_T
 #undef get_operator__tw1_vt_vc_T
+#undef get_operator__cv1_vt_vc_T
 ///\}
+
+#undef constructor_NULL
+#undef constructor_sol_vc_interp
+#undef constructor_grad_vc_interp
+#undef constructor_sol_vc_col
+#undef constructor_grad_vc_col
+#undef constructor_xyz_vc
+#undef destructor_NULL
+#undef destructor_sol_vc_interp
+#undef destructor_sol_vc_col
+#undef constructor_Flux_Ref
+#undef constructor_flux_ref_T
+#undef get_operator__cv0_vg_vc_T

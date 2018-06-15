@@ -14,6 +14,7 @@ set	(SOURCE
 	 geometry/geometry_parametric.c
 	 geometry/geometry_NURBS_parametric.c
 	 geometry/geometry_surface.c
+	 geometry/geometry_normals.c
 
 	 optimization/objective_functions.c
 	 optimization/optimize.c
@@ -53,6 +54,13 @@ set	(SOURCE
 	 solvers/dpg/solve_dpg.c
 	 solvers/dpg/volume_solver_dpg.c
 
+	 solvers/opg/compute_volume_rlhs_opg.c
+	 solvers/opg/compute_face_rlhs_opg.c
+	 solvers/opg/face_solver_opg.c
+	 solvers/opg/element_solver_opg.c
+	 solvers/opg/solve_opg.c
+	 solvers/opg/volume_solver_opg.c
+
 	 solvers/numerical_flux/numerical_flux.c
 	 solvers/numerical_flux/numerical_flux_advection.c
 	 solvers/numerical_flux/numerical_flux_diffusion.c
@@ -60,6 +68,7 @@ set	(SOURCE
 	 solvers/numerical_flux/numerical_flux_navier_stokes.c
 
 	 test_case/test_case.c
+	 test_case/test_case_c.c
 
 	 test_case/boundary/boundary.c
 	 test_case/boundary/boundary_advection.c
@@ -110,7 +119,6 @@ set	(LIBS_DEPEND
 	 Containers
 	 Intrusive
 	 Mesh
-	 Test_Complex_Simulation
 	)
 
 set(LIB Simulation)

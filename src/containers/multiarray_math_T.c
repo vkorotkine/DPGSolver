@@ -19,6 +19,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_math_functions.h"
+
 // Static function declarations ************************************************************************************* //
 
 /// \brief `mutable` version of \ref reinterpret_const_Multiarray_as_Matrix_T.
@@ -139,6 +144,17 @@ void scale_Multiarray_T_by_Vector_R
 	scale_Matrix_T_by_Vector_R(side,alpha,&a_M,b,invert_diag);
 }
 
+void scale_Multiarray_by_Vector_T
+	(const char side, const Real alpha, struct Multiarray_T*const a, const struct const_Vector_T*const b,
+	 const bool invert_diag)
+{
+	const ptrdiff_t ext_0 = a->extents[0],
+	                ext_1 = compute_size(a->order,a->extents)/ext_0;
+	struct Matrix_T a_M;
+	reinterpret_Multiarray_as_Matrix_T(a,&a_M,ext_0,ext_1);
+	scale_Matrix_by_Vector_T(side,alpha,&a_M,b,invert_diag);
+}
+
 void add_in_place_Multiarray_T (const Real alpha, struct Multiarray_T*const a, const struct const_Multiarray_T* b)
 {
 	assert(check_equal_order_extents(a->order,b->order,a->extents,b->extents));
@@ -147,6 +163,17 @@ void add_in_place_Multiarray_T (const Real alpha, struct Multiarray_T*const a, c
 	const ptrdiff_t size = compute_size(a->order,a->extents);
 	for (ptrdiff_t i = 0; i < size; ++i)
 		a->data[i] += alpha*(b->data[i]);
+}
+
+void multiply_in_place_Multiarray_T
+	(const Type alpha, struct Multiarray_T*const a, const struct const_Multiarray_T*const b)
+{
+	assert(check_equal_order_extents(a->order,b->order,a->extents,b->extents));
+	assert(a->layout == b->layout);
+
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+	for (ptrdiff_t i = 0; i < size; ++i)
+		a->data[i] *= alpha*(b->data[i]);
 }
 
 void multiply_in_place_Multiarray_TR
@@ -194,6 +221,36 @@ void mm_NNC_Multiarray_T
 	struct Matrix_T* c_M = constructor_move_Matrix_T_T(c->layout,ext_0_c,ext_1,false,c->data); // destructed
 
 	mm_RTT('N','N',alpha,beta,a,b_M,c_M);
+
+	destructor_const_Matrix_T(b_M);
+	destructor_Matrix_T(c_M);
+}
+
+void mm_NNC_Multiarray_TTT
+	(const Real alpha, const Real beta, const struct const_Matrix_T*const a,
+	 const struct const_Multiarray_T*const b, struct Multiarray_T*const c)
+{
+	const char layout = 'C';
+	assert(c->layout == layout);
+	assert(b->layout == layout);
+
+	const int order = b->order;
+	assert(b->order == c->order);
+
+	const ptrdiff_t ext_0_b = b->extents[0],
+	                ext_0_c = c->extents[0];
+	assert(a->ext_1 == ext_0_b);
+	assert(a->ext_0 == ext_0_c);
+	for (int i = 1; i < order; ++i)
+		assert(b->extents[i] == c->extents[i]);
+
+	const ptrdiff_t ext_1 = compute_size(order,b->extents)/ext_0_b;
+
+	const struct const_Matrix_T* b_M =
+		constructor_move_const_Matrix_T_T(b->layout,ext_0_b,ext_1,false,b->data); // destructed
+	struct Matrix_T* c_M = constructor_move_Matrix_T_T(c->layout,ext_0_c,ext_1,false,c->data); // destructed
+
+	mm_T('N','N',alpha,beta,a,b_M,c_M);
 
 	destructor_const_Matrix_T(b_M);
 	destructor_Matrix_T(c_M);
@@ -265,3 +322,8 @@ static void reinterpret_Matrix_as_Multiarray_T
 	a->owns_data = a_M->owns_data;
 	a->data      = a_M->data;
 }
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_math_functions.h"

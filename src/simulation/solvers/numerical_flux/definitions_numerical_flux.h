@@ -20,7 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name Definitions for the available numerical fluxes.
-#define NUM_FLUX_INVALID   1
+#define NUM_FLUX_INVALID   0
 
 #define NUM_FLUX_UPWIND    11
 

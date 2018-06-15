@@ -24,3 +24,17 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_sol_restart_T
 #undef constructor_const_sol_restart_T
 ///\}
+
+#undef constructor_sol_restart
+#undef Restart_Info
+#undef get_Restart_Info
+#undef constructor_indices_vol_background
+#undef constructor_sol_restart_from_background
+#undef constructor_volume_list
+#undef initialize_volumes_restart
+#undef initialize_ann_background
+#undef update_ind_vol_b
+#undef initialize_volumes_sol_coef
+#undef get_xyz_node_m_ve
+#undef read_sol_coef_bezier
+#undef get_ind_ve

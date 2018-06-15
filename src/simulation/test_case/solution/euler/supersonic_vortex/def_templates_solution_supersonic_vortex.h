@@ -24,11 +24,25 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_sol_supersonic_vortex_T constructor_const_sol_supersonic_vortex
 ///\}
 
+///\{ \name Static names
+#define constructor_sol_supersonic_vortex constructor_sol_supersonic_vortex
+#define Sol_Data__sv Sol_Data__sv
+#define get_sol_data get_sol_data
+#define read_data_supersonic_vortex read_data_supersonic_vortex
+///\}
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define set_sol_supersonic_vortex_T               set_sol_supersonic_vortex_c
 #define constructor_const_sol_supersonic_vortex_T constructor_const_sol_supersonic_vortex_c
+///\}
+
+///\{ \name Static names
+#define constructor_sol_supersonic_vortex constructor_sol_supersonic_vortex_c
+#define Sol_Data__sv Sol_Data__sv_c
+#define get_sol_data get_sol_data_c
+#define read_data_supersonic_vortex read_data_supersonic_vortex_c
 ///\}
 
 #endif

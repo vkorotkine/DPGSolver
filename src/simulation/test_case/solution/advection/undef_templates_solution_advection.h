@@ -24,4 +24,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vortex_advection/undef_templates_solution_vortex_advection.h"
 #include "hyperbolic_tan/undef_templates_solution_hyperbolic_tan.h"
 
+#undef compute_b_adv_fptr_T
+#undef Sol_Data__Advection_T
 #undef set_function_pointers_solution_advection_T
+#undef get_sol_data_advection_T
+#undef read_data_advection_T
+#undef compute_b_adv_constant_T
+#undef compute_b_adv_vortex_T
+
+#undef set_function_pointers_num_flux_T

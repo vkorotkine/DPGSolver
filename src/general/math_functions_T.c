@@ -25,6 +25,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_tol.h"
 
+#include "def_templates_math_functions.h"
+
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
@@ -57,6 +59,23 @@ Type norm_T (const ptrdiff_t n_entries, const Type*const data, const char*const 
 	EXIT_UNSUPPORTED;
 }
 
+Real norm_R_from_T (const ptrdiff_t n_entries, const Type*const data, const char*const norm_type)
+{
+	Real norm = 0.0;
+	if (strcmp(norm_type,"L2") == 0) {
+		for (ptrdiff_t i = 0; i < n_entries; ++i)
+			norm += real_T(data[i])*real_T(data[i]);
+		return sqrt_R(norm);
+	} else if (strcmp(norm_type,"Inf") == 0) {
+		for (ptrdiff_t i = 0; i < n_entries; ++i) {
+			if (abs_R(real_T(data[i])) > abs_R(norm))
+				norm = abs_R(real_T(data[i]));
+		}
+		return norm;
+	}
+	EXIT_UNSUPPORTED;
+}
+
 Type norm_diff_T
 	(const ptrdiff_t n_entries, const Type*const data_0, const Type*const data_1, const char*const norm_type)
 {
@@ -78,6 +97,29 @@ Type norm_diff_T
 	}
 
 	return ( abs_T(norm_den) > 1e2*EPS ? norm_num/norm_den : norm_num );
+}
+
+Real norm_diff_RT
+	(const ptrdiff_t n_entries, const Real*const data_0, const Type*const data_1, const char*const norm_type)
+{
+	Real norm_num = 0.0,
+	     norm_den = 0.0;
+
+	if (strstr(norm_type,"Inf")) {
+		for (ptrdiff_t i = 0; i < n_entries; ++i) {
+			const Real diff = abs_R(data_0[i]-real_T(data_1[i]));
+			if (abs_R(diff) > abs_R(norm_num))
+				norm_num = diff;
+
+			const Real max = max_abs_R(data_0[i],real_T(data_1[i]));
+			if (abs_R(max) > abs_R(norm_den))
+				norm_den = max;
+		}
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+
+	return ( abs_R(norm_den) > 1e2*EPS ? norm_num/norm_den : norm_num );
 }
 
 Type max_abs_T (const Type a, const Type b)
@@ -152,5 +194,15 @@ Type dot_T (const ptrdiff_t n, const Type*const a, const Type*const b)
 	return res;
 }
 
+Real dot_R_from_RT (const ptrdiff_t n, const Real*const a, const Type*const b)
+{
+	Real res = 0.0;
+	for (int i = 0; i < n; ++i)
+		res += a[i]*real_T(b[i]);
+	return res;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_math_functions.h"

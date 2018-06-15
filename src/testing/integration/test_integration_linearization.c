@@ -27,13 +27,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_base.h"
 #include "test_integration.h"
 #include "test_support_math_functions.h"
-#include "test_complex_computational_elements.h"
-#include "test_complex_geometry.h"
-#include "test_complex_solution.h"
-#include "test_complex_solve.h"
-#include "test_complex_solve_dg.h"
-#include "test_complex_solve_dpg.h"
-#include "test_complex_test_case.h"
+#include "test_support_solve_dg.h"
+#include "test_support_solve_dpg.h"
 
 #include "face.h"
 #include "element.h"
@@ -314,6 +309,7 @@ static void compute_lhs_analytical
 {
 	structor_derived_Elements(sim,f_ptrs_data,'c'); // destructed
 	constructor_derived_computational_elements(sim,f_ptrs_data->derived_comp_elem_method); // destructed
+	initialize_zero_memory_volumes(sim->volumes);
 	switch (sim->method) {
 	case METHOD_DG:
 		f_ptrs_data->compute_grad_coef(sim,sim->volumes,sim->faces);

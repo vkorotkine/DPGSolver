@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *         (rlhs) terms of the DG scheme.
  */
 
+#include "def_templates_compute_volume_rlhs_dg.h"
+
 struct Simulation;
 struct Solver_Storage_Implicit;
 struct Intrusive_List;
@@ -27,3 +29,5 @@ void compute_volume_rlhs_dg_T
 	 struct Solver_Storage_Implicit* ssi, ///< \ref Solver_Storage_Implicit.
 	 struct Intrusive_List* volumes       ///< The list of volumes.
 	);
+
+#include "undef_templates_compute_volume_rlhs_dg.h"

@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the vector print functions.
  */
 
+#if defined TYPE_RC
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
@@ -40,3 +41,20 @@ You should have received a copy of the GNU General Public License along with DPG
 #define print_Vector_R           print_Vector_d
 #define print_const_Vector_R     print_const_Vector_d
 ///\}
+
+#elif defined TYPE_I
+#if TYPE_I == TYPE_II
+
+///\{ \name Function names
+#define print_Vector_T_tol       print_Vector_i_tol
+#define print_const_Vector_T_tol print_const_Vector_i_tol
+#define print_Vector_T           print_Vector_i
+#define print_const_Vector_T     print_const_Vector_i
+
+#define fprint_const_Vector_T fprint_const_Vector_i
+#define fprint_Vector_T       fprint_Vector_i
+///\}
+
+#endif
+
+#endif

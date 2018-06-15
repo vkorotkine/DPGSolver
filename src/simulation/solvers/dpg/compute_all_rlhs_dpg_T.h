@@ -20,6 +20,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "def_templates_compute_all_rlhs_dpg.h"
+#include "def_templates_volume_solver.h"
+#include "def_templates_volume_solver_dpg.h"
+#include "def_templates_face_solver_dpg.h"
+#include "def_templates_matrix.h"
+#include "def_templates_vector.h"
+
 struct Simulation;
 struct Solver_Storage_Implicit;
 struct Intrusive_List;
@@ -36,16 +43,10 @@ void compute_all_rlhs_dpg_T
 	 struct Intrusive_List* volumes       ///< The list of volumes.
 	);
 
-/** \brief Get the appropriate sub-range of the \ref DPG_Solver_Element::cv1_vt_vc operators.
- *  \return See brief. */
-struct Multiarray_Operator get_operator__cv1_vt_vc__rlhs_T
-	(const struct DPG_Solver_Volume_T* dpg_s_vol ///< The current volume.
-	);
-
 /** \brief Construct the lhs left operator for the internal face dof for the dpg scheme.
  *  \return See brief. */
 /// \todo make static
-const struct const_Matrix_R* constructor_lhs_l_internal_face_dpg_T
+const struct const_Matrix_T* constructor_lhs_l_internal_face_dpg_T
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, ///< Pointer to the current volume.
 	 const struct DPG_Solver_Face_T* dpg_s_face   ///< Pointer to the current face.
 	);
@@ -90,3 +91,10 @@ void add_to_rlhs__face_boundary_T
 	 struct Matrix_T* rhs,                        ///< The rhs matrix contribution for the current volume/faces.
 	 const struct Simulation*const sim            ///< \ref Simulation.
 	);
+
+#include "undef_templates_compute_all_rlhs_dpg.h"
+#include "undef_templates_volume_solver.h"
+#include "undef_templates_volume_solver_dpg.h"
+#include "undef_templates_face_solver_dpg.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_vector.h"

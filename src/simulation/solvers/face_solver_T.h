@@ -18,6 +18,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+#include "def_templates_boundary.h"
+#include "def_templates_face_solver.h"
+
 /** \brief Container for data relating to the solver faces.
  *  \note Certain members are declared `const` despite requiring modification for adaptive simulations. Only members
  *        changing with every solver iteration are `mutable`.
@@ -41,23 +46,36 @@ struct Solver_Face_T {
 	struct Multiarray_T* s_coef;  ///< The coefficients of the solution in the \ref Simulation::basis_sol.
 
 	/// Values of the physical xyz coordinates at the face cubature nodes.
-	const struct const_Multiarray_R*const xyz_fc;
+	const struct const_Multiarray_T* xyz_fc;
 
 	/// Values of the physical xyz coordinates at the face cubature nodes on the exact domain boundary.
-	const struct const_Multiarray_R*const xyz_fc_ex_b;
+	const struct const_Multiarray_T* xyz_fc_ex_b;
 
 	/// Values of the outward pointing unit normal vector at the face cubature nodes.
-	const struct const_Multiarray_R*const normals_fc;
+	const struct const_Multiarray_T* normals_fc;
+
+	/** Values of the exact outward pointing unit normal vector at the face cubature nodes.
+	 *
+	 *  Unused unless one of the exact normal flags is enabled (boundary, all).
+	 */
+	const struct const_Multiarray_T* normals_fc_exact;
 
 	/** The determinant of the face geometry Jacobian evaluated at the face cubature nodes. See (eq. (B.6),
 	 *  \cite Zwanenburg2016) for the precise definition. */
-	const struct const_Multiarray_R*const jacobian_det_fc;
+	const struct const_Multiarray_T* jacobian_det_fc;
+
+	/** The determinant of the volume geometry Jacobian evaluated at the face cubature nodes. This is the same as \ref
+	 *  Solver_Volume_T::jacobian_det_vc but evaluated at the face cubature nodes. */
+	const struct const_Multiarray_T* vol_jacobian_det_fc;
+
+	/// The volume metric terms interpolated to the face cubature nodes.
+	const struct const_Multiarray_T* metrics_fc;
 
 	/// As for \ref Solver_Face_T::normals_fc but corresponding to the p1 geometry.
-	const struct const_Multiarray_R*const normals_p1;
+	const struct const_Multiarray_T* normals_p1;
 
 	/// As for \ref Solver_Face_T::jacobian_det_fc but corresponding to the p1 geometry.
-	const struct const_Multiarray_R*const jacobian_det_p1;
+	const struct const_Multiarray_T* jacobian_det_p1;
 
 	/** Construct 'r'ight numerical flux input members at face cubature nodes as seen from the left volume.
 	 *
@@ -98,3 +116,8 @@ void set_function_pointers_face_num_flux_T
 const struct const_Vector_R* get_operator__w_fc__s_e_T
 	(const struct Solver_Face_T*const s_face ///< The current face.
 	);
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+#include "undef_templates_boundary.h"
+#include "undef_templates_face_solver.h"

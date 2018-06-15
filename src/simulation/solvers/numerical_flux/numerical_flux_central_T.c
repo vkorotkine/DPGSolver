@@ -23,8 +23,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 
 
-#include "def_templates_numerical_flux.h"
-
 #include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
@@ -54,7 +52,7 @@ static void destructor_Fluxes_LR
 
 /// \brief Sets `nnf_a` = scale* col_sum(dot_mult(`n_l`,`f_a`)) for each slice of `f_a`.
 static void set_Numerical_Flux_member
-	(const struct const_Multiarray_R*const n_l, ///< The 'n'ormal vectors as seen from the 'l'eft volume.
+	(const struct const_Multiarray_T*const n_l, ///< The 'n'ormal vectors as seen from the 'l'eft volume.
 	 struct Multiarray_T*const f_a,             ///< Pointer to the 'a'rbitrary 'f'lux member.
 	 struct Multiarray_T*const nnf_a,           ///< Pointer to the 'a'rbitrary 'n'ormal 'n'umerical 'f'lux member.
 	 const Real scale,                          ///< Scaling constant.
@@ -86,8 +84,8 @@ static void compute_Numerical_Flux_T_central
 	struct Flux_T*const flux_l = fluxes_lr.flux_l,
 	             *const flux_r = fluxes_lr.flux_r;
 
-	const struct const_Multiarray_R*const n_l = num_flux_i->bv_l.normals;
-	transpose_Multiarray_R((struct Multiarray_R*)n_l,true);
+	const struct const_Multiarray_T*const n_l = num_flux_i->bv_l.normals;
+	transpose_Multiarray_T((struct Multiarray_T*)n_l,true);
 
 	struct Multiarray_T*const f_avg = (struct Multiarray_T*)
 		constructor_sum_Multiarrays_const_Multiarray_T(0.5,flux_l->f,0.5,flux_r->f); // destructed
@@ -97,7 +95,7 @@ static void compute_Numerical_Flux_T_central
 	if (num_flux_i->bv_r.nf_E_provided)
 		set_provided_Numerical_Flux_members(num_flux_i,num_flux);
 
-	transpose_Multiarray_R((struct Multiarray_R*)n_l,true);
+	transpose_Multiarray_T((struct Multiarray_T*)n_l,true);
 
 	destructor_Fluxes_LR(&fluxes_lr);
 /// \todo Ensure that all is working correctly for nonlinear BCs.
@@ -118,8 +116,8 @@ static void compute_Numerical_Flux_T_central_jacobian
 
 	struct Flux_Input_T*const flux_i = num_flux_i->flux_i;
 
-	const struct const_Multiarray_R*const n_l = num_flux_i->bv_l.normals;
-	transpose_Multiarray_R((struct Multiarray_R*)n_l,true);
+	const struct const_Multiarray_T*const n_l = num_flux_i->bv_l.normals;
+	transpose_Multiarray_T((struct Multiarray_T*)n_l,true);
 
 	const bool*const c_m = flux_i->compute_member;
 
@@ -161,7 +159,7 @@ static void compute_Numerical_Flux_T_central_jacobian
 	assert(c_m[4] == 0); // Add support.
 	assert(c_m[5] == 0); // Add support.
 
-	transpose_Multiarray_R((struct Multiarray_R*)n_l,true);
+	transpose_Multiarray_T((struct Multiarray_T*)n_l,true);
 
 	destructor_Fluxes_LR(&fluxes_lr);
 }
@@ -205,14 +203,14 @@ static void destructor_Fluxes_LR (struct Fluxes_LR*const fluxes_lr)
 }
 
 static void set_Numerical_Flux_member
-	(const struct const_Multiarray_R*const n_l, struct Multiarray_T*const f_a, struct Multiarray_T*const nnf_a,
+	(const struct const_Multiarray_T*const n_l, struct Multiarray_T*const f_a, struct Multiarray_T*const nnf_a,
 	 const Real scale, const int loop_max[3])
 {
 	for (int d  = 0; d  < loop_max[2]; ++d)  {
 	for (int vr = 0; vr < loop_max[1]; ++vr) {
 	for (int eq = 0; eq < loop_max[0]; ++eq) {
 		struct Multiarray_T f_s = interpret_Multiarray_as_slice_T(f_a,2,(ptrdiff_t[]){eq,vr,d});
-		multiply_in_place_Multiarray_TR(scale,&f_s,n_l);
+		multiply_in_place_Multiarray_T(scale,&f_s,n_l);
 
 		const struct const_Matrix_T f_M = interpret_const_Multiarray_as_Matrix_T((struct const_Multiarray_T*)&f_s);
 		struct Vector_T nnf_V = interpret_Multiarray_slice_as_Vector_T(nnf_a,(ptrdiff_t[]){eq,vr,d});
@@ -263,3 +261,10 @@ static void set_Numerical_Flux_Energy_member
 		set_to_value_Vector_T(&nnf_V,val);
 	}}
 }
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_flux.h"

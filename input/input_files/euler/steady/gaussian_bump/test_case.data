@@ -17,6 +17,8 @@ exit_ratio_i 1e-5
 
 display_progress 1
 output_restart   0
-use_restart      0
+use_restart      1
 
 use_straight_internal_geometry 1
+use_exact_normals_for_all 0
+use_exact_normals_for_boundary 0

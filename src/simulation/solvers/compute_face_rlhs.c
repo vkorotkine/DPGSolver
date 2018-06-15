@@ -25,6 +25,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray.h"
 #include "vector.h"
 
+#include "boundary.h"
+#include "flux.h"
 #include "multiarray_operator.h"
 #include "numerical_flux.h"
 #include "operator.h"
@@ -37,6 +39,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "compute_face_rlhs_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "compute_face_rlhs_T.c"
+#include "undef_templates_type.h"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

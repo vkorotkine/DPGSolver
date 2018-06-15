@@ -39,10 +39,11 @@ def run_advection_vortex (cmd_line_params,solution):
 	test_case  = "advection_steady_vortex_dg_2d"
 	petsc_opts = "petsc_options_gmres_tol_1e-15"
 
-	ctrl_matrix = ["p0-0", "p1-1", "p2-3",]
 	if (solution == "vortex"):
-		ctrl_specs  = [["ar1_iso"], ["ar1_super"], ["ar20_iso"], ["ar20_super"], ]
+		ctrl_matrix = ["p1-3",]
+		ctrl_specs  = [["ar5_iso"], ["ar5_super"], ["ar5_super_p_cub_p2"], ["ar5_iso_exact_normals"], ]
 	elif (solution == "straight"):
+		ctrl_matrix = ["p0-0", "p1-1", "p2-3",]
 		ctrl_specs  = [["straight_ar1_iso"], ["straight_ar1_super"], ["straight_ar20_iso"], ["straight_ar20_super"], ]
 	else:
 		sys.exit("Unsupported solution: \""+solution+"\".")
@@ -62,7 +63,7 @@ def run_diffusion_default (cmd_line_params):
 	for ctrl_spec in [["ar1_iso", ], ["ar20_iso", ], ["ar20_non_conforming_iso", ], ]:
 		execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
 
-def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming):
+def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming,exact_normals):
 	""" Run the Euler Supersonic Vortex cases. """
 	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"euler","steady","supersonic_vortex"])
 	test_case  = "euler_supersonic_vortex_dg_2d"
@@ -78,8 +79,12 @@ def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming):
 		ctrl_spec   = ["ar2-5_iso", "ar2-5_super", ]
 		ctrl_matrix = ["p2-3", ]
 	elif (ar_val == 5.0):
-		ctrl_spec   = ["ar5_iso", "ar5_super", ]
-		ctrl_matrix = ["p2-3", ]
+		if (not exact_normals):
+			ctrl_spec   = ["ar5_iso", "ar5_super", ]
+			ctrl_matrix = ["p1-3", ]
+		else:
+			ctrl_spec   = ["ar5_iso_exact_normals", ]
+			ctrl_matrix = ["p2-3", ]
 	elif (ar_val == 20.0):
 		ctrl_matrix = ["p2-3", ]
 		if (non_conforming != True):
@@ -106,6 +111,20 @@ def run_euler_joukowski (cmd_line_params,ar_val):
 	elif (ar_val == 4):
 		ctrl_spec   = ["ar4_super_p_le_1", "ar4_super", ]
 		ctrl_matrix = ["p2-3", ]
+	else:
+		sys.exit("Unsupported ar_val: \""+str(ar_val)+"\".")
+
+	execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
+
+def run_euler_gaussian_bump (cmd_line_params,ar_val):
+	""" Run the Euler Joukowski cases. """
+	err_output_dir = "/".join([cmd_line_params.output_err_dir_root,"euler","steady","gaussian_bump"])
+	test_case  = "euler_gaussian_bump_dg_2d"
+	petsc_opts = "petsc_options_gmres_tol_1e-2"
+
+	if (ar_val == 5):
+		ctrl_spec   = ["ar5_iso", "ar5_super", "ar5_super_exact_normals",]
+		ctrl_matrix = ["p1-3", ]
 	else:
 		sys.exit("Unsupported ar_val: \""+str(ar_val)+"\".")
 
@@ -151,6 +170,7 @@ if __name__ == "__main__":
 
 	One command line argument must be provided, specifying which jobs should be run:
 	- all:                              All jobs listed below;
+	- all_paper:                        All jobs used for results in the paper;
 	- euler_joukowski_arX:              Aspect ratio ~ X only.
 	- navier_stokes_taylor_couette_arX: Aspect ratio ~ X only.
 	"""
@@ -163,7 +183,7 @@ if __name__ == "__main__":
 
 	jobs_name = sys.argv[1]
 
-	if (jobs_name == "all" or "advection_vortex" in jobs_name):
+	if (jobs_name == "all" or jobs_name == "all_paper" or "advection_vortex" in jobs_name):
 		run_advection_vortex(clp,"vortex")
 	if (jobs_name == "all" or "advection_straight" in jobs_name):
 		run_advection_vortex(clp,"straight")
@@ -175,8 +195,10 @@ if __name__ == "__main__":
 		run_euler_supersonic_vortex(clp,1.0,False)
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar2-5" in jobs_name):
 		run_euler_supersonic_vortex(clp,2.5,False)
-	if (jobs_name == "all" or "euler_supersonic_vortex_ar5" in jobs_name):
-		run_euler_supersonic_vortex(clp,5.0,False)
+	if (jobs_name == "all" or jobs_name == "all_paper" or "euler_supersonic_vortex_ar5" in jobs_name):
+		run_euler_supersonic_vortex(clp,5.0,False,False)
+	if (jobs_name == "all" or jobs_name == "all_paper" or "euler_supersonic_vortex_exact_normals_ar5" in jobs_name):
+		run_euler_supersonic_vortex(clp,5.0,False,True)
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar20" in jobs_name):
 		run_euler_supersonic_vortex(clp,20.0,False)
 	if (jobs_name == "all" or "euler_supersonic_vortex_non_conforming_ar20" in jobs_name):
@@ -188,6 +210,10 @@ if __name__ == "__main__":
 		run_euler_joukowski(clp,2)
 	if (jobs_name == "all" or "euler_joukowski_ar4" in jobs_name):
 		run_euler_joukowski(clp,4)
+
+	# Note: Possibly requires that restart file was previously output.
+	if (jobs_name == "all" or jobs_name == "all_paper" or "euler_gaussian_bump_ar5" in jobs_name):
+		run_euler_gaussian_bump(clp,5)
 
 	if (jobs_name == "all" or "navier_stokes_taylor_couette_ar1" in jobs_name):
 		run_navier_stokes_taylor_couette(clp,1)

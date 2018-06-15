@@ -16,7 +16,7 @@ mesh_path        ../meshes/
 
 # Simulation variables
 
-solution_extension  p4
+solution_extension  non_constant
 test_case_extension non_conforming_h
 
 interp_tp  GL

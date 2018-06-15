@@ -329,6 +329,13 @@ void read_skip_c_2 (const char*const line_i, const int n_skip, char**const var, 
 	}
 }
 
+void read_skip_b (const char*const line, bool*const var)
+{
+	int tmp = 0;
+	sscanf(line,"%*s %d",&tmp);
+	*var = tmp;
+}
+
 void read_skip_const_b (const char*const line, const bool*const var)
 {
 	int tmp = 0;

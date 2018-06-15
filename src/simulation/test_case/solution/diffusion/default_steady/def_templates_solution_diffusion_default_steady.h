@@ -28,6 +28,21 @@ You should have received a copy of the GNU General Public License along with DPG
 #define add_to_flux_imbalance_source_diffusion_default_steady_T add_to_flux_imbalance_source_diffusion_default_steady
 ///\}
 
+///\{ \name Static names
+#define constructor_sol_diffusion_default_steady constructor_sol_diffusion_default_steady
+#define constructor_grad_diffusion_default_steady constructor_grad_diffusion_default_steady
+#define constructor_source_diffusion_default_steady constructor_source_diffusion_default_steady
+#define constructor_sol_diffusion_default_steady_1d constructor_sol_diffusion_default_steady_1d
+#define constructor_grad_diffusion_default_steady_1d constructor_grad_diffusion_default_steady_1d
+#define constructor_source_diffusion_default_steady_1d constructor_source_diffusion_default_steady_1d
+#define constructor_sol_diffusion_default_steady_2d constructor_sol_diffusion_default_steady_2d
+#define constructor_grad_diffusion_default_steady_2d constructor_grad_diffusion_default_steady_2d
+#define constructor_source_diffusion_default_steady_2d constructor_source_diffusion_default_steady_2d
+#define Sol_Data__dd Sol_Data__dd
+#define get_sol_data get_sol_data
+#define read_data_default_diffusion read_data_default_diffusion
+///\}
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
@@ -37,6 +52,21 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_const_grad_diffusion_default_steady_T       constructor_const_grad_diffusion_default_steady_c
 #define compute_source_rhs_diffusion_default_steady_T           compute_source_rhs_diffusion_default_steady_c
 #define add_to_flux_imbalance_source_diffusion_default_steady_T add_to_flux_imbalance_source_diffusion_default_steady_c
+///\}
+
+///\{ \name Static names
+#define constructor_sol_diffusion_default_steady constructor_sol_diffusion_default_steady_c
+#define constructor_grad_diffusion_default_steady constructor_grad_diffusion_default_steady_c
+#define constructor_source_diffusion_default_steady constructor_source_diffusion_default_steady_c
+#define constructor_sol_diffusion_default_steady_1d constructor_sol_diffusion_default_steady_1d_c
+#define constructor_grad_diffusion_default_steady_1d constructor_grad_diffusion_default_steady_1d_c
+#define constructor_source_diffusion_default_steady_1d constructor_source_diffusion_default_steady_1d_c
+#define constructor_sol_diffusion_default_steady_2d constructor_sol_diffusion_default_steady_2d_c
+#define constructor_grad_diffusion_default_steady_2d constructor_grad_diffusion_default_steady_2d_c
+#define constructor_source_diffusion_default_steady_2d constructor_source_diffusion_default_steady_2d_c
+#define Sol_Data__dd Sol_Data__dd_c
+#define get_sol_data get_sol_data_c
+#define read_data_default_diffusion read_data_default_diffusion_c
 ///\}
 
 #endif

@@ -20,15 +20,11 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_solution.h"
-#include "def_templates_solution_advection.h"
-#include "def_templates_volume_solver.h"
-#include "def_templates_multiarray.h"
 #include "solution_advection_default_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_solution.h"
-#include "undef_templates_solution_advection.h"
-#include "undef_templates_volume_solver.h"
-#include "undef_templates_multiarray.h"
+
+#include "def_templates_type_dc.h"
+#include "solution_advection_default_T.h"
+#include "undef_templates_type.h"
 
 #endif // DPG__solution_advection_default_h__INCLUDED

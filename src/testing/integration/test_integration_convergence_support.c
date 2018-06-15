@@ -100,6 +100,7 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 	switch (conv_study_type) {
 	case CONV_STUDY_SOLVE:
 		break; // Do nothing
+	case CONV_STUDY_SOLVE_NO_CHECK: // fallthrough
 	case CONV_STUDY_RESTART:
 		ignore_static = true;
 		break;
@@ -123,7 +124,8 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 		ignore_static = false;
 
 		switch (conv_study_type) {
-		case CONV_STUDY_SOLVE:
+		case CONV_STUDY_SOLVE:          // fallthrough
+		case CONV_STUDY_SOLVE_NO_CHECK:
 			solve_for_solution(sim);
 			break;
 		case CONV_STUDY_RESTART: {
@@ -158,8 +160,18 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 
 			set_convergence_order_discount(int_test_info);
 			bool pass = true;
-			check_convergence_orders(ERROR_STANDARD,&pass,&test_info,int_test_info,sim);
-			check_convergence_orders(ERROR_FUNCTIONAL,&pass,&test_info,int_test_info,sim);
+			switch (conv_study_type) {
+			case CONV_STUDY_SOLVE:   // fallthrough
+			case CONV_STUDY_RESTART:
+				check_convergence_orders(ERROR_STANDARD,&pass,&test_info,int_test_info,sim);
+				check_convergence_orders(ERROR_FUNCTIONAL,&pass,&test_info,int_test_info,sim);
+				break;
+			case CONV_STUDY_SOLVE_NO_CHECK:
+				break; // do nothing.
+			default:
+				EXIT_ERROR("Unsupported: %d\n",conv_study_type);
+				break;
+			}
 			assert_condition(pass);
 
 			structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,type_rc,ignore_static);
@@ -337,7 +349,7 @@ static void copy_error_files_for_conv_study
 	if (!int_test_info->conv_study_extension)
 		return;
 
-	char command[2*STRLEN_MAX];
+	char command[3*STRLEN_MAX];
 	const char*const input_name_i = compute_error_input_name_root(int_test_info,error_type,true,sim),
 	          *const input_name_o = compute_error_input_name_root(int_test_info,error_type,false,sim);
 

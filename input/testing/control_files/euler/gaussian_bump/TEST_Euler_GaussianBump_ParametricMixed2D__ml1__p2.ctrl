@@ -2,19 +2,23 @@ pde_name  euler
 pde_spec  steady/gaussian_bump
 
 geom_name n-cube
-geom_spec x_lr_internal
+geom_spec x_lr_internal/geom_ar_0-25
 
 dimension 2
 
 mesh_generator   n-cube/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
-mesh_type        mixed
+mesh_type        quad
 mesh_level       1 1
 mesh_path        ../meshes/
+restart_path     ../restart/euler/steady/gaussian_bump/restart__ml0__p4.msh
 
 
 # Simulation variables
+
+solution_extension  geom_ar_0-5
+test_case_extension exact_normals_for_boundary
 
 interp_tp  GL
 interp_si  WSH

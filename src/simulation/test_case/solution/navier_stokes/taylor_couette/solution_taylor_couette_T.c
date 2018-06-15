@@ -43,7 +43,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \note Only the velocity and temperature components are exact.
  */
 static struct Multiarray_T* constructor_sol_taylor_couette
-	(const struct const_Multiarray_R*const xyz, ///< xyz coordinates at which to evaluate the solution.
+	(const struct const_Multiarray_T*const xyz, ///< xyz coordinates at which to evaluate the solution.
 	 const struct Simulation*const sim          ///< \ref Simulation.
 	);
 
@@ -53,7 +53,7 @@ static struct Multiarray_T* constructor_sol_taylor_couette
  *  \note Only the velocity and temperature components are exact.
  */
 static struct Multiarray_T* constructor_grad_taylor_couette
-	(const struct const_Multiarray_R*const xyz, ///< xyz coordinates at which to evaluate the solution.
+	(const struct const_Multiarray_T*const xyz, ///< xyz coordinates at which to evaluate the solution.
 	 const struct Simulation*const sim          ///< \ref Simulation.
 	);
 
@@ -62,9 +62,9 @@ static struct Multiarray_T* constructor_grad_taylor_couette
 void set_sol_taylor_couette_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
 	assert(sol_cont.node_kind != 'r');
-	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+	const struct const_Multiarray_T* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* sol = constructor_sol_taylor_couette(xyz,sim); // destructed
-	destructor_const_Multiarray_R(xyz);
+	destructor_const_Multiarray_T(xyz);
 
 	update_Solution_Container_sol_T(&sol_cont,sol,sim);
 	destructor_Multiarray_T(sol);
@@ -73,22 +73,22 @@ void set_sol_taylor_couette_T (const struct Simulation* sim, struct Solution_Con
 void set_grad_taylor_couette_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
 	assert(sol_cont.node_kind != 's');
-	const struct const_Multiarray_R* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+	const struct const_Multiarray_T* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
 	struct Multiarray_T* grad = constructor_grad_taylor_couette(xyz,sim); // destructed
-	destructor_const_Multiarray_R(xyz);
+	destructor_const_Multiarray_T(xyz);
 
 	update_Solution_Container_grad_T(&sol_cont,grad,sim);
 	destructor_Multiarray_T(grad);
 }
 
 const struct const_Multiarray_T* constructor_const_sol_taylor_couette_T
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
 	return (struct const_Multiarray_T*) constructor_sol_taylor_couette(xyz,sim);
 }
 
 const struct const_Multiarray_T* constructor_const_grad_taylor_couette_T
-	(const struct const_Multiarray_R* xyz, const struct Simulation* sim)
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
 	return (struct const_Multiarray_T*) constructor_grad_taylor_couette(xyz,sim);
 }
@@ -121,7 +121,7 @@ static struct Sol_Data__tc get_sol_data
 	);
 
 static struct Multiarray_T* constructor_sol_taylor_couette
-	(const struct const_Multiarray_R*const xyz, const struct Simulation*const sim)
+	(const struct const_Multiarray_T*const xyz, const struct Simulation*const sim)
 {
 	assert(DIM == 2);
 	const struct Sol_Data__tc sol_data = get_sol_data(sim);
@@ -130,8 +130,8 @@ static struct Multiarray_T* constructor_sol_taylor_couette
 	const ptrdiff_t n_n = xyz->extents[0];
 	assert(DIM == xyz->extents[1]);
 
-	const Real*const x = get_col_const_Multiarray_R(0,xyz),
-	          *const y = get_col_const_Multiarray_R(1,xyz);
+	const Type*const x = get_col_const_Multiarray_T(0,xyz),
+	          *const y = get_col_const_Multiarray_T(1,xyz);
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const int n_var = test_case->n_var;
@@ -156,8 +156,10 @@ static struct Multiarray_T* constructor_sol_taylor_couette
 	           c      = omega/(1.0/(r_i*r_i)-1.0/(r_o*r_o));
 
 	for (int i = 0; i < n_n; ++i) {
-		const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]),
-		           th = atan2(y[i],x[i]),
+		const Real x_i = real_T(x[i]),
+		           y_i = real_T(y[i]);
+		const Real r  = sqrt(x_i*x_i+y_i*y_i),
+		           th = atan2(y_i,x_i),
 		           Vt = c*(1.0/r-r/(r_o*r_o)),
 		           t  = t_i - 2.0*c*c/(r_o*r_o)*mu/kappa*log(r/r_i) - c*c*mu/kappa*(1.0/(r*r)-1.0/(r_i*r_i))
 		              + dTdr_o*r_o*log(r/r_i),
@@ -177,7 +179,7 @@ static struct Multiarray_T* constructor_sol_taylor_couette
 }
 
 static struct Multiarray_T* constructor_grad_taylor_couette
-	(const struct const_Multiarray_R*const xyz, const struct Simulation*const sim)
+	(const struct const_Multiarray_T*const xyz, const struct Simulation*const sim)
 {
 	assert(DIM == 2);
 	static const int dmax = 2;
@@ -188,8 +190,8 @@ static struct Multiarray_T* constructor_grad_taylor_couette
 	const ptrdiff_t n_n = xyz->extents[0];
 	assert(DIM == xyz->extents[1]);
 
-	const Real*const x = get_col_const_Multiarray_R(0,xyz),
-	          *const y = get_col_const_Multiarray_R(1,xyz);
+	const Type*const x = get_col_const_Multiarray_T(0,xyz),
+	          *const y = get_col_const_Multiarray_T(1,xyz);
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const int n_var = test_case->n_var;
@@ -218,15 +220,17 @@ static struct Multiarray_T* constructor_grad_taylor_couette
 	           c      = omega/(1.0/(r_i*r_i)-1.0/(r_o*r_o));
 
 	for (int i = 0; i < n_n; ++i) {
-		const Real r  = sqrt(x[i]*x[i]+y[i]*y[i]),
-		           th = atan2(y[i],x[i]);
+		const Real x_i = real_T(x[i]),
+		           y_i = real_T(y[i]);
+		const Real r  = sqrt(x_i*x_i+y_i*y_i),
+		           th = atan2(y_i,x_i);
 		const Type Vt = u_ptr[i]/(-sin(th)),
 		           t  = p_ptr[i]/(r_s*rho_ptr[i]),
 			     p  = p_ptr[i];
 		assert(equal_T(Vt,v_ptr[i]/(cos(th)),EPS));
 
-		const Real dr_dX[]  = { x[i]/r, y[i]/r, },
-		           dth_dX[] = { -y[i]/(r*r), x[i]/(r*r), };
+		const Real dr_dX[]  = { x_i/r, y_i/r, },
+		           dth_dX[] = { -y_i/(r*r), x_i/(r*r), };
 
 		const Real dVt_dr = c*(-1.0/(r*r)-1.0/(r_o*r_o)),
 		           dt_dr  = -c*c*mu/kappa*(2.0/r*(1.0/(r_o*r_o)-1.0/(r*r)))+dTdr_o*r_o/r;
@@ -324,3 +328,11 @@ static void set_data_taylor_couette (struct Sol_Data__tc*const sol_data)
 	const Real Cp = compute_cp_ideal_gas(sol_data->r_s);
 	sol_data->kappa = compute_kappa_const_cp(sol_data->mu,Cp,sol_data->Pr);
 }
+
+#include "undef_templates_solution.h"
+#include "undef_templates_solution_navier_stokes.h"
+
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_math_functions.h"
+#include "undef_templates_test_case.h"

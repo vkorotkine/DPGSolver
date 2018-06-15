@@ -20,13 +20,11 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_geometry_surface.h"
-#include "def_templates_geometry_blended.h"
-#include "def_templates_matrix.h"
 #include "geometry_surface_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_geometry_surface.h"
-#include "undef_templates_geometry_blended.h"
-#include "undef_templates_matrix.h"
+
+#include "def_templates_type_dc.h"
+#include "geometry_surface_T.h"
+#include "undef_templates_type.h"
 
 #endif // DPG__geometry_surface_h__INCLUDED

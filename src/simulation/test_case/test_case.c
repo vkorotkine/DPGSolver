@@ -35,6 +35,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "test_case_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "test_case_T.c"
+#include "undef_templates_type.h"
 
 struct Test_Case_rc* constructor_Test_Case_rc_real (const struct Simulation* sim)
 {
@@ -80,7 +85,8 @@ bool test_case_explicitly_enforces_conservation (const struct Simulation*const s
 	switch (sim->method) {
 	case METHOD_DG:
 		break; // Do nothing.
-	case METHOD_DPG: {
+	case METHOD_DPG: // fallthrough
+	case METHOD_OPG: {
 		const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
 		if (test_case->ind_conservation > CONSERVATION_NOT_ENFORCED)
 			return true;
@@ -124,6 +130,36 @@ bool outputting_restart ( )
 	return output_restart;
 }
 
+const int* get_set_n_var_eq (const int*const new_vals)
+{
+	static int n_var_eq[2] = { -1, -1, };
+	if (new_vals) {
+		for (int i = 0; i < 2; ++i) {
+			assert(new_vals[i] > 0);
+			assert(new_vals[i] <= DIM+2);
+			n_var_eq[i] = new_vals[i];
+		}
+	}
+	return n_var_eq;
+}
+
+const bool* get_set_has_1st_2nd_order (const bool*const new_vals)
+{
+	static bool has_1st_2nd_order[2] = { false, false, };
+	if (new_vals) {
+		for (int i = 0; i < 2; ++i)
+			has_1st_2nd_order[i] = new_vals[i];
+	}
+	return has_1st_2nd_order;
+}
+
+int get_set_pde_index (const int*const new_val)
+{
+	static int pde_index = -1;
+	if (new_val)
+		pde_index = *new_val;
+	return pde_index;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-

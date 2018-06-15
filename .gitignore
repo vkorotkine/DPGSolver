@@ -38,7 +38,10 @@ deprecated/__pycache__/*
 deprecated/python/__pycache__/*
 src/processing/__pycache__/*
 src/processing/pre/__pycache__/*
+src/processing/post/__pycache__/*
 cmake/include/*
+cmake/run/parameters*
+!cmake/run/parameters_example.sh
 */__pycache__/*
 *input/meshes/__pycache__/*
 src/processing/post/*.txt
@@ -60,5 +63,10 @@ build_3D/*
 build_test_1D/*
 build_test_2D/*
 build_test_3D/*
+build_debug_1D/*
+build_debug_2D/*
+build_debug_3D/*
 
 NLPQLP_Optimizer/*
+
+TAGS

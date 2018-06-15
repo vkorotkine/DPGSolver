@@ -29,6 +29,7 @@ include_directories(
 	simulation/solvers/adaptation
 	simulation/solvers/dg
 	simulation/solvers/dpg
+	simulation/solvers/opg
 	simulation/solvers/numerical_flux
 	simulation/test_case
 	simulation/test_case/boundary
@@ -42,23 +43,6 @@ include_directories(
 	simulation/test_case/solution/restart
 	simulation/visualization
 	testing
-	)
-
-# Include directories required for dpg complex step functions.
-include_directories(
-	testing/complex/containers
-	testing/complex/simulation/computational_elements
-	testing/complex/simulation/geometry
-	testing/complex/simulation/operators
-	testing/complex/simulation/solvers
-	testing/complex/simulation/solvers/dpg
-	testing/complex/simulation/solvers/numerical_flux
-	testing/complex/simulation/test_case
-	testing/complex/simulation/test_case/boundary
-	testing/complex/simulation/test_case/flux
-	testing/complex/simulation/test_case/solution
-	testing/complex/simulation/test_case/solution/euler
-	testing/complex/templates
 	testing/integration
 	)
 

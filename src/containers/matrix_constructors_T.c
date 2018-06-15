@@ -22,7 +22,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 
-#include "def_templates_matrix_math.h"
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -130,6 +132,29 @@ struct Matrix_T* constructor_copy_Matrix_T_Matrix_R (struct Matrix_R* src)
 const struct const_Matrix_T* constructor_copy_const_Matrix_T_Matrix_R (const struct const_Matrix_R* src)
 {
 	return (struct const_Matrix_T*) constructor_copy_Matrix_T_Matrix_R((struct Matrix_R*)src);
+}
+
+struct Matrix_R* constructor_copy_Matrix_R_Matrix_T (struct Matrix_T*const src)
+{
+	const ptrdiff_t size = (src->ext_0)*(src->ext_1);
+	const Type*const data_src = src->data;
+
+	Real*const data = calloc((size_t)size , sizeof *data); // keep
+	for (ptrdiff_t i = 0; i < size; i++)
+#if TYPE_RC == TYPE_COMPLEX
+		data[i] = creal(data_src[i]);
+#elif TYPE_RC == TYPE_REAL || TYPE_I == TYPE_II
+		data[i] = data_src[i];
+#else
+		EXIT_ADD_SUPPORT;
+#endif
+
+	return constructor_move_Matrix_R_R(src->layout,src->ext_0,src->ext_1,true,data);
+}
+
+const struct const_Matrix_R* constructor_copy_const_Matrix_R_Matrix_T (const struct const_Matrix_T*const src)
+{
+	return (struct const_Matrix_R*) constructor_copy_Matrix_R_Matrix_T((struct Matrix_T*)src);
 }
 
 const struct const_Matrix_T* constructor_copy_const_Matrix_T (const struct const_Matrix_T*const src)
@@ -478,6 +503,27 @@ const struct const_Matrix_T* constructor_mm_RT_const_Matrix_T
 	return (const struct const_Matrix_T*) constructor_mm_RT_Matrix_T(trans_a_i,trans_b_i,alpha,a,b,layout);
 }
 
+struct Matrix_T* constructor_mm_TR_Matrix_T
+	(const char trans_a_i, const char trans_b_i, const Real alpha,
+	 const struct const_Matrix_T*const a, const struct const_Matrix_R*const b, const char layout)
+{
+	const MKL_INT m = (MKL_INT) ( trans_a_i == 'N' ? a->ext_0 : a->ext_1 ),
+	              n = (MKL_INT) ( trans_b_i == 'N' ? b->ext_1 : b->ext_0 );
+
+	struct Matrix_T* c = constructor_empty_Matrix_T(layout,m,n); // returned
+
+	mm_TRT(trans_a_i,trans_b_i,alpha,0.0,a,b,c);
+
+	return c;
+}
+
+const struct const_Matrix_T* constructor_mm_TR_const_Matrix_T
+	(const char trans_a_i, const char trans_b_i, const Real alpha,
+	 const struct const_Matrix_T*const a, const struct const_Matrix_R*const b, const char layout)
+{
+	return (const struct const_Matrix_T*) constructor_mm_TR_Matrix_T(trans_a_i,trans_b_i,alpha,a,b,layout);
+}
+
 struct Matrix_T* constructor_mm_NN1R_Matrix_T
 	(const struct const_Matrix_T*const a, const struct const_Matrix_T*const b)
 {
@@ -516,6 +562,22 @@ const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T_R
 	 const bool invert_diag)
 {
 	return (const struct const_Matrix_T*) constructor_mm_diag_Matrix_T_R(alpha,a,b,side,invert_diag);
+}
+
+struct Matrix_T* constructor_mm_diag_Matrix_R_T
+	(const Real alpha, const struct const_Matrix_R*const a, const struct const_Vector_T*const b, const char side,
+	 const bool invert_diag)
+{
+	struct Matrix_T* c = constructor_copy_Matrix_T_Matrix_R((struct Matrix_R*)a); // returned
+	scale_Matrix_by_Vector_T(side,alpha,c,b,invert_diag);
+	return c;
+}
+
+const struct const_Matrix_T* constructor_mm_diag_const_Matrix_R_T
+	(const Real alpha, const struct const_Matrix_R*const a, const struct const_Vector_T*const b, const char side,
+	 const bool invert_diag)
+{
+	return (const struct const_Matrix_T*) constructor_mm_diag_Matrix_R_T(alpha,a,b,side,invert_diag);
 }
 
 struct Matrix_T* constructor_mm_diag_Matrix_T
@@ -598,3 +660,7 @@ void destructor_conditional_const_Matrix_T (const struct const_Matrix_T* a)
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"

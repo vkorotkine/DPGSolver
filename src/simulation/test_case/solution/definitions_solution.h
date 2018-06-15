@@ -20,9 +20,8 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name Definitions for the available options for advection velocity computing functions.
-#define ADVECTION_TYPE_CONST       1 ///< See \ref compute_b_adv_constant.
-#define ADVECTION_TYPE_VORTEX      2 ///< See \ref compute_b_adv_vortex.
-#define ADVECTION_TYPE_VORTEX_POLY 3 ///< See \ref compute_b_adv_vortex.
+#define ADVECTION_TYPE_CONST       1 ///< See \ref compute_b_adv_constant_T.
+#define ADVECTION_TYPE_VORTEX      2 ///< See \ref compute_b_adv_vortex_T.
 ///\}
 
 ///\{ \name Definitions for the available options for boundary solution perturbation.

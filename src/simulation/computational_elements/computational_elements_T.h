@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *         and their derived types.
  */
 
+#include "def_templates_computational_elements.h"
+
 struct Simulation;
 
 /** \brief Construct derived \ref Volume and \ref Face computational element lists.
@@ -37,3 +39,5 @@ void destructor_derived_computational_elements_T
 	 const int base_category /**< The derived computational element list category.
 	                          *   Options: see \ref definitions_intrusive.h. */
 	);
+
+#include "undef_templates_computational_elements.h"

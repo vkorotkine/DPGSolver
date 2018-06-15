@@ -19,6 +19,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  converting from physical to reference space.
  */
 
+#include "def_templates_multiarray.h"
+#include "def_templates_flux.h"
+
 struct Flux_Input_T;
 struct mutable_Flux_T;
 struct Simulation;
@@ -57,7 +60,7 @@ struct Flux_Input_T {
 
 	const struct const_Multiarray_T* s;   ///< The solution variables.
 	const struct const_Multiarray_T* g;   ///< The solution gradient variables.
-	const struct const_Multiarray_R* xyz; ///< The xyz-coordinates.
+	const struct const_Multiarray_T* xyz; ///< The xyz-coordinates.
 
 	compute_Flux_fptr_T compute_Flux;     ///< \ref compute_Flux_fptr_T calling appropriate 1st/2nd order functions.
 	compute_Flux_fptr_T compute_Flux_1st; ///< \ref compute_Flux_fptr_T for the 1st order fluxes.
@@ -109,6 +112,11 @@ struct Flux_T* constructor_Flux_T
 /// \brief Destructor for a \ref Flux_T container.
 void destructor_Flux_T
 	(struct Flux_T* flux ///< Standard.
+		);
+
+/// \brief Destructor for a \ref Flux_T container if the input is non-NULL, otherwise simply return.
+void destructor_conditional_Flux_T
+	(struct Flux_T* flux ///< Standard.
 	);
 
 /// \brief Version of \ref compute_Flux_fptr_T for 1st order fluxes only.
@@ -129,3 +137,6 @@ void compute_Flux_12_T
 	 struct mutable_Flux_T* flux        ///< See brief.
 	);
 
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_flux.h"

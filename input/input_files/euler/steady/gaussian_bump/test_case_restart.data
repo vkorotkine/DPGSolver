@@ -19,4 +19,4 @@ display_progress 1
 output_restart   1
 use_restart      1
 
-use_straight_internal_geometry 1
+use_straight_internal_geometry 0

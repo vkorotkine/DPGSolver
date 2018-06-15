@@ -27,11 +27,16 @@
 	</tr>
 </table>
 
+<a href="http://spacemacs.org">
+<img src="https://cdn.rawgit.com/syl20bnr/spacemacs/442d025779da2f62fc86c2082703697714db6514/assets/spacemacs-badge.svg"
+alt="Built with Spacemacs">
+</a>
 
 ## Code Description
 - Methods:
 	- Discontinuous Galerkin (DG);
 	- Discontinuous Petrov Galerkin (DPG).
+	- Optimal Petrov Galerkin (OPG).
 - Supported Partial Differential Equations: Advection, Diffusion, Euler, Navier-Stokes.
 - Supported elements: LINEs, TRIs, QUADs, TETs, HEXs, WEDGEs, PYRs.
 - Supported refinements: isotropic h (size) or p (order).
@@ -47,15 +52,17 @@ the code.
 ## Building/Running the Code
 
 The code has been succesfully built in the following environments:
-- linux (ubuntu 16.04);
-- macOS (Sierra 10.12.5).
+- linux (ubuntu 16.04 and later);
+- macOS (Sierra 10.12.5 and later).
+
+Please consult the [installation instructions](INSTALL.md) for details concerning required software.
 
 ### Build using CMake
 
 An out-of-source build must be performed using the [sample scripts](cmake/run) by executing the
-appropriate bash script. For example, to configure for the debug build for macOS:
+appropriate bash script. For example, to configure for the debug build:
 ```sh
-$ ROOT/cmake/run$ sh macOS_gcc_debug.sh
+$ ROOT/cmake/run$ ./debug.sh
 ```
 
 **A customized script file may be required** if CMake is unable to locate required software which
@@ -107,7 +114,8 @@ An alternative make target is provided to run tests with --output-on-failure:
 BUILD$ make check
 ```
 
-Additional useful commands are:
+All tests should be passing other than those listed in the [documented failing tests file](FAILING_TESTS.md). Additional
+useful commands are:
 ```sh
 BUILD$ ctest -N (List the tests that would be run but not actually run them)
 BUILD$ ctest -R <regex> (Run tests matching regular expression)
@@ -119,9 +127,10 @@ BUILD$ ctest -V (Enable verbose output from tests)
 - Manmeet Bhabra
 - Cem Gormezano
 - Siva Nadarajah, siva.nadarajah (at) mcgill.ca
+- Doug Shi-Dong
 - Philip Zwanenburg, philip.zwanenburg (at) mail.mcgill.ca
 
-If you would like to make your own contributions to the project, the best place to start is the 
+If you would like to make your own contributions to the project, the best place to start is the
 [getting started page](https://codedocs.xyz/PhilipZwanenburg/DPGSolver/md_doc_GETTING_STARTED.html).
 
 # License

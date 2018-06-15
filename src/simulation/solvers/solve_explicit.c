@@ -107,15 +107,9 @@ void solve_explicit (struct Simulation* sim)
 				copy_rhs(sim,NULL);
 		}
 
-		if (t_step%100 == 0){
-			// Display the progress every 100 time steps
-			display_progress(test_case,t_step,max_rhs,max_rhs0);
-			fflush(stdout);
-		}
-		if (check_exit(test_case,max_rhs,max_rhs0)){
-			display_progress(test_case,t_step,max_rhs,max_rhs0);
+		display_progress(test_case,t_step,max_rhs,max_rhs0);
+		if (check_exit(test_case,max_rhs,max_rhs0))
 			break;
-		}
 	}
 
 	destructor_derived_computational_elements(sim,IL_SOLVER);
@@ -237,13 +231,10 @@ static double time_step_euler (const double dt, const struct Simulation* sim)
 
 	const double max_rhs = compute_rhs(sim);
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		// s_vol holds the data for the given volume
-		// s_vol_dg holds the dg related data, such as the RHS for the given volume
-		struct Solver_Volume*    s_vol    = (struct Solver_Volume*) curr;
-		struct DG_Solver_Volume* s_vol_dg = (struct DG_Solver_Volume*) curr;
+		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
 
 		struct Multiarray_d* sol_coef = s_vol->sol_coef,
-		                   * rhs      = s_vol_dg->rhs;
+		                   * rhs      = s_vol->rhs;
 
 		double* data_s   = sol_coef->data,
 		      * data_rhs = rhs->data;
@@ -273,7 +264,7 @@ static double time_step_ssp_rk_33 (const double dt, const struct Simulation* sim
 
 			struct Multiarray_d* sol_coef   = s_vol->sol_coef,
 			                   * sol_coef_p = s_vol_dg->sol_coef_p,
-			                   * rhs        = s_vol_dg->rhs;
+			                   * rhs        = s_vol->rhs;
 
 			double* data_s   = sol_coef->data,
 			      * data_sp  = sol_coef_p->data,
@@ -335,7 +326,7 @@ static double time_step_ls_rk_54 (const double dt, const struct Simulation* sim)
 
 			struct Multiarray_d* sol_coef   = s_vol->sol_coef,
 			                   * sol_coef_p = s_vol_dg->sol_coef_p,
-			                   * rhs        = s_vol_dg->rhs;
+			                   * rhs        = s_vol->rhs;
 
 			double* data_s   = sol_coef->data,
 			      * data_sp  = sol_coef_p->data,

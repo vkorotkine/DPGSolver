@@ -15,8 +15,6 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "def_templates_const_cast_d.h"
-
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //

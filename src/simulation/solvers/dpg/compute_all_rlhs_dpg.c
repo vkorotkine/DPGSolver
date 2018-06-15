@@ -41,17 +41,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "solve.h"
 #include "test_case.h"
 
-
-#include "test_complex_volume_solver_dpg.h"
-
-#include "complex_multiarray.h"
-#include "complex_matrix.h"
-#include "complex_vector.h"
-
-#include "test_complex_computational_elements.h"
-#include "test_complex_compute_all_rhs_dpg.h"
-#include "test_complex_test_case.h"
-
 // Static function declarations ************************************************************************************* //
 
 struct Norm_DPG;
@@ -106,10 +95,26 @@ static const struct const_Matrix_d* constructor_norm_DPG_dN_ds__h1_upwind
 	 const struct Simulation* sim               ///< See brief.
 	);
 
+#if TYPE_RC == TYPE_COMPLEX
+/** \brief Version of \ref add_to_petsc_Mat_Vec_dpg setting a single column of Solver_Storage_Implicit::A to the values
+ *         computed using the complex step rhs. */
+static void add_to_petsc_Mat_dpg_c
+	(const struct Solver_Volume_c* s_vol,  ///< See brief.
+	 const struct const_Vector_c* rhs_neg, ///< See brief.
+	 struct Solver_Storage_Implicit* ssi,  ///< See brief.
+	 const struct Simulation*const sim     ///< See brief.
+		);
+#endif
+
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
 #include "compute_all_rlhs_dpg_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "compute_all_rlhs_dpg_T.c"
+#include "undef_templates_type.h"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
@@ -212,7 +217,7 @@ static void add_to_lhs_opt__d_opt_t_ds
 	                ext_0       = ( norm->dN_ds ? lhs_std->ext_1 : size_s_coef ),
 	                ext_1       = (lhs_opt_t->ext_0)/ext_0;
 	struct Matrix_d lhs_opt_t_M =
-		{ .layout = 'C', .ext_0 = ext_0, .ext_1 = ext_1, .owns_data = false, .data = (Type*)lhs_opt_t->data, };
+		{ .layout = 'C', .ext_0 = ext_0, .ext_1 = ext_1, .owns_data = false, .data = (double*)lhs_opt_t->data, };
 	transpose_Matrix_d(&lhs_opt_t_M,true);
 	set_block_Matrix_d(lhs_opt,0,0,(struct const_Matrix_d*)&lhs_opt_t_M,0,0,
 	                   lhs_opt_t_M.ext_0,lhs_opt_t_M.ext_1,'a');
@@ -319,7 +324,7 @@ static const struct const_Matrix_d* constructor_norm_DPG_dN_ds__h1_upwind
 			for (int dim = 0; dim < DIM; ++dim) {
 				const ptrdiff_t ind = compute_index_sub_container(
 					d2fr_ds2_Ma->order,1,d2fr_ds2_Ma->extents,(ptrdiff_t[]){eq,vr,vr2,dim});
-				d2fr_ds2.data = (Type*)&d2fr_ds2_Ma->data[ind];
+				d2fr_ds2.data = (double*)&d2fr_ds2_Ma->data[ind];
 				mm_diag_d('L',1.0,1.0,cvcv1_vt_vc.data[dim]->op_std,
 				          (struct const_Vector_d*)&d2fr_ds2,cvcv1r_l,false);
 			}
@@ -344,7 +349,7 @@ static const struct const_Matrix_d* constructor_norm_DPG_dN_ds__h1_upwind
 		 *  the transpose of the eq=1, vr=0 contribution of d/ds_{vr2} (df_ds'*df_ds).
 		 */
 		const struct const_Matrix_d* dn1_ds =
-			constructor_mm_const_Matrix_T('T','N',1.0,n1_lt,(struct const_Matrix_T*)cvcv1r,'R'); // destructed
+			constructor_mm_const_Matrix_d('T','N',1.0,n1_lt,(struct const_Matrix_d*)cvcv1r,'R'); // destructed
 		for (int vr = 0; vr < n_vr; ++vr) {
 		for (int eq = 0; eq < n_eq; ++eq) {
 		for (int dof_s = 0; dof_s < n_dof_s; ++dof_s) {
@@ -368,6 +373,25 @@ static const struct const_Matrix_d* constructor_norm_DPG_dN_ds__h1_upwind
 
 	return (struct const_Matrix_d*) dN_ds;
 }
+
+#if TYPE_RC == TYPE_COMPLEX
+static void add_to_petsc_Mat_dpg_c
+	(const struct Solver_Volume_c* s_vol, const struct const_Vector_c* rhs_neg, struct Solver_Storage_Implicit* ssi,
+	 const struct Simulation*const sim)
+{
+	const ptrdiff_t ext_0 = rhs_neg->ext_0;
+
+	const struct const_Vector_i* idxm = constructor_petsc_idxm_dpg_c(ext_0,s_vol,sim); // destructed.
+
+	PetscScalar rhs_c_data[ext_0];
+	for (int i = 0; i < ext_0; ++i)
+		rhs_c_data[i] = cimag((-rhs_neg->data[i])/CX_STEP);
+
+	MatSetValues(ssi->A,(PetscInt)ext_0,idxm->data,1,&ssi->col,rhs_c_data,ADD_VALUES);
+
+	destructor_const_Vector_i(idxm);
+}
+#endif
 
 // Level 1 ********************************************************************************************************** //
 
@@ -464,7 +488,7 @@ static void add_to_dlhs_ds__norm
 
 	const char layout = dlhs_ds->layout;
 	assert(layout == 'C');
-	struct Matrix_d* dlhs_ds_total = constructor_mm_Matrix_T('N','N',-1.0,norm->dN_ds,opt_t,'R'); // moved
+	struct Matrix_d* dlhs_ds_total = constructor_mm_Matrix_d('N','N',-1.0,norm->dN_ds,opt_t,'R'); // moved
 
 	const ptrdiff_t n_t  = norm->N->ext_0,
 	                n_s  = (norm->dN_ds->ext_0)/n_t,
@@ -537,7 +561,7 @@ static void add_nonlinear_l_mult_contribution
 		s_coef_c->data[col_l] -= CX_STEP*I;
 
 		const struct Multiarray_c*const l_mult = s_vol_c->l_mult;
-		const struct const_Vector_R*const ones_coef = get_operator__ones_coef_vt(dpg_s_vol);
+		const struct const_Vector_d*const ones_coef = get_operator__ones_coef_vt(dpg_s_vol);
 		struct Vector_c*const ones_coef_l_mult = constructor_empty_Vector_c(n_eq*ones_coef->ext_0); // destruced
 		for (int ind = 0, eq = 0; eq < n_eq; ++eq) {
 		for (int n = 0; n < ones_coef->ext_0; ++n) {

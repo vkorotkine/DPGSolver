@@ -28,23 +28,23 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function pointers
 #define constructor_Boundary_Value_Input_face_fptr_T constructor_Boundary_Value_Input_face_fptr
 #define constructor_Boundary_Value_fptr_T            constructor_Boundary_Value_fptr
-
-#define constructor_s_fc_interp_T constructor_s_fc_interp
 ///\}
 
 ///\{ \name Function names
+#define constructor_sol_bv                                    constructor_sol_bv_d
 #define constructor_Boundary_Value_Input_face_s_fcl_interp_T  constructor_Boundary_Value_Input_face_s_fcl_interp
 #define constructor_Boundary_Value_Input_face_sg_fcl_interp_T constructor_Boundary_Value_Input_face_sg_fcl_interp
 #define destructor_Boundary_Value_Input_T                     destructor_Boundary_Value_Input
 #define constructor_Boundary_Value_s_fcl_interp_T             constructor_Boundary_Value_s_fcl_interp
 #define destructor_Boundary_Value_T                           destructor_Boundary_Value
 #define constructor_Boundary_Value_T_grad_from_internal       constructor_Boundary_Value_grad_from_internal
+#define constructor_s_fc_interp_T constructor_s_fc_interp_d
+#define constructor_g_fc_interp_T constructor_g_fc_interp_d
 ///\}
 
 ///\{ \name Function names (pde specific)
 #define constructor_Boundary_Value_T_advection_inflow   constructor_Boundary_Value_advection_inflow
 #define constructor_Boundary_Value_T_advection_outflow  constructor_Boundary_Value_advection_outflow
-#define constructor_Boundary_Value_T_advection_slipwall constructor_Boundary_Value_advection_slipwall
 #define constructor_Boundary_Value_T_advection_upwind   constructor_Boundary_Value_advection_upwind
 
 #define constructor_Boundary_Value_T_diffusion_dirichlet constructor_Boundary_Value_diffusion_dirichlet
@@ -62,6 +62,30 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic  constructor_Boundary_Value_navier_stokes_no_slip_flux_diabatic
 ///\}
 
+///\{ \name Static names
+#define constructor_grad_bv constructor_grad_bv
+#define BC_Data BC_Data
+#define get_bc_data_back_pressure get_bc_data_back_pressure
+#define get_bc_data_total_tp get_bc_data_total_tp
+#define compute_Vn compute_Vn
+#define set_uvw set_uvw
+#define compute_Vt compute_Vt
+#define compute_uvw compute_uvw
+#define compute_opposite_normal_uvw compute_opposite_normal_uvw
+#define read_data_back_pressure read_data_back_pressure
+#define read_data_total_tp read_data_total_tp
+#define compute_uvw_ex_fptr compute_uvw_ex_fptr
+#define Exact_Boundary_Data Exact_Boundary_Data
+#define set_Exact_Boundary_Data set_Exact_Boundary_Data
+#define constructor_Boundary_Value_T_navier_stokes_no_slip_all_general constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
+#define constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
+#define read_and_set_data_diabatic_flux read_and_set_data_diabatic_flux
+#define read_and_set_data_no_slip_rotating read_and_set_data_no_slip_rotating
+#define read_and_set_data_rho_E read_and_set_data_rho_E
+#define compute_uvw_ex_zero compute_uvw_ex_zero
+#define compute_uvw_ex_rotating compute_uvw_ex_rotating
+///\}
+
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Data types
@@ -73,23 +97,23 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function pointers
 #define constructor_Boundary_Value_Input_face_fptr_T constructor_Boundary_Value_Input_c_face_fptr
 #define constructor_Boundary_Value_fptr_T            constructor_Boundary_Value_c_fptr
-
-#define constructor_s_fc_interp_T constructor_s_fc_interp_c
 ///\}
 
 ///\{ \name Function names
+#define constructor_sol_bv                                    constructor_sol_bv_c
 #define constructor_Boundary_Value_Input_face_s_fcl_interp_T  constructor_Boundary_Value_Input_c_face_s_fcl_interp
 #define constructor_Boundary_Value_Input_face_sg_fcl_interp_T constructor_Boundary_Value_Input_c_face_sg_fcl_interp
 #define destructor_Boundary_Value_Input_T                     destructor_Boundary_Value_Input_c
 #define constructor_Boundary_Value_s_fcl_interp_T             constructor_Boundary_Value_c_s_fcl_interp
 #define destructor_Boundary_Value_T                           destructor_Boundary_Value_c
 #define constructor_Boundary_Value_T_grad_from_internal       constructor_Boundary_Value_c_grad_from_internal
+#define constructor_s_fc_interp_T constructor_s_fc_interp_c
+#define constructor_g_fc_interp_T constructor_g_fc_interp_c
 ///\}
 
 ///\{ \name Function names
 #define constructor_Boundary_Value_T_advection_inflow   constructor_Boundary_Value_c_advection_inflow
 #define constructor_Boundary_Value_T_advection_outflow  constructor_Boundary_Value_c_advection_outflow
-#define constructor_Boundary_Value_T_advection_slipwall constructor_Boundary_Value_c_advection_slipwall
 #define constructor_Boundary_Value_T_advection_upwind   constructor_Boundary_Value_c_advection_upwind
 
 #define constructor_Boundary_Value_T_diffusion_dirichlet constructor_Boundary_Value_c_diffusion_dirichlet
@@ -105,6 +129,30 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_Boundary_Value_T_navier_stokes_no_slip_all_rotating   constructor_Boundary_Value_c_navier_stokes_no_slip_all_rotating
 #define constructor_Boundary_Value_T_navier_stokes_no_slip_flux_adiabatic constructor_Boundary_Value_c_navier_stokes_no_slip_flux_adiabatic
 #define constructor_Boundary_Value_T_navier_stokes_no_slip_flux_diabatic  constructor_Boundary_Value_c_navier_stokes_no_slip_flux_diabatic
+///\}
+
+///\{ \name Static names
+#define constructor_grad_bv constructor_grad_bv_c
+#define BC_Data BC_Data_c
+#define get_bc_data_back_pressure get_bc_data_back_pressure_c
+#define get_bc_data_total_tp get_bc_data_total_tp_c
+#define compute_Vn compute_Vn_c
+#define set_uvw set_uvw_c
+#define compute_Vt compute_Vt_c
+#define compute_uvw compute_uvw_c
+#define compute_opposite_normal_uvw compute_opposite_normal_uvw_c
+#define read_data_back_pressure read_data_back_pressure_c
+#define read_data_total_tp read_data_total_tp_c
+#define compute_uvw_ex_fptr compute_uvw_ex_fptr_c
+#define Exact_Boundary_Data Exact_Boundary_Data_c
+#define set_Exact_Boundary_Data set_Exact_Boundary_Data_c
+#define constructor_Boundary_Value_T_navier_stokes_no_slip_all_general constructor_Boundary_Value_T_navier_stokes_no_slip_all_general_c
+#define constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general_c
+#define read_and_set_data_diabatic_flux read_and_set_data_diabatic_flux_c
+#define read_and_set_data_no_slip_rotating read_and_set_data_no_slip_rotating_c
+#define read_and_set_data_rho_E read_and_set_data_rho_E_c
+#define compute_uvw_ex_zero compute_uvw_ex_zero_c
+#define compute_uvw_ex_rotating compute_uvw_ex_rotating_c
 ///\}
 
 #endif

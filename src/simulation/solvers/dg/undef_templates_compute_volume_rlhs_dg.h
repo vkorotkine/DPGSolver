@@ -16,17 +16,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Undefine macro definitions for c-style templating relating to rlhs computing functions for the dg volumes.
  */
 
-///\{ \name Data types
-#undef S_Params_T
-///\}
-
-///\{ \name Function pointers
-#undef compute_rlhs_dg_fptr_T
-///\}
-
 ///\{ \name Function names
 #undef compute_volume_rlhs_dg_T
-
-#undef set_s_params_T
-#undef compute_rhs_v_dg_T
 ///\}
+
+#undef S_Params_T
+#undef set_s_params_T

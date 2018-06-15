@@ -21,11 +21,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_face_solver.h"
 #include "def_templates_face_solver_dg.h"
+#include "def_templates_volume_solver.h"
 
 #include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
-
-#include "def_templates_volume_solver.h"
 
 #include "def_templates_test_case.h"
 
@@ -51,8 +50,8 @@ void constructor_derived_DG_Solver_Face_T (struct Face* face_ptr, const struct S
 
 			if (test_case->solver_method_curr == 'i') {
 				for (int i = 0; i < DIM; ++i) {
-					ni->d_g_coef_f__d_s_coef[0][i] = constructor_empty_const_Matrix_R('R',0,0); // destructed
-					ni->d_g_coef_f__d_s_coef[1][i] = constructor_empty_const_Matrix_R('R',0,0); // destructed
+					ni->d_g_coef_f__d_s_coef[0][i] = constructor_empty_const_Matrix_T('R',0,0); // destructed
+					ni->d_g_coef_f__d_s_coef[1][i] = constructor_empty_const_Matrix_T('R',0,0); // destructed
 				}
 			} else {
 				assert(test_case->solver_method_curr == 'e');
@@ -72,11 +71,20 @@ void destructor_derived_DG_Solver_Face_T (struct Face* face_ptr)
 
 		destructor_conditional_Multiarray_T(ni->grad_coef_f);
 		for (int i = 0; i < DIM; ++i) {
-			destructor_conditional_const_Matrix_R(ni->d_g_coef_f__d_s_coef[0][i]);
-			destructor_conditional_const_Matrix_R(ni->d_g_coef_f__d_s_coef[1][i]);
+			destructor_conditional_const_Matrix_T(ni->d_g_coef_f__d_s_coef[0][i]);
+			destructor_conditional_const_Matrix_T(ni->d_g_coef_f__d_s_coef[1][i]);
 		}
 	}
 }
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_dg.h"
+#include "undef_templates_volume_solver.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+
+#include "undef_templates_test_case.h"

@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef constructor_mm_NN1_Operator_Multiarray_T
 #undef constructor_mm_NN1_Operator_const_Multiarray_T
+#undef constructor_mm_NN1_Operator_Multiarray_T_Multiarray_R
+#undef constructor_mm_NN1_Operator_const_Multiarray_T_Multiarray_R
 
 #undef set_ops_tp_n_rows_cols_T
 

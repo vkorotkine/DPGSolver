@@ -18,3 +18,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef update_ind_dof_dpg_T
 #undef constructor_nnz_dpg_T
+
+#undef increment_nnz_off_diag
+#undef increment_nnz_off_diag_constraint
+#undef increment_nnz_off_diag_v
+#undef increment_nnz_off_diag_f

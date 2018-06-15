@@ -21,4 +21,4 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef set_function_pointers_solution_diffusion_T
 
-#undef set_function_pointers_num_flux_T
+#undef set_function_pointers_num_flux

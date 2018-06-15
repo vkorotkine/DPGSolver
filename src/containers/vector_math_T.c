@@ -18,7 +18,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 
 #include "def_templates_vector.h"
-
 #include "def_templates_matrix.h"
 
 // Static function declarations ************************************************************************************* //
@@ -120,3 +119,6 @@ void set_to_sum_Vector_T
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_vector.h"
+#include "undef_templates_matrix.h"

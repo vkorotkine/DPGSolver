@@ -50,6 +50,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "solve_dg.h"
 #include "solve_dpg.h"
+#include "solve_opg.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -82,6 +83,11 @@ static void correct_coef
 
 #include "def_templates_type_d.h"
 #include "solve_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "solve_T.c"
+#include "undef_templates_type.h"
 
 void solve_for_solution (struct Simulation* sim)
 {
@@ -89,8 +95,22 @@ void solve_for_solution (struct Simulation* sim)
 	assert(sim->faces->name   == IL_FACE_SOLVER);
 	assert(list_is_derived_from("solver",'e',sim));
 
-	if (ALWAYS_SET_INITIAL)
+	if (ALWAYS_SET_INITIAL) {
+		printf("*** Warning: Always resetting to initial solution. *** \n");
 		set_initial_solution(sim);
+#if 0
+for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+	struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+	set_to_value_Multiarray_T(s_vol->sol_coef,0.0);
+	set_to_value_Multiarray_T(s_vol->test_s_coef,0.0);
+}
+#include "face_solver.h"
+for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+	struct Solver_Face*const s_face = (struct Solver_Face*) curr;
+	set_to_value_Multiarray_T(s_face->nf_coef,0.0);
+}
+#endif
+	}
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	switch (test_case->solver_proc) {
@@ -128,14 +148,15 @@ double compute_rhs (const struct Simulation* sim)
 	return max_rhs;
 }
 
-double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implicit* s_store_i)
+double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
 {
 	double max_rhs = 0.0;
 
 	zero_memory_volumes(sim->volumes);
 	switch (sim->method) {
-		case METHOD_DG:  max_rhs = compute_rlhs_dg(sim,s_store_i);    break;
-		case METHOD_DPG: max_rhs = compute_rlhs_dpg(sim,s_store_i);   break;
+		case METHOD_DG:  max_rhs = compute_rlhs_dg(sim,ssi);    break;
+		case METHOD_DPG: max_rhs = compute_rlhs_dpg(sim,ssi);   break;
+		case METHOD_OPG: max_rhs = compute_rlhs_opg(sim,ssi);   break;
 		default:         EXIT_ERROR("Unsupported: %d\n",sim->method); break;
 	}
 
@@ -145,9 +166,17 @@ double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implici
 void copy_rhs (const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi)
 {
 	switch (sim->method) {
-		case METHOD_DG:  copy_rhs_dg(sim); break;
+		case METHOD_DG: // fallthrough
+		case METHOD_OPG:
+			break; // Do nothing
 		case METHOD_DPG: EXIT_ADD_SUPPORT; UNUSED(ssi); break;
 		default:         EXIT_ERROR("Unsupported: %d\n",sim->method); break;
+	}
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+
+		destructor_conditional_Multiarray_d(s_vol->rhs_0);
+		s_vol->rhs_0 = constructor_copy_Multiarray_d(s_vol->rhs); // keep
 	}
 }
 
@@ -275,6 +304,32 @@ void compute_flux_imbalances (struct Simulation*const sim)
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
 		break;
 	}
+}
+
+double compute_max_rhs_from_ssi (const struct Solver_Storage_Implicit*const ssi)
+{
+	double max_rhs = 0.0;
+	VecNorm(ssi->b,NORM_INFINITY,&max_rhs);
+	return max_rhs;
+}
+
+void add_to_petsc_Mat (const struct Solver_Storage_Implicit*const ssi, const struct const_Matrix_d*const lhs)
+{
+	assert(lhs->layout == 'R');
+	const ptrdiff_t ext_0 = lhs->ext_0,
+	                ext_1 = lhs->ext_1;
+
+	PetscInt idxm[ext_0],
+	         idxn[ext_1];
+
+	for (int i = 0; i < ext_0; ++i)
+		idxm[i] = ssi->row+i;
+
+	for (int i = 0; i < ext_1; ++i)
+		idxn[i] = ssi->col+i;
+
+	const PetscScalar*const vv = lhs->data;
+	MatSetValues(ssi->A,(PetscInt)ext_0,idxm,(PetscInt)ext_1,idxn,vv,ADD_VALUES);
 }
 
 // Static functions ************************************************************************************************* //

@@ -22,17 +22,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver.h"
 
 #include "def_templates_type_d.h"
-#include "def_templates_matrix.h"
-#include "def_templates_multiarray.h"
-#include "def_templates_vector.h"
-#include "def_templates_volume_solver.h"
-#include "def_templates_volume_solver_dg.h"
 #include "volume_solver_dg_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_matrix.h"
-#include "undef_templates_multiarray.h"
-#include "undef_templates_vector.h"
-#include "undef_templates_volume_solver.h"
-#include "undef_templates_volume_solver_dg.h"
+
+#include "def_templates_type_dc.h"
+#include "volume_solver_dg_T.h"
+#include "undef_templates_type.h"
 
 #endif // DPG__volume_solver_dg_h__INCLUDED

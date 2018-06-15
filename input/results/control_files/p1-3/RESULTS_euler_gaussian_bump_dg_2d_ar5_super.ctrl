@@ -1,0 +1,43 @@
+pde_name  euler
+pde_spec  steady/gaussian_bump
+
+geom_name n-cube
+geom_spec x_lr_internal/geom_ar_0-25
+
+dimension 2
+
+mesh_generator   n-cube/2d.geo
+mesh_format      gmsh
+mesh_domain      parametric
+mesh_type        quad
+mesh_level       1 4
+mesh_path        ../meshes/
+restart_path     ../restart/euler/steady/gaussian_bump/restart__ml4__p3.msh
+
+
+# Simulation variables
+
+solution_extension  geom_ar_0-5
+test_case_extension refinement
+
+interp_tp  GLL
+interp_si  AO
+interp_pyr GLL
+
+basis_geom  bezier
+basis_sol   lagrange
+
+geom_representation  superparametric
+geom_blending_tp     gordon_hall
+geom_blending_si     szabo_babuska_gen
+
+
+p_ref    1 3
+
+fe_method 1
+
+
+# Testing variables
+
+ml_range_test 1 4
+p_range_test  1 3

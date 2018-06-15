@@ -16,6 +16,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides templated functions relating to the linear Diffusion solutions.
  */
 
+#include "def_templates_solution_diffusion.h"
+#include "def_templates_test_case.h"
+
 struct Test_Case_T;
 struct Simulation;
 
@@ -24,3 +27,6 @@ void set_function_pointers_solution_diffusion_T
 	(struct Test_Case_T* test_case,    ///< \ref Test_Case_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
+
+#include "undef_templates_solution_diffusion.h"
+#include "undef_templates_test_case.h"

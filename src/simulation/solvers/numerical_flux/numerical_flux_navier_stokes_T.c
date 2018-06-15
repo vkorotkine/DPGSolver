@@ -49,3 +49,5 @@ void compute_Numerical_Flux_T_navier_stokes_central_jacobian
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+
+#include "undef_templates_numerical_flux.h"

@@ -50,7 +50,7 @@ struct Exact_Boundary_Data;
  *  \param eb_data \ref Exact_Boundary_Data.
  */
 typedef const Type* (*compute_uvw_ex_fptr)
-	(const Real xyz[DIM],
+	(const Type xyz[DIM],
 	 const struct Exact_Boundary_Data*const eb_data
 	);
 
@@ -211,7 +211,7 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
 
 	const ptrdiff_t n_n = s_l->extents[0];
 
-	const struct const_Multiarray_R* xyz = xyz = bv_i->xyz;
+	const struct const_Multiarray_T* xyz = xyz = bv_i->xyz;
 
 	assert(c_m[0] == true);
 	struct Multiarray_T* s = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,NVAR}); // keep
@@ -226,9 +226,9 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_all_general
 	           E_ex   = eb_data->E;
 
 	for (int n = 0; n < n_n; ++n) {
-		const Real xyz_n[] = ARRAY_DIM( get_col_const_Multiarray_R(0,xyz)[n],
-		                                get_col_const_Multiarray_R(1,xyz)[n],
-		                                get_col_const_Multiarray_R(2,xyz)[n] );
+		const Type xyz_n[] = ARRAY_DIM( get_col_const_Multiarray_T(0,xyz)[n],
+		                                get_col_const_Multiarray_T(1,xyz)[n],
+		                                get_col_const_Multiarray_T(2,xyz)[n] );
 		const Type*const uvw_ex = eb_data->compute_uvw_ex(xyz_n,eb_data);
 
 		rho[n]  = -rho_l[n]  + 2.0*rho_ex;
@@ -271,7 +271,7 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 
 	const ptrdiff_t n_n = s_l->extents[0];
 
-	const struct const_Multiarray_R* xyz = xyz = bv_i->xyz;
+	const struct const_Multiarray_T* xyz = xyz = bv_i->xyz;
 
 	assert(c_m[0] == true);
 	{
@@ -284,9 +284,9 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 		                                    get_col_Multiarray_T(3,s) );
 
 		for (int n = 0; n < n_n; ++n) {
-			const Real xyz_n[] = ARRAY_DIM( get_col_const_Multiarray_R(0,xyz)[n],
-			                                get_col_const_Multiarray_R(1,xyz)[n],
-			                                get_col_const_Multiarray_R(2,xyz)[n] );
+			const Type xyz_n[] = ARRAY_DIM( get_col_const_Multiarray_T(0,xyz)[n],
+			                                get_col_const_Multiarray_T(1,xyz)[n],
+			                                get_col_const_Multiarray_T(2,xyz)[n] );
 			const Type*const uvw_ex = eb_data->compute_uvw_ex(xyz_n,eb_data);
 
 			rho[n] = rho_l[n];
@@ -314,9 +314,9 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 		                                       get_col_Multiarray_T(3+NVAR*0,ds_ds) );
 
 		for (int n = 0; n < n_n; ++n) {
-			const Real xyz_n[] = ARRAY_DIM( get_col_const_Multiarray_R(0,xyz)[n],
-			                                get_col_const_Multiarray_R(1,xyz)[n],
-			                                get_col_const_Multiarray_R(2,xyz)[n] );
+			const Type xyz_n[] = ARRAY_DIM( get_col_const_Multiarray_T(0,xyz)[n],
+			                                get_col_const_Multiarray_T(1,xyz)[n],
+			                                get_col_const_Multiarray_T(2,xyz)[n] );
 			const Type*const uvw_ex = eb_data->compute_uvw_ex(xyz_n,eb_data);
 			for (int d = 0; d < DIM; ++d)
 				duvw_drho[d][n] = 2.0*uvw_ex[d];
@@ -417,14 +417,14 @@ static void constructor_Boundary_Value_T_navier_stokes_no_slip_flux_general
 /** \brief Version of \ref compute_uvw_ex_fptr imposing zero velocity.
  *  \return See brief. */
 static const Type* compute_uvw_ex_zero
-	(const Real xyz[DIM],                           ///< See brief.
+	(const Type xyz[DIM],                           ///< See brief.
 	 const struct Exact_Boundary_Data*const eb_data ///< See brief.
 	);
 
 /** \brief Version of \ref compute_uvw_ex_fptr imposing velocity for a rotating boundary.
  *  \return See brief. */
 static const Type* compute_uvw_ex_rotating
-	(const Real xyz[DIM],                           ///< See brief.
+	(const Type xyz[DIM],                           ///< See brief.
 	 const struct Exact_Boundary_Data*const eb_data ///< See brief.
 	);
 
@@ -498,26 +498,36 @@ static void read_and_set_data_rho_E (struct Exact_Boundary_Data*const eb_data)
 
 // Level 2 ********************************************************************************************************** //
 
-static const Type* compute_uvw_ex_zero (const Real xyz[DIM], const struct Exact_Boundary_Data*const eb_data)
+static const Type* compute_uvw_ex_zero (const Type xyz[DIM], const struct Exact_Boundary_Data*const eb_data)
 {
 	UNUSED(xyz); UNUSED(eb_data);
 	static const Type uvw[DIM] = {0.0,};
 	return uvw;
 }
 
-static const Type* compute_uvw_ex_rotating (const Real xyz[DIM], const struct Exact_Boundary_Data*const eb_data)
+static const Type* compute_uvw_ex_rotating (const Type xyz[DIM], const struct Exact_Boundary_Data*const eb_data)
 {
 	assert(DIM >= 2);
-	const Real x = xyz[0],
-	           y = xyz[1];
+	const Real x = real_T(xyz[0]),
+	           y = real_T(xyz[1]);
 	const Real omega = eb_data->omega;
 
 	const Real r  = sqrt(x*x+y*y),
 	           th = atan2(y,x),
-		     Vt = omega*r;
+	           Vt = omega*r;
 
 	static Type uvw[DMAX] = {0.0,};
 	uvw[0] = -sin(th)*Vt;
 	uvw[1] =  cos(th)*Vt;
 	return uvw;
 }
+
+#include "undef_templates_boundary.h"
+
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
+
+#include "undef_templates_face_solver.h"
+
+#include "undef_templates_math_functions.h"
+#include "undef_templates_solution.h"

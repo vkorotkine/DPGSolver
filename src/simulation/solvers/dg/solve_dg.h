@@ -21,14 +21,12 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_solve_dg.h"
-#include "def_templates_face_solver.h"
-#include "def_templates_multiarray.h"
 #include "solve_dg_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_solve_dg.h"
-#include "undef_templates_face_solver.h"
-#include "undef_templates_multiarray.h"
+
+#include "def_templates_type_dc.h"
+#include "solve_dg_T.h"
+#include "undef_templates_type.h"
 
 struct const_Matrix_d;
 struct Solver_Volume;
@@ -50,7 +48,7 @@ double compute_rlhs_dg
 
 /** \brief Set the values of \ref Solver_Storage_Implicit::row and Solver_Storage_Implicit::col based on the current
  *         volume and eq, var indices. */
-void set_petsc_Mat_row_col
+void set_petsc_Mat_row_col_dg
 	(struct Solver_Storage_Implicit*const ssi, ///< \ref Solver_Storage_Implicit.
 	 const struct Solver_Volume* v_l,          ///< The left \ref Solver_Volume_T.
 	 const int eq,                             ///< The index of the equation.
@@ -58,20 +56,9 @@ void set_petsc_Mat_row_col
 	 const int vr                              ///< The index of the variable.
 	);
 
-/// \brief Add lhs values to the petsc Mat at the appropriate location.
-void add_to_petsc_Mat
-	(const struct Solver_Storage_Implicit*const ssi, ///< \ref Solver_Storage_Implicit.
-	 const struct const_Matrix_d* lhs                ///< The matrix containing the lhs data.
-	);
-
 /// \brief Version of \ref compute_flux_imbalances for the DG scheme.
 void compute_flux_imbalances_dg
 	(const struct Simulation*const sim ///< See brief.
-	);
-
-/// \brief Version of \ref copy_rhs for the \ref DG_Solver_Volume_T\*s.
-void copy_rhs_dg
-	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
 #endif // DPG__solve_dg_h__INCLUDED

@@ -16,20 +16,23 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Undefine macro definitions for c-style templating relating to rlhs computing functions for the dg faces.
  */
 
-///\{ \name Data types
-#undef Num_Flux_T
-#undef S_Params_T
-///\}
-
 ///\{ \name Function pointers
 #undef scale_by_Jacobian_fptr_T
-#undef compute_rlhs_fptr_T
 ///\}
 
 ///\{ \name Function names
 #undef compute_face_rlhs_dg_T
 #undef compute_flux_imbalances_faces_dg_T
 #undef constructor_Numerical_Flux_Input_data_dg_T
-
-#undef compute_rhs_f_dg_T
 ///\}
+
+#undef scale_by_Jacobian_fptr_T
+#undef S_Params_T
+#undef Num_Flux_T
+#undef set_s_params_T
+#undef add_to_flux_imbalance
+#undef constructor_Boundary_Value_Input_g_face_fcl
+#undef constructor_Boundary_Value_g_face_fcl
+#undef scale_by_Jacobian_e_T
+#undef constructor_partial_grad_fc_interp
+#undef compute_scaling_weak_gradient

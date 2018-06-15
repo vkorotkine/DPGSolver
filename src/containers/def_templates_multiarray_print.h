@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the multiarray print functions.
  */
 
+#if defined TYPE_RC
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
@@ -52,3 +53,26 @@ You should have received a copy of the GNU General Public License along with DPG
 #define print_Multiarray_R                  print_Multiarray_d
 #define print_const_Multiarray_R            print_const_Multiarray_d
 ///\}
+
+
+#elif defined TYPE_I
+#if TYPE_I == TYPE_II
+
+///\{ \name Function names
+#define print_Multiarray_Vector_T           print_Multiarray_Vector_i
+#define print_const_Multiarray_Vector_T     print_const_Multiarray_Vector_i
+#define print_Multiarray_T_tol              print_Multiarray_i_tol
+#define print_const_Multiarray_T_tol        print_const_Multiarray_i_tol
+#define print_Multiarray_Matrix_T_tol       print_Multiarray_Matrix_i_tol
+#define print_const_Multiarray_Matrix_T_tol print_const_Multiarray_Matrix_i_tol
+#define print_Multiarray_T                  print_Multiarray_i
+#define print_const_Multiarray_T            print_const_Multiarray_i
+#define print_Multiarray_Matrix_T           print_Multiarray_Matrix_i
+#define print_const_Multiarray_Matrix_T     print_const_Multiarray_Matrix_i
+
+#define fprint_const_Multiarray_Vector_T fprint_const_Multiarray_Vector_i
+///\}
+
+#endif
+
+#endif

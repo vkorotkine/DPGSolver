@@ -1,0 +1,7 @@
+/// Solution parameters for test case: advection/steady/vortex
+
+advection_type vortex
+b_magnitude 1e0
+u_scale 1e-0
+
+use_constant_solution 1

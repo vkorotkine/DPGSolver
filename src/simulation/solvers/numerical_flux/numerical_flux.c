@@ -17,6 +17,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "numerical_flux.h"
 
+#include <assert.h>
+
+#include "definitions_numerical_flux.h"
+
 #include "multiarray.h"
 #include "vector.h"
 
@@ -27,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver.h"
 
 #include "const_cast.h"
+#include "geometry_normals.h"
 #include "math_functions.h"
 #include "multiarray_operator.h"
 #include "operator.h"
@@ -40,6 +45,28 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_type_d.h"
 #include "numerical_flux_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "numerical_flux_T.c"
+#include "undef_templates_type.h"
+
+const int* get_set_ind_num_flux (const int*const new_vals)
+{
+	static int ind_num_flux[2] = { -1, -1, };
+	if (new_vals) {
+		assert((new_vals[0] == NUM_FLUX_INVALID)    ||
+		       (new_vals[0] == NUM_FLUX_UPWIND)     ||
+		       (new_vals[0] == NUM_FLUX_ROE_PIKE));
+		assert((new_vals[1] == NUM_FLUX_INVALID)    ||
+		       (new_vals[1] == NUM_FLUX_BR2_STABLE) ||
+		       (new_vals[1] == NUM_FLUX_CDG2));
+
+		for (int i = 0; i < 2; ++i)
+			ind_num_flux[i] = new_vals[i];
+	}
+	return ind_num_flux;
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

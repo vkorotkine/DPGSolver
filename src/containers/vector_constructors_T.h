@@ -20,6 +20,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+
 struct Vector_R;
 struct Matrix_T;
 struct Multiarray_T;
@@ -174,6 +178,16 @@ const struct const_Vector_T* constructor_inverse_const_Vector_T
 	(const struct const_Vector_T* src ///< See brief.
 	);
 
+/** \brief Constructor for a \ref const_Vector_T\* which is defined as the input vector appended to itself the input
+ *         number of times.
+ *  \return See brief.
+ */
+const struct const_Vector_T* constructor_repeated_const_Vector_T
+	(const Type alpha,                    ///< Scaling constant.
+	 const struct const_Vector_T*const a, ///< The input vector.
+	 const int n_repeated                 ///< The number of times the sub-vector should be repeated.
+	);
+
 /** \brief Constructor for a \ref const_Vector_T\* using an element-wise multiplication of each entry of the inputs.
  *  \return See brief. */
 const struct const_Vector_T* constructor_dot_mult_const_Vector_T
@@ -181,7 +195,26 @@ const struct const_Vector_T* constructor_dot_mult_const_Vector_T
 	 const struct const_Vector_T* a, ///< The 1st input.
 	 const struct const_Vector_T* b, ///< The 2nd input.
 	 const int n_repeated            ///< The number of times the sub-vector should be repeated.
+		);
+
+/** \brief Version of \ref constructor_dot_mult_const_Vector_T taking 'R'eal and 'T'ype inputs.
+ *  \return See brief. */
+const struct const_Vector_T* constructor_dot_mult_const_Vector_T_RT
+	(const Type alpha,               ///< See brief.
+	 const struct const_Vector_R* a, ///< See brief.
+	 const struct const_Vector_T* b, ///< See brief.
+	 const int n_repeated            ///< See brief.
 	);
+
+/** \brief Version of \ref constructor_dot_mult_const_Vector_T which inverts the entries of the 2nd input while
+ *         performing the dot product.
+ *  \return See brief. */
+const struct const_Vector_T* constructor_dot_mult_inverse_2nd_const_Vector_T
+	(const Type alpha,                    ///< See brief.
+	 const struct const_Vector_T*const a, ///< See brief.
+	 const struct const_Vector_T*const b, ///< The 2nd input (inverted in dot product).
+	 const int n_repeated                 ///< See brief.
+		);
 
 /** \brief Constructs a \ref Vector_T\* as the sum of the entries of the two inputs scaled by the input constants.
  *  \return See brief. */
@@ -334,3 +367,7 @@ void destructor_conditional_Vector_T
 void destructor_conditional_const_Vector_T
 	(const struct const_Vector_T* a ///< Standard.
 	);
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"

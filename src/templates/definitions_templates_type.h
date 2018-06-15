@@ -19,7 +19,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the definitions related to the supported variable types.
  */
 
-#define TYPE_REAL    1 ///< Parameter used as a flag to enable functionality required for `real` functions.
-#define TYPE_COMPLEX 2 ///< Parameter used as a flag to enable functionality required for `complex` functions.
+#define TYPE_REAL    1  ///< Parameter used as a flag to enable functionality required for `real` functions.
+#define TYPE_COMPLEX 2  ///< Parameter used as a flag to enable functionality required for `complex` functions.
+
+#define TYPE_II      11 ///< Parameter used as a flag to enable functionality required for `int` functions.
 
 #endif // DPG__definitions_types_h__INCLUDED

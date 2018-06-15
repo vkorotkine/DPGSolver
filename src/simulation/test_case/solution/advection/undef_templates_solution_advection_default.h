@@ -22,3 +22,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_const_sol_advection_default_T
 #undef compute_source_rhs_advection_default_T
 #undef add_to_flux_imbalance_source_advection_default_T
+
+#undef constructor_sol_advection_default_T
+#undef constructor_source_advection_default_T
+#undef constructor_sol_advection_default_1d_T
+#undef constructor_sol_advection_default_2d_T
+#undef constructor_source_advection_default_1d_T
+#undef constructor_source_advection_default_2d_T

@@ -43,6 +43,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_grad_coef_dg.h"
 #include "compute_volume_rlhs_dg.h"
 #include "compute_face_rlhs_dg.h"
+#include "compute_rlhs.h"
 #include "compute_source_rlhs_dg.h"
 #include "const_cast.h"
 #include "intrusive.h"
@@ -66,12 +67,6 @@ static void compute_rlhs_common_dg
 
 /// \brief Scale the rhs terms by the the inverse mass matrices (for explicit schemes).
 static void scale_rhs_by_m_inv
-	(const struct Simulation*const sim ///< \ref Simulation.
-	);
-
-/** \brief Compute the maximum value of the rhs term for all variables.
- *  \return See brief. */
-static double compute_max_rhs
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
@@ -126,13 +121,18 @@ static void compute_CFL_ramping
 
 #include "def_templates_type_d.h"
 #include "solve_dg_T.c"
+#include "undef_templates_type.h"
+
+#include "def_templates_type_dc.h"
+#include "solve_dg_T.c"
+#include "undef_templates_type.h"
 
 double compute_rhs_dg (const struct Simulation* sim)
 {
 	compute_rlhs_common_dg(sim,NULL);
 	scale_rhs_by_m_inv(sim);
 
-	return compute_max_rhs(sim);
+	return compute_max_rhs_dg_like(sim);
 }
 
 double compute_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
@@ -141,10 +141,10 @@ double compute_rlhs_dg (const struct Simulation* sim, struct Solver_Storage_Impl
 	compute_CFL_ramping(ssi,sim);
 	fill_petsc_Vec_b_dg(sim,ssi);
 
-	return compute_max_rhs(sim);
+	return compute_max_rhs_dg_like(sim);
 }
 
-void set_petsc_Mat_row_col
+void set_petsc_Mat_row_col_dg
 	(struct Solver_Storage_Implicit*const ssi, const struct Solver_Volume* v_l, const int eq,
 	 const struct Solver_Volume* v_r, const int vr)
 {
@@ -152,40 +152,10 @@ void set_petsc_Mat_row_col
 	ssi->col = (int)(v_r->ind_dof+v_r->sol_coef->extents[0]*vr);
 }
 
-void add_to_petsc_Mat (const struct Solver_Storage_Implicit*const ssi, const struct const_Matrix_d* lhs)
-{
-	assert(lhs->layout == 'R');
-	const ptrdiff_t ext_0 = lhs->ext_0,
-	                ext_1 = lhs->ext_1;
-
-	PetscInt idxm[ext_0],
-	         idxn[ext_1];
-
-	for (int i = 0; i < ext_0; ++i)
-		idxm[i] = ssi->row+i;
-
-	for (int i = 0; i < ext_1; ++i)
-		idxn[i] = ssi->col+i;
-
-	const PetscScalar*const vv = lhs->data;
-	MatSetValues(ssi->A,(PetscInt)ext_0,idxm,(PetscInt)ext_1,idxn,vv,ADD_VALUES);
-}
-
 void compute_flux_imbalances_dg (const struct Simulation*const sim)
 {
 	compute_flux_imbalances_faces_dg(sim);
 	compute_flux_imbalances_source_dg(sim);
-}
-
-void copy_rhs_dg (const struct Simulation*const sim)
-{
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume*const s_vol             = (struct Solver_Volume*) curr;
-		const struct DG_Solver_Volume*const dg_s_vol = (struct DG_Solver_Volume*) curr;
-
-		destructor_conditional_Multiarray_d(s_vol->rhs);
-		s_vol->rhs = constructor_copy_Multiarray_T(dg_s_vol->rhs); // keep
-	}
 }
 
 // Static functions ************************************************************************************************* //
@@ -211,11 +181,11 @@ static double compute_dt_cfl_constrained
 
 static void compute_rlhs_common_dg (const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi)
 {
-	zero_memory_volumes(sim->volumes);
+	initialize_zero_memory_volumes(sim->volumes);
 	compute_grad_coef_dg(sim,sim->volumes,sim->faces);
 	compute_volume_rlhs_dg(sim,ssi,sim->volumes);
 	compute_face_rlhs_dg(sim,ssi,sim->faces);
-	compute_source_rhs_dg(sim);
+	compute_source_rhs_dg_like(sim);
 }
 
 static void scale_rhs_by_m_inv (const struct Simulation*const sim)
@@ -230,25 +200,11 @@ static void scale_rhs_by_m_inv (const struct Simulation*const sim)
 		scale_rhs_by_m_inv_col(sim);
 }
 
-static double compute_max_rhs (const struct Simulation*const sim)
-{
-	double max_rhs = 0.0;
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
-
-		struct Multiarray_d* rhs = dg_s_vol->rhs;
-		double max_rhs_curr = norm_d(rhs->extents[0]*rhs->extents[1],rhs->data,"Inf");
-		if (max_rhs_curr > max_rhs)
-			max_rhs = max_rhs_curr;
-	}
-	return max_rhs;
-}
-
 static void fill_petsc_Vec_b_dg (const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi)
 {
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		const int ind_dof        = (int)((struct Solver_Volume*)curr)->ind_dof;
-		struct Multiarray_d* rhs = ((struct DG_Solver_Volume*)curr)->rhs;
+		struct Multiarray_d* rhs = ((struct Solver_Volume*)curr)->rhs;
 
 		const int ni = (int)compute_size(rhs->order,rhs->extents);
 
@@ -271,7 +227,7 @@ static void compute_CFL_ramping (struct Solver_Storage_Implicit*const ssi, const
 	if (test_case->lhs_terms != LHS_CFL_RAMPING)
 		return;
 
-	const double max_rhs = compute_max_rhs(sim);
+	const double max_rhs = compute_max_rhs_dg_like(sim);
 	const int n_eq = test_case->n_eq;
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
@@ -284,7 +240,7 @@ static void compute_CFL_ramping (struct Solver_Storage_Implicit*const ssi, const
 		const struct const_Matrix_d*const m_dt = constructor_copy_scale_const_Matrix_d(dg_s_vol->m,-1.0/dt); // dest.
 
 		for (int eq = 0; eq < n_eq; ++eq) {
-			set_petsc_Mat_row_col(ssi,s_vol,eq,s_vol,eq);
+			set_petsc_Mat_row_col_dg(ssi,s_vol,eq,s_vol,eq);
 			add_to_petsc_Mat(ssi,(struct const_Matrix_d*)m_dt);
 		}
 		destructor_const_Matrix_d(m_dt);
@@ -309,19 +265,19 @@ static double compute_max_rhs_ratio
 static void scale_rhs_by_m_inv_std (const struct Simulation*const sim)
 {
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
-		mm_NN1C_overwrite_Multiarray_d(dg_s_vol->m_inv,&dg_s_vol->rhs);
+		struct Solver_Volume*const s_vol       = (struct Solver_Volume*) curr;
+		struct DG_Solver_Volume*const dg_s_vol = (struct DG_Solver_Volume*) curr;
+		mm_NN1C_overwrite_Multiarray_d(dg_s_vol->m_inv,&s_vol->rhs);
 	}
 }
 
 static void scale_rhs_by_m_inv_col (const struct Simulation*const sim)
 {
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume* s_vol       = (struct Solver_Volume*) curr;
-		struct DG_Solver_Volume* dg_s_vol = (struct DG_Solver_Volume*) curr;
+		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
 
 		const struct const_Vector_d jac_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
-		scale_Multiarray_by_Vector_d('L',1.0,dg_s_vol->rhs,&jac_det_vc,true);
+		scale_Multiarray_by_Vector_d('L',1.0,s_vol->rhs,&jac_det_vc,true);
 	}
 }
 

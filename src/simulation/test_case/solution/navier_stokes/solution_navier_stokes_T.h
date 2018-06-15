@@ -16,6 +16,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides templated functions relating to the Navier-Stokes solutions.
  */
 
+#include "def_templates_solution_navier_stokes.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_test_case.h"
+
 #include <stdbool.h>
 
 struct Test_Case_T;
@@ -75,3 +79,7 @@ Type compute_mu_sutherland_T
 	 const Type*const rhouvw, ///< See brief.
 	 const Type E             ///< See brief.
 	);
+
+#include "undef_templates_solution_navier_stokes.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_test_case.h"

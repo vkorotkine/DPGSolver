@@ -20,3 +20,20 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #undef compute_grad_coef_dg_T
 ///\}
+
+#undef compute_grad_coef_volumes
+#undef compute_grad_coef_faces
+#undef get_operator__cv1_vs_vc
+#undef constructor_grad_xyz_p
+#undef assert_numerical_solution_is_central
+#undef constructor_diff_s_num_s
+#undef constructor_jdet_n_diff_fc
+#undef destructor_jdet_n_diff_fc
+#undef compute_g_coef_f_i
+#undef compute_d_g_coef_f__d_s_coef_i
+#undef compute_g_coef_f_i_using_lin
+#undef compute_g_coef_related_boundary
+#undef add_face_grad_coef_f_to_volumes
+#undef constructor_m_inv_tw0_vt_fc
+#undef get_jn_fc_V
+#undef get_sol_scale

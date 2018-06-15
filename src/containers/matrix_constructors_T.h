@@ -21,6 +21,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stddef.h>
 #include <stdbool.h>
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
+
 struct Matrix_R;
 struct Multiarray_T;
 struct Multiarray_Matrix_T;
@@ -111,12 +115,24 @@ struct Matrix_T* constructor_copy_Matrix_T_T
  *  \return See brief. */
 struct Matrix_T* constructor_copy_Matrix_T_Matrix_R
 	(struct Matrix_R* src ///< The source matrix.
-	);
+		);
 
 /** \brief `const` version of \ref constructor_copy_Matrix_T_Matrix_R.
  *  \return See brief. */
 const struct const_Matrix_T* constructor_copy_const_Matrix_T_Matrix_R
 	(const struct const_Matrix_R* src ///< See brief.
+		);
+
+/** \brief Copy constructor for a 'R'eal \ref Matrix_T\* from a 'T'ype \ref Matrix_T\*.
+ *  \return See brief. */
+struct Matrix_R* constructor_copy_Matrix_R_Matrix_T
+	(struct Matrix_T*const src ///< The source matrix.
+	);
+
+/** \brief `const` version of \ref constructor_copy_Matrix_R_Matrix_T.
+ *  \return See brief. */
+const struct const_Matrix_R* constructor_copy_const_Matrix_R_Matrix_T
+	(const struct const_Matrix_T*const src ///< See brief.
 	);
 
 /** \brief `const` version of \ref constructor_copy_Matrix_T_T.
@@ -347,6 +363,28 @@ const struct const_Matrix_T* constructor_mm_RT_const_Matrix_T
 	 const char layout                    ///< See brief.
 	);
 
+/** \brief Version of \ref constructor_mm_Matrix_T with 'T'ype and 'R'eal inputs.
+ *  \return See brief. */
+struct Matrix_T* constructor_mm_TR_Matrix_T
+	(const char trans_a_i,                ///< See brief.
+	 const char trans_b_i,                ///< See brief.
+	 const Real alpha,                    ///< See brief.
+	 const struct const_Matrix_T*const a, ///< See brief.
+	 const struct const_Matrix_R*const b, ///< See brief.
+	 const char layout                    ///< See brief.
+	);
+
+/** \brief `const` version of \ref constructor_mm_TR_Matrix_T.
+ *  \return See brief. */
+const struct const_Matrix_T* constructor_mm_TR_const_Matrix_T
+	(const char trans_a_i,                ///< See brief.
+	 const char trans_b_i,                ///< See brief.
+	 const Real alpha,                    ///< See brief.
+	 const struct const_Matrix_T*const a, ///< See brief.
+	 const struct const_Matrix_R*const b, ///< See brief.
+	 const char layout                    ///< See brief.
+	);
+
 /** \brief Constructor for a \ref Matrix_T\* from a matrix-matrix multiplication using default values.
  *
  *  Defaults:
@@ -408,6 +446,27 @@ const struct const_Matrix_T* constructor_mm_diag_const_Matrix_T_R
 	(const Real alpha,                    ///< See brief.
 	 const struct const_Matrix_T*const a, ///< See brief.
 	 const struct const_Vector_R*const b, ///< See brief.
+	 const char side,                     ///< See brief.
+	 const bool invert_diag               ///< See brief.
+	);
+
+/** \brief 'R'eal-'T'ype version of \ref constructor_mm_diag_Matrix_T_R.
+ *  \return Standard.
+ */
+struct Matrix_T* constructor_mm_diag_Matrix_R_T
+	(const Real alpha,                    ///< See brief.
+	 const struct const_Matrix_R*const a, ///< See brief.
+	 const struct const_Vector_T*const b, ///< See brief.
+	 const char side,                     ///< See brief.
+	 const bool invert_diag               ///< See brief.
+	);
+
+/** \brief `const` version of \ref constructor_mm_diag_Matrix_R_T.
+ *  \return See brief. */
+const struct const_Matrix_T* constructor_mm_diag_const_Matrix_R_T
+	(const Real alpha,                    ///< See brief.
+	 const struct const_Matrix_R*const a, ///< See brief.
+	 const struct const_Vector_T*const b, ///< See brief.
 	 const char side,                     ///< See brief.
 	 const bool invert_diag               ///< See brief.
 	);
@@ -482,3 +541,7 @@ void destructor_conditional_Matrix_T
 void destructor_conditional_const_Matrix_T
 	(const struct const_Matrix_T* a ///< Standard.
 	);
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"

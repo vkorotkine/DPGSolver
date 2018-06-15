@@ -48,6 +48,7 @@ static void set_function_pointers_num_flux
 void set_function_pointers_solution_diffusion_T (struct Test_Case_T* test_case, const struct Simulation*const sim)
 {
 	const_cast_b(&test_case->has_analytical,true);
+	const_cast_b(&test_case->copy_initial_rhs,true);
 	if (strstr(sim->pde_spec,"default_steady") ||
 	    strstr(sim->pde_spec,"steady/default")) {
 		test_case->constructor_xyz              = constructor_xyz_cylinder_parametric_T;
@@ -57,10 +58,14 @@ void set_function_pointers_solution_diffusion_T (struct Test_Case_T* test_case, 
 		test_case->set_grad                     = set_grad_diffusion_default_steady_T;
 		test_case->compute_source_rhs           = compute_source_rhs_diffusion_default_steady_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_diffusion_default_steady_T;
+		/* test_case->constructor_Error_CE         = constructor_Error_CE_diffusion_all_p_rhs; */
 		test_case->constructor_Error_CE         = constructor_Error_CE_diffusion_all;
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_spec);
 	}
+	// Remove the residual convergence monitoring if present as it converges at p+d-1 (suboptimal for DIM == 1).
+	if (DIM == 1)
+		test_case->constructor_Error_CE = constructor_Error_CE_diffusion_all;
 
 	test_case->compute_Flux = compute_Flux_2_T;
 	test_case->compute_Flux_iv[0] = NULL;
@@ -96,3 +101,12 @@ static void set_function_pointers_num_flux (struct Test_Case_T* test_case, const
 		break;
 	}
 }
+
+#include "undef_templates_solution_diffusion.h"
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_geometry.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_test_case.h"

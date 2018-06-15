@@ -19,3 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef set_sol_supersonic_vortex_T
 #undef constructor_const_sol_supersonic_vortex_T
+
+#undef constructor_sol_supersonic_vortex
+#undef Sol_Data__sv
+#undef get_sol_data
+#undef read_data_supersonic_vortex

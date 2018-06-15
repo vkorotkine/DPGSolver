@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the vector math functions.
  */
 
+#if defined TYPE_RC
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
@@ -50,3 +51,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #define invert_Vector_R      invert_Vector_d
 #define dot_product_Vector_R dot_product_Vector_d
 ///\}
+
+#endif

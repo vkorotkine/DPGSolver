@@ -19,6 +19,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 #include "definitions_test_case.h"
 
+#include "def_templates_boundary.h"
+#include "def_templates_flux.h"
+#include "def_templates_geometry.h"
+#include "def_templates_numerical_flux.h"
+#include "def_templates_solution.h"
+#include "def_templates_test_case.h"
+
 struct Simulation;
 
 /** \brief Container for test case specific information.
@@ -35,6 +42,10 @@ struct Simulation;
  *  when using the Riemann invariant boundary condition, the solution is constructed while solving for the boundary
  *  numerical flux and the free-stream solution should be used despite this solution not being used for the
  *  initialization or error computation. If no restart file is being used, the function pointers are set to be equal.
+ *
+ * \todo Remove: n_var, n_eq, ind_num_flux from Test_Case_T in favor of using the static function for retrieval.
+ *       This should eliminate a large number of instances where Simulation/Test_Case_T are passed as function
+ *       arguments.
  */
 struct Test_Case_T {
 	const int pde_index;  ///< Index corresponding to \ref Simulation::pde_name.
@@ -182,3 +193,10 @@ void increment_pointers_T
 	(const int n_ptr,       ///< The number of pointers.
 	 const Type**const ptrs ///< Pointer to the array of pointers.
 	);
+
+#include "undef_templates_boundary.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_geometry.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_solution.h"
+#include "undef_templates_test_case.h"

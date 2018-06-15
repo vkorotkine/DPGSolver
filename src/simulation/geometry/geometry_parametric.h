@@ -20,14 +20,12 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_geometry_parametric.h"
-#include "def_templates_volume_solver.h"
-#include "def_templates_multiarray.h"
 #include "geometry_parametric_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_geometry_parametric.h"
-#include "undef_templates_volume_solver.h"
-#include "undef_templates_multiarray.h"
+
+#include "def_templates_type_dc.h"
+#include "geometry_parametric_T.h"
+#include "undef_templates_type.h"
 
 /// \brief Container for function data.
 struct Function_Data_GP {

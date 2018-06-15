@@ -137,12 +137,17 @@ static int get_define (const char*const def_str, const char*const def_type)
 	} else if (strcmp(def_type,"advection_type") == 0) {
 		if      (strcmp(def_str,"constant")          == 0) def_i = ADVECTION_TYPE_CONST;
 		else if (strcmp(def_str,"vortex")            == 0) def_i = ADVECTION_TYPE_VORTEX;
-		else if (strcmp(def_str,"vortex_polynomial") == 0) def_i = ADVECTION_TYPE_VORTEX_POLY;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else if (strcmp(def_type,"boundary_perturb_type") == 0) {
 		if      (strcmp(def_str,"none")            == 0) def_i = BOUNDARY_PERTURB_TYPE_NONE;
 		else if (strcmp(def_str,"trigonometric_x") == 0) def_i = BOUNDARY_PERTURB_TYPE_TRIG_X;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
+	} else if (strcmp(def_type,"method_name") == 0) {
+		if      (strcmp(def_str,"discontinuous_galerkin")        == 0) def_i = METHOD_DG;
+		else if (strcmp(def_str,"discontinuous_petrov_galerkin") == 0) def_i = METHOD_DPG;
+		else if (strcmp(def_str,"optimal_petrov_galerkin")       == 0) def_i = METHOD_OPG;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else {
