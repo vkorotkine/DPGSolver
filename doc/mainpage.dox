@@ -5,8 +5,10 @@
 These pages serve as the main programmer's reference manual for DPGSolver and were automatically generated from the
 source using Doxygen.
 
+
 A good place to start is the <a href="pages.html">pages page</a>, which provides a getting started
 file which contains detailed instructions for building your understanding of the implementation.
+
 
 The <a href="https://github.com/PhilipZwanenburg/DPGSolver/tree/master">project home</a> contains
 additional information relating to the code functionality and status.
@@ -30,6 +32,7 @@ We would like to express our thanks to these other projects whose software we ar
 - <a href="https://bitbucket.org/pjabardo/jacobi">Paulo Jabardo's libjacobi</a>
 - <a href="http://tmc.web.engr.illinois.edu/sss.ps">Timothy Chan's Minimalist Approximate Nearest Neighbor Algorithm</a>
 - <a href="https://codecov.io/gh">Codecov</a>
+- <a href="http://ctags.sourceforge.net/">Exuberant Ctags</a>
 
 \todo Update the list.
 	- Add <a href="https://travis-ci.org/">Travis CI</a>
