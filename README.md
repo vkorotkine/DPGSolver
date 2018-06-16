@@ -131,7 +131,9 @@ BUILD$ ctest -V (Enable verbose output from tests)
 - Philip Zwanenburg, philip.zwanenburg (at) mail.mcgill.ca
 
 If you would like to make your own contributions to the project, the best place to start is the
-[getting started page](https://codedocs.xyz/PhilipZwanenburg/DPGSolver/md_doc_GETTING_STARTED.html).
+[getting started page](https://codedocs.xyz/PhilipZwanenburg/DPGSolver/md_doc_GETTING_STARTED.html). It is highly
+recommended to use Ctags to enable easy navigation through the code. Please see the
+[Code Navigation using Ctags README](external/ctags/README.md) for further details.
 
 # License
 

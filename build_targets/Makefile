@@ -2,7 +2,7 @@
 
 default: all_debug
 
-# Debug
+# Debug (Build)
 .PHONY: all_debug fast_debug_1D fast_debug_2D fast_debug_3D debug_1D debug_2D debug_3D
 all_debug:
 	@echo "\nRunning make meshes && make for all debug build directories.\n"
@@ -32,7 +32,7 @@ debug_3D:
 	@echo "\nRunning make meshes && make for the 3D debug build directory.\n"
 	cd ../build_debug_3D && make meshes && make -j1
 
-# Release
+# Release (Build)
 .PHONY: all_release fast_release_1D fast_release_2D fast_release_3D release_1D release_2D release_3D
 all_release:
 	@echo "\nRunning make meshes && make for all release build directories.\n"
@@ -62,11 +62,17 @@ release_3D:
 	@echo "\nRunning make meshes && make for the 3D release build directory.\n"
 	cd ../build_release_3D && make meshes && make -j1
 
-# Documentation
-.PHONY: doc
+# Documentation && Navigation
+.PHONY: doc tags
 doc:
 	@echo "\nRunning Doxygen in build_debug_3D.\n"
 	cd ../build_debug_3D && make -j doc
+
+tags:
+	@echo "\nRunning ctags in project root.\n"
+	cd .. && \
+	ctags -R -e -h ".h,.c" --exclude="*def_templates*" --exclude="*build*" --exclude="*deprecated*" \
+	      --extra=+q --fields=+afikmnst --c-kinds=+cdfpstu --c++-kinds=+cdfpstu
 
 # Execution
 .PHONY: run_quick_debug_1D run_quick_debug_2D run_quick_debug_3D
