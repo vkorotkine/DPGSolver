@@ -15,33 +15,41 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "face_solver_opg.h"
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
 
-#include "matrix.h"
-#include "multiarray.h"
-#include "vector.h"
+#include "macros.h"
 
-#include "element_solver_opg.h"
-#include "volume_solver.h"
-
-#include "compute_face_rlhs.h"
-#include "multiarray_operator.h"
-#include "operator.h"
-#include "penalty_opg.h"
-#include "simulation.h"
-#include "test_case.h"
+#include "def_templates_penalty_opg.h"
+#include "def_templates_flux.h"
+#include "def_templates_numerical_flux.h"
+#include "def_templates_face_solver.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
-#include "def_templates_type_d.h"
-#include "face_solver_opg_T.c"
-#include "undef_templates_type.h"
+void constructor_rlhs_f_test_penalty_unsupported_T
+	(const struct Flux_T*const flux, const struct Numerical_Flux_T*const num_flux, struct Solver_Face_T*const s_face,
+	 struct Solver_Storage_Implicit*const ssi)
+{
+	UNUSED(flux); UNUSED(num_flux); UNUSED(s_face); UNUSED(ssi);
+	EXIT_UNSUPPORTED;
+}
 
-#include "def_templates_type_dc.h"
-#include "face_solver_opg_T.c"
-#include "undef_templates_type.h"
+void constructor_rhs_f_test_penalty_do_nothing_T
+	(const struct Flux_T*const flux, const struct Numerical_Flux_T*const num_flux, struct Solver_Face_T*const s_face,
+	 struct Solver_Storage_Implicit*const ssi)
+{
+	UNUSED(flux); UNUSED(num_flux); UNUSED(s_face); UNUSED(ssi);
+	return;
+}
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+#include "undef_templates_penalty_opg.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_numerical_flux.h"
+#include "undef_templates_face_solver.h"

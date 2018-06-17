@@ -21,6 +21,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_face_solver.h"
 #include "def_templates_face_solver_opg.h"
 #include "def_templates_matrix.h"
+#include "def_templates_penalty_opg.h"
+#include "def_templates_flux.h"
+#include "def_templates_numerical_flux.h"
+
+struct Flux_T;
+struct Numerical_Flux_T;
+struct Solver_Face_T;
+struct Solver_Storage_Implicit;
 
 /** \brief Pointer to functions adding the penalty term to boundary faces having outgoing characteristics.
  *
@@ -60,8 +68,8 @@ struct OPG_Solver_Face_T {
 
 	const struct const_Matrix_T* m_inv; ///< The inverse mass matrix.
 
-	/** Version of \ref constructor_rlhs_f_b_test_penalty_T for the rhs (index [0]) and lhs (index [1] if applicable
-	 * term(s). */
+	/** Version of \ref constructor_rlhs_f_b_test_penalty_T for explicit (index [0]) and implicit (index [1])
+	 *  term(s). */
 	constructor_rlhs_f_b_test_penalty_T constructor_rlhs_penalty[2];
 };
 
@@ -93,3 +101,6 @@ struct Multiarray_Operator get_operator__cv1_vt_fc_T
 #include "undef_templates_face_solver.h"
 #include "undef_templates_face_solver_opg.h"
 #include "undef_templates_matrix.h"
+#include "undef_templates_penalty_opg.h"
+#include "undef_templates_flux.h"
+#include "undef_templates_numerical_flux.h"

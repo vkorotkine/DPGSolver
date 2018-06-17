@@ -12,27 +12,25 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to \ref OPG_Solver_Face_T containers/functions.
+ *  \brief Provides macro definitions for instantiations relating to \ref def_templates_penalty_opg_T.h and
+ *         \ref def_templates_penalty_opg_T.c.
  */
 
-///\{ \name Data types
-#undef OPG_Solver_Face_T
-///\}
+#include "def_templates_penalty_opg_advection.h"
 
-#undef constructor_rlhs_f_b_test_penalty_T
+#if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
-#undef constructor_derived_OPG_Solver_Face_T
-#undef destructor_derived_OPG_Solver_Face_T
-
-#undef get_operator__cv0_vt_fc_T
-#undef get_operator__cv1_vt_fc_T
+#define constructor_rlhs_f_test_penalty_unsupported_T constructor_rlhs_f_test_penalty_unsupported_d
+#define constructor_rhs_f_test_penalty_do_nothing_T constructor_rhs_f_test_penalty_do_nothing_d
 ///\}
 
-#undef constructor_inverse_mass_face_T
-#undef constructor_mass_face_T
-#undef set_function_pointers_penalty_T
-#undef set_function_pointers_penalty_boundary_T
-#undef set_function_pointers_penalty_boundary_advection_T
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define constructor_rlhs_f_test_penalty_unsupported_T constructor_rlhs_f_test_penalty_unsupported_c
+#define constructor_rhs_f_test_penalty_do_nothing_T constructor_rhs_f_test_penalty_do_nothing_c
+///\}
+
+#endif

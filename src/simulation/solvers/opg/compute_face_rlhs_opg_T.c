@@ -299,17 +299,10 @@ static void compute_rhs_f_opg_dg_like_T
 	(const struct Flux_T*const flux, const struct Numerical_Flux_T*const num_flux, struct Solver_Face_T*const s_face,
 	 struct Solver_Storage_Implicit*const ssi)
 {
-	UNUSED(flux);
 	compute_rhs_f_dg_like_T(num_flux,s_face,ssi);
 
-	switch (get_set_pde_index(NLL)) {
-	case PDE_ADVECTION:
-		break; // do nothing (see comments above). Change into function pointer
-	default:
-		// turn this into a function pointer stored in \ref OPG_Solver_Face_T; same for lhs term.
-		EXIT_ADD_SUPPORT;
-		break;
-	}
+        const struct OPG_Solver_Face_T*const opg_s_face = (struct OPG_Solver_Face_T*) s_face;
+	opg_s_face->constructor_rlhs_penalty[0](flux,num_flux,s_face,ssi);
 }
 
 #include "undef_templates_compute_face_rlhs_opg.h"

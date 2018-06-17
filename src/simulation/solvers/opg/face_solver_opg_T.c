@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <assert.h>
 
 #include "macros.h"
+#include "definitions_bc.h"
 
 #include "def_templates_face_solver_opg.h"
 #include "def_templates_face_solver.h"
@@ -28,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_vector.h"
 
 #include "def_templates_compute_face_rlhs.h"
+#include "def_templates_penalty_opg.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -180,14 +182,14 @@ static void set_function_pointers_penalty_boundary_T (struct OPG_Solver_Face_T*c
 
 static void set_function_pointers_penalty_boundary_advection_T (struct OPG_Solver_Face_T*const opg_s_face)
 {
-	const struct Face* face = (struct Face*) s_face;
+	const struct Face* face = (struct Face*) opg_s_face;
 	const int bc = face->bc % BC_STEP_SC;
 
-	opg_s_face->constructor_rlhs_penalty[0] = constructor_rlhs_f_test_penalty_do_nothing_T;
+	opg_s_face->constructor_rlhs_penalty[0] = constructor_rhs_f_test_penalty_do_nothing_T;
 	switch (bc) {
 	case BC_UPWIND:      case BC_UPWIND_ALT1: case BC_UPWIND_ALT2:
 	case BC_UPWIND_ALT3: case BC_UPWIND_ALT4: case BC_UPWIND_ALT5:
-		opg_s_face->constructor_rlhs_penalty[1] = constructor_rlhs_f_test_penalty_upwind_1_T;
+		opg_s_face->constructor_rlhs_penalty[1] = constructor_rlhs_f_test_penalty_advection_upwind_T;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",face->bc);
@@ -204,3 +206,4 @@ static void set_function_pointers_penalty_boundary_advection_T (struct OPG_Solve
 #include "undef_templates_vector.h"
 
 #include "undef_templates_compute_face_rlhs.h"
+#include "undef_templates_penalty_opg.h"

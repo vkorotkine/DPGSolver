@@ -13,26 +13,18 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
+#ifndef DPG__penalty_opg_advection_h__INCLUDED
+#define DPG__penalty_opg_advection_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to \ref OPG_Solver_Face_T containers/functions.
+ *  \brief Provides instantiations for \ref penalty_opg_advection_T.h.
  */
 
-///\{ \name Data types
-#undef OPG_Solver_Face_T
-///\}
+#include "def_templates_type_d.h"
+#include "penalty_opg_advection_T.h"
+#include "undef_templates_type.h"
 
-#undef constructor_rlhs_f_b_test_penalty_T
+#include "def_templates_type_dc.h"
+#include "penalty_opg_advection_T.h"
+#include "undef_templates_type.h"
 
-///\{ \name Function names
-#undef constructor_derived_OPG_Solver_Face_T
-#undef destructor_derived_OPG_Solver_Face_T
-
-#undef get_operator__cv0_vt_fc_T
-#undef get_operator__cv1_vt_fc_T
-///\}
-
-#undef constructor_inverse_mass_face_T
-#undef constructor_mass_face_T
-#undef set_function_pointers_penalty_T
-#undef set_function_pointers_penalty_boundary_T
-#undef set_function_pointers_penalty_boundary_advection_T
+#endif // DPG__penalty_opg_advection_h__INCLUDED

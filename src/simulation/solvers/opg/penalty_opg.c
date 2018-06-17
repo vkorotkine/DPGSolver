@@ -15,32 +15,20 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \file
  */
 
-#include "face_solver_opg.h"
-
-#include "matrix.h"
-#include "multiarray.h"
-#include "vector.h"
-
-#include "element_solver_opg.h"
-#include "volume_solver.h"
-
-#include "compute_face_rlhs.h"
-#include "multiarray_operator.h"
-#include "operator.h"
 #include "penalty_opg.h"
-#include "simulation.h"
-#include "test_case.h"
+
+#include "numerical_flux.h"
 
 // Static function declarations ************************************************************************************* //
 
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
-#include "face_solver_opg_T.c"
+#include "penalty_opg_T.c"
 #include "undef_templates_type.h"
 
 #include "def_templates_type_dc.h"
-#include "face_solver_opg_T.c"
+#include "penalty_opg_T.c"
 #include "undef_templates_type.h"
 
 // Static functions ************************************************************************************************* //

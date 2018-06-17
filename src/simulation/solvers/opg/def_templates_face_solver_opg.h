@@ -23,6 +23,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define OPG_Solver_Face_T OPG_Solver_Face
 ///\}
 
+///\{ \name Function pointers
+#define constructor_rlhs_f_b_test_penalty_T constructor_rlhs_f_b_test_penalty_d
+///\}
+
 ///\{ \name Function names
 #define constructor_derived_OPG_Solver_Face_T constructor_derived_OPG_Solver_Face
 #define destructor_derived_OPG_Solver_Face_T  destructor_derived_OPG_Solver_Face
@@ -32,14 +36,21 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Static names
-#define constructor_inverse_mass_face_T constructor_inverse_mass_face_T
-#define constructor_mass_face_T constructor_mass_face_T
+#define constructor_inverse_mass_face_T constructor_inverse_mass_face_d
+#define constructor_mass_face_T constructor_mass_face_d
+#define set_function_pointers_penalty_T set_function_pointers_penalty_d
+#define set_function_pointers_penalty_boundary_T set_function_pointers_penalty_boundary_d
+#define set_function_pointers_penalty_boundary_advection_T set_function_pointers_penalty_boundary_advection_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Data types
 #define OPG_Solver_Face_T OPG_Solver_Face_c
+///\}
+
+///\{ \name Function pointers
+#define constructor_rlhs_f_b_test_penalty_T constructor_rlhs_f_b_test_penalty_c
 ///\}
 
 ///\{ \name Function names
@@ -53,6 +64,9 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Static names
 #define constructor_inverse_mass_face_T constructor_inverse_mass_face_T_c
 #define constructor_mass_face_T constructor_mass_face_T_c
+#define set_function_pointers_penalty_T set_function_pointers_penalty_c
+#define set_function_pointers_penalty_boundary_T set_function_pointers_penalty_boundary_c
+#define set_function_pointers_penalty_boundary_advection_T set_function_pointers_penalty_boundary_advection_c
 ///\}
 
 #endif

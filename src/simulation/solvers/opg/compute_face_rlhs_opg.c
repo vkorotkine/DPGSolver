@@ -177,6 +177,9 @@ static void compute_lhs_1_b
 	set_petsc_Mat_row_col_opg(ssi,opg_s_vol,0,opg_s_vol,0);
 	add_to_petsc_Mat(ssi,lhs);
 
+	const struct OPG_Solver_Face*const opg_s_face = (struct OPG_Solver_Face*) s_face;
+	opg_s_face->constructor_rlhs_penalty[1](flux,num_flux,s_face,ssi);
+
 	destructor_const_Matrix_d(lhs);
 }
 
@@ -269,8 +272,6 @@ static const struct const_Matrix_d* constructor_lhs_f_1_b
 {
 	const struct const_Matrix_d*const lhs_l  = constructor_lhs_f_1_b_l(num_flux,s_face); // destructed
 	const struct const_Matrix_d*const lhs_r  = constructor_lhs_f_1_b_r(flux,s_face);     // destructed
-
-	EXIT_ERROR("Add penalty enforcing test at outflow");
 
 	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('N','N',-1.0,lhs_l,lhs_r,'R'); // returned
 	printf("face lhs b\n");
