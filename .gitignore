@@ -68,3 +68,4 @@ build_debug_2D/*
 build_debug_3D/*
 
 TAGS
+doc/auto/code.el

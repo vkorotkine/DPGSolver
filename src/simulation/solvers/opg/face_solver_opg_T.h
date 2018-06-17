@@ -22,11 +22,47 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_face_solver_opg.h"
 #include "def_templates_matrix.h"
 
+/** \brief Pointer to functions adding the penalty term to boundary faces having outgoing characteristics.
+ *
+ *  \param flux     \ref Flux_T.
+ *  \param num_flux \ref Numerical_Flux_T.
+ *  \param s_face   \ref Solver_Face_T.
+ *  \param ssi      \ref Solver_Storage_Implicit.
+ *
+ * As the (bilinear) form specified only with the dg-like terms results in the specification of the test function along
+ * each charateristic only to within an arbitrary constant, an additional penalty term is added to ensure that a
+ * sufficient number of boundary conditions are set for the test function such that the system is solvable. The penalty
+ * term (added to the rhs) takes the form:
+ *
+ * \f$ \eps^{-1} <v,g-w>_{\Gamma^\text{characteristic out}} \forall v \f$
+ *
+ * where:
+ * - \f$ \eps \f$ is chosen as \f$ \eps = C h^{p_\text{test}+1} > 0 \f$ following the \cite Barrett1986;
+ * - \f$ v \f$ represents the test function which is being used to test the equation;
+ * - \f$ w \f$ represents the test function which is being solved for;
+ * - \f$ g \f$ represents the (arbitrary) boundary value;
+ * - \f$ \Gamma^\text{characteristic out}} \f$ represents boundaries having outgoing characteristics.
+ *
+ * In the case of the linear advection equation, the term can be simplified by choosing \f$ g = 0\f$ and \f$ w_0 = 0\f$
+ * (i.e. choosing the initial test function values as being zero on the outflow boundary). It thus has no contribution
+ * to the rhs but is present in the lhs (linearization) in this case.
+ */
+typedef void (*constructor_rlhs_f_b_test_penalty_T)
+	(const struct Flux_T*const flux,
+	 const struct Numerical_Flux_T*const num_flux,
+	 struct Solver_Face_T*const s_face,
+	 struct Solver_Storage_Implicit*const ssi
+	 );
+
 /// \brief Container for data relating to the OPG solver faces.
 struct OPG_Solver_Face_T {
 	struct Solver_Face_T face; ///< The base \ref Solver_Face_T.
 
 	const struct const_Matrix_T* m_inv; ///< The inverse mass matrix.
+
+	/** Version of \ref constructor_rlhs_f_b_test_penalty_T for the rhs (index [0]) and lhs (index [1] if applicable
+	 * term(s). */
+	constructor_rlhs_f_b_test_penalty_T constructor_rlhs_penalty[2];
 };
 
 /// \brief Constructor for a derived \ref OPG_Solver_Face_T.

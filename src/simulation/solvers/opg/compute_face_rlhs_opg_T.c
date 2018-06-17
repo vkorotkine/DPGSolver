@@ -301,6 +301,15 @@ static void compute_rhs_f_opg_dg_like_T
 {
 	UNUSED(flux);
 	compute_rhs_f_dg_like_T(num_flux,s_face,ssi);
+
+	switch (get_set_pde_index(NLL)) {
+	case PDE_ADVECTION:
+		break; // do nothing (see comments above). Change into function pointer
+	default:
+		// turn this into a function pointer stored in \ref OPG_Solver_Face_T; same for lhs term.
+		EXIT_ADD_SUPPORT;
+		break;
+	}
 }
 
 #include "undef_templates_compute_face_rlhs_opg.h"

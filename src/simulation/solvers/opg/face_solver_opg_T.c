@@ -38,6 +38,11 @@ static const struct const_Matrix_T* constructor_inverse_mass_face_T
 	 const struct const_Matrix_T*const mass   ///< Face mass matrix. Input if available, otherwise pass `NULL`.
 	);
 
+/// \brief Set the function pointers for \ref OPG_Solver_Face_T::constructor_rlhs_penalty.
+static void set_function_pointers_penalty_T
+	(struct OPG_Solver_Face_T*const opg_s_face ///< Standard.
+	 );
+
 // Interface functions ********************************************************************************************** //
 
 void constructor_derived_OPG_Solver_Face_T (struct Face* face_ptr, const struct Simulation* sim)
@@ -47,6 +52,8 @@ void constructor_derived_OPG_Solver_Face_T (struct Face* face_ptr, const struct 
 	struct OPG_Solver_Face_T* opg_s_face = (struct OPG_Solver_Face_T*) face_ptr;
 
 	opg_s_face->m_inv = constructor_inverse_mass_face_T(s_face,NULL); // destructed
+
+	set_function_pointers_penalty_T(opg_s_face);
 }
 
 void destructor_derived_OPG_Solver_Face_T (struct Face* face_ptr)
@@ -101,6 +108,11 @@ static const struct const_Matrix_T* constructor_mass_face_T
 	(const struct Solver_Face_T*const s_face ///< Standard.
 	);
 
+/// \brief Set the function pointers for \ref OPG_Solver_Face_T::constructor_rlhs_penalty for boundary faces.
+static void set_function_pointers_penalty_boundary_T
+	(struct OPG_Solver_Face_T*const opg_s_face ///< Standard.
+	 );
+
 static const struct const_Matrix_T* constructor_inverse_mass_face_T
 	(const struct Solver_Face_T*const s_face, const struct const_Matrix_T*const mass)
 {
@@ -115,7 +127,24 @@ static const struct const_Matrix_T* constructor_inverse_mass_face_T
 	return m_inv;
 }
 
+static void set_function_pointers_penalty_T (struct OPG_Solver_Face_T*const opg_s_face)
+{
+	const struct Face*const face = (struct Face*) opg_s_face;
+	if (!face->boundary) {
+		opg_s_face->constructor_rlhs_penalty[0] = constructor_rlhs_f_test_penalty_unsupported_T;
+		opg_s_face->constructor_rlhs_penalty[1] = constructor_rlhs_f_test_penalty_unsupported_T;
+	} else {
+		set_function_pointers_penalty_boundary_T(opg_s_face);
+	}
+}
+
 // Level 1 ********************************************************************************************************** //
+
+/** \brief Set the function pointers for \ref OPG_Solver_Face_T::constructor_rlhs_penalty for boundary faces when
+ * solving the linear advection equation. */
+static void set_function_pointers_penalty_boundary_advection_T
+	(struct OPG_Solver_Face_T*const opg_s_face ///< Standard.
+	 );
 
 static const struct const_Matrix_T* constructor_mass_face_T (const struct Solver_Face_T*const s_face)
 {
@@ -133,6 +162,37 @@ static const struct const_Matrix_T* constructor_mass_face_T (const struct Solver
 	destructor_const_Matrix_T(m_r);
 
 	return mass;
+}
+
+static void set_function_pointers_penalty_boundary_T (struct OPG_Solver_Face_T*const opg_s_face)
+{
+	switch (get_set_pde_index(NULL)) {
+	case PDE_ADVECTION:
+		set_function_pointers_penalty_boundary_advection_T(opg_s_face);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",get_set_pde_index(NULL));
+		break;
+	}
+}
+
+// Level 2 ********************************************************************************************************** //
+
+static void set_function_pointers_penalty_boundary_advection_T (struct OPG_Solver_Face_T*const opg_s_face)
+{
+	const struct Face* face = (struct Face*) s_face;
+	const int bc = face->bc % BC_STEP_SC;
+
+	opg_s_face->constructor_rlhs_penalty[0] = constructor_rlhs_f_test_penalty_do_nothing_T;
+	switch (bc) {
+	case BC_UPWIND:      case BC_UPWIND_ALT1: case BC_UPWIND_ALT2:
+	case BC_UPWIND_ALT3: case BC_UPWIND_ALT4: case BC_UPWIND_ALT5:
+		opg_s_face->constructor_rlhs_penalty[1] = constructor_rlhs_f_test_penalty_upwind_1_T;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",face->bc);
+		break;
+	}
 }
 
 #include "undef_templates_face_solver_opg.h"

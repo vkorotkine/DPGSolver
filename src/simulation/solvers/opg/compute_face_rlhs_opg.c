@@ -170,8 +170,6 @@ static void compute_lhs_1_b
 {
 	const struct Face*const face = (struct Face*) s_face;
 	assert(face->boundary);
-	/* printf("Warning: never adding boundary terms.\n"); */
-	/* return; */
 
 	const struct const_Matrix_d*const lhs = constructor_lhs_f_1_b(flux,num_flux,s_face); // destructed
 
@@ -251,7 +249,7 @@ static void finalize_lhs_1_f_opg
 	/** \warning It is possible that a change may be required when systems of equations are used. Currently, there is
 	 *           a "default coupling" between the face terms between each equations and variables.
 	 *
-	 *  From a few of the DPG papers, it seems that an additional |n (dot) df/du| (note the absolution value) scaling
+	 *  From a few of the DPG papers, it seems that an additional |n (dot) df/du| (note the absolute value) scaling
 	 *  may need to be added. While this would introduce the coupling between the equations, it may also destroy the
 	 *  symmetry for non scalar PDEs. Entropy variables to fix this or simply don't assume symmetric? THINK.
 	 */
@@ -259,6 +257,8 @@ static void finalize_lhs_1_f_opg
 
 	for (int vr = 0; vr < n_vr; ++vr) {
 	for (int eq = 0; eq < n_eq; ++eq) {
+		if (eq != vr)
+			continue;
 		set_petsc_Mat_row_col_opg(ssi,opg_s_vol[side_index[0]],eq,opg_s_vol[side_index[1]],vr);
 		add_to_petsc_Mat(ssi,lhs);
 	}}
@@ -269,6 +269,8 @@ static const struct const_Matrix_d* constructor_lhs_f_1_b
 {
 	const struct const_Matrix_d*const lhs_l  = constructor_lhs_f_1_b_l(num_flux,s_face); // destructed
 	const struct const_Matrix_d*const lhs_r  = constructor_lhs_f_1_b_r(flux,s_face);     // destructed
+
+	EXIT_ERROR("Add penalty enforcing test at outflow");
 
 	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('N','N',-1.0,lhs_l,lhs_r,'R'); // returned
 	printf("face lhs b\n");
