@@ -30,7 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_vector.h"
 
 #include "def_templates_compute_face_rlhs_opg.h"
-#include "def_templates_flux.h"
+#include "def_templates_compute_rlhs.h"
 #include "def_templates_math_functions.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_penalty_opg_advection.h"
@@ -41,10 +41,10 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 
 void constructor_rlhs_f_test_penalty_advection_upwind_T
-	(const struct Flux_T*const flux, const struct Numerical_Flux_T*const num_flux, struct Solver_Face_T*const s_face,
-	 struct Solver_Storage_Implicit*const ssi)
+	(const struct Flux_Ref_T*const flux_r, const struct Numerical_Flux_T*const num_flux,
+	 struct Solver_Face_T*const s_face, struct Solver_Storage_Implicit*const ssi)
 {
-	UNUSED(flux);
+	UNUSED(flux_r);
 
 	/** It is assumed that the initial solution for \ref Solver_Volume_T::test_s_coef is equal to zero on all
 	 *  boundary faces which require the addition of the penalty term (outflow faces). It is also currently assumed
@@ -83,7 +83,6 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 			if (real_T(n_dot_b->data[n]) > 0)
 				indicator->data[n] = 1.0;
 		}
-		print_Vector_R(indicator);
 
 		const struct Lhs_Operators_OPG_T*const ops = constructor_Lhs_Operators_OPG_T(opg_s_face); // destructed
 
@@ -131,7 +130,7 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 #include "undef_templates_vector.h"
 
 #include "undef_templates_compute_face_rlhs_opg.h"
-#include "undef_templates_flux.h"
+#include "undef_templates_compute_rlhs.h"
 #include "undef_templates_math_functions.h"
 #include "undef_templates_numerical_flux.h"
 #include "undef_templates_penalty_opg_advection.h"

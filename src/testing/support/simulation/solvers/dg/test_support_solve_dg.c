@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "test_support_solve_dg.h"
-#include "test_support_multiarray.h"
+#include "test_support_solve.h"
 #include "test_support_computational_elements.h"
 
 #include <assert.h>
@@ -53,18 +53,11 @@ static struct Intrusive_List* constructor_Volumes_local
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Constructor for the list of \ref Face\*s adjacent to the current volume.
- *  \return Standard. */
-static struct Intrusive_List* constructor_Faces_local
-	(const struct Volume* vol,    ///< The centre \ref Volume.
-	 const struct Simulation* sim ///< \ref Simulation.
-	);
-
 /// \brief Compute the complex rhs terms based on the value of \ref CHECK_LIN.
 static void compute_rhs_cmplx_step_dg
-	(struct Intrusive_List* volumes_local, ///< Return of \ref constructor_Volumes_local.
-	 struct Intrusive_List* faces_local,   ///< Return of \ref constructor_Faces_local.
-	 const struct Simulation* sim          ///< \ref Simulation.
+	(struct Intrusive_List* volumes_local, ///< The list of volumes over which to iterate.
+	 struct Intrusive_List* faces_local,   ///< The list of faces over which to iterate.
+	 const struct Simulation* sim          ///< Standard.
 	);
 
 /// \brief Set a column of the lhs matrix using the values of the complex rhs for the dg scheme.
@@ -72,23 +65,11 @@ static void set_col_lhs_cmplx_step_dg
 	(const int col_l,                       ///< The local (to the volume solution dof) column index.
 	 const struct Solver_Volume_c* s_vol_c, /**< The \ref Solver_Volume_T associated with the current column of the
 	                                         *   matrix. */
-	 struct Intrusive_List* volumes_local,  ///< Return of \ref constructor_Volumes_local.
+	 struct Intrusive_List* volumes_local,  ///< The list of volumes over which to iterate.
 	 struct Solver_Storage_Implicit* ssi    ///< \ref Solver_Storage_Implicit.
 	);
 
 // Interface functions ********************************************************************************************** //
-
-void perturb_solution_dg (const struct Simulation* sim)
-{
-/// \todo template this but as part of test_complex_solve_dg_T such that functions are not accessible to the main code.
-	if (sim->test_case_rc->is_real) {
-		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
-			perturb_Multiarray_d(((struct Solver_Volume*)curr)->sol_coef,MAX_PERTURB);
-	} else {
-		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
-			perturb_Multiarray_c(((struct Solver_Volume_c*)curr)->sol_coef,MAX_PERTURB);
-	}
-}
 
 void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
 {
@@ -101,7 +82,7 @@ void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Stor
 		struct Volume* vol = (struct Volume*) curr_c;
 /// \todo Add a "volume_central" for volume/face terms, use volumes_local (including all neigh) for grad_coef.
 		struct Intrusive_List* volumes_local = constructor_Volumes_local(vol,sim);
-		struct Intrusive_List* faces_local   = constructor_Faces_local(vol,sim);
+		struct Intrusive_List* faces_local   = constructor_Faces_local_neigh_only(vol,sim);
 
 		struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*) curr_c;
 		struct Multiarray_c* sol_coef_c = s_vol->sol_coef;
@@ -129,13 +110,6 @@ static bool is_volume_neighbour
 	 const struct Volume* vol_curr ///< The current volume.
 	);
 
-/** \brief Check whether the \ref Face neighbours the current \ref Volume.
- *  \return `true` if neighbouring; `false` otherwise. */
-static bool is_face_neighbour
-	(const struct Face* face,      ///< The face under investigation.
-	 const struct Volume* vol_curr ///< The current volume.
-	);
-
 static struct Intrusive_List* constructor_Volumes_local (const struct Volume* vol, const struct Simulation* sim)
 {
 	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME_SOLVER_DG,NULL);
@@ -150,22 +124,6 @@ static struct Intrusive_List* constructor_Volumes_local (const struct Volume* vo
 	}
 
 	return volumes;
-}
-
-static struct Intrusive_List* constructor_Faces_local (const struct Volume* vol, const struct Simulation* sim)
-{
-	struct Intrusive_List* faces = constructor_empty_IL(IL_FACE_SOLVER_DG,NULL);
-
-	const size_t sizeof_base = sizeof(struct DG_Solver_Face_c);
-	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		if (!is_face_neighbour((struct Face*)curr,vol))
-			continue;
-
-		// A copy is required such that the link in the global list is not modified.
-		push_back_IL(faces,constructor_copied_Intrusive_Link(curr,sizeof_base,sizeof_base));
-	}
-
-	return faces;
 }
 
 static void compute_rhs_cmplx_step_dg
@@ -234,21 +192,6 @@ static bool is_volume_neighbour (const struct Volume* vol, const struct Volume* 
 			if (vol->index == face->neigh_info[i].volume->index)
 				return true;
 		}
-	}}
-	return false;
-}
-
-static bool is_face_neighbour (const struct Face* face, const struct Volume* vol_curr)
-{
-	for (int f = 0; f < NFMAX; ++f) {
-	for (int sf = 0; sf < NSUBFMAX; ++sf) {
-		const struct Face* face_n = vol_curr->faces[f][sf];
-
-		if (!face_n)
-			continue;
-
-		if (face->index == face_n->index)
-			return true;
 	}}
 	return false;
 }

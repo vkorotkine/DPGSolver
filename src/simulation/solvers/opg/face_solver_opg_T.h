@@ -18,14 +18,13 @@ You should have received a copy of the GNU General Public License along with DPG
  *  These faces are needed by the 'O'ptimal 'P'etrov 'G'alerkin solver functions.
  */
 
-#include "def_templates_face_solver.h"
 #include "def_templates_face_solver_opg.h"
 #include "def_templates_matrix.h"
 #include "def_templates_penalty_opg.h"
-#include "def_templates_flux.h"
+#include "def_templates_compute_rlhs.h"
 #include "def_templates_numerical_flux.h"
 
-struct Flux_T;
+struct Flux_Ref_T;
 struct Numerical_Flux_T;
 struct Solver_Face_T;
 struct Solver_Storage_Implicit;
@@ -56,7 +55,7 @@ struct Solver_Storage_Implicit;
  * to the rhs but is present in the lhs (linearization) in this case.
  */
 typedef void (*constructor_rlhs_f_b_test_penalty_T)
-	(const struct Flux_T*const flux,
+	(const struct Flux_Ref_T*const flux_r,
 	 const struct Numerical_Flux_T*const num_flux,
 	 struct Solver_Face_T*const s_face,
 	 struct Solver_Storage_Implicit*const ssi
@@ -98,9 +97,8 @@ struct Multiarray_Operator get_operator__cv1_vt_fc_T
 	 const struct OPG_Solver_Face_T*const opg_s_face ///< Standard.
 	);
 
-#include "undef_templates_face_solver.h"
 #include "undef_templates_face_solver_opg.h"
 #include "undef_templates_matrix.h"
 #include "undef_templates_penalty_opg.h"
-#include "undef_templates_flux.h"
+#include "undef_templates_compute_rlhs.h"
 #include "undef_templates_numerical_flux.h"

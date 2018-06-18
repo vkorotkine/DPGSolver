@@ -768,7 +768,7 @@ static void compute_rlhs_1
 {
 	const struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) dpg_s_vol;
 
-	struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_T(&s_params->spvs,flux_i,s_vol,sim); // destructed
+	struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_T(&s_params->spvs,flux_i,s_vol); // destructed
 
 	const struct Norm_DPG* norm = s_params->constructor_norm_DPG(dpg_s_vol,flux_r,sim); // destructed
 

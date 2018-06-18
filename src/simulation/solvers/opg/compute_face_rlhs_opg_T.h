@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_compute_face_rlhs_opg.h"
-#include "def_templates_flux.h"
+#include "def_templates_compute_rlhs.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_face_solver.h"
 #include "def_templates_face_solver_opg.h"
@@ -34,19 +34,19 @@ struct Intrusive_List;
 struct Solver_Face_T;
 struct OPG_Solver_Face_T;
 struct Numerical_Flux_T;
-struct Flux_T;
+struct Flux_Ref_T;
 
-/** \brief Pointer to the function used to evaluate the rhs (and optionally lhs) face terms allowing for both flux and
- *         numerical flux inputs.
- *  \note The \ref Flux_T input is required for the linearization of the solution with respect to the test function.
+/** \brief Pointer to the function used to evaluate the rhs (and optionally lhs) face terms allowing for both reference
+ *         flux and numerical flux inputs.
+ *  \note The \ref Flux_Ref_T input is required for the linearization of the solution with respect to the test function.
  *
- *  \param flux     \ref Flux_T.
+ *  \param flux_r   \ref Flux_Ref_T.
  *  \param num_flux \ref Numerical_Flux_T.
  *  \param s_face   \ref Solver_Face_T.
  *  \param ssi      \ref Solver_Storage_Implicit.
  */
 typedef void (*compute_rlhs_opg_f_fptr_T)
-	(const struct Flux_T*const flux,
+	(const struct Flux_Ref_T*const flux_r,
 	 const struct Numerical_Flux_T*const num_flux,
 	 struct Solver_Face_T*const s_face,
 	 struct Solver_Storage_Implicit*const ssi
@@ -91,7 +91,7 @@ void destructor_Lhs_Operators_OPG_T
 	);
 
 #include "undef_templates_compute_face_rlhs_opg.h"
-#include "undef_templates_flux.h"
+#include "undef_templates_compute_rlhs.h"
 #include "undef_templates_numerical_flux.h"
 #include "undef_templates_face_solver.h"
 #include "undef_templates_face_solver_opg.h"

@@ -55,6 +55,9 @@ struct Flux_Ref_T* constructor_Flux_Ref_T (const struct const_Multiarray_T*const
 
 void destructor_Flux_Ref_T (struct Flux_Ref_T*const flux_ref)
 {
+	if (flux_ref == NULL)
+		return;
+
 	destructor_conditional_const_Multiarray_T(flux_ref->fr);
 	destructor_conditional_const_Multiarray_T(flux_ref->dfr_ds);
 	destructor_conditional_const_Multiarray_T(flux_ref->dfr_dg);

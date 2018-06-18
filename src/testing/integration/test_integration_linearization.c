@@ -27,8 +27,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_base.h"
 #include "test_integration.h"
 #include "test_support_math_functions.h"
+#include "test_support_solve.h"
 #include "test_support_solve_dg.h"
 #include "test_support_solve_dpg.h"
+#include "test_support_solve_opg.h"
 
 #include "face.h"
 #include "element.h"
@@ -50,21 +52,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_volume_rlhs_dg.h"
 #include "compute_face_rlhs_dg.h"
 #include "compute_all_rlhs_dpg.h"
+#include "compute_volume_rlhs_opg.h"
+#include "compute_face_rlhs_opg.h"
 
 // Static function declarations ************************************************************************************* //
 
 ///\{ \name Flag for whether PETSc Matrices should be output to files.
 #define OUTPUT_PETSC_MATRICES true
 ///\}
-
-/** \brief Function pointer to functions perturbing the solution to ensure that all terms in the linearization are
- *         activated.
- *
- *  \param sim \ref Simulation.
- */
-typedef void (*perturb_solution_fptr)
-	(const struct Simulation* sim
-	);
 
 /** \brief Function pointer to functions computing solution gradient coefficient related terms.
  *
@@ -114,8 +109,6 @@ struct F_Ptrs_and_Data {
 	/** The solver method to be used for the complex step rhs evaluation. Note that some methods require Jacobians
 	 *  even when only the rhs terms are being evaluated. */
 	const char solver_method_cmplx;
-
-	perturb_solution_fptr perturb_solution; ///< \ref perturb_solution_fptr.
 
 	/// `derived_name` from \ref constructor_derived_Elements for the method under consideration.
 	const int derived_elem_method;
@@ -220,7 +213,7 @@ int main
 			test_case->solver_method_curr = 'i';
 			const_cast_b(&test_case->use_schur_complement,false); // Otherwise A is modified.
 
-			f_ptrs_data->perturb_solution(sim);
+			perturb_solution(sim);
 			compute_lhs_analytical(sim,ssi[i],f_ptrs_data);
 		} else {
 			ssi[i] = constructor_Solver_Storage_Implicit_c(sim); // destructed
@@ -228,7 +221,7 @@ int main
 			struct Test_Case_c* test_case = (struct Test_Case_c*) sim->test_case_rc->tc;
 			test_case->solver_method_curr = f_ptrs_data->solver_method_cmplx;
 
-			f_ptrs_data->perturb_solution(sim);
+			perturb_solution(sim);
 			compute_lhs_cmplx_step(sim,ssi[i],f_ptrs_data);
 		}
 		petsc_mat_vec_assemble(ssi[i]);
@@ -269,7 +262,6 @@ static struct F_Ptrs_and_Data* constructor_F_Ptrs_and_Data (const struct Simulat
 	switch (sim->method) {
 	case METHOD_DG:
 		const_cast_c(&f_ptrs_data->solver_method_cmplx,'e');
-		f_ptrs_data->perturb_solution = perturb_solution_dg;
 
 		const_cast_i(&f_ptrs_data->derived_elem_method,IL_ELEMENT_SOLVER_DG);
 		const_cast_i(&f_ptrs_data->derived_comp_elem_method,IL_SOLVER_DG);
@@ -282,7 +274,6 @@ static struct F_Ptrs_and_Data* constructor_F_Ptrs_and_Data (const struct Simulat
 		break;
 	case METHOD_DPG:
 		const_cast_c(&f_ptrs_data->solver_method_cmplx,'i'); // Jacobians are required.
-		f_ptrs_data->perturb_solution = perturb_solution_dpg;
 
 		const_cast_i(&f_ptrs_data->derived_elem_method,IL_ELEMENT_SOLVER_DPG);
 		const_cast_i(&f_ptrs_data->derived_comp_elem_method,IL_SOLVER_DPG);
@@ -290,6 +281,17 @@ static struct F_Ptrs_and_Data* constructor_F_Ptrs_and_Data (const struct Simulat
 		f_ptrs_data->compute_all_lhs = compute_all_rlhs_dpg;
 
 		f_ptrs_data->compute_lhs_cmplx_step = compute_lhs_cmplx_step_dpg;
+		break;
+	case METHOD_OPG:
+		const_cast_c(&f_ptrs_data->solver_method_cmplx,'e');
+
+		const_cast_i(&f_ptrs_data->derived_elem_method,IL_ELEMENT_SOLVER_OPG);
+		const_cast_i(&f_ptrs_data->derived_comp_elem_method,IL_SOLVER_OPG);
+
+		f_ptrs_data->compute_volume_lhs = compute_volume_rlhs_opg;
+		f_ptrs_data->compute_face_lhs   = compute_face_rlhs_opg;
+
+		f_ptrs_data->compute_lhs_cmplx_step = compute_lhs_cmplx_step_opg;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
@@ -331,6 +333,23 @@ static void compute_lhs_analytical
 		break;
 	case METHOD_DPG:
 		f_ptrs_data->compute_all_lhs(sim,ssi,sim->volumes);
+		break;
+	case METHOD_OPG:
+		switch (CHECK_LIN) {
+		case CHECK_LIN_VOLUME:
+			f_ptrs_data->compute_volume_lhs(sim,ssi,sim->volumes);
+			break;
+		case CHECK_LIN_FACE:
+			f_ptrs_data->compute_face_lhs(sim,ssi,sim->faces);
+			break;
+		case CHECK_LIN_ALL:
+			f_ptrs_data->compute_volume_lhs(sim,ssi,sim->volumes);
+			f_ptrs_data->compute_face_lhs(sim,ssi,sim->faces);
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d.\n",CHECK_LIN);
+			break;
+		}
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);

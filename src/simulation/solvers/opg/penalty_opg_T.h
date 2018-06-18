@@ -17,11 +17,11 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_penalty_opg.h"
-#include "def_templates_flux.h"
+#include "def_templates_compute_rlhs.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_face_solver.h"
 
-struct Flux_T;
+struct Flux_Ref_T;
 struct Numerical_Flux_T;
 struct Solver_Face_T;
 struct Solver_Storage_Implicit;
@@ -31,7 +31,7 @@ struct Solver_Storage_Implicit;
  *  This function is used for \ref OPG_Solver_Face_T::constructor_rlhs_penalty for interior faces.
  */
 void constructor_rlhs_f_test_penalty_unsupported_T
-	(const struct Flux_T*const flux,               ///< See brief.
+	(const struct Flux_Ref_T*const flux_r,         ///< See brief.
 	 const struct Numerical_Flux_T*const num_flux, ///< See brief.
 	 struct Solver_Face_T*const s_face,            ///< See brief.
 	 struct Solver_Storage_Implicit*const ssi      ///< See brief.
@@ -39,13 +39,13 @@ void constructor_rlhs_f_test_penalty_unsupported_T
 
 /// \brief Version of \ref compute_rlhs_opg_f_fptr_T for rhs terms which does nothing.
 void constructor_rhs_f_test_penalty_do_nothing_T
-	(const struct Flux_T*const flux,               ///< See brief.
+	(const struct Flux_Ref_T*const flux_r,         ///< See brief.
 	 const struct Numerical_Flux_T*const num_flux, ///< See brief.
 	 struct Solver_Face_T*const s_face,            ///< See brief.
 	 struct Solver_Storage_Implicit*const ssi      ///< See brief.
 	 );
 
 #include "undef_templates_penalty_opg.h"
-#include "undef_templates_flux.h"
+#include "undef_templates_compute_rlhs.h"
 #include "undef_templates_numerical_flux.h"
 #include "undef_templates_face_solver.h"

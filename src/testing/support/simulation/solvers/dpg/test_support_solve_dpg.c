@@ -16,8 +16,8 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "test_support_solve_dpg.h"
+#include "test_support_solve.h"
 #include "test_support_computational_elements.h"
-#include "test_support_multiarray.h"
 
 #include <assert.h>
 
@@ -41,12 +41,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Constructor for the list of \ref Volume\*s including only the current volume.
- *  \return Standard. */
-static struct Intrusive_List* constructor_Volumes_local_v
-	(const struct Volume* vol ///< The \ref Volume.
-	);
-
 /** \brief Constructor for the list of \ref Volume\*s including only the volumes neighbouring the current face.
  *  \return Standard. */
 static struct Intrusive_List* constructor_Volumes_local_f
@@ -54,51 +48,6 @@ static struct Intrusive_List* constructor_Volumes_local_f
 	);
 
 // Interface functions ********************************************************************************************** //
-
-void perturb_solution_dpg (const struct Simulation* sim)
-{
-	if (sim->test_case_rc->is_real) {
-		struct Test_Case* test_case = (struct Test_Case*) sim->test_case_rc->tc;
-		assert(test_case->has_2nd_order == false); // Add support.
-
-		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-			struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-			perturb_Multiarray_d(s_vol->sol_coef,MAX_PERTURB);
-		}
-
-		for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-			struct Solver_Face* s_face = (struct Solver_Face*) curr;
-			perturb_Multiarray_d(s_face->nf_coef,MAX_PERTURB);
-		}
-
-		if (test_case_explicitly_enforces_conservation(sim)) {
-			for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-				struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
-				perturb_Multiarray_d(s_vol->l_mult,1e3*MAX_PERTURB);
-			}
-		}
-	} else {
-		struct Test_Case_c* test_case = (struct Test_Case_c*) sim->test_case_rc->tc;
-		assert(test_case->has_2nd_order == false); // Add support.
-
-		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-			struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*) curr;
-			perturb_Multiarray_c(s_vol->sol_coef,MAX_PERTURB);
-		}
-
-		for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-			struct Solver_Face_c* s_face = (struct Solver_Face_c*) curr;
-			perturb_Multiarray_c(s_face->nf_coef,MAX_PERTURB);
-		}
-
-		if (test_case_explicitly_enforces_conservation(sim)) {
-			for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-				struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*) curr;
-				perturb_Multiarray_c(s_vol->l_mult,1e3*MAX_PERTURB);
-			}
-		}
-	}
-}
 
 void compute_lhs_cmplx_step_dpg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
 {
@@ -109,7 +58,7 @@ void compute_lhs_cmplx_step_dpg (const struct Simulation* sim, struct Solver_Sto
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Volume* vol = (struct Volume*) curr;
-		struct Intrusive_List* volumes_local = constructor_Volumes_local_v(vol); // destructed
+		struct Intrusive_List* volumes_local = constructor_Volumes_local_centre_only(vol); // destructed
 
 		const struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*) curr;
 		struct Multiarray_c* sol_coef_c = s_vol->sol_coef;
@@ -149,7 +98,7 @@ printf("face: %d %d\n",col_l,ssi->col);
 	if (test_case_explicitly_enforces_conservation(sim)) {
 		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 			struct Volume* vol = (struct Volume*) curr;
-			struct Intrusive_List* volumes_local = constructor_Volumes_local_v(vol); // destructed
+			struct Intrusive_List* volumes_local = constructor_Volumes_local_centre_only(vol); // destructed
 
 			const struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*) curr;
 			struct Multiarray_c* l_mult_c = s_vol->l_mult;
@@ -171,19 +120,6 @@ printf(" vol (l_mult): %d %d %d\n",col_l,ssi->col,vol->index);
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static struct Intrusive_List* constructor_Volumes_local_v (const struct Volume* vol)
-{
-	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME_SOLVER_DPG,NULL); // returned
-
-	const size_t sizeof_base = sizeof(struct DPG_Solver_Volume_c);
-	struct Intrusive_Link* curr = (struct Intrusive_Link*) vol;
-
-	// A copy is required such that the link in the global list is not modified.
-	push_back_IL(volumes,constructor_copied_Intrusive_Link(curr,sizeof_base,sizeof_base));
-
-	return volumes;
-}
 
 static struct Intrusive_List* constructor_Volumes_local_f (const struct Face* face)
 {

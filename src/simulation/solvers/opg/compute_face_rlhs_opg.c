@@ -25,13 +25,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "face_solver_opg.h"
 #include "element_solver_opg.h"
-#include "volume.h"
 #include "volume_solver_opg.h"
 
-#include "compute_rlhs.h"
 #include "computational_elements.h"
 #include "compute_rlhs.h"
 #include "compute_face_rlhs.h"
+#include "compute_volume_rlhs.h"
+#include "compute_volume_rlhs_opg.h"
 #include "multiarray_operator.h"
 #include "numerical_flux.h"
 #include "operator.h"
@@ -49,7 +49,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Version of \ref compute_rlhs_opg_f_fptr_T computing the rhs and lhs terms for 1st order equations only.
 static void compute_rlhs_1
-	(const struct Flux*const flux,               ///< See brief.
+	(const struct Flux_Ref*const flux_r,         ///< See brief.
 	 const struct Numerical_Flux*const num_flux, ///< See brief.
 	 struct Solver_Face*const s_face,            ///< See brief.
 	 struct Solver_Storage_Implicit*const ssi    ///< See brief.
@@ -78,14 +78,14 @@ static void compute_lhs_1_i
 /** \brief Version of \ref compute_rlhs_f_fptr_T computing the lhs terms for 1st order equations only for boundary
  *         faces. */
 static void compute_lhs_1_b
-	(const struct Flux*const flux,               ///< See brief.
+	(const struct Flux_Ref*const flux_r,         ///< See brief.
 	 const struct Numerical_Flux*const num_flux, ///< See brief.
 	 struct Solver_Face*const s_face,            ///< See brief.
 	 struct Solver_Storage_Implicit*const ssi    ///< See brief.
 		);
 
 static void compute_rlhs_1
-	(const struct Flux*const flux, const struct Numerical_Flux*const num_flux, struct Solver_Face*const s_face,
+	(const struct Flux_Ref*const flux_r, const struct Numerical_Flux*const num_flux, struct Solver_Face*const s_face,
 	 struct Solver_Storage_Implicit*const ssi)
 {
 	compute_rhs_f_dg_like(num_flux,s_face,ssi);
@@ -95,7 +95,7 @@ static void compute_rlhs_1
 	if (!face->boundary)
 		compute_lhs_1_i(opg_s_face,ssi);
 	else
-		compute_lhs_1_b(flux,num_flux,s_face,ssi);
+		compute_lhs_1_b(flux_r,num_flux,s_face,ssi);
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -116,7 +116,7 @@ static void finalize_lhs_1_f_opg
  *  respect to the test function coefficients and not the solution coefficients.
  */
 static const struct const_Matrix_d* constructor_lhs_f_1_b
-	(const struct Flux*const flux,               ///< Standard.
+	(const struct Flux_Ref*const flux_ref,         ///< Standard.
 	 const struct Numerical_Flux*const num_flux, ///< Standard.
 	 const struct Solver_Face*const s_face       ///< Standard.
 	);
@@ -140,20 +140,20 @@ static void compute_lhs_1_i (struct OPG_Solver_Face*const opg_s_face, struct Sol
 }
 
 static void compute_lhs_1_b
-	(const struct Flux*const flux, const struct Numerical_Flux*const num_flux, struct Solver_Face*const s_face,
+	(const struct Flux_Ref*const flux_r, const struct Numerical_Flux*const num_flux, struct Solver_Face*const s_face,
 	 struct Solver_Storage_Implicit*const ssi)
 {
 	const struct Face*const face = (struct Face*) s_face;
 	assert(face->boundary);
 
-	const struct const_Matrix_d*const lhs = constructor_lhs_f_1_b(flux,num_flux,s_face); // destructed
+	const struct const_Matrix_d*const lhs = constructor_lhs_f_1_b(flux_r,num_flux,s_face); // destructed
 
 	const struct OPG_Solver_Volume*const opg_s_vol = (struct OPG_Solver_Volume*) face->neigh_info[0].volume;
 	set_petsc_Mat_row_col_opg(ssi,opg_s_vol,0,opg_s_vol,0);
 	add_to_petsc_Mat(ssi,lhs);
 
 	const struct OPG_Solver_Face*const opg_s_face = (struct OPG_Solver_Face*) s_face;
-	opg_s_face->constructor_rlhs_penalty[1](flux,num_flux,s_face,ssi);
+	opg_s_face->constructor_rlhs_penalty[1](flux_r,num_flux,s_face,ssi);
 
 	destructor_const_Matrix_d(lhs);
 }
@@ -162,15 +162,16 @@ static void compute_lhs_1_b
 
 /** \brief Constructor for the 'l'eft term of the lhs contribution from the boundary faces.
  *  \return The operator corresponding to test_s' frac{dnnf_ds}. */
-static struct const_Matrix_d* constructor_lhs_f_1_b_l
+static const struct const_Matrix_d* constructor_lhs_f_1_b_l
 	(const struct Numerical_Flux*const num_flux, ///< Standard.
 	 const struct Solver_Face*const s_face       ///< Standard.
 	);
 
 /** \brief Constructor for the 'r'ight term of the lhs contribution from the boundary faces.
- *  \return The operator corresponding to frac{d s}{d test_s_coef} = - df_ds' (dot) cv1_vt_fc. */
-static struct const_Matrix_d* constructor_lhs_f_1_b_r
-	(const struct Flux*const flux,         ///< Standard.
+ *  \return The operator corresponding to
+ *          frac{d s}{d test_s_coef} = cv0_vs_fc M^{-1} cv0_vt_vc' (-df_ds' (dot) cv1_vt_vc). */
+static const struct const_Matrix_d* constructor_lhs_f_1_b_r
+	(const struct Flux_Ref*const flux_r,   ///< Standard.
 	 const struct Solver_Face*const s_face ///< Standard.
 	);
 
@@ -213,14 +214,13 @@ static void finalize_lhs_1_f_opg
 }
 
 static const struct const_Matrix_d* constructor_lhs_f_1_b
-	(const struct Flux*const flux, const struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+	(const struct Flux_Ref*const flux_r, const struct Numerical_Flux*const num_flux,
+	 const struct Solver_Face*const s_face)
 {
 	const struct const_Matrix_d*const lhs_l  = constructor_lhs_f_1_b_l(num_flux,s_face); // destructed
-	const struct const_Matrix_d*const lhs_r  = constructor_lhs_f_1_b_r(flux,s_face);     // destructed
+	const struct const_Matrix_d*const lhs_r  = constructor_lhs_f_1_b_r(flux_r,s_face);   // destructed
 
 	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('N','N',-1.0,lhs_l,lhs_r,'R'); // returned
-	printf("face lhs b\n");
-	print_const_Matrix_d(lhs);
 	destructor_const_Matrix_d(lhs_l);
 	destructor_const_Matrix_d(lhs_r);
 
@@ -229,93 +229,34 @@ static const struct const_Matrix_d* constructor_lhs_f_1_b
 
 // Level 3 ********************************************************************************************************** //
 
-static struct const_Matrix_d* constructor_lhs_f_1_b_l
+static const struct const_Matrix_d* constructor_lhs_f_1_b_l
 	(const struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
 {
 	const struct Face*const face = (struct Face*) s_face;
 	assert(face->boundary);
 
-	const int*const n_vr_eq = get_set_n_var_eq(NULL);
-	const int n_vr = n_vr_eq[0],
-	          n_eq = n_vr_eq[1];
+	scale_by_Jacobian_i1((struct Numerical_Flux*)num_flux,s_face);
 
-	const struct Operator*const tw0_vt_fc = get_operator__tw0_vt_fc(0,s_face);
-	const ptrdiff_t ext_0 = tw0_vt_fc->op_std->ext_0,
-	                ext_1 = tw0_vt_fc->op_std->ext_1;
-
-	struct Matrix_d*const tw0_nf = constructor_empty_Matrix_d('R',ext_0,ext_1);           // destructed
-	struct Matrix_d*const lhs_l  = constructor_empty_Matrix_d('R',n_eq*ext_0,n_vr*ext_1); // returned
-	set_to_value_Matrix_d(tw0_nf,0.0);
-
-	const struct const_Multiarray_d*const dnnf_ds_Ma = num_flux->neigh_info[0].dnnf_ds;
-	struct Vector_d dnnf_ds = { .ext_0 = dnnf_ds_Ma->extents[0], .owns_data = false, .data = NULL, };
-
-	for (int vr = 0; vr < n_vr; ++vr) {
-	for (int eq = 0; eq < n_eq; ++eq) {
-		const ptrdiff_t ind =
-			compute_index_sub_container(dnnf_ds_Ma->order,1,dnnf_ds_Ma->extents,(ptrdiff_t[]){eq,vr});
-		dnnf_ds.data = (double*)&dnnf_ds_Ma->data[ind];
-		mm_diag_d('R',1.0,0.0,tw0_vt_fc->op_std,(struct const_Vector_d*)&dnnf_ds,tw0_nf,false);
-
-		set_block_Matrix_d(lhs_l,eq*tw0_nf->ext_0,vr*tw0_nf->ext_1,
-		                   (struct const_Matrix_d*)tw0_nf,0,0,tw0_nf->ext_0,tw0_nf->ext_1,'i');
-	}}
-	destructor_Matrix_d(tw0_nf);
-
-	// scale by jacobian_det_fc.
-	const struct const_Vector_d j_det_fc    = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
-	const struct const_Vector_d*const jr_fc = constructor_repeated_const_Vector_d(1.0,&j_det_fc,n_vr); // destructed
-
-	scale_Matrix_by_Vector_d('R',1.0,lhs_l,jr_fc,false);
-	destructor_const_Vector_d(jr_fc);
+	const int side_index[2] = { 0, 0, };
+	struct Matrix_d*const lhs_l = constructor_lhs_f_1(side_index,num_flux,s_face); // returned
 
 	return (struct const_Matrix_d*) lhs_l;
 }
 
-static struct const_Matrix_d* constructor_lhs_f_1_b_r
-	(const struct Flux*const flux, const struct Solver_Face*const s_face)
+static const struct const_Matrix_d* constructor_lhs_f_1_b_r
+	(const struct Flux_Ref*const flux_r, const struct Solver_Face*const s_face)
 {
 	const struct Face*const face = (struct Face*) s_face;
 	assert(face->boundary);
 
-	const int*const n_vr_eq = get_set_n_var_eq(NULL);
-	const int n_vr = n_vr_eq[0],
-	          n_eq = n_vr_eq[1];
+	const struct OPG_Solver_Volume*const opg_s_vol = (struct OPG_Solver_Volume*) face->neigh_info[0].volume;
 
-	const struct OPG_Solver_Face*const opg_s_face = (struct OPG_Solver_Face*) s_face;
-	const struct Multiarray_Operator cv1_vt_fc = get_operator__cv1_vt_fc_d(0,opg_s_face);
-	const ptrdiff_t ext_0 = cv1_vt_fc.data[0]->op_std->ext_0,
-	                ext_1 = cv1_vt_fc.data[0]->op_std->ext_1;
+	const struct const_Matrix_d*const op__t_to_s =
+		constructor_operator__test_s_coef_to_sol_coef_d(flux_r,opg_s_vol); // destructed
 
-	struct Matrix_d*const ds_dtc = constructor_empty_Matrix_d('R',ext_0,ext_1);           // destructed
-	struct Matrix_d*const lhs_r  = constructor_empty_Matrix_d('R',n_vr*ext_0,n_eq*ext_1); // returned
+	const struct const_Matrix_d*const cv0_vs_fc = get_operator__cv0_vs_fc(0,s_face)->op_std;
+	const struct const_Matrix_d*const lhs_r = constructor_mm_const_Matrix_d('N','N',1.0,cv0_vs_fc,op__t_to_s,'R'); // ret.
+	destructor_const_Matrix_d(op__t_to_s);
 
-	const struct Flux_Ref*const flux_r = constructor_Flux_Ref(s_face->metrics_fc,flux); // destructed
-	const struct const_Multiarray_d*const dfr_ds_Ma = flux_r->dfr_ds;
-	struct Vector_d dfr_ds = { .ext_0 = dfr_ds_Ma->extents[0], .owns_data = false, .data = NULL, };
-
-	for (int vr = 0; vr < n_vr; ++vr) {
-	for (int eq = 0; eq < n_eq; ++eq) {
-		set_to_value_Matrix_d(ds_dtc,0.0);
-		for (int dim = 0; dim < DIM; ++dim) {
-			const ptrdiff_t ind =
-				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
-			dfr_ds.data = (double*)&dfr_ds_Ma->data[ind];
-			mm_diag_d('L',-1.0,1.0,cv1_vt_fc.data[dim]->op_std,(struct const_Vector_d*)&dfr_ds,ds_dtc,false);
-		}
-		// Note the swapping of vr and eq below for the transpose of df_ds.
-		set_block_Matrix_d(lhs_r,vr*ext_0,eq*ext_1,
-		                   (struct const_Matrix_d*)ds_dtc,0,0,ds_dtc->ext_0,ds_dtc->ext_1,'i');
-	}}
-	destructor_Flux_Ref((void*)flux_r);
-	destructor_Matrix_d(ds_dtc);
-
-	// scale by inv(volume_jacobian_det_fc).
-	const struct const_Vector_d j_det_fc    = interpret_const_Multiarray_as_Vector_d(s_face->vol_jacobian_det_fc);
-	const struct const_Vector_d*const jr_fc = constructor_repeated_const_Vector_d(1.0,&j_det_fc,n_vr); // destructed
-
-	scale_Matrix_by_Vector_d('L',1.0,lhs_r,jr_fc,true);
-	destructor_const_Vector_d(jr_fc);
-
-	return (struct const_Matrix_d*) lhs_r;
+	return lhs_r;
 }

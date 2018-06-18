@@ -3,8 +3,10 @@ set	(SOURCE
 	 computational_elements/test_support_face.c
 	 computational_elements/test_support_volume.c
 
+	 solvers/test_support_solve.c
 	 solvers/dg/test_support_solve_dg.c
 	 solvers/dpg/test_support_solve_dpg.c
+	 solvers/opg/test_support_solve_opg.c
 
 	 ../intrusive/test_support_intrusive.c
 	)

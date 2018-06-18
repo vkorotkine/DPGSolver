@@ -13,19 +13,19 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__test_support_solve_dpg_h__INCLUDED
-#define DPG__test_support_solve_dpg_h__INCLUDED
+#ifndef DPG__test_support_solve_opg_h__INCLUDED
+#define DPG__test_support_solve_opg_h__INCLUDED
 /** \file
- *  \brief Provides supporting functions for testing of the dpg solver.
+ *  \brief Provides supporting functions for testing of the opg solver.
  */
 
 struct Simulation;
 struct Solver_Storage_Implicit;
 
-/// \brief Compute the lhs matrix using the complex step method for the DG scheme.
-void compute_lhs_cmplx_step_dpg
-	(const struct Simulation* sim,       ///< \ref Simulation.
-	 struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
+/// \brief Compute the lhs matrix using the complex step method for the OPG scheme.
+void compute_lhs_cmplx_step_opg
+	(const struct Simulation*const sim,       ///< Standard.
+	 struct Solver_Storage_Implicit*const ssi ///< Standard.
 	);
 
-#endif // DPG__test_support_solve_dpg_h__INCLUDED
+#endif // DPG__test_support_solve_opg_h__INCLUDED

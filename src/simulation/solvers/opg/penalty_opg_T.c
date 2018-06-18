@@ -22,7 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 
 #include "def_templates_penalty_opg.h"
-#include "def_templates_flux.h"
+#include "def_templates_compute_rlhs.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_face_solver.h"
 
@@ -31,18 +31,18 @@ You should have received a copy of the GNU General Public License along with DPG
 // Interface functions ********************************************************************************************** //
 
 void constructor_rlhs_f_test_penalty_unsupported_T
-	(const struct Flux_T*const flux, const struct Numerical_Flux_T*const num_flux, struct Solver_Face_T*const s_face,
-	 struct Solver_Storage_Implicit*const ssi)
+	(const struct Flux_Ref_T*const flux_r, const struct Numerical_Flux_T*const num_flux,
+	 struct Solver_Face_T*const s_face, struct Solver_Storage_Implicit*const ssi)
 {
-	UNUSED(flux); UNUSED(num_flux); UNUSED(s_face); UNUSED(ssi);
+	UNUSED(flux_r); UNUSED(num_flux); UNUSED(s_face); UNUSED(ssi);
 	EXIT_UNSUPPORTED;
 }
 
 void constructor_rhs_f_test_penalty_do_nothing_T
-	(const struct Flux_T*const flux, const struct Numerical_Flux_T*const num_flux, struct Solver_Face_T*const s_face,
-	 struct Solver_Storage_Implicit*const ssi)
+	(const struct Flux_Ref_T*const flux_r, const struct Numerical_Flux_T*const num_flux,
+	 struct Solver_Face_T*const s_face, struct Solver_Storage_Implicit*const ssi)
 {
-	UNUSED(flux); UNUSED(num_flux); UNUSED(s_face); UNUSED(ssi);
+	UNUSED(flux_r); UNUSED(num_flux); UNUSED(s_face); UNUSED(ssi);
 	return;
 }
 
@@ -50,6 +50,6 @@ void constructor_rhs_f_test_penalty_do_nothing_T
 // Level 0 ********************************************************************************************************** //
 
 #include "undef_templates_penalty_opg.h"
-#include "undef_templates_flux.h"
+#include "undef_templates_compute_rlhs.h"
 #include "undef_templates_numerical_flux.h"
 #include "undef_templates_face_solver.h"

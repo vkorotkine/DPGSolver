@@ -60,7 +60,7 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Flags for whether certain outputs are enabled.
 #define PRINT_NORM_INF_X  false ///< Flag for whether the infinity norm of the solution update should be printed.
 #define PRINT_NORM_INF_AB true  ///< Flag for whether the infinity norms of the lhs (A) and rhs (b) should be printed.
-#define OUTPUT_PETSC_AB true  ///< Flag for Petsc data containers.
+#define OUTPUT_PETSC_AB false ///< Flag for Petsc data containers.
 #define OUTPUT_SOLUTION true  ///< Flag for solution data on each element.
 #define EXIT_ON_OUTPUT  true  ///< Flag for whether the simulation should exit after outputting.
 #define OUTPUT_STEP     500   ///< Iteration step at which to output the solution if enabled.
@@ -364,7 +364,7 @@ static void output_petsc_mat_vec (Mat A, Vec b, const struct Simulation* sim)
 	if (test_case->use_schur_complement)
 		output_petsc_schur(A,b,sim);
 
-	EXIT_ERROR("Disable outputting to continue");
+	EXIT_ERROR("Set OUTPUT_PETSC_AB to 'false' to continue.");
 }
 
 static void output_solution (const int i_step, struct Simulation*const sim)
@@ -594,7 +594,7 @@ static void update_coefs (Vec x, const struct Simulation* sim)
 		break;
 	case METHOD_OPG:
 		update_coef_test_s_v(x,sim);
-		update_coef_s_v_opg(sim);
+		update_coef_s_v_opg_d(sim);
 		update_coef_nf_f_opg(sim);
 		assert(get_set_has_1st_2nd_order(NULL)[1] == false); // Add support.
 		break;

@@ -75,8 +75,7 @@ static const struct const_Multiarray_T* constructor_grad_vc_col
 /** \brief Constructor for the xyz coordinates evaluated at the 'v'olume 'c'ubature nodes.
  *  \return See brief. */
 static const struct const_Multiarray_T* constructor_xyz_vc
-	(const struct Solver_Volume_T*const s_vol, ///< \ref Solver_Volume_T.
-	 const struct Simulation*const sim         ///< \ref Simulation.
+	(const struct Solver_Volume_T*const s_vol ///< Standard.
 	);
 
 /// \brief Destructor for the return value of \ref constructor_NULL.
@@ -143,13 +142,12 @@ void set_S_Params_Volume_Structor_T (struct S_Params_Volume_Structor_T* spvs, co
 }
 
 struct Flux_Ref_T* constructor_Flux_Ref_vol_T
-	(const struct S_Params_Volume_Structor_T* spvs, struct Flux_Input_T* flux_i, const struct Solver_Volume_T* s_vol,
-	 const struct Simulation* sim)
+	(const struct S_Params_Volume_Structor_T* spvs, struct Flux_Input_T* flux_i, const struct Solver_Volume_T* s_vol)
 {
 	// Compute the solution, gradients and xyz coordinates at the volume cubature nodes.
 	flux_i->s   = spvs->constructor_sol_vc(s_vol);
 	flux_i->g   = spvs->constructor_grad_vc(s_vol);
-	flux_i->xyz = constructor_xyz_vc(s_vol,sim);
+	flux_i->xyz = constructor_xyz_vc(s_vol);
 
 	// Compute the fluxes (and optionally their Jacobians) at the volume cubature nodes.
 	struct Flux_T* flux = constructor_Flux_T(flux_i); // destructed
@@ -358,11 +356,10 @@ static const struct const_Multiarray_T* constructor_grad_vc_col (const struct So
 	return (const struct const_Multiarray_T*) s_vol->grad_coef;
 }
 
-static const struct const_Multiarray_T* constructor_xyz_vc
-	(const struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
+static const struct const_Multiarray_T* constructor_xyz_vc (const struct Solver_Volume_T*const s_vol)
 {
-	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
-	switch (test_case->pde_index) {
+	const int pde_index = get_set_pde_index(NULL);
+	switch (pde_index) {
 	case PDE_ADVECTION:
 		break; // Do nothing (continue below).
 	case PDE_DIFFUSION:
@@ -371,7 +368,7 @@ static const struct const_Multiarray_T* constructor_xyz_vc
 		return NULL;
 		break;
 	default:
-		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
+		EXIT_ERROR("Unsupported: %d\n",pde_index);
 		break;
 	}
 

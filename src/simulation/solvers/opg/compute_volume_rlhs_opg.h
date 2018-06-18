@@ -21,30 +21,11 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_type_d.h"
-#include "def_templates_compute_volume_rlhs_opg.h"
 #include "compute_volume_rlhs_opg_T.h"
 #include "undef_templates_type.h"
-#include "undef_templates_compute_volume_rlhs_opg.h"
 
-#include <stdbool.h>
-
-struct Flux_Ref;
-struct Solver_Volume;
-
-/** \brief Update the values of \ref Solver_Volume_T::sol_coef based on the updated \ref Solver_Volume_T::test_s_coef
- *         values. */
-void update_coef_s_v_opg
-	(const struct Simulation*const sim ///< Standard.
-	);
-
-/** \brief Constructor for the 'test' function 'diff'erentiation 'op'erator for the '1'st order 'v'olume term for the
- *         OPG scheme.
- *  \return See brief. */
-const struct const_Matrix_d* constructor_test_diff_op_1v_opg
-	(const struct Flux_Ref*const flux_r,     ///< Standard.
-	 const struct Solver_Volume*const s_vol, ///< Standard.
-	 const bool include_det_j                /**< Flag for whether the inverse Jacobian determinant should be
-	                                          *   included. */
-	);
+#include "def_templates_type_dc.h"
+#include "compute_volume_rlhs_opg_T.h"
+#include "undef_templates_type.h"
 
 #endif // DPG__compute_volume_rlhs_opg_h__INCLUDED

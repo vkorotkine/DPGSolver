@@ -18,6 +18,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #undef compute_volume_rlhs_opg_T
+#undef constructor_operator__test_s_coef_to_sol_coef_T
+#undef update_coef_s_v_opg_T
+#undef constructor_test_diff_op_1v_opg_T
 ///\}
 
 #undef S_Params_T

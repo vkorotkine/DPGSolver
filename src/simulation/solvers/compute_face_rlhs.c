@@ -35,6 +35,24 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/// \brief Version of \ref scale_by_Jacobian_fptr_T scaling \ref Numerical_Flux_T::nnf.
+static void scale_by_Jacobian_nnf
+	(struct Numerical_Flux*const num_flux, ///< See brief.
+	 const struct Solver_Face*const s_face ///< See brief.
+		);
+
+/// \brief Version of \ref scale_by_Jacobian_fptr_T scaling \ref Numerical_Flux_T::Neigh_Info_NF_T::dnnf_ds.
+static void scale_by_Jacobian_dnnf_ds
+	(struct Numerical_Flux*const num_flux, ///< See brief.
+	 const struct Solver_Face*const s_face ///< See brief.
+		);
+
+/// \brief Version of \ref scale_by_Jacobian_fptr_T scaling \ref Numerical_Flux_T::Neigh_Info_NF_T::dnnf_dg.
+static void scale_by_Jacobian_dnnf_dg
+	(struct Numerical_Flux*const num_flux, ///< See brief.
+	 const struct Solver_Face*const s_face ///< See brief.
+		);
+
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_d.h"
@@ -45,5 +63,54 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_face_rlhs_T.c"
 #include "undef_templates_type.h"
 
+void scale_by_Jacobian_i1 (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+{
+	scale_by_Jacobian_nnf(num_flux,s_face);
+	scale_by_Jacobian_dnnf_ds(num_flux,s_face);
+}
+
+void scale_by_Jacobian_i2 (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+{
+	scale_by_Jacobian_nnf(num_flux,s_face);
+	scale_by_Jacobian_dnnf_dg(num_flux,s_face);
+}
+
+void scale_by_Jacobian_i12 (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+{
+	scale_by_Jacobian_nnf(num_flux,s_face);
+	scale_by_Jacobian_dnnf_ds(num_flux,s_face);
+	scale_by_Jacobian_dnnf_dg(num_flux,s_face);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static void scale_by_Jacobian_nnf (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+{
+	const struct const_Vector_d jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
+	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->nnf,&jacobian_det_fc,false);
+}
+
+static void scale_by_Jacobian_dnnf_ds (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+{
+	const struct Face*const face = (struct Face*) s_face;
+	assert((!face->boundary && num_flux->neigh_info[1].dnnf_ds != NULL) ||
+	       ( face->boundary && num_flux->neigh_info[1].dnnf_ds == NULL));
+
+	const struct const_Vector_d jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
+	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[0].dnnf_ds,&jacobian_det_fc,false);
+	if (!face->boundary)
+		scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[1].dnnf_ds,&jacobian_det_fc,false);
+}
+
+static void scale_by_Jacobian_dnnf_dg (struct Numerical_Flux*const num_flux, const struct Solver_Face*const s_face)
+{
+	const struct Face*const face = (struct Face*) s_face;
+	assert((!face->boundary && num_flux->neigh_info[1].dnnf_dg != NULL) ||
+	       ( face->boundary && num_flux->neigh_info[1].dnnf_dg == NULL));
+
+	const struct const_Vector_d jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
+	scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[0].dnnf_dg,&jacobian_det_fc,false);
+	if (!face->boundary)
+		scale_Multiarray_by_Vector_d('L',1.0,(struct Multiarray_d*)num_flux->neigh_info[1].dnnf_dg,&jacobian_det_fc,false);
+}

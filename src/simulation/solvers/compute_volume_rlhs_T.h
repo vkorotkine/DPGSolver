@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_compute_volume_rlhs.h"
+#include "def_templates_compute_rlhs.h"
 #include "def_templates_volume_solver.h"
 #include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
@@ -79,10 +80,9 @@ void set_S_Params_Volume_Structor_T
 /** \brief Call \ref constructor_Flux_Ref_T using data from the current volume.
  *  \return See brief. */
 struct Flux_Ref_T* constructor_Flux_Ref_vol_T
-	(const struct S_Params_Volume_Structor_T* spvs, ///< \ref S_Params_Volume_Structor_T.
-	 struct Flux_Input_T* flux_i,                   ///< \ref Flux_Input_T.
-	 const struct Solver_Volume_T* s_vol,           ///< \ref Solver_Volume_T.
-	 const struct Simulation* sim                   ///< \ref Simulation.
+	(const struct S_Params_Volume_Structor_T* spvs, ///< Standard.
+	 struct Flux_Input_T* flux_i,                   ///< Standard.
+	 const struct Solver_Volume_T* s_vol            ///< Standard.
 	);
 
 /** \brief Version of \ref compute_rlhs_v_fptr_T computing only the rhs term.
@@ -147,6 +147,7 @@ struct Multiarray_Operator get_operator__cv1_vt_vc_T
 	);
 
 #include "undef_templates_compute_volume_rlhs.h"
+#include "undef_templates_compute_rlhs.h"
 #include "undef_templates_volume_solver.h"
 #include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"

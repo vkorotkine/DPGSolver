@@ -17,6 +17,16 @@ You should have received a copy of the GNU General Public License along with DPG
  *         (rlhs) terms of the OPG scheme.
  */
 
+#include "def_templates_compute_volume_rlhs_opg.h"
+#include "def_templates_compute_rlhs.h"
+#include "def_templates_matrix.h"
+#include "def_templates_volume_solver_opg.h"
+
+#include <stdbool.h>
+
+struct Flux_Ref_T;
+struct Solver_Volume_T;
+struct OPG_Solver_Volume_T;
 struct Simulation;
 struct Solver_Storage_Implicit;
 struct Intrusive_List;
@@ -27,3 +37,22 @@ void compute_volume_rlhs_opg_T
 	 struct Solver_Storage_Implicit* ssi, ///< \ref Solver_Storage_Implicit.
 	 struct Intrusive_List* volumes       ///< The list of volumes.
 	);
+
+/** \brief Constructor for the operator used to compute \ref Solver_Volume_T::sol_coef from
+ *         \ref Solver_Volume_T::test_s_coef for the OPG scheme.
+ *  \return See brief. */
+const struct const_Matrix_T* constructor_operator__test_s_coef_to_sol_coef_T
+	(const struct Flux_Ref_T*const flux_r,            ///< Standard.
+	 const struct OPG_Solver_Volume_T*const opg_s_vol ///< Standard.
+		);
+
+/** \brief Update the values of \ref Solver_Volume_T::sol_coef based on the updated \ref Solver_Volume_T::test_s_coef
+ *         values. */
+void update_coef_s_v_opg_T
+	(const struct Simulation*const sim ///< Standard.
+		);
+
+#include "undef_templates_compute_volume_rlhs_opg.h"
+#include "undef_templates_compute_rlhs.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_volume_solver_opg.h"

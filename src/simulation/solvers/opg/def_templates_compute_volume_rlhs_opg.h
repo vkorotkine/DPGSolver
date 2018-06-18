@@ -21,6 +21,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define compute_volume_rlhs_opg_T compute_volume_rlhs_opg
+#define constructor_operator__test_s_coef_to_sol_coef_T constructor_operator__test_s_coef_to_sol_coef_d
+#define update_coef_s_v_opg_T update_coef_s_v_opg_d
+#define constructor_test_diff_op_1v_opg_T constructor_test_diff_op_1v_opg_d
 ///\}
 
 ///\{ \name Static names
@@ -32,6 +35,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define compute_volume_rlhs_opg_T compute_volume_rlhs_opg_c
+#define constructor_operator__test_s_coef_to_sol_coef_T constructor_operator__test_s_coef_to_sol_coef_c
+#define update_coef_s_v_opg_T update_coef_s_v_opg_c
+#define constructor_test_diff_op_1v_opg_T constructor_test_diff_op_1v_opg_c
 ///\}
 
 ///\{ \name Static names

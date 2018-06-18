@@ -35,13 +35,13 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Static names
-#define S_Params_T S_Params_T
-#define Num_Flux_T Num_Flux_T
-#define set_s_params_T set_s_params_T
-#define constructor_Numerical_Flux_OPG_T constructor_Numerical_Flux_OPG_T
-#define constructor_Flux_OPG_T constructor_Flux_OPG_T
-#define scale_by_Jacobian_e_T scale_by_Jacobian_e_T
-#define constructor_Numerical_Flux_Input_data_opg_T constructor_Numerical_Flux_Input_data_opg_T
+#define S_Params_T S_Params_d
+#define Num_Flux_T Num_Flux_d
+#define set_s_params_T set_s_params_d
+#define constructor_Numerical_Flux_OPG_T constructor_Numerical_Flux_OPG_d
+#define constructor_Flux_Ref_OPG_T constructor_Flux_Ref_OPG_d
+#define scale_by_Jacobian_e_T scale_by_Jacobian_e_d
+#define constructor_Numerical_Flux_Input_data_opg_T constructor_Numerical_Flux_Input_data_opg_d
 #define constructor_jump_test_s_fc_T constructor_jump_test_s_fc_d
 #define compute_rhs_f_opg_dg_like_T compute_rhs_f_opg_dg_like_d
 ///\}
@@ -68,7 +68,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define Num_Flux_T Num_Flux_T_c
 #define set_s_params_T set_s_params_T_c
 #define constructor_Numerical_Flux_OPG_T constructor_Numerical_Flux_OPG_T_c
-#define constructor_Flux_OPG_T constructor_Flux_OPG_T_c
+#define constructor_Flux_Ref_OPG_T constructor_Flux_Ref_OPG_T_c
 #define scale_by_Jacobian_e_T scale_by_Jacobian_e_T_c
 #define constructor_Numerical_Flux_Input_data_opg_T constructor_Numerical_Flux_Input_data_opg_T_c
 #define constructor_jump_test_s_fc_T constructor_jump_test_s_fc_c
