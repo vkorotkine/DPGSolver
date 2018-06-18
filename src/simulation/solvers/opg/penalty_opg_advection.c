@@ -17,7 +17,21 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "penalty_opg_advection.h"
 
+#include "matrix.h"
+#include "multiarray.h"
+#include "vector.h"
+
+#include "face_solver_opg.h"
+#include "volume_solver.h"
+
+#include "compute_face_rlhs_opg.h"
+#include "math_functions.h"
 #include "numerical_flux.h"
+#include "penalty_opg.h"
+#include "simulation.h"
+#include "solve.h"
+#include "solve_opg.h"
+#include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
 

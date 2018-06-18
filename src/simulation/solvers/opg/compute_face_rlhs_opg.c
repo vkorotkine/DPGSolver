@@ -61,9 +61,9 @@ static void compute_rlhs_1
 #include "compute_face_rlhs_opg_T.c"
 #include "undef_templates_type.h"
 
-/* #include "def_templates_type_dc.h" */
-/* #include "compute_face_rlhs_opg_T.c" */
-/* #include "undef_templates_type.h" */
+#include "def_templates_type_dc.h"
+#include "compute_face_rlhs_opg_T.c"
+#include "undef_templates_type.h"
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
@@ -99,31 +99,6 @@ static void compute_rlhs_1
 }
 
 // Level 1 ********************************************************************************************************** //
-
-/// \brief Container for operators needed for the assembly of LHS terms for the OPG scheme.
-struct Lhs_Operators_OPG {
-	const struct const_Vector_d* wJ_fc; ///< Face cubature weights "dot-multiplied" by the Jacobian determinant.
-
-	/** 'c'oefficient to 'v'alue operators from the 'v'olume 't'est basis to 'f'ace 'c'ubature nodes.
-	 *
-	 *  The indices are used to denote the following operators:
-	 *  - [0]: ll operator ('l'eft  basis -> 'l'eft  nodes);
-	 *  - [1]: rl operator ('r'ight basis -> 'l'eft  nodes; permutation of node ordering);
-	 */
-	const struct const_Matrix_d* cv0_vt_fc[2];
-};
-
-/** \brief Constructor for a \ref Lhs_Operators_OPG container.
- *  \return See brief. */
-static const struct Lhs_Operators_OPG* constructor_Lhs_Operators_OPG
-	(const struct OPG_Solver_Face*const opg_s_face ///< Standard.
-	);
-
-/// \brief Destructor for a \ref Lhs_Operators_OPG container.
-static void destructor_Lhs_Operators_OPG
-	(const struct Solver_Face*const s_face, ///< Standard.
-	 const struct Lhs_Operators_OPG* ops    ///< Standard.
-	);
 
 /// \brief Finalize the 1st order lhs term contribution from the \ref Face for the opg scheme.
 static void finalize_lhs_1_f_opg
@@ -199,36 +174,6 @@ static struct const_Matrix_d* constructor_lhs_f_1_b_r
 	 const struct Solver_Face*const s_face ///< Standard.
 	);
 
-static const struct Lhs_Operators_OPG* constructor_Lhs_Operators_OPG (const struct OPG_Solver_Face*const opg_s_face)
-{
-	struct Lhs_Operators_OPG*const ops = calloc(1,sizeof *ops); // free
-
-	const struct Solver_Face*const s_face = (struct Solver_Face*) opg_s_face;
-	const struct const_Vector_d*const w_fc  = get_operator__w_fc__s_e(s_face);
-	const struct const_Vector_d j_det_fc    = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
-	ops->wJ_fc = constructor_dot_mult_const_Vector_d(1.0,w_fc,&j_det_fc,1); // destructed
-
-	const struct Operator*const cv0_vt_fc = get_operator__cv0_vt_fc_d(0,opg_s_face);
-	ops->cv0_vt_fc[0] = cv0_vt_fc->op_std;
-
-	const struct Face*const face = (struct Face*) s_face;
-	if (!face->boundary) {
-		ops->cv0_vt_fc[1] = constructor_copy_const_Matrix_d(get_operator__cv0_vt_fc_d(1,opg_s_face)->op_std); // d.
-		permute_Matrix_d_fc((struct Matrix_d*)ops->cv0_vt_fc[1],'R',0,s_face);
-	}
-	return ops;
-}
-
-static void destructor_Lhs_Operators_OPG (const struct Solver_Face*const s_face, const struct Lhs_Operators_OPG* ops)
-{
-	destructor_const_Vector_d(ops->wJ_fc);
-
-	const struct Face*const face = (struct Face*) s_face;
-	if (!face->boundary)
-		destructor_const_Matrix_d(ops->cv0_vt_fc[1]);
-	free((void*)ops);
-}
-
 static void finalize_lhs_1_f_opg
 	(const int side_index[2], const struct Lhs_Operators_OPG*const ops, const struct Solver_Face*const s_face,
 	 struct Solver_Storage_Implicit*const ssi)
@@ -247,8 +192,8 @@ static void finalize_lhs_1_f_opg
 	destructor_const_Matrix_d(lhs_r);
 
 	const int*const n_vr_eq = get_set_n_var_eq(NULL);
-	const int n_vr    = n_vr_eq[0],
-	          n_eq    = n_vr_eq[1];
+	const int n_vr = n_vr_eq[0];
+	const int n_eq = n_vr_eq[1];
 	/** \warning It is possible that a change may be required when systems of equations are used. Currently, there is
 	 *           a "default coupling" between the face terms between each equations and variables.
 	 *

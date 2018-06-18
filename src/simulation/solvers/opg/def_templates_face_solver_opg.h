@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *         containers/functions.
  */
 
+#include "def_templates_face_solver.h"
+
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Data types

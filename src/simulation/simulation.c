@@ -261,6 +261,32 @@ int get_set_method (const int*const new_val)
 	return method;
 }
 
+const int* get_set_degree_poly (const int*const new_vals, const char*const key)
+{
+	const int* deg = NULL;
+	switch (key[0]) {
+	case 't':
+		switch (key[1]) {
+		case 'p': {
+			static int p_t_p[2];
+			if (new_vals) {
+				for (int i = 0; i < 2; ++i)
+					p_t_p[i] = new_vals[i];
+			}
+			deg = p_t_p;
+			break;
+		} default:
+			EXIT_ERROR("Unsupported: %s\n",key);
+			break;
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %s\n",key);
+		break;
+	}
+	return deg;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -570,6 +596,8 @@ static void set_orders (struct Simulation*const sim)
 		p = sim->p_sg_f_p + (sim->p_sg_f_p == P_INVALID ? 0 : sim->p_ref[i]);
 		const_cast_i(&sim->p_sg_f[i],p);
 	}
+
+	get_set_degree_poly(sim->p_t_p,"tp");
 }
 
 // Level 2 ********************************************************************************************************** //

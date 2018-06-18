@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Undefine macro definitions for c-style templating relating to \ref OPG_Solver_Volume_T containers/functions.
  */
 
+#include "undef_templates_volume_solver.h"
+
 ///\{ \name Data types
 #undef OPG_Solver_Volume_T
 ///\}

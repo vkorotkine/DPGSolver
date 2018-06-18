@@ -119,6 +119,8 @@ bool check_symmetric (const struct Simulation* sim)
 		switch (sim->method) {
 		case METHOD_DG:  // fallthrough
 		case METHOD_OPG:
+			/** \warning OPG matrix may be symmetric after adding the penalty term and not considering the
+			 *  influence of outflow boundaries. */
 			return false;
 			break;
 		case METHOD_DPG:

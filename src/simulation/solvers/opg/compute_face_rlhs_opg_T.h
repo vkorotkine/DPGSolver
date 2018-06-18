@@ -24,11 +24,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_flux.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_face_solver.h"
+#include "def_templates_face_solver_opg.h"
+#include "def_templates_matrix.h"
+#include "def_templates_vector.h"
 
 struct Simulation;
 struct Solver_Storage_Implicit;
 struct Intrusive_List;
 struct Solver_Face_T;
+struct OPG_Solver_Face_T;
 struct Numerical_Flux_T;
 struct Flux_T;
 
@@ -61,7 +65,35 @@ void update_coef_nf_f_opg_T
 	(const struct Simulation*const sim ///< Standard.
 		);
 
+/// \brief Container for operators needed for the assembly of LHS terms for the OPG scheme.
+struct Lhs_Operators_OPG_T {
+	const struct const_Vector_T* wJ_fc; ///< Face cubature weights "dot-multiplied" by the Jacobian determinant.
+
+	/** 'c'oefficient to 'v'alue operators from the 'v'olume 't'est basis to 'f'ace 'c'ubature nodes.
+	 *
+	 *  The indices are used to denote the following operators:
+	 *  - [0]: ll operator ('l'eft  basis -> 'l'eft  nodes);
+	 *  - [1]: rl operator ('r'ight basis -> 'l'eft  nodes; permutation of node ordering);
+	 */
+	const struct const_Matrix_R* cv0_vt_fc[2];
+};
+
+/** \brief Constructor for a \ref Lhs_Operators_OPG container.
+ *  \return See brief. */
+const struct Lhs_Operators_OPG_T* constructor_Lhs_Operators_OPG_T
+	(const struct OPG_Solver_Face_T*const opg_s_face ///< Standard.
+	);
+
+/// \brief Destructor for a \ref Lhs_Operators_OPG container.
+void destructor_Lhs_Operators_OPG_T
+	(const struct Solver_Face_T*const s_face, ///< Standard.
+	 const struct Lhs_Operators_OPG_T* ops    ///< Standard.
+	);
+
 #include "undef_templates_compute_face_rlhs_opg.h"
 #include "undef_templates_flux.h"
 #include "undef_templates_numerical_flux.h"
 #include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_opg.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_vector.h"

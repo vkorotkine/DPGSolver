@@ -143,11 +143,11 @@ void update_coef_nf_f_opg_T (const struct Simulation*const sim)
 		const struct Solver_Face_T*const s_face         = (struct Solver_Face_T*) curr;
 		const struct OPG_Solver_Face_T*const opg_s_face = (struct OPG_Solver_Face_T*) curr;
 
-		const struct Operator*const cv0_ff_fc = get_operator__cv0_ff_fc(0,s_face);
+		const struct Operator*const cv0_ff_fc = get_operator__cv0_ff_fc_T(0,s_face);
 		const struct const_Matrix_T*const op_proj_L2 =
 			constructor_mm_TR_const_Matrix_T('N','T',1.0,opg_s_face->m_inv,cv0_ff_fc->op_std,'R'); // dest.
 
-		const struct const_Vector_R*const w_fc  = get_operator__w_fc__s_e(s_face);
+		const struct const_Vector_R*const w_fc  = get_operator__w_fc__s_e_T(s_face);
 		const struct const_Vector_T j_det_fc    = interpret_const_Multiarray_as_Vector_T(s_face->jacobian_det_fc);
 		const struct const_Vector_T*const wJ_fc = constructor_dot_mult_const_Vector_T_RT(1.0,w_fc,&j_det_fc,1); // d.
 
@@ -155,10 +155,40 @@ void update_coef_nf_f_opg_T (const struct Simulation*const sim)
 		scale_Multiarray_by_Vector_T('L',1.0,(struct Multiarray_T*)jump_test_s_fc,wJ_fc,false);
 		destructor_const_Vector_T(wJ_fc);
 
-		mm_NNC_Multiarray_T(1.0,0.0,op_proj_L2,jump_test_s_fc,s_face->nf_coef);
+		mm_NNC_Multiarray_TTT(1.0,0.0,op_proj_L2,jump_test_s_fc,s_face->nf_coef);
 		destructor_const_Matrix_T(op_proj_L2);
 		destructor_const_Multiarray_T(jump_test_s_fc);
 	}
+}
+
+const struct Lhs_Operators_OPG_T* constructor_Lhs_Operators_OPG_T (const struct OPG_Solver_Face_T*const opg_s_face)
+{
+	struct Lhs_Operators_OPG_T*const ops = calloc(1,sizeof *ops); // free
+
+	const struct Solver_Face_T*const s_face = (struct Solver_Face_T*) opg_s_face;
+	const struct const_Vector_R*const w_fc  = get_operator__w_fc__s_e_T(s_face);
+	const struct const_Vector_T j_det_fc    = interpret_const_Multiarray_as_Vector_T(s_face->jacobian_det_fc);
+	ops->wJ_fc = constructor_dot_mult_const_Vector_T_RT(1.0,w_fc,&j_det_fc,1); // destructed
+
+	const struct Operator*const cv0_vt_fc = get_operator__cv0_vt_fc_T(0,opg_s_face);
+	ops->cv0_vt_fc[0] = cv0_vt_fc->op_std;
+
+	const struct Face*const face = (struct Face*) s_face;
+	if (!face->boundary) {
+		ops->cv0_vt_fc[1] = constructor_copy_const_Matrix_R(get_operator__cv0_vt_fc_T(1,opg_s_face)->op_std); // d.
+		permute_Matrix_R_fc((struct Matrix_R*)ops->cv0_vt_fc[1],'R',0,s_face);
+	}
+	return ops;
+}
+
+void destructor_Lhs_Operators_OPG_T (const struct Solver_Face_T*const s_face, const struct Lhs_Operators_OPG_T* ops)
+{
+	destructor_const_Vector_T(ops->wJ_fc);
+
+	const struct Face*const face = (struct Face*) s_face;
+	if (!face->boundary)
+		destructor_const_Matrix_R(ops->cv0_vt_fc[1]);
+	free((void*)ops);
 }
 
 // Static functions ************************************************************************************************* //
@@ -219,7 +249,7 @@ static struct Numerical_Flux_T* constructor_Numerical_Flux_OPG_T
 	(struct Numerical_Flux_Input_T*const num_flux_i, const struct Solver_Face_T*const s_face,
 	 const struct Simulation*const sim)
 {
-	struct Numerical_Flux* num_flux = NULL;
+	struct Numerical_Flux_T* num_flux = NULL;
 
 	const struct Face*const face = (struct Face*) s_face;
 	if (!face->boundary) {
@@ -253,8 +283,8 @@ static struct Flux_T* constructor_Flux_OPG_T (struct Flux_Input_T*const flux_i, 
 static void scale_by_Jacobian_e_T
 	(struct Numerical_Flux_T*const num_flux, const struct Solver_Face_T*const s_face)
 {
-	const struct const_Vector_R jacobian_det_fc = interpret_const_Multiarray_as_Vector_d(s_face->jacobian_det_fc);
-	scale_Multiarray_T_by_Vector_R('L',1.0,(struct Multiarray_T*)num_flux->nnf,&jacobian_det_fc,false);
+	const struct const_Vector_T jacobian_det_fc = interpret_const_Multiarray_as_Vector_T(s_face->jacobian_det_fc);
+	scale_Multiarray_by_Vector_T('L',1.0,(struct Multiarray_T*)num_flux->nnf,&jacobian_det_fc,false);
 }
 
 static const struct const_Multiarray_T* constructor_jump_test_s_fc_T (const struct OPG_Solver_Face_T*const opg_s_face)

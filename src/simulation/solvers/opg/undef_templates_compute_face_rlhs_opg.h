@@ -16,11 +16,14 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Undefine macro definitions for c-style templating relating to rlhs computing functions for the opg faces.
  */
 
+#undef Lhs_Operators_OPG_T
 #undef compute_rlhs_opg_f_fptr_T
 
 ///\{ \name Function names
 #undef compute_face_rlhs_opg_T
 #undef update_coef_nf_f_opg_T
+#undef constructor_Lhs_Operators_OPG_T
+#undef destructor_Lhs_Operators_OPG_T
 ///\}
 
 #undef S_Params_T
@@ -29,4 +32,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_Numerical_Flux_OPG_T
 #undef constructor_Flux_OPG_T
 #undef scale_by_Jacobian_e_T
+#undef constructor_Numerical_Flux_Input_data_opg_T
+
+#undef constructor_jump_test_s_fc_T
+#undef compute_rhs_f_opg_dg_like_T
 #undef constructor_Numerical_Flux_Input_data_opg_T
