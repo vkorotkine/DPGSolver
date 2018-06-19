@@ -136,6 +136,8 @@ add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/dpg/TEST_Advection
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dg/TEST_Advection_Peterson_TRI__ml2__p3")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml1__p3")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_Conservative_DPG_Mixed2D__ml2__p2")
+add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/opg/TEST_opg_advection_default__1d__ml4__p4")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/opg/TEST_opg_advection_default__mixed2d__ml2__p2")
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_LINE__ml2__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_TRI__ml2__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_QUAD__ml2__p2")

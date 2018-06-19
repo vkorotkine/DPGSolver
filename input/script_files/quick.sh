@@ -25,10 +25,6 @@ ARGV="advection/default/opg/TEST_opg_advection_default__mixed2d petsc_options_cg
 ARGV="advection/default/opg/TEST_opg_advection_default__1d petsc_options_gmres_tol_1e-15"
 ARGV="advection/default/opg/TEST_opg_advection_default__mixed2d petsc_options_gmres_tol_1e-15"
 
-EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_linearization
-ARGV="advection/default/opg/TEST_opg_advection_default__mixed2d__ml2__p2"
-ARGV="advection/default/opg/TEST_opg_advection_default__mixed2d__ml0__p1" # delete the control file when done debugging.
-
 #ARGV="advection/hyperbolic_tan/TEST_advection_hyperbolic_tan_1d petsc_options_gmres_tol_1e-15"
 #ARGV="diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_Mixed2D petsc_options_cg_ilu1"
 #ARGV="navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_DG_ParametricTRI petsc_options_gmres_default"

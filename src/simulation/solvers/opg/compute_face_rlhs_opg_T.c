@@ -115,10 +115,11 @@ void compute_face_rlhs_opg_T
 	set_S_Params_Volume_Structor_T(&spvs,sim);
 
 	struct Test_Case_T*const test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
-	if (0)
-	assert(test_case->solver_method_curr == 'i');
-
+	const char smc = test_case->solver_method_curr;
+	test_case->solver_method_curr = 'i'; // Jacobians needed for the penalty terms.
 	struct Numerical_Flux_Input_T*const num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
+	test_case->solver_method_curr = smc;
+
 	struct Flux_Input_T*const flux_i               = constructor_Flux_Input_T(sim); // destructed
 
 	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {

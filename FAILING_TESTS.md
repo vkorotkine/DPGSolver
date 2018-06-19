@@ -1,8 +1,8 @@
 # Documented Failing Tests
 
-Tests which are failing either for an expected reason or because further investigation is required are listed here. All
-tests not documented here should be passing; please report an issue if this is not the case.
-
+Tests which are failing either for an expected reason or because further investigation is required are listed here. Note
+that the tests were run in the release build. All tests not documented here should be passing; please report an issue if
+this is not the case.
 ### test_integration_restart___integration/restart/TEST_Euler_SupersonicVortex_DG_ParametricTri2D
 
 Please see the comments in [test_integration_restart.c](src/testing/integration/test_integration_restart.c).

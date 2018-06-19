@@ -72,39 +72,41 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	const struct Solver_Volume_T*const s_vol         = (struct Solver_Volume_T*) face->neigh_info[0].volume;
 	const struct OPG_Solver_Face_T*const opg_s_face  = (struct OPG_Solver_Face_T*) s_face;
 
-	assert(num_flux->nnf != NULL);
-// \f$ \eps^{-1} <v,g-w>_{\Gamma^\text{characteristic out}} \forall v \f$
-	; // do nothing (currently assuming that \f$ g = 0 \f$.
-
 	const struct const_Multiarray_T*const n_dot_b = num_flux->neigh_info[0].dnnf_ds;
-	if (n_dot_b != NULL) {
-		const ptrdiff_t n_fc = n_dot_b->extents[0];
-		struct Vector_R*const indicator = constructor_zero_Vector_R(n_fc); // destructed
-		for (int n = 0; n < n_fc; ++n) {
-			if (real_T(n_dot_b->data[n]) > 0)
-				indicator->data[n] = 1.0;
-		}
+	assert(num_flux->nnf != NULL);
+	assert(n_dot_b != NULL);
 
-		const struct Lhs_Operators_OPG_T*const ops = constructor_Lhs_Operators_OPG_T(opg_s_face); // destructed
+	const ptrdiff_t n_fc = n_dot_b->extents[0];
+	struct Vector_R*const indicator = constructor_zero_Vector_R(n_fc); // destructed
+	for (int n = 0; n < n_fc; ++n) {
+		if (real_T(n_dot_b->data[n]) > 0)
+			indicator->data[n] = 1.0;
+	}
 
-		const int ind_sc = s_face->cub_type == 'c';
-		const int p_t_p = get_set_degree_poly(NULL,"tp")[ind_sc];
-		const double scale = pow(face->h,s_vol->p_ref+p_t_p);
+	const struct Lhs_Operators_OPG_T*const ops = constructor_Lhs_Operators_OPG_T(opg_s_face); // destructed
 
-		const struct const_Vector_T*const diag = constructor_dot_mult_const_Vector_T_RT
-			(-PENALTY_SCALING_OPG/scale,(struct const_Vector_R*)indicator,ops->wJ_fc,1); // destructed
-		destructor_Vector_R(indicator);
+	const int ind_sc = (s_face->cub_type == 'c');
+	const int p_t_p = get_set_degree_poly(NULL,"tp")[ind_sc];
+	const double scale = pow(face->h,s_vol->p_ref+p_t_p);
 
-		const struct const_Matrix_T*const lhs_r =
-			constructor_mm_diag_const_Matrix_R_T(1.0,ops->cv0_vt_fc[0],diag,'L',false); // dest.
-		destructor_const_Vector_T(diag);
+	// Note: -ve sign included here. Would need to be moved for g != 0.
+	const struct const_Vector_T*const diag = constructor_dot_mult_const_Vector_T_RT
+		(-PENALTY_SCALING_OPG/scale,(struct const_Vector_R*)indicator,ops->wJ_fc,1); // destructed
+	destructor_Vector_R(indicator);
 
-		const struct const_Matrix_T*const lhs =
-			constructor_mm_RT_const_Matrix_T('T','N',1.0,ops->cv0_vt_fc[0],lhs_r,'R'); // destructed
-		destructor_const_Matrix_T(lhs_r);
-		destructor_Lhs_Operators_OPG_T(s_face,ops);
+	const struct const_Matrix_T*const lhs_r =
+		constructor_mm_diag_const_Matrix_R_T(1.0,ops->cv0_vt_fc[0],diag,'L',false); // destructed
+	destructor_const_Vector_T(diag);
 
+	const struct const_Matrix_T*const lhs =
+		constructor_mm_RT_const_Matrix_T('T','N',1.0,ops->cv0_vt_fc[0],lhs_r,'R'); // destructed
+	destructor_Lhs_Operators_OPG_T(s_face,ops);
+	destructor_const_Matrix_T(lhs_r);
+
+// \f$ \eps^{-1} <v,g-w>_{\Gamma^\text{characteristic out}} \forall v \f$
 #if TYPE_RC == TYPE_REAL
+	; // do nothing for rhs (currently assuming that \f$ g = 0 \f$ and that the initial guess for \f$ w \f$ is zero.
+	if (ssi != NULL) {
 		const struct OPG_Solver_Volume_T*const opg_s_vol = (struct OPG_Solver_Volume_T*) face->neigh_info[0].volume;
 		for (int vr = 0; vr < n_vr; ++vr) {
 		for (int eq = 0; eq < n_eq; ++eq) {
@@ -113,11 +115,12 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 			set_petsc_Mat_row_col_opg(ssi,opg_s_vol,eq,opg_s_vol,vr);
 			add_to_petsc_Mat(ssi,lhs);
 		}}
-#elif TYPE_RC == TYPE_COMPLEX
-		UNUSED(ssi); EXIT_UNSUPPORTED; // Linearization only for lhs terms.
-#endif
-		destructor_const_Matrix_T(lhs);
 	}
+#elif TYPE_RC == TYPE_COMPLEX
+	assert(ssi == NULL);
+	mm_NNC_Multiarray_TTT(1.0,1.0,lhs,(struct const_Multiarray_T*)s_vol->test_s_coef,s_vol->rhs);
+#endif
+	destructor_const_Matrix_T(lhs);
 }
 
 // Static functions ************************************************************************************************* //
