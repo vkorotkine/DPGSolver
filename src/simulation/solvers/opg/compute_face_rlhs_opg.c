@@ -153,7 +153,7 @@ static void compute_lhs_1_b
 	add_to_petsc_Mat(ssi,lhs);
 
 	const struct OPG_Solver_Face*const opg_s_face = (struct OPG_Solver_Face*) s_face;
-	opg_s_face->constructor_rlhs_penalty[1](flux_r,num_flux,s_face,ssi);
+	opg_s_face->constructor_rlhs_penalty(flux_r,num_flux,s_face,ssi);
 
 	destructor_const_Matrix_d(lhs);
 }
@@ -258,5 +258,5 @@ static const struct const_Matrix_d* constructor_lhs_f_1_b_r
 
 	const struct OPG_Solver_Volume*const opg_s_vol = (struct OPG_Solver_Volume*) face->neigh_info[0].volume;
 
-	return constructor_operator__test_s_coef_to_sol_coef_d(flux_r,opg_s_vol);
+	return constructor_operator__test_s_coef_to_sol_coef_d(flux_r,opg_s_vol,true);
 }

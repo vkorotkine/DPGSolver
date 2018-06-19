@@ -38,7 +38,7 @@ void constructor_rlhs_f_test_penalty_unsupported_T
 	 );
 
 /// \brief Version of \ref compute_rlhs_opg_f_fptr_T for rhs terms which does nothing.
-void constructor_rhs_f_test_penalty_do_nothing_T
+void constructor_rlhs_f_test_penalty_do_nothing_T
 	(const struct Flux_Ref_T*const flux_r,         ///< See brief.
 	 const struct Numerical_Flux_T*const num_flux, ///< See brief.
 	 struct Solver_Face_T*const s_face,            ///< See brief.

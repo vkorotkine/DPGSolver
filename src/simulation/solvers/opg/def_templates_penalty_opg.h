@@ -23,14 +23,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define constructor_rlhs_f_test_penalty_unsupported_T constructor_rlhs_f_test_penalty_unsupported_d
-#define constructor_rhs_f_test_penalty_do_nothing_T constructor_rhs_f_test_penalty_do_nothing_d
+#define constructor_rlhs_f_test_penalty_do_nothing_T constructor_rlhs_f_test_penalty_do_nothing_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define constructor_rlhs_f_test_penalty_unsupported_T constructor_rlhs_f_test_penalty_unsupported_c
-#define constructor_rhs_f_test_penalty_do_nothing_T constructor_rhs_f_test_penalty_do_nothing_c
+#define constructor_rlhs_f_test_penalty_do_nothing_T constructor_rlhs_f_test_penalty_do_nothing_c
 ///\}
 
 #endif

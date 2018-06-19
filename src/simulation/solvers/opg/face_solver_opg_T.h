@@ -67,9 +67,8 @@ struct OPG_Solver_Face_T {
 
 	const struct const_Matrix_T* m_inv; ///< The inverse mass matrix.
 
-	/** Version of \ref constructor_rlhs_f_b_test_penalty_T for explicit (index [0]) and implicit (index [1])
-	 *  term(s). */
-	constructor_rlhs_f_b_test_penalty_T constructor_rlhs_penalty[2];
+	/// Version of \ref constructor_rlhs_f_b_test_penalty_T for rhs (and lhs if applicable) term(s).
+	constructor_rlhs_f_b_test_penalty_T constructor_rlhs_penalty;
 };
 
 /// \brief Constructor for a derived \ref OPG_Solver_Face_T.

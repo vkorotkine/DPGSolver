@@ -42,8 +42,10 @@ void compute_volume_rlhs_opg_T
  *         \ref Solver_Volume_T::test_s_coef for the OPG scheme.
  *  \return See brief. */
 const struct const_Matrix_T* constructor_operator__test_s_coef_to_sol_coef_T
-	(const struct Flux_Ref_T*const flux_r,            ///< Standard.
-	 const struct OPG_Solver_Volume_T*const opg_s_vol ///< Standard.
+	(const struct Flux_Ref_T*const flux_r,             ///< Standard.
+	 const struct OPG_Solver_Volume_T*const opg_s_vol, ///< Standard.
+	 const bool include_m_inv                          /**< Flag for whether the inverse mass matrix should be
+	                                                    *   included. */
 		);
 
 /** \brief Update the values of \ref Solver_Volume_T::sol_coef based on the updated \ref Solver_Volume_T::test_s_coef

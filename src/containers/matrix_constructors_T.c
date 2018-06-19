@@ -239,6 +239,18 @@ void const_constructor_move_const_Matrix_T (const struct const_Matrix_T*const* d
 // Special constructors (only available for real/complex types) ***************************************************** //
 #ifdef TYPE_RC
 
+struct Matrix_T* constructor_copy_Matrix_T_Matrix_R_trans (struct Matrix_R*const src)
+{
+	struct Matrix_T*const dest = constructor_copy_Matrix_T_Matrix_R(src); // returned
+	transpose_Matrix_T(dest,false);
+	return dest;
+}
+
+const struct const_Matrix_T* constructor_copy_const_Matrix_T_Matrix_R_trans (const struct const_Matrix_R*const src)
+{
+	return (struct const_Matrix_T*) constructor_copy_Matrix_T_Matrix_R_trans((struct Matrix_R*)src);
+}
+
 struct Matrix_T* constructor_copy_permute_Matrix_T
 	(const struct Matrix_T*const src, const struct const_Vector_i* p_V, const char perm_layout)
 {

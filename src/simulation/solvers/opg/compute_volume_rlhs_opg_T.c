@@ -88,13 +88,14 @@ void compute_volume_rlhs_opg_T
 }
 
 const struct const_Matrix_T* constructor_operator__test_s_coef_to_sol_coef_T
-	(const struct Flux_Ref_T*const flux_r, const struct OPG_Solver_Volume_T*const opg_s_vol)
+	(const struct Flux_Ref_T*const flux_r, const struct OPG_Solver_Volume_T*const opg_s_vol, const bool include_m_inv)
 {
 	struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) opg_s_vol;
 
-	const struct Operator*const cv0_vs_vc = get_operator__cv0_vs_vc_T(s_vol);
-	const struct const_Matrix_T*const op_proj_L2 =
-		constructor_mm_TR_const_Matrix_T('N','T',1.0,opg_s_vol->m_inv,cv0_vs_vc->op_std,'R'); // destructed
+	const struct const_Matrix_R*const cv0_vs_vc = get_operator__cv0_vs_vc_T(s_vol)->op_std;
+	const struct const_Matrix_T* op_proj_L2 =
+		( include_m_inv ? constructor_mm_TR_const_Matrix_T('N','T',1.0,opg_s_vol->m_inv,cv0_vs_vc,'R') : // dest.
+		                  constructor_copy_const_Matrix_T_Matrix_R_trans(cv0_vs_vc) ); // destructed
 
 	const struct const_Vector_R*const w_vc = get_operator__w_vc__s_e_T(s_vol);
 	scale_Matrix_T_by_Vector_R('R',1.0,(struct Matrix_T*)op_proj_L2,w_vc,false);
@@ -145,7 +146,7 @@ void update_coef_s_v_opg_T (const struct Simulation*const sim, struct Intrusive_
 
 		struct Flux_Ref_T*const flux_r = constructor_Flux_Ref_vol_T(&s_params.spvs,flux_i,s_vol);
 		const struct const_Matrix_T*const op__t_to_s =
-			constructor_operator__test_s_coef_to_sol_coef_T(flux_r,opg_s_vol); // destructed
+			constructor_operator__test_s_coef_to_sol_coef_T(flux_r,opg_s_vol,true); // destructed
 		destructor_Flux_Ref_T(flux_r);
 
 		struct Vector_T test_s_coef_V = interpret_Multiarray_as_Vector_T(s_vol->test_s_coef);

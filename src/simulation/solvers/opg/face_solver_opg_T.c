@@ -133,8 +133,7 @@ static void set_function_pointers_penalty_T (struct OPG_Solver_Face_T*const opg_
 {
 	const struct Face*const face = (struct Face*) opg_s_face;
 	if (!face->boundary) {
-		opg_s_face->constructor_rlhs_penalty[0] = constructor_rlhs_f_test_penalty_unsupported_T;
-		opg_s_face->constructor_rlhs_penalty[1] = constructor_rlhs_f_test_penalty_unsupported_T;
+		opg_s_face->constructor_rlhs_penalty = constructor_rlhs_f_test_penalty_do_nothing_T;
 	} else {
 		set_function_pointers_penalty_boundary_T(opg_s_face);
 	}
@@ -185,11 +184,10 @@ static void set_function_pointers_penalty_boundary_advection_T (struct OPG_Solve
 	const struct Face* face = (struct Face*) opg_s_face;
 	const int bc = face->bc % BC_STEP_SC;
 
-	opg_s_face->constructor_rlhs_penalty[0] = constructor_rhs_f_test_penalty_do_nothing_T;
 	switch (bc) {
 	case BC_UPWIND:      case BC_UPWIND_ALT1: case BC_UPWIND_ALT2:
 	case BC_UPWIND_ALT3: case BC_UPWIND_ALT4: case BC_UPWIND_ALT5:
-		opg_s_face->constructor_rlhs_penalty[1] = constructor_rlhs_f_test_penalty_advection_upwind_T;
+		opg_s_face->constructor_rlhs_penalty = constructor_rlhs_f_test_penalty_advection_upwind_T;
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",face->bc);

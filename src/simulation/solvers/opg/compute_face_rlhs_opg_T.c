@@ -334,7 +334,7 @@ static void compute_rhs_f_opg_dg_like_T
 	compute_rhs_f_dg_like_T(num_flux,s_face,ssi);
 
         const struct OPG_Solver_Face_T*const opg_s_face = (struct OPG_Solver_Face_T*) s_face;
-	opg_s_face->constructor_rlhs_penalty[0](flux_r,num_flux,s_face,ssi);
+	opg_s_face->constructor_rlhs_penalty(flux_r,num_flux,s_face,ssi);
 }
 
 #include "undef_templates_compute_face_rlhs_opg.h"

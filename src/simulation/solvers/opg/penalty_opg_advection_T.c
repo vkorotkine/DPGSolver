@@ -73,6 +73,7 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	const struct OPG_Solver_Face_T*const opg_s_face  = (struct OPG_Solver_Face_T*) s_face;
 
 	assert(num_flux->nnf != NULL);
+// \f$ \eps^{-1} <v,g-w>_{\Gamma^\text{characteristic out}} \forall v \f$
 	; // do nothing (currently assuming that \f$ g = 0 \f$.
 
 	const struct const_Multiarray_T*const n_dot_b = num_flux->neigh_info[0].dnnf_ds;

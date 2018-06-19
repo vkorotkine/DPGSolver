@@ -19,4 +19,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "undef_templates_penalty_opg_advection.h"
 
 #undef constructor_rlhs_f_test_penalty_unsupported_T
-#undef constructor_rhs_f_test_penalty_do_nothing_T
+#undef constructor_rlhs_f_test_penalty_do_nothing_T

@@ -38,7 +38,7 @@ void constructor_rlhs_f_test_penalty_unsupported_T
 	EXIT_UNSUPPORTED;
 }
 
-void constructor_rhs_f_test_penalty_do_nothing_T
+void constructor_rlhs_f_test_penalty_do_nothing_T
 	(const struct Flux_Ref_T*const flux_r, const struct Numerical_Flux_T*const num_flux,
 	 struct Solver_Face_T*const s_face, struct Solver_Storage_Implicit*const ssi)
 {

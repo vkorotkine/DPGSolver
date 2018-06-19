@@ -42,6 +42,18 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** \brief Perform the complex step of the input test function coefficient and perturb the related solver coefficients
+ *         appropriately. */
+static void update_test_s_coef
+	(double complex*const test_s_coef_val,        /**< Pointer to entry of \ref Solver_Volume_T::test_s_coef to be
+	                                               *   perturbed. */
+	 const char pert_type,                        /**< The type of perturbation to perform. Options: 'a'dd,
+	                                               *   's'ubtract. */
+	 struct Intrusive_List*const volumes_local_v, ///< The list of volumes over which to iterate for volume terms.
+	 struct Intrusive_List*const faces_local,     ///< The list of faces over which to iterate.
+	 const struct Simulation*const sim            ///< Standard.
+		);
+
 /// \brief Compute the complex rhs terms based on the value of \ref CHECK_LIN.
 static void compute_rhs_cmplx_step_opg
 	(struct Intrusive_List*const volumes_local_v, ///< The list of volumes over which to iterate for volume terms.
@@ -79,11 +91,22 @@ void compute_lhs_cmplx_step_opg (const struct Simulation* sim, struct Solver_Sto
 		struct Multiarray_c* test_s_coef_c = s_vol->test_s_coef;
 		const ptrdiff_t n_col_l = compute_size(test_s_coef_c->order,test_s_coef_c->extents);
 		for (int col_l = 0; col_l < n_col_l; ++col_l) {
-			test_s_coef_c->data[col_l] += CX_STEP*I;
+			update_test_s_coef(&test_s_coef_c->data[col_l],'a',volumes_local_v,faces_local,sim);
 			compute_rhs_cmplx_step_opg(volumes_local_v,volumes_local_f,faces_local,sim);
-			test_s_coef_c->data[col_l] -= CX_STEP*I;
+			update_test_s_coef(&test_s_coef_c->data[col_l],'s',volumes_local_v,faces_local,sim);
 
-			set_col_lhs_cmplx_step_opg(col_l,(struct Solver_Volume_c*)curr_c,volumes_local_f,ssi);
+			switch (CHECK_LIN) {
+			case CHECK_LIN_VOLUME:
+				set_col_lhs_cmplx_step_opg(col_l,(struct Solver_Volume_c*)curr_c,volumes_local_v,ssi);
+				break;
+			case CHECK_LIN_FACE: // fallthrough
+			case CHECK_LIN_ALL:
+				set_col_lhs_cmplx_step_opg(col_l,(struct Solver_Volume_c*)curr_c,volumes_local_f,ssi);
+				break;
+			default:
+				EXIT_ERROR("Unsupported: %d.\n",CHECK_LIN);
+				break;
+			}
 		}
 		destructor_IL(volumes_local_v,true);
 		destructor_IL(volumes_local_f,true);
@@ -95,13 +118,27 @@ void compute_lhs_cmplx_step_opg (const struct Simulation* sim, struct Solver_Sto
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+static void update_test_s_coef
+	(double complex*const test_s_coef_val, const char pert_type, struct Intrusive_List*const volumes_local_v,
+	 struct Intrusive_List*const faces_local, const struct Simulation*const sim)
+{
+	if (pert_type == 'a') {
+		*test_s_coef_val += CX_STEP*I;
+		update_coef_s_v_opg_c(sim,volumes_local_v);
+		update_coef_nf_f_opg_c(sim,faces_local);
+	} else if (pert_type == 's') {
+		*test_s_coef_val -= 2*CX_STEP*I;
+		update_coef_s_v_opg_c(sim,volumes_local_v);
+		update_coef_nf_f_opg_c(sim,faces_local);
+		*test_s_coef_val += CX_STEP*I;
+	}
+}
+
 static void compute_rhs_cmplx_step_opg
 	(struct Intrusive_List*const volumes_local_v, struct Intrusive_List*const volumes_local_f,
 	 struct Intrusive_List*const faces_local, const struct Simulation*const sim)
 {
 	initialize_zero_memory_volumes_c(volumes_local_f);
-	update_coef_s_v_opg_c(sim,volumes_local_v);
-	update_coef_nf_f_opg_c(sim,faces_local);
 
 	assert(get_set_has_1st_2nd_order(NULL)[1] == false); // Add support.
 	switch (CHECK_LIN) {

@@ -101,23 +101,20 @@ static void compute_lhs_1
 static const struct const_Matrix_d* constructor_lhs_v_1_opg
 	(const struct Flux_Ref*const flux_r, const struct Solver_Volume*const s_vol)
 {
-	const struct const_Matrix_d*const cv1r = constructor_test_diff_op_1v_opg_d(flux_r,s_vol,false); // destructed
+	const struct OPG_Solver_Volume*const opg_s_vol = (struct OPG_Solver_Volume*) s_vol;
 
 	const int n_vr = get_set_n_var_eq(NULL)[0];
 
-	const struct const_Vector_d*const w_vc = get_operator__w_vc__s_e(s_vol);
-	const struct const_Vector_d J_vc       = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
+	const struct const_Matrix_d*const op_t_to_s =
+		constructor_operator__test_s_coef_to_sol_coef_d(flux_r,opg_s_vol,false); // destructed
+	const struct const_Matrix_d*const M_inv = constructor_block_diagonal_const_Matrix_d(opg_s_vol->m_inv,n_vr); // d.
 
-	const struct const_Vector_d*const wJ_vc =
-		constructor_dot_mult_inverse_2nd_const_Vector_d(1.0,w_vc,&J_vc,n_vr); // destructed
+	const struct const_Matrix_d*const lhs_r = constructor_mm_const_Matrix_d('N','N',1.0,M_inv,op_t_to_s,'R'); // d.
+	destructor_const_Matrix_d(M_inv);
 
-	const struct const_Matrix_d*const n1_lt = constructor_mm_diag_const_Matrix_d_d(1.0,cv1r,wJ_vc,'L',false); // dest.
-	destructor_const_Vector_d(wJ_vc);
-
-	// -ve sign from the definition of u == - test_diff_op*test_s_coef.
-	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('T','N',-1.0,n1_lt,cv1r,'R'); // returned
-	destructor_const_Matrix_d(n1_lt);
-	destructor_const_Matrix_d(cv1r);
+	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('T','N',-1.0,op_t_to_s,lhs_r,'R'); // ret.
+	destructor_const_Matrix_d(op_t_to_s);
+	destructor_const_Matrix_d(lhs_r);
 
 	return lhs;
 }
