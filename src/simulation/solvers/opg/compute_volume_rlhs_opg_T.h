@@ -49,8 +49,9 @@ const struct const_Matrix_T* constructor_operator__test_s_coef_to_sol_coef_T
 /** \brief Update the values of \ref Solver_Volume_T::sol_coef based on the updated \ref Solver_Volume_T::test_s_coef
  *         values. */
 void update_coef_s_v_opg_T
-	(const struct Simulation*const sim ///< Standard.
-		);
+	(const struct Simulation*const sim,  ///< Standard.
+	 struct Intrusive_List*const volumes ///< The list of volumes for which to update the coefficients.
+	 );
 
 #include "undef_templates_compute_volume_rlhs_opg.h"
 #include "undef_templates_compute_rlhs.h"

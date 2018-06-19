@@ -62,8 +62,9 @@ void compute_face_rlhs_opg_T
 /** \brief Update the values of \ref Solver_Face_T::nf_coef based on the updated \ref Solver_Volume_T::test_s_coef
  *         values. */
 void update_coef_nf_f_opg_T
-	(const struct Simulation*const sim ///< Standard.
-		);
+	(const struct Simulation*const sim, ///< Standard.
+	 struct Intrusive_List*const faces  ///< The list of faces for which to update the coefficients.
+	 );
 
 /// \brief Container for operators needed for the assembly of LHS terms for the OPG scheme.
 struct Lhs_Operators_OPG_T {
@@ -76,6 +77,10 @@ struct Lhs_Operators_OPG_T {
 	 *  - [1]: rl operator ('r'ight basis -> 'l'eft  nodes; permutation of node ordering);
 	 */
 	const struct const_Matrix_R* cv0_vt_fc[2];
+
+	/** The 'l'eft part of the L2 projection operator onto the face:
+	 *  M^{-1} cv0_ff_fc' diag(w_fc (dot) jacobian_det_fc). */
+	const struct const_Matrix_T* proj_L2_l;
 };
 
 /** \brief Constructor for a \ref Lhs_Operators_OPG container.

@@ -44,9 +44,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Compute the complex rhs terms based on the value of \ref CHECK_LIN.
 static void compute_rhs_cmplx_step_opg
-	(struct Intrusive_List*const volumes_local, ///< The list of volumes over which to iterate.
-	 struct Intrusive_List*const faces_local,   ///< The list of faces over which to iterate.
-	 const struct Simulation*const sim          ///< Standard.
+	(struct Intrusive_List*const volumes_local_v, ///< The list of volumes over which to iterate for volume terms.
+	 struct Intrusive_List*const volumes_local_f, ///< The list of volumes over which to iterate for face terms.
+	 struct Intrusive_List*const faces_local,     ///< The list of faces over which to iterate.
+	 const struct Simulation*const sim            ///< Standard.
 		);
 
 /// \brief Set a column of the lhs matrix using the values of the complex rhs for the opg scheme.
@@ -70,20 +71,22 @@ void compute_lhs_cmplx_step_opg (const struct Simulation* sim, struct Solver_Sto
 	for (struct Intrusive_Link* curr_c = sim->volumes->first; curr_c; curr_c = curr_c->next) {
 		struct Volume*const vol = (struct Volume*) curr_c;
 
-		struct Intrusive_List*const volumes_local = constructor_Volumes_local_centre_only(vol);
-		struct Intrusive_List*const faces_local   = constructor_Faces_local_neigh_only(vol,sim);
+		struct Intrusive_List*const volumes_local_v = constructor_Volumes_local_centre_only(vol);
+		struct Intrusive_List*const volumes_local_f = constructor_Volumes_local_neigh_only(vol,sim);
+		struct Intrusive_List*const faces_local     = constructor_Faces_local_neigh_only(vol,sim);
 
 		struct Solver_Volume_c*const s_vol = (struct Solver_Volume_c*) curr_c;
 		struct Multiarray_c* test_s_coef_c = s_vol->test_s_coef;
 		const ptrdiff_t n_col_l = compute_size(test_s_coef_c->order,test_s_coef_c->extents);
 		for (int col_l = 0; col_l < n_col_l; ++col_l) {
 			test_s_coef_c->data[col_l] += CX_STEP*I;
-			compute_rhs_cmplx_step_opg(volumes_local,faces_local,sim);
+			compute_rhs_cmplx_step_opg(volumes_local_v,volumes_local_f,faces_local,sim);
 			test_s_coef_c->data[col_l] -= CX_STEP*I;
 
-			set_col_lhs_cmplx_step_opg(col_l,(struct Solver_Volume_c*)curr_c,volumes_local,ssi);
+			set_col_lhs_cmplx_step_opg(col_l,(struct Solver_Volume_c*)curr_c,volumes_local_f,ssi);
 		}
-		destructor_IL(volumes_local,true);
+		destructor_IL(volumes_local_v,true);
+		destructor_IL(volumes_local_f,true);
 		destructor_IL(faces_local,true);
 	}
 	petsc_mat_vec_assemble(ssi);
@@ -93,21 +96,23 @@ void compute_lhs_cmplx_step_opg (const struct Simulation* sim, struct Solver_Sto
 // Level 0 ********************************************************************************************************** //
 
 static void compute_rhs_cmplx_step_opg
-	(struct Intrusive_List*const volumes_local, struct Intrusive_List*const faces_local,
-	 const struct Simulation*const sim)
+	(struct Intrusive_List*const volumes_local_v, struct Intrusive_List*const volumes_local_f,
+	 struct Intrusive_List*const faces_local, const struct Simulation*const sim)
 {
-	initialize_zero_memory_volumes_c(volumes_local);
-	EXIT_ADD_SUPPORT; // Update solution coefficients.
+	initialize_zero_memory_volumes_c(volumes_local_f);
+	update_coef_s_v_opg_c(sim,volumes_local_v);
+	update_coef_nf_f_opg_c(sim,faces_local);
+
 	assert(get_set_has_1st_2nd_order(NULL)[1] == false); // Add support.
 	switch (CHECK_LIN) {
 	case CHECK_LIN_VOLUME:
-		compute_volume_rlhs_opg_c(sim,NULL,volumes_local);
+		compute_volume_rlhs_opg_c(sim,NULL,volumes_local_v);
 		break;
 	case CHECK_LIN_FACE:
 		compute_face_rlhs_opg_c(sim,NULL,faces_local);
 		break;
 	case CHECK_LIN_ALL:
-		compute_volume_rlhs_opg_c(sim,NULL,volumes_local);
+		compute_volume_rlhs_opg_c(sim,NULL,volumes_local_v);
 		compute_face_rlhs_opg_c(sim,NULL,faces_local);
 		break;
 	default:

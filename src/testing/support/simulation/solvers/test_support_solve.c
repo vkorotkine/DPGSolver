@@ -39,6 +39,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** \brief Check whether the \ref Volume is a neighbour (inclusive) of the current \ref Volume.
+ *  \return `true` if it is a neighbour (or is the current volume); `false` otherwise. */
+static bool is_volume_neighbour
+	(const struct Volume* vol,     ///< The volume under investigation.
+	 const struct Volume* vol_curr ///< The current volume.
+	 );
+
 // Interface functions ********************************************************************************************** //
 
 void perturb_solution (const struct Simulation*const sim)
@@ -123,6 +130,40 @@ struct Intrusive_List* constructor_Volumes_local_centre_only (const struct Volum
 	return volumes;
 }
 
+struct Intrusive_List* constructor_Volumes_local_neigh_only
+	(const struct Volume*const vol, const struct Simulation*const sim)
+{
+	struct Data { int list_name; size_t sizeof_base; } data;
+	switch (get_set_method(NULL)) {
+	case METHOD_DG:
+		data.list_name   = IL_VOLUME_SOLVER_DG;
+		data.sizeof_base = sizeof(struct DG_Solver_Volume_c);
+		break;
+	case METHOD_DPG:
+		data.list_name   = IL_VOLUME_SOLVER_DPG;
+		data.sizeof_base = sizeof(struct DPG_Solver_Volume_c);
+		break;
+	case METHOD_OPG:
+		data.list_name   = IL_VOLUME_SOLVER_OPG;
+		data.sizeof_base = sizeof(struct OPG_Solver_Volume_c);
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d.\n",get_set_method(NULL));
+		break;
+	}
+
+	struct Intrusive_List* volumes = constructor_empty_IL(data.list_name,NULL);
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		if (!is_volume_neighbour((struct Volume*)curr,vol))
+			continue;
+
+		// A copy is required such that the link in the global list is not modified.
+		push_back_IL(volumes,constructor_copied_Intrusive_Link(curr,data.sizeof_base,data.sizeof_base));
+	}
+	return volumes;
+}
+
 struct Intrusive_List* constructor_Faces_local_neigh_only
 	(const struct Volume*const vol, const struct Simulation*const sim)
 {
@@ -174,3 +215,21 @@ bool is_face_neighbour (const struct Face*const face, const struct Volume*const 
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static bool is_volume_neighbour (const struct Volume* vol, const struct Volume* vol_curr)
+{
+	for (int f = 0; f < NFMAX; ++f) {
+	for (int sf = 0; sf < NSUBFMAX; ++sf) {
+		const struct Face* face = vol_curr->faces[f][sf];
+
+		if (!face)
+			continue;
+
+		const int n_side = ( face->boundary ? 1 : 2 );
+		for (int i = 0; i < n_side; ++i) {
+			if (vol->index == face->neigh_info[i].volume->index)
+				return true;
+		}
+	}}
+	return false;
+}

@@ -241,7 +241,7 @@ const struct const_Matrix_T* constructor_lhs_l_internal_face_dpg_T
 
 	const int side_index = compute_side_index_face(face,vol);
 	const struct Operator* tw0_vt_fc_op = get_operator__tw0_vt_fc_T(side_index,s_face),
-	                     * cv0_ff_fc_op = get_operator__cv0_ff_fc_T(side_index,s_face);
+	                     * cv0_ff_fc_op = get_operator__cv0_ff_fc_T(s_face);
 
 	struct Matrix_T* cv0_ff_fc = constructor_copy_Matrix_T_Matrix_R((struct Matrix_R*)cv0_ff_fc_op->op_std); // destructed
 
@@ -515,7 +515,7 @@ static void add_to_flux_imbalance (const struct Solver_Face_T*const s_face, cons
 	const struct const_Vector_T jacobian_det_fc = interpret_const_Multiarray_as_Vector_T(s_face->jacobian_det_fc);
 
 	if (!face->boundary) {
-		const struct Operator* cv0_ff_fc = get_operator__cv0_ff_fc_T(0,s_face);
+		const struct Operator* cv0_ff_fc = get_operator__cv0_ff_fc_T(s_face);
 		const struct const_Matrix_T nf_coef_M =
 			interpret_const_Multiarray_as_Matrix_T((struct const_Multiarray_T*)s_face->nf_coef);
 		const struct const_Matrix_T* nf_M =

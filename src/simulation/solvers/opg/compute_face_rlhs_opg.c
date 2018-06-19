@@ -183,14 +183,21 @@ static void finalize_lhs_1_f_opg
 	const struct OPG_Solver_Volume*const opg_s_vol[2] = { (struct OPG_Solver_Volume*) face->neigh_info[0].volume,
 	                                                      (struct OPG_Solver_Volume*) face->neigh_info[1].volume, };
 
-	// Implicit assumption here that nf == jump_test_s
-	const struct const_Matrix_d*const lhs_r =
-		constructor_mm_diag_const_Matrix_d_d(1.0,ops->cv0_vt_fc[side_index[1]],ops->wJ_fc,'L',false); // destructed
+	/** The linearization is determined according to the relation between \ref Solver_Face_T::nf_coef and
+	 *  \ref Solver_Volume_T::test_s_coef. */
+	const struct const_Matrix_d*const lhs_l_p1 =
+		constructor_mm_diag_const_Matrix_d_d(1.0,ops->cv0_vt_fc[side_index[0]],ops->wJ_fc,'L',false); // dest.
+	const struct const_Matrix_d*const cv0_ff_fc = get_operator__cv0_ff_fc(s_face)->op_std;
+	const struct const_Matrix_d*const lhs_l_p2 = constructor_mm_const_Matrix_d('T','N',1.0,lhs_l_p1,cv0_ff_fc,'R'); // d.
+	destructor_const_Matrix_d(lhs_l_p1);
+
+	const struct const_Matrix_d*const lhs_l = constructor_mm_const_Matrix_d('N','N',1.0,lhs_l_p2,ops->proj_L2_l,'R'); // d.
+	destructor_const_Matrix_d(lhs_l_p2);
 
 	const double scale = ( side_index[0] == side_index[1] ? -1.0 : 1.0 );
 	const struct const_Matrix_d*const lhs =
-		constructor_mm_const_Matrix_d('T','N',scale,ops->cv0_vt_fc[side_index[0]],lhs_r,'R'); // destructed
-	destructor_const_Matrix_d(lhs_r);
+		constructor_mm_const_Matrix_d('N','N',scale,lhs_l,ops->cv0_vt_fc[side_index[1]],'R'); // destructed
+	destructor_const_Matrix_d(lhs_l);
 
 	const int*const n_vr_eq = get_set_n_var_eq(NULL);
 	const int n_vr = n_vr_eq[0];
@@ -220,7 +227,7 @@ static const struct const_Matrix_d* constructor_lhs_f_1_b
 	const struct const_Matrix_d*const lhs_l  = constructor_lhs_f_1_b_l(num_flux,s_face); // destructed
 	const struct const_Matrix_d*const lhs_r  = constructor_lhs_f_1_b_r(flux_r,s_face);   // destructed
 
-	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('N','N',-1.0,lhs_l,lhs_r,'R'); // returned
+	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('N','N',1.0,lhs_l,lhs_r,'R'); // returned
 	destructor_const_Matrix_d(lhs_l);
 	destructor_const_Matrix_d(lhs_r);
 
@@ -251,12 +258,5 @@ static const struct const_Matrix_d* constructor_lhs_f_1_b_r
 
 	const struct OPG_Solver_Volume*const opg_s_vol = (struct OPG_Solver_Volume*) face->neigh_info[0].volume;
 
-	const struct const_Matrix_d*const op__t_to_s =
-		constructor_operator__test_s_coef_to_sol_coef_d(flux_r,opg_s_vol); // destructed
-
-	const struct const_Matrix_d*const cv0_vs_fc = get_operator__cv0_vs_fc(0,s_face)->op_std;
-	const struct const_Matrix_d*const lhs_r = constructor_mm_const_Matrix_d('N','N',1.0,cv0_vs_fc,op__t_to_s,'R'); // ret.
-	destructor_const_Matrix_d(op__t_to_s);
-
-	return lhs_r;
+	return constructor_operator__test_s_coef_to_sol_coef_d(flux_r,opg_s_vol);
 }

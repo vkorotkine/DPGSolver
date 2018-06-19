@@ -73,8 +73,7 @@ const struct Operator* get_operator__cv0_vr_fc_T
 /** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_ff_fc operator.
  *  \return See brief. */
 const struct Operator* get_operator__cv0_ff_fc_T
-	(const int side_index,                   ///< The index of the side of the face under consideration.
-	 const struct Solver_Face_T*const s_face ///< The current face.
+	(const struct Solver_Face_T*const s_face ///< The current face.
 	);
 
 /** \brief Permute the input matrix such that its ordering is such that it is in the reference coordinates of the

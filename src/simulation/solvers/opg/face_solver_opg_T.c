@@ -150,7 +150,7 @@ static void set_function_pointers_penalty_boundary_advection_T
 
 static const struct const_Matrix_T* constructor_mass_face_T (const struct Solver_Face_T*const s_face)
 {
-	const struct Operator*const cv0_ff_fc  = get_operator__cv0_ff_fc_T(0,s_face);
+	const struct Operator*const cv0_ff_fc  = get_operator__cv0_ff_fc_T(s_face);
 	const struct const_Vector_R*const w_fc = get_operator__w_fc__s_e_T(s_face);
 	const struct const_Vector_T jac_det_fc = interpret_const_Multiarray_as_Vector_T(s_face->jacobian_det_fc);
 

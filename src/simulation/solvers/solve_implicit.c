@@ -594,8 +594,8 @@ static void update_coefs (Vec x, const struct Simulation* sim)
 		break;
 	case METHOD_OPG:
 		update_coef_test_s_v(x,sim);
-		update_coef_s_v_opg_d(sim);
-		update_coef_nf_f_opg(sim);
+		update_coef_s_v_opg_d(sim,sim->volumes);
+		update_coef_nf_f_opg(sim,sim->faces);
 		assert(get_set_has_1st_2nd_order(NULL)[1] == false); // Add support.
 		break;
 	default:

@@ -121,23 +121,27 @@ const struct const_Matrix_T* constructor_operator__test_s_coef_to_sol_coef_T
 	destructor_const_Matrix_T(op_proj_L2);
 	destructor_const_Matrix_T(op_v1_opg);
 
-	return op_proj_L2;
+	return (struct const_Matrix_T*) op_final;
 }
 
-void update_coef_s_v_opg_T (const struct Simulation*const sim)
+void update_coef_s_v_opg_T (const struct Simulation*const sim, struct Intrusive_List*const volumes)
 {
 	/* The L2 projection is used to compute \ref Solver_Volume_T::sol_coef from \ref Solver_Volume_T::test_s_coef.
 	 * For collocated schemes when the solution polynomial and test function polynomial degrees are equal, the
 	 * projection operator reduces to identity. */
+
+	struct Test_Case_T*const test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const char smc = test_case->solver_method_curr;
+	test_case->solver_method_curr = 'i';
 
 	struct Flux_Input_T*const flux_i = constructor_Flux_Input_T(sim); // destructed
 
 	struct S_Params_T s_params;
 	set_S_Params_Volume_Structor_T(&s_params.spvs,sim);
 
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume_T*const s_vol         = (struct Solver_Volume_T*) curr;
-		struct OPG_Solver_Volume_T*const opg_s_vol = (struct OPG_Solver_Volume_T*) opg_s_vol;
+		struct OPG_Solver_Volume_T*const opg_s_vol = (struct OPG_Solver_Volume_T*) curr;
 
 		struct Flux_Ref_T*const flux_r = constructor_Flux_Ref_vol_T(&s_params.spvs,flux_i,s_vol);
 		const struct const_Matrix_T*const op__t_to_s =
@@ -151,6 +155,8 @@ void update_coef_s_v_opg_T (const struct Simulation*const sim)
 		destructor_const_Matrix_T(op__t_to_s);
 	}
 	destructor_Flux_Input_T(flux_i);
+
+	test_case->solver_method_curr = smc;
 }
 
 // Static functions ************************************************************************************************* //
@@ -204,6 +210,8 @@ static const struct const_Matrix_T* constructor_test_diff_op_1v_opg_T
 
 	struct Matrix_T* cv1r_l = constructor_empty_Matrix_T('R',ext_0,ext_1); // destructed
 	const struct const_Multiarray_T* dfr_ds_Ma = flux_r->dfr_ds;
+
+	assert(dfr_ds_Ma != NULL);
 	struct Vector_T dfr_ds = { .ext_0 = dfr_ds_Ma->extents[0], .owns_data = false, .data = NULL, };
 
 	for (int vr = 0; vr < n_vr; ++vr) {

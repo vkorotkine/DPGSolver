@@ -37,6 +37,13 @@ struct Intrusive_List* constructor_Volumes_local_centre_only
 	(const struct Volume*const vol ///< The centre \ref Volume.
 		);
 
+/** \brief Constructor for the list of \ref Volume\*s adjacent to (and including) the current volume.
+ *  \return Standard. */
+struct Intrusive_List* constructor_Volumes_local_neigh_only
+	(const struct Volume*const vol,    ///< The centre \ref Volume.
+	 const struct Simulation*const sim ///< Standard.
+	 );
+
 /** \brief Constructor for the list of \ref Face\*s adjacent to the current volume.
  *  \return Standard. */
 struct Intrusive_List* constructor_Faces_local_neigh_only

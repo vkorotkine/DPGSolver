@@ -96,10 +96,10 @@ const struct Operator* get_operator__cv0_vr_fc_T (const int side_index, const st
 	return get_Multiarray_Operator(s_e->cv0_vr_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
 }
 
-const struct Operator* get_operator__cv0_ff_fc_T (const int side_index, const struct Solver_Face_T*const s_face)
+const struct Operator* get_operator__cv0_ff_fc_T (const struct Solver_Face_T*const s_face)
 {
 	const struct Face* face        = (struct Face*) s_face;
-	const struct Volume* vol       = face->neigh_info[side_index].volume;
+	const struct Volume* vol       = face->neigh_info[0].volume;
 	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
 
 	const int ind_e  = get_face_element_index(face),
