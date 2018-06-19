@@ -1,4 +1,4 @@
 /// Solution parameters for test case: advection/steady/default
 
 advection_type constant
-b_adv   0.54 0.43 0.32
+b_adv   0.54 0.0 0.32

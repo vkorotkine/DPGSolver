@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <math.h>
 
 #include "macros.h"
+#include "definitions_tol.h"
 
 #include "def_templates_face_solver_opg.h"
 #include "def_templates_volume_solver_opg.h"
@@ -45,6 +46,8 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	 struct Solver_Face_T*const s_face, struct Solver_Storage_Implicit*const ssi)
 {
 	UNUSED(flux_r);
+	printf("returning immediately without adding penalty.\n");
+	return;
 
 	/** It is assumed that the initial solution for \ref Solver_Volume_T::test_s_coef is equal to zero on all
 	 *  boundary faces which require the addition of the penalty term (outflow faces). It is also currently assumed
@@ -79,9 +82,14 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	const ptrdiff_t n_fc = n_dot_b->extents[0];
 	struct Vector_R*const indicator = constructor_zero_Vector_R(n_fc); // destructed
 	for (int n = 0; n < n_fc; ++n) {
-		if (real_T(n_dot_b->data[n]) > 0)
+		/* if (real_T(n_dot_b->data[n]) > -EPS) */
+		if (real_T(n_dot_b->data[n]) > EPS)
+		/* if (real_T(n_dot_b->data[n]) > 0.0) */
 			indicator->data[n] = 1.0;
 	}
+	print_const_Multiarray_T(s_face->normals_fc);
+	print_const_Multiarray_T(n_dot_b);
+	print_Vector_R(indicator);
 
 	const struct Lhs_Operators_OPG_T*const ops = constructor_Lhs_Operators_OPG_T(opg_s_face); // destructed
 

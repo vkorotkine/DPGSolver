@@ -91,6 +91,7 @@ static void compute_lhs_1
 
 	struct Solver_Volume*const s_vol = (struct Solver_Volume*) opg_s_vol;
 	const struct const_Matrix_d*const lhs = constructor_lhs_v_1_opg(flux_r,s_vol); // destructed
+	print_const_Matrix_d(lhs);
 	set_petsc_Mat_row_col_opg(ssi,opg_s_vol,0,opg_s_vol,0);
 	add_to_petsc_Mat(ssi,lhs);
 	destructor_const_Matrix_d(lhs);

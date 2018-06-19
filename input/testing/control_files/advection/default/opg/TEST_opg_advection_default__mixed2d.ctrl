@@ -9,25 +9,25 @@ dimension 2
 mesh_generator   n-cube/2d.geo
 mesh_format      gmsh
 mesh_domain      straight
-mesh_type        mixed
-mesh_level       0 4
+mesh_type        quad
+mesh_level       0 6
 mesh_path        ../meshes/
 
 
 # Simulation variables
 
-interp_tp  GLL
+interp_tp  EQ
 interp_si  AO
 interp_pyr GLL
 
 basis_geom  lagrange
-basis_sol   lagrange
+basis_sol   orthonormal
 
 geom_representation  superparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_ref    1 3
+p_ref    0 3
 p_cub_p  2 2
 p_test_p 1 1
 
@@ -36,5 +36,5 @@ method_name optimal_petrov_galerkin
 
 # Testing variables
 
-ml_range_test 0 3
-p_range_test  1 1
+ml_range_test 0 5
+p_range_test  0 3
