@@ -534,11 +534,12 @@ static void compute_detJV_T (struct const_Multiarray_T* jacobian, struct Multiar
 	}
 
 	for (ptrdiff_t i = 0; i < n_vals; ++i) {
+		const bool cond = (real_T(j_det[i]) > 0.0);
 #ifndef NDEBUG
-		if (real_T(j_det[i]) < 0.0)
+		if (!cond)
 			print_Multiarray_T(jacobian_det);
 #endif
-		assert(real_T(j_det[i]) > 0.0);
+		assert(cond);
 	}
 }
 

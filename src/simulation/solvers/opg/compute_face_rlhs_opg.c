@@ -45,7 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** Flag for whether the normal flux on the boundary faces should be updated. At the time of this implementation,
  *  \ref Solver_Face_T::nf_coef was not stored on the boundary faces as boundary normal fluxes were computed using the
  *  numerical flux; it may consequently be required to initialize nf_coef on boundary faces if enabling this option. */
-#define UPDATE_NF_BOUNDARY 0
+#define UPDATE_NF_BOUNDARY false
 
 /// \brief Version of \ref compute_rlhs_opg_f_fptr_T computing the rhs and lhs terms for 1st order equations only.
 static void compute_rlhs_1
@@ -89,13 +89,14 @@ static void compute_rlhs_1
 	 struct Solver_Storage_Implicit*const ssi)
 {
 	compute_rhs_f_dg_like(num_flux,s_face,ssi);
-	struct OPG_Solver_Face*const opg_s_face = (struct OPG_Solver_Face*) s_face;
 
+	struct OPG_Solver_Face*const opg_s_face = (struct OPG_Solver_Face*) s_face;
 	const struct Face*const face = (struct Face*) s_face;
 	if (!face->boundary)
 		compute_lhs_1_i(opg_s_face,ssi);
 	else
 		compute_lhs_1_b(flux_r,num_flux,s_face,ssi);
+	opg_s_face->constructor_rlhs_penalty(flux_r,num_flux,s_face,ssi);
 }
 
 // Level 1 ********************************************************************************************************** //
@@ -152,9 +153,6 @@ static void compute_lhs_1_b
 	set_petsc_Mat_row_col_opg(ssi,opg_s_vol,0,opg_s_vol,0);
 	add_to_petsc_Mat(ssi,lhs);
 
-	const struct OPG_Solver_Face*const opg_s_face = (struct OPG_Solver_Face*) s_face;
-	opg_s_face->constructor_rlhs_penalty(flux_r,num_flux,s_face,ssi);
-
 	destructor_const_Matrix_d(lhs);
 }
 
@@ -194,6 +192,21 @@ static void finalize_lhs_1_f_opg
 	const struct const_Matrix_d*const lhs_l = constructor_mm_const_Matrix_d('N','N',1.0,lhs_l_p2,ops->proj_L2_l,'R'); // d.
 	destructor_const_Matrix_d(lhs_l_p2);
 
+#if 0 // Only enable for face collocated parameters (p_t_p = 0).
+	const struct const_Multiarray_d*const normals_fc = s_face->normals_fc;
+	const ptrdiff_t n_fc = normals_fc->extents[0];
+	const double b_adv[] = { 0.5, 0.5, 0.0, };
+	struct Vector_d* b_dot_n2_V = constructor_zero_Vector_d(n_fc); // destructed.
+	double* b_dot_n2 = b_dot_n2_V->data;
+	for (int i = 0; i < n_fc; ++i) {
+		for (int j = 0; j < DIM; ++j)
+			b_dot_n2[i] += b_adv[j]*get_row_const_Multiarray_d(i,normals_fc)[j];
+//		b_dot_n2[i] = sqrt(b_dot_n2[i]*b_dot_n2[i]);
+	}
+	scale_Matrix_by_Vector_d('R',1.0,(struct Matrix_d*)lhs_l,(struct const_Vector_d*)b_dot_n2_V,false);
+	destructor_Vector_d(b_dot_n2_V);
+#endif
+
 	const double scale = ( side_index[0] == side_index[1] ? -1.0 : 1.0 );
 	const struct const_Matrix_d*const lhs =
 		constructor_mm_const_Matrix_d('N','N',scale,lhs_l,ops->cv0_vt_fc[side_index[1]],'R'); // destructed
@@ -205,9 +218,9 @@ static void finalize_lhs_1_f_opg
 	/** \warning It is possible that a change may be required when systems of equations are used. Currently, there is
 	 *           a "default coupling" between the face terms between each equations and variables.
 	 *
-	 *  From a few of the DPG papers, it seems that an additional |n (dot) df/du| (note the absolute value) scaling
-	 *  may need to be added. While this would introduce the coupling between the equations, it may also destroy the
-	 *  symmetry for non scalar PDEs. Entropy variables to fix this or simply don't assume symmetric? THINK.
+	 *  From a few of the DPG papers, it seems that an additional sign(n (dot) df/du) scaling may need to be added.
+	 *  While this would introduce the coupling between the equations, it may also destroy the symmetry for non
+	 *  scalar PDEs. Entropy variables to fix this or simply don't assume symmetric? THINK.
 	 */
 	 assert(n_vr == 1 && n_eq == 1); // Ensure that all is working properly when removed.
 
@@ -241,8 +254,6 @@ static const struct const_Matrix_d* constructor_lhs_f_1_b_l
 {
 	const struct Face*const face = (struct Face*) s_face;
 	assert(face->boundary);
-
-	scale_by_Jacobian_i1((struct Numerical_Flux*)num_flux,s_face);
 
 	const int side_index[2] = { 0, 0, };
 	struct Matrix_d*const lhs_l = constructor_lhs_f_1(side_index,num_flux,s_face); // returned

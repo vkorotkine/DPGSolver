@@ -106,7 +106,6 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	destructor_Lhs_Operators_OPG_T(s_face,ops);
 	destructor_const_Matrix_T(lhs_r);
 
-// \f$ \eps^{-1} <v,g-w>_{\Gamma^\text{characteristic out}} \forall v \f$
 #if TYPE_RC == TYPE_REAL
 	; // do nothing for rhs (currently assuming that \f$ g = 0 \f$ and that the initial guess for \f$ w \f$ is zero.
 	if (ssi != NULL) {

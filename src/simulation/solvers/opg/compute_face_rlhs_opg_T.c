@@ -46,6 +46,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Container for solver-related parameters.
 struct S_Params_f_T {
+	scale_by_Jacobian_fptr_T scale_by_Jacobian; ///< Pointer to the appropriate function.
+
 	compute_rlhs_opg_f_fptr_T compute_rlhs; ///< Pointer to the appropriate function.
 };
 
@@ -79,12 +81,6 @@ static struct Flux_Ref_T* constructor_Flux_Ref_OPG_T
 	(struct Flux_Input_T*const flux_i,       ///< Standard.
 	 const struct Solver_Face_T*const s_face ///< Standard.
 		);
-
-/// \brief Scale \ref Numerical_Flux_T::nnf by the face Jacobian (i.e. only the explicit term).
-static void scale_by_Jacobian_e_T
-	(struct Numerical_Flux_T*const num_flux, ///< See brief.
-	 const struct Solver_Face_T*const s_face ///< See brief.
-	);
 
 /** \brief Return the jump of the solution test functions, [[v]], at the face cubature nodes.
  *  \return See brief.
@@ -126,7 +122,7 @@ void compute_face_rlhs_opg_T
 		struct Numerical_Flux_T*const num_flux = constructor_Numerical_Flux_OPG_T(num_flux_i,s_face,sim); // dest.
 		struct Flux_Ref_T*const flux_r         = constructor_Flux_Ref_OPG_T(flux_i,s_face); // destructed
 
-		scale_by_Jacobian_e_T(num_flux,s_face);
+		s_params.scale_by_Jacobian(num_flux,s_face);
 		s_params.compute_rlhs(flux_r,num_flux,s_face,ssi);
 		destructor_Numerical_Flux_T(num_flux);
 		destructor_Flux_Ref_T(flux_r);
@@ -143,7 +139,7 @@ void update_coef_nf_f_opg_T (const struct Simulation*const sim, struct Intrusive
 	 *  collocated schemes when the normal flux polynomial and test function polynomial degrees are equal, the
 	 *  projection operator reduces to identity. */
 	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {
-		const struct Face*const face                  = (struct Face*) curr;
+		const struct Face*const face = (struct Face*) curr;
 		if (!UPDATE_NF_BOUNDARY && face->boundary)
 			continue;
 
@@ -226,11 +222,13 @@ static struct S_Params_f_T set_s_params_f_T (const struct Simulation*const sim)
 
 	switch (test_case->solver_method_curr) {
 	case 'e':
+		s_params.scale_by_Jacobian = scale_by_Jacobian_e_T;
 		s_params.compute_rlhs = compute_rhs_f_opg_dg_like_T;
 		break;
 #if TYPE_RC == TYPE_REAL
 	case 'i':
 		if (test_case->has_1st_order && !test_case->has_2nd_order) {
+			s_params.scale_by_Jacobian = scale_by_Jacobian_i1;
 			s_params.compute_rlhs = compute_rlhs_1;
 		} else if (!test_case->has_1st_order && test_case->has_2nd_order) {
 			EXIT_ADD_SUPPORT;
@@ -282,13 +280,6 @@ static struct Flux_Ref_T* constructor_Flux_Ref_OPG_T
 	struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_opg_T(flux_i,s_vol); // returned
 
 	return flux_r;
-}
-
-static void scale_by_Jacobian_e_T
-	(struct Numerical_Flux_T*const num_flux, const struct Solver_Face_T*const s_face)
-{
-	const struct const_Vector_T jacobian_det_fc = interpret_const_Multiarray_as_Vector_T(s_face->jacobian_det_fc);
-	scale_Multiarray_by_Vector_T('L',1.0,(struct Multiarray_T*)num_flux->nnf,&jacobian_det_fc,false);
 }
 
 static const struct const_Multiarray_T* constructor_jump_test_s_fc_T

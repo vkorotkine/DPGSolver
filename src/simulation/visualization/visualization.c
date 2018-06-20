@@ -132,6 +132,7 @@ struct Volume_Data_Vis {
 	const struct const_Multiarray_d* sol_p;  ///< "sol"ution at the 'p'lotting nodes.
 	const struct const_Multiarray_d* grad_p; ///< solution "grad"ients at the 'p'lotting nodes.
 	const struct const_Multiarray_d* rhs_p;  ///< "rhs" at the 'p'lotting nodes.
+	const struct const_Multiarray_d* test_s_p; ///< "test" functions for the 's'olution at the 'p'lotting nodes.
 
 	const struct const_Plotting_Nodes* p_nodes; ///< \ref Plotting_Nodes.
 };
@@ -310,7 +311,10 @@ static void output_visualization_vtk_sol (const struct Simulation* sim)
 
 		fprint_vtk_header_footer(p_file,true,'h',"UnstructuredGrid");
 
-		fprint_vtk_piece_sol_grad(p_file,'p','s',test_case->pde_index,NULL);
+		struct Solver_Volume* s_vol = (struct Solver_Volume*)sim->volumes->first;
+		const struct Volume_Data_Vis*const vdv = constructor_VDV(s_vol,test_case); // destructed
+		fprint_vtk_piece_sol_grad(p_file,'p','s',test_case->pde_index,vdv);
+		destructor_VDV(vdv);
 
 		for (int i = 0; i < sim->mpi_size; ++i)
 			fprintf(p_file,"<Piece Source=\"%s_%d.vtu\"/>\n",extract_name(output_part,false),i);
@@ -330,7 +334,7 @@ static void output_visualization_vtk_sol (const struct Simulation* sim)
 		const struct Volume_Data_Vis*const vdv = constructor_VDV(s_vol,test_case); // destructed
 
 		fprint_vtk_piece_sol_grad(s_file,'s','s',test_case->pde_index,vdv);
-		fprint_vtk_piece_sol_grad(s_file,'s','e',test_case->pde_index,NULL);
+		fprint_vtk_piece_sol_grad(s_file,'s','e',test_case->pde_index,vdv);
 
 		destructor_VDV(vdv);
 	}
@@ -414,11 +418,12 @@ static void fprint_vtk_piece_grad_navier_stokes
 	 const struct const_Multiarray_d*const grad ///< Defined in \ref Volume_Data_Vis.
 	);
 
-/// \brief Print the rhs data of an euler piece to the file.
-static void fprint_vtk_piece_rhs_euler
-	(FILE* file,                               ///< Defined for \ref fprint_vtk_piece_sol_grad.
-	 const char sp_type,                       ///< Defined for \ref fprint_vtk_piece_sol_grad.
-	 const struct const_Multiarray_d*const rhs ///< Defined in \ref Volume_Data_Vis.
+/// \brief Print the data other than that of the solution of an euler piece to the file.
+static void fprint_vtk_piece_other_euler
+	(FILE* file,                                 ///< Defined for \ref fprint_vtk_piece_sol_grad.
+	 const char sp_type,                         ///< Defined for \ref fprint_vtk_piece_sol_grad.
+	 const struct const_Multiarray_d*const data, ///< Defined in \ref Volume_Data_Vis.
+	 const char*const data_name                  ///< The name of the data.
 	);
 
 static const struct Volume_Data_Vis* constructor_VDV
@@ -448,9 +453,8 @@ static const struct Volume_Data_Vis* constructor_VDV
 	const struct const_Multiarray_d* s_coef = (const struct const_Multiarray_d*)s_vol->sol_coef;
 	vdv->sol_p = constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vs_vp,s_coef,'C','d',s_coef->order,NULL); // dest.
 
-	const struct Operator* cv0_vr_vp = get_Multiarray_Operator(p_e->cv0_vr_vp,(ptrdiff_t[]){0,0,p,p});
-
 	if (test_case->has_2nd_order) {
+		const struct Operator* cv0_vr_vp = get_Multiarray_Operator(p_e->cv0_vr_vp,(ptrdiff_t[]){0,0,p,p});
 		const struct const_Multiarray_d*const r_coef = (const struct const_Multiarray_d*)s_vol->grad_coef;
 		vdv->grad_p =
 			constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vr_vp,r_coef,'C','d',r_coef->order,NULL); // dest.
@@ -458,9 +462,15 @@ static const struct Volume_Data_Vis* constructor_VDV
 
 	if (test_case->copy_initial_rhs) {
 		const struct Operator* cv0_vt_vp = get_Multiarray_Operator(p_e->cv0_vt_vp,(ptrdiff_t[]){0,0,p,p});
-
 		const struct const_Multiarray_d* rhs = (const struct const_Multiarray_d*)s_vol->rhs;
 		vdv->rhs_p = constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vt_vp,rhs,'C','d',rhs->order,NULL); // dest.
+	}
+
+	const struct const_Multiarray_d* test_s_coef = (const struct const_Multiarray_d*)s_vol->test_s_coef;
+	if (compute_size(test_s_coef->order,test_s_coef->extents) > 0) {
+		const struct Operator* cv0_vt_vp = get_Multiarray_Operator(p_e->cv0_vt_vp,(ptrdiff_t[]){0,0,p,p});
+		vdv->test_s_p = constructor_mm_NN1_Operator_const_Multiarray_d
+		                (cv0_vt_vp,test_s_coef,'C','d',test_s_coef->order,NULL); // dest.
 	}
 
 	vdv->p_nodes = p_e->p_nodes[p];
@@ -474,6 +484,7 @@ static void destructor_VDV (const struct Volume_Data_Vis* vdv)
 	destructor_const_Multiarray_d(vdv->sol_p);
 	destructor_conditional_const_Multiarray_d(vdv->grad_p);
 	destructor_conditional_const_Multiarray_d(vdv->rhs_p);
+	destructor_conditional_const_Multiarray_d(vdv->test_s_p);
 	free((void*)vdv);
 }
 
@@ -625,6 +636,7 @@ static void fprint_vtk_piece_sol_grad
 	const struct const_Multiarray_d* sol  = ( vdv ? vdv->sol_p  : NULL );
 	const struct const_Multiarray_d* grad = ( vdv ? vdv->grad_p : NULL );
 	const struct const_Multiarray_d* rhs  = ( vdv ? vdv->rhs_p  : NULL );
+	const struct const_Multiarray_d* test_s = ( vdv ? vdv->test_s_p : NULL );
 	if (sp_type == 'p') {
 		if (se_type == 's') {
 			fprint_vtk_Points(file,sp_type,NULL);
@@ -666,7 +678,22 @@ static void fprint_vtk_piece_sol_grad
 					break;
 				case PDE_EULER: // fallthrough
 				case PDE_NAVIER_STOKES:
-					fprint_vtk_piece_rhs_euler(file,sp_type,rhs);
+					fprint_vtk_piece_other_euler(file,sp_type,rhs,"rhs");
+					break;
+				default:
+					EXIT_ERROR("Unsupported: %d\n",pde_index);
+					break;
+				}
+			}
+			if (test_s) {
+				switch (pde_index) {
+				case PDE_ADVECTION: // fallthrough
+				case PDE_DIFFUSION:
+					fprint_vtk_piece_sol_scalar(file,sp_type,test_s,"test_s_u");
+					break;
+				case PDE_EULER: // fallthrough
+				case PDE_NAVIER_STOKES:
+					fprint_vtk_piece_other_euler(file,sp_type,test_s,"test_s");
 					break;
 				default:
 					EXIT_ERROR("Unsupported: %d\n",pde_index);
@@ -749,7 +776,22 @@ static void fprint_vtk_piece_sol_grad
 					break;
 				case PDE_EULER: // fallthrough
 				case PDE_NAVIER_STOKES:
-					fprint_vtk_piece_rhs_euler(file,sp_type,rhs);
+					fprint_vtk_piece_other_euler(file,sp_type,rhs,"rhs");
+					break;
+				default:
+					EXIT_ERROR("Unsupported: %d\n",pde_index);
+					break;
+				}
+			}
+			if (test_s) {
+				switch (pde_index) {
+				case PDE_ADVECTION: // fallthrough
+				case PDE_DIFFUSION:
+					fprint_vtk_piece_sol_scalar(file,sp_type,test_s,"test_u");
+					break;
+				case PDE_EULER: // fallthrough
+				case PDE_NAVIER_STOKES:
+					fprint_vtk_piece_other_euler(file,sp_type,test_s,"test_s");
 					break;
 				default:
 					EXIT_ERROR("Unsupported: %d\n",pde_index);
@@ -1016,32 +1058,40 @@ static void fprint_vtk_piece_grad_navier_stokes
 	}
 }
 
-static void fprint_vtk_piece_rhs_euler (FILE* file, const char sp_type, const struct const_Multiarray_d*const rhs)
+static void fprint_vtk_piece_other_euler
+	(FILE* file, const char sp_type, const struct const_Multiarray_d*const data, const char*const data_name)
 {
-	if (rhs == NULL)
+	if (data == NULL)
 		return;
 
+	char name[STRLEN_MIN];
 	if (sp_type == 'p') {
-		fprint_vtk_DataArray_d(file,sp_type,"rhs_rho",NULL,false,'s');
-		fprint_vtk_DataArray_d(file,sp_type,"rhs_velocity",NULL,false,'v');
-		fprint_vtk_DataArray_d(file,sp_type,"rhs_E",NULL,false,'s');
+		sprintf(name,"%s%s",data_name,"_rho");
+		fprint_vtk_DataArray_d(file,sp_type,name,NULL,false,'s');
+		sprintf(name,"%s%s",data_name,"_velocity");
+		fprint_vtk_DataArray_d(file,sp_type,name,NULL,false,'v');
+		sprintf(name,"%s%s",data_name,"_E");
+		fprint_vtk_DataArray_d(file,sp_type,name,NULL,false,'s');
 	} else if (sp_type == 's') {
-		const ptrdiff_t ext_0 = rhs->extents[0],
-		                n_var = rhs->extents[1];
+		const ptrdiff_t ext_0 = data->extents[0],
+		                n_var = data->extents[1];
 
 		struct Multiarray_d* var = constructor_move_Multiarray_d_d('C',2,(ptrdiff_t[]){ext_0,1},false,NULL); // d.
 
 		var->extents[1] = 1;
-		var->data = (double*) get_col_const_Multiarray_d(0,rhs);
-		fprint_vtk_DataArray_d(file,sp_type,"rhs_rho",(struct const_Multiarray_d*)var,false,'s');
+		var->data = (double*) get_col_const_Multiarray_d(0,data);
+		sprintf(name,"%s%s",data_name,"_rho");
+		fprint_vtk_DataArray_d(file,sp_type,name,(struct const_Multiarray_d*)var,false,'s');
 
 		var->extents[1] = n_var-2;
-		var->data = (double*) get_col_const_Multiarray_d(1,rhs);
-		fprint_vtk_DataArray_d(file,sp_type,"rhs_velocity",(struct const_Multiarray_d*)var,false,'v');
+		var->data = (double*) get_col_const_Multiarray_d(1,data);
+		sprintf(name,"%s%s",data_name,"_velocity");
+		fprint_vtk_DataArray_d(file,sp_type,name,(struct const_Multiarray_d*)var,false,'v');
 
 		var->extents[1] = 1;
-		var->data = (double*) get_col_const_Multiarray_d(n_var-1,rhs);
-		fprint_vtk_DataArray_d(file,sp_type,"rhs_E",(struct const_Multiarray_d*)var,false,'s');
+		var->data = (double*) get_col_const_Multiarray_d(n_var-1,data);
+		sprintf(name,"%s%s",data_name,"_E");
+		fprint_vtk_DataArray_d(file,sp_type,name,(struct const_Multiarray_d*)var,false,'s');
 
 		destructor_Multiarray_d(var);
 	} else {

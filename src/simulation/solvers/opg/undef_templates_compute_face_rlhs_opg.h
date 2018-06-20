@@ -31,7 +31,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_s_params_f_T
 #undef constructor_Numerical_Flux_OPG_T
 #undef constructor_Flux_Ref_OPG_T
-#undef scale_by_Jacobian_e_T
 #undef constructor_Numerical_Flux_Input_data_opg_T
 
 #undef constructor_jump_test_s_fc_T

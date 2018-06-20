@@ -37,6 +37,16 @@ struct Simulation;
 struct Solver_Storage_Implicit;
 struct Flux_Input_T;
 
+/** \brief Function pointer to the function used to scale by the face Jacobian.
+ *
+ *  \param num_flux \ref Numerical_Flux_T.
+ *  \param s_face   \ref Solver_Face_T.
+ */
+typedef void (*scale_by_Jacobian_fptr_T)
+	(struct Numerical_Flux_T*const num_flux,
+	 const struct Solver_Face_T*const s_face
+		);
+
 /** \brief Pointer to the function used to evaluate the rhs (and optionally lhs) face terms.
  *
  *  \param num_flux \ref Numerical_Flux_T.
@@ -173,6 +183,12 @@ void constructor_Flux_Input_data_f_T
 /// \brief Destructor for \ref constructor_Flux_Input_data_f_T.
 void destructor_Flux_Input_data_f_T
 	(struct Flux_Input_T* flux_i ///< Standard.
+		);
+
+/// \brief Scale \ref Numerical_Flux_T::nnf by the face Jacobian (i.e. only the explicit term).
+void scale_by_Jacobian_e_T
+	(struct Numerical_Flux_T*const num_flux, ///< See brief.
+	 const struct Solver_Face_T*const s_face ///< See brief.
 		);
 
 #include "undef_templates_compute_face_rlhs.h"

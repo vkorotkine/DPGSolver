@@ -13,10 +13,11 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to face rlhs computing functions.
+ *  \brief Undef macro definitions for c-style templating relating to face rlhs computing functions.
  */
 
 ///\{ \name Function pointers
+#undef scale_by_Jacobian_fptr_T
 #undef compute_rlhs_f_fptr_T
 ///\}
 
@@ -36,5 +37,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef permute_Multiarray_T_fc
 #undef constructor_Flux_Input_data_f_T
 #undef destructor_Flux_Input_data_f_T
+#undef scale_by_Jacobian_e_T
 
 #undef finalize_face_rhs_dg_like_T

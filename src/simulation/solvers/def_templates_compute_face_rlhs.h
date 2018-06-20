@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function pointers
+#define scale_by_Jacobian_fptr_T scale_by_Jacobian_fptr_d
 #define compute_rlhs_f_fptr_T compute_rlhs_f_fptr
 ///\}
 
@@ -39,6 +40,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define permute_Multiarray_T_fc                 permute_Multiarray_d_fc
 #define constructor_Flux_Input_data_f_T constructor_Flux_Input_data_f_d
 #define destructor_Flux_Input_data_f_T destructor_Flux_Input_data_f_d
+#define scale_by_Jacobian_e_T scale_by_Jacobian_e_d
 ///\}
 
 ///\{ \name Static names
@@ -48,6 +50,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function pointers
+#define scale_by_Jacobian_fptr_T scale_by_Jacobian_fptr_c
 #define compute_rlhs_f_fptr_T compute_rlhs_f_fptr_c
 ///\}
 
@@ -68,6 +71,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define permute_Multiarray_T_fc                 permute_Multiarray_c_fc
 #define constructor_Flux_Input_data_f_T constructor_Flux_Input_data_f_c
 #define destructor_Flux_Input_data_f_T destructor_Flux_Input_data_f_c
+#define scale_by_Jacobian_e_T scale_by_Jacobian_e_c
 ///\}
 
 ///\{ \name Static names

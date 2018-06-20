@@ -334,6 +334,13 @@ void destructor_Flux_Input_data_f_T (struct Flux_Input_T*const flux_i)
 	destructor_conditional_const_Multiarray_T(flux_i->g);
 }
 
+void scale_by_Jacobian_e_T
+	(struct Numerical_Flux_T*const num_flux, const struct Solver_Face_T*const s_face)
+{
+	const struct const_Vector_T jacobian_det_fc = interpret_const_Multiarray_as_Vector_T(s_face->jacobian_det_fc);
+	scale_Multiarray_by_Vector_T('L',1.0,(struct Multiarray_T*)num_flux->nnf,&jacobian_det_fc,false);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

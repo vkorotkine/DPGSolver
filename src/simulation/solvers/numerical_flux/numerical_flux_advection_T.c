@@ -112,12 +112,10 @@ void compute_Numerical_Flux_T_advection_upwind_jacobian
 
 		// Preference for use of 'R'ight (external, constrained) state because of opg method.
 		if (b_dot_n > EPS) {
-			printf("internal\n");
 			nFluxNum[n]     = b_dot_n*WL[n];
 			dnFluxNumdWL[n] = b_dot_n;
 			dnFluxNumdWR[n] = 0.0;
 		} else {
-			printf("external\n");
 			nFluxNum[n]     = b_dot_n*WR[n];
 			dnFluxNumdWL[n] = 0.0;
 			dnFluxNumdWR[n] = b_dot_n;
