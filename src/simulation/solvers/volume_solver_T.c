@@ -68,6 +68,8 @@ void constructor_derived_Solver_Volume_T (struct Volume* volume_ptr, const struc
 	s_vol->metrics_vc      = constructor_empty_const_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // destructed
 	s_vol->jacobian_det_vc = constructor_empty_const_Multiarray_T('C',1,(ptrdiff_t[]){0});     // destructed
 	s_vol->metrics_vm_p1   = constructor_empty_const_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // destructed
+	s_vol->metrics_vs      = constructor_empty_const_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // destructed
+	s_vol->jacobian_det_vs = constructor_empty_const_Multiarray_T('C',1,(ptrdiff_t[]){0});     // destructed
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	s_vol->flux_imbalance = constructor_empty_Vector_T(test_case->n_var); // destructed
@@ -90,6 +92,8 @@ void destructor_derived_Solver_Volume_T (struct Volume* volume_ptr)
 	destructor_const_Multiarray_T(s_vol->metrics_vc);
 	destructor_const_Multiarray_T(s_vol->jacobian_det_vc);
 	destructor_const_Multiarray_T(s_vol->metrics_vm_p1);
+	destructor_const_Multiarray_T(s_vol->metrics_vs);
+	destructor_const_Multiarray_T(s_vol->jacobian_det_vs);
 	destructor_Vector_T(s_vol->flux_imbalance);
 	destructor_Multiarray_T(s_vol->l_mult);
 	destructor_Multiarray_T(s_vol->rhs);
@@ -137,6 +141,35 @@ const struct const_Matrix_T* constructor_inverse_mass_T
 		destructor_const_Matrix_T(mass);
 	}
 	return m_inv;
+}
+
+const struct Operator* get_operator__cv0_vs_vs_T (const struct Solver_Volume_T*const s_vol)
+{
+	const struct Volume*const vol       = (struct Volume*) s_vol;
+	const struct Solver_Element*const e = (struct Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref;
+	return get_Multiarray_Operator(e->cv0_vs_vs,(ptrdiff_t[]){0,0,p,p});
+}
+
+const struct Operator* get_operator__cv0_vr_vs_T (const struct Solver_Volume_T*const s_vol)
+{
+	const struct Volume*const vol       = (struct Volume*) s_vol;
+	const struct Solver_Element*const e = (struct Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref;
+	return get_Multiarray_Operator(e->cv0_vr_vs,(ptrdiff_t[]){0,0,p,p});
+}
+
+const struct Operator* get_operator__cv0_vg_vs_T (const struct Solver_Volume_T*const s_vol)
+{
+	const struct Volume*const vol       = (struct Volume*) s_vol;
+	const struct Solver_Element*const e = (struct Solver_Element*) vol->element;
+
+	const int curved = vol->curved;
+	const int p      = s_vol->p_ref;
+	const int p_i    = ( curved ? p : 1 );
+	return get_Multiarray_Operator(e->cv0_vg_vs[curved],(ptrdiff_t[]){0,0,p,p_i});
 }
 
 // Static functions ************************************************************************************************* //

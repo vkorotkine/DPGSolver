@@ -46,8 +46,6 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	 struct Solver_Face_T*const s_face, struct Solver_Storage_Implicit*const ssi)
 {
 	UNUSED(flux_r);
-	printf("returning immediately without adding penalty.\n");
-	return;
 
 	/** It is assumed that the initial solution for \ref Solver_Volume_T::test_s_coef is equal to zero on all
 	 *  boundary faces which require the addition of the penalty term (outflow faces). It is also currently assumed
@@ -87,9 +85,6 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 		/* if (real_T(n_dot_b->data[n]) > 0.0) */
 			indicator->data[n] = 1.0;
 	}
-	print_const_Multiarray_T(s_face->normals_fc);
-	print_const_Multiarray_T(n_dot_b);
-	print_Vector_R(indicator);
 
 	const struct Lhs_Operators_OPG_T*const ops = constructor_Lhs_Operators_OPG_T(opg_s_face); // destructed
 

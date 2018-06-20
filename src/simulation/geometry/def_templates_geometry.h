@@ -61,6 +61,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__cv0_vgc_fis get_operator__cv0_vgc_fis
 #define get_operator__vc0_fis_fgc get_operator__vc0_fis_fgc
 #define get_operator__cc0_vgc_fgc get_operator__cc0_vgc_fgc
+#define constructor_volume_metric_terms_T constructor_volume_metric_terms_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -103,6 +104,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__cv0_vgc_fis get_operator__cv0_vgc_fis_c
 #define get_operator__vc0_fis_fgc get_operator__vc0_fis_fgc_c
 #define get_operator__cc0_vgc_fgc get_operator__cc0_vgc_fgc_c
+#define constructor_volume_metric_terms_T constructor_volume_metric_terms_c
 ///\}
 
 #endif

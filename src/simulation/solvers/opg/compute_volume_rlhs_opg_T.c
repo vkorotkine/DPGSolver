@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_volume_solver_opg.h"
 
+#include "def_templates_compute_rlhs.h"
 #include "def_templates_compute_volume_rlhs.h"
 #include "def_templates_flux.h"
 #include "def_templates_test_case.h"
@@ -51,6 +52,24 @@ static struct S_Params_T set_s_params_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Constructor for the solution at the 'v'olume 's'olution nodes.
+ *  \return See brief. */
+static const struct const_Multiarray_T* constructor_sol_vs_T
+	(const struct Solver_Volume_T*const s_vol ///< Standard.
+	 );
+
+/** \brief Constructor for the gradients at the 'v'olume 's'olution nodes.
+ *  \return See brief. */
+static const struct const_Multiarray_T* constructor_grad_vs_T
+	(const struct Solver_Volume_T*const s_vol ///< Standard.
+	 );
+
+/** \brief Constructor for the xyz coordinates at the 'v'olume 's'olution nodes.
+ *  \return See brief. */
+static const struct const_Multiarray_T* constructor_xyz_vs_T
+	(const struct Solver_Volume_T*const s_vol ///< Standard.
+	 );
+
 /** \brief Constructor for the 'test' function 'diff'erentiation 'op'erator for the '1'st order 'v'olume term for the
  *         OPG scheme.
  *  \return See brief.
@@ -58,11 +77,9 @@ static struct S_Params_T set_s_params_T
  *  This operator is the rhs portion of the operator returned from \ref constructor_operator__test_s_coef_to_sol_coef_T.
  */
 static const struct const_Matrix_T* constructor_test_diff_op_1v_opg_T
-	(const struct Flux_Ref_T*const flux_r,     ///< Standard.
-	 const struct Solver_Volume_T*const s_vol, ///< Standard.
-	 const bool include_det_j                  /**< Flag for whether the inverse Jacobian determinant should be
-	                                            *   included. */
-		);
+	(const struct Flux_Ref_T*const flux_r,            ///< Standard.
+	 const struct OPG_Solver_Volume_T*const opg_s_vol ///< Standard.
+	 );
 
 // Interface functions ********************************************************************************************** //
 
@@ -78,7 +95,7 @@ void compute_volume_rlhs_opg_T
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) curr;
 
-		struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_T(&s_params.spvs,flux_i,s_vol); // destructed
+		struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_opg_T(flux_i,s_vol); // destructed
 
 		// Compute the rhs and the lhs terms.
 		s_params.compute_rlhs(flux_r,s_vol,ssi);
@@ -87,39 +104,42 @@ void compute_volume_rlhs_opg_T
 	destructor_Flux_Input_T(flux_i);
 }
 
-const struct const_Matrix_T* constructor_operator__test_s_coef_to_sol_coef_T
-	(const struct Flux_Ref_T*const flux_r, const struct OPG_Solver_Volume_T*const opg_s_vol, const bool include_m_inv)
+struct Flux_Ref_T* constructor_Flux_Ref_vol_opg_T (struct Flux_Input_T* flux_i, const struct Solver_Volume_T* s_vol)
 {
-	struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) opg_s_vol;
+	flux_i->s   = constructor_sol_vs_T(s_vol);
+	flux_i->g   = constructor_grad_vs_T(s_vol);
+	flux_i->xyz = constructor_xyz_vs_T(s_vol);
 
-	const struct const_Matrix_R*const cv0_vs_vc = get_operator__cv0_vs_vc_T(s_vol)->op_std;
-	const struct const_Matrix_T* op_proj_L2 =
-		( include_m_inv ? constructor_mm_TR_const_Matrix_T('N','T',1.0,opg_s_vol->m_inv,cv0_vs_vc,'R') : // dest.
-		                  constructor_copy_const_Matrix_T_Matrix_R_trans(cv0_vs_vc) ); // destructed
+	struct Flux_T* flux = constructor_Flux_T(flux_i); // destructed
+	destructor_const_Multiarray_T(flux_i->s);
+	destructor_conditional_const_Multiarray_T(flux_i->g);
+	destructor_conditional_const_Multiarray_T(flux_i->xyz);
 
-	const struct const_Vector_R*const w_vc = get_operator__w_vc__s_e_T(s_vol);
-	scale_Matrix_T_by_Vector_R('R',1.0,(struct Matrix_T*)op_proj_L2,w_vc,false);
+	struct Flux_Ref_T* flux_r = constructor_Flux_Ref_T(s_vol->metrics_vs,flux);
+	destructor_Flux_T(flux);
 
-	// Note: Inverse Jacobian determinant from this operator cancels with that from the integral (both omitted).
-	const struct const_Matrix_T*const op_v1_opg = constructor_test_diff_op_1v_opg_T(flux_r,s_vol,false); // dest.
+	return flux_r;
+}
+
+const struct const_Matrix_T* constructor_operator__test_s_coef_to_sol_coef_T
+	(const struct Flux_Ref_T*const flux_r, const struct OPG_Solver_Volume_T*const opg_s_vol)
+{
+	const struct const_Matrix_R*const vc0_vs_vs = get_operator__vc0_vs_vs_T(opg_s_vol)->op_std;
+	const struct const_Matrix_T*const op_v1_opg = constructor_test_diff_op_1v_opg_T(flux_r,opg_s_vol); // destructed
 
 	const int n_eq = get_set_n_var_eq(NULL)[1];
+	const char layout = 'R';
+	const ptrdiff_t sub_ext = vc0_vs_vs->ext_0;
 
-	const char layout = op_v1_opg->layout;
-	const ptrdiff_t sub_ext[2] = { op_v1_opg->ext_0/n_eq, op_proj_L2->ext_0, };
-
-	assert(layout == 'R');
-
-	struct Matrix_T*const op_final = constructor_empty_Matrix_T(layout,n_eq*op_proj_L2->ext_0,op_v1_opg->ext_1); // r.
-	struct Matrix_T sub_op_v1_opg = { .layout = layout, .ext_0 = sub_ext[0], .ext_1 = op_v1_opg->ext_1, .data = NULL, };
-	struct Matrix_T sub_op_final  = { .layout = layout, .ext_0 = sub_ext[1], .ext_1 = op_v1_opg->ext_1, .data = NULL, };
+	struct Matrix_T*const op_final = constructor_empty_Matrix_T(layout,n_eq*vc0_vs_vs->ext_0,op_v1_opg->ext_1); // r.
+	struct Matrix_T sub_op_v1_opg = { .layout = layout, .ext_0 = sub_ext, .ext_1 = op_v1_opg->ext_1, .data = NULL, };
+	struct Matrix_T sub_op_final  = { .layout = layout, .ext_0 = sub_ext, .ext_1 = op_v1_opg->ext_1, .data = NULL, };
 
 	for (int eq = 0; eq < n_eq; ++eq) {
-		sub_op_v1_opg.data = (Type*) get_row_const_Matrix_T(sub_ext[0]*eq,op_v1_opg);
-		sub_op_final.data  = get_row_Matrix_T(sub_ext[1]*eq,op_final);
-		mm_T('N','N',1.0,0.0,op_proj_L2,(struct const_Matrix_T*)&sub_op_v1_opg,&sub_op_final);
+		sub_op_v1_opg.data = (Type*) get_row_const_Matrix_T(sub_ext*eq,op_v1_opg);
+		sub_op_final.data  = get_row_Matrix_T(sub_ext*eq,op_final);
+		mm_RTT('N','N',1.0,0.0,vc0_vs_vs,(struct const_Matrix_T*)&sub_op_v1_opg,&sub_op_final);
 	}
-	destructor_const_Matrix_T(op_proj_L2);
 	destructor_const_Matrix_T(op_v1_opg);
 
 	return (struct const_Matrix_T*) op_final;
@@ -137,16 +157,13 @@ void update_coef_s_v_opg_T (const struct Simulation*const sim, struct Intrusive_
 
 	struct Flux_Input_T*const flux_i = constructor_Flux_Input_T(sim); // destructed
 
-	struct S_Params_T s_params;
-	set_S_Params_Volume_Structor_T(&s_params.spvs,sim);
-
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume_T*const s_vol         = (struct Solver_Volume_T*) curr;
 		struct OPG_Solver_Volume_T*const opg_s_vol = (struct OPG_Solver_Volume_T*) curr;
 
-		struct Flux_Ref_T*const flux_r = constructor_Flux_Ref_vol_T(&s_params.spvs,flux_i,s_vol);
+		struct Flux_Ref_T*const flux_r = constructor_Flux_Ref_vol_opg_T(flux_i,s_vol);
 		const struct const_Matrix_T*const op__t_to_s =
-			constructor_operator__test_s_coef_to_sol_coef_T(flux_r,opg_s_vol,true); // destructed
+			constructor_operator__test_s_coef_to_sol_coef_T(flux_r,opg_s_vol); // destructed
 		destructor_Flux_Ref_T(flux_r);
 
 		struct Vector_T test_s_coef_V = interpret_Multiarray_as_Vector_T(s_vol->test_s_coef);
@@ -195,17 +212,55 @@ static struct S_Params_T set_s_params_T (const struct Simulation*const sim)
 	return s_params;
 }
 
+static const struct const_Multiarray_T* constructor_sol_vs_T (const struct Solver_Volume_T*const s_vol)
+{
+	const struct Operator*const cv0_vs_vs = get_operator__cv0_vs_vs_T(s_vol);
+	const struct const_Multiarray_T*const s_coef = (const struct const_Multiarray_T*) s_vol->sol_coef;
+	const char op_format = get_set_op_format(0);
+	return constructor_mm_NN1_Operator_const_Multiarray_T(cv0_vs_vs,s_coef,'C',op_format,s_coef->order,NULL);
+}
+
+static const struct const_Multiarray_T* constructor_grad_vs_T (const struct Solver_Volume_T*const s_vol)
+{
+	if (!get_set_has_1st_2nd_order(NULL)[1])
+		return NULL;
+
+	const struct Operator*const cv0_vr_vs = get_operator__cv0_vr_vs_T(s_vol);
+	const struct const_Multiarray_T*const g_coef = (const struct const_Multiarray_T*) s_vol->grad_coef;
+	const char op_format = get_set_op_format(0);
+	return constructor_mm_NN1_Operator_const_Multiarray_T(cv0_vr_vs,g_coef,'C',op_format,g_coef->order,NULL);
+}
+
+static const struct const_Multiarray_T* constructor_xyz_vs_T (const struct Solver_Volume_T*const s_vol)
+{
+	switch (get_set_pde_index(NULL)) {
+	case PDE_ADVECTION:
+		break; // Do nothing (continue below).
+	case PDE_DIFFUSION: case PDE_EULER: case PDE_NAVIER_STOKES:
+		return NULL;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",get_set_pde_index(NULL));
+		break;
+	}
+
+	const struct Operator*const cv0_vg_vs = get_operator__cv0_vg_vs_T(s_vol);
+	const struct const_Multiarray_T*const g_coef = s_vol->geom_coef;
+	const char op_format = get_set_op_format(0);
+	return constructor_mm_NN1_Operator_const_Multiarray_T(cv0_vg_vs,g_coef,'C',op_format,g_coef->order,NULL);
+}
+
 static const struct const_Matrix_T* constructor_test_diff_op_1v_opg_T
-	(const struct Flux_Ref_T*const flux_r, const struct Solver_Volume_T*const s_vol, const bool include_det_j)
+	(const struct Flux_Ref_T*const flux_r, const struct OPG_Solver_Volume_T*const opg_s_vol)
 {
 	const int*const n_var_eq = get_set_n_var_eq(NULL);
 	const int n_vr = n_var_eq[0],
 	          n_eq = n_var_eq[1];
 
-	const struct Multiarray_Operator cv1_vt_vc = get_operator__cv1_vt_vc_T(s_vol);
+	const struct Multiarray_Operator cv1_vt_vs = get_operator__cv1_vt_vs_T(opg_s_vol);
 
-	const ptrdiff_t ext_0 = cv1_vt_vc.data[0]->op_std->ext_0,
-	                ext_1 = cv1_vt_vc.data[0]->op_std->ext_1;
+	const ptrdiff_t ext_0 = cv1_vt_vs.data[0]->op_std->ext_0,
+	                ext_1 = cv1_vt_vs.data[0]->op_std->ext_1;
 
 	struct Matrix_T* cv1r = constructor_empty_Matrix_T('R',n_vr*ext_0,n_eq*ext_1); // returned
 
@@ -222,7 +277,7 @@ static const struct const_Matrix_T* constructor_test_diff_op_1v_opg_T
 			const ptrdiff_t ind =
 				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
 			dfr_ds.data = (Type*)&dfr_ds_Ma->data[ind];
-			mm_diag_T('L',-1.0,1.0,cv1_vt_vc.data[dim]->op_std,(struct const_Vector_T*)&dfr_ds,cv1r_l,false);
+			mm_diag_T('L',-1.0,1.0,cv1_vt_vs.data[dim]->op_std,(struct const_Vector_T*)&dfr_ds,cv1r_l,false);
 		}
 		/** \note Building the right operator here (as opposed to the left in \ref constructor_lhs_v_1_T). The
 		 *  flux Jacobian terms are thus transposed by swapping the 'eq' and 'vr' indices. */
@@ -231,12 +286,12 @@ static const struct const_Matrix_T* constructor_test_diff_op_1v_opg_T
 	}}
 	destructor_Matrix_T(cv1r_l);
 
-	if (include_det_j) {
-		const struct const_Vector_T J_vc = interpret_const_Multiarray_as_Vector_T(s_vol->jacobian_det_vc);
-		const struct const_Vector_T*const Jr_vc = constructor_repeated_const_Vector_T(1.0,&J_vc,n_vr); // dest.
-		scale_Matrix_by_Vector_T('L',1.0,cv1r,Jr_vc,true);
-		destructor_const_Vector_T(Jr_vc);
-	}
+	const struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) opg_s_vol;
+	const struct const_Vector_T J_vs = interpret_const_Multiarray_as_Vector_T(s_vol->jacobian_det_vs);
+	const struct const_Vector_T*const Jr_vs = constructor_repeated_const_Vector_T(1.0,&J_vs,n_vr); // dest.
+	scale_Matrix_by_Vector_T('L',1.0,cv1r,Jr_vs,true);
+	destructor_const_Vector_T(Jr_vs);
+
 	return (struct const_Matrix_T*) cv1r;
 }
 
@@ -248,6 +303,7 @@ static const struct const_Matrix_T* constructor_test_diff_op_1v_opg_T
 
 #include "undef_templates_volume_solver_opg.h"
 
+#include "undef_templates_compute_rlhs.h"
 #include "undef_templates_compute_volume_rlhs.h"
 #include "undef_templates_flux.h"
 #include "undef_templates_test_case.h"

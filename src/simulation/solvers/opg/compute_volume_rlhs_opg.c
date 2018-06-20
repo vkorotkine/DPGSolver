@@ -107,11 +107,11 @@ static const struct const_Matrix_d* constructor_lhs_v_1_opg
 	const int n_vr = get_set_n_var_eq(NULL)[0];
 
 	const struct const_Matrix_d*const op_t_to_s =
-		constructor_operator__test_s_coef_to_sol_coef_d(flux_r,opg_s_vol,false); // destructed
-	const struct const_Matrix_d*const M_inv = constructor_block_diagonal_const_Matrix_d(opg_s_vol->m_inv,n_vr); // d.
+		constructor_operator__test_s_coef_to_sol_coef_d(flux_r,opg_s_vol); // destructed
+	const struct const_Matrix_d*const M = constructor_block_diagonal_const_Matrix_d(opg_s_vol->m,n_vr); // dest.
 
-	const struct const_Matrix_d*const lhs_r = constructor_mm_const_Matrix_d('N','N',1.0,M_inv,op_t_to_s,'R'); // d.
-	destructor_const_Matrix_d(M_inv);
+	const struct const_Matrix_d*const lhs_r = constructor_mm_const_Matrix_d('N','N',1.0,M,op_t_to_s,'R'); // dest.
+	destructor_const_Matrix_d(M);
 
 	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('T','N',-1.0,op_t_to_s,lhs_r,'R'); // ret.
 	destructor_const_Matrix_d(op_t_to_s);

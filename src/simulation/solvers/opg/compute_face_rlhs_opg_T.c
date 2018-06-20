@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_boundary.h"
 #include "def_templates_compute_face_rlhs.h"
 #include "def_templates_compute_volume_rlhs.h"
+#include "def_templates_compute_volume_rlhs_opg.h"
 #include "def_templates_flux.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_operators.h"
@@ -44,7 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 /// \brief Container for solver-related parameters.
-struct S_Params_T {
+struct S_Params_f_T {
 	compute_rlhs_opg_f_fptr_T compute_rlhs; ///< Pointer to the appropriate function.
 };
 
@@ -53,9 +54,9 @@ struct Num_Flux_T {
 	const struct const_Multiarray_T* n_dot_nf; ///< Unit normal dotted with the numerical flux.
 };
 
-/** \brief Set the parameters of \ref S_Params_T.
- *  \return A statically allocated \ref S_Params_T container. */
-static struct S_Params_T set_s_params_T
+/** \brief Set the parameters of \ref S_Params_f_T.
+ *  \return A statically allocated \ref S_Params_f_T container. */
+static struct S_Params_f_T set_s_params_f_T
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
@@ -75,9 +76,8 @@ static struct Numerical_Flux_T* constructor_Numerical_Flux_OPG_T
  *         the assembly boundary contribution terms to the LHS.
  *  \return On boundary faces, returns the constructed \ref Flux_T; otherwise returns NULL. */
 static struct Flux_Ref_T* constructor_Flux_Ref_OPG_T
-	(const struct S_Params_Volume_Structor_T*const spvs, ///< Standard.
-	 struct Flux_Input_T*const flux_i,                   ///< Standard.
-	 const struct Solver_Face_T*const s_face             ///< Standard.
+	(struct Flux_Input_T*const flux_i,       ///< Standard.
+	 const struct Solver_Face_T*const s_face ///< Standard.
 		);
 
 /// \brief Scale \ref Numerical_Flux_T::nnf by the face Jacobian (i.e. only the explicit term).
@@ -110,9 +110,7 @@ void compute_face_rlhs_opg_T
 	assert(sim->faces->name    == IL_FACE_SOLVER_OPG);
 	assert(sim->volumes->name  == IL_VOLUME_SOLVER_OPG);
 
-	struct S_Params_T s_params = set_s_params_T(sim);
-	struct S_Params_Volume_Structor_T spvs;
-	set_S_Params_Volume_Structor_T(&spvs,sim);
+	struct S_Params_f_T s_params = set_s_params_f_T(sim);
 
 	struct Test_Case_T*const test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	const char smc = test_case->solver_method_curr;
@@ -126,7 +124,7 @@ void compute_face_rlhs_opg_T
 		struct Solver_Face_T*const s_face = (struct Solver_Face_T*) curr;
 
 		struct Numerical_Flux_T*const num_flux = constructor_Numerical_Flux_OPG_T(num_flux_i,s_face,sim); // dest.
-		struct Flux_Ref_T*const flux_r         = constructor_Flux_Ref_OPG_T(&spvs,flux_i,s_face); // destructed
+		struct Flux_Ref_T*const flux_r         = constructor_Flux_Ref_OPG_T(flux_i,s_face); // destructed
 
 		scale_by_Jacobian_e_T(num_flux,s_face);
 		s_params.compute_rlhs(flux_r,num_flux,s_face,ssi);
@@ -203,15 +201,6 @@ void destructor_Lhs_Operators_OPG_T (const struct Solver_Face_T*const s_face, co
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Version of \ref compute_rlhs_opg_f_fptr_T used to call \ref compute_rhs_f_dg_like_T.
- *  \return See brief. */
-static void compute_rhs_f_opg_dg_like_T
-	(const struct Flux_Ref_T*const flux_r,         ///< Standard.
-	 const struct Numerical_Flux_T*const num_flux, ///< Standard.
-	 struct Solver_Face_T*const s_face,            ///< Standard.
-	 struct Solver_Storage_Implicit*const ssi      ///< Standard.
-		);
-
 /** \brief Construct the data members of the \ref Numerical_Flux_Input_T container which are specific to the face under
  *         consideration for the opg scheme. */
 static void constructor_Numerical_Flux_Input_data_opg_T
@@ -220,9 +209,18 @@ static void constructor_Numerical_Flux_Input_data_opg_T
 	 const struct Simulation*const sim               ///< Standard.
 	);
 
-static struct S_Params_T set_s_params_T (const struct Simulation*const sim)
+/** \brief Version of \ref compute_rlhs_opg_f_fptr_T used to call \ref compute_rhs_f_dg_like_T.
+ *  \return See brief. */
+	static void compute_rhs_f_opg_dg_like_T
+	(const struct Flux_Ref_T*const flux_r,         ///< Standard.
+	 const struct Numerical_Flux_T*const num_flux, ///< Standard.
+	 struct Solver_Face_T*const s_face,            ///< Standard.
+	 struct Solver_Storage_Implicit*const ssi      ///< Standard.
+	 );
+
+static struct S_Params_f_T set_s_params_f_T (const struct Simulation*const sim)
 {
-	struct S_Params_T s_params;
+	struct S_Params_f_T s_params;
 
 	struct Test_Case_T*const test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 
@@ -274,15 +272,14 @@ static struct Numerical_Flux_T* constructor_Numerical_Flux_OPG_T
 }
 
 static struct Flux_Ref_T* constructor_Flux_Ref_OPG_T
-	(const struct S_Params_Volume_Structor_T*const spvs, struct Flux_Input_T*const flux_i,
-	 const struct Solver_Face_T*const s_face)
+	(struct Flux_Input_T*const flux_i, const struct Solver_Face_T*const s_face)
 {
 	const struct Face*const face = (struct Face*) s_face;
 	if (!face->boundary)
 		return NULL;
 
 	const struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) face->neigh_info[0].volume;
-	struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_T(spvs,flux_i,s_vol); // returned
+	struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_opg_T(flux_i,s_vol); // returned
 
 	return flux_r;
 }
@@ -351,6 +348,7 @@ static void compute_rhs_f_opg_dg_like_T
 #include "undef_templates_boundary.h"
 #include "undef_templates_compute_face_rlhs.h"
 #include "undef_templates_compute_volume_rlhs.h"
+#include "undef_templates_compute_volume_rlhs_opg.h"
 #include "undef_templates_flux.h"
 #include "undef_templates_numerical_flux.h"
 #include "undef_templates_operators.h"

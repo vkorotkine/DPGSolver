@@ -35,9 +35,9 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Static names
-#define S_Params_T S_Params_d
+#define S_Params_f_T S_Params_f_d
 #define Num_Flux_T Num_Flux_d
-#define set_s_params_T set_s_params_d
+#define set_s_params_f_T set_s_params_f_d
 #define constructor_Numerical_Flux_OPG_T constructor_Numerical_Flux_OPG_d
 #define constructor_Flux_Ref_OPG_T constructor_Flux_Ref_OPG_d
 #define scale_by_Jacobian_e_T scale_by_Jacobian_e_d
@@ -64,9 +64,9 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 ///\{ \name Static names
-#define S_Params_T S_Params_T_c
+#define S_Params_f_T S_Params_f_T_c
 #define Num_Flux_T Num_Flux_T_c
-#define set_s_params_T set_s_params_T_c
+#define set_s_params_f_T set_s_params_T_f_c
 #define constructor_Numerical_Flux_OPG_T constructor_Numerical_Flux_OPG_T_c
 #define constructor_Flux_Ref_OPG_T constructor_Flux_Ref_OPG_T_c
 #define scale_by_Jacobian_e_T scale_by_Jacobian_e_T_c

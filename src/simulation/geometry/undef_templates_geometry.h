@@ -55,3 +55,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef get_operator__cv0_vgc_fis
 #undef get_operator__vc0_fis_fgc
 #undef get_operator__cc0_vgc_fgc
+#undef constructor_volume_metric_terms_T

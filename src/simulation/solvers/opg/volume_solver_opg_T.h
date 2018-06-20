@@ -27,6 +27,9 @@ You should have received a copy of the GNU General Public License along with DPG
 struct OPG_Solver_Volume_T {
 	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume_T.
 
+	const struct const_Matrix_T* m; ///< The mass matrix.
+
+	/// \todo Delete m_inv if unused.
 	const struct const_Matrix_T* m_inv; ///< The inverse mass matrix.
 };
 
@@ -40,6 +43,18 @@ void constructor_derived_OPG_Solver_Volume_T
 void destructor_derived_OPG_Solver_Volume_T
 	(struct Volume* volume_ptr ///< Pointer to the volume.
 	);
+
+/** \brief Get the pointer to the appropriate \ref OPG_Solver_Element::vc0_vs_vs operator.
+ *  \return See brief. */
+const struct Operator* get_operator__vc0_vs_vs_T
+	 (const struct OPG_Solver_Volume_T*const opg_s_vol ///< Standard.
+	  );
+
+/** \brief Get the appropriate sub-range of the \ref OPG_Solver_Element::cv1_vt_vs operators.
+ *  \return See brief. */
+struct Multiarray_Operator get_operator__cv1_vt_vs_T
+	(const struct OPG_Solver_Volume_T*const opg_s_vol ///< Standard.
+	 );
 
 #include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"

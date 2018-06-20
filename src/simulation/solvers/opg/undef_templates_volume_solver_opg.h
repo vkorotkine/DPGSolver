@@ -14,7 +14,7 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to \ref OPG_Solver_Volume_T containers/functions.
+ *  \brief Undef macro definitions for c-style templating relating to \ref OPG_Solver_Volume_T containers/functions.
  */
 
 #include "undef_templates_volume_solver.h"
@@ -27,3 +27,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_derived_OPG_Solver_Volume_T
 #undef destructor_derived_OPG_Solver_Volume_T
 ///\}
+
+#undef get_operator__vc0_vs_vs_T
+#undef get_operator__cv1_vt_vs_T

@@ -29,6 +29,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Static names
 #define S_Params_T S_Params
 #define set_s_params_T set_s_params_T
+#define constructor_Flux_Ref_vol_opg_T constructor_Flux_Ref_vol_opg_d
+#define constructor_sol_vs_T constructor_sol_vs_d
+#define constructor_grad_vs_T constructor_grad_vs_d
+#define constructor_xyz_vs_T constructor_xyz_vs_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -43,6 +47,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Static names
 #define S_Params_T S_Params_T_c
 #define set_s_params_T set_s_params_T_c
+#define constructor_Flux_Ref_vol_opg_T constructor_Flux_Ref_vol_opg_c
+#define constructor_sol_vs_T constructor_sol_vs_c
+#define constructor_grad_vs_T constructor_grad_vs_c
+#define constructor_xyz_vs_T constructor_xyz_vs_c
 ///\}
 
 #endif

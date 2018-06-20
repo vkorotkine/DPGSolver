@@ -258,5 +258,5 @@ static const struct const_Matrix_d* constructor_lhs_f_1_b_r
 
 	const struct OPG_Solver_Volume*const opg_s_vol = (struct OPG_Solver_Volume*) face->neigh_info[0].volume;
 
-	return constructor_operator__test_s_coef_to_sol_coef_d(flux_r,opg_s_vol,true);
+	return constructor_operator__test_s_coef_to_sol_coef_d(flux_r,opg_s_vol);
 }

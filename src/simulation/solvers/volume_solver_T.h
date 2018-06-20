@@ -86,6 +86,12 @@ struct Solver_Volume_T {
 	/// Same as \ref Solver_Volume_T::metrics_vm but for the p1 geometry coefficients.
 	const struct const_Multiarray_T* metrics_vm_p1;
 
+	/// As for \ref Solver_Volume_T::metrics_vc but evaluated at the 'v'olume 's'olution nodes.
+	const struct const_Multiarray_T* metrics_vs;
+
+	/// As for \ref Solver_Volume_T::jacobian_def_vc but evaluated at the 'v'olume 's'olution nodes.
+	const struct const_Multiarray_T* jacobian_det_vs;
+
 	struct Vector_T* flux_imbalance; ///< The values of the flux imbalances for each equation.
 	struct Multiarray_T* l_mult; ///< The values of the Lagrange multipliers used to enforce conservation.
 
@@ -126,6 +132,24 @@ const struct const_Matrix_T* constructor_inverse_mass_T
 	(const struct Solver_Volume_T*const s_vol, ///< Standard.
 	 const struct const_Matrix_T*const mass    ///< Mass matrix. Input if available, otherwise pass `NULL`.
 	);
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vs_vs operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vs_vs_T
+	(const struct Solver_Volume_T*const s_vol ///< Standard.
+	 );
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vr_vs operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vr_vs_T
+	(const struct Solver_Volume_T*const s_vol ///< Standard.
+	 );
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vg_vs operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vg_vs_T
+	(const struct Solver_Volume_T*const s_vol ///< Standard.
+	 );
 
 #include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"
