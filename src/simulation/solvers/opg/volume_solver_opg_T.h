@@ -27,9 +27,10 @@ You should have received a copy of the GNU General Public License along with DPG
 struct OPG_Solver_Volume_T {
 	struct Solver_Volume_T volume; ///< The base \ref Solver_Volume_T.
 
+/// \todo Consider preconstructing m_block diag as it seems that this is possibly the only usage of m.
 	const struct const_Matrix_T* m; ///< The mass matrix.
 
-	/// \todo Delete m_inv if unused.
+/// \todo Delete m_inv if unused.
 	const struct const_Matrix_T* m_inv; ///< The inverse mass matrix.
 };
 

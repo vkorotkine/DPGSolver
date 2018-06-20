@@ -77,7 +77,7 @@ void destructor_derived_OPG_Solver_Element (struct Element* element_ptr)
 	destructor_Multiarray2_Operator(opg_s_e->cv0_vt_vc);
 	destructor_Multiarray2_Operator(opg_s_e->cv1_vt_vc);
 	destructor_Multiarray_Operator(opg_s_e->vc0_vs_vs);
-	destructor_Multiarray_Operator(opg_s_e->cv0_vt_vs);
+	destructor_Multiarray_Operator_conditional(opg_s_e->cv0_vt_vs);
 	destructor_Multiarray_Operator(opg_s_e->cv1_vt_vs);
 
 	destructor_Multiarray2_Operator(opg_s_e->cv0_vt_fc);

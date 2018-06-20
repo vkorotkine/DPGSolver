@@ -33,6 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_sol_vs_T constructor_sol_vs_d
 #define constructor_grad_vs_T constructor_grad_vs_d
 #define constructor_xyz_vs_T constructor_xyz_vs_d
+#define compute_rhs_v_opg_T compute_rhs_v_opg_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -51,6 +52,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_sol_vs_T constructor_sol_vs_c
 #define constructor_grad_vs_T constructor_grad_vs_c
 #define constructor_xyz_vs_T constructor_xyz_vs_c
+#define compute_rhs_v_opg_T compute_rhs_v_opg_c
 ///\}
 
 #endif

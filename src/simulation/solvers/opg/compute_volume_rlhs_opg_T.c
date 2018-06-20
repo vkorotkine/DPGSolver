@@ -81,6 +81,13 @@ static const struct const_Matrix_T* constructor_test_diff_op_1v_opg_T
 	 const struct OPG_Solver_Volume_T*const opg_s_vol ///< Standard.
 	 );
 
+/// \brief Version of \ref compute_rlhs_v_fptr_T computing only the rhs term for the opg scheme.
+static void compute_rhs_v_opg_T
+	(const struct Flux_Ref_T*const flux_r,    ///< See brief.
+	 struct Solver_Volume_T*const s_vol,      ///< See brief.
+	 struct Solver_Storage_Implicit*const ssi ///< See brief.
+		);
+
 // Interface functions ********************************************************************************************** //
 
 void compute_volume_rlhs_opg_T
@@ -90,7 +97,12 @@ void compute_volume_rlhs_opg_T
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_OPG);
 
 	struct S_Params_T s_params = set_s_params_T(sim);
+
+	struct Test_Case_T*const test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const char smc = test_case->solver_method_curr;
+	test_case->solver_method_curr = 'i'; // Jacobians needed for rhs volume term.
 	struct Flux_Input_T* flux_i = constructor_Flux_Input_T(sim); // destructed
+	test_case->solver_method_curr = smc;
 
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) curr;
@@ -190,7 +202,7 @@ static struct S_Params_T set_s_params_T (const struct Simulation*const sim)
 	switch (test_case->solver_method_curr) {
 #if TYPE_RC == TYPE_COMPLEX
 	case 'e':
-		s_params.compute_rlhs = compute_rhs_v_dg_like_T;
+		s_params.compute_rlhs = compute_rhs_v_opg_T;
 		break;
 #elif TYPE_RC == TYPE_REAL
 	case 'i':
@@ -293,6 +305,26 @@ static const struct const_Matrix_T* constructor_test_diff_op_1v_opg_T
 	destructor_const_Vector_T(Jr_vs);
 
 	return (struct const_Matrix_T*) cv1r;
+}
+
+static void compute_rhs_v_opg_T
+	(const struct Flux_Ref_T*const flux_r, struct Solver_Volume_T*const s_vol,
+	 struct Solver_Storage_Implicit*const ssi)
+{
+	UNUSED(ssi);
+	const int n_vr = get_set_n_var_eq(NULL)[0];
+
+	const struct OPG_Solver_Volume_T*const opg_s_vol = (struct OPG_Solver_Volume_T*) s_vol;
+	const struct const_Matrix_T*const op_t_to_s =
+		constructor_operator__test_s_coef_to_sol_coef_T(flux_r,opg_s_vol); // destructed
+	const struct const_Matrix_T*const M = constructor_block_diagonal_const_Matrix_T(opg_s_vol->m,n_vr); // dest.
+	const struct const_Matrix_T*const lhs_l = constructor_mm_const_Matrix_T('T','N',1.0,op_t_to_s,M,'R'); // dest.
+	destructor_const_Matrix_T(op_t_to_s);
+	destructor_const_Matrix_T(M);
+
+	// -ve sign included to cancel that coming from op_t_to_s for the v'*df_ds term.
+	mm_NNC_Multiarray_TTT(-1.0,1.0,lhs_l,(struct const_Multiarray_T*)s_vol->sol_coef,s_vol->rhs);
+	destructor_const_Matrix_T(lhs_l);
 }
 
 #include "undef_templates_compute_volume_rlhs_opg.h"

@@ -29,3 +29,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_sol_vs_T
 #undef constructor_grad_vs_T
 #undef constructor_xyz_vs_T
+#undef compute_rhs_v_opg_T

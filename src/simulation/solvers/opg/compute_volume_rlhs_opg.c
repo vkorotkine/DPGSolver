@@ -70,7 +70,7 @@ static void compute_rlhs_1
 	(const struct Flux_Ref*const flux_r, struct Solver_Volume*const s_vol, struct Solver_Storage_Implicit*const ssi)
 {
 	struct OPG_Solver_Volume*const opg_s_vol = (struct OPG_Solver_Volume*) s_vol;
-	compute_rhs_v_dg_like(flux_r,s_vol,ssi);
+	compute_rhs_v_opg_d(flux_r,s_vol,ssi);
 	compute_lhs_1(flux_r,opg_s_vol,ssi);
 }
 
@@ -110,12 +110,12 @@ static const struct const_Matrix_d* constructor_lhs_v_1_opg
 		constructor_operator__test_s_coef_to_sol_coef_d(flux_r,opg_s_vol); // destructed
 	const struct const_Matrix_d*const M = constructor_block_diagonal_const_Matrix_d(opg_s_vol->m,n_vr); // dest.
 
-	const struct const_Matrix_d*const lhs_r = constructor_mm_const_Matrix_d('N','N',1.0,M,op_t_to_s,'R'); // dest.
+	const struct const_Matrix_d*const lhs_l = constructor_mm_const_Matrix_d('T','N',1.0,op_t_to_s,M,'R'); // dest.
 	destructor_const_Matrix_d(M);
 
-	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('T','N',-1.0,op_t_to_s,lhs_r,'R'); // ret.
+	const struct const_Matrix_d*const lhs = constructor_mm_const_Matrix_d('N','N',-1.0,lhs_l,op_t_to_s,'R'); // ret.
 	destructor_const_Matrix_d(op_t_to_s);
-	destructor_const_Matrix_d(lhs_r);
+	destructor_const_Matrix_d(lhs_l);
 
 	return lhs;
 }
