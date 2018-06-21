@@ -89,8 +89,9 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	}
 
 	static int count = 0;
-	const int count_max = (int) round(2.0/face->h);
-	if (count == count_max) // number of faces along one boundary face
+	const int count_max = (int) round(2.0/face->h); // number of faces along one boundary face
+	/* const int count_max = (int) round(4.0/face->h); // number of faces along two boundary faces */
+	if (count == count_max)
 		return;
 	if (indicator->data[0] == 1.0)
 		++count;

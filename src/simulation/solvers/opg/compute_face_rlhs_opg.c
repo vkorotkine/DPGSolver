@@ -2,6 +2,7 @@
 This file is part of DPGSolver.
 
 DPGSolver is free software: you can redistribute it and/or modify it under the terms of the GNU
+
 General Public License as published by the Free Software Foundation, either version 3 of the
 License, or any later version.
 
@@ -193,9 +194,10 @@ static void finalize_lhs_1_f_opg
 	destructor_const_Matrix_d(lhs_l_p2);
 
 #if 1 // Only enable for face collocated parameters (p_t_p = 0).
+#include "solution_advection.h"
 	const struct const_Multiarray_d*const normals_fc = s_face->normals_fc;
 	const ptrdiff_t n_fc = normals_fc->extents[0];
-	const double b_adv[] = { 0.5, 0.5, 0.0, };
+	const double*const b_adv = compute_b_adv_constant_d(NULL);
 	struct Vector_d* b_dot_n2_V = constructor_zero_Vector_d(n_fc); // destructed.
 	double* b_dot_n2 = b_dot_n2_V->data;
 	for (int i = 0; i < n_fc; ++i) {

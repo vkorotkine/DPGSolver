@@ -60,9 +60,9 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Flags for whether certain outputs are enabled.
 #define PRINT_NORM_INF_X  false ///< Flag for whether the infinity norm of the solution update should be printed.
 #define PRINT_NORM_INF_AB true  ///< Flag for whether the infinity norms of the lhs (A) and rhs (b) should be printed.
-#define OUTPUT_PETSC_AB true  ///< Flag for Petsc data containers.
+#define OUTPUT_PETSC_AB false ///< Flag for Petsc data containers.
 #define OUTPUT_SOLUTION true  ///< Flag for solution data on each element.
-#define EXIT_ON_OUTPUT  false ///< Flag for whether the simulation should exit after outputting.
+#define EXIT_ON_OUTPUT  true  ///< Flag for whether the simulation should exit after outputting.
 #define OUTPUT_STEP     500   ///< Iteration step at which to output the solution if enabled.
 ///\}
 
@@ -357,6 +357,7 @@ static void destructor_Schur_Data
 
 static void output_petsc_mat_vec (Mat A, Vec b, const struct Simulation* sim)
 {
+	printf("Outputting A and b.\n");
 	output_petsc_mat(A,"A.m");
 	output_petsc_vec(b,"b.m");
 
