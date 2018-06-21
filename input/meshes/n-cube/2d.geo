@@ -1,11 +1,7 @@
 Include "../parameters.geo";
-<<<<<<< HEAD
-//mesh_level = 2; mesh_type = MIXED; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_XL; geom_unaligned = 1;
-//mesh_level = 2; mesh_type = QUAD; mesh_domain = PARAMETRIC; pde_name = EULER; geom_adv = GEOM_ADV_INTERNAL; geom_unaligned = 0; geom_ar = 0.5;
-=======
+
 //mesh_level = 2; mesh_type = MIXED; mesh_domain = STRAIGHT; pde_name = ADVECTION; geom_adv = GEOM_ADV_XL; geom_unaligned = 1; geom_ar = 0.5;
 //mesh_level = 1; mesh_type = QUAD; mesh_domain = PARAMETRIC; pde_name = EULER; geom_adv = GEOM_ADV_INTERNAL; geom_unaligned = 0; geom_ar = 0.5;
->>>>>>> development
 
 // Geometry Specification
 l = 1;

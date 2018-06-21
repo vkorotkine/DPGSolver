@@ -22,8 +22,8 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Tolerance values used throughout.
 #define EPS      1.0e-15
 #define SQRT_EPS 3.162277660168379e-08
-#define CX_STEP  1e-30                 ///< Magnitude of the complex step to take for Jacobian evaluation.
-#define FINITE_DIFF_STEP  1e-8                 ///< Magnitude of the finite difference step to take for Jacobian evaluation.
+#define CX_STEP  1e-30                ///< Magnitude of the complex step to take for Jacobian evaluation.
+#define FINITE_DIFF_STEP  1e-8        ///< Magnitude of the finite difference step to take for Jacobian evaluation.
 
 ///\}
 

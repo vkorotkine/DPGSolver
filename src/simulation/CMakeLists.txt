@@ -16,13 +16,13 @@ set	(SOURCE
 	 geometry/geometry_surface.c
 	 geometry/geometry_normals.c
 
-	 optimization/objective_functions.c
-	 optimization/optimize.c
-	 optimization/optimization_case.c
-	 optimization/objective_functions.c
-	 optimization/adjoint.c
-	 optimization/sensitivities.c
-	 optimization/optimization_minimizers.c
+	 #optimization/objective_functions.c
+	 #optimization/optimize.c
+	 #optimization/optimization_case.c
+	 #optimization/objective_functions.c
+	 #optimization/adjoint.c
+	 #optimization/sensitivities.c
+	 #optimization/optimization_minimizers.c
 
 	 solvers/compute_rlhs.c
 	 solvers/compute_face_rlhs.c

@@ -34,8 +34,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "geometry_NURBS_parametric.h"
 
-
-
 // Static function declarations ************************************************************************************* //
 
 /// \brief Container for the geometric data required for the supported parametric cases.
@@ -55,24 +53,27 @@ struct Geo_Data {
 	Real xyz_l, ///< Left  xyz-coordinate.
 	     xyz_r; ///< Right xyz-coordinate.
 
+
 	// NURBS Parametric Domain parameters: (2D Domain for now only)
+	
 	int P, Q;  ///< Order of the patch in the xi (P) and eta (Q) direction
 	
-	//  - The Multiarray holding the knot data
-	struct Multiarray_d *knots_xi, *knots_eta; 
+	struct Multiarray_R *knots_xi, ///< Knot vector in the xi parametric direction
+						*knots_eta; ///< Knot vector in the eta parametric direction
 
-	//  - The Multiarray holding the control points and the weights
-	struct Multiarray_d *control_points_and_weights;
-	// TODO: Hold a complex version of the control_points_and_weights here
-	// 	Or, perhaps need to just use templated version of geo_data (look into this)
+	struct Multiarray_T *control_points; ///< Multiarray holding the control point data. Is stored as
+										 ///< a multiarray of dimension [num_points x DIM]
+	
+	struct Multiarray_R *control_weights; ///< Multiarray holding the control point weights. Is stored as
+										  ///< a multiarray of dimension [num_points x DIM]
+
+	struct Multiarray_i *control_pt_wt_connectivity; ///< The Multiarray holding the connectivity information for the control
+													 ///< points (pt) and weights (wt) in the patch.
+													 ///< The xi control points correspond to the i index and eta control 
+													 ///< points to the j index. Data stored in row major form.
 
 
-
-	//  - The Multiarray holding the connectivity information for the control mesh. 
-	//		The xi control points correspond to the i index and eta control 
-	//		points to the j index. Data stored in row major form
-	struct Multiarray_i *control_point_connectivity;
-
+	struct Multiarray_i *control_point_connectivity; // To be deleted
 };
 
 /** \brief Return the statically allocated \ref Geo_Data container.
@@ -387,7 +388,9 @@ void update_geo_data_NURBS_parametric_T(const struct const_Multiarray_R* ctrl_pt
 
 	struct Geo_Data geo_data = get_geo_data("NURBS");  // get static geo_data struct
 
-	struct Multiarray_d *dest = geo_data.control_points_and_weights;
+	//struct Multiarray_d *dest = geo_data.control_points_and_weights;
+	UNUSED(geo_data);
+	struct Multiarray_d *dest = NULL;
 
 	for (int i = 0; i < (int)dest->extents[0]; i++){
 		for(int j = 0; j < (int)dest->extents[1]; j++){
@@ -397,10 +400,9 @@ void update_geo_data_NURBS_parametric_T(const struct const_Multiarray_R* ctrl_pt
 		}
 	}
 
-
 }
 
-const struct const_Multiarray_R* constructor_grad_xyz_NURBS_parametric_T
+const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
 (const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
 	const struct Simulation* sim){
 
@@ -419,6 +421,12 @@ const struct const_Multiarray_R* constructor_grad_xyz_NURBS_parametric_T
 		The matrix of the mapped xyz points (onto the physical domain)
 	*/
 
+// MSB: TODO: Template the function for the mapping
+#if TYPE_RC == TYPE_COMPLEX
+	EXIT_UNSUPPORTED;
+#endif
+
+
 	UNUSED(n_type);
 	UNUSED(s_vol);
 	UNUSED(sim);
@@ -426,44 +434,23 @@ const struct const_Multiarray_R* constructor_grad_xyz_NURBS_parametric_T
 	// Read the geometric data for the NURBS patch
 	const struct Geo_Data geo_data = get_geo_data("NURBS");
 
-	const struct const_Multiarray_d *grad_xyz = grad_xyz_NURBS_patch_mapping_efficient(
-		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 
-		(const struct const_Multiarray_d*)geo_data.knots_xi, 
-		(const struct const_Multiarray_d*)geo_data.knots_eta,
-		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
-		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
-
-	/*
-	//old approach
 	const struct const_Multiarray_d *grad_xyz = grad_xyz_NURBS_patch_mapping(
 		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 
 		(const struct const_Multiarray_d*)geo_data.knots_xi, 
 		(const struct const_Multiarray_d*)geo_data.knots_eta,
-		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
+		(const struct const_Multiarray_d*)NULL,  // TO FIX
 		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
-	*/
 
-	return (const struct const_Multiarray_R*)grad_xyz;
+	return (const struct const_Multiarray_T*)grad_xyz;
+
+	printf("To Be Implemented\n");
+	EXIT_UNSUPPORTED;
 
 }
 
-const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
-(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
+(const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	const struct Simulation* sim){
-
-	/*
-	Computes the parametric NURBS mapping from the parametric domain to the 
-	physical domain. 
-
-	Arguments:
-		n_type: -
-		xyz_i: The initial xyz points (on the parametric domain)
-		s_vol: The solver volume I think (check further)
-		sim: The simulation object
-
-	Return:
-		The matrix of the mapped xyz points (onto the physical domain)
-	*/
 
 	UNUSED(n_type);
 	UNUSED(s_vol);
@@ -479,31 +466,56 @@ const struct const_Multiarray_R* constructor_xyz_NURBS_parametric_T
 	// xyz_i is the initial values for the xyz coordinates. These are, in 
 	// this function, the location on the parametric domain (or knot domain). Map these
 	// values onto the physical domain
+ 
+	// NOTE: For NURBS mappings, the coordinates on the parametric domain (xyz_i) willneed to be real
+	struct Multiarray_R *xyz_i_real = constructor_empty_Multiarray_R('C',2,xyz_i->extents);  // free
 	
-	const struct const_Multiarray_d *xyz = xyz_NURBS_patch_mapping_efficient(
-		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 
-		(const struct const_Multiarray_d*)geo_data.knots_xi, 
-		(const struct const_Multiarray_d*)geo_data.knots_eta,
-		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
-		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
+	int k = 0;
+	for (int i = 0; i < xyz_i->extents[0]; i++){
+		for (int j = 0; j < xyz_i->extents[1]; j++){
+				
+#if TYPE_RC == TYPE_REAL
+				xyz_i_real->data[k] = xyz_i->data[k];
+#elif TYPE_RC == TYPE_COMPLEX
+				xyz_i_real->data[k] = creal(xyz_i->data[k]);
+#endif
 
-	/*
-	//old approach
+			k++;
+		}
+	}
+
+
+// MSB: TODO: Template the function for the mapping
+#if TYPE_RC == TYPE_REAL
+
 	const struct const_Multiarray_d *xyz = xyz_NURBS_patch_mapping(
-		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 
+		(const struct const_Multiarray_d*)xyz_i_real, geo_data.P, geo_data.Q, 
 		(const struct const_Multiarray_d*)geo_data.knots_xi, 
 		(const struct const_Multiarray_d*)geo_data.knots_eta,
-		(const struct const_Multiarray_d*)geo_data.control_points_and_weights,
-		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
-	*/
+		(const struct const_Multiarray_d*)geo_data.control_points,
+		(const struct const_Multiarray_d*)geo_data.control_weights,
+		(const struct const_Multiarray_i*)geo_data.control_pt_wt_connectivity);
 
-	return (const struct const_Multiarray_R*)xyz;
+#elif TYPE_RC == TYPE_COMPLEX
+	const struct const_Multiarray_c *xyz = xyz_NURBS_patch_mapping_c(
+		(const struct const_Multiarray_d*)xyz_i_real, geo_data.P, geo_data.Q, 
+		(const struct const_Multiarray_d*)geo_data.knots_xi, 
+		(const struct const_Multiarray_d*)geo_data.knots_eta,
+		(const struct const_Multiarray_c*)geo_data.control_points,
+		(const struct const_Multiarray_d*)geo_data.control_weights,
+		(const struct const_Multiarray_i*)geo_data.control_pt_wt_connectivity);
+
+#endif
+
+	free(xyz_i_real);
+
+	return (const struct const_Multiarray_T*)xyz;
 
 }
 
 
-const struct const_Multiarray_R* constructor_xyz_gaussian_bump_parametric_T
-	(const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
+const struct const_Multiarray_T* constructor_xyz_gaussian_bump_parametric_T
+	(const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim)
 {
 	UNUSED(n_type);
@@ -585,6 +597,7 @@ static void read_data_fixed_cube
 	);
 
 /// \brief Read the required geometry data for the NURBS domain into the \ref Geo_Data container.
+/// 
 static void read_data_NURBS 
 	(struct Geo_Data*const geo_data ///< \ref Geo_Data.
 	);
@@ -696,11 +709,14 @@ static void read_data_gaussian_bump (struct Geo_Data*const geo_data)
 static void read_data_NURBS (struct Geo_Data*const geo_data)
 {
 
-	// MSB: Read the NURBS data from the geometry_parameters.geo file
+	// MSB: TODO: Fix the multiarray indexing
 
-	// MSB: The number of elements that should have been found. 
-	// For now, 2D patches should be able to be read successfully so
-	// we should be able to find
+	// Read the NURBS data from the geometry_parameters.geo file
+
+	// NOTE: Consider only 2D patches for now
+	assert(DIM == 2);
+
+	// The following parameters must be listed in the file.
 	//	- P (order in the xi direction)
 	// 	- Q (order in the eta direction)
 	//	- knots_xi
@@ -708,7 +724,6 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 	// 	- Control Points and Weights
 	//  - Control Point Connectivity
 	const int count_to_find = 6;
-	assert(DIM == 2);
 
 	// Get the file pointer to the geometry file
 	FILE* input_file = fopen_input('g',NULL,NULL); // closed
@@ -727,28 +742,26 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 
 		// The knot vectors in the eta and xi directions:
 		if (strstr(line, "knots_xi")){
-			read_skip_string_count_i("knots_xi", &count_found, line, &len_knots_xi);
-				
-			struct Multiarray_d* knots_xi = 
-					constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){len_knots_xi,1});
+			
+			read_skip_string_count_i("knots_xi", &count_found, line, &len_knots_xi);	
+			struct Multiarray_R* knots_xi = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){len_knots_xi,1});
 			
 			for (i = 0; i < len_knots_xi; i++){
 				fgets(line,sizeof(line),input_file);  // read the next line
-				read_skip_d_1(line, 0, &get_col_Multiarray_d(0, knots_xi)[i], 1);
+				read_skip_d_1(line, 0, &get_col_Multiarray_R(0, knots_xi)[i], 1);
 			}
 
 			geo_data->knots_xi = knots_xi;
 		}
 
 		if (strstr(line, "knots_eta")){
+
 			read_skip_string_count_i("knots_eta", &count_found, line, &len_knots_eta);
-			
-			struct Multiarray_d* knots_eta = 
-					constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){len_knots_eta,1});
+			struct Multiarray_R* knots_eta = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){len_knots_eta,1});
 			
 			for (i = 0; i < len_knots_eta; i++){
 				fgets(line,sizeof(line),input_file);  // read the next line
-				read_skip_d_1(line, 0, &get_col_Multiarray_d(0, knots_eta)[i], 1);
+				read_skip_d_1(line, 0, &get_col_Multiarray_R(0, knots_eta)[i], 1);
 			}
 			
 			geo_data->knots_eta = knots_eta;
@@ -763,31 +776,32 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 			read_skip_string_count_i("Control_Point_Data", &count_found, line, &num_control_pts);
 
 			// Create the multiarray structure to hold the control point data
-			// NOTE: For now, only 2D patches can be read, so multiarray is of 
-			// dimension num_pts x (dim (for x,y values) + 1 (for the weights))
-			struct Multiarray_d* control_points_and_weights = 
-				constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_control_pts,DIM+1}); // saved
+			struct Multiarray_T* control_points  = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){num_control_pts,DIM}); // saved
+			struct Multiarray_R* control_weights = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){num_control_pts,1}); // saved
+			 
+			Type *x = get_col_Multiarray_T(0, control_points),
+				 *y = get_col_Multiarray_T(1, control_points);
 
-			Real *x = get_col_Multiarray_d(0, control_points_and_weights),
-				 *y = get_col_Multiarray_d(1, control_points_and_weights),
-				 *w = get_col_Multiarray_d(2, control_points_and_weights);
+			Real *w = get_col_Multiarray_R(0, control_weights);
 
 			// Read the pt data line by line
 			for (i = 0; i < num_control_pts; i++){
 				fgets(line,sizeof(line),input_file);
 				
+				// Point data stored in .geo file with real values 
 				Real pt[3] = {0.0, 0.0, 0.0};
-				read_skip_d_1(line,0, pt, DIM+1);
+				read_skip_d_1(line, 0, pt, DIM+1);
 
 				x[i] = pt[0];
 				y[i] = pt[1];
 				w[i] = pt[2];
 			}
 
-			geo_data->control_points_and_weights = control_points_and_weights;
+			geo_data->control_points  = control_points;
+			geo_data->control_weights = control_weights;
 		}
 
-		// Read the Control Point Connecitivity Data
+		// Read the Control Point Connectivity Data
 		if (strstr(line,"Control_Point_Connectivity")){
 
 			// Get the number of xi and eta points
@@ -796,34 +810,31 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 			read_skip_const_i_1(line,1,extents,2);
 
 			// Create the multiarray structure to hold the connectivity data
-			// NOTE: For now, only 2D patches can be processed
-			struct Multiarray_i* control_point_connectivity = 
+			struct Multiarray_i* control_pt_wt_connectivity = 
 				constructor_empty_Multiarray_i('R',2,(ptrdiff_t[]){extents[0], extents[1]});
 
 			// Read in the connectivity data line by line
 			for (i = 0; i < extents[0]; i++){
 				fgets(line,sizeof(line),input_file);
 
-				read_skip_i_1(line,0, get_row_Multiarray_i(i, control_point_connectivity), extents[1]);
+				read_skip_i_1(line,0, get_row_Multiarray_i(i, control_pt_wt_connectivity), extents[1]);
 			}
 
-			// TODO: Take the transpose but there is no transpose_Multiarray_i
-
-			geo_data->control_point_connectivity = control_point_connectivity;
+			// MSB: TODO: Take the transpose but there is no transpose_Multiarray_i
+			geo_data->control_pt_wt_connectivity = control_pt_wt_connectivity;
 
 		}
 	}
 	fclose(input_file);
 
 	// Print the file data to verify that everything was read
-	
-	/*
-	printf("P = %d, Q = %d \n", geo_data->P, geo_data->Q);
-	print_Multiarray_d_tol(geo_data->knots_xi, 0.0);
-	print_Multiarray_d_tol(geo_data->knots_eta, 0.0);		
-	print_Multiarray_d_tol(geo_data->control_points_and_weights, 0.0);
-	print_Multiarray_i(geo_data->control_point_connectivity);
-	*/
+	// printf("P = %d, Q = %d \n", geo_data->P, geo_data->Q);
+	// print_Multiarray_d(geo_data->knots_xi);
+	// print_Multiarray_d(geo_data->knots_eta);		
+	// print_Multiarray_T(geo_data->control_points);
+	// print_Multiarray_d(geo_data->control_weights);
+	// print_Multiarray_i(geo_data->control_pt_wt_connectivity);
+	// exit(0);
 
 	assert(count_found == count_to_find);
 }

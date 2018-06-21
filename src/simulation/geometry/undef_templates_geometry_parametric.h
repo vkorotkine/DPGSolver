@@ -34,3 +34,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef read_data_joukowski
 #undef read_data_gaussian_bump
 #undef read_data_fixed_cube
+#undef read_data_NURBS

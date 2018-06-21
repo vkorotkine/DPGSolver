@@ -1,111 +1,71 @@
-	(Done) - Create a test for the optimization run similar to test_integration_run
 
-	(Done) - Create the lift coefficient objective function.
+Wednesday:
 
-		(Done) - Compute the lift by integrating the pressure on any face that had 
-			a slip wall BC. Then just sum up all the contributions. 
+	(Done) - Modify the configure files to be able to build the code by creating the parameter file.
 
-	(Done) - Create an Optimization data structure
+	(Done) - Trace through code to see adjustments after the merge:
 
-		(Done) - Create a typedef function pointer for the objective function (make a target CL
-			objective function). Make a function pointer to a real version and complex
-			version of the function.
+		(Done) - Trace through geometry_T.c to see changes and validate them.
 
-		(Done) - Make the function pointer in the optimization data structure point to the 
-			real objective function.
+		(Done) - Trace through geometry_parametric_T.c to see changes and to validate them.
 
-		(Done) - Test typedef function pointer to make sure it returns the value of the function
-			properly.
+	(Done) - Build the code
 
-	(Done) - Create the complex version of the objective functions (will template later)
+	(Done) - Run the test cases to ensure they pass (non NURBS).
 
-	(Done) - Compute adjoint RHS using complex step
+	- Fix templating for NURBS geometry
 
-		(Done) - Loop over only the volumes that have a boundary face (for now, implement it 
-			as if the target Cl objective is being used).
+		(Done) - Create a real and complex version of the NURBS mapping function 
+			(to get the coordinates). Implement the templating using TYPE_RC for now
 
-		(Done) - Apply complex perturbation to the state vector components
+		- Implement NURBS mapping case without NURBS metrics (use isoparametric
+			mapping). Verify real and complex versions of mappings work.
+			Run the test_integration_run case to verify.
 
-		(Done) - Compute each term of the RHS using this approach.
+		- Create a real and complex version of the NURBS grad function (to get the 
+			gradients).
 
-	(Done) - Use the real version of the implementation o compute the adjoint
+		- Template the xyz mapping function for the NURBS mapping.
 
-		(Done) - Use finite differences to obtain the terms of the RHS. 
+		- Template the grad mapping function for the NURBS mapping.
 
-	(Done) - Compare results to the finite difference approach.
+	- Check test_integration_run for NURBS case
 
-	(Done) - Solve the Adjoint equation
+	- Check orders of convergence for NURBS enhanced case
 
-		(Done) - Take the transpose of the LHS and solve the equation to find the adjoint
+	- Read the NURBS geometry information from the ctrl file now (no longer
+		use a macro).
 
-	(Done) - Use valgrind to fix all memory leaks up until now in the implementation
+		- Remove all occurences of the Macro
 
-	(Done) - Generate the design variable point connectivity (and their dofs). Place this in
-		the .geo file. It will only be used by the optimization routines.
+	- Clean up implementation of the functions in bases.c/h and 
+		geometry_parametric_T.c/h. 
 
-	(Done) - In the optimization setup, read all the geo_data data. 
+		- Place doxygen style comments for functions. Move the comments from the src
+			file to the header.
 
-	(Done) - Create a method for updating geo_data which will update the geo_data struct information 
-			using the data held in optimization_case.
 
-	(Done) - Create a modified grad_NURBS_xyz to make it more efficient in terms
-		of B Spline calls. 
 
-	(Done) - Create a modified NURBS_xyz to make it more efficient in terms of the
-		number of B Spline calls.
+	- Run the NURBS optimization cases to see if they converge still.
 
-	(Done) - Compute the sensitivities using finite differences
+	- Read the IGA Paper
 
-		(Done) - Compute the objective function linearization with respect to the design
-				control points.
+Monday:
 
-		(Done) - Compute the Residual linearization with respect to the design control 
-				points. 
+	- Write the Methodology section for the paper.
 
-	(Done) - Compute the gradient of the objective function using the adjoint and the 
-		sensitivity equation.
+	- Plan out IGA implementation.
 
-	(Done) - Compute the gradient of the objective function using a brute force algorithm.
 
-		(Done) - Ensure values obtained is equivalent to the adjoint approach.
 
-	(Done) - Use valgrind to check to make sure there are no memory leaks.
 
-	(Done) - Use steepest descent to converge to an optimal solution.
-		-> Solution didn't converge by getting there (slowly). Will mvoe onto BFGS and NLPQLP
 
-	(Done) - Implement BFGS and use it to converge to an optimal solution.
 
-	(Done) - Create a 20 x 10 grid and see how well the flow resolves on it
 
-	(Done) - Write Python plotter and add output for convergence so that it can be 
-		plotted to see how the convergence progressed.
 
-	(Done) - Write Python spline plotter to visualize the optimal solutions 
 
-	(Done) - Do P2 flow convergence on 16 x 10 grid
 
-		(Done) - Complete the results with NURBS Metrics
 
-		(Done) - Complete the results without NURBS Metrics
-
-		- Complete the results without NURBS Metrics Superparametric
-
-		(Done) - Plot and store results in folder
-
-	(Done) - Do P3 flow convergence on 20 x 10 grid
-
-		(Done) - Complete the results with NURBS Metrics
-
-		(Done) - Complete the results without NURBS Metrics
-
-	(Done) - Implement the NLPQLP wrapper into the code
-
-		(Done) - Complete input file writing function
-
-		(Done) - Complete output file processing function
-
-		(Done) - Complete coupling with NLPQLP and see one design iteration
 
 	- Run Valgrind to check memory leaks with NLPQLP
 
@@ -120,6 +80,8 @@
 	- Create poster with thesis results
 
 	- Clean up code optimization structure with NLPQLP
+
+	- Remove NURBS_geometry from the macros file
 
 
 Naming Convention:

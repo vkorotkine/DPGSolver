@@ -50,6 +50,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define OUTPUT_GEOMETRY false ///< Flag for whether the geometry should be output for visualization.
 
+// MSB: Temporary, to be removed
 #define OUTPUT_METRIC_TERMS false
 
 /** \brief Pointer to functions computing \ref Solver_Volume_T::geom_coef.
@@ -187,7 +188,6 @@ void set_up_solver_geometry_T (struct Simulation* sim)
 		}
 	}
 
-// MSB:TODO_MERGE Investigate this addition to the geometry setup
 	correct_for_exact_normals_T(sim);
 
 #if TYPE_RC == TYPE_REAL
@@ -277,15 +277,12 @@ void compute_NURBS_geometry_volume_T(const bool recompute_geom_coef,
 
 	const int d = ((struct const_Element*)g_e)->d;
 
-	const struct const_Multiarray_R*const geom_coef = s_vol->geom_coef;
-	UNUSED(geom_coef);
-
 	const int p = s_vol->p_ref;
 
 	const bool curved = vol->curved;
 	const int p_g = ( curved ? p : 1 );
 
-	struct Multiarray_R *jacobian_vc = NULL;
+	struct Multiarray_T *jacobian_vc = NULL;
 
 	// Compute the chain rule mapping term (to the parent element)
 	const struct const_Multiarray_R*const xyz_ve = vol->xyz_ve;
@@ -327,7 +324,7 @@ void compute_NURBS_geometry_volume_T(const bool recompute_geom_coef,
 	
 	for (ptrdiff_t i = 0; i < n_vc; i++){
 
-		// Map from refernce/parent domain to xi and eta points on knot domain
+		// Map from reference/parent domain to xi and eta points on knot domain
 
 		// xi value:
 		get_col_Multiarray_d(0, rst_knots_i)[i] = 
@@ -341,38 +338,38 @@ void compute_NURBS_geometry_volume_T(const bool recompute_geom_coef,
 	}
 	
 	// Compute the partial derivative terms needed for the metrics from the NURBS mapping
-	const struct const_Multiarray_R* grad_xyz = constructor_grad_xyz_NURBS_parametric_T(0, (const struct const_Multiarray_d*)rst_knots_i, s_vol, sim);
-	jacobian_vc = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_vc,d,d}); // destructed
+	const struct const_Multiarray_T* grad_xyz = constructor_grad_xyz_NURBS_parametric_T(0, (const struct const_Multiarray_d*)rst_knots_i, s_vol, sim);
+	jacobian_vc = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_vc,d,d}); // destructed
 
-	Real* x_r = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){0,0})],
+	Type* x_r = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){0,0})],
 	    * x_s = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){0,1})],
 	    * y_r = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){1,0})],
 	    * y_s = &jacobian_vc->data[compute_index_sub_container(3,1,jacobian_vc->extents,(ptrdiff_t[]){1,1})];
 	
 	for (ptrdiff_t i = 0; i < n_vc; ++i) {
-		x_r[i] = get_col_const_Multiarray_R(0, grad_xyz)[i] * dxi_dxi_hat;
-		x_s[i] = get_col_const_Multiarray_R(2, grad_xyz)[i] * deta_deta_hat;
-		y_r[i] = get_col_const_Multiarray_R(1, grad_xyz)[i] * dxi_dxi_hat;
-		y_s[i] = get_col_const_Multiarray_R(3, grad_xyz)[i] * deta_deta_hat;
+		x_r[i] = get_col_const_Multiarray_T(0, grad_xyz)[i] * dxi_dxi_hat;
+		x_s[i] = get_col_const_Multiarray_T(2, grad_xyz)[i] * deta_deta_hat;
+		y_r[i] = get_col_const_Multiarray_T(1, grad_xyz)[i] * dxi_dxi_hat;
+		y_s[i] = get_col_const_Multiarray_T(3, grad_xyz)[i] * deta_deta_hat;
 	}
 
 	// Store the volume metric data	at the Cubature nodes	
-	resize_Multiarray_R((struct Multiarray_R*)s_vol->metrics_vc,3,(ptrdiff_t[]){n_vc,d,d});
-	compute_detJV_T((struct const_Multiarray_R*)jacobian_vc,(struct Multiarray_R*)s_vol->jacobian_det_vc);
-	compute_cofactors_T((struct const_Multiarray_R*)jacobian_vc,(struct Multiarray_R*)s_vol->metrics_vc);
+	resize_Multiarray_T((struct Multiarray_T*)s_vol->metrics_vc,3,(ptrdiff_t[]){n_vc,d,d});
+	compute_detJV_T((struct const_Multiarray_T*)jacobian_vc,(struct Multiarray_T*)s_vol->jacobian_det_vc);
+	compute_cofactors_T((struct const_Multiarray_T*)jacobian_vc,(struct Multiarray_T*)s_vol->metrics_vc);
 
 	// Destruct allocated data structures
 	destructor_const_Nodes(nodes_c);
 	destructor_const_Multiarray_d(rst_i);
 	destructor_Multiarray_d(rst_knots_i);
-	destructor_const_Multiarray_d(grad_xyz);
-	destructor_Multiarray_d(jacobian_vc);
+	destructor_const_Multiarray_T(grad_xyz);
+	destructor_Multiarray_T(jacobian_vc);
 
 	if(OUTPUT_METRIC_TERMS){
 		// Testing:
-		printf("NURBS APPROACH\n");
-		printf("jacobian_det_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->jacobian_det_vc);
-		printf("metrics_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->metrics_vc);
+		//printf("NURBS APPROACH\n");
+		//printf("jacobian_det_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->jacobian_det_vc);
+		//printf("metrics_vc : \n"); print_Multiarray_R((struct Multiarray_R*)s_vol->metrics_vc);
 	}
 
 }
@@ -571,52 +568,49 @@ void compute_NURBS_geometry_face_T (struct Solver_Face_T* s_face,
 	}
 
 	// Compute the partial derivative terms needed for the metrics from the NURBS mapping
-	const struct const_Multiarray_R* grad_xyz = constructor_grad_xyz_NURBS_parametric_T(0, (const struct const_Multiarray_d*)rst_knots_i, s_vol, sim);
+	const struct const_Multiarray_T* grad_xyz = constructor_grad_xyz_NURBS_parametric_T(0, (const struct const_Multiarray_d*)rst_knots_i, s_vol, sim);
 
-	struct Multiarray_R* metrics_fc = constructor_empty_Multiarray_R('C',3,(ptrdiff_t[]){n_fc,2,2}); // destructed
+	struct Multiarray_T* metrics_fc = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_fc,2,2}); // destructed
 
-	Real* m_00 = &metrics_fc->data[compute_index_sub_container(3,1,metrics_fc->extents,(ptrdiff_t[]){0,0})],
+	Type* m_00 = &metrics_fc->data[compute_index_sub_container(3,1,metrics_fc->extents,(ptrdiff_t[]){0,0})],
 	    * m_01 = &metrics_fc->data[compute_index_sub_container(3,1,metrics_fc->extents,(ptrdiff_t[]){0,1})],
 	    * m_10 = &metrics_fc->data[compute_index_sub_container(3,1,metrics_fc->extents,(ptrdiff_t[]){1,0})],
 	    * m_11 = &metrics_fc->data[compute_index_sub_container(3,1,metrics_fc->extents,(ptrdiff_t[]){1,1})];
 	
 	for (ptrdiff_t i = 0; i < n_fc; ++i) {
-		m_00[i] =  get_col_const_Multiarray_R(3, grad_xyz)[i]*deta_deta_hat;  //  y_s
-		m_01[i] = -get_col_const_Multiarray_R(1, grad_xyz)[i]*dxi_dxi_hat;   // -y_r
-		m_10[i] = -get_col_const_Multiarray_R(2, grad_xyz)[i]*deta_deta_hat;  // -x_s
-		m_11[i] =  get_col_const_Multiarray_R(0, grad_xyz)[i]*dxi_dxi_hat;  //  x_r
+		m_00[i] =  get_col_const_Multiarray_T(3, grad_xyz)[i]*deta_deta_hat;  //  y_s
+		m_01[i] = -get_col_const_Multiarray_T(1, grad_xyz)[i]*dxi_dxi_hat;   // -y_r
+		m_10[i] = -get_col_const_Multiarray_T(2, grad_xyz)[i]*deta_deta_hat;  // -x_s
+		m_11[i] =  get_col_const_Multiarray_T(0, grad_xyz)[i]*dxi_dxi_hat;  //  x_r
 	}
 
 	// Compute face normal vectors and jacobians using the face cubature metric values
-	compute_unit_normals_and_det_T(ind_lf,e->normals, (const struct const_Multiarray_R*)metrics_fc,
-		(struct Multiarray_R*)s_face->normals_fc,(struct Multiarray_R*)s_face->jacobian_det_fc);
+	compute_unit_normals_and_det_T(ind_lf,e->normals, (const struct const_Multiarray_T*)metrics_fc,
+		(struct Multiarray_T*)s_face->normals_fc,(struct Multiarray_T*)s_face->jacobian_det_fc);
 
 	// Compute the face xyz values. 
 	// TODO: Look into this further and make sure it works with the NURBS implementation
-	destructor_const_Multiarray_R(s_face->xyz_fc);
-	destructor_const_Multiarray_R(s_face->xyz_fc_ex_b);
-	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc,constructor_xyz_fc(s_face,sim)); // keep
-	const_constructor_move_const_Multiarray_R(&s_face->xyz_fc_ex_b,
+	destructor_const_Multiarray_T(s_face->xyz_fc);
+	destructor_const_Multiarray_T(s_face->xyz_fc_ex_b);
+	const_constructor_move_const_Multiarray_T(&s_face->xyz_fc,constructor_xyz_fc(s_face,sim)); // keep
+	const_constructor_move_const_Multiarray_T(&s_face->xyz_fc_ex_b,
 	                                          constructor_xyz_fc_on_exact_boundary(s_face,sim)); // keep
 
 	if(OUTPUT_METRIC_TERMS){
 		// Testing:
-		printf("NURBS APPROACH : \n");
-		printf("vertices : \n"); print_const_Multiarray_R(vol->xyz_ve);
-		printf("metrics_fc : \n"); print_Multiarray_R(metrics_fc);	
-		printf("normals_fc : %d \n", ind_lf); print_Multiarray_R((struct Multiarray_R*)s_face->normals_fc);	
-		printf("jacobian_det_fc : \n"); print_Multiarray_R((struct Multiarray_R*)s_face->jacobian_det_fc);
-
-		//if (ind_lf == 3)
-		//	exit(0);
+		//printf("NURBS APPROACH : \n");
+		//printf("vertices : \n"); print_const_Multiarray_R(vol->xyz_ve);
+		//printf("metrics_fc : \n"); print_Multiarray_R(metrics_fc);	
+		//printf("normals_fc : %d \n", ind_lf); print_Multiarray_R((struct Multiarray_R*)s_face->normals_fc);	
+		//printf("jacobian_det_fc : \n"); print_Multiarray_R((struct Multiarray_R*)s_face->jacobian_det_fc);
 	}
 
 	// Destruct allocated data structures:
 	destructor_const_Multiarray_d(rst_i);
 	destructor_Multiarray_d(rst_knots_i);
 	destructor_const_Nodes(nodes_c);
-	destructor_const_Multiarray_d(grad_xyz);
-	destructor_Multiarray_R(metrics_fc);
+	destructor_const_Multiarray_T(grad_xyz);
+	destructor_Multiarray_T(metrics_fc);
 }
 
 void compute_geometry_face_T (struct Solver_Face_T* s_face, const struct Simulation*const sim)
@@ -769,6 +763,9 @@ const struct const_Multiarray_T* constructor_geom_coef_ho_T
 
 void correct_for_exact_normals_T (const struct Simulation*const sim)
 {
+	if (!NURBS_geometry)
+		return;
+
 	if (!using_exact_normals() && !using_exact_normals_for_boundary())
 		return;
 

@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define read_data_joukowski read_data_joukowski
 #define read_data_gaussian_bump read_data_gaussian_bump
 #define read_data_fixed_cube read_data_fixed_cube
+#define read_data_NURBS read_data_NURBS
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -64,6 +65,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define read_data_joukowski read_data_joukowski_c
 #define read_data_gaussian_bump read_data_gaussian_bump_c
 #define read_data_fixed_cube read_data_fixed_cube_c
+#define read_data_NURBS read_data_NURBS_c
 ///\}
 
 #endif

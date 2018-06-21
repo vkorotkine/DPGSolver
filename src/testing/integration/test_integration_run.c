@@ -86,7 +86,8 @@ static void run_case (int argc, char** argv) {
 	         * ml_ref = int_test_info->ml;
 
 	struct Simulation* sim = NULL;
-	const char type_rc = 'r';
+	
+	const char type_rc = 'r';  // test for real and complex
 
 	bool ignore_static = false;
 	int ml_max = ml_ref[1];
@@ -117,7 +118,6 @@ static void run_case (int argc, char** argv) {
 	output_visualization(sim,VIS_SOLUTION);
 
 	output_error(sim);
-	output_error_functionals(sim);
 
 	destructor_Integration_Test_Info(int_test_info);
 }
