@@ -45,6 +45,8 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	(const struct Flux_Ref_T*const flux_r, const struct Numerical_Flux_T*const num_flux,
 	 struct Solver_Face_T*const s_face, struct Solver_Storage_Implicit*const ssi)
 {
+	/* printf("returning without penalty\n"); */
+	/* return; */
 	UNUSED(flux_r);
 
 	/** It is assumed that the initial solution for \ref Solver_Volume_T::test_s_coef is equal to zero on all
@@ -86,11 +88,20 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 			indicator->data[n] = 1.0;
 	}
 
+	static int count = 0;
+	const int count_max = (int) round(2.0/face->h);
+	if (count == count_max) // number of faces along one boundary face
+		return;
+	if (indicator->data[0] == 1.0)
+		++count;
+	printf("%d %e\n",count_max,face->h);
+
 	const struct Lhs_Operators_OPG_T*const ops = constructor_Lhs_Operators_OPG_T(opg_s_face); // destructed
 
 	const int ind_sc = (s_face->cub_type == 'c');
 	const int p_t_p = get_set_degree_poly(NULL,"tp")[ind_sc];
-	const double scale = pow(face->h,s_vol->p_ref+p_t_p);
+	/* const double scale = pow(face->h,s_vol->p_ref+p_t_p); */
+	const double scale = 1.0+0.0*pow(face->h,s_vol->p_ref+p_t_p);
 
 	// Note: -ve sign included here. Would need to be moved for g != 0.
 	const struct const_Vector_T*const diag = constructor_dot_mult_const_Vector_T_RT

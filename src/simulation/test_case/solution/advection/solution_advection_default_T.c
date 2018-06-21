@@ -197,35 +197,6 @@ static struct Multiarray_T* constructor_sol_advection_default_1d_T
 	return sol;
 }
 
-static struct Multiarray_T* constructor_sol_advection_default_2d_T
-	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
-{
-	assert(DIM == 2);
-	assert(xyz->extents[1] == DIM);
-
-	// Compute the solution
-	const ptrdiff_t n_vs = xyz->extents[0];
-	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
-	const int n_var = test_case->n_var;
-
-	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_vs,n_var}); // returned
-
-	const Type* x = get_col_const_Multiarray_T(0,xyz),
-	          * y = get_col_const_Multiarray_T(1,xyz);
-
-	Type* u = get_col_Multiarray_T(0,sol);
-	for (int i = 0; i < n_vs; ++i) {
-		/* u[i] = sin(SOURCE_M*real_T(x[i])+SOURCE_A) * */
-		/*        sin(SOURCE_M*real_T(y[i])+SOURCE_A); */
-		if (real_T(x[i]) < real_T(y[i])-1.0)
-			u[i] = 1.0;
-		else
-			u[i] = 1.0;
-	}
-
-	return sol;
-}
-
 static const struct const_Multiarray_T* constructor_source_advection_default_1d_T
 	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
@@ -257,6 +228,35 @@ static const struct const_Multiarray_T* constructor_source_advection_default_1d_
 	return (struct const_Multiarray_T*)source;
 }
 
+static struct Multiarray_T* constructor_sol_advection_default_2d_T
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
+{
+	assert(DIM == 2);
+	assert(xyz->extents[1] == DIM);
+
+	// Compute the solution
+	const ptrdiff_t n_vs = xyz->extents[0];
+	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const int n_var = test_case->n_var;
+
+	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_vs,n_var}); // returned
+
+	const Type* x = get_col_const_Multiarray_T(0,xyz),
+		* y = get_col_const_Multiarray_T(1,xyz);
+
+	Type* u = get_col_Multiarray_T(0,sol);
+	for (int i = 0; i < n_vs; ++i) {
+		/* u[i] = sin(SOURCE_M*real_T(x[i])+SOURCE_A) * */
+			/* sin(SOURCE_M*real_T(y[i])+SOURCE_A); */
+		if (real_T(x[i]) < real_T(y[i])-1.0)
+		u[i] = 1.0;
+		else
+		u[i] = 1.0;
+	}
+
+	return sol;
+}
+
 static const struct const_Multiarray_T* constructor_source_advection_default_2d_T
 	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
@@ -284,7 +284,7 @@ static const struct const_Multiarray_T* constructor_source_advection_default_2d_
 		const Type xyz_n[DIM] = ARRAY_DIM(x[i],y[i],0);
 		const Real*const b_adv = sol_data.compute_b_adv(xyz_n);
 		/* s[i] = b_adv[0]*SOURCE_M*cos(SOURCE_M*real_T(x[i])+SOURCE_A)*sin(SOURCE_M*real_T(y[i])+SOURCE_A) + */
-		/*        b_adv[1]*SOURCE_M*sin(SOURCE_M*real_T(x[i])+SOURCE_A)*cos(SOURCE_M*real_T(y[i])+SOURCE_A); */
+		       /* b_adv[1]*SOURCE_M*sin(SOURCE_M*real_T(x[i])+SOURCE_A)*cos(SOURCE_M*real_T(y[i])+SOURCE_A); */
 		s[i] = 0.0; UNUSED(xyz_n); UNUSED(b_adv);
 	}
 

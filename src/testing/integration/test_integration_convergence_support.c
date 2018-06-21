@@ -49,7 +49,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DISPLAY_CONV 1 ///< Flag for whether the convergence orders should be displayed for these tests.
 
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
-#define ORDER_VIS_CONV_P      1
+#define ORDER_VIS_CONV_P      2
 #define ORDER_VIS_CONV_ML_MAX 8
 #define DISPLAY_GEOM          0 ///< Flag for whether the geometry should be output.
 ///\}

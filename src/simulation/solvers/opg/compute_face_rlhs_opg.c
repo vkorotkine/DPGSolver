@@ -192,7 +192,7 @@ static void finalize_lhs_1_f_opg
 	const struct const_Matrix_d*const lhs_l = constructor_mm_const_Matrix_d('N','N',1.0,lhs_l_p2,ops->proj_L2_l,'R'); // d.
 	destructor_const_Matrix_d(lhs_l_p2);
 
-#if 0 // Only enable for face collocated parameters (p_t_p = 0).
+#if 1 // Only enable for face collocated parameters (p_t_p = 0).
 	const struct const_Multiarray_d*const normals_fc = s_face->normals_fc;
 	const ptrdiff_t n_fc = normals_fc->extents[0];
 	const double b_adv[] = { 0.5, 0.5, 0.0, };
@@ -201,7 +201,7 @@ static void finalize_lhs_1_f_opg
 	for (int i = 0; i < n_fc; ++i) {
 		for (int j = 0; j < DIM; ++j)
 			b_dot_n2[i] += b_adv[j]*get_row_const_Multiarray_d(i,normals_fc)[j];
-//		b_dot_n2[i] = sqrt(b_dot_n2[i]*b_dot_n2[i]);
+		b_dot_n2[i] = fabs(b_dot_n2[i]);
 	}
 	scale_Matrix_by_Vector_d('R',1.0,(struct Matrix_d*)lhs_l,(struct const_Vector_d*)b_dot_n2_V,false);
 	destructor_Vector_d(b_dot_n2_V);
