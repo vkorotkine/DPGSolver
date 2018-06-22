@@ -100,7 +100,8 @@ void set_S_Params_Volume_Structor_T (struct S_Params_Volume_Structor_T* spvs, co
 	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
 	switch (test_case->pde_index) {
 	case PDE_ADVECTION: // fallthrough
-	case PDE_EULER:
+	case PDE_EULER: // fallthrough
+	case PDE_BURGERS_INVISCID:
 		if (!sim->collocated) {
 			spvs->constructor_sol_vc = constructor_sol_vc_interp;
 			spvs->destructor_sol_vc  = destructor_sol_vc_interp;
@@ -365,6 +366,7 @@ static const struct const_Multiarray_T* constructor_xyz_vc (const struct Solver_
 	case PDE_DIFFUSION:
 	case PDE_EULER:
 	case PDE_NAVIER_STOKES:
+	case PDE_BURGERS_INVISCID:
 		return NULL;
 		break;
 	default:

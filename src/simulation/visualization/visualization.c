@@ -666,6 +666,10 @@ static void fprint_vtk_piece_sol_grad
 				fprint_vtk_piece_sol_euler(file,sp_type,sol);
 				fprint_vtk_piece_grad_navier_stokes(file,sp_type,sol,grad);
 				break;
+			case PDE_BURGERS_INVISCID:
+				assert(DIM == 1); // Add support for the vector of solution components (here and below).
+				fprint_vtk_piece_sol_scalar(file,sp_type,sol,"u");
+				break;
 			default:
 				EXIT_ERROR("Unsupported: %d\n",pde_index);
 				break;
@@ -673,6 +677,7 @@ static void fprint_vtk_piece_sol_grad
 			if (rhs) {
 				switch (pde_index) {
 				case PDE_ADVECTION: // fallthrough
+				case PDE_BURGERS_INVISCID:
 				case PDE_DIFFUSION:
 					fprint_vtk_piece_sol_scalar(file,sp_type,rhs,"rhs_u");
 					break;
@@ -688,6 +693,7 @@ static void fprint_vtk_piece_sol_grad
 			if (test_s) {
 				switch (pde_index) {
 				case PDE_ADVECTION: // fallthrough
+				case PDE_BURGERS_INVISCID:
 				case PDE_DIFFUSION:
 					fprint_vtk_piece_sol_scalar(file,sp_type,test_s,"test_s_u");
 					break;
@@ -751,6 +757,7 @@ static void fprint_vtk_piece_sol_grad
 
 			switch (pde_index) {
 			case PDE_ADVECTION:
+			case PDE_BURGERS_INVISCID:
 				fprint_vtk_piece_sol_scalar(file,sp_type,sol,"u");
 				break;
 			case PDE_DIFFUSION:
@@ -771,6 +778,7 @@ static void fprint_vtk_piece_sol_grad
 			if (rhs) {
 				switch (pde_index) {
 				case PDE_ADVECTION: // fallthrough
+				case PDE_BURGERS_INVISCID:
 				case PDE_DIFFUSION:
 					fprint_vtk_piece_sol_scalar(file,sp_type,rhs,"rhs_u");
 					break;
@@ -786,6 +794,7 @@ static void fprint_vtk_piece_sol_grad
 			if (test_s) {
 				switch (pde_index) {
 				case PDE_ADVECTION: // fallthrough
+				case PDE_BURGERS_INVISCID:
 				case PDE_DIFFUSION:
 					fprint_vtk_piece_sol_scalar(file,sp_type,test_s,"test_u");
 					break;

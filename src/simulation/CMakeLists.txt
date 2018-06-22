@@ -59,6 +59,7 @@ set	(SOURCE
 	 solvers/numerical_flux/numerical_flux_diffusion.c
 	 solvers/numerical_flux/numerical_flux_euler.c
 	 solvers/numerical_flux/numerical_flux_navier_stokes.c
+	 solvers/numerical_flux/numerical_flux_burgers_inviscid.c
 
 	 test_case/test_case.c
 	 test_case/test_case_c.c
@@ -80,6 +81,7 @@ set	(SOURCE
 	 test_case/flux/flux_diffusion.c
 	 test_case/flux/flux_euler.c
 	 test_case/flux/flux_navier_stokes.c
+	 test_case/flux/flux_burgers_inviscid.c
 
 	 test_case/solution/element_solution.c
 	 test_case/solution/solution.c
@@ -97,6 +99,8 @@ set	(SOURCE
 	 test_case/solution/euler/free_stream/solution_free_stream.c
 	 test_case/solution/navier_stokes/solution_navier_stokes.c
 	 test_case/solution/navier_stokes/taylor_couette/solution_taylor_couette.c
+	 test_case/solution/burgers_inviscid/solution_burgers_inviscid.c
+	 test_case/solution/burgers_inviscid/trigonometric/solution_trigonometric.c
 	 test_case/solution/restart/approximate_nearest_neighbor.c
 	 test_case/solution/restart/inverse_mapping.c
 	 test_case/solution/restart/restart.c

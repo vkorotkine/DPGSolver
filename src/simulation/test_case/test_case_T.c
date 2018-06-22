@@ -34,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_solution_diffusion.h"
 #include "def_templates_solution_euler.h"
 #include "def_templates_solution_navier_stokes.h"
+#include "def_templates_solution_burgers_inviscid.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -140,6 +141,8 @@ static void set_string_associations (struct Test_Case_T* test_case, const struct
 		const_cast_i(&test_case->pde_index,PDE_EULER);
 	else if (strstr(sim->pde_name,"navier_stokes"))
 		const_cast_i(&test_case->pde_index,PDE_NAVIER_STOKES);
+	else if (strstr(sim->pde_name,"burgers_inviscid"))
+		const_cast_i(&test_case->pde_index,PDE_BURGERS_INVISCID);
 	else
 		EXIT_ERROR("Unsupported: %s\n",sim->pde_name);
 	get_set_pde_index(&test_case->pde_index);
@@ -175,6 +178,13 @@ static void set_pde_related (struct Test_Case_T* test_case, const struct Simulat
 		const_cast_i(&test_case->n_eq,DIM+2);
 		const_cast_b(&test_case->has_1st_order,true);
 		const_cast_b(&test_case->has_2nd_order,true);
+		break;
+	case PDE_BURGERS_INVISCID:
+		const_cast_b(&test_case->is_linear,false);
+		const_cast_i(&test_case->n_var,DIM);
+		const_cast_i(&test_case->n_eq,DIM);
+		const_cast_b(&test_case->has_1st_order,true);
+		const_cast_b(&test_case->has_2nd_order,false);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
@@ -230,6 +240,7 @@ static void set_function_pointers (struct Test_Case_T* test_case, const struct S
 		case PDE_DIFFUSION:     set_function_pointers_solution_diffusion_T(test_case,sim);     break;
 		case PDE_EULER:         set_function_pointers_solution_euler_T(test_case,sim);         break;
 		case PDE_NAVIER_STOKES: set_function_pointers_solution_navier_stokes_T(test_case,sim); break;
+		case PDE_BURGERS_INVISCID: set_function_pointers_solution_burgers_inviscid_T(test_case,sim); break;
 		default: EXIT_ERROR("Unsupported: %d\n",test_case->pde_index); break;
 	}
 
@@ -385,6 +396,19 @@ static const bool* get_compute_member_Flux_Input
 			break;
 		}
 		break;
+	case PDE_BURGERS_INVISCID:
+		switch (sim->method) {
+		case METHOD_DG:
+			if (type_ei == 'e')
+				return cm_100000;
+			else if (type_ei == 'i')
+				return cm_110000;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %d\n",sim->method);
+			break;
+		}
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
 		break;
@@ -427,6 +451,12 @@ static const bool* get_compute_member_Boundary_Value_Input
 		else if (type_ei == 'i')
 			return cm_111100; // May potentially require cm_111110 in future.
 		break;
+	case PDE_BURGERS_INVISCID:
+		if (type_ei == 'e')
+			return cm_100000;
+		else if (type_ei == 'i')
+			return cm_110000;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",test_case->pde_index);
 		break;
@@ -453,3 +483,4 @@ static void set_function_pointers_start (struct Test_Case_T*const test_case)
 #include "undef_templates_solution_diffusion.h"
 #include "undef_templates_solution_euler.h"
 #include "undef_templates_solution_navier_stokes.h"
+#include "undef_templates_solution_burgers_inviscid.h"

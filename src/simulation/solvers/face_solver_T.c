@@ -94,7 +94,8 @@ void set_function_pointers_face_num_flux_T (struct Solver_Face_T* s_face, const 
 		struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 		switch (test_case->pde_index) {
 		case PDE_ADVECTION: // fallthrough
-		case PDE_EULER:
+		case PDE_EULER:     // fallthrough
+		case PDE_BURGERS_INVISCID:
 			s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_s_fcl_interp_T;
 			break;
 		case PDE_DIFFUSION:     // fallthrough

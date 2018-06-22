@@ -31,6 +31,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NVAR_EULER (DIM+2) ///< 'N'umber of 'VAR'iables for the Euler/Navier-Stokes equations.
 #define NEQ_EULER  (DIM+2) ///< 'N'umber of 'EQ'uations for the Euler/Navier-Stokes equations.
 
+#define NVAR_BURGERS DIM ///< 'N'umber of 'VAR'iables for the Burgers equations.
+#define NEQ_BURGERS  DIM ///< 'N'umber of 'EQ'quations for the Burgers equations.
 
 ///\{ \name Macros related to the DIM constant.
 #if DIM == 1

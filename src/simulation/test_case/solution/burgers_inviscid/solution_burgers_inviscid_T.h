@@ -12,20 +12,23 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
-#ifndef DPG__definitions_math_h__INCLUDED
-#define DPG__definitions_math_h__INCLUDED
 /** \file
- *  \brief Provides the definitions relating to mathematical constants.
+ *  \brief Provides templated functions relating to the inviscid Burgers solutions.
  */
 
-///\{ \name Mathematical constants.
-#define PI        3.1415926535897932
-#define PI_OVER_4 (3.1415926535897932/4.0)
+#include "def_templates_solution_burgers_inviscid.h"
+#include "def_templates_test_case.h"
 
-#define SQRT2 1.4142135623730950
-#define SQRT3 1.7320508075688773
-#define SQRT6 2.4494897427831781
-///\}
+#include <stdbool.h>
 
-#endif // DPG__definitions_math_h__INCLUDED
+struct Test_Case_T;
+struct Simulation;
+
+/// \brief Set the solution function pointer members of an inviscid Burgers \ref Test_Case_T.
+void set_function_pointers_solution_burgers_inviscid_T
+	(struct Test_Case_T* test_case,    ///< \ref Test_Case_T.
+	 const struct Simulation*const sim ///< \ref Simulation.
+		);
+
+#include "undef_templates_solution_burgers_inviscid.h"
+#include "undef_templates_test_case.h"

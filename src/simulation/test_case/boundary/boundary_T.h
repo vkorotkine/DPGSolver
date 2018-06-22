@@ -75,6 +75,7 @@ struct Boundary_Value_Input_T {
 	int bc;   ///< \ref Face::bc.
 	double h; ///< \ref Face::h.
 	int p;    ///< \ref Solver_Face_T::p_ref.
+	double h_vol_max; ///< Maximum of \ref Volume::h from neighbouring volumes.
 
 	const struct const_Multiarray_T* normals;     ///< The unit normal vector components.
 	const struct const_Multiarray_T* normals_std; ///< Standard unit normal vector components (computed from metrics).

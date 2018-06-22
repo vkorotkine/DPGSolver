@@ -12,20 +12,24 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
-#ifndef DPG__definitions_math_h__INCLUDED
-#define DPG__definitions_math_h__INCLUDED
 /** \file
- *  \brief Provides the definitions relating to mathematical constants.
+ *  \brief Provides templated functions relating to inviscid Burgers fluxes.
  */
 
-///\{ \name Mathematical constants.
-#define PI        3.1415926535897932
-#define PI_OVER_4 (3.1415926535897932/4.0)
+#include "def_templates_flux.h"
 
-#define SQRT2 1.4142135623730950
-#define SQRT3 1.7320508075688773
-#define SQRT6 2.4494897427831781
-///\}
+struct Flux_Input_T;
+struct mutable_Flux_T;
 
-#endif // DPG__definitions_math_h__INCLUDED
+/** \brief Version of \ref compute_Flux_fptr_T computing the fluxes for the inviscid Burgers equation.
+ *
+ *  The definitions of the Fluxes, and Jacobians can be found in:
+ *  - Fluxes:    \ref compute_Flux_advection_0;
+ *  - Jacobians: \ref compute_Flux_advection_1;
+ */
+void compute_Flux_T_burgers_inviscid
+	(const struct Flux_Input_T* flux_i, ///< See brief.
+	 struct mutable_Flux_T* flux        ///< See brief.
+	);
+
+#include "undef_templates_flux.h"

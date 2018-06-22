@@ -57,6 +57,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define compute_Numerical_Flux_T_navier_stokes_central          compute_Numerical_Flux_navier_stokes_central
 #define compute_Numerical_Flux_T_navier_stokes_central_jacobian compute_Numerical_Flux_navier_stokes_central_jacobian
+
+#define compute_Numerical_Flux_T_burgers_inviscid_lax_friedrichs          compute_Numerical_Flux_burgers_inviscid_lax_friedrichs
+#define compute_Numerical_Flux_T_burgers_inviscid_lax_friedrichs_jacobian compute_Numerical_Flux_burgers_inviscid_lax_friedrichs_jacobian
 ///\}
 
 ///\{ \name Static names
@@ -119,6 +122,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define compute_Numerical_Flux_T_navier_stokes_central          compute_Numerical_Flux_c_navier_stokes_central
 #define compute_Numerical_Flux_T_navier_stokes_central_jacobian compute_Numerical_Flux_c_navier_stokes_central_jacobian
+
+#define compute_Numerical_Flux_T_burgers_inviscid_lax_friedrichs          compute_Numerical_Flux_c_burgers_inviscid_lax_friedrichs
+#define compute_Numerical_Flux_T_burgers_inviscid_lax_friedrichs_jacobian compute_Numerical_Flux_c_burgers_inviscid_lax_friedrichs_jacobian
 ///\}
 
 ///\{ \name Static names

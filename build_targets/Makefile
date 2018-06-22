@@ -40,27 +40,27 @@ all_release:
 
 fast_release_1D:
 	@echo "\nRunning parallel make meshes && make for the 1D release build directory.\n"
-	cd ../build_release_1D && make meshes && make -j
+	cd ../build_1D && make meshes && make -j
 
 fast_release_2D:
 	@echo "\nRunning parallel make meshes && make for the 2D release build directory.\n"
-	cd ../build_release_2D && make meshes && make -j
+	cd ../build_2D && make meshes && make -j
 
 fast_release_3D:
 	@echo "\nRunning parallel make meshes && make for the 3D release build directory.\n"
-	cd ../build_release_3D && make meshes && make -j
+	cd ../build_3D && make meshes && make -j
 
 release_1D:
 	@echo "\nRunning make meshes && make for the 1D release build directory.\n"
-	cd ../build_release_1D && make meshes && make -j1
+	cd ../build_1D && make meshes && make -j1
 
 release_2D:
 	@echo "\nRunning make meshes && make for the 2D release build directory.\n"
-	cd ../build_release_2D && make meshes && make -j1
+	cd ../build_2D && make meshes && make -j1
 
 release_3D:
 	@echo "\nRunning make meshes && make for the 3D release build directory.\n"
-	cd ../build_release_3D && make meshes && make -j1
+	cd ../build_3D && make meshes && make -j1
 
 # Documentation && Navigation
 .PHONY: doc tags
@@ -71,7 +71,7 @@ doc:
 tags:
 	@echo "\nRunning ctags in project root.\n"
 	cd .. && \
-	ctags -R -e -h ".h,.c" --exclude="*def_templates*" --exclude="*build*" --exclude="*deprecated*" \
+	ctags -R -e -h ".h,.c,.in" --exclude="*def_templates*" --exclude="*build*" --exclude="*deprecated*" \
 	      --extra=+q --fields=+afikmnst --c-kinds=+cdfpstu --c++-kinds=+cdfpstu
 
 # Execution
@@ -97,11 +97,11 @@ run_memcheck_debug_2D: fast_debug_2D
 run_memcheck_debug_3D: fast_debug_3D
 	cd ../build_debug_3D/script_files && ./memcheck.sh
 
-run_quick_1D: fast_debug_1D
+run_quick_1D: fast_release_1D
 	cd ../build_1D/script_files && ./quick.sh
 
-run_quick_2D: fast_debug_2D
+run_quick_2D: fast_release_2D
 	cd ../build_2D/script_files && ./quick.sh
 
-run_quick_3D: fast_debug_3D
+run_quick_3D: fast_release_3D
 	cd ../build_3D/script_files && ./quick.sh

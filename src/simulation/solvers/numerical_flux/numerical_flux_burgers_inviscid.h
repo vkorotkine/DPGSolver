@@ -13,19 +13,18 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
-#ifndef DPG__definitions_math_h__INCLUDED
-#define DPG__definitions_math_h__INCLUDED
+#ifndef DPG__numerical_flux_burgers_inviscid_h__INCLUDED
+#define DPG__numerical_flux_burgers_inviscid_h__INCLUDED
 /** \file
- *  \brief Provides the definitions relating to mathematical constants.
+ *  \brief Provides instantiation of functions relating to inviscid Burgers numerical fluxes.
  */
 
-///\{ \name Mathematical constants.
-#define PI        3.1415926535897932
-#define PI_OVER_4 (3.1415926535897932/4.0)
+#include "def_templates_type_d.h"
+#include "numerical_flux_burgers_inviscid_T.h"
+#include "undef_templates_type.h"
 
-#define SQRT2 1.4142135623730950
-#define SQRT3 1.7320508075688773
-#define SQRT6 2.4494897427831781
-///\}
+#include "def_templates_type_dc.h"
+#include "numerical_flux_burgers_inviscid_T.h"
+#include "undef_templates_type.h"
 
-#endif // DPG__definitions_math_h__INCLUDED
+#endif // DPG__numerical_flux_burgers_inviscid_h__INCLUDED

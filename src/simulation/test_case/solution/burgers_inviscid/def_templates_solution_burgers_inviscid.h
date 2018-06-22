@@ -12,20 +12,29 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
-
-#ifndef DPG__definitions_math_h__INCLUDED
-#define DPG__definitions_math_h__INCLUDED
 /** \file
- *  \brief Provides the definitions relating to mathematical constants.
+ *  \brief Provides the macro definitions used for c-style templating related to the solution functions for the
+ *         linear advection equation.
  */
 
-///\{ \name Mathematical constants.
-#define PI        3.1415926535897932
-#define PI_OVER_4 (3.1415926535897932/4.0)
+#include "trigonometric/def_templates_solution_trigonometric.h"
 
-#define SQRT2 1.4142135623730950
-#define SQRT3 1.7320508075688773
-#define SQRT6 2.4494897427831781
+#if TYPE_RC == TYPE_REAL
+
+///\{ \name Function names
+#define set_function_pointers_solution_burgers_inviscid_T set_function_pointers_solution_burgers_inviscid_d
 ///\}
 
-#endif // DPG__definitions_math_h__INCLUDED
+///\{ \name Static names
+///\}
+
+#elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Function names
+#define set_function_pointers_solution_burgers_inviscid_T set_function_pointers_solution_burgers_inviscid_c
+///\}
+
+///\{ \name Static names
+///\}
+
+#endif

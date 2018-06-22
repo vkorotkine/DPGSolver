@@ -45,6 +45,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_Flux_T_diffusion
 #undef compute_Flux_T_euler
 #undef compute_Flux_T_navier_stokes
+#undef compute_Flux_T_burgers_inviscid
 
 #undef compute_V2_from_uvw_T
 #undef compute_V2_from_rhouvw_T
@@ -54,6 +55,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef Flux_Data_Diffusion
 #undef Flux_Data_Euler
 #undef Flux_Data_Navier_Stokes
+#undef Flux_Data_Burgers_Inviscid
 #undef Partials_Scalar
 #undef Partials_Vector
 #undef Partials_Tensor
@@ -61,12 +63,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_Flux_diffusion_fptr
 #undef compute_Flux_Euler_fptr
 #undef compute_Flux_Navier_Stokes_fptr
+#undef compute_Flux_Burgers_Inviscid_fptr
 #undef compute_dmu_ds_fptr
 #undef get_compute_Flux_Advection_fptr
 #undef compute_Flux_Advection_100
 #undef compute_Flux_Advection_110
 #undef compute_Flux_advection_0
 #undef compute_Flux_advection_1
+#undef get_compute_Flux_Burgers_Inviscid_fptr
+#undef compute_Flux_Burgers_Inviscid_100
+#undef compute_Flux_Burgers_Inviscid_110
+#undef compute_Flux_burgers_inviscid_0
+#undef compute_Flux_burgers_inviscid_1
 #undef get_compute_Flux_diffusion_fptr
 #undef compute_Flux_diffusion_100
 #undef compute_Flux_diffusion_101

@@ -93,9 +93,10 @@ static int get_define (const char*const def_str, const char*const def_type)
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else if (strcmp(def_type,"num_flux_1st") == 0) {
-		if      (strcmp(def_str,"upwind")    == 0) def_i = NUM_FLUX_UPWIND;
-		else if (strcmp(def_str,"Roe-Pike")  == 0) def_i = NUM_FLUX_ROE_PIKE;
-		else                                       def_i = NUM_FLUX_INVALID;
+		if      (strcmp(def_str,"upwind")         == 0) def_i = NUM_FLUX_UPWIND;
+		else if (strcmp(def_str,"Roe-Pike")       == 0) def_i = NUM_FLUX_ROE_PIKE;
+		else if (strcmp(def_str,"Lax-Friedrichs") == 0) def_i = NUM_FLUX_LAX_FRIEDRICHS;
+		else                                            def_i = NUM_FLUX_INVALID;
 	} else if (strcmp(def_type,"num_flux_2nd") == 0) {
 		if      (strcmp(def_str,"BR2_stable") == 0) def_i = NUM_FLUX_BR2_STABLE;
 		else if (strcmp(def_str,"CDG2") == 0)       def_i = NUM_FLUX_CDG2;

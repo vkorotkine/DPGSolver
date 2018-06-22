@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define PDE_DIFFUSION     2
 #define PDE_EULER         3
 #define PDE_NAVIER_STOKES 4
+#define PDE_BURGERS_INVISCID 5
 ///\}
 
 ///\{ \name Definitions for the available solver methods.

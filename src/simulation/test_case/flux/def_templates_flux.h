@@ -46,6 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Flux_T_diffusion     compute_Flux_diffusion
 #define compute_Flux_T_euler         compute_Flux_euler
 #define compute_Flux_T_navier_stokes compute_Flux_navier_stokes
+#define compute_Flux_T_burgers_inviscid     compute_Flux_burgers_inviscid
 
 #define compute_V2_from_uvw_T    compute_V2_from_uvw
 #define compute_V2_from_rhouvw_T compute_V2_from_rhouvw
@@ -56,6 +57,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define Flux_Data_Diffusion Flux_Data_Diffusion
 #define Flux_Data_Euler Flux_Data_Euler
 #define Flux_Data_Navier_Stokes Flux_Data_Navier_Stokes
+#define Flux_Data_Burgers_Inviscid Flux_Data_Burgers_Inviscid
 #define Partials_Scalar Partials_Scalar
 #define Partials_Vector Partials_Vector
 #define Partials_Tensor Partials_Tensor
@@ -63,12 +65,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Flux_diffusion_fptr compute_Flux_diffusion_fptr
 #define compute_Flux_Euler_fptr compute_Flux_Euler_fptr
 #define compute_Flux_Navier_Stokes_fptr compute_Flux_Navier_Stokes_fptr
+#define compute_Flux_Burgers_Inviscid_fptr compute_Flux_Advection_fptr
 #define compute_dmu_ds_fptr compute_dmu_ds_fptr
 #define get_compute_Flux_Advection_fptr get_compute_Flux_Advection_fptr
 #define compute_Flux_Advection_100 compute_Flux_Advection_100
 #define compute_Flux_Advection_110 compute_Flux_Advection_110
 #define compute_Flux_advection_0 compute_Flux_advection_0
 #define compute_Flux_advection_1 compute_Flux_advection_1
+#define get_compute_Flux_Burgers_Inviscid_fptr get_compute_Flux_Burgers_Inviscid_fptr
+#define compute_Flux_Burgers_Inviscid_100 compute_Flux_Burgers_Inviscid_100
+#define compute_Flux_Burgers_Inviscid_110 compute_Flux_Burgers_Inviscid_110
+#define compute_Flux_burgers_inviscid_0 compute_Flux_burgers_inviscid_0
+#define compute_Flux_burgers_inviscid_1 compute_Flux_burgers_inviscid_1
 #define get_compute_Flux_diffusion_fptr get_compute_Flux_diffusion_fptr
 #define compute_Flux_diffusion_100 compute_Flux_diffusion_100
 #define compute_Flux_diffusion_101 compute_Flux_diffusion_101
@@ -140,6 +148,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Flux_T_diffusion     compute_Flux_c_diffusion
 #define compute_Flux_T_euler         compute_Flux_c_euler
 #define compute_Flux_T_navier_stokes compute_Flux_c_navier_stokes
+#define compute_Flux_T_burgers_inviscid     compute_Flux_c_burgers_inviscid
 
 #define compute_V2_from_uvw_T    compute_V2_from_uvw_c
 #define compute_V2_from_rhouvw_T compute_V2_from_rhouvw_c
@@ -150,6 +159,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define Flux_Data_Diffusion Flux_Data_Diffusion_c
 #define Flux_Data_Euler Flux_Data_Euler_c
 #define Flux_Data_Navier_Stokes Flux_Data_Navier_Stokes_c
+#define Flux_Data_Burgers_Inviscid Flux_Data_Burgers_Inviscid_c
 #define Partials_Scalar Partials_Scalar_c
 #define Partials_Vector Partials_Vector_c
 #define Partials_Tensor Partials_Tensor_c
@@ -157,12 +167,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Flux_diffusion_fptr compute_Flux_diffusion_fptr_c
 #define compute_Flux_Euler_fptr compute_Flux_Euler_fptr_c
 #define compute_Flux_Navier_Stokes_fptr compute_Flux_Navier_Stokes_fptr_c
+#define compute_Flux_Burgers_Inviscid_fptr compute_Flux_Advection_fptr_c
 #define compute_dmu_ds_fptr compute_dmu_ds_fptr_c
 #define get_compute_Flux_Advection_fptr get_compute_Flux_Advection_fptr_c
 #define compute_Flux_Advection_100 compute_Flux_Advection_100_c
 #define compute_Flux_Advection_110 compute_Flux_Advection_110_c
 #define compute_Flux_advection_0 compute_Flux_advection_0_c
 #define compute_Flux_advection_1 compute_Flux_advection_1_c
+#define get_compute_Flux_Burgers_Inviscid_fptr get_compute_Flux_Burgers_Inviscid_fptr_c
+#define compute_Flux_Burgers_Inviscid_100 compute_Flux_Burgers_Inviscid_100_c
+#define compute_Flux_Burgers_Inviscid_110 compute_Flux_Burgers_Inviscid_110_c
+#define compute_Flux_burgers_inviscid_0 compute_Flux_burgers_inviscid_0_c
+#define compute_Flux_burgers_inviscid_1 compute_Flux_burgers_inviscid_1_c
 #define get_compute_Flux_diffusion_fptr get_compute_Flux_diffusion_fptr_c
 #define compute_Flux_diffusion_100 compute_Flux_diffusion_100_c
 #define compute_Flux_diffusion_101 compute_Flux_diffusion_101_c

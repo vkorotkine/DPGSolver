@@ -1,0 +1,11 @@
+/// Solver parameters for test case: burgers_inviscid/periodic/trigonometric
+
+solver_proc   explicit
+solver_type_e ssp_rk_33
+
+num_flux_1st Lax-Friedrichs
+
+time_step  1e-3
+time_final 0.3
+
+display_progress 1

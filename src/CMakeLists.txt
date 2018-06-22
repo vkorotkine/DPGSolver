@@ -39,6 +39,7 @@ include_directories(
 	simulation/test_case/solution/diffusion
 	simulation/test_case/solution/euler
 	simulation/test_case/solution/navier_stokes
+	simulation/test_case/solution/burgers_inviscid
 	simulation/test_case/solution/restart
 	simulation/visualization
 	testing

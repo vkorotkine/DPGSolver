@@ -104,6 +104,12 @@ static void set_Solver_Volume_exact
 
 // Interface functions ********************************************************************************************** //
 
+struct Error_CE* constructor_Error_CE_NULL (const struct Simulation* sim)
+{
+	UNUSED(sim);
+	return NULL;
+}
+
 void output_error (const struct Simulation* sim)
 {
 	assert(sim->volumes->name == IL_VOLUME_SOLVER);
@@ -112,6 +118,8 @@ void output_error (const struct Simulation* sim)
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	struct Error_CE* error_ce = test_case->constructor_Error_CE(sim);
+	if (error_ce == NULL)
+		return;
 
 	output_errors_sp('s',ERROR_STANDARD,error_ce,sim);
 	output_errors_global(ERROR_STANDARD,error_ce,sim);
