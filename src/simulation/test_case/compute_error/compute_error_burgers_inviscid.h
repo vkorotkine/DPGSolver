@@ -12,40 +12,20 @@ Public License for more details.
 You should have received a copy of the GNU General Public License along with DPGSolver.  If not, see
 <http://www.gnu.org/licenses/>.
 }}} */
+
+#ifndef DPG__compute_error_burgers_inviscid_h__INCLUDED
+#define DPG__compute_error_burgers_inviscid_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to math functions.
+ *  \brief Provides the interface to functions used for error computation and output relating to the inviscid Burgers
+ *         variables.
  */
 
-#undef abs_T
-#undef real_T
-#undef sqrt_T
-#undef pow_T
-#undef log_T
+struct Simulation;
 
-#undef equal_T
-#undef norm_T
-#undef norm_R_from_T
-#undef norm_diff_T
-#undef norm_diff_RT
-#undef max_abs_T
-#undef z_yxpz_T
-#undef z_yxpz_RTT
-#undef average_T
-#undef minimum_T
-#undef maximum_abs_T
-#undef maximum_RT
-#undef add_to_T
-#undef dot_T
-#undef dot_R_from_RT
-#undef min_abs_real_T
-#undef max_abs_real_T
+/** \brief Version of \ref constructor_Error_CE_fptr checking the error of all supported inviscid Burgers variables.
+ *  \return See brief. */
+struct Error_CE* constructor_Error_CE_burgers_inviscid_all
+	(const struct Simulation* sim ///< Defined for \ref constructor_Error_CE_fptr.
+	);
 
-#undef abs_R
-#undef sqrt_R
-#undef pow_R
-
-#undef equal_R
-#undef norm_R
-#undef norm_diff_R
-#undef dot_R
-#undef max_abs_R
+#endif // DPG__compute_error_burgers_inviscid_h__INCLUDED

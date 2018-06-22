@@ -140,4 +140,18 @@ Real dot_R_from_RT
 	 const Type*const b  ///< The 2nd input.
 	);
 
+/** \brief Return the positive maximum value of the two inputs.
+ *  \return See brief. */
+Type max_abs_real_T
+	(const Type a, ///< First value in the comparison.
+	 const Type b  ///< Second value in the comparison.
+		);
+
+/** \brief Return the positive minimum value of the two inputs.
+ *  \return See brief. */
+Type min_abs_real_T
+	(const Type a, ///< First value in the comparison.
+	 const Type b  ///< Second value in the comparison.
+		);
+
 #include "undef_templates_math_functions.h"

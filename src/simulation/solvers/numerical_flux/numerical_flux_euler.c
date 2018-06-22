@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "const_cast.h"
 #include "flux.h"
 #include "flux_euler.h"
+#include "math_functions.h"
 #include "numerical_flux.h"
 
 #include "geometry_parametric.h" ///< \todo Delete if unused.

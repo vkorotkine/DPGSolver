@@ -62,9 +62,6 @@ void compute_Numerical_Flux_T_burgers_inviscid_lax_friedrichs
 	struct Flux_T*const flux_r = constructor_Flux_T(flux_i); // destructed
 	destructor_Flux_Input_T(flux_i);
 
-	const Real dt = num_flux_i->dt;
-	const Real dx = num_flux_i->bv_l.h_vol_max;
-
 	for (int n = 0; n < n_total; n++) {
 		const Type ul_n = u_l->data[n];
 		const Type ur_n = u_r->data[n];
@@ -73,8 +70,9 @@ void compute_Numerical_Flux_T_burgers_inviscid_lax_friedrichs
 		const Type fr_n = flux_r->f->data[n];
 
 		const Type*const normals_n = get_row_const_Multiarray_T(n,normals);
+		const Type u_max_abs = max_abs_real_T(ul_n,ur_n);
 
-		nnf[n] = 0.5*(normals_n[0]*(fl_n+fr_n) + dx/dt*(ul_n-ur_n));
+		nnf[n] = 0.5*normals_n[0]*((fl_n+fr_n) + u_max_abs*(ul_n-ur_n));
 	}
 	destructor_Flux_T(flux_l);
 	destructor_Flux_T(flux_r);

@@ -73,7 +73,8 @@ static struct Multiarray_T* constructor_sol_trigonometric
 	const int n_var     = get_set_n_var_eq(NULL)[0];
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
-	assert(test_case->time == 0.0);
+	if (test_case->time != 0.0)
+		printf("*** Warning: Exact solution is only provided at time = 0.0. Incorrect comparison ***\n");
 
 	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,n_var}); // returned
 

@@ -42,6 +42,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define add_to_T    add_to_d
 #define dot_T       dot_d
 #define dot_R_from_RT dot_d_from_dd
+#define min_abs_real_T min_abs_real_T
+#define max_abs_real_T max_abs_real_T
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -70,6 +72,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define add_to_T    add_to_c
 #define dot_T       dot_c
 #define dot_R_from_RT dot_d_from_dc
+#define min_abs_real_T min_abs_real_T_c
+#define max_abs_real_T max_abs_real_T_c
 ///\}
 
 #endif

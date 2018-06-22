@@ -42,20 +42,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NEQ  NEQ_EULER  ///< Number of equations.
 #define NVAR NVAR_EULER ///< Number of variables.
 
-/** \brief Return the positive minimum value of the two inputs.
- *  \return See brief. */
-static Type min_abs_real_T
-	(const Type a, ///< First value in the comparison.
-	 const Type b  ///< Second value in the comparison.
-	);
-
-/** \brief Return the positive maximum value of the two inputs.
- *  \return See brief. */
-static Type max_abs_real_T
-	(const Type a, ///< First value in the comparison.
-	 const Type b  ///< Second value in the comparison.
-	);
-
 // Interface functions ********************************************************************************************** //
 
 void compute_Numerical_Flux_T_euler_lax_friedrichs
@@ -1508,22 +1494,6 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
-
-static Type min_abs_real_T (const Type a, const Type b)
-{
-	Type c = ( abs_T(a) < abs_T(b) ? a : b );
-	if (real_T(c) < 0.0)
-		c *= -1.0;
-	return c;
-}
-
-static Type max_abs_real_T (const Type a, const Type b)
-{
-	Type c = ( abs_T(a) > abs_T(b) ? a : b );
-	if (real_T(c) < 0.0)
-		c *= -1.0;
-	return c;
-}
 
 #include "undef_templates_numerical_flux.h"
 

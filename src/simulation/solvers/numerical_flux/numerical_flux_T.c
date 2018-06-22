@@ -73,7 +73,6 @@ struct Numerical_Flux_Input_T* constructor_Numerical_Flux_Input_T (const struct 
 		EXIT_ERROR("Unsupported: %c.\n",test_case->solver_method_curr);
 		break;
 	}
-	num_flux_i->dt = test_case->dt;
 	num_flux_i->sim = sim;
 
 	return num_flux_i;

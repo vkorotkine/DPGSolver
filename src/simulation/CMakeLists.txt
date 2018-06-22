@@ -75,6 +75,7 @@ set	(SOURCE
 	 test_case/compute_error/compute_error_diffusion.c
 	 test_case/compute_error/compute_error_euler.c
 	 test_case/compute_error/compute_error_navier_stokes.c
+	 test_case/compute_error/compute_error_burgers_inviscid.c
 
 	 test_case/flux/flux.c
 	 test_case/flux/flux_advection.c

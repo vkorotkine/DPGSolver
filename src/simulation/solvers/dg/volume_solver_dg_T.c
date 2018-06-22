@@ -57,7 +57,7 @@ void constructor_derived_DG_Solver_Volume_T (struct Volume* volume_ptr, const st
 	ptrdiff_t* extents = s_vol->sol_coef->extents;
 
 	dg_s_vol->sol_coef_p =
-		( needed_members.sol_coef_p ? constructor_empty_Multiarray_T('C',order,extents) : NULL ); // destructed
+		( needed_members.sol_coef_p ? constructor_zero_Multiarray_T('C',order,extents) : NULL ); // destructed
 
 	dg_s_vol->m     = ( needed_members.m     ? constructor_mass_T(s_vol) : NULL );                     // destructed
 	dg_s_vol->m_inv = ( needed_members.m_inv ? constructor_inverse_mass_T(s_vol,dg_s_vol->m) : NULL ); // destructed

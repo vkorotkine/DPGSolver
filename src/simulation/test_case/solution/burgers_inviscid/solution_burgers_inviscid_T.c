@@ -48,7 +48,7 @@ void set_function_pointers_solution_burgers_inviscid_T (struct Test_Case_T* test
 		test_case->set_sol                      = set_sol_trigonometric_T;
 		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
-		test_case->constructor_Error_CE         = constructor_Error_CE_NULL;
+		test_case->constructor_Error_CE         = constructor_Error_CE_burgers_inviscid_all;
 		const_cast_b(&test_case->has_analytical,false);
 		const_cast_b(&test_case->copy_initial_rhs,false);
 	} else {

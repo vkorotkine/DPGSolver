@@ -202,6 +202,22 @@ Real dot_R_from_RT (const ptrdiff_t n, const Real*const a, const Type*const b)
 	return res;
 }
 
+Type max_abs_real_T (const Type a, const Type b)
+{
+	Type c = ( abs_T(a) > abs_T(b) ? a : b );
+	if (real_T(c) < 0.0)
+		c *= -1.0;
+	return c;
+}
+
+Type min_abs_real_T (const Type a, const Type b)
+{
+	Type c = ( abs_T(a) < abs_T(b) ? a : b );
+	if (real_T(c) < 0.0)
+		c *= -1.0;
+	return c;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

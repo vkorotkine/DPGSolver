@@ -48,9 +48,6 @@ void constructor_Boundary_Value_Input_face_s_fcl_interp_T
 	bv_i->h  = face->h;
 	bv_i->p  = s_face->p_ref;
 
-	const struct Volume*const vol[2] = { face->neigh_info[0].volume, face->neigh_info[1].volume, };
-	bv_i->h_vol_max = ( face->boundary ? vol[0]->h : GSL_MAX(vol[0]->h,vol[1]->h) );
-
 	const int side_index = 0;
 	bv_i->normals     = s_face->normals_fc;
 	bv_i->normals_std = NULL;
