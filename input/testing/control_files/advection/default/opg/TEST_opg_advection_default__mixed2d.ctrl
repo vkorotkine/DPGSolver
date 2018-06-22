@@ -10,7 +10,7 @@ mesh_generator   n-cube/2d.geo
 mesh_format      gmsh
 mesh_domain      straight
 mesh_type        quad
-mesh_level       1 6
+mesh_level       0 6
 mesh_path        ../meshes/
 
 
@@ -27,7 +27,7 @@ geom_representation  superparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_ref    2 2
+p_ref    1 1
 p_cub_p  0 0
 p_test_p 0 0
 
@@ -36,5 +36,5 @@ method_name optimal_petrov_galerkin
 
 # Testing variables
 
-ml_range_test 1 1
-p_range_test  2 2
+ml_range_test 0 0
+p_range_test  1 1

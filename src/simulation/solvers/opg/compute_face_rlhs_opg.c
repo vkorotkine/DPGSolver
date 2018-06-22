@@ -193,20 +193,21 @@ static void finalize_lhs_1_f_opg
 	const struct const_Matrix_d*const lhs_l = constructor_mm_const_Matrix_d('N','N',1.0,lhs_l_p2,ops->proj_L2_l,'R'); // d.
 	destructor_const_Matrix_d(lhs_l_p2);
 
-#if 1 // Only enable for face collocated parameters (p_t_p = 0).
+#if 0 // Only enable for face collocated parameters (p_t_p = 0).
 #include "solution_advection.h"
 	const struct const_Multiarray_d*const normals_fc = s_face->normals_fc;
 	const ptrdiff_t n_fc = normals_fc->extents[0];
 	const double*const b_adv = compute_b_adv_constant_d(NULL);
-	struct Vector_d* b_dot_n2_V = constructor_zero_Vector_d(n_fc); // destructed.
-	double* b_dot_n2 = b_dot_n2_V->data;
+	struct Vector_d* b_dot_n_V = constructor_zero_Vector_d(n_fc); // destructed.
+	double* b_dot_n = b_dot_n_V->data;
 	for (int i = 0; i < n_fc; ++i) {
 		for (int j = 0; j < DIM; ++j)
-			b_dot_n2[i] += b_adv[j]*get_row_const_Multiarray_d(i,normals_fc)[j];
-		b_dot_n2[i] = fabs(b_dot_n2[i]);
+			b_dot_n[i] += b_adv[j]*get_row_const_Multiarray_d(i,normals_fc)[j];
+		b_dot_n[i] = fabs(b_dot_n[i]);
 	}
-	scale_Matrix_by_Vector_d('R',1.0,(struct Matrix_d*)lhs_l,(struct const_Vector_d*)b_dot_n2_V,false);
-	destructor_Vector_d(b_dot_n2_V);
+//	print_Vector_d(b_dot_n_V);
+	scale_Matrix_by_Vector_d('R',1.0,(struct Matrix_d*)lhs_l,(struct const_Vector_d*)b_dot_n_V,false);
+	destructor_Vector_d(b_dot_n_V);
 #endif
 
 	const double scale = ( side_index[0] == side_index[1] ? -1.0 : 1.0 );

@@ -88,14 +88,26 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 			indicator->data[n] = 1.0;
 	}
 
+#if 0
 	static int count = 0;
-	const int count_max = (int) round(2.0/face->h); // number of faces along one boundary face
+	const int count_max = 2;
+	/* const int count_max = (int) round(2.0/face->h); // number of faces along one boundary face */
 	/* const int count_max = (int) round(4.0/face->h); // number of faces along two boundary faces */
 	if (count == count_max)
 		return;
-	if (indicator->data[0] == 1.0)
+	/* if (face->index == 7 || face->index == 10) */
+	/* if (face->index == 11 || face->index == 7 || face->index == 10) */
+	if (face->index == 6 || face->index == 7 || face->index == 10)
+		return;
+	if (indicator->data[0]) {
+		printf("%d\n",face->index);
+		print_const_Multiarray_T(n_dot_b);
+		print_const_Multiarray_T(s_face->xyz_fc);
+		print_const_Multiarray_T(s_face->normals_fc);
 		++count;
-	printf("%d %e\n",count_max,face->h);
+	}
+//	printf("%d %e\n",count_max,face->h);
+#endif
 
 	const struct Lhs_Operators_OPG_T*const ops = constructor_Lhs_Operators_OPG_T(opg_s_face); // destructed
 
@@ -116,10 +128,21 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	const struct const_Matrix_T*const lhs =
 		constructor_mm_RT_const_Matrix_T('T','N',1.0,ops->cv0_vt_fc[0],lhs_r,'R'); // destructed
 	destructor_Lhs_Operators_OPG_T(s_face,ops);
-	destructor_const_Matrix_T(lhs_r);
 
 #if TYPE_RC == TYPE_REAL
-	; // do nothing for rhs (currently assuming that \f$ g = 0 \f$ and that the initial guess for \f$ w \f$ is zero.
+	// Currently assumed that w == 0 (i.e. always initializing to 0) and using a Lagrange basis.
+//	* \f$ \eps^{-1} <v,g-w>_{\Gamma^\text{characteristic out}} \forall v \f$
+	struct Vector_T*const g_V = constructor_empty_Vector_T(n_fc); // destructed
+	double g = 0.1;
+	if (face->index == 6)
+		g += 0.2;
+	set_to_value_Vector_T(g_V,g);
+	struct const_Matrix_T g_M = { .ext_0 = g_V->ext_0, .ext_1 = 1, .layout = 'C', .data = g_V->data, };
+	struct Matrix_T rhs_M = interpret_Multiarray_as_Matrix_T(s_vol->rhs);
+	mm_T('T','N',-1.0,1.0,lhs_r,&g_M,&rhs_M);
+
+	destructor_Vector_T(g_V);
+
 	if (ssi != NULL) {
 		const struct OPG_Solver_Volume_T*const opg_s_vol = (struct OPG_Solver_Volume_T*) face->neigh_info[0].volume;
 		for (int vr = 0; vr < n_vr; ++vr) {
@@ -134,6 +157,7 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	assert(ssi == NULL);
 	mm_NNC_Multiarray_TTT(1.0,1.0,lhs,(struct const_Multiarray_T*)s_vol->test_s_coef,s_vol->rhs);
 #endif
+	destructor_const_Matrix_T(lhs_r);
 	destructor_const_Matrix_T(lhs);
 }
 
