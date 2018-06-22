@@ -23,9 +23,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_xyz_trigonometric_cube_parametric_xl_oct1_T
 #undef constructor_xyz_joukowski_parametric_T
 #undef constructor_xyz_gaussian_bump_parametric_T
-#undef update_geo_data_NURBS_parametric_T
 #undef constructor_xyz_NURBS_parametric_T
 #undef constructor_grad_xyz_NURBS_parametric_T
+#undef update_geo_data_NURBS_parametric_T
+#undef grad_xyz_NURBS_patch_mapping_T
+#undef xyz_NURBS_patch_mapping_T
 
 #undef Geo_Data
 #undef get_geo_data

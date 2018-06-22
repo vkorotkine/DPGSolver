@@ -18,18 +18,65 @@ Wednesday:
 		(Done) - Create a real and complex version of the NURBS mapping function 
 			(to get the coordinates). Implement the templating using TYPE_RC for now
 
-		- Implement NURBS mapping case without NURBS metrics (use isoparametric
-			mapping). Verify real and complex versions of mappings work.
-			Run the test_integration_run case to verify.
+		(Done) - Implement NURBS mapping case without NURBS metrics (use isoparametric
+			mapping). Verify real and complex versions of mappings work. Since complex
+			version cannot be run, make sure metric terms are identical for real and 
+			complex version.
 
-		- Create a real and complex version of the NURBS grad function (to get the 
+		(Done) - Create a real and complex version of the NURBS grad function (to get the 
 			gradients).
 
-		- Template the xyz mapping function for the NURBS mapping.
+		(Done) - Template the xyz mapping function for the NURBS mapping.
 
-		- Template the grad mapping function for the NURBS mapping.
+		(Done) - Template the grad mapping function for the NURBS mapping.
 
-	- Check test_integration_run for NURBS case
+		(Done) - Output the real and complex metric terms and compare for the NURBS metrics case
+
+		(Done) - Output the real and complex metric terms and compare for the no NURBS metrics case
+
+	(Done) - Check test_integration_run for NURBS enhanced case
+
+	- Fix test_integration_optimization case
+
+	- Clean up optimization case function
+
+	- Clean up objective function file
+
+	- Clean up adjoint function
+
+	- Clean up sensitivity function
+
+	- move the NLPQLP methods to a proper file (organize the structure)
+
+	- Run the NLPQLP optimization case to see that it still converges.
+
+	- Clean up optimization monitoring (make it standard so NLPQLP, BFGS, ... all use
+		the same methods). 
+
+	- Implement the complex step sensitivities
+
+		- Verify that the difference between the complex step and finite difference is low
+
+	- Run the NLPQLP optimization case with complex step sensitivities (NACA0012 airfoil target CL)
+
+	- Compare final optimized profiles for all 3 cases (NURBS enhanced, Standard, Superparametric)
+
+		- If results differ greatly, output gradient for all three cases for the first design step
+
+		- Output the magnitude of each component in the gradient evaluation to see the difference there.
+
+	- Implement the pitching moment computation
+
+		- Plot the variation in the pitching moment to see how it varies in the optimization
+
+	- Implement a pitching moment constraint and try to converge to an optimal solution (NLPQLP)
+
+	- Template the objective function file to be able to have a real and complex version of the function
+
+
+
+
+
 
 	- Check orders of convergence for NURBS enhanced case
 
@@ -48,15 +95,18 @@ Wednesday:
 
 	- Run the NURBS optimization cases to see if they converge still.
 
+
+
+	- Generalize the face and volume cubature (NURBS metrics) to other elements (not just QUADS)
+
+
 	- Read the IGA Paper
 
-Monday:
 
-	- Write the Methodology section for the paper.
+CLOCK_IN  = 4:51
+CLOCK_OUT = 6:30
 
-	- Plan out IGA implementation.
-
-
+TIME_ELAPSE = 3:58
 
 
 

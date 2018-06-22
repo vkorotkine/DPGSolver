@@ -27,33 +27,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <math.h>
 #include <complex.h>
 
-#include "test_complex_face_solver.h"
 #include "face_solver.h"
-
 #include "volume.h"
-#include "test_complex_volume_solver.h"
 #include "volume_solver.h"
-
 #include "macros.h"
-
 #include "multiarray.h"
-#include "complex_multiarray.h"
-
 #include "vector.h"
-#include "complex_vector.h"
-
 #include "intrusive.h"
 #include "simulation.h"
 #include "file_processing.h"
-
 #include "operator.h"
-#include "test_complex_operators.h"
-
 #include "compute_face_rlhs.h"
-#include "test_complex_compute_face_rhs.h"
-
 #include "solution_euler.h"
-#include "test_complex_solution_euler.h"
 
 #include "definitions_physics.h"
 #include "definitions_math.h"

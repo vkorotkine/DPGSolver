@@ -39,9 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix_constructors.h"
 
 #include "multiarray.h"
-#include "complex_multiarray.h"
 #include "multiarray_constructors.h"
-#include "complex_multiarray_constructors.h"
 #include "multiarray_math.h"
 
 #include "intrusive.h"
@@ -55,8 +53,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "volume_solver.h"
 #include "face_solver.h"
-#include "test_complex_face_solver.h"
-#include "test_complex_volume_solver.h"
 #include "visualization.h"
 #include "definitions_visualization.h"
 
@@ -75,7 +71,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #define MAX_NUM_DESIGN_ITERS 250
 
 // Static function declarations ************************************************************************************* //
-
 
 static struct Optimization_Case* setup_optimization(struct Simulation* sim);
 static void copy_data_r_to_c_sim(struct Simulation* sim, struct Simulation* sim_c);

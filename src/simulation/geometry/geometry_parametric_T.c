@@ -32,7 +32,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 #include "def_templates_math_functions.h"
 
-#include "geometry_NURBS_parametric.h"
+#include "bases.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -54,6 +54,7 @@ struct Geo_Data {
 	     xyz_r; ///< Right xyz-coordinate.
 
 
+
 	// NURBS Parametric Domain parameters: (2D Domain for now only)
 	
 	int P, Q;  ///< Order of the patch in the xi (P) and eta (Q) direction
@@ -62,7 +63,8 @@ struct Geo_Data {
 						*knots_eta; ///< Knot vector in the eta parametric direction
 
 	struct Multiarray_T *control_points; ///< Multiarray holding the control point data. Is stored as
-										 ///< a multiarray of dimension [num_points x DIM]
+										 ///< a multiarray of dimension [num_points x DIM]. Is templated to allow
+										 ///< for complex control points so that sensitivities can be calculated using complex step.
 	
 	struct Multiarray_R *control_weights; ///< Multiarray holding the control point weights. Is stored as
 										  ///< a multiarray of dimension [num_points x DIM]
@@ -71,7 +73,6 @@ struct Geo_Data {
 													 ///< points (pt) and weights (wt) in the patch.
 													 ///< The xi control points correspond to the i index and eta control 
 													 ///< points to the j index. Data stored in row major form.
-
 
 	struct Multiarray_i *control_point_connectivity; // To be deleted
 };
@@ -366,6 +367,8 @@ const struct const_Multiarray_T* constructor_xyz_joukowski_parametric_T
 
 void update_geo_data_NURBS_parametric_T(const struct const_Multiarray_R* ctrl_pts_and_weights){
 
+	// MSB: TODO: Update this function. 
+
 	/*
 	Update the NURBS data held in the geo_data structure. This method
 	is used with the optimization routines for updating the information 
@@ -402,9 +405,12 @@ void update_geo_data_NURBS_parametric_T(const struct const_Multiarray_R* ctrl_pt
 
 }
 
+
 const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
 (const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
 	const struct Simulation* sim){
+
+	// MSB: TODO: See if xyz_i must be templated
 
 	/*
 	Computes the gradient terms of the parametric NURBS mapping from the parametric domain
@@ -421,12 +427,6 @@ const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
 		The matrix of the mapped xyz points (onto the physical domain)
 	*/
 
-// MSB: TODO: Template the function for the mapping
-#if TYPE_RC == TYPE_COMPLEX
-	EXIT_UNSUPPORTED;
-#endif
-
-
 	UNUSED(n_type);
 	UNUSED(s_vol);
 	UNUSED(sim);
@@ -434,40 +434,42 @@ const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
 	// Read the geometric data for the NURBS patch
 	const struct Geo_Data geo_data = get_geo_data("NURBS");
 
-	const struct const_Multiarray_d *grad_xyz = grad_xyz_NURBS_patch_mapping(
+	// Compute the gradient values at the desired points on the knot domain (xyz_i) using the mapping
+	const struct const_Multiarray_T *grad_xyz = grad_xyz_NURBS_patch_mapping_T(
 		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 
 		(const struct const_Multiarray_d*)geo_data.knots_xi, 
 		(const struct const_Multiarray_d*)geo_data.knots_eta,
-		(const struct const_Multiarray_d*)NULL,  // TO FIX
-		(const struct const_Multiarray_i*)geo_data.control_point_connectivity);
+		(const struct const_Multiarray_T*)geo_data.control_points,
+		(const struct const_Multiarray_d*)geo_data.control_weights,
+		(const struct const_Multiarray_i*)geo_data.control_pt_wt_connectivity);
 
 	return (const struct const_Multiarray_T*)grad_xyz;
 
-	printf("To Be Implemented\n");
-	EXIT_UNSUPPORTED;
-
 }
+
 
 const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
 (const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	const struct Simulation* sim){
 
+	// MSB: TODO: Perhaps handle complex xyz_i? Will need to then have basis functions take
+	// templated values. Look into this later.
+
 	UNUSED(n_type);
 	UNUSED(s_vol);
 	UNUSED(sim);
 
-	// Number of columns on xyz_i matrix must be 2 (because we have a max of 2 dimensions)
 	assert(DIM == 2); // Add support for 3D if required.
 	assert(DIM == xyz_i->extents[1]);
 
 	// Read the geometric data for the NURBS patch
 	const struct Geo_Data geo_data = get_geo_data("NURBS");
 
-	// xyz_i is the initial values for the xyz coordinates. These are, in 
+	// xyz_i are the initial values for the xyz coordinates. These are, in 
 	// this function, the location on the parametric domain (or knot domain). Map these
 	// values onto the physical domain
  
-	// NOTE: For NURBS mappings, the coordinates on the parametric domain (xyz_i) willneed to be real
+	// NOTE: For NURBS mappings, the coordinates on the parametric domain (xyz_i) will need to be real
 	struct Multiarray_R *xyz_i_real = constructor_empty_Multiarray_R('C',2,xyz_i->extents);  // free
 	
 	int k = 0;
@@ -475,15 +477,13 @@ const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
 		for (int j = 0; j < xyz_i->extents[1]; j++){
 				
 #if TYPE_RC == TYPE_REAL
-				xyz_i_real->data[k] = xyz_i->data[k];
+			xyz_i_real->data[k] = xyz_i->data[k];
 #elif TYPE_RC == TYPE_COMPLEX
-				xyz_i_real->data[k] = creal(xyz_i->data[k]);
+			xyz_i_real->data[k] = creal(xyz_i->data[k]);
 #endif
-
 			k++;
 		}
 	}
-
 
 // MSB: TODO: Template the function for the mapping
 #if TYPE_RC == TYPE_REAL
@@ -506,6 +506,7 @@ const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
 		(const struct const_Multiarray_i*)geo_data.control_pt_wt_connectivity);
 
 #endif
+
 
 	free(xyz_i_real);
 
@@ -577,6 +578,235 @@ const struct const_Multiarray_T* constructor_xyz_gaussian_bump_parametric_T
 	}
 	return (struct const_Multiarray_T*) xyz;
 }
+
+
+const struct const_Multiarray_T *grad_xyz_NURBS_patch_mapping_T(
+	const struct const_Multiarray_d* xi_eta_i, int P, int Q, 
+	const struct const_Multiarray_d* knots_xi, 
+	const struct const_Multiarray_d* knots_eta, 
+	const struct const_Multiarray_T* control_points,
+	const struct const_Multiarray_d* control_weights,
+	const struct const_Multiarray_i* control_pt_wt_connectivity){
+
+	// Preprocessing:
+	// Create multiarray structures to hold the control points and weights. The
+	// control point structure will be of dimension [num_I x num_J] and there will be two
+	// separate structures for the x and y values. The weight structure is of order 
+	// [num_I x num_J].
+
+	int i, j, k, numI, numJ, control_pt_index;
+	numI = (int) control_pt_wt_connectivity->extents[0];
+	numJ = (int) control_pt_wt_connectivity->extents[1];
+
+	struct Multiarray_T *control_pts_x = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){numI, numJ});  // free
+	struct Multiarray_T *control_pts_y = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){numI, numJ});  // free
+	
+	struct Multiarray_d *control_pts_w = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){numI, numJ});  // free
+
+	const Type *const control_pts_x_list = get_col_const_Multiarray_T(0, control_points);
+	const Type *const control_pts_y_list = get_col_const_Multiarray_T(1, control_points);
+	
+	const double *const control_pts_w_list = get_col_const_Multiarray_d(0, control_weights);
+	
+	for (i = 0; i < numI; i++){
+		for (j = 0; j < numJ; j++){
+
+			// The index of the control point in the list
+			control_pt_index = get_row_const_Multiarray_i(i, control_pt_wt_connectivity)[j]; 
+
+			get_col_Multiarray_T(j, control_pts_x)[i] = control_pts_x_list[control_pt_index];
+			get_col_Multiarray_T(j, control_pts_y)[i] = control_pts_y_list[control_pt_index];
+			
+			get_col_Multiarray_d(j, control_pts_w)[i] = control_pts_w_list[control_pt_index];
+
+		}
+	}
+
+	// Compute the partial derivative terms:
+	int num_pts = (int) xi_eta_i->extents[0];
+	struct Multiarray_T *grad_xyz = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){num_pts, 4});  // returned
+
+	// The values on the parametric domain to obtain partial derivatives at (xi and eta)
+	struct Multiarray_d *xi_vals = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_pts,1});  // free
+	struct Multiarray_d *eta_vals = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_pts,1});  // free
+	
+	for (i = 0; i < num_pts; i++){
+		get_col_Multiarray_d(0, xi_vals)[i]  = get_col_const_Multiarray_d(0, xi_eta_i)[i];
+		get_col_Multiarray_d(0, eta_vals)[i] = get_col_const_Multiarray_d(1, xi_eta_i)[i];
+	}
+
+	// Get the B Spline Basis (and derivative) function values (1D) at the given xi points
+	const struct const_Multiarray_d *N_p_xi  = B_Spline_Basis_p(P, (const struct const_Multiarray_d*) xi_vals, knots_xi);  // free
+	const struct const_Multiarray_d *dN_p_xi = derivative_B_Spline_Basis_p(P, (const struct const_Multiarray_d*) xi_vals, knots_xi);  // free
+
+	// Get the B Spline Basis (and derivative) function values (1D) at the given eta points
+	const struct const_Multiarray_d *N_q_eta  = B_Spline_Basis_p(Q, (const struct const_Multiarray_d*) eta_vals, knots_eta);  // free
+	const struct const_Multiarray_d *dN_q_eta = derivative_B_Spline_Basis_p(Q, (const struct const_Multiarray_d*) eta_vals, knots_eta);  // free
+
+	const struct const_Multiarray_d* grad_vals;
+	grad_vals = grad_NURBS_basis_pq(N_p_xi, dN_p_xi, N_q_eta, dN_q_eta, (const struct const_Multiarray_d*)control_pts_w);
+
+	const double *const grad_vals_i = grad_vals->data;
+	double R_ij_xi, R_ij_eta;  // The partials of the NURBS basis function
+
+	Type x_xi, y_xi, x_eta, y_eta;
+
+	for (k = 0; k < num_pts; k++){
+		// Loop over all the (xi,eta) points
+
+		x_xi = 0;
+		y_xi = 0;
+		x_eta = 0;
+		y_eta = 0;
+
+		for (i = 0; i < numI; i++){
+			for (j = 0; j < numJ; j++){
+
+				// Get the i,j NURBS basis function gradient
+				R_ij_xi  = grad_vals_i[i + j*numI + k*numI*numJ + 0*numI*numJ*num_pts];
+				R_ij_eta = grad_vals_i[i + j*numI + k*numI*numJ + 1*numI*numJ*num_pts];
+
+				// partial with respect to xi:
+				x_xi += R_ij_xi * get_col_Multiarray_T(j, control_pts_x)[i];
+				y_xi += R_ij_xi * get_col_Multiarray_T(j, control_pts_y)[i];
+
+				// partial with respect to eta:
+				x_eta += R_ij_eta * get_col_Multiarray_T(j, control_pts_x)[i];
+				y_eta += R_ij_eta * get_col_Multiarray_T(j, control_pts_y)[i];
+			}
+		}
+
+		// Store the partial terms
+		get_col_Multiarray_T(0, grad_xyz)[k] = x_xi;
+		get_col_Multiarray_T(1, grad_xyz)[k] = y_xi;
+		get_col_Multiarray_T(2, grad_xyz)[k] = x_eta;
+		get_col_Multiarray_T(3, grad_xyz)[k] = y_eta;
+
+	}
+
+	// Free allocated arrays
+	destructor_Multiarray_T(control_pts_x);
+	destructor_Multiarray_T(control_pts_y);
+	destructor_Multiarray_d(control_pts_w);
+	destructor_Multiarray_d(xi_vals);
+	destructor_Multiarray_d(eta_vals);
+	destructor_const_Multiarray_d(N_p_xi);
+	destructor_const_Multiarray_d(dN_p_xi);
+	destructor_const_Multiarray_d(N_q_eta);	
+	destructor_const_Multiarray_d(dN_q_eta);
+	destructor_const_Multiarray_d(grad_vals);
+
+	return (const struct const_Multiarray_T*)grad_xyz;
+}
+
+
+const struct const_Multiarray_T *xyz_NURBS_patch_mapping_T(
+	const struct const_Multiarray_d* xi_eta_i, int P, int Q, 
+	const struct const_Multiarray_d* knots_xi, 
+	const struct const_Multiarray_d* knots_eta, 
+	const struct const_Multiarray_T* control_points,
+	const struct const_Multiarray_d* control_weights,
+	const struct const_Multiarray_i* control_pt_wt_connectivity){
+
+	// Preprocessing:
+
+	// Create multiarray structures to hold the control points and weights. The
+	// control point structure will be of dimension [num_I x num_J] and there will be two
+	// separate structures for the x and y values. The weight structure is of order 
+	// [num_I x num_J].
+
+	int i, j, k, numI, numJ, control_pt_index;
+	numI = (int) control_pt_wt_connectivity->extents[0];
+	numJ = (int) control_pt_wt_connectivity->extents[1];
+
+	struct Multiarray_T *control_pts_x = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){numI, numJ});  // free
+	struct Multiarray_T *control_pts_y = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){numI, numJ});  // free
+	
+	const Type *const control_pts_x_list = get_col_const_Multiarray_T(0, control_points);
+	const Type *const control_pts_y_list = get_col_const_Multiarray_T(1, control_points);
+	
+	struct Multiarray_d *control_pts_w = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){numI, numJ});  // free
+	
+	const double *const control_pts_w_list = get_col_const_Multiarray_d(0, control_weights);
+	
+	for (i = 0; i < numI; i++){
+		for (j = 0; j < numJ; j++){
+
+			// The index of the control point in the list
+			control_pt_index = get_row_const_Multiarray_i(i, control_pt_wt_connectivity)[j]; 
+
+			get_col_Multiarray_T(j, control_pts_x)[i] = control_pts_x_list[control_pt_index];
+			get_col_Multiarray_T(j, control_pts_y)[i] = control_pts_y_list[control_pt_index];
+			
+			get_col_Multiarray_d(j, control_pts_w)[i] = control_pts_w_list[control_pt_index];
+		}
+	}
+
+	// Perform the Mapping:
+
+	int num_pts = (int) xi_eta_i->extents[0];
+	struct Multiarray_T *xyz = constructor_empty_Multiarray_T('C',2, (ptrdiff_t[]){num_pts, 2});  // return
+
+	// The values on the parametric domain to obtain partial derivatives at (xi and eta)
+	struct Multiarray_d *xi_vals  = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_pts,1});  // free
+	struct Multiarray_d *eta_vals = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_pts,1});  // free
+	
+	for (i = 0; i < num_pts; i++){
+		get_col_Multiarray_d(0, xi_vals)[i]  = get_col_const_Multiarray_d(0, xi_eta_i)[i];
+		get_col_Multiarray_d(0, eta_vals)[i] = get_col_const_Multiarray_d(1, xi_eta_i)[i];
+	}
+
+	// Get the B Spline Basis function values (1D) at the given xi points
+	const struct const_Multiarray_d *N_p_xi = B_Spline_Basis_p(P, (const struct const_Multiarray_d*) xi_vals, knots_xi);  // free
+	
+	// Get the B Spline Basis function values (1D) at the given eta points
+	const struct const_Multiarray_d *N_q_eta = B_Spline_Basis_p(Q, (const struct const_Multiarray_d*) eta_vals, knots_eta);  // free
+	
+	// Get the NURBS basis functions evaluated at the provided points
+	const struct const_Multiarray_d* basis_vals;
+	basis_vals = NURBS_basis_pq(N_p_xi, N_q_eta, (const struct const_Multiarray_d*)control_pts_w);  // free
+
+	const double *const basis_vals_i = basis_vals->data;
+
+	Type x, y;
+	double R_ij;
+
+	for (k = 0; k < num_pts; k++){
+		// Loop over all the (xi,eta) points
+
+		x = 0;
+		y = 0;
+
+		for (i = 0; i < numI; i++){
+			for (j = 0; j < numJ; j++){
+
+				// Get the i,j NURBS basis function
+				R_ij = basis_vals_i[i + j*numI + k*numI*numJ];
+
+				x += R_ij * get_col_Multiarray_T(j, control_pts_x)[i];
+				y += R_ij * get_col_Multiarray_T(j, control_pts_y)[i];
+			}
+		}
+
+		// Store the mapped values
+		get_col_Multiarray_T(0, xyz)[k] = x;
+		get_col_Multiarray_T(1, xyz)[k] = y;
+	}
+
+	// Free allocated arrays
+	destructor_Multiarray_T(control_pts_x);
+	destructor_Multiarray_T(control_pts_y);
+	destructor_Multiarray_d(control_pts_w);
+	destructor_Multiarray_d(xi_vals);
+	destructor_Multiarray_d(eta_vals);
+	destructor_const_Multiarray_d(N_p_xi);
+	destructor_const_Multiarray_d(N_q_eta);
+	destructor_const_Multiarray_d(basis_vals);
+
+	return (struct const_Multiarray_T*) xyz;
+
+}
+
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

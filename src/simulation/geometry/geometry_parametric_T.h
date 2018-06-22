@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Solver_Volume_T;
 struct Simulation;
+struct const_Multiarray_i;
 
 /** \brief Version of \ref constructor_xyz_fptr_T for the n-cube scaled and translated to an arbitrary fixed cube.
  *  \return See brief. */
@@ -114,13 +115,82 @@ const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
 	 const struct Simulation* sim            ///< See brief.
 	);
 
-// Consult geometry_parametric_T.c
+/** \brief Similar of \ref constructor_xyz_fptr_T. This function is unique in that it computes 
+ *	the gradient terms of the parametric NURBS mapping from the parametric domain
+ *	to the physical domain.
+ *
+ *  \return The multiarray of the gradient values, found using the exact NURBS mapping. 
+ *	Consult \ref grad_xyz_NURBS_patch_mapping_T for details of multiarray ordering.
+ */
 const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
-	(const char n_type, 
-	 const struct const_Multiarray_R* xyz_i,
-	 const struct Solver_Volume_T* s_vol,
-	 const struct Simulation* sim
+	(const char n_type, 						///< See brief.
+	 const struct const_Multiarray_R* xyz_i,  	///< See brief.
+	 const struct Solver_Volume_T* s_vol,  		///< See brief.
+	 const struct Simulation* sim 				///< See brief.
 	);
+
+/** \brief Computes the gradient terms of the NURBS mapping at the specified points on the 
+ *	knot domain (xi_eta_i). NOTE: Only the 2D case has been implemented for now.
+ *	
+ *	\return A multiarray of dimension [num_points x (DIM^2)] that holds the partial derivatives
+ *	of the mapping. The ith row of the multiarray holds the partials at the ith point 
+ *	and stores the data in the form [x_xi, y_xi, x_eta, y_eta], where 
+ *	x_xi, for instance, is the partial of x with respect to the xi knot domain variable.
+ */
+const struct const_Multiarray_T *grad_xyz_NURBS_patch_mapping_T(
+	const struct const_Multiarray_d* xi_eta_i, 					///< The values on the parametric domain (knot domain). Is a multiarray
+																///< of dimension [num_points x DIM]. For now, only consider 2D cases.
+
+	int P, 														///< The order of the basis functions in the xi direction
+	int Q,														///< The order of the basis functions in the eta direction
+
+	const struct const_Multiarray_d* knots_xi, 					///< The knot vector in the xi direction
+	const struct const_Multiarray_d* knots_eta, 				///< The knot vector in the eta direction
+
+	const struct const_Multiarray_T* control_points, 			///< The multiarray holding the list of control points. 
+																///< The multiarray is of dimension [num_ctrl_pts x (DIM)]
+	
+	const struct const_Multiarray_d* control_weights, 			///< The multiarray holding the list of weights associated to each point. 
+																///< The multiarray is of dimension [num_ctrl_pts x 1]
+	
+	const struct const_Multiarray_i* control_pt_wt_connectivity ///< The multiarray holding the connectivity information for
+																///< the control points (pt) and weights (wt). Is of dimension [num_I x num_J], where num_I and 
+																///< num_J are the number of control points / basis functions in either coordinate 
+																///< direction. This multiarray is in row major form
+	);
+
+
+/** \brief Computes the gradient terms of the NURBS mapping at the specified points on the 
+ *	knot domain (xi_eta_i). NOTE: Only the 2D case has been implemented for now.
+ *	
+ *	\return A multiarray of dimension [num_points x (DIM^2)] that holds the partial derivatives
+ *	of the mapping. The ith row of the multiarray holds the partials at the ith point 
+ *	and stores the data in the form [x_xi, y_xi, x_eta, y_eta], where 
+ *	x_xi, for instance, is the partial of x with respect to the xi knot domain variable.
+ */
+const struct const_Multiarray_T *xyz_NURBS_patch_mapping_T(
+	const struct const_Multiarray_d* xi_eta_i, 					///< The values on the parametric domain (knot domain). Is a multiarray
+																///< of dimension [num_points x DIM]. For now, only consider 2D cases.
+
+	int P, 														///< The order of the basis functions in the xi direction
+	int Q,														///< The order of the basis functions in the eta direction
+
+	const struct const_Multiarray_d* knots_xi, 					///< The knot vector in the xi direction
+	const struct const_Multiarray_d* knots_eta, 				///< The knot vector in the eta direction
+
+	const struct const_Multiarray_T* control_points, 			///< The multiarray holding the list of control points. 
+																///< The multiarray is of dimension [num_ctrl_pts x (DIM)]
+	
+	const struct const_Multiarray_d* control_weights, 			///< The multiarray holding the list of weights associated to each point. 
+																///< The multiarray is of dimension [num_ctrl_pts x 1]
+	
+	const struct const_Multiarray_i* control_pt_wt_connectivity ///< The multiarray holding the connectivity information for
+																///< the control points (pt) and weights (wt). Is of dimension [num_I x num_J], where num_I and 
+																///< num_J are the number of control points / basis functions in either coordinate 
+																///< direction. This multiarray is in row major form
+
+	);
+
 
 #include "undef_templates_geometry.h"
 #include "undef_templates_volume_solver.h"

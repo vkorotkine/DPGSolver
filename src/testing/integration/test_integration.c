@@ -47,6 +47,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_case_c.h"
 #include "solution.h"
 
+
 // Static function declarations ************************************************************************************* //
 
 /** Flag used to specify that the simulation should be set up as if the adaptation type was \ref ADAPT_0 but with
