@@ -211,7 +211,8 @@ static void constructor_derived_elements_comp_elements (struct Simulation* sim)
 		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DPG);       // destructed
 		constructor_derived_computational_elements(sim,IL_SOLVER_DPG); // destructed
 		break;
-	case METHOD_OPG:
+	case METHOD_OPG: // fallthrough
+	case METHOD_OPGC0:
 		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_OPG);       // destructed
 		constructor_derived_computational_elements(sim,IL_SOLVER_OPG); // destructed
 		break;
@@ -393,6 +394,7 @@ static PetscErrorCode solve_and_update
 		CHKERRQ(constructor_petsc_ksp(&ksp,ssi->A,sim)); // destructed
 		printf("\tKSP solve.\n");
 		CHKERRQ(KSPSolve(ksp,ssi->b,x));
+		EXIT_UNSUPPORTED;
 	} else {
 		printf("\tCompute Schur.\n");
 		struct Schur_Data* schur_data = constructor_Schur_Data(ssi->A,ssi->b,sim); // destructed

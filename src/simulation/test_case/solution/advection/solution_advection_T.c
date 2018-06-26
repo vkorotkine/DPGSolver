@@ -247,7 +247,8 @@ static void set_function_pointers_num_flux_T (struct Test_Case_T* test_case, con
 	switch (sim->method) {
 	case METHOD_DG:  // fallthrough
 	case METHOD_DPG: // fallthrough
-	case METHOD_OPG:
+	case METHOD_OPG: // fallthrough
+	case METHOD_OPGC0:
 		test_case->compute_Numerical_Flux = compute_Numerical_Flux_1_T;
 		switch (test_case->ind_num_flux[0]) {
 		case NUM_FLUX_UPWIND:

@@ -84,7 +84,9 @@ bool test_case_explicitly_enforces_conservation (const struct Simulation*const s
 	case METHOD_DG:
 		break; // Do nothing.
 	case METHOD_DPG: // fallthrough
-	case METHOD_OPG: {
+	case METHOD_OPG: // fallthrough
+	case METHOD_OPGC0:
+	{
 		const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
 		if (test_case->ind_conservation > CONSERVATION_NOT_ENFORCED)
 			return true;

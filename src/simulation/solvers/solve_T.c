@@ -89,7 +89,10 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const str
 	switch (sim->method) {
 		case METHOD_DG:  // fallthrough
 		case METHOD_DPG: assert(dof_solve == compute_dof_T(sim));      break;
-		case METHOD_OPG: assert(dof_solve == compute_dof_test_T(sim)); break;
+		case METHOD_OPG: // fallthrough
+		case METHOD_OPGC0:
+			assert(dof_solve == compute_dof_test_T(sim));
+			break;
 		default:         EXIT_ERROR("Unsupported: %d.\n",sim->method); break;
 	}
 
@@ -110,7 +113,8 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const str
 
 ptrdiff_t compute_dof_T (const struct Simulation* sim)
 {
-	assert((sim->method == METHOD_DG) || (sim->method == METHOD_DPG) || (sim->method == METHOD_OPG));
+	assert((sim->method == METHOD_DG) || (sim->method == METHOD_DPG) || (sim->method == METHOD_OPG) ||
+	       (sim->method == METHOD_OPGC0));
 	ptrdiff_t dof = 0;
 	dof += compute_dof_volumes(sim);
 	dof += compute_dof_faces(sim);
@@ -123,7 +127,10 @@ void update_ind_dof_T (const struct Simulation* sim)
 	switch (sim->method) {
 	case METHOD_DG:  update_ind_dof_dg_T(sim);  break;
 	case METHOD_DPG: update_ind_dof_dpg_T(sim); break;
-	case METHOD_OPG: update_ind_dof_opg_T(sim); break;
+	case METHOD_OPG: // fallthrough
+	case METHOD_OPGC0:
+		update_ind_dof_opg_T(sim);
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;
@@ -173,7 +180,8 @@ void initialize_zero_memory_volumes_T (struct Intrusive_List* volumes)
 		case METHOD_DPG:
 			ref_coef = s_vol->sol_coef;
 			break;
-		case METHOD_OPG:
+		case METHOD_OPG: // fallthrough
+		case METHOD_OPGC0:
 			ref_coef = s_vol->test_s_coef;
 			break;
 		default:
@@ -201,7 +209,10 @@ static struct Vector_i* constructor_nnz (const struct Simulation*const sim)
 	switch (sim->method) {
 	case METHOD_DG:  nnz = constructor_nnz_dg_T(sim);  break;
 	case METHOD_DPG: nnz = constructor_nnz_dpg_T(sim); break;
-	case METHOD_OPG: nnz = constructor_nnz_opg_T(sim); break;
+	case METHOD_OPG: // fallthrough
+	case METHOD_OPGC0:
+		nnz = constructor_nnz_opg_T(sim);
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",sim->method);
 		break;
@@ -243,7 +254,7 @@ static ptrdiff_t compute_dof_volumes_l_mult (const struct Simulation*const sim)
 
 static ptrdiff_t compute_dof_test_T (const struct Simulation*const sim)
 {
-	assert(sim->method == METHOD_OPG);
+	assert(sim->method == METHOD_OPG || sim->method == METHOD_OPGC0);
 	ptrdiff_t dof = 0;
 	dof += compute_dof_test_volumes(sim);
 	return dof;

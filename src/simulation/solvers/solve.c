@@ -156,7 +156,10 @@ double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implici
 	switch (sim->method) {
 		case METHOD_DG:  max_rhs = compute_rlhs_dg(sim,ssi);    break;
 		case METHOD_DPG: max_rhs = compute_rlhs_dpg(sim,ssi);   break;
-		case METHOD_OPG: max_rhs = compute_rlhs_opg(sim,ssi);   break;
+		case METHOD_OPG: // fallthrough
+		case METHOD_OPGC0:
+			max_rhs = compute_rlhs_opg(sim,ssi);
+			break;
 		default:         EXIT_ERROR("Unsupported: %d\n",sim->method); break;
 	}
 

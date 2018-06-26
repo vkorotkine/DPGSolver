@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define IL_SOLVER_DG           1011
 #define IL_SOLVER_DPG          1012
 #define IL_SOLVER_OPG          1013
+#define IL_SOLVER_OPGC0        1020
 #define IL_SOLVER_ADAPTIVE     1030
 ///\}
 

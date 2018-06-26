@@ -139,6 +139,10 @@ void set_initial_solution_T (struct Simulation* sim)
 		set_initial_f_nf_coef(sim);
 		set_exact_f_nf_fc(sim);
 		break;
+	case METHOD_OPGC0:
+		set_initial_v_test_sg_coef_T(sim);
+		set_initial_v_sg_coef(sim);
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
 		break;
