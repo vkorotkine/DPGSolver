@@ -32,6 +32,19 @@ struct OPG_Solver_Volume_T {
 
 /// \todo Delete m_inv if unused.
 	const struct const_Matrix_T* m_inv; ///< The inverse mass matrix.
+
+	/** Flag relating to what type of boundary condition is required for \ref Solver_Volume_T::test_s_coef for faces
+	 *  adjacent to boundary volumes.
+	 *
+	 *  Generally, only one boundary constraint should be applied for each volume. For example, in the case of the
+	 *  linear advection equation with a QUAD element having two outflow faces, constraining the value of the test
+	 *  function on both outflow boundaries does not allow for the recovery of even the exact constant solution.
+	 *  This is most clear in the case of a pt = 1 QUAD where this results in a single free parameter. Constraining
+	 *  only one of the two faces allows for the computation of the test function to obtain the exact solution. Note
+	 *  that the same problem occurs for the continuous test space used in the original article of Brunken et al.,
+	 *  section 3.2 \cite Brunken2018.
+	 */
+	int bc_test_s;
 };
 
 /// \brief Constructor for a derived \ref OPG_Solver_Volume_T.

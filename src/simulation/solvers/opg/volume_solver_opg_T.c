@@ -36,6 +36,8 @@ void constructor_derived_OPG_Solver_Volume_T (struct Volume* volume_ptr, const s
 
 	opg_s_vol->m     = constructor_mass_T(s_vol); // destructed
 	opg_s_vol->m_inv = constructor_inverse_mass_T(s_vol,opg_s_vol->m); // destructed
+
+	opg_s_vol->bc_test_s = BC_TEST_S_NOT_NEEDED;
 }
 
 void destructor_derived_OPG_Solver_Volume_T (struct Volume* volume_ptr)

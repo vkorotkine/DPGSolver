@@ -40,6 +40,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_flux.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_operators.h"
+#include "def_templates_penalty_opg.h"
 #include "def_templates_test_case.h"
 
 // Static function declarations ************************************************************************************* //
@@ -114,7 +115,9 @@ void compute_face_rlhs_opg_T
 	struct Numerical_Flux_Input_T*const num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
 	test_case->solver_method_curr = smc;
 
-	struct Flux_Input_T*const flux_i               = constructor_Flux_Input_T(sim); // destructed
+	struct Flux_Input_T*const flux_i = constructor_Flux_Input_T(sim); // destructed
+
+	reset_penalty_indicators_opg_T(faces);
 
 	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {
 		struct Solver_Face_T*const s_face = (struct Solver_Face_T*) curr;
@@ -343,4 +346,5 @@ static void compute_rhs_f_opg_dg_like_T
 #include "undef_templates_flux.h"
 #include "undef_templates_numerical_flux.h"
 #include "undef_templates_operators.h"
+#include "undef_templates_penalty_opg.h"
 #include "undef_templates_test_case.h"

@@ -16,8 +16,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__face_solver_opg_h__INCLUDED
 #define DPG__face_solver_opg_h__INCLUDED
 /** \file
- *  \brief Provides the interface for the real \ref OPG_Solver_Face_T container and associated functions.
+ *  \brief Provides the instantiations for the \ref OPG_Solver_Face_T container and associated functions.
  */
+
+///\{ \name Availalble options for \ref OPG_Solver_Face_T::bc_test_s in relation to \ref Solver_Volume_T::test_s_coef.
+#define BC_TEST_S_DO_NOTHING 100 ///< Do not impose any constraints on the boundary.
+#define BC_TEST_S_SPEC_CONST 101 ///< Set the boundary values to a "spec"ified "const"ant.
+#define BC_TEST_S_FREE_CONST 102 ///< Set the boundary values to a "free" "const"ant.
+///\}
 
 #include "face_solver.h"
 

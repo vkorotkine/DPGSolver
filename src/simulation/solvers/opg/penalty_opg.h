@@ -29,6 +29,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "penalty_opg_T.h"
 #include "undef_templates_type.h"
 
-#define PENALTY_SCALING_OPG 1e0 ///< The scaling for the penalty term for OPG scheme test function boundary conditions.
+#define PENALTY_SCALING_OPG 1e4 ///< The scaling for the penalty term for OPG scheme test function boundary conditions.
 
 #endif // DPG__penalty_opg_h__INCLUDED

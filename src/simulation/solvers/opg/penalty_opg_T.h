@@ -25,6 +25,17 @@ struct Flux_Ref_T;
 struct Numerical_Flux_T;
 struct Solver_Face_T;
 struct Solver_Storage_Implicit;
+struct Intrusive_List;
+
+/** \brief Reset the values of \ref OPG_Solver_Face_T::bc_test_s and \ref OPG_Solver_Volume_T::bc_test_s for the current
+ *         solver step.
+ *
+ *  Resetting these values is required as they are modified in the functions applying test boundary conditions such that
+ *  the problem is neither over or under constrained.
+ */
+void reset_penalty_indicators_opg_T
+	(const struct Intrusive_List*const faces ///< The list of faces for which to reset parameters.
+	 );
 
 /** \brief Version of \ref compute_rlhs_opg_f_fptr_T hitting a \ref EXIT_UNSUPPORTED error.
  *

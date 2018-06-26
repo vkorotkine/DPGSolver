@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
+#define reset_penalty_indicators_opg_T reset_penalty_indicators_opg_d
 #define constructor_rlhs_f_test_penalty_unsupported_T constructor_rlhs_f_test_penalty_unsupported_d
 #define constructor_rlhs_f_test_penalty_do_nothing_T constructor_rlhs_f_test_penalty_do_nothing_d
 ///\}
@@ -29,6 +30,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
+#define reset_penalty_indicators_opg_T reset_penalty_indicators_opg_c
 #define constructor_rlhs_f_test_penalty_unsupported_T constructor_rlhs_f_test_penalty_unsupported_c
 #define constructor_rlhs_f_test_penalty_do_nothing_T constructor_rlhs_f_test_penalty_do_nothing_c
 ///\}

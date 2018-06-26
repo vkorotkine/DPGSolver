@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray_operator.h"
 #include "numerical_flux.h"
 #include "operator.h"
+#include "penalty_opg.h"
 #include "simulation.h"
 #include "solve.h"
 #include "solve_opg.h"
@@ -193,7 +194,7 @@ static void finalize_lhs_1_f_opg
 	const struct const_Matrix_d*const lhs_l = constructor_mm_const_Matrix_d('N','N',1.0,lhs_l_p2,ops->proj_L2_l,'R'); // d.
 	destructor_const_Matrix_d(lhs_l_p2);
 
-#if 0 // Only enable for face collocated parameters (p_t_p = 0).
+#if 1 // Only enable for face collocated parameters (p_t_p = 0).
 #include "solution_advection.h"
 	const struct const_Multiarray_d*const normals_fc = s_face->normals_fc;
 	const ptrdiff_t n_fc = normals_fc->extents[0];

@@ -36,7 +36,7 @@ struct Solver_Storage_Implicit;
  *  \param s_face   \ref Solver_Face_T.
  *  \param ssi      \ref Solver_Storage_Implicit.
  *
- * As the (bilinear) form specified only with the dg-like terms results in the specification of the test function along
+ * As the (bilinear) form obtained only with the dg-like terms results in the specification of the test function along
  * each charateristic only to within an arbitrary constant, an additional penalty term is added to ensure that a
  * sufficient number of boundary conditions are set for the test function such that the system is solvable. The penalty
  * term (added to the rhs) takes the form:
@@ -69,6 +69,9 @@ struct OPG_Solver_Face_T {
 
 	/// Version of \ref constructor_rlhs_f_b_test_penalty_T for rhs (and lhs if applicable) term(s).
 	constructor_rlhs_f_b_test_penalty_T constructor_rlhs_penalty;
+
+	/// The type of 'b'oundary 'c'ondition to set for \ref Solver_Volume_T::test_s_coef on the current face.
+	int bc_test_s;
 };
 
 /// \brief Constructor for a derived \ref OPG_Solver_Face_T.

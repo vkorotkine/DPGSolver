@@ -56,6 +56,7 @@ void constructor_derived_OPG_Solver_Face_T (struct Face* face_ptr, const struct 
 	opg_s_face->m_inv = constructor_inverse_mass_face_T(s_face,NULL); // destructed
 
 	set_function_pointers_penalty_T(opg_s_face);
+	opg_s_face->bc_test_s = BC_TEST_S_DO_NOTHING;
 }
 
 void destructor_derived_OPG_Solver_Face_T (struct Face* face_ptr)

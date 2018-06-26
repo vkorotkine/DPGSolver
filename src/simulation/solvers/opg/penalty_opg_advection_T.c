@@ -88,16 +88,17 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 			indicator->data[n] = 1.0;
 	}
 
-#if 0
+#if 1
 	static int count = 0;
-	const int count_max = 2;
+	const int count_max = 3;
 	/* const int count_max = (int) round(2.0/face->h); // number of faces along one boundary face */
 	/* const int count_max = (int) round(4.0/face->h); // number of faces along two boundary faces */
 	if (count == count_max)
 		return;
-	/* if (face->index == 7 || face->index == 10) */
 	/* if (face->index == 11 || face->index == 7 || face->index == 10) */
-	if (face->index == 6 || face->index == 7 || face->index == 10)
+	/* if (face->index == 10) */
+	if (face->index == 7 || face->index == 10)
+	/* if (face->index == 6 || face->index == 7 || face->index == 10) */
 		return;
 	if (indicator->data[0]) {
 		printf("%d\n",face->index);
@@ -135,7 +136,9 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	struct Vector_T*const g_V = constructor_empty_Vector_T(n_fc); // destructed
 	double g = 0.1;
 	if (face->index == 6)
-		g += 0.2;
+		g += 1.0;
+	/* if (face->index == 7) */
+	/* 	g += 1.5; */
 	set_to_value_Vector_T(g_V,g);
 	struct const_Matrix_T g_M = { .ext_0 = g_V->ext_0, .ext_1 = 1, .layout = 'C', .data = g_V->data, };
 	struct Matrix_T rhs_M = interpret_Multiarray_as_Matrix_T(s_vol->rhs);

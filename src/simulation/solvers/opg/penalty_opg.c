@@ -17,6 +17,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "penalty_opg.h"
 
+#include "face_solver_opg.h"
+#include "volume_solver_opg.h"
+
 #include "numerical_flux.h"
 
 // Static function declarations ************************************************************************************* //
