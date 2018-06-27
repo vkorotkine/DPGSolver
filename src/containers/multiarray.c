@@ -28,6 +28,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+double CMP_TOL = 0.0; ///< Comparison tolerance used for \ref cmp_Vector_tol_T.
+
 // Interface functions ********************************************************************************************** //
 
 #include "def_templates_type_i.h"

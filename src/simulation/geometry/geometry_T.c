@@ -218,7 +218,7 @@ void compute_geometry_volume_T
 if (1) {
 	constructor_volume_metric_terms_T('m',s_vol);
 	constructor_volume_metric_terms_T('c',s_vol);
-	if (get_set_method(NULL) == METHOD_OPG)
+	if (get_set_method(NULL) == METHOD_OPG || get_set_method(NULL) == METHOD_OPGC0)
 		constructor_volume_metric_terms_T('s',s_vol);
 } else {
 	const char op_format = get_set_op_format(0);

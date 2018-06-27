@@ -21,6 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #undef compute_face_rlhs_opg_T
+#undef compute_face_rlhs_opg_boundary_T
 #undef update_coef_nf_f_opg_T
 #undef constructor_Lhs_Operators_OPG_T
 #undef destructor_Lhs_Operators_OPG_T

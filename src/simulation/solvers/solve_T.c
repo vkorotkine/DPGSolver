@@ -86,17 +86,18 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const str
 	struct Vector_i* nnz = constructor_nnz(sim); // destructed
 	const ptrdiff_t dof_solve = nnz->ext_0;
 
+	struct Solver_Storage_Implicit* ssi = calloc(1,sizeof *ssi); // free
 	switch (sim->method) {
 		case METHOD_DG:  // fallthrough
 		case METHOD_DPG: assert(dof_solve == compute_dof_T(sim));      break;
-		case METHOD_OPG: // fallthrough
-		case METHOD_OPGC0:
+		case METHOD_OPG:
 			assert(dof_solve == compute_dof_test_T(sim));
+			// fallthrough
+		case METHOD_OPGC0:
+			ssi->using_c0 = true;
 			break;
 		default:         EXIT_ERROR("Unsupported: %d.\n",sim->method); break;
 	}
-
-	struct Solver_Storage_Implicit* ssi = calloc(1,sizeof *ssi); // free
 
 	MatCreateSeqAIJ(MPI_COMM_WORLD,(PetscInt)dof_solve,(PetscInt)dof_solve,0,nnz->data,&ssi->A); // destructed
 	MatSetFromOptions(ssi->A);

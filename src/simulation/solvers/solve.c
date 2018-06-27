@@ -170,7 +170,8 @@ void copy_rhs (const struct Simulation*const sim, struct Solver_Storage_Implicit
 {
 	switch (sim->method) {
 		case METHOD_DG: // fallthrough
-		case METHOD_OPG:
+		case METHOD_OPG: // fallthrough
+		case METHOD_OPGC0:
 			break; // Do nothing
 		case METHOD_DPG: EXIT_ADD_SUPPORT; UNUSED(ssi); break;
 		default:         EXIT_ERROR("Unsupported: %d\n",sim->method); break;

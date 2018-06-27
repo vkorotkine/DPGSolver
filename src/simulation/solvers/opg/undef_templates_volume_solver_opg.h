@@ -30,3 +30,4 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef get_operator__vc0_vs_vs_T
 #undef get_operator__cv1_vt_vs_T
+#undef get_operator__cv0_vg_vt_T

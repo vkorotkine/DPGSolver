@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the macro definitions used for c-style templating related to the math functions.
  */
 
+#if defined TYPE_RC
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Aliases for std library functions
@@ -89,3 +90,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #define dot_R       dot_d
 #define max_abs_R   max_abs_d
 ///\}
+
+
+
+#elif defined TYPE_I
+#if TYPE_I == TYPE_II
+
+///\{ \name Aliases for std library functions
+#define abs_T  abs
+///\}
+
+#endif
+#endif

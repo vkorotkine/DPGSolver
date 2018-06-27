@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define compute_face_rlhs_opg_T compute_face_rlhs_opg
+#define compute_face_rlhs_opg_boundary_T compute_face_rlhs_opg_boundary_d
 #define update_coef_nf_f_opg_T update_coef_nf_f_opg
 #define constructor_Lhs_Operators_OPG_T constructor_Lhs_Operators_OPG
 #define destructor_Lhs_Operators_OPG_T destructor_Lhs_Operators_OPG
@@ -57,6 +58,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define compute_face_rlhs_opg_T compute_face_rlhs_opg_c
+#define compute_face_rlhs_opg_boundary_T compute_face_rlhs_opg_boundary_c
 #define update_coef_nf_f_opg_T update_coef_nf_f_opg_c
 #define constructor_Lhs_Operators_OPG_T constructor_Lhs_Operators_OPG_c
 #define destructor_Lhs_Operators_OPG_T destructor_Lhs_Operators_OPG_c

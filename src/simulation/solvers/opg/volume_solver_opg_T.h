@@ -70,6 +70,12 @@ struct Multiarray_Operator get_operator__cv1_vt_vs_T
 	(const struct OPG_Solver_Volume_T*const opg_s_vol ///< Standard.
 	 );
 
+/** \brief Get the pointer to the appropriate \ref OPG_Solver_Element::cv0_vg_vt operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vg_vt_T
+	(const struct OPG_Solver_Volume_T*const opg_s_vol ///< Standard.
+	 );
+
 #include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_volume_solver.h"

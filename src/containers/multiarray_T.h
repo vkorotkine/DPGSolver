@@ -152,6 +152,15 @@ void set_Multiarray_T_Multiarray_R
 struct Vector_i* sort_Multiarray_Vector_T
 	(struct Multiarray_Vector_T* a, ///< Standard.
 	 const bool return_indices      ///< Flag for whether the indices should also be returned.
+	 );
+
+/** \brief Sort the data of the \ref Multiarray_Vector_T\* but not the entries of the individual vectors with comparison
+ *         returning equal if values differ by less than the input tolerance.
+ *  \return Optionally return indices or `NULL`. */
+struct Vector_i* sort_Multiarray_Vector_tol_T
+	(struct Multiarray_Vector_T* a, ///< Standard.
+	 const bool return_indices,     ///< Flag for whether the indices should also be returned.
+	 const double tol               ///< The tolerance for the comparison.
 	);
 
 /** \brief Reorder a \ref Multiarray_Vector_T based on the provided ordering.

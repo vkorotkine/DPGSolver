@@ -16,12 +16,12 @@ mesh_path        ../meshes/
 
 # Simulation variables
 
-interp_tp  GL
+interp_tp  GLL
 interp_si  WSH
 interp_pyr GLL
 
 basis_geom  lagrange
-basis_sol   orthonormal
+basis_sol   lagrange
 
 geom_representation  superparametric
 geom_blending_tp     gordon_hall
@@ -29,7 +29,7 @@ geom_blending_si     szabo_babuska_gen
 
 p_ref    2 2
 p_cub_p  2 2
-p_test_p 1 1
+p_test_p 0 0
 
 method_name optimal_petrov_galerkin_c0
 

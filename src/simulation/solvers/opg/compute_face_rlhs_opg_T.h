@@ -57,6 +57,13 @@ void compute_face_rlhs_opg_T
 	(const struct Simulation*const sim,        ///< Standard.
 	 struct Solver_Storage_Implicit*const ssi, ///< Standard.
 	 struct Intrusive_List*const faces         ///< The list of faces.
+	 );
+
+/// \brief As for \ref compute_face_rlhs_opg_T but only adding face terms for boundary faces.
+void compute_face_rlhs_opg_boundary_T
+	(const struct Simulation*const sim,        ///< Standard.
+	 struct Solver_Storage_Implicit*const ssi, ///< Standard.
+	 struct Intrusive_List*const faces         ///< The list of faces.
 	);
 
 /** \brief Update the values of \ref Solver_Face_T::nf_coef based on the updated \ref Solver_Volume_T::test_s_coef

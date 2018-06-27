@@ -134,6 +134,48 @@ void compute_face_rlhs_opg_T
 	destructor_Flux_Input_T(flux_i);
 }
 
+void compute_face_rlhs_opg_boundary_T
+	(const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi, struct Intrusive_List*const faces)
+{
+	if (get_set_has_1st_2nd_order(NULL)[1])
+		EXIT_ERROR("Add support/Ensure that all is working as expected.\n");
+
+	assert(sim->elements->name == IL_ELEMENT_SOLVER_OPG);
+	assert(sim->faces->name    == IL_FACE_SOLVER_OPG);
+	assert(sim->volumes->name  == IL_VOLUME_SOLVER_OPG);
+
+	struct S_Params_f_T s_params = set_s_params_f_T(sim);
+
+	struct Test_Case_T*const test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	const char smc = test_case->solver_method_curr;
+	test_case->solver_method_curr = 'i'; // Jacobians needed for the penalty terms.
+	struct Numerical_Flux_Input_T*const num_flux_i = constructor_Numerical_Flux_Input_T(sim); // destructed
+	test_case->solver_method_curr = smc;
+
+	struct Flux_Input_T*const flux_i = constructor_Flux_Input_T(sim); // destructed
+
+/// \todo Delete if not needed (along with unused members of the OPG containers).
+	reset_penalty_indicators_opg_T(faces);
+
+	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {
+		struct Face*const face = (struct Face*) curr;
+		if (!face->boundary)
+			continue;
+
+		struct Solver_Face_T*const s_face = (struct Solver_Face_T*) curr;
+
+		struct Numerical_Flux_T*const num_flux = constructor_Numerical_Flux_OPG_T(num_flux_i,s_face,sim); // dest.
+		struct Flux_Ref_T*const flux_r         = constructor_Flux_Ref_OPG_T(flux_i,s_face); // destructed
+
+		s_params.scale_by_Jacobian(num_flux,s_face);
+		s_params.compute_rlhs(flux_r,num_flux,s_face,ssi);
+		destructor_Numerical_Flux_T(num_flux);
+		destructor_Flux_Ref_T(flux_r);
+	}
+	destructor_Numerical_Flux_Input_T(num_flux_i);
+	destructor_Flux_Input_T(flux_i);
+}
+
 void update_coef_nf_f_opg_T (const struct Simulation*const sim, struct Intrusive_List*const faces)
 {
 	UNUSED(sim);

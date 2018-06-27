@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to real functions used to solve for the solution.
  */
 
+#include <stdbool.h>
+
 #include "def_templates_type_d.h"
 #include "solve_T.h"
 #include "undef_templates_type.h"
@@ -42,6 +44,16 @@ struct Solver_Storage_Implicit {
 
 	int row, ///< Index of the first row in which data is to be added.
 	    col; ///< Index of the first col in which data is to be added.
+
+	/** Flag for whether the computed matrix and vector should be interpreted for C0 space instead of the standard
+	 *  L2 space. */
+	bool using_c0;
+
+	/** Matrix collapsing the A matrix and b vector from the L2 dof to the C0 dof.
+	 *  - A_c0 = l2_to_c0*A*l2_to_c0';
+	 *  - b_c0 = l2_to_c0*b.
+	 */
+	Mat l2_to_c0;
 };
 
 // Interface functions ********************************************************************************************** //

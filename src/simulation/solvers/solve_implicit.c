@@ -118,7 +118,8 @@ bool check_symmetric (const struct Simulation* sim)
 	case PDE_ADVECTION:
 		switch (sim->method) {
 		case METHOD_DG:  // fallthrough
-		case METHOD_OPG:
+		case METHOD_OPG: // fallthrough
+		case METHOD_OPGC0:
 			/** \warning OPG matrix may be symmetric after adding the penalty term and not considering the
 			 *  influence of outflow boundaries. */
 			return false;
@@ -328,6 +329,13 @@ static PetscErrorCode constructor_petsc_ksp
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
+/** \brief Convert the input vector of solved values corresponding to the C0 dof to those of the L2 dof by duplicating
+ *         entries corresponding to the same node. */
+static void convert_x_to_L2
+	(Vec* x,                                        ///< The solution vector corresponding to the C0 dof.
+	 const struct Solver_Storage_Implicit*const ssi ///< Standard.
+	 );
+
 /// \brief Update the values of coefficients based on the computed increment.
 static void update_coefs
 	(Vec x,                       ///< Petsc Vec holding the solution coefficient increments.
@@ -449,6 +457,9 @@ static PetscErrorCode solve_and_update
 		VecNorm(ssi->b,NORM_INFINITY,&norm_inf_B);
 		printf("A and b inf norms: % .3e % .3e\n",norm_inf_A,norm_inf_B);
 	}
+
+	if (ssi->using_c0)
+		convert_x_to_L2(&x,ssi);
 
 	update_coefs(x,sim);
 	destructor_petsc_x(x);
@@ -582,6 +593,13 @@ static PetscErrorCode constructor_petsc_ksp (KSP*const ksp, Mat A, const struct 
 	}
 	KSPSetUp(*ksp);
 	return 0;
+}
+
+static void convert_x_to_L2 (Vec* x, const struct Solver_Storage_Implicit*const ssi)
+{
+	// construct a new vec of the correct length to fit all l2 variables and copy from input x, then overwrite input
+	// x after destructing.
+	EXIT_ADD_SUPPORT; UNUSED(x); UNUSED(ssi);
 }
 
 static void update_coefs (Vec x, const struct Simulation* sim)

@@ -79,6 +79,7 @@ void destructor_derived_OPG_Solver_Element (struct Element* element_ptr)
 	destructor_Multiarray_Operator(opg_s_e->vc0_vs_vs);
 	destructor_Multiarray_Operator_conditional(opg_s_e->cv0_vt_vs);
 	destructor_Multiarray_Operator(opg_s_e->cv1_vt_vs);
+	destructor_Multiarray2_Operator(opg_s_e->cv0_vg_vt);
 
 	destructor_Multiarray2_Operator(opg_s_e->cv0_vt_fc);
 	destructor_Multiarray2_Operator(opg_s_e->cv1_vt_fc);
@@ -99,6 +100,8 @@ static void constructor_derived_OPG_Solver_Element_std (struct Element* element_
 	opg_s_e->vc0_vs_vs    = constructor_operators("vc0","vsA","vsA","H_1_P_PM0",e,sim); // destructed
 	opg_s_e->cv0_vt_vs    = constructor_operators("cv0","vtA","vsA","H_1_P_PM0",e,sim); // destructed
 	opg_s_e->cv1_vt_vs    = constructor_operators("cv1","vtA","vsA","H_1_P_PM0",e,sim); // destructed
+	opg_s_e->cv0_vg_vt[0] = constructor_operators("cv0","vgs","vtA","H_1_P_1P", e,sim); // destructed
+	opg_s_e->cv0_vg_vt[1] = constructor_operators("cv0","vgc","vtA","H_1_P_PM0",e,sim); // destructed
 
 	opg_s_e->cv0_vt_fc[0] = constructor_operators("cv0","vtA","fcs","H_CF_P_PM1",e,sim); // destructed
 	opg_s_e->cv0_vt_fc[1] = constructor_operators("cv0","vtA","fcc","H_CF_P_PM1",e,sim); // destructed
@@ -135,6 +138,12 @@ static void constructor_derived_OPG_Solver_Element_tp (struct Element* element_p
 	set_operators_tp(&ops_tp,opg_s_se[0]->cv0_vt_vs,opg_s_se[0]->cv1_vt_vs,
 			         opg_s_se[1]->cv0_vt_vs,opg_s_se[1]->cv1_vt_vs);
 	opg_s_e->cv1_vt_vs = constructor_operators_tp("cv1","vtA","vsA","H_1_P_PM0",e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,opg_s_se[0]->cv0_vg_vt[0],NULL,opg_s_se[1]->cv0_vg_vt[0],NULL);
+	opg_s_e->cv0_vg_vt[0] = constructor_operators_tp("cv0","vgs","vtA","H_1_P_1P",e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,opg_s_se[0]->cv0_vg_vt[1],NULL,opg_s_se[1]->cv0_vg_vt[1],NULL);
+	opg_s_e->cv0_vg_vt[1] = constructor_operators_tp("cv0","vgc","vtA","H_1_P_PM0",e,sim,&ops_tp); // destructed
 
 
 	set_operators_tp(&ops_tp,opg_s_se[0]->cv0_vt_vc[0],opg_s_se[0]->cv0_vt_fc[0],

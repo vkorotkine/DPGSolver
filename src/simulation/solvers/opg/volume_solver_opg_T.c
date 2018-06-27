@@ -68,6 +68,18 @@ struct Multiarray_Operator get_operator__cv1_vt_vs_T (const struct OPG_Solver_Vo
 	return set_MO_from_MO(e->cv1_vt_vs,1,(ptrdiff_t[]){0,0,p,p});
 }
 
+const struct Operator* get_operator__cv0_vg_vt_T (const struct OPG_Solver_Volume_T*const opg_s_vol)
+{
+	const struct Volume*const vol            = (struct Volume*) opg_s_vol;
+	const struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) opg_s_vol;
+	const struct OPG_Solver_Element*const e  = (struct OPG_Solver_Element*) vol->element;
+
+	const int curved = vol->curved;
+	const int p      = s_vol->p_ref;
+	const int p_i    = ( curved ? p : 1 );
+	return get_Multiarray_Operator(e->cv0_vg_vt[curved],(ptrdiff_t[]){0,0,p,p_i});
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

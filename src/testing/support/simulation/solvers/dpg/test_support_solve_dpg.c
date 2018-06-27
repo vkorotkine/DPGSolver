@@ -114,7 +114,6 @@ printf(" vol (l_mult): %d %d %d\n",col_l,ssi->col,vol->index);
 			destructor_IL(volumes_local,true);
 		}
 	}
-
 	petsc_mat_vec_assemble(ssi);
 }
 

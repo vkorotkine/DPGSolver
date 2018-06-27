@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_move_Vector_T_indexed constructor_move_Vector_d_indexed
 #define destructor_Vector_T_indexed       destructor_Vector_d_indexed
 #define cmp_Vector_T_indexed              cmp_Vector_d_indexed
+#define cmp_Vector_tol_T                  cmp_Vector_tol_d
 #define reorder_Multiarray_Vector_T       reorder_Multiarray_Vector_d
 #define compute_total_entries             compute_total_entries_d
 
@@ -53,6 +54,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_Multiarray_T_Multiarray_R set_Multiarray_d_Multiarray_d
 
 #define sort_Multiarray_Vector_T               sort_Multiarray_Vector_d
+#define sort_Multiarray_Vector_tol_T           sort_Multiarray_Vector_tol_d
 #define collapse_Multiarray_Vector_T           collapse_Multiarray_Vector_d
 #define resize_Multiarray_T                    resize_Multiarray_d
 #define get_const_Multiarray_Vector_T          get_const_Multiarray_Vector_d
@@ -88,6 +90,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_move_Vector_T_indexed constructor_move_Vector_c_indexed
 #define destructor_Vector_T_indexed       destructor_Vector_c_indexed
 #define cmp_Vector_T_indexed              cmp_Vector_c_indexed
+#define cmp_Vector_tol_T                  cmp_Vector_tol_c
 #define reorder_Multiarray_Vector_T       reorder_Multiarray_Vector_c
 #define compute_total_entries             compute_total_entries_c
 
@@ -102,6 +105,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_Multiarray_T_Multiarray_R set_Multiarray_c_Multiarray_d
 
 #define sort_Multiarray_Vector_T               sort_Multiarray_Vector_c
+#define sort_Multiarray_Vector_tol_T           sort_Multiarray_Vector_tol_c
 #define collapse_Multiarray_Vector_T           collapse_Multiarray_Vector_c
 #define resize_Multiarray_T                    resize_Multiarray_c
 #define get_const_Multiarray_Vector_T          get_const_Multiarray_Vector_c
@@ -162,6 +166,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_move_Vector_T_indexed constructor_move_Vector_i_indexed
 #define destructor_Vector_T_indexed       destructor_Vector_i_indexed
 #define cmp_Vector_T_indexed              cmp_Vector_i_indexed
+#define cmp_Vector_tol_T                  cmp_Vector_tol_i
 #define reorder_Multiarray_Vector_T       reorder_Multiarray_Vector_i
 #define compute_total_entries             compute_total_entries_i
 
@@ -175,6 +180,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_Multiarray_T_Multiarray_R set_Multiarray_i_Multiarray_d
 
 #define sort_Multiarray_Vector_T               sort_Multiarray_Vector_i
+#define sort_Multiarray_Vector_tol_T           sort_Multiarray_Vector_tol_i
 #define collapse_Multiarray_Vector_T           collapse_Multiarray_Vector_i
 #define resize_Multiarray_T                    resize_Multiarray_i
 #define get_const_Multiarray_Vector_T          get_const_Multiarray_Vector_i

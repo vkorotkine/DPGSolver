@@ -35,6 +35,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_move_Vector_T_indexed
 #undef destructor_Vector_T_indexed
 #undef cmp_Vector_T_indexed
+#undef cmp_Vector_tol_T
 #undef reorder_Multiarray_Vector_T
 #undef compute_total_entries
 
@@ -49,6 +50,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_Multiarray_T_Multiarray_R
 
 #undef sort_Multiarray_Vector_T
+#undef sort_Multiarray_Vector_tol_T
 #undef collapse_Multiarray_Vector_T
 #undef resize_Multiarray_T
 #undef get_const_Multiarray_Vector_T
