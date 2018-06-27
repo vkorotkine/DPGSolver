@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdio.h>
 
 #include "macros.h"
+#include "definitions_alloc.h"
 
 #include "def_templates_face_solver_opg.h"
 #include "def_templates_volume_solver_opg.h"
@@ -35,25 +36,26 @@ You should have received a copy of the GNU General Public License along with DPG
 
 void reset_penalty_indicators_opg_T (const struct Intrusive_List*const faces)
 {
-	bool boundary_0 = false;
-	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {
-		const struct Face*const face = (struct Face*) curr;
-		if (!face->boundary)
-			continue;
+	EXIT_UNSUPPORTED; /// \todo Delete if unused.
+	UNUSED(faces);
+	/* for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) { */
+	/* 	const struct Face*const face = (struct Face*) curr; */
+	/* 	if (!face->boundary) */
+	/* 		continue; */
 
-		struct OPG_Solver_Face_T*const opg_s_face = (struct OPG_Solver_Face_T*) curr;
-		if (!boundary_0) {
-			/** Possibly required to choose this boundary condition for the most downwind face; hopefully
-			 *  not the case as this would be difficult for more complicated cases than linear advection.
-			 *  \todo Delete this comment after checking. */
-			boundary_0 = true;
-			opg_s_face->bc_test_s = BC_TEST_S_SPEC_CONST;
-		} else {
-			opg_s_face->bc_test_s = BC_TEST_S_FREE_CONST;
-		}
-		struct OPG_Solver_Volume_T*const opg_s_volume = (struct OPG_Solver_Volume_T*) face->neigh_info[0].volume;
-		opg_s_volume->bc_test_s = BC_TEST_S_NEEDED;
-	}
+	/* 	struct OPG_Solver_Face_T*const opg_s_face = (struct OPG_Solver_Face_T*) curr; */
+	/* 	if (!boundary_0) { */
+	/* 		/\** Possibly required to choose this boundary condition for the most downwind face; hopefully */
+	/* 		 *  not the case as this would be difficult for more complicated cases than linear advection. */
+	/* 		 *  \todo Delete this comment after checking. *\/ */
+	/* 		boundary_0 = true; */
+	/* 		opg_s_face->bc_test_s = BC_TEST_S_SPEC_CONST; */
+	/* 	} else { */
+	/* 		opg_s_face->bc_test_s = BC_TEST_S_FREE_CONST; */
+	/* 	} */
+	/* 	struct OPG_Solver_Volume_T*const opg_s_volume = (struct OPG_Solver_Volume_T*) face->neigh_info[0].volume; */
+	/* 	opg_s_volume->bc_test_s = BC_TEST_S_NEEDED; */
+	/* } */
 }
 
 void constructor_rlhs_f_test_penalty_unsupported_T
@@ -70,6 +72,26 @@ void constructor_rlhs_f_test_penalty_do_nothing_T
 {
 	UNUSED(flux_r); UNUSED(num_flux); UNUSED(s_face); UNUSED(ssi);
 	return;
+}
+
+int read_bc_test_s_type_T ()
+{
+	const int count_to_find = 1;
+	int count_found = 0;
+
+	FILE* input_file = NULL;
+	char line[STRLEN_MAX];
+
+	int bc_test_s_type = -1;
+
+	input_file = fopen_input('t',NULL,NULL); // closed
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_convert_i(line,"bc_test_s_type",&bc_test_s_type,&count_found);
+	}
+	fclose(input_file);
+	assert(count_found == count_to_find);
+
+	return bc_test_s_type;
 }
 
 // Static functions ************************************************************************************************* //

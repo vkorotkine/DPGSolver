@@ -117,7 +117,7 @@ void compute_face_rlhs_opg_T
 
 	struct Flux_Input_T*const flux_i = constructor_Flux_Input_T(sim); // destructed
 
-	reset_penalty_indicators_opg_T(faces);
+//	reset_penalty_indicators_opg_T(faces);
 
 	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {
 		struct Solver_Face_T*const s_face = (struct Solver_Face_T*) curr;
@@ -154,8 +154,7 @@ void compute_face_rlhs_opg_boundary_T
 
 	struct Flux_Input_T*const flux_i = constructor_Flux_Input_T(sim); // destructed
 
-/// \todo Delete if not needed (along with unused members of the OPG containers).
-	reset_penalty_indicators_opg_T(faces);
+//	reset_penalty_indicators_opg_T(faces);
 
 	for (struct Intrusive_Link* curr = faces->first; curr; curr = curr->next) {
 		struct Face*const face = (struct Face*) curr;

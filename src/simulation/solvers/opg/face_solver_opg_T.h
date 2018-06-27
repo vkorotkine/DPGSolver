@@ -29,30 +29,38 @@ struct Numerical_Flux_T;
 struct Solver_Face_T;
 struct Solver_Storage_Implicit;
 
-/** \brief Pointer to functions adding the penalty term to boundary faces having outgoing characteristics.
+/** \brief Pointer to functions adding the penalty term to required boundary faces.
  *
  *  \param flux     \ref Flux_T.
  *  \param num_flux \ref Numerical_Flux_T.
  *  \param s_face   \ref Solver_Face_T.
  *  \param ssi      \ref Solver_Storage_Implicit.
  *
- * As the (bilinear) form obtained only with the dg-like terms results in the specification of the test function along
- * each charateristic only to within an arbitrary constant, an additional penalty term is added to ensure that a
- * sufficient number of boundary conditions are set for the test function such that the system is solvable. The penalty
- * term (added to the rhs) takes the form:
+ *  As the (bilinear) form obtained only with the dg-like terms results in the specification of the test function along
+ *  each charateristic only to within an arbitrary constant, an additional penalty term is added to ensure that a
+ *  sufficient number of boundary conditions are set for the test function such that the system is solvable. The penalty
+ *  term (added to the rhs) takes the form:
  *
- * \f$ \eps^{-1} <v,g-w>_{\Gamma^\text{characteristic out}} \forall v \f$
+ *  \f$ \eps^{-1} <v,g-w>_{\Gamma^\text{characteristic out}} \forall v \f$
  *
- * where:
- * - \f$ \eps \f$ is chosen as \f$ \eps = C h^{p_\text{test}+1} > 0 \f$ following the \cite Barrett1986;
- * - \f$ v \f$ represents the test function which is being used to test the equation;
- * - \f$ w \f$ represents the test function which is being solved for;
- * - \f$ g \f$ represents the (arbitrary) boundary value;
- * - \f$ \Gamma^\text{characteristic out}} \f$ represents boundaries having outgoing characteristics.
+ *  where:
+ *  - \f$ \eps \f$ is chosen as \f$ \eps = C h^{p_\text{test}+1} > 0 \f$ following the \cite Barrett1986;
+ *  - \f$ v \f$ represents the test function which is being used to test the equation;
+ *  - \f$ w \f$ represents the test function which is being solved for;
+ *  - \f$ g \f$ represents the (arbitrary) boundary value;
+ *  - \f$ \Gamma^\text{characteristic out}} \f$ represents boundaries having outgoing characteristics.
  *
- * In the case of the linear advection equation, the term can be simplified by choosing \f$ g = 0\f$ and \f$ w_0 = 0\f$
- * (i.e. choosing the initial test function values as being zero on the outflow boundary). It thus has no contribution
- * to the rhs but is present in the lhs (linearization) in this case.
+ *  Note that this penalty __must not__ be applied on every face with outgoing characteristics; doing so results in
+ *  overconstraining the problem. The simplest example of this was discussed by Brunken et al., section 3.2
+ *  \cite Brunken2018 where it was noted that applying Dirichlet BCs for the test function along all outflow boundaries
+ *  for linear advection restricts the value of the solution at the outflow corner to zero; consequently, the
+ *  non-trivial constant solution cannot even be recovered... They advocate extending the domain to remedy the problem
+ *  but this is addressed here by eliminating the imposed boundary conditions which result in non-physical solution
+ *  restrictions. The correct method for imposing the boundary conditions is still under investigation.
+ *
+ *  In the case of the linear advection equation, the term can be simplified by choosing \f$ g = 0\f$ and \f$ w_0 = 0\f$
+ *  (i.e. choosing the initial test function values as being zero on the outflow boundary). It thus has no contribution
+ *  to the rhs but is present in the lhs (linearization) in this case.
  */
 typedef void (*constructor_rlhs_f_b_test_penalty_T)
 	(const struct Flux_Ref_T*const flux_r,

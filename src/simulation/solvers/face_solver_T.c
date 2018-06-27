@@ -170,16 +170,11 @@ static void set_function_pointers_num_flux_bc_advection (struct Solver_Face_T* s
 
 	const int bc = face->bc % BC_STEP_SC;
 	switch (bc) {
+	case BC_INFLOW: case BC_INFLOW_ALT1: case BC_INFLOW_ALT2:
+	case BC_OUTFLOW: case BC_OUTFLOW_ALT1: case BC_OUTFLOW_ALT2:
 	case BC_UPWIND: case BC_UPWIND_ALT1: case BC_UPWIND_ALT2:
 	case BC_UPWIND_ALT3: case BC_UPWIND_ALT4: case BC_UPWIND_ALT5:
 		s_face->constructor_Boundary_Value_fcl = constructor_Boundary_Value_T_advection_upwind;
-		break;
-	case BC_INFLOW: case BC_INFLOW_ALT1: case BC_INFLOW_ALT2:
-	case BC_OUTFLOW: case BC_OUTFLOW_ALT1: case BC_OUTFLOW_ALT2:
-		printf("Warning: These BCs were deprecated and removed from the code.\n");
-		printf("This functionality is only present here for backwards compatibility with previous tests.\n");
-		printf("Please use the upwind boundary condition instead.\n");
-		s_face->constructor_Boundary_Value_fcl = NULL;
 		break;
 	case BC_SLIPWALL:
 		printf("This BC was deprecated and removed from the code.\n");

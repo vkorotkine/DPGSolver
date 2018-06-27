@@ -21,3 +21,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef reset_penalty_indicators_opg_T
 #undef constructor_rlhs_f_test_penalty_unsupported_T
 #undef constructor_rlhs_f_test_penalty_do_nothing_T
+#undef read_bc_test_s_type_T

@@ -174,7 +174,6 @@ static const struct const_Multiarray_T* constructor_source_advection_default_T
 
 // Level 1 ********************************************************************************************************** //
 
-#define USE_CONSTANT_1D false ///< Flag for whether the 1d solution should be a constant. \todo delete this option.
 static struct Multiarray_T* constructor_sol_advection_default_1d_T
 	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {
@@ -192,11 +191,7 @@ static struct Multiarray_T* constructor_sol_advection_default_1d_T
 
 	Type* u = get_col_Multiarray_T(0,sol);
 	for (int i = 0; i < n_vs; ++i) {
-if (!USE_CONSTANT_1D) {
 		u[i] = sin(SOURCE_M*real_T(x[i])+SOURCE_A);
- } else {
-		u[i] = 1.0; UNUSED(x);
- }
 	}
 
 	return sol;
@@ -227,17 +222,13 @@ static const struct const_Multiarray_T* constructor_source_advection_default_1d_
 	for (int i = 0; i < n_vs; ++i) {
 		const Type xyz_n[DIM] = ARRAY_DIM(x[i],0,0);
 		const Real*const b_adv = sol_data.compute_b_adv(xyz_n);
-if (!USE_CONSTANT_1D) {
 		s[i] = b_adv[0]*SOURCE_M*cos(SOURCE_M*real_T(x[i])+SOURCE_A);
- } else {
-	s[i] = 0.0; UNUSED(b_adv); UNUSED(x);
- }
 	}
 
 	return (struct const_Multiarray_T*)source;
 }
 
-#define USE_CONSTANT_2D true ///< Flag for whether the 2d solution should be a constant.
+#define USE_CONSTANT_2D false ///< Flag for whether the 2d solution should be a constant. \todo Delete this option.
 static struct Multiarray_T* constructor_sol_advection_default_2d_T
 	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {

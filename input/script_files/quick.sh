@@ -24,8 +24,8 @@ ARGV="advection/vortex/TEST_opg_advection_vortex_mixed2d petsc_options_gmres_tol
 ARGV="advection/default/opg/TEST_opg_advection_default__mixed2d petsc_options_cg_tol_1e-15"
 ARGV="advection/default/opg/TEST_opg_advection_default__1d petsc_options_gmres_tol_1e-15"
 ARGV="advection/default/opg/TEST_opg_advection_default__mixed2d petsc_options_gmres_tol_1e-15"
-ARGV="advection/default/opgc/TEST_opgc_advection_default__1d__ml2__p2 petsc_options_gmres_tol_1e-15"
 ARGV="advection/default/opgc/TEST_opgc_advection_default__1d petsc_options_gmres_tol_1e-15"
+ARGV="advection/default/opgc/TEST_opgc_advection_default__mixed2d petsc_options_gmres_tol_1e-15"
 
 #ARGV="burgers_inviscid/periodic/trigonometric/TEST_dg_burgers_inviscid_trigonometric__1d__ml5__p2 petsc_options_empty"
 

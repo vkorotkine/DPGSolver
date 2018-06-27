@@ -56,6 +56,10 @@ void constructor_rlhs_f_test_penalty_do_nothing_T
 	 struct Solver_Storage_Implicit*const ssi      ///< See brief.
 	 );
 
+/** \brief Read and return the value of the boundary condition type for the solution test functions from the input file.
+ *  \return See brief. */
+int read_bc_test_s_type_T ();
+
 #include "undef_templates_penalty_opg.h"
 #include "undef_templates_compute_rlhs.h"
 #include "undef_templates_numerical_flux.h"

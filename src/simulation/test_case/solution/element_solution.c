@@ -181,7 +181,8 @@ static void constructor_derived_Solution_Element_tp (struct Element* element_ptr
 	e->vc0_vr_vr  = constructor_operators_tp("vc0","vrA","vrA","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	switch (sim->method) {
-	case METHOD_DG:
+	case METHOD_DG: // fallthrough
+	case METHOD_OPGC0:
 		break; // Do nothing.
 	case METHOD_DPG: // fallthrough
 	case METHOD_OPG:

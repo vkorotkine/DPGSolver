@@ -56,7 +56,7 @@ void constructor_derived_OPG_Solver_Face_T (struct Face* face_ptr, const struct 
 	opg_s_face->m_inv = constructor_inverse_mass_face_T(s_face,NULL); // destructed
 
 	set_function_pointers_penalty_T(opg_s_face);
-	opg_s_face->bc_test_s = BC_TEST_S_DO_NOTHING;
+//	opg_s_face->bc_test_s = BC_TEST_S_DO_NOTHING;
 }
 
 void destructor_derived_OPG_Solver_Face_T (struct Face* face_ptr)
@@ -186,6 +186,8 @@ static void set_function_pointers_penalty_boundary_advection_T (struct OPG_Solve
 	const int bc = face->bc % BC_STEP_SC;
 
 	switch (bc) {
+	case BC_INFLOW:      case BC_INFLOW_ALT1: case BC_INFLOW_ALT2:
+	case BC_OUTFLOW:     case BC_OUTFLOW_ALT1: case BC_OUTFLOW_ALT2:
 	case BC_UPWIND:      case BC_UPWIND_ALT1: case BC_UPWIND_ALT2:
 	case BC_UPWIND_ALT3: case BC_UPWIND_ALT4: case BC_UPWIND_ALT5:
 		opg_s_face->constructor_rlhs_penalty = constructor_rlhs_f_test_penalty_advection_upwind_T;

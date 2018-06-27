@@ -36,13 +36,13 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name The values for the various boundary conditions after taking the modulus with \ref BC_STEP_SC.
 
 // Advection
-#define BC_INFLOW       1  ///< Deprecated (present only for backwards compatibility with previous tests).
-#define BC_INFLOW_ALT1  2  ///< Deprecated (present only for backwards compatibility with previous tests).
-#define BC_INFLOW_ALT2  3  ///< Deprecated (present only for backwards compatibility with previous tests).
-#define BC_OUTFLOW      11 ///< Deprecated (present only for backwards compatibility with previous tests).
-#define BC_OUTFLOW_ALT1 12 ///< Deprecated (present only for backwards compatibility with previous tests).
-#define BC_OUTFLOW_ALT2 13 ///< Deprecated (present only for backwards compatibility with previous tests).
-#define BC_UPWIND       41 // Advection
+#define BC_INFLOW       1  // Advection
+#define BC_INFLOW_ALT1  2
+#define BC_INFLOW_ALT2  3
+#define BC_OUTFLOW      11
+#define BC_OUTFLOW_ALT1 12
+#define BC_OUTFLOW_ALT2 13
+#define BC_UPWIND       41
 #define BC_UPWIND_ALT1  42
 #define BC_UPWIND_ALT2  43
 #define BC_UPWIND_ALT3  44

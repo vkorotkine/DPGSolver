@@ -114,7 +114,13 @@ GMSH_XYZVOL_MIN = 7001;
 
 // See comments in $DPG_ROOT/src/simulation/test_case/boundary/definitions_bc.h for when "ALT"ernate BC values are required.
 
-BC_UPWIND       = 41; // Advection
+BC_INFLOW       = 1; // Advection
+BC_INFLOW_ALT1  = 2;
+BC_INFLOW_ALT2  = 3;
+BC_OUTFLOW      = 11;
+BC_OUTFLOW_ALT1 = 12;
+BC_OUTFLOW_ALT2 = 13;
+BC_UPWIND       = 41;
 BC_UPWIND_ALT1  = 42;
 BC_UPWIND_ALT2  = 43;
 BC_UPWIND_ALT3  = 44;

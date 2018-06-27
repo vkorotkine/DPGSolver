@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define reset_penalty_indicators_opg_T reset_penalty_indicators_opg_d
 #define constructor_rlhs_f_test_penalty_unsupported_T constructor_rlhs_f_test_penalty_unsupported_d
 #define constructor_rlhs_f_test_penalty_do_nothing_T constructor_rlhs_f_test_penalty_do_nothing_d
+#define read_bc_test_s_type_T read_bc_test_s_type_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -33,6 +34,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define reset_penalty_indicators_opg_T reset_penalty_indicators_opg_c
 #define constructor_rlhs_f_test_penalty_unsupported_T constructor_rlhs_f_test_penalty_unsupported_c
 #define constructor_rlhs_f_test_penalty_do_nothing_T constructor_rlhs_f_test_penalty_do_nothing_c
+#define read_bc_test_s_type_T read_bc_test_s_type_c
 ///\}
 
 #endif

@@ -21,6 +21,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <math.h>
 
 #include "macros.h"
+#include "definitions_bc.h"
+#include "definitions_opg.h"
 #include "definitions_tol.h"
 
 #include "def_templates_face_solver_opg.h"
@@ -34,7 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_compute_rlhs.h"
 #include "def_templates_math_functions.h"
 #include "def_templates_numerical_flux.h"
-#include "def_templates_penalty_opg_advection.h"
+#include "def_templates_penalty_opg.h"
 #include "def_templates_face_solver.h"
 
 // Static function declarations ************************************************************************************* //
@@ -45,9 +47,41 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	(const struct Flux_Ref_T*const flux_r, const struct Numerical_Flux_T*const num_flux,
 	 struct Solver_Face_T*const s_face, struct Solver_Storage_Implicit*const ssi)
 {
-	/* printf("returning without penalty\n"); */
-	/* return; */
 	UNUSED(flux_r);
+
+	const struct Face*const face = (struct Face*) s_face;
+	const int bc = face->bc % BC_STEP_SC;
+	switch (bc) {
+	case BC_INFLOW: case BC_INFLOW_ALT1: case BC_INFLOW_ALT2:
+	case BC_UPWIND: case BC_UPWIND_ALT1: case BC_UPWIND_ALT2:
+	case BC_UPWIND_ALT3: case BC_UPWIND_ALT4: case BC_UPWIND_ALT5:
+		return; // do not impose a boundary condition for the test functions.
+		break;
+	case BC_OUTFLOW: case BC_OUTFLOW_ALT1: case BC_OUTFLOW_ALT2:
+		break; // continue below.
+	default:
+		EXIT_ERROR("Unsupported: %d\n",face->bc);
+		break;
+	}
+
+	int bc_test_s_type = -1;
+	bool need_input = true;
+	if (need_input) {
+		need_input = false;
+		bc_test_s_type = read_bc_test_s_type_T();
+	}
+
+	switch (bc_test_s_type) {
+	case BC_TEST_S_TYPE_ALL_OUTFLOW:
+		break; // continue below
+	case BC_TEST_S_TYPE_UPSTREAM_OUTFLOW:
+	case BC_TEST_S_TYPE_DOWNSTREAM_OUTFLOW:
+		EXIT_ADD_SUPPORT; // Check b (dot) n on each face of the neighbouring volume and skip imposition if not
+				  // on the correct element.
+	default:
+		EXIT_ERROR("Unsupported: %d\n",bc_test_s_type);
+		break;
+	}
 
 	/** It is assumed that the initial solution for \ref Solver_Volume_T::test_s_coef is equal to zero on all
 	 *  boundary faces which require the addition of the penalty term (outflow faces). It is also currently assumed
@@ -71,7 +105,6 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	const int n_eq = n_vr_eq[1];
 	assert(n_vr == 1 && n_eq == 1); // Ensure that all is working properly when removed; need to add loop over eq/var.
 
-	const struct Face*const face                     = (struct Face*) s_face;
 	const struct Solver_Volume_T*const s_vol         = (struct Solver_Volume_T*) face->neigh_info[0].volume;
 	const struct OPG_Solver_Face_T*const opg_s_face  = (struct OPG_Solver_Face_T*) s_face;
 
@@ -82,24 +115,22 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	const ptrdiff_t n_fc = n_dot_b->extents[0];
 	struct Vector_R*const indicator = constructor_zero_Vector_R(n_fc); // destructed
 	for (int n = 0; n < n_fc; ++n) {
-		/* if (real_T(n_dot_b->data[n]) > -EPS) */
 		if (real_T(n_dot_b->data[n]) > EPS)
-		/* if (real_T(n_dot_b->data[n]) > 0.0) */
 			indicator->data[n] = 1.0;
 	}
 
 #if 0
 	static int count = 0;
-	const int count_max = 3;
+	const int count_max = 1;
 	/* const int count_max = (int) round(2.0/face->h); // number of faces along one boundary face */
 	/* const int count_max = (int) round(4.0/face->h); // number of faces along two boundary faces */
 	if (count == count_max)
 		return;
 	/* if (face->index == 11 || face->index == 7 || face->index == 10) */
 	/* if (face->index == 10) */
-	if (face->index == 7 || face->index == 10)
+	/* if (face->index == 7 || face->index == 10) */
 	/* if (face->index == 6 || face->index == 7 || face->index == 10) */
-		return;
+	/* 	return; */
 	if (indicator->data[0]) {
 		printf("%d\n",face->index);
 		print_const_Multiarray_T(n_dot_b);
@@ -131,21 +162,6 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 	destructor_Lhs_Operators_OPG_T(s_face,ops);
 
 #if TYPE_RC == TYPE_REAL
-	// Currently assumed that w == 0 (i.e. always initializing to 0) and using a Lagrange basis.
-//	* \f$ \eps^{-1} <v,g-w>_{\Gamma^\text{characteristic out}} \forall v \f$
-	struct Vector_T*const g_V = constructor_empty_Vector_T(n_fc); // destructed
-	double g = 0.1;
-	if (face->index == 6)
-		g += 1.0;
-	/* if (face->index == 7) */
-	/* 	g += 1.5; */
-	set_to_value_Vector_T(g_V,g);
-	struct const_Matrix_T g_M = { .ext_0 = g_V->ext_0, .ext_1 = 1, .layout = 'C', .data = g_V->data, };
-	struct Matrix_T rhs_M = interpret_Multiarray_as_Matrix_T(s_vol->rhs);
-	mm_T('T','N',-1.0,1.0,lhs_r,&g_M,&rhs_M);
-
-	destructor_Vector_T(g_V);
-
 	if (ssi != NULL) {
 		const struct OPG_Solver_Volume_T*const opg_s_vol = (struct OPG_Solver_Volume_T*) face->neigh_info[0].volume;
 		for (int vr = 0; vr < n_vr; ++vr) {
@@ -178,5 +194,5 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 #include "undef_templates_compute_rlhs.h"
 #include "undef_templates_math_functions.h"
 #include "undef_templates_numerical_flux.h"
-#include "undef_templates_penalty_opg_advection.h"
+#include "undef_templates_penalty_opg.h"
 #include "undef_templates_face_solver.h"

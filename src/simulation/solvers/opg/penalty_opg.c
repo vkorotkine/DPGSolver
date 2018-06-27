@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "face_solver_opg.h"
 #include "volume_solver_opg.h"
 
+#include "file_processing.h"
 #include "numerical_flux.h"
 
 // Static function declarations ************************************************************************************* //

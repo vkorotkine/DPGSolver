@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_alloc.h"
 #include "definitions_bc.h"
 #include "definitions_dpg.h"
+#include "definitions_opg.h"
 #include "definitions_geometry.h"
 #include "definitions_physics.h"
 #include "definitions_numerical_flux.h"
@@ -106,6 +107,12 @@ static int get_define (const char*const def_str, const char*const def_type)
 		else if (strcmp(def_str,"H1")        == 0) def_i = TEST_NORM_H1;
 		else if (strcmp(def_str,"H1_upwind") == 0) def_i = TEST_NORM_H1_UPWIND;
 		else                                       def_i = TEST_NORM_INVALID;
+	} else if (strcmp(def_type,"bc_test_s_type") == 0) {
+		if      (strcmp(def_str,"all_outflow")      == 0) def_i = BC_TEST_S_TYPE_ALL_OUTFLOW;
+		else if (strcmp(def_str,"first_outflow")    == 0) def_i = BC_TEST_S_TYPE_UPSTREAM_OUTFLOW;
+		else if (strcmp(def_str,"downwind_outflow") == 0) def_i = BC_TEST_S_TYPE_DOWNSTREAM_OUTFLOW;
+		else
+			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else if (strcmp(def_type,"geom_parametrization") == 0) {
 		if      (strcmp(def_str,"radial_proj") == 0) def_i = GEOM_PRM_RADIAL_PROJ;
 		else if (strcmp(def_str,"arc_length")  == 0) def_i = GEOM_PRM_ARC_LENGTH;
