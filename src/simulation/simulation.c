@@ -467,7 +467,8 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 	       (sim->p_t_p[0] == P_INVALID && sim->p_t_p[1] == P_INVALID));
 
 	assert((sim->method == METHOD_DG)   || (sim->method == METHOD_HDG) ||
-	       (sim->method == METHOD_HDPG) || (sim->method == METHOD_DPG) || (sim->method == METHOD_OPG));
+	       (sim->method == METHOD_HDPG) || (sim->method == METHOD_DPG) || (sim->method == METHOD_OPG)||
+	       (sim->method == METHOD_FRSF));
 }
 
 static void set_simulation_default (struct Simulation*const sim)

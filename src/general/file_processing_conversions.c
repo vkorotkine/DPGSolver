@@ -149,6 +149,7 @@ static int get_define (const char*const def_str, const char*const def_type)
 		if      (strcmp(def_str,"discontinuous_galerkin")        == 0) def_i = METHOD_DG;
 		else if (strcmp(def_str,"discontinuous_petrov_galerkin") == 0) def_i = METHOD_DPG;
 		else if (strcmp(def_str,"optimal_petrov_galerkin")       == 0) def_i = METHOD_OPG;
+		else if (strcmp(def_str,"fr_split_form")       == 0) def_i = METHOD_FRSF;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else {

@@ -131,6 +131,9 @@ void set_initial_solution_T (struct Simulation* sim)
 	case METHOD_DG:
 		set_initial_v_sg_coef(sim);
 		break;
+	case METHOD_FRSF:
+		set_initial_v_sg_coef(sim);
+		break;
 	case METHOD_OPG:
 		set_initial_v_test_sg_coef_T(sim);
 		// fallthrough

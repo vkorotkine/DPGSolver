@@ -30,6 +30,14 @@ set	(SOURCE
 	 solvers/adaptation/element_adaptation.c
 	 solvers/adaptation/volume_solver_adaptive.c
 
+	 solvers/fr_split_form/compute_face_rlhs_fr_split_form.c
+	 solvers/fr_split_form/compute_source_rlhs_fr_split_form.c
+	 solvers/fr_split_form/compute_volume_rlhs_fr_split_form.c
+	 solvers/fr_split_form/element_solver_fr_split_form.c
+	 solvers/fr_split_form/face_solver_fr_split_form.c
+	 solvers/fr_split_form/solve_fr_split_form.c
+	 solvers/fr_split_form/volume_solver_fr_split_form.c
+
 	 solvers/dg/compute_face_rlhs_dg.c
 	 solvers/dg/compute_grad_coef_dg.c
 	 solvers/dg/compute_source_rlhs_dg.c

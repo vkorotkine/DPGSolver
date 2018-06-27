@@ -309,6 +309,8 @@ void compute_rhs_f_dg_like_T
 	}
 }
 
+
+
 void permute_Multiarray_T_fc
 	(struct Multiarray_T* data, const char perm_layout, const int side_index_dest,
 	 const struct Solver_Face_T*const s_face)
@@ -357,6 +359,7 @@ static void finalize_face_rhs_dg_like_T
 
 	mm_NNC_Operator_Multiarray_T(-1.0,1.0,tw0_vt_fc,num_flux->nnf,s_vol->rhs,op_format,2,NULL,NULL);
 }
+
 
 #include "undef_templates_compute_face_rlhs.h"
 

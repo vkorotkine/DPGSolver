@@ -51,6 +51,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "solve_dg.h"
 #include "solve_dpg.h"
 #include "solve_opg.h"
+#include "solve_fr_split_form.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -139,6 +140,9 @@ double compute_rhs (const struct Simulation* sim)
 	switch (sim->method) {
 	case METHOD_DG:
 		max_rhs = compute_rhs_dg(sim);
+		break;
+	case METHOD_FRSF:
+		max_rhs = compute_rhs_fr_split_form(sim);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);

@@ -120,6 +120,8 @@ static void constructor_derived_Solution_Element_std (struct Element* element_pt
 	switch (sim->method) {
 	case METHOD_DG:
 		break; // Do nothing.
+	case METHOD_FRSF:
+		break; // Do nothing.
 	case METHOD_DPG: // fallthrough
 	case METHOD_OPG:
 		e->cv0_vg_ff[0] = constructor_operators("cv0","vgs","ffA","H_1_P_1PPM1",b_e,sim); // destructed
@@ -230,6 +232,8 @@ static void constructor_derived_Solution_Element_common (struct Element* element
 
 	switch (sim->method) {
 	case METHOD_DG:
+		break; // Do nothing.
+	case METHOD_FRSF:
 		break; // Do nothing.
 	case METHOD_DPG: // fallthrough
 	case METHOD_OPG:

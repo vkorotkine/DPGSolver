@@ -77,7 +77,7 @@ static bool check_exit
 
 void solve_explicit (struct Simulation* sim)
 {
-	assert(sim->method == METHOD_DG); // Can be made flexible in future.
+	assert(sim->method == METHOD_DG || sim->method == METHOD_FRSF); // Can be made flexible in future.
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	test_case->solver_method_curr = 'e';
@@ -85,8 +85,12 @@ void solve_explicit (struct Simulation* sim)
 	test_case->time = 0.0;
 	set_initial_solution(sim);
 
-	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
-	constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
+	if (sim->method == METHOD_DG){
+		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
+	        constructor_derived_computational_elements(sim,IL_SOLVER_DG);} // destructed
+	else{
+		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_FRSF);       // destructed
+	        constructor_derived_computational_elements(sim,IL_SOLVER_FRSF);} // destructed
 
 	time_step_fptr time_step = set_time_step(sim);
 
@@ -225,9 +229,9 @@ static bool check_exit (const struct Test_Case* test_case, const double max_rhs,
 
 static double time_step_euler (const double dt, const struct Simulation* sim)
 {
-	assert(sim->method == METHOD_DG);
-	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
-	assert(sim->faces->name   == IL_FACE_SOLVER_DG);
+	assert(sim->method == METHOD_DG || sim->method == METHOD_FRSF);
+	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG || sim->volumes->name == IL_VOLUME_SOLVER_FRSF);
+	assert(sim->faces->name   == IL_FACE_SOLVER_DG || sim->faces->name == IL_FACE_SOLVER_FRSF);
 
 	const double max_rhs = compute_rhs(sim);
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {

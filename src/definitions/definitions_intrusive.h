@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define IL_SOLVER_DG           1011
 #define IL_SOLVER_DPG          1012
 #define IL_SOLVER_OPG          1013
+#define IL_SOLVER_FRSF         1014
 #define IL_SOLVER_ADAPTIVE     1030
 ///\}
 
@@ -43,6 +44,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define IL_ELEMENT_SOLVER_DG   111
 #define IL_ELEMENT_SOLVER_DPG  112
 #define IL_ELEMENT_SOLVER_OPG  113
+#define IL_ELEMENT_SOLVER_FRSF 114
 ///\}
 
 ///\{ \name The \ref Volume list names.
@@ -51,6 +53,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define IL_VOLUME_SOLVER_DG          211
 #define IL_VOLUME_SOLVER_DPG         212
 #define IL_VOLUME_SOLVER_OPG         213
+#define IL_VOLUME_SOLVER_FRSF        214
 #define IL_VOLUME_SOLVER_ADAPTIVE    230
 ///\}
 
@@ -60,6 +63,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define IL_FACE_SOLVER_DG           311
 #define IL_FACE_SOLVER_DPG          312
 #define IL_FACE_SOLVER_OPG          313
+#define IL_FACE_SOLVER_FRSF         314
 #define IL_FACE_SOLVER_ADAPTIVE     330
 ///\}
 

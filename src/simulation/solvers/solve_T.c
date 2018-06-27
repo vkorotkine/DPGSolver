@@ -110,7 +110,7 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const str
 
 ptrdiff_t compute_dof_T (const struct Simulation* sim)
 {
-	assert((sim->method == METHOD_DG) || (sim->method == METHOD_DPG) || (sim->method == METHOD_OPG));
+	assert((sim->method == METHOD_DG) || (sim->method == METHOD_DPG) || (sim->method == METHOD_OPG) || (sim->method == METHOD_FRSF));
 	ptrdiff_t dof = 0;
 	dof += compute_dof_volumes(sim);
 	dof += compute_dof_faces(sim);
@@ -170,6 +170,7 @@ void initialize_zero_memory_volumes_T (struct Intrusive_List* volumes)
 		struct Multiarray_T* ref_coef = NULL;
 		switch (get_set_method(NULL)) {
 		case METHOD_DG:  // fallthrough
+		case METHOD_FRSF:  // fallthrough
 		case METHOD_DPG:
 			ref_coef = s_vol->sol_coef;
 			break;

@@ -697,7 +697,8 @@ static void set_operator_solver
 	destructor_const_Nodes(nodes_o);
 
 	if (sim->collocated) {
-		EXIT_ERROR("Ensure that all is working as expected.\n");
+		if (sim->method != METHOD_FRSF)
+			EXIT_ERROR("Ensure that all is working as expected.\n");
 		// Note: Test space is higher degree than solution so efficiency advantages would not be present.
 		if (sim->method == METHOD_DPG)
 			return;

@@ -219,6 +219,10 @@ static void set_method_related (struct Test_Case_T*const test_case, const struct
 		if (test_case->has_2nd_order)
 			const_cast_b(&test_case->required_unknowns[2],true);
 		break;
+	case METHOD_FRSF:
+		if (test_case->has_2nd_order)
+			const_cast_b(&test_case->required_unknowns[2],true);
+		break;
 	case METHOD_DPG: // fallthrough
 	case METHOD_OPG:
 		const_cast_b(&test_case->required_unknowns[1],true);
@@ -301,6 +305,7 @@ static void correct_invalid_test_case_parameters (struct Test_Case_T* test_case,
 {
 	switch (sim->method) {
 	case METHOD_DG:  // fallthrough
+	case METHOD_FRSF:  // fallthrough
 	case METHOD_OPG:
 		const_cast_b(&test_case->use_schur_complement,false);
 		break;
@@ -404,6 +409,12 @@ static const bool* get_compute_member_Flux_Input
 			else if (type_ei == 'i')
 				return cm_110000;
 			break;
+		case METHOD_FRSF:
+			if (type_ei == 'e')
+				return cm_100000;
+			else if (type_ei == 'i')
+				return cm_110000;
+		        break;
 		default:
 			EXIT_ERROR("Unsupported: %d\n",sim->method);
 			break;

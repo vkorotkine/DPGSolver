@@ -126,6 +126,8 @@ static void constructor_derived_Adaptation_Element_common (struct Element* eleme
 	switch (sim->method) {
 	case METHOD_DG:
 		break; // Do nothing.
+	case METHOD_FRSF:
+		break; // Do nothing.
 	case METHOD_DPG: // fallthrough
 	case METHOD_OPG:
 		a_e->cc0_ff_ff = constructor_operators("cc0","ffA","ffA","H_ALL_P_PM1",e,sim); // destructed
