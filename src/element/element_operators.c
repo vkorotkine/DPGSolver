@@ -1207,6 +1207,7 @@ static bool op_should_use_L2 (const int*const op_values, const struct Operator_I
 		case 'f': // fallthrough
 		case 'r': // fallthrough
 		case 'p': // fallthrough
+		case 't': // fallthrough
 			return true;
 			break;
 		default:

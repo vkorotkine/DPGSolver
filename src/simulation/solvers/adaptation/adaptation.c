@@ -781,7 +781,8 @@ static void project_solution_volumes (struct Simulation* sim)
 	case METHOD_DG:  // fallthrough
 	case METHOD_DPG:
 		break; // Do nothing.
-	case METHOD_OPG:
+	case METHOD_OPG: // fallthrough
+	case METHOD_OPGC0:
 		set_initial_v_test_sg_coef(sim);
 		break;
 	default:
@@ -1255,12 +1256,13 @@ static void compute_projection_p_volume (struct Adaptive_Solver_Volume* a_s_vol,
 		const ptrdiff_t extents[3] = { ext_0, g_coef_p->extents[1], g_coef_p->extents[2], };
 		resize_Multiarray_d(g_coef_p,g_coef_p->order,extents);
 		break;
-	} case METHOD_DPG: { // fallthrough
-	} case METHOD_OPG: {
+	} case METHOD_DPG: // fallthrough
+	case METHOD_OPG: // fallthrough
+	case METHOD_OPGC0:
 		if (compute_size(g_coef_p->order,g_coef_p->extents) != 0)
 			EXIT_ADD_SUPPORT; // Project as for the solution.
 		break;
-	} default:
+	default:
 		EXIT_ERROR("Unsupported: %d.",sim->method);
 		break;
 	}
@@ -1335,14 +1337,15 @@ static void compute_projection_p_face (struct Adaptive_Solver_Face* a_s_face, co
 
 	const struct Multiarray_d*const s_coef_p = s_face->s_coef;
 	switch (sim->method) {
-	case METHOD_DG: {
+	case METHOD_DG:
 		break; // Do nothing.
-	} case METHOD_DPG: { // fallthrough
-	} case METHOD_OPG: {
+	case METHOD_DPG: // fallthrough
+	case METHOD_OPG: // fallthrough
+	case METHOD_OPGC0:
 		if (s_coef_p && compute_size(s_coef_p->order,s_coef_p->extents) != 0)
 			EXIT_ADD_SUPPORT; // Project as for nf_coef.
 		break;
-	} default:
+	default:
 		EXIT_ERROR("Unsupported: %d.",sim->method);
 		break;
 	}
@@ -2128,9 +2131,10 @@ static void constructor_Solver_Face_i_new
 	case METHOD_DPG: // fallthrough
 	case METHOD_OPG:
 		constructor_Solver_Face__nf_coef(s_face,flux_i,sim);
-
-		const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
-		assert(!test_case->has_2nd_order); // add constructor s_coef.
+		assert(!get_set_has_1st_2nd_order(NULL)[1]); // add constructor s_coef.
+		break;
+	case METHOD_OPGC0:
+		assert(!get_set_has_1st_2nd_order(NULL)[1]); // add constructor s_coef.
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.",sim->method);

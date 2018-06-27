@@ -90,12 +90,8 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const str
 	switch (sim->method) {
 		case METHOD_DG:  // fallthrough
 		case METHOD_DPG: assert(dof_solve == compute_dof_T(sim));      break;
-		case METHOD_OPG:
-			assert(dof_solve == compute_dof_test_T(sim));
-			// fallthrough
-		case METHOD_OPGC0:
-			ssi->using_c0 = true;
-			break;
+		case METHOD_OPG: // fallthrough
+		case METHOD_OPGC0: assert(dof_solve == compute_dof_test_T(sim)); break;
 		default:         EXIT_ERROR("Unsupported: %d.\n",sim->method); break;
 	}
 

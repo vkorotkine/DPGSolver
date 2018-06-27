@@ -45,15 +45,13 @@ struct Solver_Storage_Implicit {
 	int row, ///< Index of the first row in which data is to be added.
 	    col; ///< Index of the first col in which data is to be added.
 
-	/** Flag for whether the computed matrix and vector should be interpreted for C0 space instead of the standard
-	 *  L2 space. */
-	bool using_c0;
+	ptrdiff_t n_c0; ///< The number of C0 dof. C0 assumed if this value is not zero.
 
-	/** Matrix collapsing the A matrix and b vector from the L2 dof to the C0 dof.
-	 *  - A_c0 = l2_to_c0*A*l2_to_c0';
-	 *  - b_c0 = l2_to_c0*b.
-	 */
-	Mat l2_to_c0;
+	/** Holding the correspondence betwene the L2 and C0 dof.
+	 *
+	 *  The vector has \ref Vector_T::ext_0 equal to the number of l2 dof and the index of the corresponding c0 dof
+	 *  is stored as the corresponding data. */
+	const struct const_Vector_i* corr_l2_c0;
 };
 
 // Interface functions ********************************************************************************************** //

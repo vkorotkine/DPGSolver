@@ -330,8 +330,9 @@ static PetscErrorCode constructor_petsc_ksp
 	);
 
 /** \brief Convert the input vector of solved values corresponding to the C0 dof to those of the L2 dof by duplicating
- *         entries corresponding to the same node. */
-static void convert_x_to_L2
+ *         entries corresponding to the same node.
+ *  \return The Petsc error code or 0 if no error. */
+static PetscErrorCode convert_x_to_L2
 	(Vec* x,                                        ///< The solution vector corresponding to the C0 dof.
 	 const struct Solver_Storage_Implicit*const ssi ///< Standard.
 	 );
@@ -402,7 +403,6 @@ static PetscErrorCode solve_and_update
 		CHKERRQ(constructor_petsc_ksp(&ksp,ssi->A,sim)); // destructed
 		printf("\tKSP solve.\n");
 		CHKERRQ(KSPSolve(ksp,ssi->b,x));
-		EXIT_UNSUPPORTED;
 	} else {
 		printf("\tCompute Schur.\n");
 		struct Schur_Data* schur_data = constructor_Schur_Data(ssi->A,ssi->b,sim); // destructed
@@ -458,8 +458,8 @@ static PetscErrorCode solve_and_update
 		printf("A and b inf norms: % .3e % .3e\n",norm_inf_A,norm_inf_B);
 	}
 
-	if (ssi->using_c0)
-		convert_x_to_L2(&x,ssi);
+	if (ssi->n_c0)
+		CHKERRQ(convert_x_to_L2(&x,ssi));
 
 	update_coefs(x,sim);
 	destructor_petsc_x(x);
@@ -595,11 +595,27 @@ static PetscErrorCode constructor_petsc_ksp (KSP*const ksp, Mat A, const struct 
 	return 0;
 }
 
-static void convert_x_to_L2 (Vec* x, const struct Solver_Storage_Implicit*const ssi)
+static PetscErrorCode convert_x_to_L2 (Vec* x, const struct Solver_Storage_Implicit*const ssi)
 {
-	// construct a new vec of the correct length to fit all l2 variables and copy from input x, then overwrite input
-	// x after destructing.
-	EXIT_ADD_SUPPORT; UNUSED(x); UNUSED(ssi);
+	assert(get_set_n_var_eq(NULL)[0] == 1); // Add support for multiple variables per node.
+
+	const PetscInt n_c0 = (PetscInt) ssi->n_c0;
+	const PetscInt n_l2 = (PetscInt) ssi->corr_l2_c0->ext_0;
+	PetscInt ix[n_c0];
+	for (int i = 0; i < n_c0; ++i)
+		ix[i] = i;
+	PetscScalar x_c0[n_c0];
+	CHKERRQ(VecGetValues(*x,n_c0,ix,x_c0));
+
+	Vec x_l2;
+	CHKERRQ(VecCreateSeq(MPI_COMM_WORLD,n_l2,&x_l2)); // moved
+	for (int i = 0; i < n_l2; ++i) {
+		const int ind_c0 = ssi->corr_l2_c0->data[i];
+		CHKERRQ(VecSetValue(x_l2,i,x_c0[ind_c0],INSERT_VALUES));
+	}
+	CHKERRQ(VecDestroy(x));
+	*x = x_l2;
+	return 0;
 }
 
 static void update_coefs (Vec x, const struct Simulation* sim)
@@ -618,6 +634,11 @@ static void update_coefs (Vec x, const struct Simulation* sim)
 		update_coef_test_s_v(x,sim);
 		update_coef_s_v_opg_d(sim,sim->volumes);
 		update_coef_nf_f_opg(sim,sim->faces);
+		assert(get_set_has_1st_2nd_order(NULL)[1] == false); // Add support.
+		break;
+	case METHOD_OPGC0:
+		update_coef_test_s_v(x,sim);
+		update_coef_s_v_opg_d(sim,sim->volumes);
 		assert(get_set_has_1st_2nd_order(NULL)[1] == false); // Add support.
 		break;
 	default:

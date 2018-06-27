@@ -174,7 +174,7 @@ static const struct const_Multiarray_T* constructor_source_advection_default_T
 
 // Level 1 ********************************************************************************************************** //
 
-#define USE_CONSTANT_1D true ///< Flag for whether the 1d solution should be a constant. \todo delete this option.
+#define USE_CONSTANT_1D false ///< Flag for whether the 1d solution should be a constant. \todo delete this option.
 static struct Multiarray_T* constructor_sol_advection_default_1d_T
 	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
 {

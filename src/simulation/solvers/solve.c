@@ -236,7 +236,7 @@ void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* ssi)
 {
 	MatDestroy(&ssi->A);
 	VecDestroy(&ssi->b);
-
+	destructor_conditional_const_Vector_i(ssi->corr_l2_c0);
 	free(ssi);
 }
 

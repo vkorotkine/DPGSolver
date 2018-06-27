@@ -1,0 +1,40 @@
+pde_name  advection
+pde_spec  steady/default
+
+geom_name n-cube
+geom_spec x_l
+
+dimension 1
+
+mesh_generator   n-cube/1d.geo
+mesh_format      gmsh
+mesh_domain      straight
+mesh_type        line
+mesh_level       0 4
+mesh_path        ../meshes/
+
+
+# Simulation variables
+
+interp_tp  GLL
+interp_si  WSH
+interp_pyr GLL
+
+basis_geom  lagrange
+basis_sol   lagrange
+
+geom_representation  superparametric
+geom_blending_tp     gordon_hall
+geom_blending_si     szabo_babuska_gen
+
+p_ref    1 3
+p_cub_p  0 0
+p_test_p 1 1
+
+method_name optimal_petrov_galerkin_c0
+
+
+# Testing variables
+
+ml_range_test 0 4
+p_range_test  1 3

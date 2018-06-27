@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define EPS      1.0e-15
 #define SQRT_EPS 3.162277660168379e-08
 #define CX_STEP  1e-30                 ///< Magnitude of the complex step to take for Jacobian evaluation.
+#define TOL_XYZ  1.0e-10               ///< Tolerance to distinguish between different xyz node coordinates.
 ///\}
 
 #endif // DPG__definitions_tol_h__INCLUDED
