@@ -10,30 +10,26 @@ mesh_generator   n-cube/2d_peterson.py
 mesh_format      gmsh
 mesh_domain      straight
 mesh_type        tri
-mesh_level       1 1
+mesh_level       4 4
 mesh_path        ../meshes/
 
 
 # Simulation variables
+test_case_extension discount_1
 
 interp_tp  GLL
-interp_si  WSH  // Not working when using AO for p > 1.
+interp_si  AO
 interp_pyr GLL
 
 basis_geom  lagrange
-basis_sol   orthonormal
+basis_sol   lagrange
 
-geom_representation  superparametric
+geom_representation  isoparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
 p_ref    3 3
-p_s_v_p  0
-p_s_f_p  1
+p_cub_p  0 0
+p_test_p 0 0
 
-p_cub_x 2 2
-p_cub_p 4 4
-
-p_test_p 2 2
-
-fe_method 4
+method_name optimal_petrov_galerkin_c0

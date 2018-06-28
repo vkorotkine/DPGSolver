@@ -244,15 +244,15 @@ class Mesh_c:
 
 
 		b_conditions = dict()
-		b_c_members = ["bc_upwind"]
+		b_c_members = ["bc_upwind","bc_upwind_alt1","bc_upwind_alt2","bc_outflow"]
 
 		for s in b_c_members:
 			b_conditions[s] = get_gmsh_number(s,input_dir)
 
 		add_boundaries(self,1001,int(b_conditions["bc_upwind"]))
-		add_boundaries(self,1002,int(b_conditions["bc_upwind"]))
-		add_boundaries(self,2001,int(b_conditions["bc_upwind"]))
-		add_boundaries(self,2002,int(b_conditions["bc_upwind"]))
+		add_boundaries(self,1002,int(b_conditions["bc_outflow"]))
+		add_boundaries(self,2001,int(b_conditions["bc_upwind_alt1"]))
+		add_boundaries(self,2002,int(b_conditions["bc_upwind_alt2"]))
 
 		renumber_boundaries(self)
 

@@ -21,6 +21,8 @@ ARGV="advection/vortex/TEST_advection_vortex_mixed2d petsc_options_gmres_tol_1e-
 #ARGV="euler/gaussian_bump/TEST_Euler_GaussianBump_ParametricMixed2D petsc_options_gmres_tol_1e-15"
 
 ARGV="advection/default/opgc/TEST_opgc_advection_default_xl__mixed2d petsc_options_gmres_tol_1e-15"
+ARGV="advection/peterson/dg/TEST_Advection_Peterson_TRI__ml0__p0 petsc_options_gmres_default"
+ARGV="advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml0__p0 petsc_options_cg_ilu1"
 
 #ARGV="burgers_inviscid/periodic/trigonometric/TEST_dg_burgers_inviscid_trigonometric__1d__ml5__p2 petsc_options_empty"
 
