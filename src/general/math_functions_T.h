@@ -66,6 +66,14 @@ Real norm_diff_RT
 	 const char*const norm_type ///< The norm type. Options: "Inf".
 	);
 
+/** \brief Computes the infinity norm (not relative) of the difference between the input `Type*` data.
+ *  \return See brief. */
+Type norm_diff_inf_no_rel_T
+	(const ptrdiff_t n_entries, ///< The number of entries.
+	 const Type*const data_0,   ///< The data for input 0.
+	 const Type*const data_1    ///< The data for input 1.
+		);
+
 /** \brief Compute the maximum absolute value of the two inputs and return it.
  *  \return See brief. */
 Type max_abs_T

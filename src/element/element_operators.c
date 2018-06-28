@@ -697,10 +697,16 @@ static void set_operator_solver
 	destructor_const_Nodes(nodes_o);
 
 	if (sim->collocated) {
-		EXIT_ERROR("Ensure that all is working as expected.\n");
-		// Note: Test space is higher degree than solution so efficiency advantages would not be present.
-		if (sim->method == METHOD_DPG)
+		switch (sim->method) {
+		case METHOD_DG:
+			EXIT_ERROR("Ensure that all is working as expected.\n");
+			break;
+		case METHOD_DPG: case METHOD_OPG: case METHOD_OPGC0:
 			return;
+		default:
+			EXIT_ERROR("Unsupported: %d",sim->method);
+			break;
+		}
 
 		const struct const_Nodes* nodes_i = constructor_const_Nodes_h(OP_IND_I,op_io,element,sim); // destructed
 		assert(nodes_i->has_weights);

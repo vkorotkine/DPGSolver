@@ -159,6 +159,7 @@ add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/dg/TEST_Advection_
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/dpg/TEST_Advection_Demkowicz_DPGII_LINE" "petsc_options_cg_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_TRI" "petsc_options_cg_ilu1")
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/opg/TEST_opg_advection_default__1d" "petsc_options_gmres_tol_1e-15")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/opgc/TEST_opgc_advection_default_xl__mixed2d" "petsc_options_gmres_tol_1e-15")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_non_conforming_p4_super" "petsc_options_gmres_tol_1e-15")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_QUAD" "petsc_options_cg_icc")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_Mixed2D" "petsc_options_cg_icc")

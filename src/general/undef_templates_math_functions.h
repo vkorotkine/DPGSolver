@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef norm_R_from_T
 #undef norm_diff_T
 #undef norm_diff_RT
+#undef norm_diff_inf_no_rel_T
 #undef max_abs_T
 #undef z_yxpz_T
 #undef z_yxpz_RTT

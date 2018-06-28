@@ -166,17 +166,19 @@ static PetscErrorCode convert_petsc_to_c0_opg
 	(struct Solver_Storage_Implicit*const ssi, const struct Simulation*const sim)
 {
 	assert((strcmp(sim->basis_geom,"lagrange") == 0));
-	const struct const_Multiarray_Vector_d*const xyz_vt_red = constructor_xyz_p_ind_L2(sim);
+	const struct const_Multiarray_Vector_d*const xyz_vt_red = constructor_xyz_p_ind_L2(sim); // destructed
 
 	const ptrdiff_t n_l2 = xyz_vt_red->extents[0];
 	int n_c0 = 0;
 	struct Vector_i*const corr_l2_c0 = constructor_empty_Vector_i(n_l2); // moved
 	for (int i = 0; i < n_l2; ++i) {
 		const ptrdiff_t ind_l2 = (ptrdiff_t)xyz_vt_red->data[i]->data[DIM];
-		if (i != 0 && norm_diff_d(DIM,xyz_vt_red->data[i-1]->data,xyz_vt_red->data[i]->data,"Inf") > TOL_XYZ)
+		if (i != 0 && norm_diff_inf_no_rel_d(DIM,xyz_vt_red->data[i-1]->data,xyz_vt_red->data[i]->data) > TOL_XYZ)
 			++n_c0;
 		corr_l2_c0->data[ind_l2] = n_c0;
 	}
+	destructor_const_Multiarray_Vector_d(xyz_vt_red);
+
 	++n_c0; // Compensate for 0-based indexing.
 	ssi->n_c0 = n_c0;
 	ssi->corr_l2_c0 = (struct const_Vector_i*) corr_l2_c0;

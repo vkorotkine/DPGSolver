@@ -87,8 +87,6 @@ static void compute_lhs_1
 	(const struct Flux_Ref*const flux_r, struct OPG_Solver_Volume*const opg_s_vol,
 	 struct Solver_Storage_Implicit*const ssi)
 {
-	assert(get_set_collocated(NULL) == false); // Ensure that premultiplication by inv(w_vc) is not present if true.
-
 	struct Solver_Volume*const s_vol = (struct Solver_Volume*) opg_s_vol;
 	const struct const_Matrix_d*const lhs = constructor_lhs_v_1_opg(flux_r,s_vol); // destructed
 	set_petsc_Mat_row_col_opg(ssi,opg_s_vol,0,opg_s_vol,0);

@@ -33,6 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define norm_R_from_T norm_d_from_d
 #define norm_diff_T norm_diff_d
 #define norm_diff_RT norm_diff_dd
+#define norm_diff_inf_no_rel_T norm_diff_inf_no_rel_d
 #define max_abs_T   max_abs_d
 #define z_yxpz_T    z_yxpz
 #define z_yxpz_RTT  z_yxpz
@@ -63,6 +64,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define norm_R_from_T norm_d_from_c
 #define norm_diff_T norm_diff_c
 #define norm_diff_RT norm_diff_dc
+#define norm_diff_inf_no_rel_T norm_diff_inf_no_rel_c
 #define max_abs_T   max_abs_c
 #define z_yxpz_T    z_yxpz_c
 #define z_yxpz_RTT  z_yxpz_dcc

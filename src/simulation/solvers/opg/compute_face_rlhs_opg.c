@@ -187,7 +187,7 @@ static void finalize_lhs_1_f_opg
 	 *  \ref Solver_Volume_T::test_s_coef. */
 	const struct const_Matrix_d*const lhs_l_p1 =
 		constructor_mm_diag_const_Matrix_d_d(1.0,ops->cv0_vt_fc[side_index[0]],ops->wJ_fc,'L',false); // dest.
-#if 0
+#if 1
 	const struct const_Matrix_d*const cv0_ff_fc = get_operator__cv0_ff_fc(s_face)->op_std;
 	const struct const_Matrix_d*const lhs_l_p2 = constructor_mm_const_Matrix_d('T','N',1.0,lhs_l_p1,cv0_ff_fc,'R'); // d.
 	destructor_const_Matrix_d(lhs_l_p1);
@@ -199,7 +199,9 @@ static void finalize_lhs_1_f_opg
 	transpose_Matrix_d((struct Matrix_d*)lhs_l,false);
 #endif
 
-#if 1 // Only enable for face collocated parameters (p_t_p = 0).
+#if 1 // Linearization tests fail when enabled but it is necessary for convergence order tests to pass. As linearization
+      // is not exact, this currently also requires setting \ref ALWAYS_SET_INITIAL to true.
+	// Only enable for face collocated parameters (p_t_p = 0).
 #include "solution_advection.h"
 	const struct const_Multiarray_d*const normals_fc = s_face->normals_fc;
 	const ptrdiff_t n_fc = normals_fc->extents[0];

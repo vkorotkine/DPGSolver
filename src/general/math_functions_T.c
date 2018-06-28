@@ -122,6 +122,18 @@ Real norm_diff_RT
 	return ( abs_R(norm_den) > 1e2*EPS ? norm_num/norm_den : norm_num );
 }
 
+Type norm_diff_inf_no_rel_T (const ptrdiff_t n_entries, const Type*const data_0, const Type*const data_1)
+{
+	Type norm_num = 0.0;
+
+	for (ptrdiff_t i = 0; i < n_entries; ++i) {
+		const Type diff = abs_T(data_0[i]-data_1[i]);
+		if (abs_T(diff) > abs_T(norm_num))
+			norm_num = diff;
+	}
+	return norm_num;
+}
+
 Type max_abs_T (const Type a, const Type b)
 {
 	const Type a_abs = abs_T(a),
