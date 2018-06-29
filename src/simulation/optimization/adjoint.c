@@ -31,11 +31,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_core.h"
 #include "definitions_tol.h"
 
-#include "optimization_case.h"
 #include "simulation.h"
 
 #include "multiarray.h"
-#include "multiarray_constructors.h"
+#include "matrix.h"
+#include "matrix_constructors.h"
+#include "matrix_math.h"
 
 #include "test_case.h"
 #include "solve.h"
@@ -43,131 +44,124 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "computational_elements.h"
 #include "intrusive.h"
 #include "definitions_intrusive.h"
-
 #include "volume_solver.h"
+
+#include "optimization_case.h"
+#include "objective_functions.h"
 
 
 // Static function declarations ************************************************************************************* //
 
+
 static Vec constructor_petsc_vec(const double*const data, const int num_vals);
 
-static struct Multiarray_d* constructor_RHS_cmplx_stp(struct Optimization_Case *optimization_case);
-static struct Multiarray_d* constructor_RHS_finite_diff(struct Optimization_Case *optimization_case);
+
+/** \brief Compute the RHS ([dI/dW], where I is the functional) using the complex step.
+ * Store the results into the the adjoint_data structure in the RHS Matrix_d data structure.
+ */
+static void set_RHS_cmplx_stp(
+	struct Adjoint_Data *adjoint_data, ///< The adjoint_data data structure to load data into
+	struct Simulation *sim_c, ///< The complex simulation object to be used for the complex step
+	functional_fptr_c functional_c ///< The functional function pointer (complex version for complex step)
+	);
+
+
+//static struct Multiarray_d* constructor_RHS_finite_diff(struct Optimization_Case *optimization_case);
 
 
 // Interface functions ********************************************************************************************** //
 
+struct Adjoint_Data* constructor_Adjoint_Data(struct Optimization_Case *optimization_case){
 
-void setup_adjoint(struct Optimization_Case *optimization_case){
-
-	/*
-	Setup the adjoint vectors and matrices. Compute the linearization of the objective function
-	with respect to the flow (RHS) using the complex step and use the already computed linearization 
-	of the residual with respect to the flow (LHS). Load all matrices and vectors into 
-	PETSc structures.
-
-	Arguments:
-		optimization_case = The optimiation case data structure. The adjoint data will be 
-			loaded into this structure.
-
-	Return:
-		- 
-	*/
-
-	UNUSED(constructor_RHS_finite_diff);
-
-	// =========================
-	//       RHS = [dI/dW]
-	// =========================
-
-	// Compute the RHS using the complex step
-	optimization_case->RHS = constructor_RHS_cmplx_stp(optimization_case);  // destroy in solve_adjoint
-	optimization_case->RHS_petsc = constructor_petsc_vec(
-		(const double*const)optimization_case->RHS->data, 
-		(const int)optimization_case->RHS->extents[0]
-	);  // destroy in solve_adjoint
+	struct Adjoint_Data* adjoint_data = calloc(1,sizeof *adjoint_data); // returned
 
 
-		/*
-		// Testing the RHS against finite differences
+	struct Simulation *sim = optimization_case->sim; 
 
-		subtract_in_place_Multiarray_d(optimization_case->RHS, 
-			(const struct const_Multiarray_d*)constructor_RHS_finite_diff(optimization_case));
-		printf("Differernce RHS Norm: %e \n",  norm_Multiarray_d(optimization_case->RHS, "Inf"));
+	int num_res_eqs = 0;  // The total number of residual equations (and flow variables)
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+		num_res_eqs += (int)compute_size(s_vol->sol_coef->order,s_vol->sol_coef->extents);
+	}
 
-		exit(0);
-		*/
+	// Allocate empty RHS and Chi (adjoint) matrices
+	adjoint_data->RHS = constructor_empty_Matrix_d('C', num_res_eqs, 1);
+	adjoint_data->Chi = constructor_empty_Matrix_d('C', num_res_eqs, 1);
 
-
-	// =========================
-	//    Chi Vector (Adjoint)
-	// =========================
-
-	// Setup the Chi vector (adjoint) to be equal to the RHS as the initial
-	// vector for the iterative solver
-	VecCreateSeq(MPI_COMM_WORLD,(const int)optimization_case->RHS->extents[0],&optimization_case->Chi_petsc); // keep
-	VecCopy(optimization_case->RHS_petsc, optimization_case->Chi_petsc);  // destroy in solve_adjoint
+	return adjoint_data;
+}
 
 
-	// =========================
-	//      LHS = [dR/dW]^T
-	// =========================
+void destructor_Adjoint_Data (struct Adjoint_Data* adjoint_data){
 
-	// Obtain the LHS and load its transpose
+	destructor_Matrix_d(adjoint_data->RHS);
+	destructor_Matrix_d(adjoint_data->Chi);
 
-	struct Simulation* sim = optimization_case->sim;
-	struct Solver_Storage_Implicit* ssi = constructor_Solver_Storage_Implicit(sim); // destructed
-	compute_rlhs_optimization(sim, ssi);
-
-	// Copy the LHS values into a new Matrix and transpose it
-	Mat LHS = ssi->A;
-	Mat LHS_T;
-	MatDuplicate(LHS, MAT_COPY_VALUES, &LHS_T);
-	MatTranspose(LHS_T, MAT_INPLACE_MATRIX, &LHS_T);
-
-	optimization_case->LHS_petsc = LHS_T;  // destroy in solve_adjoint
-
-
-	// Free allocated structures
-	destructor_Solver_Storage_Implicit(ssi);
+	free((void*)adjoint_data);
 
 }
 
 
-void solve_adjoint(struct Optimization_Case *optimization_case){
+void setup_adjoint(struct Adjoint_Data* adjoint_data, struct Simulation *sim, struct Simulation *sim_c,
+	functional_fptr functional, functional_fptr_c functional_c){
 
-	/*
-	Solve the adjoint equation using the PETSc KSP solver. The solution will be 
-	loaded into the Chi (adjoint) multiarray_d structure in optimization_case.
+	//UNUSED(constructor_RHS_finite_diff); 	// MSB: TODO: Possibly remove this
+	UNUSED(sim);
+	UNUSED(functional);
 
-	Arguments:
-		optimization_case = The data structure with the optimization data
 
-	Return:
-		-
-	*/
+ 	// Set the RHS terms using the complex step
+	set_RHS_cmplx_stp(adjoint_data, sim_c, functional_c); 
 
-	Mat LHS;
-	Vec RHS;
-	Vec Chi;
+	// Load the RHS into the Chi matrix (initial)
+	for(int i = 0; i < (int)adjoint_data->RHS->ext_0; i++)
+		adjoint_data->Chi->data[i] = adjoint_data->RHS->data[i];
 
-	LHS = optimization_case->LHS_petsc;
-	RHS = optimization_case->RHS_petsc;
-	Chi = optimization_case->Chi_petsc;
 
-	/*
-	printf("LHS: \n");
-	MatView(LHS, PETSC_VIEWER_STDOUT_SELF);
+// // Testing the RHS against finite differences
+// subtract_in_place_Multiarray_d(optimization_case->RHS, 
+// 	(const struct const_Multiarray_d*)constructor_RHS_finite_diff(optimization_case));
+// printf("Differernce RHS Norm: %e \n",  norm_Multiarray_d(optimization_case->RHS, "Inf"));
+// exit(0);
 
-	printf("RHS: \n");
-	VecView(RHS, PETSC_VIEWER_STDOUT_SELF);
 
-	printf("Chi: \n");
-	VecView(Chi, PETSC_VIEWER_STDOUT_SELF);
-	*/
+}
 
+
+void solve_adjoint(struct Adjoint_Data* adjoint_data, struct Simulation *sim){
+
+	Mat LHS_petsc;
+	Vec RHS_petsc;
+	Vec Chi_petsc;
+
+	// ==================================
+	//     Setup PETSc Data Structures
+	// ==================================
+
+	// RHS and Chi:
+	RHS_petsc = constructor_petsc_vec(	(const double*const)adjoint_data->RHS->data, 
+										(const int)adjoint_data->RHS->ext_0);  // free
+	Chi_petsc = constructor_petsc_vec(	(const double*const)adjoint_data->Chi->data, 
+										(const int)adjoint_data->Chi->ext_0); // free
+
+	// LHS:
+	struct Solver_Storage_Implicit* ssi = constructor_Solver_Storage_Implicit(sim); // free
+	compute_rlhs_optimization(sim, ssi);
+
+	// Copy the LHS values into a new Matrix and transpose it
+	LHS_petsc = ssi->A;
+	Mat LHS_T_petsc;  // free
+	MatDuplicate(LHS_petsc, MAT_COPY_VALUES, &LHS_T_petsc);
+	MatTranspose(LHS_T_petsc, MAT_INPLACE_MATRIX, &LHS_T_petsc);
+
+
+	// ==================================
+	//        Perform KSP Solve
+	// ==================================
+
+	// Setup the KSP Solve and then perform the solve
 	KSP ksp = NULL;
-	constructor_petsc_ksp(&ksp,LHS,optimization_case->sim); // destructed
+	constructor_petsc_ksp(&ksp,LHS_T_petsc,sim); // destructed
 
 	// Get the convergence history
 	//PetscReal *ksp_residual = 0;
@@ -176,7 +170,7 @@ void solve_adjoint(struct Optimization_Case *optimization_case){
 	//KSPSetResidualHistory(ksp, ksp_residual, n_ksp_residual, PETSC_FALSE);
 
 	// Solve the system of equations
-	KSPSolve(ksp, RHS, Chi);
+	KSPSolve(ksp, RHS_petsc, Chi_petsc);
 
 	int iteration_ksp;
 	KSPGetIterationNumber(ksp, &iteration_ksp);
@@ -193,33 +187,37 @@ void solve_adjoint(struct Optimization_Case *optimization_case){
 	//exit(0);
 
 
+	// ==================================
+	//          Save Solution
+	// ==================================
+
 	// Save the solution in the Chi vector (doubles)
-	double *Chi_i = get_col_Multiarray_d(0, optimization_case->Chi);
+	double *Chi_i = get_col_Matrix_d(0, adjoint_data->Chi);
 	
 	int *ix;
-	ix = malloc((unsigned int)optimization_case->RHS->extents[0]* sizeof *ix);  // free
-
-	for (int i = 0; i < (int)optimization_case->RHS->extents[0]; i++)
+	ix = malloc((unsigned int)adjoint_data->Chi->ext_0* sizeof *ix);  // free
+	for (int i = 0; i < (int)adjoint_data->Chi->ext_0; i++)
 		ix[i] = i;
 
-	VecGetValues(Chi, (int)optimization_case->RHS->extents[0], ix, Chi_i);
+	VecGetValues(Chi_petsc, (int)adjoint_data->Chi->ext_0, ix, Chi_i);
+
 
 
 	// Free data structures:
 	free(ix);
-	destructor_Multiarray_d(optimization_case->RHS);
+	destructor_Solver_Storage_Implicit(ssi);
 
 	// Destroy petsc structures
 	KSPDestroy(&ksp);
 
-	MatDestroy(&LHS);
-	LHS = NULL;
+	MatDestroy(&LHS_T_petsc);
+	LHS_T_petsc = NULL;
 
-	VecDestroy(&RHS);
-	RHS = NULL;
+	VecDestroy(&RHS_petsc);
+	RHS_petsc = NULL;
 
-	VecDestroy(&Chi);
-	Chi = NULL;
+	VecDestroy(&Chi_petsc);
+	Chi_petsc = NULL;
 
 }
 
@@ -227,50 +225,12 @@ void solve_adjoint(struct Optimization_Case *optimization_case){
 
 // Static functions ************************************************************************************************* //
 
-static struct Multiarray_d* constructor_RHS_cmplx_stp(struct Optimization_Case *optimization_case){
+static void set_RHS_cmplx_stp(struct Adjoint_Data *adjoint_data, struct Simulation *sim_c, functional_fptr_c functional_c){
 
-	/*
-	Compute the RHS ([dI/dW], where I is the objective function) using the complex step.
-	Return the results in a multiarray
-
-	Arguments:
-		optimization_case = The data structure with the optimization material
-
-	Return:
-		Multiarray_d with the RHS components
-	*/
-
-	// Preprocessing:
-	// Compute the size of the RHS vector
-
-	struct Simulation *sim_c = optimization_case->sim_c; 
-
-	int RHS_size_ex_0;  // Number of rows (extent 0) for RHS vector
-
-	// Use the first volume as reference to get the P value
-	// NOTE: Assumes global P is constant (need to take into account adaptation
-	// eventually)
-	struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*)sim_c->volumes->first;
-
-	int P = s_vol->p_ref,  // P value for all elements
-		nv = (int)sim_c->n_v,  // number of volumes  
-		neq = NEQ_EULER,  // number of equations
-		d = DIM;  // Dimension
-
-	RHS_size_ex_0 = nv * (int)(pow(P+1, d)) * neq;
-
-	
-	// =========================
-	//       RHS = [dI/dW]
-	// =========================
-
-	// Compute the RHS vector using the complex step
-
-	struct Multiarray_d *RHS = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){RHS_size_ex_0,1});
-	double *RHS_i = get_col_Multiarray_d(0, RHS);
+	double *RHS_i = get_col_Matrix_d(0, adjoint_data->RHS);
 
 	int RHS_index; 
-	double dI_by_dW_component;
+	double dI_by_dW_component; // The RHS components (I = Functional)
 
 	// Loop over the complex volumes, perturb the solution vector by a complex step and compute
 	// each RHS component.
@@ -283,8 +243,9 @@ static struct Multiarray_d* constructor_RHS_cmplx_stp(struct Optimization_Case *
 		// linearization terms.
 		const ptrdiff_t n_col_l = compute_size(sol_coef_c->order,sol_coef_c->extents);
 		for (int col_l = 0; col_l < n_col_l; col_l++) {
+			
 			sol_coef_c->data[col_l] += CX_STEP*I;
-			dI_by_dW_component = cimag(optimization_case->objective_function_c(sim_c))/CX_STEP; 
+			dI_by_dW_component = cimag(functional_c(sim_c))/CX_STEP; 
 			sol_coef_c->data[col_l] -= CX_STEP*I;
 
 			// Load the value into the vector
@@ -292,82 +253,80 @@ static struct Multiarray_d* constructor_RHS_cmplx_stp(struct Optimization_Case *
 			RHS_i[RHS_index] = dI_by_dW_component;
 		}
 	}
-
-	return RHS;
-
 }
 
 
-static struct Multiarray_d* constructor_RHS_finite_diff(struct Optimization_Case *optimization_case){
 
-	/*
-	Compute the RHS ([dI/dW], where I is the objective function) using finite differences.
-	Return the results in a multiarray
+// static struct Multiarray_d* constructor_RHS_finite_diff(struct Optimization_Case *optimization_case){
 
-	Arguments:
-		optimization_case = The data structure with the optimization material
+// 	/*
+// 	Compute the RHS ([dI/dW], where I is the objective function) using finite differences.
+// 	Return the results in a multiarray
 
-	Return:
-		Multiarray_d with the RHS components
-	*/
+// 	Arguments:
+// 		optimization_case = The data structure with the optimization material
 
-	// Preprocessing:
-	// Compute the size of the RHS vector
+// 	Return:
+// 		Multiarray_d with the RHS components
+// 	*/
 
-	struct Simulation *sim = optimization_case->sim; 
+// 	// Preprocessing:
+// 	// Compute the size of the RHS vector
 
-	int RHS_size_ex_0;  // Number of rows (extent 0) for RHS vector
+// 	struct Simulation *sim = optimization_case->sim; 
 
-	// Use the first volume as reference to get the P value
-	// NOTE: Assumes global P is constant (need to take into account adaptation
-	// eventually)
-	struct Solver_Volume* s_vol = (struct Solver_Volume*)sim->volumes->first;
+// 	int RHS_size_ex_0;  // Number of rows (extent 0) for RHS vector
 
-	int P = s_vol->p_ref,  // P value for all elements
-		nv = (int)sim->n_v,  // number of volumes  
-		neq = NEQ_EULER,  // number of equations
-		d = DIM;  // Dimension
+// 	// Use the first volume as reference to get the P value
+// 	// NOTE: Assumes global P is constant (need to take into account adaptation
+// 	// eventually)
+// 	struct Solver_Volume* s_vol = (struct Solver_Volume*)sim->volumes->first;
 
-	RHS_size_ex_0 = nv * (int)(pow(P+1, d)) * neq;
+// 	int P = s_vol->p_ref,  // P value for all elements
+// 		nv = (int)sim->n_v,  // number of volumes  
+// 		neq = NEQ_EULER,  // number of equations
+// 		d = DIM;  // Dimension
+
+// 	RHS_size_ex_0 = nv * (int)(pow(P+1, d)) * neq;
 
 	
-	// =========================
-	//       RHS = [dI/dW]
-	// =========================
+// 	// =========================
+// 	//       RHS = [dI/dW]
+// 	// =========================
 
-	// Compute the RHS vector using the complex step
+// 	// Compute the RHS vector using the complex step
 
-	struct Multiarray_d *RHS = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){RHS_size_ex_0,1});
-	double *RHS_i = get_col_Multiarray_d(0, RHS);
+// 	struct Multiarray_d *RHS = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){RHS_size_ex_0,1});
+// 	double *RHS_i = get_col_Multiarray_d(0, RHS);
 
-	int RHS_index; 
-	double dI_by_dW_component;
-	double I_0 = optimization_case->objective_function(sim);
+// 	int RHS_index; 
+// 	double dI_by_dW_component;
+// 	double I_0 = optimization_case->objective_function(sim);
 
-	// Loop over the complex volumes, perturb the solution vector by a complex step and compute
-	// each RHS component.
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next){
+// 	// Loop over the complex volumes, perturb the solution vector by a complex step and compute
+// 	// each RHS component.
+// 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next){
 
-		struct Solver_Volume *s_vol = (struct Solver_Volume*) curr;
-		struct Multiarray_d* sol_coef = s_vol->sol_coef;
+// 		struct Solver_Volume *s_vol = (struct Solver_Volume*) curr;
+// 		struct Multiarray_d* sol_coef = s_vol->sol_coef;
 
-		// Perturb each solution vector component by the complex step and obtain the 
-		// linearization terms.
-		const ptrdiff_t n_col_l = compute_size(sol_coef->order,sol_coef->extents);
-		for (int col_l = 0; col_l < n_col_l; col_l++) {
-			sol_coef->data[col_l] += FINITE_DIFF_STEP;
-			dI_by_dW_component = (optimization_case->objective_function(sim) - I_0)/FINITE_DIFF_STEP;
-			sol_coef->data[col_l] -= FINITE_DIFF_STEP;
+// 		// Perturb each solution vector component by the complex step and obtain the 
+// 		// linearization terms.
+// 		const ptrdiff_t n_col_l = compute_size(sol_coef->order,sol_coef->extents);
+// 		for (int col_l = 0; col_l < n_col_l; col_l++) {
+// 			sol_coef->data[col_l] += FINITE_DIFF_STEP;
+// 			dI_by_dW_component = (optimization_case->objective_function(sim) - I_0)/FINITE_DIFF_STEP;
+// 			sol_coef->data[col_l] -= FINITE_DIFF_STEP;
 
-			// Load the value into the vector
-			RHS_index = (int)s_vol->ind_dof+col_l;
-			RHS_i[RHS_index] = dI_by_dW_component;
-		}
-	}
+// 			// Load the value into the vector
+// 			RHS_index = (int)s_vol->ind_dof+col_l;
+// 			RHS_i[RHS_index] = dI_by_dW_component;
+// 		}
+// 	}
 
-	return RHS;
+// 	return RHS;
 
-}
+// }
 
 
 static Vec constructor_petsc_vec(const double*const data, const int num_vals){

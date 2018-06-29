@@ -12,7 +12,7 @@ import numpy as np
 import math
 
 # Absolute path to the directory with all the optimization results
-CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/jm-034232/Documents/McGill/Research/DPGSolver/build_2D/output/paraview/euler/steady/NURBS_Airfoil"
+CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil"
 append_path = ""
 CONST_OPTIMIZATION_DIR_ABS_PATH = os.path.join(CONST_OPTIMIZATION_DIR_ABS_PATH, append_path)
 
@@ -23,13 +23,13 @@ CONST_OPTIMIZATION_DIR_ABS_PATH = os.path.join(CONST_OPTIMIZATION_DIR_ABS_PATH, 
 CONST_File_list = [
 	
 	# Target CL
-	#("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricY_BFGSmaxnorm1E-2/convergence.txt", "P = 2, 16x10, NURBS Metrics", "r", "-", ".", False),
-	#("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricN_BFGSmaxnorm1E-2/convergence.txt", "P = 2, 16x10, Standard", "c", "-", ".", False),
-	#("NACA0012_TargetCL0.24_P2Superparametric_16x10_NURBSMetricN_BFGSmaxnorm1E-2/convergence.txt", "P = 2 (Sup), 16x10, Standard", "m", "-", ".", False).
+	("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricY_BFGSmaxnorm1E-2/optimization_convergence.txt", "P = 2, 16x10, NURBS Metrics", "r", "-", ".", False),
+	("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricN_BFGSmaxnorm1E-2/optimization_convergence.txt", "P = 2, 16x10, Standard", "c", "-", ".", False),
+	("NACA0012_TargetCL0.24_P2Superparametric_16x10_NURBSMetricN_BFGSmaxnorm1E-2/optimization_convergence.txt", "P = 2 (Sup), 16x10, Standard", "m", "-", ".", False),
 
-	("NACA0012_TargetCL0.24_P3_20x10_NURBSMetricY_BFGSmaxnorm1E-2/convergence.txt", "P = 2, 16x10, NURBS Metrics", "r", "-", ".", False),
-	("NACA0012_TargetCL0.24_P3_20x10_NURBSMetricN_BFGSmaxnorm1E-2/convergence.txt", "P = 2, 16x10, Standard", "c", "-", ".", False),
-	("NACA0012_TargetCL0.24_P3Superparametric_20x10_NURBSMetricN_BFGSmaxnorm1E-2/convergence.txt", "P = 2 (Sup), 16x10, Standard", "m", "-", ".", False),
+	#("NACA0012_TargetCL0.24_P3_20x10_NURBSMetricY_BFGSmaxnorm1E-2/convergence.txt", "P = 2, 16x10, NURBS Metrics", "r", "-", ".", False),
+	#("NACA0012_TargetCL0.24_P3_20x10_NURBSMetricN_BFGSmaxnorm1E-2/convergence.txt", "P = 2, 16x10, Standard", "c", "-", ".", False),
+	#("NACA0012_TargetCL0.24_P3Superparametric_20x10_NURBSMetricN_BFGSmaxnorm1E-2/convergence.txt", "P = 2 (Sup), 16x10, Standard", "m", "-", ".", False),
 
 ]
 

@@ -39,6 +39,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "operator.h"
 #include "compute_face_rlhs.h"
 #include "solution_euler.h"
+#include "boundary.h"
 
 #include "definitions_physics.h"
 #include "definitions_math.h"
@@ -62,22 +63,6 @@ static struct Sol_Data__c_dl get_sol_data__c_dl
 	( );
 
 static void read_data_c_dl (struct Sol_Data__c_dl*const sol_data);
-
-/** \brief Constructor for the solution interpolating from the neighbouring volume to the face cubature nodes.
- *  \return See brief. */
-static const struct const_Multiarray_d* constructor_s_fc_interp
-	(const struct Solver_Face* face, ///< Defined for \ref constructor_Boundary_Value_Input_face_s_fcl_interp_T.
-	 const struct Simulation* sim, 
-	 const int side_index              ///< The index of the side of the face under consideration.
-	);
-
-/** \brief Constructor for the solution interpolating from the neighbouring volume to the face cubature nodes (complex version).
- *  \return See brief. */
-static const struct const_Multiarray_c* constructor_s_fc_interp_c
-	(const struct Solver_Face_c* face, ///< Defined for \ref constructor_Boundary_Value_Input_face_s_fcl_interp_T.
-	 const struct Simulation* sim, 
-	 const int side_index              ///< The index of the side of the face under consideration.
-	);
 
 static const struct const_Multiarray_d* compute_Cl_Cd  (const struct Simulation* sim);
 static const struct const_Multiarray_c* compute_Cl_Cd_c(const struct Simulation* sim);
@@ -157,6 +142,7 @@ double complex objective_function_target_Cl_c(const struct Simulation* sim_c){
 	double complex Cl = Cl_Cd->data[0];
 
 	destructor_const_Multiarray_c(Cl_Cd);
+
 	return 0.5 * (Cl - TARGET_CL)*(Cl - TARGET_CL);
 
 }
@@ -203,7 +189,7 @@ static const struct const_Multiarray_d* compute_Cl_Cd(const struct Simulation* s
 
 		// Get the solution (s) at the face cubature (fc) nodes and convert it to 
 		// primitive variables (pv)
-		const struct const_Multiarray_d* pv_fc = constructor_s_fc_interp(s_face,sim,0);
+		const struct const_Multiarray_d* pv_fc = constructor_s_fc_interp_d(0, s_face);
 		convert_variables((struct Multiarray_d*)pv_fc,'c','p');
 		
 		// Get the normals (n) at the face cubature (fc) nodes and jacobian values
@@ -276,7 +262,7 @@ static const struct const_Multiarray_c* compute_Cl_Cd_c(const struct Simulation*
 	             theta_fs = sol_data.theta;
 
 	// The force components along the Normal and Axial directions
-	complex double	Force_N = 0.0,
+	double complex	Force_N = 0.0,
 					Force_A = 0.0;
 
 	for (struct Intrusive_Link* curr = sim_c->faces->first; curr; curr = curr->next) {
@@ -288,15 +274,15 @@ static const struct const_Multiarray_c* compute_Cl_Cd_c(const struct Simulation*
 
 		// Get the solution (s) at the face cubature (fc) nodes and convert it to 
 		// primitive variables (pv)
-		const struct const_Multiarray_c* pv_fc_c = constructor_s_fc_interp_c(s_face,sim_c,0);
+		const struct const_Multiarray_c* pv_fc_c = constructor_s_fc_interp_c(0, s_face);
 		convert_variables_c((struct Multiarray_c*)pv_fc_c,'c','p');
 		
 		// TODO: Use the complex normals and metrics after to handle the complex
 		// geometry
 
 		// Get the normals (n) at the face cubature (fc) nodes and jacobian values
-		const struct const_Multiarray_d* n_fc = s_face->normals_fc;
-		const struct const_Multiarray_d* jac_det_fc = s_face->jacobian_det_fc;
+		const struct const_Multiarray_c* n_fc = s_face->normals_fc;
+		const struct const_Multiarray_c* jac_det_fc = s_face->jacobian_det_fc;
 
 		num_fc = (int) pv_fc_c->extents[0]; // number of face cubature (fc) nodes
 
@@ -308,11 +294,10 @@ static const struct const_Multiarray_c* compute_Cl_Cd_c(const struct Simulation*
 		const struct const_Vector_d*const w_fc = get_operator__w_fc__s_e_c(s_face);
 
 		for (i = 0; i < num_fc; i++){
-			const double*const n = get_row_const_Multiarray_d(i,n_fc);
+			const double complex *const n = get_row_const_Multiarray_c(i,n_fc);
 
 			Force_A += 1.0*p_fc_c_i[i]*n[0] * jac_det_fc->data[i] * w_fc->data[i];
 			Force_N += 1.0*p_fc_c_i[i]*n[1] * jac_det_fc->data[i] * w_fc->data[i];
-
 		}
 
 		// Destroy the allocated vectors
@@ -376,37 +361,3 @@ static void read_data_c_dl (struct Sol_Data__c_dl*const sol_data)
 		EXIT_ERROR("Did not find the required number of variables");
 }
 
-
-static const struct const_Multiarray_d* constructor_s_fc_interp
-	(const struct Solver_Face* s_face, const struct Simulation* sim,const int side_index)
-{
-	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc(side_index,s_face);
-
-	UNUSED(sim);
-
-	const char op_format = 'd';
-
-	struct Solver_Volume* s_volume = (struct Solver_Volume*) ((struct Face*)s_face)->neigh_info[side_index].volume;
-
-	const struct const_Multiarray_d* s_coef = (const struct const_Multiarray_d*) s_volume->sol_coef;
-
-	return constructor_mm_NN1_Operator_const_Multiarray_d(cv0_vs_fc,s_coef,'C',op_format,s_coef->order,NULL);
-}
-
-
-
-static const struct const_Multiarray_c* constructor_s_fc_interp_c
-	(const struct Solver_Face_c* s_face, const struct Simulation* sim_c, const int side_index)
-{
-	const struct Operator* cv0_vs_fc = get_operator__cv0_vs_fc_c(side_index,s_face);
-
-	UNUSED(sim_c);
-
-	const char op_format = 'd';
-
-	struct Solver_Volume_c* s_volume = (struct Solver_Volume_c*) ((struct Face*)s_face)->neigh_info[side_index].volume;
-
-	const struct const_Multiarray_c* s_coef = (const struct const_Multiarray_c*) s_volume->sol_coef;
-
-	return constructor_mm_NN1_Operator_const_Multiarray_c(cv0_vs_fc,s_coef,'C',op_format,s_coef->order,NULL);
-}

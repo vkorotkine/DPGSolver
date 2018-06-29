@@ -21,7 +21,14 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Simulation;
 struct Optimization_Case;
 
-void optimize(struct Simulation* sim);
+
+/** \brief Optimize the the geometry to minimize a specified functional.
+ */
+void optimize(
+	struct Simulation* sim ///< Standard (the simulation data structure)
+	);
+
+
 void output_NURBS_patch_information(struct Optimization_Case* optimization_case);
 
 #endif // DPG__optimize_h__INCLUDED

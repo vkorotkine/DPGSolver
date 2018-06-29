@@ -20,7 +20,7 @@ CONST_PLOT_Y_RANGE = [-0.1, 0.1]
 
 
 # Absolute path to the directory with all the optimization results
-CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/jm-034232/Documents/McGill/Research/DPGSolver/build_2D/output/paraview/euler/steady/NURBS_Airfoil"
+CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil"
 append_path = ""
 CONST_OPTIMIZATION_DIR_ABS_PATH = os.path.join(CONST_OPTIMIZATION_DIR_ABS_PATH, append_path)
 
@@ -31,12 +31,11 @@ CONST_OPTIMIZATION_DIR_ABS_PATH = os.path.join(CONST_OPTIMIZATION_DIR_ABS_PATH, 
 CONST_File_list = [
 	
 	# Target CL
-	("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricY_BFGSmaxnorm1E-2/geometry_parameters_initial.geo", "Initial", "k", "--", False),
+	("geometry_parameters.geo", "Initial", "k", "--", False),
 	
-	("NACA0012_TargetCL0.24_P3_20x10_NURBSMetricY_BFGSmaxnorm1E-2/Optimized_NURBS_Patch.txt", "P = 2, 16x10, NURBS Metrics", "r", "-", True),
-	("NACA0012_TargetCL0.24_P3_20x10_NURBSMetricN_BFGSmaxnorm1E-2/Optimized_NURBS_Patch.txt", "P = 2, 16x10, Standard", "c", "-", True),
-	("NACA0012_TargetCL0.24_P3Superparametric_20x10_NURBSMetricN_BFGSmaxnorm1E-2/Optimized_NURBS_Patch.txt", "P = 2 (Sup), 16x10, Standard", "m", "-", True)
-
+	#("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricY_BFGSmaxnorm1E-2/Optimized_NURBS_Patch.txt", "P = 2, 16x10, NURBS Metrics", "r", "-", True),
+	#("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricN_BFGSmaxnorm1E-2/Optimized_NURBS_Patch.txt", "P = 2, 16x10, Standard", "c", "-", True),
+	#("NACA0012_TargetCL0.24_P2Superparametric_16x10_NURBSMetricN_BFGSmaxnorm1E-2/Optimized_NURBS_Patch.txt", "P = 2 (Sup), 16x10, Standard", "m", "-", True)
 ]
 
 # The points (on the knot domain) to plot

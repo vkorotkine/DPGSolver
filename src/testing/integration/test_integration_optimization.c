@@ -36,7 +36,13 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-static void run_test_case(int argc, char** argv);
+/** \brief 	Run the given test case. Here, we will first run the flow solver 
+ *	on the initial mesh. Then, we will run the optimization routine.
+ */
+static void run_test_case(
+	int argc, ///< Standard.
+	char** argv ///< Standard
+	);
 
 // Interface functions ********************************************************************************************** //
 
@@ -57,9 +63,7 @@ int main
 
 	run_test_case(argc,argv);
 
-	printf("\n\n   TEMPORARY EXIT\n\n");
-	exit(0);
-
+	// Finalize PETSc
 	PetscFinalize();
 	OUTPUT_SUCCESS;
 }
@@ -68,73 +72,39 @@ int main
 
 static void run_test_case(int argc, char** argv) {
 
-	/*
-	Run the given test case. Here, we will first run the flow solver 
-	on the initial mesh. Then, we will run the optimization routine.
-	
-	Arguments:
-		argc = The number of command line arguments
-		argv = The array holding command line arguments
-	
-	Return:
-		- 
-	*/
+	UNUSED(argc);
 
+	// Read the case parameters from the .ctrl file. Set the parameters needed for the 
+	// simulation object constructor and then construct the simulation object.
 	const char* ctrl_name = argv[1];
-
-	struct Test_Info test_info = { .n_warn = 0, };
-
-	// MSB: Read the test info. This will include the control file name and 
-	// mesh level and order information
 	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name);
-	
 	const int* p_ref  = int_test_info->p_ref,
 	         * ml_ref = int_test_info->ml;
 
-	struct Simulation* sim = NULL;
 	const char type_rc = 'r';
 
 	bool ignore_static = false;
-	int ml_max = ml_ref[1];
-
-	UNUSED(ml_max);
-	UNUSED(argc);
-	UNUSED(test_info);
 
 	int ml_prev = ml_ref[0]-1,
-    	p_prev  = p_ref[0]-1;
-
-	// Run only the lowest mesh level case
-	int ml = ml_ref[0];
-	int p = p_ref[0];
+    	p_prev  = p_ref[0]-1,
+    	ml 		= ml_ref[0],
+    	p 		= p_ref[0];
 
 	const int adapt_type = int_test_info->adapt_type;
-	//const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
-	// MSB: Want to correct the ctrl file name because we want to add the mesh level and p
+	
+	// To correct the ctrl file name as mesh level and p must be added
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,true,ctrl_name);
 
+	struct Simulation* sim = NULL;
 	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc,ignore_static);
-	solve_for_solution(sim);
 
-	/*
-	// Output the results in graphical format
-	output_visualization(sim,VIS_GEOM_EDGES);
-	output_visualization(sim,VIS_GEOM_VOLUMES);
-	output_visualization(sim,VIS_NORMALS);
-	output_visualization(sim,VIS_SOLUTION);
 
-	output_error(sim);
-	output_error_functionals(sim);
-	*/
+	solve_for_solution(sim);  // Solve flow over initial shape
+	optimize(sim);  // Perform the shape optimization
 
-	destructor_Integration_Test_Info(int_test_info);
 
-	optimize(sim);
-
+	// Destroy Allocated Structures
 	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,type_rc,ignore_static);
-
-
+	destructor_Integration_Test_Info(int_test_info);
 }
-
-// Level 0 ********************************************************************************************************** //
 

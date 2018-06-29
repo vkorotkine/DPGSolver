@@ -16,10 +16,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__optimization_case_h__INCLUDED
 #define DPG__optimization_case_h__INCLUDED
 
-#include "objective_functions.h"
+//#include "objective_functions.h"
 
 #include "petscvec.h"
 #include "petscmat.h"
+#include "definitions_alloc.h"
+#include "objective_functions.h"
 
 struct Multiarray_d;
 struct Matrix_d;
@@ -30,137 +32,104 @@ struct Matrix_d;
  *  pointers to various functions such that the control flow is not broken during run-time.
  *  
  */
-
 struct Optimization_Case {
 
-	int num_design_pts_dofs; // The number of design control point degrees of freedom
+	/** The number of design control points degrees of freedom. For example, if there are two
+	 * control points, one which can move in the x and y direction and the other that can only
+	 * move in the y, the value of num_design_pts_dofs is 3.
+	 */
+	int num_design_pts_dofs;
 
-	objective_function_fptr 	objective_function;  ///< Function pointer to the real objective function
-	objective_function_fptr_c 	objective_function_c;  ///< Function pointer to the complex objective function
+	functional_fptr 	objective_function;  ///< Function pointer to the real objective function
+	functional_fptr_c 	objective_function_c;  ///< Function pointer to the complex objective function
 
+	struct Simulation *sim; ///< Pointer to the real sim object
+	struct Simulation *sim_c; ///< Pointer to the complex sim object. Complex counterpart is needed for the complex step.
 
-	// Pointers to the real (sim) and complex (sim_c) objects. 
-	// A complex counterpart is needed for the complex step.
-	struct Simulation *sim;
-	struct Simulation *sim_c;
+	/** Specifies the type of optimizer. Options are:
+	 * LINE_SEARCH_STEEPEST_DESCENT = Uses gradient descent to minimize the objective function.
+	 * LINE_SEARCH_BFGS = Uses the BFGS algorithm to minimize the objective function.
+	 * NLPQLP = Uses NLPQLP to minimize the objective function
+	 */
+	char optimizer_spec[STRLEN_MIN];
 
+	/** Specifies the type of optimization to take place. Options are:
+	 * TARGET_CL = Optimize to attain a target lift coefficient
+	 */
+	char optimization_type_spec[STRLEN_MIN];
 
 	// =================================
 	//      Geometry Data Structures
 	// =================================
 
+	/// \brief Container for information relating to the geometry
 	struct Geo_Data {
 
-		// NURBS Parametric Domain orders in the xi direction (P) and 
-		// eta direction (Q)
-		int P, Q;
+		int P, ///< Consult Geo_Data in geoemtry_parameteric_T.c 
+			Q; ///< Consult Geo_Data in geoemtry_parameteric_T.c 
 
-		// Knot vectors in the xi and eta direction
-		struct Multiarray_d *knots_xi, *knots_eta; 
+		struct Multiarray_d *knots_xi, ///< Consult Geo_Data in geoemtry_parameteric_T.c 
+							*knots_eta; ///< Consult Geo_Data in geoemtry_parameteric_T.c 
 
-		// Control points and weights. A complex version is stored as well
-		// in order to be used with the complex step
-		struct Multiarray_d *control_points_and_weights;
-		struct Multiarray_c *control_points_and_weights_c;
+		struct Multiarray_d *control_points; ///< Control points for the geometry
+		struct Multiarray_c *control_points_c; ///< Complex version of the control points needed for the complex step
 
-		// Control point connectivity information for the mesh
-		struct Multiarray_i *control_point_connectivity;
+		/** Multiarray holding the control point weights. Stored as
+		 * a multiarray of dimension [num_points x 1]
+		 */
+		struct Multiarray_d *control_weights;
 
-		// The multiarray used to store which design points are used for the optimization.
-		// Each row holds data of the form (control_pt_index, x dof bool, y dof bool). The
-		// bools are 0 if the point cannot be moved in the given coordinate direction and 
-		// 1 if it can.
+		/** Multiarray holding the connectivity information for the control
+		 * points (pt) and weights (wt) in the patch.
+		 * The xi control points correspond to the i index and eta control 
+		 * points to the j index. Data stored in row major form.
+		 */
+		struct Multiarray_i *control_pt_wt_connectivity;
+
+		/** The multiarray used to store which design points are used for the optimization.
+		 * Each row holds data of the form (control_pt_index, x dof bool, y dof bool). The
+		 * bools are 0 if the point cannot be moved in the given coordinate direction and 
+		 * 1 if it can.
+		 */
 		struct Multiarray_i *control_points_optimization;
 
-		// The limits for the dofs (ordering is the same as control_points_optimization)
-		// NOTE: For now, we only consider y displacements here
+		/** The limits for the dofs (ordering is the same as control_points_optimization)
+		 * NOTE: For now, we only consider y displacements here.
+		 * NOTE: Read this information from maybe the optimization.data file
+		 */
 		struct Multiarray_d *control_points_optimization_lims;
 
-	} geo_data;
-
-
-	// =================================
-	//     Adjoint Data Structures
-	// =================================
-
-	// 		RHS = [dI/dW] (will be set and used to initialize the petsc vector for the RHS)
-	// 		Chi = Adjoint (will be set only after the adjoint is solved)
-	// - Lifetime of structures:
-	//		- All PETSc structures will be constructed in setup_adjoint and destructed in
-	//			solve_adjoint
-	//		- RHS will be constructed in setup_adjoint and destructed in solve_adjoint
-	//		- Chi will be constructed in constructor_Optimization_Case and will be destructed
-	//			in destructor_Optimization_Case (it is used in the whole optimization sequence)
-
-	struct Multiarray_d *RHS, *Chi;
-
-	Mat LHS_petsc; // [dR/dW]^T
-	Vec RHS_petsc; // [dI/dW]
-	Vec Chi_petsc; // Chi (Adjoint)
-
-	// =================================
-	//    Sensitivity Data Structures
-	// =================================
-	
-	struct Multiarray_d  *dR_dXp,  // Sensitivity of the residual 
-						 *dI_dXp;  // Sensitivity of the objective function
-
-
-	// Gradient of the objective with respect to the design variables
-	struct Multiarray_d *grad_I;
-
-
-	// =================================
-	// Optimization Minimizer Structures
-	// =================================
-
-	struct Matrix_d *Laplacian_Matrix;
-
-	// BFGS Data structures
-	struct Matrix_d *B_k_inv, *s_k, *grad_f_k;
-
-
-	// =================================
-	//     NLPQLP Data Structures
-	// =================================
-
-	struct NLPQLP_Data{
-
-		// Optimization Parameters
-		int NP, N, NMAX, M, ME, IFAIL, MODE, MNN2;
-		int IOUT, MAXIT, MAXFUN, MAXNM, LQL, IPRINT;
-		double ACC, ACCQP, STPMIN, RHO;
-
-		// Design Points and their limits
-		struct Multiarray_d *X, *XL, *XU;
-
-		// Objective and Constraint function values
-		double F;
-		struct Multiarray_d *G, *dF, *dG;
-
-		// NLPQLP Structures
-		struct Multiarray_d *C,	*U, *D,	*WA;
-
-		struct Multiarray_i *KWA, *ACTIVE;
-
-		int LWA, LKWA, LACTIV;
-
-		//struct Matrix_d *A_Smoothing;  // Smoothing matrix
-
-	} NLPQLP_data;
-
+	} geo_data;	
 };
 
 
-/** \brief Container for test case specific information.
+/** \brief Create the optimization case structure. Fill it with data relevant to the optimization
+ * and allocate memory (except for that used by the optimizer or adjoint solve)
  *
- *  This container is used to hold optimization case specific variables as well as function 
- *  pointers to various functions such that the control flow is not broken during run-time.
- *  
+ * \return Optimization_Case data structure with the information for the optimization
  */
+struct Optimization_Case* constructor_Optimization_Case (
+	struct Simulation* sim ///< Standard. The simulation data structure
+	);
 
-struct Optimization_Case* constructor_Optimization_Case (const struct Simulation* sim);
 
-void destructor_Optimization_Case (struct Optimization_Case* optimization_case);
+/** \brief Free the optimization_case structure and clear allocated memory in the constructor
+ */
+void destructor_Optimization_Case (
+	struct Optimization_Case* optimization_case ///< The optimization_case structure to be freed
+	);
+
+
+/** \brief 	Copy the data from the real sim object to the complex sim object. This method will 
+ *	transfer all the face solver and volume solver data into the complex sim object.
+ *
+ *	NOTE: Since the same mesh and control file is read (no adaptation was done) we can 
+ *		assume that the ordering of the volumes and faces in the sim and sim_c structure
+ *		is the same.
+ */
+void copy_data_r_to_c_sim(
+	struct Simulation* sim, ///< The sim data structure with real Volumes and Faces
+	struct Simulation* sim_c ///< The sim data structure with Volumes and Faces that hold complex data.
+	);
 
 #endif // DPG__optimization_case_h__INCLUDED

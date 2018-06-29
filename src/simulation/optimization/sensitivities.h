@@ -16,9 +16,52 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__sensitivities_h__INCLUDED
 #define DPG__sensitivities_h__INCLUDED
 
-struct Optimization_Case;
+#include "objective_functions.h"
 
-void compute_sensitivities(struct Optimization_Case *optimization_case);
-void destruct_sensitivity_structures(struct Optimization_Case *optimization_case);
+struct Optimization_Case;
+struct Matrix_d;
+struct Simulation;
+
+
+/** \brief Container for the sensitivity information. 
+ */
+struct Sensitivity_Data {
+
+	struct Matrix_d 	*dR_dXp,  ///< Sensitivity of the residual (R) with respect to the design points (Xp)
+						*dI_dXp;  ///< Sensitivity of the functional (I) with respect to the design points (Xp)
+
+};
+
+
+/** \brief Create the sensitivity data structure. Allocate the correct amount of memory for the 
+ * sensivitity data structures (matrices), to be filled eventually.
+ *
+ * \return Sensitivity_Data data structure with the data structures ready to be filled.
+ */
+struct Sensitivity_Data* constructor_Sensitivity_Data (
+	struct Optimization_Case *optimization_case ///< Standard. The optimization data structure
+	);
+
+
+/** \brief Free the Sensitivity_Data data structure and clear allocated memory in the constructor
+ */
+void destructor_Sensitivity_Data (
+	struct Sensitivity_Data* sensitivity_data ///< The sensitivity_data structure to be freed
+	);
+
+
+/** \brief 	Compute the sensitivities of the Residual [dR/dXp] and the objective
+ *	function [dI/dXp] with respect to the design control points Xp. Store the
+ *	results in the Matrix_d structures in the Sensitivity_Data data structure.
+ *
+ *  NOTE: All sensitivities computed using the complex step.
+ */
+void compute_sensitivities(
+	struct Sensitivity_Data *sensitivity_data, ///< The sensitivity_data data structure to load data into
+	struct Optimization_Case *optimization_case, ///< Standard. The optimization data structure
+	functional_fptr functional, ///< The functional function pointer (real version)
+	functional_fptr_c functional_c ///< The functional function pointer (complex version for complex step)
+	);
+
 
 #endif // DPG__sensitivities_h__INCLUDED

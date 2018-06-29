@@ -1,69 +1,47 @@
 
-Wednesday:
+Monday:
 
-	(Done) - Modify the configure files to be able to build the code by creating the parameter file.
+	(Done) - Clean up optimize.c
 
-	(Done) - Trace through code to see adjustments after the merge:
+		(Done) - Clean up optimization_case.c/h
 
-		(Done) - Trace through geometry_T.c to see changes and validate them.
+		(Done) - Clean up adjoint.c/h
 
-		(Done) - Trace through geometry_parametric_T.c to see changes and to validate them.
+		(Done) - Clean up sensitivities.c/h
 
-	(Done) - Build the code
+		(Done) - Create a new file for computing the gradient. Should also have a constructor and destructor for
+			a data structure that holds 
 
-	(Done) - Run the test cases to ensure they pass (non NURBS).
+		(Done) - Get BFGS Optimization working with cleaned up structures
 
-	- Fix templating for NURBS geometry
+		(Done) - Run Valgrind on BFGS optimization to ensure there are no memory leaks
 
-		(Done) - Create a real and complex version of the NURBS mapping function 
-			(to get the coordinates). Implement the templating using TYPE_RC for now
+		(Done) - move the NLPQLP methods to a proper file (organize the structure)
 
-		(Done) - Implement NURBS mapping case without NURBS metrics (use isoparametric
-			mapping). Verify real and complex versions of mappings work. Since complex
-			version cannot be run, make sure metric terms are identical for real and 
-			complex version.
-
-		(Done) - Create a real and complex version of the NURBS grad function (to get the 
-			gradients).
-
-		(Done) - Template the xyz mapping function for the NURBS mapping.
-
-		(Done) - Template the grad mapping function for the NURBS mapping.
-
-		(Done) - Output the real and complex metric terms and compare for the NURBS metrics case
-
-		(Done) - Output the real and complex metric terms and compare for the no NURBS metrics case
-
-	(Done) - Check test_integration_run for NURBS enhanced case
-
-	- Fix test_integration_optimization case
-
-	- Clean up optimization case function
-
-	- Clean up objective function file
-
-	- Clean up adjoint function
-
-	- Clean up sensitivity function
-
-	- move the NLPQLP methods to a proper file (organize the structure)
-
-	- Run the NLPQLP optimization case to see that it still converges.
-
-	- Clean up optimization monitoring (make it standard so NLPQLP, BFGS, ... all use
+	(Done) - Clean up optimization monitoring (make it standard so NLPQLP, BFGS, ... all use
 		the same methods). 
 
-	- Implement the complex step sensitivities
+	(Done) - Implement the progress output for the geometry
 
-		- Verify that the difference between the complex step and finite difference is low
+	(Done) - Run the NLPQLP optimization case to see that it still converges.
 
-	- Run the NLPQLP optimization case with complex step sensitivities (NACA0012 airfoil target CL)
+	(Done) - Implement the complex step sensitivities
 
-	- Compare final optimized profiles for all 3 cases (NURBS enhanced, Standard, Superparametric)
+		(Done) - Compute dR_dXp using the complex step
 
-		- If results differ greatly, output gradient for all three cases for the first design step
+		(Done) - Compute dI_dXp using the complex step
 
-		- Output the magnitude of each component in the gradient evaluation to see the difference there.
+		(Done) - Verify the final gradient values obtained and compare it to the brute force values
+
+	(Done) - Run the NLPQLP optimization case with complex step sensitivities (NACA0012 airfoil target CL)
+
+	(Done) - Compare final optimized profiles for all 3 cases (NURBS enhanced, Standard, Superparametric)
+
+	- Plot and list the gradient values for the three cases
+
+	- Check memory leaks by running valgrind for NLPQLP optimization case
+
+	- Finalize clean up of implementation for optimization. Commit changes.
 
 	- Implement the pitching moment computation
 
@@ -72,6 +50,7 @@ Wednesday:
 	- Implement a pitching moment constraint and try to converge to an optimal solution (NLPQLP)
 
 	- Template the objective function file to be able to have a real and complex version of the function
+
 
 
 
@@ -101,12 +80,6 @@ Wednesday:
 
 
 	- Read the IGA Paper
-
-
-CLOCK_IN  = 4:51
-CLOCK_OUT = 6:30
-
-TIME_ELAPSE = 3:58
 
 
 

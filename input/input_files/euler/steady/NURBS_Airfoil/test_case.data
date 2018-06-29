@@ -2,8 +2,8 @@
 
 geom_parametrization normal_proj
 
-//solver _ proc explicit
-solver_proc   explicit->implicit
+//solver _ proc explicit->implicit
+solver_proc   implicit
 solver_type_i iterative
 solver_type_e ssp_rk_33
 lhs_terms     cfl_ramping

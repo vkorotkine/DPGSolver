@@ -21,7 +21,7 @@ import time
 
 
 # Location of the optimization Patch progress file
-CONST_OPTIMIZATION_FILE = "../../../build_2D/output/paraview/euler/steady/NURBS_Airfoil/Optimized_NURBS_Patch.txt"
+CONST_OPTIMIZATION_FILE = "../../../build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil/Optimized_NURBS_Patch.txt"
 
 # Location of the initial geometry file
 CONST_INITIAL_PATCH_FILE = "../../../input/input_files/euler/steady/NURBS_Airfoil/geometry_parameters.geo"

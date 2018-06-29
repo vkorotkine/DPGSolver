@@ -26,7 +26,7 @@ struct Intrusive_List;
  *  \param sim    \ref Simulation.
  */
 
-typedef double complex (*objective_function_fptr_c)
+typedef double complex (*functional_fptr_c)
 	(const struct Simulation* sim
 	);
 
@@ -36,7 +36,7 @@ typedef double complex (*objective_function_fptr_c)
  *  \param sim    \ref Simulation.
  */
 
-typedef double (*objective_function_fptr)
+typedef double (*functional_fptr)
 	(const struct Simulation* sim
 	);
 

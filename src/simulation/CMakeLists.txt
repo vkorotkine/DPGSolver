@@ -15,13 +15,15 @@ set	(SOURCE
 	 geometry/geometry_surface.c
 	 geometry/geometry_normals.c
 
-	 optimization/objective_functions.c
 	 optimization/optimize.c
 	 optimization/optimization_case.c
+	 optimization/optimizer_line_search.c
+	 optimization/optimizer_NLPQLP.c
 	 optimization/objective_functions.c
 	 optimization/adjoint.c
 	 optimization/sensitivities.c
-	 optimization/optimization_minimizers.c
+	 optimization/gradient.c
+	 optimization/output_progress.c
 
 	 solvers/compute_rlhs.c
 	 solvers/compute_face_rlhs.c

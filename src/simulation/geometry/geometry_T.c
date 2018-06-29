@@ -368,7 +368,6 @@ void compute_NURBS_geometry_volume_T(const bool recompute_geom_coef,
 	destructor_const_Multiarray_T(grad_xyz);
 	destructor_Multiarray_T(jacobian_vc);
 
-
 	if(OUTPUT_METRIC_TERMS){
 		// Testing:
 		printf("NURBS APPROACH\n");

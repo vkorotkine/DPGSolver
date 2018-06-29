@@ -54,28 +54,33 @@ struct Geo_Data {
 	     xyz_r; ///< Right xyz-coordinate.
 
 
-
 	// NURBS Parametric Domain parameters: (2D Domain for now only)
 	
-	int P, Q;  ///< Order of the patch in the xi (P) and eta (Q) direction
+	int P, ///< Order of the patch in the xi direction 
+		Q;  ///< Order of the patch in the eta direction
 	
 	struct Multiarray_R *knots_xi, ///< Knot vector in the xi parametric direction
 						*knots_eta; ///< Knot vector in the eta parametric direction
 
-	struct Multiarray_T *control_points; ///< Multiarray holding the control point data. Is stored as
-										 ///< a multiarray of dimension [num_points x DIM]. Is templated to allow
-										 ///< for complex control points so that sensitivities can be calculated using complex step.
+	/** Multiarray holding the control point data. Stored as
+	 * a multiarray of dimension [num_points x DIM]. Is templated to allow
+	 * for complex control points so that sensitivities can be calculated using the complex step.
+	 */
+	struct Multiarray_T *control_points;
 	
-	struct Multiarray_R *control_weights; ///< Multiarray holding the control point weights. Is stored as
-										  ///< a multiarray of dimension [num_points x DIM]
+	/** Multiarray holding the control point weights. Stored as
+	 * a multiarray of dimension [num_points x 1]
+	 */
+	struct Multiarray_R *control_weights;
 
-	struct Multiarray_i *control_pt_wt_connectivity; ///< The Multiarray holding the connectivity information for the control
-													 ///< points (pt) and weights (wt) in the patch.
-													 ///< The xi control points correspond to the i index and eta control 
-													 ///< points to the j index. Data stored in row major form.
-
-	struct Multiarray_i *control_point_connectivity; // To be deleted
+	/** Multiarray holding the connectivity information for the control
+	 * points (pt) and weights (wt) in the patch.
+	 * The xi control points correspond to the i index and eta control 
+	 * points to the j index. Data stored in row major form.
+	 */
+	struct Multiarray_i *control_pt_wt_connectivity;
 };
+
 
 /** \brief Return the statically allocated \ref Geo_Data container.
  *  \return See brief. */
@@ -365,52 +370,22 @@ const struct const_Multiarray_T* constructor_xyz_joukowski_parametric_T
 	return (struct const_Multiarray_T*) xyz;
 }
 
-void update_geo_data_NURBS_parametric_T(const struct const_Multiarray_R* ctrl_pts_and_weights){
-
-	// MSB: TODO: Update this function. 
-
-	/*
-	Update the NURBS data held in the geo_data structure. This method
-	is used with the optimization routines for updating the information 
-	about the NURBS patch by adjusting the location of the control points and
-	weights to allow for shape optimization to take place.
-
-	NOTE: For now, only the real version of the function will work (need to still 
-		make adjustments to account for the complex version)
-	
-	TODO: Make this function templated
-
-	Arguments:
-		ctrl_pts_and_weights = The multiarray holding the updated control points and weights.
-			If calling the real version of the function, the cntrl point data should be real and 
-			should be copied into the real version of the geo_data (opposite if complex).
-
-	Return:
-		-
-	*/
+void update_geo_data_NURBS_parametric_T(const struct const_Multiarray_T* control_points){
 
 	struct Geo_Data geo_data = get_geo_data("NURBS");  // get static geo_data struct
-
-	//struct Multiarray_d *dest = geo_data.control_points_and_weights;
-	UNUSED(geo_data);
-	struct Multiarray_d *dest = NULL;
+	struct Multiarray_T *dest = geo_data.control_points;
 
 	for (int i = 0; i < (int)dest->extents[0]; i++){
 		for(int j = 0; j < (int)dest->extents[1]; j++){
-
-			get_col_Multiarray_d(j, dest)[i] = get_col_const_Multiarray_R(j, ctrl_pts_and_weights)[i];
-
+			get_col_Multiarray_T(j, dest)[i] = get_col_const_Multiarray_T(j, control_points)[i];
 		}
 	}
-
 }
 
 
 const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
 (const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
 	const struct Simulation* sim){
-
-	// MSB: TODO: See if xyz_i must be templated
 
 	/*
 	Computes the gradient terms of the parametric NURBS mapping from the parametric domain
@@ -444,7 +419,6 @@ const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
 		(const struct const_Multiarray_i*)geo_data.control_pt_wt_connectivity);
 
 	return (const struct const_Multiarray_T*)grad_xyz;
-
 }
 
 
@@ -507,9 +481,8 @@ const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
 
 #endif
 
-
-	free(xyz_i_real);
-
+	destructor_Multiarray_d(xyz_i_real);
+	
 	return (const struct const_Multiarray_T*)xyz;
 
 }

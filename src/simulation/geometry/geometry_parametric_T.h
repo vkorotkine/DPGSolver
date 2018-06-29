@@ -101,10 +101,6 @@ const struct const_Multiarray_T* constructor_xyz_gaussian_bump_parametric_T
 	 const struct Simulation* sim            ///< See brief.
 	);
 
-void update_geo_data_NURBS_parametric_T
-	(const struct const_Multiarray_R* ctrl_pts_and_weights
-	);
-
 /** \brief Version of \ref constructor_xyz_fptr_T for a parametric NURBS patch domain.
  *  Computes the parametric NURBS mapping from the parametric domain to the physical domain.
  *  \return See brief. */
@@ -129,6 +125,15 @@ const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
 	 const struct Simulation* sim 				///< See brief.
 	);
 
+/** \brief 	Update the NURBS data held in the geo_data structure. This method
+ *	is used with the optimization routines for updating the information 
+ *	about the NURBS patch by adjusting the location of the control points to 
+ *	allow for shape optimization to take place.
+ */
+void update_geo_data_NURBS_parametric_T
+	(const struct const_Multiarray_T* control_points ///< The new values for the control point data
+	);
+
 /** \brief Computes the gradient terms of the NURBS mapping at the specified points on the 
  *	knot domain (xi_eta_i). NOTE: Only the 2D case has been implemented for now.
  *	
@@ -138,25 +143,34 @@ const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
  *	x_xi, for instance, is the partial of x with respect to the xi knot domain variable.
  */
 const struct const_Multiarray_T *grad_xyz_NURBS_patch_mapping_T(
-	const struct const_Multiarray_d* xi_eta_i, 					///< The values on the parametric domain (knot domain). Is a multiarray
-																///< of dimension [num_points x DIM]. For now, only consider 2D cases.
 
-	int P, 														///< The order of the basis functions in the xi direction
-	int Q,														///< The order of the basis functions in the eta direction
+	/** The values on the parametric domain (knot domain). Is a multiarray
+	 * of dimension [num_points x DIM]. For now, only consider 2D cases.
+	 */
+	const struct const_Multiarray_d* xi_eta_i,
 
-	const struct const_Multiarray_d* knots_xi, 					///< The knot vector in the xi direction
-	const struct const_Multiarray_d* knots_eta, 				///< The knot vector in the eta direction
+	int P, 		///< The order of the basis functions in the xi direction
+	int Q,		///< The order of the basis functions in the eta direction
 
-	const struct const_Multiarray_T* control_points, 			///< The multiarray holding the list of control points. 
-																///< The multiarray is of dimension [num_ctrl_pts x (DIM)]
+	const struct const_Multiarray_d* knots_xi, 	///< The knot vector in the xi direction
+	const struct const_Multiarray_d* knots_eta, ///< The knot vector in the eta direction
+
+	/** The multiarray holding the list of control points. 
+	 * The multiarray is of dimension [num_ctrl_pts x (DIM)]
+	 */
+	const struct const_Multiarray_T* control_points,
 	
-	const struct const_Multiarray_d* control_weights, 			///< The multiarray holding the list of weights associated to each point. 
-																///< The multiarray is of dimension [num_ctrl_pts x 1]
+	/** The multiarray holding the list of weights associated to each point. 
+	 * The multiarray is of dimension [num_ctrl_pts x 1]
+	 */
+	const struct const_Multiarray_d* control_weights, 
 	
-	const struct const_Multiarray_i* control_pt_wt_connectivity ///< The multiarray holding the connectivity information for
-																///< the control points (pt) and weights (wt). Is of dimension [num_I x num_J], where num_I and 
-																///< num_J are the number of control points / basis functions in either coordinate 
-																///< direction. This multiarray is in row major form
+	/** The multiarray holding the connectivity information for
+	 * the control points (pt) and weights (wt). Is of dimension [num_I x num_J], where num_I and
+	 * num_J are the number of control points / basis functions in either coordinate 
+	 * direction. This multiarray is in row major form
+	 */
+	const struct const_Multiarray_i* control_pt_wt_connectivity
 	);
 
 
@@ -169,26 +183,34 @@ const struct const_Multiarray_T *grad_xyz_NURBS_patch_mapping_T(
  *	x_xi, for instance, is the partial of x with respect to the xi knot domain variable.
  */
 const struct const_Multiarray_T *xyz_NURBS_patch_mapping_T(
-	const struct const_Multiarray_d* xi_eta_i, 					///< The values on the parametric domain (knot domain). Is a multiarray
-																///< of dimension [num_points x DIM]. For now, only consider 2D cases.
 
-	int P, 														///< The order of the basis functions in the xi direction
-	int Q,														///< The order of the basis functions in the eta direction
+	/** The values on the parametric domain (knot domain). Is a multiarray
+	 * of dimension [num_points x DIM]. For now, only consider 2D cases.
+	 */
+	const struct const_Multiarray_d* xi_eta_i, 
 
-	const struct const_Multiarray_d* knots_xi, 					///< The knot vector in the xi direction
-	const struct const_Multiarray_d* knots_eta, 				///< The knot vector in the eta direction
+	int P, 	///< The order of the basis functions in the xi direction
+	int Q,	///< The order of the basis functions in the eta direction
 
-	const struct const_Multiarray_T* control_points, 			///< The multiarray holding the list of control points. 
-																///< The multiarray is of dimension [num_ctrl_pts x (DIM)]
+	const struct const_Multiarray_d* knots_xi, 	///< The knot vector in the xi direction
+	const struct const_Multiarray_d* knots_eta, ///< The knot vector in the eta direction
+
+	/** The multiarray holding the list of control points. 
+	 * The multiarray is of dimension [num_ctrl_pts x (DIM)]
+	 */
+	const struct const_Multiarray_T* control_points, 
 	
-	const struct const_Multiarray_d* control_weights, 			///< The multiarray holding the list of weights associated to each point. 
-																///< The multiarray is of dimension [num_ctrl_pts x 1]
+	/** The multiarray holding the list of weights associated to each point. 
+	 * The multiarray is of dimension [num_ctrl_pts x 1]
+	 */
+	const struct const_Multiarray_d* control_weights, 
 	
-	const struct const_Multiarray_i* control_pt_wt_connectivity ///< The multiarray holding the connectivity information for
-																///< the control points (pt) and weights (wt). Is of dimension [num_I x num_J], where num_I and 
-																///< num_J are the number of control points / basis functions in either coordinate 
-																///< direction. This multiarray is in row major form
-
+	/** The multiarray holding the connectivity information for
+	 * the control points (pt) and weights (wt). Is of dimension [num_I x num_J], where num_I and
+	 * num_J are the number of control points / basis functions in either coordinate 
+	 * direction. This multiarray is in row major form
+	 */
+	const struct const_Multiarray_i* control_pt_wt_connectivity 
 	);
 
 

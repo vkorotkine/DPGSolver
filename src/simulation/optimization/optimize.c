@@ -56,13 +56,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "visualization.h"
 #include "definitions_visualization.h"
 
+
 #include "optimization_case.h"
-
-#include "adjoint.h"
-#include "sensitivities.h"
-#include "optimization_minimizers.h"
-
-#include "objective_functions.h"
+#include "optimizer_line_search.h"
+#include "optimizer_NLPQLP.h"
 
 
 // TODO: Read from the optimization.data file
@@ -70,74 +67,33 @@ You should have received a copy of the GNU General Public License along with DPG
 #define CONST_OBJECTIVE_FUNC_EXIT 1E-10
 #define MAX_NUM_DESIGN_ITERS 250
 
+#define FALSE_FLAG 0
+
 // Static function declarations ************************************************************************************* //
-
-static struct Optimization_Case* setup_optimization(struct Simulation* sim);
-static void copy_data_r_to_c_sim(struct Simulation* sim, struct Simulation* sim_c);
-static struct Multiarray_d* compute_gradient(struct Optimization_Case* optimization_case);
-static struct Multiarray_d* test_compute_brute_force_gradient(struct Optimization_Case* optimization_case);
-static void optimize_line_search_method(struct Optimization_Case* optimization_case);
-
-
-// NLPQLP Specific Static Functions
-static void optimize_NLPQLP(struct Optimization_Case *optimization_case);
-static void preprocess_optimize_NLPQLP(struct Optimization_Case *optimization_case);
-static void postprocess_optimize_NLPQLP(struct Optimization_Case *optimization_case);
-static void compute_function_values_NLPQLP(struct Optimization_Case *optimization_case);
-static void compute_gradient_values_NLPQLP(struct Optimization_Case *optimization_case);
-static void write_NLPQLP_input_file(struct Optimization_Case *optimization_case);
-static void read_NLPQLP_output_file(struct Optimization_Case *optimization_case);
-static void copy_control_pt_data_to_NLPQLP(struct Optimization_Case *optimization_case);
-static void copy_control_pt_data_from_NLPQLP(struct Optimization_Case *optimization_case);
 
 // Interface functions ********************************************************************************************** //
 
-
-
 void optimize(struct Simulation* sim){
 
-	/*
-	Optimize the the geometry to minimize a specified functional.
-
-	Arguments:
-		sim = The simulation data structure
-
-	Return:
-		- 
-	*/
-
-	// Preprocessing
-	struct Optimization_Case *optimization_case = setup_optimization(sim);
-	copy_data_r_to_c_sim(optimization_case->sim, optimization_case->sim_c);
-
-	output_visualization(sim,VIS_GEOM_EDGES);
-	output_visualization(sim,VIS_GEOM_VOLUMES);
-	output_visualization(sim,VIS_NORMALS);
-	output_visualization(sim,VIS_SOLUTION);
+	struct Optimization_Case *optimization_case = constructor_Optimization_Case(sim);
 
 	// Optimization routine
-	//optimize_line_search_method(optimization_case);
-	optimize_NLPQLP(optimization_case);
-
-
-	// Post Processing
-	output_visualization(sim,VIS_GEOM_EDGES);
-	output_visualization(sim,VIS_GEOM_VOLUMES);
-	output_visualization(sim,VIS_NORMALS);
-	output_visualization(sim,VIS_SOLUTION);
-
+	if (strstr(optimization_case->optimizer_spec, "LINE_SEARCH"))
+		optimizer_line_search(optimization_case);
+	else if(strstr(optimization_case->optimizer_spec, "NLPQLP"))
+		optimizer_NLPQLP(optimization_case);
+	else
+		EXIT_UNSUPPORTED;
 
 	// Clear allocated structures:
 	destructor_Optimization_Case(optimization_case);
 
-	
-	// Unused functions:
-	UNUSED(test_compute_brute_force_gradient);
-	UNUSED(optimize_line_search_method);
-	UNUSED(optimize_NLPQLP);
-
 }
 
+
+
+
+#if FALSE_FLAG
 
 void output_NURBS_patch_information(struct Optimization_Case* optimization_case){
 
@@ -193,7 +149,6 @@ void output_NURBS_patch_information(struct Optimization_Case* optimization_case)
 	}
 
 	fclose(fp);
-
 }
 
 
@@ -240,7 +195,6 @@ static void optimize_NLPQLP(struct Optimization_Case *optimization_case){
 		// Process new control point locations from the optimizer
 		copy_control_pt_data_from_NLPQLP(optimization_case);  
 		
-
 
 
 		// Error checking
@@ -293,9 +247,6 @@ static void optimize_NLPQLP(struct Optimization_Case *optimization_case){
 			design_iteration++;
 
 		}
-
-		
-		
 	}
 
 	postprocess_optimize_NLPQLP(optimization_case);
@@ -1131,126 +1082,6 @@ static void optimize_line_search_method(struct Optimization_Case* optimization_c
 }
 
 
-static void copy_data_r_to_c_sim(struct Simulation* sim, struct Simulation* sim_c){
-
-	/*
-	Copy the data from the real sim object to the complex sim object. This method will 
-	transfer all the face solver and volume solver data into the complex sim object.
-
-	NOTE: Since the mesh and same control file is read (no adaptation was done) we can 
-		assume that the ordering of the volumes and faces in the sim and sim_c structure
-		is the same.
-	
-	Arguments:
-		sim = The sim data structure with real Volumes and Faces
-		sim_c = The sim data structure with Volumes and Faces that hold complex data.
-
-	Return:
-		-
-	*/
-
-	// Copy the Volume_Solver data
-	struct Intrusive_Link* curr   = sim->volumes->first;
-	struct Intrusive_Link* curr_c = sim_c->volumes->first;
-
-	while(true){
-
-		struct Solver_Volume* s_vol 		= (struct Solver_Volume*) curr;
-		struct Solver_Volume_c* s_vol_c 	= (struct Solver_Volume_c*) curr_c;
-		
-		copy_members_r_to_c_Solver_Volume((struct Solver_Volume_c*const)s_vol_c, 
-			(const struct Solver_Volume*const)s_vol, sim);
-
-		curr 	= curr->next;
-		curr_c 	= curr_c->next;
-
-		if(!curr || !curr_c)
-			break;
-	}
-
-	// Copy the Face_Solver data
-	curr   = sim->faces->first;
-	curr_c = sim_c->faces->first;
-
-	while(true){
-
-		struct Solver_Face* s_face 		= (struct Solver_Face*) curr;
-		struct Solver_Face_c* s_face_c 	= (struct Solver_Face_c*) curr_c;
-		
-		// TODO:
-		// Needed in order to do the r_to_c conversion. Find a way to fix this issue
-		s_face->nf_fc = (const struct const_Multiarray_d*)constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1,1});
-		s_face_c->nf_fc = (const struct const_Multiarray_c*)constructor_empty_Multiarray_c('C',2,(ptrdiff_t[]){1,1});
-
-		copy_members_r_to_c_Solver_Face((struct Solver_Face_c*const)s_face_c, 
-			(const struct Solver_Face*const)s_face, sim);
-
-		curr 	= curr->next;
-		curr_c 	= curr_c->next;
-
-		if(!curr || !curr_c)
-			break;
-	}
-
-}
-
-
-static struct Optimization_Case* setup_optimization(struct Simulation* sim){
-
-	/*
-	Setup the optimization case. In this method, first the constructor for the 
-	Optimization_Case data structure will be called. Following this, a complex 
-	sim object will be created. This object will be used for obtaining all linearizations
-	using the complex step. The data from the real sim object will simply be copied into
-	the complex counterpart between each design cycle.
-	
-	Arguments:
-		sim = The simulation data structure
-	
-	Return:
-		The Optimization_Case data structure holding the data needed for the optimization.
-
-	*/
-
-	struct Optimization_Case *optimization_case = constructor_Optimization_Case(sim);
-
-
-	// Create the complex simulation object
-
-	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(sim->ctrl_name);
-	
-	const int* p_ref  = int_test_info->p_ref,
-	         * ml_ref = int_test_info->ml;
-
-	struct Simulation* sim_c = NULL;
-	const char type_rc = 'c';
-
-	bool ignore_static = false;
-	int ml_max = ml_ref[1];
-
-	UNUSED(ml_max);
-
-	int ml_prev = ml_ref[0]-1,
-    	p_prev  = p_ref[0]-1;
-
-	int ml = ml_ref[0];
-	int p = p_ref[0];
-
-	const int adapt_type = int_test_info->adapt_type;
-
-	structor_simulation(&sim_c, 'c', adapt_type, p, ml, p_prev, ml_prev, sim->ctrl_name, 
-		type_rc, ignore_static);
-	
-
-	// Store pointers to the sim objects
-	optimization_case->sim = sim;
-	optimization_case->sim_c = sim_c;
-
-	return optimization_case;
-
-}
-
-
 static struct Multiarray_d* compute_gradient(struct Optimization_Case* optimization_case){
 
 	/*
@@ -1363,7 +1194,7 @@ static struct Multiarray_d* test_compute_brute_force_gradient(struct Optimizatio
 
 }
 
-
+#endif
 
 
 
