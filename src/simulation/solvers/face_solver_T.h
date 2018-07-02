@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
+#include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
 #include "def_templates_boundary.h"
@@ -118,6 +119,13 @@ const struct const_Vector_R* get_operator__w_fc__s_e_T
 	(const struct Solver_Face_T*const s_face ///< The current face.
 	);
 
+/** \brief Constructor for the mass matrix of the input face.
+ *  \return See brief. */
+const struct const_Matrix_T* constructor_mass_face_T
+	(const struct Solver_Face_T*const s_face ///< Standard.
+	 );
+
+#include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
 #include "undef_templates_boundary.h"

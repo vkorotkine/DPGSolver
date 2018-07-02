@@ -23,14 +23,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "element_solver.h"
 #include "volume_solver.h"
 
+#include "matrix.h"
 #include "multiarray.h"
+#include "vector.h"
 
 #include "boundary_advection.h"
 #include "boundary_diffusion.h"
 #include "boundary_euler.h"
 #include "boundary_navier_stokes.h"
+#include "compute_face_rlhs.h"
 #include "const_cast.h"
 #include "geometry.h"
+#include "operator.h"
 #include "simulation.h"
 #include "test_case.h"
 

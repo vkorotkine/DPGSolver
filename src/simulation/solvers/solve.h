@@ -52,6 +52,8 @@ struct Solver_Storage_Implicit {
 	 *  The vector has \ref Vector_T::ext_0 equal to the number of l2 dof and the index of the corresponding c0 dof
 	 *  is stored as the corresponding data. */
 	const struct const_Vector_i* corr_l2_c0;
+
+	bool do_not_destruct_A; ///< Flag for whether the \ref Solver_Storage_Implicit::A matrix should be destructed.
 };
 
 // Interface functions ********************************************************************************************** //

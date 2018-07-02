@@ -213,6 +213,13 @@ bool is_face_neighbour (const struct Face*const face, const struct Volume*const 
 	return false;
 }
 
+void destructor_Gen_Eig_Data (const struct Gen_Eig_Data*const ged)
+{
+	MatDestroy((Mat*)&ged->A);
+	MatDestroy((Mat*)&ged->B);
+	free((void*)ged);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

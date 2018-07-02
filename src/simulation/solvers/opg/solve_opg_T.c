@@ -33,11 +33,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/// \brief Update \ref Solver_Volume_T::ind_dof_test for the opg method.
-static void update_ind_dof_opg_test
-	(const struct Simulation*const sim ///< Standard.
-	);
-
 /** \brief Compute the number of 'd'egrees 'o'f 'f'reedom for the global test function computation.
  *  \return See brief. */
 static ptrdiff_t compute_dof_test
@@ -45,48 +40,6 @@ static ptrdiff_t compute_dof_test
 	);
 
 // Interface functions ********************************************************************************************** //
-
-void update_ind_dof_opg_T (const struct Simulation* sim)
-{
-	ptrdiff_t dof = 0;
-	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		struct Solver_Face_T* s_face = (struct Solver_Face_T*) curr;
-
-		struct Multiarray_T* nf_coef = s_face->nf_coef;
-		const ptrdiff_t size = compute_size(nf_coef->order,nf_coef->extents);
-		if (size == 0) {
-			const_cast_ptrdiff(&s_face->ind_dof,-1);
-			continue;
-		}
-
-		const_cast_ptrdiff(&s_face->ind_dof,dof);
-		dof += size;
-	}
-
-	if (test_case_explicitly_enforces_conservation(sim)) {
-		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-			struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
-
-			const_cast_ptrdiff(&s_vol->ind_dof_constraint,dof);
-
-			struct Multiarray_T* l_mult = s_vol->l_mult;
-			dof += compute_size(l_mult->order,l_mult->extents);
-		}
-	}
-
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
-
-		const_cast_ptrdiff(&s_vol->ind_dof,dof);
-
-		struct Multiarray_T* sol_coef = s_vol->sol_coef;
-		dof += compute_size(sol_coef->order,sol_coef->extents);
-	}
-
-	assert(dof == compute_dof(sim));
-
-	update_ind_dof_opg_test(sim);
-}
 
 struct Vector_i* constructor_nnz_opg_T (const struct Simulation* sim)
 {
@@ -137,19 +90,6 @@ struct Vector_i* constructor_nnz_opg_T (const struct Simulation* sim)
 static ptrdiff_t compute_dof_volumes_test
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
-
-static void update_ind_dof_opg_test (const struct Simulation*const sim)
-{
-	ptrdiff_t dof = 0;
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
-
-		const_cast_ptrdiff(&s_vol->ind_dof_test,dof);
-
-		struct Multiarray_T* test_s_coef = s_vol->test_s_coef;
-		dof += compute_size(test_s_coef->order,test_s_coef->extents);
-	}
-}
 
 static ptrdiff_t compute_dof_test (const struct Simulation*const sim)
 {

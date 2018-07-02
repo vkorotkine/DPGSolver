@@ -38,21 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Interface functions ********************************************************************************************** //
 
-void update_ind_dof_dg_T (const struct Simulation* sim)
-{
-	ptrdiff_t dof = 0;
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
-
-		const_cast_ptrdiff(&s_vol->ind_dof,dof);
-
-		struct Multiarray_T* sol_coef = s_vol->sol_coef;
-		dof += compute_size(sol_coef->order,sol_coef->extents);
-	}
-	assert(dof == compute_dof(sim));
-}
-
-struct Vector_i* constructor_nnz_dg_T (const struct Simulation* sim)
+struct Vector_i* constructor_nnz_dg_T (const bool diag_only, const struct Simulation* sim)
 {
 	const ptrdiff_t dof = compute_dof(sim);
 	struct Vector_i* nnz = constructor_zero_Vector_i(dof); // returned
@@ -67,20 +53,22 @@ struct Vector_i* constructor_nnz_dg_T (const struct Simulation* sim)
 	}
 
 	// Off-diagonal contributions
-	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		struct Face* face = (struct Face*) curr;
-		if (face->boundary)
-			continue;
+	if (!diag_only) {
+		for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+			struct Face* face = (struct Face*) curr;
+			if (face->boundary)
+				continue;
 
-		struct Solver_Volume_T* s_vol[2] = { (struct Solver_Volume_T*) face->neigh_info[0].volume,
-		                                     (struct Solver_Volume_T*) face->neigh_info[1].volume, };
+			struct Solver_Volume_T* s_vol[2] = { (struct Solver_Volume_T*) face->neigh_info[0].volume,
+			                                     (struct Solver_Volume_T*) face->neigh_info[1].volume, };
 
-		struct Multiarray_T* sol_coef[2] = { s_vol[0]->sol_coef, s_vol[1]->sol_coef, };
-		const ptrdiff_t size[2] = { compute_size(sol_coef[0]->order,sol_coef[0]->extents),
-		                            compute_size(sol_coef[1]->order,sol_coef[1]->extents), };
+			struct Multiarray_T* sol_coef[2] = { s_vol[0]->sol_coef, s_vol[1]->sol_coef, };
+			const ptrdiff_t size[2] = { compute_size(sol_coef[0]->order,sol_coef[0]->extents),
+			                            compute_size(sol_coef[1]->order,sol_coef[1]->extents), };
 
-		increment_nnz(nnz,s_vol[0]->ind_dof,size[0],size[1]);
-		increment_nnz(nnz,s_vol[1]->ind_dof,size[1],size[0]);
+			increment_nnz(nnz,s_vol[0]->ind_dof,size[0],size[1]);
+			increment_nnz(nnz,s_vol[1]->ind_dof,size[1],size[0]);
+		}
 	}
 	return nnz;
 }

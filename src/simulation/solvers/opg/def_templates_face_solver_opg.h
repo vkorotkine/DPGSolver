@@ -39,7 +39,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Static names
 #define constructor_inverse_mass_face_T constructor_inverse_mass_face_d
-#define constructor_mass_face_T constructor_mass_face_d
 #define set_function_pointers_penalty_T set_function_pointers_penalty_d
 #define set_function_pointers_penalty_boundary_T set_function_pointers_penalty_boundary_d
 #define set_function_pointers_penalty_boundary_advection_T set_function_pointers_penalty_boundary_advection_d
@@ -65,7 +64,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Static names
 #define constructor_inverse_mass_face_T constructor_inverse_mass_face_T_c
-#define constructor_mass_face_T constructor_mass_face_T_c
 #define set_function_pointers_penalty_T set_function_pointers_penalty_c
 #define set_function_pointers_penalty_boundary_T set_function_pointers_penalty_boundary_c
 #define set_function_pointers_penalty_boundary_advection_T set_function_pointers_penalty_boundary_advection_c

@@ -20,12 +20,7 @@ CTRL_DIR := $(PROJECT_SOURCE_DIR)/input
 
 # Exclude control files which already have an extenally generated mesh
 CTRL_FILES_EXCLUDE := $(shell find $(CTRL_DIR) -wholename '*/extern_mesh/*.ctrl')
-
-CTRL_FILES_PYTHON := $(shell find $(CTRL_DIR) -name '*Peterson*.ctrl')
-
-CTRL_FILES_OTHER  := $(CTRL_FILES_PYTHON) \
-                     $(CTRL_FILES_EXCLUDE)
-CTRL_FILES_GMSH   := $(filter-out $(CTRL_FILES_OTHER),$(shell find $(CTRL_DIR) -name '*.ctrl'))
+CTRL_FILES_DEP    := $(filter-out $(CTRL_FILES_EXCLUDE),$(shell find $(CTRL_DIR) -name '*.ctrl'))
 
 MESH_BINARY_DIR := $(PROJECT_BINARY_DIR)/meshes
 
@@ -39,15 +34,15 @@ MESH_DEPEND := $(MESH_DEPEND_GMSH) $(MESH_DEPEND_PYTHON)
 .PHONY : meshes_depend
 meshes_depend : $(MESH_DEPEND)
 
-$(MESH_DEPEND_GMSH) : $(CTRL_FILES_GMSH)
+$(MESH_DEPEND_GMSH) : $(CTRL_FILES_DEP)
 	@echo Creating: $@
 	cd $(PYTHON_DIR) && $(PYTHONC) compute_mesh_depend.py $(PROJECT_BINARY_DIR) $(PROJECT_SOURCE_DIR) $@ \
-	$@ $(CTRL_FILES_GMSH:$(CTRL_DIR)/%=%)
+	$@ $(CTRL_FILES_DEP:$(CTRL_DIR)/%=%)
 
-$(MESH_DEPEND_PYTHON): $(CTRL_FILES_PYTHON)
+$(MESH_DEPEND_PYTHON): $(CTRL_FILES_DEP)
 	@echo Creating: $@
 	cd $(PYTHON_DIR) && $(PYTHONC) compute_mesh_depend.py $(PROJECT_BINARY_DIR) $(PROJECT_SOURCE_DIR) $@ \
-	$@ $(CTRL_FILES_PYTHON:$(CTRL_DIR)/%=%)
+	$@ $(CTRL_FILES_DEP:$(CTRL_DIR)/%=%)
 
 
 include $(MESH_DEPEND_GMSH)

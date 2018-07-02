@@ -123,6 +123,12 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D__ml0__p3" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_Conservative_DPG_BlendedMixed2D__ml1__p2" "petsc_options_gmres_default")
 
+set (EXEC test_integration_inf_sup)
+set (LIBS_DEPEND ${LIBS_BASE} ${SLEPC_LIBRARIES} Simulation Test_Integration Test_Support_Simulation)
+add_executable(${EXEC} ${EXEC}.c)
+target_link_libraries(${EXEC} ${LIBS_DEPEND})
+
+
 set (EXEC test_integration_linearization)
 set (LIBS_DEPEND ${LIBS_BASE}
      Simulation

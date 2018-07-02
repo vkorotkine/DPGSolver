@@ -19,7 +19,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
-#define update_ind_dof_dpg_T  update_ind_dof_dpg
 #define constructor_nnz_dpg_T constructor_nnz_dpg
 ///\}
 
@@ -33,7 +32,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
-#define update_ind_dof_dpg_T  update_ind_dof_dpg_c
 #define constructor_nnz_dpg_T constructor_nnz_dpg_c
 ///\}
 

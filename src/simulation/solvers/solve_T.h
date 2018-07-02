@@ -39,11 +39,6 @@ ptrdiff_t compute_dof_T
 	(const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/// \brief Update \ref Solver_Volume_T::ind_dof and \ref Solver_Face_T::ind_dof.
-void update_ind_dof_T
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
 /// \brief Add the source contribution to \ref Solver_Volume_T::flux_imbalance.
 void add_to_flux_imbalance_source_T
 	(const struct const_Multiarray_T*const source_vc_w_J, /**< The source at the volume cubature nodes with Jacobian
@@ -63,6 +58,11 @@ void initialize_zero_memory_volumes_T
 	(struct Intrusive_List* volumes ///< The list of volumes for which to set the memory.
 	);
 
+/** \brief Update the global 'd'egree 'o'f 'f'reedom indices in \ref Solver_Volume_T and \ref Solver_Face_T based on the
+ *         size of the allocated variable containers. */
+void update_ind_dof_T
+	(const struct Simulation*const sim ///< Standard.
+	 );
 
 #include "undef_templates_solve.h"
 #include "undef_templates_multiarray.h"

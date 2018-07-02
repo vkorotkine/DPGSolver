@@ -129,7 +129,7 @@ void adapt_hp (struct Simulation* sim, const int adapt_strategy, const struct Ad
 
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 
-	update_ind_dof(sim);
+	update_ind_dof_d(sim);
 }
 
 const struct const_Multiarray_d* constructor_geom_fg

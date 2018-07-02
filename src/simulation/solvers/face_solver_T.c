@@ -25,9 +25,11 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_face_solver.h"
 #include "def_templates_volume_solver.h"
 
+#include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
 
+#include "def_templates_compute_face_rlhs.h"
 #include "def_templates_boundary.h"
 #include "def_templates_test_case.h"
 
@@ -123,6 +125,24 @@ const struct const_Vector_R* get_operator__w_fc__s_e_T (const struct Solver_Face
 
 	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
 	return get_const_Multiarray_Vector_d(s_e->w_fc[curved],(ptrdiff_t[]){0,0,0,0,p_f,p_f});
+}
+
+const struct const_Matrix_T* constructor_mass_face_T (const struct Solver_Face_T*const s_face)
+{
+	const struct Operator*const cv0_ff_fc  = get_operator__cv0_ff_fc_T(s_face);
+	const struct const_Vector_R*const w_fc = get_operator__w_fc__s_e_T(s_face);
+	const struct const_Vector_T jac_det_fc = interpret_const_Multiarray_as_Vector_T(s_face->jacobian_det_fc);
+
+	const struct const_Vector_T*const wJ_fc = constructor_dot_mult_const_Vector_T_RT(1.0,w_fc,&jac_det_fc,1); // dest.
+
+	const struct const_Matrix_R*const m_l = cv0_ff_fc->op_std;
+	const struct const_Matrix_T*const m_r = constructor_mm_diag_const_Matrix_R_T(1.0,m_l,wJ_fc,'L',false); // destructed
+	destructor_const_Vector_T(wJ_fc);
+
+	const struct const_Matrix_T*const mass = constructor_mm_RT_const_Matrix_T('T','N',1.0,m_l,m_r,'R'); // returned
+	destructor_const_Matrix_T(m_r);
+
+	return mass;
 }
 
 // Static functions ************************************************************************************************* //
@@ -265,8 +285,10 @@ static void set_function_pointers_num_flux_bc_navier_stokes (struct Solver_Face_
 #include "undef_templates_face_solver.h"
 #include "undef_templates_volume_solver.h"
 
+#include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
 
+#include "undef_templates_compute_face_rlhs.h"
 #include "undef_templates_boundary.h"
 #include "undef_templates_test_case.h"

@@ -28,4 +28,10 @@ void compute_lhs_cmplx_step_dpg
 	 struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
 	);
 
+/** \brief Version of \ref constructor_Gen_Eig_Data_inf_sup for the dpg method.
+ *  \ref See brief. */
+const struct Gen_Eig_Data* constructor_Gen_Eig_Data_inf_sup_dpg
+	(struct Simulation*const sim ///< Standard.
+	 );
+
 #endif // DPG__test_support_solve_dpg_h__INCLUDED

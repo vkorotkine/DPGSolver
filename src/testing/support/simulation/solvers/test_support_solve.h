@@ -20,11 +20,26 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <stdbool.h>
+#include "petscmat.h"
 
 struct Face;
 struct Volume;
 struct Simulation;
 struct Intrusive_List;
+
+/** \brief Container holding data for a "Gen"eralized "Eig"envalue problem.
+ *
+ *  The generalized eigenvalue problem takes the form:
+ *  \f[
+ *      A v = \lambda B v
+ *  \f]
+ *
+ *  where \f$ v \f$ and \f$ \lambda \f$ represent the eigenvectors and eigenvalues respectively.
+ */
+struct Gen_Eig_Data {
+	Mat A; ///< Left-hand  side matrix for the generalized eigenvalue problem.
+	Mat B; ///< Right-hand side matrix for the generalized eigenvalue problem.
+};
 
 /// \brief Perturb the initial solution parameters for the supported methods.
 void perturb_solution
@@ -57,5 +72,10 @@ bool is_face_neighbour
 	(const struct Face*const face,      ///< The face under investigation.
 	 const struct Volume*const vol_curr ///< The current volume.
 		);
+
+/// \brief Destructor for a \ref Gen_Eig_Data container.
+void destructor_Gen_Eig_Data
+	(const struct Gen_Eig_Data*const ged ///< Standard.
+	 );
 
 #endif // DPG__test_support_solve_h__INCLUDED

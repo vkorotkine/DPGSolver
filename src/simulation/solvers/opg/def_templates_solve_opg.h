@@ -19,12 +19,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
-#define update_ind_dof_opg_T  update_ind_dof_opg
 #define constructor_nnz_opg_T constructor_nnz_opg
 ///\}
 
 ///\{ \name Static names
-#define update_ind_dof_opg_test update_ind_dof_opg_test
 #define compute_dof_test compute_dof_test
 #define compute_dof_volumes_test compute_dof_volumes_test
 ///\}
@@ -32,12 +30,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
-#define update_ind_dof_opg_T  update_ind_dof_opg_c
 #define constructor_nnz_opg_T constructor_nnz_opg_c
 ///\}
 
 ///\{ \name Static names
-#define update_ind_dof_opg_test update_ind_dof_opg_test_c
 #define compute_dof_test compute_dof_test_c
 #define compute_dof_volumes_test compute_dof_volumes_test_c
 ///\}

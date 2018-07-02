@@ -13,27 +13,14 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 
+#ifndef DPG__definitions_slepc_h__INCLUDED
+#define DPG__definitions_slepc_h__INCLUDED
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to \ref OPG_Solver_Face_T containers/functions.
+ *  \brief Provides the definitions relating to SLEPc library.
+ *
+ *  \note Due to the \ref EPS macro having been previously defined, an alternate name for the SLEPc EPS is required.
  */
 
-#include "undef_templates_face_solver.h"
+typedef struct _p_EPS* SlepcEPS;
 
-///\{ \name Data types
-#undef OPG_Solver_Face_T
-///\}
-
-#undef constructor_rlhs_f_b_test_penalty_T
-
-///\{ \name Function names
-#undef constructor_derived_OPG_Solver_Face_T
-#undef destructor_derived_OPG_Solver_Face_T
-
-#undef get_operator__cv0_vt_fc_T
-#undef get_operator__cv1_vt_fc_T
-///\}
-
-#undef constructor_inverse_mass_face_T
-#undef set_function_pointers_penalty_T
-#undef set_function_pointers_penalty_boundary_T
-#undef set_function_pointers_penalty_boundary_advection_T
+#endif // DPG__definitions_slepc_h__INCLUDED

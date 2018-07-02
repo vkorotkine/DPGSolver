@@ -10,6 +10,9 @@ include_directories(${GSL_INCLUDE_DIRS})
 find_package(PETSc 3.8 REQUIRED)
 include_directories(${PETSC_INCLUDES})
 
+find_package(SLEPc 3.8 REQUIRED)
+include_directories(${SLEPC_INCLUDE_DIRS})
+
 # Currently including all directories here so that `#include`s need not specify relative paths.
 include_directories(
 	allocators

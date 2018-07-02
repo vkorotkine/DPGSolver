@@ -76,6 +76,11 @@ static ptrdiff_t compute_dof_test_T
 	(const struct Simulation*const sim ///< \ref Simulation.
 	);
 
+/// \brief Update \ref Solver_Volume_T::ind_dof_test for the method under consideration.
+static void update_ind_dof_test_T
+	(const struct Simulation*const sim ///< Standard.
+	 );
+
 // Interface functions ********************************************************************************************** //
 
 struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const struct Simulation* sim)
@@ -117,21 +122,6 @@ ptrdiff_t compute_dof_T (const struct Simulation* sim)
 	dof += compute_dof_faces(sim);
 	dof += compute_dof_volumes_l_mult(sim);
 	return dof;
-}
-
-void update_ind_dof_T (const struct Simulation* sim)
-{
-	switch (sim->method) {
-	case METHOD_DG:  update_ind_dof_dg_T(sim);  break;
-	case METHOD_DPG: update_ind_dof_dpg_T(sim); break;
-	case METHOD_OPG: // fallthrough
-	case METHOD_OPGC0:
-		update_ind_dof_opg_T(sim);
-		break;
-	default:
-		EXIT_ERROR("Unsupported: %d.\n",sim->method);
-		break;
-	}
 }
 
 void add_to_flux_imbalance_source_T
@@ -191,6 +181,47 @@ void initialize_zero_memory_volumes_T (struct Intrusive_List* volumes)
 	}
 }
 
+void update_ind_dof_T (const struct Simulation*const sim)
+{
+	ptrdiff_t dof = 0;
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+		struct Solver_Face_T* s_face = (struct Solver_Face_T*) curr;
+
+		struct Multiarray_T* nf_coef = s_face->nf_coef;
+		const ptrdiff_t size = compute_size(nf_coef->order,nf_coef->extents);
+		if (size == 0) {
+			const_cast_ptrdiff(&s_face->ind_dof,-1);
+			continue;
+		}
+
+		const_cast_ptrdiff(&s_face->ind_dof,dof);
+		dof += size;
+	}
+
+	if (test_case_explicitly_enforces_conservation(sim)) {
+		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+			struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
+
+			const_cast_ptrdiff(&s_vol->ind_dof_constraint,dof);
+
+			struct Multiarray_T* l_mult = s_vol->l_mult;
+			dof += compute_size(l_mult->order,l_mult->extents);
+		}
+	}
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
+
+		const_cast_ptrdiff(&s_vol->ind_dof,dof);
+
+		struct Multiarray_T* sol_coef = s_vol->sol_coef;
+		dof += compute_size(sol_coef->order,sol_coef->extents);
+	}
+	assert(dof == compute_dof(sim));
+
+	update_ind_dof_test_T(sim);
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -204,8 +235,8 @@ static struct Vector_i* constructor_nnz (const struct Simulation*const sim)
 {
 	struct Vector_i* nnz = NULL;
 	switch (sim->method) {
-	case METHOD_DG:  nnz = constructor_nnz_dg_T(sim);  break;
-	case METHOD_DPG: nnz = constructor_nnz_dpg_T(sim); break;
+	case METHOD_DG:  nnz = constructor_nnz_dg_T(false,sim);  break;
+	case METHOD_DPG: nnz = constructor_nnz_dpg_T(false,sim); break;
 	case METHOD_OPG: // fallthrough
 	case METHOD_OPGC0:
 		nnz = constructor_nnz_opg_T(sim);
@@ -255,6 +286,19 @@ static ptrdiff_t compute_dof_test_T (const struct Simulation*const sim)
 	ptrdiff_t dof = 0;
 	dof += compute_dof_test_volumes(sim);
 	return dof;
+}
+
+static void update_ind_dof_test_T (const struct Simulation*const sim)
+{
+	ptrdiff_t dof = 0;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
+
+		const_cast_ptrdiff(&s_vol->ind_dof_test,dof);
+
+		struct Multiarray_T* test_s_coef = s_vol->test_s_coef;
+		dof += compute_size(test_s_coef->order,test_s_coef->extents);
+	}
 }
 
 // Level 1 ********************************************************************************************************** //

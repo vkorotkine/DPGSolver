@@ -84,6 +84,28 @@ def find_generator_name (mesh_generator):
 
 	return gen_name
 
+def check_matching_extension (mesh_generator,mesh_make_name):
+	""" Checks whether the mesh generator has the correct extension for the current
+	    dependencies. Returns True if yes, False otherwise.
+	"""
+
+	if ("Mesh_Depend_Geo" in mesh_make_name):
+		supported_extensions = [".geo"]
+	elif ("Mesh_Depend_Python" in mesh_make_name):
+		supported_extensions = [".py"]
+	else:
+		assert 0,"Unsupported mesh make name: "+str(mesh_make_name)
+
+	gen_regex = r"(([\w-]+/)*)([\w-]+)("
+	for s in supported_extensions:
+		gen_regex += re.escape(s) + r"|"
+	gen_regex = gen_regex[:-1] + r")"
+
+	gen_name = re.search(gen_regex,mesh_generator)
+	if (gen_name == None):
+		return False
+	return True
+
 if __name__ == "__main__":
 	""" Generate the mesh dependency file based on the list of input .ctrl files.  """
 
@@ -100,6 +122,9 @@ if __name__ == "__main__":
 	for ctrl_file in ctrl_files:
 		mesh_info = Mesh_Info(ctrl_file,paths)
 		mesh_info.read_data()
+
+		if (not check_matching_extension(mesh_info.info["mesh_generator"],mesh_make_name)):
+			continue
 
 		mesh_file_name      = mesh_info.assemble_mesh_name()
 		mesh_generator_name = paths.project_src_dir+"/input/meshes/"+mesh_info.info["mesh_generator"]

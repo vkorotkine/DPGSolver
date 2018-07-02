@@ -21,19 +21,18 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_face_solver.h"
 #include "def_templates_multiarray.h"
 
+#include <stdbool.h>
+
 struct Multiarray_T;
 struct Solver_Face_T;
 struct Simulation;
 
-/// \brief Version of \ref update_ind_dof_T for the dg method.
-void update_ind_dof_dg_T
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
-
 /** \brief Version of \ref constructor_nnz for the dg method.
  *  \return See brief. */
 struct Vector_i* constructor_nnz_dg_T
-	(const struct Simulation* sim ///< \ref Simulation.
+	(const bool diag_only,        /**< Flag for whether space should only be allocated for block diagonal
+	                               *   contributions. */
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 #include "undef_templates_solve_dg.h"

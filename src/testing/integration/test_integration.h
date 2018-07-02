@@ -44,6 +44,11 @@ struct Integration_Test_Info {
 	const int adapt_type; ///< Analogue of \ref Simulation::adapt_type.
 
 	const double conv_order_discount; ///< The allowed convergence order discount.
+
+	/** The accepted rate at which the inf-sup constant converges to zero.
+	 *
+	 *  See the comments in \ref test_integration_inf_sup.c for additional comments. */
+	double conv_order_inf_sup_accept;
 };
 
 /// \brief Call integration test functions.

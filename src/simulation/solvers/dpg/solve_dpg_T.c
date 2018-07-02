@@ -47,47 +47,7 @@ static void increment_nnz_off_diag_constraint
 
 // Interface functions ********************************************************************************************** //
 
-void update_ind_dof_dpg_T (const struct Simulation* sim)
-{
-	ptrdiff_t dof = 0;
-	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		struct Solver_Face_T* s_face = (struct Solver_Face_T*) curr;
-
-		struct Multiarray_T* nf_coef = s_face->nf_coef;
-		const ptrdiff_t size = compute_size(nf_coef->order,nf_coef->extents);
-		if (size == 0) {
-			const_cast_ptrdiff(&s_face->ind_dof,-1);
-			continue;
-		}
-
-		const_cast_ptrdiff(&s_face->ind_dof,dof);
-		dof += size;
-	}
-
-	if (test_case_explicitly_enforces_conservation(sim)) {
-		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-			struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
-
-			const_cast_ptrdiff(&s_vol->ind_dof_constraint,dof);
-
-			struct Multiarray_T* l_mult = s_vol->l_mult;
-			dof += compute_size(l_mult->order,l_mult->extents);
-		}
-	}
-
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
-
-		const_cast_ptrdiff(&s_vol->ind_dof,dof);
-
-		struct Multiarray_T* sol_coef = s_vol->sol_coef;
-		dof += compute_size(sol_coef->order,sol_coef->extents);
-	}
-
-	assert(dof == compute_dof(sim));
-}
-
-struct Vector_i* constructor_nnz_dpg_T (const struct Simulation* sim)
+struct Vector_i* constructor_nnz_dpg_T (const bool diag_only, const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
 	assert(test_case->has_2nd_order == false); // Add support.
@@ -118,7 +78,8 @@ struct Vector_i* constructor_nnz_dpg_T (const struct Simulation* sim)
 		increment_nnz(nnz,s_face->ind_dof,size_nf,size_nf);
 
 		// Off-diagonal
-		increment_nnz_off_diag(nnz,s_face);
+		if (!diag_only)
+			increment_nnz_off_diag(nnz,s_face);
 	}
 
 	// Constraint - if applicable (Diagonal and Off-diagonal)
@@ -131,7 +92,6 @@ struct Vector_i* constructor_nnz_dpg_T (const struct Simulation* sim)
 			increment_nnz_off_diag_constraint(nnz,s_vol);
 		}
 	}
-
 	return nnz;
 }
 

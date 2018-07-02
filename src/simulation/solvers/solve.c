@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "computational_elements.h"
+#include "const_cast.h"
 #include "geometry.h"
 #include "intrusive.h"
 #include "math_functions.h"
@@ -234,7 +235,8 @@ void enforce_positivity_highorder (struct Solver_Volume* s_vol, const struct Sim
 
 void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* ssi)
 {
-	MatDestroy(&ssi->A);
+	if (!ssi->do_not_destruct_A)
+		MatDestroy(&ssi->A);
 	VecDestroy(&ssi->b);
 	destructor_conditional_const_Vector_i(ssi->corr_l2_c0);
 	free(ssi);

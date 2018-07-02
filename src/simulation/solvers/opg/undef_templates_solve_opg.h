@@ -16,9 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Undefine macro definitions for c-style templating relating to the opg solver functions.
  */
 
-#undef update_ind_dof_opg_T
 #undef constructor_nnz_opg_T
 
-#undef update_ind_dof_opg_test
 #undef compute_dof_test
 #undef compute_dof_volumes_test

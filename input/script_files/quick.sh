@@ -33,6 +33,11 @@ ARGV="advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml0__p0 petsc_opti
 #ARGV="diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_Mixed2D petsc_options_cg_ilu1"
 #ARGV="navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_DG_ParametricTRI petsc_options_gmres_default"
 
+EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_inf_sup
+ARGV="advection/default/dg/TEST_advection_default_dg_line__p2 petsc_options_gmres_tol_1e-15"
+ARGV="advection/default/dg/TEST_advection_default_dg_mixed2d__p2 petsc_options_gmres_tol_1e-15"
+ARGV="advection/default/dpg/TEST_advection_default_dpg_line__p2 petsc_options_gmres_tol_1e-15"
+
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"
 

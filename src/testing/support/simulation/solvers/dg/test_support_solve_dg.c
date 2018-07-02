@@ -27,12 +27,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_tol.h"
 #include "definitions_test_integration.h"
 
+#include "matrix.h"
 #include "multiarray.h"
 #include "vector.h"
 
 #include "face_solver_dg.h"
 #include "volume_solver_dg.h"
 
+#include "computational_elements.h"
 #include "compute_face_rlhs.h"
 #include "compute_face_rlhs_dg.h"
 #include "compute_grad_coef_dg.h"
@@ -61,6 +63,20 @@ static void set_col_lhs_cmplx_step_dg
 	 struct Intrusive_List* volumes_local,  ///< The list of volumes over which to iterate.
 	 struct Solver_Storage_Implicit* ssi    ///< \ref Solver_Storage_Implicit.
 	);
+
+/** \brief Constructor for the 'S'olution norm operator required for the generalized eigenvalue problem to compute the
+ *         inf-sup constant.
+ *  \return A petsc Mat holding the operator. */
+static Mat constructor_Mat_S_dg
+	(const struct Simulation*const sim ///< Standard.
+	 );
+
+/** \brief Constructor for the inverse of the 'T'est norm operator required for the generalized eigenvalue problem to
+ *         compute the inf-sup constant.
+ *  \return A petsc Mat holding the operator. */
+static Mat constructor_Mat_T_inv_dg
+	(const struct Simulation*const sim ///< Standard.
+	 );
 
 // Interface functions ********************************************************************************************** //
 
@@ -93,8 +109,57 @@ void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Stor
 	petsc_mat_vec_assemble(ssi);
 }
 
+const struct Gen_Eig_Data* constructor_Gen_Eig_Data_inf_sup_dg (struct Simulation*const sim)
+{
+	struct Test_Case* test_case = (struct Test_Case*) sim->test_case_rc->tc;
+	test_case->solver_method_curr = 'i';
+
+	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
+	constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
+	initialize_zero_memory_volumes(sim->volumes);
+
+	// Compute A
+	struct Solver_Storage_Implicit*const ssi = constructor_Solver_Storage_Implicit(sim); // destructed
+	compute_volume_rlhs_dg(sim,ssi,sim->volumes);
+	compute_face_rlhs_dg(sim,ssi,sim->faces);
+	Mat A = ssi->A;
+	MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);
+
+	/* Compute S and T_inv.
+	 * The inverse of the test norm operator is computed directly as it only required local block inversion while
+	 * the available Petsc functions to solve for inv(T)*A (i.e. using MatMatSolve to solve T*X = A) necessarily
+	 * returns a dense matrix for X which is not necessary. */
+	Mat S     = constructor_Mat_S_dg(sim);     // moved
+	Mat T_inv = constructor_Mat_T_inv_dg(sim); // destroyed
+
+	Mat T_inv_A;
+	Mat A_T_inv_A;
+	MatMatMult(T_inv,A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&T_inv_A); // destroyed
+	MatDestroy(&T_inv);
+
+	MatTransposeMatMult(A,T_inv_A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&A_T_inv_A); // moved
+	MatDestroy(&T_inv_A);
+
+	destructor_Solver_Storage_Implicit(ssi);
+
+	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
+	destructor_derived_computational_elements(sim,IL_SOLVER);
+
+	struct Gen_Eig_Data*const ged = calloc(1,sizeof* ged); // returned
+	ged->A = A_T_inv_A;
+	ged->B = S;
+	return ged;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+/** \brief Constructor for a \ref Solver_Storage_Implicit container for the dg method's 'S'olution norm.
+ *  \return See brief. */
+struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_dg_S
+	(const struct Simulation*const sim ///< Standard.
+	 );
 
 static void compute_rhs_cmplx_step_dg
 	(struct Intrusive_List* volumes_local, struct Intrusive_List* faces_local, const struct Simulation* sim)
@@ -144,4 +209,74 @@ static void set_col_lhs_cmplx_step_dg
 
 		MatSetValues(ssi->A,(PetscInt)ext_0,idxm,1,idxn,vv,ADD_VALUES);
 	}
+}
+
+static Mat constructor_Mat_S_dg (const struct Simulation*const sim)
+{
+	struct Solver_Storage_Implicit*const ssi = constructor_Solver_Storage_Implicit_dg_S(sim); // destructed/returned
+
+	const int n_vr = get_set_n_var_eq(NULL)[0];
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+		const struct const_Matrix_d*const m = constructor_mass(s_vol); // destructed
+		const struct const_Matrix_d*const m_b = constructor_block_diagonal_const_Matrix_d(m,n_vr); // destructed
+		destructor_const_Matrix_d(m);
+
+		set_petsc_Mat_row_col_dg(ssi,s_vol,0,s_vol,0);
+		add_to_petsc_Mat(ssi,m_b);
+		destructor_const_Matrix_d(m_b);
+	}
+
+	Mat S = ssi->A;
+
+	ssi->do_not_destruct_A = true;
+	destructor_Solver_Storage_Implicit(ssi);
+
+	MatAssemblyBegin(S,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(S,MAT_FINAL_ASSEMBLY);
+	return S;
+}
+
+static Mat constructor_Mat_T_inv_dg (const struct Simulation*const sim)
+{
+	struct Solver_Storage_Implicit*const ssi = constructor_Solver_Storage_Implicit_dg_S(sim); // destructed/returned
+
+	const int n_vr = get_set_n_var_eq(NULL)[0];
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+		const struct const_Matrix_d*const m_inv = constructor_inverse_mass(s_vol,NULL); // destructed
+		const struct const_Matrix_d*const m_inv_b = constructor_block_diagonal_const_Matrix_d(m_inv,n_vr); // d.
+		destructor_const_Matrix_d(m_inv);
+
+		set_petsc_Mat_row_col_dg(ssi,s_vol,0,s_vol,0);
+		add_to_petsc_Mat(ssi,m_inv_b);
+		destructor_const_Matrix_d(m_inv_b);
+	}
+
+	Mat T_inv = ssi->A;
+
+	ssi->do_not_destruct_A = true;
+	destructor_Solver_Storage_Implicit(ssi);
+
+	MatAssemblyBegin(T_inv,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(T_inv,MAT_FINAL_ASSEMBLY);
+	return T_inv;
+}
+
+// Level 1 ********************************************************************************************************** //
+
+struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_dg_S (const struct Simulation*const sim)
+{
+	update_ind_dof_d(sim);
+	struct Vector_i*const nnz = constructor_nnz_dg(true,sim); // destructed
+	const ptrdiff_t dof_solve = nnz->ext_0;
+
+	struct Solver_Storage_Implicit*const ssi = calloc(1,sizeof *ssi); // free
+
+	MatCreateSeqAIJ(MPI_COMM_WORLD,(PetscInt)dof_solve,(PetscInt)dof_solve,0,nnz->data,&ssi->A); // destructed
+	MatSetFromOptions(ssi->A);
+	MatSetUp(ssi->A);
+
+	destructor_Vector_i(nnz);
+	return ssi;
 }
