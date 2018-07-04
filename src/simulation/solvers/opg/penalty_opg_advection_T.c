@@ -1,6 +1,7 @@
 /* {{{
 This file is part of DPGSolver.
 
+
 DPGSolver is free software: you can redistribute it and/or modify it under the terms of the GNU
 General Public License as published by the Free Software Foundation, either version 3 of the
 License, or any later version.
@@ -71,6 +72,7 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 		bc_test_s_type = read_bc_test_s_type_T();
 	}
 
+#if 0
 	/// \todo Likely remove this flexibility. BCs should always be applied on all outflow faces.
 	switch (bc_test_s_type) {
 	case BC_TEST_S_TYPE_ALL_OUTFLOW:
@@ -84,6 +86,7 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 		EXIT_ERROR("Unsupported: %d\n",bc_test_s_type);
 		break;
 	}
+#endif
 
 	/** It is assumed that the initial solution for \ref Solver_Volume_T::test_s_coef is equal to zero on all
 	 *  boundary faces which require the addition of the penalty term (outflow faces). It is also currently assumed

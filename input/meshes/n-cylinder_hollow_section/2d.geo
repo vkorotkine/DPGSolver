@@ -105,8 +105,8 @@ BC_Straight =   BC_STEP_SC;
 BC_Curved   = 2*BC_STEP_SC;
 
 If (pde_name == ADVECTION)
-	Physical Line (1*BC_STEP_SC+BC_UPWIND)      = {1001};
-	Physical Line (1*BC_STEP_SC+BC_UPWIND_ALT1) = {1002};
+	Physical Line (1*BC_STEP_SC+BC_OUTFLOW)     = {1001};
+	Physical Line (1*BC_STEP_SC+BC_UPWIND)      = {1002};
   Physical Line (2*BC_STEP_SC+BC_UPWIND_ALT2) = {1003:1004};
   Physical Line (3*BC_STEP_SC+BC_UPWIND_ALT3) = {1005:1006};
 ElseIf (pde_name == DIFFUSION)

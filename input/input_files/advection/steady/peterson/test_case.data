@@ -2,10 +2,10 @@
 
 solver_proc   implicit
 solver_type_e forward_euler
-solver_type_i iterative
+solver_type_i direct
 
 num_flux_1st upwind
-test_norm    H1_upwind
+test_norm    H0
 bc_test_s_type all_outflow
 
 time_step  0.0125

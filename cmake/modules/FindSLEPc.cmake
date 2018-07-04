@@ -237,7 +237,6 @@ int main()
     RUN_OUTPUT_VARIABLE SLEPC_TEST_LIB_OUTPUT
     )
 
-  message("compiled? " ${SLEPC_TEST_LIB_COMPILED})
   if (SLEPC_TEST_LIB_COMPILED AND SLEPC_TEST_LIB_EXITCODE EQUAL 0)
     message(STATUS "Performing test SLEPC_TEST_RUNS - Success")
     set(SLEPC_TEST_RUNS TRUE)

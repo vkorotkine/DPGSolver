@@ -51,7 +51,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
 #define ORDER_VIS_CONV_P      2
-#define ORDER_VIS_CONV_ML_MAX 8
+#define ORDER_VIS_CONV_ML_MAX 4
 #define DISPLAY_GEOM          0 ///< Flag for whether the geometry should be output.
 ///\}
 
