@@ -35,11 +35,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_rhs_v_dg_like_T
 #undef constructor_lhs_v_1_T
 #undef constructor_lhs_p_v_2_T
-#undef get_operator__cv0_vs_vc_T
-#undef get_operator__cv0_vt_vc_T
-#undef get_operator__cv0_vr_vc_T
-#undef get_operator__tw1_vt_vc_T
-#undef get_operator__cv1_vt_vc_T
 ///\}
 
 #undef constructor_NULL

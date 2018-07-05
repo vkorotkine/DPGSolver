@@ -120,7 +120,16 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 		switch (conv_study_type) {
 		case CONV_STUDY_SOLVE:          // fallthrough
 		case CONV_STUDY_SOLVE_NO_CHECK:
-			solve_for_solution(sim);
+			switch (get_set_method(NULL)) {
+			case METHOD_DG: case METHOD_DPG: case METHOD_OPG: case METHOD_OPGC0:
+				solve_for_solution(sim);
+				break;
+			case METHOD_L2_PROJ:
+				break; // do nothing.
+			default:
+				EXIT_ERROR("Unsupported: %d\n",get_set_method(NULL));
+				break;
+			}
 			break;
 		case CONV_STUDY_RESTART: {
 			assert(using_restart() == true);

@@ -20,14 +20,6 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name Availalble options for \ref OPG_Solver_Face_T::bc_test_s in relation to \ref Solver_Volume_T::test_s_coef.
-#define BC_TEST_S_TYPE_ALL_OUTFLOW      1000 ///< Impose boundary conditions on all faces having outflow BCs.
-#define BC_TEST_S_TYPE_UPSTREAM_OUTFLOW 1001 /**< Impose a boundary condition only on the most upstream face having an
-                                              *   outflow BC. */
-#define BC_TEST_S_TYPE_DOWNSTREAM_OUTFLOW 1002 /**< Impose a boundary condition only on the most downwind face having an
-                                                *   outflow BC. */
-///\}
-
-///\{ \name Availalble options for \ref OPG_Solver_Face_T::bc_test_s in relation to \ref Solver_Volume_T::test_s_coef.
 #define BC_TEST_S_DO_NOTHING 100 ///< Do not impose any constraints on the boundary.
 #define BC_TEST_S_SPEC_CONST 101 ///< Set the boundary values to a "spec"ified "const"ant.
 ///\}

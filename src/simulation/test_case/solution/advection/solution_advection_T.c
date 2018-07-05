@@ -260,6 +260,8 @@ static void set_function_pointers_num_flux_T (struct Test_Case_T* test_case, con
 			break;
 		}
 		break;
+	case METHOD_L2_PROJ:
+		break; // do nothing
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
 		break;

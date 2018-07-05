@@ -74,26 +74,6 @@ void constructor_rlhs_f_test_penalty_do_nothing_T
 	return;
 }
 
-int read_bc_test_s_type_T ()
-{
-	const int count_to_find = 1;
-	int count_found = 0;
-
-	FILE* input_file = NULL;
-	char line[STRLEN_MAX];
-
-	int bc_test_s_type = -1;
-
-	input_file = fopen_input('t',NULL,NULL); // closed
-	while (fgets(line,sizeof(line),input_file)) {
-		read_skip_convert_i(line,"bc_test_s_type",&bc_test_s_type,&count_found);
-	}
-	fclose(input_file);
-	assert(count_found == count_to_find);
-
-	return bc_test_s_type;
-}
-
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

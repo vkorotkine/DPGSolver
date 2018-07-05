@@ -29,4 +29,4 @@ geom_blending_si     szabo_babuska_gen
 
 p_ref    3 3
 
-fe_method 1
+method_name discontinuous_galerkin

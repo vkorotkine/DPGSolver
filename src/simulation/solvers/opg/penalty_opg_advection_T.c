@@ -65,29 +65,6 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 		break;
 	}
 
-	int bc_test_s_type = -1;
-	bool need_input = true;
-	if (need_input) {
-		need_input = false;
-		bc_test_s_type = read_bc_test_s_type_T();
-	}
-
-#if 0
-	/// \todo Likely remove this flexibility. BCs should always be applied on all outflow faces.
-	switch (bc_test_s_type) {
-	case BC_TEST_S_TYPE_ALL_OUTFLOW:
-		break; // continue below
-	case BC_TEST_S_TYPE_UPSTREAM_OUTFLOW:
-	case BC_TEST_S_TYPE_DOWNSTREAM_OUTFLOW:
-		EXIT; /// Think about whether this is really desired. Likely unphysical. \todo Delete if unused.
-		EXIT_ADD_SUPPORT; // Check b (dot) n on each face of the neighbouring volume and skip imposition if not
-				  // on the correct element.
-	default:
-		EXIT_ERROR("Unsupported: %d\n",bc_test_s_type);
-		break;
-	}
-#endif
-
 	/** It is assumed that the initial solution for \ref Solver_Volume_T::test_s_coef is equal to zero on all
 	 *  boundary faces which require the addition of the penalty term (outflow faces). It is also currently assumed
 	 *  that the exact solution test functions are equal to zero (i.e. that the value of `g` described in

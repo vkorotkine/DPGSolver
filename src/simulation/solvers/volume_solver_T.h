@@ -151,6 +151,36 @@ const struct Operator* get_operator__cv0_vg_vs_T
 	(const struct Solver_Volume_T*const s_vol ///< Standard.
 	 );
 
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vr_vc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vr_vc_T
+	(const struct Solver_Volume_T* s_vol ///< The current volume.
+	);
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vs_vc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vs_vc_T
+	(const struct Solver_Volume_T* s_vol ///< The current volume.
+	);
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vt_vc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vt_vc_T
+	(const struct Solver_Volume_T*const s_vol ///< The current volume.
+	);
+
+/** \brief Get the appropriate sub-range of the \ref Solver_Element::tw1_vt_vc operators.
+ *  \return See brief. */
+struct Multiarray_Operator get_operator__tw1_vt_vc_T
+	(const struct Solver_Volume_T* s_vol ///< The current volume.
+	);
+
+/** \brief Get the appropriate sub-range of the \ref Solver_Element::cv1_vt_vc operators.
+ *  \return See brief. */
+struct Multiarray_Operator get_operator__cv1_vt_vc_T
+	(const struct Solver_Volume_T*const s_vol ///< The current volume.
+	);
+
 #include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"

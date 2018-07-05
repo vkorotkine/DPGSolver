@@ -63,6 +63,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_const_Multiarray_Matrix_from_Multiarray_Matrix_T
 #undef constructor_mm_NN1C_Multiarray_T
 #undef constructor_mm_NN1C_const_Multiarray_T
+#undef constructor_mm_NN1C_Multiarray_TT
 #undef constructor_mm_tp_NN1C_const_Multiarray_T
 
 #undef destructor_Multiarray_T
