@@ -108,6 +108,7 @@ void destructor_derived_Solver_Element (struct Element* element_ptr)
 	destructor_Multiarray2_Operator(s_e->cv0_vs_fc);
 	destructor_Multiarray2_Operator(s_e->cv0_vr_fc);
 	destructor_Multiarray2_Operator(s_e->tw0_vt_fc);
+	destructor_Multiarray2_Operator(s_e->cv0_vt_fc);
 	destructor_Multiarray2_Operator(s_e->cv0_ff_fc);
 	const int n_fe = get_number_of_face_elements((struct const_Element*)element_ptr);
 	for (int i = 0; i < n_fe; ++i) {
@@ -158,6 +159,8 @@ static void constructor_derived_Solver_Element_std (struct Element* element_ptr,
 	s_e->cv0_vr_fc[1] = constructor_operators("cv0","vrA","fcc","H_CF_P_PM1",e,sim); // destructed
 	s_e->tw0_vt_fc[0] = constructor_operators("tw0","vtA","fcs","H_CF_P_PM1",e,sim); // destructed
 	s_e->tw0_vt_fc[1] = constructor_operators("tw0","vtA","fcc","H_CF_P_PM1",e,sim); // destructed
+	s_e->cv0_vt_fc[0] = constructor_operators("cv0","vtA","fcs","H_CF_P_PM1",e,sim); // destructed
+	s_e->cv0_vt_fc[1] = constructor_operators("cv0","vtA","fcc","H_CF_P_PM1",e,sim); // destructed
 
 	s_e->cv0_vg_vc[0] = constructor_operators("cv0","vgs","vcs","H_1_P_1P",  e,sim); // destructed
 	s_e->cv0_vg_vc[1] = constructor_operators("cv0","vgc","vcc","H_1_P_PM0", e,sim); // destructed
@@ -245,6 +248,12 @@ static void constructor_derived_Solver_Element_tp (struct Element* element_ptr, 
 
 	set_operators_tp(&ops_tp,s_se[0]->tw0_vt_vc[1],s_se[0]->tw0_vt_fc[1],s_se[1]->tw0_vt_vc[1],s_se[1]->tw0_vt_fc[1]);
 	s_e->tw0_vt_fc[1] = constructor_operators_tp("tw0","vsA","fcc","H_CF_P_PM1",e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,s_se[0]->cv0_vt_vc[0],s_se[0]->cv0_vt_fc[0],s_se[1]->cv0_vt_vc[0],s_se[1]->cv0_vt_fc[0]);
+	s_e->cv0_vt_fc[0] = constructor_operators_tp("cv0","vsA","fcs","H_CF_P_PM1",e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,s_se[0]->cv0_vt_vc[1],s_se[0]->cv0_vt_fc[1],s_se[1]->cv0_vt_vc[1],s_se[1]->cv0_vt_fc[1]);
+	s_e->cv0_vt_fc[1] = constructor_operators_tp("cv0","vsA","fcc","H_CF_P_PM1",e,sim,&ops_tp); // destructed
 
 
 	set_operators_tp(&ops_tp,s_se[0]->cv0_vg_vc[0],NULL,s_se[1]->cv0_vg_vc[0],NULL);

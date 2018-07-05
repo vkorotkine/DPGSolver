@@ -42,6 +42,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "solve_opg.h"
 #include "test_case.h"
 
+#include "solution_advection.h"
+
 // Static function declarations ************************************************************************************* //
 
 /** Flag for whether the normal flux on the boundary faces should be updated. At the time of this implementation,
@@ -202,7 +204,6 @@ static void finalize_lhs_1_f_opg
 #if 1 // Linearization tests fail when enabled but it is necessary for convergence order tests to pass. As linearization
       // is not exact, this currently also requires setting \ref ALWAYS_SET_INITIAL to true.
 	// Only enable for face collocated parameters (p_t_p = 0).
-#include "solution_advection.h"
 	const struct const_Multiarray_d*const normals_fc = s_face->normals_fc;
 	const ptrdiff_t n_fc = normals_fc->extents[0];
 	const double*const b_adv = compute_b_adv_constant_d(NULL);
@@ -214,7 +215,7 @@ static void finalize_lhs_1_f_opg
 		b_dot_n[i] = fabs(b_dot_n[i]);
 	}
 //	print_Vector_d(b_dot_n_V);
-	scale_Matrix_by_Vector_d('R',1.0,(struct Matrix_d*)lhs_l,(struct const_Vector_d*)b_dot_n_V,false);
+	scale_Matrix_by_Vector_d('R',1.0,(struct Matrix_d*const)lhs_l,(struct const_Vector_d*)b_dot_n_V,false);
 	destructor_Vector_d(b_dot_n_V);
 #endif
 

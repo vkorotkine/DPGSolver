@@ -210,12 +210,12 @@ const struct Lhs_Operators_OPG_T* constructor_Lhs_Operators_OPG_T (const struct 
 	const struct const_Vector_T j_det_fc    = interpret_const_Multiarray_as_Vector_T(s_face->jacobian_det_fc);
 	ops->wJ_fc = constructor_dot_mult_const_Vector_T_RT(1.0,w_fc,&j_det_fc,1); // destructed
 
-	const struct Operator*const cv0_vt_fc = get_operator__cv0_vt_fc_T(0,opg_s_face);
+	const struct Operator*const cv0_vt_fc = get_operator__cv0_vt_fc_T(0,s_face);
 	ops->cv0_vt_fc[0] = cv0_vt_fc->op_std;
 
 	const struct Face*const face = (struct Face*) s_face;
 	if (!face->boundary) {
-		ops->cv0_vt_fc[1] = constructor_copy_const_Matrix_R(get_operator__cv0_vt_fc_T(1,opg_s_face)->op_std); // d.
+		ops->cv0_vt_fc[1] = constructor_copy_const_Matrix_R(get_operator__cv0_vt_fc_T(1,s_face)->op_std); // d.
 		permute_Matrix_R_fc((struct Matrix_R*)ops->cv0_vt_fc[1],'R',0,s_face);
 
 		const struct const_Matrix_R*const cv0_ff_fc = get_operator__cv0_ff_fc_T(s_face)->op_std;

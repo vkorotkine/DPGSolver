@@ -33,5 +33,5 @@ method_name discontinuous_galerkin
 
 # Testing variables
 
-ml_range_test 2 4
-p_range_test  0 3
+ml_range_test 2 5
+p_range_test  0 2

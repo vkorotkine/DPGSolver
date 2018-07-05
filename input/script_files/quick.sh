@@ -25,7 +25,7 @@ ARGV="advection/vortex/TEST_advection_vortex_mixed2d petsc_options_gmres_tol_1e-
 ARGV="advection/peterson/opgc/TEST_advection_peterson_opgc_tri__ml2__p1 petsc_options_gmres_tol_1e-15"
 ARGV="advection/peterson/dg/TEST_Advection_Peterson_TRI__ml2__p0 petsc_options_gmres_default"
 ARGV="advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml2__p0 petsc_options_cg_ilu1"
-ARGV="advection/peterson/l2/TEST_Advection_Peterson_TRI__ml2__p0 petsc_options_gmres_default"
+# ARGV="advection/peterson/l2/TEST_Advection_Peterson_TRI__ml2__p0 petsc_options_gmres_default"
 
 # 1D
 # ARGV="advection/default/dg/TEST_Advection_Default_DG_LINE petsc_options_gmres_default"

@@ -39,9 +39,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_compute_face_rlhs.h"
 #include "def_templates_compute_volume_rlhs.h"
 #include "def_templates_flux.h"
-#include "def_templates_operators.h"
+#include "def_templates_math_functions.h"
 #include "def_templates_numerical_flux.h"
+#include "def_templates_operators.h"
 #include "def_templates_test_case.h"
+
+#include "def_templates_solution_advection.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -93,6 +96,12 @@ struct S_Params_DPG {
 struct Norm_DPG {
 	const struct const_Matrix_T* N;     ///< The DPG norm operator.
 	const struct const_Matrix_T* dN_ds; ///< The Jacobian of the DPG norm operator wrt the solution coefficients.
+};
+
+/// \brief Container for semi-norm related components.
+struct Semi_Norm_DPG {
+	const struct const_Matrix_T* sn;    ///< The semi-norm operator.
+	const struct const_Matrix_T* sn_lt; ///< The 't'ransposed 'l'eft partial component of the semi-norm.
 };
 
 /** \brief Set the parameters of \ref S_Params_DPG.
@@ -426,6 +435,14 @@ static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, ///< See brief.
 	 const struct Flux_Ref_T* flux_r,             ///< See brief.
 	 const struct Simulation* sim                 ///< See brief.
+		);
+
+/** \brief Version of \ref constructor_norm_DPG_fptr; see comments for \ref TEST_NORM_ADJOINT.
+ *  \return See brief. */
+static const struct Norm_DPG* constructor_norm_DPG__adjoint
+	(const struct DPG_Solver_Volume_T* dpg_s_vol, ///< See brief.
+	 const struct Flux_Ref_T* flux_r,             ///< See brief.
+	 const struct Simulation* sim                 ///< See brief.
 	);
 
 /// \brief Set the numerical flux members to those corresponding to the use of the exact normal flux values.
@@ -464,6 +481,7 @@ static struct S_Params_DPG set_s_params_dpg (const struct Simulation* sim)
 		case TEST_NORM_H0:        s_params.constructor_norm_DPG = constructor_norm_DPG__h0;        break;
 		case TEST_NORM_H1:        s_params.constructor_norm_DPG = constructor_norm_DPG__h1;        break;
 		case TEST_NORM_H1_UPWIND: s_params.constructor_norm_DPG = constructor_norm_DPG__h1_upwind; break;
+		case TEST_NORM_ADJOINT:   s_params.constructor_norm_DPG = constructor_norm_DPG__adjoint;   break;
 		default:                  EXIT_ERROR("Unsupported: %d\n",test_case->ind_test_norm);        break;
 	}
 
@@ -627,10 +645,22 @@ static const struct const_Vector_T* constructor_rhs_opt_neg
 	 const struct Simulation*const sim                 ///< \ref Simulation.
 	);
 
+/** \brief Constructor for the H1 upwind semi-norm component which is used in several norms.
+ *  \return See brief. */
+static const struct Semi_Norm_DPG* constructor_Semi_Norm_DPG_h1_upwind
+	(const struct DPG_Solver_Volume_T* dpg_s_vol, ///< See brief.
+	 const struct Flux_Ref_T* flux_r              ///< See brief.
+		);
+
 /// \brief Destructor for \ref Norm_DPG.
 static void destructor_Norm_DPG
 	(const struct Norm_DPG* norm ///< Standard.
 	);
+
+/// \brief Destructor for \ref Semi_Norm_DPG.
+static void destructor_Semi_Norm_DPG
+	(const struct Semi_Norm_DPG* sn ///< Standard.
+		);
 
 #if TYPE_RC == TYPE_COMPLEX
 /** \brief Version of \ref add_to_petsc_Mat_Vec_dpg setting a single column of Solver_Storage_Implicit::A to the values
@@ -692,74 +722,136 @@ static const struct Norm_DPG* constructor_norm_DPG__h1
 static const struct Norm_DPG* constructor_norm_DPG__h1_upwind
 	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct Flux_Ref_T* flux_r, const struct Simulation* sim)
 {
-	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
-	const int n_eq = test_case->n_eq,
-	          n_vr = test_case->n_var;
+	MAYBE_UNUSED(sim);
 
-	struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) dpg_s_vol;
-	const struct Multiarray_Operator cv1_vt_vc = get_operator__cv1_vt_vc_T(s_vol);
+	const struct Semi_Norm_DPG*const sn_h1_uw = constructor_Semi_Norm_DPG_h1_upwind(dpg_s_vol,flux_r); // destructed
+	const int n_eq = get_set_n_var_eq(NULL)[1];
+	const ptrdiff_t ext_1 = sn_h1_uw->sn->ext_1/n_eq;
 
-	const ptrdiff_t ext_0 = cv1_vt_vc.data[0]->op_std->ext_0,
-	                ext_1 = cv1_vt_vc.data[0]->op_std->ext_1;
-
-	struct Matrix_T* cv1r = constructor_empty_Matrix_T('R',n_vr*ext_0,n_eq*ext_1); // destructed
-
-	struct Matrix_T* cv1r_l = constructor_empty_Matrix_T('R',ext_0,ext_1); // destructed
-	const struct const_Multiarray_T* dfr_ds_Ma = flux_r->dfr_ds;
-	struct Vector_T dfr_ds = { .ext_0 = dfr_ds_Ma->extents[0], .owns_data = false, .data = NULL, };
-
-	for (int vr = 0; vr < n_vr; ++vr) {
-	for (int eq = 0; eq < n_eq; ++eq) {
-		set_to_value_Matrix_T(cv1r_l,0.0);
-		for (int dim = 0; dim < DIM; ++dim) {
-			const ptrdiff_t ind =
-				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
-			dfr_ds.data = (Type*)&dfr_ds_Ma->data[ind];
-			mm_diag_T('L',1.0,1.0,cv1_vt_vc.data[dim]->op_std,(struct const_Vector_T*)&dfr_ds,cv1r_l,false);
-		}
-		set_block_Matrix_T(cv1r,eq*ext_0,vr*ext_1,
-		                   (struct const_Matrix_T*)cv1r_l,0,0,cv1r_l->ext_0,cv1r_l->ext_1,'i');
-	}}
-	destructor_Matrix_T(cv1r_l);
-
-	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
-	const struct const_Vector_T J_vc  = interpret_const_Multiarray_as_Vector_T(s_vol->jacobian_det_vc);
-
-	const struct const_Vector_T* J_inv_vc = constructor_inverse_const_Vector_T(&J_vc);                   // destructed
-	const struct const_Vector_T* wJ_vc    = constructor_dot_mult_const_Vector_T_RT(1.0,w_vc,J_inv_vc,n_vr); // destructed
-	destructor_const_Vector_T(J_inv_vc);
-
-	const struct const_Matrix_T* n1_lt =
-		constructor_mm_diag_const_Matrix_T(1.0,(struct const_Matrix_T*)cv1r,wJ_vc,'L',false); // destructed
-	destructor_const_Vector_T(wJ_vc);
-
-	// norm->N
-	const struct const_Matrix_T* n1 =
-		constructor_mm_const_Matrix_T('T','N',1.0,n1_lt,(struct const_Matrix_T*)cv1r,'R'); // destructed
-	destructor_Matrix_T(cv1r);
+	const struct const_Matrix_T*const n1 = sn_h1_uw->sn;
 
 	const struct const_Matrix_T* norm_op_H0 = dpg_s_vol->norm_op_H0;
 	assert(norm_op_H0->ext_0 == ext_1);
 
+	// norm->N
 	struct Matrix_T* N = constructor_empty_Matrix_T('R',n_eq*ext_1,n_eq*ext_1); // moved
-
 	set_block_Matrix_T(N,0,0,n1,0,0,n1->ext_0,n1->ext_1,'i');
+
 	for (int eq = 0; eq < n_eq; ++eq)
 		set_block_Matrix_T(N,eq*ext_1,eq*ext_1,norm_op_H0,0,0,norm_op_H0->ext_0,norm_op_H0->ext_1,'a');
-	destructor_const_Matrix_T(n1);
 
 	// norm->dN_ds
 	const struct const_Matrix_T* dN_ds = NULL;
 #if TYPE_RC == TYPE_REAL
-	dN_ds = constructor_norm_DPG_dN_ds__h1_upwind(dpg_s_vol,flux_r,n1_lt,sim); // moved
+	dN_ds = constructor_norm_DPG_dN_ds__h1_upwind(dpg_s_vol,flux_r,sn_h1_uw->sn_lt,sim); // moved
 #endif
-	destructor_const_Matrix_T(n1_lt);
+	destructor_Semi_Norm_DPG(sn_h1_uw);
 
 	struct Norm_DPG* norm = malloc(sizeof* norm); // returned
 	norm->N     = (struct const_Matrix_T*) N;
 	norm->dN_ds = dN_ds;
 
 	return norm;
+}
+
+static const struct Norm_DPG* constructor_norm_DPG__adjoint
+	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct Flux_Ref_T* flux_r, const struct Simulation* sim)
+{
+	MAYBE_UNUSED(sim);
+
+	const struct Semi_Norm_DPG*const sn_h1_uw = constructor_Semi_Norm_DPG_h1_upwind(dpg_s_vol,flux_r); // destructed
+
+	// norm->N
+	struct Matrix_T* N = constructor_copy_Matrix_T((struct Matrix_T*)sn_h1_uw->sn); // moved
+
+	/** The face stabilization term added below is based on the test norm shown to result in piecewise polynomial
+	 *  test functions for linear advection in the original DPG paper of Demkowicz et al. (\cite Demkowicz2011,
+	 *  eq. (3.22)).
+	 *
+	 *  Currently, the implementation is restricted to the linear advection equation due to the addition of terms
+	 *  which seem to be related specifically to the solution characteristics at volume faces. The additional normal
+	 *  characteristic scaling and mesh length scaling along with the motivation for the addition of the term on
+	 *  inflow instead of outflow faces was taken from the result of the equivalence of the resulting norm with the
+	 *  natural norm for the adjoint graph space as shown by Broerson et al. (\cite Broerson2018, Proposition 4.3).
+	 */
+	if (get_set_pde_index(NULL) != PDE_ADVECTION)
+		EXIT_ADD_SUPPORT;
+
+	static bool need_input = true;
+	static struct Sol_Data__Advection_T sol_data;
+	if (need_input) {
+		need_input = false;
+		read_data_advection_T(&sol_data);
+	}
+
+	const struct Volume*const vol = (struct Volume*) dpg_s_vol;
+	for (int i = 0; i < NFMAX;    ++i) {
+	for (int j = 0; j < NSUBFMAX; ++j) {
+		const struct Face* face = vol->faces[i][j];
+		if (!face)
+			continue;
+
+		const struct Solver_Face_T*const s_face = (struct Solver_Face_T*) face;
+
+		const struct const_Matrix_R*const b_adv = constructor_b_adv_T(&sol_data,s_face->xyz_fc); // dest.
+		const struct const_Multiarray_T*const normals_fc = s_face->normals_fc;
+		const struct const_Vector_R*const w_fc = get_operator__w_fc__s_e_T(s_face);
+		const struct const_Vector_T jac_det_fc = interpret_const_Multiarray_as_Vector_T(s_face->jacobian_det_fc);
+		const struct const_Vector_T*const wJ_fc = constructor_dot_mult_const_Vector_T_RT(1.0,w_fc,&jac_det_fc,1); // dest.
+
+		const ptrdiff_t n_fc = normals_fc->extents[0];
+		struct Vector_T* bn_V = constructor_zero_Vector_T(n_fc); // destructed.
+		Type* bn = bn_V->data;
+		for (int i = 0; i < n_fc; ++i) {
+			const Real*const b = get_row_const_Matrix_R(i,b_adv);
+			const Type*const n = get_row_const_Multiarray_T(i,normals_fc);
+			for (int d = 0; d < DIM; ++d)
+				bn[i] += b[d]*n[d];
+			bn[i] *= wJ_fc->data[i];
+		}
+		const int si = compute_side_index_face(face,vol);
+		if (si == 1) {
+			ptrdiff_t exts[] = {n_fc};
+			struct Multiarray_T bn_Ma = { .layout = 'C', .order = 1, .extents = exts, .data = bn, };
+			permute_Multiarray_T_fc(&bn_Ma,'R',si,s_face);
+			scale_Multiarray_T(&bn_Ma,-1.0); // Use outward pointing normal.
+		}
+
+		if (real_T(bn[0]) < 0.0) {
+			for (int i = 0; i < n_fc; ++i)
+				assert(real_T(bn[i]) < 0.0); // mixed inflow/outflow face.
+
+			const struct const_Matrix_R*const cv0_vt_fc = get_operator__cv0_vt_fc_T(si,s_face)->op_std;
+
+			struct Matrix_T*const op_r = constructor_copy_Matrix_T_Matrix_R((struct Matrix_R*)cv0_vt_fc); // dest.
+			scale_Matrix_by_Vector_T('L',-1.0*vol->h,op_r,(struct const_Vector_T*)bn_V,false);
+
+			const struct const_Matrix_T*const op =
+				constructor_mm_RT_const_Matrix_T('T','N',1.0,cv0_vt_fc,(struct const_Matrix_T*)op_r,'R'); // d.
+			destructor_Matrix_T(op_r);
+
+			set_block_Matrix_T(N,0,0,op,0,0,op->ext_0,op->ext_1,'a');
+
+			destructor_const_Matrix_T(op);
+		}
+		destructor_const_Matrix_R(b_adv);
+		destructor_Vector_T(bn_V);
+		destructor_const_Vector_T(wJ_fc);
+	}}
+
+	// norm->dN_ds
+	const struct const_Matrix_T* dN_ds = NULL;
+#if TYPE_RC == TYPE_REAL
+	dN_ds = constructor_norm_DPG_dN_ds__adjoint(dpg_s_vol,flux_r,sn_h1_uw->sn_lt,sim); // moved
+#endif
+	destructor_Semi_Norm_DPG(sn_h1_uw);
+
+	struct Norm_DPG* norm = malloc(sizeof* norm); // returned
+	norm->N     = (struct const_Matrix_T*) N;
+	norm->dN_ds = dN_ds;
+
+	return norm;
+
 }
 
 static void compute_rlhs_1
@@ -923,6 +1015,61 @@ static const struct const_Vector_T* constructor_rhs_opt_neg
 	return (struct const_Vector_T*) rhs_opt_neg;
 }
 
+static const struct Semi_Norm_DPG* constructor_Semi_Norm_DPG_h1_upwind
+	(const struct DPG_Solver_Volume_T* dpg_s_vol, const struct Flux_Ref_T* flux_r)
+{
+	const int*const n_vr_eq = get_set_n_var_eq(NULL);
+	const int n_vr = n_vr_eq[0];
+	const int n_eq = n_vr_eq[1];
+
+	struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) dpg_s_vol;
+	const struct Multiarray_Operator cv1_vt_vc = get_operator__cv1_vt_vc_T(s_vol);
+
+	const ptrdiff_t ext_0 = cv1_vt_vc.data[0]->op_std->ext_0,
+	                ext_1 = cv1_vt_vc.data[0]->op_std->ext_1;
+
+	struct Matrix_T* cv1r = constructor_empty_Matrix_T('R',n_vr*ext_0,n_eq*ext_1); // destructed
+
+	struct Matrix_T* cv1r_l = constructor_empty_Matrix_T('R',ext_0,ext_1); // destructed
+	const struct const_Multiarray_T* dfr_ds_Ma = flux_r->dfr_ds;
+	struct Vector_T dfr_ds = { .ext_0 = dfr_ds_Ma->extents[0], .owns_data = false, .data = NULL, };
+
+	for (int vr = 0; vr < n_vr; ++vr) {
+	for (int eq = 0; eq < n_eq; ++eq) {
+		set_to_value_Matrix_T(cv1r_l,0.0);
+		for (int dim = 0; dim < DIM; ++dim) {
+			const ptrdiff_t ind =
+				compute_index_sub_container(dfr_ds_Ma->order,1,dfr_ds_Ma->extents,(ptrdiff_t[]){eq,vr,dim});
+			dfr_ds.data = (Type*)&dfr_ds_Ma->data[ind];
+			mm_diag_T('L',1.0,1.0,cv1_vt_vc.data[dim]->op_std,(struct const_Vector_T*)&dfr_ds,cv1r_l,false);
+		}
+		set_block_Matrix_T(cv1r,eq*ext_0,vr*ext_1,
+		                   (struct const_Matrix_T*)cv1r_l,0,0,cv1r_l->ext_0,cv1r_l->ext_1,'i');
+	}}
+	destructor_Matrix_T(cv1r_l);
+
+	const struct const_Vector_R* w_vc = get_operator__w_vc__s_e_T(s_vol);
+	const struct const_Vector_T J_vc  = interpret_const_Multiarray_as_Vector_T(s_vol->jacobian_det_vc);
+
+	const struct const_Vector_T* J_inv_vc = constructor_inverse_const_Vector_T(&J_vc);                      // dest.
+	const struct const_Vector_T* wJ_vc    = constructor_dot_mult_const_Vector_T_RT(1.0,w_vc,J_inv_vc,n_vr); // dest.
+	destructor_const_Vector_T(J_inv_vc);
+
+	const struct const_Matrix_T* n1_lt =
+		constructor_mm_diag_const_Matrix_T(1.0,(struct const_Matrix_T*)cv1r,wJ_vc,'L',false); // moved
+	destructor_const_Vector_T(wJ_vc);
+
+	const struct const_Matrix_T* n1 =
+		constructor_mm_const_Matrix_T('T','N',1.0,n1_lt,(struct const_Matrix_T*)cv1r,'R'); // moved
+	destructor_Matrix_T(cv1r);
+
+	struct Semi_Norm_DPG*const sn = calloc(1,sizeof* sn); // returned
+	sn->sn    = n1;
+	sn->sn_lt = n1_lt;
+
+	return sn;
+}
+
 static void destructor_Norm_DPG (const struct Norm_DPG* norm)
 {
 	destructor_const_Matrix_T(norm->N);
@@ -930,6 +1077,13 @@ static void destructor_Norm_DPG (const struct Norm_DPG* norm)
 	if (norm->dN_ds)
 		destructor_const_Matrix_T(norm->dN_ds);
 	free((void*)norm);
+}
+
+static void destructor_Semi_Norm_DPG (const struct Semi_Norm_DPG* sn)
+{
+	destructor_const_Matrix_T(sn->sn);
+	destructor_conditional_const_Matrix_T(sn->sn_lt);
+	free((void*)sn);
 }
 
 #if TYPE_RC == TYPE_COMPLEX
@@ -1009,6 +1163,9 @@ static const struct const_Matrix_T* constructor_l_mult_M
 #include "undef_templates_compute_face_rlhs.h"
 #include "undef_templates_compute_volume_rlhs.h"
 #include "undef_templates_flux.h"
+#include "undef_templates_math_functions.h"
 #include "undef_templates_operators.h"
 #include "undef_templates_numerical_flux.h"
 #include "undef_templates_test_case.h"
+
+#include "undef_templates_solution_advection.h"

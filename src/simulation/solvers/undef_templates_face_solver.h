@@ -26,6 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_function_pointers_face_num_flux_T
 #undef get_operator__w_fc__s_e_T
 #undef constructor_mass_face_T
+#undef get_operator__cv0_vt_fc_T
 ///\}
 
 #undef set_function_pointers_num_flux_bc

@@ -120,13 +120,6 @@ void destructor_derived_OPG_Solver_Face_T
 	(struct Face* face_ptr ///< Pointer to the face.
 	);
 
-/** \brief Get the pointer to the appropriate \ref OPG_Solver_Element::cv0_vt_fc operator.
- *  \return See brief. */
-const struct Operator* get_operator__cv0_vt_fc_T
-	(const int side_index,                           ///< The index of the side of the face under consideration.
-	 const struct OPG_Solver_Face_T*const opg_s_face ///< Standard.
-		);
-
 /** \brief Get the pointer to the appropriate \ref OPG_Solver_Element::cv1_vt_fc operator.
  *  \return See brief. */
 struct Multiarray_Operator get_operator__cv1_vt_fc_T

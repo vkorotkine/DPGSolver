@@ -23,10 +23,10 @@ You should have received a copy of the GNU General Public License along with DPG
 #define TEST_NORM_INVALID 1
 
 // See Chan's thesis p. 118 for the robust norms (advection-diffusion, NS).
-#define TEST_NORM_H0             11 ///< H0 norm (L2 norm)
-#define TEST_NORM_H1             21 ///< H1 norm
-#define TEST_NORM_H1_UPWIND      22 ///< H1 norm using differentiation operators in the streamline direction.
-#define TEST_NORM_H1_SEMI_UPWIND 31 ///< H1 semi-norm (streamline) + face upwind term.
+#define TEST_NORM_H0         11 ///< H0 norm (L2 norm)
+#define TEST_NORM_H1         21 ///< H1 norm
+#define TEST_NORM_H1_UPWIND  22 ///< H1 norm using differentiation operators in the streamline direction.
+#define TEST_NORM_ADJOINT    31 ///< Norm based on the formal adjoint of the bilinear form.
 ///\}
 
 ///\{ \name Available conservation enforcement procedures.

@@ -106,6 +106,7 @@ static int get_define (const char*const def_str, const char*const def_type)
 		if      (strcmp(def_str,"H0")        == 0) def_i = TEST_NORM_H0;
 		else if (strcmp(def_str,"H1")        == 0) def_i = TEST_NORM_H1;
 		else if (strcmp(def_str,"H1_upwind") == 0) def_i = TEST_NORM_H1_UPWIND;
+		else if (strcmp(def_str,"adjoint")   == 0) def_i = TEST_NORM_ADJOINT;
 		else                                       def_i = TEST_NORM_INVALID;
 	} else if (strcmp(def_type,"geom_parametrization") == 0) {
 		if      (strcmp(def_str,"radial_proj") == 0) def_i = GEOM_PRM_RADIAL_PROJ;

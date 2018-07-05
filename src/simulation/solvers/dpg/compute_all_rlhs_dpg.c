@@ -41,6 +41,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "solve.h"
 #include "test_case.h"
 
+#include "solution_advection.h"
+
 // Static function declarations ************************************************************************************* //
 
 struct Norm_DPG;
@@ -88,6 +90,17 @@ static void add_to_petsc_Mat_Vec_dpg
  *         coefficients.
  *  \return See brief. */
 static const struct const_Matrix_d* constructor_norm_DPG_dN_ds__h1_upwind
+	(const struct DPG_Solver_Volume* dpg_s_vol, ///< See brief.
+	 const struct Flux_Ref* flux_r,             ///< See brief.
+	 const struct const_Matrix_d* n1_lt,        /**< The transpose of the left component of the 1st order term of the
+	                                             *   h1 upwind norm. */
+	 const struct Simulation* sim               ///< See brief.
+		);
+
+/** \brief Portion of \ref constructor_norm_DPG__adjoint constructing the Jacobian of the norm wrt the solution
+ *         coefficients.
+ *  \return See brief. */
+static const struct const_Matrix_d* constructor_norm_DPG_dN_ds__adjoint
 	(const struct DPG_Solver_Volume* dpg_s_vol, ///< See brief.
 	 const struct Flux_Ref* flux_r,             ///< See brief.
 	 const struct const_Matrix_d* n1_lt,        /**< The transpose of the left component of the 1st order term of the
@@ -372,6 +385,17 @@ static const struct const_Matrix_d* constructor_norm_DPG_dN_ds__h1_upwind
 	destructor_Matrix_d(dN_ds_l);
 
 	return (struct const_Matrix_d*) dN_ds;
+}
+
+static const struct const_Matrix_d* constructor_norm_DPG_dN_ds__adjoint
+	(const struct DPG_Solver_Volume* dpg_s_vol, const struct Flux_Ref* flux_r, const struct const_Matrix_d* n1_lt,
+	 const struct Simulation* sim)
+{
+	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
+	if (test_case->is_linear)
+		return NULL;
+
+	EXIT_ADD_SUPPORT; UNUSED(dpg_s_vol); UNUSED(flux_r); UNUSED(n1_lt);
 }
 
 #if TYPE_RC == TYPE_COMPLEX

@@ -145,6 +145,23 @@ const struct const_Matrix_T* constructor_mass_face_T (const struct Solver_Face_T
 	return mass;
 }
 
+const struct Operator* get_operator__cv0_vt_fc_T
+	(const int side_index, const struct Solver_Face_T*const s_face)
+{
+	const struct Face*const face             = (struct Face*) s_face;
+	const struct Volume*const vol            = face->neigh_info[side_index].volume;
+	const struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) vol;
+	const struct Solver_Element*const e      = (struct Solver_Element*) vol->element;
+
+	const int ind_lf   = face->neigh_info[side_index].ind_lf,
+	          ind_href = face->neigh_info[side_index].ind_href;
+	const int p_v = s_vol->p_ref,
+	          p_f = s_face->p_ref;
+
+	const int curved = ( (s_face->cub_type == 's') ? 0 : 1 );
+	return get_Multiarray_Operator(e->cv0_vt_fc[curved],(ptrdiff_t[]){ind_lf,ind_href,0,p_f,p_v});
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
