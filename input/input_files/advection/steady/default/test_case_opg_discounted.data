@@ -5,7 +5,6 @@ solver_type_i iterative
 
 num_flux_1st upwind
 test_norm    H1_upwind
-bc_test_s_type all_outflow
 
 use_schur_complement 1
 

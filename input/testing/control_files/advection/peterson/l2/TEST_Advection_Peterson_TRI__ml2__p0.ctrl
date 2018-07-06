@@ -35,4 +35,4 @@ method_name l2_projection
 # Testing variables
 
 ml_range_test 2 5
-p_range_test  0 3
+p_range_test  0 2

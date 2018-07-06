@@ -232,9 +232,7 @@ static void set_method_related (struct Test_Case_T*const test_case, const struct
 			EXIT_ADD_SUPPORT;
 		break;
 	case METHOD_L2_PROJ:
-		for (int i = 1; i < MAX_N_UNKNOWNS; ++i)
-			const_cast_b(&test_case->required_unknowns[i],true);
-		break;
+		break; // Do nothing.
 	default:
 		EXIT_ERROR("Unsupported: %d.",sim->method);
 		break;

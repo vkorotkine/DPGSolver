@@ -144,8 +144,8 @@ static void constructor_derived_Solver_Element_std (struct Element* element_ptr,
 	s_e->cv0_vr_vc[1] = constructor_operators("cv0","vrA","vcc","H_CF_P_PM1",e,sim); // destructed
 	s_e->tw1_vt_vc[0] = constructor_operators("tw1","vtA","vcs","H_1_P_PM0", e,sim); // destructed
 	s_e->tw1_vt_vc[1] = constructor_operators("tw1","vtA","vcc","H_1_P_PM0", e,sim); // destructed
-	s_e->cv0_vt_vc[0] = constructor_operators("cv0","vtA","vcs","H_1_P_PM0", e,sim); // destructed
-	s_e->cv0_vt_vc[1] = constructor_operators("cv0","vtA","vcc","H_1_P_PM0", e,sim); // destructed
+	s_e->cv0_vt_vc[0] = constructor_operators("cv0","vtA","vcs","H_CF_P_PM1", e,sim); // destructed
+	s_e->cv0_vt_vc[1] = constructor_operators("cv0","vtA","vcc","H_CF_P_PM1", e,sim); // destructed
 	s_e->cv1_vt_vc[0] = constructor_operators("cv1","vtA","vcs","H_1_P_PM0", e,sim); // destructed
 	s_e->cv1_vt_vc[1] = constructor_operators("cv1","vtA","vcc","H_1_P_PM0", e,sim); // destructed
 	s_e->cv0_vs_vs    = constructor_operators("cv0","vsA","vsA","H_1_P_PM0",e,sim); // destructed
@@ -244,16 +244,16 @@ static void constructor_derived_Solver_Element_tp (struct Element* element_ptr, 
 	s_e->cv0_vr_fc[1] = constructor_operators_tp("cv0","vrA","fcc","H_CF_P_PM1",e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_se[0]->tw0_vt_vc[0],s_se[0]->tw0_vt_fc[0],s_se[1]->tw0_vt_vc[0],s_se[1]->tw0_vt_fc[0]);
-	s_e->tw0_vt_fc[0] = constructor_operators_tp("tw0","vsA","fcs","H_CF_P_PM1",e,sim,&ops_tp); // destructed
+	s_e->tw0_vt_fc[0] = constructor_operators_tp("tw0","vtA","fcs","H_CF_P_PM1",e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_se[0]->tw0_vt_vc[1],s_se[0]->tw0_vt_fc[1],s_se[1]->tw0_vt_vc[1],s_se[1]->tw0_vt_fc[1]);
-	s_e->tw0_vt_fc[1] = constructor_operators_tp("tw0","vsA","fcc","H_CF_P_PM1",e,sim,&ops_tp); // destructed
+	s_e->tw0_vt_fc[1] = constructor_operators_tp("tw0","vtA","fcc","H_CF_P_PM1",e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_se[0]->cv0_vt_vc[0],s_se[0]->cv0_vt_fc[0],s_se[1]->cv0_vt_vc[0],s_se[1]->cv0_vt_fc[0]);
-	s_e->cv0_vt_fc[0] = constructor_operators_tp("cv0","vsA","fcs","H_CF_P_PM1",e,sim,&ops_tp); // destructed
+	s_e->cv0_vt_fc[0] = constructor_operators_tp("cv0","vtA","fcs","H_CF_P_PM1",e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_se[0]->cv0_vt_vc[1],s_se[0]->cv0_vt_fc[1],s_se[1]->cv0_vt_vc[1],s_se[1]->cv0_vt_fc[1]);
-	s_e->cv0_vt_fc[1] = constructor_operators_tp("cv0","vsA","fcc","H_CF_P_PM1",e,sim,&ops_tp); // destructed
+	s_e->cv0_vt_fc[1] = constructor_operators_tp("cv0","vtA","fcc","H_CF_P_PM1",e,sim,&ops_tp); // destructed
 
 
 	set_operators_tp(&ops_tp,s_se[0]->cv0_vg_vc[0],NULL,s_se[1]->cv0_vg_vc[0],NULL);

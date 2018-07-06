@@ -2,7 +2,7 @@ pde_name  advection
 pde_spec  steady/default
 
 geom_name n-cube
-geom_spec x_l
+geom_spec xy_l
 
 dimension 2
 
@@ -15,7 +15,6 @@ mesh_path        ../meshes/
 
 
 # Simulation variables
-solution_extension x
 test_case_extension opg_discounted
 
 interp_tp  GLL

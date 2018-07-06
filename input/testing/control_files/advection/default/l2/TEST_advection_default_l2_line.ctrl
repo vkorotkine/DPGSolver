@@ -26,8 +26,9 @@ basis_sol   lagrange
 geom_representation superparametric
 
 p_ref    0 2
+p_cub_p  2 2
 
-fe_method 1
+method_name l2_projection
 
 
 # Testing variables

@@ -10,7 +10,7 @@
 
 # Executable and command line arguments
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
-ARGV="advection/peterson/l2/TEST_Advection_Peterson_TRI__ml2__p0 petsc_options_gmres_default"
+ARGV="advection/default/opgc/TEST_opgc_advection_default__mixed2d petsc_options_gmres_tol_1e-15"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"
