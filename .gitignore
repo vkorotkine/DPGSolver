@@ -42,6 +42,9 @@ src/processing/post/__pycache__/*
 cmake/include/*
 cmake/run/parameters*
 !cmake/run/parameters_example.sh
+external/petsc/configure_files/*
+!external/petsc/configure_files/debug_example.py
+!external/petsc/configure_files/release_example.py
 */__pycache__/*
 *input/meshes/__pycache__/*
 src/processing/post/*.txt

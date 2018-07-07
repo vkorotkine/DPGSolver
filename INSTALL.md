@@ -8,6 +8,7 @@ build/run the code is composed of the following:
 - Intel MKL
 - GNU GSL
 - PETSc
+- SLEPc
 - Gmsh
 - Python3
 
@@ -16,6 +17,7 @@ the following may need to be built manually:
 - Intel MKL ([Download page](https://software.intel.com/en-us/mkl) or
 [install using apt](https://software.intel.com/en-us/articles/installing-intel-free-libs-and-python-apt-repo))
 - PETSc ([Download page](https://www.mcs.anl.gov/petsc/download/index.html))
+- SLEPc ([Download page](http://slepc.upv.es/download/))
 - Gmsh ([Download page](http://gmsh.info/#Download))
 
 The compressed files should be downloaded from the pages linked above and installed using the available gui or standard
