@@ -43,6 +43,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_detJV_T
 #undef compute_cofactors_T
 #undef constructor_xyz_fc
+#undef constructor_NURBS_xyz_fc
 #undef constructor_xyz_fc_on_exact_boundary
 #undef compute_unit_normals_and_det_T
 #undef compute_vol_jacobian_det_fc_T

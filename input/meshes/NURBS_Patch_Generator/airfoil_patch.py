@@ -42,8 +42,8 @@ CONST_CONTINUOUS_APPROXIMATION = True
 # ==================================================
 
 
-#CONST_Airfoil_Type = "NACA4412"
-CONST_Airfoil_Type = "NACA0012"
+CONST_Airfoil_Type = "NACA4412"
+#CONST_Airfoil_Type = "NACA0012"
 
 CONST_QUADRATURE_P = 35
 
@@ -647,7 +647,9 @@ def get_patch_information():
 		"Q" : Q,
 		"Optimization_ControlPoints_and_Weights" : optimization_control_pt_list,
 		"Optimization_ControlPoints_Limits" : optimization_control_pt_limit_list,
-		"area_ref" : 1.0
+		"area_ref" : 1.0,
+		"cm_le_x"  : -0.5,
+		"cm_le_y"  : 0.0
 	}
 
 	return patch_parameters

@@ -12,9 +12,7 @@ import numpy as np
 import math
 
 # Absolute path to the directory with all the optimization results
-CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil"
-append_path = ""
-CONST_OPTIMIZATION_DIR_ABS_PATH = os.path.join(CONST_OPTIMIZATION_DIR_ABS_PATH, append_path)
+CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil/Constrained_Target_CL_cases/NACA0012_Target_CL_0.25"
 
 # The list of files and the label to associate with them when plotting them. Each tuple
 # contains the name of the file first and the label second. An empty label will result 
@@ -23,13 +21,9 @@ CONST_OPTIMIZATION_DIR_ABS_PATH = os.path.join(CONST_OPTIMIZATION_DIR_ABS_PATH, 
 CONST_File_list = [
 	
 	# Target CL
-	("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricY_BFGSmaxnorm1E-2/optimization_convergence.txt", "P = 2, 16x10, NURBS Metrics", "r", "-", ".", False),
-	("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricN_BFGSmaxnorm1E-2/optimization_convergence.txt", "P = 2, 16x10, Standard", "c", "-", ".", False),
-	("NACA0012_TargetCL0.24_P2Superparametric_16x10_NURBSMetricN_BFGSmaxnorm1E-2/optimization_convergence.txt", "P = 2 (Sup), 16x10, Standard", "m", "-", ".", False),
-
-	#("NACA0012_TargetCL0.24_P3_20x10_NURBSMetricY_BFGSmaxnorm1E-2/convergence.txt", "P = 2, 16x10, NURBS Metrics", "r", "-", ".", False),
-	#("NACA0012_TargetCL0.24_P3_20x10_NURBSMetricN_BFGSmaxnorm1E-2/convergence.txt", "P = 2, 16x10, Standard", "c", "-", ".", False),
-	#("NACA0012_TargetCL0.24_P3Superparametric_20x10_NURBSMetricN_BFGSmaxnorm1E-2/convergence.txt", "P = 2 (Sup), 16x10, Standard", "m", "-", ".", False),
+	("ml1_P2_NURBS_Y_CM_eq_0.1255_Optimization_Convergence.txt", "P = 2, ml = 1, NURBS Metrics", "r", "-", ".", False),
+	("ml1_P2_NURBS_N_CM_eq_0.1255_Optimization_Convergence.txt", "P = 2, ml = 1, Standard (Isoparametric)", "c", "-", ".", False),
+	("ml1_P2_NURBS_NSuper_CM_eq_0.1255_Optimization_Convergence.txt", "P = 2, ml = 1, Standard (Superparametric)", "m", "-", ".", False),
 
 ]
 
@@ -144,20 +138,35 @@ def plot_data(file_convergence_data):
 	add_plot(file_convergence_data, "CPU_Time(s)", "L2_Norm_Gradient_Cost_Function", True)
 
 
-	# Check if target CL exists and if so plot it
-	CL_data_exists = True
+	# Check if lift coefficient data exists and if so plot it
+	data_exists = True
 	for case_data_dict in file_convergence_data:
-		if "CL" not in case_data_dict:
-			CL_data_exists = False
+		if "cl" not in case_data_dict:
+			data_exists = False
 
-	if CL_data_exists:
+	if data_exists:
 		# CL vs. Iteration
 		plt.figure(5)
-		add_plot(file_convergence_data, "Design_Iteration", "CL")
+		add_plot(file_convergence_data, "Design_Iteration", "cl")
 
 		# CL vs CPU time
 		plt.figure(6)
-		add_plot(file_convergence_data, "CPU_Time(s)", "CL")
+		add_plot(file_convergence_data, "CPU_Time(s)", "cl")
+
+	# Check if moment coefficient data exists and if so plot it
+	data_exists = True
+	for case_data_dict in file_convergence_data:
+		if "cm" not in case_data_dict:
+			data_exists = False
+
+	if data_exists:
+		# CM vs. Iteration
+		plt.figure(7)
+		add_plot(file_convergence_data, "Design_Iteration", "cm")
+
+		# CM vs CPU time
+		plt.figure(8)
+		add_plot(file_convergence_data, "CPU_Time(s)", "cm")
 
 	plt.show(block=True)
 

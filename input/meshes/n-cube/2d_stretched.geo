@@ -35,19 +35,19 @@ If (mesh_level == 1)
 	Transfinite Line{2003}      = 10+1 Using Progression 1.4;
 	Transfinite Line{1003:1004} = 8+1 Using Progression 1;
 ElseIf (mesh_level == 2)
-	Transfinite Line{1001:1002} = 10+1 Using Progression 1;
-	Transfinite Line{2001:2002} = 10+1 Using Progression 1.2;
-	Transfinite Line{2003}      = 10+1 Using Progression 1.2;
-	Transfinite Line{1003:1004} = 10+1 Using Progression 1;
-ElseIf (mesh_level == 3)
 	Transfinite Line{1001:1002} = 16+1 Using Progression 1;
-	Transfinite Line{2001:2002} = 16+1 Using Progression 1.2;
-	Transfinite Line{2003}      = 16+1 Using Progression 1.2;
+	Transfinite Line{2001:2002} = 20+1 Using Progression 1.25;
+	Transfinite Line{2003}      = 20+1 Using Progression 1.25;
 	Transfinite Line{1003:1004} = 16+1 Using Progression 1;
+ElseIf (mesh_level == 3)
+	Transfinite Line{1001:1002} = 32+1 Using Progression 1;
+	Transfinite Line{2001:2002} = 40+1 Using Progression 1.25;
+	Transfinite Line{2003}      = 40+1 Using Progression 1.25;
+	Transfinite Line{1003:1004} = 32+1 Using Progression 1;
 Else
 	Transfinite Line{1001:1002} = 2^(mesh_level)*2+1 Using Progression 1;
-	Transfinite Line{2001:2002} = 2^(mesh_level+1)+1 Using Progression 1.2;
-	Transfinite Line{2003}      = 2^(mesh_level+1)+1 Using Progression 1.2;
+	Transfinite Line{2001:2002} = 2^(mesh_level+1)+1 Using Progression 1.3;
+	Transfinite Line{2003}      = 2^(mesh_level+1)+1 Using Progression 1.3;
 	Transfinite Line{1003:1004} = 2^(mesh_level)*2+1 Using Progression 1;
 EndIf
 

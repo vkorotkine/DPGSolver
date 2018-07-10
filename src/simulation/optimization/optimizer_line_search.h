@@ -35,6 +35,22 @@ struct Optimizer_Line_Search_Data {
 	struct Matrix_d *B_k_inv, ///< BFGS matrix for Hessian approximation at k_th design iteration
 					*s_k,  ///< BFGS matrix for step vector at k_th design iteration
 					*grad_f_k; ///< BFGS matrix for the gradient of the objective at the k_th design iteration
+
+
+	// ===========================
+	//    Optimization Parameters
+	// ===========================	
+
+	double 	exit_L2_norm_gradient, ///< Exit condition based on the minimum L2 norm of the gradient of the objective
+			exit_objective_value; ///< Exit condition based on the minimum value of the objective function value
+
+	int exit_max_design_iterations; ///< Exit condition based on the maximum number of design iterations
+
+	double 	step_size_init, ///< The initial step length for the search direction
+			wolfe_condition_c, ///< The wolfe condition c value
+			wolfe_condition_rho, ///< The wolfe condition rho value (how much to scale the search direction during the backtracking)
+			wolfe_condition_alpha_min, ///< The minimum step length to use
+			max_norm_search_vector; ///< The maximum norm of the search direction (if greater, will normalize by this amount)
 };
 
 

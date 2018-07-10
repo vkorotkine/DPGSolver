@@ -2,7 +2,6 @@
 
 geom_parametrization normal_proj
 
-//solver _ proc explicit->implicit
 solver_proc   implicit
 solver_type_i iterative
 solver_type_e ssp_rk_33
@@ -12,7 +11,6 @@ cfl_initial   1e1
 time_step  0.0025
 time_final 1E10
 exit_tol_e  5E-2
-//exit _ tol _e 1E3
 
 num_flux_1st Roe-Pike
 test_norm    H0 H1_upwind

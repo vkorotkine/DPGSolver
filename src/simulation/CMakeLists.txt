@@ -19,7 +19,7 @@ set	(SOURCE
 	 optimization/optimization_case.c
 	 optimization/optimizer_line_search.c
 	 optimization/optimizer_NLPQLP.c
-	 optimization/objective_functions.c
+	 optimization/functionals.c
 	 optimization/adjoint.c
 	 optimization/sensitivities.c
 	 optimization/gradient.c

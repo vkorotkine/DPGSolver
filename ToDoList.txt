@@ -1,55 +1,150 @@
 
+-----------------------------------------------------------------------------------------------------------------------------
+
+
+NURBS Enhanced
+
 Monday:
 
-	(Done) - Clean up optimize.c
+	(Done) - Check memory leaks by running valgrind for NLPQLP optimization case
 
-		(Done) - Clean up optimization_case.c/h
+	(Done) - Implement an optimization.data file reader. Place all optimization specific information in that file and read it
+		before the start of each optimization case.
 
-		(Done) - Clean up adjoint.c/h
+		(Done) - Place and read the BFGS optimization information
 
-		(Done) - Clean up sensitivities.c/h
+		(Done) - Place and read the NLPQLP optimization information
 
-		(Done) - Create a new file for computing the gradient. Should also have a constructor and destructor for
-			a data structure that holds 
+	(Done) - Modify the input into the objective functions
 
-		(Done) - Get BFGS Optimization working with cleaned up structures
+		(Done) - Change the file name to functionals 
 
-		(Done) - Run Valgrind on BFGS optimization to ensure there are no memory leaks
+		(Done) - Read the functional information from the optimization_data file.
 
-		(Done) - move the NLPQLP methods to a proper file (organize the structure)
+	(Done) - In the output progress file, set the additional parameters to print by reading the optimization_data file and loading
+		the information into a string
 
-	(Done) - Clean up optimization monitoring (make it standard so NLPQLP, BFGS, ... all use
-		the same methods). 
+	(Done) - Implement the pitching moment computation
 
-	(Done) - Implement the progress output for the geometry
+		(Done) - Place the pitching moment leading edge location in the .geo file and read it.
 
-	(Done) - Run the NLPQLP optimization case to see that it still converges.
+		(Done) - Adjust the xyz locations of the face nodes to now use the NURBS mapping and not the geom_coeff for the volumes
 
-	(Done) - Implement the complex step sensitivities
+		(Done) - Implement the pitching moment computation
 
-		(Done) - Compute dR_dXp using the complex step
+			(Done) - Run an optimization case and monitor the progression of the CM value
 
-		(Done) - Compute dI_dXp using the complex step
+			- Seems to be good (NACA0012, Cm is 0 as expected initially and it becomes negative also as expected). Perhaps
+				run more validation of this function.
 
-		(Done) - Verify the final gradient values obtained and compare it to the brute force values
+		(Done) - Add the constraint data structure
 
-	(Done) - Run the NLPQLP optimization case with complex step sensitivities (NACA0012 airfoil target CL)
+			(Done) - Add a struct for holding the constraint information. Struct should hold possibly the function pointer to the
+				constraint function, what type of constraint it is (equality, inequality), and, based on the type of constraint,
+				what the RHS should be (less than what, greater than what, etc...)
 
-	(Done) - Compare final optimized profiles for all 3 cases (NURBS enhanced, Standard, Superparametric)
+		(Done) - Add the pitching moment constraint and put the data for the constraint into the optimization.data file. Try the target CL case
+			with this constraint information.
 
-	- Plot and list the gradient values for the three cases
+			(Done) - Implement the pitching moment functional
 
-	- Check memory leaks by running valgrind for NLPQLP optimization case
+			(Done) - Validate the gradient computation of the functional
 
-	- Finalize clean up of implementation for optimization. Commit changes.
+			(Done) - Try an equality constraint optimization and see if the optimization works for P2. Try cm = -0.13 and a target cl of 0.24. Did not work very well.
 
-	- Implement the pitching moment computation
+			(Done) - Add the ability to print a prefix on the file names for a test case in order to organize the results.
 
-		- Plot the variation in the pitching moment to see how it varies in the optimization
+			(Done) - Run a Target CL case with a small window for the cm pitching moment constraint. Run a P2 case
 
-	- Implement a pitching moment constraint and try to converge to an optimal solution (NLPQLP)
+			(Done) - Try the isoparametric and superparametric case for P2 and see the convergence.
+			
+Tuesday:
 
-	- Template the objective function file to be able to have a real and complex version of the function
+	- Implement a percent volume change constraint. 
+
+		- Test gradient of constraint function with brute force.
+
+		- Try a target cl constrained optimization with the volume change constraint for the P2 case. Use an equality constraint.
+
+		- Try the isoparametric and superparametric case for P2 and see the convergence. 
+
+	- Implement Inverse Design Case (NACA 4412)
+
+		- Run a really fine case first on the transformed grid and store the results in a file.
+
+		- Will only be able to parametrize for geometries that have the same knot domain (-1 to 1). 
+
+	- Run a Target CL constrained optimization with CM and Volume change constraints
+
+		- Add function to, along with the standard output, output the gradient, dR_dXp, dI_dXp and Adjoint before the first design step
+
+		- Run a P2 case with NURBS and both Standard - ml1
+
+		- Run a P3 case with NURBS and both Standard - ml1
+
+		- Compile results into plots and see what trends result. Compile plots into a pdf to perhaps send to the prof.
+
+	- Template the objective function file to be able to have a real and complex version of the function.
+
+	- Finalize clean up of implementation for optimization.
+
+	- Investigate the metric issue with the NURBS and Standard mixed
+
+		- Output the field of differences of the metrics to see how large the difference in the metric terms are throughout the 
+			mesh. 
+
+Wednesday:
+	
+	- Add metric computation section to journal paper.
+
+	- Add grid deformation section to journal paper
+
+	- Implement test case to see how conjugate gradient method works
+
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+
+IGA-DG
+
+Tuesday:
+	
+	- Complete reading Paper
+	
+Wednesday:
+
+	- Implement the directory structure
+
+	- Create the CMake files for the cases
+
+	- Implement the matrix data structure classes. Template the class to be able to hold different types of matrices
+
+Thursday:
+	
+	- Implement a mesh reader to be able to read a multi-patch DG mesh
+
+	- Implement basis functions correctly (NURBS) so that they span over multiple elements.
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+
+OVERALL GOALS: (For the end of the Summer - August 15)
+
+(1) Complete all NURBS enhanced optimization cases and compile the results into a publishable paper on high-order adjoint-based shape optimization
+	for the NURBS enhanced approach. One case should be read from a CAD file.
+
+(2) Complete a multi-patch IGA-DG code and investigate the stability results. Study 1D and 2D cases. Compile the results into the final poster presentation.
+
+(Optional) (3) Complete a multi-patch IGA-DG code with optimization using the discrete adjoint approach and the Euler equations. Compile the results into a publishable paper
+	on high-order adjoint based shape optimization using Isogeometric Analysis. One case should be read from a CAD file.
+
+
+-----------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
 
 
 
@@ -71,38 +166,7 @@ Monday:
 			file to the header.
 
 
-
-	- Run the NURBS optimization cases to see if they converge still.
-
-
-
 	- Generalize the face and volume cubature (NURBS metrics) to other elements (not just QUADS)
-
-
-	- Read the IGA Paper
-
-
-
-
-
-
-
-
-
-
-	- Run Valgrind to check memory leaks with NLPQLP
-
-	- Perform unconstrained NLPQLP optimization
-
-		- Complete P2 results (20 x 10 grid) with NURBS metrics
-
-		- Complete P2 results (20 x 10 grid) without NURBS metrics
-
-	- Implement the Pitching Moment computation
-		
-	- Create poster with thesis results
-
-	- Clean up code optimization structure with NLPQLP
 
 	- Remove NURBS_geometry from the macros file
 

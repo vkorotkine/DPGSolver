@@ -47,7 +47,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "volume_solver.h"
 
 #include "optimization_case.h"
-#include "objective_functions.h"
+#include "functionals.h"
 
 
 // Static function declarations ************************************************************************************* //

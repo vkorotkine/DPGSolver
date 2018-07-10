@@ -174,13 +174,10 @@ const struct const_Multiarray_T *grad_xyz_NURBS_patch_mapping_T(
 	);
 
 
-/** \brief Computes the gradient terms of the NURBS mapping at the specified points on the 
- *	knot domain (xi_eta_i). NOTE: Only the 2D case has been implemented for now.
+/** \brief Computes the mapped points from the knot domain onto the physical domain using the
+ * 	NURBS mapping. NOTE: Only the 2D case has been implemented for now.
  *	
- *	\return A multiarray of dimension [num_points x (DIM^2)] that holds the partial derivatives
- *	of the mapping. The ith row of the multiarray holds the partials at the ith point 
- *	and stores the data in the form [x_xi, y_xi, x_eta, y_eta], where 
- *	x_xi, for instance, is the partial of x with respect to the xi knot domain variable.
+ *	\return A multiarray of dimension [num_points x (DIM)] that holds the mapped values.
  */
 const struct const_Multiarray_T *xyz_NURBS_patch_mapping_T(
 

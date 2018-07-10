@@ -26,7 +26,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_adaptation.h"
 #include "definitions_core.h"
 
-//#include "objective_functions.h"
 #include "simulation.h"
 #include "volume_solver.h"
 #include "face_solver.h"
@@ -59,6 +58,30 @@ static void read_geometry_data(
 	);
 
 
+/** \brief 	Read the required data from the optimization.geo file and load it into the 
+ * 	optimization_case data structure.
+ */
+static void read_optimization_data(
+	struct Optimization_Case* optimization_case ///< The data structure holding the optimization data
+	);
+
+
+/** \brief Create the complex sim object. This object will store the complex version of whatever is
+ *	in the real sim object. This sim object is used for all complex step computations.
+ */
+static void create_complex_sim(
+	struct Optimization_Case* optimization_case ///< The data structure holding the optimization data
+	);
+
+
+/** \brief Set the function pointers for the objective function and set any constraint function
+ * information
+ */
+static void set_function_pointers(
+	struct Optimization_Case* optimization_case ///< The data structure holding the optimization data
+	);
+
+
 // Interface functions ********************************************************************************************** //
 
 
@@ -66,10 +89,9 @@ struct Optimization_Case* constructor_Optimization_Case (struct Simulation* sim)
 
 	struct Optimization_Case* optimization_case = calloc(1,sizeof *optimization_case); // returned
 
-
-	// Allocate the memory in the Optimization_Case structure except for those used by the optimizers
-	// and adjoint solve (Adjoint Data Structures, Sensitivity Data Structures, Optimization Minimizer Structures
-	// NLPQLP Data Structures). Load the information for the optimization case into the relevant design variables
+	// Preprocessing: Store some initial mesh properties before the optimization has started.
+	// - Compute the initial mesh volume and store it in sim
+	sim->mesh_volume_initial = functional_mesh_volume(sim);
 
 
 	// 1) Geometry Data Structures
@@ -96,79 +118,20 @@ struct Optimization_Case* constructor_Optimization_Case (struct Simulation* sim)
 	optimization_case->num_design_pts_dofs = num_design_pt_dofs;
 
 
-	// 3) objective_function and objective_function_c
-	// Set function pointers
-	// MSB: TODO: Set these based on optimization.data file
-	optimization_case->objective_function = objective_function_target_Cl;
-	optimization_case->objective_function_c = objective_function_target_Cl_c;
-
-
-	// 4) Sim objects (sim, sim_c)
-
+	// 3) Create the complex sim object
 	optimization_case->sim = sim;
-
-	// Create the complex simulation object
-
-	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(sim->ctrl_name); // free
-	
-	const int* p_ref  = int_test_info->p_ref,
-	         * ml_ref = int_test_info->ml;
-
-	int ml_prev = ml_ref[0]-1,
-	    ml 		= ml_ref[0],
-    	p_prev  = p_ref[0]-1,
-    	p 		= p_ref[0];
-
-	const char type_rc = 'c';
-	bool ignore_static = false;
-	const int adapt_type = int_test_info->adapt_type;
-
-	struct Simulation* sim_c = NULL;
-	structor_simulation(&sim_c, 'c', adapt_type, p, ml, p_prev, ml_prev, sim->ctrl_name, type_rc, ignore_static);
-	
-	optimization_case->sim_c = sim_c;
+	create_complex_sim(optimization_case);
 
 
-	// Copy the data from the real to the complex sim object
-	// \todo MSB: For the copy members r_to_c_Solver_Face function, it seems that the nf_fc 
-	// data structures needs to be set here to operate correctly
-	struct Intrusive_Link* curr   = sim->faces->first;
-	struct Intrusive_Link* curr_c = sim_c->faces->first;
-
-	while(true){
-
-		struct Solver_Face* s_face 		= (struct Solver_Face*) curr;
-		struct Solver_Face_c* s_face_c 	= (struct Solver_Face_c*) curr_c;
-		
-		// TODO:
-		// Needed in order to do the r_to_c conversion. Find a way to fix this issue
-		s_face->nf_fc = (const struct const_Multiarray_d*)constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1,1});
-		s_face_c->nf_fc = (const struct const_Multiarray_c*)constructor_empty_Multiarray_c('C',2,(ptrdiff_t[]){1,1});
-
-		curr 	= curr->next;
-		curr_c 	= curr_c->next;
-
-		if(!curr || !curr_c)
-			break;
-	}
-
-	copy_data_r_to_c_sim(optimization_case->sim, optimization_case->sim_c);
+	// 4) Read the optimization.data file and load the information
+	read_optimization_data(optimization_case);
 
 
-	// 5) Optimizer
-	// MSB: TODO: Read from optimization.data file
-	//strcpy(optimization_case->optimizer_spec, "LINE_SEARCH_BFGS");
-	strcpy(optimization_case->optimizer_spec, "NLPQLP");
+	// 5) Set the function pointers
+	set_function_pointers(optimization_case);
 
-	// 6) Optimization Type
-	// MSB: TODO: Read from optimization.data file
-	strcpy(optimization_case->optimization_type_spec, "TARGET_CL");
-
-	
-	destructor_Integration_Test_Info(int_test_info);
 
 	return optimization_case;
-
 }
 
 
@@ -185,16 +148,29 @@ void destructor_Optimization_Case (struct Optimization_Case* optimization_case){
 	destructor_Multiarray_d(optimization_case->geo_data.control_points_optimization_lims);
 
 
-	// 2) Sim_c object
-	// Destroy the simulation. Note that the p and ml values are not used when 
-	// the solution is being destructed
-
-	// NOTE: Real sim object not cleared
+	// 2) Destroy the complex simulation data structure. 
+	// NOTE: The p and ml values are not used when the simulation is being destructed
 	struct Simulation* sim_c = optimization_case->sim_c;
 	structor_simulation(&sim_c,'d',ADAPT_0,0,0,0,0,NULL,'c',false);
 
-	free((void*)optimization_case);
 
+	// 3) Constraint Function Data
+	struct Constraint_Function_Data *constraint_function_data_next,
+									*constraint_function_data_current;
+
+	constraint_function_data_current = optimization_case->constraint_function_data;
+
+	while(true){
+
+		if (constraint_function_data_current == NULL)
+			break;
+
+		constraint_function_data_next = constraint_function_data_current->next;
+		free((void*)constraint_function_data_current);
+		constraint_function_data_current = constraint_function_data_next;
+	}
+
+	free((void*)optimization_case);
 }
 
 
@@ -245,7 +221,7 @@ void copy_data_r_to_c_sim(struct Simulation* sim, struct Simulation* sim_c){
 static void read_geometry_data(struct Optimization_Case* optimization_case){
 
 	// For now, 2D patches should be able to be read successfully so
-	// we should be able to find
+	// should be able to find:
 	//	- P (order in the xi direction)
 	// 	- Q (order in the eta direction)
 	//	- knots_xi
@@ -420,21 +396,170 @@ static void read_geometry_data(struct Optimization_Case* optimization_case){
 	fclose(input_file);
 
 	assert(count_found == count_to_find);
-
-	// // Test that the information is read properly
-	// printf("P = %d, Q = %d \n", optimization_case->geo_data.P, optimization_case->geo_data.Q);
-	// print_Multiarray_d(optimization_case->geo_data.knots_xi);
-	// print_Multiarray_d(optimization_case->geo_data.knots_eta);		
-	// print_Multiarray_d(optimization_case->geo_data.control_points);
-	// print_Multiarray_c(optimization_case->geo_data.control_points_c);
-	// print_Multiarray_d(optimization_case->geo_data.control_weights);
-	// print_Multiarray_i(optimization_case->geo_data.control_pt_wt_connectivity);
-	// print_Multiarray_i(optimization_case->geo_data.control_points_optimization);
-	// print_Multiarray_d(optimization_case->geo_data.control_points_optimization_lims);
-	// exit(0);
 }
 
 
+static void read_optimization_data(struct Optimization_Case *optimization_case){
 
+	// Get the file pointer to the optimization file
+	FILE* input_file = fopen_input('o',NULL,NULL); // closed
+	char line[STRLEN_MAX];
+
+	struct Constraint_Function_Data* constraint_function_data_tail;
+
+	// Read in the information from the file
+	while (fgets(line,sizeof(line),input_file)) {
+
+		// Any line with a comment flag should be skipped
+		if (strstr(line, "//"))
+			continue;
+
+		// Standard Optimization Information
+		if (strstr(line, "optimizer_spec")) 					read_skip_c(line, optimization_case->optimizer_spec);
+		if (strstr(line, "optimizer_output_files_prefix")) 		read_skip_c(line, optimization_case->optimizer_output_files_prefix);
+		if (strstr(line, "optimization_objective_function")) 	read_skip_c(line, optimization_case->optimization_objective_function_keyword);
+
+
+		// Constraint Function Information
+		if (strstr(line, "num_total_constraints")){
+			read_skip_i_1(line, 1, &optimization_case->num_total_constraints, 1);
+			int num_equality_constraints = 0;
+
+			optimization_case->constraint_function_data = NULL;
+
+			// Read the constraint function data and load it into Constraint_Function_Data 
+			// structures.
+			int constraint_index = 0;
+			while(true){
+
+				if (constraint_index == optimization_case->num_total_constraints)
+					break;
+
+				// Generate the Constraint_Function_Data data structure
+				struct Constraint_Function_Data* constraint_function_data = calloc(1,sizeof *constraint_function_data);
+				constraint_function_data->next = NULL;
+
+				// Read the block of information for the given constraint
+				for (int i = 0; i < 4; i++){
+					fgets(line,sizeof(line),input_file);  // read the new line
+
+					if (strstr(line, "constraint_functional")) 	read_skip_c(line, constraint_function_data->functional_keyword);
+					if (strstr(line, "constraint_multiplier")) 	read_skip_d_1(line, 1, &constraint_function_data->a, 1);		
+					if (strstr(line, "constraint_shift")) 		read_skip_d_1(line, 1, &constraint_function_data->k, 1);		
+					if (strstr(line, "constraint_type")) 		read_skip_c(line, &constraint_function_data->constraint_type);
+				}
+
+				if (optimization_case->constraint_function_data == NULL){
+					// If this is the first element to add to the linked list
+					optimization_case->constraint_function_data = constraint_function_data;
+					constraint_function_data_tail = constraint_function_data;
+				} else{
+					constraint_function_data_tail->next = constraint_function_data;
+					constraint_function_data_tail = constraint_function_data;
+				}
+
+				if (constraint_function_data->constraint_type == 'e')
+					num_equality_constraints++;
+
+				constraint_index++;
+			}
+
+			// Store the final number of equality constraints
+			optimization_case->num_equality_constraints = num_equality_constraints;
+		}
+	}
+
+	fclose(input_file);
+}
+
+
+static void create_complex_sim(struct Optimization_Case* optimization_case){
+
+	struct Simulation *sim = optimization_case->sim;
+
+	// Create the complex simulation object
+
+	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(sim->ctrl_name); // free
+	
+	const int* p_ref  = int_test_info->p_ref,
+	         * ml_ref = int_test_info->ml;
+
+	int ml_prev = ml_ref[0]-1,
+	    ml 		= ml_ref[0],
+    	p_prev  = p_ref[0]-1,
+    	p 		= p_ref[0];
+
+	const char type_rc = 'c';
+	bool ignore_static = false;
+	const int adapt_type = int_test_info->adapt_type;
+
+	struct Simulation* sim_c = NULL;
+	structor_simulation(&sim_c, 'c', adapt_type, p, ml, p_prev, ml_prev, sim->ctrl_name, type_rc, ignore_static);
+	
+	sim_c->mesh_volume_initial = sim->mesh_volume_initial;
+
+	optimization_case->sim_c = sim_c;
+
+
+	// Copy the data from the real to the complex sim object
+	// \todo MSB: For the copy members r_to_c_Solver_Face function, it seems that the nf_fc 
+	// data structures needs to be set here to operate correctly
+	struct Intrusive_Link* curr   = sim->faces->first;
+	struct Intrusive_Link* curr_c = sim_c->faces->first;
+
+	while(true){
+
+		struct Solver_Face* s_face 		= (struct Solver_Face*) curr;
+		struct Solver_Face_c* s_face_c 	= (struct Solver_Face_c*) curr_c;
+		
+		s_face->nf_fc = (const struct const_Multiarray_d*)constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1,1});
+		s_face_c->nf_fc = (const struct const_Multiarray_c*)constructor_empty_Multiarray_c('C',2,(ptrdiff_t[]){1,1});
+
+		curr 	= curr->next;
+		curr_c 	= curr_c->next;
+
+		if(!curr || !curr_c)
+			break;
+	}
+
+	copy_data_r_to_c_sim(optimization_case->sim, optimization_case->sim_c);
+
+	destructor_Integration_Test_Info(int_test_info);	
+}
+
+
+static void set_function_pointers(struct Optimization_Case* optimization_case){
+
+	// \todo MSB: Create a function that perhaps takes as arguments pointers and then
+	// 	set the function pointers within that function itself.
+
+	// Set the Objective Function function pointer
+	if (strstr(optimization_case->optimization_objective_function_keyword, "FUNCTIONAL_TARGET_CL")){
+		optimization_case->objective_function 	= functional_target_cl;
+		optimization_case->objective_function_c = functional_target_cl_c;
+	} else {
+		EXIT_UNSUPPORTED;
+	}
+
+	// Set any Constraint Function Pointers
+	struct Constraint_Function_Data* constraint_function_data = optimization_case->constraint_function_data;
+	while(true){
+
+		if (constraint_function_data == NULL){
+			break;
+		}
+
+		if (strstr(constraint_function_data->functional_keyword, "FUNCTIONAL_CM_LE")){
+			constraint_function_data->functional_f 	 = functional_cm_le;
+			constraint_function_data->functional_f_c = functional_cm_le_c;
+		} else {
+			EXIT_UNSUPPORTED;
+		}
+
+		constraint_function_data = constraint_function_data->next;
+	}
+
+
+}
 
 

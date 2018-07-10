@@ -25,8 +25,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <time.h>
 
 #include "macros.h"
-
 #include "simulation.h"
+#include "file_processing.h"
+#include "definitions_alloc.h"
 
 #include "matrix.h"
 #include "matrix_constructors.h"
@@ -61,6 +62,14 @@ static struct Optimizer_NLPQLP_Data* constructor_Optimizer_NLPQLP_Data(
  * with the allocated memory that it holds.
  */
 static void destructor_Optimizer_NLPQLP_Data(
+	struct Optimizer_NLPQLP_Data* optimizer_nlpqlp_data ///< Consult optimizer_NLPQLP.h
+	);
+
+
+/** \brief 	Read the required data from the optimization.geo file and load it into the 
+ * 	Optimizer_NLPQLP_Data data structure.
+ */
+static void read_optimization_data(
 	struct Optimizer_NLPQLP_Data* optimizer_nlpqlp_data ///< Consult optimizer_NLPQLP.h
 	);
 
@@ -155,7 +164,7 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 			output_gradient(optimization_case, optimizer_nlpqlp_data->dF->data);
 		}
 
-		printf("Start NLPQLP\n");
+		printf("\nStart NLPQLP  ");
 
 		char transfer_key;
 
@@ -166,9 +175,14 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 		// Perform the optimization step using NLPQLP
 		write_NLPQLP_input_file(optimizer_nlpqlp_data);  // Write the INPUT.txt file
 
-		// Start a subshell in which the NLPQLP optimizer executable is run
-		// \todo MSB: Read this from the optimization_data file
-		system("(cd ../../NLPQLP_Optimizer && ./exec)");
+		// Start a subshell in which the NLPQLP optimizer executable will be run.		
+		// Set the executaion command first and then start the subshell
+		char nlpqlp_execution_command[STRLEN_MAX*4];
+		int index = 0;
+		index += sprintf(nlpqlp_execution_command, "(cd ");
+		index += sprintf(nlpqlp_execution_command + index, optimizer_nlpqlp_data->nlpqlp_directory_abs_path);
+		index += sprintf(nlpqlp_execution_command + index, " && ./exec)");
+		system(nlpqlp_execution_command);
 
 		read_NLPQLP_output_file(optimizer_nlpqlp_data);  // Process the OUTPUT.txt file
 
@@ -176,7 +190,7 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 		transfer_key = 'o';
 		transfer_control_point_data_NLPQLP(optimization_case, optimizer_nlpqlp_data, transfer_key);
 		
-		printf("Completed NLPQLP : IFAIL = %d \n", optimizer_nlpqlp_data->IFAIL);
+		printf("Completed NLPQLP : IFAIL = %d \n\n", optimizer_nlpqlp_data->IFAIL);
 
 		// Error checking
 		if (optimizer_nlpqlp_data->IFAIL > 0){
@@ -209,7 +223,7 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 			break;
 
 		// ============================================
-		//    Compute new Objective/Gradient Values
+		//    Compute new Functional/Gradient Values
 		// ============================================
 
 		// Compute new functional values
@@ -234,7 +248,6 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 				t_elapse, design_iteration, true);
 
 		}
-
 	}
 
 	// ================================
@@ -243,7 +256,6 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 
 	destructor_optimization_progress_file(fp);
 	destructor_Optimizer_NLPQLP_Data(optimizer_nlpqlp_data);
-
 }
 
 
@@ -270,8 +282,8 @@ static struct Optimizer_NLPQLP_Data* constructor_Optimizer_NLPQLP_Data(struct Op
 
 	// Consider an unconstrained optimization problem first
 
-	int M = 0;
-	int ME = 0;
+	int M = optimization_case->num_total_constraints;
+	int ME = optimization_case->num_equality_constraints;
 
 
 	// Independent Optimization Parameters:
@@ -289,19 +301,8 @@ static struct Optimizer_NLPQLP_Data* constructor_Optimizer_NLPQLP_Data(struct Op
 	optimizer_nlpqlp_data->MNN2 	= M + N + N + 2;
 
 
-	// Remaining Optimization Parameters 
-	// Set these up using default values (can be overwritten)
-	optimizer_nlpqlp_data->IOUT 	= 6;
-	optimizer_nlpqlp_data->MAXIT 	= 100;
-	optimizer_nlpqlp_data->MAXFUN 	= 10;
-	optimizer_nlpqlp_data->MAXNM 	= 10;
-	optimizer_nlpqlp_data->LQL 		= 1;
-	optimizer_nlpqlp_data->IPRINT 	= 0;
-
-	optimizer_nlpqlp_data->ACC 		= 1E-14;
-	optimizer_nlpqlp_data->ACCQP 	= 1E-14;
-	optimizer_nlpqlp_data->STPMIN 	= 1E-10;
-	optimizer_nlpqlp_data->RHO 		= 0.0;
+	// Settable Optimization Parameters 
+	read_optimization_data(optimizer_nlpqlp_data);
 
 
 	// Memory Objects (initialize with zeros)
@@ -386,7 +387,7 @@ static struct Optimizer_NLPQLP_Data* constructor_Optimizer_NLPQLP_Data(struct Op
 
 			ctrl_pt_index = get_col_Multiarray_i(0, ctrl_pts_opt)[i];
 
-			optimizer_nlpqlp_data->X->data[vec_index] = get_col_Multiarray_d(j-1, ctrl_pts)[ctrl_pt_index];
+			optimizer_nlpqlp_data->X->data[vec_index]  = get_col_Multiarray_d(j-1, ctrl_pts)[ctrl_pt_index];
 			optimizer_nlpqlp_data->XL->data[vec_index] = get_col_Multiarray_d(0, ctrl_pts_lims)[vec_index];
 			optimizer_nlpqlp_data->XU->data[vec_index] = get_col_Multiarray_d(1, ctrl_pts_lims)[vec_index];
 
@@ -431,23 +432,86 @@ static void destructor_Optimizer_NLPQLP_Data(struct Optimizer_NLPQLP_Data* optim
 }
 
 
+static void read_optimization_data(struct Optimizer_NLPQLP_Data* optimizer_nlpqlp_data){
+
+	// Get the file pointer to the optimization file
+	FILE* input_file = fopen_input('o',NULL,NULL); // closed
+	char line[STRLEN_MAX];
+
+	// Read in the information from the file
+	while (fgets(line,sizeof(line),input_file)) {
+
+		// Any line with a comment flag should be skipped
+		if (strstr(line, "//"))
+			continue;
+
+		if (strstr(line, "IOUT")) 	read_skip_i_1(line, 1, &optimizer_nlpqlp_data->IOUT, 1);
+		if (strstr(line, "MAXIT")) 	read_skip_i_1(line, 1, &optimizer_nlpqlp_data->MAXIT, 1);
+		if (strstr(line, "MAXFUN")) read_skip_i_1(line, 1, &optimizer_nlpqlp_data->MAXFUN, 1);
+		if (strstr(line, "MAXNM")) 	read_skip_i_1(line, 1, &optimizer_nlpqlp_data->MAXNM, 1);
+		if (strstr(line, "LQL")) 	read_skip_i_1(line, 1, &optimizer_nlpqlp_data->LQL, 1);
+		if (strstr(line, "IPRINT")) read_skip_i_1(line, 1, &optimizer_nlpqlp_data->IPRINT, 1);
+
+		if (strstr(line, "ACC")) 	read_skip_d_1(line, 1, &optimizer_nlpqlp_data->ACC, 1);
+		if (strstr(line, "ACCQP")) 	read_skip_d_1(line, 1, &optimizer_nlpqlp_data->ACCQP, 1);
+		if (strstr(line, "STPMIN")) read_skip_d_1(line, 1, &optimizer_nlpqlp_data->STPMIN, 1);
+		if (strstr(line, "RHO")) 	read_skip_d_1(line, 1, &optimizer_nlpqlp_data->RHO, 1);
+
+		if (strstr(line, "optimizer_nlpqlp_abs_path")) read_skip_c(line, optimizer_nlpqlp_data->nlpqlp_directory_abs_path);
+	}
+
+	fclose(input_file);
+}
+
+
 static void compute_function_values_NLPQLP(struct Optimization_Case *optimization_case, 
 	struct Optimizer_NLPQLP_Data *optimizer_nlpqlp_data){
 
-	// Objective Function:
-	optimizer_nlpqlp_data->F = optimization_case->objective_function(optimization_case->sim);
+	struct Simulation *sim = optimization_case->sim;
 
-	// Constraint Functions:
-	// \todo MSB: Implement constraint functions to be added for the optimization
+	// ==================================
+	//         Objective Function
+	// ==================================
+
+	optimizer_nlpqlp_data->F = optimization_case->objective_function(sim);
+
+
+	// ==================================
+	//        Constraint Functions
+	// ==================================
+
+	struct Constraint_Function_Data* constraint_function_data = optimization_case->constraint_function_data;
+	int constraint_function_index = 0;
+	double constraint_function_value;
+
+	while(true){
+
+		if(constraint_function_data == NULL)
+			break;
+
+		// Compute the constraint function value and store it in the G structure
+		constraint_function_value =  constraint_function_data->functional_f(sim);
+		constraint_function_value += constraint_function_data->k;
+		constraint_function_value *= constraint_function_data->a;
+
+		get_col_Multiarray_d(constraint_function_index, optimizer_nlpqlp_data->G)[0] = constraint_function_value;
+
+		constraint_function_data = constraint_function_data->next;		
+
+		constraint_function_index++;
+	}
 }
 
 
 static void compute_gradient_values_NLPQLP(struct Optimization_Case *optimization_case, 
 	struct Optimizer_NLPQLP_Data* optimizer_nlpqlp_data){
 
-	// =================================
-	//    Objective Function Gradient
-	// =================================
+	struct Simulation *sim   = optimization_case->sim;
+	struct Simulation *sim_c = optimization_case->sim_c;
+
+	// ===================================
+	//     Objective Function Gradient
+	// ===================================
 
 	struct Adjoint_Data *adjoint_data 		= constructor_Adjoint_Data(optimization_case);
 	struct Sensitivity_Data *sensivity_data = constructor_Sensitivity_Data(optimization_case);
@@ -455,14 +519,12 @@ static void compute_gradient_values_NLPQLP(struct Optimization_Case *optimizatio
 
 
 	// Solve the Adjoint equation
-	setup_adjoint(adjoint_data, optimization_case->sim, optimization_case->sim_c,
-		optimization_case->objective_function, optimization_case->objective_function_c);
-	solve_adjoint(adjoint_data, optimization_case->sim);
+	setup_adjoint(adjoint_data, sim, sim_c, optimization_case->objective_function, optimization_case->objective_function_c);
+	solve_adjoint(adjoint_data, sim);
 
 
 	// Compute the Sensitivities
-	compute_sensitivities(sensivity_data, optimization_case, optimization_case->objective_function,
-		optimization_case->objective_function_c);
+	compute_sensitivities(sensivity_data, optimization_case, optimization_case->objective_function, optimization_case->objective_function_c);
 
 
 	// Compute the gradient using the sensitivities and the adjoint
@@ -480,18 +542,66 @@ static void compute_gradient_values_NLPQLP(struct Optimization_Case *optimizatio
 	destructor_Gradient_Data(gradient_data);
 
 
-	// =================================
+	// ===================================
 	//    Constraint Function Gradients
-	// =================================	
-	// \todo MSB: Implement constraint function gradients to be added for the optimization
+	// ===================================	
+
+	struct Constraint_Function_Data* constraint_function_data = optimization_case->constraint_function_data;
+	int constraint_function_index = 0;
+
+	while(true){
+
+		if(constraint_function_data == NULL)
+			break;
+
+
+		// Compute the gradient of the given constraint function by using the adjoint
+		// approach.
+
+		struct Adjoint_Data *adjoint_data 		= constructor_Adjoint_Data(optimization_case);
+		struct Sensitivity_Data *sensivity_data = constructor_Sensitivity_Data(optimization_case);
+		struct Gradient_Data *gradient_data 	= constructor_Gradient_Data(adjoint_data, sensivity_data);
+
+
+		// Solve the Adjoint equation
+		setup_adjoint(adjoint_data, sim, sim_c,	constraint_function_data->functional_f, constraint_function_data->functional_f_c);
+		solve_adjoint(adjoint_data, sim);
+
+
+		// Compute the Sensitivities
+		compute_sensitivities(sensivity_data, optimization_case, constraint_function_data->functional_f, constraint_function_data->functional_f_c);
+
+
+		// Compute the gradient using the sensitivities and the adjoint. Scale the gradients
+		// by the specified multiplier (due to the chain rule)
+		compute_gradient(gradient_data, adjoint_data, sensivity_data);
+		for (int i = 0; i < optimization_case->num_design_pts_dofs; i++)
+			gradient_data->Gradient->data[i] *= constraint_function_data->a;
+
+
+		// Store gradient data in NLPQLP data structure (dG)
+		for (int j = 0; j < optimization_case->num_design_pts_dofs; j++){
+			get_col_Multiarray_d(j, optimizer_nlpqlp_data->dG)[constraint_function_index] = gradient_data->Gradient->data[j];
+		}
+
+
+		// Destruct allocated data structures:
+		destructor_Adjoint_Data(adjoint_data);
+		destructor_Sensitivity_Data(sensivity_data);
+		destructor_Gradient_Data(gradient_data);
+
+
+		constraint_function_data = constraint_function_data->next;		
+		constraint_function_index++;
+	}
 }
 
 
 static void write_NLPQLP_input_file(struct Optimizer_NLPQLP_Data* optimizer_nlpqlp_data){
 
 	char output_name[STRLEN_MAX] = { 0, };
-	strcpy(output_name,"../../NLPQLP_Optimizer/");
-	strcat(output_name,"INPUT.txt");
+	strcpy(output_name, optimizer_nlpqlp_data->nlpqlp_directory_abs_path);
+	strcat(output_name,"/INPUT.txt");
 
 	FILE *fp;
 
@@ -632,8 +742,8 @@ static void read_NLPQLP_output_file(struct Optimizer_NLPQLP_Data* optimizer_nlpq
 
 	// Open the output file
 	char output_name[STRLEN_MAX] = { 0, };
-	strcpy(output_name,"../../NLPQLP_Optimizer/");
-	strcat(output_name,"OUTPUT.txt");
+	strcpy(output_name, optimizer_nlpqlp_data->nlpqlp_directory_abs_path);
+	strcat(output_name,"/OUTPUT.txt");
 	if ((fp = fopen(output_name,"r")) == NULL)
 		printf("Error: File %s did not open.\n", output_name), exit(1);
 

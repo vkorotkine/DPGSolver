@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__optimizer_NLPQLP_h__INCLUDED
 #define DPG__optimizer_NLPQLP_h__INCLUDED
 
+#include "definitions_alloc.h"
 struct Optimization_Case;
 
 
@@ -72,6 +73,8 @@ struct Optimizer_NLPQLP_Data {
 		LKWA, ///< Consult NLPQLP Documentation
 		LACTIV; ///< Consult NLPQLP Documentation
 
+	// NLPQLP Directory Path
+	char nlpqlp_directory_abs_path[STRLEN_MAX*4];
 };
 
 

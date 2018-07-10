@@ -54,7 +54,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_case.h"
 
 #include "optimization_case.h"
-#include "objective_functions.h"
+#include "functionals.h"
 
 
 // Static function declarations ************************************************************************************* //
@@ -178,6 +178,7 @@ void compute_sensitivities(struct Sensitivity_Data* sensitivity_data, struct Opt
 	UNUSED(functional_c);
 
 	UNUSED(set_dI_dXp_and_dR_dXp_finite_diff);
+	UNUSED(set_dI_dXp_and_dR_dXp_cmplx_step);
 
 	// set_dI_dXp_and_dR_dXp_finite_diff(sensitivity_data, optimization_case, functional);
 
@@ -194,6 +195,7 @@ void compute_sensitivities(struct Sensitivity_Data* sensitivity_data, struct Opt
 	// destructor_Matrix_d(dI_dXp_finite_diff);
 
 	set_dI_dXp_and_dR_dXp_cmplx_step(sensitivity_data, optimization_case, functional_c);
+	//set_dI_dXp_and_dR_dXp_finite_diff(sensitivity_data, optimization_case, functional);
 
 	// printf("dI_dXp\n");
 	// print_Matrix_d(sensitivity_data->dI_dXp);

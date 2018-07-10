@@ -38,6 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix_constructors.h"
 
 #include "optimization_case.h"
+#include "functionals.h"
 
 
 // Static function declarations ************************************************************************************* //
@@ -98,24 +99,13 @@ void compute_gradient(struct Gradient_Data *gradient_data, struct Adjoint_Data *
 }
 
 
-void test_brute_force_gradient(struct Optimization_Case *optimization_case){
-
-	/*
-	Compute the gradient using a brute force approach (perturb each design point and 
-	run the flow solver). Use this gradient for testing purposes.
-
-	Arguments:
-		optimization_case = The data structure holding the optimization information
-
-	Return:
-		Multiarray of dimnesion [1 x num_design_dofs] corresponding to the gradient of
-		the objective function with respect to the design variables.
-	*/
+void test_brute_force_gradient(struct Optimization_Case *optimization_case,
+	functional_fptr functional, double *input_gradient){
 
 	struct Simulation *sim = optimization_case->sim;
 
 	int num_design_dofs = optimization_case->num_design_pts_dofs;
-	struct Multiarray_d *grad_I = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, num_design_dofs});  // returned
+	struct Multiarray_d *grad_f = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){1, num_design_dofs});  // returned
 	
 	struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
 	int *ctrl_pt_indeces = get_col_Multiarray_i(0, ctrl_pts_opt);
@@ -124,7 +114,7 @@ void test_brute_force_gradient(struct Optimization_Case *optimization_case){
 	struct Multiarray_d* control_points = optimization_case->geo_data.control_points;
 	int control_pt_index;
 
-	double I_0 = optimization_case->objective_function(sim);
+	double f_0 = functional(sim);
 	int col_index = 0;
 
 	for (int i = 0; i < n_pts; i++){
@@ -144,11 +134,11 @@ void test_brute_force_gradient(struct Optimization_Case *optimization_case){
 			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
 			set_up_solver_geometry(sim);
 			solve_implicit(sim);
-			grad_I->data[col_index] = (optimization_case->objective_function(sim) - I_0)/FINITE_DIFF_STEP;
+			grad_f->data[col_index] = (functional(sim) - f_0)/FINITE_DIFF_STEP;
 
 			get_col_Multiarray_d(j-1, control_points)[control_pt_index] -= FINITE_DIFF_STEP;
 
-			col_index++; printf("col_index_brute_force : %d \n", col_index); fflush(stdout);
+			col_index++;
 		}
 	}
 
@@ -158,7 +148,12 @@ void test_brute_force_gradient(struct Optimization_Case *optimization_case){
 	solve_implicit(sim);
 
 	printf("Gradient_Brute_Force: \n");
-	print_Multiarray_d(grad_I);
+	for(int i = 0; i < num_design_dofs; i++)
+		printf("%e ", grad_f->data[i]);
+
+	printf("Gradient_Input: \n");
+	for(int i = 0; i < num_design_dofs; i++)
+		printf("%e ", input_gradient[i]);
 
 }
 

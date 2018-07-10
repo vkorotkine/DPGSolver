@@ -49,6 +49,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_detJV_T compute_detJV_T
 #define compute_cofactors_T compute_cofactors_T
 #define constructor_xyz_fc constructor_xyz_fc
+#define constructor_NURBS_xyz_fc constructor_NURBS_xyz_fc
 #define constructor_xyz_fc_on_exact_boundary constructor_xyz_fc_on_exact_boundary
 #define compute_unit_normals_and_det_T compute_unit_normals_and_det_T
 #define compute_vol_jacobian_det_fc_T compute_vol_jacobian_det_fc_T
@@ -93,6 +94,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_detJV_T compute_detJV_T_c
 #define compute_cofactors_T compute_cofactors_T_c
 #define constructor_xyz_fc constructor_xyz_fc_c
+#define constructor_NURBS_xyz_fc constructor_NURBS_xyz_fc_c
 #define constructor_xyz_fc_on_exact_boundary constructor_xyz_fc_on_exact_boundary_c
 #define compute_unit_normals_and_det_T compute_unit_normals_and_det_T_c
 #define compute_vol_jacobian_det_fc_T compute_vol_jacobian_det_fc_T_c

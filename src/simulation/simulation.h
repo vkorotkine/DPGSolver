@@ -204,6 +204,8 @@ struct Simulation {
 
 	struct Geo_Data* geometric_data; 			 ///< Pointer to the geometric data struct.
 
+	double mesh_volume_initial; ///< The volume of the initial mesh. \todo Look to place this somewhere with the functionals
+
 };
 
 /** \brief Constructor for \ref Simulation omitting the construction of members dependent upon an input mesh.

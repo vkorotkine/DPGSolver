@@ -35,7 +35,7 @@ for t in t_vals:
 
 # Plot Parameters
 CONST_PLOT_X_RANGE = [-0.7, 0.7]
-CONST_PLOT_Y_RANGE = [-0.1, 0.1]
+CONST_PLOT_Y_RANGE = [-0.12, 0.12]
 
 
 def read_Patch_file(file_path):

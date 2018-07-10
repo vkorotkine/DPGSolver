@@ -1,0 +1,168 @@
+// Optimization parameters for test case: euler/steady/NURBS_Airfoil
+//
+// NOTE: Although all parameters from this file will be read, they will not all be 
+// 		used for the optimization (those that are not needed are not used)
+
+// =================================================================================
+// 								Optimizer Information
+//
+// - optimizer_spec: The type of optimizer to use for the optimization problem. The 
+//		options are:
+//			- NLPQLP
+//			- LINE_SEARCH_BFGS
+//
+// - optimizer_nlpqlp_abs_path: If the NLPQLP optimizer is chosen, the absolute
+//		path to the folder with the executable (named 'exec') that will interface with 
+//		NLPQLP must be given here
+// =================================================================================
+
+optimizer_spec             NLPQLP
+optimizer_nlpqlp_abs_path  /Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/NLPQLP_Optimizer
+optimizer_output_files_prefix 
+// Constrained_Target_CL_cases/NACA0012_Target_CL_0.25/ml2_P3_NURBS_Y_CM_eq_0.1255_
+
+
+// =================================================================================
+//								Optimization Type
+//
+// - optimization_objective_function: Specifies the functional to be minimized for the 
+//		optimization. Consult the "Functional Options" section to see which functionals may
+//		be used.
+//
+//	- optimization_type_inverse: Specifies the absolute path to the file with the 
+//		pressure data
+// =================================================================================
+
+optimization_objective_function         FUNCTIONAL_TARGET_CL
+
+
+// =================================================================================
+//					Optimization Constraints (works for NLPQLP only)
+//
+//	Place the constraint functions for the optimization problem. 
+//	NOTE: Equality constraints MUST be placed before ineqaulity constraints. Place 
+//		the information for each constrain under num_total_constraints without extra 
+//		new lines separating the data.
+//
+//	- num_total_constraints: The total number of constraint functions (equality and inequality)
+// 
+//	For each constraint function, the block of data to provide must be specified using the
+//	following parameters:
+//
+//		- constraint_functional: A specified functional (f(x)). Consult the "Functional Options" 
+//				section to see which functionals may be used.
+//		- multiplier_shift: The multiplier and the shift to be applied (a = multiplier, k = shift)
+//		- constraint_type: 'i' for inequality (always greater than or equal) or 'e' for equality
+//
+//	Using these parameters, constraint functions of the form 
+//		a * ( f(x) + k ) =  0, for constraint_type = 'i' or 
+//		a * ( f(x) + k ) >= 0, for constraint_type = 'e'
+//	can be specified. 
+// =================================================================================
+
+num_total_constraints    1
+constraint_functional    FUNCTIONAL_CM_LE
+constraint_multiplier    1.0
+constraint_shift         0.1255
+constraint_type          e
+
+
+// =================================================================================
+//						Optimizer Line Search Information
+//
+//	Holds information related to the line search optimization. Only used if a LINE_SEARCH
+//	optimizer is chosen in optimizer_spec
+//
+// 	- exit_L2_norm_gradient: Exit condition based on the minimum L2 norm of the 
+//		gradient of the objective
+//	- exit_objective_value: Exit condition based on the minimum value of the 
+//		objective function value
+//	- exit_max_design_iterations: Exit condition based on the maximum number of 
+//		design iterations
+//	- step_size_init: The initial step length for the search direction for the backtracking
+//	- wolfe_condition_c: The wolfe condition c value
+//	- wolfe_condition_rho: The wolfe condition rho value (how much to scale the 
+//		search direction during the backtracking)
+//	- wolfe_condition_alpha_min: The minimum step length to use (if no step length that 
+//		satisfies the wolfe condition is found).
+//	- max_norm_search_vector: The maximum norm of the search direction (only if greater, 
+//		will normalize by this amount)
+// =================================================================================
+
+exit_L2_norm_gradient       1E-10
+exit_objective_value        1E-20
+exit_max_design_iterations  250
+
+step_size_init            1E-2
+wolfe_condition_c         1E-4
+wolfe_condition_rho       1E-1
+wolfe_condition_alpha_min 1.5E-3
+max_norm_search_vector    5E-1
+
+
+// =================================================================================
+//							Optimizer NLPQLP Information
+//	
+// 	NLPQLP Optimizer specific properties that can be set. For details on each property,
+//	consult the NLPQLP documentation.
+// =================================================================================
+
+IOUT   6
+MAXIT  100
+MAXFUN 10
+MAXNM  10
+LQL    1
+IPRINT 0
+
+ACC    1E-14
+ACCQP  1E-14
+STPMIN 1E-10
+RHO    0.0
+
+
+// =================================================================================
+//							Optimization Value Monitoring
+//
+// 	Specify the parameters to monitor during the optimization. The standard values 
+//	are design iterations, CPU Time, L2 Norm of the gradient, and the objective function
+//	value. Additional parameters may be set here. These will be outputted to standard out 
+//	as well as the optimization convergence file.
+//
+// 	- output_progress_additional_parameters: List the keywords, separated by commas (no spaces), 
+//		to be printed in addition to the standard information. Consult the "Functional Options"
+//		section to see which functionals may be displayed
+// =================================================================================
+
+output_progress_additional_parameters FUNCTIONAL_CL,FUNCTIONAL_CM_LE
+
+
+
+// =================================================================================
+// 								Functional Options
+//	
+//	The following are the varying functional keyword options for functionals which
+//	can be used for the optimization objective function, constraint functions or
+//	optimization convergence monitoring: 
+//	
+//		- FUNCTIONAL_CL: Computes the lift coefficient value
+//		- FUNCTIONAL_CM_LE: Computes the moment coefficient value about the leading edge
+//		- FUNCTIONAL_TARGET_CL: Computes the functional given by I = (CL - CL_TARGET)^2
+//		- FUNCTIONAL_MESH_VOLUME: Computes the total volume of the mesh
+//		- FUNCTIONAL_FRACTIONAL_CHANGE_MESH_VOLUME: Computes the functional I = V/V0 where 
+//				V is the total volume of the mesh and V0 is the initial mesh volume.
+//		- FUNCTIONAL_INVERSE_PRESSURE_DESIGN: Computes the functional 
+//				I = 0.5 * \integral_over_the_surface { (P - P_Target)^2 }
+//	
+//	Certain functionals will require additional information to be specified which will be
+//	done using the following keys:
+//
+//		- FUNCTIONAL_TARGET_CL_VALUE: Specifies the target lift coefficient value for 
+//				the functional
+//		- FUNCTIONAL_INVERSE_PRESSURE_DESIGN_TARGET_FILE_ABS_PATH: Specifies the path to the
+//				target pressure distribution file.
+// =================================================================================
+
+FUNCTIONAL_TARGET_CL_VALUE  0.25
+
+
+

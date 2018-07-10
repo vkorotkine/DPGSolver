@@ -40,6 +40,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "solve_implicit.h"
 
 #include "math_functions.h"
+#include "file_processing.h"
 
 #include "optimization_case.h"
 #include "adjoint.h"
@@ -47,19 +48,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "gradient.h"
 #include "output_progress.h"
 
-
-//MSB: TODO: Read this from the optimization.data file
-#define CONST_L2_GRAD_EXIT 1E-10
-#define CONST_OBJECTIVE_FUNC_EXIT 1E-10
-#define MAX_NUM_DESIGN_ITERS 250
-
-#define CONST_GRADIENT_DESCENT_STEP_SIZE_INIT 1E-3
-#define CONST_BFGS_STEP_SIZE_INIT 1.0
-#define CONST_WOLFE_CONDITION_C 1E-4
-#define CONST_WOLFE_CONDITION_RHO 1E-1
-#define CONST_WOLFE_CONDITION_ALPHA_MIN 1.5E-3
-#define MAX_NORM_P 1E-2
-#define NUM_SMOOTHING_ITER_BFGS 0
 
 // Static function declarations ************************************************************************************* //
 
@@ -75,6 +63,14 @@ static struct Optimizer_Line_Search_Data* constructor_Optimizer_Line_Search_Data
  */
 static void destructor_Optimizer_Line_Search_Data(
 	struct Optimizer_Line_Search_Data* optimizer_line_search_data ///< Consult optimizer_line_search.h
+	);
+
+
+/** \brief 	Read the required data from the optimization.geo file and load it into the 
+ * 	optimizer_line_search_data data structure.
+ */
+static void read_optimization_data(
+	struct Optimizer_Line_Search_Data* optimizer_line_search_data ///< The data structure holding the optimizer line search data
 	);
 
 
@@ -101,7 +97,10 @@ static double backtracking_line_search(
 	struct Optimization_Case* optimization_case, ///< Standard. Consult optimization_case.h
 	double* p_k, ///< The search direction for this iteration (kth iteration) as an array of doubles with num_design_pts_dofs values
 	double* grad_f_k, ///< The gradient of the objective function for this iteration (kth iteration)
-	double alpha ///< The initial step length value
+	double alpha, ///< The initial step length value
+	double wolfe_condition_c, ///< The wolfe condition c value 
+	double wolfe_condition_rho, ///< The wolfe condition rho value (how much to scale the search direction during the backtracking) 
+	double wolfe_condition_alpha_min ///< The minimum step length to use
 	);
 
 
@@ -194,16 +193,12 @@ void optimizer_line_search(struct Optimization_Case* optimization_case){
 
 
 		// Exit condition
-		if (L2_grad < CONST_L2_GRAD_EXIT || 
-			objective_func_value < CONST_OBJECTIVE_FUNC_EXIT ||
-			design_iteration >= MAX_NUM_DESIGN_ITERS)
+		if (L2_grad 				< 	optimizer_line_search_data->exit_L2_norm_gradient 		|| 
+			objective_func_value 	< 	optimizer_line_search_data->exit_objective_value 		||
+			design_iteration 		>= 	optimizer_line_search_data->exit_max_design_iterations)
 			break;
 
 		design_iteration++;
-
-		if (design_iteration == 2)
-			break;
-
 	}
 
 	// ================================
@@ -217,7 +212,6 @@ void optimizer_line_search(struct Optimization_Case* optimization_case){
 	destructor_Sensitivity_Data(sensivity_data);
 	destructor_Gradient_Data(gradient_data);
 	destructor_Optimizer_Line_Search_Data(optimizer_line_search_data);
-
 }
 
 
@@ -267,8 +261,11 @@ static struct Optimizer_Line_Search_Data* constructor_Optimizer_Line_Search_Data
 		get_col_Matrix_d(i, optimizer_line_search_data->B_k_inv)[i] = 1.0;
 
 
-	return optimizer_line_search_data;
+	// Read the optimization parameters
+	read_optimization_data(optimizer_line_search_data);
 
+
+	return optimizer_line_search_data;
 }
 
 
@@ -286,6 +283,34 @@ static void destructor_Optimizer_Line_Search_Data(struct Optimizer_Line_Search_D
 
 	free((void*)optimizer_line_search_data);
 
+}
+
+
+static void read_optimization_data(struct Optimizer_Line_Search_Data* optimizer_line_search_data){
+
+	// Get the file pointer to the optimization file
+	FILE* input_file = fopen_input('o',NULL,NULL); // closed
+	char line[STRLEN_MAX];
+
+	// Read in the information from the file
+	while (fgets(line,sizeof(line),input_file)) {
+
+		// Any line with a comment flag should be skipped
+		if (strstr(line, "//"))
+			continue;
+
+		if (strstr(line, "exit_L2_norm_gradient")) 		read_skip_d_1(line, 1, &optimizer_line_search_data->exit_L2_norm_gradient, 1);
+		if (strstr(line, "exit_objective_value")) 		read_skip_d_1(line, 1, &optimizer_line_search_data->exit_objective_value, 1);
+		if (strstr(line, "exit_max_design_iterations")) read_skip_i_1(line, 1, &optimizer_line_search_data->exit_max_design_iterations, 1);
+
+		if (strstr(line, "step_size_init")) 			read_skip_d_1(line, 1, &optimizer_line_search_data->step_size_init, 1);
+		if (strstr(line, "wolfe_condition_c")) 			read_skip_d_1(line, 1, &optimizer_line_search_data->wolfe_condition_c, 1);
+		if (strstr(line, "wolfe_condition_rho")) 		read_skip_d_1(line, 1, &optimizer_line_search_data->wolfe_condition_rho, 1);
+		if (strstr(line, "wolfe_condition_alpha_min")) 	read_skip_d_1(line, 1, &optimizer_line_search_data->wolfe_condition_alpha_min, 1);
+		if (strstr(line, "max_norm_search_vector")) 	read_skip_d_1(line, 1, &optimizer_line_search_data->max_norm_search_vector, 1);
+	}
+
+	fclose(input_file);
 }
 
 
@@ -421,17 +446,23 @@ static void BFGS_minimizer(struct Optimization_Case *optimization_case, struct O
 	}
 	norm_P = sqrt(norm_P);
 	
-	if (norm_P > MAX_NORM_P){
+	if (norm_P > optimizer_line_search_data->max_norm_search_vector){
 		printf("Scale -> norm_P : %e \n", norm_P);
 		for (int i = 0; i < num_design_pts_dofs; i++){
-			p_k->data[i] = (MAX_NORM_P/norm_P) * p_k->data[i];
+			p_k->data[i] = ((optimizer_line_search_data->max_norm_search_vector)/norm_P) * p_k->data[i];
 		}	
 	}
 
 
 	// Perform the back tracking line search
-	double alpha_k = backtracking_line_search(optimization_case, p_k->data, optimizer_line_search_data->grad_f_k->data, 
-		CONST_BFGS_STEP_SIZE_INIT);
+	double alpha_k = backtracking_line_search(
+		optimization_case, 
+		p_k->data, 
+		optimizer_line_search_data->grad_f_k->data, 
+		optimizer_line_search_data->step_size_init, 
+		optimizer_line_search_data->wolfe_condition_c,
+		optimizer_line_search_data->wolfe_condition_rho, 
+		optimizer_line_search_data->wolfe_condition_alpha_min);
 
 
 	// Save s_k = alpha_k * p_k so that B_kPlus1_inv can be found (next design iteration)
@@ -446,7 +477,7 @@ static void BFGS_minimizer(struct Optimization_Case *optimization_case, struct O
 
 
 static double backtracking_line_search(struct Optimization_Case* optimization_case, double* p_k, double* grad_f_k,
-	double alpha){
+	double alpha, double wolfe_condition_c, double wolfe_condition_rho, double wolfe_condition_alpha_min){
 
 	struct Simulation *sim = optimization_case->sim;
 
@@ -474,12 +505,12 @@ static double backtracking_line_search(struct Optimization_Case* optimization_ca
 
 		// Check Wolfe Condition
 		f_x_k_plus_alpha_p_k = optimization_case->objective_function(sim);
-		if (f_x_k_plus_alpha_p_k <= (f_x_k + CONST_WOLFE_CONDITION_C*alpha*p_k_dot_grad_f_k))
+		if (f_x_k_plus_alpha_p_k <= (f_x_k + wolfe_condition_c*alpha*p_k_dot_grad_f_k))
 			break;
 
 		// If the step length was below a constant minimum value stop the line search
-		if (alpha <= CONST_WOLFE_CONDITION_ALPHA_MIN){
-			printf("\n\n EXITING BACKTRACK -> CONST_WOLFE_CONDITION_ALPHA_MIN \n\n");
+		if (alpha <= wolfe_condition_alpha_min){
+			printf("\n\n EXITING BACKTRACK -> WOLFE_CONDITION_ALPHA_MIN \n\n");
 			break;
 		}
 
@@ -488,8 +519,8 @@ static double backtracking_line_search(struct Optimization_Case* optimization_ca
 
 		// Decrease step length by factor rho
 		printf("\n\n (%e, %e) Alpha : %e -> Alpha : %e \n\n", f_x_k_plus_alpha_p_k, 
-			f_x_k + CONST_WOLFE_CONDITION_C*alpha*p_k_dot_grad_f_k, alpha, alpha*CONST_WOLFE_CONDITION_RHO);  // monitor progress
-		alpha *= CONST_WOLFE_CONDITION_RHO;
+			f_x_k + wolfe_condition_c*alpha*p_k_dot_grad_f_k, alpha, alpha*wolfe_condition_rho);  // monitor progress
+		alpha *= wolfe_condition_rho;
 	}
 
 	printf("\n\n Completed backtracking_line_search\n\n");  // monitor progress

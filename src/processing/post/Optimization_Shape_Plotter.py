@@ -20,9 +20,7 @@ CONST_PLOT_Y_RANGE = [-0.1, 0.1]
 
 
 # Absolute path to the directory with all the optimization results
-CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil"
-append_path = ""
-CONST_OPTIMIZATION_DIR_ABS_PATH = os.path.join(CONST_OPTIMIZATION_DIR_ABS_PATH, append_path)
+CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil/Constrained_Target_CL_cases/NACA0012_Target_CL_0.25"
 
 # The list of files and the label to associate with them when plotting them. Each tuple
 # contains the name of the file first and the label second. An empty label will result 
@@ -33,9 +31,9 @@ CONST_File_list = [
 	# Target CL
 	("geometry_parameters.geo", "Initial", "k", "--", False),
 	
-	#("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricY_BFGSmaxnorm1E-2/Optimized_NURBS_Patch.txt", "P = 2, 16x10, NURBS Metrics", "r", "-", True),
-	#("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricN_BFGSmaxnorm1E-2/Optimized_NURBS_Patch.txt", "P = 2, 16x10, Standard", "c", "-", True),
-	#("NACA0012_TargetCL0.24_P2Superparametric_16x10_NURBSMetricN_BFGSmaxnorm1E-2/Optimized_NURBS_Patch.txt", "P = 2 (Sup), 16x10, Standard", "m", "-", True)
+	("ml1_P2_NURBS_Y_CM_eq_0.1255_Optimized_NURBS_Patch.txt", "P = 2, ml = 1, NURBS Metrics", "r", "-", True),
+	("ml1_P2_NURBS_N_CM_eq_0.1255_Optimized_NURBS_Patch.txt", "P = 2, ml = 1, Standard (Isoparameteric)", "c", "-", True),
+	("ml1_P2_NURBS_NSuper_CM_eq_0.1255_Optimized_NURBS_Patch.txt", "P = 2, ml = 1, Standard (Superparametric)", "m", "-", True),
 ]
 
 # The points (on the knot domain) to plot

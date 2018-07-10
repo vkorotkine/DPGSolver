@@ -16,15 +16,45 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__optimization_case_h__INCLUDED
 #define DPG__optimization_case_h__INCLUDED
 
-//#include "objective_functions.h"
-
 #include "petscvec.h"
 #include "petscmat.h"
 #include "definitions_alloc.h"
-#include "objective_functions.h"
+#include "functionals.h"
+#include "intrusive.h"
 
 struct Multiarray_d;
 struct Matrix_d;
+
+
+/** \brief Container for the constraint function and its information. 
+ *	Equality and inequality constraints will be stored of the form
+ *		g_j(x) = 0 or 
+ *		g_j(x) >= 0 
+ * 	
+ *	These constraints will be specified by using a functional (f(x)), a scalar value
+ * 	to be added (k) , a multiplier (a) and a specification for whether an equality or 
+ * 	inequality constraint is required. Altogether, this data can be used to form
+ *	constraint functions of the form 
+ *		a * (f(x) + k) =  0, if constraint_type is 'e' for equality or 
+ *		a * (f(x) + k) >= 0, if constraint_type is 'i' for inequality 
+ *
+ * 	NOTE: The purpose to specify constraint functions this way is because all functionals
+ *	f(x) can only take the sim object as input for now. Perhaps generalize this.	
+ */
+struct Constraint_Function_Data {
+	struct Constraint_Function_Data *next; ///< Pointer to the next constraint function data structure
+
+	char functional_keyword[STRLEN_MIN]; ///< The keyword specifying which functional to use
+
+	functional_fptr 	functional_f;  ///< Function pointer to the real functional (f(x))
+	functional_fptr_c 	functional_f_c;  ///< Function pointer to the complex functional (f_c(x))
+
+	double 	a, ///< The multiplier
+			k; ///< The shift to add to the functional
+
+	char constraint_type; ///< The constraint type. Either 'i' for inequality (always greater than equal to) or 'e' for equality. 
+};
+
 
 /** \brief Container for test case specific information.
  *
@@ -45,18 +75,6 @@ struct Optimization_Case {
 
 	struct Simulation *sim; ///< Pointer to the real sim object
 	struct Simulation *sim_c; ///< Pointer to the complex sim object. Complex counterpart is needed for the complex step.
-
-	/** Specifies the type of optimizer. Options are:
-	 * LINE_SEARCH_STEEPEST_DESCENT = Uses gradient descent to minimize the objective function.
-	 * LINE_SEARCH_BFGS = Uses the BFGS algorithm to minimize the objective function.
-	 * NLPQLP = Uses NLPQLP to minimize the objective function
-	 */
-	char optimizer_spec[STRLEN_MIN];
-
-	/** Specifies the type of optimization to take place. Options are:
-	 * TARGET_CL = Optimize to attain a target lift coefficient
-	 */
-	char optimization_type_spec[STRLEN_MIN];
 
 	// =================================
 	//      Geometry Data Structures
@@ -100,6 +118,41 @@ struct Optimization_Case {
 		struct Multiarray_d *control_points_optimization_lims;
 
 	} geo_data;	
+
+
+	// ============================================
+	//      Optimization Data File Information
+	// ============================================
+
+
+	// Optimizer Information
+
+	/** Specifies the type of optimizer. Options are:
+	 * LINE_SEARCH_STEEPEST_DESCENT = Uses gradient descent to minimize the objective function.
+	 * LINE_SEARCH_BFGS = Uses the BFGS algorithm to minimize the objective function.
+	 * NLPQLP = Uses NLPQLP to minimize the objective function
+	 */
+	char optimizer_spec[STRLEN_MIN];
+	char optimizer_output_files_prefix[STRLEN_MAX*4]; ///< Specifies the prefix of the optimization output file
+
+	// Optimization Type
+
+	/** Specifies the keyword for the functional to be used as the objective function
+	 * 	for the optimization
+	 */
+	char optimization_objective_function_keyword[STRLEN_MIN];
+
+
+	// Constraint Functions
+
+	int num_total_constraints, ///< The total number of constraints
+		num_equality_constraints; ///< The total number of equality constraints
+
+	/** Pointer to the head of the constraint_function_data list. Holds the
+	 * 	the constraint function information for each function in Constraint_Function_Data structs
+	 *	and places all these data structures together in a linked list.
+	 */
+	struct Constraint_Function_Data *constraint_function_data;
 };
 
 

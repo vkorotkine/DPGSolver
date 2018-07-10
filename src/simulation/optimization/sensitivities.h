@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__sensitivities_h__INCLUDED
 #define DPG__sensitivities_h__INCLUDED
 
-#include "objective_functions.h"
+#include "functionals.h"
 
 struct Optimization_Case;
 struct Matrix_d;

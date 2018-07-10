@@ -455,36 +455,22 @@ const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
 #elif TYPE_RC == TYPE_COMPLEX
 			xyz_i_real->data[k] = creal(xyz_i->data[k]);
 #endif
+
 			k++;
 		}
 	}
 
-// MSB: TODO: Template the function for the mapping
-#if TYPE_RC == TYPE_REAL
-
-	const struct const_Multiarray_d *xyz = xyz_NURBS_patch_mapping(
+	const struct const_Multiarray_T *xyz = xyz_NURBS_patch_mapping_T(
 		(const struct const_Multiarray_d*)xyz_i_real, geo_data.P, geo_data.Q, 
 		(const struct const_Multiarray_d*)geo_data.knots_xi, 
 		(const struct const_Multiarray_d*)geo_data.knots_eta,
-		(const struct const_Multiarray_d*)geo_data.control_points,
+		(const struct const_Multiarray_T*)geo_data.control_points,
 		(const struct const_Multiarray_d*)geo_data.control_weights,
 		(const struct const_Multiarray_i*)geo_data.control_pt_wt_connectivity);
-
-#elif TYPE_RC == TYPE_COMPLEX
-	const struct const_Multiarray_c *xyz = xyz_NURBS_patch_mapping_c(
-		(const struct const_Multiarray_d*)xyz_i_real, geo_data.P, geo_data.Q, 
-		(const struct const_Multiarray_d*)geo_data.knots_xi, 
-		(const struct const_Multiarray_d*)geo_data.knots_eta,
-		(const struct const_Multiarray_c*)geo_data.control_points,
-		(const struct const_Multiarray_d*)geo_data.control_weights,
-		(const struct const_Multiarray_i*)geo_data.control_pt_wt_connectivity);
-
-#endif
 
 	destructor_Multiarray_d(xyz_i_real);
 	
 	return (const struct const_Multiarray_T*)xyz;
-
 }
 
 
@@ -1029,15 +1015,6 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 		}
 	}
 	fclose(input_file);
-
-	// Print the file data to verify that everything was read
-	// printf("P = %d, Q = %d \n", geo_data->P, geo_data->Q);
-	// print_Multiarray_d(geo_data->knots_xi);
-	// print_Multiarray_d(geo_data->knots_eta);		
-	// print_Multiarray_T(geo_data->control_points);
-	// print_Multiarray_d(geo_data->control_weights);
-	// print_Multiarray_i(geo_data->control_pt_wt_connectivity);
-	// exit(0);
 
 	assert(count_found == count_to_find);
 }

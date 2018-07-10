@@ -266,6 +266,14 @@ def output_file(patch_parameters):
 			fp.write("area_ref = %e;" % patch_parameters['area_ref'])
 			fp.write("\n")
 
+		if "cm_le_x" in patch_parameters:
+			fp.write("cm_le_x = %e;" % patch_parameters['cm_le_x'])
+			fp.write("\n")
+
+		if "cm_le_y" in patch_parameters:
+			fp.write("cm_le_y = %e;" % patch_parameters['cm_le_y'])
+			fp.write("\n")
+
 
 def test():
 

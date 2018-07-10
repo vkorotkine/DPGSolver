@@ -19,6 +19,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "adjoint.h"
 #include "sensitivities.h"
+#include "functionals.h"
 
 struct Matrix_d;
 struct Optimization_Case;
@@ -62,7 +63,14 @@ void compute_gradient(
 	);
 
 
-void test_brute_force_gradient(struct Optimization_Case *optimization_case);
+/** \brief Compute the gradient of the provided functional using the brute force approach
+ *	and compare the results to the gradient provided. Print out the results to std out
+ */
+void test_brute_force_gradient(
+	struct Optimization_Case *optimization_case, ///< Consult optimization_case.h. Required to perform geoemtry modifications
+	functional_fptr functional, ///< The functional function pointer
+	double *input_gradient ///< The input gradient (computed using the adjoint approach)
+	);
 
 #endif // DPG__gradient_h__INCLUDED
 

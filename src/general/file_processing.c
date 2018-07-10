@@ -153,9 +153,16 @@ FILE* fopen_input (const char input_spec, const char*const ctrl_name_full_i, con
 		static bool need_set_up_name = true;
 		set_up_input_name(input_spec,input_name_spec,&need_set_up_name,ctrl_name_full,input_path);
 
-		// MSB: Return the input name found for the test case data file
 		input_name = input_name_spec;
 		break;
+	} case 'o': {
+		static char input_name_spec[STRLEN_MAX] = {0};
+		static bool need_set_up_name = true;
+		set_up_input_name(input_spec,input_name_spec,&need_set_up_name,ctrl_name_full,input_path);
+
+		input_name = input_name_spec;
+		break;
+
 	} default:
 		EXIT_ERROR("Unsupported: %c\n",input_spec);
 		break;
@@ -673,6 +680,13 @@ static void set_up_input_name
 			sprintf(index+input_name_spec,"%s","test_case.data");
 		else
 			sprintf(index+input_name_spec,"%s%s%s","test_case_",extension,".data");
+		break;
+	} case 'o': {
+		const char*const extension = read_extension(ctrl_name_full,"optimization_extension");
+		if (extension[0] == 0)
+			sprintf(index+input_name_spec,"%s","optimization.data");
+		else
+			sprintf(index+input_name_spec,"%s%s%s","optimization_",extension,".data");
 		break;
 	} default:
 		EXIT_ERROR("Unsupported: %c\n",input_spec);
