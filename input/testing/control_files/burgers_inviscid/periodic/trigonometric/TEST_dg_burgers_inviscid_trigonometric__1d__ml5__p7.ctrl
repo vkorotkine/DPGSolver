@@ -29,7 +29,7 @@ geom_blending_si     szabo_babuska_gen
 
 collocated 1
 
-p_ref    2 2
+p_ref    7 7
 
 method_name fr_split_form
 
@@ -38,4 +38,4 @@ method_name fr_split_form
 # Testing variables
 
 ml_range_test 5 5
-p_range_test  2 2
+p_range_test  7 7

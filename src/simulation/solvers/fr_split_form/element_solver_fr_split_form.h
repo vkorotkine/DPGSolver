@@ -20,15 +20,17 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "element_solver.h"
-
 struct Simulation;
 
 /// \brief Container for data relating to the fr_split_form solver element.
 struct FRSF_Solver_Element {
 	const struct Solver_Element element; ///< Base \ref Solver_Element.
 
-	// Gradient terms
-	const struct Multiarray_Operator* cv1_vs_vc[2]; ///< See notation in \ref element_operators.h.
+	const struct const_Matrix_d* mass;
+	const struct const_Matrix_d* D_frsf;
+
+	const struct const_Matrix_d* cv0_vs_vc;
+	const struct const_Matrix_d* cv1_vs_vc;
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

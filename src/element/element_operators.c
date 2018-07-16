@@ -706,9 +706,12 @@ static void set_operator_solver
 		const struct const_Nodes* nodes_i = constructor_const_Nodes_h(OP_IND_I,op_io,element,sim); // destructed
 		assert(nodes_i->has_weights);
 
+		if (sim->method != METHOD_FRSF) {
+
 		for (int i = 0; i < n_op; ++i) {
 			struct Matrix_d* op_std = (struct Matrix_d*) op->data[ind_op+i]->op_std;
 			scale_Matrix_d_by_Vector_d('L',1.0,op_std,nodes_i->w,true);
+		}
 		}
 		destructor_const_Nodes(nodes_i);
 	}

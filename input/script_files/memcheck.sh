@@ -45,6 +45,7 @@ VALGRIND_OPTS="valgrind \
                  --leak-check=yes \
                  --num-callers=20 \
                  --suppressions=../external/valgrind/valgrind.supp \
+		--sim-hints=no-nptl-pthread-stackcache \
               "
 #                 --gen-suppressions=all \
 

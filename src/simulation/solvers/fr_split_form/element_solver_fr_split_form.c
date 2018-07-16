@@ -19,10 +19,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_elements.h"
 
+#include "matrix.h"
 #include "multiarray.h"
 
+#include "volume_solver.h"
+
+#include "compute_volume_rlhs.h"
 #include "element_operators.h"
 #include "element_operators_tp.h"
+#include "operator.h"
 #include "multiarray_operator.h"
 #include "simulation.h"
 
@@ -30,12 +35,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// \brief Constructor for a derived \ref FRSF_Solver_Element using the standard operators.
 static void constructor_derived_FRSF_Solver_Element_std
-	(struct Element* element_ptr, ///< Defined for \ref constructor_derived_FRSF_Solver_Element.
-	 const struct Simulation* sim ///< Defined for \ref constructor_derived_FRSF_Solver_Element.
-	);
-
-/// \brief Constructor for a derived \ref FRSF_Solver_Element using the tensor-product of sub-element operators.
-static void constructor_derived_FRSF_Solver_Element_tp
 	(struct Element* element_ptr, ///< Defined for \ref constructor_derived_FRSF_Solver_Element.
 	 const struct Simulation* sim ///< Defined for \ref constructor_derived_FRSF_Solver_Element.
 	);
@@ -52,8 +51,6 @@ void constructor_derived_FRSF_Solver_Element (struct Element* element_ptr, const
 		constructor_derived_FRSF_Solver_Element_std(element_ptr,sim);
 		break;
 	case QUAD: case HEX: case WEDGE:
-		constructor_derived_FRSF_Solver_Element_tp(element_ptr,sim);
-		break;
 	default:
 		EXIT_UNSUPPORTED;
 		break;
@@ -64,10 +61,6 @@ void destructor_derived_FRSF_Solver_Element (struct Element* element_ptr)
 {
 	if (element_ptr->type == POINT)
 		return;
-
-	struct FRSF_Solver_Element* frsf_s_e = (struct FRSF_Solver_Element*) element_ptr;
-
-	destructor_Multiarray2_Operator(frsf_s_e->cv1_vs_vc);
 }
 
 // Static functions ************************************************************************************************* //
@@ -77,26 +70,16 @@ static void constructor_derived_FRSF_Solver_Element_std (struct Element* element
 {
 	struct FRSF_Solver_Element* frsf_s_e = (struct FRSF_Solver_Element*) element_ptr;
 	struct const_Element* e = (struct const_Element*)element_ptr;
+	struct Solver_Volume* s_vol = (struct Solver_Volume*) sim->volumes->first;
 
-	// H_CF, P_PM0 are needed for cv1_vs_vc* operators as they are used to assemble tensor-product operators.
-	frsf_s_e->cv1_vs_vc[0] = constructor_operators("cv1","vsA","vcs","H_CF_P_PM0",e,sim); // destructed
-	frsf_s_e->cv1_vs_vc[1] = constructor_operators("cv1","vsA","vcc","H_CF_P_PM0",e,sim); // destructed
-}
+	const struct Multiarray_Operator* cv1_vs_vc_MO = constructor_operators("cv1","vsA","vcs","H_CF_P_PM0",e,sim);
 
-static void constructor_derived_FRSF_Solver_Element_tp (struct Element* element_ptr, const struct Simulation* sim)
-{
-	struct FRSF_Solver_Element* frsf_s_e = (struct FRSF_Solver_Element*) element_ptr;
-	const struct const_Element* e    = (const struct const_Element*) element_ptr;
+	const int p = s_vol->p_ref;
+	struct Multiarray_Operator cv1_vs_vc_ma1 = set_MO_from_MO(cv1_vs_vc_MO,1,(ptrdiff_t[]){0,0,p,p});
 
-	const struct const_Element* se[2]    = { e->sub_element[0], e->sub_element[1], };
-	struct FRSF_Solver_Element* frsf_s_se[2] = { (struct FRSF_Solver_Element*) se[0], (struct FRSF_Solver_Element*) se[1], };
-	struct Solver_Element* s_se[2]       = { (struct Solver_Element*) se[0], (struct Solver_Element*) se[1], };
+	const struct const_Matrix_d* cv0_vs_vc = get_operator__cv0_vs_vc(s_vol)->op_std;
+	const struct const_Matrix_d* cv1_vs_vc = cv1_vs_vc_ma1.data[0]->op_std;
+	const struct const_Matrix_d* cv0_vs_vc_inv = constructor_inverse_const_Matrix_d(cv0_vs_vc);
 
-	struct Operators_TP ops_tp;
-
-	set_operators_tp(&ops_tp,s_se[0]->cv0_vs_vc[0],frsf_s_se[0]->cv1_vs_vc[0],s_se[1]->cv0_vs_vc[0],frsf_s_se[1]->cv1_vs_vc[0]);
-	frsf_s_e->cv1_vs_vc[0] = constructor_operators_tp("cv1","vsA","vcs","H_1_P_PM0",e,sim,&ops_tp); // destructed
-
-	set_operators_tp(&ops_tp,s_se[0]->cv0_vs_vc[1],frsf_s_se[0]->cv1_vs_vc[1],s_se[1]->cv0_vs_vc[1],frsf_s_se[1]->cv1_vs_vc[1]);
-	frsf_s_e->cv1_vs_vc[1] = constructor_operators_tp("cv1","vsA","vcc","H_1_P_PM0",e,sim,&ops_tp); // destructed
+	frsf_s_e->D_frsf = constructor_mm_const_Matrix_d('N','N',1.0,cv0_vs_vc_inv,cv1_vs_vc,'R'); 
 }

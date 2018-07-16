@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "computational_elements.h"
 #include "volume_solver.h"
 #include "volume_solver_dg.h"
+#include "volume_solver_fr_split_form.h"
 
 #include "multiarray.h"
 
@@ -40,6 +41,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
+
+int t_step_global = 0;
 
 /** \brief Function pointer to a time-stepping function.
  *  \return The absolute value of the maximum rhs at the current time.
@@ -98,8 +101,16 @@ void solve_explicit (struct Simulation* sim)
 	double dt = test_case->dt;
 	assert(time_final >= 0.0);
 
+
+	//im adding energy stuff
+	int temp_time= (int)(time_final/dt);
+	double Energy[temp_time+1];
+	memset(Energy, 0, sizeof(Energy));
+	//new add on in the loop indicated by *Send
+
 	double max_rhs0 = 0.0;
 	for (int t_step = 0; ; ++t_step) {
+		t_step_global = t_step;
 		if (test_case->time + dt > time_final-1e3*EPS)
 			dt = time_final - test_case->time;
 		test_case->time += dt;
@@ -110,6 +121,10 @@ void solve_explicit (struct Simulation* sim)
 			if (test_case->copy_initial_rhs)
 				copy_rhs(sim,NULL);
 		}
+
+		//Send*
+
+		//End Send*
 
 		display_progress(test_case,t_step,max_rhs,max_rhs0);
 		if (check_exit(test_case,max_rhs,max_rhs0))
@@ -306,9 +321,9 @@ static double time_step_ssp_rk_33 (const double dt, const struct Simulation* sim
 
 static double time_step_ls_rk_54 (const double dt, const struct Simulation* sim)
 {
-	assert(sim->method == METHOD_DG);
-	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG);
-	assert(sim->faces->name   == IL_FACE_SOLVER_DG);
+	assert(sim->method == METHOD_DG || sim->method == METHOD_FRSF);
+	assert(sim->volumes->name == IL_VOLUME_SOLVER_DG || sim->volumes->name == IL_VOLUME_SOLVER_FRSF);
+	assert(sim->faces->name   == IL_FACE_SOLVER_DG || sim->faces->name == IL_FACE_SOLVER_FRSF);
 
 	static const double rk4a[] =
 		{  0.0,                             -567301805773.0 /1357537059087.0, -2404267990393.0/2016746695238.0,
@@ -323,6 +338,7 @@ static double time_step_ls_rk_54 (const double dt, const struct Simulation* sim)
 	UNUSED(rk4c);
 
 	double max_rhs = 0.0;
+	if (sim->method == METHOD_DG){
 	for (int rk = 0; rk < 5; rk++) {
 		max_rhs = compute_rhs(sim);
 		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
@@ -349,6 +365,39 @@ static double time_step_ls_rk_54 (const double dt, const struct Simulation* sim)
 			enforce_positivity_highorder(s_vol,sim);
 		}
 	}
+	}
+	if (sim->method == METHOD_FRSF){
+		for (int rk = 0; rk < 5; rk++) {
+			max_rhs = compute_rhs(sim);
+			for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+				struct Solver_Volume*    s_vol    = (struct Solver_Volume*) curr;
+				struct FRSF_Solver_Volume* s_vol_frsf = (struct FRSF_Solver_Volume*) curr;
 
+				struct Multiarray_d* sol_coef   = s_vol->sol_coef,
+					* sol_coef_p = s_vol_frsf->sol_coef_p,
+					* rhs        = s_vol->rhs;
+
+				double* data_s   = sol_coef->data,
+					* data_sp  = sol_coef_p->data,
+					* data_rhs = rhs->data;
+
+				const ptrdiff_t i_max = compute_size(sol_coef->order,sol_coef->extents);
+				assert(i_max == compute_size(sol_coef_p->order,sol_coef_p->extents));
+				assert(i_max == compute_size(rhs->order,rhs->extents));
+
+				for (ptrdiff_t i = 0; i < i_max; ++i) {
+					data_sp[i] *= rk4a[rk];
+					data_sp[i] += dt*data_rhs[i];
+					data_s[i]  += rk4b[rk]*data_sp[i];
+				}
+				enforce_positivity_highorder(s_vol,sim);
+
+				/* if (t_step_global > 2998) */
+				/* 	print_Multiarray_d(sol_coef); */
+			}
+		}
+
+
+	}
 	return max_rhs;
 }

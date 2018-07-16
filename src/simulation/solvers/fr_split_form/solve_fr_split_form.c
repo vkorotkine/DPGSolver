@@ -65,9 +65,9 @@ static void compute_rlhs_common_fr_split_form
 	);
 
 /// \brief Scale the rhs terms by the the inverse mass matrices (for explicit schemes).
-static void scale_rhs_by_m_inv
-	(const struct Simulation*const sim ///< \ref Simulation.
-	);
+/* static void scale_rhs_by_m_inv */
+/* 	(const struct Simulation*const sim ///< \ref Simulation. */
+/* 	); */
 
 /** \brief Fill \ref Solver_Storage_Implicit::b with the negated rhs values.
  *
@@ -125,11 +125,38 @@ static void compute_CFL_ramping
 /* #include "def_templates_type_dc.h" */
 /* #include "solve_fr_split_form_T.c" */
 /* #include "undef_templates_type.h" */
-
 double compute_rhs_fr_split_form (const struct Simulation* sim)
 {
 	compute_rlhs_common_fr_split_form(sim,NULL);
-	scale_rhs_by_m_inv(sim);
+	/* EXIT; // likely delete scale_rhs_by_m_inv. */
+	/* scale_rhs_by_m_inv(sim); */
+
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+
+		/* print_Multiarray_d(s_vol->rhs); */
+
+		struct Multiarray_d* sol_coef = s_vol->sol_coef;
+
+		ptrdiff_t size = compute_size(sol_coef->order,sol_coef->extents);
+		struct FRSF_Solver_Volume* frsf_s_vol = (struct FRSF_Solver_Volume*) s_vol;
+		/* print_const_Matrix_T(frsf_s_vol->m_inv);//confirmed mass matrix perf */
+		for (int i = 0; i < size; ++i){
+			/* double k=(size)*i; */
+			/* int j; */
+			/* j = (int)(k); */
+			int j =9*i;
+			s_vol->rhs->data[i] = 32*frsf_s_vol->m_inv->data[j]*s_vol->rhs->data[i];//multiply rhs by M_inv, works b/c M diag
+			/* printf("minv val %lf\n",frsf_s_vol->m_inv->data[j]); */
+		}
+
+		/* const struct const_Vector_d jac_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc); */
+		/* scale_Multiarray_by_Vector_d('L',1.0,s_vol->rhs,&jac_det_vc,true); */
+		/* print_Multiarray_d(s_vol->rhs); */
+		/* print_const_Multiarray_d(s_vol->jacobian_det_vc); */
+		/* print_Multiarray_d(s_vol->sol_coef); */
+	}
+	/* EXIT; // likely delete scale_rhs_by_m_inv. */
 
 	return compute_max_rhs_dg_like(sim);
 }
@@ -156,14 +183,14 @@ void set_petsc_Mat_row_col_fr_split_form
 // Level 0 ********************************************************************************************************** //
 
 /// \brief Version of \ref scale_rhs_by_m_inv used for non-collocated runs.
-static void scale_rhs_by_m_inv_std
-	(const struct Simulation*const sim ///< \ref Simulation.
-	);
+/* static void scale_rhs_by_m_inv_std */
+/* 	(const struct Simulation*const sim ///< \ref Simulation. */
+/* 	); */
 
-/// \brief Version of \ref scale_rhs_by_m_inv used for collocated runs.
-static void scale_rhs_by_m_inv_col
-	(const struct Simulation*const sim ///< \ref Simulation.
-	);
+/* /// \brief Version of \ref scale_rhs_by_m_inv used for collocated runs. */
+/* static void scale_rhs_by_m_inv_col */
+/* 	(const struct Simulation*const sim ///< \ref Simulation. */
+/* 	); */
 
 /** \brief Return the time step relating to the CFL ramping.
  *  \return See brief. */
@@ -178,20 +205,20 @@ static void compute_rlhs_common_fr_split_form (const struct Simulation*const sim
 	initialize_zero_memory_volumes(sim->volumes);
 	compute_volume_rlhs_fr_split_form(sim,ssi,sim->volumes);
 	compute_face_rlhs_fr_split_form(sim,ssi,sim->faces);
-	compute_source_rhs_dg_like(sim);
+	/* compute_source_rhs_dg_like(sim); */
 }
 
-static void scale_rhs_by_m_inv (const struct Simulation*const sim)
-{
-	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
-	assert((test_case->solver_proc == SOLVER_E) ||
-	       (test_case->solver_proc == SOLVER_EI));
+/* static void scale_rhs_by_m_inv (const struct Simulation*const sim) */
+/* { */
+/* 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc; */
+/* 	assert((test_case->solver_proc == SOLVER_E) || */
+/* 	       (test_case->solver_proc == SOLVER_EI)); */
 
-	if (!sim->collocated)
-		scale_rhs_by_m_inv_std(sim);
-	else
-		scale_rhs_by_m_inv_col(sim);
-}
+/* 	if (!sim->collocated) */
+/* 		scale_rhs_by_m_inv_std(sim); */
+/* 	else */
+/* 		scale_rhs_by_m_inv_col(sim); */
+/* } */
 
 static void fill_petsc_Vec_b_fr_split_form (const struct Simulation*const sim, struct Solver_Storage_Implicit*const ssi)
 {
@@ -255,24 +282,24 @@ static double compute_max_rhs_ratio
 	(const double max_rhs ///< The current maximum rhs value.
 	);
 
-static void scale_rhs_by_m_inv_std (const struct Simulation*const sim)
-{
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume*const s_vol       = (struct Solver_Volume*) curr;
-		struct FRSF_Solver_Volume*const frsf_s_vol = (struct FRSF_Solver_Volume*) curr;
-		mm_NN1C_overwrite_Multiarray_d(frsf_s_vol->m_inv,&s_vol->rhs);
-	}
-}
+/* static void scale_rhs_by_m_inv_std (const struct Simulation*const sim) */
+/* { */
+/* 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) { */
+/* 		struct Solver_Volume*const s_vol       = (struct Solver_Volume*) curr; */
+/* 		struct FRSF_Solver_Volume*const frsf_s_vol = (struct FRSF_Solver_Volume*) curr; */
+/* 		mm_NN1C_overwrite_Multiarray_d(frsf_s_vol->m_inv,&s_vol->rhs); */
+/* 	} */
+/* } */
 
-static void scale_rhs_by_m_inv_col (const struct Simulation*const sim)
-{
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+/* static void scale_rhs_by_m_inv_col (const struct Simulation*const sim) */
+/* { */
+/* 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) { */
+/* 		struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr; */
 
-		const struct const_Vector_d jac_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc);
-		scale_Multiarray_by_Vector_d('L',1.0,s_vol->rhs,&jac_det_vc,true);
-	}
-}
+/* 		const struct const_Vector_d jac_det_vc = interpret_const_Multiarray_as_Vector_d(s_vol->jacobian_det_vc); */
+/* 		scale_Multiarray_by_Vector_d('L',1.0,s_vol->rhs,&jac_det_vc,true); */
+/* 	} */
+/* } */
 
 static double compute_dt_cfl_constrained
 	(const double max_rhs, const struct Solver_Volume*const s_vol, const struct Simulation*const sim)

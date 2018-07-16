@@ -25,7 +25,7 @@ ARGV="advection/default/opg/TEST_opg_advection_default__mixed2d petsc_options_cg
 ARGV="advection/default/opg/TEST_opg_advection_default__1d petsc_options_gmres_tol_1e-15"
 ARGV="advection/default/opg/TEST_opg_advection_default__mixed2d petsc_options_gmres_tol_1e-15"
 
-ARGV="burgers_inviscid/periodic/trigonometric/TEST_dg_burgers_inviscid_trigonometric__1d__ml5__p2 petsc_options_empty"
+ARGV="burgers_inviscid/periodic/trigonometric/TEST_dg_burgers_inviscid_trigonometric__1d__ml5__p7 petsc_options_empty"
 
 #EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_linearization
 #ARGV="advection/default/opg/TEST_opg_advection_default__mixed2d__ml2__p2"

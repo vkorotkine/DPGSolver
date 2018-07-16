@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_test_case.h"
 
 #include "def_templates_matrix.h"
+#include "element_operators.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
 #include "def_templates_volume_solver.h"
@@ -33,10 +34,12 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /// Container holding flags for which members of \ref FRSF_Solver_Volume_T are needed.
 struct Needed_Members {
-	bool sol_coef_p, ///< Flag for \ref FRSF_Solver_Volume_T::sol_coef_p.
-	     m_inv,      ///< Flag for \ref FRSF_Solver_Volume_T::m_inv.
-	     m;          ///< Flag for \ref FRSF_Solver_Volume_T::m.
+	bool sol_coef_p; ///< Flag for \ref FRSF_Solver_Volume_T::sol_coef_p.
 };
+
+static const struct const_Matrix_d* constructor_mass_frsf_T (const struct Solver_Volume_T* s_vol);
+static const struct const_Matrix_d* constructor_inverse_mass_frsf_T
+	(const struct Solver_Volume_T*const s_vol, const struct const_Matrix_d*const mass);
 
 /** \brief Return a statically allocated \ref Needed_Members container with values set.
  *  \return See brief. */
@@ -59,9 +62,9 @@ void constructor_derived_FRSF_Solver_Volume_T (struct Volume* volume_ptr, const 
 	frsf_s_vol->sol_coef_p =
 		( needed_members.sol_coef_p ? constructor_zero_Multiarray_T('C',order,extents) : NULL ); // destructed
 
-	frsf_s_vol->m     = ( needed_members.m     ? constructor_mass_T(s_vol) : NULL );                     // destructed
-	frsf_s_vol->m_inv = ( needed_members.m_inv ? constructor_inverse_mass_T(s_vol,frsf_s_vol->m) : NULL ); // destructed
-	print_const_Matrix_T(frsf_s_vol->m_inv); 
+	frsf_s_vol->m     = constructor_mass_frsf_T(s_vol);
+	frsf_s_vol->m_inv = constructor_inverse_mass_frsf_T(s_vol,frsf_s_vol->m);
+	/* print_const_Matrix_T(frsf_s_vol->m_inv);  */
 	const struct Test_Case_T*const test_case = (struct Test_Case_T*) sim->test_case_rc->tc;
 	if (test_case->has_2nd_order) {
 		const int order = s_vol->grad_coef->order;
@@ -92,19 +95,43 @@ void destructor_derived_FRSF_Solver_Volume_T (struct Volume* volume_ptr)
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
+static const struct const_Matrix_d* constructor_mass_frsf_T (const struct Solver_Volume_T* s_vol)
+{
+	const struct Operator*const cv0_vs_vc  = get_operator__cv0_vs_vc(s_vol);
+	const struct const_Vector_d*const w_vc = get_operator__w_vc__s_e(s_vol);
+
+	const struct const_Matrix_d*const m_l = cv0_vs_vc->op_std;
+	const struct const_Matrix_d*const m_r = constructor_mm_diag_const_Matrix_d(1.0,m_l,w_vc,'L',false); // destructed
+
+	const struct const_Matrix_d*const mass = constructor_mm_const_Matrix_d('T','N',1.0,m_l,m_r,'R'); // returned
+	destructor_const_Matrix_d(m_r);
+
+	return mass;
+}
+
+static const struct const_Matrix_d* constructor_inverse_mass_frsf_T
+	(const struct Solver_Volume_T*const s_vol, const struct const_Matrix_d*const mass)
+{
+	const struct const_Matrix_d* m_inv = NULL;
+	if (mass) {
+		m_inv = constructor_inverse_const_Matrix_d(mass); // returned
+	} else {
+		const struct const_Matrix_d*const mass = constructor_mass_frsf_T(s_vol); // destructed
+		m_inv = constructor_inverse_const_Matrix_d(mass); // returned
+		destructor_const_Matrix_d(mass);
+	}
+	return m_inv;
+}
+
 static struct Needed_Members set_needed_members (const struct Simulation* sim)
 {
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	struct Needed_Members needed_members =
-		{ .sol_coef_p = false,
-		  .m          = false,
-		  .m_inv      = false, };
+		{ .sol_coef_p = false, };
 
 	switch (test_case->solver_proc) {
 	case SOLVER_E: // fallthrough
 	case SOLVER_EI:
-		if (!sim->collocated)
-			needed_members.m_inv = true;
 		switch (test_case->solver_type_e) {
 		case SOLVER_E_SSP_RK_33: // fallthrough
 		case SOLVER_E_LS_RK_54:
@@ -124,23 +151,6 @@ static struct Needed_Members set_needed_members (const struct Simulation* sim)
 		EXIT_ERROR("Unsupported: %d\n",test_case->solver_proc);
 		break;
 	}
-
-	if (test_case->has_2nd_order) {
-		switch (sim->method) {
-		case METHOD_FRSF:
-			if (!sim->collocated)
-				needed_members.m_inv = true;
-			break;
-		case METHOD_DPG:
-			break; // Do nothing.
-		default:
-			EXIT_ERROR("Unsupported: %d",sim->method);
-			break;
-		}
-	}
-
-	if (test_case->lhs_terms == LHS_CFL_RAMPING)
-		needed_members.m = true;
 
 	return needed_members;
 }

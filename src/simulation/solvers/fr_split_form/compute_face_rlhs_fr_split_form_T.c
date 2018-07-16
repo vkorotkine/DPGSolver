@@ -23,12 +23,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_intrusive.h"
 #include "definitions_numerical_flux.h"
 
-
 #include "def_templates_compute_face_rlhs_fr_split_form.h"
 
 #include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
+
 
 #include "def_templates_face_solver.h"
 #include "def_templates_face_solver_fr_split_form.h"
@@ -41,6 +41,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_operators.h"
 #include "def_templates_solve_fr_split_form.h"
 #include "def_templates_test_case.h"
+
+#include "def_templates_flux.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -70,6 +72,16 @@ static void constructor_Boundary_Value_g_face_fcl
 	(struct Boundary_Value_T*const bv,             ///< \ref Boundary_Value_Input_T.
 	 const struct FRSF_Solver_Face_T*const frsf_s_face ///< \ref FRSF_Solver_Face_T.
 	 );
+//my attempt pt 2
+static void compute_rhs_f_frsf_like_T
+ 	(const struct Numerical_Flux_T*const num_flux, struct Solver_Face_T*const s_face,
+ 	 struct Solver_Storage_Implicit*const ssi);
+static void finalize_face_rhs_frsf_like_T
+	(const int side_index,                         ///< The index of the side of the face under consideration.
+	 const struct Numerical_Flux_T*const num_flux, ///< Defined for \ref compute_rlhs_f_fptr_T.
+	 struct Solver_Face_T*const s_face             ///< Defined for \ref compute_rlhs_f_fptr_T.
+	 );
+//end of the added attempt
 /* // Interface functions ********************************************************************************************** // */
 
 void compute_face_rlhs_fr_split_form_T
@@ -78,6 +90,12 @@ void compute_face_rlhs_fr_split_form_T
 	assert(sim->elements->name == IL_ELEMENT_SOLVER_FRSF);
 	assert(sim->faces->name    == IL_FACE_SOLVER_FRSF);
 	assert(sim->volumes->name  == IL_VOLUME_SOLVER_FRSF);
+
+
+	//Trying an idea
+	/* UNUSED(ssi); */
+	/* UNUSED(faces); */
+	/* set_s_params_T(sim); */
 
 	const bool has_2nd_order = get_set_has_1st_2nd_order(NULL)[1];
 
@@ -88,15 +106,46 @@ void compute_face_rlhs_fr_split_form_T
 		struct Solver_Face_T*const s_face       = (struct Solver_Face_T*) curr;
 		struct FRSF_Solver_Face_T*const frsf_s_face = (struct FRSF_Solver_Face_T*) curr;
 
+		/* if (curr == faces->first) */
+		/* 	continue; */
+		/* else */
+		/* 	if (curr == faces->last) */
+		/* 		break; */
+		/* 	else{ */
 		constructor_Numerical_Flux_Input_data_frsf_T(num_flux_i,frsf_s_face,sim,has_2nd_order); // destructed
 
 		struct Numerical_Flux_T* num_flux = constructor_Numerical_Flux_T(num_flux_i); // destructed
 		destructor_Numerical_Flux_Input_data_T(num_flux_i);
 
-		s_params.scale_by_Jacobian(num_flux,s_face);
+		/* s_params.scale_by_Jacobian(num_flux,s_face); */
 		s_params.compute_rlhs(num_flux,s_face,ssi);
 		destructor_Numerical_Flux_T(num_flux);
+			/* } */
 	}
+	//add on send
+	/* struct Intrusive_Link* curr = faces->first; */
+	/* struct Solver_Face_T*const s_face       = (struct Solver_Face_T*) curr; */
+	/* struct FRSF_Solver_Face_T*const frsf_s_face = (struct FRSF_Solver_Face_T*) curr; */
+
+	/* constructor_Numerical_Flux_Input_data_frsf_T(num_flux_i,frsf_s_face,sim,has_2nd_order); // destructed */
+
+	/* struct Numerical_Flux_T* num_flux = constructor_Numerical_Flux_T(num_flux_i); // destructed */
+	/* destructor_Numerical_Flux_Input_data_T(num_flux_i); */
+
+	/* /\* s_params.scale_by_Jacobian(num_flux,s_face); *\/ */
+	/* const struct Face* face = (struct Face*) s_face; */
+	/* permute_Multiarray_T_fc((struct Multiarray_T*)num_flux_i->nnf,'R',1,(struct Solver_Face_T*)face); */
+	/* scale_Multiarray_T((struct Multiarray_T*)num_flux_i->nnf,-1.0); // Use "-ve" normal. */
+	/* finalize_face_rhs_frsf_like_T(1,num_flux_i,s_face); */
+	/* destructor_Numerical_Flux_T(num_flux); */
+
+
+
+	//end of full send
+
+
+
+
 	destructor_Numerical_Flux_Input_T(num_flux_i);
 }
 
@@ -105,6 +154,7 @@ void constructor_Numerical_Flux_Input_data_frsf_T
 	(struct Numerical_Flux_Input_T*const num_flux_i, const struct FRSF_Solver_Face_T*const frsf_s_face,
 	 const struct Simulation*const sim, const bool compute_gradient)
 {
+	/* UNUSED(compute_gradient); */
 	const struct Solver_Face_T*const s_face = (struct Solver_Face_T*) frsf_s_face;
 
 	if (compute_gradient) {
@@ -120,6 +170,99 @@ void constructor_Numerical_Flux_Input_data_frsf_T
 /** \brief Constructor for the partially corrected weak gradient interpolated to the face cubature nodes as seen from
  *         the volume of input "side_index".
  *  \return See brief. */
+struct Multiarray_T* constructor_copy_Multiarray_T_frsf (struct Multiarray_T* src, Type dif)
+{
+	const ptrdiff_t size = compute_size(src->order,src->extents);
+	Type* data = malloc((size_t)size * sizeof *data); // moved
+	for (int i = 0; i < size; ++i)
+		data[i]=dif;
+
+	return constructor_move_Multiarray_T_T(src->layout,src->order,src->extents,true,data);
+}
+
+const struct const_Multiarray_T* constructor_copy_const_Multiarray_T_frsf (const struct const_Multiarray_T*const src, Type dif)
+{
+	return (const struct const_Multiarray_T*) constructor_copy_Multiarray_T_frsf((struct Multiarray_T*)src, dif);
+}
+static void finalize_face_rhs_frsf_like_T
+	(const int side_index, const struct Numerical_Flux_T*const num_flux, struct Solver_Face_T*const s_face)
+{
+	const struct Face*const face = (struct Face*) s_face;
+
+	const struct Operator* tw0_vt_fc = get_operator__tw0_vt_fc_T(side_index,s_face);
+
+	const char op_format = get_set_op_format(0);
+	/* printf("%lf\n",num_flux->nnf->data[0]); */
+	/* print_const_Multiarray_T(num_flux->nnf); */
+	struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) face->neigh_info[side_index].volume;
+
+	struct Multiarray_d* sol_coef = s_vol->sol_coef;
+
+	ptrdiff_t size = compute_size(sol_coef->order,sol_coef->extents);
+	struct Vector_d* u2 = constructor_empty_Vector_d(size);
+	for (int i = 0; i < size; ++i) {
+		u2->data[i] = 0.5*sol_coef->data[i]*sol_coef->data[i];
+	}
+	/* print_Vector_d(u2); */
+	Type dif;//this calculates the difference for DG strong form fnum-R*f at the faces' boundaries
+	/* printf("side %d\n",side_index); */
+	if (face->index == 0) {
+		if (side_index==0){
+			dif=num_flux->nnf->data[0]+u2->data[0];}
+		else{
+			dif=num_flux->nnf->data[0]-u2->data[size-1];}
+		dif*=-1;
+	} else {
+		if (side_index==0){
+			dif=num_flux->nnf->data[0]-u2->data[size-1];}
+		else{
+			dif=num_flux->nnf->data[0]+u2->data[0];}
+	}
+	/* printf("The dif %f\n",dif); */
+	/* print_Multiarray_d(s_vol->rhs); */
+
+
+	const struct const_Multiarray_T* num_flux_new =constructor_copy_const_Multiarray_T_frsf(num_flux->nnf,dif);//copies but changes that data value temporarily to my calculated dif
+	// print_const_Multiarray_d(num_flux_new);
+	/* printf("new flux %lf\n",num_flux_new->data[0]); */
+
+	/* mm_NNC_Operator_Multiarray_T(-1.0,1.0,tw0_vt_fc,num_flux->nnf,s_vol->rhs,op_format,2,NULL,NULL); */
+	mm_NNC_Operator_Multiarray_T(-1.0,1.0,tw0_vt_fc,num_flux_new,s_vol->rhs,op_format,2,NULL,NULL);
+	/* mm_NNC_Operator_Multiarray_T(-1.0,0.0,tw0_vt_fc,num_flux_new,s_vol->rhs,op_format,2,NULL,NULL); */
+	/* print_const_Matrix_d(tw0_vt_fc->op_std); */
+	/* EXIT; */
+
+	/* printf("%d\n",face->index); */
+	/* print_Multiarray_d(s_vol->rhs); */
+	/* EXIT; */
+	/* struct FRSF_Solver_Volume_T* frsf_s_vol = (struct FRSF_Solver_Volume_T*) s_vol; */
+	/* /\* print_const_Matrix_T(frsf_s_vol->m_inv);//confirmed mass matrix perf *\/ */
+	/* for (int i = 0; i < size; ++i){ */
+	/* 	double k=(size)*i; */
+	/* 	int j; */
+	/* 	j = (int)(k); */
+	/* 	s_vol->rhs->data[i] = frsf_s_vol->m_inv->data[j]*s_vol->rhs->data[i];//multiply rhs by M_inv, works b/c M diag */
+	/* } */
+	/* print_Multiarray_d(s_vol->sol_coef); */
+	/* print_Multiarray_d(s_vol->rhs); */
+	//currently printing to see my values and that everything is working well
+	destructor_const_Multiarray_T(num_flux_new);//destructed
+}
+
+static void compute_rhs_f_frsf_like_T
+	(const struct Numerical_Flux_T*const num_flux, struct Solver_Face_T*const s_face,
+	 struct Solver_Storage_Implicit*const ssi)
+{
+	UNUSED(ssi);
+
+	const struct Face* face = (struct Face*) s_face;
+	finalize_face_rhs_frsf_like_T(0,num_flux,s_face);
+	if (!face->boundary) {
+		permute_Multiarray_T_fc((struct Multiarray_T*)num_flux->nnf,'R',1,(struct Solver_Face_T*)face);
+		scale_Multiarray_T((struct Multiarray_T*)num_flux->nnf,-1.0); // Use "-ve" normal.
+		finalize_face_rhs_frsf_like_T(1,num_flux,s_face);
+	}
+}
 
 static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 {
@@ -128,8 +271,14 @@ static struct S_Params_T set_s_params_T (const struct Simulation* sim)
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
 	switch (test_case->solver_method_curr) {
 	case 'e':
-		s_params.scale_by_Jacobian = scale_by_Jacobian_e_T;
-		s_params.compute_rlhs      = compute_rhs_f_dg_like_T;
+		/* s_params.scale_by_Jacobian = scale_by_Jacobian_e_T; */
+		s_params.compute_rlhs      = compute_rhs_f_frsf_like_T;
+
+		//me added
+		/* const struct const_Matrix_d*m_inv = sim->m_inv; */
+		/* s_params.compute_rlhs      = constructor_mm_const_Matrix_d('N','N',1.0,m_inv,s_params.compute_rlhs,'R'); */
+		/* scale_rhs_by_m_inv(s_params); */
+		//end me added
 		break;
 	case 'i':
 	default:

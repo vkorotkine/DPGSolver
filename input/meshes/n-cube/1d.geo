@@ -14,6 +14,7 @@ Transfinite Line{1001} = 2^(mesh_level)+1 Using Progression 1;
 
 
 
+
 // Physical parameters for '.msh' file
 bc_straight = BC_STEP_SC;
 bc_base = bc_straight;

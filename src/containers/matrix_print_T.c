@@ -26,7 +26,7 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 ///\{ \name The number of decimal places to display.
-#define N_DEC 4
+#define N_DEC 15
 ///\}
 
 /** \brief Check whether either of the matrix extents is zero.
