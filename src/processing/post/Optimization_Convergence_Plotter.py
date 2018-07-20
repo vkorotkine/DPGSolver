@@ -12,7 +12,9 @@ import numpy as np
 import math
 
 # Absolute path to the directory with all the optimization results
-CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil/Constrained_Target_CL_cases/NACA0012_Target_CL_0.25"
+#CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil/Constrained_Target_CL_cases/NACA0012_Target_CL_0.25"
+CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_2D/output/paraview/euler/steady/NURBS_Airfoil/Unconstrained_Inverse_Design_NACA0012_to_NACA4412_cases"
+
 
 # The list of files and the label to associate with them when plotting them. Each tuple
 # contains the name of the file first and the label second. An empty label will result 
@@ -21,10 +23,34 @@ CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Researc
 CONST_File_list = [
 	
 	# Target CL
-	("ml1_P2_NURBS_Y_CM_eq_0.1255_Optimization_Convergence.txt", "P = 2, ml = 1, NURBS Metrics", "r", "-", ".", False),
-	("ml1_P2_NURBS_N_CM_eq_0.1255_Optimization_Convergence.txt", "P = 2, ml = 1, Standard (Isoparametric)", "c", "-", ".", False),
-	("ml1_P2_NURBS_NSuper_CM_eq_0.1255_Optimization_Convergence.txt", "P = 2, ml = 1, Standard (Superparametric)", "m", "-", ".", False),
+	#("ml2_P1_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 1, ml = 2, NURBS Metrics", "r", "-", ".", False),
+	#("ml2_P1_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 1, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	#("ml2_P1_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 1, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
 
+	#("ml2_P2_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 2, ml = 2, NURBS Metrics", "g", "-", ".", False),
+	#("ml2_P2_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 2, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	#("ml2_P2_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 2, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
+
+	#("ml2_P3_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 3, ml = 2, NURBS Metrics", "b", "-", ".", False),
+	#("ml2_P3_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 3, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	#("ml2_P3_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 3, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
+
+	#("ml1_P2_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 2, ml = 1, NURBS Metrics", "r", "-", ".", False),
+	#("ml1_P2_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 2, ml = 1, Standard (Isoparametric)", "c", "-", ".", False),
+	#("ml1_P2_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 2, ml = 1, Standard (Superparametric)", "m", "-", ".", False),
+
+	# Inverse Design
+	#("ml2_P1_NURBS_Y_Optimization_Convergence.txt", "P = 1, ml = 2, NURBS Metrics", "r", "-", ".", False),
+	#("ml2_P1_NURBS_NIso_Optimization_Convergence.txt", "P = 1, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	#("ml2_P1_NURBS_NSuper_Optimization_Convergence.txt", "P = 1, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
+
+	#("ml2_P2_NURBS_Y_Optimization_Convergence.txt", "P = 2, ml = 2, NURBS Metrics", "r", "-", ".", False),
+	#("ml2_P2_NURBS_NIso_Optimization_Convergence.txt", "P = 2, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	#("ml2_P2_NURBS_NSuper_Optimization_Convergence.txt", "P = 2, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
+
+	("ml2_P3_NURBS_Y_Optimization_Convergence.txt", "P = 3, ml = 2, NURBS Metrics", "r", "-", ".", False),
+	("ml2_P3_NURBS_NIso_Optimization_Convergence.txt", "P = 3, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	("ml2_P3_NURBS_NSuper_Optimization_Convergence.txt", "P = 3, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
 ]
 
 
@@ -136,6 +162,9 @@ def plot_data(file_convergence_data):
 	# log(Gradient) Convergence vs. CPU time
 	plt.figure(4)
 	add_plot(file_convergence_data, "CPU_Time(s)", "L2_Norm_Gradient_Cost_Function", True)
+
+
+	# TODO: Plot all remaining headers of data versus design iteration or CPU_Time
 
 
 	# Check if lift coefficient data exists and if so plot it

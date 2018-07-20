@@ -107,7 +107,9 @@ void solve_explicit (struct Simulation* sim)
 				copy_rhs(sim,NULL);
 		}
 
-		display_progress(test_case,t_step,max_rhs,max_rhs0);
+		if (t_step%50 == 0)
+			display_progress(test_case,t_step,max_rhs,max_rhs0);
+		
 		if (check_exit(test_case,max_rhs,max_rhs0))
 			break;
 	}
@@ -187,6 +189,7 @@ static void display_progress
 		EXIT_ERROR("Unsupported: %d\n",test_case->solver_proc);
 		break;
 	}
+	fflush(stdout);
 }
 
 static bool check_exit (const struct Test_Case* test_case, const double max_rhs, const double max_rhs0)

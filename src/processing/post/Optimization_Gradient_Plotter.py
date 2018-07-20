@@ -11,9 +11,8 @@ import numpy as np
 import math
 
 # Absolute path to the directory with all the optimization results
-CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil"
-append_path = ""
-CONST_OPTIMIZATION_DIR_ABS_PATH = os.path.join(CONST_OPTIMIZATION_DIR_ABS_PATH, append_path)
+#CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil/Constrained_Target_CL_cases/NACA0012_Target_CL_0.25"
+CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_2D/output/paraview/euler/steady/NURBS_Airfoil/Unconstrained_Inverse_Design_NACA0012_to_NACA4412_cases"
 
 # The list of files and the label to associate with them when plotting them. Each tuple
 # contains the name of the file first and the label second. An empty label will result 
@@ -22,10 +21,36 @@ CONST_OPTIMIZATION_DIR_ABS_PATH = os.path.join(CONST_OPTIMIZATION_DIR_ABS_PATH, 
 CONST_File_list = [
 	
 	# Target CL
-	("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricY_BFGSmaxnorm1E-2/Gradient.txt", "P = 2, 16x10, NURBS Metrics", "r", "-", ".", False),
-	("NACA0012_TargetCL0.24_P2_16x10_NURBSMetricN_BFGSmaxnorm1E-2/Gradient.txt", "P = 2, 16x10, Standard", "c", "-", ".", False),
-	("NACA0012_TargetCL0.24_P2Superparametric_16x10_NURBSMetricN_BFGSmaxnorm1E-2/Gradient.txt", "P = 2 (Sup), 16x10, Standard", "m", "-", ".", False),
+	#("ml2_P1_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Objective_Gradient.txt", "P = 1, ml = 2, NURBS Metrics", "r", "-", ".", False),
+	#("ml2_P1_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Objective_Gradient.txt", "P = 1, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	#("ml2_P1_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Objective_Gradient.txt", "P = 1, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
 
+	("ml2_P2_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Objective_Gradient.txt", "P = 2, ml = 2, NURBS Metrics", "g", "-", ".", False),
+	("ml2_P2_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Objective_Gradient.txt", "P = 2, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	("ml2_P2_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Objective_Gradient.txt", "P = 2, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
+
+	#("ml2_P3_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Objective_Gradient.txt", "P = 3, ml = 2, NURBS Metrics", "b", "-", ".", False),
+	#("ml2_P3_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Objective_Gradient.txt", "P = 3, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	#("ml2_P3_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Objective_Gradient.txt", "P = 3, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
+
+	("ml1_P2_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Objective_Gradient.txt", "P = 2, ml = 1, NURBS Metrics", "r", "-", ".", False),
+	("ml1_P2_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Objective_Gradient.txt", "P = 2, ml = 1, Standard (Isoparametric)", "c", "-", ".", False),
+	("ml1_P2_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Objective_Gradient.txt", "P = 2, ml = 1, Standard (Superparametric)", "m", "-", ".", False),
+
+	# Inverse Design
+	#("ml2_P1_NURBS_Y_Objective_Gradient.txt", "P = 1, ml = 2, NURBS Metrics", "r", "-", ".", False),
+	#("ml2_P1_NURBS_NIso_Objective_Gradient.txt", "P = 1, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	#("ml2_P1_NURBS_NSuper_Objective_Gradient.txt", "P = 1, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
+
+	#("ml2_P2_NURBS_Y_Objective_Gradient.txt", "P = 2, ml = 2, NURBS Metrics", "r", "-", ".", False),
+	#("ml2_P2_NURBS_NIso_Objective_Gradient.txt", "P = 2, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	#("ml2_P2_NURBS_NSuper_Objective_Gradient.txt", "P = 2, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
+
+	#("ml2_P3_NURBS_Y_Objective_Gradient.txt", "P = 3, ml = 2, NURBS Metrics", "r", "-", ".", False),
+	#("ml2_P3_NURBS_NIso_Objective_Gradient.txt", "P = 3, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	#("ml2_P3_NURBS_NSuper_Objective_Gradient.txt", "P = 3, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
+	
+	
 ]
 
 

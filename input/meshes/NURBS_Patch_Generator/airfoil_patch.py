@@ -25,8 +25,8 @@ import scipy.integrate
 # The properties of the patch in the xi direction (which
 # traverses around the airfoil from the trailing edge, bottom
 # surface to the leading edge and back)
-CONST_P = 2
-CONST_NUM_CONTROL_PTS_XI = 15
+CONST_P = 5
+CONST_NUM_CONTROL_PTS_XI = 21
 
 
 # Properties of the patch in the eta direction (eta increases in the 
@@ -42,8 +42,8 @@ CONST_CONTINUOUS_APPROXIMATION = True
 # ==================================================
 
 
-CONST_Airfoil_Type = "NACA4412"
-#CONST_Airfoil_Type = "NACA0012"
+#CONST_Airfoil_Type = "NACA4412"
+CONST_Airfoil_Type = "NACA0012"
 
 CONST_QUADRATURE_P = 35
 

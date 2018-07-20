@@ -48,6 +48,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "gradient.h"
 #include "output_progress.h"
 
+// TESTING
+#include "functionals.h"
+
 // Static function declarations ************************************************************************************* //
 
 
@@ -127,8 +130,10 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 	// ================================
 	//         Preprocessing
 	// ================================
-	
+
 	struct Simulation *sim = optimization_case->sim;
+
+//output_pressure_distribution(optimization_case); return;
 
 	FILE *fp = constructor_optimization_progress_file(optimization_case);
 	struct Optimizer_NLPQLP_Data *optimizer_nlpqlp_data = constructor_Optimizer_NLPQLP_Data(optimization_case);
@@ -159,6 +164,9 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 
 			progress_file_add_information(fp, optimization_case, L2_grad, objective_func_value, 
 				t_elapse, design_iteration, true);
+
+// Functional Convergence Testing
+break;
 
 			// Output the initial gradient
 			output_gradient(optimization_case, optimizer_nlpqlp_data->dF->data);
@@ -195,14 +203,16 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 		// Error checking
 		if (optimizer_nlpqlp_data->IFAIL > 0){
 
+			// An error occured in the optimization
 			printf("\n ERROR IN OPTIMIZATION : \n");
 			printf("IFAIL : %d \n", optimizer_nlpqlp_data->IFAIL);
-			exit(0);
+			break; // break because still want to print data to file
 		}
 
 
 		// Output the optimization progress (for visualization)
 		output_NURBS_patch_information(optimization_case);
+
 
 		// Deform the geometry and solve the flow
 		update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)optimization_case->geo_data.control_points);
@@ -217,18 +227,20 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 			constructor_copy_Multiarray_c_Multiarray_d(optimization_case->geo_data.control_points);
 
 
-
 		// Optimization successful so break out of the loop
 		if (optimizer_nlpqlp_data->IFAIL == 0)
 			break;
+
 
 		// ============================================
 		//    Compute new Functional/Gradient Values
 		// ============================================
 
+
 		// Compute new functional values
 		if (optimizer_nlpqlp_data->IFAIL == -1)
 			compute_function_values_NLPQLP(optimization_case, optimizer_nlpqlp_data);
+
 
 		// Compute new gradient values
 		if (optimizer_nlpqlp_data->IFAIL == -2){
@@ -529,7 +541,9 @@ static void compute_gradient_values_NLPQLP(struct Optimization_Case *optimizatio
 
 	// Compute the gradient using the sensitivities and the adjoint
 	compute_gradient(gradient_data, adjoint_data, sensivity_data);
-
+// Test gradient
+//test_brute_force_gradient(optimization_case, optimization_case->objective_function, gradient_data->Gradient->data);
+//exit(0);
 
 	// Store gradient data in NLPQLP data structure
 	for (int i = 0; i < optimization_case->num_design_pts_dofs; i++)
@@ -575,6 +589,9 @@ static void compute_gradient_values_NLPQLP(struct Optimization_Case *optimizatio
 		// Compute the gradient using the sensitivities and the adjoint. Scale the gradients
 		// by the specified multiplier (due to the chain rule)
 		compute_gradient(gradient_data, adjoint_data, sensivity_data);
+// Test gradient
+//test_brute_force_gradient(optimization_case, constraint_function_data->functional_f, gradient_data->Gradient->data);
+//exit(0);
 		for (int i = 0; i < optimization_case->num_design_pts_dofs; i++)
 			gradient_data->Gradient->data[i] *= constraint_function_data->a;
 

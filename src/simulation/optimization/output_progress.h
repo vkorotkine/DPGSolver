@@ -27,7 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 /** \brief Setup the optimization progress file. This file will store the 
  * convergence information for the optimization case. The file will be placed in 
  * the Paraview output directory for the given case for now and will be titled
- * optimization_convergence.txt.
+ * Optimization_Convergence.txt.
  *
  * The header of the file data will also be set within this function.
  *
@@ -67,11 +67,23 @@ void output_NURBS_patch_information(
 
 
 /** \brief Output the gradient of the objective function with resepct to the design 
- *	variables into a file titled Gradient.txt.
+ *	variables into a file titled Objective_Gradient.txt.
  */
 void output_gradient(
 	struct Optimization_Case* optimization_case, ///< Consult optimization_case.h (holds the case information)
 	double *gradient ///< Array of doubles with the gradient of the objective function. Length is found using optimization_case
 	);
 
+
+/** \brief Output the pressure distribution over the surface into a 
+ *	file titled Pressure_Distribution.txt. Cases where the surface forms the eta = -1.0 
+ *	line on the parametric knot domain can only be handled for now. As such, the file
+ *	will print the xi value and the pressure at that point (on the line eta = -1.0).
+ */
+void output_pressure_distribution(
+	struct Optimization_Case* optimization_case ///< Consult optimization_case.h (holds the case information)
+	);
+
 #endif // DPG__output_progress_h__INCLUDED
+
+

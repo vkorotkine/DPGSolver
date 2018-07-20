@@ -4,126 +4,79 @@
 
 NURBS Enhanced
 
-Monday:
+Thursday:
 
-	(Done) - Check memory leaks by running valgrind for NLPQLP optimization case
+	- Complete all inverse design bump functional convergence case
 
-	(Done) - Implement an optimization.data file reader. Place all optimization specific information in that file and read it
-		before the start of each optimization case.
+		(Done) - Run ml0 to ml4 for P3 and see if convergence properties changed.
 
-		(Done) - Place and read the BFGS optimization information
+		(Done) - If P3 converges well, run ml0 to ml4 for P0 to P3
 
-		(Done) - Place and read the NLPQLP optimization information
+		(Done) - Run ml0 to ml4 for P0 to P3 Isoparameteric.
 
-	(Done) - Modify the input into the objective functions
+		(Done) - Run ml0 to ml4 for P0 to P3 Superparameteric.
 
-		(Done) - Change the file name to functionals 
+	- Compile results into excel
 
-		(Done) - Read the functional information from the optimization_data file.
+	- Verify CL computation
 
-	(Done) - In the output progress file, set the additional parameters to print by reading the optimization_data file and loading
-		the information into a string
+Friday:
 
-	(Done) - Implement the pitching moment computation
+	- Add metric computation section to journal paper. (2/2)
 
-		(Done) - Place the pitching moment leading edge location in the .geo file and read it.
+	- Review additions to journal paper and edit.
 
-		(Done) - Adjust the xyz locations of the face nodes to now use the NURBS mapping and not the geom_coeff for the volumes
+	- Add grid deformation section to journal paper.
 
-		(Done) - Implement the pitching moment computation
+		- Show single patch deformation case.
 
-			(Done) - Run an optimization case and monitor the progression of the CM value
+		- Show multiple patch deformation case.
 
-			- Seems to be good (NACA0012, Cm is 0 as expected initially and it becomes negative also as expected). Perhaps
-				run more validation of this function.
 
-		(Done) - Add the constraint data structure
 
-			(Done) - Add a struct for holding the constraint information. Struct should hold possibly the function pointer to the
-				constraint function, what type of constraint it is (equality, inequality), and, based on the type of constraint,
-				what the RHS should be (less than what, greater than what, etc...)
 
-		(Done) - Add the pitching moment constraint and put the data for the constraint into the optimization.data file. Try the target CL case
-			with this constraint information.
+- Finalize clean up of implementation for optimization.
 
-			(Done) - Implement the pitching moment functional
+- Template the objective function file to be able to have a real and complex version of the function.
 
-			(Done) - Validate the gradient computation of the functional
+- Implement test case to see how conjugate gradient method works
 
-			(Done) - Try an equality constraint optimization and see if the optimization works for P2. Try cm = -0.13 and a target cl of 0.24. Did not work very well.
+- Generalize the face and volume cubature (NURBS metrics) to other elements (not just QUADS)
 
-			(Done) - Add the ability to print a prefix on the file names for a test case in order to organize the results.
+	- Extend cases to see how the behaviour changes for simplex elements
 
-			(Done) - Run a Target CL case with a small window for the cm pitching moment constraint. Run a P2 case
+- Read the NURBS geometry information from the ctrl file now (no longer
+	use a macro).
 
-			(Done) - Try the isoparametric and superparametric case for P2 and see the convergence.
-			
-Tuesday:
+	- Remove all occurences of the Macro
 
-	- Implement a percent volume change constraint. 
+- Clean up implementation of the functions in bases.c/h and 
+	geometry_parametric_T.c/h. 
 
-		- Test gradient of constraint function with brute force.
-
-		- Try a target cl constrained optimization with the volume change constraint for the P2 case. Use an equality constraint.
-
-		- Try the isoparametric and superparametric case for P2 and see the convergence. 
-
-	- Implement Inverse Design Case (NACA 4412)
-
-		- Run a really fine case first on the transformed grid and store the results in a file.
-
-		- Will only be able to parametrize for geometries that have the same knot domain (-1 to 1). 
-
-	- Run a Target CL constrained optimization with CM and Volume change constraints
-
-		- Add function to, along with the standard output, output the gradient, dR_dXp, dI_dXp and Adjoint before the first design step
-
-		- Run a P2 case with NURBS and both Standard - ml1
-
-		- Run a P3 case with NURBS and both Standard - ml1
-
-		- Compile results into plots and see what trends result. Compile plots into a pdf to perhaps send to the prof.
-
-	- Template the objective function file to be able to have a real and complex version of the function.
-
-	- Finalize clean up of implementation for optimization.
-
-	- Investigate the metric issue with the NURBS and Standard mixed
-
-		- Output the field of differences of the metrics to see how large the difference in the metric terms are throughout the 
-			mesh. 
-
-Wednesday:
-	
-	- Add metric computation section to journal paper.
-
-	- Add grid deformation section to journal paper
-
-	- Implement test case to see how conjugate gradient method works
-
+	- Place doxygen style comments for functions. Move the comments from the src
+		file to the header.
 
 -----------------------------------------------------------------------------------------------------------------------------
 
 
 IGA-DG
-
-Tuesday:
 	
-	- Complete reading Paper
-	
-Wednesday:
-
-	- Implement the directory structure
-
-	- Create the CMake files for the cases
-
-	- Implement the matrix data structure classes. Template the class to be able to hold different types of matrices
-
 Thursday:
-	
-	- Implement a mesh reader to be able to read a multi-patch DG mesh
 
-	- Implement basis functions correctly (NURBS) so that they span over multiple elements.
+	(Done) - Implement B Spline Basis class
+	
+	(Done) - Implement knot smoothing
+
+	- Implement the 1D wave approximation using uniform and smoothed knots as a function of wave number. Use a galerkin projection to
+		get the approximation and find the L2 error and plot it as a function of wave number for both uniform and smoothed knots.
+
+Friday:
+
+	- Implement optimial knot calculation
+
+		- Get the delta knot and delta abscissae plots for the smoothing
+
+
 
 -----------------------------------------------------------------------------------------------------------------------------
 
@@ -141,68 +94,6 @@ OVERALL GOALS: (For the end of the Summer - August 15)
 
 -----------------------------------------------------------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-
-
-	- Check orders of convergence for NURBS enhanced case
-
-	- Read the NURBS geometry information from the ctrl file now (no longer
-		use a macro).
-
-		- Remove all occurences of the Macro
-
-	- Clean up implementation of the functions in bases.c/h and 
-		geometry_parametric_T.c/h. 
-
-		- Place doxygen style comments for functions. Move the comments from the src
-			file to the header.
-
-
-	- Generalize the face and volume cubature (NURBS metrics) to other elements (not just QUADS)
-
-	- Remove NURBS_geometry from the macros file
-
-
-Naming Convention:
-	[initial_shape]_[optimization_type]_[P]_[ml/Dimension]_[NURBS_Metric]_[Optimizer_and_info]
-
-
-
-
-
-
-
-
-
-
-
-	- Implement NURBS book derivative computation to see if that approach for 
-			computing patch derivatives is faster.
-
-	- Use the NURBS mapping with the efficient derivative computation to optimize the 
-		given patch.
-
-	- Try to get a transonic case running for the airfoil case with a shock
-		(to be used potentially for a drag optimization)
-
-	- Check implementation of metric terms (NURBS) to ensure that the NURBS 
-		mapping is used for the metrics properly.
-
-		- Compute xyz_fc now using the NURBS mapping (get around geom_coeff).
-
-		- Set geom_coef to NULL or all zeros and ensure that the code still runs
-
-			- In the plotting section, compute xyz_p values using the mapping
-
-		- Check if the adaptation case is implemented correctly.
 
 
 ToDo:

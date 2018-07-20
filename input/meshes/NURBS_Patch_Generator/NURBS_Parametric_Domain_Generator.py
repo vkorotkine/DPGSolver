@@ -27,7 +27,6 @@ Optimization:
 		volume points (no interior NURBS control points in the domain). The elements will
 		not cross since the NURBS control points will be spaced apart and the parametric 
 		domain will ensure the elements do not attain negative volumes.
-
 """
 
 import Basis
@@ -42,12 +41,12 @@ import sys
 
 # The type of patch to use. Perhaps take this as a command line
 # argument
-#CONST_Patch_Type = "Internal_Channel_Patch"
+CONST_Patch_Type = "Internal_Channel_Patch"
 #CONST_Patch_Type = "User_Defined_Patch"
-CONST_Patch_Type = "Airfoil_Patch"
+#CONST_Patch_Type = "Airfoil_Patch"
 CONST_EPS = 1E-9
 
-CONST_Output_file_name = "geometry_parameters.geo"
+CONST_Output_file_name = "geometry_parameters_P6_Optimization_Target.geo"
 
 def NURBS_patch(xi,eta,BasisFunctionsList, ControlPoints_and_Weights, grad_index=None):
 

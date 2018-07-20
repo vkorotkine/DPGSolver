@@ -102,6 +102,11 @@ static void run_test_case(int argc, char** argv) {
 	solve_for_solution(sim);  // Solve flow over initial shape
 	optimize(sim);  // Perform the shape optimization
 
+	// Output the results in graphical format
+	output_visualization(sim,VIS_GEOM_EDGES);
+	output_visualization(sim,VIS_GEOM_VOLUMES);
+	output_visualization(sim,VIS_NORMALS);
+	output_visualization(sim,VIS_SOLUTION);
 
 	// Destroy Allocated Structures
 	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,type_rc,ignore_static);

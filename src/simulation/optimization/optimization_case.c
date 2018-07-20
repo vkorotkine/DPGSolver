@@ -41,6 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "multiarray_constructors.h"
 
 #include "optimization_case.h"
+#include "functionals.h"
 
 
 // Static function declarations ************************************************************************************* //
@@ -74,11 +75,20 @@ static void create_complex_sim(
 	);
 
 
-/** \brief Set the function pointers for the objective function and set any constraint function
- * information
+/** \brief Set the function pointers for the objective function and pointers to functionals for any
+ *	constraint functions.
  */
 static void set_function_pointers(
 	struct Optimization_Case* optimization_case ///< The data structure holding the optimization data
+	);
+
+
+/** \brief Using the specified keyword, set the correct function pointers.
+ */
+static void set_function_pointer_with_keyword(
+	functional_fptr *f, ///< The function pointer to the real version of the functional
+	functional_fptr_c *f_c, ///< The function pointer to the complex version of the functionals
+	char *functional_keyword ///< The keyword specifying which functional is required
 	);
 
 
@@ -530,18 +540,13 @@ static void create_complex_sim(struct Optimization_Case* optimization_case){
 
 static void set_function_pointers(struct Optimization_Case* optimization_case){
 
-	// \todo MSB: Create a function that perhaps takes as arguments pointers and then
-	// 	set the function pointers within that function itself.
-
 	// Set the Objective Function function pointer
-	if (strstr(optimization_case->optimization_objective_function_keyword, "FUNCTIONAL_TARGET_CL")){
-		optimization_case->objective_function 	= functional_target_cl;
-		optimization_case->objective_function_c = functional_target_cl_c;
-	} else {
-		EXIT_UNSUPPORTED;
-	}
+	set_function_pointer_with_keyword(
+		&optimization_case->objective_function, 
+		&optimization_case->objective_function_c, 
+		optimization_case->optimization_objective_function_keyword);
 
-	// Set any Constraint Function Pointers
+	// Set any Constraint Function function pointers
 	struct Constraint_Function_Data* constraint_function_data = optimization_case->constraint_function_data;
 	while(true){
 
@@ -549,17 +554,48 @@ static void set_function_pointers(struct Optimization_Case* optimization_case){
 			break;
 		}
 
-		if (strstr(constraint_function_data->functional_keyword, "FUNCTIONAL_CM_LE")){
-			constraint_function_data->functional_f 	 = functional_cm_le;
-			constraint_function_data->functional_f_c = functional_cm_le_c;
-		} else {
-			EXIT_UNSUPPORTED;
-		}
+		set_function_pointer_with_keyword(
+			&constraint_function_data->functional_f,
+			&constraint_function_data->functional_f_c, 
+			constraint_function_data->functional_keyword);
 
 		constraint_function_data = constraint_function_data->next;
 	}
+}
 
 
+static void set_function_pointer_with_keyword(functional_fptr *f, functional_fptr_c *f_c, 
+	char *functional_keyword){
+
+
+	if (strstr(functional_keyword, "FUNCTIONAL_CL")){
+		*f = functional_cl;
+		*f_c = functional_cl_c;
+
+	} else if (strstr(functional_keyword, "FUNCTIONAL_CM_LE")){
+		*f = functional_cm_le;
+		*f_c = functional_cm_le_c;
+
+	} else if (strstr(functional_keyword, "FUNCTIONAL_TARGET_CL")){
+		*f = functional_target_cl;
+		*f_c = functional_target_cl_c;
+
+	} else if (strstr(functional_keyword, "FUNCTIONAL_MESH_VOLUME")){
+		*f = functional_mesh_volume;
+		*f_c = functional_mesh_volume_c;
+
+	} else if (strstr(functional_keyword, "FUNCTIONAL_FRACTIONAL_CHANGE_MESH_VOLUME")){
+		*f = functional_mesh_volume_fractional_change;
+		*f_c = functional_mesh_volume_fractional_change_c;
+
+	} else if (strstr(functional_keyword, "FUNCTIONAL_INVERSE_PRESSURE_DESIGN")){
+		*f = functional_inverse_pressure_design;
+		*f_c = functional_inverse_pressure_design_c;
+
+	} else {
+		EXIT_ERROR("Unsupported functional keyword: %s\n",functional_keyword);
+
+	}
 }
 
 

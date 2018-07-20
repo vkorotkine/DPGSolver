@@ -16,11 +16,13 @@ import matplotlib.lines as lines
 
 # Airfoil Case
 CONST_PLOT_X_RANGE = [-0.6, 0.6]
-CONST_PLOT_Y_RANGE = [-0.1, 0.1]
+CONST_PLOT_Y_RANGE = [-0.12, 0.12]
 
 
 # Absolute path to the directory with all the optimization results
-CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil/Constrained_Target_CL_cases/NACA0012_Target_CL_0.25"
+CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_2D/output/paraview/euler/steady/NURBS_Airfoil/Constrained_Target_CL_cases/NACA0012_Target_CL_0.25"
+#CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_2D/output/paraview/euler/steady/NURBS_Airfoil/Unconstrained_Inverse_Design_NACA0012_to_NACA4412_cases"
+
 
 # The list of files and the label to associate with them when plotting them. Each tuple
 # contains the name of the file first and the label second. An empty label will result 
@@ -29,11 +31,39 @@ CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Researc
 CONST_File_list = [
 	
 	# Target CL
-	("geometry_parameters.geo", "Initial", "k", "--", False),
+	("geometry_parameters.geo", "Initial", "k", "--", False), # Initial Profile
+
+	#("ml2_P1_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, NURBS Metrics", "r", "-", True),
+	#("ml2_P1_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, Standard (Isoparameteric)", "c", "-", True),
+	#("ml2_P1_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, Standard (Superparameteric)", "m", "-", True),
+
+	("ml2_P2_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 2, NURBS Metrics", "r", "-", True),
+	("ml2_P2_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 2, Standard (Isoparameteric)", "c", "-", True),
+	("ml2_P2_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 2, Standard (Superparameteric)", "m", "-", True),
 	
-	("ml1_P2_NURBS_Y_CM_eq_0.1255_Optimized_NURBS_Patch.txt", "P = 2, ml = 1, NURBS Metrics", "r", "-", True),
-	("ml1_P2_NURBS_N_CM_eq_0.1255_Optimized_NURBS_Patch.txt", "P = 2, ml = 1, Standard (Isoparameteric)", "c", "-", True),
-	("ml1_P2_NURBS_NSuper_CM_eq_0.1255_Optimized_NURBS_Patch.txt", "P = 2, ml = 1, Standard (Superparametric)", "m", "-", True),
+	#("ml2_P3_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, NURBS Metrics", "r", "-", True),
+	#("ml2_P3_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, Standard (Isoparameteric)", "c", "-", True),
+	#("ml2_P3_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, Standard (Superparameteric)", "m", "-", True),
+
+	("ml1_P2_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 1, NURBS Metrics", "b", "-", True),
+	("ml1_P2_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 1, Standard (Isoparameteric)", "g", "-", True),
+	("ml1_P2_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 1, Standard (Superparameteric)", "y", "-", True),
+	
+	# Inverse Design
+	#("geometry_parameters_NACA0012.geo", "Initial Profile", "k", "--", False), # Initial Profile
+	#("geometry_parameters_NACA4412.geo", "Target Profile", "b", "--", False), # Target Profile
+
+	#("ml2_P1_NURBS_Y_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, NURBS Metrics", "r", "-", True),
+	#("ml2_P1_NURBS_NIso_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, Standard (Isoparameteric)", "c", "-", True),
+	#("ml2_P1_NURBS_NSuper_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, Standard (Superparameteric)", "m", "-", True),
+
+	#("ml2_P2_NURBS_Y_Optimized_NURBS_Patch.txt", "P = 2, ml = 2, NURBS Metrics", "r", "-", True),
+	#("ml2_P2_NURBS_NIso_Optimized_NURBS_Patch.txt", "P = 2, ml = 2, Standard (Isoparameteric)", "c", "-", True),
+	#("ml2_P2_NURBS_NSuper_Optimized_NURBS_Patch.txt", "P = 2, ml = 2, Standard (Superparameteric)", "m", "-", True),
+
+	#("ml2_P3_NURBS_Y_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, NURBS Metrics", "r", "-", True),
+	#("ml2_P3_NURBS_NIso_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, Standard (Isoparameteric)", "c", "-", True),
+	#("ml2_P3_NURBS_NSuper_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, Standard (Superparameteric)", "m", "-", True),
 ]
 
 # The points (on the knot domain) to plot

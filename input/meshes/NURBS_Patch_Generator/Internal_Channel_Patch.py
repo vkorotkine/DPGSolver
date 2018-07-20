@@ -168,6 +168,49 @@ def get_channel_bottom_parameters():
 	}
 
 
+def get_optimization_pts(ControlPoints_and_Weights):
+
+	"""
+	Go through the Control Point net and set the points that will 
+	act as the optimization control points. This method will combine
+	the points into a list and also specify each point's degrees of 
+	freedom. 
+
+	:param ControlPoints_and_Weights: The net (matrix) of control points and
+		weights.
+
+	:return : A list with the control points for the optimization. The list
+		will hold tuples of the form (cntrl_pt, dof_x_bool, dof_y_bool)
+		where dof_x_bool = 0 if the x direction cannot be used as a degree of 
+		freedom and is 1 if it can be (same for dof_y_bool)
+	"""
+
+	# For the bump case, fix the corner points and allow the middle points to move around
+
+	optimization_control_pt_list = []
+
+	# Subtract 2 since corner points cannot move
+	num_pts = CONST_NUM_CONTROL_PTS_XI - 2 
+
+	for i in range(1,num_pts+1):
+		optimization_control_pt_list.append((ControlPoints_and_Weights[i][0], 0, 1))
+
+	# Place the limits on each design variable
+	# TODO: For now, only y can be adjusted so set those limits.
+	optimization_control_pt_limit_list = []
+	
+	y_max = CONST_Y_MAX
+	y_min = CONST_Y_MIN
+
+	for i in range(len(optimization_control_pt_list)):
+
+		pt = optimization_control_pt_list[i][0]
+		optimization_control_pt_limit_list.append((pt, y_min, y_max))
+
+
+	return optimization_control_pt_list, optimization_control_pt_limit_list
+
+
 def get_patch_information():
 
 	"""
@@ -208,12 +251,18 @@ def get_patch_information():
 		ControlPoints_and_Weights[i][0] = bottom_parameters["control_points"][i]
 		ControlPoints_and_Weights[i][1] = top_parameters["control_points"][i]
 	
+
+	# Get the list of optimization control points
+	optimization_control_pt_list, optimization_control_pt_limit_list = get_optimization_pts(ControlPoints_and_Weights)
+
 	patch_parameters = {
 		"xiVector" : xiVector,
 		"etaVector" : etaVector,
 		"ControlPoints_and_Weights" : ControlPoints_and_Weights,
 		"P" : P,
-		"Q" : Q
+		"Q" : Q,
+		"Optimization_ControlPoints_and_Weights" : optimization_control_pt_list,
+		"Optimization_ControlPoints_Limits" : optimization_control_pt_limit_list,
 	}
 
 	return patch_parameters

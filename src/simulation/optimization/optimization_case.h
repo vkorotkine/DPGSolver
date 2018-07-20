@@ -128,14 +128,12 @@ struct Optimization_Case {
 	// Optimizer Information
 
 	/** Specifies the type of optimizer. Options are:
-	 * LINE_SEARCH_STEEPEST_DESCENT = Uses gradient descent to minimize the objective function.
-	 * LINE_SEARCH_BFGS = Uses the BFGS algorithm to minimize the objective function.
-	 * NLPQLP = Uses NLPQLP to minimize the objective function
+	 * 	LINE_SEARCH_BFGS = Uses the BFGS algorithm to minimize the objective function.
+	 *	NLPQLP = Uses NLPQLP to minimize the objective function
 	 */
 	char optimizer_spec[STRLEN_MIN];
 	char optimizer_output_files_prefix[STRLEN_MAX*4]; ///< Specifies the prefix of the optimization output file
 
-	// Optimization Type
 
 	/** Specifies the keyword for the functional to be used as the objective function
 	 * 	for the optimization

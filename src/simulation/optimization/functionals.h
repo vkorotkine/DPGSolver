@@ -56,7 +56,7 @@ double functional_cl(
  * \return The complex value of the lift coefficient (Cl) value
  */
 double complex functional_cl_c(
-	const struct Simulation* sim_c ///< Standard. \ref Simulation
+	const struct Simulation* sim_c ///< Standard . \ref Simulation. NOTE: this sim object should hold complex data structure.
 	);
 
 
@@ -74,7 +74,7 @@ double functional_mesh_volume(
  *	\return The total volume of the mesh (complex)
  */
 double complex functional_mesh_volume_c(
-	const struct Simulation* sim ///< Standard. \ref Simulation
+	const struct Simulation* sim_c ///< Standard . \ref Simulation. NOTE: this sim object should hold complex data structure.
 	);
 
 
@@ -97,7 +97,7 @@ double functional_cm_le(
  * \return Complex value of the functional
  */
 double complex functional_cm_le_c(
-	const struct Simulation* sim ///< Standard. \ref Simulation
+	const struct Simulation* sim_c ///< Standard . \ref Simulation. NOTE: this sim object should hold complex data structure.
 	); 
 
 
@@ -121,7 +121,7 @@ double functional_target_cl(
  * \return Complex value of the functional
  */
 double complex functional_target_cl_c(
-	const struct Simulation* sim ///< Standard. \ref Simulation
+	const struct Simulation* sim_c ///< Standard . \ref Simulation. NOTE: this sim object should hold complex data structure.
 	); 
 
 
@@ -147,9 +147,32 @@ double functional_mesh_volume_fractional_change(
  * \return Complex value of the functional
  */
 double complex functional_mesh_volume_fractional_change_c(
-	const struct Simulation* sim_c ///< Standard. \ref Simulation
+	const struct Simulation* sim_c ///< Standard . \ref Simulation. NOTE: this sim object should hold complex data structure.
 	);
 
+
+/** \brief Compute the functional defined by 
+ *
+ *		I = integral_over_surface { (P - P_Target)^2 }
+ *
+ *	where P_Target is the target surface pressure distribution and 
+ *	P is the pressure on the design surface.
+ *
+ *	\return The value of the functional
+ */
+double functional_inverse_pressure_design(
+	const struct Simulation* sim ///< Standard. \ref Simulation
+	);
+
+
+/** \brief Complex version of functional_inverse_pressure. 
+ *	\todo Will remove this function after templating is complete.
+ *
+ *	\return Complex value of the functional
+ */
+double complex functional_inverse_pressure_design_c(
+	const struct Simulation* sim_c ///< Standard . \ref Simulation. NOTE: this sim object should hold complex data structure.
+	);
 
 #endif // DPG__functionals_h__INCLUDED
 

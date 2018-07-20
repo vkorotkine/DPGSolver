@@ -45,6 +45,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_face_rlhs.h"
 #include "solution_euler.h"
 #include "boundary.h"
+#include "definitions_nodes.h"
+#include "nodes.h"
 
 #include "definitions_physics.h"
 #include "definitions_math.h"
@@ -68,9 +70,10 @@ struct Sol_Data__c_dlm {
  */
 struct Functional_Data {
 	
-	// Target Functional Data
 	double target_cl; ///< Target lift coefficient value for the target cl functional
 
+	char target_pressure_distribution_file_abs_path[STRLEN_MAX]; ///< The absolute path to the file with the pressure distribution data
+	struct Multiarray_d *target_pressure_distribution; ///< The xi and pressure values for the target
 };
 
 
@@ -79,6 +82,16 @@ struct Functional_Data {
  * \return The functional data structure with the data from the optimization.data file
  */
 static struct Functional_Data get_functional_data(
+	);
+
+
+/** \brief Read the file provided containing the target pressure distribution. Load the values
+ * 	into the target_pressure_distribution Multiarray in functional_data. 
+ *
+ *	NOTE: If no file has been given, the function will exit.
+ */
+static void read_target_pressure_distribution_file(
+	struct Functional_Data *functional_data ///< Standard. \ref Functional_Data
 	);
 
 
@@ -158,7 +171,6 @@ double complex functional_cl_c(const struct Simulation* sim_c){
 }
 
 
-// \todo replace compute_cm_le
 double functional_cm_le(const struct Simulation* sim){
 
 	const struct const_Multiarray_d* cl_cd_cm = compute_cl_cd_cm(sim);  // free
@@ -240,6 +252,358 @@ double complex functional_mesh_volume_fractional_change_c(const struct Simulatio
 	double V0 = sim_c->mesh_volume_initial;
 
 	return V/V0;
+}
+
+
+double functional_inverse_pressure_design(const struct Simulation *sim){
+
+	struct Functional_Data functional_data = get_functional_data();
+
+	double inverse_pressure_design_functional_value = 0.0;
+
+	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
+
+		// Loop through the faces that are on the wall boundary
+		const struct Face*const face = (struct Face*) curr;
+		const struct Solver_Face*const s_face = (struct Solver_Face*) curr;
+		if (!is_face_wall_boundary(face))
+			continue;
+
+		const struct Volume*const vol = (struct Volume*) face->neigh_info[0].volume;
+
+		const struct const_Element*const el_vol      = vol->element;
+		const struct const_Multiarray_d*const xyz_ve = vol->xyz_ve;
+
+		const struct const_Vector_i*const f_ve_lf = el_vol->f_ve->data[face->neigh_info[0].ind_lf];
+
+		const double*const xyz_ve_a[] = { get_row_const_Multiarray_d(f_ve_lf->data[0],xyz_ve),
+		                                  get_row_const_Multiarray_d(f_ve_lf->data[1],xyz_ve), };
+
+
+		// Get the xi limits for this face
+		double 	xi_val1  = xyz_ve_a[0][0],
+				xi_val2  = xyz_ve_a[1][0],
+				eta_val1 = xyz_ve_a[0][1],
+				eta_val2 = xyz_ve_a[1][1];
+
+		double xi_range[2], eta_range[2];
+		xi_range[0]  = xi_val1  > xi_val2  ? xi_val2  : xi_val1;
+		xi_range[1]  = xi_val1  > xi_val2  ? xi_val1  : xi_val2;
+		eta_range[0] = eta_val1 > eta_val2 ? eta_val2 : eta_val1;
+		eta_range[1] = eta_val1 > eta_val2 ? eta_val1 : eta_val2;
+
+
+		// Obtain the face cubature (fc) nodes on the parametric knot domain
+		const struct const_Nodes *nodes_c = constructor_const_Nodes_tp(face->element->d, s_face->p_ref, NODES_GL);
+		const struct const_Multiarray_d *rst_i = constructor_move_const_Multiarray_d_Matrix_d(nodes_c->rst);  // free
+		const ptrdiff_t n_fc = rst_i->extents[0];
+
+
+		// \todo MSB: Map these values using some operator and be able to generalize to any type of
+		//	element (not just QUADS)
+
+		// Map the node point locations to knot domain:
+		struct Multiarray_d *rst_knots_i = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_fc, 2}); // destructed
+	
+		// Flag is set to true if this is an eta = -1 face
+		bool eta_min_1_face = false; 
+
+		switch (face->neigh_info[0].ind_lf){
+			case 0:
+				// Face 0 : xi is fixed (left face)
+				for (ptrdiff_t i = 0; i < n_fc; i++){
+					get_col_Multiarray_d(0, rst_knots_i)[i] = xi_range[0];
+					get_col_Multiarray_d(1, rst_knots_i)[i] = get_col_const_Multiarray_d(0, rst_i)[i]*(eta_range[1] - eta_range[0])*0.5 
+																+ 0.5*(eta_range[1] + eta_range[0]);
+				}
+				break;
+
+			case 1:
+				// Face 1 : xi is fixed (right face)
+				for (ptrdiff_t i = 0; i < n_fc; i++){
+					get_col_Multiarray_d(0, rst_knots_i)[i] = xi_range[1];
+					get_col_Multiarray_d(1, rst_knots_i)[i] = get_col_const_Multiarray_d(0, rst_i)[i]*(eta_range[1] - eta_range[0])*0.5 
+																+ 0.5*(eta_range[1] + eta_range[0]);
+				}
+				break;
+
+			case 2:
+				// Face 2 : eta is fixed (bottom face)
+				for (ptrdiff_t i = 0; i < n_fc; i++){
+					get_col_Multiarray_d(0, rst_knots_i)[i] = get_col_const_Multiarray_d(0, rst_i)[i]*(xi_range[1] - xi_range[0])*0.5 
+																+ 0.5*(xi_range[1] + xi_range[0]);
+					get_col_Multiarray_d(1, rst_knots_i)[i] = eta_range[0];
+				}
+				eta_min_1_face = true;
+				break;
+
+			case 3:
+				// Face 3 : eta is fixed (top face)
+				for (ptrdiff_t i = 0; i < n_fc; i++){
+					get_col_Multiarray_d(0, rst_knots_i)[i] = get_col_const_Multiarray_d(0, rst_i)[i]*(xi_range[1] - xi_range[0])*0.5 
+																+ 0.5*(xi_range[1] + xi_range[0]);
+					get_col_Multiarray_d(1, rst_knots_i)[i] = eta_range[1];
+				}
+				break;
+
+			default:
+				EXIT_ERROR("Unsupported face index"); break;
+		}
+
+		// Get the solution (s) at the face cubature (fc) nodes and convert it to primitive variables (pv)
+		const struct const_Multiarray_d* pv_fc = constructor_s_fc_interp_d(0, s_face);
+		convert_variables((struct Multiarray_d*)pv_fc,'c','p');
+
+		// jacobian determinant values at the face cubature (fc) nodes
+		const struct const_Multiarray_d* jac_det_fc = s_face->jacobian_det_fc;
+
+		// Pressure (p) at face cubature (fc) nodes as an array
+		const double *p_fc_i = get_col_const_Multiarray_d(pv_fc->extents[1]-1,pv_fc);
+
+		// Cubature weights at the face cubature (fc) nodes
+		const struct const_Vector_d*const w_fc = get_operator__w_fc__s_e(s_face);
+
+		// The target values. s_values correspond to the location on the knot domain (xi coordinate)
+		// of the given target value and p_values stores the target pressure values.
+		double 	*target_s_values = get_col_Multiarray_d(0, functional_data.target_pressure_distribution),
+				*target_p_values = get_col_Multiarray_d(1, functional_data.target_pressure_distribution);
+		int num_target_values = (int) functional_data.target_pressure_distribution->extents[0];
+
+		double p_value, s_value, p_target_value, p1, p2, s1, s2;
+
+		if (eta_min_1_face){
+		for (int i = 0; i < n_fc; i++){
+
+			p_value = p_fc_i[i];
+			s_value = get_col_Multiarray_d(0, rst_knots_i)[i];
+
+			// Compute the target pressure at the ith cubature point using either interpolation or extrapolation
+			
+			if (target_s_values[0] > s_value){
+				// Extrapolation Case 1
+				
+				s1 = target_s_values[0];
+				p1 = target_p_values[0];
+
+				s2 = target_s_values[1];
+				p2 = target_p_values[1];
+
+			} else if(target_s_values[num_target_values-1] < s_value){
+				// Extrapolation Case 2
+
+				s1 = target_s_values[num_target_values-2];
+				p1 = target_p_values[num_target_values-2];
+
+				s2 = target_s_values[num_target_values-1];
+				p2 = target_p_values[num_target_values-1];
+
+			} else{
+				// Interpolation Case
+
+				for (int j = 0; j < num_target_values-1; j++){
+
+					if (target_s_values[j] < s_value && target_s_values[j+1] > s_value){
+						s1 = target_s_values[j];
+						p1 = target_p_values[j];
+
+						s2 = target_s_values[j+1];
+						p2 = target_p_values[j+1];
+
+						break;
+					}
+				}
+			}
+
+			p_target_value = (s_value - s1) * ((p2 - p1)/ (s2 - s1)) + p1;
+
+			inverse_pressure_design_functional_value += (p_value - p_target_value) * 
+				(p_value - p_target_value) * jac_det_fc->data[i] * w_fc->data[i];
+		}
+		}
+
+		// Free allocated memory
+		destructor_const_Multiarray_d(rst_i);
+		destructor_Multiarray_d(rst_knots_i);
+		destructor_const_Nodes(nodes_c);
+		destructor_const_Multiarray_d(pv_fc);
+	}
+
+	return inverse_pressure_design_functional_value;
+}
+
+
+double complex functional_inverse_pressure_design_c(const struct Simulation *sim_c){
+
+	struct Functional_Data functional_data = get_functional_data();
+
+	double complex inverse_pressure_design_functional_value = 0.0;
+
+	for (struct Intrusive_Link* curr = sim_c->faces->first; curr; curr = curr->next) {
+
+		// Loop through the faces that are on the wall boundary
+		const struct Face*const face = (struct Face*) curr;
+		const struct Solver_Face_c*const s_face_c = (struct Solver_Face_c*) curr;
+		if (!is_face_wall_boundary(face))
+			continue;
+
+		// Face vertex points on the knot domain are always real
+		const struct Volume*const vol = (struct Volume*) face->neigh_info[0].volume;
+		const struct const_Element*const el_vol      = vol->element;
+		const struct const_Multiarray_d*const xyz_ve = vol->xyz_ve;
+		const struct const_Vector_i*const f_ve_lf = el_vol->f_ve->data[face->neigh_info[0].ind_lf];
+		const double*const xyz_ve_a[] = { get_row_const_Multiarray_d(f_ve_lf->data[0],xyz_ve),
+		                                  get_row_const_Multiarray_d(f_ve_lf->data[1],xyz_ve), };
+
+		// Get the xi limits for this face
+		double 	xi_val1  = xyz_ve_a[0][0],
+				xi_val2  = xyz_ve_a[1][0],
+				eta_val1 = xyz_ve_a[0][1],
+				eta_val2 = xyz_ve_a[1][1];
+
+		double xi_range[2], eta_range[2];
+		xi_range[0]  = xi_val1  > xi_val2  ? xi_val2  : xi_val1;
+		xi_range[1]  = xi_val1  > xi_val2  ? xi_val1  : xi_val2;
+		eta_range[0] = eta_val1 > eta_val2 ? eta_val2 : eta_val1;
+		eta_range[1] = eta_val1 > eta_val2 ? eta_val1 : eta_val2;
+
+
+		// Obtain the face cubature (fc) nodes on the parametric knot domain
+		const struct const_Nodes *nodes_c = constructor_const_Nodes_tp(face->element->d, s_face_c->p_ref, NODES_GL);
+		const struct const_Multiarray_d *rst_i = constructor_move_const_Multiarray_d_Matrix_d(nodes_c->rst);  // free
+		const ptrdiff_t n_fc = rst_i->extents[0];
+
+
+		// \todo MSB: Map these values using some operator and be able to generalize to any type of
+		//	element (not just QUADS)
+
+		// Map the node point locations to knot domain:
+		struct Multiarray_d *rst_knots_i = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_fc, 2}); // destructed
+	
+		// Flag is set to true if this is an eta = -1 face
+		bool eta_min_1_face = false; 
+
+		switch (face->neigh_info[0].ind_lf){
+			case 0:
+				// Face 0 : xi is fixed (left face)
+				for (ptrdiff_t i = 0; i < n_fc; i++){
+					get_col_Multiarray_d(0, rst_knots_i)[i] = xi_range[0];
+					get_col_Multiarray_d(1, rst_knots_i)[i] = get_col_const_Multiarray_d(0, rst_i)[i]*(eta_range[1] - eta_range[0])*0.5 
+																+ 0.5*(eta_range[1] + eta_range[0]);
+				}
+				break;
+
+			case 1:
+				// Face 1 : xi is fixed (right face)
+				for (ptrdiff_t i = 0; i < n_fc; i++){
+					get_col_Multiarray_d(0, rst_knots_i)[i] = xi_range[1];
+					get_col_Multiarray_d(1, rst_knots_i)[i] = get_col_const_Multiarray_d(0, rst_i)[i]*(eta_range[1] - eta_range[0])*0.5 
+																+ 0.5*(eta_range[1] + eta_range[0]);
+				}
+				break;
+
+			case 2:
+				// Face 2 : eta is fixed (bottom face)
+				for (ptrdiff_t i = 0; i < n_fc; i++){
+					get_col_Multiarray_d(0, rst_knots_i)[i] = get_col_const_Multiarray_d(0, rst_i)[i]*(xi_range[1] - xi_range[0])*0.5 
+																+ 0.5*(xi_range[1] + xi_range[0]);
+					get_col_Multiarray_d(1, rst_knots_i)[i] = eta_range[0];
+				}
+				eta_min_1_face = true;
+				break;
+
+			case 3:
+				// Face 3 : eta is fixed (top face)
+				for (ptrdiff_t i = 0; i < n_fc; i++){
+					get_col_Multiarray_d(0, rst_knots_i)[i] = get_col_const_Multiarray_d(0, rst_i)[i]*(xi_range[1] - xi_range[0])*0.5 
+																+ 0.5*(xi_range[1] + xi_range[0]);
+					get_col_Multiarray_d(1, rst_knots_i)[i] = eta_range[1];
+				}
+				break;
+
+			default:
+				EXIT_ERROR("Unsupported face index"); break;
+		}
+
+		// Get the solution (s) at the face cubature (fc) nodes and convert it to primitive variables (pv)
+		const struct const_Multiarray_c* pv_fc_c = constructor_s_fc_interp_c(0, s_face_c);
+		convert_variables_c((struct Multiarray_c*)pv_fc_c,'c','p');
+
+		// jacobian determinant values at the face cubature (fc) nodes
+		const struct const_Multiarray_c* jac_det_fc_c = s_face_c->jacobian_det_fc;
+
+		// Pressure (p) at face cubature (fc) nodes as an array
+		const double complex *p_fc_c_i = get_col_const_Multiarray_c(pv_fc_c->extents[1]-1,pv_fc_c);
+
+		// Cubature weights at the face cubature (fc) nodes
+		const struct const_Vector_d*const w_fc = get_operator__w_fc__s_e_c(s_face_c);
+
+		// The target values. s_values correspond to the location on the knot domain (xi coordinate)
+		// of the given target value and p_values stores the target pressure values.
+		double 	*target_s_values = get_col_Multiarray_d(0, functional_data.target_pressure_distribution),
+				*target_p_values = get_col_Multiarray_d(1, functional_data.target_pressure_distribution);
+		int num_target_values = (int) functional_data.target_pressure_distribution->extents[0];
+
+		double complex p_value;
+		double s_value, p_target_value, p1, p2, s1, s2;
+
+		if(eta_min_1_face){
+		for (int i = 0; i < n_fc; i++){
+
+			p_value = p_fc_c_i[i];
+			s_value = get_col_Multiarray_d(0, rst_knots_i)[i];
+
+			// Compute the target pressure at the ith cubature point using either interpolation or extrapolation
+			
+			if (target_s_values[0] > s_value){
+				// Extrapolation Case 1
+				
+				s1 = target_s_values[0];
+				p1 = target_p_values[0];
+
+				s2 = target_s_values[1];
+				p2 = target_p_values[1];
+
+			} else if(target_s_values[num_target_values-1] < s_value){
+				// Extrapolation Case 2
+
+				s1 = target_s_values[num_target_values-2];
+				p1 = target_p_values[num_target_values-2];
+
+				s2 = target_s_values[num_target_values-1];
+				p2 = target_p_values[num_target_values-1];
+
+			} else{
+				// Interpolation Case
+
+				for (int j = 0; j < num_target_values-1; j++){
+
+					if (target_s_values[j] < s_value && target_s_values[j+1] > s_value){
+						s1 = target_s_values[j];
+						p1 = target_p_values[j];
+
+						s2 = target_s_values[j+1];
+						p2 = target_p_values[j+1];
+
+						break;
+					}
+				}
+			}
+
+			p_target_value = (s_value - s1) * ((p2 - p1)/ (s2 - s1)) + p1;
+
+			inverse_pressure_design_functional_value += (p_value - p_target_value) * 
+				(p_value - p_target_value) * jac_det_fc_c->data[i] * w_fc->data[i];
+		}
+		}
+
+		// Free allocated memory
+		destructor_const_Multiarray_d(rst_i);
+		destructor_Multiarray_d(rst_knots_i);
+		destructor_const_Nodes(nodes_c);
+		destructor_const_Multiarray_c(pv_fc_c);
+	}
+
+	return inverse_pressure_design_functional_value;
 }
 
 
@@ -488,13 +852,75 @@ static struct Functional_Data get_functional_data(){
 				continue;
 
 			// Read specific functional data
-			if (strstr(line, "FUNCTIONAL_TARGET_CL_VALUE")) read_skip_d_1(line, 1, &functional_data.target_cl, 1);		
+			if (strstr(line, "FUNCTIONAL_TARGET_CL_VALUE")) read_skip_d_1(line, 1, &functional_data.target_cl, 1);
+			if (strstr(line, "FUNCTIONAL_INVERSE_PRESSURE_DESIGN_TARGET_FILE_ABS_PATH")) read_skip_c(line, functional_data.target_pressure_distribution_file_abs_path);		
 		}
-
+		
+		read_target_pressure_distribution_file(&functional_data);
 		fclose(input_file);
 	}
 
 	return functional_data;
+}
+
+
+static void read_target_pressure_distribution_file(struct Functional_Data *functional_data){
+
+	// If no file name was given, then there is no target pressure data to read
+	if(strlen(functional_data->target_pressure_distribution_file_abs_path) == 0)
+		return;
+
+	// A valid file name was given. Read the data and load it into the Functional_Data struct
+	FILE* fp;
+	if ((fp = fopen(functional_data->target_pressure_distribution_file_abs_path,"r")) == NULL)
+		printf("Error: Target Pressure Distribution file %s did not open.\n", 
+			functional_data->target_pressure_distribution_file_abs_path), exit(1);
+
+
+	char line[STRLEN_MAX];
+
+	// 1) Get the number of pts
+	int num_pts;
+	fgets(line,sizeof(line),fp);
+	sscanf(line, "%d", &num_pts);
+
+	// 2) Read the point data 
+	functional_data->target_pressure_distribution = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_pts,2});
+	double 	*s = get_col_Multiarray_d(0, functional_data->target_pressure_distribution),
+			*p = get_col_Multiarray_d(1, functional_data->target_pressure_distribution);
+
+
+	for(int i = 0; i < num_pts; i++){
+		fgets(line,sizeof(line),fp);
+		sscanf(line, "%lf %lf", &s[i],&p[i]);
+	}
+
+	// Sort the pressure distribution data according to the knot domain location
+	// Use an insertion sort
+
+	int i = 1;
+	int j;
+
+	while (i < num_pts){
+		j = i;
+		while (j > 0 && (s[j-1] > s[j])){
+
+			// Swap j and j-1
+			double 	temp_s = s[j],
+					temp_p = p[j];
+
+			s[j] = s[j-1];
+			p[j] = p[j-1];
+
+			s[j-1] = temp_s;
+			p[j-1] = temp_p;
+
+			j--;
+		}
+		i++;
+	}
+
+	fclose(fp);
 }
 
 

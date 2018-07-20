@@ -14,13 +14,11 @@
 // - optimizer_nlpqlp_abs_path: If the NLPQLP optimizer is chosen, the absolute
 //		path to the folder with the executable (named 'exec') that will interface with 
 //		NLPQLP must be given here
-//
-//Unconstrained_Inverse_Design_NACA0012_to_NACA4412_cases/ml2_P3_NURBS_Y_
 // =================================================================================
 
 optimizer_spec             NLPQLP
 optimizer_nlpqlp_abs_path  /Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/NLPQLP_Optimizer
-optimizer_output_files_prefix Constrained_Target_CL_cases/Functional_Convergence_NACA0012_Target_CL_0.25_P5/ml3_P2_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_
+optimizer_output_files_prefix Functional_Convergence/ml4_P3_NURBS_NSuper_
 
 
 // =================================================================================
@@ -34,7 +32,7 @@ optimizer_output_files_prefix Constrained_Target_CL_cases/Functional_Convergence
 //		pressure data
 // =================================================================================
 
-optimization_objective_function         FUNCTIONAL_TARGET_CL
+optimization_objective_function         FUNCTIONAL_INVERSE_PRESSURE_DESIGN
 
 
 // =================================================================================
@@ -61,17 +59,18 @@ optimization_objective_function         FUNCTIONAL_TARGET_CL
 //		a * ( f(x) + k ) >= 0, for constraint_type = 'e'
 //	can be specified. 
 //
+// constraint_functional    FUNCTIONAL_CM_LE
+// constraint_multiplier    1.0
+// constraint_shift         0.1255
+// constraint_type          e
+// constraint_functional    FUNCTIONAL_FRACTIONAL_CHANGE_MESH_VOLUME
+// constraint_multiplier    1.0
+// constraint_shift         -1.0
+// constraint_type          e
 // =================================================================================
 
-num_total_constraints    2
-constraint_functional    FUNCTIONAL_CM_LE
-constraint_multiplier    1.0
-constraint_shift         0.1255
-constraint_type          e
-constraint_functional    FUNCTIONAL_FRACTIONAL_CHANGE_MESH_VOLUME
-constraint_multiplier    1.0
-constraint_shift         -1.0
-constraint_type          e
+num_total_constraints    0
+
 
 
 // =================================================================================
@@ -115,7 +114,7 @@ max_norm_search_vector    5E-1
 // =================================================================================
 
 IOUT   6
-MAXIT  250
+MAXIT  500
 MAXFUN 10
 MAXNM  10
 LQL    1
@@ -142,7 +141,7 @@ RHO    0.0
 // FUNCTIONAL_CL,FUNCTIONAL_CM_LE,FUNCTIONAL_FRACTIONAL_CHANGE_MESH_VOLUME
 // =================================================================================
 
-output_progress_additional_parameters FUNCTIONAL_CL
+output_progress_additional_parameters
 
 // =================================================================================
 // 								Functional Options
@@ -172,6 +171,6 @@ output_progress_additional_parameters FUNCTIONAL_CL
 // =================================================================================
 
 FUNCTIONAL_TARGET_CL_VALUE                               0.25
-FUNCTIONAL_INVERSE_PRESSURE_DESIGN_TARGET_FILE_ABS_PATH  /Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/input/input_files/euler/steady/NURBS_Airfoil/Pressure_Distribution_NACA4412_ml2_p4.txt
+FUNCTIONAL_INVERSE_PRESSURE_DESIGN_TARGET_FILE_ABS_PATH  /Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/input/input_files/euler/steady/NURBS/ml4_P4_NURBS_Y_Pressure_Distribution.txt
 
 
