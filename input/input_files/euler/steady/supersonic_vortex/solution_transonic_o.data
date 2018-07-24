@@ -1,4 +1,4 @@
 /// Solution parameters for test case: euler/steady/supersonic_vortex
 
-m_i   2.25
-rho_i 1.0
+m_i   1.531261286907647  // Used r_i = 1.0, r_o = 1.384.
+rho_i 2.0

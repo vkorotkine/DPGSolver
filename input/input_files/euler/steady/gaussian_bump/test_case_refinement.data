@@ -5,7 +5,7 @@ geom_parametrization normal_proj
 solver_proc   implicit
 solver_type_i iterative
 lhs_terms     cfl_ramping
-cfl_initial   1e15
+cfl_initial   1e2
 
 num_flux_1st Roe-Pike
 test_norm    H0 H1_upwind
@@ -18,8 +18,10 @@ exit_ratio_i 1e-8
 display_progress 1
 output_restart   0
 use_restart      1
+use_restart_as_exact 0
 
 use_straight_internal_geometry 0
+use_exact_normals_for_all 0
 
 
 xyz_ve_refine:

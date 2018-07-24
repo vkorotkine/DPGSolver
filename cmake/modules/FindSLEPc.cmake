@@ -200,6 +200,7 @@ int main() {
   endif()
   mark_as_advanced(SLEPC_VERSION_OK)
 
+if (RUN_SLEPC_TESTS) # Tests cause compilation to be quite slow
   # Run SLEPc test program
   set(SLEPC_TEST_LIB_CPP
     "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/slepc_test_lib.cpp")
@@ -267,6 +268,11 @@ int main()
       message(STATUS "Performing test SLEPC_TEST_3RD_PARTY_LIBS_RUNS - Failed")
     endif()
   endif()
+else (RUN_SLEPC_TESTS)
+  message("Slepc not running tests for minimal includes as RUN_SLEPC_TESTS is set to: " ${RUN_SLEPC_TESTS})
+  message("Set the RUN_SLEPC_TESTS to true if there is a problem while running.")
+  set (petsc_includes_needed ${petsc_includes_all})
+endif (RUN_SLEPC_TESTS)
 endif()
 
 # Standard package handling

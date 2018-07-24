@@ -7,9 +7,11 @@ include_directories(${MKL_INCLUDE_DIRS})
 find_package(GSL 2.4 REQUIRED)
 include_directories(${GSL_INCLUDE_DIRS})
 
+set(RUN_PETSC_TESTS FALSE)
 find_package(PETSc 3.8 REQUIRED)
 include_directories(${PETSC_INCLUDES})
 
+set(RUN_SLEPC_TESTS FALSE)
 find_package(SLEPc 3.8 REQUIRED)
 include_directories(${SLEPC_INCLUDE_DIRS})
 

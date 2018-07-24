@@ -4,7 +4,7 @@ Pr  0.72
 r_s 1.0
 
 viscosity_type constant
-mu             1e-3
+mu             1e-0
 
 diabatic_flux_type constant_zero
 dTdn               0.0
