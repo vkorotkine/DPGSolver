@@ -65,6 +65,7 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 		break;
 	}
 
+#if 0
 	int bc_test_s_type = -1;
 	bool need_input = true;
 	if (need_input) {
@@ -72,7 +73,6 @@ void constructor_rlhs_f_test_penalty_advection_upwind_T
 		bc_test_s_type = read_bc_test_s_type_T();
 	}
 
-#if 0
 	/// \todo Likely remove this flexibility. BCs should always be applied on all outflow faces.
 	switch (bc_test_s_type) {
 	case BC_TEST_S_TYPE_ALL_OUTFLOW:

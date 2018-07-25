@@ -120,6 +120,11 @@ test_case->constructor_Error_CE = constructor_Error_CE_euler_entropy;
 		test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_T_euler_roe_pike;
 		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_T_euler_roe_pike_jacobian;
 		break;
+	case NUM_FLUX_LAX_FRIEDRICHS:
+		test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_T_euler_lax_friedrichs;
+		EXIT_ADD_SUPPORT;
+		/* test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian; */
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
 		break;

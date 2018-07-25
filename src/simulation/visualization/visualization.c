@@ -1033,7 +1033,7 @@ static void fprint_vtk_piece_sol_euler
 		names_p = names_e;
 		break;
 	} default:
-		EXIT_ERROR("Unsupported: ",type_out); break;
+		EXIT_ERROR("Unsupported: %c",type_out); break;
 	}
 
 	if (sp_type == 'p') {

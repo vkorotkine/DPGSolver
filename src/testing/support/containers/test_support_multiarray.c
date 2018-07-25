@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "test_support.h"
 #include "test_support_matrix.h"
@@ -259,10 +260,8 @@ bool diff_Multiarray_d (const struct Multiarray_d*const a, const struct Multiarr
 	if ((size != compute_size(b->order,b->extents)) || (a->layout != b->layout))
 		return true;
 
-	for (ptrdiff_t i = 0; i < size; ++i) {
-		if (!equal_d(a->data[i],b->data[i],tol))
-			return true;
-	}
+	if (norm_diff_d(size,a->data,b->data,"Inf") > tol)
+		return true;
 	return false;
 }
 
@@ -270,6 +269,24 @@ bool diff_const_Multiarray_d
 	(const struct const_Multiarray_d*const a, const struct const_Multiarray_d*const b, const double tol)
 {
 	return diff_Multiarray_d((struct Multiarray_d*)a,(struct Multiarray_d*)b,tol);
+}
+
+bool diff_no_rel_Multiarray_d (const struct Multiarray_d*const a, const struct Multiarray_d*const b, const double tol)
+{
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	if ((size != compute_size(b->order,b->extents)) || (a->layout != b->layout))
+		return true;
+
+	if (norm_diff_inf_no_rel_d(size,a->data,b->data) > tol)
+		return true;
+	return false;
+}
+
+bool diff_no_rel_const_Multiarray_d
+	(const struct const_Multiarray_d*const a, const struct const_Multiarray_d*const b, const double tol)
+{
+	return diff_no_rel_Multiarray_d((struct Multiarray_d*)a,(struct Multiarray_d*)b,tol);
 }
 
 bool diff_Multiarray_Matrix_d
@@ -342,9 +359,14 @@ void print_diff_Multiarray_d (const struct Multiarray_d*const a, const struct Mu
 	const double*const data_a = a->data,
 	            *const data_b = b->data;
 
+	double data_a_max = 0.0;
+	for (ptrdiff_t i = 0; i < size; ++i)
+		if (fabs(data_a[i]) > data_a_max)
+			data_a_max = fabs(data_a[i]);
+
 	double data[size];
 	for (ptrdiff_t i = 0; i < size; ++i)
-		data[i] = norm_diff_d(1,&data_a[i],&data_b[i],"Inf");
+		data[i] = fabs((data_a[i]-data_b[i])/data_a_max);
 
 	// Temporarily modify the data pointer to print the matrix of differences without constructing a new object.
 	double* data_ptr = a->data;
@@ -359,6 +381,41 @@ void print_diff_const_Multiarray_d
 	(const struct const_Multiarray_d*const a, const struct const_Multiarray_d*const b, const double tol)
 {
 	print_diff_Multiarray_d((const struct Multiarray_d*const)a,(const struct Multiarray_d*const)b,tol);
+}
+
+void print_diff_no_rel_Multiarray_d
+	(const struct Multiarray_d*const a, const struct Multiarray_d*const b, const double tol)
+{
+	const char layout    = a->layout;
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+
+	if ((size != compute_size(b->order,b->extents)) || (layout != b->layout)) {
+		printf("Attempting to compare Multiarrays of different size/layout (layouts: %c, %c):\n",layout,b->layout);
+		print_Multiarray_d_tol(a,tol);
+		print_Multiarray_d_tol(b,tol);
+		return;
+	}
+
+	const double*const data_a = a->data,
+	            *const data_b = b->data;
+
+	double data[size];
+	for (ptrdiff_t i = 0; i < size; ++i)
+		data[i] = fabs(data_a[i]-data_b[i]);
+
+	// Temporarily modify the data pointer to print the matrix of differences without constructing a new object.
+	double* data_ptr = a->data;
+
+	struct Multiarray_d* a_tmp = (struct Multiarray_d*) a;
+	a_tmp->data = data;
+	print_Multiarray_d_tol(a_tmp,tol);
+	a_tmp->data = data_ptr;
+}
+
+void print_diff_no_rel_const_Multiarray_d
+	(const struct const_Multiarray_d*const a, const struct const_Multiarray_d*const b, const double tol)
+{
+	print_diff_no_rel_Multiarray_d((const struct Multiarray_d*const)a,(const struct Multiarray_d*const)b,tol);
 }
 
 void print_diff_Multiarray_Matrix_d

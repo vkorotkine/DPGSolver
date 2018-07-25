@@ -389,6 +389,11 @@ static const struct const_Vector_d* constructor_w_detJ_face
 	(const struct Solver_Face*const s_face ///< \ref Solver_Face_T.
 	);
 
+/** \brief Return whether the error contribution of the internal volumes should be ignored in the global L2 error
+ *         computation.
+ *  \return See brief. */
+static bool ignore_internal_volume_error ( );
+
 static void destructor_Error_CE (struct Error_CE* error_ce)
 {
 	destructor_const_Vector_d(error_ce->sol_err);
@@ -411,12 +416,15 @@ static double compute_domain_volume (const struct Simulation* sim)
 static void increment_vol_errors_l2_2
 	(struct Vector_d* errors_l2_2, const struct const_Multiarray_d* err_v, const struct Solver_Volume* s_vol)
 {
+	const struct Volume*const vol = (struct Volume*) s_vol;
+	if (ignore_internal_volume_error() && !vol->boundary)
+		return;
+
 	assert(errors_l2_2->ext_0 == err_v->extents[1]);
 
 	const struct const_Vector_d* w_detJ = constructor_w_detJ(s_vol); // destructed
 	const ptrdiff_t ext_0 = w_detJ->ext_0;
 
-	EXIT; // try using only boundary volumes for the error computation.
 	const ptrdiff_t n_out = errors_l2_2->ext_0;
 	for (int i = 0; i < n_out; ++i) {
 		const double* err_data = get_col_const_Multiarray_d(i,err_v);
@@ -649,4 +657,20 @@ static const struct const_Vector_d* constructor_w_detJ_face (const struct Solver
 		w_detJ->data[i] = w_fc->data[i]*jacobian_det_fc.data[i];
 
 	return (const struct const_Vector_d*) w_detJ;
+}
+
+static bool ignore_internal_volume_error ( )
+{
+	static bool need_input  = true;
+	static bool ignore = false;
+	if (need_input) {
+		need_input = false;
+		char line[STRLEN_MAX];
+		FILE* input_file = input_file = fopen_input('t',NULL,NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line,"ignore_internal_volume_error")) read_skip_const_b(line,&ignore);
+		}
+		fclose(input_file);
+	}
+	return ignore;
 }

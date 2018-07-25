@@ -1,6 +1,7 @@
 set	(SOURCE
 	 test_integration.c
 	 test_integration_convergence_support.c
+	 test_integration_support_face.c
 	)
 
 set	(LIBS_DEPEND
@@ -62,6 +63,15 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_euler_2d" "integration/TEST_Eul
 #add_test_DPG_w_path(${BIN_PATH_3D} ${EXEC} "flux_euler_3d" "integration/TEST_Euler_Default_3d__ml0__p0")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_navier_stokes_2d" "integration/TEST_NavierStokes_Default_2d__ml0__p0") # TODO: Change this to use DPG such that Hessians are also tested.
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_navier_stokes_sutherland_2d" "integration/TEST_NavierStokes_Sutherland_2d__ml0__p0") # TODO: Change this to use DPG such that Hessians are also tested.
+
+set (EXEC test_integration_numerical_fluxes)
+set (LIBS_DEPEND Test_Base Test_Integration)
+add_executable(${EXEC} ${EXEC}.c)
+target_link_libraries(${EXEC} ${LIBS_DEPEND})
+add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "numerical_flux_advection_upwind_1d" "integration/numerical_fluxes/TEST_Advection_upwind_1d__ml1__p2")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "numerical_flux_advection_upwind_2d" "integration/numerical_fluxes/TEST_Advection_upwind_2d__ml1__p2")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "numerical_flux_euler_roe_pike_2d" "integration/numerical_fluxes/TEST_Euler_Roe_Pike_2d__ml1__p3")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "numerical_flux_euler_lax_friedrichs_2d" "integration/numerical_fluxes/TEST_Euler_Lax_Friedrichs_2d__ml1__p3")
 
 set (EXEC test_integration_boundary_conditions)
 set (LIBS_DEPEND Test_Base Test_Integration)

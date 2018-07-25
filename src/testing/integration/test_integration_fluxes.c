@@ -129,7 +129,7 @@ int main
 	assert(!compute_member[4]);
 	assert(!compute_member[5]);
 	bool pass        = false;
-	const double* tol = (double[]) { EPS, EPS, 2.0*EPS, EPS, };
+	const double* tol = (double[]) { EPS, 3.0*EPS, 2.0*EPS, EPS, };
 	const bool differences[] =
 		{ compute_member[0] ? diff_const_Multiarray_d(flux->f,      flux_cmplx_step->f,      tol[0]) : false,
 		  compute_member[1] ? diff_const_Multiarray_d(flux->df_ds,  flux_cmplx_step->df_ds,  tol[1]) : false,

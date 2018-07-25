@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define equal_T     equal_d
+#define equal_spec_rel_T equal_spec_rel_d
 #define norm_T      norm_d
 #define norm_R_from_T norm_d_from_d
 #define norm_diff_T norm_diff_d
@@ -60,6 +61,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define equal_T     equal_c
+#define equal_spec_rel_T equal_spec_rel_c
 #define norm_T      norm_c
 #define norm_R_from_T norm_d_from_c
 #define norm_diff_T norm_diff_c
@@ -87,6 +89,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define pow_R  pow
 
 #define equal_R     equal_d
+#define equal_spec_rel_R equal_spec_rel_d
 #define norm_R      norm_d
 #define norm_diff_R norm_diff_d
 #define dot_R       dot_d

@@ -33,10 +33,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 bool equal_T (const Type x0, const Type x1, const Real tol)
 {
+	return equal_spec_rel_T(x0,x1,tol,x0);
+}
+
+bool equal_spec_rel_T (const Type x0, const Type x1, const Real tol, const Type den)
+{
 #if TYPE_RC == TYPE_REAL
-	if ((fabs(x0) < tol && fabs(x0-x1) < tol) || (fabs((x0-x1)/x0) < tol))
+	if ((fabs(den) < tol && fabs(x0-x1) < tol) || (fabs((x0-x1)/den) < tol))
 #elif TYPE_RC == TYPE_COMPLEX
-	if (equal_R(creal(x0),creal(x1),tol) && equal_R(cimag(x0),cimag(x1),tol))
+	if (equal_spec_rel_R(creal(x0),creal(x1),tol,creal(den)) && equal_spec_rel_R(cimag(x0),cimag(x1),tol,cimag(den)))
 #endif
 		return true;
 	return false;

@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef log_T
 
 #undef equal_T
+#undef equal_spec_rel_T
 #undef norm_T
 #undef norm_R_from_T
 #undef norm_diff_T
@@ -46,6 +47,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef pow_R
 
 #undef equal_R
+#undef equal_spec_rel_R
 #undef norm_R
 #undef norm_diff_R
 #undef dot_R

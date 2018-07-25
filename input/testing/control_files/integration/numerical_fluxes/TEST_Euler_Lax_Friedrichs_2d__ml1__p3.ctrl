@@ -10,13 +10,13 @@ mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        tri
-mesh_level       0 4
+mesh_level       1 1
 mesh_path        ../meshes/
 
 
 # Simulation variables
 solution_extension  transonic_o
-test_case_extension inter_tol
+test_case_extension lax_friedrichs
 
 interp_tp  GLL
 interp_si  AO
@@ -32,10 +32,10 @@ geom_blending_si     szabo_babuska_gen
 p_ref    3 3
 p_cub_p  0 0
 
-fe_method 1
+method_name discontinuous_galerkin
 
 
 # Testing variables
 
-ml_range_test 0 4 // possibly requires start on ml 1 for p1
+ml_range_test 1 1
 p_range_test  3 3

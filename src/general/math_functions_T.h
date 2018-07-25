@@ -30,7 +30,16 @@ bool equal_T
 	(const Type x0, ///< Input 0.
 	 const Type x1, ///< Input 1.
 	 const Real tol ///< The tolerance.
-	);
+		);
+
+/** \brief Version of \ref equal_T without specified denominator for the relative norm.
+ *  \return See brief. */
+bool equal_spec_rel_T
+	(const Type x0,  ///< See brief.
+	 const Type x1,  ///< See brief.
+	 const Real tol, ///< See brief.
+	 const Type den  ///< The value of the denominator to be used for the relative norm.
+		);
 
 /** \brief Computes the norm of the input `Type*` data with the specified norm type.
  *  \return See brief. */

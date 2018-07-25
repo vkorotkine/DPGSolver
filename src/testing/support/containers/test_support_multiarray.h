@@ -108,7 +108,7 @@ bool diff_Multiarray_d
 	(const struct Multiarray_d*const a, ///< Input 0.
 	 const struct Multiarray_d*const b, ///< Input 1.
 	 const double tol                   ///< The tolerance.
-	);
+		);
 
 /** \brief `const` version of \ref diff_Multiarray_d.
  *  \return See brief. */
@@ -116,6 +116,22 @@ bool diff_const_Multiarray_d
 	(const struct const_Multiarray_d*const a, ///< Defined for \ref diff_Multiarray_d.
 	 const struct const_Multiarray_d*const b, ///< Defined for \ref diff_Multiarray_d.
 	 const double tol                         ///< Defined for \ref diff_Multiarray_d.
+		);
+
+/** \brief Version of \ref diff_Multiarray_d without the relative scaling in the norm.
+ *  \return See brief. */
+bool diff_no_rel_Multiarray_d
+	(const struct Multiarray_d*const a, ///< See brief.
+	 const struct Multiarray_d*const b, ///< See brief.
+	 const double tol                   ///< See brief.
+	);
+
+/** \brief `const` version of \ref diff_no_rel_Multiarray_d.
+ *  \return See brief. */
+bool diff_no_rel_const_Multiarray_d
+	(const struct const_Multiarray_d*const a, ///< See brief.
+	 const struct const_Multiarray_d*const b, ///< See brief.
+	 const double tol                         ///< See brief.
 	);
 
 /** \brief Check the relative difference between entries in the input \ref Multiarray_Matrix_T\*s up to the input
@@ -154,13 +170,27 @@ void print_diff_Multiarray_d
 	(const struct Multiarray_d*const a, ///< Input 0.
 	 const struct Multiarray_d*const b, ///< Input 1.
 	 const double tol                   ///< The tolerance.
-	);
+		);
 
 /// \brief `const` version of \ref print_diff_Multiarray_d.
 void print_diff_const_Multiarray_d
 	(const struct const_Multiarray_d*const a, ///< Input 0.
 	 const struct const_Multiarray_d*const b, ///< Input 1.
 	 const double tol                         ///< The tolerance.
+		);
+
+/// \brief Version of \ref print_diff_Multiarray_d with no relative scaling.
+void print_diff_no_rel_Multiarray_d
+	(const struct Multiarray_d*const a, ///< See brief.
+	 const struct Multiarray_d*const b, ///< See brief.
+	 const double tol                   ///< See brief.
+	);
+
+/// \brief `const` version of \ref print_diff_no_rel_Multiarray_d.
+void print_diff_no_rel_const_Multiarray_d
+	(const struct const_Multiarray_d*const a, ///< See brief.
+	 const struct const_Multiarray_d*const b, ///< See brief.
+	 const double tol                         ///< See brief.
 	);
 
 /** \brief Print the relative difference of the input \ref Multiarray_Matrix_T\*s, outputting 0 if less than the

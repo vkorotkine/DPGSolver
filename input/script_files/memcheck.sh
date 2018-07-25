@@ -36,6 +36,9 @@ ARGV="advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml0__p0 petsc_opti
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_inf_sup
 ARGV="advection/default/dg/TEST_advection_default_dg_line__p2 petsc_options_gmres_tol_1e-15"
 
+EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_numerical_fluxes
+ARGV="numerical_flux_euler_roe_pike_2d integration/numerical_fluxes/TEST_Euler_Lax_Friedrichs_2d__ml1__p3"
+
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"
 

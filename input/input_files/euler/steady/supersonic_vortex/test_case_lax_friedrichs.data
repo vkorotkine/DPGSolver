@@ -7,7 +7,7 @@ solver_type_i iterative
 lhs_terms     cfl_ramping
 cfl_initial   1e15
 
-num_flux_1st Roe-Pike
+num_flux_1st Lax-Friedrichs
 test_norm    H0 H1_upwind
 
 use_schur_complement 1
