@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \todo Clean-up.
  */
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <math.h>
@@ -43,6 +44,17 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NVAR NVAR_EULER ///< Number of variables.
 #define NVR  NVAR_EULER ///< Number of variables.
 
+/** \brief Compute the Jacobian of the maximum velocity used in the Lax-Friedrichs scheme wrt the solution variables.
+ *  \return See brief. */
+static const Type* compute_dmaxV_ds
+	(const Type rho_inv,  ///< Inverse density.
+	 const Type p,        ///< Pressure.
+	 const Type V2,       ///< Velocity magnitude squared.
+	 const Type V,        ///< Velocity magnitude.
+	 const Type c,        ///< Sound speed.
+	 const Type*const uvw ///< Velocity components.
+		);
+
 // Interface functions ********************************************************************************************** //
 
 void compute_Numerical_Flux_T_euler_lax_friedrichs
@@ -68,7 +80,8 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 	Type const *n_ptr = nL;
 
 	struct Flux_Input_T* flux_i = malloc(sizeof *flux_i); // free
-	flux_i->s = constructor_move_const_Multiarray_T_T('C',2,(ptrdiff_t[]){1,NEQ},false,NULL); // destructed
+	flux_i->compute_member = num_flux_i->flux_i->compute_member;
+	flux_i->s = constructor_move_const_Multiarray_T_T('C',2,(ptrdiff_t[]){1,NVR},false,NULL); // destructed
 
 	struct mutable_Flux_T flux;
 	flux.f = constructor_move_Multiarray_T_T('C',3,(ptrdiff_t[]){1,DIM,NEQ},false,NULL); // destructed
@@ -134,8 +147,8 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 			           n2 = *n_ptr++,
 			           n3 = *n_ptr++;
 
-			Type WLn[] = {rhoL, rhouL, rhovL, rhowL, EL},
-			     FLn[NEQ*DIM];
+			Type WLn[] = {rhoL, rhouL, rhovL, rhowL, EL};
+			Type FLn[NEQ*DIM] = { 0.0 };
 			const_cast_T1(&flux_i->s->data,WLn);
 			flux.f->data   = FLn;
 			compute_Flux_T_euler(flux_i,&flux);
@@ -144,8 +157,8 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 			           *FL2_ptr = FL1_ptr+1,
 			           *FL3_ptr = FL2_ptr+1;
 
-			Type WRn[] = {rhoR, rhouR, rhovR, rhowR, ER},
-			     FRn[NEQ*DIM];
+			Type WRn[] = {rhoR, rhouR, rhovR, rhowR, ER};
+			Type FRn[NEQ*DIM] = { 0.0 };
 			const_cast_T1(&flux_i->s->data,WRn);
 			flux.f->data   = FRn;
 			compute_Flux_T_euler(flux_i,&flux);
@@ -216,8 +229,8 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 			Type const n1 = *n_ptr++,
 			           n2 = *n_ptr++;
 
-			Type WLn[] = {rhoL, rhouL, rhovL, EL},
-			     FLn[NEQ*DIM];
+			Type WLn[] = {rhoL, rhouL, rhovL, EL};
+			Type FLn[NEQ*DIM] = { 0.0 };
 			const_cast_T1(&flux_i->s->data,WLn);
 			flux.f->data   = FLn;
 			compute_Flux_T_euler(flux_i,&flux);
@@ -225,8 +238,8 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 			Type const *FL1_ptr = FLn,
 			           *FL2_ptr = FL1_ptr+1;
 
-			Type WRn[] = {rhoR, rhouR, rhovR, ER},
-			     FRn[NEQ*DIM];
+			Type WRn[] = {rhoR, rhouR, rhovR, ER};
+			Type FRn[NEQ*DIM] = { 0.0 };
 			const_cast_T1(&flux_i->s->data,WRn);
 			flux.f->data   = FRn;
 			compute_Flux_T_euler(flux_i,&flux);
@@ -284,16 +297,16 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 
 			Type const n1 = *n_ptr++;
 
-			Type WLn[] = {rhoL, rhouL, EL},
-			     FLn[NEQ*DIM];
+			Type WLn[] = {rhoL, rhouL, EL};
+			Type FLn[NEQ*DIM] = { 0.0 };
 			const_cast_T1(&flux_i->s->data,WLn);
 			flux.f->data   = FLn;
 			compute_Flux_T_euler(flux_i,&flux);
 
 			Type const *FL1_ptr = FLn;
 
-			Type WRn[] = {rhoR, rhouR, ER},
-			     FRn[NEQ*DIM];
+			Type WRn[] = {rhoR, rhouR, ER};
+			Type FRn[NEQ*DIM] = { 0.0 };
 			const_cast_T1(&flux_i->s->data,WRn);
 			flux.f->data   = FRn;
 			compute_Flux_T_euler(flux_i,&flux);
@@ -330,7 +343,7 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian
 	                                         get_col_const_Multiarray_T(3,sR)),
 	          *const ER_p        = get_col_const_Multiarray_T(NVAR-1,sR);
 
-	const bool c_m = num_flux_i->flux_i->compute_member;
+	const bool*const c_m = num_flux_i->flux_i->compute_member;
 
 	assert(c_m[0]);
 	Type* nnf[NEQ] = { NULL };
@@ -339,6 +352,7 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian
 
 	assert(c_m[1]);
 	Type* dnnf_dsL[NEQ*NVR] = { NULL };
+	Type* dnnf_dsR[NEQ*NVR] = { NULL };
 	for (int vr = 0; vr < NVR; ++vr) {
 	for (int eq = 0; eq < NEQ; ++eq) {
 		const int ind = eq+NEQ*(vr);
@@ -348,14 +362,14 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian
 
 	assert(!c_m[3]); // Add support for Hessian terms if desired.
 
-	struct Flux_Input_T flux_i;
+	struct Flux_Input_T flux_i = { .compute_member = c_m, };
 	flux_i.s = constructor_move_const_Multiarray_T_T('C',2,(ptrdiff_t[]){1,NVR},false,NULL); // destructed
 
 	struct mutable_Flux_T flux;
 	flux.f     = constructor_move_Multiarray_T_T('C',3,(ptrdiff_t[]){1,DIM,NEQ},false,NULL);      // destructed
 	flux.df_ds = constructor_move_Multiarray_T_T('C',4,(ptrdiff_t[]){1,DIM,NEQ,NVAR},false,NULL); // destructed
 
-	const struct const_Multiarray_T*const nL_p = num_flux_i->bv_i->normals;
+	const struct const_Multiarray_T*const nL_p = num_flux_i->bv_l.normals;
 
 	const ptrdiff_t n_n = sL->extents[0];
 	for (ptrdiff_t n = 0; n < n_n; ++n) {
@@ -380,17 +394,19 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian
 		           cR        = sqrt_T(GAMMA*pR/rhoR);
 
 		const Type sL_n[] = ARRAY_VAR(rhoL, rhouvwL[0], rhouvwL[1], rhouvwL[2], EL);
-		const_cast_T1(&flux_i->s->data,sL_n);
+		const_cast_T1(&flux_i.s->data,sL_n);
 
-		Type fL_n[DIM*NEQ], dfL_dsL_n[DIM*NEQ*NVR];
+		Type fL_n[DIM*NEQ]          = {0.0};
+		Type dfL_dsL_n[DIM*NEQ*NVR] = {0.0};
 		flux.f->data     = fL_n;
 		flux.df_ds->data = dfL_dsL_n;
 		compute_Flux_T_euler(&flux_i,&flux);
 
 		const Type sR_n[] = ARRAY_VAR(rhoR, rhouvwR[0], rhouvwR[1], rhouvwR[2], ER);
-		const_cast_T1(&flux_i->s->data,sR_n);
+		const_cast_T1(&flux_i.s->data,sR_n);
 
-		Type fR_n[DIM*NEQ], dfR_dsR_n[DIM*NEQ*NVR];
+		Type fR_n[DIM*NEQ]          = {0.0};
+		Type dfR_dsR_n[DIM*NEQ*NVR] = {0.0};
 		flux.f->data     = fR_n;
 		flux.df_ds->data = dfR_dsR_n;
 		compute_Flux_T_euler(&flux_i,&flux);
@@ -399,10 +415,14 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian
 		Type const maxlL = VL+cL,
 		           maxlR = VR+cR;
 		Type maxV = 0.0;
-		if (real_T(maxlL) > real_T(maxlR))
+		bool use_left = true;
+		if (real_T(maxlL) > real_T(maxlR)) {
 			maxV = maxlL;
-		else
+			use_left = true;
+		} else {
 			maxV = maxlR;
+			use_left = false;
+		}
 
 		const Type*const nL = get_row_const_Multiarray_T(n,nL_p);
 
@@ -415,6 +435,10 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian
 			nnf[eq][n] *= 0.5;
 		}
 
+		const Type*const dmaxV_ds = ( use_left ?
+		                              compute_dmaxV_ds(rhoL_inv,pL,V2L,VL,cL,uvwL) :
+		                              compute_dmaxV_ds(rhoR_inv,pR,V2R,VR,cR,uvwR) );
+
 		for (int vr = 0; vr < NVR; ++vr) {
 		for (int eq = 0; eq < NEQ; ++eq) {
 			const int ind_dnnf = eq+NEQ*(vr);
@@ -423,13 +447,22 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian
 				dnnf_dsL[ind_dnnf][n] += nL[d]*(dfL_dsL_n[ind_f]);
 				dnnf_dsR[ind_dnnf][n] += nL[d]*(dfR_dsR_n[ind_f]);
 			}
-			/* nnf[eq][n] += maxV*(sL_n[eq]-sR_n[eq]); */
-			/* nnf[eq][n] *= 0.5; */
+
+			if (use_left)
+				dnnf_dsL[ind_dnnf][n] += dmaxV_ds[vr]*(sL_n[eq]-sR_n[eq]);
+			else
+				dnnf_dsR[ind_dnnf][n] += dmaxV_ds[vr]*(sL_n[eq]-sR_n[eq]);
+			if (vr == eq) {
+				dnnf_dsL[ind_dnnf][n] += maxV*(1.0);
+				dnnf_dsR[ind_dnnf][n] += maxV*(-1.0);
+			}
+
+			dnnf_dsL[ind_dnnf][n] *= 0.5;
+			dnnf_dsR[ind_dnnf][n] *= 0.5;
 		}}
-		EXIT_ADD_SUPPORT;
 	}
 
-	destructor_const_Multiarray_T(flux_i->s);
+	destructor_const_Multiarray_T(flux_i.s);
 	destructor_Multiarray_T(flux.f);
 	destructor_Multiarray_T(flux.df_ds);
 }
@@ -1616,6 +1649,31 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
+
+static const Type* compute_dmaxV_ds
+	(const Type rho_inv, const Type p, const Type V2, const Type V, const Type c, const Type*const uvw)
+{
+	static Type dmaxV_ds[NVR];
+
+	const Type drho_inv_ds[NVR] = ARRAY_VAR(-rho_inv*rho_inv, 0.0, 0.0, 0.0, 0.0 );
+	Type dp_ds[NVR]             = ARRAY_VAR(0.5*V2, -uvw[0], -uvw[1], -uvw[2], 1.0 );
+	for (int vr = 0; vr < NVR; ++vr)
+		dp_ds[vr] *= GM1;
+
+	const Type duvw_ds[NVR][DIM] = TENSOR_VAR_DIM( -uvw[0]*rho_inv, -uvw[1]*rho_inv, -uvw[2]*rho_inv,
+	                                               +rho_inv,         0.0,             0.0,
+	                                               +0.0,             rho_inv,         0.0,
+	                                               +0.0,             0.0,             rho_inv,
+	                                               +0.0,             0.0,             0.0 );
+	for (int vr = 0; vr < NVR; ++vr) {
+		dmaxV_ds[vr] = 0.0;
+		for (int d = 0; d < DIM; ++d)
+			dmaxV_ds[vr] += uvw[d]*duvw_ds[vr][d];
+		dmaxV_ds[vr] /= V;
+		dmaxV_ds[vr] += 0.5*GAMMA/c*(dp_ds[vr]*rho_inv+p*drho_inv_ds[vr]);
+	}
+	return dmaxV_ds;
+}
 
 #include "undef_templates_numerical_flux.h"
 

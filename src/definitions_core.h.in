@@ -43,6 +43,7 @@ You should have received a copy of the GNU General Public License along with DPG
 	#define ARRAY_DIM(a,b,c) { (a), }
 	#define TENSOR_DIM(a0,a1,a2,b0,b1,b2,c0,c1,c2) { {(a0),}, }
 	#define ARRAY_VAR(a,b,c,d,e) { (a), (b), (e), }
+	#define TENSOR_VAR_DIM(a0,a1,a2,b0,b1,b2,c0,c1,c2,d0,d1,d2,e0,e1,e2) { {(a0),}, {(b0),}, {(e0),}, }
 #elif DIM == 2
 	#define IF_DIM_GE_1(a) a
 	#define IF_DIM_GE_2(a) a
@@ -51,6 +52,7 @@ You should have received a copy of the GNU General Public License along with DPG
 	#define ARRAY_DIM(a,b,c) { (a), (b), }
 	#define TENSOR_DIM(a0,a1,a2,b0,b1,b2,c0,c1,c2) { {(a0),(a1),}, {(b0),(b1),}, }
 	#define ARRAY_VAR(a,b,c,d,e) { (a), (b), (c), (e), }
+	#define TENSOR_VAR_DIM(a0,a1,a2,b0,b1,b2,c0,c1,c2,d0,d1,d2,e0,e1,e2) { {(a0),(a1),}, {(b0),(b1),}, {(c0),(c1),}, {(e0),(e1),}, }
 #elif DIM == 3
 	#define IF_DIM_GE_1(a) a
 	#define IF_DIM_GE_2(a) a
@@ -59,6 +61,7 @@ You should have received a copy of the GNU General Public License along with DPG
 	#define ARRAY_DIM(a,b,c) { (a), (b), (c), }
 	#define TENSOR_DIM(a0,a1,a2,b0,b1,b2,c0,c1,c2) { {(a0),(a1),(a2),}, {(b0),(b1),(b2),}, {(c0),(c1),(c2),}, }
 	#define ARRAY_VAR(a,b,c,d,e) { (a), (b), (c), (d), (e), }
+	#define TENSOR_VAR_DIM(a0,a1,a2,b0,b1,b2,c0,c1,c2,d0,d1,d2,e0,e1,e2) { {(a0),(a1),(a2),}, {(b0),(b1),(b2),}, {(c0),(c1),(c2),}, {(d0),(d1),(d2),}, {(e0),(e1),(e2),}, }
 #endif
 ///\}
 

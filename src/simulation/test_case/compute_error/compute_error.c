@@ -404,12 +404,8 @@ static void destructor_Error_CE (struct Error_CE* error_ce)
 static double compute_domain_volume (const struct Simulation* sim)
 {
 	double domain_volume = 0.0;
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-//if(!((struct Volume*)curr)->boundary)
-//	continue;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
 		domain_volume += compute_volume((struct Solver_Volume*) curr);
-
-	}
 	return domain_volume;
 }
 

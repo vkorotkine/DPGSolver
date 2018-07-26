@@ -452,7 +452,7 @@ void print_diff_const_Multiarray_Matrix_d
 
 // Math functions *************************************************************************************************** //
 
-///\{ \name Seed for (not so) random number perturbation.
+///\{ \name Seed for **specific** random number perturbation.
 #define RAND_SEED 314
 ///\}
 

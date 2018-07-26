@@ -77,6 +77,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Numerical_Flux_T_central compute_Numerical_Flux_T_central
 #define compute_Numerical_Flux_T_central_jacobian compute_Numerical_Flux_T_central_jacobian
 #define set_Numerical_Flux_Energy_member set_Numerical_Flux_Energy_member
+#define compute_dmaxV_ds compute_dmaxV_ds_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -140,6 +141,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Numerical_Flux_T_central compute_Numerical_Flux_T_central_c
 #define compute_Numerical_Flux_T_central_jacobian compute_Numerical_Flux_T_central_jacobian_c
 #define set_Numerical_Flux_Energy_member set_Numerical_Flux_Energy_member_c
+#define compute_dmaxV_ds compute_dmaxV_ds_c
 ///\}
 
 #endif

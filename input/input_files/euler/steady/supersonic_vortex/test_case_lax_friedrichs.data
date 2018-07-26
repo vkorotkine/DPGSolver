@@ -12,9 +12,10 @@ test_norm    H0 H1_upwind
 
 use_schur_complement 1
 
-exit_tol_i   1e-11
+exit_tol_i   1e-14
 exit_ratio_i 1e-10
 
 ignore_internal_volume_error 0
+use_straight_internal_geometry 0
 
 display_progress 1

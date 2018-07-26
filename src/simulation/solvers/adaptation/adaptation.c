@@ -368,7 +368,9 @@ static void adapt_hp_volumes (struct Simulation* sim)
 {
 	update_hp_members_volumes(sim);
 	update_list_volumes(sim);
-	update_geometry_volumes(sim);
+	// Geometry update for volumes must be done after new faces have been defined as some functions rely on volumes
+	// having pointers to neighbouring faces.
+	/* update_geometry_volumes(sim); */
 	project_solution_volumes(sim);
 	update_index_volumes(sim);
 }
@@ -380,6 +382,7 @@ static void adapt_hp_faces (struct Simulation* sim)
 	project_solution_faces(sim);
 	update_volume_face_pointers(sim);
 	update_list_new_faces(sim);
+	update_geometry_volumes(sim); // See comment above for why volume geometry is corrected here.
 	update_geometry_faces(sim);
 	update_index_faces(sim);
 }

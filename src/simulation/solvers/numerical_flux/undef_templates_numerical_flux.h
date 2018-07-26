@@ -74,3 +74,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_Numerical_Flux_T_central
 #undef compute_Numerical_Flux_T_central_jacobian
 #undef set_Numerical_Flux_Energy_member
+#undef compute_dmaxV_ds

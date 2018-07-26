@@ -868,12 +868,9 @@ static void compute_geom_coef_parametric_T (const struct Simulation*const sim, s
 	s_vol->geom_coef = constructor_geom_coef_ho_T(xyz,s_vol,sim); // keep
 	destructor_const_Multiarray_T(xyz);
 
-	if (is_internal_geom_straight()) {
+	if (is_internal_geom_straight())
 		correct_face_xyz_straight_T(s_vol,sim);
-		// Note: correct_internal_xyz_blended_T already called in correct_face_xyz_straight_T.
-	} else {
-		correct_internal_xyz_blended_T(s_vol,sim);
-	}
+	correct_internal_xyz_blended_T(s_vol,sim);
 }
 
 // Level 2 ********************************************************************************************************** //
@@ -915,8 +912,6 @@ static void correct_face_xyz_straight_T (struct Solver_Volume_T*const s_vol, con
 		destructor_const_Multiarray_T(f_geom_coef_p1);
 		destructor_const_Vector_i(coef_inds);
 	}
-
-	correct_internal_xyz_blended_T(s_vol,sim);
 }
 
 // Level 3 ********************************************************************************************************** //

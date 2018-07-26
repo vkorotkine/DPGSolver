@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_integration_support_face.h"
 #include "test_support.h"
 #include "test_support_multiarray.h"
+#include "test_support_solve.h"
 
 #include "multiarray.h"
 
@@ -86,11 +87,13 @@ int main
 	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc],false); // destructed
 	((struct Test_Case_c*)sim[ind_rc]->test_case_rc->tc)->solver_method_curr = 'i';
 	struct Numerical_Flux_Input*const num_flux_i = constructor_Numerical_Flux_Input(sim[ind_rc]); // destructed
+	perturb_solution(sim[ind_rc]);
 
 	// complex
 	ind_rc = 1;
 	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc],false); // destructed
 	((struct Test_Case_c*)sim[ind_rc]->test_case_rc->tc)->solver_method_curr = 'e';
+	perturb_solution(sim[ind_rc]);
 
 	bool pass_all = true;
 	for (struct Intrusive_Link* curr_r = sim[0]->faces->first; curr_r; curr_r = curr_r->next) {
@@ -149,18 +152,13 @@ int main
 		if (!pass)
 			pass_all = false;
 #if 0
-if (!pass) {
 printf("info: %d %d %d %d %d %d\n",face_r->index,diffs[0],diffs[1],diffs[2],diffs[3],diffs[4]);
 printf("info: %d %d \n",face_r->boundary,face_r->bc);
-/* print_const_Multiarray_d(num_flux->nnf); */
-print_diff_no_rel_const_Multiarray_d(num_flux->nnf, num_flux_c->nnf, tol);
-print_diff_no_rel_const_Multiarray_d(ni[0].dnnf_ds,ni_c[0].dnnf_ds,tol);
 /* print_const_Multiarray_d(ni[0].dnnf_ds); */
 /* print_const_Multiarray_d(ni_c[0].dnnf_ds); */
-if (!bdry) print_diff_no_rel_const_Multiarray_d(ni[1].dnnf_ds,ni_c[1].dnnf_ds,tol);
+/* if (!bdry) print_diff_no_rel_const_Multiarray_d(ni[1].dnnf_ds,ni_c[1].dnnf_ds,tol); */
 /* if (!pass) */
-	/* EXIT_UNSUPPORTED; */
-}
+EXIT;
 #endif
 
 		destructor_Numerical_Flux_Input_data(num_flux_i);
