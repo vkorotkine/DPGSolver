@@ -116,7 +116,7 @@ struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_T (const str
 ptrdiff_t compute_dof_T (const struct Simulation* sim)
 {
 	assert((sim->method == METHOD_DG) || (sim->method == METHOD_DPG) || (sim->method == METHOD_OPG) ||
-	       (sim->method == METHOD_OPGC0));
+	       (sim->method == METHOD_OPGC0 || sim->method == METHOD_L2_PROJ));
 	ptrdiff_t dof = 0;
 	dof += compute_dof_volumes(sim);
 	dof += compute_dof_faces(sim);

@@ -36,7 +36,6 @@ struct OPG_Solver_Element {
 	const struct Multiarray_Operator* cv0_vg_vt[2]; ///< See notation in \ref element_operators.h.
 
 	// Face
-	const struct Multiarray_Operator* cv0_vt_fc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv1_vt_fc[2]; ///< See notation in \ref element_operators.h.
 
 	// Tensor-product sub-operators.

@@ -33,6 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_rlhs_dpg_fptr compute_rlhs_dpg_fptr
 #define S_Params_DPG S_Params_DPG
 #define Norm_DPG Norm_DPG
+#define Semi_Norm_DPG Semi_Norm_DPG
 #define set_s_params_dpg set_s_params_dpg
 #define set_idxm set_idxm
 #define add_to_rlhs__face_internal add_to_rlhs__face_internal
@@ -45,6 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_norm_DPG__h0 constructor_norm_DPG__h0
 #define constructor_norm_DPG__h1 constructor_norm_DPG__h1
 #define constructor_norm_DPG__h1_upwind constructor_norm_DPG__h1_upwind
+#define constructor_norm_DPG__adjoint constructor_norm_DPG__adjoint_d
 #define set_exact_normal_flux set_exact_normal_flux
 #define constructor_rhs_v_1 constructor_rhs_v_1
 #define increment_rhs_source increment_rhs_source
@@ -52,6 +54,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Norm_DPG destructor_Norm_DPG
 #define get_operator__ones_coef_vt get_operator__ones_coef_vt
 #define constructor_l_mult_M constructor_l_mult_M
+#define destructor_Semi_Norm_DPG destructor_Semi_Norm_DPG_d
+#define constructor_Semi_Norm_DPG_h1_upwind constructor_Semi_Norm_DPG_h1_upwind_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -71,6 +75,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_rlhs_dpg_fptr compute_rlhs_dpg_fptr_c
 #define S_Params_DPG S_Params_DPG_c
 #define Norm_DPG Norm_DPG_c
+#define Semi_Norm_DPG Semi_Norm_DPG_c
 #define set_s_params_dpg set_s_params_dpg_c
 #define set_idxm set_idxm_c
 #define add_to_rlhs__face_internal add_to_rlhs__face_internal_c
@@ -83,6 +88,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_norm_DPG__h0 constructor_norm_DPG__h0_c
 #define constructor_norm_DPG__h1 constructor_norm_DPG__h1_c
 #define constructor_norm_DPG__h1_upwind constructor_norm_DPG__h1_upwind_c
+#define constructor_norm_DPG__adjoint constructor_norm_DPG__adjoint_c
 #define set_exact_normal_flux set_exact_normal_flux_c
 #define constructor_rhs_v_1 constructor_rhs_v_1_c
 #define increment_rhs_source increment_rhs_source_c
@@ -90,6 +96,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define destructor_Norm_DPG destructor_Norm_DPG_c
 #define get_operator__ones_coef_vt get_operator__ones_coef_vt_c
 #define constructor_l_mult_M constructor_l_mult_M_c
+#define destructor_Semi_Norm_DPG destructor_Semi_Norm_DPG_c
+#define constructor_Semi_Norm_DPG_h1_upwind constructor_Semi_Norm_DPG_h1_upwind_c
 ///\}
 
 #endif

@@ -25,7 +25,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_solution.h"
 
+#include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
+#include "def_templates_vector.h"
 
 #include "def_templates_face_solver.h"
 #include "def_templates_volume_solver.h"
@@ -41,6 +43,12 @@ You should have received a copy of the GNU General Public License along with DPG
 /// \brief Set up the initial \ref Solver_Volume_T::sol_coef and \ref Solver_Volume_T::grad_coef.
 static void set_initial_v_sg_coef
 	(struct Simulation* sim ///< \ref Simulation.
+		);
+
+/** \brief Set up the initial \ref Solver_Volume_T::sol_coef and \ref Solver_Volume_T::grad_coef using L2 projections of
+ *  the exact solution. */
+static void set_initial_v_sg_coef_l2_proj
+	(const struct Simulation*const sim ///< Standard.
 	);
 
 /** \brief Set up the initial \ref Solver_Face_T::nf_coef.
@@ -133,6 +141,9 @@ void set_initial_solution_T (struct Simulation* sim)
 	case METHOD_OPGC0:
 		set_initial_v_test_sg_coef_T(sim);
 		set_initial_v_sg_coef(sim);
+		break;
+	case METHOD_L2_PROJ:
+		set_initial_v_sg_coef_l2_proj(sim);
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
@@ -405,10 +416,16 @@ static const struct const_Multiarray_T* constructor_n_dot_f
 	 const struct const_Multiarray_T* normals ///< The unit normals data.
 	);
 
+/// \brief Constructor for the coefficients determined from the l2 projection of the input.
+static struct Multiarray_T* constructor_coef_from_val_l2_proj
+	(const char sol_kind,                             ///< Indicator for the type of solution being computed.
+	 const struct Solution_Container_T*const sol_cont ///< Standard. Should contain values at cubature nodes.
+		);
+
 static void set_initial_v_sg_coef (struct Simulation* sim)
 {
 	struct Solution_Container_T sol_cont =
-		{ .ce_type = 'v', .cv_type = 'c', .node_kind = 0, .volume = NULL, .face = NULL, .sol = NULL, };
+	{ .ce_type = 'v', .cv_type = 'c', .node_kind = 0, .volume = NULL, .face = NULL, .sol = NULL, };
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
 
@@ -422,6 +439,36 @@ static void set_initial_v_sg_coef (struct Simulation* sim)
 		sol_cont.node_kind = 'r';
 		sol_cont.sol       = s_vol->grad_coef;
 		test_case->set_grad(sim,sol_cont);
+	}
+}
+
+static void set_initial_v_sg_coef_l2_proj (const struct Simulation*const sim)
+{
+	struct Solution_Container_T sol_cont =
+		{ .ce_type = 'v', .cv_type = 'v', .node_kind = 'c', .volume = NULL, .face = NULL, .sol = NULL, };
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) curr;
+
+		struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+		sol_cont.volume = s_vol;
+
+		struct Multiarray_T*const s_vc = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){0,0}); // dest.
+		sol_cont.sol = s_vc;
+		test_case->set_sol_start(sim,sol_cont);
+
+		destructor_Multiarray_T(s_vol->sol_coef);
+		s_vol->sol_coef = constructor_coef_from_val_l2_proj('s',&sol_cont); // keep
+		destructor_Multiarray_T(s_vc);
+
+		if (get_set_has_1st_2nd_order(NULL)[1]) {
+			struct Multiarray_T*const g_vc = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){0,0,0}); // d.
+			sol_cont.sol = g_vc;
+			test_case->set_grad(sim,sol_cont);
+
+			destructor_Multiarray_T(s_vol->grad_coef);
+			s_vol->grad_coef = constructor_coef_from_val_l2_proj('g',&sol_cont); // keep
+			destructor_Multiarray_T(g_vc);
+		}
 	}
 }
 
@@ -653,6 +700,64 @@ static const struct const_Multiarray_T* constructor_n_dot_f
 	return (struct const_Multiarray_T*) nf;
 }
 
+static struct Multiarray_T* constructor_coef_from_val_l2_proj
+	(const char sol_kind, const struct Solution_Container_T*const sol_cont)
+{
+	struct {
+		const struct const_Matrix_R* cv0_xX_xc;
+		const struct const_Vector_R* w_xc;
+		const struct const_Multiarray_T* j_xc;
+	} o;
+
+	const struct Solver_Volume_T*const s_vol  = sol_cont->volume;
+	const struct Solver_Face_T*const   s_face = sol_cont->face;
+	if (s_vol) {
+		assert(s_face == NULL);
+		switch (sol_kind) {
+		case 's':
+			o.cv0_xX_xc = get_operator__cv0_vs_vc_T(s_vol)->op_std;
+			o.w_xc      = get_operator__w_vc__s_e_T(s_vol);
+			o.j_xc      = s_vol->jacobian_det_vc;
+			break;
+		case 'g':
+			EXIT_ADD_SUPPORT;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %c\n",sol_cont->node_kind);
+			break;
+		}
+	} else {
+		assert(s_face);
+		assert(s_vol == NULL);
+		EXIT_ADD_SUPPORT;
+	}
+
+	const struct const_Vector_T j_xc = interpret_const_Multiarray_as_Vector_T(o.j_xc);
+	const struct const_Vector_T*const wj_xc = constructor_dot_mult_const_Vector_T_RT(1.0,o.w_xc,&j_xc,1); // dest.
+
+	const struct const_Matrix_R*const m_l = o.cv0_xX_xc;
+	const struct const_Matrix_T*const m_r = constructor_mm_diag_const_Matrix_R_T(1.0,m_l,wj_xc,'L',false); // dest.
+
+	const struct const_Matrix_T*const mass = constructor_mm_RT_const_Matrix_T('T','N',1.0,m_l,m_r,'R'); // dest.
+	destructor_const_Matrix_T(m_r);
+
+	const struct const_Matrix_T*const op_r = constructor_copy_const_Matrix_T_Matrix_R(m_l); // destructed
+	transpose_Matrix_T((struct Matrix_T*)op_r,false);
+
+	const struct const_Matrix_T*const op_l2 = constructor_sysv_const_Matrix_T(mass,op_r); // destructed.
+	destructor_const_Matrix_T(mass);
+	destructor_const_Matrix_T(op_r);
+
+	scale_Matrix_by_Vector_T('R',1.0,(struct Matrix_T*)op_l2,wj_xc,false);
+	destructor_const_Vector_T(wj_xc);
+
+	struct Multiarray_T*const coef_l2 =
+		constructor_mm_NN1C_Multiarray_TT(op_l2,(struct const_Multiarray_T*)sol_cont->sol); // returned.
+
+	destructor_const_Matrix_T(op_l2);
+	return coef_l2;
+}
+
 // Level 2 ********************************************************************************************************** //
 
 static const struct const_Multiarray_T* constructor_metrics_ff (const struct Solver_Face_T* s_face)
@@ -675,7 +780,9 @@ static const struct const_Multiarray_T* constructor_metrics_ff (const struct Sol
 
 #include "undef_templates_solution.h"
 
+#include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"
+#include "undef_templates_vector.h"
 
 #include "undef_templates_face_solver.h"
 #include "undef_templates_volume_solver.h"

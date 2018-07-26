@@ -173,6 +173,59 @@ const struct Operator* get_operator__cv0_vg_vs_T (const struct Solver_Volume_T*c
 	return get_Multiarray_Operator(e->cv0_vg_vs[curved],(ptrdiff_t[]){0,0,p,p_i});
 }
 
+const struct Operator* get_operator__cv0_vs_vc_T (const struct Solver_Volume_T* s_vol)
+{
+	const struct Volume* vol       = (struct Volume*) s_vol;
+	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref,
+	          curved = vol->curved;
+	return get_Multiarray_Operator(e->cv0_vs_vc[curved],(ptrdiff_t[]){0,0,p,p});
+}
+
+const struct Operator* get_operator__cv0_vt_vc_T (const struct Solver_Volume_T*const s_vol)
+{
+	const struct Volume*const vol       = (struct Volume*) s_vol;
+	const struct Solver_Element*const e = (struct Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref,
+	          curved = vol->curved;
+	return get_Multiarray_Operator(e->cv0_vt_vc[curved],(ptrdiff_t[]){0,0,p,p});
+}
+
+const struct Operator* get_operator__cv0_vr_vc_T (const struct Solver_Volume_T* s_vol)
+{
+	const struct Volume* vol       = (struct Volume*) s_vol;
+	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
+
+	const int p = s_vol->p_ref,
+	          curved = vol->curved;
+	return get_Multiarray_Operator(e->cv0_vr_vc[curved],(ptrdiff_t[]){0,0,p,p});
+}
+
+struct Multiarray_Operator get_operator__tw1_vt_vc_T (const struct Solver_Volume_T* s_vol)
+{
+	const struct Volume* vol       = (struct Volume*) s_vol;
+	const struct Solver_Element* e = (struct Solver_Element*) vol->element;
+
+	const int p      = s_vol->p_ref,
+	          curved = vol->curved;
+
+	return set_MO_from_MO(e->tw1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
+}
+
+struct Multiarray_Operator get_operator__cv1_vt_vc_T (const struct Solver_Volume_T*const s_vol)
+{
+	struct Volume* vol = (struct Volume*) s_vol;
+
+	const struct Solver_Element*const s_e = (struct Solver_Element*) vol->element;
+
+	const int p      = s_vol->p_ref,
+	          curved = vol->curved;
+
+	return set_MO_from_MO(s_e->cv1_vt_vc[curved],1,(ptrdiff_t[]){0,0,p,p});
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

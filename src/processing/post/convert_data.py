@@ -27,12 +27,12 @@ class Output_Info:
 		self.set_var_names()
 
 	def set_type_specific_data (self):
-		if (self.type in ["std","ivs_adv","ivs_euler_sv","ivs_euler_gb"]):
+		if (self.type in ["std","ivs_adv","ivs_euler_sv","ivs_euler_gb","adv_peterson","adv_man_1d"]):
 			self.format = "table"
 		else:
 			assert 0,"Unsupported: "+str(self.type)
 
-		if (self.type in ["ivs_adv","ivs_euler_sv","ivs_euler_gb"]):
+		if (self.type in ["ivs_adv","ivs_euler_sv","ivs_euler_gb","adv_peterson","adv_man_1d"]):
 			self.sub_index = 0
 
 	def set_var_names (self):
@@ -51,6 +51,12 @@ class Output_Info:
 			self.var_names = ["$L^2 (s)^{\\text{i}}$",
 			                  "$L^2 (s)^{\\text{s}}$",
 			                  "$L^2 (s)^{\\text{s}}_{\\bm{\\hat{n}_{ex}}}$",]
+		elif (self.type in ["adv_peterson","adv_man_1d"]):
+			self.var_names = ["$L^2 (u)_{L^2}$",
+			                  "$L^2 (u)_{\\text{OPG}}$",
+			                  "$L^2 (u)_{\\text{DPG} - H_b^1}$",
+			                  "$L^2 (u)_{\\text{DPG} - H_b^-}$",
+			                  "$L^2 (u)_{\\text{DG}}$",]
 
 class Input_Info:
 	"""Stores input data related information."""
@@ -80,6 +86,18 @@ class Input_Info:
 			self.rel_paths = ["euler_gaussian_bump_dg_2d_ar5_iso/",
 			                  "euler_gaussian_bump_dg_2d_ar5_super/",
 			                  "euler_gaussian_bump_dg_2d_ar5_super_exact_normals/",]
+		elif (self.type == "adv_peterson"):
+			self.rel_paths = ["peterson_l2/",
+			                  "peterson_opgc0/",
+			                  "peterson_dpg_h1_upwind/",
+			                  "peterson_dpg_adjoint/",
+			                  "peterson_dg/",]
+		elif (self.type == "adv_man_1d"):
+			self.rel_paths = ["manufactured_1d_l2/",
+			                  "manufactured_1d_opgc0/",
+			                  "manufactured_1d_dpg_h1_upwind/",
+			                  "manufactured_1d_dpg_adjoint/",
+			                  "manufactured_1d_dg/",]
 		else:
 			assert 0,"Unsupported: "+str(self.type)
 
@@ -176,7 +194,7 @@ def assign_block(A,cases_run,f):
 				A[i,j] = vals_d[j]
 				j2 += 1
 
-def write_std_tables(f,data_i,output):
+def write_std_tables(f,data_i,output,type_out):
 	"""Write output to std latex table format."""
 
 	for n in range(0,len(data_i)):
@@ -195,28 +213,43 @@ def write_std_tables(f,data_i,output):
 		f_write(f,0,'\\begin{table}[!ht]')
 #		f_write(f,0,'\\begin{table}[!htbp]') # Include additional table placement options
 		f_write(f,0,'\\begin{center}')
-		string  = '\\caption{Errors and Convergence Orders - '
+		string = ''
+		if   (type_out == 'a'): string += '\\caption{Errors and Convergence Orders - '
+		elif (type_out == 'e'): string += '\\caption{Errors - '
+		elif (type_out == 'c'): string += '\\caption{Convergence Orders - '
 		string += "{\\color{red} " + "TODO Mesh Type" + "}" + " Meshes "
 		string += " {\\color{red} " + "TODO Data Type" + '}}'
 		f_write(f,0,string)
 		f_write(f,0,'\\resizebox{\\textwidth}{!}{')
 
 		string = '\\begin{tabular}{| l | c | '
-		for k in range(0,n_vars): string += 'c '
-		string += '| '
-		for k in range(0,n_vars): string += 'c '
-		string += '| }'
+		if (type_out in ['a','e']):
+			for k in range(0,n_vars): string += 'c '
+			string += '| '
+		if (type_out in ['a','c']):
+			for k in range(0,n_vars): string += 'c '
+			string += '| '
+		string += '}'
 		f_write(f,0,string)
 		f_write(f,1,'\\hline')
 
-		string  = '\\multicolumn{2}{|c|}{} & \\multicolumn{' + '{:d}'.format(n_vars) + '}{c|}{$L^2$ Error} & '
-		string +=                           '\\multicolumn{' + '{:d}'.format(n_vars) + '}{c|}{Conv. Order} \\\\'
+
+		string  = '\\multicolumn{2}{|c|}{} & '
+		if (type_out in ['a','e']):
+			string += '\\multicolumn{' + '{:d}'.format(n_vars) + '}{c|}{$L^2$ Error} '
+		if (type_out == 'a'):
+			string += '& '
+		if (type_out in ['a','c']):
+			string += '\\multicolumn{' + '{:d}'.format(n_vars) + '}{c|}{Conv. Order} '
+		string += '\\\\'
 		f_write(f,1,string)
 		f_write(f,1,'\\hline')
 
 		string = 'Order ($p$) & Mesh Size ($h$) '
-		for k in range(n_vars): string += '& ' + var_names[k].replace("L^2-","") + ' '
-		for k in range(n_vars): string += '& ' + var_names[k].replace("L^2-","") + ' '
+		if (type_out in ['a','e']):
+			for k in range(n_vars): string += '& ' + var_names[k].replace("L^2-","") + ' '
+		if (type_out in ['a','c']):
+			for k in range(n_vars): string += '& ' + var_names[k].replace("L^2-","") + ' '
 		string += '\\\\'
 		f_write(f,1,string)
 		f_write(f,1,'\\hline')
@@ -241,12 +274,14 @@ def write_std_tables(f,data_i,output):
 					n_tabs = 0
 
 				string += '& ' + '{:.2e}'.format(h[i,j]) + ' '
-				for k in range(0,n_vars):
-					val_str = '{:.2e}'.format(l2_errors[i,j,k]) if not l2_errors[i,j,k] == -float('inf') else '-   '
-					string += '& ' + val_str + ' '
-				for k in range(0,n_vars):
-					val_str = '{:2.2f}'.format(conv_orders[i,j,k]) if conv_orders[i,j,k] > 0.0 else '-   '
-					string += '& ' + val_str + ' '
+				if (type_out in ['a','e']):
+					for k in range(0,n_vars):
+						val_str = '{:.2e}'.format(l2_errors[i,j,k]) if not l2_errors[i,j,k] == -float('inf') else '-   '
+						string += '& ' + val_str + ' '
+				if (type_out in ['a','c']):
+					for k in range(0,n_vars):
+						val_str = '{:2.2f}'.format(conv_orders[i,j,k]) if conv_orders[i,j,k] > 0.0 else '-   '
+						string += '& ' + val_str + ' '
 				string += '\\\\'
 				f_write(f,n_tabs,string)
 				wrote_first_line = True
@@ -320,7 +355,7 @@ def get_data_o (input_i,output_i):
 
 	if (output_i.type == "std"):
 		return input_i.data
-	elif (output_i.type in ["ivs_adv","ivs_euler_sv","ivs_euler_gb",]):
+	elif (output_i.type in ["ivs_adv","ivs_euler_sv","ivs_euler_gb","adv_peterson","adv_man_1d"]):
 		data_i = input_i.data
 
 		n_out  = len(data_i)
@@ -349,12 +384,22 @@ def get_data_o (input_i,output_i):
 		data_o[0].conv_orders = conv_orders
 
 		return data_o
+	else:
+		assert 0,"Unsupported: "+str(output_i.format)
 
 def output_data (output_i,input_i):
 	data_o = get_data_o(input_i,output_i)
 	if (output_i.format == "table"):
 		f = open(output_i.root_path+"latex_tables.txt",'w')
-		write_std_tables(f,data_o,output_i)
+		write_std_tables(f,data_o,output_i,'a')
+		f.close()
+
+		f = open(output_i.root_path+"latex_tables_conv_only.txt",'w')
+		write_std_tables(f,data_o,output_i,'c')
+		f.close()
+
+		f = open(output_i.root_path+"latex_tables_err_only.txt",'w')
+		write_std_tables(f,data_o,output_i,'e')
 		f.close()
 	else:
 		assert 0,"Unsupported: "+str(output_i.format)
@@ -378,10 +423,12 @@ if __name__ == '__main__':
 	Command line arguments:
 	1. Path to the ROOT directory containing error data files.
 	2. The error data file type to be processed. Options:
-		- std:          generate data for a single data file.
-		- ivs_adv:      'i'soparametric 'v's. 's'uperparametric linear advection case data.
-		- ivs_euler_sv: 'i'soparametric 'v's. 's'uperparametric euler ('s'upersonic 'v'ortex)
-		- ivs_euler_gb: 'i'soparametric 'v's. 's'uperparametric euler ('g'aussian 'b'ump)
+	- std:          generate data for a single data file.
+	- ivs_adv:      'i'soparametric 'v's. 's'uperparametric linear advection case data.
+	- ivs_euler_sv: 'i'soparametric 'v's. 's'uperparametric euler ('s'upersonic 'v'ortex)
+	- ivs_euler_gb: 'i'soparametric 'v's. 's'uperparametric euler ('g'aussian 'b'ump)
+	- adv_peterson: Linear "Adv"ection "Peterson" test case.
+	- adv_man_1d:   Linear "Adv"ection 1d "Man"ufacture test case.
 	"""
 
 	assert len(sys.argv) == 3,"\nIncorrect number of inputs. Should be:\n"\

@@ -778,11 +778,9 @@ static void project_solution_volumes (struct Simulation* sim)
 	}
 
 	switch (get_set_method(NULL)) {
-	case METHOD_DG:  // fallthrough
-	case METHOD_DPG:
+	case METHOD_DG: case METHOD_DPG: case METHOD_L2_PROJ:
 		break; // Do nothing.
-	case METHOD_OPG: // fallthrough
-	case METHOD_OPGC0:
+	case METHOD_OPG: case METHOD_OPGC0:
 		set_initial_v_test_sg_coef(sim);
 		break;
 	default:
@@ -1259,6 +1257,7 @@ static void compute_projection_p_volume (struct Adaptive_Solver_Volume* a_s_vol,
 	} case METHOD_DPG: // fallthrough
 	case METHOD_OPG: // fallthrough
 	case METHOD_OPGC0:
+	case METHOD_L2_PROJ:
 		if (compute_size(g_coef_p->order,g_coef_p->extents) != 0)
 			EXIT_ADD_SUPPORT; // Project as for the solution.
 		break;
@@ -1337,7 +1336,7 @@ static void compute_projection_p_face (struct Adaptive_Solver_Face* a_s_face, co
 
 	const struct Multiarray_d*const s_coef_p = s_face->s_coef;
 	switch (sim->method) {
-	case METHOD_DG:
+	case METHOD_DG: case METHOD_L2_PROJ:
 		break; // Do nothing.
 	case METHOD_DPG: // fallthrough
 	case METHOD_OPG: // fallthrough
@@ -2126,7 +2125,7 @@ static void constructor_Solver_Face_i_new
 	set_function_pointers_face_num_flux(s_face,sim);
 
 	switch (sim->method) {
-	case METHOD_DG:
+	case METHOD_DG: case METHOD_L2_PROJ:
 		break; // do nothing.
 	case METHOD_DPG: // fallthrough
 	case METHOD_OPG:

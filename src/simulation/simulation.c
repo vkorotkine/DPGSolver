@@ -465,6 +465,10 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 
 	assert((sim->method == METHOD_DPG) || (sim->method == METHOD_OPG) || (sim->method == METHOD_OPGC0) ||
 	       (sim->p_t_p[0] == P_INVALID && sim->p_t_p[1] == P_INVALID));
+
+	// If the condition below is violated, L2 projecting will give zero error in several cases (related to the
+	// strength of the cubature rules).
+	assert((sim->method != METHOD_L2_PROJ) || sim->p_c_p[0] > 0 || sim->p_c_x[0] > 2);
 }
 
 static void set_simulation_default (struct Simulation*const sim)

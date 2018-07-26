@@ -231,6 +231,8 @@ static void set_method_related (struct Test_Case_T*const test_case, const struct
 		if (get_set_has_1st_2nd_order(NULL)[1])
 			EXIT_ADD_SUPPORT;
 		break;
+	case METHOD_L2_PROJ:
+		break; // Do nothing.
 	default:
 		EXIT_ERROR("Unsupported: %d.",sim->method);
 		break;
@@ -310,6 +312,7 @@ static void correct_invalid_test_case_parameters (struct Test_Case_T* test_case,
 		const_cast_b(&test_case->use_schur_complement,false);
 		break;
 	case METHOD_DPG:
+	case METHOD_L2_PROJ:
 		break; // Do nothing.
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
@@ -478,6 +481,9 @@ static void set_function_pointers_start (struct Test_Case_T*const test_case)
 		test_case->set_sol_start         = set_sol_restart_T;
 		test_case->constructor_sol_start = constructor_const_sol_restart_T;
 	}
+
+	if (get_set_method(NULL) == METHOD_L2_PROJ)
+		const_cast_b(&test_case->copy_initial_rhs,false);
 }
 
 #include "undef_templates_test_case.h"

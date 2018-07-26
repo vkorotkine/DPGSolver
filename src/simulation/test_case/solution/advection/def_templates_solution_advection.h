@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_function_pointers_solution_advection_T set_function_pointers_solution_advection_d
 #define get_sol_data_advection_T get_sol_data_advection_d
 #define read_data_advection_T read_data_advection_d
+#define constructor_b_adv_T constructor_b_adv_d
 #define compute_b_adv_constant_T compute_b_adv_constant_d
 #define compute_b_adv_vortex_T compute_b_adv_vortex_d
 ///\}
@@ -47,6 +48,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_function_pointers_solution_advection_T set_function_pointers_solution_advection_c
 #define get_sol_data_advection_T get_sol_data_advection_c
 #define read_data_advection_T read_data_advection_c
+#define constructor_b_adv_T constructor_b_adv_c
 #define compute_b_adv_constant_T compute_b_adv_constant_c
 #define compute_b_adv_vortex_T compute_b_adv_vortex_c
 ///\}

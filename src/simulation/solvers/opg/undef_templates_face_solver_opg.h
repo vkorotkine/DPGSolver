@@ -29,7 +29,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_derived_OPG_Solver_Face_T
 #undef destructor_derived_OPG_Solver_Face_T
 
-#undef get_operator__cv0_vt_fc_T
 #undef get_operator__cv1_vt_fc_T
 ///\}
 

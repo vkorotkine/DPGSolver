@@ -18,11 +18,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_solution_advection.h"
 #include "def_templates_test_case.h"
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
 
 #include <stdbool.h>
 
 struct Test_Case_T;
 struct Simulation;
+struct const_Multiarray_T;
+struct Matrix_R;
 
 /** \brief Function pointer to linear Advection velocity vector computing functions.
  *  \return An array holding the values of the vector at the given input nodes.
@@ -58,6 +62,13 @@ void read_data_advection_T
 	(struct Sol_Data__Advection_T*const sol_data ///< \ref Sol_Data__Advection_T.
 	);
 
+/** \brief Constructor for a real \ref Matrix_T\* holding the values of the advection velocity at input coordinates.
+ *  \return See brief. */
+const struct const_Matrix_R* constructor_b_adv_T
+	(const struct Sol_Data__Advection_T*const sol_data, ///< Standard.
+	 const struct const_Multiarray_T*const xyz          ///< Input xyz coordinates.
+		);
+
 /** \brief Version of \ref compute_b_adv_fptr_T for constant advection velocity throughout the domain.
  *  \return See brief. */
 const Real* compute_b_adv_constant_T
@@ -73,3 +84,5 @@ const Real* compute_b_adv_vortex_T
 
 #include "undef_templates_solution_advection.h"
 #include "undef_templates_test_case.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"

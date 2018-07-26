@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_function_pointers_solution_advection_T
 #undef get_sol_data_advection_T
 #undef read_data_advection_T
+#undef constructor_b_adv_T
 #undef compute_b_adv_constant_T
 #undef compute_b_adv_vortex_T
 

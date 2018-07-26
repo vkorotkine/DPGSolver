@@ -118,11 +118,9 @@ static void constructor_derived_Solution_Element_std (struct Element* element_pt
 	e->vc0_vr_vr    = constructor_operators("vc0","vrA","vrA","H_1_P_PM0",b_e,sim); // destructed
 
 	switch (sim->method) {
-	case METHOD_DG: // fallthrough
-	case METHOD_OPGC0:
+	case METHOD_DG: case METHOD_OPGC0: case METHOD_L2_PROJ:
 		break; // Do nothing.
-	case METHOD_DPG: // fallthrough
-	case METHOD_OPG:
+	case METHOD_DPG: case METHOD_OPG:
 		e->cv0_vg_ff[0] = constructor_operators("cv0","vgs","ffA","H_1_P_1PPM1",b_e,sim); // destructed
 		e->cv0_vg_ff[1] = constructor_operators("cv0","vgc","ffA","H_1_P_PM1",  b_e,sim); // destructed
 		e->vv0_vm_ff[0] = constructor_operators("vv0","vms","ffA","H_1_P_1PPM1",b_e,sim); // destructed
@@ -231,11 +229,9 @@ static void constructor_derived_Solution_Element_common (struct Element* element
 	e->w_vc[1] = constructor_operators_w("vcc","vcc","H_1_P_PM0",sim->p_s_v,b_e,sim); // destructed
 
 	switch (sim->method) {
-	case METHOD_DG: // fallthrough
-	case METHOD_OPGC0:
+	case METHOD_DG: case METHOD_OPGC0: case METHOD_L2_PROJ:
 		break; // Do nothing.
-	case METHOD_DPG: // fallthrough
-	case METHOD_OPG:
+	case METHOD_DPG: case METHOD_OPG:
 		e->vc0_ff_ff = constructor_operators("vc0","ffA","ffA","H_1_P_PM0",b_e,sim); // destructed
 		break;
 	default:

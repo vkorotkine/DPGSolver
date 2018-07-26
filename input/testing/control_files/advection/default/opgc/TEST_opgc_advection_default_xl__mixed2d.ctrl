@@ -38,5 +38,5 @@ method_name optimal_petrov_galerkin_c0
 
 # Testing variables
 
-ml_range_test 0 3
+ml_range_test 0 2
 p_range_test  1 3

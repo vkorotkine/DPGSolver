@@ -63,6 +63,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_normals_ff constructor_normals_ff
 #define constructor_n_dot_f constructor_n_dot_f
 #define constructor_metrics_ff constructor_metrics_ff
+#define set_initial_v_sg_coef_l2_proj set_initial_v_sg_coef_l2_proj_d
+#define constructor_coef_from_val_l2_proj constructor_coef_from_val_l2_proj_d
 ///\}
 
 ///\{ \name Function names (pde specific)
@@ -120,6 +122,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_normals_ff constructor_normals_ff_c
 #define constructor_n_dot_f constructor_n_dot_f_c
 #define constructor_metrics_ff constructor_metrics_ff_c
+#define set_initial_v_sg_coef_l2_proj set_initial_v_sg_coef_l2_proj_c
+#define constructor_coef_from_val_l2_proj constructor_coef_from_val_l2_proj_c
 ///\}
 
 #endif

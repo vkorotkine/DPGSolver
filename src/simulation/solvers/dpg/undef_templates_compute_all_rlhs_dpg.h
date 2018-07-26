@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_rlhs_dpg_fptr
 #undef S_Params_DPG
 #undef Norm_DPG
+#undef Semi_Norm_DPG
 #undef set_s_params_dpg
 #undef set_idxm
 #undef add_to_rlhs__face_internal
@@ -40,6 +41,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_norm_DPG__h0
 #undef constructor_norm_DPG__h1
 #undef constructor_norm_DPG__h1_upwind
+#undef constructor_norm_DPG__adjoint
 #undef set_exact_normal_flux
 #undef constructor_rhs_v_1
 #undef increment_rhs_source
@@ -47,3 +49,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef destructor_Norm_DPG
 #undef get_operator__ones_coef_vt
 #undef constructor_l_mult_M
+#undef destructor_Semi_Norm_DPG
+#undef constructor_Semi_Norm_DPG_h1_upwind

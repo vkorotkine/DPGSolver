@@ -5,8 +5,7 @@ solver_type_e forward_euler
 solver_type_i direct
 
 num_flux_1st upwind
-test_norm    H0
-bc_test_s_type all_outflow
+test_norm    H1_upwind
 
 time_step  0.0125
 time_final 10.0

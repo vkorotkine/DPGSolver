@@ -19,8 +19,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "definitions_test_case.h"
 
-#include "multiarray.h"
 #include "matrix.h"
+#include "multiarray.h"
+#include "vector.h"
 
 #include "computational_elements.h"
 #include "face_solver.h"

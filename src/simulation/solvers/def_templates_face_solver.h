@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_function_pointers_face_num_flux_T set_function_pointers_face_num_flux
 #define get_operator__w_fc__s_e_T             get_operator__w_fc__s_e
 #define constructor_mass_face_T constructor_mass_face_d
+#define get_operator__cv0_vt_fc_T get_operator__cv0_vt_fc_d
 ///\}
 
 ///\{ \name Static names
@@ -51,6 +52,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_function_pointers_face_num_flux_T set_function_pointers_face_num_flux_c
 #define get_operator__w_fc__s_e_T             get_operator__w_fc__s_e_c
 #define constructor_mass_face_T constructor_mass_face_c
+#define get_operator__cv0_vt_fc_T get_operator__cv0_vt_fc_c
 ///\}
 
 ///\{ \name Static names
