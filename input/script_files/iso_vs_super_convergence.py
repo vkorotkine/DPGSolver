@@ -73,8 +73,19 @@ def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming,exact_nor
 		assert (non_conforming == False),"Add support."
 
 	if (ar_val == 1.0):
-		ctrl_spec   = ["ar1_iso", "ar1_super", ]
-		ctrl_matrix = ["p1-1", "p2-3", ]
+		# ctrl_spec   = ["ar1_iso", "ar1_super", ]
+		# ctrl_matrix = ["p1-1", "p2-3", ]
+		# execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
+
+		# ctrl_spec   = ["ar1_iso_transonic_i", "ar1_iso_transonic_mid_low", "ar1_iso_transonic_mid_high"]
+		# ctrl_matrix = ["p3-3", ]
+		# execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
+
+		# ctrl_spec   = ["ar1_iso_transonic_o", "ar1_iso_transonic_o_boundary_only", "ar1_super_transonic_o"]
+		ctrl_spec   = ["ar1_iso_transonic_o"]
+		ctrl_matrix = ["p1-3", ]
+		execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
+		return
 	elif (ar_val == 2.5):
 		ctrl_spec   = ["ar2-5_iso", "ar2-5_super", ]
 		ctrl_matrix = ["p2-3", ]
@@ -192,7 +203,7 @@ if __name__ == "__main__":
 		run_diffusion_default(clp)
 
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar1" in jobs_name):
-		run_euler_supersonic_vortex(clp,1.0,False)
+		run_euler_supersonic_vortex(clp,1.0,False,False)
 	if (jobs_name == "all" or "euler_supersonic_vortex_ar2-5" in jobs_name):
 		run_euler_supersonic_vortex(clp,2.5,False)
 	if (jobs_name == "all" or jobs_name == "all_paper" or "euler_supersonic_vortex_ar5" in jobs_name):

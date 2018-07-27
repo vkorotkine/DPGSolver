@@ -1,0 +1,4 @@
+/// Solution parameters for test case: euler/steady/supersonic_vortex
+
+m_i   5.0
+rho_i 2.0

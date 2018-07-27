@@ -1024,7 +1024,7 @@ static void fprint_vtk_piece_sol_euler
 	const char*const * names_p = NULL;
 	switch (type_out) {
 	case 's': {
-		static const char*const names_s[] = {"$\\rho$","$\\mathbf{v}$","$p$"};
+		static const char*const names_s[] = {"$\\rho$","$\\mathbf{v}$","$\\mathit{p}$"};
 		names_p = names_s;
 		break;
 	} case 'e': {
@@ -1041,7 +1041,7 @@ static void fprint_vtk_piece_sol_euler
 		fprint_vtk_DataArray_d(file,sp_type,names_p[1],NULL,false,'v');
 		fprint_vtk_DataArray_d(file,sp_type,names_p[2],NULL,false,'s');
 		if (type_out == 's') {
-			fprint_vtk_DataArray_d(file,sp_type,"$s$",NULL,false,'s');
+			fprint_vtk_DataArray_d(file,sp_type,"$\\mathit{s}$",NULL,false,'s');
 			fprint_vtk_DataArray_d(file,sp_type,"mach",NULL,false,'s');
 		}
 	} else if (sp_type == 's') {
@@ -1070,7 +1070,7 @@ static void fprint_vtk_piece_sol_euler
 			// Additional variables
 			var->extents[1] = 1;
 			compute_entropy(var,sol,'p');
-			fprint_vtk_DataArray_d(file,sp_type,"$s$",(struct const_Multiarray_d*)var,false,'s');
+			fprint_vtk_DataArray_d(file,sp_type,"$\\mathit{s}$",(struct const_Multiarray_d*)var,false,'s');
 
 			compute_mach(var,sol,'p');
 			fprint_vtk_DataArray_d(file,sp_type,"mach",(struct const_Multiarray_d*)var,false,'s');

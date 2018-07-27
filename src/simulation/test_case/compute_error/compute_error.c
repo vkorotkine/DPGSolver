@@ -40,6 +40,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "const_cast.h"
 #include "file_processing.h"
 #include "intrusive.h"
+#include "math_functions.h"
 #include "simulation.h"
 #include "solve.h"
 #include "test_case.h"
@@ -394,6 +395,10 @@ static const struct const_Vector_d* constructor_w_detJ_face
  *  \return See brief. */
 static bool ignore_internal_volume_error ( );
 
+/** \brief Return whether the infinity error should be used in place of the l2 error.
+ *  \return See brief. */
+static bool use_infinity_error ( );
+
 static void destructor_Error_CE (struct Error_CE* error_ce)
 {
 	destructor_const_Vector_d(error_ce->sol_err);
@@ -422,10 +427,20 @@ static void increment_vol_errors_l2_2
 	const ptrdiff_t ext_0 = w_detJ->ext_0;
 
 	const ptrdiff_t n_out = errors_l2_2->ext_0;
-	for (int i = 0; i < n_out; ++i) {
-		const double* err_data = get_col_const_Multiarray_d(i,err_v);
-		for (int j = 0; j < ext_0; ++j)
-			errors_l2_2->data[i] += w_detJ->data[j]*err_data[j]*err_data[j];
+	if (!use_infinity_error()) {
+		for (int i = 0; i < n_out; ++i) {
+			const double* err_data = get_col_const_Multiarray_d(i,err_v);
+			for (int j = 0; j < ext_0; ++j)
+				errors_l2_2->data[i] += w_detJ->data[j]*err_data[j]*err_data[j];
+		}
+	} else {
+		for (int i = 0; i < n_out; ++i) {
+			const double* err_data = get_col_const_Multiarray_d(i,err_v);
+			const double max_err = maximum_abs_d(err_data,n_out);
+			const double max_err2 = max_err*max_err; // squared here as square root is subsequently taken.
+			if (max_err2 > errors_l2_2->data[i])
+				errors_l2_2->data[i] = max_err2;
+		}
 	}
 	destructor_const_Vector_d(w_detJ);
 }
@@ -669,4 +684,20 @@ static bool ignore_internal_volume_error ( )
 		fclose(input_file);
 	}
 	return ignore;
+}
+
+static bool use_infinity_error ( )
+{
+	static bool need_input  = true;
+	static bool use_inf = false;
+	if (need_input) {
+		need_input = false;
+		char line[STRLEN_MAX];
+		FILE* input_file = input_file = fopen_input('t',NULL,NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line,"use_infinity_error")) read_skip_const_b(line,&use_inf);
+		}
+		fclose(input_file);
+	}
+	return use_inf;
 }

@@ -15,7 +15,7 @@ mesh_path        ../meshes/
 
 
 # Simulation variables
-solution_extension  transonic_o
+solution_extension  transonic_mid_low
 test_case_extension lax_friedrichs
 
 interp_tp  GLL

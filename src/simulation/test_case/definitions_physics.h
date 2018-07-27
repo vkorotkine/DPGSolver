@@ -23,6 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define GAMMA  1.4
 #define GM1    0.4
 #define GM3   -1.6
+#define SQRT_GAMMA 1.1832159566199232
 ///\}
 
 ///\{ \name Minimum permited value for physical quantities which should be positive.

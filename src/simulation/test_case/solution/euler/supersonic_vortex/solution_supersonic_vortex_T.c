@@ -104,7 +104,7 @@ static struct Multiarray_T* constructor_sol_supersonic_vortex
 	const Real m_i   = sol_data.m_i;
 	const Real rho_i = sol_data.rho_i;
 	const Real c_i   = pow(rho_i,0.5*GM1);
-	const Real rcm_i = r_i*c_i*m_i;
+	const Real rcm_i = r_i*c_i*m_i*SQRT_GAMMA;
 	for (int i = 0; i < n_n; ++i) {
 		const Real x_i = real_T(x[i]),
 		           y_i = real_T(y[i]);
@@ -115,7 +115,7 @@ static struct Multiarray_T* constructor_sol_supersonic_vortex
 		rho[i] = rho_i*pow(1.0+0.5*GM1*m_i*m_i*(1.0-pow(r_i/r,2.0)),1.0/GM1);
 		u[i]   = -sin(t)*Vt;
 		v[i]   =  cos(t)*Vt;
-		p[i]   = pow_T(rho[i],GAMMA)/GAMMA;
+		p[i]   = pow_T(rho[i],GAMMA);
 	}
 
 	if (DIM == 3) {

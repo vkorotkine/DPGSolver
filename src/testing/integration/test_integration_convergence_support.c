@@ -25,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_adaptation.h"
 #include "definitions_error.h"
+
 #include "definitions_visualization.h"
 
 #include "test_base.h"
