@@ -334,7 +334,7 @@ struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
 		compute_cd_cl_values(e_ce_d.sol[0],bv_i.s,'c',bv_i.normals);
 		destructor_Boundary_Value_Input(&bv_i);
 
-		e_ce_d.sol[1] = (struct Multiarray_d*)constructor_const_functionals_cd_cl_zero(xyz_fc,sim); // destructed
+		e_ce_d.sol[1] = (struct Multiarray_d*)constructor_const_functionals_cd_cl_reference_constant(xyz_fc,sim); // d.
 
 		for (int i = 0; i < 2; ++i) {
 			switch (remove_cd_cl) {

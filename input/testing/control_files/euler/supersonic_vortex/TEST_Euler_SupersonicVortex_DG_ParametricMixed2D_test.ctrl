@@ -10,7 +10,7 @@ mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        quad
-mesh_level       1 4
+mesh_level       0 4
 mesh_path        ../meshes/
 
 
@@ -37,5 +37,5 @@ method_name discontinuous_galerkin
 
 # Testing variables
 
-ml_range_test 1 3 // possibly requires start on ml 1 for p1
+ml_range_test 0 2 // possibly requires start on ml 1 for p1
 p_range_test  3 3

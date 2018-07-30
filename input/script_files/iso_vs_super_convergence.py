@@ -73,17 +73,13 @@ def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming,exact_nor
 		assert (non_conforming == False),"Add support."
 
 	if (ar_val == 1.0):
-		# ctrl_spec   = ["ar1_iso", "ar1_super", ]
-		# ctrl_matrix = ["p1-1", "p2-3", ]
-		# execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
+		ctrl_spec   = ["ar1_iso_transonic_i", "ar1_iso_transonic_mid_low", "ar1_iso_transonic_mid_high",
+		               "ar1_iso_transonic_o", "ar1_iso_transonic_o_boundary_only", "ar1_super_transonic_o"]
+		ctrl_matrix = ["p3-3", ]
+		execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
 
-		# ctrl_spec   = ["ar1_iso_transonic_i", "ar1_iso_transonic_mid_low", "ar1_iso_transonic_mid_high"]
-		# ctrl_matrix = ["p3-3", ]
-		# execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
-
-		# ctrl_spec   = ["ar1_iso_transonic_o", "ar1_iso_transonic_o_boundary_only", "ar1_super_transonic_o"]
-		ctrl_spec   = ["ar1_iso_transonic_o"]
-		ctrl_matrix = ["p1-3", ]
+		ctrl_spec   = ["ar1_iso", "ar1_super", ]
+		ctrl_matrix = ["p1-1", "p2-3", ]
 		execute_commands(cmd_line_params,err_output_dir,test_case,petsc_opts,ctrl_spec,ctrl_matrix)
 		return
 	elif (ar_val == 2.5):
@@ -92,6 +88,7 @@ def run_euler_supersonic_vortex (cmd_line_params,ar_val,non_conforming,exact_nor
 	elif (ar_val == 5.0):
 		if (not exact_normals):
 			ctrl_spec   = ["ar5_iso", "ar5_super", ]
+			# ctrl_spec   = ["quad_ar5_iso", "quad_ar5_super", ] # Was used for figures.
 			ctrl_matrix = ["p1-3", ]
 		else:
 			ctrl_spec   = ["ar5_iso_exact_normals", ]

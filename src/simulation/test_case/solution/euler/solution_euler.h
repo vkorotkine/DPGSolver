@@ -70,4 +70,18 @@ void compute_cd_cl_values
 	 const struct const_Multiarray_d*const normals ///< The container of unit normal vectors.
 	);
 
+/** \brief Function to be used for constructing functionals of reference drag/lift coefficients with values specified in
+ *         the test case solution file.
+ *  \return See brief.
+ *
+ *  \note As the values returned from this function are generally subtracted from the computed __local__ drag/lift
+ *        coefficient values, the value specified in the input file should correspond to the total divided by the
+ *        surface area. If the surface area is not available, it is suggested to enter 0.0 for the reference values and
+ *        compute the errors and convergence rates externally as the values returned by the code will be incorrect.
+ */
+const struct const_Multiarray_d* constructor_const_functionals_cd_cl_reference_constant
+	(const struct const_Multiarray_d* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
+		);
+
 #endif // DPG__solution_euler_h__INCLUDED

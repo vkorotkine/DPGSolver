@@ -9,7 +9,7 @@ dimension 2
 mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
-mesh_type        mixed
+mesh_type        quad
 mesh_level       0 4
 mesh_path        ../meshes/
 

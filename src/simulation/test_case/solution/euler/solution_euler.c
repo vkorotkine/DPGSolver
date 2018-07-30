@@ -210,6 +210,45 @@ void compute_cd_cl_values
 		convert_variables((struct Multiarray_d*)vars,'p',var_type);
 }
 
+const struct const_Multiarray_d* constructor_const_functionals_cd_cl_reference_constant
+	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
+{
+	UNUSED(sim);
+
+	static double c_dl_ref[2] = {0.0};
+
+	static bool need_input = true;
+	if (need_input) {
+		need_input = false;
+
+		const int count_to_find = 2;
+		int count_found = 0;
+
+		FILE* input_file = fopen_input('s',NULL,NULL); // closed
+		char line[STRLEN_MAX];
+		while (fgets(line,sizeof(line),input_file)) {
+			read_skip_string_count_d("cd_ref",&count_found,line,&c_dl_ref[0]);
+			read_skip_string_count_d("cl_ref",&count_found,line,&c_dl_ref[1]);
+		}
+
+		if (count_found != count_to_find)
+			// If hitting this error for an existing test case, likely input c_d = 0.0, c_l = 0.0 as this
+			// was previously the default.
+			EXIT_ERROR("Did not find the required number of variables");
+	}
+
+	const ptrdiff_t n_n = xyz->extents[0];
+
+	struct Multiarray_d* func = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_n,2}); // returned
+	for (int i = 0; i < 2; ++i) {
+		double*const data_func = get_col_Multiarray_d(i,func);
+		for (int j = 0; j < n_n; ++j)
+			data_func[j] = c_dl_ref[i];
+	}
+
+	return (struct const_Multiarray_d*) func;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 

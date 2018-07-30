@@ -15,7 +15,7 @@ use_schur_complement 1
 exit_tol_i   1e-13
 exit_ratio_i 1e-10
 
-ignore_internal_volume_error 0
+ignore_internal_volume_error 1
 use_straight_internal_geometry 0
 use_infinity_error 0
 

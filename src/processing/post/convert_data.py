@@ -17,23 +17,29 @@ np.set_printoptions(formatter={'float': lambda x: format(x, '6.2e')})
 class Output_Info:
 	"""Stores output related information."""
 
-	def __init__ (self,input_path,input_type):
+	def __init__ (self,input_path,input_type,dim):
 		self.root_path = input_path+"/" ###< Full path to root directory for the input files.
 		self.type      = input_type
 
+		assert int(dim) > 0 and int(dim) <= 3,"Invalid dimension: "+dim
+		self.dim = int(dim)
+
 		self.format = ""
-		self.sub_index = -1 ###< Index of the subset of the data to output if relevant.
+		self.sub_index = [-1] ###< Index of the subset of the data to output if relevant.
 		self.set_type_specific_data()
 		self.set_var_names()
 
 	def set_type_specific_data (self):
-		if (self.type in ["std","ivs_adv","ivs_euler_sv","ivs_euler_gb","adv_peterson","adv_man_1d"]):
+		if (self.type in ["std","ivs_adv","ivs_euler_sv","ivs_euler_sv_t","ivs_euler_gb",
+		                  "adv_peterson","adv_man_1d"]):
 			self.format = "table"
 		else:
 			assert 0,"Unsupported: "+str(self.type)
 
 		if (self.type in ["ivs_adv","ivs_euler_sv","ivs_euler_gb","adv_peterson","adv_man_1d"]):
-			self.sub_index = 0
+			self.sub_index = [0]
+		elif (self.type in ["ivs_euler_sv_t"]):
+			self.sub_index = [0,self.dim+2]
 
 	def set_var_names (self):
 		if (self.type == "std"):
@@ -47,6 +53,13 @@ class Output_Info:
 			self.var_names = ["$L^2 (\\rho)^{\\text{i}}$",
 			                  "$L^2 (\\rho)^{\\text{i}}_{\\bm{\\hat{n}_{ex}}}$",
 			                  "$L^2 (\\rho)^{\\text{s}}$",]
+		elif (self.type == "ivs_euler_sv_t"):
+			self.var_names = ["$L^2 (\\rho)^{\\text{i}}$",
+			                  "$L^2 (\\rho)^{\\text{i}}_{\\Gamma}$",
+			                  "$L^2 (\\rho)^{\\text{s}}$",
+			                  "$L^2 (s)^{\\text{i}}$",
+			                  "$L^2 (s)^{\\text{i}}_{\\Gamma}$",
+			                  "$L^2 (s)^{\\text{s}}$",]
 		elif (self.type == "ivs_euler_gb"):
 			self.var_names = ["$L^2 (s)^{\\text{i}}$",
 			                  "$L^2 (s)^{\\text{s}}$",
@@ -82,6 +95,10 @@ class Input_Info:
 			self.rel_paths = ["euler_supersonic_vortex_dg_2d_ar5_iso/",
 			                  "euler_supersonic_vortex_dg_2d_ar5_iso_exact_normals/",
 			                  "euler_supersonic_vortex_dg_2d_ar5_super/",]
+		elif (self.type == "ivs_euler_sv_t"):
+			self.rel_paths = ["euler_supersonic_vortex_dg_2d_ar1_iso_transonic_o/",
+			                  "euler_supersonic_vortex_dg_2d_ar1_iso_transonic_o_boundary_only/",
+			                  "euler_supersonic_vortex_dg_2d_ar1_super_transonic_o/",]
 		elif (self.type == "ivs_euler_gb"):
 			self.rel_paths = ["euler_gaussian_bump_dg_2d_ar5_iso/",
 			                  "euler_gaussian_bump_dg_2d_ar5_super/",
@@ -297,7 +314,6 @@ def write_std_tables(f,data_i,output,type_out):
 def output_figure(data_i,output):
 	"""Output figure in vector image format."""
 
-	print(len(data_i))
 	for n in range(0,len(data_i)):
 		data = data_i[n]
 
@@ -355,25 +371,27 @@ def get_data_o (input_i,output_i):
 
 	if (output_i.type == "std"):
 		return input_i.data
-	elif (output_i.type in ["ivs_adv","ivs_euler_sv","ivs_euler_gb","adv_peterson","adv_man_1d"]):
+	elif (output_i.type in ["ivs_adv","ivs_euler_sv","ivs_euler_sv_t","ivs_euler_gb","adv_peterson","adv_man_1d"]):
 		data_i = input_i.data
 
 		n_out  = len(data_i)
+		v_out  = len(output_i.sub_index)
 		ml_max = data_i[0].ml_max
 		p_max  = data_i[0].p_max
 
-		block_size3 = (ml_max+1,p_max+1,n_out)
+		block_size3 = (ml_max+1,p_max+1,n_out*v_out)
 
 		l2_errors   = np.zeros(block_size3)
 		conv_orders = np.zeros(block_size3)
 
 		ind_var = output_i.sub_index
-		for n in range(n_out):
-			l2_errors[:,:,n]   = data_i[n].l2_errors[:,:,ind_var]
-			conv_orders[:,:,n] = data_i[n].conv_orders[:,:,ind_var]
+		for v in range(v_out):
+			for n in range(n_out):
+				l2_errors[:,:,n+n_out*v]   = data_i[n].l2_errors[:,:,ind_var[v]]
+				conv_orders[:,:,n+n_out*v] = data_i[n].conv_orders[:,:,ind_var[v]]
 
 		data_o = [Input_Data(input_i.root_path)]
-		data_o[0].n_vars = n_out
+		data_o[0].n_vars = n_out*v_out
 		data_o[0].p_max  = p_max
 		data_o[0].ml_max = ml_max
 
@@ -426,20 +444,24 @@ if __name__ == '__main__':
 	- std:          generate data for a single data file.
 	- ivs_adv:      'i'soparametric 'v's. 's'uperparametric linear advection case data.
 	- ivs_euler_sv: 'i'soparametric 'v's. 's'uperparametric euler ('s'upersonic 'v'ortex)
+	- ivs_euler_sv_t: 'i'soparametric 'v's. 's'uperparametric euler ('s'upersonic 'v'ortex) 't'ransonic
 	- ivs_euler_gb: 'i'soparametric 'v's. 's'uperparametric euler ('g'aussian 'b'ump)
 	- adv_peterson: Linear "Adv"ection "Peterson" test case.
 	- adv_man_1d:   Linear "Adv"ection 1d "Man"ufacture test case.
+	3. The dimension of the problem.
 	"""
 
-	assert len(sys.argv) == 3,"\nIncorrect number of inputs. Should be:\n"\
-	                         +"\t1. full_path_to_error_file."\
-	                         +"\t2. error_file_type\n\n."
+	assert len(sys.argv) == 4,"\nIncorrect number of inputs. Should be:\n"\
+	                         +"\t1. full_path_to_error_file.\n"\
+	                         +"\t2. error_file_type.\n"\
+	                         +"\t3. dimension\n\n."
 
 	input_path = sys.argv[1]
 	data_type  = sys.argv[2]
+	dimension  = sys.argv[3]
 	input_i = Input_Info(input_path,data_type)
 
-	output_i = Output_Info(input_path,data_type)
+	output_i = Output_Info(input_path,data_type,dimension)
 
 	print("\nOutputting data in {} format.\n\n".format(output_i.format))
 	convert_data(input_i,output_i)

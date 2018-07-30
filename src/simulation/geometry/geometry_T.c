@@ -893,6 +893,7 @@ static const struct const_Vector_i* constructor_cc0_vgc_fgc_indices
 
 static void correct_face_xyz_straight_T (struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
 {
+	UNUSED(sim);
 	if (DIM == 1)
 		return;
 
