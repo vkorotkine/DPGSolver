@@ -6,5 +6,5 @@ r_i = 1.0;
 r_o = 1.384;
 
 
-// "Free-stream" parameters for drag coefficient computation
+// "Free-stream" parameters for drag/lift coefficient computation
 area_ref = 2.0;

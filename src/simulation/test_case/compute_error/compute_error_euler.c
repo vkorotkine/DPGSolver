@@ -68,7 +68,7 @@ static const char* compute_header_spec_euler_entropy_p_rhs
 /** \brief Version of \ref constructor_Error_CE_fptr checking the error of pressure drag and lift coefficients where
  *         specified functionals may be removed.
  *  \return See brief. */
-struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
+static struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
 	(const struct Simulation*const sim, ///< \ref Simulation.
 	 const int remove_cd_cl             ///< Flag for which functional to remove (if any).
 	);
@@ -300,7 +300,8 @@ static const char* compute_header_spec_euler_entropy_p_rhs ( )
 
 	return header_spec;
 }
-struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
+
+static struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
 	(const struct Simulation*const sim, const int remove_cd_cl)
 {
 	const int n_out = (remove_cd_cl ? 1 : 2);
@@ -317,6 +318,10 @@ struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
 		const struct Face*const face = (struct Face*) curr;
 		if (!is_face_wall_boundary(face))
 			continue;
+
+		if (face->bc == 30102)
+			continue;
+printf("%d\n",face->bc);
 
 		const struct Solver_Face*const s_face = (struct Solver_Face*) curr;
 		e_ce_h->s_face = s_face;

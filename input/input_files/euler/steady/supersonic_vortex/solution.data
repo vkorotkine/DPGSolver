@@ -2,3 +2,12 @@
 
 m_i   2.25
 rho_i 1.0
+
+// "Free-stream" parameters for drag/lift coefficient computation
+density   1.0
+pressure  0.71428571428571429
+mach      1.0
+theta_deg 0.0
+
+cd_ref  0.6366197723675813
+cl_ref -0.6366197723675813

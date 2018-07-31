@@ -18,5 +18,6 @@ exit_ratio_i 1e-10
 ignore_internal_volume_error 0
 use_straight_internal_geometry 0
 use_infinity_error 0
+has_functional 1
 
 display_progress 1

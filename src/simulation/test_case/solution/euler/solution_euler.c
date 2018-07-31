@@ -191,6 +191,8 @@ void compute_cd_cl_values
 	             V_fs     = sol_data.mach*c_fs,
 	             denom    = 0.5*rho_fs*V_fs*V_fs*sol_data.area_ref,
 	             theta_fs = sol_data.theta;
+	const double cos_t_fs = cos(theta_fs),
+	             sin_t_fs = sin(theta_fs);
 
 	const double*const p = get_col_const_Multiarray_d(vars->extents[1]-1,vars);
 
@@ -199,11 +201,13 @@ void compute_cd_cl_values
 	const ptrdiff_t ext_0 = c_dl->extents[0];
 	for (int i = 0; i < ext_0; ++i) {
 		const double*const n = get_row_const_Multiarray_d(i,normals);
-		const double theta_n  = atan2(n[1],n[0]);
-		const double theta_nf = theta_n-theta_fs;
+		/* const double theta_n  = atan2(n[1],n[0]); */
+		/* const double theta_nf = theta_n-theta_fs; */
 
-		cd[i] = p[i]*cos(theta_nf)/denom;
-		cl[i] = p[i]*sin(theta_nf)/denom;
+		/* cd[i] = p[i]*cos(theta_nf)/denom; */
+		/* cl[i] = p[i]*sin(theta_nf)/denom; */
+		cd[i] = p[i]*( n[0]*cos_t_fs+n[1]*sin_t_fs)/denom;
+		cl[i] = p[i]*(-n[0]*sin_t_fs+n[1]*cos_t_fs)/denom;
 	}
 
 	if (var_type != 'p')

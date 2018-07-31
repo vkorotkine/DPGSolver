@@ -489,7 +489,7 @@ static void output_errors_sp
 	}
 
 	for (int i = 0; i < n_out; ++i)
-		fprintf(sp_file,"%-14.4e",error_data[i]);
+		fprintf(sp_file,"%-24.14e",error_data[i]);
 
 	fclose(sp_file);
 }
