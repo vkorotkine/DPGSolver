@@ -319,10 +319,6 @@ static struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
 		if (!is_face_wall_boundary(face))
 			continue;
 
-		if (face->bc == 30102)
-			continue;
-printf("%d\n",face->bc);
-
 		const struct Solver_Face*const s_face = (struct Solver_Face*) curr;
 		e_ce_h->s_face = s_face;
 		e_ce_h->s_vol[0] = (struct Solver_Volume*) face->neigh_info[0].volume;

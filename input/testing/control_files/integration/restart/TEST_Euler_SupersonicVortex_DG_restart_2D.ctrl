@@ -10,7 +10,7 @@ mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        quad
-mesh_level       0 5
+mesh_level       0 6
 mesh_path        ../meshes/
 restart_path     None
 
@@ -37,5 +37,5 @@ fe_method 1
 
 # Testing variables
 
-ml_range_test 0 4
+ml_range_test 0 3
 p_range_test  5 6

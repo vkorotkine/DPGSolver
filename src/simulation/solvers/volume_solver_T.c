@@ -144,6 +144,29 @@ const struct const_Matrix_T* constructor_inverse_mass_T
 	return m_inv;
 }
 
+const struct const_Matrix_T* constructor_l2_proj_operator_s_T
+	(const struct Solver_Volume_T*const s_vol, const struct const_Matrix_T*const mass_i)
+{
+	const struct const_Matrix_R*const cv0_vs_vc = get_operator__cv0_vs_vc_T(s_vol)->op_std;
+	const struct const_Vector_R*const w_vc = get_operator__w_vc__s_e_T(s_vol);
+	const struct const_Vector_T jac_det_vc = interpret_const_Multiarray_as_Vector_T(s_vol->jacobian_det_vc);
+
+	const struct const_Vector_T*const wJ_vc = constructor_dot_mult_const_Vector_T_RT(1.0,w_vc,&jac_det_vc,1); // dest.
+
+	const struct const_Matrix_T*const op_r = constructor_mm_diag_const_Matrix_R_T(1.0,cv0_vs_vc,wJ_vc,'L',false); // d.
+	transpose_Matrix_T((struct Matrix_T*)op_r,false);
+	destructor_const_Vector_T(wJ_vc);
+
+	const struct const_Matrix_T*const mass = (mass_i ? mass_i : constructor_mass_T(s_vol)); // destructed (if required)
+
+	const struct const_Matrix_T*const op = constructor_sgesv_const_Matrix_T(mass,op_r); // returned
+	destructor_const_Matrix_T(op_r);
+	if (mass != mass_i)
+		destructor_const_Matrix_T(mass);
+
+	return op;
+}
+
 const struct Operator* get_operator__cv0_vs_vs_T (const struct Solver_Volume_T*const s_vol)
 {
 	const struct Volume*const vol       = (struct Volume*) s_vol;

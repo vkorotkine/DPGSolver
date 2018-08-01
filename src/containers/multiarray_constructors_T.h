@@ -404,6 +404,13 @@ struct Multiarray_T* constructor_mm_NN1C_Multiarray_TT
 	 const struct const_Multiarray_T*const b ///< See brief.
 		);
 
+/** \brief `const` version of \ref constructor_mm_NN1C_Multiarray_TT.
+ *  \return See brief. */
+const struct const_Multiarray_T* constructor_mm_NN1C_const_Multiarray_TT
+	(const struct const_Matrix_T*const a,    ///< See brief.
+	 const struct const_Multiarray_T*const b ///< See brief.
+		);
+
 /** \brief Constructor for a \ref const_Multiarray_T\* by applying sub-operator matrices along each direction.
  *  \return Standard.
  *

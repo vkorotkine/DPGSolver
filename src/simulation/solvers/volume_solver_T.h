@@ -133,6 +133,16 @@ const struct const_Matrix_T* constructor_inverse_mass_T
 	 const struct const_Matrix_T*const mass    ///< Mass matrix. Input if available, otherwise pass `NULL`.
 	);
 
+/** \brief Constructor for the L2 projection operator to the solution basis.
+ *  \return See brief.
+ *
+ *  The operator is defined by: op = Mass^{-1}*cv0_vs_vc'*diag(w_vc.*det_J_vc).
+ */
+const struct const_Matrix_T* constructor_l2_proj_operator_s_T
+	(const struct Solver_Volume_T*const s_vol, ///< Standard.
+	 const struct const_Matrix_T*const mass_i  ///< Mass matrix. Input if available, otherwise pass `NULL`.
+		);
+
 /** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vs_vs operator.
  *  \return See brief. */
 const struct Operator* get_operator__cv0_vs_vs_T

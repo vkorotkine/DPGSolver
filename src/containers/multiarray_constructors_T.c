@@ -439,6 +439,12 @@ struct Multiarray_T* constructor_mm_NN1C_Multiarray_TT
 	return c;
 }
 
+const struct const_Multiarray_T* constructor_mm_NN1C_const_Multiarray_TT
+	(const struct const_Matrix_T*const a, const struct const_Multiarray_T*const b)
+{
+	return (struct const_Multiarray_T*)  constructor_mm_NN1C_Multiarray_TT(a,b);
+}
+
 const struct const_Multiarray_T* constructor_mm_tp_NN1C_const_Multiarray_T
 	(const struct const_Multiarray_Matrix_T* a_tp, const struct const_Multiarray_T* b)
 {
