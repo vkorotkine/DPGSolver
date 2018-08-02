@@ -34,18 +34,17 @@ struct const_Vector_i;
 struct const_Matrix_d;
 struct Matrix_d;
 
-/// Use `int` type if true and `long long int` otherwise.
-#define USE_SINGLE false
-
-#define Real double
-#define REAL_MAX DBL_MAX
-
 /** \{ \name Templating-related definitions.
  *
  *  The division by 4 in the maximum indices is required because:
  *  - The shift results in all numbers potentially being increased (maximally) by a factor of 2;
  *  - Something related to the subtraction requires an additional factor of 2?
  */
+#define USE_SINGLE false ///< Use `int` type if true and `long long int` otherwise.
+
+#define Real double
+#define REAL_MAX DBL_MAX
+
 #if USE_SINGLE == true
 	#define Index     int
 	#define INDEX_MIN 0

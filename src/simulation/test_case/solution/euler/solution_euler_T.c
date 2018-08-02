@@ -50,7 +50,7 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 {
 	test_case->set_grad = set_sg_do_nothing_T;
 	if (strstr(sim->pde_spec,"periodic_vortex")) {
-		test_case->constructor_sol              = constructor_const_sol_invalid_T;
+		test_case->constructor_sol              = constructor_const_sol_periodic_vortex_T;
 		test_case->set_sol                      = set_sol_periodic_vortex_T;
 		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;

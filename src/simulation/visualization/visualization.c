@@ -129,7 +129,7 @@ struct Volume_Data_Vis {
 	    p_ref, ///< \ref Solver_Volume_T::p_ref.
 	    ml;    ///< \ref Solver_Volume_T::ml.
 
-	bool has_analytical; ///< \ref Test_Case::has_analytical
+	bool has_analytical; ///< \ref Test_Case_T::has_analytical.
 
 	const struct const_Multiarray_d* xyz_p;  ///< "xyz" coordinates at the 'p'lotting nodes.
 	const struct const_Multiarray_d* sol_p;  ///< "sol"ution at the 'p'lotting nodes.

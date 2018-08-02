@@ -125,7 +125,7 @@ const struct const_Matrix_T* constructor_mass_face_T
 	(const struct Solver_Face_T*const s_face ///< Standard.
 	 );
 
-/** \brief Get the pointer to the appropriate \ref OPG_Solver_Element::cv0_vt_fc operator.
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vt_fc operator.
  *  \return See brief. */
 const struct Operator* get_operator__cv0_vt_fc_T
 	(const int side_index,                   ///< The index of the side of the face under consideration.

@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
+#define constructor_const_sol_periodic_vortex_T constructor_const_sol_periodic_vortex_d
 #define set_sol_periodic_vortex_T set_sol_periodic_vortex
 ///\}
 
@@ -35,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
+#define constructor_const_sol_periodic_vortex_T constructor_const_sol_periodic_vortex_c
 #define set_sol_periodic_vortex_T set_sol_periodic_vortex_c
 ///\}
 

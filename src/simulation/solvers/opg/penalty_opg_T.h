@@ -37,7 +37,7 @@ void reset_penalty_indicators_opg_T
 	(const struct Intrusive_List*const faces ///< The list of faces for which to reset parameters.
 	 );
 
-/** \brief Version of \ref compute_rlhs_opg_f_fptr_T hitting a \ref EXIT_UNSUPPORTED error.
+/** \brief Version of \ref compute_rlhs_opg_f_fptr_T hitting a EXIT_UNSUPPORTED error.
  *
  *  This function is used for \ref OPG_Solver_Face_T::constructor_rlhs_penalty for interior faces.
  */

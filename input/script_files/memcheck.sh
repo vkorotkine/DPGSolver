@@ -10,7 +10,7 @@
 
 # Executable and command line arguments
 EXECUTABLE=@CMAKE_BINARY_DIR@/bin/test_integration_convergence
-ARGV="advection/default/dpg/TEST_Advection_Demkowicz_DPGII_LINE petsc_options_cg_default"
+ARGV="euler/periodic_vortex/TEST_Euler_PeriodicVortex_QUAD__ml0__p2 petsc_options_empty"
 
 # Specify the number of processor to run on (this should have correspondence with 'nodes' above)
 N_PROCS="1"

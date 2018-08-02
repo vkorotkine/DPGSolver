@@ -18,9 +18,18 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_solution.h"
 #include "def_templates_solution_euler.h"
+#include "def_templates_multiarray.h"
 
+struct const_Multiarray_T;
 struct Simulation;
 struct Solution_Container_T;
+
+/** \brief Function to be used for \ref Test_Case_T::constructor_sol for the periodic vortex solution.
+ *  \return See brief. */
+const struct const_Multiarray_T* constructor_const_sol_periodic_vortex_T
+	(const struct const_Multiarray_T* xyz, ///< Defined for \ref constructor_sol_fptr_T.
+	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
+		);
 
 /// \brief Function to be used for \ref Test_Case_T::set_sol for the periodic vortex test case.
 void set_sol_periodic_vortex_T
@@ -30,3 +39,4 @@ void set_sol_periodic_vortex_T
 
 #include "undef_templates_solution.h"
 #include "undef_templates_solution_euler.h"
+#include "undef_templates_multiarray.h"

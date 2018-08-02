@@ -37,3 +37,9 @@ p_cub_p 4 4
 p_test_p 2 2
 
 fe_method 4
+
+
+# Testing variables
+
+ml_range_test 1 1
+p_range_test  3 3

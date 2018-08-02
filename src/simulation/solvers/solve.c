@@ -105,7 +105,6 @@ for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
 	set_to_value_Multiarray_d(s_vol->sol_coef,0.0);
 	set_to_value_Multiarray_d(s_vol->test_s_coef,0.0);
 }
-#include "face_solver.h"
 for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 	struct Solver_Face*const s_face = (struct Solver_Face*) curr;
 	set_to_value_Multiarray_d(s_face->nf_coef,0.0);

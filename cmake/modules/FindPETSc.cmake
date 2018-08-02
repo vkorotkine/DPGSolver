@@ -310,6 +310,8 @@ else (RUN_PETSC_TESTS)
   message("Petsc not running tests for minimal includes as RUN_PETSC_TESTS is set to: " ${RUN_PETSC_TESTS})
   message("Set the RUN_PETSC_TESTS to true if there is a problem while running.")
   set (petsc_includes_needed ${petsc_includes_all})
+  set (PETSC_EXECUTABLE_RUNS "YES" CACHE BOOL
+        "Can the system successfully run a PETSc executable?  This variable can be manually set to \"YES\" to force CMake to accept a given PETSc configuration, but this will almost always result in a broken build.  If you change PETSC_DIR, PETSC_ARCH, or PETSC_CURRENT you would have to reset this variable." FORCE)
 endif (RUN_PETSC_TESTS)
 
   # We do an out-of-source build so __FILE__ will be an absolute path, hence __INSDIR__ is superfluous

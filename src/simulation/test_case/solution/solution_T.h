@@ -174,7 +174,11 @@ const struct const_Multiarray_T* constructor_xyz_vc_interp_T
 void constructor_Solver_Face__nf_coef_T
 	(struct Solver_Face_T*const s_face, ///< \ref Solver_Face_T.
 	 struct Flux_Input_T*const flux_i,  ///< \ref Flux_Input_T.
-	 const struct Simulation*const sim  ///< \ref Simulation.
+	 const struct Simulation*const sim, ///< \ref Simulation.
+	 const char method                  /**< Method to use to get the coefficients. Options:
+	                                     *   - Compute from 'i'nitial solution;
+	                                     *   - Compute from 'c'urrent solution.
+	                                     */
 	);
 
 /// \brief Function to be used for \ref Test_Case_T::set_grad for the test cases with zero gradients.

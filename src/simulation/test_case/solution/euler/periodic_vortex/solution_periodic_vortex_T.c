@@ -43,6 +43,13 @@ static struct Multiarray_T* constructor_sol_periodic_vortex_T
 
 // Interface functions ********************************************************************************************** //
 
+const struct const_Multiarray_T* constructor_const_sol_periodic_vortex_T
+	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
+{
+	struct Multiarray_T* sol = constructor_sol_periodic_vortex_T(xyz,sim); // returned
+	return (const struct const_Multiarray_T*) sol;
+}
+
 void set_sol_periodic_vortex_T (const struct Simulation* sim, struct Solution_Container_T sol_cont)
 {
 	const struct const_Multiarray_T* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed

@@ -13,7 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions of \ref def_templates_penalty_advection_opg.h.
+ *  \brief Undefine macro definitions of \ref def_templates_penalty_opg_advection.h.
  */
 
 #undef constructor_rlhs_f_test_penalty_advection_upwind_T

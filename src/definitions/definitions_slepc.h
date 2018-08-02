@@ -21,6 +21,6 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \note Due to the \ref EPS macro having been previously defined, an alternate name for the SLEPc EPS is required.
  */
 
-typedef struct _p_EPS* SlepcEPS;
+typedef struct _p_EPS* SlepcEPS; ///< Typedef to avoid conflict with \ref EPS.
 
 #endif // DPG__definitions_slepc_h__INCLUDED

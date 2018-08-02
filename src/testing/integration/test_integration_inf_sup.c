@@ -123,9 +123,9 @@ static void check_inf_sup
  *
  *  In the case of the method not being perfectly inf-sup stable, the test will pass with a warning if the rate at which
  *  the constant tends to zero is within \ref Integration_Test_Info::conv_order_inf_sup_accept. In general, that the
- *  inf-sup constant is bounded away from zero is a necessary condition for convergence (eq. (3) Bathe et al. \cite
- *  Bathe2000). However, if it tends to zero at a sufficiently slow rate or only tends to zero for relatively coarse
- *  meshes, the method may still be stable depending on the specified parameters.
+ *  inf-sup constant is bounded away from zero is a necessary condition for convergence (eq. (3) Bathe et al.
+ *  \cite Bathe2000). However, if it tends to zero at a sufficiently slow rate or only tends to zero for relatively
+ *  coarse meshes, the method may still be stable depending on the specified parameters.
  */
 int main
 	(int argc,   ///< Standard.

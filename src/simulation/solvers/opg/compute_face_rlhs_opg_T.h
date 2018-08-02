@@ -90,13 +90,13 @@ struct Lhs_Operators_OPG_T {
 	const struct const_Matrix_T* proj_L2_l;
 };
 
-/** \brief Constructor for a \ref Lhs_Operators_OPG container.
+/** \brief Constructor for a \ref Lhs_Operators_OPG_T container.
  *  \return See brief. */
 const struct Lhs_Operators_OPG_T* constructor_Lhs_Operators_OPG_T
 	(const struct OPG_Solver_Face_T*const opg_s_face ///< Standard.
 	);
 
-/// \brief Destructor for a \ref Lhs_Operators_OPG container.
+/// \brief Destructor for a \ref Lhs_Operators_OPG_T container.
 void destructor_Lhs_Operators_OPG_T
 	(const struct Solver_Face_T*const s_face, ///< Standard.
 	 const struct Lhs_Operators_OPG_T* ops    ///< Standard.

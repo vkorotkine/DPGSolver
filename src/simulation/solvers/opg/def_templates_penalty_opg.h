@@ -13,8 +13,7 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Provides macro definitions for instantiations relating to \ref def_templates_penalty_opg_T.h and
- *         \ref def_templates_penalty_opg_T.c.
+ *  \brief Provides macro definitions for instantiations relating to OPG penalty functions.
  */
 
 #include "def_templates_penalty_opg_advection.h"

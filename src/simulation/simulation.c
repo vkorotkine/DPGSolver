@@ -261,6 +261,14 @@ int get_set_method (const int*const new_val)
 	return method;
 }
 
+int get_set_domain_type (const int*const new_val)
+{
+	static int domain_type = -1;
+	if (new_val)
+		domain_type = *new_val;
+	return domain_type;
+}
+
 const int* get_set_degree_poly (const int*const new_vals, const char*const key)
 {
 	const int* deg = NULL;
@@ -640,4 +648,5 @@ static void set_domain_type (struct Simulation*const sim, const struct Mesh_Ctrl
 		const_cast_i(&sim->domain_type,DOM_PARAMETRIC);
 	else
 		EXIT_UNSUPPORTED;
+	get_set_domain_type(&sim->domain_type);
 }

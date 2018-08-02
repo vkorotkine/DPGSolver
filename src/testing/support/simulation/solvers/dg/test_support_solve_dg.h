@@ -30,7 +30,7 @@ void compute_lhs_cmplx_step_dg
 	);
 
 /** \brief Version of \ref constructor_Gen_Eig_Data_inf_sup for the dg method.
- *  \ref See brief. */
+ *  \return See brief. */
 const struct Gen_Eig_Data* constructor_Gen_Eig_Data_inf_sup_dg
 	(struct Simulation*const sim ///< Standard.
 	 );

@@ -35,4 +35,13 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \return See brief. */
 bool is_internal_geom_straight ( );
 
+/** \brief Return whether the geometry coefficients are dependent upon the pointers for faces adjacent to volumes having
+ *         been previously set.
+ *  \return See brief.
+ *
+ *  For example, for a parametric domain in which the internal faces are to be straight, the function used to correct
+ *  the curved faces loops over faces adjacent to volumes and correcting the volume geometry if required.
+ */
+bool geometry_depends_on_face_pointers( );
+
 #endif // DPG__geometry_h__INCLUDED

@@ -66,3 +66,10 @@ bool is_internal_geom_straight ( )
 	}
 	return igs;
 }
+
+bool geometry_depends_on_face_pointers()
+{
+	if (get_set_domain_type(NULL) && is_internal_geom_straight())
+		return true;
+	return false;
+}

@@ -368,9 +368,7 @@ static void adapt_hp_volumes (struct Simulation* sim)
 {
 	update_hp_members_volumes(sim);
 	update_list_volumes(sim);
-	// Geometry update for volumes must be done after new faces have been defined as some functions rely on volumes
-	// having pointers to neighbouring faces.
-	/* update_geometry_volumes(sim); */
+	update_geometry_volumes(sim);
 	project_solution_volumes(sim);
 	update_index_volumes(sim);
 }
@@ -382,7 +380,10 @@ static void adapt_hp_faces (struct Simulation* sim)
 	project_solution_faces(sim);
 	update_volume_face_pointers(sim);
 	update_list_new_faces(sim);
-	update_geometry_volumes(sim); // See comment above for why volume geometry is corrected here.
+	// Geometry update for volumes must sometimes be done after new faces have been defined as certain functions
+	// rely on volumes having pointers to neighbouring faces.
+	if (geometry_depends_on_face_pointers())
+		update_geometry_volumes(sim);
 	update_geometry_faces(sim);
 	update_index_faces(sim);
 }
@@ -2132,7 +2133,7 @@ static void constructor_Solver_Face_i_new
 		break; // do nothing.
 	case METHOD_DPG: // fallthrough
 	case METHOD_OPG:
-		constructor_Solver_Face__nf_coef(s_face,flux_i,sim);
+		constructor_Solver_Face__nf_coef(s_face,flux_i,sim,'c');
 		assert(!get_set_has_1st_2nd_order(NULL)[1]); // add constructor s_coef.
 		break;
 	case METHOD_OPGC0:

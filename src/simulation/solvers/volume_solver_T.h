@@ -89,7 +89,7 @@ struct Solver_Volume_T {
 	/// As for \ref Solver_Volume_T::metrics_vc but evaluated at the 'v'olume 's'olution nodes.
 	const struct const_Multiarray_T* metrics_vs;
 
-	/// As for \ref Solver_Volume_T::jacobian_def_vc but evaluated at the 'v'olume 's'olution nodes.
+	/// As for \ref Solver_Volume_T::jacobian_det_vc but evaluated at the 'v'olume 's'olution nodes.
 	const struct const_Multiarray_T* jacobian_det_vs;
 
 	struct Vector_T* flux_imbalance; ///< The values of the flux imbalances for each equation.

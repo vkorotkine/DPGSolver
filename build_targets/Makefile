@@ -64,7 +64,7 @@ release_3D:
 
 # Documentation && Navigation
 .PHONY: doc tags
-doc:
+doc: fast_debug_3D
 	@echo "\nRunning Doxygen in build_debug_3D.\n"
 	cd ../build_debug_3D && make -j doc
 
