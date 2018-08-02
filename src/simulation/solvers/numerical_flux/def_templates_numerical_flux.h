@@ -54,6 +54,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian compute_Numerical_Flux_euler_lax_friedrichs_jacobian
 #define compute_Numerical_Flux_T_euler_roe_pike                compute_Numerical_Flux_euler_roe_pike
 #define compute_Numerical_Flux_T_euler_roe_pike_jacobian       compute_Numerical_Flux_euler_roe_pike_jacobian
+#define compute_Numerical_Flux_T_euler_external compute_Numerical_Flux_euler_external
+#define compute_Numerical_Flux_T_euler_external_jacobian compute_Numerical_Flux_euler_external_jacobian
 
 #define compute_Numerical_Flux_T_navier_stokes_central          compute_Numerical_Flux_navier_stokes_central
 #define compute_Numerical_Flux_T_navier_stokes_central_jacobian compute_Numerical_Flux_navier_stokes_central_jacobian
@@ -118,6 +120,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian compute_Numerical_Flux_c_euler_lax_friedrichs_jacobian
 #define compute_Numerical_Flux_T_euler_roe_pike                compute_Numerical_Flux_c_euler_roe_pike
 #define compute_Numerical_Flux_T_euler_roe_pike_jacobian       compute_Numerical_Flux_c_euler_roe_pike_jacobian
+#define compute_Numerical_Flux_T_euler_external compute_Numerical_Flux_c_euler_external
+#define compute_Numerical_Flux_T_euler_external_jacobian compute_Numerical_Flux_euler_c_external_jacobian
 
 #define compute_Numerical_Flux_T_navier_stokes_central          compute_Numerical_Flux_c_navier_stokes_central
 #define compute_Numerical_Flux_T_navier_stokes_central_jacobian compute_Numerical_Flux_c_navier_stokes_central_jacobian

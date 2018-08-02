@@ -35,4 +35,10 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \return See brief. */
 bool using_exact_normals_for_boundary ( );
 
+/** \brief Return `true` if the input boundary condition is adjoint consistent, `false` otherwise.
+ *  \return See brief. */
+bool using_adjoint_consistent_bc
+	(const int bc ///< The input boundary condition.
+		);
+
 #endif // DPG__boundary_h__INCLUDED

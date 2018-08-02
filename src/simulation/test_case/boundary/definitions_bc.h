@@ -62,6 +62,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define BC_TOTAL_TP       104
 #define BC_SUPERSONIC_IN  105
 #define BC_SUPERSONIC_OUT 106
+#define BC_SLIPWALL_ADJ_C 107
 
 // Navier-Stokes
 #define BC_NOSLIP_ADIABATIC    111

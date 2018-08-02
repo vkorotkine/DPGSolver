@@ -55,4 +55,18 @@ void compute_Numerical_Flux_T_euler_roe_pike_jacobian
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
 	);
 
+/** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes as the normal dotted with the
+ *         flux evaluated using the external state. */
+void compute_Numerical_Flux_T_euler_external
+	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
+		);
+
+/** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes and Jacobians based on
+ *         \ref compute_Numerical_Flux_T_euler_external. */
+void compute_Numerical_Flux_T_euler_external_jacobian
+	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
+		);
+
 #include "undef_templates_numerical_flux.h"

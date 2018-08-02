@@ -83,6 +83,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_advection_2d" "i
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "boundary_conditions_diffusion_1d" "integration/TEST_Diffusion_Default_1d__ml0__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_diffusion_2d" "integration/TEST_Diffusion_Default_2d__ml0__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_euler_2d_riemann_slipwall" "integration/boundary_conditions/TEST_Euler_RiSl_2d__ml0__p2")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_euler_2d_slipwall_adjoint_consistent" "integration/boundary_conditions/TEST_Euler_SlAdjC_2d__ml0__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_euler_2d_supersonic_in/out" "integration/boundary_conditions/TEST_Euler_SiSo_2d__ml0__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_euler_2d_back_p_total_tp" "integration/boundary_conditions/TEST_Euler_BpTtp_2d__ml0__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_navier_stokes_2d_noslip_general/adiabatic" "integration/boundary_conditions/TEST_NavierStokes_NSGA_2d__ml0__p2")

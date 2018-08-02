@@ -50,6 +50,26 @@ void constructor_Boundary_Value_T_euler_slipwall
 	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
 	 const struct Solver_Face_T* face,          ///< See brief.
 	 const struct Simulation* sim               ///< See brief.
+		);
+
+/** \brief Version of \ref constructor_Boundary_Value_fptr_T computing members using the slip wall values but
+ *         implemented in such a way that the boundary condition is adjoint consistent.
+ *
+ *  The form of the adjoint consistent boundary conditions is taken from Hartmann (eqs. (5.3), (5.21)),
+ *  \cite Hartmann2007).
+ *
+ *  The adjoint-consistent slip wall boundary condition sets the ghost state variables as follows:
+ *  - density:      equal to internal density;
+ *  - total energy: equal to internal total energy;
+ *  - velocity:     equal to tangential component of the internal velocity.
+ *
+ *  \note The pressure of the ghost state is __not__ equal to that the the internal state in this case.
+ */
+void constructor_Boundary_Value_T_euler_slipwall_adj_c
+	(struct Boundary_Value_T* bv,               ///< See brief.
+	 const struct Boundary_Value_Input_T* bv_i, ///< See brief.
+	 const struct Solver_Face_T* face,          ///< See brief.
+	 const struct Simulation* sim               ///< See brief.
 	);
 
 /// \brief Version of \ref constructor_Boundary_Value_fptr_T computing members using the external upwind values.

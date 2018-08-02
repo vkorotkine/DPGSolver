@@ -152,6 +152,7 @@ bool check_pfe_boundary (const int bc, const bool include_periodic)
 	case BC_TOTAL_TP:
 	case BC_SUPERSONIC_IN:
 	case BC_SUPERSONIC_OUT:
+	case BC_SLIPWALL_ADJ_C:
 	case BC_NOSLIP_ADIABATIC:    // Navier-Stokes
 	case BC_NOSLIP_DIABATIC:
 	case BC_NOSLIP_ALL_ROTATING:

@@ -141,6 +141,9 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	else:
 		gmsh_setnumbers += get_gmsh_number("gmsh_dummy",input_dir,0)
 
+	gmsh_setnumbers += " -setnumber bc_adjoint_consistent "
+	gmsh_setnumbers += '1' if (mesh_name.find("/adjoint_consistent/") != -1) else '0'
+
 	return gmsh_setnumbers
 
 

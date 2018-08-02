@@ -22,6 +22,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_multiarray.h"
 #include "def_templates_boundary.h"
 #include "def_templates_flux.h"
+#include "def_templates_test_case.h"
 
 struct Numerical_Flux_Input_T;
 struct mutable_Numerical_Flux_T;
@@ -47,6 +48,8 @@ struct Numerical_Flux_Input_T {
 
 	const bool has_1st_order, ///< \ref Test_Case_T::has_1st_order.
 	           has_2nd_order; ///< \ref Test_Case_T::has_2nd_order.
+
+	const struct Test_Case_T* test_case; ///< \ref Standard.
 
 	const struct Simulation* sim; ///< \ref Simulation.
 
@@ -134,3 +137,4 @@ void compute_Numerical_Flux_12_T
 #include "undef_templates_multiarray.h"
 #include "undef_templates_boundary.h"
 #include "undef_templates_flux.h"
+#include "undef_templates_test_case.h"

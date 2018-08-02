@@ -281,6 +281,7 @@ bool is_face_wall_boundary (const struct Face*const face)
 		return false;
 		break;
 	case BC_SLIPWALL:
+	case BC_SLIPWALL_ADJ_C:
 	case BC_NOSLIP_ADIABATIC:    // Navier-Stokes
 	case BC_NOSLIP_DIABATIC:
 	case BC_NOSLIP_ALL_ROTATING:

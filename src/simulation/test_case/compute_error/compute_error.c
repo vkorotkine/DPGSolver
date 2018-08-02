@@ -140,10 +140,8 @@ void output_error_functionals (const struct Simulation*const sim)
 	assert(list_is_derived_from("solver",'e',sim));
 
 	const struct Test_Case*const test_case = (struct Test_Case*)sim->test_case_rc->tc;
-	if (!test_case->constructor_Error_CE_functionals)
+	if (!test_case->constructor_Error_CE_functionals || !test_case->has_functional)
 		return;
-
-	assert(test_case->has_functional);
 
 	struct Error_CE* error_ce = test_case->constructor_Error_CE_functionals(sim);
 

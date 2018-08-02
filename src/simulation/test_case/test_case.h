@@ -72,6 +72,10 @@ bool test_case_explicitly_enforces_conservation
  *  \return See brief. */
 bool using_restart ( );
 
+/** \brief Return whether the test case is adjoint consistent.
+ *  \return See brief. */
+bool test_case_is_adjoint_consistent ( );
+
 /** \brief Return whether a restart file should be outputted.
  *  \return See brief. */
 bool outputting_restart ( );

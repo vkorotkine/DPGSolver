@@ -129,6 +129,10 @@ test_case->constructor_Error_CE = constructor_Error_CE_euler_entropy;
 		EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
 		break;
 	}
+	if (test_case_is_adjoint_consistent()) {
+		test_case->compute_Numerical_Flux_adj_c_e[0] = compute_Numerical_Flux_T_euler_external;
+		test_case->compute_Numerical_Flux_adj_c_i[0] = compute_Numerical_Flux_T_euler_external_jacobian;
+	}
 
 	test_case->constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_s_fcl_interp_T;
 }

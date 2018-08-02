@@ -50,6 +50,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef constructor_Boundary_Value_T_euler_riemann
 #undef constructor_Boundary_Value_T_euler_slipwall
+#undef constructor_Boundary_Value_T_euler_slipwall_adj_c
 #undef constructor_Boundary_Value_T_euler_supersonic_inflow
 #undef constructor_Boundary_Value_T_euler_supersonic_outflow
 #undef constructor_Boundary_Value_T_euler_back_pressure

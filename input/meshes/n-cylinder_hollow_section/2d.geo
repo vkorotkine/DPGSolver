@@ -1,5 +1,5 @@
 Include "../parameters.geo";
-//mesh_domain = PARAMETRIC; mesh_level = 1; mesh_type = MIXED; pde_name = ADVECTION; pde_spec = STEADY_VORTEX; geom_ar = 2.5; geom_unaligned = 1; geom_bc = GEOM_BC_SLIPWALL;
+//mesh_domain = PARAMETRIC; mesh_level = 1; mesh_type = MIXED; pde_name = ADVECTION; pde_spec = STEADY_VORTEX; geom_ar = 2.5; geom_unaligned = 1; bc_adjoint_consistent = 0;
 
 // Geometry Specification
 If (pde_spec == STEADY_SUPERSONIC_VORTEX)
@@ -115,8 +115,13 @@ ElseIf (pde_name == DIFFUSION)
 	Physical Line (3*BC_STEP_SC+BC_NEUMANN_ALT1) = {1005:1006};
 ElseIf (pde_name == EULER)
 	Physical Line (1*BC_STEP_SC+BC_RIEMANN)  = {1001,1002};
-	Physical Line (2*BC_STEP_SC+BC_SLIPWALL) = {1003:1004};
-	Physical Line (3*BC_STEP_SC+BC_SLIPWALL) = {1005:1006};
+  If (!bc_adjoint_consistent)
+    Physical Line (2*BC_STEP_SC+BC_SLIPWALL) = {1003:1004};
+    Physical Line (3*BC_STEP_SC+BC_SLIPWALL) = {1005:1006};
+  Else
+    Physical Line (2*BC_STEP_SC+BC_SLIPWALL_ADJ_C) = {1003:1004};
+    Physical Line (3*BC_STEP_SC+BC_SLIPWALL_ADJ_C) = {1005:1006};
+  EndIf
 Else
 	Error("Unsupported pde_name: %d",pde_name); Exit;
 EndIf

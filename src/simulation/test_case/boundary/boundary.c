@@ -72,5 +72,35 @@ bool using_exact_normals_for_boundary ( )
 	return flag;
 }
 
+bool using_adjoint_consistent_bc (const int bc)
+{
+	const int bc_base = bc % BC_STEP_SC;
+	switch (bc_base) {
+	case BC_INFLOW: case BC_INFLOW_ALT1: case BC_INFLOW_ALT2:
+	case BC_OUTFLOW: case BC_OUTFLOW_ALT1: case BC_OUTFLOW_ALT2:
+	case BC_UPWIND: case BC_UPWIND_ALT1: case BC_UPWIND_ALT2:
+	case BC_UPWIND_ALT3: case BC_UPWIND_ALT4: case BC_UPWIND_ALT5:
+	case BC_DIRICHLET: case BC_DIRICHLET_ALT1:
+	case BC_NEUMANN: case BC_NEUMANN_ALT1:
+	case BC_RIEMANN:
+	case BC_SLIPWALL:
+	case BC_BACKPRESSURE:
+	case BC_TOTAL_TP:
+	case BC_SUPERSONIC_IN:
+	case BC_SUPERSONIC_OUT:
+	case BC_NOSLIP_ADIABATIC:    // Navier-Stokes
+	case BC_NOSLIP_DIABATIC:
+	case BC_NOSLIP_ALL_ROTATING:
+		return false;
+		break;
+	case BC_SLIPWALL_ADJ_C:
+		return true;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %d\n",bc_base);
+		break;
+	}
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //

@@ -147,6 +147,14 @@ struct Test_Case_T {
 	 *  Jacobians) for the implicit solver. */
 	compute_Numerical_Flux_fptr_T compute_Numerical_Flux_i[2];
 
+	/** Pointers to the functions used to compute the 1st/2nd order adjoint-consistent numerical fluxes for the
+	 *  explicit solver. */
+	compute_Numerical_Flux_fptr_T compute_Numerical_Flux_adj_c_e[2];
+
+	/** Pointers to the functions used to compute the 1st/2nd order adjoint-consistent numerical fluxes (and
+	 *  optionally Jacobians) for the implicit solver. */
+	compute_Numerical_Flux_fptr_T compute_Numerical_Flux_adj_c_i[2];
+
 	/** Constructor for solution and gradient from the left volume at face cubature nodes as seen from the left
 	 *  volume. */
 	constructor_Boundary_Value_Input_face_fptr_T constructor_Boundary_Value_Input_face_fcl;

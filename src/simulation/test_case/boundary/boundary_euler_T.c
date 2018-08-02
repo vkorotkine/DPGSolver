@@ -654,6 +654,109 @@ void constructor_Boundary_Value_T_euler_slipwall
 	assert(c_m[2] == false);
 }
 
+void constructor_Boundary_Value_T_euler_slipwall_adj_c
+	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
+	 const struct Simulation* sim)
+{
+	UNUSED(face);
+	UNUSED(sim);
+	const bool* c_m = bv_i->compute_member;
+	assert(c_m[0] == true);
+
+	const struct const_Multiarray_T* sol_l = bv_i->s;
+
+	const Type*const rho_l  = get_col_const_Multiarray_T(0,sol_l);
+	const Type*const rhou_l = get_col_const_Multiarray_T(1,sol_l);
+	IF_DIM_GE_2( const Type*const rhov_l = (DIM > 1 ? get_col_const_Multiarray_T(2,sol_l) : NULL); )
+	IF_DIM_GE_3( const Type*const rhow_l = (DIM > 2 ? get_col_const_Multiarray_T(3,sol_l) : NULL); )
+	const Type*const E_l    = get_col_const_Multiarray_T(NVAR-1,sol_l);
+
+	const ptrdiff_t n_n = sol_l->extents[0];
+	struct Multiarray_T* sol = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,NVAR}); // keep
+
+	Type*const rho  = get_col_Multiarray_T(0,sol);
+	Type*const rhou = get_col_Multiarray_T(1,sol);
+	IF_DIM_GE_2( Type*const rhov = (DIM > 1 ? get_col_Multiarray_T(2,sol) : NULL); )
+	IF_DIM_GE_3( Type*const rhow = (DIM > 2 ? get_col_Multiarray_T(3,sol) : NULL); )
+	Type*const E    = get_col_Multiarray_T(NVAR-1,sol);
+
+	const struct const_Multiarray_T* normals = bv_i->normals;
+	assert(normals->layout == 'R');
+
+	for (int n = 0; n < n_n; n++) {
+		const Type* n_ = get_row_const_Multiarray_T(n,normals);
+		const Type rhouvw_l[] = ARRAY_DIM (rhou_l[n], rhov_l[n], rhow_l[n] );
+		const Type n_rhouvw_l = SUM_DIM(n_[0]*rhouvw_l[0],n_[1]*rhouvw_l[1],n_[2]*rhouvw_l[2]);
+
+		IF_DIM_GE_1( rho[n]  = rho_l[n] );
+		IF_DIM_GE_1( rhou[n] = rhou_l[n] - n_[0]*n_rhouvw_l );
+		IF_DIM_GE_2( rhov[n] = rhov_l[n] - n_[1]*n_rhouvw_l );
+		IF_DIM_GE_3( rhow[n] = rhow_l[n] - n_[2]*n_rhouvw_l );
+		IF_DIM_GE_1( E[n]    = E_l[n] );
+	}
+	bv->s = (struct const_Multiarray_T*)sol;
+
+	if (c_m[1] == true) {
+		struct Multiarray_T* ds_ds = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_n,NVAR,NVAR}); // keep
+
+		Type *ds_ds_ptr[NVAR*NVAR];
+		for (int ind = 0, vr_l = 0; vr_l < NVAR; vr_l++) {
+		for (int vr_r = 0; vr_r < NVAR; vr_r++) {
+			ds_ds_ptr[ind] = &ds_ds->data[n_n*(ind)];
+			++ind;
+		}}
+
+		for (int n = 0; n < n_n; n++) {
+			const Type* n_ = get_row_const_Multiarray_T(n,normals);
+			IF_DIM_GE_1 (const Type n1 = n_[0]; )
+			IF_DIM_GE_2 (const Type n2 = n_[1]; )
+			IF_DIM_GE_3 (const Type n3 = n_[2]; )
+
+			int Indds_ds = 0;
+
+			// *** var 1 ***
+			IF_DIM_GE_1 (*ds_ds_ptr[Indds_ds++] = 1.0 );
+			IF_DIM_GE_1 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+			IF_DIM_GE_2 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+			IF_DIM_GE_3 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+			IF_DIM_GE_1 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+
+			// *** var 2 ***
+			IF_DIM_GE_1 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+			IF_DIM_GE_1 (*ds_ds_ptr[Indds_ds++] = 1.0 - 1.0*n1*n1 );
+			IF_DIM_GE_2 (*ds_ds_ptr[Indds_ds++] =     - 1.0*n2*n1 );
+			IF_DIM_GE_3 (*ds_ds_ptr[Indds_ds++] =     - 1.0*n3*n1 );
+			IF_DIM_GE_1 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+
+			// *** var 3 ***
+			IF_DIM_GE_2 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+			IF_DIM_GE_2 (*ds_ds_ptr[Indds_ds++] =     - 1.0*n1*n2 );
+			IF_DIM_GE_2 (*ds_ds_ptr[Indds_ds++] = 1.0 - 1.0*n2*n2 );
+			IF_DIM_GE_3 (*ds_ds_ptr[Indds_ds++] =     - 1.0*n3*n2 );
+			IF_DIM_GE_2 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+
+			// *** var 4 ***
+			IF_DIM_GE_3 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+			IF_DIM_GE_3 (*ds_ds_ptr[Indds_ds++] =     - 1.0*n1*n3 );
+			IF_DIM_GE_3 (*ds_ds_ptr[Indds_ds++] =     - 1.0*n2*n3 );
+			IF_DIM_GE_3 (*ds_ds_ptr[Indds_ds++] = 1.0 - 1.0*n3*n3 );
+			IF_DIM_GE_3 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+
+			// *** var 5 ***
+			IF_DIM_GE_1 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+			IF_DIM_GE_1 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+			IF_DIM_GE_2 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+			IF_DIM_GE_3 (*ds_ds_ptr[Indds_ds++] = 0.0 );
+			IF_DIM_GE_1 (*ds_ds_ptr[Indds_ds++] = 1.0 );
+
+			for (int i = 0, iMax = NEQ*NVAR; i < iMax; i++)
+				ds_ds_ptr[i]++;
+		}
+		bv->ds_ds = (const struct const_Multiarray_T*) ds_ds;
+	}
+	assert(c_m[2] == false);
+}
+
 void constructor_Boundary_Value_T_euler_supersonic_inflow
 	(struct Boundary_Value_T* bv, const struct Boundary_Value_Input_T* bv_i, const struct Solver_Face_T* face,
 	 const struct Simulation* sim)

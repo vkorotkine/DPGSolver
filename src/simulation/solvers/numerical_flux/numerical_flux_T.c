@@ -48,6 +48,7 @@ struct Numerical_Flux_Input_T* constructor_Numerical_Flux_Input_T (const struct 
 	struct Numerical_Flux_Input_T* num_flux_i = calloc(1,sizeof *num_flux_i); // returned
 
 	struct Test_Case_T* test_case = (struct Test_Case_T*)sim->test_case_rc->tc;
+	num_flux_i->test_case = test_case;
 	const_cast_i(&num_flux_i->method,sim->method);
 	const_cast_b(&num_flux_i->has_1st_order,test_case->has_1st_order);
 	const_cast_b(&num_flux_i->has_2nd_order,test_case->has_2nd_order);
@@ -90,6 +91,28 @@ struct Numerical_Flux_T* constructor_Numerical_Flux_T (const struct Numerical_Fl
 	        (num_flux_i->bv_r.s != NULL && num_flux_i->bv_r.s->layout == 'C')) ||
 	       ((num_flux_i->bv_l.g != NULL && num_flux_i->bv_l.g->layout == 'C') &&
 	        (num_flux_i->bv_r.g != NULL && num_flux_i->bv_r.g->layout == 'C')));
+
+	if (using_adjoint_consistent_bc(num_flux_i->bv_l.bc)) {
+		assert(test_case_is_adjoint_consistent());
+		const struct Test_Case_T* test_case = num_flux_i->test_case;
+		switch (test_case->solver_method_curr) {
+		case 'e':
+			assert(!(test_case->compute_Numerical_Flux_adj_c_e[0] == NULL &&
+			         test_case->compute_Numerical_Flux_adj_c_e[1] == NULL));
+			num_flux_i->compute_Numerical_Flux_1st = test_case->compute_Numerical_Flux_adj_c_e[0];
+			num_flux_i->compute_Numerical_Flux_2nd = test_case->compute_Numerical_Flux_adj_c_e[1];
+			break;
+		case 'i':
+			assert(!(test_case->compute_Numerical_Flux_adj_c_i[0] == NULL &&
+			         test_case->compute_Numerical_Flux_adj_c_i[1] == NULL));
+			num_flux_i->compute_Numerical_Flux_1st = test_case->compute_Numerical_Flux_adj_c_i[0];
+			num_flux_i->compute_Numerical_Flux_2nd = test_case->compute_Numerical_Flux_adj_c_i[1];
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %c.\n",test_case->solver_method_curr);
+			break;
+		}
+	}
 
 	/// \todo Check if this can be (which seems more correct):
 	/// const bool* c_m = num_flux_i->flux_i.compute_member;

@@ -50,6 +50,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define constructor_Boundary_Value_T_euler_riemann            constructor_Boundary_Value_euler_riemann
 #define constructor_Boundary_Value_T_euler_slipwall           constructor_Boundary_Value_euler_slipwall
+#define constructor_Boundary_Value_T_euler_slipwall_adj_c     constructor_Boundary_Value_euler_slipwall_adj_c
 #define constructor_Boundary_Value_T_euler_supersonic_inflow  constructor_Boundary_Value_euler_supersonic_inflow
 #define constructor_Boundary_Value_T_euler_supersonic_outflow constructor_Boundary_Value_euler_supersonic_outflow
 #define constructor_Boundary_Value_T_euler_back_pressure      constructor_Boundary_Value_euler_back_pressure
@@ -117,6 +118,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define constructor_Boundary_Value_T_euler_riemann            constructor_Boundary_Value_c_euler_riemann
 #define constructor_Boundary_Value_T_euler_slipwall           constructor_Boundary_Value_c_euler_slipwall
+#define constructor_Boundary_Value_T_euler_slipwall_adj_c     constructor_Boundary_Value_c_euler_slipwall_adj_c
 #define constructor_Boundary_Value_T_euler_supersonic_inflow  constructor_Boundary_Value_c_euler_supersonic_inflow
 #define constructor_Boundary_Value_T_euler_supersonic_outflow constructor_Boundary_Value_c_euler_supersonic_outflow
 #define constructor_Boundary_Value_T_euler_back_pressure      constructor_Boundary_Value_c_euler_back_pressure
