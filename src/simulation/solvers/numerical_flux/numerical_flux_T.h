@@ -63,6 +63,12 @@ struct Numerical_Flux_Input_T {
 
 	/// \ref compute_Numerical_Flux_fptr_T for the 2nd order fluxes.
 	compute_Numerical_Flux_fptr_T compute_Numerical_Flux_2nd;
+
+	/// \ref compute_Numerical_Flux_fptr_T for the 1st order adjoint-consistent fluxes.
+	compute_Numerical_Flux_fptr_T compute_Numerical_Flux_adj_c_1st;
+
+	/// \ref compute_Numerical_Flux_fptr_T for the 2nd order adjoint-consistent fluxes.
+	compute_Numerical_Flux_fptr_T compute_Numerical_Flux_adj_c_2nd;
 };
 
 /** \brief Container storing the numerical fluxes and their Jacobians.

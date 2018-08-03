@@ -314,6 +314,8 @@ static struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
 	}
 	const_cast_i(&e_ce_h->error_type,ERROR_FUNCTIONAL);
 
+	static const struct Boundary_Value_Input bv_i_0;
+	static const struct Boundary_Value       bv_0;
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 		const struct Face*const face = (struct Face*) curr;
 		if (!is_face_wall_boundary(face))
@@ -323,17 +325,22 @@ static struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
 		e_ce_h->s_face = s_face;
 		e_ce_h->s_vol[0] = (struct Solver_Volume*) face->neigh_info[0].volume;
 
-		struct Boundary_Value_Input bv_i;
+		const bool compute_member[] = {true,false,false,false,false,false};
+		struct Boundary_Value_Input bv_i = bv_i_0;
+		bv_i.compute_member = compute_member;
 		constructor_Boundary_Value_Input_face_s_fcl_interp(&bv_i,s_face,sim); // destructed
-		bv_i.g = NULL;
+
+		struct Boundary_Value bv = bv_0;
+		s_face->constructor_Boundary_Value_fcl(&bv,&bv_i,s_face,sim); // destructed
 
 		const struct const_Multiarray_d*const xyz_fc = s_face->xyz_fc;
 		const ptrdiff_t n_n = bv_i.xyz->extents[0];
 
 		struct Error_CE_Data e_ce_d;
 		e_ce_d.sol[0] = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_n,2}); // destructed
-		compute_cd_cl_values(e_ce_d.sol[0],bv_i.s,'c',bv_i.normals);
+		compute_cd_cl_values(e_ce_d.sol[0],bv.s,'c',bv_i.normals);
 		destructor_Boundary_Value_Input(&bv_i);
+		destructor_Boundary_Value(&bv);
 
 		e_ce_d.sol[1] = (struct Multiarray_d*)constructor_const_functionals_cd_cl_reference_constant(xyz_fc,sim); // d.
 

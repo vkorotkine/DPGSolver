@@ -62,13 +62,17 @@ struct Numerical_Flux_Input_T* constructor_Numerical_Flux_Input_T (const struct 
 	switch (test_case->solver_method_curr) {
 	case 'e':
 		num_flux_i->bv_l.compute_member = test_case->boundary_value_comp_mem_e;
-		num_flux_i->compute_Numerical_Flux_1st = test_case->compute_Numerical_Flux_e[0];
-		num_flux_i->compute_Numerical_Flux_2nd = test_case->compute_Numerical_Flux_e[1];
+		num_flux_i->compute_Numerical_Flux_1st       = test_case->compute_Numerical_Flux_e[0];
+		num_flux_i->compute_Numerical_Flux_2nd       = test_case->compute_Numerical_Flux_e[1];
+		num_flux_i->compute_Numerical_Flux_adj_c_1st = test_case->compute_Numerical_Flux_adj_c_e[0];
+		num_flux_i->compute_Numerical_Flux_adj_c_2nd = test_case->compute_Numerical_Flux_adj_c_e[1];
 		break;
 	case 'i':
 		num_flux_i->bv_l.compute_member = test_case->boundary_value_comp_mem_i;
-		num_flux_i->compute_Numerical_Flux_1st = test_case->compute_Numerical_Flux_i[0];
-		num_flux_i->compute_Numerical_Flux_2nd = test_case->compute_Numerical_Flux_i[1];
+		num_flux_i->compute_Numerical_Flux_1st       = test_case->compute_Numerical_Flux_i[0];
+		num_flux_i->compute_Numerical_Flux_2nd       = test_case->compute_Numerical_Flux_i[1];
+		num_flux_i->compute_Numerical_Flux_adj_c_1st = test_case->compute_Numerical_Flux_adj_c_i[0];
+		num_flux_i->compute_Numerical_Flux_adj_c_2nd = test_case->compute_Numerical_Flux_adj_c_i[1];
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %c.\n",test_case->solver_method_curr);
@@ -91,28 +95,6 @@ struct Numerical_Flux_T* constructor_Numerical_Flux_T (const struct Numerical_Fl
 	        (num_flux_i->bv_r.s != NULL && num_flux_i->bv_r.s->layout == 'C')) ||
 	       ((num_flux_i->bv_l.g != NULL && num_flux_i->bv_l.g->layout == 'C') &&
 	        (num_flux_i->bv_r.g != NULL && num_flux_i->bv_r.g->layout == 'C')));
-
-	if (using_adjoint_consistent_bc(num_flux_i->bv_l.bc)) {
-		assert(test_case_is_adjoint_consistent());
-		const struct Test_Case_T* test_case = num_flux_i->test_case;
-		switch (test_case->solver_method_curr) {
-		case 'e':
-			assert(!(test_case->compute_Numerical_Flux_adj_c_e[0] == NULL &&
-			         test_case->compute_Numerical_Flux_adj_c_e[1] == NULL));
-			num_flux_i->compute_Numerical_Flux_1st = test_case->compute_Numerical_Flux_adj_c_e[0];
-			num_flux_i->compute_Numerical_Flux_2nd = test_case->compute_Numerical_Flux_adj_c_e[1];
-			break;
-		case 'i':
-			assert(!(test_case->compute_Numerical_Flux_adj_c_i[0] == NULL &&
-			         test_case->compute_Numerical_Flux_adj_c_i[1] == NULL));
-			num_flux_i->compute_Numerical_Flux_1st = test_case->compute_Numerical_Flux_adj_c_i[0];
-			num_flux_i->compute_Numerical_Flux_2nd = test_case->compute_Numerical_Flux_adj_c_i[1];
-			break;
-		default:
-			EXIT_ERROR("Unsupported: %c.\n",test_case->solver_method_curr);
-			break;
-		}
-	}
 
 	/// \todo Check if this can be (which seems more correct):
 	/// const bool* c_m = num_flux_i->flux_i.compute_member;
@@ -159,22 +141,42 @@ void destructor_Numerical_Flux_T (struct Numerical_Flux_T* num_flux)
 void compute_Numerical_Flux_1_T
 	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {
-	num_flux_i->compute_Numerical_Flux_1st(num_flux_i,num_flux);
+	if (!using_adjoint_consistent_bc(num_flux_i->bv_l.bc)) {
+		num_flux_i->compute_Numerical_Flux_1st(num_flux_i,num_flux);
+	} else {
+		assert(test_case_is_adjoint_consistent());
+		assert(num_flux_i->compute_Numerical_Flux_adj_c_1st != NULL);
+		num_flux_i->compute_Numerical_Flux_adj_c_1st(num_flux_i,num_flux);
+	}
 	combine_num_flux_boundary_T((struct Numerical_Flux_Input_T*)num_flux_i,num_flux);
 }
 
 void compute_Numerical_Flux_2_T
 	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {
-	num_flux_i->compute_Numerical_Flux_2nd(num_flux_i,num_flux);
+	if (!using_adjoint_consistent_bc(num_flux_i->bv_l.bc)) {
+		num_flux_i->compute_Numerical_Flux_2nd(num_flux_i,num_flux);
+	} else {
+		assert(test_case_is_adjoint_consistent());
+		assert(num_flux_i->compute_Numerical_Flux_adj_c_2nd != NULL);
+		num_flux_i->compute_Numerical_Flux_adj_c_2nd(num_flux_i,num_flux);
+	}
 	combine_num_flux_boundary_T((struct Numerical_Flux_Input_T*)num_flux_i,num_flux);
 }
 
 void compute_Numerical_Flux_12_T
 	(const struct Numerical_Flux_Input_T* num_flux_i, struct mutable_Numerical_Flux_T* num_flux)
 {
-	num_flux_i->compute_Numerical_Flux_1st(num_flux_i,num_flux);
-	num_flux_i->compute_Numerical_Flux_2nd(num_flux_i,num_flux);
+	if (!using_adjoint_consistent_bc(num_flux_i->bv_l.bc)) {
+		num_flux_i->compute_Numerical_Flux_1st(num_flux_i,num_flux);
+		num_flux_i->compute_Numerical_Flux_2nd(num_flux_i,num_flux);
+	} else {
+		assert(test_case_is_adjoint_consistent());
+		assert(num_flux_i->compute_Numerical_Flux_adj_c_1st != NULL);
+		assert(num_flux_i->compute_Numerical_Flux_adj_c_2nd != NULL);
+		num_flux_i->compute_Numerical_Flux_adj_c_1st(num_flux_i,num_flux);
+		num_flux_i->compute_Numerical_Flux_adj_c_2nd(num_flux_i,num_flux);
+	}
 	combine_num_flux_boundary_T((struct Numerical_Flux_Input_T*)num_flux_i,num_flux);
 }
 

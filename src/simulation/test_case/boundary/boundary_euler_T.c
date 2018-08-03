@@ -667,8 +667,8 @@ void constructor_Boundary_Value_T_euler_slipwall_adj_c
 
 	const Type*const rho_l  = get_col_const_Multiarray_T(0,sol_l);
 	const Type*const rhou_l = get_col_const_Multiarray_T(1,sol_l);
-	IF_DIM_GE_2( const Type*const rhov_l = (DIM > 1 ? get_col_const_Multiarray_T(2,sol_l) : NULL); )
-	IF_DIM_GE_3( const Type*const rhow_l = (DIM > 2 ? get_col_const_Multiarray_T(3,sol_l) : NULL); )
+	IF_DIM_GE_2( const Type*const rhov_l = get_col_const_Multiarray_T(2,sol_l); )
+	IF_DIM_GE_3( const Type*const rhow_l = get_col_const_Multiarray_T(3,sol_l); )
 	const Type*const E_l    = get_col_const_Multiarray_T(NVAR-1,sol_l);
 
 	const ptrdiff_t n_n = sol_l->extents[0];
@@ -676,8 +676,8 @@ void constructor_Boundary_Value_T_euler_slipwall_adj_c
 
 	Type*const rho  = get_col_Multiarray_T(0,sol);
 	Type*const rhou = get_col_Multiarray_T(1,sol);
-	IF_DIM_GE_2( Type*const rhov = (DIM > 1 ? get_col_Multiarray_T(2,sol) : NULL); )
-	IF_DIM_GE_3( Type*const rhow = (DIM > 2 ? get_col_Multiarray_T(3,sol) : NULL); )
+	IF_DIM_GE_2( Type*const rhov = get_col_Multiarray_T(2,sol); )
+	IF_DIM_GE_3( Type*const rhow = get_col_Multiarray_T(3,sol); )
 	Type*const E    = get_col_Multiarray_T(NVAR-1,sol);
 
 	const struct const_Multiarray_T* normals = bv_i->normals;

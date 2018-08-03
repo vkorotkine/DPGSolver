@@ -1,5 +1,6 @@
 /// Solution parameters for test case: euler/steady/supersonic_vortex
 
+// http://www.wolframalpha.com/input/?i=(1.384*(2.0*(1%2B0.2*1.531261286907647%5E2*(1-(1%2F1.384)%5E2))%5E(1%2F0.4))%5E1.4-1*2%5E1.4)%2F(Pi%2F2*(1%2B1.384))
 m_i   1.531261286907647  // Used r_i = 1.0, r_o = 1.384.
 rho_i 2.0
 

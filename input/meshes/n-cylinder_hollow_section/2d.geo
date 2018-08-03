@@ -121,6 +121,7 @@ ElseIf (pde_name == EULER)
   Else
     Physical Line (2*BC_STEP_SC+BC_SLIPWALL_ADJ_C) = {1003:1004};
     Physical Line (3*BC_STEP_SC+BC_SLIPWALL_ADJ_C) = {1005:1006};
+//    Physical Line (3*BC_STEP_SC+BC_RIEMANN) = {1005:1006};
   EndIf
 Else
 	Error("Unsupported pde_name: %d",pde_name); Exit;

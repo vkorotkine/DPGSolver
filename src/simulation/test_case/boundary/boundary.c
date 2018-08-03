@@ -76,6 +76,7 @@ bool using_adjoint_consistent_bc (const int bc)
 {
 	const int bc_base = bc % BC_STEP_SC;
 	switch (bc_base) {
+	case BC_INVALID:
 	case BC_INFLOW: case BC_INFLOW_ALT1: case BC_INFLOW_ALT2:
 	case BC_OUTFLOW: case BC_OUTFLOW_ALT1: case BC_OUTFLOW_ALT2:
 	case BC_UPWIND: case BC_UPWIND_ALT1: case BC_UPWIND_ALT2:

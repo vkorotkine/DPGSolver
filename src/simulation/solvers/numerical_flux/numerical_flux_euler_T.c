@@ -1680,8 +1680,8 @@ void compute_Numerical_Flux_T_euler_external
 		const Type sR_n[] = ARRAY_VAR(rhoR_p[n], rhouvwR_p[0][n], rhouvwR_p[1][n], rhouvwR_p[2][n], ER_p[n]);
 		const_cast_T1(&flux_i.s->data,sR_n);
 
-		Type fR_n[DIM*NEQ]          = {0.0};
-		flux.f->data     = fR_n;
+		Type fR_n[DIM*NEQ] = {0.0};
+		flux.f->data = fR_n;
 		compute_Flux_T_euler(&flux_i,&flux);
 
 		const Type*const nL = get_row_const_Multiarray_T(n,nL_p);

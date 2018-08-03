@@ -201,11 +201,6 @@ void compute_cd_cl_values
 	const ptrdiff_t ext_0 = c_dl->extents[0];
 	for (int i = 0; i < ext_0; ++i) {
 		const double*const n = get_row_const_Multiarray_d(i,normals);
-		/* const double theta_n  = atan2(n[1],n[0]); */
-		/* const double theta_nf = theta_n-theta_fs; */
-
-		/* cd[i] = p[i]*cos(theta_nf)/denom; */
-		/* cl[i] = p[i]*sin(theta_nf)/denom; */
 		cd[i] = p[i]*( n[0]*cos_t_fs+n[1]*sin_t_fs)/denom;
 		cl[i] = p[i]*(-n[0]*sin_t_fs+n[1]*cos_t_fs)/denom;
 	}
@@ -236,8 +231,8 @@ const struct const_Multiarray_d* constructor_const_functionals_cd_cl_reference_c
 		}
 
 		if (count_found != count_to_find)
-			// If hitting this error for an existing test case, likely input c_d = 0.0, c_l = 0.0 as this
-			// was previously the default.
+			// If hitting this error for an existing test case, likely add c_d = 0.0, c_l = 0.0 to the input
+			// file as this was previously the default.
 			EXIT_ERROR("Did not find the required number of variables");
 	}
 
