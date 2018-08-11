@@ -15,6 +15,10 @@ set(RUN_SLEPC_TESTS FALSE)
 find_package(SLEPc 3.8 REQUIRED)
 include_directories(${SLEPC_INCLUDE_DIRS})
 
+set(RUN_PARMETIS_TESTS FALSE)
+find_package(ParMETIS REQUIRED)
+include_directories(${PARMETIS_INCLUDE_DIRS})
+
 # Currently including all directories here so that `#include`s need not specify relative paths.
 include_directories(
 	allocators
