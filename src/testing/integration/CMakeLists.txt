@@ -200,5 +200,6 @@ set (EXEC test_integration_mpi)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
+add_test_mpi_DPG_w_path("2" ${BIN_PATH_2D} ${EXEC} "blended_2d_mixed.msh" "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D__ml0__p3")
 # Add tests:
 # - equivalence operators.

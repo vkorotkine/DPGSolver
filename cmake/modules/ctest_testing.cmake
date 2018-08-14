@@ -49,3 +49,21 @@ function(add_test_DPG_w_path exec_path test_exec)
 	endif()
 endfunction()
 
+# Add a test with input path and executable and an arbitrary number of trailing command line arguments.
+function(add_test_mpi_DPG_w_path nproc exec_path test_exec)
+	# The optional command line arguments should be passed as a string and are stored in ${ARGV1} if present.
+
+	set(extra_args ${ARGN})
+	list(LENGTH extra_args n_extra_args)
+
+	if (n_extra_args EQUAL 0)
+		add_test(NAME ${test_exec}___${nproc}proc COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${nproc} ${exec_path}${test_exec} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+	elseif (n_extra_args EQUAL 1)
+		add_test(NAME ${test_exec}___${nproc}proc___${ARGV3} COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${nproc} ${exec_path}${test_exec} ${ARGV3} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+	elseif (n_extra_args EQUAL 2)
+		add_test(NAME ${test_exec}___${nproc}proc___${ARGV3} COMMAND ${MPIEXEC} ${MPIEXEC_NUMPROC_FLAG} ${nproc} ${exec_path}${test_exec} ${ARGV3} ${ARGV4} WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+	else ()
+		message(FATAL_ERROR "Invalid number of command line arguments." )
+	endif()
+endfunction()
+
