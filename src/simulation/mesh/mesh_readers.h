@@ -23,7 +23,9 @@ struct Vector_i;
 
 #include <stddef.h>
 
-#define GMSH_N_TAGS 2 ///< Expected number of tags for elements in the gmsh file.
+#define GMSH_N_TAGS 2 ///< Expected number of tags for elements in the gmsh file for a single domain.
+#define GMSH_N_TAGS_PAR 3 ///< Expected number of tags for elements in the gmsh file if partitioning was previously done.
+#define GMSH_N_TAGS_MAX 10 ///< Maximum number of tags for elements in the gmsh file if partitioning was previously done.
 
 /** \brief Holds data read from the mesh file.
  *
@@ -45,6 +47,7 @@ struct Mesh_Data {
 	const struct const_Matrix_i*const elem_tags;            /**< The list of element tags.
 	                                                          *  The 1st tag gives boundary condition information.
 	                                                          *  The 2nd tag gives periodic connectivity information.
+	                                                          *  The 3rd tag gives partition number.
 	                                                          */
 	const struct const_Multiarray_Vector_i*const node_nums; ///< The list of node numbers for the elements.
 

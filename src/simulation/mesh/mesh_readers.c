@@ -18,6 +18,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
+#include "mpi.h"
 
 #include "macros.h"
 #include "definitions_core.h"
@@ -54,6 +56,13 @@ struct Mesh_Data_l {
 };
 
 /// /brief Read data from a mesh in gmsh format.
+static void mesh_reader_gmsh_parallel
+	(const char*const mesh_name_full,     ///< The name of the mesh including the full path.
+	 const int d,                         ///< The dimension.
+	 struct Mesh_Data_l*const mesh_data_l ///< \ref Mesh_Data_l.
+	);
+
+/// /brief Read data from a mesh in gmsh format.
 static void mesh_reader_gmsh
 	(const char*const mesh_name_full,     ///< The name of the mesh including the full path.
 	 const int d,                         ///< The dimension.
@@ -72,8 +81,9 @@ static struct Vector_i* count_elements_per_dim
 struct Mesh_Data* constructor_Mesh_Data (const char*const mesh_name_full, const int d)
 {
 	struct Mesh_Data_l mesh_data_l;
+	if(0==1) mesh_reader_gmsh(mesh_name_full,d,&mesh_data_l);
 	if (strstr(mesh_name_full,".msh"))
-		mesh_reader_gmsh(mesh_name_full,d,&mesh_data_l);
+		mesh_reader_gmsh_parallel(mesh_name_full,d,&mesh_data_l);
 	else
 		EXIT_ERROR("Unsupported (mesh_name: %s)\n",mesh_name_full);
 
@@ -212,6 +222,119 @@ static struct Matrix_i* read_periodic
 	 const int d      ///< The dimension.
 	);
 
+static void mesh_reader_gmsh_parallel (const char*const mesh_name_full, const int d, struct Mesh_Data_l*const mesh_data_l)
+{
+	int mpi_size, mpi_rank;
+	MPI_Comm_size(MPI_COMM_WORLD,&mpi_size);
+	MPI_Comm_rank(MPI_COMM_WORLD,&mpi_rank);
+
+	mesh_data_l->nodes         = NULL;
+	mesh_data_l->elem_data     = NULL;
+	mesh_data_l->periodic_corr = NULL;
+
+	FILE* mesh_file = fopen_checked(mesh_name_full); // closed
+
+	char line[STRLEN_MAX];
+	char* endptr = NULL;
+
+	int max_partitions = 0;
+	ptrdiff_t n_tags;
+	ptrdiff_t n_elems_total = 0;
+	ptrdiff_t n_elems_proc  = 0;
+	ptrdiff_t n_elems_dom   = 0;
+	ptrdiff_t n_elems_ghost = 0;
+	struct Vector_i* tags = constructor_empty_Vector_i(GMSH_N_TAGS_MAX);
+	// Check maximum partition number
+	// Count number of elements within the partition
+	while (fgets(line,sizeof(line),mesh_file)) {
+		// Find Element list
+		if (strstr(line,"$Elements")) {
+			// Get n_elems_total
+			if (fgets(line,sizeof(line),mesh_file) != NULL) {};
+			n_elems_total = strtol(line,&endptr,10);
+
+			while (fgets(line,sizeof(line),mesh_file)) {
+				if (strstr(line,"$EndElements")) break;
+				// Discard element ID and element type
+				char* line_ptr[1] = {line}; // Need to pass point to next functions
+				discard_line_values(line_ptr,2);
+				read_line_values_l(line_ptr,1,&n_tags,false);
+				assert(n_tags>1 && n_tags<=GMSH_N_TAGS_MAX);
+				if (n_tags==2) {
+					max_partitions = 1;
+					break;
+				}
+				read_line_values_i(line_ptr,n_tags,&tags->data[0],false);
+				for (int i_tag=0; i_tag<n_tags; ++i_tag) {
+					int i_part = tags->data[i_tag]; // i_part indexing is 1-based
+					if (i_part>max_partitions) max_partitions = i_part;
+					if ((i_part-1)==mpi_rank) n_elems_dom++;
+					if ((-i_part-1)==mpi_rank) n_elems_ghost++;
+				}
+			}
+			break;
+		}
+	}
+	destructor_Vector_i(tags);
+  	bool equal_part_proc = (max_partitions==mpi_size);
+  	printf("nproc = %d, nparts = %d \n",mpi_size,max_partitions);
+  	if (!equal_part_proc) {
+  		EXIT_UNSUPPORTED;
+
+  		char new_mesh_name_full[STRLEN_MAX];
+  		sprintf(new_mesh_name_full, "%s_partitioned%d.msh", mesh_name_full, mpi_size);
+  		if(mpi_rank==1) {
+  			printf("Non-matching number of partitions (%d) "
+  				   "and number of processors (%d). \n", max_partitions, mpi_size);
+  			char command[STRLEN_MAX];
+  			//sprintf(command, "gmsh -string \"Merge /home/ddong/Codes/DPGSolver/build_debug_2D/meshes/%s; PartitionMesh %d;\" -o %s -0",
+  			sprintf(command, "gmsh -bgm %s -part %d -o %s -0",
+  					mesh_name_full, mpi_size, new_mesh_name_full);
+  			printf("Partitioning using ParMetis. Command: %s \n", command);
+  			system(command);
+  		}
+  		MPI_Barrier(MPI_COMM_WORLD);
+  		EXIT_UNSUPPORTED;
+  		mesh_reader_gmsh_parallel (new_mesh_name_full, d, mesh_data_l);
+  		return;
+  	}
+
+	n_elems_proc = n_elems_dom+n_elems_ghost;
+	struct Element_Data* elem_data = constructor_Element_Data(n_elems_proc); // keep
+
+	ptrdiff_t row = 0;
+	while (fgets(line,sizeof(line),mesh_file) != NULL) {
+		if (strstr(line,"$EndElements"))
+			break;
+
+		ptrdiff_t n_tags;
+		discard_line_values(&line,1);
+		read_line_values_i(&line,1,&elem_data->elem_types->data[row],false);
+		read_line_values_l(&line,1,&n_tags,false);
+		read_line_values_i(&line,n_tags,get_row_Matrix_i(row,elem_data->elem_tags),false);
+
+		bool skip_element = false;
+		for (ptrdiff_t i_tag=0; i_tag<n_tags; ++i_tag) {
+			ptrdiff_t i_part = tags->data[i_tag]; // i_part indexing is 1-based
+			if ((i_part-1)==mpi_rank || (-i_part-1)==mpi_rank) skip_element = true;
+		}
+		if (skip_element) continue;
+
+		int n_nodes = get_n_nodes(elem_data->elem_types->data[row]);
+		resize_Vector_i(elem_data->node_nums->data[row],n_nodes);
+
+		read_line_values_i(&line,n_nodes,elem_data->node_nums->data[row]->data,true);
+		reorder_nodes_gmsh(elem_data->elem_types->data[row],elem_data->node_nums->data[row]);
+		fill_elements(row,elem_data,line);
+
+		if (row++ == n_elems_proc)
+			EXIT_UNSUPPORTED;
+	}
+	mesh_data_l->elem_data = elem_data;
+
+    //UNUSED(n_elems);
+    //UNUSED(d);
+}
 static void mesh_reader_gmsh (const char*const mesh_name_full, const int d, struct Mesh_Data_l*const mesh_data_l)
 {
 	mesh_data_l->nodes         = NULL;
@@ -409,7 +532,7 @@ static struct Element_Data* constructor_Element_Data (const ptrdiff_t n_elems)
 	elem_data->n_elems = n_elems;
 
 	elem_data->elem_types = constructor_empty_Vector_i(n_elems);                    // keep
-	elem_data->elem_tags  = constructor_empty_Matrix_i('R',n_elems,GMSH_N_TAGS);    // keep
+	elem_data->elem_tags  = constructor_empty_Matrix_i('R',n_elems,GMSH_N_TAGS_MAX);    // keep
 	elem_data->node_nums  = constructor_empty_Multiarray_Vector_i(true,1,&n_elems); // keep
 
 	return elem_data;
@@ -424,8 +547,10 @@ static void fill_elements (const ptrdiff_t row, struct Element_Data*const elem_d
 	read_line_values_i(&line,1,&elem_data->elem_types->data[row],false);
 
 	read_line_values_l(&line,1,&n_tags,false);
-	if (n_tags != elem_data->elem_tags->ext_1)
-		EXIT_UNSUPPORTED;
+//	if (n_tags != GMSH_N_TAGS)
+//		EXIT_UNSUPPORTED;
+//	if (n_tags != elem_data->elem_tags->ext_1)
+//		EXIT_UNSUPPORTED;
 
 	read_line_values_i(&line,n_tags,get_row_Matrix_i(row,elem_data->elem_tags),false);
 
