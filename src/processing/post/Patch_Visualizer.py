@@ -21,13 +21,11 @@ import time
 
 
 # Location of the optimization Patch progress file
-#CONST_OPTIMIZATION_FILE = "../../../build_2D/output/paraview/euler/steady/NURBS_Airfoil/Optimized_NURBS_Patch.txt"
-#CONST_OPTIMIZATION_FILE = "../../../input/input_files/euler/steady/NURBS_Airfoil/geometry_parameters_NACA4412.geo"
-#CONST_OPTIMIZATION_FILE = "../../../input/input_files/euler/steady/NURBS_Airfoil/geometry_parameters_NACA0012_P5.geo"
-CONST_OPTIMIZATION_FILE = "../../../build_2D/output/paraview/euler/steady/NURBS/Optimized_NURBS_Patch.txt"
+CONST_OPTIMIZATION_FILE = "../../../build_2D/output/optimization/euler/steady/NURBS_Airfoil/Optimized_NURBS_Patch.txt"
 
 # Location of the initial geometry file
-CONST_INITIAL_PATCH_FILE = "../../../input/input_files/euler/steady/NURBS/geometry_parameters_P6_Optimization_Target.geo"
+CONST_INITIAL_PATCH_FILE = "../../../input/input_files/euler/steady/NURBS_Airfoil/geometry_parameters.geo"
+
 
 # The points (on the knot domain) to plot
 CONST_ISOCURVE_PTS = []
@@ -38,12 +36,12 @@ for t in t_vals:
 
 # Plot Parameters
 # Airfoil
-#CONST_PLOT_X_RANGE = [-0.7, 0.7]
-#CONST_PLOT_Y_RANGE = [-0.12, 0.12]
+CONST_PLOT_X_RANGE = [-0.7, 0.7]
+CONST_PLOT_Y_RANGE = [-0.2, 0.2]
 
 # Bump
-CONST_PLOT_X_RANGE = [-0.1, 5.1]
-CONST_PLOT_Y_RANGE = [-0.1, 2.1]
+#CONST_PLOT_X_RANGE = [-0.1, 5.1]
+#CONST_PLOT_Y_RANGE = [-0.1, 2.1]
 
 
 def read_Patch_file(file_path):

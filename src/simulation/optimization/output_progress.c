@@ -79,11 +79,11 @@ FILE* constructor_optimization_progress_file(struct Optimization_Case *optimizat
 
 	char output_name[STRLEN_MAX] = { 0, };
 	strcpy(output_name,"../output/");
-	strcat(output_name,"paraview/");
+	strcat(output_name,"optimization/");
 	strcat(output_name,f_name);
 
 	FILE* fp;
-	if ((fp = fopen(output_name,"w")) == NULL)
+	if ((fp = fopen_create_dir(output_name)) == NULL)
 		printf("Error: File %s did not open.\n", output_name), exit(1);
 
 
@@ -227,11 +227,11 @@ void output_NURBS_patch_information(struct Optimization_Case* optimization_case)
 
 	char output_name[STRLEN_MAX] = { 0, };
 	strcpy(output_name,"../output/");
-	strcat(output_name,"paraview/");
+	strcat(output_name,"optimization/");
 	strcat(output_name,f_name);
 
 	FILE* fp;
-	if ((fp = fopen(output_name,"w")) == NULL)
+	if ((fp = fopen_create_dir(output_name)) == NULL)
 		printf("Error: File %s did not open.\n", output_name), exit(1);
 
 	// Print the patch information
@@ -282,10 +282,10 @@ void output_NURBS_patch_information(struct Optimization_Case* optimization_case)
 	sprintf(f_name,"%s%c%s%c%s", sim->pde_name,'/',sim->pde_spec,'/', "Optimized_NURBS_Patch.txt");
 
 	strcpy(output_name,"../output/");
-	strcat(output_name,"paraview/");
+	strcat(output_name,"optimization/");
 	strcat(output_name,f_name);
 
-	if ((fp = fopen(output_name,"w")) == NULL)
+	if ((fp = fopen_create_dir(output_name)) == NULL)
 		printf("Error: File %s did not open.\n", output_name), exit(1);
 
 	// Print the patch information
@@ -341,11 +341,11 @@ void output_gradient(struct Optimization_Case* optimization_case,
 
 	char output_name[STRLEN_MAX] = { 0, };
 	strcpy(output_name,"../output/");
-	strcat(output_name,"paraview/");
+	strcat(output_name,"optimization/");
 	strcat(output_name,f_name);
 
 	FILE* fp;
-	if ((fp = fopen(output_name,"w")) == NULL)
+	if ((fp = fopen_create_dir(output_name)) == NULL)
 		printf("Error: File %s did not open.\n", output_name), exit(1);
 
 	for (int i = 0; i < n_dof; i++){
@@ -370,11 +370,11 @@ void output_pressure_distribution(struct Optimization_Case* optimization_case){
 
 	char output_name[STRLEN_MAX] = { 0, };
 	strcpy(output_name,"../output/");
-	strcat(output_name,"paraview/");
+	strcat(output_name,"optimization/");
 	strcat(output_name,f_name);
 
 	FILE* fp;
-	if ((fp = fopen(output_name,"w")) == NULL)
+	if ((fp = fopen_create_dir(output_name)) == NULL)
 		printf("Error: File %s did not open.\n", output_name), exit(1);
 
 

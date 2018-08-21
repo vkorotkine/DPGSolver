@@ -17,20 +17,53 @@ import sys
 import os
 from tabulate import tabulate
 
+
+"""
+Convergence Study
+
+P1
+ml0 = 8 x 5 (1.15 progression) 1.1
+ml1 = 16 x 10 (1.15 progression) 1.1
+ml2 = 32 x 20 (1.15 progression) 1.1
+ml3 = 64 x 40 (1.15 progression) 1.1
+ml4 = 128 x 80 (1.15 progression) 1.1
+
+P2
+ml0 = 8 x 5 (1.15 progression) 1.1
+ml1 = 16 x 10 (1.15 progression) 1.1
+ml2 = 32 x 20 (1.15 progression) 1.1
+ml3 = 64 x 40 (1.1 progression)
+ml4 = 128 x 80 (1.1 progression)
+
+P3
+ml0 = 8 x 5 (1.15 progression) 1.1
+ml1 = 16 x 10 (1.15 progression) 1.1
+ml2 = 32 x 20 (1.15 progression) 1.1
+ml3 = 64 x 40 (1.1 progression)
+ml4 = 96 x 60 (1.1 progression) 80 x 60
+
+P4
+ml0 = 8 x 5 (1.15 progression) 1.1
+ml1 = 16 x 10 (1.15 progression) 1.1
+ml2 = 32 x 20 (1.15 progression) 1.1
+ml3 = 64 x 40 (1.1 progression)
+ml4 = 80 x 60 (1.1 progression)
+
+"""
+
 # =================================================================
 # 					Input Parameters
 
 # Different P Values to consider
-CONST_P_VALUES = [1,2,3]
+CONST_P_VALUES = [1, 2, 3]
 
 # The mesh levels for each P value (ith array corresponds to P[i])
-CONST_ML_VALUES = [	[1, 2, 3, 4],
-					[1, 2, 3, 4],
-					[1, 2, 3, 4],
-					[1, 2, 3, 4]]
+CONST_ML_VALUES = [	[4,5,6],
+					[2,3,4,5,6],
+					[2,3,4,5],]
 
-CONST_ERROR_FOLDER_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/NURBS_Bump_L2_Errors"
-CONST_TEST_CASE_PREFIX = "l2_errors__TEST_Euler_NURBS_ParametricQUAD2D"
+CONST_ERROR_FOLDER_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_2D/output/errors/euler/steady/NURBS/l2_errors_NURBS_Enhanced_TRI"
+CONST_TEST_CASE_PREFIX = "l2_errors__TEST_Euler_NURBS_ParametricTRI2D"
 
 # =================================================================
 

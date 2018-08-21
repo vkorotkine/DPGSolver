@@ -246,24 +246,28 @@ int get_basis_i_from_s
 	);
 
 /** \brief Evaluate the B Spline basis function N_ip (ith basis function of 
-	order p) at the value xi on the parametric domain (or knot domain) 
-	
-	\return The value of the ith B Spline basis function at the given point xi on the 
-		parametric (knot) domain */
+ *		order p) at the value xi on the parametric domain (or knot domain).
+ *		Compute the Basis function using the recursive definition.
+ *
+ *  \return The value of the ith B Spline basis function at the given point xi on the 
+ *		parametric (knot) domain
+ */
 double B_Spline_Basis_ip(
 	int i, ///< The index for which basis function to evaluate
 	int p, //< The order of the basis function
 	double xi, ///< The value on the knot domain to evaluate the basis at
-	const struct const_Multiarray_d* knots ///< The knot vector (stored as a multiarray)
+	const struct const_Multiarray_d* knots ///< The knot vector (stored as a multiarray). Dimension of the multiarray is [num_knots x 1]
 	);
 
 /** \brief Evaluates the Num_basis B Spline basis functions, of order p, at the given xi_vals.
-	Evaluates all the basis functions at all the given xi_vals provided. 
-
-	\return A multiarray containing the values of the basis functions at the required
-	xi values. The dimension of the multiarray is [num_basis x num_xi_vals]. 
-	Therefore, the i,j index corresponds to the ith B Spline basis function 
-	evaluated at the jth xi value */
+ *		Evaluates all the basis functions at all the given xi_vals provided. xi_vals are the 
+ *		points on the parametric domain.
+ *
+ *	\return A multiarray containing the values of the basis functions at the required
+ *		xi values. The dimension of the multiarray is [num_basis x num_xi_vals]. 
+ *		Therefore, the i,j index corresponds to the ith B Spline basis function 
+ *		evaluated at the jth xi value 
+ */
 const struct const_Multiarray_d *B_Spline_Basis_p(
 	int p, ///< the order of the basis functions
 	const struct const_Multiarray_d* xi_vals, ///< The values (xi) at which to evaluate the basis functions at. Provided as a multiarray of dimension [num_xi_vals x 1]
@@ -271,102 +275,186 @@ const struct const_Multiarray_d *B_Spline_Basis_p(
 	);
 
 /** \brief Evaluate the derivative of the B Spline basis function N_ip (ith basis 
-	function of order p) at the value xi on the parametric domain (or knot domain) 
-	
-	\return The value of the ith B Spline basis function derivative at the given point 
-		xi on the parametric (knot) domain */
+ *		function of order p) at the value xi on the parametric domain (or knot domain) 
+ *	
+ *	\return The value of the ith B Spline basis function derivative at the given point 
+ *		xi on the parametric (knot) domain 
+ */
 double derivative_B_Spline_Basis_ip(
 	int i, ///< The index for which basis function to evaluate
 	int p, //< The order of the basis function
 	double xi, ///< The value on the knot domain to evaluate the basis at
-	const struct const_Multiarray_d* knots ///< The knot vector (stored as a multiarray)
+	const struct const_Multiarray_d* knots ///< The knot vector (stored as a multiarray). Dimension of the multiarray is [num_knots x 1]
 	);
 
 /** \brief Evaluates the Num_basis B Spline basis function derivatives, of order p, at the given xi_vals.
-	Evaluates all the basis function derivatives at all the given xi_vals provided. 
-
-	\return A multiarray containing the values of the basis function derivatives at the required
-	xi values. The dimension of the multiarray is [num_basis x num_xi_vals]. 
-	Therefore, the i,j index corresponds to the ith B Spline basis function derivative
-	evaluated at the jth xi value */
+ *		Evaluates all the basis function derivatives at all the given xi_vals provided. 
+ *
+ *	\return A multiarray containing the values of the basis function derivatives at the required
+ *		xi values. The dimension of the multiarray is [num_basis x num_xi_vals]. 
+ *		Therefore, the i,j index corresponds to the ith B Spline basis function derivative
+ *		evaluated at the jth xi value 
+ */
 const struct const_Multiarray_d *derivative_B_Spline_Basis_p(
 	int p, ///< the order of the basis functions
 	const struct const_Multiarray_d* xi_vals, ///< The values (xi) at which to evaluate the basis functions at. Provided as a multiarray of dimension [num_xi_vals x 1]
 	const struct const_Multiarray_d* knots ///< The knot vector. Dimension of the multiarray is [num_knots x 1]
 	);
 
-
 /** \brief Evaluate the NURBS basis function R_ip (ith basis function of 
-	order p) at the value xi on the parametric domain (or knot domain) 
-
-	\return The value of the ith NURBS basis function at the given point xi on the 
-		parametric (knot) domain*/
+ *		order p) at the value xi on the parametric domain (or knot domain). To allow for an efficient
+ *		computation, use the preevaluated B Spline basis functions at the specified points
+ *
+ *	\return The value of the ith NURBS basis function at the given point xi on the 
+ *		parametric (knot) domain
+ */
 double NURBS_Basis_ip(
 	int i,  ///< The index for which basis function to evaluate
 	const struct const_Multiarray_d* B_Spline_Basis_values,  ///< The values of the B Spline basis functions at the required xi value
 	const struct const_Multiarray_d* weights ///< The NURBS basis function weights
 	);
 
-
-// Consult bases.c for documentation
-const struct const_Multiarray_d *grad_NURBS_basis_pq(const struct const_Multiarray_d* N_p_xi,
-	const struct const_Multiarray_d* dN_p_xi, const struct const_Multiarray_d* N_q_eta,
-	const struct const_Multiarray_d* dN_q_eta,const struct const_Multiarray_d* weights);
-
-// Consult bases.c for documentation
-const struct const_Multiarray_d *grad_NURBS_basis_ij_pq(int i, int j, int p, int q, double xi, double eta, 
-	const struct const_Multiarray_d* knots_xi, const struct const_Multiarray_d* knots_eta, 
-	const struct const_Multiarray_d* weights);
-
-
-// Consult bases.c for documentation
-const struct const_Multiarray_d *NURBS_basis_pq(const struct const_Multiarray_d* N_p_xi, 
-	const struct const_Multiarray_d* N_q_eta, const struct const_Multiarray_d* weights);
-
-
-// Consult bases.c for documentation
-double NURBS_basis_ij_pq(int i, int j, int p, int q, double xi, double eta, 
-	const struct const_Multiarray_d* knots_xi, const struct const_Multiarray_d* knots_eta, 
-	const struct const_Multiarray_d* weights);
-
-
 /** \brief Evaluates the num_basis NURBS basis functions, of order p, at the given xi_vals.
-	Evaluates all the basis functions at all the given xi_vals provided.
-
-	\return A multiarray containing the values of the basis functions at the required
-		xi values. The dimension of the multiarray is [num_basis x num_xi_vals]. 
-		Therefore, the i,j index corresponds to the ith NURBS basis function 
-		evaluated at the jth xi value */
+ *		Evaluates all the basis functions at all the given xi_vals provided. To allow for an efficient
+ *		computation, use the preevaluated B Spline basis functions at the specified points
+ *
+ *	\return A multiarray containing the values of the basis functions at the required
+ *		xi values. The dimension of the multiarray is [num_basis x num_xi_vals]. 
+ *		Therefore, the i,j index corresponds to the ith NURBS basis function 
+ *		evaluated at the jth xi value 
+ */
 const struct const_Multiarray_d *NURBS_Basis_p(
 	const struct const_Multiarray_d* B_Spline_Basis_values, ///< The values of the B Spline basis functions at different xi values (on the knot domain)
 	const struct const_Multiarray_d* weights ///< The NURBS basis function weights
 	);
 
-
 /** \brief Evaluate the derivative of the NURBS basis function R_ip (ith basis function of 
-	order p) at the value xi on the parametric domain (or knot domain) 
-
-	\return The value of the ith NURBS basis function derivative at the given point xi on the 
-		parametric (knot) domain*/
+ *		order p) at the value xi on the parametric domain (or knot domain) 
+ *
+ *	\return The value of the ith NURBS basis function derivative at the given point xi on the 
+ *		parametric (knot) domain
+ */
 double derivative_NURBS_Basis_ip(
 	int i,  ///< The index for which basis function to evaluate
-	const struct const_Multiarray_d* B_Spline_Basis_values,  ///< The values of the B Spline basis functions at the required xi value
+
+	/** The values of the B Spline basis functions at the required xi value.
+	 *	Given as a multiarray of dimension [num_basis x 1]
+	 */
+	const struct const_Multiarray_d* B_Spline_Basis_values,
+	
+	/** The values of the B Spline basis function derivatives at 
+	 * 	the required xi value. Given as a multiarray of dimension [num_basis x 1]
+	 */
+	const struct const_Multiarray_d* derivative_B_Spline_Basis_values, 
+	
+	/** The NURBS basis function weights. Given as a multiarray of 
+	 * 	dimension [num_weights x 1]
+	 */
+	const struct const_Multiarray_d* weights
+	);
+
+/** \brief Evaluates the num_basis NURBS basis function derivatives, of order p, at the given xi_vals.
+ *		Evaluates all the basis function derivatives at all the given xi_vals provided. To allow for an efficient
+ *		computation, use the preevaluated B Spline basis functions (and their derivatives) at the specified points
+ *
+ *	\return A multiarray containing the values of the basis function derivatives at the required
+ *		xi values. The dimension of the multiarray is [num_basis x num_xi_vals]. 
+ *		Therefore, the i,j index corresponds to the ith NURBS basis function derivative 
+ *		evaluated at the jth xi value 
+ */
+const struct const_Multiarray_d *derivative_NURBS_Basis_p(
+	
+	/** The values of the B Spline basis functions at different
+	 *	xi values (on the knot domain). Given as a multiarray of dimension
+	 *	[num_basis x num_xi_vals], where the i,j index is the ith B Spline basis
+	 *	function evaluated at the jth xi value
+	 */
+	const struct const_Multiarray_d* B_Spline_Basis_values, ///< The values of the B Spline basis functions at different xi values (on the knot domain)
+	
+	/** The values of the B Spline basis function derivatives at 
+	 *	the required xi value. Given as a multiarray of dimension [num_basis x 1]	
+	 */
 	const struct const_Multiarray_d* derivative_B_Spline_Basis_values,  ///< The values of the B Spline basis function derivatives at the required xi value
+	
+	/** The NURBS basis function weights. Given as a multiarray of 
+	 *	dimension [num_weights x 1] 
+	 */
 	const struct const_Multiarray_d* weights ///< The NURBS basis function weights
 	);
 
+/** \brief Evaluate the i,j 2D NURBS basis functions at the points (xi, eta) on the knot domain.
+ *		This function efficiently performs this computation by using the preevaluated B Spline basis
+ *		functions along each dimension (xi or eta) on the NURBS parametric domain.
+ *
+ * 	Note: We must have that num_xi_vals = num_eta_vals = num_pts
+ *
+ *	\return A multiarray with the values of the NURBS basis function at the given 
+ *		xi and eta points. Multiarray is of dimension [num_i_basis, num_j_basis, num_pts]
+ *		where the i,j,k value corresponds to the i,j NURBS basis function at the kth 
+ *		point.
+ */
+const struct const_Multiarray_d *NURBS_basis_pq(
+	
+	/** The value of the B Spline basis functions at the xi values. Is of 
+	 *	dimension [num_basis x num_xi_vals], where the i,j index corresponds to 
+	 *	the ith basis function evaluated at the jth xi value.
+	 */
+	const struct const_Multiarray_d* N_p_xi, 
+	
+	/** The value of the B Spline basis functions at the eta values. Is of 
+	 *	dimension [num_basis x num_eta_vals], where the i,j index corresponds to 
+	 *	the ith basis function evaluated at the jth eta value.
+	 */
+	const struct const_Multiarray_d* N_q_eta, 
+	
+	/** The weights stored in a multiarray of dimension [num_xi_basis x num_eta_basis]. 
+	 *	The rows (i) correspond to the xi basis functions and columns (j) to the eta basis 
+	 *	functions. The multiarray is in column major form.
+	 */
+	const struct const_Multiarray_d* weights
+	);
 
-/** \brief Evaluates the num_basis NURBS basis function derivatives, of order p, at the given xi_vals.
-	Evaluates all the basis function derivatives at all the given xi_vals provided.
+/** \brief Evaluate the gradient of the 2D NURBS basis function at the points xi, eta on the 
+ *		knot domain. This function takes the evaluated B Spline basis functions and their derivatives
+ *		as input to perform a more efficient computation. 
+ *
+ * 	\return A multiarray with the values of the NURBS basis function gradients at the given 
+ *		xi and eta points. Multiarray is of dimension [num_i_basis, num_j_basis, num_pts, 2]
+ *		where the i,j,k value corresponds to the i,j NURBS basis function at the kth 
+ *		point. The i,j,k value is an array with 2 elements, the first being the partial with
+ *		respect to xi and the second with respect to eta of the given i,j NURBS basis function.
+ */
+const struct const_Multiarray_d *grad_NURBS_basis_pq(
 
-	\return A multiarray containing the values of the basis function derivatives at the required
-		xi values. The dimension of the multiarray is [num_basis x num_xi_vals]. 
-		Therefore, the i,j index corresponds to the ith NURBS basis function derivative 
-		evaluated at the jth xi value */
-const struct const_Multiarray_d *derivative_NURBS_Basis_p(
-	const struct const_Multiarray_d* B_Spline_Basis_values, ///< The values of the B Spline basis functions at different xi values (on the knot domain)
-	const struct const_Multiarray_d* derivative_B_Spline_Basis_values,  ///< The values of the B Spline basis function derivatives at the required xi value
-	const struct const_Multiarray_d* weights ///< The NURBS basis function weights
+	/** The value of the B Spline basis functions at the xi values. Is of 
+	 *	dimension [num_basis x num_xi_vals], where the i,j index corresponds to 
+	 *	the ith basis function evaluated at the jth xi value.
+	 */
+	const struct const_Multiarray_d* N_p_xi,
+	
+	/** The value of the B Spline basis function derivatives at the xi values. Is of 
+	 *	dimension [num_basis x num_xi_vals], where the i,j index corresponds to 
+	 *	the ith basis function evaluated at the jth xi value.
+	 */
+	const struct const_Multiarray_d* dN_p_xi, 
+
+	/** The value of the B Spline basis functions at the eta values. Is of 
+	 *	dimension [num_basis x num_eta_vals], where the i,j index corresponds to 
+	 *	the ith basis function evaluated at the jth eta value.
+	 */
+	const struct const_Multiarray_d* N_q_eta,
+
+	/** The value of the B Spline basis function derivatives at the eta values. Is of 
+	 *	dimension [num_basis x num_eta_vals], where the i,j index corresponds to 
+	 *	the ith basis function evaluated at the jth eta value.
+	 */
+	const struct const_Multiarray_d* dN_q_eta,
+
+	/** The weights stored in a multiarray of dimension [num_xi_basis x num_eta_basis]. 
+	 *	The rows (i) correspond to the xi basis functions and columns (j) to the eta basis 
+	 *	functions. The multiarray is in column major form.
+	 */
+	const struct const_Multiarray_d* weights
 	);
 
 

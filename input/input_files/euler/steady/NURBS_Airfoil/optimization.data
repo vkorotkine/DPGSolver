@@ -14,14 +14,12 @@
 // - optimizer_nlpqlp_abs_path: If the NLPQLP optimizer is chosen, the absolute
 //		path to the folder with the executable (named 'exec') that will interface with 
 //		NLPQLP must be given here
-//
-//Unconstrained_Inverse_Design_NACA0012_to_NACA4412_cases/ml2_P3_NURBS_Y_
+// 
 // =================================================================================
 
 optimizer_spec             NLPQLP
 optimizer_nlpqlp_abs_path  /Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/NLPQLP_Optimizer
-optimizer_output_files_prefix Constrained_Target_CL_cases/Functional_Convergence_NACA0012_Target_CL_0.25_P5/ml3_P2_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_
-
+optimizer_output_files_prefix  Constrained_Target_CL_cases/NACA0012_Target_CL_0.25/Unstructured_Transfinite/ml2_P4_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_
 
 // =================================================================================
 //								Optimization Type
@@ -60,7 +58,6 @@ optimization_objective_function         FUNCTIONAL_TARGET_CL
 //		a * ( f(x) + k ) =  0, for constraint_type = 'i' or 
 //		a * ( f(x) + k ) >= 0, for constraint_type = 'e'
 //	can be specified. 
-//
 // =================================================================================
 
 num_total_constraints    2
@@ -138,11 +135,9 @@ RHO    0.0
 // 	- output_progress_additional_parameters: List the keywords, separated by commas (no spaces), 
 //		to be printed in addition to the standard information. Consult the "Functional Options"
 //		section to see which functionals may be displayed
-//
-// FUNCTIONAL_CL,FUNCTIONAL_CM_LE,FUNCTIONAL_FRACTIONAL_CHANGE_MESH_VOLUME
 // =================================================================================
 
-output_progress_additional_parameters FUNCTIONAL_CL
+output_progress_additional_parameters FUNCTIONAL_CL,FUNCTIONAL_CM_LE,FUNCTIONAL_FRACTIONAL_CHANGE_MESH_VOLUME
 
 // =================================================================================
 // 								Functional Options

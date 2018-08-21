@@ -169,7 +169,7 @@ static struct Restart_Info get_Restart_Info (const struct Simulation*const sim)
 	static bool needs_computation = true;
 	static struct Restart_Info ri;
 	if (needs_computation) {
-		printf("\tSetting up restart.\n");
+		printf("\tSetting up restart.\n");fflush(stdout);
 
 		needs_computation = false;
 		ri.sim = constructor_Simulation_restart(sim); // leaked (static)

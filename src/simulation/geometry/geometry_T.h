@@ -113,7 +113,23 @@ void compute_geometry_volume_T
 	 const struct Simulation* sim    ///< \ref Simulation.
 	);
 
-void compute_NURBS_geometry_volume_T
+/** \brief Compute the geometry of the \ref Solver_Volume_T using the NURBS enhanced approach
+ *
+ * The following members are set:
+ *  - Solver_Volume_T::metrics_vc;
+ *  - Solver_Volume_T::jacobian_det_vc.	
+ *
+ * Use the NURBS parametric mapping to compute the geometry values for the volume.
+ *	- All metric terms at the volume cubature nodes are computed exactly using the 
+ *		NURBS mapping. 
+ *	- geom_coef values are also computed. These geom_coef terms are not used to compute 
+ *      ANY metric terms. They may, however, be used to find any other physical coordinates 
+ *	 	during the running of the program. For example, when setting the initial solution, xyz 
+ *		values must be found (will be computed using geom_coef). Also, when plotting, xyz_p 
+ *		(plotting physical coordinates) are found using geom_coef.
+ */
+
+void compute_NURBS_enhanced_geometry_volume_T
 	(const bool recompute_geom_coef, ///< Flag for whether \ref Solver_Volume_T::geom_coef should be computed.
 	 struct Solver_Volume_T* s_vol,  ///< \ref Solver_Volume_T.
 	 const struct Simulation* sim    ///< \ref Simulation.
@@ -131,7 +147,14 @@ void compute_geometry_face_T
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);
 
-void compute_NURBS_geometry_face_T
+/** \brief Compute the geometry of the \ref Solver_Face_T using the NURBS Enhanced approach
+ * 	
+ * 	Compute the metric terms on the face of the given element. Compute these by
+ *	using the NURBS parametric mapping to find the terms exactly at the face 
+ *	cubature nodes. 
+ */
+
+void compute_NURBS_enhanced_geometry_face_T
 	(struct Solver_Face_T* s_face,     ///< \ref Solver_Face_T.
 	 const struct Simulation*const sim ///< \ref Simulation.
 	);

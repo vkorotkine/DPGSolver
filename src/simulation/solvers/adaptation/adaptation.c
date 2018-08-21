@@ -117,10 +117,10 @@ void adapt_hp (struct Simulation* sim, const int adapt_strategy, const struct Ad
 	assert(sim->volumes->name == IL_VOLUME_SOLVER);
 	assert(sim->faces->name   == IL_FACE_SOLVER);
 	assert(list_is_derived_from("solver",'e',sim));
+	assert(NURBS_geometry == false); // Adaptation for NURBS Enhanced case to be added
 
 	constructor_derived_computational_elements(sim,IL_SOLVER_ADAPTIVE); // destructed
 
-	// MSB: On the call to compute_max_n_adapt from the orders of convergence test, we get 1
 	const int n_adapt = compute_max_n_adapt(adapt_strategy,adapt_data);
 	for (int i = 0; i < n_adapt; ++i) {
 		if(!mark_volumes_to_adapt(sim,adapt_strategy,adapt_data))
@@ -370,60 +370,23 @@ static bool mark_volumes_to_adapt
 
 static void adapt_hp_volumes (struct Simulation* sim)
 {
-	// MSB: To_Show_Philip
 
-	// MSB: Perform the adaptation
-	// - Here, we will get the xyz_ve_p2 values and use this to find the 
-	// 	xyz_ve values of the refined volumes.
 	update_hp_members_volumes(sim);
-
-	// MSB: Update the list by adding in the volume structures for the new volumes.
-	// This means new volumes will be added to the linked list structure holding them
 	update_list_volumes(sim);
-
-	// MSB: Update the geometry information for the given volume (metric terms). 
-	// Here is where we will potentially add in the NURBS metric computation
-	// option to be able to perform refinement using the NURBS mapping approach
 	update_geometry_volumes(sim);
-
-	// MSB: Use the operator cc0_vs_vs (coefficient to coefficient of type 
-	// volume solution to volume solution) to get the coefficients of the solution
-	// basis functions for the updated volume (split volume)
 	project_solution_volumes(sim);
-
-	// MSB: Now that there are new volume elements in the volume list, 
-	// modify the index of the volumes in the list.
 	update_index_volumes(sim);
 }
 
 static void adapt_hp_faces (struct Simulation* sim)
 {
-	// MSB: To_Show_Philip
 
-	// MSB: Create the child faces from the parent ones that were adapted. 
-	// Create the intrusive linked list first.
 	update_hp_members_faces(sim);
-
-	// MSB: Update the intrusive list of faces by adding in face data structures
-	// for the child faces from the refined elements
 	update_list_existing_faces(sim);
-
-	// MSB: Get the coefficients for the solution for the refined face by projecting
-	// the solution.
 	project_solution_faces(sim);
-
-	// MSB: For the volumes in the mesh, after the adaptation, set the pointers to the
-	// faces (newly created) in the adaptation process
 	update_volume_face_pointers(sim);
-
-	// MSB: Add face data structures to the face linked list
 	update_list_new_faces(sim);
-
-	// MSB: Compute the geometry/metric terms for the new faces
 	update_geometry_faces(sim);
-
-	// MSB: With new faces now in the face linked list, update the indeces of the faces
-	// in the list
 	update_index_faces(sim);
 }
 
@@ -780,10 +743,8 @@ static void update_geometry_volumes (struct Simulation* sim)
 
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
 
-		// MSB: Test this out here. We want to compute, for the adapted volume, the 
-		// metrics using the NURBS mapping (for the NURBS enhanced case)
 		if(NURBS_geometry){
-			compute_NURBS_geometry_volume(true,s_vol,sim);
+			EXIT_ERROR("Adaptation for NURBS Enhanced case to be added\n");
 		}else{
 			compute_geometry_volume(true,s_vol,sim);
 		}
@@ -802,10 +763,8 @@ static void update_geometry_faces (struct Simulation* sim)
 		if (adapt_type == ADAPT_NONE)
 			continue;
 
-		// MSB: Test this out here. We want to compute, for the adapted face, the 
-		// metrics using the NURBS mapping (for the NURBS enhanced case)
 		if(NURBS_geometry){
-			compute_NURBS_geometry_face(s_face,sim);
+			EXIT_ERROR("Adaptation for NURBS Enhanced case to be added\n");
 		} else{
 			compute_geometry_face(s_face,sim);
 		}

@@ -634,8 +634,8 @@ static void set_tp_sub_elements (struct Intrusive_List* elements)
 			break;
 		case QUAD: // fallthrough
 		case HEX:
-			element->sub_element[0] = get_mutable_element_by_type(elements,LINE);
-			element->sub_element[1] = get_mutable_element_by_type(elements,LINE);
+			element->sub_element[0] = get_mutable_element_by_type(elements,LINE);  // MSB: returns a LINE element
+			element->sub_element[1] = get_mutable_element_by_type(elements,LINE);  // MSB: returns a LINE element
 			break;
 		case WEDGE:
 			element->sub_element[0] = get_mutable_element_by_type(elements,TRI);

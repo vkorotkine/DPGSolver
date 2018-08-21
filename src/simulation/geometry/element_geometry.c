@@ -83,6 +83,7 @@ void destructor_derived_Geometry_Element (struct Element* element_ptr)
 	destructor_Multiarray2_Operator(g_e->vv0_vv_vg);
 	destructor_Multiarray_Operator(g_e->vc0_vgc_vgc);
 	destructor_Multiarray_Operator(g_e->vc0_vv_vgs);
+	destructor_Multiarray_Operator(g_e->vv0_vv_vcc);
 
 	destructor_Multiarray2_Operator(g_e->cv1_vg_vc);
 	destructor_Multiarray2_Operator(g_e->cv1_vg_vm);
@@ -148,6 +149,7 @@ static void constructor_derived_Geometry_Element_std (struct Element* element_pt
 	g_e->vv0_vv_vg[1] = constructor_operators("vv0","vvA","vgc","H_1_P_1P", b_e,sim); // destructed
 	g_e->vc0_vgc_vgc  = constructor_operators("vc0","vgc","vgc","H_1_P_PM0",b_e,sim); // destructed
 	g_e->vc0_vv_vgs   = constructor_operators("vc0","vvA","vgs","H_1_P_1",  b_e,sim); // destructed
+	g_e->vv0_vv_vcc   = constructor_operators("vv0","vvA","vcc","H_1_P_1P", b_e,sim); // destructed
 
 	g_e->cv1_vg_vc[0] = constructor_operators("cv1","vgs","vcs","H_1_P_1P", b_e,sim); // destructed
 	g_e->cv1_vg_vc[1] = constructor_operators("cv1","vgc","vcc","H_1_P_PM0",b_e,sim); // destructed
@@ -166,6 +168,7 @@ static void constructor_derived_Geometry_Element_std (struct Element* element_pt
 	g_e->vv0_vmc_fc[0] = constructor_operators("vv0","vmc","fcs","H_1_P_PM1",b_e,sim); // destructed
 	g_e->vv0_vmc_fc[1] = constructor_operators("vv0","vmc","fcc","H_1_P_PM1",b_e,sim); // destructed
 	g_e->vv0_vms_fgs   = constructor_operators("vv0","vms","fgs","H_1_P_1",  b_e,sim); // destructed
+	
 
 	g_e->vv0_vgc_fgc = constructor_operators("vv0","vgc","fgc","H_1_P_PM0", b_e,sim); // destructed
 
@@ -224,6 +227,9 @@ static void constructor_derived_Geometry_Element_tp (struct Element* element_ptr
 
 	set_operators_tp(&ops_tp,s_e[0]->vc0_vv_vgs,NULL,s_e[1]->vc0_vv_vgs,NULL);
 	g_e->vc0_vv_vgs = constructor_operators_tp("vc0","vvA","vgs","H_1_P_1",b_e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,s_e[0]->vv0_vv_vcc,NULL,s_e[1]->vv0_vv_vcc,NULL);
+	g_e->vv0_vv_vcc = constructor_operators_tp("vv0","vvA","vcc","H_1_P_1P",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vg_vc[0],s_e[0]->cv1_vg_vc[0],s_e[1]->cv0_vg_vc[0],s_e[1]->cv1_vg_vc[0]);
 	g_e->cv1_vg_vc[0] = constructor_operators_tp("cv1","vgs","vcs","H_1_P_1P",b_e,sim,&ops_tp); // destructed

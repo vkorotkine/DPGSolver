@@ -12,9 +12,7 @@ import numpy as np
 import math
 
 # Absolute path to the directory with all the optimization results
-#CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_debug_2D/output/paraview/euler/steady/NURBS_Airfoil/Constrained_Target_CL_cases/NACA0012_Target_CL_0.25"
-CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_2D/output/paraview/euler/steady/NURBS_Airfoil/Unconstrained_Inverse_Design_NACA0012_to_NACA4412_cases"
-
+CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_2D/output/paraview/euler/steady/NURBS_Airfoil/Constrained_Target_CL_cases/NACA0012_Target_CL_0.25_EqualDOF"
 
 # The list of files and the label to associate with them when plotting them. Each tuple
 # contains the name of the file first and the label second. An empty label will result 
@@ -39,6 +37,11 @@ CONST_File_list = [
 	#("ml1_P2_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 2, ml = 1, Standard (Isoparametric)", "c", "-", ".", False),
 	#("ml1_P2_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 2, ml = 1, Standard (Superparametric)", "m", "-", ".", False),
 
+	# Target CL Equal DOF
+	("ml4_P1_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 1, ml = 4, NURBS Metrics", "r", "-", ".", False),
+	("ml3_P2_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 2, ml = 3, NURBS Metrics", "c", "-", ".", False),
+	("ml2_P3_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimization_Convergence.txt", "P = 3, ml = 2, NURBS Metrics", "m", "-", ".", False),
+
 	# Inverse Design
 	#("ml2_P1_NURBS_Y_Optimization_Convergence.txt", "P = 1, ml = 2, NURBS Metrics", "r", "-", ".", False),
 	#("ml2_P1_NURBS_NIso_Optimization_Convergence.txt", "P = 1, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
@@ -48,9 +51,9 @@ CONST_File_list = [
 	#("ml2_P2_NURBS_NIso_Optimization_Convergence.txt", "P = 2, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
 	#("ml2_P2_NURBS_NSuper_Optimization_Convergence.txt", "P = 2, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
 
-	("ml2_P3_NURBS_Y_Optimization_Convergence.txt", "P = 3, ml = 2, NURBS Metrics", "r", "-", ".", False),
-	("ml2_P3_NURBS_NIso_Optimization_Convergence.txt", "P = 3, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
-	("ml2_P3_NURBS_NSuper_Optimization_Convergence.txt", "P = 3, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
+	#("ml2_P3_NURBS_Y_Optimization_Convergence.txt", "P = 3, ml = 2, NURBS Metrics", "r", "-", ".", False),
+	#("ml2_P3_NURBS_NIso_Optimization_Convergence.txt", "P = 3, ml = 2, Standard (Isoparametric)", "c", "-", ".", False),
+	#("ml2_P3_NURBS_NSuper_Optimization_Convergence.txt", "P = 3, ml = 2, Standard (Superparametric)", "m", "-", ".", False),
 ]
 
 

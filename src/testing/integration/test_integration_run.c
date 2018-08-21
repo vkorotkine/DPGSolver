@@ -31,6 +31,8 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "core.h"
 
+#include "functionals.h"
+
 // Static function declarations ************************************************************************************* //
 
 static void run_case (int argc, char** argv);
@@ -117,7 +119,16 @@ static void run_case (int argc, char** argv) {
 	output_visualization(sim,VIS_NORMALS);
 	output_visualization(sim,VIS_SOLUTION);
 
+	// Compute the error values
 	output_error(sim);
+
+	// Ouput the restart file if requested
+	//output_restart(sim);
+
+
+// Temporary Testing:
+printf("CL: %e \n", functional_cl(sim));
+
 
 	destructor_Integration_Test_Info(int_test_info);
 }

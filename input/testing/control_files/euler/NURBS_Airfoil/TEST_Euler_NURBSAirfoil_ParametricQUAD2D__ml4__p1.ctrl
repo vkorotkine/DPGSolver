@@ -1,0 +1,37 @@
+pde_name  euler
+pde_spec  steady/NURBS_Airfoil
+
+geom_name n-cube
+geom_spec nurbs_airfoil_o_grid
+
+dimension 2
+
+mesh_generator   n-cube/2d_stretched.geo
+mesh_format      gmsh
+mesh_domain      parametric
+mesh_type        quad
+mesh_level       4 4
+mesh_path        ../meshes/
+
+# Simulation variables
+
+interp_tp  GL
+interp_si  WSH
+interp_pyr GLL
+
+basis_geom  bezier
+basis_sol   lagrange
+
+geom_representation  isoparametric
+geom_blending_tp     gordon_hall
+geom_blending_si     szabo_babuska_gen
+
+p_ref    1 1
+
+fe_method 1
+
+
+# Testing variables
+
+ml_range_test 4 4
+p_range_test  1 1

@@ -22,8 +22,8 @@ You should have received a copy of the GNU General Public License along with DPG
 struct Optimization_Case;
 
 
-/** \brief Container for information relating to the NLPQLP optimizer. For details on 
- * variable meanings, consult the NLPQLP documentation.
+/** \brief Container for information relating to the NLPQLP optimizer. For more details on 
+ * each variable, consult the NLPQLP documentation.
  */
 struct Optimizer_NLPQLP_Data {
 

@@ -28,9 +28,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef set_up_solver_geometry_p1_T
 #undef compute_unit_normals_T
 #undef compute_geometry_volume_T
-#undef compute_NURBS_geometry_volume_T
+#undef compute_NURBS_enhanced_geometry_volume_T
 #undef compute_geometry_face_T
-#undef compute_NURBS_geometry_face_T
+#undef compute_NURBS_enhanced_geometry_face_T
 #undef constructor_xyz_s_ho_T
 #undef constructor_geom_coef_ho_T
 #undef correct_for_exact_normals_T

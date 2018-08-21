@@ -47,7 +47,7 @@ struct Constraint_Function_Data {
 	char functional_keyword[STRLEN_MIN]; ///< The keyword specifying which functional to use
 
 	functional_fptr 	functional_f;  ///< Function pointer to the real functional (f(x))
-	functional_fptr_c 	functional_f_c;  ///< Function pointer to the complex functional (f_c(x))
+	functional_fptr_c 	functional_f_c;  ///< Function pointer to the complex version of the functional (f_c(x))
 
 	double 	a, ///< The multiplier
 			k; ///< The shift to add to the functional
@@ -71,7 +71,7 @@ struct Optimization_Case {
 	int num_design_pts_dofs;
 
 	functional_fptr 	objective_function;  ///< Function pointer to the real objective function
-	functional_fptr_c 	objective_function_c;  ///< Function pointer to the complex objective function
+	functional_fptr_c 	objective_function_c;  ///< Function pointer to the complex version of the objective function
 
 	struct Simulation *sim; ///< Pointer to the real sim object
 	struct Simulation *sim_c; ///< Pointer to the complex sim object. Complex counterpart is needed for the complex step.
@@ -80,7 +80,7 @@ struct Optimization_Case {
 	//      Geometry Data Structures
 	// =================================
 
-	/// \brief Container for information relating to the geometry
+	/// \brief Container for information relating to the geometry. NOTE: Can only use NURBS Geometry for optimization for now.
 	struct Geo_Data {
 
 		int P, ///< Consult Geo_Data in geoemtry_parameteric_T.c 

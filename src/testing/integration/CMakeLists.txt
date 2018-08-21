@@ -178,98 +178,170 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/joukowski/TEST_Euler_Joukowski
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_DG_ParametricTRI" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "navier_stokes/steady/taylor_couette/dg/TEST_NavierStokes_TaylorCouette_DG_ParametricQUAD" "petsc_options_gmres_default")
 
+
+# ====================================================
+# 				Test Integration Run
+# ====================================================
+
 set (EXEC test_integration_run)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/gaussian_bump/TEST_Euler_GaussianBump_ParametricQUAD2D__ml2__p2" "petsc_options_gmres_default")
+
+# ------------------------------
+# NURBS Internal Channel (QUAD):
+# ------------------------------
+
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml0__p1" "petsc_options_gmres_default")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml1__p1" "petsc_options_gmres_default")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml2__p1" "petsc_options_gmres_default")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml3__p1" "petsc_options_gmres_default")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml4__p1" "petsc_options_gmres_default")
+
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml0__p2" "petsc_options_gmres_default")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml1__p2" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml2__p2" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml3__p2" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml4__p2" "petsc_options_gmres_default")
+
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml0__p3" "petsc_options_gmres_default")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml1__p3" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml2__p3" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml3__p3" "petsc_options_gmres_default")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml4__p3" "petsc_options_gmres_default")
+
+# ------------------------------
+# NURBS Internal Channel (TRI):
+# ------------------------------
+
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml0__p1" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml1__p1" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml2__p1" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml3__p1" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml4__p1" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml5__p1" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml6__p1" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml7__p1" "petsc_options_gmres_default")
+
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml0__p2" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml1__p2" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml2__p2" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml3__p2" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml4__p2" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml5__p2" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml6__p2" "petsc_options_gmres_default")
+
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml0__p3" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml1__p3" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml2__p3" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml3__p3" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml4__p3" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml5__p3" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml6__p3" "petsc_options_gmres_default")
+
+# ----------------------
+# NURBS Airfoil (QUAD):
+# ----------------------
+
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml0__p1" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p1" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p1" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p1" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml4__p1" "petsc_options_gmres_default")
+
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml0__p2" "petsc_options_gmres_default")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p2" "petsc_options_gmres_default")
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p2" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p2" "petsc_options_gmres_default")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p2" "petsc_options_gmres_default")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml4__p2" "petsc_options_gmres_default")
 
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml0__p3" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p3" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p3" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p3" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml4__p3" "petsc_options_gmres_default")
+
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml0__p4" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p4" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p4" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p4" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml4__p4" "petsc_options_gmres_default")
+
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml4__p1" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p2" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p3" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p4" "petsc_options_gmres_default")
+
+# ---------------------
+# NURBS Airfoil (TRI):
+# ---------------------
+
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricTRI2D__ml2__p2" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricTRI2D__ml3__p2" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricTRI2D__ml4__p2" "petsc_options_gmres_default")
+
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricTRI2D__ml2__p3" "petsc_options_gmres_default")
+
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricTRI2D__ml2__p4" "petsc_options_gmres_default")
+
+# ------------------------------------
+# Increasing certain test time limits
+# ------------------------------------
+
+set_tests_properties(test_integration_run___euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml6__p2 PROPERTIES TIMEOUT 10800) 
+set_tests_properties(test_integration_run___euler/NURBS/TEST_Euler_NURBS_ParametricTRI2D__ml6__p3 PROPERTIES TIMEOUT 10800) 
+
+
+# ====================================================
+# 			Test Integration Optimization
+# ====================================================
 
 set (EXEC test_integration_optimization)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
 add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p1" "petsc_options_gmres_default")
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p2" "petsc_options_gmres_default")
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p3" "petsc_options_gmres_default")
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p4" "petsc_options_gmres_default")
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p1" "petsc_options_gmres_default")
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p2" "petsc_options_gmres_default")
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p3" "petsc_options_gmres_default")
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p4" "petsc_options_gmres_default")
+
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricTRI2D__ml2__p2" "petsc_options_gmres_default")
+
+# ---------------------
+#    Equal DOF Cases
+# ---------------------
+
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml4__p1" "petsc_options_gmres_default")
 #add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p2" "petsc_options_gmres_default")
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p3" "petsc_options_gmres_default")
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p4" "petsc_options_gmres_default")
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml4__p2" "petsc_options_gmres_default")
-#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml4__p4" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p3" "petsc_options_gmres_default")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p4" "petsc_options_gmres_default")
+
+# -----------------------------------
+#    Equal CL Error Cases (1.25E-7)
+# -----------------------------------
+
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p1" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p2" "petsc_options_gmres_default")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p3" "petsc_options_gmres_default")
+
+# ---------------------
+# NURBS Airfoil (TRI):
+# ---------------------
+
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricTRI2D__ml2__p4" "petsc_options_gmres_default")
+
+# ---------------------
+# NURBS Channel Case
+# ---------------------
 
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml0__p0" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml1__p0" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml2__p0" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml3__p0" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml4__p0" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml0__p1" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml1__p1" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml2__p1" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml3__p1" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml4__p1" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml0__p2" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml1__p2" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml2__p2" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml3__p2" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml4__p2" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml0__p3" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml1__p3" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml2__p3" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml3__p3" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml4__p3" "petsc_options_gmres_default")
 
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml4__p4" "petsc_options_gmres_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml4__p5" "petsc_options_gmres_default")
-set_tests_properties(test_integration_optimization___euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml4__p5 PROPERTIES TIMEOUT 10800) 
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml5__p4" "petsc_options_gmres_default")
-set_tests_properties(test_integration_optimization___euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml5__p4 PROPERTIES TIMEOUT 10800) 
+# ------------------------------------
+# Increasing certain test time limits
+# ------------------------------------
 
+set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p1 PROPERTIES TIMEOUT 10800)
+set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p2 PROPERTIES TIMEOUT 10800)
 
-# - Temporary: Set the time limit to be 3 hours for the optimization cases
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p1 PROPERTIES TIMEOUT 10800) 
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p2 PROPERTIES TIMEOUT 10800) 
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p3 PROPERTIES TIMEOUT 10800) 
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p4 PROPERTIES TIMEOUT 10800) 
+set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricTRI2D__ml2__p4 PROPERTIES TIMEOUT 10800)
 
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p1 PROPERTIES TIMEOUT 10800)
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p2 PROPERTIES TIMEOUT 10800)
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p3 PROPERTIES TIMEOUT 10800)
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml1__p4 PROPERTIES TIMEOUT 10800)
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p1 PROPERTIES TIMEOUT 10800)
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p2 PROPERTIES TIMEOUT 10800)
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p3 PROPERTIES TIMEOUT 18000)
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml2__p4 PROPERTIES TIMEOUT 10800)
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p2 PROPERTIES TIMEOUT 18000) 
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml3__p3 PROPERTIES TIMEOUT 10800)
-#set_tests_properties(test_integration_optimization___euler/NURBS_Airfoil/TEST_Euler_NURBSAirfoil_ParametricQUAD2D__ml4__p2 PROPERTIES TIMEOUT 18000) 
-#set_tests_properties(test_integration_optimization___euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml5__p4 PROPERTIES TIMEOUT 10800)
-#set_tests_properties(test_integration_optimization___euler/NURBS/TEST_Euler_NURBS_ParametricQUAD2D__ml4__p4 PROPERTIES TIMEOUT 10800)
 
 # Add tests:
 # - equivalence operators.

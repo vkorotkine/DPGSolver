@@ -26,7 +26,7 @@ import scipy.integrate
 # traverses around the airfoil from the trailing edge, bottom
 # surface to the leading edge and back)
 CONST_P = 5
-CONST_NUM_CONTROL_PTS_XI = 21
+CONST_NUM_CONTROL_PTS_XI = 25
 
 
 # Properties of the patch in the eta direction (eta increases in the 
@@ -45,11 +45,11 @@ CONST_CONTINUOUS_APPROXIMATION = True
 #CONST_Airfoil_Type = "NACA4412"
 CONST_Airfoil_Type = "NACA0012"
 
-CONST_QUADRATURE_P = 35
+CONST_QUADRATURE_N = 5
 
 # Plot Parameters (for testing)
-CONST_PlotXRange = [-0.7, 0.7]
-CONST_PlotYRange = [-0.3, 0.3]
+CONST_PlotXRange = [-1.7, 1.7]
+CONST_PlotYRange = [-1.7, 1.7]
 
 
 def airfoil_parametric_equation(s):
@@ -135,24 +135,58 @@ def NACA_equation(x_by_c):
 	return y_c + y_t, y_c - y_t
 
 
-def integrate_gaussian_quadrature(function, nodes, weights):
+def integrate_gauss_legendre_quadrature(f, n, a, b, interval_break_points=None, nodes=None, weights=None):
 
 	"""
-	Integrate the function provided on the domain [-1,1] using 
-	gaussian quadrature
+	Integrate a given functional (with 1 input variable) over a given 
+	domain [a,b]. Optionally, perform a composite gaussian quadrature over
+	a set of intervals
 
-	:param function: The lambda expression for the function
-	:param nodes: The nodes for the quadrature
-	:param weights: The weights for the quadrature
+	:param f: The function to integrate
+	:param n: The number of nodes and weights to use for the integration. If a composite
+		integration is being performed, this is the number of nodes and weights used on 
+		each interval
+	:param a: The lower limit of the integral
+	:param b: The upper limit of the integral
+	:param interval_break_points: (Optional) If a composite gaussian quadrature is required,
+		this list holds the set of points, on the interval [a,b] to split the domain into.
+		The list should include a and b, and it should be sorted in increasing order.
+	:param nodes: (Optional) To speed up the computation and not have to compute the nodes and weights
+		on each call to the function, take the nodes used for the quadrature (on the domain [-1,1]).
+	:param weights: (Optional) To speed up the computation and not have to compute the nodes and weights
+		on each call to the function, take the weights used for the quadrature.
 
-	:return: The value of the integral of the given function from -1 to 1
+	:return: The integral of the function f from a to b
 	"""
 
-	val = 0
-	for i in range(len(nodes)):
-		val += function(nodes[i]) * weights[i]
+	# The nodes and weights for the quadrature
+	if nodes is None or weights is None:
+		nodes, weights = numpy.polynomial.legendre.leggauss(n)
 
-	return val
+	if interval_break_points is not None:
+		
+		# Consider each subinterval and perform the quadrature over it recursively
+
+		integral_value = 0
+
+		for i in range(len(interval_break_points)-1):
+			
+			x_i = interval_break_points[i]
+			x_iPlus1 = interval_break_points[i+1]
+
+			integral_value += integrate_gauss_legendre_quadrature(f, n, x_i, x_iPlus1, nodes=nodes, weights=weights)
+	else:
+
+		# No subintervals to consider for the quadrature
+		integral_value = 0
+
+		# Transform integral onto [-1, 1] domain and perform the quadrature
+		for i in range(n):
+			integral_value += weights[i] * f(0.5*(b-a)*nodes[i] + 0.5*(b+a))
+		integral_value *= 0.5*(b-a) 
+
+	return integral_value
+
 
 
 def get_BSpline_control_points_continuous_least_square(BSpline_Basis, knots, n, ref_function):
@@ -185,7 +219,14 @@ def get_BSpline_control_points_continuous_least_square(BSpline_Basis, knots, n, 
 
 
 	# The nodes and weights for the quadrature
-	nodes, weights = numpy.polynomial.legendre.leggauss(CONST_QUADRATURE_P)
+	nodes, weights = numpy.polynomial.legendre.leggauss(CONST_QUADRATURE_N)
+
+	# Get the unqiue knot values, and place them in a list in ascending order. This will
+	# be used for the composite gaussian quadrature
+	knots_unique = []
+	for k in knots:
+		if k not in knots_unique:
+			knots_unique.append(k)
 
 	# Least square is of the form [M]*{X} = {b}. [M] matrix is the 
 	# same for the x and y least square computation
@@ -204,7 +245,8 @@ def get_BSpline_control_points_continuous_least_square(BSpline_Basis, knots, n, 
 			N_jp = BSpline_Basis[j+1]
 			
 			func = lambda xi, N_ip=N_ip, N_jp=N_jp: N_ip(xi)*N_jp(xi)
-			M[i][j] = integrate_gaussian_quadrature(func, nodes, weights)
+			M[i][j] = integrate_gauss_legendre_quadrature(func, CONST_QUADRATURE_N, -1, 1, 
+				interval_break_points=knots_unique, nodes=nodes, weights=weights)
 
 	# Form the b vector (for x and y coordinate least square)
 	b_x = numpy.zeros((n-2, 1))
@@ -224,25 +266,33 @@ def get_BSpline_control_points_continuous_least_square(BSpline_Basis, knots, n, 
 		Pnx = Control_Pts[n-1][0]
 		Pny = Control_Pts[n-1][1]
 
-		term1_x = integrate_gaussian_quadrature(
+		term1_x = integrate_gauss_legendre_quadrature(
 			lambda xi, N_jp=N_jp: ref_function(xi)[0]*N_jp(xi), 
-			nodes, 
-			weights)
-		
-		term1_y = integrate_gaussian_quadrature(
+			CONST_QUADRATURE_N, -1, 1, 
+			interval_break_points=knots_unique, 
+			nodes=nodes, 
+			weights=weights)
+
+		term1_y = integrate_gauss_legendre_quadrature(
 			lambda xi, N_jp=N_jp: ref_function(xi)[1]*N_jp(xi), 
-			nodes, 
-			weights)
+			CONST_QUADRATURE_N, -1, 1, 
+			interval_break_points=knots_unique, 
+			nodes=nodes, 
+			weights=weights)
 
-		term2 = integrate_gaussian_quadrature(
-			lambda xi, N_jp=N_jp, N_1p=N_1p: N_1p(xi)*N_jp(xi), 
-			nodes, 
-			weights)
+		term2 = integrate_gauss_legendre_quadrature(
+			lambda xi, N_jp=N_jp, N_1p=N_1p: N_1p(xi)*N_jp(xi),  
+			CONST_QUADRATURE_N, -1, 1, 
+			interval_break_points=knots_unique, 
+			nodes=nodes, 
+			weights=weights)
 
-		term3 = integrate_gaussian_quadrature(
-			lambda xi, N_jp=N_jp, N_np=N_np: N_np(xi)*N_jp(xi), 
-			nodes, 
-			weights)
+		term3 = integrate_gauss_legendre_quadrature(
+			lambda xi, N_jp=N_jp, N_np=N_np: N_np(xi)*N_jp(xi),   
+			CONST_QUADRATURE_N, -1, 1, 
+			interval_break_points=knots_unique, 
+			nodes=nodes, 
+			weights=weights)
 
 		b_x[j][0] = term1_x - P1x * term2 - Pnx * term3
 		b_y[j][0] = term1_y - P1y * term2 - Pny * term3
@@ -412,7 +462,10 @@ def get_airfoil_BSpline_parameters():
 	if not CONST_CONTINUOUS_APPROXIMATION:
 		control_points = get_BSpline_control_points_discrete_least_square(BSpline_Basis, knots, n)
 	else:
-		control_points = get_BSpline_control_points_continuous_least_square(BSpline_Basis, knots, n, airfoil_parametric_equation)
+		circle = lambda xi: (1.0*math.cos(-1.*(xi+1)*math.pi), 
+							1.0*math.sin(-1.*(xi+1)*math.pi))
+		control_points = get_BSpline_control_points_continuous_least_square(BSpline_Basis, knots, n, circle)
+		#control_points = get_BSpline_control_points_continuous_least_square(BSpline_Basis, knots, n, airfoil_parametric_equation)
 
 	# Get the lambda expression for the spline
 	spline_function = lambda xi, BSpline_Basis=BSpline_Basis, control_points=control_points: \

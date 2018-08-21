@@ -387,21 +387,6 @@ const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
 (const char n_type, const struct const_Multiarray_R* xyz_i, const struct Solver_Volume_T* s_vol,
 	const struct Simulation* sim){
 
-	/*
-	Computes the gradient terms of the parametric NURBS mapping from the parametric domain
-	to the physical domain. Need this function for now because geo_data is static. TODO: Store
-	geo_data in sim perhaps
-
-	Arguments:
-		n_type: -
-		xyz_i: The initial xyz points (on the parametric domain)
-		s_vol: The solver volume I think (check further)
-		sim: The simulation object
-
-	Return:
-		The matrix of the mapped xyz points (onto the physical domain)
-	*/
-
 	UNUSED(n_type);
 	UNUSED(s_vol);
 	UNUSED(sim);
@@ -426,9 +411,6 @@ const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
 (const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	const struct Simulation* sim){
 
-	// MSB: TODO: Perhaps handle complex xyz_i? Will need to then have basis functions take
-	// templated values. Look into this later.
-
 	UNUSED(n_type);
 	UNUSED(s_vol);
 	UNUSED(sim);
@@ -440,7 +422,7 @@ const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
 	const struct Geo_Data geo_data = get_geo_data("NURBS");
 
 	// xyz_i are the initial values for the xyz coordinates. These are, in 
-	// this function, the location on the parametric domain (or knot domain). Map these
+	// this function, the location on the NURBS parametric domain (or knot domain). Map these
 	// values onto the physical domain
  
 	// NOTE: For NURBS mappings, the coordinates on the parametric domain (xyz_i) will need to be real
@@ -494,7 +476,6 @@ const struct const_Multiarray_T* constructor_xyz_gaussian_bump_parametric_T
 	Type*const x = get_col_Multiarray_T(0,xyz),
 	    *const y = get_col_Multiarray_T(1,xyz);
 
-	// MSB: Read the geometric data for the bump
 	const struct Geo_Data geo_data = get_geo_data("gaussian_bump");
 	const Real h     = geo_data.h,
 	           x_max = geo_data.x_max;
@@ -548,6 +529,7 @@ const struct const_Multiarray_T *grad_xyz_NURBS_patch_mapping_T(
 	const struct const_Multiarray_i* control_pt_wt_connectivity){
 
 	// Preprocessing:
+
 	// Create multiarray structures to hold the control points and weights. The
 	// control point structure will be of dimension [num_I x num_J] and there will be two
 	// separate structures for the x and y values. The weight structure is of order 
@@ -898,8 +880,6 @@ static void read_data_gaussian_bump (struct Geo_Data*const geo_data)
 static void read_data_NURBS (struct Geo_Data*const geo_data)
 {
 
-	// MSB: TODO: Fix the multiarray indexing
-
 	// Read the NURBS data from the geometry_parameters.geo file
 
 	// NOTE: Consider only 2D patches for now
@@ -1009,7 +989,6 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 				read_skip_i_1(line,0, get_row_Multiarray_i(i, control_pt_wt_connectivity), extents[1]);
 			}
 
-			// MSB: TODO: Take the transpose but there is no transpose_Multiarray_i
 			geo_data->control_pt_wt_connectivity = control_pt_wt_connectivity;
 
 		}

@@ -165,11 +165,12 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 			progress_file_add_information(fp, optimization_case, L2_grad, objective_func_value, 
 				t_elapse, design_iteration, true);
 
-// Functional Convergence Testing
-break;
-
 			// Output the initial gradient
 			output_gradient(optimization_case, optimizer_nlpqlp_data->dF->data);
+
+// Functional Convergence Tests
+//return;
+
 		}
 
 		printf("\nStart NLPQLP  ");
@@ -203,7 +204,6 @@ break;
 		// Error checking
 		if (optimizer_nlpqlp_data->IFAIL > 0){
 
-			// An error occured in the optimization
 			printf("\n ERROR IN OPTIMIZATION : \n");
 			printf("IFAIL : %d \n", optimizer_nlpqlp_data->IFAIL);
 			break; // break because still want to print data to file

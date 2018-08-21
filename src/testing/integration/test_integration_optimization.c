@@ -29,6 +29,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_visualization.h"
 #include "visualization.h"
 #include "compute_error.h"
+#include "restart_writers.h"
+#include "test_case.h"
 
 #include "core.h"
 
@@ -98,8 +100,11 @@ static void run_test_case(int argc, char** argv) {
 	struct Simulation* sim = NULL;
 	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc,ignore_static);
 
-
 	solve_for_solution(sim);  // Solve flow over initial shape
+	
+	if (outputting_restart())
+		output_restart(sim);
+
 	optimize(sim);  // Perform the shape optimization
 
 	// Output the results in graphical format
@@ -107,6 +112,9 @@ static void run_test_case(int argc, char** argv) {
 	output_visualization(sim,VIS_GEOM_VOLUMES);
 	output_visualization(sim,VIS_NORMALS);
 	output_visualization(sim,VIS_SOLUTION);
+
+	// Compute the error values
+	output_error(sim);
 
 	// Destroy Allocated Structures
 	structor_simulation(&sim,'d',ADAPT_0,p,ml,p_prev,ml_prev,NULL,type_rc,ignore_static);

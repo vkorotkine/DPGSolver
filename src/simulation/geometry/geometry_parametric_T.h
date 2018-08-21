@@ -112,10 +112,10 @@ const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
 	);
 
 /** \brief Similar of \ref constructor_xyz_fptr_T. This function is unique in that it computes 
- *	the gradient terms of the parametric NURBS mapping from the parametric domain
+ *	the gradient terms of the parametric NURBS mapping from the NURBS parametric domain
  *	to the physical domain.
  *
- *  \return The multiarray of the gradient values, found using the exact NURBS mapping. 
+ *  \return The multiarray of the gradient values using the exact NURBS mapping. 
  *	Consult \ref grad_xyz_NURBS_patch_mapping_T for details of multiarray ordering.
  */
 const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
@@ -135,12 +135,15 @@ void update_geo_data_NURBS_parametric_T
 	);
 
 /** \brief Computes the gradient terms of the NURBS mapping at the specified points on the 
- *	knot domain (xi_eta_i). NOTE: Only the 2D case has been implemented for now.
- *	
+ *	knot domain (xi_eta_i). 
+ *
+ * 	NOTE: Only the 2D case has been implemented for now.
+ *	NOTE: (xi, eta) form the standard NURBS parametric domain variables (eta = 0 is the horizontal axis)
+ *
  *	\return A multiarray of dimension [num_points x (DIM^2)] that holds the partial derivatives
  *	of the mapping. The ith row of the multiarray holds the partials at the ith point 
- *	and stores the data in the form [x_xi, y_xi, x_eta, y_eta], where 
- *	x_xi, for instance, is the partial of x with respect to the xi knot domain variable.
+ *	and stores the data in the form [x_xi, y_xi, x_eta, y_eta], where x_xi, for instance, is the 
+ *	partial of x with respect to the xi variable.
  */
 const struct const_Multiarray_T *grad_xyz_NURBS_patch_mapping_T(
 
@@ -175,8 +178,11 @@ const struct const_Multiarray_T *grad_xyz_NURBS_patch_mapping_T(
 
 
 /** \brief Computes the mapped points from the knot domain onto the physical domain using the
- * 	NURBS mapping. NOTE: Only the 2D case has been implemented for now.
- *	
+ * 	NURBS mapping. 
+ *
+ * 	NOTE: Only the 2D case has been implemented for now.
+ *	NOTE: (xi, eta) form the standard NURBS parametric domain variables (eta = 0 is the horizontal axis)
+ *
  *	\return A multiarray of dimension [num_points x (DIM)] that holds the mapped values.
  */
 const struct const_Multiarray_T *xyz_NURBS_patch_mapping_T(
