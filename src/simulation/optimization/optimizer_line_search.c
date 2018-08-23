@@ -167,6 +167,11 @@ void optimizer_line_search(struct Optimization_Case* optimization_case){
 		compute_gradient(gradient_data, adjoint_data, sensivity_data);
 
 
+// TESTING
+test_brute_force_gradient(optimization_case, optimization_case->objective_function, gradient_data->Gradient->data);
+exit(0);
+
+
 		// Keep track of the progress
 		double L2_grad = norm_d(gradient_data->Gradient->ext_1, gradient_data->Gradient->data, "L2");
 		double objective_func_value = optimization_case->objective_function(sim);
@@ -555,7 +560,5 @@ static void update_design_points(struct Optimization_Case* optimization_case, do
 	}
 
 	// Monitor the progress
-	// MSB: TODO: Add the visualization for the optimization
 	output_NURBS_patch_information(optimization_case);
-
 }

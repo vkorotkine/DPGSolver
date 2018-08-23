@@ -25,8 +25,8 @@ import scipy.integrate
 # The properties of the patch in the xi direction (which
 # traverses around the airfoil from the trailing edge, bottom
 # surface to the leading edge and back)
-CONST_P = 5
-CONST_NUM_CONTROL_PTS_XI = 25
+CONST_P = 3
+CONST_NUM_CONTROL_PTS_XI = 11
 
 
 # Properties of the patch in the eta direction (eta increases in the 
@@ -462,10 +462,7 @@ def get_airfoil_BSpline_parameters():
 	if not CONST_CONTINUOUS_APPROXIMATION:
 		control_points = get_BSpline_control_points_discrete_least_square(BSpline_Basis, knots, n)
 	else:
-		circle = lambda xi: (1.0*math.cos(-1.*(xi+1)*math.pi), 
-							1.0*math.sin(-1.*(xi+1)*math.pi))
-		control_points = get_BSpline_control_points_continuous_least_square(BSpline_Basis, knots, n, circle)
-		#control_points = get_BSpline_control_points_continuous_least_square(BSpline_Basis, knots, n, airfoil_parametric_equation)
+		control_points = get_BSpline_control_points_continuous_least_square(BSpline_Basis, knots, n, airfoil_parametric_equation)
 
 	# Get the lambda expression for the spline
 	spline_function = lambda xi, BSpline_Basis=BSpline_Basis, control_points=control_points: \

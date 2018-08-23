@@ -99,7 +99,6 @@ static void compute_gradient_values_NLPQLP(
  *
  *	NOTE: Uses absolute paths to the input and output files here 
  *		in the optimization directory
- *	\todo MSB: Read the path to the NLPQLP directory from an optimization.data file
  */
 static void write_NLPQLP_input_file(
 	struct Optimizer_NLPQLP_Data* optimizer_nlpqlp_data ///< Consult optimizer_NLPQLP.h
@@ -541,9 +540,6 @@ static void compute_gradient_values_NLPQLP(struct Optimization_Case *optimizatio
 
 	// Compute the gradient using the sensitivities and the adjoint
 	compute_gradient(gradient_data, adjoint_data, sensivity_data);
-// Test gradient
-//test_brute_force_gradient(optimization_case, optimization_case->objective_function, gradient_data->Gradient->data);
-//exit(0);
 
 	// Store gradient data in NLPQLP data structure
 	for (int i = 0; i < optimization_case->num_design_pts_dofs; i++)
@@ -589,9 +585,6 @@ static void compute_gradient_values_NLPQLP(struct Optimization_Case *optimizatio
 		// Compute the gradient using the sensitivities and the adjoint. Scale the gradients
 		// by the specified multiplier (due to the chain rule)
 		compute_gradient(gradient_data, adjoint_data, sensivity_data);
-// Test gradient
-//test_brute_force_gradient(optimization_case, constraint_function_data->functional_f, gradient_data->Gradient->data);
-//exit(0);
 		for (int i = 0; i < optimization_case->num_design_pts_dofs; i++)
 			gradient_data->Gradient->data[i] *= constraint_function_data->a;
 

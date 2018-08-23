@@ -120,6 +120,17 @@ bool diff_const_Matrix_d
 	 const double tol                     ///< The tolerance.
 	);
 
+/** \brief Compute the L2 norm of the difference between the arrays of data (a and b)
+ *	
+ *	\return The value of the L2 norm of the difference
+ */
+double diff_norm_Matrix_d (
+	const struct Matrix_d const* A, ///< The first matrix
+	const struct Matrix_d const* B,  ///< The second matrix
+	const char*const norm_type ///< "L2" for L2 norm and "LInf" for LInfinity norm
+	);
+
+
 // Printing functions *********************************************************************************************** //
 
 /// \brief Print the difference of the input \ref Matrix_T\*s.

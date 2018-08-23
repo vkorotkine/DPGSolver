@@ -159,8 +159,6 @@ void mm_NN1C_Operator_Multiarray_T
 	(const struct Operator* op, const struct const_Multiarray_T* b, struct Multiarray_T* c, const char op_format,
 	 const int order_sub_ma, const ptrdiff_t* sub_inds_b, const ptrdiff_t* sub_inds_c)
 {
-	// MSB: Compute the matrix matrix multiplication. Here, NN refers to no transpose, no transpose. 
-	// The 1 refers to the fact that alpha should be 1. 
 	mm_NNC_Operator_Multiarray_T(1.0,0.0,op,b,c,op_format,order_sub_ma,sub_inds_b,sub_inds_c);
 }
 
@@ -168,8 +166,6 @@ void mm_NN1_Operator_Multiarray_T
 	(const struct Operator* op, const struct const_Multiarray_T* b, struct Multiarray_T* c, const char op_format,
 	 const int order_sub_ma, const ptrdiff_t* sub_inds_b, const ptrdiff_t* sub_inds_c)
 {
-	// MSB: Make sure the operators are in column major form. If any is in row major, then
-	// find the transpose.
 	const bool transpose_b = ( b->layout == 'C' ? false : true ),
 	           transpose_c = ( c->layout == 'C' ? false : true );
 

@@ -115,11 +115,8 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 		printf("Start Run : ml = %d, p = %d \n", ml, p);
 		
 		const int adapt_type = int_test_info->adapt_type;
-		//const int adapt_type = ADAPT_0;  // MSB: Addition
-		
 		const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
-		//const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,true,ctrl_name); // MSB: Addition
-
+		
 		structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc,ignore_static); // d.
 		ignore_static = false;
 
@@ -180,7 +177,6 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 		p_prev  = p;
 		ml_prev = ml;
 
-		// MSB: Print the progress
 		fflush(stdout);
 	}}
 	destructor_Integration_Test_Info(int_test_info);

@@ -80,8 +80,6 @@ static void run_case (int argc, char** argv) {
 
 	struct Test_Info test_info = { .n_warn = 0, };
 
-	// MSB: Read the test info. This will include the control file name and 
-	// mesh level and order information
 	struct Integration_Test_Info* int_test_info = constructor_Integration_Test_Info(ctrl_name);
 	
 	const int* p_ref  = int_test_info->p_ref,
@@ -107,7 +105,6 @@ static void run_case (int argc, char** argv) {
 
 	const int adapt_type = int_test_info->adapt_type;
 	//const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
-	// MSB: Want to correct the ctrl file name because we want to add the mesh level and p
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,true,ctrl_name);
 
 	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc,ignore_static);
@@ -124,11 +121,6 @@ static void run_case (int argc, char** argv) {
 
 	// Ouput the restart file if requested
 	//output_restart(sim);
-
-
-// Temporary Testing:
-printf("CL: %e \n", functional_cl(sim));
-
 
 	destructor_Integration_Test_Info(int_test_info);
 }

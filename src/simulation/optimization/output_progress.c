@@ -434,7 +434,7 @@ void output_pressure_distribution(struct Optimization_Case* optimization_case){
 		const ptrdiff_t n_fc = rst_i->extents[0];
 
 
-		// \todo MSB: Map these values using some operator and be able to generalize to any type of
+		// \todo: Map these values using some operator and be able to generalize to any type of
 		//	element (not just QUADS)
 
 		// Map the node point locations to knot domain:

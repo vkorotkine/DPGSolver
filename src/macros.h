@@ -62,11 +62,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\}
 
 
-// MSB: Temporary flag to be used for NURBS geometries. Will eventually be read
-// from a file
-// TODO: Read this parameter from the ctrl file. Will specify whether
-// a NURBS geometry is being worked with and, if so, then it will compute
-// all geometry parameters exactly using the NURBS mapping
-#define NURBS_geometry true
+#define NURBS_geometry false
  
 #endif // DPG__macros_h__INCLUDED

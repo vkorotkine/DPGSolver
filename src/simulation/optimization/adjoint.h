@@ -52,14 +52,30 @@ void destructor_Adjoint_Data (
 	);
 
 
-/** \brief 	Setup the adjoint vectors in preparation of the adjoint sovle. 
- * 	This function will compute the RHS terms and the initial Chi (adjoint). 
+/** \brief 	Setup the adjoint vectors in preparation of the adjoint solve. 
+ * 	This function will compute the RHS terms and set the initial Chi (adjoint). 
  *  
  *	RHS: Computed using the complex step. Load data into Matrix_d RHS structure in Adjoint_Data
  * 	Chi: Set to be initially equal to the RHS. Chi will then be solved for iteratively during 
  * 		the adjoint solve. Fill the data into the Matrix_d in Adjoint_Data.
  */
 void setup_adjoint(
+	struct Adjoint_Data* adjoint_data, ///< The adjoint_data data structure to load data into
+	struct Simulation *sim, ///< The real simulation object (holding the real volumes and faces)
+	struct Simulation *sim_c, ///< The complex simulation object. Used for the complex step.
+	functional_fptr functional, ///< The functional function pointer (real version)
+	functional_fptr_c functional_c ///< The functional function pointer (complex version for complex step)
+	);
+
+
+/** \brief 	Setup the adjoint vectors in preparation of the adjoint solve using finite differences. 
+ * 	This function will compute the RHS terms and set the initial Chi (adjoint). 
+ *  
+ *	RHS: Computed using the complex step. Load data into Matrix_d RHS structure in Adjoint_Data
+ * 	Chi: Set to be initially equal to the RHS. Chi will then be solved for iteratively during 
+ * 		the adjoint solve. Fill the data into the Matrix_d in Adjoint_Data.
+ */
+void setup_adjoint_fd(
 	struct Adjoint_Data* adjoint_data, ///< The adjoint_data data structure to load data into
 	struct Simulation *sim, ///< The real simulation object (holding the real volumes and faces)
 	struct Simulation *sim_c, ///< The complex simulation object. Used for the complex step.

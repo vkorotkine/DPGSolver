@@ -20,6 +20,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "test_support.h"
 #include "test_support_multiarray.h"
@@ -218,6 +219,31 @@ bool diff_Matrix_d (const struct Matrix_d*const a, const struct Matrix_d*const b
 bool diff_const_Matrix_d (const struct const_Matrix_d*const a, const struct const_Matrix_d*const b, const double tol)
 {
 	return diff_Matrix_d((const struct Matrix_d*const)a,(const struct Matrix_d*const)b,tol);
+}
+
+double diff_norm_Matrix_d(const struct Matrix_d const* A, const struct Matrix_d const* B, 
+	const char*const norm_type){
+
+	const ptrdiff_t size = (A->ext_0)*(A->ext_1);
+
+	if ((size != (B->ext_0)*(B->ext_1)) || (A->layout != B->layout))
+		EXIT_ERROR("Different Matrix Inputs");
+
+	double norm = 0.0;
+	if (strcmp(norm_type,"L2") == 0){
+		
+		for (ptrdiff_t i = 0; i < size; i++)
+			norm += (A->data[i] - B->data[i]) * (A->data[i] - B->data[i]);
+		norm = sqrt(norm);
+
+	} else if (strcmp(norm_type,"LInf") == 0){
+
+		for (ptrdiff_t i = 0; i < size; i++)
+			if (fabs(A->data[i] - B->data[i]) > norm)
+				norm = fabs(A->data[i] - B->data[i]);
+	}
+
+	return norm;
 }
 
 // Printing functions *********************************************************************************************** //

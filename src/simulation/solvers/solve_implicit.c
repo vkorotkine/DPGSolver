@@ -104,7 +104,6 @@ void solve_implicit (struct Simulation* sim)
 		if (check_exit(test_case,max_rhs))
 			break;
 
-		// MSB: Add fflush option so that implicit solve status is updated
 		fflush(stdout);
 	}
 	destructor_derived_elements_comp_elements(sim);

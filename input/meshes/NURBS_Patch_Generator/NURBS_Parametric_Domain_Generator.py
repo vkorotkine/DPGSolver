@@ -46,7 +46,7 @@ import sys
 CONST_Patch_Type = "Airfoil_Patch"
 CONST_EPS = 1E-9
 
-CONST_Output_file_name = "geometry_parameters_CircleApprox.geo"
+CONST_Output_file_name = "geometry_parameters_P3_NumPtsXi11.geo"
 
 def NURBS_patch(xi,eta,BasisFunctionsList, ControlPoints_and_Weights, grad_index=None):
 

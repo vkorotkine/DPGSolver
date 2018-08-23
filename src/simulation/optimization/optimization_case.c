@@ -512,7 +512,7 @@ static void create_complex_sim(struct Optimization_Case* optimization_case){
 
 
 	// Copy the data from the real to the complex sim object
-	// \todo MSB: For the copy members r_to_c_Solver_Face function, it seems that the nf_fc 
+	// \todo: For the copy members r_to_c_Solver_Face function, it seems that the nf_fc 
 	// data structures needs to be set here to operate correctly
 	struct Intrusive_Link* curr   = sim->faces->first;
 	struct Intrusive_Link* curr_c = sim_c->faces->first;

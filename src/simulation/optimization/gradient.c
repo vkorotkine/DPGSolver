@@ -33,6 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "solve_implicit.h"
 
 #include "multiarray.h"
+#include "multiarray_math.h"
 #include "multiarray_constructors.h"
 #include "matrix.h"
 #include "matrix_constructors.h"
@@ -115,6 +116,8 @@ void test_brute_force_gradient(struct Optimization_Case *optimization_case,
 	int control_pt_index;
 
 	double f_0 = functional(sim);
+	double f_plus_h, f_min_h;  // Values of the functional for the central difference
+
 	int col_index = 0;
 
 	for (int i = 0; i < n_pts; i++){
@@ -128,32 +131,56 @@ void test_brute_force_gradient(struct Optimization_Case *optimization_case,
 				continue;
 
 			control_pt_index = ctrl_pt_indeces[i];
+
+			// f_plus_h
 			get_col_Multiarray_d(j-1, control_points)[control_pt_index] += FINITE_DIFF_STEP;
-
-
 			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
 			set_up_solver_geometry(sim);
 			solve_implicit(sim);
-			grad_f->data[col_index] = (functional(sim) - f_0)/FINITE_DIFF_STEP;
-
+			f_plus_h = functional(sim);
 			get_col_Multiarray_d(j-1, control_points)[control_pt_index] -= FINITE_DIFF_STEP;
+
+			// f_min_h
+			get_col_Multiarray_d(j-1, control_points)[control_pt_index] -= FINITE_DIFF_STEP;
+			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
+			set_up_solver_geometry(sim);
+			solve_implicit(sim);
+			f_min_h = functional(sim);
+			get_col_Multiarray_d(j-1, control_points)[control_pt_index] += FINITE_DIFF_STEP;
+
+
+			grad_f->data[col_index] = (f_plus_h - f_min_h)/(2.0*FINITE_DIFF_STEP);
+
 
 			col_index++;
 		}
 	}
 
 	// Update the geometry one last time with the original control point configurations
-	update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
-	set_up_solver_geometry(sim);
-	solve_implicit(sim);
+	//update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
+	//set_up_solver_geometry(sim);
+	//solve_implicit(sim);
 
-	printf("Gradient_Brute_Force: \n");
+	printf("\n Gradient_Brute_Force: \n");
 	for(int i = 0; i < num_design_dofs; i++)
 		printf("%e ", grad_f->data[i]);
 
-	printf("Gradient_Input: \n");
+	printf("\n Gradient_Input: \n");
 	for(int i = 0; i < num_design_dofs; i++)
 		printf("%e ", input_gradient[i]);
+
+	// Compute the L2 error
+	int diff_vector_len = (int)compute_size(grad_f->order, grad_f->extents);
+
+	struct Multiarray_d *difference_multiarray = constructor_empty_Multiarray_d(
+		'C',2,(ptrdiff_t[]){1, diff_vector_len});  // free
+
+	for (int i = 0; i < diff_vector_len; i++)
+		difference_multiarray->data[i] = grad_f->data[i] - input_gradient[i];
+
+	printf("\n");
+	printf("Difference L2 Norm: %e \n",  norm_Multiarray_d(difference_multiarray, "L2"));
+
 
 }
 

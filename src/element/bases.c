@@ -1069,8 +1069,31 @@ double B_Spline_Basis_ip(int i, int p, double xi, const struct const_Multiarray_
 		else
 			term2 = num2/denom2;
 		
-		return term1 + term2;
+		double return_value = term1 + term2;
 
+		if (isnan(return_value)){
+
+			printf("\n********* ERROR **********\n");
+			printf("i = %d \n", i);
+			printf("p = %d \n", p);
+			printf("xi = %e \n", xi);
+			printf("knots: \n");
+			print_const_Multiarray_d(knots);
+
+			EXIT_ERROR("NAN in B_Spline_Basis_ip\n");
+		} else if(isinf(return_value)){
+
+			printf("\n********* ERROR **********\n");
+			printf("i = %d \n", i);
+			printf("p = %d \n", p);
+			printf("xi = %e \n", xi);
+			printf("knots: \n");
+			print_const_Multiarray_d(knots);
+
+			EXIT_ERROR("INF in B_Spline_Basis_ip\n");
+		}
+
+		return return_value;
 	}
 }
 
@@ -1133,8 +1156,31 @@ double derivative_B_Spline_Basis_ip(int i, int p, double xi, const struct const_
 		second_term = num2/denom2;
 	}
 
-	return first_term - second_term;
+	double return_value = first_term - second_term;
 
+	if (isnan(return_value)){
+
+		printf("\n********* ERROR **********\n");
+		printf("i = %d \n", i);
+		printf("p = %d \n", p);
+		printf("xi = %e \n", xi);
+		printf("knots: \n");
+		print_const_Multiarray_d(knots);
+
+		EXIT_ERROR("NAN in derivative_B_Spline_Basis_ip\n");
+	} else if(isinf(return_value)){
+
+		printf("\n********* ERROR **********\n");
+		printf("i = %d \n", i);
+		printf("p = %d \n", p);
+		printf("xi = %e \n", xi);
+		printf("knots: \n");
+		print_const_Multiarray_d(knots);
+		
+		EXIT_ERROR("INF in derivative_B_Spline_Basis_ip\n");
+	}
+
+	return return_value;
 }
 
 

@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "macros.h"
 #include "simulation.h"
+#include "definitions_core.h"
 
 #include "volume.h"
 #include "volume_solver.h"
@@ -70,10 +71,12 @@ struct Sol_Data__c_dlm {
  */
 struct Functional_Data {
 	
+	const struct Simulation *sim; ///< Needed for determining the input directory to setup the pressure file
+
 	double target_cl; ///< Target lift coefficient value for the target cl functional
 
-	char target_pressure_distribution_file_abs_path[STRLEN_MAX]; ///< The absolute path to the file with the pressure distribution data
-	struct Multiarray_d *target_pressure_distribution; ///< The xi and pressure values for the target
+	char target_pressure_distribution_file[STRLEN_MAX]; ///< The name of the file with the pressure distribution data in the input directory
+	struct Multiarray_d *target_pressure_distribution; ///< The s (parametric domain coordinate) and pressure values for the target 
 };
 
 
@@ -82,13 +85,12 @@ struct Functional_Data {
  * \return The functional data structure with the data from the optimization.data file
  */
 static struct Functional_Data get_functional_data(
+	const struct Simulation* sim ///< Standard. \ref Simulation
 	);
 
 
 /** \brief Read the file provided containing the target pressure distribution. Load the values
  * 	into the target_pressure_distribution Multiarray in functional_data. 
- *
- *	NOTE: If no file has been given, the function will exit.
  */
 static void read_target_pressure_distribution_file(
 	struct Functional_Data *functional_data ///< Standard. \ref Functional_Data
@@ -219,7 +221,7 @@ double complex functional_mesh_volume_c(const struct Simulation* sim_c){
 
 double functional_target_cl(const struct Simulation* sim){
 
-	struct Functional_Data functional_data = get_functional_data();
+	struct Functional_Data functional_data = get_functional_data(sim);
 	double target_cl = functional_data.target_cl;
 	double cl = functional_cl(sim);
 
@@ -229,7 +231,7 @@ double functional_target_cl(const struct Simulation* sim){
 
 double complex functional_target_cl_c(const struct Simulation* sim_c){
 
-	struct Functional_Data functional_data = get_functional_data();
+	struct Functional_Data functional_data = get_functional_data(sim_c);
 	double target_cl = functional_data.target_cl;
 	double complex cl = functional_cl_c(sim_c);
 
@@ -257,7 +259,7 @@ double complex functional_mesh_volume_fractional_change_c(const struct Simulatio
 
 double functional_inverse_pressure_design(const struct Simulation *sim){
 
-	struct Functional_Data functional_data = get_functional_data();
+	struct Functional_Data functional_data = get_functional_data(sim);
 
 	double inverse_pressure_design_functional_value = 0.0;
 
@@ -298,9 +300,6 @@ double functional_inverse_pressure_design(const struct Simulation *sim){
 		const struct const_Multiarray_d *rst_i = constructor_move_const_Multiarray_d_Matrix_d(nodes_c->rst);  // free
 		const ptrdiff_t n_fc = rst_i->extents[0];
 
-
-		// \todo MSB: Map these values using some operator and be able to generalize to any type of
-		//	element (not just QUADS)
 
 		// Map the node point locations to knot domain:
 		struct Multiarray_d *rst_knots_i = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_fc, 2}); // destructed
@@ -434,8 +433,8 @@ double functional_inverse_pressure_design(const struct Simulation *sim){
 
 double complex functional_inverse_pressure_design_c(const struct Simulation *sim_c){
 
-	struct Functional_Data functional_data = get_functional_data();
-
+	struct Functional_Data functional_data = get_functional_data(sim_c);
+	
 	double complex inverse_pressure_design_functional_value = 0.0;
 
 	for (struct Intrusive_Link* curr = sim_c->faces->first; curr; curr = curr->next) {
@@ -471,10 +470,6 @@ double complex functional_inverse_pressure_design_c(const struct Simulation *sim
 		const struct const_Nodes *nodes_c = constructor_const_Nodes_tp(face->element->d, s_face_c->p_ref, NODES_GL);
 		const struct const_Multiarray_d *rst_i = constructor_move_const_Multiarray_d_Matrix_d(nodes_c->rst);  // free
 		const ptrdiff_t n_fc = rst_i->extents[0];
-
-
-		// \todo MSB: Map these values using some operator and be able to generalize to any type of
-		//	element (not just QUADS)
 
 		// Map the node point locations to knot domain:
 		struct Multiarray_d *rst_knots_i = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_fc, 2}); // destructed
@@ -721,26 +716,26 @@ static const struct const_Multiarray_c* compute_cl_cd_cm_c(const struct Simulati
 					Force_A = 0.0,
 					Moment  = 0.0;
 
-	double complex delta_x, delta_y, x_fc, y_fc;
+	double complex delta_x, delta_y, x_fc_c, y_fc_c;
 
 	for (struct Intrusive_Link* curr = sim_c->faces->first; curr; curr = curr->next) {
 		// Loop through the faces that are on the wall boundary
 		const struct Face*const face = (struct Face*) curr;
-		const struct Solver_Face_c*const s_face = (struct Solver_Face_c*) curr;
+		const struct Solver_Face_c*const s_face_c = (struct Solver_Face_c*) curr;
 		if (!is_face_wall_boundary(face))
 			continue;
 
-		// Get the solution (s) at the face cubature (fc) nodes and convert it to 
+		// Get the solution at the face cubature (fc) nodes and convert it to 
 		// primitive variables (pv)
-		const struct const_Multiarray_c* pv_fc_c = constructor_s_fc_interp_c(0, s_face);
+		const struct const_Multiarray_c* pv_fc_c = constructor_s_fc_interp_c(0, s_face_c);
 		convert_variables_c((struct Multiarray_c*)pv_fc_c,'c','p');
 
 		// Get the normals (n) at the face cubature (fc) nodes and jacobian values
-		const struct const_Multiarray_c* n_fc 		= s_face->normals_fc;
-		const struct const_Multiarray_c* jac_det_fc = s_face->jacobian_det_fc;
+		const struct const_Multiarray_c* n_fc_c 		= s_face_c->normals_fc;
+		const struct const_Multiarray_c* jac_det_fc_c 	= s_face_c->jacobian_det_fc;
 
 		// Get the xyz values of the face cubature (fc) nodes
-		const struct const_Multiarray_c* xyz_fc 	= s_face->xyz_fc;
+		const struct const_Multiarray_c* xyz_fc_c 		= s_face_c->xyz_fc;
 
 		num_fc = (int) pv_fc_c->extents[0]; // number of face cubature (fc) nodes
 
@@ -749,23 +744,25 @@ static const struct const_Multiarray_c* compute_cl_cd_cm_c(const struct Simulati
 
 		// Integrate the pressure multiplied by the negative of the normal component.
 		// Compute the integral using quadrature
-		const struct const_Vector_d*const w_fc = get_operator__w_fc__s_e_c(s_face);
+		const struct const_Vector_d*const w_fc = get_operator__w_fc__s_e_c(s_face_c);
 
 		for (i = 0; i < num_fc; i++){
-			const double complex *const n = get_row_const_Multiarray_c(i,n_fc);
+			const double complex *const n_c = get_row_const_Multiarray_c(i,n_fc_c);
+
+			//printf("i = %d , n = [%e + %e * i, %e + %e * i]\n", i, creal(n_c[0]), cimag(n_c[0]), creal(n_c[1]), cimag(n_c[1]));
 
 			// Force Computations:
-			Force_A += 1.0*p_fc_c_i[i]*n[0] * jac_det_fc->data[i] * w_fc->data[i];
-			Force_N += 1.0*p_fc_c_i[i]*n[1] * jac_det_fc->data[i] * w_fc->data[i];
+			Force_A += 1.0*p_fc_c_i[i]*n_c[0] * jac_det_fc_c->data[i] * w_fc->data[i];
+			Force_N += 1.0*p_fc_c_i[i]*n_c[1] * jac_det_fc_c->data[i] * w_fc->data[i];
 
 			// Moment Computations:
-			x_fc = get_col_const_Multiarray_c(0, xyz_fc)[i];
-			y_fc = get_col_const_Multiarray_c(1, xyz_fc)[i];
+			x_fc_c = get_col_const_Multiarray_c(0, xyz_fc_c)[i];
+			y_fc_c = get_col_const_Multiarray_c(1, xyz_fc_c)[i];
 
-			delta_x = x_fc - cm_le_x;
-			delta_y = y_fc - cm_le_y;
+			delta_x = x_fc_c - cm_le_x;
+			delta_y = y_fc_c - cm_le_y;
 
-			Moment += (delta_x*p_fc_c_i[i]*n[1] - delta_y*p_fc_c_i[i]*n[0]) * jac_det_fc->data[i] * w_fc->data[i];
+			Moment += (delta_x*p_fc_c_i[i]*n_c[1] - delta_y*p_fc_c_i[i]*n_c[0]) * jac_det_fc_c->data[i] * w_fc->data[i];
 		}
 
 		// Destroy the allocated vectors
@@ -831,7 +828,7 @@ static void read_data_c_dlm (struct Sol_Data__c_dlm*const sol_data){
 }
 
 
-static struct Functional_Data get_functional_data(){
+static struct Functional_Data get_functional_data(const struct Simulation *sim){
 
 	// Make functional_data a static variable so that, once declared, it is saved in 
 	// memory. Therefore, no need to read the file again in future function calls.
@@ -840,6 +837,8 @@ static struct Functional_Data get_functional_data(){
 
 	if(need_input){
 		need_input = false;
+
+		functional_data.sim = sim;
 
 		FILE* input_file = fopen_input('o',NULL,NULL); // closed
 		char line[STRLEN_MAX];
@@ -853,10 +852,11 @@ static struct Functional_Data get_functional_data(){
 
 			// Read specific functional data
 			if (strstr(line, "FUNCTIONAL_TARGET_CL_VALUE")) read_skip_d_1(line, 1, &functional_data.target_cl, 1);
-			if (strstr(line, "FUNCTIONAL_INVERSE_PRESSURE_DESIGN_TARGET_FILE_ABS_PATH")) read_skip_c(line, functional_data.target_pressure_distribution_file_abs_path);		
+			if (strstr(line, "FUNCTIONAL_INVERSE_PRESSURE_DESIGN_TARGET_FILE")) read_skip_c(line, functional_data.target_pressure_distribution_file);		
 		}
 		
 		read_target_pressure_distribution_file(&functional_data);
+
 		fclose(input_file);
 	}
 
@@ -866,16 +866,26 @@ static struct Functional_Data get_functional_data(){
 
 static void read_target_pressure_distribution_file(struct Functional_Data *functional_data){
 
-	// If no file name was given, then there is no target pressure data to read
-	if(strlen(functional_data->target_pressure_distribution_file_abs_path) == 0)
+	// No file given
+	if(strlen(functional_data->target_pressure_distribution_file) == 0){
+		functional_data->target_pressure_distribution = NULL;
 		return;
+	}
 
-	// A valid file name was given. Read the data and load it into the Functional_Data struct
+
+	const struct Simulation *sim = functional_data->sim;
+
+	// Get the pressure file absolute path (in the input directory)
+	char input_path[4*STRLEN_MAX];
+	snprintf(input_path,sizeof(input_path),"%s%s%s%s%s%s",
+	        PROJECT_INPUT_DIR,"input_files/",sim->pde_name,"/",sim->pde_spec,"/");
+	strcat(input_path, functional_data->target_pressure_distribution_file);
+
+	// Read the data and load it into the Functional_Data struct
 	FILE* fp;
-	if ((fp = fopen(functional_data->target_pressure_distribution_file_abs_path,"r")) == NULL)
+	if ((fp = fopen(input_path,"r")) == NULL)
 		printf("Error: Target Pressure Distribution file %s did not open.\n", 
-			functional_data->target_pressure_distribution_file_abs_path), exit(1);
-
+			input_path), exit(1);
 
 	char line[STRLEN_MAX];
 

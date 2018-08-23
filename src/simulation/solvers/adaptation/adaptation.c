@@ -54,9 +54,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-//MSB: Set this parameter to false to try and see if adaptation can be used with the NURBS
-// parametric mesh case.
-
 /** Flag for whether \ref correct_non_conforming_geometry should be executed.
  *  **This should only be disabled for comparative testing purposes.** See non-conforming and geometry related tests for
  *  additional relevant comments. */
@@ -267,7 +264,7 @@ static int compute_max_n_adapt (const int adapt_strategy, const struct Adaptatio
 	case ADAPT_S_P_COARSE: // fallthrough
 	case ADAPT_S_H_REFINE: // fallthrough
 	case ADAPT_S_H_COARSE:
-		return 1; // MSB: 1 is returned for the orders convergence test
+		return 1;
 	case ADAPT_S_XYZ_VE: {
 		const struct const_Vector_i*const xyz_ve_ml = adapt_data->xyz_ve_ml,
 		                           *const xyz_ve_p  = adapt_data->xyz_ve_p;
@@ -628,8 +625,6 @@ static void update_hp_members_volumes (const struct Simulation* sim)
 
 		a_s_vol->updated = true;
 
-		// MSB: Loop through the volumes in the mesh. If we need to adapt the given volume,
-		// we will be at this point, where we will either p refine or h refine it
 		switch (adapt_type) {
 		case ADAPT_P_REFINE: // fallthrough
 		case ADAPT_P_COARSE:
@@ -1650,11 +1645,6 @@ static void constructor_volumes_h_refine
 	struct Intrusive_List* volumes_c = constructor_empty_IL(IL_VOLUME_SOLVER_ADAPTIVE,NULL); // destructed
 
 	const int n_children = get_n_children(vol_p->element);
-
-	// MSB: Here, we are getting the vertices of the parent volume (P1). Use these
-	// to find the P2 vertices (there should be (p+1)^2 in 2D). Then, these new
-	// points (equidistant for vertices) will be used to split up this orginal
-	// parent volume into 4 volumes
 
 	for (int n = 1; n <= n_children; ++n) {
 

@@ -171,9 +171,6 @@ const struct Operator* get_Multiarray_Operator
 	(const struct Multiarray_Operator* src, const ptrdiff_t*const sub_indices)
 {
 
-	// MSB: Index into the Multiarray operator at src and return the operator at
-	// the given sub_indeces
-
 	assert(src != NULL);
 	const struct Operator*const op = src->data[compute_index_sub_container(src->order,0,src->extents,sub_indices)];
 	assert(op != NULL);

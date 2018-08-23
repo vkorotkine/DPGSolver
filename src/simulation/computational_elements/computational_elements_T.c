@@ -138,66 +138,23 @@ static int get_list_category
 void constructor_derived_computational_elements_T (struct Simulation* sim, const int derived_category)
 {
 	
-	// MSB: Called with derived category IL_SOLVER in structor_simulation.
-	// Here, we will get the derived element information. In the first index, store
-	// the volume information, and the face information in the second.
-	// sizeof_base is volume and sizeof_derived is volume_solver. 
-	/*
-		de_info.list_name[0] = IL_VOLUME_SOLVER;
-		de_info.list_name[1] = IL_FACE_SOLVER;
-		de_info.sizeof_base[0] = sizeof(struct Volume);
-		de_info.sizeof_base[1] = sizeof(struct Face);
-		de_info.sizeof_derived[0] = sizeof(struct Solver_Volume_T);
-		de_info.sizeof_derived[1] = sizeof(struct Solver_Face_T);
-		de_info.constructor_derived_Volume = constructor_derived_Solver_Volume_T;
-		de_info.constructor_derived_Face   = constructor_derived_Solver_Face_T;
-	*/
 	struct Derived_Comp_Elements_Info de_i = get_c_Derived_Comp_Elements_Info(derived_category,sim);
 
 	struct Intrusive_List* base[2]    = { sim->volumes, sim->faces, };
 	struct Intrusive_List* derived[2] = { NULL, NULL, };
 
-	// MSB: Here, we will create the intrusive linked list for the solver elements. 
-	// This includes the Volume_Solver and Face_Solver
-
 	// Reserve memory for the derived lists.
 	for (int i = 0; i < 2; ++i) {
 
-		// MSB: For i = 0:
-		// - Create a intrusive list of volume_solvers. Set the base to be sim->volumes. 
-		//	 Interesting because doesn't volume_solvers already point to a list of volumes?
-		// - Do the same thing for faces for i = 1
-
 		derived[i] = constructor_empty_IL(de_i.list_name[i],base[i]);
 		for (struct Intrusive_Link* curr = base[i]->first; curr; curr = curr->next) {
-
-			// MSB: Now, for i = 0:
-			//	- de_i.sizeof_base[i] = sizeof(struct Volume)
-			//  - de_i.sizeof_derived[i] = sizeof(struct Solver_Volume_T)
-			// Here, we are adding to the IL of volume_solvers by pushing back structures
-			// into it. 
-
-			// MSB: How the casting works
-			// - C structs are continguous bits of memory (there is no padding before the 
-			// 		first element). Therefore, when we cast as a struct x, we are simply asking 
-			// 		for the first sizeof(x) data in the original struct. 
-			// - Note how the data is stored. Volume_Solver has a volume as its first struct.
-			// 		Therefore, we always cast from a Volume_Solver to a Volume (all that happens
-			//		is that we only access the first bit of data in the struct). 
-			//		We can always cast a Volume to an intrusive_link because the volume 
-			//		struct holds an intrusive link as its first element. 
 			push_back_IL(derived[i],
 			             constructor_derived_Intrusive_Link(curr,de_i.sizeof_base[i],de_i.sizeof_derived[i]));
 		}
 	}
 
-	// MSB: Set the sim->volumes and sim->faces point to the new list of solver_volumes
 	sim->volumes = derived[0];
-	sim->faces   = derived[1];
-
-	// MSB: Add data to the volume_solver and face_solver structs. Cast the intrusive link
-	// object as a volume_solver (can do because the size of the intrusive link objects is 
-	// sizeof(volume_solver)). 
+	sim->faces   = derived[1]; 
 
 	// Perform construction specific to the derived lists and update pointers.
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; ) {

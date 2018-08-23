@@ -1,4 +1,4 @@
-/** Geometry parameters for test case: euler/steady/NURBS
+/** Geometry parameters for test case: euler/steady/NURBS_NACA0012_test_ref
 */
 
 P(xi_order) 3 

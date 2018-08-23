@@ -64,4 +64,16 @@ void compute_sensitivities(
 	);
 
 
+/** \brief 	Compute the sensitivities of the Residual [dR/dXp] and the objective
+ *	function [dI/dXp] with respect to the design control points Xp using finite differences. Store the
+ *	results in the Matrix_d structures in the Sensitivity_Data data structure.
+ */
+void compute_sensitivities_fd(
+	struct Sensitivity_Data *sensitivity_data, ///< The sensitivity_data data structure to load data into
+	struct Optimization_Case *optimization_case, ///< Standard. The optimization data structure
+	functional_fptr functional, ///< The functional function pointer (real version)
+	functional_fptr_c functional_c ///< The functional function pointer (complex version for complex step)
+	);
+
+
 #endif // DPG__sensitivities_h__INCLUDED

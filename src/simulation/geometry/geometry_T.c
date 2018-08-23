@@ -903,12 +903,19 @@ static const struct const_Multiarray_T* constructor_NURBS_xyz_fc(
 	const struct const_Multiarray_R* rst_fc_i = constructor_mm_NN1_Operator_const_Multiarray_R(
 		vv0_vv_fcc, xyz_ve, 'C', op_format, xyz_ve->order, NULL);  // free
 
+	// Transfer the rst_fc_i values into a templated data structure
+	struct Multiarray_T *rst_fc_i_T = constructor_empty_Multiarray_T('C',rst_fc_i->order,rst_fc_i->extents); // free
+	int num_values = (int) compute_size(rst_fc_i->order, rst_fc_i->extents);
+	for (int i = 0; i < num_values; i++)
+		rst_fc_i_T->data[i] = rst_fc_i->data[i];
+
 	// Get the xyz locations using the rst positions on the NURBS parametric domain
 	const char n_type = 0; // UNUSED in constructor_xyz_NURBS_parametric
 	const struct const_Multiarray_T* xyz_fc = constructor_xyz_NURBS_parametric_T(n_type, 
-		(const struct const_Multiarray_T*)rst_fc_i, s_vol, sim);
+		(const struct const_Multiarray_T*)rst_fc_i_T, s_vol, sim);
 
 	// Destruct allocated data structures:
+	destructor_Multiarray_T(rst_fc_i_T);
 	destructor_const_Multiarray_R(rst_fc_i);
 
 	return xyz_fc;

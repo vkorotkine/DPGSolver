@@ -26,7 +26,6 @@ CONST_OPTIMIZATION_FILE = "../../../build_2D/output/optimization/euler/steady/NU
 # Location of the initial geometry file
 CONST_INITIAL_PATCH_FILE = "../../../input/input_files/euler/steady/NURBS_Airfoil/geometry_parameters.geo"
 
-
 # The points (on the knot domain) to plot
 CONST_ISOCURVE_PTS = []
 t_vals = numpy.linspace(-1., 1., 100)

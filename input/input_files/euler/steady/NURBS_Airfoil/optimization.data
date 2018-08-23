@@ -17,9 +17,9 @@
 // 
 // =================================================================================
 
-optimizer_spec             NLPQLP
+optimizer_spec             LINE_SEARCH_BFGS
 optimizer_nlpqlp_abs_path  /Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/NLPQLP_Optimizer
-optimizer_output_files_prefix  Constrained_Target_CL_cases/NACA0012_Target_CL_0.25/Unstructured_Transfinite/ml2_P4_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_
+optimizer_output_files_prefix  
 
 // =================================================================================
 //								Optimization Type
@@ -167,6 +167,6 @@ output_progress_additional_parameters FUNCTIONAL_CL,FUNCTIONAL_CM_LE,FUNCTIONAL_
 // =================================================================================
 
 FUNCTIONAL_TARGET_CL_VALUE                               0.25
-FUNCTIONAL_INVERSE_PRESSURE_DESIGN_TARGET_FILE_ABS_PATH  /Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/input/input_files/euler/steady/NURBS_Airfoil/Pressure_Distribution_NACA4412_ml2_p4.txt
+FUNCTIONAL_INVERSE_PRESSURE_DESIGN_TARGET_FILE_ABS_PATH  Pressure_Distribution_NACA4412_ml2_p4.txt
 
 

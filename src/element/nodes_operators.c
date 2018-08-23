@@ -110,10 +110,6 @@ const struct const_Nodes* constructor_const_Nodes_h
 	constructor_Nodes_fptr constructor_Nodes = get_constructor_Nodes_by_super_type(s_type_io);
 	constructor_basis_fptr constructor_basis = get_constructor_basis_by_super_type(s_type_io,"orthonormal");
 
-	// MSB: Here is where we are calling the constructor for the nodes. The function 
-	// pointer is set according to the type of the element. For instance, for
-	// tensor product elements, will call the constructor_Nodes for tp elements.
-	// d_io is the dimenion, p_io is the order, node_type_io is the location of the nodes
 	const struct const_Nodes* nodes_io = constructor_Nodes(d_io,p_io,node_type_io); // destructed
 
 	const struct const_Matrix_d* rst_ve = constructor_rst_ve(s_type_io,d_io,d_io,0,0,'v',sim); // destructed
@@ -442,14 +438,9 @@ static int compute_node_type_std
 	(const struct Op_IO* op_io, const struct const_Element* element, const struct Simulation* sim)
 {
 
-	// MSB: Here is where we set the node type (ex: GL, GLL, etc...) based on the
-	// node type required (geometry, metric, ...)
-
 	const char node_kind = op_io->kind,
 	           node_ce   = op_io->ce;
 
-	// MSB: Here, get, based on the type of element (quad, line, ...) what type 
-	// of nodes are desired. For instance, quad requires S_TP (tensor product)
 	const int s_type = compute_super_type_op(node_ce,op_io->h_op,element);
 	switch (node_kind) {
 	case 's': // fallthrough

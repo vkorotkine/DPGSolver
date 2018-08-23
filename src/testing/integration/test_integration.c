@@ -58,12 +58,10 @@ You should have received a copy of the GNU General Public License along with DPG
 
 struct Integration_Test_Info* constructor_Integration_Test_Info (const char*const ctrl_name)
 {
-	// Load the information from the control file 
 
 	struct Integration_Test_Info* int_test_info = calloc(1,sizeof *int_test_info); // returned
 	int_test_info->ctrl_name = ctrl_name;
 
-	// Read information
 	char line[STRLEN_MAX];
 
 	const char* ctrl_name_full = set_ctrl_name_full(ctrl_name);
@@ -173,12 +171,6 @@ void structor_simulation
 		assert(mode == 'c');
 		static bool entered = false;
 		if (!entered || ignore_static) {
-			// MSB: ignore_static = false in the test_integration_convergence test
-			// because we are not restarting a case. Also, the static bool entered will
-			// be set to true so on the next call to the function this will not be entered.
-			// Therefore, on the first call, the mesh will be run using ADAPT_0 to initialize
-			// everything and then after that, adaptation will be used.
-
 			structor_simulation(sim,mode,ADAPT_0_FOR_H,p,ml,p_prev,ml_prev,ctrl_name,type_rc,ignore_static);
 			entered = true;
 			return;

@@ -60,6 +60,24 @@ You should have received a copy of the GNU General Public License along with DPG
 // Static function declarations ************************************************************************************* //
 
 
+/** \brief 	Compute the residual vector. Do this by calling compute_rlhs and copying the 
+ *	negative of the RHS vector in the implicit solve.
+ *
+ * \return 	A multiarray of dimension [num_res_eq x 1] with the value of the resiudal 
+ * 	vector.
+ */
+static struct Multiarray_d* constructor_residual(
+	struct Sensitivity_Data *sensitivity_data, ///< Standard. The sensitivity_data data structure
+	struct Optimization_Case *optimization_case ///< Standard. The optimization_case data structure
+	);
+
+
+static struct Multiarray_c* constructor_residual_c(
+	struct Sensitivity_Data *sensitivity_data, ///< Standard. The sensitivity_data data structure
+	struct Optimization_Case *optimization_case ///< Standard. The optimization_case data structure
+	);
+
+
 /** \brief 	Compute the sensitivities of the functional (I) and residual (R) with respect to the 
  *	design variables (Xp). This method computes the components of the dI_dXp structure 
  *	and dR_dXp structures using finite differences. 
@@ -114,24 +132,6 @@ static void set_dI_dXp_and_dR_dXp_cmplx_step(
 	);
 
 
-/** \brief 	Compute the residual vector. Do this by calling compute_rlhs and copying the 
- *	negative of the RHS vector in the implicit solve.
- *
- * \return 	A multiarray of dimension [num_res_eq x 1] with the value of the resiudal 
- * 	vector.
- */
-static struct Multiarray_d* constructor_residual(
-	struct Sensitivity_Data *sensitivity_data, ///< Standard. The sensitivity_data data structure
-	struct Optimization_Case *optimization_case ///< Standard. The optimization_case data structure
-	);
-
-
-static struct Multiarray_c* constructor_residual_c(
-	struct Sensitivity_Data *sensitivity_data, ///< Standard. The sensitivity_data data structure
-	struct Optimization_Case *optimization_case ///< Standard. The optimization_case data structure
-	);
-
-
 
 // Interface functions ********************************************************************************************** //
 
@@ -173,125 +173,44 @@ void destructor_Sensitivity_Data(struct Sensitivity_Data* sensitivity_data){
 void compute_sensitivities(struct Sensitivity_Data* sensitivity_data, struct Optimization_Case *optimization_case, 
 	functional_fptr functional, functional_fptr_c functional_c){
 
-
 	UNUSED(functional);
-	UNUSED(functional_c);
-
-	UNUSED(set_dI_dXp_and_dR_dXp_finite_diff);
-	UNUSED(set_dI_dXp_and_dR_dXp_cmplx_step);
-
-	// set_dI_dXp_and_dR_dXp_finite_diff(sensitivity_data, optimization_case, functional);
-
-	// struct Matrix_d *dR_dXp_finite_diff = constructor_copy_Matrix_d(sensitivity_data->dR_dXp); // free
-	// struct Matrix_d *dI_dXp_finite_diff = constructor_copy_Matrix_d(sensitivity_data->dI_dXp); // free
-
-	// //printf("dR_dXp_finite_diff: \n");
-	//print_Matrix_d(dR_dXp_finite_diff);
-
-	// printf("dI_dXp_finite_diff: \n");
-	// print_Matrix_d(dI_dXp_finite_diff);
-
-	// destructor_Matrix_d(dR_dXp_finite_diff);
-	// destructor_Matrix_d(dI_dXp_finite_diff);
 
 	set_dI_dXp_and_dR_dXp_cmplx_step(sensitivity_data, optimization_case, functional_c);
-	//set_dI_dXp_and_dR_dXp_finite_diff(sensitivity_data, optimization_case, functional);
 
-	// printf("dI_dXp\n");
-	// print_Matrix_d(sensitivity_data->dI_dXp);
+}
 
-	//printf("dR_dXp complex step\n");
-	//print_Matrix_d(sensitivity_data->dR_dXp);
 
-	// exit(0);
+void compute_sensitivities_fd(struct Sensitivity_Data* sensitivity_data, struct Optimization_Case *optimization_case, 
+	functional_fptr functional, functional_fptr_c functional_c){
+
+	UNUSED(functional_c);
+
+	set_dI_dXp_and_dR_dXp_finite_diff(sensitivity_data, optimization_case, functional);
+
 }
 
 
 // Static functions ************************************************************************************************* //
 
 
-static void set_dI_dXp_and_dR_dXp_finite_diff(struct Sensitivity_Data *sensitivity_data, struct Optimization_Case *optimization_case,
-	functional_fptr functional){
-
-	struct Simulation *sim = optimization_case->sim;
-	
-	struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
-	int *ctrl_pt_indeces = get_col_Multiarray_i(0, ctrl_pts_opt);
-	int n_pts = (int)ctrl_pts_opt->extents[0];
-
-
- 	struct Matrix_d *dI_dXp = sensitivity_data->dI_dXp;
-	double *dI_dXp_i = dI_dXp->data;
-
-	struct Matrix_d *dR_dXp = sensitivity_data->dR_dXp;
-	int num_res_eqs = (int) dR_dXp->ext_0;
-
-	// =================================================
-	//     Compute the dI_dXp and dR_dXp components
-	// =================================================
-
-
-	// Compute initial I_0 (objective func) and residual (R_0) values
-	double I_0 					= functional(sim);
-	struct Multiarray_d *R_0 	= constructor_residual(sensitivity_data, optimization_case);  // free
-
-	struct Multiarray_d* control_points = optimization_case->geo_data.control_points;
-	int control_pt_index;
-
-	int col_index = 0;
-
-	for (int i = 0; i < n_pts; i++){
-		// Loop over the design points
-
-		for (int j = 1; j <= 2; j++){
-			// Loop over the degrees of freedom for the design point
-			// j = 1 (x degree of freeedom) and j = 2 (y degree of freedom)
-
-			if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
-				continue;
-
-			control_pt_index = ctrl_pt_indeces[i];
-			get_col_Multiarray_d(j-1, control_points)[control_pt_index] += FINITE_DIFF_STEP;
-
-
-			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
-			set_up_solver_geometry(sim);
-			dI_dXp_i[col_index] = (functional(sim) - I_0)/FINITE_DIFF_STEP;
-			
-			struct Multiarray_d *R = constructor_residual(sensitivity_data, optimization_case);  // free
-			
-			for (int k = 0; k < num_res_eqs; k++)
-				get_col_Matrix_d(col_index, dR_dXp)[k] = 
-					(1./FINITE_DIFF_STEP)*(get_col_Multiarray_d(0, R)[k] - get_col_Multiarray_d(0, R_0)[k]);
-			
-			destructor_Multiarray_d(R);
-			
-
-			get_col_Multiarray_d(j-1, control_points)[control_pt_index] -= FINITE_DIFF_STEP;
-
-			col_index++;
-		}
-	}
-
-	// Update the geometry one last time with the original control point configurations
-	update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
-	set_up_solver_geometry(sim);
-
-	// Free allocated structures
-	destructor_Multiarray_d(R_0);
-}
-
-
 static struct Multiarray_d* constructor_residual(struct Sensitivity_Data* sensitivity_data, 
 	struct Optimization_Case *optimization_case){
 
-	// MSB: TODO: Set residual without calling PETSc constructor. Instead, compute the
-	// residual for each equation and load it manually here into the mutliarray (so that 
-	// the complex version can be easily done)
 
 	struct Simulation* sim = optimization_case->sim;
-	struct Solver_Storage_Implicit* ssi = constructor_Solver_Storage_Implicit(sim); // destructed
-	compute_rlhs_optimization(sim, ssi);
+
+	((struct Test_Case_c*)sim->test_case_rc->tc)->solver_method_curr = 'e';
+	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG); // destructed
+	constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
+	
+	initialize_zero_memory_volumes(sim->volumes);
+	compute_grad_coef_dg(sim,sim->volumes,sim->faces);
+	compute_volume_rlhs_dg(sim,NULL,sim->volumes);
+	compute_face_rlhs_dg(sim,NULL,sim->faces);
+	
+	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
+	destructor_derived_computational_elements(sim,IL_SOLVER);
+	((struct Test_Case_c*)sim->test_case_rc->tc)->solver_method_curr = 'i';
 
 	// Set Residual Multiarray
 	int num_res_eqs = (int)sensitivity_data->dR_dXp->ext_0;
@@ -299,38 +218,25 @@ static struct Multiarray_d* constructor_residual(struct Sensitivity_Data* sensit
 	double *Residual_i = get_col_Multiarray_d(0, Residual);
 	
 
-	// TODO: Find a way to find residual without getting the LHS also (and filling it into PETSc)
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
+		
+		struct Multiarray_d* sol_coef = s_vol->sol_coef;
+		struct Multiarray_d* rhs = s_vol->rhs;
 
+		ptrdiff_t ext_0 = compute_size(sol_coef->order,sol_coef->extents);
 
-	// Copy values into Residual Multiarray (recall RHS in implicit solve is the negative of the residual)
-	int *ix;
-	ix = malloc((unsigned int)num_res_eqs* sizeof *ix);  // free
-
-	for (int i = 0; i < num_res_eqs; i++)
-		ix[i] = i;
-
-	VecGetValues(ssi->b, num_res_eqs, ix, Residual_i);
-
-	for (int i = 0; i < num_res_eqs; i++)
-		Residual_i[i] *= -1.;
-
-	// Free allocated structures
-	free(ix);
-	destructor_Solver_Storage_Implicit(ssi);
-
+		for (int i = 0; i < ext_0; i++){
+			Residual_i[(int)s_vol->ind_dof + i] = rhs->data[i];
+		}
+	}
 
 	return Residual;
-
 }
-
 
 
 static struct Multiarray_c* constructor_residual_c(struct Sensitivity_Data* sensitivity_data, 
 	struct Optimization_Case *optimization_case){
-
-	// MSB: TODO: Set residual without calling PETSc constructor. Instead, compute the
-	// residual for each equation and load it manually here into the mutliarray (so that 
-	// the complex version can be easily done)
 
 	struct Simulation* sim_c = optimization_case->sim_c;
 
@@ -370,6 +276,81 @@ static struct Multiarray_c* constructor_residual_c(struct Sensitivity_Data* sens
 }
 
 
+static void set_dI_dXp_and_dR_dXp_finite_diff(struct Sensitivity_Data *sensitivity_data, struct Optimization_Case *optimization_case,
+	functional_fptr functional){
+
+	struct Simulation *sim = optimization_case->sim;
+	
+	struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
+	int *ctrl_pt_indeces = get_col_Multiarray_i(0, ctrl_pts_opt);
+	int n_pts = (int)ctrl_pts_opt->extents[0];
+
+
+ 	struct Matrix_d *dI_dXp = sensitivity_data->dI_dXp;
+	double *dI_dXp_i = dI_dXp->data;
+
+	struct Matrix_d *dR_dXp = sensitivity_data->dR_dXp;
+	int num_res_eqs = (int) dR_dXp->ext_0;
+
+	// =================================================
+	//     Compute the dI_dXp and dR_dXp components
+	// =================================================
+
+	double I_plus_h, I_min_h;
+	struct Multiarray_d *R_plus_h, *R_min_h; 
+
+	struct Multiarray_d* control_points = optimization_case->geo_data.control_points;
+	int control_pt_index;
+
+	int col_index = 0;
+
+	for (int i = 0; i < n_pts; i++){
+		// Loop over the design points
+
+		for (int j = 1; j <= 2; j++){
+			// Loop over the degrees of freedom for the design point
+			// j = 1 (x degree of freeedom) and j = 2 (y degree of freedom)
+
+			if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+				continue;
+
+			control_pt_index = ctrl_pt_indeces[i];
+			
+
+			get_col_Multiarray_d(j-1, control_points)[control_pt_index] += FINITE_DIFF_STEP;
+			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
+			set_up_solver_geometry(sim);
+			I_plus_h = functional(sim);
+			R_plus_h = constructor_residual(sensitivity_data, optimization_case);  // free
+			get_col_Multiarray_d(j-1, control_points)[control_pt_index] -= FINITE_DIFF_STEP;
+
+			get_col_Multiarray_d(j-1, control_points)[control_pt_index] -= FINITE_DIFF_STEP;
+			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
+			set_up_solver_geometry(sim);
+			I_min_h = functional(sim);
+			R_min_h = constructor_residual(sensitivity_data, optimization_case);  // free
+			get_col_Multiarray_d(j-1, control_points)[control_pt_index] += FINITE_DIFF_STEP;
+
+
+			dI_dXp_i[col_index] = (I_plus_h - I_min_h)/(2.0*FINITE_DIFF_STEP);
+
+			for (int k = 0; k < num_res_eqs; k++)
+				get_col_Matrix_d(col_index, dR_dXp)[k] = 
+					(1./(2.0*FINITE_DIFF_STEP)) * (get_col_Multiarray_d(0, R_plus_h)[k] - get_col_Multiarray_d(0, R_min_h)[k]);
+			
+
+			destructor_Multiarray_d(R_plus_h);
+			destructor_Multiarray_d(R_min_h);
+
+			col_index++;
+		}
+	}
+
+	// Update the geometry one last time with the original control point configurations
+	update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
+	set_up_solver_geometry(sim);
+
+}
 
 
 static void set_dI_dXp_and_dR_dXp_cmplx_step(struct Sensitivity_Data *sensitivity_data, struct Optimization_Case *optimization_case,
@@ -431,12 +412,7 @@ static void set_dI_dXp_and_dR_dXp_cmplx_step(struct Sensitivity_Data *sensitivit
 		}
 	}
 
-	//exit(0);
-
 	// Update the geometry one last time with the original control point configurations
 	update_geo_data_NURBS_parametric_c((const struct const_Multiarray_c*)control_points_c);
 	set_up_solver_geometry_c(sim_c);
-
-	// Free allocated structures
-	//destructor_Multiarray_d(R_0);
 }

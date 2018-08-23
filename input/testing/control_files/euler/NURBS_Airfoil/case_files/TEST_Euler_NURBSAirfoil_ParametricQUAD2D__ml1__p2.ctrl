@@ -4,11 +4,6 @@ pde_spec  steady/NURBS_Airfoil
 geom_name n-cube
 geom_spec nurbs_airfoil_o_grid
 
-geometry_parameters_extension NACA0012_tests_reference
-solution_extension NACA0012_tests_reference
-test_case_extension NACA0012_tests_reference
-optimization_extension NACA0012_tests_reference
-
 dimension 2
 
 mesh_generator   n-cube/2d_stretched.geo
