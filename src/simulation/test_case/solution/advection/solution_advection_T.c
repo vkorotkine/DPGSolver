@@ -28,6 +28,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_solution_advection.h"
 
+#include "def_templates_matrix.h"
+#include "def_templates_multiarray.h"
+
 #include "def_templates_boundary.h"
 #include "def_templates_flux.h"
 #include "def_templates_geometry.h"
@@ -162,6 +165,26 @@ void read_data_advection_T (struct Sol_Data__Advection_T*const sol_data)
 	}
 }
 
+const struct const_Matrix_R* constructor_b_adv_T
+	(const struct Sol_Data__Advection_T*const sol_data, const struct const_Multiarray_T*const xyz)
+{
+	const ptrdiff_t ext_0 = xyz->extents[0];
+	struct Matrix_R*const b = constructor_empty_Matrix_R('R',ext_0,DIM); // returned
+
+	const Type*const xyz_ptr[DIM] = ARRAY_DIM( get_col_const_Multiarray_T(0,xyz),
+	                                           get_col_const_Multiarray_T(1,xyz),
+	                                           get_col_const_Multiarray_T(2,xyz) );
+
+	for (int n = 0; n < ext_0; n++) {
+		const Type xyz_n[DIM] = ARRAY_DIM(xyz_ptr[0][n],xyz_ptr[1][n],xyz_ptr[2][n]);
+		const Real*const b_adv = sol_data->compute_b_adv(xyz_n);
+		Real*const b_row = get_row_Matrix_R(n,b);
+		for (int d = 0; d < DIM; ++d)
+			b_row[d] = b_adv[d];
+	}
+	return (struct const_Matrix_R*) b;
+}
+
 const Real* compute_b_adv_constant_T (const Type*const xyz)
 {
 	UNUSED(xyz);
@@ -247,7 +270,8 @@ static void set_function_pointers_num_flux_T (struct Test_Case_T* test_case, con
 	switch (sim->method) {
 	case METHOD_DG:  // fallthrough
 	case METHOD_DPG: // fallthrough
-	case METHOD_OPG:
+	case METHOD_OPG: // fallthrough
+	case METHOD_OPGC0:
 		test_case->compute_Numerical_Flux = compute_Numerical_Flux_1_T;
 		switch (test_case->ind_num_flux[0]) {
 		case NUM_FLUX_UPWIND:
@@ -259,6 +283,8 @@ static void set_function_pointers_num_flux_T (struct Test_Case_T* test_case, con
 			break;
 		}
 		break;
+	case METHOD_L2_PROJ:
+		break; // do nothing
 	default:
 		EXIT_ERROR("Unsupported: %d\n",sim->method);
 		break;
@@ -266,6 +292,9 @@ static void set_function_pointers_num_flux_T (struct Test_Case_T* test_case, con
 }
 
 #include "undef_templates_solution_advection.h"
+
+#include "undef_templates_matrix.h"
+#include "undef_templates_multiarray.h"
 
 #include "undef_templates_boundary.h"
 #include "undef_templates_flux.h"

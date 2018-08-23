@@ -19,6 +19,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to real functions used to solve for the solution.
  */
 
+#include <stdbool.h>
+
 #include "def_templates_type_d.h"
 #include "solve_T.h"
 #include "undef_templates_type.h"
@@ -42,6 +44,16 @@ struct Solver_Storage_Implicit {
 
 	int row, ///< Index of the first row in which data is to be added.
 	    col; ///< Index of the first col in which data is to be added.
+
+	ptrdiff_t n_c0; ///< The number of C0 dof. C0 assumed if this value is not zero.
+
+	/** Holding the correspondence betwene the L2 and C0 dof.
+	 *
+	 *  The vector has \ref Vector_T::ext_0 equal to the number of l2 dof and the index of the corresponding c0 dof
+	 *  is stored as the corresponding data. */
+	const struct const_Vector_i* corr_l2_c0;
+
+	bool do_not_destruct_A; ///< Flag for whether the \ref Solver_Storage_Implicit::A matrix should be destructed.
 };
 
 // Interface functions ********************************************************************************************** //

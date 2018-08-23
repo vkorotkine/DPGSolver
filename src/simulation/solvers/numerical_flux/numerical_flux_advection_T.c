@@ -23,7 +23,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_bc.h"
 #include "definitions_core.h"
-
+#include "definitions_tol.h"
 
 #include "def_templates_multiarray.h"
 
@@ -64,11 +64,10 @@ void compute_Numerical_Flux_T_advection_upwind
 		const Type xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
 		const Real*const b_adv = sol_data.compute_b_adv(xyz_n);
 
-		Type b_dot_n = 0.0;
-		for (int dim = 0; dim < DIM; dim++)
-			b_dot_n += b_adv[dim]*nL[n*DIM+dim];
+		Real b_dot_n = dot_R_from_RT(DIM,b_adv,&nL[n*DIM]);
 
-		if (real_T(b_dot_n) >= 0.0)
+		// Preference for use of 'R'ight (external, constrained) state because of opg method.
+		if (b_dot_n > EPS)
 			nFluxNum[n] = b_dot_n*WL[n];
 		else
 			nFluxNum[n] = b_dot_n*WR[n];
@@ -109,12 +108,10 @@ void compute_Numerical_Flux_T_advection_upwind_jacobian
 		const Type xyz_n[DIM] = ARRAY_DIM(xyz[0][n],xyz[1][n],xyz[2][n]);
 		const double*const b_adv = sol_data.compute_b_adv(xyz_n);
 
+		Real b_dot_n = dot_R_from_RT(DIM,b_adv,&nL[n*DIM]);
 
-		Type b_dot_n = 0.0;
-		for (int dim = 0; dim < DIM; dim++)
-			b_dot_n += b_adv[dim]*nL[n*DIM+dim];
-
-		if (real_T(b_dot_n) >= 0.0) {
+		// Preference for use of 'R'ight (external, constrained) state because of opg method.
+		if (b_dot_n > EPS) {
 			nFluxNum[n]     = b_dot_n*WL[n];
 			dnFluxNumdWL[n] = b_dot_n;
 			dnFluxNumdWR[n] = 0.0;

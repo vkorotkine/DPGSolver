@@ -57,7 +57,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	gmsh_setnumbers += " -setnumber mesh_level " + mesh_level
 
 	gmsh_setnumbers += " -setnumber pde_name "
-	var_names = ["advection","diffusion","euler","navier_stokes"]
+	var_names = ["advection","diffusion","euler","navier_stokes","burgers_inviscid",]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 
 	gmsh_setnumbers += " -setnumber mesh_domain "
@@ -84,6 +84,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	             "default_steady",
 	             "demkowicz_dpg_ii",
 	             "unsteady/hyperbolic_tan",
+	             "periodic/trigonometric",
 	            ]
 	gmsh_setnumbers += get_gmsh_number_from_mesh_name(mesh_name,var_names,input_dir,0)
 

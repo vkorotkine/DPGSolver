@@ -32,9 +32,11 @@ struct Geometry_Element {
 	const struct Multiarray_Operator* vc0_vv_vgs;   ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vv_vcc;   ///< See notation in \ref element_operators.h.
 
-	const struct Multiarray_Operator* cv1_vg_vc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv1_vg_vm[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv1_vg_vc[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv1_vg_vs[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vm_vc[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_vm_vs[2]; ///< See notation in \ref element_operators.h.
 
 	const struct Multiarray_Operator* cv0_vgs_fc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vgc_fc[2]; ///< See notation in \ref element_operators.h.
@@ -65,8 +67,9 @@ struct Geometry_Element {
 	const struct const_Multiarray_Vector_i* nc_fg[2]; ///< Node correspondence 'f'ace 'g'eometry.
 
 	// Tensor-product sub-operators.
-	const struct Multiarray_Operator* cv0_vg_vc[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vg_vm[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vg_vc[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vg_vs[2]; ///< See notation in \ref element_operators.h.
 
 	const struct Multiarray_Operator* cv0_vgs_vcc; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vgc_vcs; ///< See notation in \ref element_operators.h.

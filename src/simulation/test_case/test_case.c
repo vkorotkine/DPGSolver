@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "solution_diffusion.h"
 #include "solution_euler.h"
 #include "solution_navier_stokes.h"
+#include "solution_burgers_inviscid.h"
 
 // Static function declarations ************************************************************************************* //
 
@@ -64,7 +65,8 @@ bool test_case_requires_positivity (const struct Test_Case*const test_case)
 {
 	switch (test_case->pde_index) {
 	case PDE_ADVECTION: // fallthrough
-	case PDE_DIFFUSION:
+	case PDE_DIFFUSION: // fallthrough
+	case PDE_BURGERS_INVISCID:
 		return false;
 		break;
 	case PDE_EULER:         // fallthrough
@@ -80,10 +82,10 @@ bool test_case_requires_positivity (const struct Test_Case*const test_case)
 bool test_case_explicitly_enforces_conservation (const struct Simulation*const sim)
 {
 	switch (sim->method) {
-	case METHOD_DG:
+	case METHOD_DG: case METHOD_L2_PROJ:
 		break; // Do nothing.
-	case METHOD_DPG: // fallthrough
-	case METHOD_OPG: {
+	case METHOD_DPG: case METHOD_OPG: case METHOD_OPGC0:
+	{
 		const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
 		if (test_case->ind_conservation > CONSERVATION_NOT_ENFORCED)
 			return true;

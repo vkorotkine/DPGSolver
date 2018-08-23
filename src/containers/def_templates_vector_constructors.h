@@ -131,12 +131,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #endif
 
 ///\{ \name Real Data types/Function names
+#define constructor_zero_Vector_R constructor_zero_Vector_d
+
 #define constructor_copy_const_Vector_R_R constructor_copy_const_Vector_d_d
 
 #define constructor_inverse_const_Vector_R            constructor_inverse_const_Vector_d
 #define constructor_dot_mult_const_Vector_R           constructor_dot_mult_const_Vector_d
 #define constructor_repeated_const_Vector_R           constructor_repeated_const_Vector_d
 
+#define destructor_Vector_R       destructor_Vector_d
 #define destructor_const_Vector_R destructor_const_Vector_d
 ///\}
 

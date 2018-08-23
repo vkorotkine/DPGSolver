@@ -86,6 +86,12 @@ struct Solver_Volume_T {
 	/// Same as \ref Solver_Volume_T::metrics_vm but for the p1 geometry coefficients.
 	const struct const_Multiarray_T* metrics_vm_p1;
 
+	/// As for \ref Solver_Volume_T::metrics_vc but evaluated at the 'v'olume 's'olution nodes.
+	const struct const_Multiarray_T* metrics_vs;
+
+	/// As for \ref Solver_Volume_T::jacobian_det_vc but evaluated at the 'v'olume 's'olution nodes.
+	const struct const_Multiarray_T* jacobian_det_vs;
+
 	struct Vector_T* flux_imbalance; ///< The values of the flux imbalances for each equation.
 	struct Multiarray_T* l_mult; ///< The values of the Lagrange multipliers used to enforce conservation.
 
@@ -125,6 +131,64 @@ const struct const_Matrix_T* constructor_mass_T
 const struct const_Matrix_T* constructor_inverse_mass_T
 	(const struct Solver_Volume_T*const s_vol, ///< Standard.
 	 const struct const_Matrix_T*const mass    ///< Mass matrix. Input if available, otherwise pass `NULL`.
+	);
+
+/** \brief Constructor for the L2 projection operator to the solution basis.
+ *  \return See brief.
+ *
+ *  The operator is defined by: op = Mass^{-1}*cv0_vs_vc'*diag(w_vc.*det_J_vc).
+ */
+const struct const_Matrix_T* constructor_l2_proj_operator_s_T
+	(const struct Solver_Volume_T*const s_vol, ///< Standard.
+	 const struct const_Matrix_T*const mass_i  ///< Mass matrix. Input if available, otherwise pass `NULL`.
+		);
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vs_vs operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vs_vs_T
+	(const struct Solver_Volume_T*const s_vol ///< Standard.
+	 );
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vr_vs operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vr_vs_T
+	(const struct Solver_Volume_T*const s_vol ///< Standard.
+	 );
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vg_vs operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vg_vs_T
+	(const struct Solver_Volume_T*const s_vol ///< Standard.
+	 );
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vr_vc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vr_vc_T
+	(const struct Solver_Volume_T* s_vol ///< The current volume.
+	);
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vs_vc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vs_vc_T
+	(const struct Solver_Volume_T* s_vol ///< The current volume.
+	);
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vt_vc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vt_vc_T
+	(const struct Solver_Volume_T*const s_vol ///< The current volume.
+	);
+
+/** \brief Get the appropriate sub-range of the \ref Solver_Element::tw1_vt_vc operators.
+ *  \return See brief. */
+struct Multiarray_Operator get_operator__tw1_vt_vc_T
+	(const struct Solver_Volume_T* s_vol ///< The current volume.
+	);
+
+/** \brief Get the appropriate sub-range of the \ref Solver_Element::cv1_vt_vc operators.
+ *  \return See brief. */
+struct Multiarray_Operator get_operator__cv1_vt_vc_T
+	(const struct Solver_Volume_T*const s_vol ///< The current volume.
 	);
 
 #include "undef_templates_matrix.h"

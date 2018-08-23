@@ -36,6 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "vector.h"
 
 #include "computational_elements.h"
+#include "const_cast.h"
 #include "geometry.h"
 #include "intrusive.h"
 #include "math_functions.h"
@@ -98,16 +99,15 @@ void solve_for_solution (struct Simulation* sim)
 	if (ALWAYS_SET_INITIAL) {
 		printf("*** Warning: Always resetting to initial solution. *** \n");
 		set_initial_solution(sim);
-#if 0
+#if 1
 for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
 	struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
-	set_to_value_Multiarray_T(s_vol->sol_coef,0.0);
-	set_to_value_Multiarray_T(s_vol->test_s_coef,0.0);
+	set_to_value_Multiarray_d(s_vol->sol_coef,0.0);
+	set_to_value_Multiarray_d(s_vol->test_s_coef,0.0);
 }
-#include "face_solver.h"
 for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
 	struct Solver_Face*const s_face = (struct Solver_Face*) curr;
-	set_to_value_Multiarray_T(s_face->nf_coef,0.0);
+	set_to_value_Multiarray_d(s_face->nf_coef,0.0);
 }
 #endif
 	}
@@ -156,7 +156,10 @@ double compute_rlhs (const struct Simulation* sim, struct Solver_Storage_Implici
 	switch (sim->method) {
 		case METHOD_DG:  max_rhs = compute_rlhs_dg(sim,ssi);    break;
 		case METHOD_DPG: max_rhs = compute_rlhs_dpg(sim,ssi);   break;
-		case METHOD_OPG: max_rhs = compute_rlhs_opg(sim,ssi);   break;
+		case METHOD_OPG: // fallthrough
+		case METHOD_OPGC0:
+			max_rhs = compute_rlhs_opg(sim,ssi);
+			break;
 		default:         EXIT_ERROR("Unsupported: %d\n",sim->method); break;
 	}
 
@@ -167,7 +170,8 @@ void copy_rhs (const struct Simulation*const sim, struct Solver_Storage_Implicit
 {
 	switch (sim->method) {
 		case METHOD_DG: // fallthrough
-		case METHOD_OPG:
+		case METHOD_OPG: // fallthrough
+		case METHOD_OPGC0:
 			break; // Do nothing
 		case METHOD_DPG: EXIT_ADD_SUPPORT; UNUSED(ssi); break;
 		default:         EXIT_ERROR("Unsupported: %d\n",sim->method); break;
@@ -230,9 +234,10 @@ void enforce_positivity_highorder (struct Solver_Volume* s_vol, const struct Sim
 
 void destructor_Solver_Storage_Implicit (struct Solver_Storage_Implicit* ssi)
 {
-	MatDestroy(&ssi->A);
+	if (!ssi->do_not_destruct_A)
+		MatDestroy(&ssi->A);
 	VecDestroy(&ssi->b);
-
+	destructor_conditional_const_Vector_i(ssi->corr_l2_c0);
 	free(ssi);
 }
 

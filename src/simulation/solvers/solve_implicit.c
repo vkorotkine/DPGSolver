@@ -60,10 +60,10 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Flags for whether certain outputs are enabled.
 #define PRINT_NORM_INF_X  false ///< Flag for whether the infinity norm of the solution update should be printed.
 #define PRINT_NORM_INF_AB true  ///< Flag for whether the infinity norms of the lhs (A) and rhs (b) should be printed.
-#define OUTPUT_PETSC_AB false ///< Flag for Petsc data containers.
-#define OUTPUT_SOLUTION true  ///< Flag for solution data on each element.
-#define EXIT_ON_OUTPUT  true  ///< Flag for whether the simulation should exit after outputting.
-#define OUTPUT_STEP     500   ///< Iteration step at which to output the solution if enabled.
+#define OUTPUT_PETSC_AB   false ///< Flag for Petsc data containers.
+#define OUTPUT_SOLUTION   true  ///< Flag for solution data on each element.
+#define EXIT_ON_OUTPUT    true  ///< Flag for whether the simulation should exit after outputting.
+#define OUTPUT_STEP       500   ///< Iteration step at which to output the solution if enabled.
 ///\}
 
 /// \brief Constructor for the derived element and computational element lists.
@@ -140,7 +140,10 @@ bool check_symmetric (const struct Simulation* sim)
 	case PDE_ADVECTION:
 		switch (sim->method) {
 		case METHOD_DG:  // fallthrough
-		case METHOD_OPG:
+		case METHOD_OPG: // fallthrough
+		case METHOD_OPGC0:
+			/** \warning OPG matrix may be symmetric after adding the penalty term and not considering the
+			 *  influence of outflow boundaries. */
 			return false;
 			break;
 		case METHOD_DPG:
@@ -231,7 +234,8 @@ static void constructor_derived_elements_comp_elements (struct Simulation* sim)
 		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DPG);       // destructed
 		constructor_derived_computational_elements(sim,IL_SOLVER_DPG); // destructed
 		break;
-	case METHOD_OPG:
+	case METHOD_OPG: // fallthrough
+	case METHOD_OPGC0:
 		constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_OPG);       // destructed
 		constructor_derived_computational_elements(sim,IL_SOLVER_OPG); // destructed
 		break;
@@ -339,6 +343,14 @@ static void destructor_petsc_x
 	(Vec x ///< Standard.
 	);
 
+/** \brief Convert the input vector of solved values corresponding to the C0 dof to those of the L2 dof by duplicating
+ *         entries corresponding to the same node.
+ *  \return The Petsc error code or 0 if no error. */
+static PetscErrorCode convert_x_to_L2
+	(Vec* x,                                        ///< The solution vector corresponding to the C0 dof.
+	 const struct Solver_Storage_Implicit*const ssi ///< Standard.
+	 );
+
 /// \brief Update the values of coefficients based on the computed increment.
 static void update_coefs
 	(Vec x,                       ///< Petsc Vec holding the solution coefficient increments.
@@ -369,6 +381,7 @@ static void destructor_Schur_Data
 
 static void output_petsc_mat_vec (Mat A, Vec b, const struct Simulation* sim)
 {
+	printf("Outputting A and b.\n");
 	output_petsc_mat(A,"A.m");
 	output_petsc_vec(b,"b.m");
 
@@ -376,7 +389,8 @@ static void output_petsc_mat_vec (Mat A, Vec b, const struct Simulation* sim)
 	if (test_case->use_schur_complement)
 		output_petsc_schur(A,b,sim);
 
-	EXIT_ERROR("Disable outputting to continue");
+	if (EXIT_ON_OUTPUT)
+		EXIT_ERROR("Set OUTPUT_PETSC_AB to 'false' to continue.");
 }
 
 static void output_solution (const int i_step, struct Simulation*const sim)
@@ -457,6 +471,9 @@ static PetscErrorCode solve_and_update
 		VecNorm(ssi->b,NORM_INFINITY,&norm_inf_B);
 		printf("A and b inf norms: % .3e % .3e\n",norm_inf_A,norm_inf_B);
 	}
+
+	if (ssi->n_c0)
+		CHKERRQ(convert_x_to_L2(&x,ssi));
 
 	update_coefs(x,sim);
 	destructor_petsc_x(x);
@@ -592,6 +609,29 @@ PetscErrorCode constructor_petsc_ksp (KSP*const ksp, Mat A, const struct Simulat
 	return 0;
 }
 
+static PetscErrorCode convert_x_to_L2 (Vec* x, const struct Solver_Storage_Implicit*const ssi)
+{
+	assert(get_set_n_var_eq(NULL)[0] == 1); // Add support for multiple variables per node.
+
+	const PetscInt n_c0 = (PetscInt) ssi->n_c0;
+	const PetscInt n_l2 = (PetscInt) ssi->corr_l2_c0->ext_0;
+	PetscInt ix[n_c0];
+	for (int i = 0; i < n_c0; ++i)
+		ix[i] = i;
+	PetscScalar x_c0[n_c0];
+	CHKERRQ(VecGetValues(*x,n_c0,ix,x_c0));
+
+	Vec x_l2;
+	CHKERRQ(VecCreateSeq(MPI_COMM_WORLD,n_l2,&x_l2)); // moved
+	for (int i = 0; i < n_l2; ++i) {
+		const int ind_c0 = ssi->corr_l2_c0->data[i];
+		CHKERRQ(VecSetValue(x_l2,i,x_c0[ind_c0],INSERT_VALUES));
+	}
+	CHKERRQ(VecDestroy(x));
+	*x = x_l2;
+	return 0;
+}
+
 static void update_coefs (Vec x, const struct Simulation* sim)
 {
 	switch (sim->method) {
@@ -606,8 +646,13 @@ static void update_coefs (Vec x, const struct Simulation* sim)
 		break;
 	case METHOD_OPG:
 		update_coef_test_s_v(x,sim);
-		update_coef_s_v_opg(sim);
-		update_coef_nf_f_opg(sim);
+		update_coef_s_v_opg_d(sim,sim->volumes);
+		update_coef_nf_f_opg(sim,sim->faces);
+		assert(get_set_has_1st_2nd_order(NULL)[1] == false); // Add support.
+		break;
+	case METHOD_OPGC0:
+		update_coef_test_s_v(x,sim);
+		update_coef_s_v_opg_d(sim,sim->volumes);
 		assert(get_set_has_1st_2nd_order(NULL)[1] == false); // Add support.
 		break;
 	default:

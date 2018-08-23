@@ -13,12 +13,20 @@ You should have received a copy of the GNU General Public License along with DPG
 <http://www.gnu.org/licenses/>.
 }}} */
 /** \file
- *  \brief Undefine macro definitions for c-style templating relating to rlhs computing functions for the opg volumes.
+ *  \brief Undef macro definitions for c-style templating relating to rlhs computing functions for the opg volumes.
  */
 
 ///\{ \name Function names
 #undef compute_volume_rlhs_opg_T
+#undef constructor_operator__test_s_coef_to_sol_coef_T
+#undef update_coef_s_v_opg_T
+#undef constructor_test_diff_op_1v_opg_T
 ///\}
 
 #undef S_Params_T
 #undef set_s_params_T
+#undef constructor_Flux_Ref_vol_opg_T
+#undef constructor_sol_vs_T
+#undef constructor_grad_vs_T
+#undef constructor_xyz_vs_T
+#undef compute_rhs_v_opg_T

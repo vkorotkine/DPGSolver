@@ -20,9 +20,10 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 ///\{ \name Tolerance values used throughout.
-#define EPS      1.0e-15
+#define EPS      1.0e-15               ///< Near (double) machine precision.
 #define SQRT_EPS 3.162277660168379e-08
-#define CX_STEP  1e-30                ///< Magnitude of the complex step to take for Jacobian evaluation.
+#define CX_STEP  1e-30                 ///< Magnitude of the complex step to take for Jacobian evaluation.
+#define TOL_XYZ  1.0e-10               ///< Tolerance to distinguish between different xyz node coordinates.
 #define FINITE_DIFF_STEP  1e-6        ///< Magnitude of the finite difference step to take for Jacobian evaluation.
 
 ///\}

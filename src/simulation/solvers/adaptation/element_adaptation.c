@@ -124,10 +124,9 @@ static void constructor_derived_Adaptation_Element_common (struct Element* eleme
 	struct Adaptation_Element* a_e = (struct Adaptation_Element*) element_ptr;
 
 	switch (sim->method) {
-	case METHOD_DG:
+	case METHOD_DG: case METHOD_OPGC0: case METHOD_L2_PROJ:
 		break; // Do nothing.
-	case METHOD_DPG: // fallthrough
-	case METHOD_OPG:
+	case METHOD_DPG: case METHOD_OPG:
 		a_e->cc0_ff_ff = constructor_operators("cc0","ffA","ffA","H_ALL_P_PM1",e,sim); // destructed
 		a_e->nc_ff     = constructor_operators_nc("ffA","ffA","H_1_P_PM0",e,sim);      // destructed
 		break;

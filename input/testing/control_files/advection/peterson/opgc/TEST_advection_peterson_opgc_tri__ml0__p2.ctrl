@@ -1,0 +1,41 @@
+pde_name  advection
+pde_spec  steady/peterson
+
+geom_name n-cube
+geom_spec p2_YL
+
+dimension 2
+
+mesh_generator   n-cube/2d_peterson.py
+mesh_format      gmsh
+mesh_domain      straight
+mesh_type        tri
+mesh_level       0 0
+mesh_path        ../meshes/
+
+
+# Simulation variables
+test_case_extension discount_1
+
+interp_tp  GLL
+interp_si  AO
+interp_pyr GLL
+
+basis_geom  lagrange
+basis_sol   lagrange
+
+geom_representation  isoparametric
+geom_blending_tp     gordon_hall
+geom_blending_si     szabo_babuska_gen
+
+p_ref    2 2
+p_cub_p  0 0
+p_test_p 0 0
+
+method_name optimal_petrov_galerkin_c0
+
+
+# Testing variables
+
+ml_range_test 0 4
+p_range_test  2 2

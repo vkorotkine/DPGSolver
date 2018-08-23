@@ -51,7 +51,7 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 {
 	test_case->set_grad = set_sg_do_nothing_T;
 	if (strstr(sim->pde_spec,"periodic_vortex")) {
-		test_case->constructor_sol              = constructor_const_sol_invalid_T;
+		test_case->constructor_sol              = constructor_const_sol_periodic_vortex_T;
 		test_case->set_sol                      = set_sol_periodic_vortex_T;
 		test_case->compute_source_rhs           = compute_source_rhs_do_nothing_T;
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
@@ -65,6 +65,7 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 		test_case->add_to_flux_imbalance_source = add_to_flux_imbalance_source_do_nothing_T;
 
 		test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
+		test_case->constructor_Error_CE_functionals = constructor_Error_CE_functionals__cl;
 
 		const bool check_rhs = false;
 		if (check_rhs) {
@@ -147,6 +148,10 @@ test_case->constructor_Error_CE = constructor_Error_CE_euler_entropy;
 		test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_T_euler_roe_pike;
 		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_T_euler_roe_pike_jacobian;
 		break;
+	case NUM_FLUX_LAX_FRIEDRICHS:
+		test_case->compute_Numerical_Flux_e[0] = compute_Numerical_Flux_T_euler_lax_friedrichs;
+		test_case->compute_Numerical_Flux_i[0] = compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian;
+		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.\n",test_case->ind_num_flux[0]);
 		break;
@@ -224,18 +229,6 @@ void convert_variables_T (struct Multiarray_T* vars, const char type_i, const ch
 		EXIT_ERROR("Unsupported: %c\n",type_i);
 		break;
 	}
-}
-
-const struct const_Multiarray_T* constructor_const_functionals_cd_cl_zero_T
-	(const struct const_Multiarray_T* xyz, const struct Simulation* sim)
-{
-	UNUSED(sim);
-	const ptrdiff_t n_n = xyz->extents[0];
-
-	struct Multiarray_T* func = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){n_n,2}); // returned
-	set_to_value_Multiarray_T(func,0.0);
-
-	return (struct const_Multiarray_T*) func;
 }
 
 // Static functions ************************************************************************************************* //

@@ -21,7 +21,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Mathematical constants.
 #define PI        3.1415926535897932
-#define PI_OVER_4 3.1415926535897932/4.0
+#define PI_OVER_4 (3.1415926535897932/4.0)
 
 #define SQRT2 1.4142135623730950
 #define SQRT3 1.7320508075688773

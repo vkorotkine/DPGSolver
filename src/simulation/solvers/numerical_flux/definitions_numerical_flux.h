@@ -27,7 +27,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define NUM_FLUX_BR2_STABLE 21
 #define NUM_FLUX_CDG2       22
 
-#define NUM_FLUX_ROE_PIKE  31
+#define NUM_FLUX_ROE_PIKE       31
+#define NUM_FLUX_LAX_FRIEDRICHS 32
 ///\}
 
 #endif // DPG__definitions_numerical_flux_h__INCLUDED

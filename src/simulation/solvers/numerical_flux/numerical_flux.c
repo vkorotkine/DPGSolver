@@ -57,7 +57,8 @@ const int* get_set_ind_num_flux (const int*const new_vals)
 	if (new_vals) {
 		assert((new_vals[0] == NUM_FLUX_INVALID)    ||
 		       (new_vals[0] == NUM_FLUX_UPWIND)     ||
-		       (new_vals[0] == NUM_FLUX_ROE_PIKE));
+		       (new_vals[0] == NUM_FLUX_ROE_PIKE)   ||
+		       (new_vals[0] == NUM_FLUX_LAX_FRIEDRICHS));
 		assert((new_vals[1] == NUM_FLUX_INVALID)    ||
 		       (new_vals[1] == NUM_FLUX_BR2_STABLE) ||
 		       (new_vals[1] == NUM_FLUX_CDG2));

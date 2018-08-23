@@ -1,0 +1,23 @@
+/// Solver parameters for test case: euler/steady/supersonic_vortex
+
+geom_parametrization radial_proj
+
+solver_proc   implicit
+solver_type_i iterative
+lhs_terms     cfl_ramping
+cfl_initial   1e15
+
+num_flux_1st Lax-Friedrichs
+test_norm    H0 H1_upwind
+
+use_schur_complement 1
+
+exit_tol_i   1e-13
+exit_ratio_i 1e-10
+
+ignore_internal_volume_error 0
+use_straight_internal_geometry 0
+use_infinity_error 0
+has_functional 1
+
+display_progress 1

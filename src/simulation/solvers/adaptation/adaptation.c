@@ -130,7 +130,7 @@ void adapt_hp (struct Simulation* sim, const int adapt_strategy, const struct Ad
 
 	destructor_derived_computational_elements(sim,IL_SOLVER);
 
-	update_ind_dof(sim);
+	update_ind_dof_d(sim);
 }
 
 const struct const_Multiarray_d* constructor_geom_fg
@@ -383,6 +383,10 @@ static void adapt_hp_faces (struct Simulation* sim)
 	project_solution_faces(sim);
 	update_volume_face_pointers(sim);
 	update_list_new_faces(sim);
+	// Geometry update for volumes must sometimes be done after new faces have been defined as certain functions
+	// rely on volumes having pointers to neighbouring faces.
+	if (geometry_depends_on_face_pointers())
+		update_geometry_volumes(sim);
 	update_geometry_faces(sim);
 	update_index_faces(sim);
 }
@@ -792,10 +796,9 @@ static void project_solution_volumes (struct Simulation* sim)
 	}
 
 	switch (get_set_method(NULL)) {
-	case METHOD_DG:  // fallthrough
-	case METHOD_DPG:
+	case METHOD_DG: case METHOD_DPG: case METHOD_L2_PROJ:
 		break; // Do nothing.
-	case METHOD_OPG:
+	case METHOD_OPG: case METHOD_OPGC0:
 		set_initial_v_test_sg_coef(sim);
 		break;
 	default:
@@ -1269,12 +1272,14 @@ static void compute_projection_p_volume (struct Adaptive_Solver_Volume* a_s_vol,
 		const ptrdiff_t extents[3] = { ext_0, g_coef_p->extents[1], g_coef_p->extents[2], };
 		resize_Multiarray_d(g_coef_p,g_coef_p->order,extents);
 		break;
-	} case METHOD_DPG: { // fallthrough
-	} case METHOD_OPG: {
+	} case METHOD_DPG: // fallthrough
+	case METHOD_OPG: // fallthrough
+	case METHOD_OPGC0:
+	case METHOD_L2_PROJ:
 		if (compute_size(g_coef_p->order,g_coef_p->extents) != 0)
 			EXIT_ADD_SUPPORT; // Project as for the solution.
 		break;
-	} default:
+	default:
 		EXIT_ERROR("Unsupported: %d.",sim->method);
 		break;
 	}
@@ -1349,14 +1354,15 @@ static void compute_projection_p_face (struct Adaptive_Solver_Face* a_s_face, co
 
 	const struct Multiarray_d*const s_coef_p = s_face->s_coef;
 	switch (sim->method) {
-	case METHOD_DG: {
+	case METHOD_DG: case METHOD_L2_PROJ:
 		break; // Do nothing.
-	} case METHOD_DPG: { // fallthrough
-	} case METHOD_OPG: {
+	case METHOD_DPG: // fallthrough
+	case METHOD_OPG: // fallthrough
+	case METHOD_OPGC0:
 		if (s_coef_p && compute_size(s_coef_p->order,s_coef_p->extents) != 0)
 			EXIT_ADD_SUPPORT; // Project as for nf_coef.
 		break;
-	} default:
+	default:
 		EXIT_ERROR("Unsupported: %d.",sim->method);
 		break;
 	}
@@ -2138,14 +2144,15 @@ static void constructor_Solver_Face_i_new
 	set_function_pointers_face_num_flux(s_face,sim);
 
 	switch (sim->method) {
-	case METHOD_DG:
+	case METHOD_DG: case METHOD_L2_PROJ:
 		break; // do nothing.
 	case METHOD_DPG: // fallthrough
 	case METHOD_OPG:
-		constructor_Solver_Face__nf_coef(s_face,flux_i,sim);
-
-		const struct Test_Case*const test_case = (struct Test_Case*) sim->test_case_rc->tc;
-		assert(!test_case->has_2nd_order); // add constructor s_coef.
+		constructor_Solver_Face__nf_coef(s_face,flux_i,sim,'c');
+		assert(!get_set_has_1st_2nd_order(NULL)[1]); // add constructor s_coef.
+		break;
+	case METHOD_OPGC0:
+		assert(!get_set_has_1st_2nd_order(NULL)[1]); // add constructor s_coef.
 		break;
 	default:
 		EXIT_ERROR("Unsupported: %d.",sim->method);

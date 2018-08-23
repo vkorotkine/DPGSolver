@@ -195,6 +195,18 @@ void const_constructor_move_const_Matrix_T
 // Special constructors (only available for real/complex types) ***************************************************** //
 #ifdef TYPE_RC
 
+/** \brief Version of \ref constructor_copy_Matrix_R_Matrix_T also transposing the input.
+ *  \return See brief. */
+struct Matrix_T* constructor_copy_Matrix_T_Matrix_R_trans
+	(struct Matrix_R*const src ///< The source matrix.
+		);
+
+/** \brief `const` version of \ref constructor_copy_Matrix_T_Matrix_R_trans.
+ *  \return See brief. */
+const struct const_Matrix_T* constructor_copy_const_Matrix_T_Matrix_R_trans
+	(const struct const_Matrix_R*const src ///< See brief.
+		);
+
 /** \brief Copy constructor for a \ref Matrix_T\* with permutation.
  *  \return See brief. */
 struct Matrix_T* constructor_copy_permute_Matrix_T

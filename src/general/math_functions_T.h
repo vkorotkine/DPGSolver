@@ -30,7 +30,16 @@ bool equal_T
 	(const Type x0, ///< Input 0.
 	 const Type x1, ///< Input 1.
 	 const Real tol ///< The tolerance.
-	);
+		);
+
+/** \brief Version of \ref equal_T without specified denominator for the relative norm.
+ *  \return See brief. */
+bool equal_spec_rel_T
+	(const Type x0,  ///< See brief.
+	 const Type x1,  ///< See brief.
+	 const Real tol, ///< See brief.
+	 const Type den  ///< The value of the denominator to be used for the relative norm.
+		);
 
 /** \brief Computes the norm of the input `Type*` data with the specified norm type.
  *  \return See brief. */
@@ -65,6 +74,14 @@ Real norm_diff_RT
 	 const Type*const data_1,   ///< The data for input 1.
 	 const char*const norm_type ///< The norm type. Options: "Inf".
 	);
+
+/** \brief Computes the infinity norm (not relative) of the difference between the input `Type*` data.
+ *  \return See brief. */
+Type norm_diff_inf_no_rel_T
+	(const ptrdiff_t n_entries, ///< The number of entries.
+	 const Type*const data_0,   ///< The data for input 0.
+	 const Type*const data_1    ///< The data for input 1.
+		);
 
 /** \brief Compute the maximum absolute value of the two inputs and return it.
  *  \return See brief. */
@@ -139,5 +156,19 @@ Real dot_R_from_RT
 	 const Real*const a, ///< The 1st input.
 	 const Type*const b  ///< The 2nd input.
 	);
+
+/** \brief Return the positive maximum value of the two inputs.
+ *  \return See brief. */
+Type max_abs_real_T
+	(const Type a, ///< First value in the comparison.
+	 const Type b  ///< Second value in the comparison.
+		);
+
+/** \brief Return the positive minimum value of the two inputs.
+ *  \return See brief. */
+Type min_abs_real_T
+	(const Type a, ///< First value in the comparison.
+	 const Type b  ///< Second value in the comparison.
+		);
 
 #include "undef_templates_math_functions.h"

@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_alloc.h"
 #include "definitions_bc.h"
 #include "definitions_dpg.h"
+#include "definitions_opg.h"
 #include "definitions_geometry.h"
 #include "definitions_physics.h"
 #include "definitions_numerical_flux.h"
@@ -93,9 +94,10 @@ static int get_define (const char*const def_str, const char*const def_type)
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else if (strcmp(def_type,"num_flux_1st") == 0) {
-		if      (strcmp(def_str,"upwind")    == 0) def_i = NUM_FLUX_UPWIND;
-		else if (strcmp(def_str,"Roe-Pike")  == 0) def_i = NUM_FLUX_ROE_PIKE;
-		else                                       def_i = NUM_FLUX_INVALID;
+		if      (strcmp(def_str,"upwind")         == 0) def_i = NUM_FLUX_UPWIND;
+		else if (strcmp(def_str,"Roe-Pike")       == 0) def_i = NUM_FLUX_ROE_PIKE;
+		else if (strcmp(def_str,"Lax-Friedrichs") == 0) def_i = NUM_FLUX_LAX_FRIEDRICHS;
+		else                                            def_i = NUM_FLUX_INVALID;
 	} else if (strcmp(def_type,"num_flux_2nd") == 0) {
 		if      (strcmp(def_str,"BR2_stable") == 0) def_i = NUM_FLUX_BR2_STABLE;
 		else if (strcmp(def_str,"CDG2") == 0)       def_i = NUM_FLUX_CDG2;
@@ -104,6 +106,7 @@ static int get_define (const char*const def_str, const char*const def_type)
 		if      (strcmp(def_str,"H0")        == 0) def_i = TEST_NORM_H0;
 		else if (strcmp(def_str,"H1")        == 0) def_i = TEST_NORM_H1;
 		else if (strcmp(def_str,"H1_upwind") == 0) def_i = TEST_NORM_H1_UPWIND;
+		else if (strcmp(def_str,"adjoint")   == 0) def_i = TEST_NORM_ADJOINT;
 		else                                       def_i = TEST_NORM_INVALID;
 	} else if (strcmp(def_type,"geom_parametrization") == 0) {
 		if      (strcmp(def_str,"radial_proj") == 0) def_i = GEOM_PRM_RADIAL_PROJ;
@@ -148,6 +151,8 @@ static int get_define (const char*const def_str, const char*const def_type)
 		if      (strcmp(def_str,"discontinuous_galerkin")        == 0) def_i = METHOD_DG;
 		else if (strcmp(def_str,"discontinuous_petrov_galerkin") == 0) def_i = METHOD_DPG;
 		else if (strcmp(def_str,"optimal_petrov_galerkin")       == 0) def_i = METHOD_OPG;
+		else if (strcmp(def_str,"optimal_petrov_galerkin_c0")    == 0) def_i = METHOD_OPGC0;
+		else if (strcmp(def_str,"l2_projection")                 == 0) def_i = METHOD_L2_PROJ;
 		else
 			EXIT_ERROR("Unsupported: %s\n",def_str);
 	} else {

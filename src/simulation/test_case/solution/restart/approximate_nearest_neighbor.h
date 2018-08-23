@@ -25,12 +25,46 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <stddef.h>
+#include <float.h>
+#include <limits.h>
 
 #include "definitions_core.h"
 
 struct const_Vector_i;
 struct const_Matrix_d;
 struct Matrix_d;
+
+/** \{ \name Templating-related definitions.
+ *
+ *  The division by 4 in the maximum indices is required because:
+ *  - The shift results in all numbers potentially being increased (maximally) by a factor of 2;
+ *  - Something related to the subtraction requires an additional factor of 2?
+ */
+#define USE_SINGLE false ///< Use `int` type if true and `long long int` otherwise.
+
+#define Real double
+#define REAL_MAX DBL_MAX
+
+#if USE_SINGLE == true
+	#define Index     int
+	#define INDEX_MIN 0
+	#define INDEX_MAX (INT_MAX/4)
+	#define R_INDEX_MIN ((Real)0)
+	#define R_INDEX_MAX ((Real)(INT_MAX/4))
+
+	/** The accuracy tolerance for the approximate nearest neighbor search. Chosen based on the limitations of the
+	 *  conversion to `int`. */
+	#define EPS_ANN 1e-9
+#else
+	#define Index     long long
+	#define INDEX_MIN 0
+	#define INDEX_MAX (LLONG_MAX/4)
+	#define R_INDEX_MIN ((Real)0)
+	#define R_INDEX_MAX ((Real)(LLONG_MAX/4))
+
+	#define EPS_ANN 1e-16
+#endif
+/// \}
 
 /// \brief Container for 'A'pproximate 'N'earest 'N'eighbor input data.
 struct Input_ANN {
@@ -40,8 +74,8 @@ struct Input_ANN {
 
 /// \brief Container for a node represented in binary.
 struct Node_ANN {
-	int xyz[DIM]; ///< The coordinates with type `Index`.
-	int index;    ///< The index.
+	Index xyz[DIM]; ///< The coordinates with type `Index`.
+	int index;      ///< The index.
 };
 
 /// \brief Container for 'S'hift-'S'huffle-'S'ort 'A'pproximate 'N'earest 'N'eighbor information.

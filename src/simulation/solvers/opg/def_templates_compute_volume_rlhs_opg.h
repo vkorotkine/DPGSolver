@@ -21,22 +21,38 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define compute_volume_rlhs_opg_T compute_volume_rlhs_opg
+#define constructor_operator__test_s_coef_to_sol_coef_T constructor_operator__test_s_coef_to_sol_coef_d
+#define update_coef_s_v_opg_T update_coef_s_v_opg_d
+#define constructor_test_diff_op_1v_opg_T constructor_test_diff_op_1v_opg_d
 ///\}
 
 ///\{ \name Static names
 #define S_Params_T S_Params
 #define set_s_params_T set_s_params_T
+#define constructor_Flux_Ref_vol_opg_T constructor_Flux_Ref_vol_opg_d
+#define constructor_sol_vs_T constructor_sol_vs_d
+#define constructor_grad_vs_T constructor_grad_vs_d
+#define constructor_xyz_vs_T constructor_xyz_vs_d
+#define compute_rhs_v_opg_T compute_rhs_v_opg_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
 #define compute_volume_rlhs_opg_T compute_volume_rlhs_opg_c
+#define constructor_operator__test_s_coef_to_sol_coef_T constructor_operator__test_s_coef_to_sol_coef_c
+#define update_coef_s_v_opg_T update_coef_s_v_opg_c
+#define constructor_test_diff_op_1v_opg_T constructor_test_diff_op_1v_opg_c
 ///\}
 
 ///\{ \name Static names
 #define S_Params_T S_Params_T_c
 #define set_s_params_T set_s_params_T_c
+#define constructor_Flux_Ref_vol_opg_T constructor_Flux_Ref_vol_opg_c
+#define constructor_sol_vs_T constructor_sol_vs_c
+#define constructor_grad_vs_T constructor_grad_vs_c
+#define constructor_xyz_vs_T constructor_xyz_vs_c
+#define compute_rhs_v_opg_T compute_rhs_v_opg_c
 ///\}
 
 #endif

@@ -23,4 +23,3 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef set_function_pointers_solution_euler_T
 #undef convert_variables_T
-#undef constructor_const_functionals_cd_cl_zero_T

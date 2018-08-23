@@ -20,14 +20,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define compute_dof_T                         compute_dof
-#define update_ind_dof_T                      update_ind_dof
 #define constructor_Solver_Storage_Implicit_T constructor_Solver_Storage_Implicit
 #define add_to_flux_imbalance_source_T        add_to_flux_imbalance_source
 #define get_operator__tw0_vt_vc_T             get_operator__tw0_vt_vc
 #define initialize_zero_memory_volumes_T      initialize_zero_memory_volumes
+#define update_ind_dof_T update_ind_dof_d
 ///\}
 
 ///\{ \name Static names
+#define update_ind_dof_test_T update_ind_dof_test_d
 #define constructor_nnz constructor_nnz
 #define compute_dof_volumes compute_dof_volumes
 #define compute_dof_faces compute_dof_faces
@@ -40,14 +41,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define compute_dof_T                         compute_dof_c
-#define update_ind_dof_T                      update_ind_dof_c
 #define constructor_Solver_Storage_Implicit_T constructor_Solver_Storage_Implicit_c
 #define add_to_flux_imbalance_source_T        add_to_flux_imbalance_source_c
 #define get_operator__tw0_vt_vc_T             get_operator__tw0_vt_vc_c
 #define initialize_zero_memory_volumes_T      initialize_zero_memory_volumes_c
+#define update_ind_dof_T update_ind_dof_c
 ///\}
 
 ///\{ \name Static names
+#define update_ind_dof_test_T update_ind_dof_test_c
 #define constructor_nnz constructor_nnz_c
 #define compute_dof_volumes compute_dof_volumes_c
 #define compute_dof_faces compute_dof_faces_c

@@ -1,0 +1,13 @@
+/// Solution parameters for test case: euler/steady/supersonic_vortex
+
+m_i   1.531261286907647  // Used r_i = 1.0, r_o = 1.384.
+rho_i 2.0
+
+// "Free-stream" parameters for drag/lift coefficient computation
+density   1.0
+pressure  0.71428571428571429
+mach      1.0
+theta_deg 0.0
+
+cd_ref 1.2747307728196598
+cl_ref 1.2747307728196598

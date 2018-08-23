@@ -42,6 +42,14 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
+/** Flag for whether the L2 projection should be used when setting the solution at the solution nodes.
+ *
+ *  \note When this is disabled, functional convergence is at a rate of O(h^{2p}) while it is only at the rate of
+ *        O(h^{p+1}) when enabled.
+ *  \todo Revise comment above after functional is modified to only indirectly depend on the solution.
+ */
+#define USE_L2_PROJECTION false
+
 /** \brief Return a \ref Multiarray_T\* container holding the solution values at the input coordinates.
  *  \return See brief. */
 static struct Multiarray_T* constructor_sol_restart
@@ -54,9 +62,24 @@ static struct Multiarray_T* constructor_sol_restart
 void set_sol_restart_T (const struct Simulation*const sim, struct Solution_Container_T sol_cont)
 {
 	sol_cont.using_restart = true;
-	const struct const_Multiarray_T* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
-	struct Multiarray_T* sol = constructor_sol_restart(xyz,sim); // destructed
-	destructor_const_Multiarray_T(xyz);
+	struct Multiarray_T* sol = NULL;
+	if (!USE_L2_PROJECTION || sol_cont.node_kind != 's') {
+		const struct const_Multiarray_T* xyz = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+		sol = constructor_sol_restart(xyz,sim); // destructed
+		destructor_const_Multiarray_T(xyz);
+	} else {
+		assert(sol_cont.node_kind == 's');
+		sol_cont.node_kind = 'c';
+		const struct const_Multiarray_T*const xyz    = constructor_xyz_sol_T(sim,&sol_cont); // destructed
+		sol_cont.node_kind = 's';
+
+		struct Multiarray_T*const sol_vc = constructor_sol_restart(xyz,sim);     // destructed
+		destructor_const_Multiarray_T(xyz);
+
+		const struct const_Matrix_T*const op_l2 = constructor_l2_proj_operator_s_T(sol_cont.volume,NULL); // d.
+		sol = constructor_mm_NN1C_Multiarray_TT(op_l2,(struct const_Multiarray_T*)sol_vc); // destructed
+		destructor_const_Matrix_T(op_l2);
+	}
 	sol_cont.using_restart = false;
 
 	update_Solution_Container_sol_T(&sol_cont,sol,sim);
@@ -226,7 +249,7 @@ static struct Multiarray_T* constructor_sol_restart_from_background
 	struct Matrix_T sol_row = { .layout = 'R', .ext_0 = 1, .ext_1 = n_var, .data = NULL, };
 
 	// Note: Changes are required below if ext_0 != 1 as it is assumed that the matrix is interchangeably
-	//       interpretted as being either row or column major oriented.
+	//       interpreted as being either row or column major oriented.
 	struct Matrix_R xyz_m = { .layout = 'R', .ext_0 = 1, .ext_1 = DIM, .owns_data = false, .data = NULL, };
 	const struct const_Matrix_R*const xyz = (struct const_Matrix_R*) &xyz_m;
 

@@ -6,3 +6,6 @@ mach      0.2
 theta_deg 0.0
 
 boundary_perturb_type none
+
+cd_ref 0.0
+cl_ref 0.0

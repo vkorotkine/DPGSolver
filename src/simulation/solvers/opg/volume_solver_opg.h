@@ -19,6 +19,11 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface for the real \ref OPG_Solver_Volume_T container and associated functions.
  */
 
+///\{ \name Availalble options for \ref OPG_Solver_Volume_T::bc_test_s.
+#define BC_TEST_S_NEEDED     200 ///< Flag indicating that setting a condition on one of the volume faces is needed.
+#define BC_TEST_S_NOT_NEEDED 201 ///< Flag indicating that setting a condition on one of the volume faces is not needed.
+///\}
+
 #include "volume_solver.h"
 
 #include "def_templates_type_d.h"

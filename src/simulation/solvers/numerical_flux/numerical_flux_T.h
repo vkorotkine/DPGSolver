@@ -48,6 +48,8 @@ struct Numerical_Flux_Input_T {
 	const bool has_1st_order, ///< \ref Test_Case_T::has_1st_order.
 	           has_2nd_order; ///< \ref Test_Case_T::has_2nd_order.
 
+	const struct Simulation* sim; ///< \ref Simulation.
+
 	struct Flux_Input_T* flux_i; ///< \ref Flux_Input_T used for viscous numerical flux computations.
 
 	/// \ref compute_Numerical_Flux_fptr_T calling appropriate 1st/2nd order functions.

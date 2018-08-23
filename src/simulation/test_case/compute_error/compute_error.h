@@ -19,6 +19,11 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \brief Provides the interface to functions used for error computation and output.
  */
 
+#include "compute_error_advection.h"
+#include "compute_error_diffusion.h"
+#include "compute_error_euler.h"
+#include "compute_error_navier_stokes.h"
+
 struct Error_CE;
 struct Simulation;
 struct Solver_Volume;
@@ -69,6 +74,12 @@ struct Error_CE_Data {
 };
 
 // Interface functions ********************************************************************************************** //
+
+/** \brief Version of \ref constructor_Error_CE_fptr returning NULL;
+ *  \return See brief. */
+struct Error_CE* constructor_Error_CE_NULL
+	(const struct Simulation* sim ///< Defined for \ref constructor_Error_CE_fptr.
+	 );
 
 /** \brief Output the error of the solution.
  *

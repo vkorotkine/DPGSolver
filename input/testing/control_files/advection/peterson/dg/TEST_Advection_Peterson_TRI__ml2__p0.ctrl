@@ -29,4 +29,9 @@ geom_blending_si     szabo_babuska_gen
 
 p_ref    0 0
 
-fe_method 1
+method_name discontinuous_galerkin
+
+# Testing variables
+
+ml_range_test 2 5
+p_range_test  0 2

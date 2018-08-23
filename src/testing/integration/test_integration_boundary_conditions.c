@@ -28,6 +28,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "test_base.h"
 #include "test_integration.h"
+#include "test_integration_support_face.h"
 #include "test_support.h"
 #include "test_support_multiarray.h"
 
@@ -46,15 +47,6 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "test_case.h"
 
 // Static function declarations ************************************************************************************* //
-
-/** \brief Version of \ref constructor_Numerical_Flux_Input_data_T, forcing the gradients to be computed using
- *         interpolation if required.
- */
-static void constructor_Numerical_Flux_Input_data_with_gradients
-	(struct Numerical_Flux_Input*const num_flux_i, ///< See brief.
-	 const struct Solver_Face*const s_face,        ///< See brief.
-	 const struct Simulation*const sim             ///< See brief.
-	);
 
 /** \brief Constructor for the real \ref Numerical_Flux_Input_T computed using the complex step method.
  *  \return See brief. */
@@ -98,10 +90,7 @@ int main
 	// real
 	ind_rc = 0;
 	structor_simulation(&sim[ind_rc],'c',adapt_type,p,ml,0,0,ctrl_name_curr,type_rc[ind_rc],false); // destructed
-
 	((struct Test_Case*)sim[ind_rc]->test_case_rc->tc)->solver_method_curr = 'i';
-
-
 	struct Numerical_Flux_Input* num_flux_i = constructor_Numerical_Flux_Input(sim[ind_rc]); // destructed
 
 	// complex
@@ -198,46 +187,6 @@ static void set_to_zero_Boundary_Value
 	 const struct Numerical_Flux_Input*const num_flux_i    ///< \ref Numerical_Flux_Input_T.
 	);
 
-/// \brief Constructor for the 'l'eft data members of the complex \ref Numerical_Flux_Input_T container.
-static void constructor_Numerical_Flux_Input_c_data_members_l
-	(struct Numerical_Flux_Input_c*const num_flux_c_i, ///< Complex \ref Numerical_Flux_Input_T.
-	 struct Numerical_Flux_Input*const num_flux_i      ///< Real    \ref Numerical_Flux_Input_T.
-	);
-
-/// \brief Destructor for the 'l'eft data members of the complex \ref Numerical_Flux_Input_T container.
-static void destructor_Numerical_Flux_Input_c_data_members_l
-	(struct Numerical_Flux_Input_c*const num_flux_c_i ///< Complex \ref Numerical_Flux_Input_T.
-	);
-
-/// \brief Version of \ref constructor_Numerical_Flux_Input_data_T constructing only the 'r'ight data members.
-static void constructor_Boundary_Value_c_data
-	(struct Numerical_Flux_Input_c* num_flux_i, ///< See brief.
-	 const struct Solver_Face_c* s_face,        ///< See brief.
-	 const struct Simulation* sim               ///< See brief.
-	);
-
-/// \brief Version of \ref destructor_Numerical_Flux_Input_data_T destructing only the 'r'ight data members.
-static void destructor_Boundary_Value_c_data
-	(struct Numerical_Flux_Input_c* num_flux_i ///< See brief.
-	);
-
-static void constructor_Numerical_Flux_Input_data_with_gradients
-	(struct Numerical_Flux_Input*const num_flux_i, const struct Solver_Face*const s_face,
-	 const struct Simulation*const sim)
-{
-	const struct Test_Case*const test_case = (struct Test_Case*)sim->test_case_rc->tc;
-
-	constructor_Boundary_Value_Input_face_fptr
-		constructor_Boundary_Value_Input_face_fcl = test_case->constructor_Boundary_Value_Input_face_fcl;
-	if (test_case->has_2nd_order) {
-		if (constructor_Boundary_Value_Input_face_fcl == constructor_Boundary_Value_Input_face_s_fcl_interp)
-			constructor_Boundary_Value_Input_face_fcl = constructor_Boundary_Value_Input_face_sg_fcl_interp;
-	}
-
-	constructor_Boundary_Value_Input_face_fcl(&num_flux_i->bv_l,s_face,sim);                // destructed
-	s_face->constructor_Boundary_Value_fcl(&num_flux_i->bv_r,&num_flux_i->bv_l,s_face,sim); // destructed
-}
-
 static struct Numerical_Flux_Input* constructor_Numerical_Flux_Input_cmplx_step
 	(const struct Solver_Face*const s_face_r, const struct Solver_Face_c*const s_face_c, struct Simulation* sim[2])
 {
@@ -249,7 +198,7 @@ static struct Numerical_Flux_Input* constructor_Numerical_Flux_Input_cmplx_step
 	set_to_zero_Boundary_Value(m_boundary_value,num_flux_i);
 
 	struct Numerical_Flux_Input_c* num_flux_i_c = constructor_Numerical_Flux_Input_c(sim[1]); // destructed
- 	constructor_Numerical_Flux_Input_c_data_members_l(num_flux_i_c,num_flux_i); // destructed
+	constructor_Numerical_Flux_Input_c_data_members(num_flux_i_c,num_flux_i,'l'); // destructed
 
 	const bool* c_m = num_flux_i->bv_l.compute_member;
 
@@ -326,7 +275,7 @@ static struct Numerical_Flux_Input* constructor_Numerical_Flux_Input_cmplx_step
 		add_to_c(data_g,-CX_STEP*I,n_n);
 	}}}
 
- 	destructor_Numerical_Flux_Input_c_data_members_l(num_flux_i_c);
+	destructor_Numerical_Flux_Input_c_data_members(num_flux_i_c,'l');
 	destructor_Numerical_Flux_Input_c(num_flux_i_c);
 
 	return num_flux_i;
@@ -356,33 +305,4 @@ static void set_to_zero_Boundary_Value
 		EXIT_ADD_SUPPORT;
 	if (c_m[5])
 		EXIT_ADD_SUPPORT;
-}
-
-static void constructor_Numerical_Flux_Input_c_data_members_l
-	(struct Numerical_Flux_Input_c*const num_flux_c_i, struct Numerical_Flux_Input*const num_flux_i)
-{
-	num_flux_c_i->bv_l.normals = constructor_copy_const_Multiarray_c_Multiarray_d(num_flux_i->bv_l.normals);
-	num_flux_c_i->bv_l.xyz     = constructor_copy_const_Multiarray_c_Multiarray_d(num_flux_i->bv_l.xyz);
-	num_flux_c_i->bv_l.s       = constructor_copy_const_Multiarray_c_Multiarray_d(num_flux_i->bv_l.s);
-	if (num_flux_i->bv_l.g)
-		num_flux_c_i->bv_l.g = constructor_copy_const_Multiarray_c_Multiarray_d(num_flux_i->bv_l.g);
-}
-
-static void destructor_Numerical_Flux_Input_c_data_members_l (struct Numerical_Flux_Input_c*const num_flux_c_i)
-{
-	destructor_const_Multiarray_c(num_flux_c_i->bv_l.normals);
-	destructor_const_Multiarray_c(num_flux_c_i->bv_l.xyz);
-	destructor_const_Multiarray_c(num_flux_c_i->bv_l.s);
-	destructor_conditional_const_Multiarray_c(num_flux_c_i->bv_l.g);
-}
-
-static void constructor_Boundary_Value_c_data
-	(struct Numerical_Flux_Input_c* num_flux_i, const struct Solver_Face_c* s_face, const struct Simulation* sim)
-{
-	s_face->constructor_Boundary_Value_fcl(&num_flux_i->bv_r,&num_flux_i->bv_l,s_face,sim); // destructed
-}
-
-static void destructor_Boundary_Value_c_data (struct Numerical_Flux_Input_c* num_flux_i)
-{
-	destructor_Boundary_Value_c(&num_flux_i->bv_r);
 }

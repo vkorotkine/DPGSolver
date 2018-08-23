@@ -175,6 +175,17 @@ static const struct const_Matrix_d* constructor_cv
 	 const int basis_type_i            ///< May be set to hold the input basis type.
 	);
 
+/** \brief Check if the operator should use an L2 projection (as opposed to interpolation).
+ *  \return `true` if yes; `false` otherwise.
+ *
+ *  The L2 projection operators are used whenever information would be lost by performing an interpolation
+ *  (interpolating from a fine to a coarse space) and the output set of nodes forms a basis for a polynomial space.
+ */
+static bool op_should_use_L2
+	(const int*const op_values,               ///< Values for the operator indices.
+	 const struct Operator_Info*const op_info ///< Standard.
+		);
+
 // Interface functions ********************************************************************************************** //
 
 const struct Multiarray_Operator* constructor_operators
@@ -559,37 +570,6 @@ const struct const_Vector_i* constructor_indices_Vector_i
 	return (const struct const_Vector_i*)indices;
 }
 
-bool op_should_use_L2 (const int*const op_values, const struct Op_IO* op_io)
-{
-	const char ce_i = op_io[OP_IND_I].ce,
-	           ce_o = op_io[OP_IND_O].ce;
-	// Don't use L2 for operators having projected nodes.
-	if (!((ce_i == ce_o) || (ce_i == 'v'))) // ((vv || ff || ee) || (vf || ve))
-		return false;
-
-	if ((op_values[OP_IND_H+OP_IND_I] > op_values[OP_IND_H+OP_IND_O]) ||
-	    (op_values[OP_IND_P+OP_IND_I] > op_values[OP_IND_P+OP_IND_O])) {
-		switch (op_io[OP_IND_O].kind) {
-		case 'c': // fallthrough
-		case 'v': // fallthrough
-		case 'g': // fallthrough
-		case 'i':
-			// Do nothing.
-			break;
-		case 's': // fallthrough
-		case 'f': // fallthrough
-		case 'r': // fallthrough
-		case 'p': // fallthrough
-			return true;
-			break;
-		default:
-			EXIT_ERROR("Unsupported: %c\n",op_io[OP_IND_O].kind);
-			break;
-		}
-	}
-	return false;
-}
-
 int compute_super_type_op (const char ce, const int h_op, const struct const_Element* element)
 {
 	const int sub_e_type = compute_elem_type_sub_ce(element->type,ce,h_op);
@@ -675,7 +655,7 @@ static void set_operator_std
 	const int n_op       = get_n_op(op_info->range_d,op_info->element->d);
 	const struct const_Multiarray_Matrix_d* op_ioN = constructor_op_MMd(false,n_op); // destructed
 
-	if (!op_should_use_L2(op_values,op_info->op_io))
+	if (!op_should_use_L2(op_values,op_info))
 		set_operator_std_interp(*ind_values,op_info,sim,op_ioN);
 	else
 		set_operator_std_L2(*ind_values,op_info,sim,op_ioN);
@@ -718,10 +698,16 @@ static void set_operator_solver
 	destructor_const_Nodes(nodes_o);
 
 	if (sim->collocated) {
-		EXIT_ERROR("Ensure that all is working as expected.\n");
-		// Note: Test space is higher degree than solution so efficiency advantages would not be present.
-		if (sim->method == METHOD_DPG)
+		switch (sim->method) {
+		case METHOD_DG:
+			EXIT_ERROR("Ensure that all is working as expected.\n");
+			break;
+		case METHOD_DPG: case METHOD_OPG: case METHOD_OPGC0:
 			return;
+		default:
+			EXIT_ERROR("Unsupported: %d",sim->method);
+			break;
+		}
 
 		const struct const_Nodes* nodes_i = constructor_const_Nodes_h(OP_IND_I,op_io,element,sim); // destructed
 		assert(nodes_i->has_weights);
@@ -1199,6 +1185,46 @@ static const struct const_Matrix_d* constructor_cv
 	return cv;
 }
 
+static bool op_should_use_L2 (const int*const op_values, const struct Operator_Info*const op_info)
+{
+	const struct Op_IO*const op_io = op_info->op_io;
+	const char ce_i = op_io[OP_IND_I].ce,
+	           ce_o = op_io[OP_IND_O].ce;
+	// Don't use L2 for operators having projected nodes.
+	if (!((ce_i == ce_o) || (ce_i == 'v'))) // ((vv || ff || ee) || (vf || ve))
+		return false;
+
+	/** Think carefully before allowing for differentiation operators here. Note that the use of such operators has
+	 *  introduced non-trival eigenvectors into the NULL space of solver operators from prior experience. See the
+	 *  comments of \ref constructor_operator__test_s_coef_to_sol_coef_T for an example. */
+	// Don't use L2 for differentiation operators.
+	if (op_info->range_d != OP_R_D_0)
+		return false;
+
+	if ((op_values[OP_IND_H+OP_IND_I] > op_values[OP_IND_H+OP_IND_O]) ||
+	    (op_values[OP_IND_P+OP_IND_I] > op_values[OP_IND_P+OP_IND_O])) {
+		switch (op_io[OP_IND_O].kind) {
+		case 'c': // fallthrough
+		case 'v': // fallthrough
+		case 'g': // fallthrough
+		case 'i':
+			// Do nothing.
+			break;
+		case 's': // fallthrough
+		case 'f': // fallthrough
+		case 'r': // fallthrough
+		case 'p': // fallthrough
+		case 't': // fallthrough
+			return true;
+			break;
+		default:
+			EXIT_ERROR("Unsupported: %c\n",op_io[OP_IND_O].kind);
+			break;
+		}
+	}
+	return false;
+}
+
 // Level 1 ********************************************************************************************************** //
 
 /** \brief Constructor for the \*c0_\*\*\*_\*\*\* operator from input to output computational element.
@@ -1352,6 +1378,8 @@ static void set_operator_std_L2
 	(const ptrdiff_t ind_values, const struct Operator_Info* op_info, const struct Simulation* sim,
 	 const struct const_Multiarray_Matrix_d* op_ioN)
 {
+	assert(op_info->range_d == OP_R_D_0);
+
 	const struct Op_IO* op_io = op_info->op_io;
 
 	const char ce_i = op_io[OP_IND_I].ce,
@@ -1359,9 +1387,6 @@ static void set_operator_std_L2
 	// Add support if required.
 	assert((ce_i == 'v' && ce_o == 'v') || (ce_i == 'v' && ce_o == 'f') || (ce_i == 'v' && ce_o == 'e') ||
 	       (ce_i == 'f' && ce_o == 'f'));
-
-	const int n_op = (int)compute_size(op_ioN->order,op_ioN->extents);
-	assert(n_op == 1); //< Should not have any differentiation operators here.
 
 	const int* op_values = get_row_const_Matrix_i(ind_values,op_info->values_op);
 

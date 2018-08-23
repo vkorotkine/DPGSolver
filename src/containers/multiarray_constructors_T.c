@@ -425,6 +425,26 @@ const struct const_Multiarray_T* constructor_mm_NN1C_const_Multiarray_T
 	return (const struct const_Multiarray_T*) constructor_mm_NN1C_Multiarray_T(a,b);
 }
 
+struct Multiarray_T* constructor_mm_NN1C_Multiarray_TT
+	(const struct const_Matrix_T*const a, const struct const_Multiarray_T*const b)
+{
+	const char layout  = 'C';
+	const int order    = b->order;
+	ptrdiff_t* extents = compute_extents_mm_MMa(a->ext_0,b->order,b->extents); // keep
+
+	struct Multiarray_T* c = constructor_zero_Multiarray_T_dyn_extents(layout,order,extents); // returned
+
+	mm_NNC_Multiarray_TTT(1.0,0.0,a,b,c);
+
+	return c;
+}
+
+const struct const_Multiarray_T* constructor_mm_NN1C_const_Multiarray_TT
+	(const struct const_Matrix_T*const a, const struct const_Multiarray_T*const b)
+{
+	return (struct const_Multiarray_T*)  constructor_mm_NN1C_Multiarray_TT(a,b);
+}
+
 const struct const_Multiarray_T* constructor_mm_tp_NN1C_const_Multiarray_T
 	(const struct const_Multiarray_Matrix_T* a_tp, const struct const_Multiarray_T* b)
 {

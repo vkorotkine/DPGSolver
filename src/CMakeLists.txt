@@ -7,8 +7,13 @@ include_directories(${MKL_INCLUDE_DIRS})
 find_package(GSL 2.4 REQUIRED)
 include_directories(${GSL_INCLUDE_DIRS})
 
+set(RUN_PETSC_TESTS FALSE)
 find_package(PETSc 3.8 REQUIRED)
 include_directories(${PETSC_INCLUDES})
+
+set(RUN_SLEPC_TESTS FALSE)
+find_package(SLEPc 3.8 REQUIRED)
+include_directories(${SLEPC_INCLUDE_DIRS})
 
 # Currently including all directories here so that `#include`s need not specify relative paths.
 include_directories(
@@ -40,6 +45,7 @@ include_directories(
 	simulation/test_case/solution/diffusion
 	simulation/test_case/solution/euler
 	simulation/test_case/solution/navier_stokes
+	simulation/test_case/solution/burgers_inviscid
 	simulation/test_case/solution/restart
 	simulation/visualization
 	testing

@@ -62,7 +62,7 @@ void compute_volume_rlhs_dg_T
 	for (struct Intrusive_Link* curr = volumes->first; curr; curr = curr->next) {
 		struct Solver_Volume_T*const s_vol = (struct Solver_Volume_T*) curr;
 
-		struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_T(&s_params.spvs,flux_i,s_vol,sim);
+		struct Flux_Ref_T* flux_r = constructor_Flux_Ref_vol_T(&s_params.spvs,flux_i,s_vol); // destructed
 
 		// Compute the rhs (and optionally the lhs) terms.
 		s_params.compute_rlhs(flux_r,s_vol,ssi);

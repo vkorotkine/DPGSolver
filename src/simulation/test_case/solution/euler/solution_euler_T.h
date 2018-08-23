@@ -43,13 +43,6 @@ void convert_variables_T
 	 const char type_o          ///< The output variable type.
 	);
 
-/** \brief Function to be used for constructing functionals of zero drag/lift coefficients.
- *  \return See brief. */
-const struct const_Multiarray_T* constructor_const_functionals_cd_cl_zero_T
-	(const struct const_Multiarray_T* xyz, ///< Defined for \ref constructor_sol_fptr_T.
-	 const struct Simulation* sim          ///< Defined for \ref constructor_sol_fptr_T.
-	);
-
 #include "undef_templates_solution_euler.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_test_case.h"

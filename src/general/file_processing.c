@@ -101,10 +101,8 @@ const char* extract_path (const char*const name_full)
 FILE* fopen_checked (const char*const file_name_full)
 {
 	FILE* file = fopen(file_name_full,"r");
-	if (file == NULL) {
-		printf("File: '%s' is not present.\n",file_name_full);
-		EXIT_UNSUPPORTED;
-	}
+	if (file == NULL)
+		EXIT_ERROR("File: '%s' is not present.\n",file_name_full);
 	return file;
 }
 

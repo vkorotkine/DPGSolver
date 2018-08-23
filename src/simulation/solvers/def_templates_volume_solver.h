@@ -29,6 +29,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__w_vc__s_e_T           get_operator__w_vc__s_e
 #define constructor_mass_T                  constructor_mass
 #define constructor_inverse_mass_T          constructor_inverse_mass
+#define constructor_l2_proj_operator_s_T constructor_l2_proj_operator_s
+#define get_operator__cv0_vs_vs_T get_operator__cv0_vs_vs_d
+#define get_operator__cv0_vr_vs_T get_operator__cv0_vr_vs_d
+#define get_operator__cv0_vg_vs_T get_operator__cv0_vg_vs_d
+#define get_operator__cv0_vs_vc_T get_operator__cv0_vs_vc
+#define get_operator__cv0_vt_vc_T get_operator__cv0_vt_vc
+#define get_operator__cv0_vr_vc_T get_operator__cv0_vr_vc
+#define get_operator__tw1_vt_vc_T get_operator__tw1_vt_vc
+#define get_operator__cv1_vt_vc_T get_operator__cv1_vt_vc
 ///\}
 
 ///\{ \name Static names
@@ -47,6 +56,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #define get_operator__w_vc__s_e_T           get_operator__w_vc__s_e_c
 #define constructor_mass_T                  constructor_mass_c
 #define constructor_inverse_mass_T          constructor_inverse_mass_c
+#define constructor_l2_proj_operator_s_T constructor_l2_proj_operator_s_c
+#define get_operator__cv0_vs_vs_T get_operator__cv0_vs_vs_c
+#define get_operator__cv0_vr_vs_T get_operator__cv0_vr_vs_c
+#define get_operator__cv0_vg_vs_T get_operator__cv0_vg_vs_c
+#define get_operator__cv0_vs_vc_T get_operator__cv0_vs_vc_c
+#define get_operator__cv0_vt_vc_T get_operator__cv0_vt_vc_c
+#define get_operator__cv0_vr_vc_T get_operator__cv0_vr_vc_c
+#define get_operator__tw1_vt_vc_T get_operator__tw1_vt_vc_c
+#define get_operator__cv1_vt_vc_T get_operator__cv1_vt_vc_c
 ///\}
 
 ///\{ \name Static names

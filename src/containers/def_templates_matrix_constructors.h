@@ -39,6 +39,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_copy_const_Matrix_T_Matrix_R constructor_copy_const_Matrix_d_Matrix_d
 #define constructor_copy_Matrix_R_Matrix_T       constructor_copy_Matrix_d_Matrix_d_2
 #define constructor_copy_const_Matrix_R_Matrix_T constructor_copy_const_Matrix_d_Matrix_d_2
+#define constructor_copy_Matrix_T_Matrix_R_trans constructor_copy_Matrix_d_Matrix_d_trans
+#define constructor_copy_const_Matrix_T_Matrix_R_trans constructor_copy_const_Matrix_d_Matrix_d_trans
 #define constructor_copy_permute_Matrix_T        constructor_copy_permute_Matrix_d
 #define constructor_copy_permute_const_Matrix_T  constructor_copy_permute_const_Matrix_d
 
@@ -109,6 +111,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_copy_const_Matrix_T_Matrix_R constructor_copy_const_Matrix_c_Matrix_d
 #define constructor_copy_Matrix_R_Matrix_T       constructor_copy_Matrix_d_Matrix_c
 #define constructor_copy_const_Matrix_R_Matrix_T constructor_copy_const_Matrix_d_Matrix_c
+#define constructor_copy_Matrix_T_Matrix_R_trans constructor_copy_Matrix_c_Matrix_d_trans
+#define constructor_copy_const_Matrix_T_Matrix_R_trans constructor_copy_const_Matrix_c_Matrix_d_trans
 #define constructor_copy_permute_Matrix_T        constructor_copy_permute_Matrix_c
 #define constructor_copy_permute_const_Matrix_T  constructor_copy_permute_const_Matrix_c
 

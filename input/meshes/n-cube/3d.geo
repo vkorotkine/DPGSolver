@@ -95,8 +95,12 @@ EndIf
 
 If (pde_name == ADVECTION)
 	If (geom_adv == GEOM_ADV_XYZL)
-		Physical Surface(bc_base+BC_INFLOW)  = {4001,5001,6001};
-		Physical Surface(bc_base+BC_OUTFLOW) = {4002,5002,6002};
+		Physical Surface(bc_base+BC_UPWIND)      = {4001};
+		Physical Surface(bc_base+BC_UPWIND_ALT1) = {5001};
+		Physical Surface(bc_base+BC_UPWIND_ALT2) = {6001};
+		Physical Surface(bc_base+BC_UPWIND_ALT3) = {4002};
+		Physical Surface(bc_base+BC_UPWIND_ALT4) = {5002};
+		Physical Surface(bc_base+BC_UPWIND_ALT5) = {6002};
 	Else
 		Error("Unsupported geom_adv: %d",geom_adv); Exit;
 	EndIf

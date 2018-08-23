@@ -17,6 +17,8 @@ You should have received a copy of the GNU General Public License along with DPG
  *         containers/functions.
  */
 
+#include "def_templates_volume_solver.h"
+
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Data types
@@ -26,6 +28,9 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define constructor_derived_OPG_Solver_Volume_T constructor_derived_OPG_Solver_Volume
 #define destructor_derived_OPG_Solver_Volume_T  destructor_derived_OPG_Solver_Volume
+#define get_operator__vc0_vs_vs_T get_operator__vc0_vs_vs_d
+#define get_operator__cv1_vt_vs_T get_operator__cv1_vt_vs_d
+#define get_operator__cv0_vg_vt_T get_operator__cv0_vg_vt_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -37,6 +42,9 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define constructor_derived_OPG_Solver_Volume_T constructor_derived_OPG_Solver_Volume_c
 #define destructor_derived_OPG_Solver_Volume_T  destructor_derived_OPG_Solver_Volume_c
+#define get_operator__vc0_vs_vs_T get_operator__vc0_vs_vs_c
+#define get_operator__cv1_vt_vs_T get_operator__cv1_vt_vs_c
+#define get_operator__cv0_vg_vt_T get_operator__cv0_vg_vt_c
 ///\}
 
 #endif

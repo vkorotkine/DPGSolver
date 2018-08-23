@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "test_support_solve_dg.h"
-#include "test_support_multiarray.h"
+#include "test_support_solve.h"
 #include "test_support_computational_elements.h"
 
 #include <assert.h>
@@ -27,12 +27,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_tol.h"
 #include "definitions_test_integration.h"
 
+#include "matrix.h"
 #include "multiarray.h"
 #include "vector.h"
 
 #include "face_solver_dg.h"
 #include "volume_solver_dg.h"
 
+#include "computational_elements.h"
 #include "compute_face_rlhs.h"
 #include "compute_face_rlhs_dg.h"
 #include "compute_grad_coef_dg.h"
@@ -46,25 +48,11 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-/** \brief Constructor for the list of \ref Volume\*s adjacent to (and including) the current volume.
- *  \return Standard. */
-static struct Intrusive_List* constructor_Volumes_local
-	(const struct Volume* vol,    ///< The centre \ref Volume.
-	 const struct Simulation* sim ///< \ref Simulation.
-	);
-
-/** \brief Constructor for the list of \ref Face\*s adjacent to the current volume.
- *  \return Standard. */
-static struct Intrusive_List* constructor_Faces_local
-	(const struct Volume* vol,    ///< The centre \ref Volume.
-	 const struct Simulation* sim ///< \ref Simulation.
-	);
-
 /// \brief Compute the complex rhs terms based on the value of \ref CHECK_LIN.
 static void compute_rhs_cmplx_step_dg
-	(struct Intrusive_List* volumes_local, ///< Return of \ref constructor_Volumes_local.
-	 struct Intrusive_List* faces_local,   ///< Return of \ref constructor_Faces_local.
-	 const struct Simulation* sim          ///< \ref Simulation.
+	(struct Intrusive_List* volumes_local, ///< The list of volumes over which to iterate.
+	 struct Intrusive_List* faces_local,   ///< The list of faces over which to iterate.
+	 const struct Simulation* sim          ///< Standard.
 	);
 
 /// \brief Set a column of the lhs matrix using the values of the complex rhs for the dg scheme.
@@ -72,23 +60,25 @@ static void set_col_lhs_cmplx_step_dg
 	(const int col_l,                       ///< The local (to the volume solution dof) column index.
 	 const struct Solver_Volume_c* s_vol_c, /**< The \ref Solver_Volume_T associated with the current column of the
 	                                         *   matrix. */
-	 struct Intrusive_List* volumes_local,  ///< Return of \ref constructor_Volumes_local.
+	 struct Intrusive_List* volumes_local,  ///< The list of volumes over which to iterate.
 	 struct Solver_Storage_Implicit* ssi    ///< \ref Solver_Storage_Implicit.
 	);
 
-// Interface functions ********************************************************************************************** //
+/** \brief Constructor for the 'S'olution norm operator required for the generalized eigenvalue problem to compute the
+ *         inf-sup constant.
+ *  \return A petsc Mat holding the operator. */
+static Mat constructor_Mat_S_dg
+	(const struct Simulation*const sim ///< Standard.
+	 );
 
-void perturb_solution_dg (const struct Simulation* sim)
-{
-/// \todo template this but as part of test_complex_solve_dg_T such that functions are not accessible to the main code.
-	if (sim->test_case_rc->is_real) {
-		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
-			perturb_Multiarray_d(((struct Solver_Volume*)curr)->sol_coef,MAX_PERTURB);
-	} else {
-		for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
-			perturb_Multiarray_c(((struct Solver_Volume_c*)curr)->sol_coef,MAX_PERTURB);
-	}
-}
+/** \brief Constructor for the inverse of the 'T'est norm operator required for the generalized eigenvalue problem to
+ *         compute the inf-sup constant.
+ *  \return A petsc Mat holding the operator. */
+static Mat constructor_Mat_T_inv_dg
+	(const struct Simulation*const sim ///< Standard.
+	 );
+
+// Interface functions ********************************************************************************************** //
 
 void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Storage_Implicit* ssi)
 {
@@ -100,8 +90,8 @@ void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Stor
 	for (struct Intrusive_Link* curr_c = sim->volumes->first; curr_c; curr_c = curr_c->next) {
 		struct Volume* vol = (struct Volume*) curr_c;
 /// \todo Add a "volume_central" for volume/face terms, use volumes_local (including all neigh) for grad_coef.
-		struct Intrusive_List* volumes_local = constructor_Volumes_local(vol,sim);
-		struct Intrusive_List* faces_local   = constructor_Faces_local(vol,sim);
+		struct Intrusive_List* volumes_local = constructor_Volumes_local_neigh_only(vol,sim);
+		struct Intrusive_List* faces_local   = constructor_Faces_local_neigh_only(vol,sim);
 
 		struct Solver_Volume_c* s_vol = (struct Solver_Volume_c*) curr_c;
 		struct Multiarray_c* sol_coef_c = s_vol->sol_coef;
@@ -119,54 +109,57 @@ void compute_lhs_cmplx_step_dg (const struct Simulation* sim, struct Solver_Stor
 	petsc_mat_vec_assemble(ssi);
 }
 
+const struct Gen_Eig_Data* constructor_Gen_Eig_Data_inf_sup_dg (struct Simulation*const sim)
+{
+	struct Test_Case* test_case = (struct Test_Case*) sim->test_case_rc->tc;
+	test_case->solver_method_curr = 'i';
+
+	constructor_derived_Elements(sim,IL_ELEMENT_SOLVER_DG);       // destructed
+	constructor_derived_computational_elements(sim,IL_SOLVER_DG); // destructed
+	initialize_zero_memory_volumes(sim->volumes);
+
+	// Compute A
+	struct Solver_Storage_Implicit*const ssi = constructor_Solver_Storage_Implicit(sim); // destructed
+	compute_volume_rlhs_dg(sim,ssi,sim->volumes);
+	compute_face_rlhs_dg(sim,ssi,sim->faces);
+	Mat A = ssi->A;
+	MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY);
+
+	/* Compute S and T_inv.
+	 * The inverse of the test norm operator is computed directly as it only required local block inversion while
+	 * the available Petsc functions to solve for inv(T)*A (i.e. using MatMatSolve to solve T*X = A) necessarily
+	 * returns a dense matrix for X which is not necessary. */
+	Mat S     = constructor_Mat_S_dg(sim);     // moved
+	Mat T_inv = constructor_Mat_T_inv_dg(sim); // destroyed
+
+	Mat T_inv_A;
+	Mat A_T_inv_A;
+	MatMatMult(T_inv,A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&T_inv_A); // destroyed
+	MatDestroy(&T_inv);
+
+	MatTransposeMatMult(A,T_inv_A,MAT_INITIAL_MATRIX,PETSC_DEFAULT,&A_T_inv_A); // moved
+	MatDestroy(&T_inv_A);
+
+	destructor_Solver_Storage_Implicit(ssi);
+
+	destructor_derived_Elements(sim,IL_ELEMENT_SOLVER);
+	destructor_derived_computational_elements(sim,IL_SOLVER);
+
+	struct Gen_Eig_Data*const ged = calloc(1,sizeof* ged); // returned
+	ged->A = A_T_inv_A;
+	ged->B = S;
+	return ged;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/** \brief Check whether the \ref Volume is a neighbour (inclusive) of the current \ref Volume.
- *  \return `true` if it is a neighbour (or is the current volume); `false` otherwise. */
-static bool is_volume_neighbour
-	(const struct Volume* vol,     ///< The volume under investigation.
-	 const struct Volume* vol_curr ///< The current volume.
-	);
-
-/** \brief Check whether the \ref Face neighbours the current \ref Volume.
- *  \return `true` if neighbouring; `false` otherwise. */
-static bool is_face_neighbour
-	(const struct Face* face,      ///< The face under investigation.
-	 const struct Volume* vol_curr ///< The current volume.
-	);
-
-static struct Intrusive_List* constructor_Volumes_local (const struct Volume* vol, const struct Simulation* sim)
-{
-	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME_SOLVER_DG,NULL);
-
-	const size_t sizeof_base = sizeof(struct DG_Solver_Volume_c);
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-		if (!is_volume_neighbour((struct Volume*)curr,vol))
-			continue;
-
-		// A copy is required such that the link in the global list is not modified.
-		push_back_IL(volumes,constructor_copied_Intrusive_Link(curr,sizeof_base,sizeof_base));
-	}
-
-	return volumes;
-}
-
-static struct Intrusive_List* constructor_Faces_local (const struct Volume* vol, const struct Simulation* sim)
-{
-	struct Intrusive_List* faces = constructor_empty_IL(IL_FACE_SOLVER_DG,NULL);
-
-	const size_t sizeof_base = sizeof(struct DG_Solver_Face_c);
-	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next) {
-		if (!is_face_neighbour((struct Face*)curr,vol))
-			continue;
-
-		// A copy is required such that the link in the global list is not modified.
-		push_back_IL(faces,constructor_copied_Intrusive_Link(curr,sizeof_base,sizeof_base));
-	}
-
-	return faces;
-}
+/** \brief Constructor for a \ref Solver_Storage_Implicit container for the dg method's 'S'olution norm.
+ *  \return See brief. */
+struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_dg_S
+	(const struct Simulation*const sim ///< Standard.
+	 );
 
 static void compute_rhs_cmplx_step_dg
 	(struct Intrusive_List* volumes_local, struct Intrusive_List* faces_local, const struct Simulation* sim)
@@ -218,37 +211,72 @@ static void set_col_lhs_cmplx_step_dg
 	}
 }
 
-// Level 1 ********************************************************************************************************** //
-
-static bool is_volume_neighbour (const struct Volume* vol, const struct Volume* vol_curr)
+static Mat constructor_Mat_S_dg (const struct Simulation*const sim)
 {
-	for (int f = 0; f < NFMAX; ++f) {
-	for (int sf = 0; sf < NSUBFMAX; ++sf) {
-		const struct Face* face = vol_curr->faces[f][sf];
+	struct Solver_Storage_Implicit*const ssi = constructor_Solver_Storage_Implicit_dg_S(sim); // destructed/returned
 
-		if (!face)
-			continue;
+	const int n_vr = get_set_n_var_eq(NULL)[0];
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+		const struct const_Matrix_d*const m = constructor_mass(s_vol); // destructed
+		const struct const_Matrix_d*const m_b = constructor_block_diagonal_const_Matrix_d(m,n_vr); // destructed
+		destructor_const_Matrix_d(m);
 
-		const int n_side = ( face->boundary ? 1 : 2 );
-		for (int i = 0; i < n_side; ++i) {
-			if (vol->index == face->neigh_info[i].volume->index)
-				return true;
-		}
-	}}
-	return false;
+		set_petsc_Mat_row_col_dg(ssi,s_vol,0,s_vol,0);
+		add_to_petsc_Mat(ssi,m_b);
+		destructor_const_Matrix_d(m_b);
+	}
+
+	Mat S = ssi->A;
+
+	ssi->do_not_destruct_A = true;
+	destructor_Solver_Storage_Implicit(ssi);
+
+	MatAssemblyBegin(S,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(S,MAT_FINAL_ASSEMBLY);
+	return S;
 }
 
-static bool is_face_neighbour (const struct Face* face, const struct Volume* vol_curr)
+static Mat constructor_Mat_T_inv_dg (const struct Simulation*const sim)
 {
-	for (int f = 0; f < NFMAX; ++f) {
-	for (int sf = 0; sf < NSUBFMAX; ++sf) {
-		const struct Face* face_n = vol_curr->faces[f][sf];
+	struct Solver_Storage_Implicit*const ssi = constructor_Solver_Storage_Implicit_dg_S(sim); // destructed/returned
 
-		if (!face_n)
-			continue;
+	const int n_vr = get_set_n_var_eq(NULL)[0];
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
+		const struct Solver_Volume*const s_vol = (struct Solver_Volume*) curr;
+		const struct const_Matrix_d*const m_inv = constructor_inverse_mass(s_vol,NULL); // destructed
+		const struct const_Matrix_d*const m_inv_b = constructor_block_diagonal_const_Matrix_d(m_inv,n_vr); // d.
+		destructor_const_Matrix_d(m_inv);
 
-		if (face->index == face_n->index)
-			return true;
-	}}
-	return false;
+		set_petsc_Mat_row_col_dg(ssi,s_vol,0,s_vol,0);
+		add_to_petsc_Mat(ssi,m_inv_b);
+		destructor_const_Matrix_d(m_inv_b);
+	}
+
+	Mat T_inv = ssi->A;
+
+	ssi->do_not_destruct_A = true;
+	destructor_Solver_Storage_Implicit(ssi);
+
+	MatAssemblyBegin(T_inv,MAT_FINAL_ASSEMBLY);
+	MatAssemblyEnd(T_inv,MAT_FINAL_ASSEMBLY);
+	return T_inv;
+}
+
+// Level 1 ********************************************************************************************************** //
+
+struct Solver_Storage_Implicit* constructor_Solver_Storage_Implicit_dg_S (const struct Simulation*const sim)
+{
+	update_ind_dof_d(sim);
+	struct Vector_i*const nnz = constructor_nnz_dg(true,sim); // destructed
+	const ptrdiff_t dof_solve = nnz->ext_0;
+
+	struct Solver_Storage_Implicit*const ssi = calloc(1,sizeof *ssi); // free
+
+	MatCreateSeqAIJ(MPI_COMM_WORLD,(PetscInt)dof_solve,(PetscInt)dof_solve,0,nnz->data,&ssi->A); // destructed
+	MatSetFromOptions(ssi->A);
+	MatSetUp(ssi->A);
+
+	destructor_Vector_i(nnz);
+	return ssi;
 }

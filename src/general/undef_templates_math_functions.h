@@ -23,10 +23,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef log_T
 
 #undef equal_T
+#undef equal_spec_rel_T
 #undef norm_T
 #undef norm_R_from_T
 #undef norm_diff_T
 #undef norm_diff_RT
+#undef norm_diff_inf_no_rel_T
 #undef max_abs_T
 #undef z_yxpz_T
 #undef z_yxpz_RTT
@@ -37,12 +39,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef add_to_T
 #undef dot_T
 #undef dot_R_from_RT
+#undef min_abs_real_T
+#undef max_abs_real_T
 
 #undef abs_R
 #undef sqrt_R
 #undef pow_R
 
 #undef equal_R
+#undef equal_spec_rel_R
 #undef norm_R
 #undef norm_diff_R
 #undef dot_R

@@ -5,7 +5,7 @@ solver_type_e forward_euler
 solver_type_i iterative
 
 num_flux_1st upwind
-test_norm    H1_upwind
+test_norm    adjoint
 
 use_schur_complement 1
 

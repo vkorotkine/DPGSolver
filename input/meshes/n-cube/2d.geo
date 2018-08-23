@@ -80,27 +80,25 @@ Else
 EndIf
 
 If (pde_name == ADVECTION)
+  // Upwind boundary conditions are used to correctly impose either inflow or outflow boundary conditions based on the
+  // solution. However, using the upwind/downwind boundary conditions is necessary for the imposition of boundary
+  // conditions for the solution test functions when this is relevant (such as for the OPG method).
 	If (geom_adv == GEOM_ADV_XL)
-		Physical Line(bc_base+BC_INFLOW)       = {2001};
-		Physical Line(bc_base+BC_OUTFLOW)      = {2002};
-		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {1001,1002};
-		Physical Line(bc_base+BC_OUTFLOW_ALT2) = {1003,1004};
+    Physical Line(bc_base+BC_UPWIND)      = {2001};
+		Physical Line(bc_base+BC_OUTFLOW)     = {2002};
+    Physical Line(bc_base+BC_UPWIND_ALT2) = {1001,1002};
+	  Physical Line(bc_base+BC_UPWIND_ALT3) = {1003,1004};
 	ElseIf (geom_adv == GEOM_ADV_YL)
-		Physical Line(bc_base+BC_INFLOW)       = {1001,1002};
-		Physical Line(bc_base+BC_OUTFLOW)      = {2001};
-		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {2002};
+		Physical Line(bc_base+BC_UPWIND)       = {1001,1002};
+		Physical Line(bc_base+BC_UPWIND_ALT1)  = {2001};
+		Physical Line(bc_base+BC_UPWIND_ALT2)  = {2002};
 		Physical Line(bc_base+BC_OUTFLOW_ALT2) = {1003,1004};
 	ElseIf (geom_adv == GEOM_ADV_XYL)
-		Physical Line(bc_base+BC_INFLOW)       = {1001:1002};
-		Physical Line(bc_base+BC_INFLOW_ALT1)  = {2001};
+		Physical Line(bc_base+BC_UPWIND)       = {1001:1002};
+		Physical Line(bc_base+BC_UPWIND_ALT1)  = {2001};
 		Physical Line(bc_base+BC_OUTFLOW)      = {1003:1004};
-		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {2002};
-	ElseIf (geom_adv == GEOM_ADV_XL_YR)
-		Physical Line(bc_base+BC_INFLOW)       = {2001};
-		Physical Line(bc_base+BC_INFLOW_ALT1)  = {1003:1004};
-		Physical Line(bc_base+BC_OUTFLOW)      = {2002};
-		Physical Line(bc_base+BC_OUTFLOW_ALT1) = {1001:1002};
-	ElseIf (geom_adv == GEOM_ADV_UPWIND)
+		Physical Line(bc_base+BC_OUTFLOW_ALT2) = {2002};
+	ElseIf (geom_adv == GEOM_ADV_XL_YR || geom_adv == GEOM_ADV_UPWIND)
 		Physical Line(bc_base+BC_UPWIND)      = {2001};
 		Physical Line(bc_base+BC_UPWIND_ALT1) = {1003:1004};
 		Physical Line(bc_base+BC_UPWIND_ALT2) = {2002};

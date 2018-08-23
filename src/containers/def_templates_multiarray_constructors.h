@@ -67,6 +67,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_const_Multiarray_Matrix_from_Multiarray_Matrix_T set_const_Multiarray_Matrix_from_Multiarray_Matrix_d
 #define constructor_mm_NN1C_Multiarray_T                     constructor_mm_NN1C_Multiarray_d
 #define constructor_mm_NN1C_const_Multiarray_T               constructor_mm_NN1C_const_Multiarray_d
+#define constructor_mm_NN1C_Multiarray_TT constructor_mm_NN1C_Multiarray_dd
+#define constructor_mm_NN1C_const_Multiarray_TT constructor_mm_NN1C_const_Multiarray_dd
 #define constructor_mm_tp_NN1C_const_Multiarray_T            constructor_mm_tp_NN1C_const_Multiarray_d
 
 #define destructor_Multiarray_T                   destructor_Multiarray_d
@@ -132,6 +134,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define set_const_Multiarray_Matrix_from_Multiarray_Matrix_T set_const_Multiarray_Matrix_from_Multiarray_Matrix_c
 #define constructor_mm_NN1C_Multiarray_T                     constructor_mm_NN1C_Multiarray_c
 #define constructor_mm_NN1C_const_Multiarray_T               constructor_mm_NN1C_const_Multiarray_c
+#define constructor_mm_NN1C_Multiarray_TT constructor_mm_NN1C_Multiarray_cc
+#define constructor_mm_NN1C_const_Multiarray_TT constructor_mm_NN1C_const_Multiarray_cc
 #define constructor_mm_tp_NN1C_const_Multiarray_T            constructor_mm_tp_NN1C_const_Multiarray_c
 
 #define destructor_Multiarray_T                   destructor_Multiarray_c

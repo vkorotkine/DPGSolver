@@ -16,21 +16,22 @@ You should have received a copy of the GNU General Public License along with DPG
 #ifndef DPG__test_support_solve_dpg_h__INCLUDED
 #define DPG__test_support_solve_dpg_h__INCLUDED
 /** \file
- *  \brief Provides additional `complex` functions for the dpg solver functionality.
+ *  \brief Provides supporting functions for testing of the dpg solver.
  */
 
 struct Simulation;
 struct Solver_Storage_Implicit;
-
-/// \brief Perturb the initial solution for the DPG method.
-void perturb_solution_dpg
-	(const struct Simulation* sim ///< Defined for \ref perturb_solution_fptr.
-	);
 
 /// \brief Compute the lhs matrix using the complex step method for the DG scheme.
 void compute_lhs_cmplx_step_dpg
 	(const struct Simulation* sim,       ///< \ref Simulation.
 	 struct Solver_Storage_Implicit* ssi ///< \ref Solver_Storage_Implicit.
 	);
+
+/** \brief Version of \ref constructor_Gen_Eig_Data_inf_sup for the dpg method.
+ *  \return See brief. */
+const struct Gen_Eig_Data* constructor_Gen_Eig_Data_inf_sup_dpg
+	(struct Simulation*const sim ///< Standard.
+	 );
 
 #endif // DPG__test_support_solve_dpg_h__INCLUDED

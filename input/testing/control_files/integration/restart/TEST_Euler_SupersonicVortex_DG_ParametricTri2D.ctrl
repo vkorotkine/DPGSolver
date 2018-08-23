@@ -12,7 +12,7 @@ mesh_domain      parametric
 mesh_type        tri
 mesh_level       0 4
 mesh_path        ../meshes/
-restart_path     ../restart/euler/steady/supersonic_vortex/restart__ml4__p6.msh
+restart_path     ../restart/euler/steady/supersonic_vortex/restart__ml3__p6.msh
 
 
 # Simulation variables

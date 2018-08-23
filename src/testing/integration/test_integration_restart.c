@@ -33,8 +33,16 @@ You should have received a copy of the GNU General Public License along with DPG
  *  \note The appropriate restart file must be created using \ref test_integration_restart_output.c before this test can
  *        run (as the restart file will otherwise not be present).
  *
- *  Requires a test case with a non-constant specified exact solution, this test loops over the all degrees and mesh
+ *  Requires a test case with a non-constant specified exact solution. This test loops over the all degrees and mesh
  *  levels and computes the error between the restarted and exact solution.
+ *
+ *  \note It was found that using a restart file which was more refined sometimes resulted in larger errors and
+ *        stagnation of errors well above the machine precision. This occured regardless of: the restarted solution
+ *        being interpolated or L2-projected from the restart file solution, the approximate nearest neighbor algorithm
+ *        using `int` or `long long int` for the integer coordinate representation. It was also noted that using a
+ *        restart file with triangular elements led to significantly higher error than quad elements for the Euler
+ *        supersonic_vortex case; the problem thus may potentially be coming from the parametric domain mapping.
+ *  \todo Investigate why this is occuring.
  *
  *  \warning The test is failing for p > 2 when using triangular elements. Only entropy was converging optimally in a
  *  previously tested euler test case while all other variables were converging at sub-optimal rates. The problem was
@@ -42,6 +50,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  strength for triangular elements start at p = 3? Requires investigation.
  *
  *  The test passes if the convergence is optimal (O(h^{p+1}).
+ *
+ *  Please see comments in \ref restart_T.c regarding potential superconvergence of functionals depending on the
+ *  projection method for the solution from the restart file.
  */
 int main
 	(int argc,   ///< Standard.

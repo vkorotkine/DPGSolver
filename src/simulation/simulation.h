@@ -297,6 +297,26 @@ bool get_set_collocated
  */
 int get_set_method
 	(const int*const new_val ///< The new value if non-NULL.
-	);
+		);
+
+/** \brief Return a statically allocated `int` referring to the domain type being used.
+ *  \return See brief.
+ *
+ *  Passing a non-NULL input for `new_val` sets the statically value to that of the input.
+ */
+int get_set_domain_type
+	(const int*const new_val ///< The new value if non-NULL.
+		);
+
+/** \brief Return a statically allocated `int*` for the polynomial degree of the specified basis.
+ *  \return See brief; the two indices of the returned array are for straight ([0]) and curved ([1]) values.
+ *
+ *  Passing a non-NULL input for `new_val` sets the statically value to that of the input.
+ */
+const int* get_set_degree_poly
+	(const int*const new_vals, ///< The new values if non-NULL.
+	 const char*const key      /**< The key used to obtain specify the desired variable. See the function definition
+				    *   for options; the notation is similar to that of \ref element_operators.h */
+	 );
 
 #endif // DPG__Simulation_h__INCLUDED

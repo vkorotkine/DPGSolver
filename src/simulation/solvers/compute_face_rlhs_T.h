@@ -37,6 +37,16 @@ struct Simulation;
 struct Solver_Storage_Implicit;
 struct Flux_Input_T;
 
+/** \brief Function pointer to the function used to scale by the face Jacobian.
+ *
+ *  \param num_flux \ref Numerical_Flux_T.
+ *  \param s_face   \ref Solver_Face_T.
+ */
+typedef void (*scale_by_Jacobian_fptr_T)
+	(struct Numerical_Flux_T*const num_flux,
+	 const struct Solver_Face_T*const s_face
+		);
+
 /** \brief Pointer to the function used to evaluate the rhs (and optionally lhs) face terms.
  *
  *  \param num_flux \ref Numerical_Flux_T.
@@ -73,8 +83,7 @@ const struct Operator* get_operator__cv0_vr_fc_T
 /** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_ff_fc operator.
  *  \return See brief. */
 const struct Operator* get_operator__cv0_ff_fc_T
-	(const int side_index,                   ///< The index of the side of the face under consideration.
-	 const struct Solver_Face_T*const s_face ///< The current face.
+	(const struct Solver_Face_T*const s_face ///< The current face.
 	);
 
 /** \brief Permute the input matrix such that its ordering is such that it is in the reference coordinates of the
@@ -174,6 +183,12 @@ void constructor_Flux_Input_data_f_T
 /// \brief Destructor for \ref constructor_Flux_Input_data_f_T.
 void destructor_Flux_Input_data_f_T
 	(struct Flux_Input_T* flux_i ///< Standard.
+		);
+
+/// \brief Scale \ref Numerical_Flux_T::nnf by the face Jacobian (i.e. only the explicit term).
+void scale_by_Jacobian_e_T
+	(struct Numerical_Flux_T*const num_flux, ///< See brief.
+	 const struct Solver_Face_T*const s_face ///< See brief.
 		);
 
 #include "undef_templates_compute_face_rlhs.h"

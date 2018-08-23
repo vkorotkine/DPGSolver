@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include <stddef.h>
 
+#include "def_templates_matrix.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_vector.h"
 #include "def_templates_boundary.h"
@@ -64,6 +65,7 @@ struct Solver_Face_T {
 	 *  \cite Zwanenburg2016) for the precise definition. */
 	const struct const_Multiarray_T* jacobian_det_fc;
 
+/// \todo Delete \ref Solver_Face_T::vol_jacobian_det_fc and \ref Solver_Face_T::metrics_fc if unused.
 	/** The determinant of the volume geometry Jacobian evaluated at the face cubature nodes. This is the same as \ref
 	 *  Solver_Volume_T::jacobian_det_vc but evaluated at the face cubature nodes. */
 	const struct const_Multiarray_T* vol_jacobian_det_fc;
@@ -117,6 +119,20 @@ const struct const_Vector_R* get_operator__w_fc__s_e_T
 	(const struct Solver_Face_T*const s_face ///< The current face.
 	);
 
+/** \brief Constructor for the mass matrix of the input face.
+ *  \return See brief. */
+const struct const_Matrix_T* constructor_mass_face_T
+	(const struct Solver_Face_T*const s_face ///< Standard.
+	 );
+
+/** \brief Get the pointer to the appropriate \ref Solver_Element::cv0_vt_fc operator.
+ *  \return See brief. */
+const struct Operator* get_operator__cv0_vt_fc_T
+	(const int side_index,                   ///< The index of the side of the face under consideration.
+	 const struct Solver_Face_T*const s_face ///< Standard.
+		);
+
+#include "undef_templates_matrix.h"
 #include "undef_templates_multiarray.h"
 #include "undef_templates_vector.h"
 #include "undef_templates_boundary.h"

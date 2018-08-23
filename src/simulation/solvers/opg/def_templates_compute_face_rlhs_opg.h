@@ -19,26 +19,38 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #if TYPE_RC == TYPE_REAL
 
+///\{ \name Data types.
+#define Lhs_Operators_OPG_T Lhs_Operators_OPG
+///\}
+
 ///\{ \name Function pointers
 #define compute_rlhs_opg_f_fptr_T compute_rlhs_opg_f_fptr
 ///\}
 
 ///\{ \name Function names
 #define compute_face_rlhs_opg_T compute_face_rlhs_opg
+#define compute_face_rlhs_opg_boundary_T compute_face_rlhs_opg_boundary_d
 #define update_coef_nf_f_opg_T update_coef_nf_f_opg
+#define constructor_Lhs_Operators_OPG_T constructor_Lhs_Operators_OPG
+#define destructor_Lhs_Operators_OPG_T destructor_Lhs_Operators_OPG
 ///\}
 
 ///\{ \name Static names
-#define S_Params_T S_Params_T
-#define Num_Flux_T Num_Flux_T
-#define set_s_params_T set_s_params_T
-#define constructor_Numerical_Flux_OPG_T constructor_Numerical_Flux_OPG_T
-#define constructor_Flux_OPG_T constructor_Flux_OPG_T
-#define scale_by_Jacobian_e_T scale_by_Jacobian_e_T
-#define constructor_Numerical_Flux_Input_data_opg_T constructor_Numerical_Flux_Input_data_opg_T
+#define S_Params_f_T S_Params_f_d
+#define Num_Flux_T Num_Flux_d
+#define set_s_params_f_T set_s_params_f_d
+#define constructor_Numerical_Flux_OPG_T constructor_Numerical_Flux_OPG_d
+#define constructor_Flux_Ref_OPG_T constructor_Flux_Ref_OPG_d
+#define constructor_Numerical_Flux_Input_data_opg_T constructor_Numerical_Flux_Input_data_opg_d
+#define constructor_jump_test_s_fc_T constructor_jump_test_s_fc_d
+#define compute_rhs_f_opg_dg_like_T compute_rhs_f_opg_dg_like_d
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
+
+///\{ \name Data types.
+#define Lhs_Operators_OPG_T Lhs_Operators_OPG_c
+///\}
 
 ///\{ \name Function pointers
 #define compute_rlhs_opg_f_fptr_T compute_rlhs_opg_f_fptr_c
@@ -46,17 +58,21 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Function names
 #define compute_face_rlhs_opg_T compute_face_rlhs_opg_c
+#define compute_face_rlhs_opg_boundary_T compute_face_rlhs_opg_boundary_c
 #define update_coef_nf_f_opg_T update_coef_nf_f_opg_c
+#define constructor_Lhs_Operators_OPG_T constructor_Lhs_Operators_OPG_c
+#define destructor_Lhs_Operators_OPG_T destructor_Lhs_Operators_OPG_c
 ///\}
 
 ///\{ \name Static names
-#define S_Params_T S_Params_T_c
+#define S_Params_f_T S_Params_f_T_c
 #define Num_Flux_T Num_Flux_T_c
-#define set_s_params_T set_s_params_T_c
+#define set_s_params_f_T set_s_params_T_f_c
 #define constructor_Numerical_Flux_OPG_T constructor_Numerical_Flux_OPG_T_c
-#define constructor_Flux_OPG_T constructor_Flux_OPG_T_c
-#define scale_by_Jacobian_e_T scale_by_Jacobian_e_T_c
+#define constructor_Flux_Ref_OPG_T constructor_Flux_Ref_OPG_T_c
 #define constructor_Numerical_Flux_Input_data_opg_T constructor_Numerical_Flux_Input_data_opg_T_c
+#define constructor_jump_test_s_fc_T constructor_jump_test_s_fc_c
+#define compute_rhs_f_opg_dg_like_T compute_rhs_f_opg_dg_like_c
 ///\}
 
 #endif

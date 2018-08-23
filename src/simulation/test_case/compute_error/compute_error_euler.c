@@ -68,7 +68,7 @@ static const char* compute_header_spec_euler_entropy_p_rhs
 /** \brief Version of \ref constructor_Error_CE_fptr checking the error of pressure drag and lift coefficients where
  *         specified functionals may be removed.
  *  \return See brief. */
-struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
+static struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
 	(const struct Simulation*const sim, ///< \ref Simulation.
 	 const int remove_cd_cl             ///< Flag for which functional to remove (if any).
 	);
@@ -300,7 +300,8 @@ static const char* compute_header_spec_euler_entropy_p_rhs ( )
 
 	return header_spec;
 }
-struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
+
+static struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
 	(const struct Simulation*const sim, const int remove_cd_cl)
 {
 	const int n_out = (remove_cd_cl ? 1 : 2);
@@ -334,7 +335,7 @@ struct Error_CE* constructor_Error_CE_functionals__cd_cl_general
 		compute_cd_cl_values(e_ce_d.sol[0],bv_i.s,'c',bv_i.normals);
 		destructor_Boundary_Value_Input(&bv_i);
 
-		e_ce_d.sol[1] = (struct Multiarray_d*)constructor_const_functionals_cd_cl_zero(xyz_fc,sim); // destructed
+		e_ce_d.sol[1] = (struct Multiarray_d*)constructor_const_functionals_cd_cl_reference_constant(xyz_fc,sim); // d.
 
 		for (int i = 0; i < 2; ++i) {
 			switch (remove_cd_cl) {

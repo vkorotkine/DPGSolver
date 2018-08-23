@@ -55,6 +55,9 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef compute_Numerical_Flux_T_navier_stokes_central
 #undef compute_Numerical_Flux_T_navier_stokes_central_jacobian
+
+#undef compute_Numerical_Flux_T_burgers_inviscid_lax_friedrichs
+#undef compute_Numerical_Flux_T_burgers_inviscid_lax_friedrichs_jacobian
 ///\}
 
 #undef combine_num_flux_boundary_T
@@ -71,5 +74,4 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef compute_Numerical_Flux_T_central
 #undef compute_Numerical_Flux_T_central_jacobian
 #undef set_Numerical_Flux_Energy_member
-#undef min_abs_real_T
-#undef max_abs_real_T
+#undef compute_dmaxV_ds

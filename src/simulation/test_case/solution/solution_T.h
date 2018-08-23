@@ -174,7 +174,11 @@ const struct const_Multiarray_T* constructor_xyz_vc_interp_T
 void constructor_Solver_Face__nf_coef_T
 	(struct Solver_Face_T*const s_face, ///< \ref Solver_Face_T.
 	 struct Flux_Input_T*const flux_i,  ///< \ref Flux_Input_T.
-	 const struct Simulation*const sim  ///< \ref Simulation.
+	 const struct Simulation*const sim, ///< \ref Simulation.
+	 const char method                  /**< Method to use to get the coefficients. Options:
+	                                     *   - Compute from 'i'nitial solution;
+	                                     *   - Compute from 'c'urrent solution.
+	                                     */
 	);
 
 /// \brief Function to be used for \ref Test_Case_T::set_grad for the test cases with zero gradients.
@@ -199,6 +203,15 @@ void set_to_zero_residual_T
 void set_initial_v_test_sg_coef_T
 	(struct Simulation*const sim ///< \ref Simulation.
 	);
+
+/** \brief Contructor for a \ref const_Multiarray_T\* holding the xyz coordinates at volume nodes of input kind.
+ *  \return See brief. */
+const struct const_Multiarray_T* constructor_xyz_v
+	(const struct Simulation*const sim,        ///< Standard.
+	 const struct Solver_Volume_T*const s_vol, ///< Standard.
+	 const char node_kind,                     ///< The kind of node. Options: 's'olution, 'c'ubature.
+	 const bool using_restart                  ///< Flag for whether a restart solution is being used.
+		);
 
 #include "undef_templates_solution.h"
 #include "undef_templates_flux.h"

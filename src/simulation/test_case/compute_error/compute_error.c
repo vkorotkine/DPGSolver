@@ -40,6 +40,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "const_cast.h"
 #include "file_processing.h"
 #include "intrusive.h"
+#include "math_functions.h"
 #include "simulation.h"
 #include "solve.h"
 #include "test_case.h"
@@ -102,7 +103,18 @@ static void set_Solver_Volume_exact
 	 struct Solver_Volume* s_vol     ///< The \ref Solver_Volume_T.
 	);
 
+/** \brief Return whether the solution in the restart file should be used as the exact solution for the error
+ *         computation.
+ *  \return See brief. */
+static bool using_restart_as_exact ( );
+
 // Interface functions ********************************************************************************************** //
+
+struct Error_CE* constructor_Error_CE_NULL (const struct Simulation* sim)
+{
+	UNUSED(sim);
+	return NULL;
+}
 
 void output_error (const struct Simulation* sim)
 {
@@ -112,6 +124,8 @@ void output_error (const struct Simulation* sim)
 
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	struct Error_CE* error_ce = test_case->constructor_Error_CE(sim);
+	if (error_ce == NULL)
+		return;
 
 	output_errors_sp('s',ERROR_STANDARD,error_ce,sim);
 	output_errors_global(ERROR_STANDARD,error_ce,sim);
@@ -234,10 +248,10 @@ struct Error_CE_Data* constructor_Error_CE_Data
 	e_ce_h->sol_cont->sol    = e_ce_d->sol[1];
 	e_ce_h->sol_cont->volume = e_ce_h->s_vol[1];
 	struct Test_Case* test_case = (struct Test_Case*)sim->test_case_rc->tc;
-	if (!using_restart())
+	if (!using_restart_as_exact())
 		test_case->set_sol(sim,*(e_ce_h->sol_cont));
 	else
-		test_case->set_sol_start(sim,*(e_ce_h->sol_cont)); // Compare with restart file as exact solution.
+		test_case->set_sol_start(sim,*(e_ce_h->sol_cont));
 
 	if (test_case->copy_initial_rhs) {
 		e_ce_d->rhs[0] = constructor_rhs_v(sim,e_ce_h->s_vol[0],e_ce_h->sol_cont->node_kind); // destructed
@@ -376,6 +390,15 @@ static const struct const_Vector_d* constructor_w_detJ_face
 	(const struct Solver_Face*const s_face ///< \ref Solver_Face_T.
 	);
 
+/** \brief Return whether the error contribution of the internal volumes should be ignored in the global L2 error
+ *         computation.
+ *  \return See brief. */
+static bool ignore_internal_volume_error ( );
+
+/** \brief Return whether the infinity error should be used in place of the l2 error.
+ *  \return See brief. */
+static bool use_infinity_error ( );
+
 static void destructor_Error_CE (struct Error_CE* error_ce)
 {
 	destructor_const_Vector_d(error_ce->sol_err);
@@ -386,28 +409,38 @@ static void destructor_Error_CE (struct Error_CE* error_ce)
 static double compute_domain_volume (const struct Simulation* sim)
 {
 	double domain_volume = 0.0;
-	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next) {
-//if(!((struct Volume*)curr)->boundary)
-//	continue;
+	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next)
 		domain_volume += compute_volume((struct Solver_Volume*) curr);
-
-	}
 	return domain_volume;
 }
 
 static void increment_vol_errors_l2_2
 	(struct Vector_d* errors_l2_2, const struct const_Multiarray_d* err_v, const struct Solver_Volume* s_vol)
 {
+	const struct Volume*const vol = (struct Volume*) s_vol;
+	if (ignore_internal_volume_error() && !vol->boundary)
+		return;
+
 	assert(errors_l2_2->ext_0 == err_v->extents[1]);
 
 	const struct const_Vector_d* w_detJ = constructor_w_detJ(s_vol); // destructed
 	const ptrdiff_t ext_0 = w_detJ->ext_0;
 
 	const ptrdiff_t n_out = errors_l2_2->ext_0;
-	for (int i = 0; i < n_out; ++i) {
-		const double* err_data = get_col_const_Multiarray_d(i,err_v);
-		for (int j = 0; j < ext_0; ++j)
-			errors_l2_2->data[i] += w_detJ->data[j]*err_data[j]*err_data[j];
+	if (!use_infinity_error()) {
+		for (int i = 0; i < n_out; ++i) {
+			const double* err_data = get_col_const_Multiarray_d(i,err_v);
+			for (int j = 0; j < ext_0; ++j)
+				errors_l2_2->data[i] += w_detJ->data[j]*err_data[j]*err_data[j];
+		}
+	} else {
+		for (int i = 0; i < n_out; ++i) {
+			const double* err_data = get_col_const_Multiarray_d(i,err_v);
+			const double max_err = maximum_abs_d(err_data,n_out);
+			const double max_err2 = max_err*max_err; // squared here as square root is subsequently taken.
+			if (max_err2 > errors_l2_2->data[i])
+				errors_l2_2->data[i] = max_err2;
+		}
 	}
 	destructor_const_Vector_d(w_detJ);
 }
@@ -456,7 +489,7 @@ static void output_errors_sp
 	}
 
 	for (int i = 0; i < n_out; ++i)
-		fprintf(sp_file,"%-14.4e",error_data[i]);
+		fprintf(sp_file,"%-24.14e",error_data[i]);
 
 	fclose(sp_file);
 }
@@ -566,6 +599,25 @@ static void set_Solver_Volume_exact (struct Solver_Volume* s_vol_ex, struct Solv
 	const_constructor_move_const_Multiarray_d(&s_vol_ex->geom_coef_p1,s_vol->geom_coef_p1);
 }
 
+static bool using_restart_as_exact ( )
+{
+	static bool need_input = true;
+	static bool use_restart_as_exact = false;
+	if (!using_restart())
+		need_input = false;
+	if (need_input) {
+		need_input = false;
+		char line[STRLEN_MAX];
+		FILE* input_file = input_file = fopen_input('t',NULL,NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line,"use_restart_as_exact")) read_skip_const_b(line,&use_restart_as_exact);
+		}
+		fclose(input_file);
+	}
+	return use_restart_as_exact;
+}
+
+
 // Level 1 ********************************************************************************************************** //
 
 static double compute_volume (const struct Solver_Volume* s_vol)
@@ -616,4 +668,36 @@ static const struct const_Vector_d* constructor_w_detJ_face (const struct Solver
 		w_detJ->data[i] = w_fc->data[i]*jacobian_det_fc.data[i];
 
 	return (const struct const_Vector_d*) w_detJ;
+}
+
+static bool ignore_internal_volume_error ( )
+{
+	static bool need_input  = true;
+	static bool ignore = false;
+	if (need_input) {
+		need_input = false;
+		char line[STRLEN_MAX];
+		FILE* input_file = input_file = fopen_input('t',NULL,NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line,"ignore_internal_volume_error")) read_skip_const_b(line,&ignore);
+		}
+		fclose(input_file);
+	}
+	return ignore;
+}
+
+static bool use_infinity_error ( )
+{
+	static bool need_input  = true;
+	static bool use_inf = false;
+	if (need_input) {
+		need_input = false;
+		char line[STRLEN_MAX];
+		FILE* input_file = input_file = fopen_input('t',NULL,NULL); // closed
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line,"use_infinity_error")) read_skip_const_b(line,&use_inf);
+		}
+		fclose(input_file);
+	}
+	return use_inf;
 }

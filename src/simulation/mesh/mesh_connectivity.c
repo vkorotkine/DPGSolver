@@ -134,16 +134,14 @@ bool check_pfe_boundary (const int bc, const bool include_periodic)
 {
 	const int bc_base = bc % BC_STEP_SC;
 	switch (bc_base) {
-	case BC_INFLOW:           // Advection
-	case BC_INFLOW_ALT1:
-	case BC_INFLOW_ALT2:
-	case BC_OUTFLOW:
-	case BC_OUTFLOW_ALT1:
-	case BC_OUTFLOW_ALT2:
-	case BC_UPWIND:
+	case BC_INFLOW: case BC_INFLOW_ALT1: case BC_INFLOW_ALT2: // deprecated
+	case BC_OUTFLOW: case BC_OUTFLOW_ALT1: case BC_OUTFLOW_ALT2: // deprecated
+	case BC_UPWIND: // Advection
 	case BC_UPWIND_ALT1:
 	case BC_UPWIND_ALT2:
 	case BC_UPWIND_ALT3:
+	case BC_UPWIND_ALT4:
+	case BC_UPWIND_ALT5:
 	case BC_DIRICHLET:        // Diffusion
 	case BC_DIRICHLET_ALT1:
 	case BC_NEUMANN:

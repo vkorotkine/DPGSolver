@@ -14,7 +14,6 @@ You should have received a copy of the GNU General Public License along with DPG
 }}} */
 /** \file
  *  \brief Provides the templated Euler boundary condition functions.
- *  \todo clean-up.
  */
 
 #include <assert.h>

@@ -19,18 +19,17 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "def_templates_solve_dpg.h"
 
+#include <stdbool.h>
+
 struct Simulation;
 struct Solver_Storage_Implicit;
-
-/// \brief Update \ref Solver_Volume_T::ind_dof and \ref Solver_Face_T::ind_dof for the dpg method.
-void update_ind_dof_dpg_T
-	(const struct Simulation* sim ///< \ref Simulation.
-	);
 
 /** \brief Version of \ref constructor_nnz for the dpg method.
  *  \return See brief. */
 struct Vector_i* constructor_nnz_dpg_T
-	(const struct Simulation* sim ///< \ref Simulation.
+	(const bool diag_only,        /**< Flag for whether space should only be allocated for block diagonal
+	                               *   contributions. */
+	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
 #include "undef_templates_solve_dpg.h"

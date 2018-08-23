@@ -234,17 +234,6 @@ int compute_p_basis
 	 const struct Simulation* sim ///< \ref Simulation.
 	);
 
-/** \brief Check if the operator should use an L2 projection (as opposed to interpolation).
- *  \return `true` if yes; `false` otherwise.
- *
- *  The L2 projection operators are used whenever information would be lost by performing an interpolation
- *  (interpolating from a fine to a coarse space) and the output set of nodes forms a basis for a polynomial space.
- */
-bool op_should_use_L2
-	(const int*const op_values, ///< Values for the operator indices.
-	 const struct Op_IO* op_io  ///< \ref Op_IO.
-	);
-
 /** \brief Constructor for a \ref Vector_T\* of indices for the current operator.
  *  \return See brief. */
 const struct const_Vector_i* constructor_indices_Vector_i

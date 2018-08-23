@@ -24,6 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define PDE_DIFFUSION     2
 #define PDE_EULER         3
 #define PDE_NAVIER_STOKES 4
+#define PDE_BURGERS_INVISCID 5
 ///\}
 
 ///\{ \name Definitions for the available solver methods.
@@ -31,7 +32,9 @@ You should have received a copy of the GNU General Public License along with DPG
 #define METHOD_HDG  2
 #define METHOD_HDPG 3
 #define METHOD_DPG  4
-#define METHOD_OPG  5
+#define METHOD_OPG  5   ///< 'O'ptimal trial space 'P'etrov-'G'alerkin \cite Brunken2018 (using an L2 test space).
+#define METHOD_OPGC0 10 ///< 'O'ptimal trial space 'P'etrov-'G'alerkin \cite Brunken2018 (with slight modifications).
+#define METHOD_L2_PROJ 100 ///< Use L2 projection of exact solution (no solving performed).
 ///\}
 
 #define MAX_N_UNKNOWNS 4 ///< The 'max'imum 'n'umber of 'unknowns' (i.e. solution/gradient variables).

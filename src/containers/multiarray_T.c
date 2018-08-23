@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include <assert.h>
+#include <math.h>
 
 #include "macros.h"
 
@@ -54,6 +55,16 @@ static int cmp_Vector_T_indexed
 	(const void *a, ///< Variable 1.
 	 const void *b  ///< Variable 2.
 	);
+
+/** \brief Comparison function for std::qsort between `struct Vector_T*` `a` and `b`.
+ *  \return The lexicographical comparison of `a` and `b`.
+ *
+ *  \note The value of CMP_TOL must be set to the desired comparison tolerance before calling this function.
+ */
+static int cmp_Vector_tol_T
+	(const void* a, ///< Variable 1.
+	 const void* b  ///< Variable 2.
+	 );
 
 /** \brief Compute the total number of entries in a \ref Multiarray_Vector_T\*.
  *  \return See brief. */
@@ -174,6 +185,20 @@ struct Vector_i* sort_Multiarray_Vector_T (struct Multiarray_Vector_T* a, const 
 		return constructor_move_Vector_i_i(size,true,ordering_i);
 	}
 	EXIT_ERROR("Should not have made it here.\n");
+}
+
+struct Vector_i* sort_Multiarray_Vector_tol_T (struct Multiarray_Vector_T* a, const bool return_indices, const double tol)
+{
+	CMP_TOL = tol;
+	// Note: Does not sort the individual Vector entries
+
+	const ptrdiff_t size = compute_size(a->order,a->extents);
+	if (!return_indices) {
+		qsort(a->data,(size_t)size,sizeof(a->data[0]),cmp_Vector_tol_T);
+		return NULL;
+	} else {
+		EXIT_ADD_SUPPORT;
+	}
 }
 
 void reorder_Multiarray_Vector_T (struct Multiarray_Vector_T*const a, const int*const ordering)
@@ -467,8 +492,7 @@ void update_rows_Multiarray_T
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-static struct Vector_T_indexed** constructor_move_Vector_T_indexed
-	(const ptrdiff_t size, struct Vector_T** data)
+static struct Vector_T_indexed** constructor_move_Vector_T_indexed (const ptrdiff_t size, struct Vector_T** data)
 {
 	struct Vector_T_indexed** dest = malloc((size_t)size * sizeof *dest); // returned
 
@@ -489,19 +513,19 @@ static void destructor_Vector_T_indexed (struct Vector_T_indexed** src, const pt
 
 static int cmp_Vector_T_indexed (const void *a, const void *b)
 {
-	const struct Vector_T_indexed*const*const ia = (const struct Vector_T_indexed*const*const) a,
-	                             *const*const ib = (const struct Vector_T_indexed*const*const) b;
+	const struct Vector_T_indexed*const*const ia = (const struct Vector_T_indexed*const*const) a;
+	const struct Vector_T_indexed*const*const ib = (const struct Vector_T_indexed*const*const) b;
 
-	const ptrdiff_t size_a = (*ia)->vector->ext_0,
-	                size_b = (*ib)->vector->ext_0;
+	const ptrdiff_t size_a = (*ia)->vector->ext_0;
+	const ptrdiff_t size_b = (*ib)->vector->ext_0;
 
 	if (size_a > size_b)
 		return 1;
 	else if (size_a < size_b)
 		return -1;
 
-	const Type*const data_a = (*ia)->vector->data,
-	          *const data_b = (*ib)->vector->data;
+	const Type*const data_a = (*ia)->vector->data;
+	const Type*const data_b = (*ib)->vector->data;
 
 	for (ptrdiff_t i = 0; i < size_a; ++i) {
 #if TYPE_RC == TYPE_COMPLEX
@@ -515,6 +539,42 @@ static int cmp_Vector_T_indexed (const void *a, const void *b)
 		else if (data_a[i] < data_b[i])
 			return -1;
 #endif
+	}
+	return 0;
+}
+
+static int cmp_Vector_tol_T (const void* a, const void* b)
+{
+	const struct Vector_T*const*const ia = (const struct Vector_T*const*const) a;
+	const struct Vector_T*const*const ib = (const struct Vector_T*const*const) b;
+
+	const ptrdiff_t size_a = (*ia)->ext_0;
+	const ptrdiff_t size_b = (*ib)->ext_0;
+
+	if (size_a > size_b)
+		return 1;
+	else if (size_a < size_b)
+		return -1;
+
+	const Type*const data_a = (*ia)->data;
+	const Type*const data_b = (*ib)->data;
+
+	for (ptrdiff_t i = 0; i < size_a; ++i) {
+#if TYPE_RC == TYPE_COMPLEX
+		const Real da = creal(data_a[i]);
+		const Real db = creal(data_b[i]);
+		if (abs_R(da-db) < CMP_TOL)
+			continue;
+#else
+		const Type da = data_a[i];
+		const Type db = data_b[i];
+		if (abs_T(da-db) < CMP_TOL)
+			continue;
+#endif
+		if (da > db)
+			return 1;
+		else if (da < db)
+			return -1;
 	}
 	return 0;
 }

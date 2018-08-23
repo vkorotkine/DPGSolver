@@ -24,11 +24,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *  [ANN algorithm of Chan]: ann/Chan2006_A_Minimalist's_Implementation_of_an_ANN_Algorithm_in_Fixed_Dimensions.pdf
  */
 
-#include "approximate_nearest_neighbor.h"
-
 #include <assert.h>
-#include <float.h>
-#include <limits.h>
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -40,38 +36,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "matrix.h"
 #include "vector.h"
 
+#include "approximate_nearest_neighbor.h"
+
 // Static function declarations ************************************************************************************* //
-
-#define SINGLE ///< Definition to use `int` type for functions below.
-
-/** \{ \name Templating-related definitions.
- *
- *  The division by 4 in the maximum indices is required because:
- *  - The shift results in all numbers potentially being increased (maximally) by a factor of 2;
- *  - Something related to the subtraction requires an additional factor of 2?
- */
-#ifdef SINGLE
-	#define Index     int
-	#define INDEX_MIN 0
-	#define INDEX_MAX (INT_MAX/4)
-#else
-	#define Index     long long
-	#define INDEX_MIN 0
-	#define INDEX_MAX (LLONG_MAX/4)
-#endif
-#define Real double
-#define REAL_MAX DBL_MAX
-/// \}
 
 /// The shift to use. Global in this file as it must be used by \ref cmp_shuffle passed to qsort.
 static Index shift = -INDEX_MAX;
 
 /// \brief Set the value of the shift used for the ANN algorithm.
 static void set_shift ( );
-
-/** The accuracy tolerance for the approximate nearest neighbor search. Chosen based on the limitations of the
- *  conversion to `int`. */
-#define EPS_ANN 1e-9
 
 #define BASE_SEED 31415926535 ///< Random number base seed.
 
@@ -181,6 +154,10 @@ const struct const_Vector_i* constructor_ann_indices_from_sss (const struct SSS_
 			};
 		SSS_query(&sss_c);
 		ann_indices->data[n] = sss_c.ann->index;
+		/* if (n == 0) { */
+		/* 	printf("\n\nIndex (should be zero): %d\n\n\n",sss_c.ann->index); */
+		/* 	EXIT; */
+		/* } */
 	}
 	return (struct const_Vector_i*) ann_indices;
 }
@@ -247,7 +224,7 @@ void constructor_SSS_ANN_b (const struct Input_ANN*const ann_i, struct SSS_ANN*c
 		b[n].index = n;
 		for (int d = 0; d < DIM; ++d) {
 			const double rst = 2.0/xyz_h[0]*(*data_b-xyz_avg[0]);
-			b[n].xyz[d] = (Index) (0.5*((1.0-rst)*INDEX_MIN+(1.0+rst)*INDEX_MAX));
+			b[n].xyz[d] = (Index) (0.5*(((1.0-rst)*R_INDEX_MIN)+((1.0+rst)*R_INDEX_MAX)));
 			++data_b;
 		}
 	}
@@ -286,7 +263,7 @@ void constructor_SSS_ANN_s (const struct Input_ANN*const ann_i, struct SSS_ANN*c
 		s[n].index = n;
 		for (int d = 0; d < DIM; ++d) {
 			const double rst = 2.0/xyz_h[0]*(*data_s-xyz_avg[0]);
-			s[n].xyz[d] = (Index) (0.5*((1.0-rst)*INDEX_MIN+(1.0+rst)*INDEX_MAX));
+			s[n].xyz[d] = (Index) (0.5*((1.0-rst)*R_INDEX_MIN+(1.0+rst)*R_INDEX_MAX));
 			++data_s;
 		}
 	}
@@ -426,14 +403,12 @@ static void set_shift ( )
 	if (needs_set) {
 		needs_set = false;
 		srand48(BASE_SEED+DIM); // seed the random number generator.
-		shift = (Index) (drand48()*INDEX_MAX);
+		shift = (Index) (drand48()*R_INDEX_MAX);
 	}
 }
 
 static const struct SSS_ANN* constructor_SSS_ANN (const struct Input_ANN*const ann_i)
 {
-	enum { display = 0, };
-
 	struct SSS_ANN*const sss = calloc(1,sizeof *sss); // free
 
 	constructor_SSS_ANN_xyz(ann_i,sss); // destructed
@@ -495,7 +470,11 @@ static void print_nodes (const ptrdiff_t n, const struct Node_ANN*const nodes, c
 		const Index* xyz_i = nodes[i].xyz;
 		printf("%4d",nodes[i].index);
 		for (int j = 0; j < DIM; ++j)
+#if USE_SINGLE == true
 			printf(" %19d",xyz_i[j]);
+#else
+			printf(" %19lld",xyz_i[j]);
+#endif
 		printf("\n");
 	}
 	printf("\n");
@@ -512,7 +491,11 @@ static int cmp_shuffle (Index* p, Index* q)
 			x = y;
 		}
 	}
-	return p[j]-q[j];
+	if (p[j]-q[j] < 0)
+		return -1;
+	else if (p[j]-q[j] > 0)
+		return 1;
+	return 0;
 }
 
 static void copy_Node_ANN (const struct Node_ANN*const src, struct Node_ANN*const dest)
@@ -554,10 +537,10 @@ static void compute_distance_and_update (const ptrdiff_t n, struct SSS_c*const s
 		const Real r = sqrt(z); // Chan p.3 line 2
 		for (int j = 0; j < DIM; j++) {
 			// l == q^{s-[r]} (p.3, line 9)
-			sss->l.xyz[j] = ( (q->xyz[j]-r > INDEX_MIN) ? (q->xyz[j]-(Index)ceil(r)) : INDEX_MIN );
+			sss->l.xyz[j] = ( ((Real)q->xyz[j]-r > R_INDEX_MIN) ? (q->xyz[j]-(Index)ceil(r)) : INDEX_MIN );
 
 			// u == q^{s+[r]} (p.3, line 6)
-			sss->u.xyz[j] = ( (q->xyz[j]+r < INDEX_MAX) ? (q->xyz[j]+(Index)ceil(r)) : INDEX_MAX );
+			sss->u.xyz[j] = ( ((Real)q->xyz[j]+r < R_INDEX_MAX) ? (q->xyz[j]+(Index)ceil(r)) : INDEX_MAX );
 		}
 	}
 }
@@ -569,19 +552,19 @@ Real compute_r2_to_box (const struct SSS_c*const sss)
 	           *const b_xyz = sss->b[n-1].xyz,
 	           *const s_xyz = sss->s->xyz;
 
-	int x = 0;
+	Index x = 0;
 	for (int j = 0; j < DIM; ++j) {
 		const Index y = (a_xyz[j]+shift)^(b_xyz[j]+shift);
 		if (less_msb(x,y))
 			x = y;
 	}
 	int i = -1;
-	frexp(x,&i); // Extract most significant bit
+	frexp((Real)x,&i); // Extract most significant bit
 
 	Real z = 0;
 	for (int j = 0; j < DIM; ++j) {
-		const Index x = ( (a_xyz[j]+shift) >>i ) << i,
-		            y = x + (1 << i);
+		const Index x = ( (a_xyz[j]+shift) >> i ) << i,
+		            y = x + ((Index)1 << i);
 		if      (s_xyz[j]+shift < x)
 			z += POW2_R(s_xyz[j]+shift-x);
 		else if (s_xyz[j]+shift > y)

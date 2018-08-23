@@ -20,8 +20,10 @@ target_link_libraries(${LIB} ${LIBS_DEPEND})
  	support/general
  	support/intrusive
  	support/simulation/computational_elements
+ 	support/simulation/solvers
  	support/simulation/solvers/dg
  	support/simulation/solvers/dpg
+ 	support/simulation/solvers/opg
  	unit
  	)
 

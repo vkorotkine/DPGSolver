@@ -32,6 +32,7 @@ struct Plotting_Element {
 	const struct Multiarray_Operator* cv0_vgs_vp; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vgc_vp; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vs_vp;  ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* vv0_vs_vp;  ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vr_vp;  ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* cv0_vt_vp;  ///< See notation in \ref element_operators.h.
 

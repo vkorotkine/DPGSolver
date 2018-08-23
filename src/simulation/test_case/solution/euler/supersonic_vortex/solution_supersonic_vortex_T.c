@@ -69,8 +69,7 @@ struct Sol_Data__sv {
 	// Read parameters
 	double r_i,   ///< The 'r'adius of the 'i'nternal cylinder.
 	       m_i,   ///< The 'm'ach number at the 'i'nternal cylinder face.
-	       rho_i, ///< The density (\f$ rho \f$) at the 'i'nternal cylinder face.
-	       V_i;   ///< The magnitude of the 'V'elocity at the 'i'nternal cylinder face.
+	       rho_i; ///< The density (\f$ rho \f$) at the 'i'nternal cylinder face.
 };
 
 /** \brief Return the statically allocated \ref Sol_Data__sv container.
@@ -100,22 +99,25 @@ static struct Multiarray_T* constructor_sol_supersonic_vortex
 	    * u   = get_col_Multiarray_T(1,sol),
 	    * v   = get_col_Multiarray_T(2,sol),
 	    * p   = get_col_Multiarray_T(n_var-1,sol);
-	for (int i = 0; i < n_n; ++i) {
-		const Real r_i   = sol_data.r_i,
-		           m_i   = sol_data.m_i,
-		           rho_i = sol_data.rho_i,
-		           V_i   = sol_data.V_i;
 
+	const Real r_i   = sol_data.r_i;
+	const Real m_i   = sol_data.m_i;
+	const Real rho_i = sol_data.rho_i;
+	const Real c_i   = SQRT_GAMMA*pow(rho_i,0.5*GM1);
+	/* const Real c_i   = pow(rho_i,0.5*GM1); */
+	const Real rcm_i = r_i*c_i*m_i;
+	for (int i = 0; i < n_n; ++i) {
 		const Real x_i = real_T(x[i]),
 		           y_i = real_T(y[i]);
 		const Real r  = sqrt(x_i*x_i+y_i*y_i),
-		           t  = atan2(y_i,x_i),
-		           Vt = -V_i/r;
+		           t  = atan2(y_i,x_i);
+		const Real Vt = -rcm_i/r;
 
 		rho[i] = rho_i*pow(1.0+0.5*GM1*m_i*m_i*(1.0-pow(r_i/r,2.0)),1.0/GM1);
 		u[i]   = -sin(t)*Vt;
 		v[i]   =  cos(t)*Vt;
-		p[i]   = pow_T(rho[i],GAMMA)/GAMMA;
+		p[i]   = pow_T(rho[i],GAMMA);
+		/* p[i]   = pow_T(rho[i],GAMMA)/GAMMA; */
 	}
 
 	if (DIM == 3) {
@@ -152,7 +154,7 @@ static struct Sol_Data__sv get_sol_data ( )
 
 static void read_data_supersonic_vortex (struct Sol_Data__sv*const sol_data)
 {
-	const int count_to_find = 4;
+	const int count_to_find = 3;
 	int count_found = 0;
 
 	FILE* input_file = NULL;
@@ -168,7 +170,6 @@ static void read_data_supersonic_vortex (struct Sol_Data__sv*const sol_data)
 	while (fgets(line,sizeof(line),input_file)) {
 		read_skip_string_count_d("m_i",  &count_found,line,&sol_data->m_i);
 		read_skip_string_count_d("rho_i",&count_found,line,&sol_data->rho_i);
-		read_skip_string_count_d("V_i",  &count_found,line,&sol_data->V_i);
 	}
 	fclose(input_file);
 

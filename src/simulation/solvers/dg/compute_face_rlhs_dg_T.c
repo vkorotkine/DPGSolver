@@ -44,18 +44,6 @@ You should have received a copy of the GNU General Public License along with DPG
 
 // Static function declarations ************************************************************************************* //
 
-struct Num_Flux_T;
-
-/** \brief Function pointer to the function used to scale by the face Jacobian.
- *
- *  \param num_flux \ref Numerical_Flux_T.
- *  \param s_face   \ref Solver_Face_T.
- */
-typedef void (*scale_by_Jacobian_fptr_T)
-	(struct Numerical_Flux_T*const num_flux,
-	 const struct Solver_Face_T*const s_face
-	);
-
 /// \brief Container for solver-related parameters.
 struct S_Params_T {
 	scale_by_Jacobian_fptr_T scale_by_Jacobian; ///< Pointer to the appropriate function.
@@ -171,12 +159,6 @@ void constructor_Numerical_Flux_Input_data_dg_T
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
-/// \brief Scale \ref Numerical_Flux_T::nnf by the face Jacobian (i.e. only the explicit term).
-static void scale_by_Jacobian_e_T
-	(struct Numerical_Flux_T*const num_flux, ///< See brief.
-	 const struct Solver_Face_T*const s_face ///< See brief.
-	);
-
 /** \brief Constructor for the partially corrected weak gradient interpolated to the face cubature nodes as seen from
  *         the volume of input "side_index".
  *  \return See brief. */
@@ -259,13 +241,6 @@ static void constructor_Boundary_Value_g_face_fcl
 static Real compute_scaling_weak_gradient
 	(const struct DG_Solver_Face_T*const dg_s_face ///< \ref DG_Solver_Face_T.
 	);
-
-static void scale_by_Jacobian_e_T
-	(struct Numerical_Flux_T*const num_flux, const struct Solver_Face_T*const s_face)
-{
-	const struct const_Vector_T jacobian_det_fc = interpret_const_Multiarray_as_Vector_T(s_face->jacobian_det_fc);
-	scale_Multiarray_by_Vector_T('L',1.0,(struct Multiarray_T*)num_flux->nnf,&jacobian_det_fc,false);
-}
 
 static struct Multiarray_T* constructor_partial_grad_fc_interp
 	(const int side_index, const struct DG_Solver_Face_T*const dg_s_face)

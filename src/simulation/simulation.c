@@ -262,6 +262,40 @@ int get_set_method (const int*const new_val)
 	return method;
 }
 
+int get_set_domain_type (const int*const new_val)
+{
+	static int domain_type = -1;
+	if (new_val)
+		domain_type = *new_val;
+	return domain_type;
+}
+
+const int* get_set_degree_poly (const int*const new_vals, const char*const key)
+{
+	const int* deg = NULL;
+	switch (key[0]) {
+	case 't':
+		switch (key[1]) {
+		case 'p': {
+			static int p_t_p[2];
+			if (new_vals) {
+				for (int i = 0; i < 2; ++i)
+					p_t_p[i] = new_vals[i];
+			}
+			deg = p_t_p;
+			break;
+		} default:
+			EXIT_ERROR("Unsupported: %s\n",key);
+			break;
+		}
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %s\n",key);
+		break;
+	}
+	return deg;
+}
+
 // Static functions ************************************************************************************************* //
 // Level 0 ********************************************************************************************************** //
 
@@ -437,11 +471,12 @@ static void check_necessary_simulation_parameters (struct Simulation*const sim)
 	assert(sim->p_s_v[1] != P_INVALID);
 	assert(sim->p_s_v[1] >= sim->p_s_v[0]);
 
-	assert((sim->method == METHOD_DPG) || (sim->method == METHOD_OPG) ||
+	assert((sim->method == METHOD_DPG) || (sim->method == METHOD_OPG) || (sim->method == METHOD_OPGC0) ||
 	       (sim->p_t_p[0] == P_INVALID && sim->p_t_p[1] == P_INVALID));
 
-	assert((sim->method == METHOD_DG)   || (sim->method == METHOD_HDG) ||
-	       (sim->method == METHOD_HDPG) || (sim->method == METHOD_DPG) || (sim->method == METHOD_OPG));
+	// If the condition below is violated, L2 projecting will give zero error in several cases (related to the
+	// strength of the cubature rules).
+	assert((sim->method != METHOD_L2_PROJ) || sim->p_c_p[0] > 0 || sim->p_c_x[0] > 2);
 }
 
 static void set_simulation_default (struct Simulation*const sim)
@@ -570,6 +605,8 @@ static void set_orders (struct Simulation*const sim)
 		p = sim->p_sg_f_p + (sim->p_sg_f_p == P_INVALID ? 0 : sim->p_ref[i]);
 		const_cast_i(&sim->p_sg_f[i],p);
 	}
+
+	get_set_degree_poly(sim->p_t_p,"tp");
 }
 
 // Level 2 ********************************************************************************************************** //
@@ -611,4 +648,5 @@ static void set_domain_type (struct Simulation*const sim, const struct Mesh_Ctrl
 		const_cast_i(&sim->domain_type,DOM_PARAMETRIC);
 	else
 		EXIT_UNSUPPORTED;
+	get_set_domain_type(&sim->domain_type);
 }

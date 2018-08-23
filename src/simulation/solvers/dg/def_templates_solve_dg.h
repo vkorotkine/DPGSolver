@@ -19,14 +19,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #if TYPE_RC == TYPE_REAL
 
 ///\{ \name Function names
-#define update_ind_dof_dg_T     update_ind_dof_dg
 #define constructor_nnz_dg_T    constructor_nnz_dg
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
 
 ///\{ \name Function names
-#define update_ind_dof_dg_T     update_ind_dof_dg_c
 #define constructor_nnz_dg_T    constructor_nnz_dg_c
 ///\}
 

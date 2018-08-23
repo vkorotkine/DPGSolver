@@ -33,6 +33,7 @@ ADVECTION     = 1;
 DIFFUSION     = 2;
 EULER         = 3;
 NAVIER_STOKES = 4;
+BURGERS_INVISCID = 5;
 
 
 // PDE Specifiers
@@ -47,7 +48,7 @@ STEADY_VORTEX                 = 8;
 STEADY_FREE_STREAM            = 9;
 STEADY_GAUSSIAN_BUMP          = 10;
 UNSTEADY_HYPERBOLIC_TAN       = 11;
-STEADY_NURBS 				  = 12;
+PERIODIC_TRIGONOMETRIC        = 12;
 DEFAULT_STEADY                = 100; // Replace with STEADY_DEFAULT.
 DEMKOWICZ_DPG_II              = 101;
 
@@ -124,6 +125,8 @@ BC_UPWIND       = 41;
 BC_UPWIND_ALT1  = 42;
 BC_UPWIND_ALT2  = 43;
 BC_UPWIND_ALT3  = 44;
+BC_UPWIND_ALT4  = 45;
+BC_UPWIND_ALT5  = 46;
 
 BC_DIRICHLET      = 21; // Diffusion
 BC_DIRICHLET_ALT1 = 22;

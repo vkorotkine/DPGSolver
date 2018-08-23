@@ -28,4 +28,25 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "compute_face_rlhs_T.h"
 #include "undef_templates_type.h"
 
+struct Numerical_Flux;
+struct Solver_Face;
+
+/// \brief Version of \ref scale_by_Jacobian_fptr_T for 1st order equations only.
+void scale_by_Jacobian_i1
+	(struct Numerical_Flux*const num_flux, ///< See brief.
+	 const struct Solver_Face*const s_face ///< See brief.
+		);
+
+/// \brief Version of \ref scale_by_Jacobian_fptr_T for 2nd order equations only.
+void scale_by_Jacobian_i2
+	(struct Numerical_Flux*const num_flux, ///< See brief.
+	 const struct Solver_Face*const s_face ///< See brief.
+		);
+
+/// \brief Version of \ref scale_by_Jacobian_fptr_T for both 1st and 2nd order equations.
+void scale_by_Jacobian_i12
+	(struct Numerical_Flux*const num_flux, ///< See brief.
+	 const struct Solver_Face*const s_face ///< See brief.
+		);
+
 #endif // DPG__compute_face_rlhs_h__INCLUDED

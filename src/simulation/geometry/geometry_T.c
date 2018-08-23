@@ -166,6 +166,13 @@ static void compute_geometry_face_p1_T
 	(struct Solver_Face_T*const s_face ///< Standard.
 	);
 
+/** \brief Construct the metric terms (and optionally the jacobian determinant) terms at the nodes of input type for the
+ *         volume under consideration. */
+static void constructor_volume_metric_terms_T
+	(const char node_type,              ///< The type of nodes. Options: 'm'etric, 'c'ubature, 's'olution.
+	 struct Solver_Volume_T*const s_vol ///< Standard.
+	 );
+
 // Interface functions ********************************************************************************************** //
 
 void set_up_solver_geometry_T (struct Simulation* sim)
@@ -350,25 +357,27 @@ void compute_NURBS_enhanced_geometry_volume_T(const bool recompute_geom_coef,
 
 
 void compute_geometry_volume_T
-	(const bool recompute_geom_coef, struct Solver_Volume_T* s_vol, const struct Simulation *sim)
+	(const bool recompute_geom_coef, struct Solver_Volume_T* s_vol, const struct Simulation* sim)
 {
-
-	UNUSED(recompute_geom_coef);
-	UNUSED(s_vol);
-	UNUSED(sim);
-
-	const char op_format = get_set_op_format(0);
-
 	struct Volume* vol = (struct Volume*) s_vol;
-	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
-
 	if (recompute_geom_coef) {
 		compute_geom_coef_fptr_T compute_geom_coef = set_fptr_geom_coef_T(sim->domain_type,vol->curved);
 		compute_geom_coef_p1(sim,s_vol);
 		compute_geom_coef(sim,s_vol);
 	}
 
+if (1) {
+	constructor_volume_metric_terms_T('m',s_vol);
+	constructor_volume_metric_terms_T('c',s_vol);
+	if (get_set_method(NULL) == METHOD_OPG || get_set_method(NULL) == METHOD_OPGC0)
+		constructor_volume_metric_terms_T('s',s_vol);
+} else {
+	const char op_format = get_set_op_format(0);
+
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
+
 	const int d = ((struct const_Element*)g_e)->d;
+	assert(d == DIM);
 
 	const struct const_Multiarray_T*const geom_coef = s_vol->geom_coef;
 
@@ -411,6 +420,7 @@ void compute_geometry_volume_T
 	mm_NN1C_Operator_Multiarray_T(
 		ops.vv0_vm_vc,met_vm,(struct Multiarray_T*)s_vol->metrics_vc,op_format,met_vm->order,NULL,NULL);
 
+}
 }
 
 
@@ -800,11 +810,12 @@ static void compute_detJV_T (struct const_Multiarray_T* jacobian, struct Multiar
 	}
 
 	for (ptrdiff_t i = 0; i < n_vals; ++i) {
+		const bool cond = (real_T(j_det[i]) > 0.0);
 #ifndef NDEBUG
-		if (real_T(j_det[i]) < 0.0)
+		if (!cond)
 			print_Multiarray_T(jacobian_det);
 #endif
-		assert(real_T(j_det[i]) > 0.0);
+		assert(cond);
 	}
 }
 
@@ -1034,6 +1045,75 @@ static void compute_geometry_face_p1_T (struct Solver_Face_T* s_face)
 	destructor_const_Multiarray_T(metrics_p1);
 }
 
+static void constructor_volume_metric_terms_T (const char node_type, struct Solver_Volume_T*const s_vol)
+{
+
+	struct Volume* vol = (struct Volume*) s_vol;
+	const struct Geometry_Element* g_e = &((struct Solver_Element*)vol->element)->g_e;
+
+	const int p = s_vol->p_ref;
+	const bool curved = vol->curved;
+	const int p_g = ( curved ? p : 1 );
+
+	struct Container {
+		struct Multiarray_Operator* cv1_vg_vX;
+		const struct Operator* vv0_vm_vX;
+		struct Multiarray_T* metrics_vX;
+		struct Multiarray_T* jacobian_det_vX;
+	} con;
+	struct Multiarray_Operator cv1_vg_vm = set_MO_from_MO(g_e->cv1_vg_vm[curved],1,(ptrdiff_t[]){0,0,p_g,p_g});
+	struct Multiarray_Operator cv1_vg_vc = set_MO_from_MO(g_e->cv1_vg_vc[curved],1,(ptrdiff_t[]){0,0,p,p_g});
+	struct Multiarray_Operator cv1_vg_vs = set_MO_from_MO(g_e->cv1_vg_vs[curved],1,(ptrdiff_t[]){0,0,p,p_g});
+
+	switch (node_type) {
+	case 'm':
+		con.cv1_vg_vX       = &cv1_vg_vm;
+		con.vv0_vm_vX       = NULL;
+		con.metrics_vX      = (struct Multiarray_T*) s_vol->metrics_vm;
+		con.jacobian_det_vX = NULL;
+		break;
+	case 'c':
+		con.cv1_vg_vX       = &cv1_vg_vc;
+		con.vv0_vm_vX       = get_Multiarray_Operator(g_e->vv0_vm_vc[curved],(ptrdiff_t[]){0,0,p,p_g});
+		con.metrics_vX      = (struct Multiarray_T*) s_vol->metrics_vc;
+		con.jacobian_det_vX = (struct Multiarray_T*) s_vol->jacobian_det_vc;
+		break;
+	case 's':
+		con.cv1_vg_vX       = &cv1_vg_vs;
+		con.vv0_vm_vX       = get_Multiarray_Operator(g_e->vv0_vm_vs[curved],(ptrdiff_t[]){0,0,p,p_g});
+		con.metrics_vX      = (struct Multiarray_T*) s_vol->metrics_vs;
+		con.jacobian_det_vX = (struct Multiarray_T*) s_vol->jacobian_det_vs;
+		break;
+	default:
+		EXIT_ERROR("Unsupported: %c\n",node_type);
+		break;
+	}
+	const ptrdiff_t n_vX = con.cv1_vg_vX->data[0]->op_std->ext_0;
+	struct Multiarray_T*const jacobian_vX = constructor_empty_Multiarray_T('C',3,(ptrdiff_t[]){n_vX,DIM,DIM}); // d.
+
+	const char op_format = get_set_op_format(0);
+	const struct const_Multiarray_T*const geom_coef = s_vol->geom_coef;
+	for (ptrdiff_t row = 0; row < DIM; ++row)
+		mm_NN1C_Operator_Multiarray_T(con.cv1_vg_vX->data[row],geom_coef,jacobian_vX,op_format,2,NULL,&row);
+
+	if (node_type == 'm') {
+		compute_cofactors_T((struct const_Multiarray_T*)jacobian_vX,con.metrics_vX);
+	} else {
+		assert(compute_size(s_vol->metrics_vm->order,s_vol->metrics_vm->extents) > 0);
+		const struct const_Multiarray_T*const met_vm = s_vol->metrics_vm;
+		resize_Multiarray_T(con.metrics_vX,3,(ptrdiff_t[]){n_vX,DIM,DIM});
+		mm_NN1C_Operator_Multiarray_T(con.vv0_vm_vX,met_vm,con.metrics_vX,op_format,met_vm->order,NULL,NULL);
+	}
+
+	if (con.jacobian_det_vX) {
+		const ptrdiff_t*const perm = set_jacobian_permutation(DIM);
+		permute_Multiarray_T(jacobian_vX,perm,jacobian_vX->layout);
+
+		compute_detJV_T((struct const_Multiarray_T*)jacobian_vX,con.jacobian_det_vX);
+	}
+	destructor_Multiarray_T(jacobian_vX);
+}
+
 // Level 1 ********************************************************************************************************** //
 
 /// \brief Correct the xyz coordinates of the internal face geometry nodes such that they are of degree 1.
@@ -1106,12 +1186,9 @@ static void compute_geom_coef_parametric_T (const struct Simulation*const sim, s
 	s_vol->geom_coef = constructor_geom_coef_ho_T(xyz,s_vol,sim); // keep
 	destructor_const_Multiarray_T(xyz);
 
-	if (is_internal_geom_straight()) {
+	if (is_internal_geom_straight())
 		correct_face_xyz_straight_T(s_vol,sim);
-		// Note: correct_internal_xyz_blended_T already called in correct_face_xyz_straight_T.
-	} else {
-		correct_internal_xyz_blended_T(s_vol,sim);
-	}
+	correct_internal_xyz_blended_T(s_vol,sim);
 }
 
 // Level 2 ********************************************************************************************************** //
@@ -1134,6 +1211,7 @@ static const struct const_Vector_i* constructor_cc0_vgc_fgc_indices
 
 static void correct_face_xyz_straight_T (struct Solver_Volume_T*const s_vol, const struct Simulation*const sim)
 {
+	UNUSED(sim);
 	if (DIM == 1)
 		return;
 
@@ -1153,8 +1231,6 @@ static void correct_face_xyz_straight_T (struct Solver_Volume_T*const s_vol, con
 		destructor_const_Multiarray_T(f_geom_coef_p1);
 		destructor_const_Vector_i(coef_inds);
 	}
-
-	correct_internal_xyz_blended_T(s_vol,sim);
 }
 
 // Level 3 ********************************************************************************************************** //

@@ -77,6 +77,7 @@ void destructor_derived_Plotting_Element (struct Element* element_ptr)
 	destructor_Multiarray_Operator(element->cv0_vgs_vp);
 	destructor_Multiarray_Operator(element->cv0_vgc_vp);
 	destructor_Multiarray_Operator(element->cv0_vs_vp);
+	destructor_Multiarray_Operator(element->vv0_vs_vp);
 	destructor_Multiarray_Operator(element->cv0_vr_vp);
 	destructor_Multiarray_Operator(element->cv0_vt_vp);
 
@@ -100,6 +101,7 @@ static void constructor_derived_Plotting_Element_std (struct Element* element_pt
 	element->cv0_vgs_vp = constructor_operators("cv0","vgs","vpA","H_1_P_1P", b_e,sim); // destructed
 	element->cv0_vgc_vp = constructor_operators("cv0","vgc","vpA","H_1_P_PM0",b_e,sim); // destructed
 	element->cv0_vs_vp  = constructor_operators("cv0","vsA","vpA","H_1_P_PM0",b_e,sim); // destructed
+	element->vv0_vs_vp  = constructor_operators("vv0","vsA","vpA","H_1_P_PM0",b_e,sim); // destructed
 	element->cv0_vr_vp  = constructor_operators("cv0","vrA","vpA","H_1_P_PM0",b_e,sim); // destructed
 	element->cv0_vt_vp  = constructor_operators("cv0","vtA","vpA","H_1_P_PM0",b_e,sim); // destructed
 }
@@ -123,6 +125,9 @@ static void constructor_derived_Plotting_Element_tp (struct Element* element_ptr
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vs_vp,NULL,s_e[1]->cv0_vs_vp,NULL);
 	element->cv0_vs_vp = constructor_operators_tp("cv0","vsA","vpA","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
+
+	set_operators_tp(&ops_tp,s_e[0]->cv0_vs_vp,NULL,s_e[1]->vv0_vs_vp,NULL);
+	element->vv0_vs_vp = constructor_operators_tp("vv0","vsA","vpA","H_1_P_PM0",b_e,sim,&ops_tp); // destructed
 
 	set_operators_tp(&ops_tp,s_e[0]->cv0_vr_vp,NULL,s_e[1]->cv0_vr_vp,NULL);
 	element->cv0_vr_vp = constructor_operators_tp("cv0","vrA","vpA","H_1_P_PM0",b_e,sim,&ops_tp); // destructed

@@ -59,6 +59,8 @@ set	(SOURCE
 	 solvers/opg/compute_face_rlhs_opg.c
 	 solvers/opg/face_solver_opg.c
 	 solvers/opg/element_solver_opg.c
+	 solvers/opg/penalty_opg.c
+	 solvers/opg/penalty_opg_advection.c
 	 solvers/opg/solve_opg.c
 	 solvers/opg/volume_solver_opg.c
 
@@ -67,6 +69,7 @@ set	(SOURCE
 	 solvers/numerical_flux/numerical_flux_diffusion.c
 	 solvers/numerical_flux/numerical_flux_euler.c
 	 solvers/numerical_flux/numerical_flux_navier_stokes.c
+	 solvers/numerical_flux/numerical_flux_burgers_inviscid.c
 
 	 test_case/test_case.c
 	 test_case/test_case_c.c
@@ -82,12 +85,14 @@ set	(SOURCE
 	 test_case/compute_error/compute_error_diffusion.c
 	 test_case/compute_error/compute_error_euler.c
 	 test_case/compute_error/compute_error_navier_stokes.c
+	 test_case/compute_error/compute_error_burgers_inviscid.c
 
 	 test_case/flux/flux.c
 	 test_case/flux/flux_advection.c
 	 test_case/flux/flux_diffusion.c
 	 test_case/flux/flux_euler.c
 	 test_case/flux/flux_navier_stokes.c
+	 test_case/flux/flux_burgers_inviscid.c
 
 	 test_case/solution/element_solution.c
 	 test_case/solution/solution.c
@@ -105,6 +110,8 @@ set	(SOURCE
 	 test_case/solution/euler/free_stream/solution_free_stream.c
 	 test_case/solution/navier_stokes/solution_navier_stokes.c
 	 test_case/solution/navier_stokes/taylor_couette/solution_taylor_couette.c
+	 test_case/solution/burgers_inviscid/solution_burgers_inviscid.c
+	 test_case/solution/burgers_inviscid/trigonometric/solution_trigonometric.c
 	 test_case/solution/restart/approximate_nearest_neighbor.c
 	 test_case/solution/restart/inverse_mapping.c
 	 test_case/solution/restart/restart.c

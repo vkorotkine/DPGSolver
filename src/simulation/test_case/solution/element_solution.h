@@ -41,12 +41,15 @@ struct Solution_Element {
 
 	const struct Multiarray_Operator* vc0_ff_ff; ///< See notation in \ref element_operators.h.
 
+	const struct Multiarray_Operator* cv0_vs_ff; ///< See notation in \ref element_operators.h.
+
 	// Error computation
 	const struct const_Multiarray_Vector_d* w_vc[2]; ///< Weights for 'v'olume 'c'ubature 's'traight/'c'urved.
 
 	// Tensor-product sub-operators.
 	const struct Multiarray_Operator* cv0_vg_vf[2]; ///< See notation in \ref element_operators.h.
 	const struct Multiarray_Operator* vv0_vm_vf[2]; ///< See notation in \ref element_operators.h.
+	const struct Multiarray_Operator* cv0_vs_vf;    ///< See notation in \ref element_operators.h.
 };
 
 // Constructor/Destructor functions ********************************************************************************* //

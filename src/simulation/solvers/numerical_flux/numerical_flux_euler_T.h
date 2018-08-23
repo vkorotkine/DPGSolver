@@ -32,6 +32,14 @@ void compute_Numerical_Flux_T_euler_lax_friedrichs
 	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
 	);
 
+/** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes and Jacobians using the
+ *         Lax-Friedrichs method.
+ *  See comments for \ref compute_Numerical_Flux_T_euler_lax_friedrichs. */
+void compute_Numerical_Flux_T_euler_lax_friedrichs_jacobian
+	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.
+	 struct mutable_Numerical_Flux_T* num_flux        ///< See brief.
+		);
+
 /** \brief Version of \ref compute_Numerical_Flux_fptr_T computing the numerical fluxes using the Roe-Pike method.
  *  The implementation is based off of that explained in (Ch. 11.3, \cite Toro2009). */
 void compute_Numerical_Flux_T_euler_roe_pike

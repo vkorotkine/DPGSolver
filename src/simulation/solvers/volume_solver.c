@@ -64,6 +64,8 @@ void copy_members_r_to_c_Solver_Volume
 	s_vol->metrics_vc      = constructor_copy_const_Multiarray_c_Multiarray_d(s_vol_r->metrics_vc);      // dest.
 	s_vol->jacobian_det_vc = constructor_copy_const_Multiarray_c_Multiarray_d(s_vol_r->jacobian_det_vc); // dest.
 	s_vol->metrics_vm_p1   = constructor_copy_const_Multiarray_c_Multiarray_d(s_vol_r->metrics_vm_p1);   // dest.
+	s_vol->metrics_vs      = constructor_copy_const_Multiarray_c_Multiarray_d(s_vol_r->metrics_vs);      // dest.
+	s_vol->jacobian_det_vs = constructor_copy_const_Multiarray_c_Multiarray_d(s_vol_r->jacobian_det_vs); // dest.
 
 	struct Test_Case*const test_case = (struct Test_Case*)sim->test_case_rc->tc;
 	s_vol->flux_imbalance = constructor_empty_Vector_c(test_case->n_var); // destructed

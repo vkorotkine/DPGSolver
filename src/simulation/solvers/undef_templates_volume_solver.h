@@ -27,6 +27,15 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef get_operator__w_vc__s_e_T
 #undef constructor_mass_T
 #undef constructor_inverse_mass_T
+#undef constructor_l2_proj_operator_s_T
+#undef get_operator__cv0_vs_vs_T
+#undef get_operator__cv0_vr_vs_T
+#undef get_operator__cv0_vg_vs_T
+#undef get_operator__cv0_vs_vc_T
+#undef get_operator__cv0_vt_vc_T
+#undef get_operator__cv0_vr_vc_T
+#undef get_operator__tw1_vt_vc_T
+#undef get_operator__cv1_vt_vc_T
 ///\}
 
 #undef set_function_pointers_constructor_xyz_surface

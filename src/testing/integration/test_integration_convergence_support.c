@@ -1,4 +1,5 @@
 /* {{{
+
 This file is part of DPGSolver.
 
 DPGSolver is free software: you can redistribute it and/or modify it under the terms of the GNU
@@ -24,6 +25,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "macros.h"
 #include "definitions_adaptation.h"
 #include "definitions_error.h"
+
 #include "definitions_visualization.h"
 
 #include "test_base.h"
@@ -49,13 +51,13 @@ You should have received a copy of the GNU General Public License along with DPG
 #define DISPLAY_CONV 1 ///< Flag for whether the convergence orders should be displayed for these tests.
 
 ///\{ \name Parameters relating to which solutions to output to paraview for visualization.
-#define ORDER_VIS_CONV_P      2
-#define ORDER_VIS_CONV_ML_MAX 8
+#define ORDER_VIS_CONV_P      3
+#define ORDER_VIS_CONV_ML_MAX 4
 #define DISPLAY_GEOM          0 ///< Flag for whether the geometry should be output.
 ///\}
 
 ///\{ \name Parameters relating to maximum allowable mesh level and order for convergence order testing.
-#define ML_MAX 8
+#define ML_MAX 6
 #define P_MAX  6
 ///\}
 
@@ -123,7 +125,17 @@ void run_convergence_order_study (int argc, char** argv, const int conv_study_ty
 		switch (conv_study_type) {
 		case CONV_STUDY_SOLVE:          // fallthrough
 		case CONV_STUDY_SOLVE_NO_CHECK:
-			solve_for_solution(sim);
+			switch (get_set_method(NULL)) {
+			case METHOD_DG: case METHOD_DPG: case METHOD_OPG: case METHOD_OPGC0:
+				solve_for_solution(sim);
+				break;
+			case METHOD_L2_PROJ:
+				set_initial_solution(sim);
+				break; // do nothing.
+			default:
+				EXIT_ERROR("Unsupported: %d\n",get_set_method(NULL));
+				break;
+			}
 			break;
 		case CONV_STUDY_RESTART: {
 			assert(using_restart() == true);
@@ -589,8 +601,16 @@ static const int* get_conv_order_range (const struct Integration_Test_Info*const
 	} else {
 		static const int max_p_range[]  = { 0, P_MAX, },
 		                 max_ml_range[] = { 0, ML_MAX, };
-		if      (mp_type == 'p') return max_p_range;
-		else if (mp_type == 'm') return max_ml_range;
+		if (mp_type == 'p') {
+			assert(int_test_info->p_ref[0] >= max_p_range[0]);
+			assert(int_test_info->p_ref[1] <= max_p_range[1]);
+			return max_p_range;
+		}
+		else if (mp_type == 'm') {
+			assert(int_test_info->ml[0] >= max_ml_range[0]);
+			assert(int_test_info->ml[1] <= max_ml_range[1]);
+			return max_ml_range;
+		}
 	}
 	EXIT_ERROR("Should not have made it here (mp_type = %c).\n",mp_type);
 }

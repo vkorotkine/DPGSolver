@@ -36,7 +36,7 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name The values for the various boundary conditions after taking the modulus with \ref BC_STEP_SC.
 
 // Advection
-#define BC_INFLOW       1
+#define BC_INFLOW       1  // Advection
 #define BC_INFLOW_ALT1  2
 #define BC_INFLOW_ALT2  3
 #define BC_OUTFLOW      11
@@ -46,6 +46,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define BC_UPWIND_ALT1  42
 #define BC_UPWIND_ALT2  43
 #define BC_UPWIND_ALT3  44
+#define BC_UPWIND_ALT4  45
+#define BC_UPWIND_ALT5  46
 
 // Diffusion
 #define BC_DIRICHLET      21

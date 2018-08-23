@@ -1,6 +1,7 @@
 set	(SOURCE
 	 test_integration.c
 	 test_integration_convergence_support.c
+	 test_integration_support_face.c
 	)
 
 set	(LIBS_DEPEND
@@ -63,6 +64,15 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_euler_2d" "integration/TEST_Eul
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_navier_stokes_2d" "integration/TEST_NavierStokes_Default_2d__ml0__p0") # TODO: Change this to use DPG such that Hessians are also tested.
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_navier_stokes_sutherland_2d" "integration/TEST_NavierStokes_Sutherland_2d__ml0__p0") # TODO: Change this to use DPG such that Hessians are also tested.
 
+set (EXEC test_integration_numerical_fluxes)
+set (LIBS_DEPEND Test_Base Test_Integration Test_Support_Simulation)
+add_executable(${EXEC} ${EXEC}.c)
+target_link_libraries(${EXEC} ${LIBS_DEPEND})
+add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "numerical_flux_advection_upwind_1d" "integration/numerical_fluxes/TEST_Advection_upwind_1d__ml1__p2")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "numerical_flux_advection_upwind_2d" "integration/numerical_fluxes/TEST_Advection_upwind_2d__ml1__p2")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "numerical_flux_euler_roe_pike_2d" "integration/numerical_fluxes/TEST_Euler_Roe_Pike_2d__ml1__p3")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "numerical_flux_euler_lax_friedrichs_2d" "integration/numerical_fluxes/TEST_Euler_Lax_Friedrichs_2d__ml1__p3")
+
 set (EXEC test_integration_boundary_conditions)
 set (LIBS_DEPEND Test_Base Test_Integration)
 add_executable(${EXEC} ${EXEC}.c)
@@ -123,6 +133,12 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D__ml0__p3" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_Conservative_DPG_BlendedMixed2D__ml1__p2" "petsc_options_gmres_default")
 
+set (EXEC test_integration_inf_sup)
+set (LIBS_DEPEND ${LIBS_BASE} ${SLEPC_LIBRARIES} Simulation Test_Integration Test_Support_Simulation)
+add_executable(${EXEC} ${EXEC}.c)
+target_link_libraries(${EXEC} ${LIBS_DEPEND})
+
+
 set (EXEC test_integration_linearization)
 set (LIBS_DEPEND ${LIBS_BASE}
      Simulation
@@ -136,6 +152,8 @@ add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/dpg/TEST_Advection
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dg/TEST_Advection_Peterson_TRI__ml2__p3")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml1__p3")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_Conservative_DPG_Mixed2D__ml2__p2")
+add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/opg/TEST_opg_advection_default__1d__ml4__p4")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/opg/TEST_opg_advection_default__mixed2d__ml2__p2")
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_LINE__ml2__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_TRI__ml2__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_QUAD__ml2__p2")
@@ -156,11 +174,13 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dpg/TEST_Advectio
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/dg/TEST_Advection_Default_DG_LINE" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/dpg/TEST_Advection_Demkowicz_DPGII_LINE" "petsc_options_cg_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_TRI" "petsc_options_cg_ilu1")
+add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/opg/TEST_opg_advection_default__1d" "petsc_options_gmres_tol_1e-15")
+add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/opgc/TEST_opgc_advection_default_xl__mixed2d" "petsc_options_gmres_tol_1e-15")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_non_conforming_p4_super" "petsc_options_gmres_tol_1e-15")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_QUAD" "petsc_options_cg_icc")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_DPG_Mixed2D" "petsc_options_cg_icc")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_Conservative_DPG_Mixed2D__ml0" "petsc_options_cg_default")
-add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/vortex/TEST_opg_advection_vortex_mixed2d" "petsc_options_cg_tol_1e-15")
+#add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/vortex/TEST_opg_advection_vortex_mixed2d" "petsc_options_gmres_tol_1e-15")
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_LINE" "petsc_options_cg_ilu1")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "diffusion/steady/default/dg/TEST_Diffusion_Steady_Default_DG_Mixed2D__ml0" "petsc_options_cg_ilu1")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/periodic_vortex/TEST_Euler_PeriodicVortex_QUAD__ml0__p2" "petsc_options_empty")

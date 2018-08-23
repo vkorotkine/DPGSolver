@@ -191,6 +191,8 @@ void compute_cd_cl_values
 	             V_fs     = sol_data.mach*c_fs,
 	             denom    = 0.5*rho_fs*V_fs*V_fs*sol_data.area_ref,
 	             theta_fs = sol_data.theta;
+	const double cos_t_fs = cos(theta_fs),
+	             sin_t_fs = sin(theta_fs);
 
 	const double*const p = get_col_const_Multiarray_d(vars->extents[1]-1,vars);
 
@@ -199,15 +201,56 @@ void compute_cd_cl_values
 	const ptrdiff_t ext_0 = c_dl->extents[0];
 	for (int i = 0; i < ext_0; ++i) {
 		const double*const n = get_row_const_Multiarray_d(i,normals);
-		const double theta_n  = atan2(n[1],n[0]);
-		const double theta_nf = theta_n-theta_fs;
+		/* const double theta_n  = atan2(n[1],n[0]); */
+		/* const double theta_nf = theta_n-theta_fs; */
 
-		cd[i] = p[i]*cos(theta_nf)/denom;
-		cl[i] = p[i]*sin(theta_nf)/denom;
+		/* cd[i] = p[i]*cos(theta_nf)/denom; */
+		/* cl[i] = p[i]*sin(theta_nf)/denom; */
+		cd[i] = p[i]*( n[0]*cos_t_fs+n[1]*sin_t_fs)/denom;
+		cl[i] = p[i]*(-n[0]*sin_t_fs+n[1]*cos_t_fs)/denom;
 	}
 
 	if (var_type != 'p')
 		convert_variables((struct Multiarray_d*)vars,'p',var_type);
+}
+
+const struct const_Multiarray_d* constructor_const_functionals_cd_cl_reference_constant
+	(const struct const_Multiarray_d* xyz, const struct Simulation* sim)
+{
+	UNUSED(sim);
+
+	static double c_dl_ref[2] = {0.0};
+
+	static bool need_input = true;
+	if (need_input) {
+		need_input = false;
+
+		const int count_to_find = 2;
+		int count_found = 0;
+
+		FILE* input_file = fopen_input('s',NULL,NULL); // closed
+		char line[STRLEN_MAX];
+		while (fgets(line,sizeof(line),input_file)) {
+			read_skip_string_count_d("cd_ref",&count_found,line,&c_dl_ref[0]);
+			read_skip_string_count_d("cl_ref",&count_found,line,&c_dl_ref[1]);
+		}
+
+		if (count_found != count_to_find)
+			// If hitting this error for an existing test case, likely input c_d = 0.0, c_l = 0.0 as this
+			// was previously the default.
+			EXIT_ERROR("Did not find the required number of variables");
+	}
+
+	const ptrdiff_t n_n = xyz->extents[0];
+
+	struct Multiarray_d* func = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){n_n,2}); // returned
+	for (int i = 0; i < 2; ++i) {
+		double*const data_func = get_col_Multiarray_d(i,func);
+		for (int j = 0; j < n_n; ++j)
+			data_func[j] = c_dl_ref[i];
+	}
+
+	return (struct const_Multiarray_d*) func;
 }
 
 // Static functions ************************************************************************************************* //

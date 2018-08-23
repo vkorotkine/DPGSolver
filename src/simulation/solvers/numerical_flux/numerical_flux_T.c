@@ -73,6 +73,7 @@ struct Numerical_Flux_Input_T* constructor_Numerical_Flux_Input_T (const struct 
 		EXIT_ERROR("Unsupported: %c.\n",test_case->solver_method_curr);
 		break;
 	}
+	num_flux_i->sim = sim;
 
 	return num_flux_i;
 }
@@ -90,6 +91,8 @@ struct Numerical_Flux_T* constructor_Numerical_Flux_T (const struct Numerical_Fl
 	       ((num_flux_i->bv_l.g != NULL && num_flux_i->bv_l.g->layout == 'C') &&
 	        (num_flux_i->bv_r.g != NULL && num_flux_i->bv_r.g->layout == 'C')));
 
+	/// \todo Check if this can be (which seems more correct):
+	/// const bool* c_m = num_flux_i->flux_i.compute_member;
 	const bool* c_m = num_flux_i->bv_l.compute_member;
 	assert(c_m[0] || c_m[1] || c_m[2]);
 

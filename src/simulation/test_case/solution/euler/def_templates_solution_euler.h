@@ -26,7 +26,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define set_function_pointers_solution_euler_T set_function_pointers_solution_euler
 #define convert_variables_T                    convert_variables
-#define constructor_const_functionals_cd_cl_zero_T constructor_const_functionals_cd_cl_zero
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -34,7 +33,6 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Function names
 #define set_function_pointers_solution_euler_T set_function_pointers_solution_euler_c
 #define convert_variables_T                    convert_variables_c
-#define constructor_const_functionals_cd_cl_zero_T constructor_const_functionals_cd_cl_zero_c
 ///\}
 
 #endif

@@ -2,21 +2,21 @@ pde_name  euler
 pde_spec  steady/supersonic_vortex
 
 geom_name n-cylinder_hollow_section
-geom_spec geom_ar_5-0
+geom_spec geom_ar_1-0
 
 dimension 2
 
 mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
-mesh_type        mixed
-mesh_level       1 4
+mesh_type        quad
+mesh_level       0 4
 mesh_path        ../meshes/
 
 
 # Simulation variables
 
-test_case_extension low_tol
+test_case_extension roe_pike
 
 interp_tp  GLL
 interp_si  AO
@@ -25,17 +25,17 @@ interp_pyr GLL
 basis_geom  bezier
 basis_sol   lagrange
 
-geom_representation  isoparametric
+geom_representation  fixed4
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_ref    1 3
+p_ref    1 1
 p_cub_p  0 0
 
-fe_method 1
+method_name discontinuous_galerkin
 
 
 # Testing variables
 
-ml_range_test 1 4 // possibly requires start on ml 1 for p1
-p_range_test  1 3
+ml_range_test 0 3 // possibly requires start on ml 1 for p1
+p_range_test  1 1

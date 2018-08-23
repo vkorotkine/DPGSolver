@@ -163,8 +163,8 @@ int cmp_Vector_T (const void *a, const void *b)
 	else if (size_a < size_b)
 		return -1;
 
-	const Type*const data_a = (*ia)->data,
-	         *const data_b = (*ib)->data;
+	const Type*const data_a = (*ia)->data;
+	const Type*const data_b = (*ib)->data;
 
 	for (ptrdiff_t i = 0; i < size_a; ++i) {
 #if TYPE_RC == TYPE_COMPLEX

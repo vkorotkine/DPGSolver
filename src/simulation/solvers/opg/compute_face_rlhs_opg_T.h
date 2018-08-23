@@ -21,28 +21,32 @@ You should have received a copy of the GNU General Public License along with DPG
  */
 
 #include "def_templates_compute_face_rlhs_opg.h"
-#include "def_templates_flux.h"
+#include "def_templates_compute_rlhs.h"
 #include "def_templates_numerical_flux.h"
 #include "def_templates_face_solver.h"
+#include "def_templates_face_solver_opg.h"
+#include "def_templates_matrix.h"
+#include "def_templates_vector.h"
 
 struct Simulation;
 struct Solver_Storage_Implicit;
 struct Intrusive_List;
 struct Solver_Face_T;
+struct OPG_Solver_Face_T;
 struct Numerical_Flux_T;
-struct Flux_T;
+struct Flux_Ref_T;
 
-/** \brief Pointer to the function used to evaluate the rhs (and optionally lhs) face terms allowing for both flux and
- *         numerical flux inputs.
- *  \note The \ref Flux_T input is required for the linearization of the solution with respect to the test function.
+/** \brief Pointer to the function used to evaluate the rhs (and optionally lhs) face terms allowing for both reference
+ *         flux and numerical flux inputs.
+ *  \note The \ref Flux_Ref_T input is required for the linearization of the solution with respect to the test function.
  *
- *  \param flux     \ref Flux_T.
+ *  \param flux_r   \ref Flux_Ref_T.
  *  \param num_flux \ref Numerical_Flux_T.
  *  \param s_face   \ref Solver_Face_T.
  *  \param ssi      \ref Solver_Storage_Implicit.
  */
 typedef void (*compute_rlhs_opg_f_fptr_T)
-	(const struct Flux_T*const flux,
+	(const struct Flux_Ref_T*const flux_r,
 	 const struct Numerical_Flux_T*const num_flux,
 	 struct Solver_Face_T*const s_face,
 	 struct Solver_Storage_Implicit*const ssi
@@ -53,15 +57,55 @@ void compute_face_rlhs_opg_T
 	(const struct Simulation*const sim,        ///< Standard.
 	 struct Solver_Storage_Implicit*const ssi, ///< Standard.
 	 struct Intrusive_List*const faces         ///< The list of faces.
+	 );
+
+/// \brief As for \ref compute_face_rlhs_opg_T but only adding face terms for boundary faces.
+void compute_face_rlhs_opg_boundary_T
+	(const struct Simulation*const sim,        ///< Standard.
+	 struct Solver_Storage_Implicit*const ssi, ///< Standard.
+	 struct Intrusive_List*const faces         ///< The list of faces.
 	);
 
 /** \brief Update the values of \ref Solver_Face_T::nf_coef based on the updated \ref Solver_Volume_T::test_s_coef
  *         values. */
 void update_coef_nf_f_opg_T
-	(const struct Simulation*const sim ///< Standard.
-		);
+	(const struct Simulation*const sim, ///< Standard.
+	 struct Intrusive_List*const faces  ///< The list of faces for which to update the coefficients.
+	 );
+
+/// \brief Container for operators needed for the assembly of LHS terms for the OPG scheme.
+struct Lhs_Operators_OPG_T {
+	const struct const_Vector_T* wJ_fc; ///< Face cubature weights "dot-multiplied" by the Jacobian determinant.
+
+	/** 'c'oefficient to 'v'alue operators from the 'v'olume 't'est basis to 'f'ace 'c'ubature nodes.
+	 *
+	 *  The indices are used to denote the following operators:
+	 *  - [0]: ll operator ('l'eft  basis -> 'l'eft  nodes);
+	 *  - [1]: rl operator ('r'ight basis -> 'l'eft  nodes; permutation of node ordering);
+	 */
+	const struct const_Matrix_R* cv0_vt_fc[2];
+
+	/** The 'l'eft part of the L2 projection operator onto the face:
+	 *  M^{-1} cv0_ff_fc' diag(w_fc (dot) jacobian_det_fc). */
+	const struct const_Matrix_T* proj_L2_l;
+};
+
+/** \brief Constructor for a \ref Lhs_Operators_OPG_T container.
+ *  \return See brief. */
+const struct Lhs_Operators_OPG_T* constructor_Lhs_Operators_OPG_T
+	(const struct OPG_Solver_Face_T*const opg_s_face ///< Standard.
+	);
+
+/// \brief Destructor for a \ref Lhs_Operators_OPG_T container.
+void destructor_Lhs_Operators_OPG_T
+	(const struct Solver_Face_T*const s_face, ///< Standard.
+	 const struct Lhs_Operators_OPG_T* ops    ///< Standard.
+	);
 
 #include "undef_templates_compute_face_rlhs_opg.h"
-#include "undef_templates_flux.h"
+#include "undef_templates_compute_rlhs.h"
 #include "undef_templates_numerical_flux.h"
 #include "undef_templates_face_solver.h"
+#include "undef_templates_face_solver_opg.h"
+#include "undef_templates_matrix.h"
+#include "undef_templates_vector.h"

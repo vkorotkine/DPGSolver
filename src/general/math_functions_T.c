@@ -33,10 +33,15 @@ You should have received a copy of the GNU General Public License along with DPG
 
 bool equal_T (const Type x0, const Type x1, const Real tol)
 {
+	return equal_spec_rel_T(x0,x1,tol,x0);
+}
+
+bool equal_spec_rel_T (const Type x0, const Type x1, const Real tol, const Type den)
+{
 #if TYPE_RC == TYPE_REAL
-	if ((fabs(x0) < tol && fabs(x0-x1) < tol) || (fabs((x0-x1)/x0) < tol))
+	if ((fabs(den) < tol && fabs(x0-x1) < tol) || (fabs((x0-x1)/den) < tol))
 #elif TYPE_RC == TYPE_COMPLEX
-	if (equal_R(creal(x0),creal(x1),tol) && equal_R(cimag(x0),cimag(x1),tol))
+	if (equal_spec_rel_R(creal(x0),creal(x1),tol,creal(den)) && equal_spec_rel_R(cimag(x0),cimag(x1),tol,cimag(den)))
 #endif
 		return true;
 	return false;
@@ -122,6 +127,18 @@ Real norm_diff_RT
 	return ( abs_R(norm_den) > 1e2*EPS ? norm_num/norm_den : norm_num );
 }
 
+Type norm_diff_inf_no_rel_T (const ptrdiff_t n_entries, const Type*const data_0, const Type*const data_1)
+{
+	Type norm_num = 0.0;
+
+	for (ptrdiff_t i = 0; i < n_entries; ++i) {
+		const Type diff = abs_T(data_0[i]-data_1[i]);
+		if (abs_T(diff) > abs_T(norm_num))
+			norm_num = diff;
+	}
+	return norm_num;
+}
+
 Type max_abs_T (const Type a, const Type b)
 {
 	const Type a_abs = abs_T(a),
@@ -200,6 +217,22 @@ Real dot_R_from_RT (const ptrdiff_t n, const Real*const a, const Type*const b)
 	for (int i = 0; i < n; ++i)
 		res += a[i]*real_T(b[i]);
 	return res;
+}
+
+Type max_abs_real_T (const Type a, const Type b)
+{
+	Type c = ( abs_T(a) > abs_T(b) ? a : b );
+	if (real_T(c) < 0.0)
+		c *= -1.0;
+	return c;
+}
+
+Type min_abs_real_T (const Type a, const Type b)
+{
+	Type c = ( abs_T(a) < abs_T(b) ? a : b );
+	if (real_T(c) < 0.0)
+		c *= -1.0;
+	return c;
 }
 
 // Static functions ************************************************************************************************* //

@@ -18,6 +18,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *         euler equations (test case: periodic vortex).
  */
 
+#undef constructor_const_sol_periodic_vortex_T
 #undef set_sol_periodic_vortex_T
 
 #undef constructor_sol_periodic_vortex_T

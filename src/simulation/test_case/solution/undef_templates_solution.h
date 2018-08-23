@@ -65,3 +65,5 @@ You should have received a copy of the GNU General Public License along with DPG
 #undef constructor_normals_ff
 #undef constructor_n_dot_f
 #undef constructor_metrics_ff
+#undef set_initial_v_sg_coef_l2_proj
+#undef constructor_coef_from_val_l2_proj
