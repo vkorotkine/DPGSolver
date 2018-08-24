@@ -53,7 +53,17 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 
 	# Required parameters
 
+	mesh_partition = re.search(r"(^.*_part)(\d+)(.*$)",mesh_name).group(2)
+	gmsh_setnumbers += " -part " + mesh_partition
+	#gmsh_setnumbers += " -part_ghosts"
+
 	mesh_level = re.search(r"(^.*_ml)(\d+)(.*$)",mesh_name).group(2)
+	print(re.search(r"(^.*_part)(\d+)(.*$)",mesh_name))
+	print(re.search(r"(^.*_part)(\d+)(.*$)",mesh_name).group(0))
+	print(re.search(r"(^.*_part)(\d+)(.*$)",mesh_name).group(1))
+	print(re.search(r"(^.*_part)(\d+)(.*$)",mesh_name).group(2))
+	print(re.search(r"(^.*_part)(\d+)(.*$)",mesh_name).group(3))
+	print(mesh_level)
 	gmsh_setnumbers += " -setnumber mesh_level " + mesh_level
 
 	gmsh_setnumbers += " -setnumber pde_name "
@@ -129,7 +139,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 
 	gmsh_setnumbers += " -setnumber geom_unaligned "
 	if (mesh_name.find("/unaligned/") != -1):
-		gmsh_setnumbers += '1'
+		gmsh_setnumbers += '2'
 	else:
 		gmsh_setnumbers += '0'
 

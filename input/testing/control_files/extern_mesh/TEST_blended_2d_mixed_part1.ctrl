@@ -1,20 +1,20 @@
 # Mesh processing variables
 
 pde_name  euler
-pde_spec  periodic/periodic_vortex
+pde_spec  steady/supersonic_vortex
 
-geom_name n-cube
-geom_spec NONE
+geom_name n-cylinder_hollow_section
+geom_spec geom_ar_2-5
 
 dimension 2
 
-mesh_generator   n-cube/2d.geo
+mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
-mesh_domain      straight
-mesh_type        quad
-mesh_level       1 1
+mesh_domain      blended
+mesh_type        mixed
+mesh_level       0 0
 mesh_unrealistic 0
-mesh_path        ../testing/integration/mesh/straight_2d_quad_periodic.msh
+mesh_path        ../testing/integration/mesh/blended_2d_mixed_part1.msh
 
 
 # Simulation variables
@@ -23,7 +23,7 @@ interp_tp  GLL
 interp_si  AO
 interp_pyr GLL
 
-basis_geom  bezier
+basis_geom  lagrange
 basis_sol   lagrange
 
 geom_representation  isoparametric

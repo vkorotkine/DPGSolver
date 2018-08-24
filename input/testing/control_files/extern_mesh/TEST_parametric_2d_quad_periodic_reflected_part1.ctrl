@@ -11,7 +11,7 @@ mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        mixed
 mesh_level       0 0
-mesh_path        ../testing/integration/mesh/parametric_2d_quad_periodic_reflected.msh
+mesh_path        ../testing/integration/mesh/parametric_2d_quad_periodic_reflected_part1.msh
 
 
 # Simulation variables

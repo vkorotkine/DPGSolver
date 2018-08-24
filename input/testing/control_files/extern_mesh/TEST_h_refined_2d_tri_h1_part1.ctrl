@@ -11,7 +11,7 @@ mesh_format      gmsh
 mesh_domain      straight
 mesh_type        tri
 mesh_level       0 3
-mesh_path        ../testing/integration/mesh/straight__2d__tri_ml0.msh
+mesh_path        ../testing/integration/mesh/straight__2d__tri_ml0_part1.msh
 
 
 # Simulation variables

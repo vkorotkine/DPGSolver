@@ -73,6 +73,8 @@ struct Simulation {
 	 *  to within a very small tolerance. See \ref mesh_vertices.h additional discussion of this issue. */
 	const bool mesh_unrealistic;
 
+	const int n_partitions; ///< Total number of mesh partitions. Should be equal to mpi_size. Default to 1 partition.
+
 	ptrdiff_t n_v, ///< The number of \ref Volume finite elements.
 	          n_f; ///< The number of \ref Face   finite elements.
 

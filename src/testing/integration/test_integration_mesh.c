@@ -160,11 +160,11 @@ static struct Mesh_Input* constructor_Mesh_Input (const char*const mesh_name)
 	mesh_input->geom_name      = malloc(STRLEN_MAX * sizeof *mesh_input->geom_name);      // free
 	mesh_input->geom_spec      = malloc(STRLEN_MAX * sizeof *mesh_input->geom_spec);      // free
 
-	if (strstr(mesh_name,"blended_2d_mixed.msh")) {
+	if (strstr(mesh_name,"blended_2d_mixed_part1.msh")) {
 		set_Mesh_Input_no_sim(mesh_input,2,DOM_BLENDED,true,mesh_name,"n-cylinder_hollow_section","");
-	} else if (strstr(mesh_name,"straight_2d_quad_periodic.msh")) {
+	} else if (strstr(mesh_name,"straight_2d_quad_periodic_part1.msh")) {
 		set_Mesh_Input_no_sim(mesh_input,2,DOM_STRAIGHT,false,mesh_name,"","");
-	} else if (strstr(mesh_name,"parametric_2d_quad_periodic_reflected.msh")) {
+	} else if (strstr(mesh_name,"parametric_2d_quad_periodic_reflected_part1.msh")) {
 		set_Mesh_Input_no_sim(mesh_input,2,DOM_PARAMETRIC,false,mesh_name,"","");
 	} else {
 		EXIT_ERROR("Unsupported: %s\n",mesh_name);

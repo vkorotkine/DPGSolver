@@ -2,6 +2,8 @@
  * The boundary condition definitions below **must** be the same as those in $(ROOT)/src/simulation/test_case/boundary/definitions_bc.h
  */
 
+// Default number of partitions
+npart = 1;
 // Default characteristic length (Not used for transfinite meshes)
 lc = 1.0;
 

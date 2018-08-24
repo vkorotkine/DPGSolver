@@ -39,9 +39,11 @@ class Mesh_Info:
 		                     "mesh_domain",    ###< The domain type.
 		                     "mesh_type",      ###< The element types present in the mesh
 		                     "mesh_level",     ###< The level of refinement of the mesh
+		                     "mesh_partition", ###< The number of partitions (default is 1 is not found)
 		                    ]
 
 	def read_data (self):
+		self.info["mesh_partition"] = '1' # Default value if not found
 		with open(self.ctrl_file_name) as ctrl_file:
 			for line in ctrl_file:
 				line_split = line.split()
@@ -67,7 +69,8 @@ class Mesh_Info:
 		mesh_file_name += '_'+gen_name+"__"
 
 		mesh_file_name += self.info["mesh_type"]+'_'
-		mesh_file_name += "ml"+self.info["mesh_level"]
+		mesh_file_name += "ml"+self.info["mesh_level"]+'_'
+		mesh_file_name += "part"+self.info["mesh_partition"]
 		mesh_file_name += ".msh"
 
 		return mesh_file_name
@@ -115,7 +118,7 @@ if __name__ == "__main__":
 	mesh_make_name   = sys.argv[4]
 	ctrl_files       = sys.argv[5:]
 
-#	print(ctrl_files)
+ 	#print(ctrl_files)
 
 	# Find dependencies
 	dependencies = dict()

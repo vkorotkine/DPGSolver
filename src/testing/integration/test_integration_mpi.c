@@ -60,9 +60,7 @@ int main
 {
 	assert_condition_message(argc == 3,"Invalid number of input arguments");
 
-	const char*const mesh_name = argv[1],
-	          *const ctrl_name = argv[2];
-	UNUSED(mesh_name);
+	const char*const ctrl_name = argv[1];
 
 	MPI_Init(NULL,NULL);
     int world_size;
@@ -87,7 +85,7 @@ int main
 	          ml         = int_test_info->ml[0],
 	          adapt_type = int_test_info->adapt_type;
 	destructor_Integration_Test_Info(int_test_info);
-	assert(adapt_type == ADAPT_0);
+	assert(adapt_type == ADAPT_HP);
 
 	const char*const ctrl_name_curr = set_file_name_curr(adapt_type,p,ml,false,ctrl_name);
 

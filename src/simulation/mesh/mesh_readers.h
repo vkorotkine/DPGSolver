@@ -47,7 +47,9 @@ struct Mesh_Data {
 	const struct const_Matrix_i*const elem_tags;            /**< The list of element tags.
 	                                                          *  The 1st tag gives boundary condition information.
 	                                                          *  The 2nd tag gives periodic connectivity information.
-	                                                          *  The 3rd tag gives partition number.
+	                                                          *  The 3rd tag gives number of partition it belongs to.
+	                                                          *  The 4th tag gives partition it belongs to.
+	                                                          *  The 5-n_tags gives partition it appears as ghost cell.
 	                                                          */
 	const struct const_Multiarray_Vector_i*const node_nums; ///< The list of node numbers for the elements.
 

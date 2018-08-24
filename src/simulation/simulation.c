@@ -379,6 +379,7 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 	// Read information
 	char line[STRLEN_MAX];
 	int dummy = 0;
+    *(int *)&sim->n_partitions = 1;	// Hack constant to default value of 1.
 	while (fgets(line,sizeof(line),ctrl_file)) {
 		if (strstr(line,"pde_name"))  read_skip_const_c_1(line,sim->pde_name);
 		if (strstr(line,"pde_spec"))  read_skip_const_c_1(line,sim->pde_spec);
@@ -388,6 +389,7 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"dimension"))        read_skip_const_i_1(line,1,&d,1);
 		if (strstr(line,"mesh_level"))       read_skip_const_i_1(line,1,sim->ml,2);
 		if (strstr(line,"mesh_unrealistic")) read_skip_const_b(line,&sim->mesh_unrealistic);
+		if (strstr(line,"mesh_partition"))   read_skip_const_i(line,&sim->n_partitions);
 
 		read_skip_name_const_c_1("test_case_extension",line,sim->test_case_extension);
 		read_skip_name_const_c_1("solution_extension", line,sim->solution_extension);
@@ -634,6 +636,7 @@ static void mesh_name_assemble (struct Simulation*const sim, const struct Mesh_C
 		index += sprintf(mesh_name_full+index,"%s%s",mesh_gen_name,"__");
 
 		index += sprintf(mesh_name_full+index,"%s%s%d",mesh_ctrl_data->mesh_elem_type,"_ml",sim->ml[0]);
+		index += sprintf(mesh_name_full+index,"%s%d","_part",sim->n_partitions);
 		index += sprintf(mesh_name_full+index,"%s",mesh_ctrl_data->mesh_extension);
 	}
 }
