@@ -11,7 +11,7 @@ mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        mixed
 mesh_level       0 2
-mesh_path        ../testing/integration/mesh/parametric_vortex__2d__mixed_ml0.msh
+mesh_path        ../testing/integration/mesh/parametric_vortex__2d__mixed_ml0_part1.msh
 
 
 # Simulation variables

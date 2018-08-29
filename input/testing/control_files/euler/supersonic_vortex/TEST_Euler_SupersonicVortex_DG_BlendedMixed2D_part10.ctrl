@@ -1,5 +1,5 @@
-pde_name  advection
-pde_spec  steady/vortex // Potentially add subscript for degree of exact solution.
+pde_name  euler
+pde_spec  steady/supersonic_vortex
 
 geom_name n-cylinder_hollow_section
 geom_spec geom_ar_2-5
@@ -8,33 +8,32 @@ dimension 2
 
 mesh_generator   n-cylinder_hollow_section/2d.geo
 mesh_format      gmsh
-mesh_domain      parametric
+mesh_domain      blended
 mesh_type        mixed
-mesh_level       0 2
-mesh_path        ../testing/integration/mesh/parametric_vortex__2d__unaligned_mixed_ml1_part1.msh
+mesh_level       1 3
+mesh_path        ../meshes/
+mesh_partition   10
 
 
 # Simulation variables
 
-test_case_extension non_conforming_hp
-
 interp_tp  GLL
-interp_si  AO
+interp_si  WSH
 interp_pyr GLL
 
-basis_geom  bezier
+basis_geom  lagrange
 basis_sol   lagrange
 
 geom_representation  superparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_ref    2 3
+p_ref    1 3
 
 fe_method 1
 
 
 # Testing variables
 
-ml_range_test 0 2
-p_range_test  2 3
+ml_range_test 1 3
+p_range_test  1 3

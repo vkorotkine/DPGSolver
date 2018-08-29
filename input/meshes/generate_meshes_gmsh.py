@@ -1,3 +1,4 @@
+import os
 import sys
 import subprocess
 import shlex
@@ -6,6 +7,7 @@ import re
 class Gmsh_call:
 	""" Container for gmsh call related information. """
 	def __init__ (self):
+		gmsh = os.environ["GMSH"] #"/Applications/Gmsh3.app/Contents/MacOS/Gmsh "
 		self.dim      = '' ###< The dimension.
 		self.in_dir   = '' ###< The full path to the ROOT input directory.
 		self.in_name  = '' ###< The name of the input file.
@@ -45,7 +47,8 @@ class Gmsh_call:
 		out_dir = re.search(r"/(([\w-]+/)*)",mesh_name_full).group(0)
 		subprocess.call(shlex.split("mkdir -p " + out_dir))
 
-		subprocess.call(shlex.split("gmsh " + self.args))
+		gmsh = os.environ["GMSH"] #"/Applications/Gmsh3.app/Contents/MacOS/Gmsh "
+		subprocess.call(shlex.split(gmsh + " " + self.args))
 
 def set_gmsh_setnumbers (input_dir,mesh_name):
 	""" Set the -setnumber inputs to be passed to gmsh. """
@@ -55,15 +58,11 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 
 	mesh_partition = re.search(r"(^.*_part)(\d+)(.*$)",mesh_name).group(2)
 	gmsh_setnumbers += " -part " + mesh_partition
-	#gmsh_setnumbers += " -part_ghosts"
+	gmsh_version = os.environ["GMSHV"] #"/Applications/Gmsh3.app/Contents/MacOS/Gmsh "
+	if (gmsh_version == '4'):
+		gmsh_setnumbers += " -part_ghosts"
 
 	mesh_level = re.search(r"(^.*_ml)(\d+)(.*$)",mesh_name).group(2)
-	print(re.search(r"(^.*_part)(\d+)(.*$)",mesh_name))
-	print(re.search(r"(^.*_part)(\d+)(.*$)",mesh_name).group(0))
-	print(re.search(r"(^.*_part)(\d+)(.*$)",mesh_name).group(1))
-	print(re.search(r"(^.*_part)(\d+)(.*$)",mesh_name).group(2))
-	print(re.search(r"(^.*_part)(\d+)(.*$)",mesh_name).group(3))
-	print(mesh_level)
 	gmsh_setnumbers += " -setnumber mesh_level " + mesh_level
 
 	gmsh_setnumbers += " -setnumber pde_name "
@@ -139,7 +138,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 
 	gmsh_setnumbers += " -setnumber geom_unaligned "
 	if (mesh_name.find("/unaligned/") != -1):
-		gmsh_setnumbers += '2'
+		gmsh_setnumbers += '1'
 	else:
 		gmsh_setnumbers += '0'
 
