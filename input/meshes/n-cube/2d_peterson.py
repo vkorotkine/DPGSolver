@@ -349,7 +349,7 @@ if __name__ == '__main__':
 		sigma = (2.0*p+1.0)/(2.0*p+2.0)
 
 		for ML in range(0,NML):
-			mesh_name_full = re.sub("_ml\d.msh","_ml"+str(ML)+".msh",mesh_name_full)
+			mesh_name_full = re.sub("_ml\d_","_ml"+str(ML)+"_",mesh_name_full)
 
 			Mesh = Mesh_c(sigma,ML,mesh_name_full)
 

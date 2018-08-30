@@ -126,7 +126,7 @@ int main
 		assert(!c_m[4]); // Add support.
 		assert(!c_m[5]); // Add support.
 		bool pass        = false;
-		const double tol = 2e1*EPS;
+		const double tol = 3e1*EPS;
 		/** \note The difference with no relative scaling is used below as some of the values were found to be
 		 *        extremely small, resulting in round-off effects and requiring a large tolerance using the
 		 *        standard difference check.
