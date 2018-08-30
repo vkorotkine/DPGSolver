@@ -33,6 +33,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define reorder_Vector_T            reorder_Vector_d
 #define resize_Vector_T             resize_Vector_d
+#define efficient_resize_Vector_T   efficient_resize_Vector_d
 #define set_to_zero_Vector_T        set_to_zero_Vector_d
 #define set_to_data_Vector_T        set_to_data_Vector_d
 #define set_to_value_Vector_T       set_to_value_Vector_d
@@ -63,6 +64,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define reorder_Vector_T            reorder_Vector_c
 #define resize_Vector_T             resize_Vector_c
+#define efficient_resize_Vector_T   efficient_resize_Vector_c
 #define set_to_zero_Vector_T        set_to_zero_Vector_c
 #define set_to_data_Vector_T        set_to_data_Vector_c
 #define set_to_value_Vector_T       set_to_value_Vector_c
@@ -105,6 +107,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #define reorder_Vector_T            reorder_Vector_i
 #define resize_Vector_T             resize_Vector_i
+#define efficient_resize_Vector_T   efficient_resize_Vector_i
 #define set_to_zero_Vector_T        set_to_zero_Vector_i
 #define set_to_data_Vector_T        set_to_data_Vector_i
 #define set_to_value_Vector_T       set_to_value_Vector_i

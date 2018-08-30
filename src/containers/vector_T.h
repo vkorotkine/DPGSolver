@@ -24,10 +24,12 @@ You should have received a copy of the GNU General Public License along with DPG
 #include <stdbool.h>
 
 #include "def_templates_vector.h"
-
+#define VEC_FACTOR 1.5
 /// \brief Templated Vector.
 struct Vector_T {
 	ptrdiff_t ext_0; ///< Defined in \ref Matrix_T.
+
+	ptrdiff_t capacity; ///< Storage available. May be larger than ext_0
 
 	bool owns_data; ///< Defined in \ref Matrix_T.
 	Type* data;     ///< Defined in \ref Matrix_T.
@@ -36,6 +38,8 @@ struct Vector_T {
 /// \brief `const` version of \ref Vector_T.
 struct const_Vector_T { ///\{
 	const ptrdiff_t ext_0;
+
+	const ptrdiff_t capacity;
 
 	const bool owns_data;
 	const Type*const data;
@@ -51,6 +55,11 @@ void reorder_Vector_T
 	 const int*const ordering ///< The ordering.
 	);
 
+/// \brief Resize a \ref Vector_T by ext_0*VEC_FACTOR. More efficient push_back\*.
+void resize_Vector_T
+	(struct Vector_T*const a, ///< Standard.
+	 const ptrdiff_t ext_0    ///< New value for ext_0.
+	);
 /// \brief Resize a \ref Vector_T\*.
 void resize_Vector_T
 	(struct Vector_T*const a, ///< Standard.

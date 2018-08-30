@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #undef reorder_Vector_T
 #undef resize_Vector_T
+#undef efficient_resize_Vector_T
 #undef set_to_zero_Vector_T
 #undef set_to_data_Vector_T
 #undef set_to_value_Vector_T

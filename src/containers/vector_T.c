@@ -43,6 +43,26 @@ void reorder_Vector_T (struct Vector_T*const a, const int*const ordering)
 		a->data[i] = b[i];
 }
 
+void efficient_resize_Vector_T (struct Vector_T*const a, const ptrdiff_t ext_0)
+{
+	const ptrdiff_t size_i = a->ext_0;
+	a->ext_0 = ext_0;
+	const ptrdiff_t size_o = a->ext_0;
+
+	const ptrdiff_t capacity_i = a->capacity; 
+	if (size_o <= capacity_i)
+		return;
+
+	const ptrdiff_t capacity_o = (ptrdiff_t)((double)size_o*VEC_FACTOR);
+	a->capacity = capacity_o;
+	const Type* data_i = a->data;
+	a->data = malloc((size_t)capacity_o * sizeof *(a->data)); // keep
+	if (size_i != 0) {
+		for (ptrdiff_t i = 0; i < size_i; i++)
+			a->data[i] = data_i[i];
+	}
+	free((void*)data_i);
+}
 void resize_Vector_T (struct Vector_T*const a, const ptrdiff_t ext_0)
 {
 	const ptrdiff_t size_i = a->ext_0;
@@ -204,7 +224,7 @@ void push_back_Vector_T (struct Vector_T*const src, const Type val, const bool s
 	if (!add_val)
 		return;
 
-	resize_Vector_T(src,src->ext_0+1);
+	efficient_resize_Vector_T(src,src->ext_0+1);
 	src->data[src->ext_0-1] = val;
 
 	if (sorted)
@@ -216,7 +236,7 @@ void push_back_Vector_Vector_T (struct Vector_T*const src, const struct const_Ve
 	const ptrdiff_t ext_0_src = src->ext_0,
 	                ext_0_add = vals->ext_0,
 	                ext_0_sum = ext_0_src+ext_0_add;
-	resize_Vector_T(src,ext_0_sum);
+	efficient_resize_Vector_T(src,ext_0_sum);
 	for (ptrdiff_t i = ext_0_src, j = 0; i < ext_0_sum; ++i, ++j)
 		src->data[i] = vals->data[j];
 }
