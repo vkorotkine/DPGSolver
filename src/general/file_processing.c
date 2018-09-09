@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_alloc.h"
 
 #include "const_cast.h"
+#include <unistd.h>
 
 // Static function declarations ************************************************************************************* //
 
@@ -101,8 +102,10 @@ const char* extract_path (const char*const name_full)
 FILE* fopen_checked (const char*const file_name_full)
 {
 	FILE* file = fopen(file_name_full,"r");
+	char cwd[STRLEN_MAX];
+	if (getcwd(cwd, sizeof(cwd)) == NULL) EXIT_UNSUPPORTED;
 	if (file == NULL)
-		EXIT_ERROR("File: '%s' is not present.\n",file_name_full);
+		EXIT_ERROR("File: '%s/%s' is not present.\n",cwd,file_name_full);
 	return file;
 }
 
@@ -199,6 +202,13 @@ void fgets_checked (char*const line, const int sizeof_line, FILE*const file)
 {
 	if (!fgets(line,sizeof_line,file))
 		EXIT_ERROR("fgets returned NULL.\n");
+}
+
+char* ptr_fgets_checked (char*const line, const int sizeof_line, FILE*const file)
+{
+	if (!fgets(line,sizeof_line,file))
+		EXIT_ERROR("fgets returned NULL.\n");
+	return line;
 }
 
 bool first_string_matches (const char*const line, const char*const str_search)

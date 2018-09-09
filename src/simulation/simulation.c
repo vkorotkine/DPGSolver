@@ -638,6 +638,7 @@ static void mesh_name_assemble (struct Simulation*const sim, const struct Mesh_C
 		index += sprintf(mesh_name_full+index,"%s%s%d",mesh_ctrl_data->mesh_elem_type,"_ml",sim->ml[0]);
 		index += sprintf(mesh_name_full+index,"%s%d","_part",sim->n_partitions);
 		index += sprintf(mesh_name_full+index,"%s",mesh_ctrl_data->mesh_extension);
+		printf("MESH IS %s\n",mesh_name_full);
 	}
 }
 

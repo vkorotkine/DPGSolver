@@ -38,9 +38,15 @@ struct Vector_i;
 struct Mesh_Data {
 	const int d;           ///< The dimension.
 	const ptrdiff_t ind_v; ///< The index of the first volume in the list of elements.
+	const ptrdiff_t ind_g; ///< The index of the first ghost volume in the list of elements.
 
 	const struct const_Vector_i*const elem_per_dim; ///< The number of elements per dimension.
 
+	const struct const_Vector_i*const elem_global_id;  ///< Global ID of the element.
+	const struct const_Vector_i*const elem_owner_part; ///< Partition that owns the element
+	const struct const_Multiarray_Vector_i*const elem_ghost_part; ///< Partitions in which the element appears as a ghost element
+
+	const struct const_Vector_i*const node_global_id;  ///< Global ID of the nodes.
 	const struct const_Matrix_d*const nodes; ///< The xyz coordinates of the mesh elements (the mesh vertices).
 
 	const struct const_Vector_i*const elem_types;           ///< The list of element types.

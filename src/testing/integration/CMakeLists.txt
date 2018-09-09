@@ -202,7 +202,7 @@ add_executable(${EXEC} ${EXEC}.c)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_mpi_DPG_w_path("1" ${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedMixed2D_part1" "petsc_options_gmres_default")
 add_test_mpi_DPG_w_path("2" ${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedMixed2D_part2" "petsc_options_gmres_default")
-add_test_mpi_DPG_w_path("10" ${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedMixed2D_part10" "petsc_options_gmres_default")
+add_test_mpi_DPG_w_path("4" ${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedMixed2D_part4" "petsc_options_gmres_default")
 #add_test_mpi_DPG_w_path("2" ${BIN_PATH_2D} ${EXEC} "blended_2d_mixed_part1.msh" "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D__ml0__p3")
 # Add tests:
 # - equivalence operators.

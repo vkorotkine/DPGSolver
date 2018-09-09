@@ -101,6 +101,21 @@ void fgets_checked
 	 FILE*const file        ///< Input[2] for fgets.
 	);
 
+/// \brief Call standard library fgets, exiting if `NULL` is returned.
+void fgets_checked
+	(char*const line,       ///< Input[0] for fgets.
+	 const int sizeof_line, ///< Input[1] for fgets.
+	 FILE*const file        ///< Input[2] for fgets.
+	);
+
+/** \brief Call standard library fgets, exiting if `NULL` is returned.
+ *         Returns the pointer to the beginning of the line */
+char* ptr_fgets_checked
+	(char*const line,       ///< Input[0] for fgets.
+	 const int sizeof_line, ///< Input[1] for fgets.
+	 FILE*const file        ///< Input[2] for fgets.
+	);
+
 /** \brief Check whether the first string in the line is equal to the desired input string.
  *  \return `true` if yes; `false` otherwise. */
 bool first_string_matches
