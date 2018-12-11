@@ -25,7 +25,7 @@ struct mutable_Numerical_Flux_T;
  *  The implementation was copied from that of [Hesthaven et al.'s Nodal DG code][hest_lf].
  *
  *  <!-- References: -->
- *  [hest_lf]: https://github.com/tcew/nodal-dg/blob/master/Codes1.1/CFD2D/EulerLF2D.m
+ *  [hest_lf]: https://github.cppom/tcew/nodal-dg/blob/master/Codes1.1/CFD2D/EulerLF2D.m
  */
 void compute_Numerical_Flux_T_euler_lax_friedrichs
 	(const struct Numerical_Flux_Input_T* num_flux_i, ///< See brief.

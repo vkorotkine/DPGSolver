@@ -67,7 +67,7 @@ add_subdirectory(simulation)
 add_subdirectory(testing)
 
 set	(SOURCE
-	 core.c
+	 core.cpp
 	)
 
 set	(LIBS_DEPEND

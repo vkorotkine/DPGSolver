@@ -1,8 +1,8 @@
 set	(SOURCE
-	 const_cast.c
-	 file_processing.c
-	 file_processing_conversions.c
-	 math_functions.c
+	 const_cast.cpp
+	 file_processing.cpp
+	 file_processing_conversions.cpp
+	 math_functions.cpp
 	)
 
 set	(LIBS_DEPEND

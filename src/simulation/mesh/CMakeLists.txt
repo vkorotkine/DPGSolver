@@ -1,10 +1,10 @@
 set	(SOURCE
-	 mesh.c
-	 mesh_readers.c
-	 mesh_connectivity.c
-	 mesh_periodic.c
-	 mesh_vertices.c
-	 mesh_geometry_cylinder_hollow_section.c
+	 mesh.cpp
+	 mesh_readers.cpp
+	 mesh_connectivity.cpp
+	 mesh_periodic.cpp
+	 mesh_vertices.cpp
+	 mesh_geometry_cylinder_hollow_section.cpp
 	)
 
 set	(LIBS_DEPEND

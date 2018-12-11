@@ -1,14 +1,14 @@
 set	(SOURCE
-	 computational_elements/test_support_computational_elements.c
-	 computational_elements/test_support_face.c
-	 computational_elements/test_support_volume.c
+	 computational_elements/test_support_computational_elements.cpp
+	 computational_elements/test_support_face.cpp
+	 computational_elements/test_support_volume.cpp
 
-	 solvers/test_support_solve.c
-	 solvers/dg/test_support_solve_dg.c
-	 solvers/dpg/test_support_solve_dpg.c
-	 solvers/opg/test_support_solve_opg.c
+	 solvers/test_support_solve.cpp
+	 solvers/dg/test_support_solve_dg.cpp
+	 solvers/dpg/test_support_solve_dpg.cpp
+	 solvers/opg/test_support_solve_opg.cpp
 
-	 ../intrusive/test_support_intrusive.c
+	 ../intrusive/test_support_intrusive.cpp
 	)
 
 set	(LIBS_DEPEND

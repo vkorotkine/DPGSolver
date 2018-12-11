@@ -1,6 +1,6 @@
 set	(SOURCE
-	 multiarray_operator.c
-	 operator.c
+	 multiarray_operator.cpp
+	 operator.cpp
 	)
 
 set	(LIBS_DEPEND

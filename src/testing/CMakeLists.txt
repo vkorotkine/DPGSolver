@@ -1,6 +1,6 @@
 # Library generation
 set	(SOURCE
-	 test_base.c
+	 test_base.cpp
 	)
 
 set	(LIBS_DEPEND

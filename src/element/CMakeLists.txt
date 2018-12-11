@@ -1,12 +1,12 @@
 set	(SOURCE
-	 bases.c
-	 element.c
-	 element_operators.c
-	 element_operators_tp.c
-	 nodes.c
-	 nodes_correspondence.c
-	 nodes_operators.c
-	 nodes_plotting.c
+	 bases.cpp
+	 element.cpp
+	 element_operators.cpp
+	 element_operators_tp.cpp
+	 nodes.cpp
+	 nodes_correspondence.cpp
+	 nodes_operators.cpp
+	 nodes_plotting.cpp
 	)
 
 set	(LIBS_DEPEND

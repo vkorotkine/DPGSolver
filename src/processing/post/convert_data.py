@@ -186,10 +186,10 @@ class Input_Data:
 			self.p_max  = p_max
 
 			self.var_names   = var_names
-			self.cases_run   = cases_run
+			self.cppases_run   = cases_run
 			self.h           = h
 			self.l2_errors   = l2_errors
-			self.conv_orders = conv_orders
+			self.cpponv_orders = conv_orders
 
 def assign_block(A,cases_run,f):
 	"""Fill data block A based on cases_run."""
@@ -222,10 +222,10 @@ def write_std_tables(f,data_i,output,type_out):
 		ml_max = data.ml_max
 
 		var_names   = data.var_names
-		cases_run   = data.cases_run
+		cases_run   = data.cppases_run
 		h           = data.h
 		l2_errors   = data.l2_errors
-		conv_orders = data.conv_orders
+		conv_orders = data.cpponv_orders
 
 		f_write(f,0,'\\begin{table}[!ht]')
 #		f_write(f,0,'\\begin{table}[!htbp]') # Include additional table placement options
@@ -322,10 +322,10 @@ def output_figure(data_i,output):
 		ml_max = data.ml_max
 
 		var_names   = data.var_names
-		cases_run   = data.cases_run
+		cases_run   = data.cppases_run
 		h          = data.h
 		l2_errors   = data.l2_errors
-		conv_orders = data.conv_orders
+		conv_orders = data.cpponv_orders
 
 		non_zero_cols = np.amax(cases_run,axis=0)
 		non_zero_rows = np.amax(cases_run,axis=1)
@@ -388,7 +388,7 @@ def get_data_o (input_i,output_i):
 		for v in range(v_out):
 			for n in range(n_out):
 				l2_errors[:,:,n+n_out*v]   = data_i[n].l2_errors[:,:,ind_var[v]]
-				conv_orders[:,:,n+n_out*v] = data_i[n].conv_orders[:,:,ind_var[v]]
+				conv_orders[:,:,n+n_out*v] = data_i[n].cpponv_orders[:,:,ind_var[v]]
 
 		data_o = [Input_Data(input_i.root_path)]
 		data_o[0].n_vars = n_out*v_out
@@ -396,10 +396,10 @@ def get_data_o (input_i,output_i):
 		data_o[0].ml_max = ml_max
 
 		data_o[0].var_names   = output_i.var_names
-		data_o[0].cases_run   = data_i[0].cases_run
+		data_o[0].cppases_run   = data_i[0].cppases_run
 		data_o[0].h           = data_i[0].h
 		data_o[0].l2_errors   = l2_errors
-		data_o[0].conv_orders = conv_orders
+		data_o[0].cpponv_orders = conv_orders
 
 		return data_o
 	else:
@@ -410,15 +410,15 @@ def output_data (output_i,input_i):
 	if (output_i.format == "table"):
 		f = open(output_i.root_path+"latex_tables.txt",'w')
 		write_std_tables(f,data_o,output_i,'a')
-		f.close()
+		f.cpplose()
 
 		f = open(output_i.root_path+"latex_tables_conv_only.txt",'w')
 		write_std_tables(f,data_o,output_i,'c')
-		f.close()
+		f.cpplose()
 
 		f = open(output_i.root_path+"latex_tables_err_only.txt",'w')
 		write_std_tables(f,data_o,output_i,'e')
-		f.close()
+		f.cpplose()
 	else:
 		assert 0,"Unsupported: "+str(output_i.format)
 

@@ -1,7 +1,7 @@
 set	(SOURCE
-	 test_support_matrix.c
-	 test_support_multiarray.c
-	 test_support_vector.c
+	 test_support_matrix.cpp
+	 test_support_multiarray.cpp
+	 test_support_vector.cpp
 	)
 
 set	(LIBS_DEPEND

@@ -1,6 +1,6 @@
 set	(SOURCE
-	 test_support_bases.c
-	 test_support_nodes.c
+	 test_support_bases.cpp
+	 test_support_nodes.cpp
 	)
 
 set	(LIBS_DEPEND

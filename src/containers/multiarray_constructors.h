@@ -67,9 +67,9 @@ You should have received a copy of the GNU General Public License along with DPG
  *  [this][SO_compound1] and [this][SO_compound2] SO discussion.
  *
  *  <!-- References: -->
- *  [SO_dyn_const_struct]: https://stackoverflow.com/q/2219001/5983549
- *  [SO_compound1]: https://stackoverflow.com/q/17374792/5983549
- *  [SO_compound2]: https://stackoverflow.com/a/11268460/5983549
+ *  [SO_dyn_const_struct]: https://stackoverflow.cppom/q/2219001/5983549
+ *  [SO_compound1]: https://stackoverflow.cppom/q/17374792/5983549
+ *  [SO_compound2]: https://stackoverflow.cppom/a/11268460/5983549
  */
 
 #include <stddef.h>

@@ -47,7 +47,7 @@ struct Integration_Test_Info {
 
 	/** The accepted rate at which the inf-sup constant converges to zero.
 	 *
-	 *  See the comments in \ref test_integration_inf_sup.c for additional comments. */
+	 *  See the comments in \ref test_integration_inf_sup.cpp for additional comments. */
 	double conv_order_inf_sup_accept;
 };
 

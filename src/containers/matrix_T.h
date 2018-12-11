@@ -52,7 +52,7 @@ struct const_Matrix_T { ///\{
  *  Further details regarding the CSR storage format can be found on [this intel mkl page][mkl_csr].
  *
  *  <!-- References: -->
- *  [mkl_csr]: https://software.intel.com/en-us/mkl-developer-reference-fortran-sparse-blas-csr-matrix-storage-format
+ *  [mkl_csr]: https://software.intel.cppom/en-us/mkl-developer-reference-fortran-sparse-blas-csr-matrix-storage-format
  */
 struct Matrix_CSR_T {
 	ptrdiff_t ext_0, ///< Defined in \ref Matrix_T.

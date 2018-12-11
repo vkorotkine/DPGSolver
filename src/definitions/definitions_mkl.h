@@ -37,7 +37,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 /**\{ \name Redefine mkl complex types for compatibility with c99 standard types.
  *    This was done following the suggestion in
- *    [this][https://software.intel.com/en-us/forums/intel-math-kernel-library/topic/285810] intel post.
+ *    [this][https://software.intel.cppom/en-us/forums/intel-math-kernel-library/topic/285810] intel post.
  */
 #define MKL_Complex16 double complex
 ///\}

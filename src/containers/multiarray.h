@@ -61,7 +61,7 @@ You should have received a copy of the GNU General Public License along with DPG
  *
  *  <!-- References: -->
  *  [eigen_signed]: http://eigen.tuxfamily.org/index.php?title=FAQ#Why_Eigen.27s_API_is_using_signed_integers_for_sizes.2C_indices.2C_etc..3F
- *  [SO_signed]: https://stackoverflow.com/a/18796234/5983549
+ *  [SO_signed]: https://stackoverflow.cppom/a/18796234/5983549
  */
 
 #include <stddef.h>

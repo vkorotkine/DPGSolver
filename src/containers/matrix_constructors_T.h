@@ -297,7 +297,7 @@ const struct const_Matrix_T* constructor_inverse_const_Matrix_T
  *  Reference: [LAPACKE_dsgesv][dsgesv].
  *
  *  <!-- References: -->
- *  [dsgesv]: https://software.intel.com/en-us/mkl-developer-reference-c-gesv
+ *  [dsgesv]: https://software.intel.cppom/en-us/mkl-developer-reference-c-gesv
  */
 struct Matrix_T* constructor_sgesv_Matrix_T
 	(struct Matrix_T* A_i, ///< The LHS input matrix A.
@@ -317,7 +317,7 @@ const struct const_Matrix_T* constructor_sgesv_const_Matrix_T
  *  Reference: [LAPACKE_dsysv][dsysv].
  *
  *  <!-- References: -->
- *  [dsysv]: https://software.intel.com/en-us/mkl-developer-reference-c-sysv
+ *  [dsysv]: https://software.intel.cppom/en-us/mkl-developer-reference-c-sysv
  */
 struct Matrix_T* constructor_sysv_Matrix_T
 	(struct Matrix_T* A_i, ///< The LHS input matrix A.

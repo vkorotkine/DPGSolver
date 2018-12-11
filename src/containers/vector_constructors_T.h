@@ -270,7 +270,7 @@ const struct const_Vector_T* constructor_mv_const_Vector_T
  *  \return Standard.
  *
  *  <!-- References: -->
- *  [dsgesv]: https://software.intel.com/en-us/mkl-developer-reference-c-gesv
+ *  [dsgesv]: https://software.intel.cppom/en-us/mkl-developer-reference-c-gesv
  */
 struct Vector_T* constructor_sgesv_Vector_T
 	(struct Matrix_T* A_i, ///< The LHS input matrix A.

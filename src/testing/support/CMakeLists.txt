@@ -4,8 +4,8 @@ add_subdirectory(general)
 add_subdirectory(simulation)
 
 set	(SOURCE
-	 test_support.c
-	 test_support_fe_init.c
+	 test_support.cpp
+	 test_support_fe_init.cpp
 	)
 
 set	(LIBS_DEPEND

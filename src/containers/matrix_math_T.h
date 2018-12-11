@@ -98,7 +98,7 @@ void permute_rows_Matrix_T_V
  *  op(): 'N'o transpose, 'T'ranspose.
  *
  *  <!-- References: -->
- *  [cblas_dgemm]: https://software.intel.com/en-us/mkl-developer-reference-c-cblas-gemm
+ *  [cblas_dgemm]: https://software.intel.cppom/en-us/mkl-developer-reference-c-cblas-gemm
  */
 void mm_T
 	(const char trans_a_i,                ///< Operator for input `a`. Options: 'N'o transpose, 'T'ranspose.
@@ -142,7 +142,7 @@ void mm_TRT
  *  matrix.
  *
  *  <!-- References: -->
- *  [cblas_dgemv]: https://software.intel.com/en-us/mkl-developer-reference-c-cblas-gemv
+ *  [cblas_dgemv]: https://software.intel.cppom/en-us/mkl-developer-reference-c-cblas-gemv
  */
 void mv_T
 	(const char trans_a_i,                ///< Operator for input `a`. Options: 'N'o transpose, 'T'ranspose.

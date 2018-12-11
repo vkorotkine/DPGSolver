@@ -1,5 +1,5 @@
 set	(SOURCE
-	 test_support_math_functions.c
+	 test_support_math_functions.cpp
 	)
 
 set	(LIBS_DEPEND

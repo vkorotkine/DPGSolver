@@ -1,7 +1,7 @@
 set	(SOURCE
-	 test_integration.c
-	 test_integration_convergence_support.c
-	 test_integration_support_face.c
+	 test_integration.cpp
+	 test_integration_convergence_support.cpp
+	 test_integration_support_face.cpp
 	)
 
 set	(LIBS_DEPEND
@@ -18,7 +18,7 @@ set (LIBS_BASE Test_Base Test_Support)
 
 set (EXEC test_integration_mesh)
 set (LIBS_DEPEND ${LIBS_BASE} General Mesh Simulation Test_Support_Containers)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "blended_2d_mixed_part1.msh" "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_ParametricMixed2D__ml0__p3")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "straight_2d_quad_periodic_part1.msh" "euler/periodic_vortex/TEST_Euler_PeriodicVortex_QUAD__ml0__p2")
@@ -26,7 +26,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "parametric_2d_quad_periodic_reflecte
 
 set (EXEC test_integration_fe_init)
 set (LIBS_DEPEND ${LIBS_BASE} ${PETSC_LIBRARIES} Simulation Test_Support_Simulation)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_blended_2d_mixed_part1")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_straight_2d_quad_periodic_part1")
@@ -34,7 +34,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_parametric_2d_quad_
 
 set (EXEC test_integration_fe_init_refined)
 set (LIBS_DEPEND ${LIBS_BASE} ${PETSC_LIBRARIES} Simulation Test_Integration Test_Support_Simulation)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_h_refined_2d_tri_h1_part1")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_h_refined_2d_tri_h2_part1")
@@ -43,14 +43,14 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_h_refined_2d_tri_h1
 
 set (EXEC test_integration_geometry)
 set (LIBS_DEPEND ${LIBS_BASE} ${PETSC_LIBRARIES} Simulation Test_Support_Containers Test_Support_Simulation)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_straight_2d_quad_periodic_part1")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "extern_mesh/TEST_blended_2d_mixed_part1")
 
 set (EXEC test_integration_fluxes)
 set (LIBS_DEPEND Test_Base Test_Integration)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "flux_advection_1d" "integration/TEST_Advection_Default_1d__ml0__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_advection_2d" "integration/TEST_Advection_Default_2d__ml0__p2")
@@ -66,7 +66,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "flux_navier_stokes_sutherland_2d" "i
 
 set (EXEC test_integration_numerical_fluxes)
 set (LIBS_DEPEND Test_Base Test_Integration Test_Support_Simulation)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "numerical_flux_advection_upwind_1d" "integration/numerical_fluxes/TEST_Advection_upwind_1d__ml1__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "numerical_flux_advection_upwind_2d" "integration/numerical_fluxes/TEST_Advection_upwind_2d__ml1__p2")
@@ -75,7 +75,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "numerical_flux_euler_lax_friedrichs_
 
 set (EXEC test_integration_boundary_conditions)
 set (LIBS_DEPEND Test_Base Test_Integration)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "boundary_conditions_advection_1d" "integration/TEST_Advection_Default_1d__ml0__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_advection_2d" "integration/TEST_Advection_Default_2d__ml0__p2")
@@ -89,7 +89,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "boundary_conditions_navier_stokes_2d
 
 set (EXEC test_integration_non_conforming)
 set (LIBS_DEPEND Test_Base Test_Integration)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/TEST_non_conforming_mixed_2d")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/TEST_non_conforming_unaligned_mixed_2d")
@@ -98,7 +98,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "RESULTS_euler_joukowski_full_dg_2D_a
 
 set (EXEC test_integration_free_stream)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d__ml2__p3" "petsc_options_gmres_tol_1e-15")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection_free_stream_mixed2d_unaligned__ml2__p3" "petsc_options_gmres_tol_1e-15")
@@ -108,14 +108,14 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/free_stream/TEST_advection
 
 set (EXEC test_integration_restart_output)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/restart/TEST_Euler_SupersonicVortex_DG_restart_2D")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/restart/TEST_euler_gaussian_bump_dg_restart_2d" "petsc_options_gmres_default")
 
 set (EXEC test_integration_restart)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/restart/TEST_Euler_SupersonicVortex_DG_ParametricQuad2D")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/restart/TEST_Euler_SupersonicVortex_DG_ParametricTri2D_p_le_2")
@@ -126,7 +126,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "integration/restart/TEST_Euler_Super
 
 set (EXEC test_integration_conservation)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dg/TEST_Advection_Default_DG_Mixed2D__ml2__p2" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/default/dpg/TEST_Advection_Default_Conservative_DPG_Mixed2D__ml2__p2" "petsc_options_gmres_default")
@@ -135,7 +135,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_S
 
 set (EXEC test_integration_inf_sup)
 set (LIBS_DEPEND ${LIBS_BASE} ${SLEPC_LIBRARIES} Simulation Test_Integration Test_Support_Simulation)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 
 
@@ -146,7 +146,7 @@ set (LIBS_DEPEND ${LIBS_BASE}
      Test_Support_General
      Test_Support_Simulation
     )
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_1D} ${EXEC} "advection/default/dpg/TEST_Advection_Demkowicz_DPGII_LINE__ml2__p2")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dg/TEST_Advection_Peterson_TRI__ml2__p3")
@@ -167,7 +167,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "navier_stokes/steady/taylor_couette/
 
 set (EXEC test_integration_convergence)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dg/TEST_Advection_Peterson_TRI__ml0__p0" "petsc_options_gmres_default")
 add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "advection/peterson/dpg/TEST_Advection_Peterson_DPG_TRI__ml0__p0" "petsc_options_cg_ilu1") # Incomplete Cholesky was slower than LU.
@@ -198,7 +198,7 @@ add_test_DPG_w_path(${BIN_PATH_2D} ${EXEC} "navier_stokes/steady/taylor_couette/
 
 set (EXEC test_integration_mpi)
 set (LIBS_DEPEND ${LIBS_BASE} Core Simulation Test_Integration)
-add_executable(${EXEC} ${EXEC}.c)
+add_executable(${EXEC} ${EXEC}.cpp)
 target_link_libraries(${EXEC} ${LIBS_DEPEND})
 add_test_mpi_DPG_w_path("1" ${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedMixed2D_part1" "petsc_options_gmres_default")
 add_test_mpi_DPG_w_path("2" ${BIN_PATH_2D} ${EXEC} "euler/supersonic_vortex/TEST_Euler_SupersonicVortex_DG_BlendedMixed2D_part2" "petsc_options_gmres_default")
