@@ -125,8 +125,9 @@ void structor_simulation
 				EXIT_ERROR("Unsupported: %c\n",type_rc);
 				break;
 			}
-			if (adapt_type == ADAPT_0_FOR_H)
+			if (adapt_type == ADAPT_0_FOR_H){
 				adapt_initial_mesh_if_required(*sim);
+			}
 		} else if (mode == 'd') {
 			switch (type_rc) {
 			case 'r':
@@ -253,6 +254,9 @@ const char* set_file_name_curr
 
 void adapt_initial_mesh_if_required (struct Simulation*const sim)
 {
+
+	printf("adapt_initial_mesh_if_required\n");
+
 	const int* count_to_find = (int[]) {2,3};
 	int count_found = 0;
 
@@ -290,6 +294,16 @@ void adapt_initial_mesh_if_required (struct Simulation*const sim)
 	if (count_found < count_to_find[0] || count_found > count_to_find[1])
 		EXIT_ERROR("Did not find the required number of variables (Found: %d/[%d,%d]).\n",
 		           count_found,count_to_find[0],count_to_find[1]);
+	
+	printf("xyz_ve_refine: \n");
+	print_const_Multiarray_d(adapt_data.xyz_ve_refine);
+
+	printf("xyz_ve_ml: \n");
+	print_const_Vector_i(adapt_data.xyz_ve_ml);
+
+	printf("adapt_data.adapt_h[0]: \n");
+	printf("%d \n", adapt_data.adapt_h[0]);
+
 
 	adapt_hp(sim,ADAPT_S_XYZ_VE,&adapt_data);
 	for (int i = 0; i < adapt_data.adapt_h[0]; ++i)

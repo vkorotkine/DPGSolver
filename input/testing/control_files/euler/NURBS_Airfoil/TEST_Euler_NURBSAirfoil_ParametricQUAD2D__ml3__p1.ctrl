@@ -9,8 +9,8 @@ dimension 2
 mesh_generator   n-cube/2d_stretched.geo
 mesh_format      gmsh
 mesh_domain      parametric
-mesh_type        tri
-mesh_level       2 2
+mesh_type        quad
+mesh_level       3 3
 mesh_path        ../meshes/
 
 # Simulation variables
@@ -26,12 +26,12 @@ geom_representation  superparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 
-p_ref    2 2
+p_ref    1 1
 
 fe_method 1
 
 
 # Testing variables
 
-ml_range_test 2 2
-p_range_test  2 2
+ml_range_test 3 3
+p_range_test  1 1

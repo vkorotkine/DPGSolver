@@ -115,7 +115,6 @@ void test_brute_force_gradient(struct Optimization_Case *optimization_case,
 	struct Multiarray_d* control_points = optimization_case->geo_data.control_points;
 	int control_pt_index;
 
-	double f_0 = functional(sim);
 	double f_plus_h, f_min_h;  // Values of the functional for the central difference
 
 	int col_index = 0;

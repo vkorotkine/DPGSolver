@@ -12,75 +12,32 @@ import Basis
 import matplotlib.pyplot as plt
 import matplotlib.lines as lines
 
-#NOTE: Need the same NURBS patch parameters for all patches to plot them
-
-# Airfoil Case
-CONST_PLOT_X_RANGE = [-0.65, 0.65]
-CONST_PLOT_Y_RANGE = [-0.12, 0.12]
-
-
-# Absolute path to the directory with all the optimization results
-CONST_OPTIMIZATION_DIR_ABS_PATH = "/Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/build_2D/output/paraview/euler/steady/NURBS_Airfoil/Unconstrained_Inverse_Design_NACA0012_to_NACA4412_cases"
-
-
 # The list of files and the label to associate with them when plotting them. Each tuple
 # contains the name of the file first and the label second. An empty label will result 
 # in no legend. The tuples are in the form:
 # (file name, legend name, color, linestyle, Scatter Boolean)
-CONST_File_list = [
+# CONST_File_list = [
 	
-	# Target CL
-	#("geometry_parameters.geo", "Initial", "k", "--", False), # Initial Profile
+# 	# Inverse Design
+# 	("geometry_parameters_NACA0012_tests_reference.geo", "Initial Profile", "k", "--", False), # Initial Profile
+# 	#("geometry_parameters_NACA4412.geo", "Target Profile", "b", "--", False), # Target Profile
 
-	#("ml2_P1_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, NURBS Metrics", "r", "-", True),
-	#("ml2_P1_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, Standard (Isoparameteric)", "c", "-", True),
-	#("ml2_P1_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, Standard (Superparameteric)", "m", "-", True),
-
-	# ("ml2_P2_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 2, NURBS Metrics", "r", "-", True),
-	# ("ml2_P2_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 2, Standard (Isoparameteric)", "c", "-", True),
-	# ("ml2_P2_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 2, Standard (Superparameteric)", "m", "-", True),
-	
-	#("ml2_P3_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, NURBS Metrics", "r", "-", True),
-	#("ml2_P3_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, Standard (Isoparameteric)", "c", "-", True),
-	#("ml2_P3_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, Standard (Superparameteric)", "m", "-", True),
-
-	# ("ml1_P2_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 1, NURBS Metrics", "b", "-", True),
-	# ("ml1_P2_NURBS_NIso_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 1, Standard (Isoparameteric)", "g", "-", True),
-	# ("ml1_P2_NURBS_NSuper_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 1, Standard (Superparameteric)", "y", "-", True),
-
-	# Target CL (Equal DOF)
-	#("ml4_P1_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 1, ml = 4, NURBS Metrics", "r", "-", True),
-	#("ml3_P2_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 2, ml = 3, NURBS Metrics", "c", "-", True),
-	#("ml2_P3_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, NURBS Metrics", "m", "-", True),
-	
-	
-	# Inverse Design
-	("geometry_parameters_NACA0012.geo", "Initial Profile", "k", "--", False), # Initial Profile
-	("geometry_parameters_NACA4412.geo", "Target Profile", "b", "--", False), # Target Profile
-
-	("ml2_P1_NURBS_Y_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, NURBS Metrics", "r", "-", True),
-	#("ml2_P1_NURBS_NIso_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, Standard (Isoparameteric)", "c", "-", True),
-	#("ml2_P1_NURBS_NSuper_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, Standard (Superparameteric)", "m", "-", True),
-
-	("ml2_P2_NURBS_Y_Optimized_NURBS_Patch.txt", "P = 2, ml = 2, NURBS Metrics", "g", "-", True),
-	#("ml2_P2_NURBS_NIso_Optimized_NURBS_Patch.txt", "P = 2, ml = 2, Standard (Isoparameteric)", "c", "-", True),
-	#("ml2_P2_NURBS_NSuper_Optimized_NURBS_Patch.txt", "P = 2, ml = 2, Standard (Superparameteric)", "m", "-", True),
-
-	("ml2_P3_NURBS_Y_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, NURBS Metrics", "c", "-", True),
-	#("ml2_P3_NURBS_NIso_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, Standard (Isoparameteric)", "c", "-", True),
-	#("ml2_P3_NURBS_NSuper_Optimized_NURBS_Patch.txt", "P = 3, ml = 2, Standard (Superparameteric)", "m", "-", True),
-]
-
-# The points (on the knot domain) to plot
-CONST_ISOCURVE_PTS = []
-t_vals = numpy.linspace(-1., 1., 100)
-for t in t_vals:
-	CONST_ISOCURVE_PTS.append((t, -1.))
-
+# 	("Optimized_NURBS_Patch.txt", "P = 1, ml = 2, NURBS Metrics", "r", "-", True),
+# 	#("ml2_P1_NURBS_NIso_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, Standard (Isoparameteric)", "c", "-", True),
+# 	#("ml2_P1_NURBS_NSuper_Optimized_NURBS_Patch.txt", "P = 1, ml = 2, Standard (Superparameteric)", "m", "-", True),
+# ]
 
 
 def read_Patch_file(file_path):
-	# read the patch file and load the information
+
+	"""Read the patch file and load the NURBS information
+	
+	Args:
+	    file_path (str): Path to file with the NURBS patch information
+	
+	Returns:
+	    dict: Dictionary with the patch information
+	"""
 
 	patch_information = {}
 
@@ -160,90 +117,40 @@ def read_Patch_file(file_path):
 	return patch_information
 
 
-def plot_patch_points(basis_values, Control_Points_and_Weights, case_data_tuple):
+def plot_patch_points(case_patch_info, case_data_tuple, plot_points_xi_eta):
 
 	"""
 	Plot the patch values
+	
+	Args:
+	    case_patch_info (dict): Dictionary with the information for the given patch
+	    case_data_tuple (tuple): Tuple holding the information for the given patch (used to
+	    	determine the line color, linestyle, etc.)
+	    plot_points_xi_eta (list): List with the points (xi, eta) on the parametric 
+	    	domain at which to plot the patch.
+	
+	Returns:
+	    TYPE: -
 	"""
 
-	x_vals = []
-	y_vals = []
-
-	numI = len(Control_Points_and_Weights)
-	numJ = len(Control_Points_and_Weights[0])
-
-	for pt_k in range(len(basis_values)):
-
-		x = 0.
-		y = 0.
-
-		for i in range(numI):
-			for j in range(numJ):
-
-				x += basis_values[pt_k][i][j] * Control_Points_and_Weights[i][j][0]
-				y += basis_values[pt_k][i][j] * Control_Points_and_Weights[i][j][1]
-
-		x_vals.append(x)
-		y_vals.append(y)
-
-	curve_label = case_data_tuple[1]
-	curve_color = case_data_tuple[2]
-	line_style = case_data_tuple[3]
-	scatter_bool = case_data_tuple[4]
-
-	plt.plot(x_vals, y_vals, c=curve_color, label=curve_label, linestyle=line_style)
-
-	if not scatter_bool:
-		return
-
-	x_scatter = []
-	y_scatter = []
-
-	for i in range(numI):
-		for j in range(numJ):
-			x_scatter.append(Control_Points_and_Weights[i][j][0])
-			y_scatter.append(Control_Points_and_Weights[i][j][1])
-
-	plt.scatter(x_scatter, y_scatter, c=curve_color, s=15)
-
-
-def main():
-		
-	# Read the the patch information
-
-	cases_patch_info_list = []
-
-	for data_tuple in CONST_File_list:
-
-		file = data_tuple[0]
-		file_abs_path = os.path.join(CONST_OPTIMIZATION_DIR_ABS_PATH, file)
-		patch_info = read_Patch_file(file_abs_path)
-
-		cases_patch_info_list.append(patch_info)
-
-
-	# Use the first case to find the basis function values.
-	# These will be used for plotting all the other curves (since the basis
-	# functions are identical, only the control point positions change)
 
 	# Get the basis function lambda expressions
-	R_pq = Basis.get_NURBS_basis_functions(cases_patch_info_list[0]["Control_Points_and_Weights"], 
-		cases_patch_info_list[0]["P"], cases_patch_info_list[0]["Q"], cases_patch_info_list[0]["xiVector"], 
-		cases_patch_info_list[0]["etaVector"])
+	R_pq = Basis.get_NURBS_basis_functions(case_patch_info["Control_Points_and_Weights"], 
+		case_patch_info["P"], case_patch_info["Q"], case_patch_info["xiVector"], 
+		case_patch_info["etaVector"])
 
 
 	# Store the values of the basis functions at the required 
 	# points on the knot domain. 
-	numI = len(cases_patch_info_list[0]["Connectivity_Matrix"])
-	numJ = len(cases_patch_info_list[0]["Connectivity_Matrix"][0])
+	numI, numJ = len(case_patch_info["Connectivity_Matrix"]), len(case_patch_info["Connectivity_Matrix"][0])
 	
 	basis_values = []
 	
-	for k in range(len(CONST_ISOCURVE_PTS)):
+	for k in range(len(plot_points_xi_eta)):
 		
 		const_k_vals = []
-		xi = CONST_ISOCURVE_PTS[k][0]
-		eta = CONST_ISOCURVE_PTS[k][1]
+		xi = plot_points_xi_eta[k][0]
+		eta = plot_points_xi_eta[k][1]
 
 		for i in range(numI):
 			const_i_vals = []
@@ -255,27 +162,38 @@ def main():
 		basis_values.append(const_k_vals)
 
 
-	# Plot the patch isocurves
-	for case_index in range(len(cases_patch_info_list)):
+	x_vals, y_vals = [], []
 
-		# Get the patch information
-		patch_info = cases_patch_info_list[case_index]
+	for pt_k in range(len(basis_values)):
 
-		# Get the case plotting information
-		case_data_tuple = CONST_File_list[case_index]
+		x, y = 0., 0.
 
-		plot_patch_points(basis_values, patch_info["Control_Points_and_Weights"], case_data_tuple)
+		for i in range(numI):
+			for j in range(numJ):
 
+				x += basis_values[pt_k][i][j] * case_patch_info["Control_Points_and_Weights"][i][j][0]
+				y += basis_values[pt_k][i][j] * case_patch_info["Control_Points_and_Weights"][i][j][1]
 
-	#plt.legend()
-	plt.grid()
+		x_vals.append(x)
+		y_vals.append(y)
 
-	plt.gca().set_xlim(CONST_PLOT_X_RANGE)
-	plt.gca().set_ylim(CONST_PLOT_Y_RANGE)
+	curve_label = case_data_tuple[3]
+	curve_color = case_data_tuple[4]
+	line_style = case_data_tuple[5]
+	scatter_bool = case_data_tuple[7]
 
-	plt.show(block=True)
+	plt.plot(x_vals, y_vals, c=curve_color, label=curve_label, linestyle=line_style)
 
+	if not scatter_bool:
+		return
 
-if __name__ == "__main__":
-	main()
+	x_scatter, y_scatter = [], []
+
+	for i in range(numI):
+		for j in range(numJ):
+			x_scatter.append(case_patch_info["Control_Points_and_Weights"][i][j][0])
+			y_scatter.append(case_patch_info["Control_Points_and_Weights"][i][j][1])
+
+	plt.scatter(x_scatter, y_scatter, c=curve_color, s=15)
+
 

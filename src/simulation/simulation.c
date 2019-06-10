@@ -356,6 +356,8 @@ static void set_simulation_invalid (struct Simulation*const sim)
 	const_cast_i(&sim->method,-1);
 
 	const_cast_b(&sim->collocated,false);
+
+	const_cast_b(&sim->nurbs_enhanced_metrics,false);
 }
 
 static void set_simulation_mpi (struct Simulation*const sim)
@@ -379,6 +381,7 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 
 	char line[STRLEN_MAX];
 	int dummy = 0;
+
 	while (fgets(line,sizeof(line),ctrl_file)) {
 		if (strstr(line,"pde_name"))  read_skip_const_c_1(line,sim->pde_name);
 		if (strstr(line,"pde_spec"))  read_skip_const_c_1(line,sim->pde_spec);
@@ -399,6 +402,7 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"basis_geom")) read_skip_const_c_1(line,sim->basis_geom);
 		if (strstr(line,"basis_sol"))  read_skip_const_c_1(line,sim->basis_sol);
 		if (strstr(line,"geom_rep"))   read_skip_const_c_1(line,sim->geom_rep);
+		if (strstr(line,"nurbs_enhanced_metrics")) read_skip_const_b(line,&sim->nurbs_enhanced_metrics);
 
 		if (strstr(line,"geom_blending_tp"))  read_skip_const_c_1(line,sim->geom_blending[0]);
 		if (strstr(line,"geom_blending_si"))  read_skip_const_c_1(line,sim->geom_blending[1]);

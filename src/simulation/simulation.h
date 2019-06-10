@@ -128,6 +128,13 @@ struct Simulation {
 	 */
 	const char geom_blending[N_ST_STD][STRLEN_MIN];
 
+	/** Whether or not NURBS enhanced metrics should be used for the case. 
+	 * 	If true, the geometry file provided must contain NURBS information for the
+	 *	mesh. The NURBS patch will then be used to compute all the metric terms.
+	 * 	By default, if no parameter is set in the input file, this is false.
+	 */
+	const bool nurbs_enhanced_metrics;
+
 	/** The minimal and maximal reference orders. p-adaptation is enabled if the orders differ.
 	 *
 	 *  \note While this order corresponds to the order of the solution in the domain volumes in the case of the

@@ -60,8 +60,5 @@ You should have received a copy of the GNU General Public License along with DPG
 ///\{ \name Macro to output on successful termination.
 #define OUTPUT_SUCCESS ({printf("\n\nSuccessful termination.\n\n\n");})
 ///\}
-
-
-#define NURBS_geometry false
  
 #endif // DPG__macros_h__INCLUDED

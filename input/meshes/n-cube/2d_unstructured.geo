@@ -17,30 +17,13 @@ Include "../parameters.geo";
 
 
 // ===================================
-//           Preprocessing
-// ===================================
-
-
-// Can only create TRI unstructured mesh
-If (mesh_type == TRI)
-	// Do nothing.
-ElseIf (mesh_type == QUAD)
-	Error("Unsupported mesh_type: %d",mesh_type); Exit;
-ElseIf (mesh_type == MIXED)
-	Error("Unsupported mesh_type: %d",mesh_type); Exit;
-Else
-	Error("Unsupported mesh_type: %d",mesh_type); Exit;
-EndIf
-
-
-// ===================================
 //        Geometry Specification
 // ===================================
 
 // Geometry Specification
 l = 1;
 h = 1;
-lc = 0.25;
+lc = 0.125;
 
 Point(1) = {-l,    -h,-0,lc};  // lower left
 Point(2) = {-0.5*l,-h,-0,lc};
@@ -108,8 +91,8 @@ If (pde_name == EULER)
 			//Transfinite Line {2001, 4001} = 2*2^(mesh_level+1)+1 Using Progression 1.2;
 
 			// Tests
-			//Characteristic Length {1,3,5} = 0.005;
-			//Characteristic Length {2,4} = 0.025;
+			Characteristic Length {1,3,5} = 0.0125;
+			Characteristic Length {2,4} = 0.05;
 
 		ElseIf (mesh_level == 3)
 
@@ -176,6 +159,18 @@ EndIf
 
 
 Physical Surface(9401) = 5001;
+
+
+// Can create either a TRI or QUAD unstructured mesh
+If (mesh_type == TRI)
+	// Do nothing.
+ElseIf (mesh_type == QUAD)
+	Recombine Surface{5001};
+ElseIf (mesh_type == MIXED)
+	Error("Unsupported mesh_type: %d",mesh_type); Exit;
+Else
+	Error("Unsupported mesh_type: %d",mesh_type); Exit;
+EndIf
 
 
 // Visualization in gmsh

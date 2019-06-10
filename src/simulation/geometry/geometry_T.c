@@ -183,7 +183,7 @@ void set_up_solver_geometry_T (struct Simulation* sim)
 
 	for (struct Intrusive_Link* curr = sim->volumes->first; curr; curr = curr->next){
 		
-		if(NURBS_geometry)
+		if(sim->nurbs_enhanced_metrics)
 			compute_NURBS_enhanced_geometry_volume_T(true,(struct Solver_Volume_T*)curr,sim);
 		else
 			compute_geometry_volume_T(true,(struct Solver_Volume_T*)curr,sim);
@@ -192,7 +192,7 @@ void set_up_solver_geometry_T (struct Simulation* sim)
 
 	for (struct Intrusive_Link* curr = sim->faces->first; curr; curr = curr->next){
 	
-		if(NURBS_geometry)
+		if(sim->nurbs_enhanced_metrics)
 			compute_NURBS_enhanced_geometry_face_T((struct Solver_Face_T*)curr,sim);
 		else
 			compute_geometry_face_T((struct Solver_Face_T*)curr,sim);
@@ -264,6 +264,7 @@ void compute_NURBS_enhanced_geometry_volume_T(const bool recompute_geom_coef,
 
 	const bool curved = vol->curved;
 	const int p_g = ( curved ? p : 1 );
+	UNUSED(p_g);
 
 	struct Multiarray_T *jacobian_vc = NULL;
 
@@ -273,6 +274,7 @@ void compute_NURBS_enhanced_geometry_volume_T(const bool recompute_geom_coef,
 	const struct const_Multiarray_R*const xyz_ve = vol->xyz_ve;
 	
 	const struct const_Element*const element = vol->element;
+	UNUSED(element);
 
 	// Compute the cubature locations (in the volume) on NURBS parametric domain (rst_vc_i)
 	const struct Operator* vv0_vv_vcc = get_Multiarray_Operator(g_e->vv0_vv_vcc,(ptrdiff_t[]){0,0,p,1});
@@ -652,7 +654,7 @@ const struct const_Multiarray_T* constructor_geom_coef_ho_T
 
 void correct_for_exact_normals_T (const struct Simulation*const sim)
 {
-	if (NURBS_geometry)
+	if (sim->nurbs_enhanced_metrics)
 		return;
 
 	if (!using_exact_normals() && !using_exact_normals_for_boundary())

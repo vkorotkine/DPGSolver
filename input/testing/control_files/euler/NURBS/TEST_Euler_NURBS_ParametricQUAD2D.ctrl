@@ -4,6 +4,8 @@ pde_spec  steady/NURBS
 geom_name n-cube
 geom_spec x_lr_internal
 
+geometry_parameters_extension internal_channel_NURBS_P6_Q1_NXi11_NEta2
+
 dimension 2
 
 mesh_generator   n-cube/2d.geo
@@ -25,12 +27,13 @@ basis_sol   lagrange
 geom_representation  isoparametric
 geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
+nurbs_enhanced_metrics  1
 
-p_ref    4 4
+p_ref    2 2
 
 fe_method 1
 
 # Testing variables
 
 ml_range_test 1 4
-p_range_test  4 4
+p_range_test  2 2

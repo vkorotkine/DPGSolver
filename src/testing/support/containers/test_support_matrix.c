@@ -221,7 +221,7 @@ bool diff_const_Matrix_d (const struct const_Matrix_d*const a, const struct cons
 	return diff_Matrix_d((const struct Matrix_d*const)a,(const struct Matrix_d*const)b,tol);
 }
 
-double diff_norm_Matrix_d(const struct Matrix_d const* A, const struct Matrix_d const* B, 
+double diff_norm_Matrix_d(const struct Matrix_d *const A, const struct Matrix_d *const B, 
 	const char*const norm_type){
 
 	const ptrdiff_t size = (A->ext_0)*(A->ext_1);

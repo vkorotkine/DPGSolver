@@ -29,6 +29,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_intrusive.h"
 
 #include "multiarray.h"
+#include "multiarray_print.h"
 #include "matrix.h"
 #include "vector.h"
 
@@ -81,6 +82,12 @@ const struct const_Vector_i* compute_ve_inds_f
 	 const int lf                                 ///< The local face under consideration.
 	);
 
+/** \brief Return the number corresponding to the periodic boundary face if applicable, otherwise 0.
+ *  \return See brief. */
+static int get_bc_base_periodic
+	(const int ind_lf_wp ///< Defiend for \ref constructor_Vertex_Correspondence.
+	);
+
 // Interface functions ********************************************************************************************** //
 
 struct Intrusive_List* constructor_Faces (struct Simulation*const sim, const struct Mesh*const mesh)
@@ -108,6 +115,7 @@ struct Intrusive_List* constructor_Faces (struct Simulation*const sim, const str
 
 	const ptrdiff_t v_max = sim->n_v;
 	for (ptrdiff_t v = 0; v < v_max; ++v) {
+
 		struct Volume*const volume = volume_array[v];
 
 		const struct const_Vector_i*const v_to_v_V = v_to_v->data[v];
@@ -115,8 +123,34 @@ struct Intrusive_List* constructor_Faces (struct Simulation*const sim, const str
 		const ptrdiff_t ind_v = v + mesh->mesh_data->ind_v;
 		const int lf_max = (int)v_to_v_V->ext_0;
 		for (int lf = 0; lf < lf_max; ++lf) {
+
 			if (volume->faces[lf][0] != NULL) // Already found this face.
 				continue;
+		
+// MSB: Try quick fix
+// - We know that each right BC face must be associated with a left BC face.
+//	It seems that only left BC faces can be processed (only one needs to
+//  be processed anyways). So, maybe, try to only process in this section
+// 	those faces, if they are periodic, a left face only (recall, we only
+// 	get to this point if the face hasn't been processed yet)
+
+if (include_p){
+
+	int ind_lf_wp = v_to_lf_wp->data[v]->data[lf];
+	int bc_periodic = get_bc_base_periodic(ind_lf_wp);
+
+	if (bc_periodic) {
+		switch (bc_periodic) {
+		case PERIODIC_XL:
+		case PERIODIC_YL:
+		case PERIODIC_ZL:
+		case PERIODIC_XL_REFLECTED_Y:
+			break;  // Can process this face
+		default:
+			continue;  // Can't process this face, so process it's counterpart later
+		}
+	}
+}
 
 			const int v_neigh = v_to_v_V->data[lf];
 			const struct const_Vector_i*const ve_inds =
@@ -545,12 +579,6 @@ static void set_ind_ord
 
 // Level 3 ********************************************************************************************************** //
 
-/** \brief Return the number corresponding to the periodic boundary face if applicable, otherwise 0.
- *  \return See brief. */
-static int get_bc_base_periodic
-	(const int ind_lf_wp ///< Defiend for \ref constructor_Vertex_Correspondence.
-	);
-
 /** \brief Constructor for a \ref Vector_T\* holding the indices of the matches between the input xyz coordinate
  *         matrices.
  *  \return Standard.
@@ -624,9 +652,15 @@ static void destructor_Vertex_Correspondence (struct Vertex_Correspondence* vert
 
 static int get_bc_base_periodic (const int ind_lf_wp)
 {
+	// MSB: It seems that the issue is here. ind_lf_wp is 
+	// being given such that it has 52 at the end which 
+	// corresponds to a right face BC which is causing issues.
+
 	// Return 0 for internal or non-periodic boundary face.
 	if ((ind_lf_wp < BC_STEP_SC) ||
 	    (check_pfe_boundary(ind_lf_wp,false))) {
+		// MSB: Checks if the ind_lf_wp value given is a flag for an internal node
+		// or a periodic BC (if periodic, then returns false and go to else)
 		return 0;
 	} else {
 		assert(check_pfe_boundary(ind_lf_wp,true));

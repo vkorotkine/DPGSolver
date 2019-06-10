@@ -114,7 +114,6 @@ void adapt_hp (struct Simulation* sim, const int adapt_strategy, const struct Ad
 	assert(sim->volumes->name == IL_VOLUME_SOLVER);
 	assert(sim->faces->name   == IL_FACE_SOLVER);
 	assert(list_is_derived_from("solver",'e',sim));
-	assert(NURBS_geometry == false); // Adaptation for NURBS Enhanced case to be added
 
 	constructor_derived_computational_elements(sim,IL_SOLVER_ADAPTIVE); // destructed
 
@@ -742,8 +741,8 @@ static void update_geometry_volumes (struct Simulation* sim)
 
 		struct Solver_Volume* s_vol = (struct Solver_Volume*) curr;
 
-		if(NURBS_geometry){
-			EXIT_ERROR("Adaptation for NURBS Enhanced case to be added\n");
+		if(sim->nurbs_enhanced_metrics){
+			compute_NURBS_enhanced_geometry_volume(true,s_vol,sim);
 		}else{
 			compute_geometry_volume(true,s_vol,sim);
 		}
@@ -762,8 +761,8 @@ static void update_geometry_faces (struct Simulation* sim)
 		if (adapt_type == ADAPT_NONE)
 			continue;
 
-		if(NURBS_geometry){
-			EXIT_ERROR("Adaptation for NURBS Enhanced case to be added\n");
+		if(sim->nurbs_enhanced_metrics){
+			compute_NURBS_enhanced_geometry_face(s_face, sim);
 		} else{
 			compute_geometry_face(s_face,sim);
 		}
@@ -1517,7 +1516,7 @@ static bool volume_will_be_1_irregular (const struct Adaptive_Solver_Volume*cons
 
 static void correct_non_conforming_geometry (const struct Simulation*const sim)
 {
-	if (!CORRECT_NON_CONFORMING_GEOMETRY || NURBS_geometry)
+	if (!CORRECT_NON_CONFORMING_GEOMETRY || sim->nurbs_enhanced_metrics)
 		return;
 	if (DIM == 1)
 		return;

@@ -99,9 +99,8 @@ static void run_test_case(int argc, char** argv) {
 
 	struct Simulation* sim = NULL;
 	structor_simulation(&sim,'c',adapt_type,p,ml,p_prev,ml_prev,ctrl_name_curr,type_rc,ignore_static);
-
 	solve_for_solution(sim);  // Solve flow over initial shape
-	
+
 	if (outputting_restart())
 		output_restart(sim);
 

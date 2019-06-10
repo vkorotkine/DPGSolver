@@ -91,7 +91,7 @@ const char* set_file_name_curr
 	 const char*const file_name ///< The name of the file.
 	);
 
-/// \brief Adapt the initial mesh if a adaptation parameters are provided in the input file.
+/// \brief Adapt the initial mesh if adaptation parameters are provided in the input file.
 void adapt_initial_mesh_if_required
 	(struct Simulation*const sim ///< \ref Simulation.
 	);

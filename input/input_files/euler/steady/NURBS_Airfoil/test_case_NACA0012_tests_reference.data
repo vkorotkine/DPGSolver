@@ -6,7 +6,7 @@ solver_proc   implicit
 solver_type_i iterative
 solver_type_e ssp_rk_33
 lhs_terms     cfl_ramping
-cfl_initial   1e0
+cfl_initial   1e-1
 
 
 time_step  2.5E-4

@@ -132,8 +132,6 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 
 	struct Simulation *sim = optimization_case->sim;
 
-//output_pressure_distribution(optimization_case); return;
-
 	FILE *fp = constructor_optimization_progress_file(optimization_case);
 	struct Optimizer_NLPQLP_Data *optimizer_nlpqlp_data = constructor_Optimizer_NLPQLP_Data(optimization_case);
 
@@ -166,10 +164,6 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 
 			// Output the initial gradient
 			output_gradient(optimization_case, optimizer_nlpqlp_data->dF->data);
-
-// Functional Convergence Tests
-//return;
-
 		}
 
 		printf("\nStart NLPQLP  ");
@@ -188,7 +182,7 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 		char nlpqlp_execution_command[STRLEN_MAX*4];
 		int index = 0;
 		index += sprintf(nlpqlp_execution_command, "(cd ");
-		index += sprintf(nlpqlp_execution_command + index, optimizer_nlpqlp_data->nlpqlp_directory_abs_path);
+		index += sprintf(nlpqlp_execution_command + index, "%s", optimizer_nlpqlp_data->nlpqlp_directory_abs_path);
 		index += sprintf(nlpqlp_execution_command + index, " && ./exec)");
 		system(nlpqlp_execution_command);
 

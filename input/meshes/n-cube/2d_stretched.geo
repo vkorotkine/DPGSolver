@@ -72,8 +72,9 @@ Line Loop (4002) = {1002,2002,-1004,-2003};
 Plane Surface(4001) = {4001};
 Plane Surface(4002) = {4002};
 
-Transfinite Surface {4001};
-Transfinite Surface {4002};
+Transfinite Surface {4001} AlternateLeft;
+Transfinite Surface {4002} AlternateLeft;
+
 If (mesh_type == TRI)
 	// Do nothing.
 ElseIf (mesh_type == QUAD)
