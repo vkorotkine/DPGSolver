@@ -11,7 +11,7 @@ mesh_generator   n-cube/2d.geo
 mesh_format      gmsh
 mesh_domain      parametric
 mesh_type        quad
-mesh_level       1 5
+mesh_level       1 4
 mesh_path        ../meshes/
 
 # Simulation variables
@@ -28,11 +28,11 @@ geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 nurbs_enhanced_metrics  1
 
-p_ref    3 3
+p_ref    2 2
 
 fe_method 1
 
 # Testing variables
 
-ml_range_test 1 5
-p_range_test  3 3
+ml_range_test 1 4
+p_range_test  2 2
