@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<VTKFile type="PPolyData" version="0.1" byte_order="LittleEndian">
+<PPolyData GhostLevel="0">
+	<PPoints>
+		<DataArray type="Float32" NumberOfComponents="3" format="ascii">
+		</DataArray>
+	</PPoints>
+	<PPointData Vectors="Normals">
+		<DataArray type="Float32" Name="Normals" NumberOfComponents="3" format="ascii">
+		</DataArray>
+	</PPointData>
+
+<Piece Source="normals_0.vtp"/>
+
+</PPolyData>
+</VTKFile>

@@ -46,7 +46,7 @@ import sys
 CONST_Patch_Type = "Airfoil_Patch"
 CONST_EPS = 1E-9
 
-CONST_Output_file_name = "geometry_parameters_P3_NumPtsXi11.geo"
+CONST_Output_file_name = "geometry_parameters_airfoil_P4_NumPtsXi17_Q1_NumPtsEta2.geo"
 
 def NURBS_patch(xi,eta,BasisFunctionsList, ControlPoints_and_Weights, grad_index=None):
 
@@ -126,7 +126,7 @@ def plot_patch(patch_parameters):
 			eta_distinct_values.append(eta_val)
 
 	# Discretize the xi and eta domains so we can plot the lines
-	num_linspace_pts = 20
+	num_linspace_pts = 40
 	eta_linspace = numpy.linspace(etaVector[0]+CONST_EPS, etaVector[-1]-CONST_EPS, num_linspace_pts)
 	xi_linspace = numpy.linspace(xiVector[0]+CONST_EPS, xiVector[-1]-CONST_EPS, num_linspace_pts)
 

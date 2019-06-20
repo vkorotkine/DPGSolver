@@ -25,8 +25,8 @@ import scipy.integrate
 # The properties of the patch in the xi direction (which
 # traverses around the airfoil from the trailing edge, bottom
 # surface to the leading edge and back)
-CONST_P = 3
-CONST_NUM_CONTROL_PTS_XI = 11
+CONST_P = 4
+CONST_NUM_CONTROL_PTS_XI = 17
 
 
 # Properties of the patch in the eta direction (eta increases in the 
@@ -48,8 +48,8 @@ CONST_Airfoil_Type = "NACA0012"
 CONST_QUADRATURE_N = 5
 
 # Plot Parameters (for testing)
-CONST_PlotXRange = [-1.7, 1.7]
-CONST_PlotYRange = [-1.7, 1.7]
+CONST_PlotXRange = [-1.0, 1.0]
+CONST_PlotYRange = [-0.6, 0.6]
 
 
 def airfoil_parametric_equation(s):
@@ -537,7 +537,7 @@ def get_farfield_BSpline_parameters():
 	}
 
 
-def plot_airfoil_test():
+def plot_airfoil():
 	# Test method for plotting airfoil
 	
 	s = numpy.linspace(-1, 1, 201)
@@ -550,7 +550,7 @@ def plot_airfoil_test():
 		x_vals.append(pt[0])
 		y_vals.append(pt[1])
 
-	plt.plot(x_vals, y_vals, c='b')
+	plt.plot(x_vals, y_vals, c='k', linestyle='--')
 
 
 def plot_spline(spline_function, xi_range, control_points):
@@ -713,7 +713,7 @@ def test():
 	Farfield_parameters = get_farfield_BSpline_parameters()
 
 	
-	#plot_airfoil_test()
+	plot_airfoil()
 	plot_spline(BSpline_parameters["Spline_Function"],
 				BSpline_parameters["knots"],
 				BSpline_parameters["control_points"])

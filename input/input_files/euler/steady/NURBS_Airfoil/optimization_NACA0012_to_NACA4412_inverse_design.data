@@ -1,0 +1,68 @@
+// Optimization parameters for test case: euler/steady/NURBS_NACA0012_test_ref
+//
+// ****************************************************************************************
+// 	NOTE: Please refer to ****** for comments regarding the purpose of each input parameter
+// ****************************************************************************************
+
+
+// =================================================================================
+// 								Optimizer Information
+// =================================================================================
+
+optimizer_spec             NLPQLP
+optimizer_nlpqlp_abs_path  /Users/jm-034232/Documents/McGill/Research/DPGSolver/NLPQLP_Optimizer
+optimizer_output_files_prefix  Constrained_Inverse_Design/NACA0012_to_NACA4412_Structured/P4_NumPtsXi19_Q1_NumPtsEta2/ml2_P3_NURBS_Y_
+
+// =================================================================================
+//								Optimization Type
+// =================================================================================
+
+optimization_objective_function         FUNCTIONAL_INVERSE_PRESSURE_DESIGN
+
+// =================================================================================
+//					Optimization Constraints (works for NLPQLP only)
+// =================================================================================
+
+num_total_constraints    0
+
+// =================================================================================
+//						Optimizer Line Search Information
+// =================================================================================
+
+exit_L2_norm_gradient       1E-10
+exit_objective_value        1E-20
+exit_max_design_iterations  250
+
+step_size_init            1E-2
+wolfe_condition_c         1E-4
+wolfe_condition_rho       1E-1
+wolfe_condition_alpha_min 1.5E-3
+max_norm_search_vector    5E-1
+
+// =================================================================================
+//							Optimizer NLPQLP Information
+// =================================================================================
+
+IOUT   6
+MAXIT  250
+MAXFUN 10
+MAXNM  10
+LQL    1
+IPRINT 0
+
+ACC    1E-14
+ACCQP  1E-14
+STPMIN 1E-10
+RHO    0.0
+
+// =================================================================================
+//							Optimization Value Monitoring
+// =================================================================================
+
+output_progress_additional_parameters FUNCTIONAL_INVERSE_PRESSURE_DESIGN
+
+// =================================================================================
+// 								Functional Options
+// =================================================================================
+
+FUNCTIONAL_INVERSE_PRESSURE_DESIGN_TARGET_FILE  Pressure_Distribution_NACA4412_ml2_p4.txt

@@ -1,0 +1,28 @@
+/// Solver parameters for test case: euler/steady/gaussian_bump
+
+geom_parametrization normal_proj
+
+solver_proc   implicit
+solver_type_i iterative
+solver_type_e ssp_rk_33
+lhs_terms     cfl_ramping
+cfl_initial   5e-1
+
+
+time_step  2.5E-4
+time_final 1E10
+exit_tol_e  9E0
+
+num_flux_1st Roe-Pike
+test_norm    H0 H1_upwind
+
+use_schur_complement 1
+
+exit_tol_i   1e-13
+exit_ratio_i 1e-15
+
+display_progress 1
+output_restart   0
+use_restart      0
+
+use_straight_internal_geometry 0

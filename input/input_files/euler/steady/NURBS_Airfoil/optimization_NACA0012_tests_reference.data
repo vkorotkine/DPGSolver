@@ -11,7 +11,7 @@
 
 optimizer_spec             NLPQLP
 optimizer_nlpqlp_abs_path  /Users/jm-034232/Documents/McGill/Research/DPGSolver/NLPQLP_Optimizer
-optimizer_output_files_prefix  Constrained_Target_CL_cases/NACA0012_Target_CL_0.25_Unstructured/ml3_P2_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_
+optimizer_output_files_prefix  Constrained_Inverse_Design/NACA0012_to_NACA4412_Structured/ml2_P1_NURBS_Y_CM_eq_0.1255_vfc_eq_1.0_
 
 // =================================================================================
 //								Optimization Type
@@ -74,4 +74,4 @@ output_progress_additional_parameters FUNCTIONAL_CL,FUNCTIONAL_CM_LE,FUNCTIONAL_
 // =================================================================================
 
 FUNCTIONAL_TARGET_CL_VALUE                      0.25
-FUNCTIONAL_INVERSE_PRESSURE_DESIGN_TARGET_FILE
+FUNCTIONAL_INVERSE_PRESSURE_DESIGN_TARGET_FILE  Pressure_Distribution_NACA4412_ml2_p4.txt

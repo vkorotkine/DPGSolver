@@ -1,0 +1,77 @@
+// Optimization parameters for test case: euler/steady/NURBS_NACA0012_test_ref
+//
+// ****************************************************************************************
+// 	NOTE: Please refer to ****** for comments regarding the purpose of each input parameter
+// ****************************************************************************************
+
+
+// =================================================================================
+// 								Optimizer Information
+// =================================================================================
+
+optimizer_spec             NLPQLP
+optimizer_nlpqlp_abs_path  /Users/jm-034232/Documents/McGill/Research/DPGSolver/NLPQLP_Optimizer
+optimizer_output_files_prefix  TargetCL_0.25_CM0.1255_vfc0/Structured/P2_test
+
+// =================================================================================
+//								Optimization Type
+// =================================================================================
+
+optimization_objective_function         FUNCTIONAL_TARGET_CL
+
+// =================================================================================
+//					Optimization Constraints (works for NLPQLP only)
+// =================================================================================
+
+num_total_constraints    2
+constraint_functional    FUNCTIONAL_CM_LE
+constraint_multiplier    1.0
+constraint_shift         0.1255
+constraint_type          e
+constraint_functional    FUNCTIONAL_FRACTIONAL_CHANGE_MESH_VOLUME
+constraint_multiplier    1.0
+constraint_shift         -1.0
+constraint_type          e
+
+// =================================================================================
+//						Optimizer Line Search Information
+// =================================================================================
+
+exit_L2_norm_gradient       1E-10
+exit_objective_value        1E-20
+exit_max_design_iterations  250
+
+step_size_init            1E-2
+wolfe_condition_c         1E-4
+wolfe_condition_rho       1E-1
+wolfe_condition_alpha_min 1.5E-3
+max_norm_search_vector    5E-1
+
+// =================================================================================
+//							Optimizer NLPQLP Information
+// =================================================================================
+
+IOUT   6
+MAXIT  250
+MAXFUN 10
+MAXNM  10
+LQL    1
+IPRINT 0
+
+ACC    1E-14
+ACCQP  1E-14
+STPMIN 1E-10
+RHO    0.0
+
+// =================================================================================
+//							Optimization Value Monitoring
+// =================================================================================
+
+output_progress_additional_parameters FUNCTIONAL_CL,FUNCTIONAL_CM_LE,FUNCTIONAL_FRACTIONAL_CHANGE_MESH_VOLUME
+
+// =================================================================================
+// 								Functional Options
+// =================================================================================
+
+FUNCTIONAL_TARGET_CL_VALUE                      0.25
+FUNCTIONAL_INVERSE_PRESSURE_DESIGN_TARGET_FILE  Pressure_Distribution_NACA4412_ml2_p4.txt

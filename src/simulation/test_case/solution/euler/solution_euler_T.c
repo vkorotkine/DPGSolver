@@ -108,7 +108,7 @@ void set_function_pointers_solution_euler_T (struct Test_Case_T* test_case, cons
 test_case->constructor_Error_CE = constructor_Error_CE_euler_entropy;
 //test_case->constructor_Error_CE = constructor_Error_CE_euler_all;
 		test_case->constructor_Error_CE_restart_test = constructor_Error_CE_euler_entropy;
-	} else if (strstr(sim->pde_spec, "NURBS")) {
+	} else if (strstr(sim->pde_spec, "NURBS_bump")) {
 		// Internal channel flow case using a NURBS parametric mapping
 		test_case->constructor_xyz              = constructor_xyz_NURBS_parametric_T;
 		test_case->constructor_sol              = constructor_const_sol_free_stream_T;

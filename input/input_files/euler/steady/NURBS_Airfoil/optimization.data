@@ -19,7 +19,7 @@
 
 optimizer_spec             LINE_SEARCH_BFGS
 optimizer_nlpqlp_abs_path  /Users/manmeetbhabra/Documents/McGill/Research/DPGSolver/NLPQLP_Optimizer
-optimizer_output_files_prefix  
+optimizer_output_files_prefix  Constrained_Target_CL_cases/NACA0012_Target_CL_0.25_Structured/
 
 // =================================================================================
 //								Optimization Type
@@ -27,9 +27,6 @@ optimizer_output_files_prefix
 // - optimization_objective_function: Specifies the functional to be minimized for the 
 //		optimization. Consult the "Functional Options" section to see which functionals may
 //		be used.
-//
-//	- optimization_type_inverse: Specifies the absolute path to the file with the 
-//		pressure data
 // =================================================================================
 
 optimization_objective_function         FUNCTIONAL_TARGET_CL

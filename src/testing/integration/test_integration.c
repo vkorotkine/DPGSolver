@@ -97,7 +97,7 @@ void destructor_Integration_Test_Info (struct Integration_Test_Info* int_test_in
 void structor_simulation
 	(struct Simulation** sim, const char mode, const int adapt_type, const int p, const int ml, const int p_prev,
 	 const int ml_prev, const char*const ctrl_name, const char type_rc, const bool ignore_static)
-{
+{	
 	assert(mode == 'c' || mode == 'd');
 	assert(type_rc == 'r' || type_rc == 'c');
 
@@ -120,7 +120,7 @@ void structor_simulation
 				convert_to_Test_Case_rc(*sim,'c'); // converted back
 				set_up_solver_geometry_c(*sim);
 				set_initial_solution_c(*sim);
-				break;
+				break;	
 			default:
 				EXIT_ERROR("Unsupported: %c\n",type_rc);
 				break;
