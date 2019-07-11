@@ -27,6 +27,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "definitions_elements.h"
 #include "intrusive.h"
 
+
 struct Mesh;
 struct Simulation;
 struct const_Vector_i;
@@ -39,6 +40,11 @@ struct Volume {
 	const int index; ///< The index of the volume.
 
 	const struct const_Element*const element; ///< Pointer to the associated \ref const_Element.
+
+	/// Index of reference domain volume belongs to. Notably, multiple NURBS patches
+	/// This is obtained from the elem_tag in mesh_data
+	/// Which comes from element tags in .msh file. 
+	int patch_index; 
 
 	/// Boundary conditions of each of the volume faces. Equal to \ref BC_INVALID for non-boundary faces.
 	const struct const_Vector_i* bc_faces;

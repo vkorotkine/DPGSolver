@@ -47,11 +47,14 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "mesh_vertices.h"
 #include "simulation.h"
 
+
+
 // Static function declarations ************************************************************************************* //
 
 /// \brief Container for \ref Volume related mesh information.
 struct Volume_mesh_info {
 	int elem_type;                        ///< The type of \ref Element associated with the volume.
+	int patch_index;                      ///< Index of patch volume belongs to
 	const struct const_Vector_i* ve_inds; ///< The indices of the vertices of the volume.
 
 	const struct const_Vector_i* to_lf;   ///< The relevant row of \ref Mesh_Connectivity::v_to_lf.
@@ -92,8 +95,10 @@ struct Intrusive_List* constructor_Volumes (struct Simulation*const sim, const s
 	struct Intrusive_List* volumes = constructor_empty_IL(IL_VOLUME,NULL); // returned
 
 	const struct const_Vector_i*const            elem_types = mesh->mesh_data->elem_types;
+	const struct const_Matrix_i*const            elem_tags = mesh->mesh_data->elem_tags;
 	const struct const_Multiarray_Vector_i*const node_nums  = mesh->mesh_data->node_nums;
 
+	UNUSED(elem_tags);
 	const struct const_Multiarray_Vector_i*const v_to_lf = mesh->mesh_conn->v_to_lf;
 
 	const ptrdiff_t n_v = compute_size(v_to_lf->order,v_to_lf->extents);
@@ -104,8 +109,8 @@ struct Intrusive_List* constructor_Volumes (struct Simulation*const sim, const s
 			{ .elem_type = elem_types->data[ind_v],
 			  .ve_inds   = node_nums->data[ind_v],
 			  .to_lf     = v_to_lf->data[v],
+			  .patch_index =elem_tags->data[2*ind_v], // get elem_tags[ind_v][0], first column
 			};
-
 		push_back_IL(volumes,(struct Intrusive_Link*) constructor_Volume(sim,mesh,&vol_mi,v));
 	}
 	sim->n_v = n_v;
@@ -357,7 +362,6 @@ static struct Volume* constructor_Volume
 	struct Volume* volume = calloc(1,sizeof *volume); // returned
 
 	const_cast_i(&volume->index,index);
-
 	const_constructor_move_Multiarray_d(&volume->xyz_ve,constructor_volume_vertices(vol_mi->ve_inds,nodes)); // dest.
 
 	for (int i = 0; i < NFMAX;    ++i) {
@@ -376,7 +380,8 @@ static struct Volume* constructor_Volume
 	const_cast_b(&volume->curved,
 	             check_if_curved_v(sim->domain_type,volume->element->f_ve,vol_mi->ve_inds,mesh_vert));
 	volume->h = compute_h_volume(volume);
-
+	volume->patch_index = vol_mi->patch_index;
+	
 	return volume;
 }
 
