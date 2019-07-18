@@ -111,6 +111,13 @@ const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
 	 const struct Simulation* sim            ///< See brief.
 	);
 
+const struct const_Multiarray_T* constructor_xyz_Multipatch_parametric_T
+	(const char n_type,                      ///< See brief.
+	 const struct const_Multiarray_T* xyz_i, ///< See brief.
+	 const struct Solver_Volume_T* s_vol,    ///< See brief.
+	 const struct Simulation* sim            ///< See brief.
+	);
+
 /** \brief Similar of \ref constructor_xyz_fptr_T. This function is unique in that it computes 
  *	the gradient terms of the parametric NURBS mapping from the NURBS parametric domain
  *	to the physical domain.

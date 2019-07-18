@@ -81,6 +81,7 @@ def set_gmsh_setnumbers (input_dir,mesh_name):
 	             "steady/gaussian_bump",
 	             "steady/NURBS",
 	             "steady/NURBS_Airfoil",
+				 "steady/Multipatch",
 	             "default_steady",
 	             "demkowicz_dpg_ii",
 	             "unsteady/hyperbolic_tan",

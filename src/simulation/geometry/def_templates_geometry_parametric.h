@@ -29,6 +29,8 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_xyz_NURBS_parametric_T              		constructor_xyz_NURBS_parametric
 #define constructor_grad_xyz_NURBS_parametric_T              	constructor_grad_xyz_NURBS_parametric
 
+#define constructor_xyz_Multipatch_parametric_T                 constructor_xyz_Multipatch_parametric
+
 #define update_geo_data_NURBS_parametric_T						update_geo_data_NURBS_parametric
 #define grad_xyz_NURBS_patch_mapping_T              			grad_xyz_NURBS_patch_mapping
 #define xyz_NURBS_patch_mapping_T              					xyz_NURBS_patch_mapping
@@ -36,6 +38,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Static names
 #define Geo_Data Geo_Data
+#define NURBS_Patch_Geo_Data NURBS_Patch_Geo_Data
 #define get_geo_data get_geo_data
 #define romberg romberg
 #define f_al_gaussian_bump f_al_gaussian_bump
@@ -43,6 +46,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define read_data_gaussian_bump read_data_gaussian_bump
 #define read_data_fixed_cube read_data_fixed_cube
 #define read_data_NURBS read_data_NURBS
+#define read_data_Multipatch read_data_Multipatch
 ///\}
 
 #elif TYPE_RC == TYPE_COMPLEX
@@ -57,6 +61,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define constructor_xyz_gaussian_bump_parametric_T              constructor_xyz_gaussian_bump_parametric_c
 #define constructor_xyz_NURBS_parametric_T              		constructor_xyz_NURBS_parametric_c
 #define constructor_grad_xyz_NURBS_parametric_T              	constructor_grad_xyz_NURBS_parametric_c
+#define constructor_xyz_Multipatch_parametric_T                 constructor_xyz_Multipatch_parametric_c
 
 #define update_geo_data_NURBS_parametric_T						update_geo_data_NURBS_parametric_c
 #define grad_xyz_NURBS_patch_mapping_T              			grad_xyz_NURBS_patch_mapping_c
@@ -65,6 +70,7 @@ You should have received a copy of the GNU General Public License along with DPG
 
 ///\{ \name Static names
 #define Geo_Data Geo_Data_c
+#define NURBS_Patch_Geo_Data NURBS_Patch_Geo_Data_c
 #define get_geo_data get_geo_data_c
 #define romberg romberg_c
 #define f_al_gaussian_bump f_al_gaussian_bump_c
@@ -72,6 +78,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #define read_data_gaussian_bump read_data_gaussian_bump_c
 #define read_data_fixed_cube read_data_fixed_cube_c
 #define read_data_NURBS read_data_NURBS_c
+#define read_data_Multipatch read_data_Multipatch_c
 ///\}
 
 #endif

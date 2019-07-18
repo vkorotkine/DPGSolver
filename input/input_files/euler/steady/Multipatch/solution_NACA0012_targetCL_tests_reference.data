@@ -1,0 +1,8 @@
+/// Solution parameters for NURBS airfoil target CL test case	
+
+boundary_perturb_type none
+
+density   1.0 
+pressure  1.0 
+mach      0.1  
+theta_deg 0.0

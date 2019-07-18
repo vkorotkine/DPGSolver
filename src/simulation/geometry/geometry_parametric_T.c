@@ -34,7 +34,40 @@ You should have received a copy of the GNU General Public License along with DPG
 
 #include "bases.h"
 
+
 // Static function declarations ************************************************************************************* //
+
+
+struct NURBS_Patch_Geo_Data{
+	// For multipatch, multiple NURBS patch structs need to be stored in Geo_Data.
+	// This struct holds their information. 
+	// TODO: Properly integrate with Manmeet's NURBS.  
+	// NURBS Parametric Domain parameters: (2D Domain for now only)
+	
+	int P, ///< Order of the patch in the xi direction 
+		Q;  ///< Order of the patch in the eta direction
+	
+	struct Multiarray_R *knots_xi, ///< Knot vector in the xi parametric direction
+						*knots_eta; ///< Knot vector in the eta parametric direction
+
+	/** Multiarray holding the control point data. Stored as
+	 * a multiarray of dimension [num_points x DIM]. Is templated to allow
+	 * for complex control points so that sensitivities can be calculated using the complex step.
+	 */
+	struct Multiarray_T *control_points;
+	
+	/** Multiarray holding the control point weights. Stored as
+	 * a multiarray of dimension [num_points x 1]
+	 */
+	struct Multiarray_R *control_weights;
+
+	/** Multiarray holding the connectivity information for the control
+	 * points (pt) and weights (wt) in the patch.
+	 * The xi control points correspond to the i index and eta control 
+	 * points to the j index. Data stored in row major form.
+	 */
+	struct Multiarray_i *control_pt_wt_connectivity;
+};
 
 /// \brief Container for the geometric data required for the supported parametric cases.
 struct Geo_Data {
@@ -79,6 +112,8 @@ struct Geo_Data {
 	 * points to the j index. Data stored in row major form.
 	 */
 	struct Multiarray_i *control_pt_wt_connectivity;
+
+	struct NURBS_Patch_Geo_Data * NURBS_Patch_Data;
 };
 
 
@@ -406,6 +441,62 @@ const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
 	return (const struct const_Multiarray_T*)grad_xyz;
 }
 
+const struct const_Multiarray_T* constructor_xyz_Multipatch_parametric_T
+(const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
+	const struct Simulation* sim){
+
+	UNUSED(n_type);
+	UNUSED(sim);
+	UNUSED(s_vol);
+	assert(DIM == 2); // Add support for 3D if required.
+	assert(DIM == xyz_i->extents[1]);
+
+	// Read the geometric data for the NURBS patch
+	const struct Geo_Data geo_data = get_geo_data("Multipatch");
+
+	// xyz_i are the initial values for the xyz coordinates. These are, in 
+	// this function, the location on the NURBS parametric domain (or knot domain). Map these
+	// values onto the physical domain
+ 
+	// NOTE: For NURBS mappings, the coordinates on the parametric domain (xyz_i) will need to be real
+	struct Multiarray_R *xyz_i_real = constructor_empty_Multiarray_R('C',2,xyz_i->extents);  // free
+	
+	int k = 0;
+	for (int i = 0; i < xyz_i->extents[0]; i++){
+		for (int j = 0; j < xyz_i->extents[1]; j++){
+				
+#if TYPE_RC == TYPE_REAL
+			xyz_i_real->data[k] = xyz_i->data[k];
+#elif TYPE_RC == TYPE_COMPLEX
+			xyz_i_real->data[k] = creal(xyz_i->data[k]);
+#endif
+
+			k++;
+		}
+	}
+	//const struct Solver_Volume_T* s_vol = (struct Solver_Volume_T*) vol;
+	
+	// printf("%d\n", s_vol->volume->patch_index);
+	const struct const_Multiarray_T *xyz = xyz_NURBS_patch_mapping_T(
+		(const struct const_Multiarray_d*)xyz_i_real,geo_data.P, geo_data.Q, 
+		(const struct const_Multiarray_d*)geo_data.knots_xi, 
+		(const struct const_Multiarray_d*)geo_data.knots_eta,
+		(const struct const_Multiarray_T*)geo_data.control_points,
+		(const struct const_Multiarray_d*)geo_data.control_weights,
+		(const struct const_Multiarray_i*)geo_data.control_pt_wt_connectivity);
+/* 
+	const struct const_Multiarray_T *xyz = xyz_NURBS_patch_mapping_T(
+		(const struct const_Multiarray_d*)xyz_i_real, geo_data.P, geo_data.Q, 
+		(const struct const_Multiarray_d*)geo_data.knots_xi, 
+		(const struct const_Multiarray_d*)geo_data.knots_eta,
+		(const struct const_Multiarray_T*)geo_data.control_points,
+		(const struct const_Multiarray_d*)geo_data.control_weights,
+		(const struct const_Multiarray_i*)geo_data.control_pt_wt_connectivity);
+*/
+	destructor_Multiarray_d(xyz_i_real);
+	
+	return (const struct const_Multiarray_T*)xyz;
+}
 
 const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
 (const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
@@ -454,8 +545,6 @@ const struct const_Multiarray_T* constructor_xyz_NURBS_parametric_T
 	
 	return (const struct const_Multiarray_T*)xyz;
 }
-
-
 const struct const_Multiarray_T* constructor_xyz_gaussian_bump_parametric_T
 	(const char n_type, const struct const_Multiarray_T* xyz_i, const struct Solver_Volume_T* s_vol,
 	 const struct Simulation* sim)
@@ -773,6 +862,12 @@ static void read_data_NURBS
 	(struct Geo_Data*const geo_data ///< \ref Geo_Data.
 	);
 
+/// \brief Read the required geometry data for the Multipatch domain into the \ref Geo_Data container.
+/// 
+static void read_data_Multipatch 
+	(struct Geo_Data*const geo_data ///< \ref Geo_Data.
+	);
+
 static struct Geo_Data get_geo_data (const char*const geo_name)
 {
 	static bool need_input = true;
@@ -787,6 +882,8 @@ static struct Geo_Data get_geo_data (const char*const geo_name)
 			read_data_fixed_cube(&geo_data);
 		else if (strcmp(geo_name, "NURBS") == 0)
 			read_data_NURBS(&geo_data);
+		else if (strcmp(geo_name, "Multipatch") == 0)
+			read_data_Multipatch(&geo_data);
 		else
 			EXIT_ERROR("Unsupported: %s.\n",geo_name);
 	}
@@ -996,6 +1093,148 @@ static void read_data_NURBS (struct Geo_Data*const geo_data)
 	fclose(input_file);
 
 	assert(count_found == count_to_find);
+}
+ 
+static void read_data_Multipatch (struct Geo_Data*const geo_data)
+{
+
+	// Read the NURBS data from the geometry_parameters.geo file
+
+	// NOTE: Consider only 2D patches for now
+	assert(DIM == 2);
+
+	// The following parameters must be listed in the file.
+	//	- P (order in the xi direction)
+	// 	- Q (order in the eta direction)
+	//	- knots_xi
+	//  - knots_eta
+	// 	- Control Points and Weights
+	//  - Control Point Connectivity
+	const int count_to_find_global=1; //amount of variables to find, not specific to patch
+	const int count_to_find_per_patch = 6; // amount of variables to find, specific to each patch
+
+
+	// Get the file pointer to the geometry file
+	FILE* input_file = fopen_input('g',NULL,NULL); // closed
+	char line[STRLEN_MAX];
+	char buffer[STRLEN_MAX];
+
+	int global_found = 0; //compare to count_to_find_global at end, make sure we have everything
+	int patches_to_find;
+	int patches_found=0;
+	
+
+	int i, len_knots_xi, len_knots_eta;
+
+	// Read in the information from the file
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_string_count_i("Number_patches", &global_found, line, &patches_to_find);
+		}
+	fclose(input_file);
+	geo_data->NURBS_Patch_Data=malloc(sizeof(struct NURBS_Patch_Geo_Data)*(unsigned long)patches_to_find);
+
+	for(int patch_index=0;patch_index<=patches_to_find;patch_index++){
+		// For each patch index, open the file and search until we find the corresponding section. 
+		// Read that section until the next patch starts. 
+		int count_found = 0;
+		input_file = fopen_input('g',NULL,NULL);
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line, "Patch_Index")){
+				sprintf(buffer, "Patch_Index %d\n", patch_index);
+				if(!strcmp(line, buffer)){
+					printf("Great success");
+					while(fgets(line,sizeof(line),input_file) && !strstr(line, "Patch_Index")){
+						read_skip_string_count_i("P(xi_order)", &count_found, line, &geo_data->NURBS_Patch_Data[patch_index].P);
+						read_skip_string_count_i("Q(eta_order)", &count_found, line, &geo_data->NURBS_Patch_Data[patch_index].Q);
+						// The knot vectors in the eta and xi directions:
+						if (strstr(line, "knots_xi")){
+							read_skip_string_count_i("knots_xi", &count_found, line, &len_knots_xi);	
+							struct Multiarray_R* knots_xi = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){len_knots_xi,1});
+
+							for (i = 0; i < len_knots_xi; i++){
+								fgets(line,sizeof(line),input_file);  // read the next line
+								read_skip_d_1(line, 0, &get_col_Multiarray_R(0, knots_xi)[i], 1);
+							}
+							geo_data->NURBS_Patch_Data[patch_index].knots_xi = knots_xi;
+						}
+
+						if (strstr(line, "knots_eta")){
+
+							read_skip_string_count_i("knots_eta", &count_found, line, &len_knots_eta);
+							struct Multiarray_R* knots_eta = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){len_knots_eta,1});
+							
+							for (i = 0; i < len_knots_eta; i++){
+								fgets(line,sizeof(line),input_file);  // read the next line
+								read_skip_d_1(line, 0, &get_col_Multiarray_R(0, knots_eta)[i], 1);
+							}
+							geo_data->NURBS_Patch_Data[patch_index].knots_eta = knots_eta;
+
+						}
+								// Read the Control Point Data
+						if (strstr(line,"Control_Point_Data")){
+							
+							// Get the number of pts
+							int num_control_pts;
+							read_skip_string_count_i("Control_Point_Data", &count_found, line, &num_control_pts);
+
+							// Create the multiarray structure to hold the control point data
+							struct Multiarray_T* control_points  = constructor_empty_Multiarray_T('C',2,(ptrdiff_t[]){num_control_pts,DIM}); // saved
+							struct Multiarray_R* control_weights = constructor_empty_Multiarray_R('C',2,(ptrdiff_t[]){num_control_pts,1}); // saved
+							
+							Type *x = get_col_Multiarray_T(0, control_points),
+								*y = get_col_Multiarray_T(1, control_points);
+
+							Real *w = get_col_Multiarray_R(0, control_weights);
+
+							// Read the pt data line by line
+							for (i = 0; i < num_control_pts; i++){
+								fgets(line,sizeof(line),input_file);
+								
+								// Point data stored in .geo file with real values 
+								Real pt[3] = {0.0, 0.0, 0.0};
+								read_skip_d_1(line, 0, pt, DIM+1);
+
+								x[i] = pt[0];
+								y[i] = pt[1];
+								w[i] = pt[2];
+							}
+							geo_data->NURBS_Patch_Data[patch_index].control_points = control_points;
+							geo_data->NURBS_Patch_Data[patch_index].control_weights = control_weights;
+						}
+
+						// Read the Control Point Connectivity Data
+						if (strstr(line,"Control_Point_Connectivity")){
+
+							// Get the number of xi and eta points
+							count_found++;  // Connectivity information was found
+							int extents[2] = {0,0};
+							read_skip_const_i_1(line,1,extents,2);
+
+							// Create the multiarray structure to hold the connectivity data
+							struct Multiarray_i* control_pt_wt_connectivity = 
+								constructor_empty_Multiarray_i('R',2,(ptrdiff_t[]){extents[0], extents[1]});
+
+							// Read in the connectivity data line by line
+							for (i = 0; i < extents[0]; i++){
+								fgets(line,sizeof(line),input_file);
+
+								read_skip_i_1(line,0, get_row_Multiarray_i(i, control_pt_wt_connectivity), extents[1]);
+							}
+							geo_data->NURBS_Patch_Data[patch_index].control_pt_wt_connectivity = control_pt_wt_connectivity;
+
+						}
+					}
+					assert(count_to_find_per_patch == count_found);
+					patches_found++;
+					break;
+				}
+			}
+		}
+		fclose(input_file);
+	}
+		
+	assert(patches_found=count_to_find_per_patch);
+	assert(count_to_find_global == global_found);
 }
 
 static void read_data_fixed_cube (struct Geo_Data*const geo_data)

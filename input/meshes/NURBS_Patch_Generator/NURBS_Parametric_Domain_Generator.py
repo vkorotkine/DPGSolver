@@ -46,7 +46,8 @@ import sys
 CONST_Patch_Type = "Airfoil_Patch"
 CONST_EPS = 1E-9
 
-CONST_Output_file_name = "geometry_parameters_airfoil_P4_NumPtsXi17_Q1_NumPtsEta2.geo"
+CONST_Output_file_name = "geometry_parameters_airfoil_P4_NumPtsXi12_Q1_NumPtsEta2.geo"
+CONST_Output_file_name = "geometry_parameters_TEST_MULTIPATCH.geo"
 
 def NURBS_patch(xi,eta,BasisFunctionsList, ControlPoints_and_Weights, grad_index=None):
 
@@ -98,87 +99,89 @@ def plot_patch(patch_parameters):
 
 	:param patch_parameters: The dictionary with the patch_parameters
 	"""
+	NUM_PATCHES=len(patch_parameters)
+	for patch_index in range(NUM_PATCHES):
+		xiVector = patch_parameters[patch_index]["xiVector"]
+		etaVector = patch_parameters[patch_index]["etaVector"]
+		ControlPoints_and_Weights = patch_parameters[patch_index]["ControlPoints_and_Weights"]
+		P = patch_parameters[patch_index]["P"]
+		Q = patch_parameters[patch_index]["Q"]
 
-	xiVector = patch_parameters["xiVector"]
-	etaVector = patch_parameters["etaVector"]
-	ControlPoints_and_Weights = patch_parameters["ControlPoints_and_Weights"]
-	P = patch_parameters["P"]
-	Q = patch_parameters["Q"]
+		# Get the NURBS basis functions associated with each control point
+		NURBS_basis_functions = Basis.get_NURBS_basis_functions(ControlPoints_and_Weights, P, Q, xiVector, etaVector)
 
-	# Get the NURBS basis functions associated with each control point
-	NURBS_basis_functions = Basis.get_NURBS_basis_functions(ControlPoints_and_Weights, P, Q, xiVector, etaVector)
+		# Get the patch parametric function
+		NURBS_patch_function = lambda xi,eta,BasisFunctionsList=NURBS_basis_functions, \
+				ControlPoints_and_Weights=ControlPoints_and_Weights: \
+				NURBS_patch(xi,eta, BasisFunctionsList, ControlPoints_and_Weights)
 
-	# Get the patch parametric function
-	NURBS_patch_function = lambda xi,eta,BasisFunctionsList=NURBS_basis_functions, \
-			ControlPoints_and_Weights=ControlPoints_and_Weights: \
-			NURBS_patch(xi,eta, BasisFunctionsList, ControlPoints_and_Weights)
+		# The distinct knot values along both parametric coordinates (xi and eta)
+		xi_distinct_values = []
+		eta_distinct_values = []
 
-	# The distinct knot values along both parametric coordinates (xi and eta)
-	xi_distinct_values = []
-	eta_distinct_values = []
+		for xi_val in xiVector:
+			if xi_val not in xi_distinct_values:
+				xi_distinct_values.append(xi_val)
 
-	for xi_val in xiVector:
-		if xi_val not in xi_distinct_values:
-			xi_distinct_values.append(xi_val)
+		for eta_val in etaVector:
+			if eta_val not in eta_distinct_values:
+				eta_distinct_values.append(eta_val)
 
-	for eta_val in etaVector:
-		if eta_val not in eta_distinct_values:
-			eta_distinct_values.append(eta_val)
+		# Discretize the xi and eta domains so we can plot the lines
+		num_linspace_pts = 40
+		eta_linspace = numpy.linspace(etaVector[0]+CONST_EPS, etaVector[-1]-CONST_EPS, num_linspace_pts)
+		xi_linspace = numpy.linspace(xiVector[0]+CONST_EPS, xiVector[-1]-CONST_EPS, num_linspace_pts)
 
-	# Discretize the xi and eta domains so we can plot the lines
-	num_linspace_pts = 40
-	eta_linspace = numpy.linspace(etaVector[0]+CONST_EPS, etaVector[-1]-CONST_EPS, num_linspace_pts)
-	xi_linspace = numpy.linspace(xiVector[0]+CONST_EPS, xiVector[-1]-CONST_EPS, num_linspace_pts)
+		# Plot the constant xi values:
+		for xi_val in xi_distinct_values:
+			if xi_distinct_values.index(xi_val) == 0:
+				xi_val += CONST_EPS
+			elif xi_distinct_values.index(xi_val) == (len(xi_distinct_values)-1):
+				xi_val -= CONST_EPS
 
-	# Plot the constant xi values:
-	for xi_val in xi_distinct_values:
-		if xi_distinct_values.index(xi_val) == 0:
-			xi_val += CONST_EPS
-		elif xi_distinct_values.index(xi_val) == (len(xi_distinct_values)-1):
-			xi_val -= CONST_EPS
+			xPlotPts = []
+			yPlotPts = []
 
+			for eta_val in eta_linspace:
+				xy_pt = NURBS_patch_function(xi_val, eta_val)
+				xPlotPts.append(xy_pt[0])
+				yPlotPts.append(xy_pt[1])
+
+			plt.plot(xPlotPts, yPlotPts, c='b')
+
+		# Plot the constant eta values
+		for eta_val in eta_distinct_values:
+			if eta_distinct_values.index(eta_val) == 0:
+				eta_val += CONST_EPS
+			elif eta_distinct_values.index(eta_val) == (len(eta_distinct_values)-1):
+				eta_val -= CONST_EPS
+
+			xPlotPts = []
+			yPlotPts = []
+
+			for xi_val in xi_linspace:
+				xy_pt = NURBS_patch_function(xi_val, eta_val)
+				xPlotPts.append(xy_pt[0])
+				yPlotPts.append(xy_pt[1])
+
+			plt.plot(xPlotPts, yPlotPts, c='b')
+
+		# Scatter the control points
 		xPlotPts = []
 		yPlotPts = []
+		for i in range(len(ControlPoints_and_Weights)):
+			for j in range(len(ControlPoints_and_Weights[0])):
+				xPlotPts.append(ControlPoints_and_Weights[i][j][0])
+				yPlotPts.append(ControlPoints_and_Weights[i][j][1])
 
-		for eta_val in eta_linspace:
-			xy_pt = NURBS_patch_function(xi_val, eta_val)
-			xPlotPts.append(xy_pt[0])
-			yPlotPts.append(xy_pt[1])
-
-		plt.plot(xPlotPts, yPlotPts, c='b')
-
-	# Plot the constant eta values
-	for eta_val in eta_distinct_values:
-		if eta_distinct_values.index(eta_val) == 0:
-			eta_val += CONST_EPS
-		elif eta_distinct_values.index(eta_val) == (len(eta_distinct_values)-1):
-			eta_val -= CONST_EPS
-
-		xPlotPts = []
-		yPlotPts = []
-
-		for xi_val in xi_linspace:
-			xy_pt = NURBS_patch_function(xi_val, eta_val)
-			xPlotPts.append(xy_pt[0])
-			yPlotPts.append(xy_pt[1])
-
-		plt.plot(xPlotPts, yPlotPts, c='b')
-
-	# Scatter the control points
-	xPlotPts = []
-	yPlotPts = []
-	for i in range(len(ControlPoints_and_Weights)):
-		for j in range(len(ControlPoints_and_Weights[0])):
-			xPlotPts.append(ControlPoints_and_Weights[i][j][0])
-			yPlotPts.append(ControlPoints_and_Weights[i][j][1])
-
-	plt.scatter(xPlotPts, yPlotPts, c='r')
+		plt.scatter(xPlotPts, yPlotPts, c='r')
 
 	plt.grid()
 	plt.show(block=True)
 
 
-def output_file(patch_parameters):
+#WILL NEED TO MODIFY TO ADD FOR EACH PATCH
+def output_file(patch_parameters_list):
 
 	"""
 	Output the file with the patch parameters. The DPG code will
@@ -191,87 +194,94 @@ def output_file(patch_parameters):
 
 	:param patch_parameters: The parameters used to define the patch
 	"""
-
-	xiVector = patch_parameters["xiVector"]
-	etaVector = patch_parameters["etaVector"]
-	ControlPoints_and_Weights = patch_parameters["ControlPoints_and_Weights"]
-	P = patch_parameters["P"]
-	Q = patch_parameters["Q"]
-
-	num_xi_pts = len(ControlPoints_and_Weights)
-	num_eta_pts = len(ControlPoints_and_Weights[0])
-
-	# Load all the control points into a list (a connecitivity format will
-	# be used to load the points)
-	ControlPoints_and_Weights_list = []
-	for i in range(num_xi_pts):
-		for j in range(num_eta_pts):
-			if ControlPoints_and_Weights[i][j] not in ControlPoints_and_Weights_list:
-				ControlPoints_and_Weights_list.append(ControlPoints_and_Weights[i][j])
-
+	print("Reached output file stage")
 	with open(CONST_Output_file_name, "w") as fp:
 
 		fp.write("/** Geometry parameters for test case: euler/steady/NURBS\n")
 		fp.write("*/\n\n")
+		fp.write("Number_patches %d" % len(patch_parameters_list))
 
-		# The order of the patch in each parameter direction
-		fp.write("P(xi_order) %d \n" % P)
-		fp.write("Q(eta_order) %d \n" % Q)
-		fp.write("\n")
+	for patch_index in range(len(patch_parameters_list)):
+		patch_parameters=patch_parameters_list[patch_index]
+		xiVector = patch_parameters["xiVector"]
+		etaVector = patch_parameters["etaVector"]
+		ControlPoints_and_Weights = patch_parameters["ControlPoints_and_Weights"]
+		P = patch_parameters["P"]
+		Q = patch_parameters["Q"]
 
-		# The knot vectors
-		fp.write("knots_xi %d \n" % len(xiVector))
-		for val in xiVector:
-			fp.write("%.14e \n" % val)
-		fp.write("\n")
-		fp.write("knots_eta %d \n" % len(etaVector))
-		for val in etaVector:
-			fp.write("%.14e \n" % val)
-		fp.write("\n")
-		fp.write("\n")
+		num_xi_pts = len(ControlPoints_and_Weights)
+		num_eta_pts = len(ControlPoints_and_Weights[0])
 
-		# Control Point Data information
-		fp.write("Control_Point_Data %d \n" % len(ControlPoints_and_Weights_list))
-		for pt in ControlPoints_and_Weights_list:
-			fp.write("%.14e %.14e %.14e \n" % (pt[0], pt[1], pt[2]))
-		fp.write("\n")
-
-		# Connectivity Information	
-		fp.write("Control_Point_Connectivity %d %d\n" % (num_xi_pts, num_eta_pts))
+		# Load all the control points into a list (a connecitivity format will
+		# be used to load the points)
+		ControlPoints_and_Weights_list = []
 		for i in range(num_xi_pts):
 			for j in range(num_eta_pts):
-				fp.write("%d " % ControlPoints_and_Weights_list.index(ControlPoints_and_Weights[i][j]))
-			fp.write("\n")
-		fp.write("\n")
+				if ControlPoints_and_Weights[i][j] not in ControlPoints_and_Weights_list:
+					ControlPoints_and_Weights_list.append(ControlPoints_and_Weights[i][j])
 
-		if "Optimization_ControlPoints_and_Weights" in patch_parameters:
-			
-			#Optimization Information
-			optimization_data_tuples = patch_parameters['Optimization_ControlPoints_and_Weights']
+		with open(CONST_Output_file_name, "a") as fp:
 
-			fp.write("Optimization_Point_Connectivity %d\n" % (len(optimization_data_tuples)))
-			for data_tuple in optimization_data_tuples:
-				fp.write("%d %d %d \n" % (ControlPoints_and_Weights_list.index(data_tuple[0]), data_tuple[1], data_tuple[2]))
-			fp.write("\n")	
-
-			optimization_control_pt_limit_tuples = patch_parameters['Optimization_ControlPoints_Limits']
-			fp.write("Optimization_Point_Limit %d\n" % (len(optimization_control_pt_limit_tuples)))
-			for data_tuple in optimization_control_pt_limit_tuples:
-				fp.write("%d %e %e \n" % (ControlPoints_and_Weights_list.index(data_tuple[0]), data_tuple[1], data_tuple[2]))
-			fp.write("\n")	
-
-
-		if "area_ref" in patch_parameters:
-			fp.write("area_ref = %e;" % patch_parameters['area_ref'])
+			fp.write("\nPatch_Index %d\n" % (patch_index))
+		
+			# The order of the patch in each parameter direction
+			fp.write("P(xi_order) %d \n" % P)
+			fp.write("Q(eta_order) %d \n" % Q)
 			fp.write("\n")
 
-		if "cm_le_x" in patch_parameters:
-			fp.write("cm_le_x = %e;" % patch_parameters['cm_le_x'])
+			# The knot vectors
+			fp.write("knots_xi %d \n" % len(xiVector))
+			for val in xiVector:
+				fp.write("%.14e \n" % val)
+			fp.write("\n")
+			fp.write("knots_eta %d \n" % len(etaVector))
+			for val in etaVector:
+				fp.write("%.14e \n" % val)
+			fp.write("\n")
 			fp.write("\n")
 
-		if "cm_le_y" in patch_parameters:
-			fp.write("cm_le_y = %e;" % patch_parameters['cm_le_y'])
+			# Control Point Data information
+			fp.write("Control_Point_Data %d \n" % len(ControlPoints_and_Weights_list))
+			for pt in ControlPoints_and_Weights_list:
+				fp.write("%.14e %.14e %.14e \n" % (pt[0], pt[1], pt[2]))
 			fp.write("\n")
+
+			# Connectivity Information	
+			fp.write("Control_Point_Connectivity %d %d\n" % (num_xi_pts, num_eta_pts))
+			for i in range(num_xi_pts):
+				for j in range(num_eta_pts):
+					fp.write("%d " % ControlPoints_and_Weights_list.index(ControlPoints_and_Weights[i][j]))
+				fp.write("\n")
+			fp.write("\n")
+
+			if "Optimization_ControlPoints_and_Weights" in patch_parameters:
+				
+				#Optimization Information
+				optimization_data_tuples = patch_parameters['Optimization_ControlPoints_and_Weights']
+
+				fp.write("Optimization_Point_Connectivity %d\n" % (len(optimization_data_tuples)))
+				for data_tuple in optimization_data_tuples:
+					fp.write("%d %d %d \n" % (ControlPoints_and_Weights_list.index(data_tuple[0]), data_tuple[1], data_tuple[2]))
+				fp.write("\n")	
+
+				optimization_control_pt_limit_tuples = patch_parameters['Optimization_ControlPoints_Limits']
+				fp.write("Optimization_Point_Limit %d\n" % (len(optimization_control_pt_limit_tuples)))
+				for data_tuple in optimization_control_pt_limit_tuples:
+					fp.write("%d %e %e \n" % (ControlPoints_and_Weights_list.index(data_tuple[0]), data_tuple[1], data_tuple[2]))
+				fp.write("\n")	
+
+
+			if "area_ref" in patch_parameters:
+				fp.write("area_ref = %e;" % patch_parameters['area_ref'])
+				fp.write("\n")
+
+			if "cm_le_x" in patch_parameters:
+				fp.write("cm_le_x = %e;" % patch_parameters['cm_le_x'])
+				fp.write("\n")
+
+			if "cm_le_y" in patch_parameters:
+				fp.write("cm_le_y = %e;" % patch_parameters['cm_le_y'])
+				fp.write("\n")
 
 
 def test():
@@ -312,9 +322,9 @@ def test():
 	xi_test = -0.25
 	eta_test = 0.5
 
-	print "C(xi, eta)    : " + str(NURBS_patch_function(xi_test, eta_test))
-	print "C_xi(xi,eta)  : " + str(NURBS_patch_function_del_xi(xi_test, eta_test))
-	print "C_eta(xi,eta) : " + str(NURBS_patch_function_del_eta(xi_test, eta_test))
+	print("C(xi, eta)    : " + str(NURBS_patch_function(xi_test, eta_test)))
+	print("C_xi(xi,eta)  : " + str(NURBS_patch_function_del_xi(xi_test, eta_test)))
+	print("C_eta(xi,eta) : " + str(NURBS_patch_function_del_eta(xi_test, eta_test)))
 	
 	return
 
@@ -327,8 +337,8 @@ def test():
 	del_x_del_eta_fd = (1./h) * (NURBS_patch_function(xi_test, eta_test + h)[0] - NURBS_patch_function(xi_test, eta_test)[0])
 	del_y_del_eta_fd = (1./h) * (NURBS_patch_function(xi_test, eta_test + h)[1] - NURBS_patch_function(xi_test, eta_test)[1])
 	
-	print "C_xi_fd(xi,eta)  : " + str([del_x_del_xi_fd, del_y_del_xi_fd])
-	print "C_eta_fd(xi,eta) : " + str([del_x_del_eta_fd, del_y_del_eta_fd])
+	print("C_xi_fd(xi,eta)  : " + str([del_x_del_xi_fd, del_y_del_xi_fd]))
+	print("C_eta_fd(xi,eta) : " + str([del_x_del_eta_fd, del_y_del_eta_fd]))
 	
 
 def main():
@@ -353,6 +363,7 @@ def main():
 		patch_parameters = User_Defined_Patch.get_patch_information()
 	elif CONST_Patch_Type == "Airfoil_Patch":
 		patch_parameters = Airfoil_Patch.get_patch_information()
+
 	elif CONST_Patch_Type == "Internal_Channel_Patch":
 		patch_parameters = Internal_Channel_Patch.get_patch_information()
 	else:
@@ -365,8 +376,10 @@ def main():
 		output_file(patch_parameters)
 
 	elif(sys.argv[1] == "plot"):
-		# Only plot the patch
 		plot_patch(patch_parameters)
+		# Only plot the patch
+		#for patch in patch_parameters:
+		#	plot_patch(patch[0])
 	
 	elif(sys.argv[1] == "output_file"):
 		# Only output the patch file
