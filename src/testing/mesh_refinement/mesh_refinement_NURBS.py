@@ -29,10 +29,16 @@ import fnmatch
 PROJECT_SRC_DIR="/home/vassili/Desktop/DPGSolver/DPGSolver/"
 NURBS_GENERATION_REL_DIR="input/meshes/NURBS_Patch_Generator/"
 sys.path.append(PROJECT_SRC_DIR+NURBS_GENERATION_REL_DIR)
-
+PATCH_TYPE="SINGLE_PATCH"
+PATCH_TYPE="MULTIPATCH"
 #editor complains here because it cant process the sys path append
-from NURBS_Parametric_Domain_Generator import output_file as nurbs_output_file
-from Airfoil_Patch import get_patch_information
+
+if PATCH_TYPE=="SINGLE_PATCH":
+	from NURBS_Parametric_Domain_Generator_Single import output_file as nurbs_output_file
+	from Airfoil_Patch_Single import get_patch_information
+elif PATCH_TYPE=="MULTIPATCH":
+	from NURBS_Parametric_Domain_Generator_Multiple import output_file as nurbs_output_file
+	from Airfoil_Patch_Multiple import get_patch_information	
 
 #TWO MAIN THINGS TO CONTROL. 
 # MESH DIMENSIONS FOR WHICH YOU WANT TO RUN THE TESTS
@@ -53,32 +59,39 @@ MESH_DIM_LIST=[[38,27], #1000 dof
 #MESH_DIM_LIST is looped over. Length of this fixes the amount of tests
 #that are run
 #MESH_DIM_LIST=MESH_DIM_LIST#+MESH_DIM_LIST
-MESH_DIM_LIST=[[53,38], #2000 dof
-				[28,19],
-				[18,13]]*3
+#MESH_DIM_LIST=[[53,38], #2000 dof
+#				[28,19],
+#				[18,13]]*3
 P_LIST=[1,2,3]*4
 #P_LIST=P_LIST+P_LIST
-#MESH_DIM_LIST=[[10,10]]
+MESH_DIM_LIST=[[10,10]]
+
 
 #NURBS GEOMETRY PARAMETERS
 NURBS_ORDER_P=3
 #NURBS_NUM_CTRL_PTS_XI_LIST=[11]*9+[15]*9
 NURBS_NUM_CTRL_PTS_XI_LIST=[13]*3+[17]*3+[19]*3
 
-TEST_NAME_FORMAT="TEST_Python_Automated_Euler_NURBSAirfoil_TargetCLTestsReference_ParametricQUAD2D_mesh_%dby%d__ml%d__p%d"
+TEST_NAME_FORMAT="TEST_Euler_"+PATCH_TYPE+"_NURBSAirfoil_TargetCLTestsReference_ParametricQUAD2D_mesh_%dby%d__ml%d__p%d"
 BUILD_DIR=PROJECT_SRC_DIR+"build_debug_2D/"
 LOG_OUTPUT_PATH=BUILD_DIR+"output/optimization/euler/steady/NURBS_Airfoil/Constrained_TargetCL/TestsReference/"
 ARCHIVED_OUTPUT_PATH=PROJECT_SRC_DIR+"Archived_Output/Vassili/"
 
+
 CTRL_SUBFOLDER="euler/NURBS_Airfoil/"
 CONTROL_FILE_FOLDER=PROJECT_SRC_DIR+"input/testing/control_files/"+CTRL_SUBFOLDER
-CONTROL_FILE_TEMPLATE="TEST_Euler_NURBSAirfoil_Python_Template.ctrl"
+CONTROL_FILE_TEMPLATE="TEST_Euler_NURBSAirfoil_Python_Template_"+PATCH_TYPE+".ctrl"
 GEO_FILE_FOLDER=PROJECT_SRC_DIR+"input/meshes/n-cube/"
 GEO_FILE_TEMPLATE="2d_stretched_python_template.geo"
 GEO_FORMAT="2d_stretched_temp.geo"
 
-NURBS_GEO_FILE_FOLDER=PROJECT_SRC_DIR+"input/input_files/euler/steady/NURBS_Airfoil/"
-NURBS_EXTENSION_FORMAT="airfoil_P%d_NumPtsXi%d_Q1_NumPtsEta2"
+if PATCH_TYPE=="SINGLE_PATCH":
+	NURBS_GEO_FILE_FOLDER=PROJECT_SRC_DIR+"input/input_files/euler/steady/NURBS_Airfoil/"
+elif PATCH_TYPE=="MULTIPATCH":
+	NURBS_GEO_FILE_FOLDER=PROJECT_SRC_DIR+"input/input_files/euler/steady/Multipatch/"
+
+
+NURBS_EXTENSION_FORMAT="Python_Automated_airfoil_P%d_NumPtsXi%d_Q1_NumPtsEta2"
 NURBS_GEO_FILE_FORMAT="geometry_parameters_" + NURBS_EXTENSION_FORMAT +".geo"
 
 ML=1 
@@ -119,9 +132,10 @@ def run_test(test_name, test_identifier):
 	"""Runs command for test
 	Command format obtained by ctest -R testname -V"""
 	log_fpath=ARCHIVED_OUTPUT_PATH+test_identifier+"/log.txt"
+
 	test_cmd_str=BUILD_DIR+"bin/test_integration_optimization " \
 		+ CTRL_SUBFOLDER+ test_name+" petsc_options_gmres_default"#+" > "+\
-		#	
+
 	test_command=shlex.split(test_cmd_str)
 	f=open(log_fpath, "w+")
 	subprocess.call(test_command, cwd=BUILD_DIR+"bin/", stdout=f)
@@ -173,7 +187,6 @@ def create_input_files(mesh_dims, ml,P, nurbs_p, nurbs_num_ctrl_pts_xi):
 	f.write(newdata)
 	f.close()
 
-
 	return geo_fname, ctrl_fname, nurbs_geo_fname
 
 def append_to_log(contents, fpath):
@@ -190,7 +203,8 @@ def delete_files_from_dir(d):
 				os.remove(f) 
 
 if __name__ == "__main__":
-	""" Run ctest with TEST_NAME. Then copy the output files to appropriate directory in Archived_Output """
+	""" Run test command (format can be generated with e.g. ctest with -V option.
+	Then copy the output files to appropriate directory in Archived_Output """
 	#run_tests(TEST_NAME_LIST)
 	for idx, mesh_dims in enumerate(MESH_DIM_LIST):
 		delete_files_from_dir(LOG_OUTPUT_PATH)
@@ -201,7 +215,7 @@ if __name__ == "__main__":
 		
 		test_name=TEST_NAME_FORMAT % (mesh_dims[0], mesh_dims[1], ML, P)
 		#test_identifier="M%dx%d_P%d_NURBS_P%d_NCTRL%d" % (mesh_dims[0], mesh_dims[1], P, nurbs_p, num_ctrl_pts_xi)
-		test_identifier="NCTRL%d/M%dx%d_P%d_NURBS_P%d" % (num_ctrl_pts_xi, mesh_dims[0], mesh_dims[1], P, nurbs_p)
+		test_identifier=PATCH_TYPE+"/NCTRL%d/M%dx%d_P%d_NURBS_P%d" % (num_ctrl_pts_xi, mesh_dims[0], mesh_dims[1], P, nurbs_p)
 
 		geo_fname, ctrl_fname, nurbs_geo_fname=create_input_files(mesh_dims, ML, P, nurbs_p, num_ctrl_pts_xi)
 		#create output directory
@@ -213,34 +227,10 @@ if __name__ == "__main__":
 		print(test_command_to_log + "\n Done. ")
 		#append_to_log(test_identifier+" : "+
 		#		test_command_to_log, ARCHIVED_OUTPUT_PATH+test_identifier+"/log.txt")
-		os.remove(geo_fname)
-		os.remove(ctrl_fname)
-		os.remove(nurbs_geo_fname)
+	#	os.remove(geo_fname)
+	#	os.remove(ctrl_fname)
+	#	os.remove(nurbs_geo_fname)
 
 
 
 
-
-	
-	
-	
-	
-	
-
-
-	
-
-	
-
-	#print(control_files)
-	#copy_files(src_dir=LOG_OUTPUT_PATH, dest_dir=ARCHIVED_OUTPUT_PATH+TEST_NAME+"/")
-	
-
-			
-
-
-	#python_call = Python_call(project_src_dir,mesh_name_full)
-
-	#python_call.set_input(project_src_dir,mesh_name)
-	#python_call.set_output(mesh_name_full)
-	#python_call.call_function(mesh_name_full)

@@ -50,6 +50,7 @@ STEADY_GAUSSIAN_BUMP          = 10;
 UNSTEADY_HYPERBOLIC_TAN       = 11;
 PERIODIC_TRIGONOMETRIC        = 12;
 STEADY_NURBS                  = 13;
+STEADY_MULTIPATCH             = 14;
 DEFAULT_STEADY                = 100; // Replace with STEADY_DEFAULT.
 DEMKOWICZ_DPG_II              = 101;
 
