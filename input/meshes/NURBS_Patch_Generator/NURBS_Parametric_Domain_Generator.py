@@ -181,7 +181,7 @@ def plot_patch(patch_parameters):
 
 
 #WILL NEED TO MODIFY TO ADD FOR EACH PATCH
-def output_file(patch_parameters_list):
+def output_file(patch_parameters_list, output_file_name):
 
 	"""
 	Output the file with the patch parameters. The DPG code will
@@ -195,7 +195,7 @@ def output_file(patch_parameters_list):
 	:param patch_parameters: The parameters used to define the patch
 	"""
 	print("Reached output file stage")
-	with open(CONST_Output_file_name, "w") as fp:
+	with open(output_file_name, "w") as fp:
 
 		fp.write("/** Geometry parameters for test case: euler/steady/NURBS\n")
 		fp.write("*/\n\n")
@@ -357,23 +357,24 @@ def main():
 	:return : -
 
 	"""
-
+	P_test=3
+	num_ctrl_pts_xi_test=12
 	# Get the patch parameters
 	if CONST_Patch_Type == "User_Defined_Patch":
 		patch_parameters = User_Defined_Patch.get_patch_information()
 	elif CONST_Patch_Type == "Airfoil_Patch":
-		patch_parameters = Airfoil_Patch.get_patch_information()
+		patch_parameters = Airfoil_Patch.get_patch_information(P=P_test, num_ctrl_pts_xi=num_ctrl_pts_xi_test)
 
 	elif CONST_Patch_Type == "Internal_Channel_Patch":
 		patch_parameters = Internal_Channel_Patch.get_patch_information()
 	else:
 		raise ValueError("Unknown Patch Type")
-
+	output_file_name = "geometry_parameters_airfoil_P3_NumPtsXi12_Q1_NumPtsEta2.geo"
 	# Parse command line arguments
 	if len(sys.argv) == 1:
 		# No command line arguments so plot and output the file
 		plot_patch(patch_parameters)
-		output_file(patch_parameters)
+		output_file(patch_parameters, output_file_name)
 
 	elif(sys.argv[1] == "plot"):
 		plot_patch(patch_parameters)
@@ -383,7 +384,7 @@ def main():
 	
 	elif(sys.argv[1] == "output_file"):
 		# Only output the patch file
-		output_file(patch_parameters)
+		output_file(patch_parameters, output_file_name)
 
 
 if __name__ == "__main__":
