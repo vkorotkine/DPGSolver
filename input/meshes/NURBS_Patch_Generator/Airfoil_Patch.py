@@ -16,8 +16,16 @@ import numpy
 import matplotlib.pyplot as plt
 import Basis
 import sys
+import os
 import scipy.integrate
 
+
+# Directories for saving figures
+DPG_SOLVER_PATH="/home/vassili/Desktop/DPGSolver/DPGSolver/"
+CONST_figure_output_directory = DPG_SOLVER_PATH+"figs/Initial_Geometries"
+#CONST_Airfoil_Type = "NACA4412"
+CONST_Airfoil_Type = "NACA0012"
+FIG_ID_FORMAT="Init_Airfoil"+CONST_Airfoil_Type+"_P%d_NCTRL%d" 
 
 # ==================================================
 # 				Patch Parameters
@@ -35,14 +43,14 @@ CONST_ETA_KNOTS = [-1, -1, 1, 1]
 
 
 CONST_R_FARFIELD = 20.
+#CONST_R_FARFIELD = 1.
 
 CONST_CONTINUOUS_APPROXIMATION = True
+
 
 # ==================================================
 
 
-#CONST_Airfoil_Type = "NACA4412"
-CONST_Airfoil_Type = "NACA0012"
 
 CONST_QUADRATURE_N = 5
 
@@ -705,7 +713,7 @@ def get_patch_information(P, num_ctrl_pts_xi):
 
 
 def test(P, num_ctrl_pts_xi):
-
+	fig_id= FIG_ID_FORMAT % (P,num_ctrl_pts_xi)
 	get_patch_information(P, num_ctrl_pts_xi)
 
 	BSpline_parameters = get_airfoil_BSpline_parameters(P, num_ctrl_pts_xi)
@@ -725,13 +733,15 @@ def test(P, num_ctrl_pts_xi):
 
 	plt.gca().set_xlim(CONST_PlotXRange)
 	plt.gca().set_ylim(CONST_PlotYRange)
-
-	plt.show(block=True)
+	plt.gca().set_xlim([-0.6,0.6])
+	plt.gca().set_ylim([-0.1,0.1])
+	plt.savefig(os.path.join(CONST_figure_output_directory, fig_id+'.pdf'), layout='tight')
+	#plt.show(block=True)
 
 
 if __name__ == "__main__":
 	P = 3
-	num_ctrl_pts_xi = 15
+	num_ctrl_pts_xi = 25
 	test(P, num_ctrl_pts_xi)
 
 
