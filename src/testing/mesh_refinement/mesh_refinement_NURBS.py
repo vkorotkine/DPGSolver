@@ -38,7 +38,7 @@ if PATCH_TYPE=="SINGLE_PATCH":
 	from Airfoil_Patch_Single import get_patch_information
 elif PATCH_TYPE=="MULTIPATCH":
 	from NURBS_Parametric_Domain_Generator_Multiple import output_file as nurbs_output_file
-	from Airfoil_Patch_Multiple import get_patch_information	
+	from Airfoil_Patch_Multiple_Quadrants import get_patch_information	
 
 #TWO MAIN THINGS TO CONTROL. 
 # MESH DIMENSIONS FOR WHICH YOU WANT TO RUN THE TESTS
@@ -59,24 +59,27 @@ MESH_DIM_LIST=[[38,27], #1000 dof
 #MESH_DIM_LIST is looped over. Length of this fixes the amount of tests
 #that are run
 #MESH_DIM_LIST=MESH_DIM_LIST#+MESH_DIM_LIST
-#MESH_DIM_LIST=[[53,38], #2000 dof
-#				[28,19],
-#				[18,13]]*3
+MESH_DIM_LIST=[[53,38], #2000 dof
+				[28,19],
+				[18,13]]
+MESH_DIM_LIST=[[10,10]]
 P_LIST=[1,2,3]*4
 #P_LIST=P_LIST+P_LIST
-MESH_DIM_LIST=[[10,10]]
+#MESH_DIM_LIST=[[10,10]]
 
 
 #NURBS GEOMETRY PARAMETERS
 NURBS_ORDER_P=3
 #NURBS_NUM_CTRL_PTS_XI_LIST=[11]*9+[15]*9
-NURBS_NUM_CTRL_PTS_XI_LIST=[13]*3+[17]*3+[19]*3
+#NURBS_NUM_CTRL_PTS_XI_LIST=[13]*3+[17]*3+[19]*3
+NURBS_NUM_CTRL_PTS_XI_LIST=[11]*3
 
 TEST_NAME_FORMAT="TEST_Euler_"+PATCH_TYPE+"_NURBSAirfoil_TargetCLTestsReference_ParametricQUAD2D_mesh_%dby%d__ml%d__p%d"
 BUILD_DIR=PROJECT_SRC_DIR+"build_debug_2D/"
-LOG_OUTPUT_PATH=BUILD_DIR+"output/optimization/euler/steady/NURBS_Airfoil/Constrained_TargetCL/TestsReference/"
-ARCHIVED_OUTPUT_PATH=PROJECT_SRC_DIR+"Archived_Output/Vassili/"
+LOG_OUTPUT_PATH=BUILD_DIR+"output/optimization/euler/steady/NURBS_Airfoil/TargetCL/"
 
+ARCHIVED_OUTPUT_PATH=PROJECT_SRC_DIR+"Archived_Output/Vassili/Knot_Duplication/"
+#ARCHIVED_OUTPUT_PATH=PROJECT_SRC_DIR+"Archived_Output/Vassili/"
 
 CTRL_SUBFOLDER="euler/NURBS_Airfoil/"
 CONTROL_FILE_FOLDER=PROJECT_SRC_DIR+"input/testing/control_files/"+CTRL_SUBFOLDER
@@ -227,9 +230,9 @@ if __name__ == "__main__":
 		print(test_command_to_log + "\n Done. ")
 		#append_to_log(test_identifier+" : "+
 		#		test_command_to_log, ARCHIVED_OUTPUT_PATH+test_identifier+"/log.txt")
-	#	os.remove(geo_fname)
-	#	os.remove(ctrl_fname)
-	#	os.remove(nurbs_geo_fname)
+		#os.remove(geo_fname)
+		#os.remove(ctrl_fname)
+		#os.remove(nurbs_geo_fname)/home/vassili/Desktop/DPGSolver/DPGSolver/build_debug_2D/bin/test_integration_optimization euler/NURBS_Airfoil/TEST_Euler_MULTIPATCH_NURBSAirfoil_TargetCLTestsReference_ParametricQUAD2D_mesh_10by10__ml1__p1 petsc_options_gmres_default
 
 
 
