@@ -32,8 +32,9 @@ Optimization:
 import Basis
 
 import User_Defined_Patch
-import Airfoil_Patch_Multiple as Airfoil_Patch
 import Internal_Channel_Patch
+import Airfoil_Patch_Multiple_Quadrants as Airfoil_Patch
+
 
 import numpy
 import matplotlib.pyplot as plt
@@ -358,7 +359,7 @@ def main():
 
 	"""
 	P_test=3
-	num_ctrl_pts_xi_test=12
+	num_ctrl_pts_xi_test=6
 	# Get the patch parameters
 	if CONST_Patch_Type == "User_Defined_Patch":
 		patch_parameters = User_Defined_Patch.get_patch_information()

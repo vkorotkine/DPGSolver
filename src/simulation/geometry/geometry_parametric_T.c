@@ -31,6 +31,7 @@ You should have received a copy of the GNU General Public License along with DPG
 #include "def_templates_volume_solver.h"
 #include "def_templates_multiarray.h"
 #include "def_templates_math_functions.h"
+#include "simulation.h"
 
 #include "bases.h"
 
@@ -424,19 +425,72 @@ const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
 
 	UNUSED(n_type);
 	UNUSED(s_vol);
-	// UNUSED(sim);
-	printf(sim->nurbs_multipatch);
-	// Read the geometric data for the NURBS patch
-	const struct Geo_Data geo_data = get_geo_data("NURBS");
 
+	// Read the geometric data for the NURBS patch
+	struct Geo_Data geo_data;
+	struct NURBS_Patch_Geo_Data geo_patch_data;
+	struct Multiarray_R *xyz_i_real = constructor_empty_Multiarray_R('C',2,xyz_i->extents);  // free
+	
+	int k = 0;
+	for (int i = 0; i < xyz_i->extents[0]; i++){
+		for (int j = 0; j < xyz_i->extents[1]; j++){
+				
+#if TYPE_RC == TYPE_REAL
+			xyz_i_real->data[k] = xyz_i->data[k];
+#elif TYPE_RC == TYPE_COMPLEX
+			xyz_i_real->data[k] = creal(xyz_i->data[k]);
+#endif
+
+			k++;
+		}
+	}
+
+	const Real*const x_i = get_col_Multiarray_d(0,xyz_i_real),
+	          *const y_i = get_col_Multiarray_d(1,xyz_i_real);
+
+	
+	if (sim->nurbs_multipatch){
+		geo_data = get_geo_data("Multipatch");
+		int patch_index;
+		if (*x_i>0. && *y_i<=0.){
+			patch_index=0;
+		}
+		else if (*x_i<=0. && *y_i<=0.){
+			patch_index=1;
+		}
+		else if (*x_i<=0. && *y_i>0.){
+			patch_index=2;
+		}
+		else if (*x_i>0. && *y_i>0.){
+			patch_index=3;
+		};
+		
+		geo_patch_data=geo_data.NURBS_Patch_Data[patch_index];
+	}
+	else{
+		geo_data = get_geo_data("NURBS");
+	}
+		
+	const struct const_Multiarray_T *grad_xyz;
+	if (sim->nurbs_multipatch){
+	grad_xyz = grad_xyz_NURBS_patch_mapping_T(
+		(const struct const_Multiarray_d*)xyz_i, geo_patch_data.P, geo_patch_data.Q, 
+		(const struct const_Multiarray_d*)geo_patch_data.knots_xi, 
+		(const struct const_Multiarray_d*)geo_patch_data.knots_eta,
+		(const struct const_Multiarray_T*)geo_patch_data.control_points,
+		(const struct const_Multiarray_d*)geo_patch_data.control_weights,
+		(const struct const_Multiarray_i*)geo_patch_data.control_pt_wt_connectivity);
+	}else{
 	// Compute the gradient values at the desired points on the knot domain (xyz_i) using the mapping
-	const struct const_Multiarray_T *grad_xyz = grad_xyz_NURBS_patch_mapping_T(
+	grad_xyz = grad_xyz_NURBS_patch_mapping_T(
 		(const struct const_Multiarray_d*)xyz_i, geo_data.P, geo_data.Q, 
 		(const struct const_Multiarray_d*)geo_data.knots_xi, 
 		(const struct const_Multiarray_d*)geo_data.knots_eta,
 		(const struct const_Multiarray_T*)geo_data.control_points,
 		(const struct const_Multiarray_d*)geo_data.control_weights,
 		(const struct const_Multiarray_i*)geo_data.control_pt_wt_connectivity);
+	}
+
 
 	return (const struct const_Multiarray_T*)grad_xyz;
 }

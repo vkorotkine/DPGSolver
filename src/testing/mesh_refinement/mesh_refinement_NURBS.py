@@ -62,7 +62,7 @@ MESH_DIM_LIST=[[38,27], #1000 dof
 MESH_DIM_LIST=[[53,38], #2000 dof
 				[28,19],
 				[18,13]]
-MESH_DIM_LIST=[[10,10]]
+MESH_DIM_LIST=[[53,38]]
 P_LIST=[1,2,3]*4
 #P_LIST=P_LIST+P_LIST
 #MESH_DIM_LIST=[[10,10]]
@@ -78,8 +78,8 @@ TEST_NAME_FORMAT="TEST_Euler_"+PATCH_TYPE+"_NURBSAirfoil_TargetCLTestsReference_
 BUILD_DIR=PROJECT_SRC_DIR+"build_debug_2D/"
 LOG_OUTPUT_PATH=BUILD_DIR+"output/optimization/euler/steady/NURBS_Airfoil/TargetCL/"
 
-ARCHIVED_OUTPUT_PATH=PROJECT_SRC_DIR+"Archived_Output/Vassili/Knot_Duplication/"
-#ARCHIVED_OUTPUT_PATH=PROJECT_SRC_DIR+"Archived_Output/Vassili/"
+#ARCHIVED_OUTPUT_PATH=PROJECT_SRC_DIR+"Archived_Output/Vassili/Knot_Duplication/"
+ARCHIVED_OUTPUT_PATH=PROJECT_SRC_DIR+"Archived_Output/Vassili/"
 
 CTRL_SUBFOLDER="euler/NURBS_Airfoil/"
 CONTROL_FILE_FOLDER=PROJECT_SRC_DIR+"input/testing/control_files/"+CTRL_SUBFOLDER
