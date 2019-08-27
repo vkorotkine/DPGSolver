@@ -360,6 +360,8 @@ static void set_simulation_invalid (struct Simulation*const sim)
 	const_cast_b(&sim->nurbs_enhanced_metrics,false);
 
 	const_cast_b(&sim->nurbs_multipatch,false);
+
+	const_cast_i(&sim->nurbs_n_patches,0);
 }
 
 static void set_simulation_mpi (struct Simulation*const sim)
@@ -406,6 +408,7 @@ static void set_simulation_core (struct Simulation*const sim, const char*const c
 		if (strstr(line,"geom_rep"))   read_skip_const_c_1(line,sim->geom_rep);
 		if (strstr(line,"nurbs_enhanced_metrics")) read_skip_const_b(line,&sim->nurbs_enhanced_metrics);
 		if (strstr(line,"nurbs_multipatch")) read_skip_const_b(line,&sim->nurbs_multipatch);
+		if (strstr(line,"nurbs_n_patches")) read_skip_const_i_1(line,1,&sim->nurbs_n_patches,1);
 
 		if (strstr(line,"geom_blending_tp"))  read_skip_const_c_1(line,sim->geom_blending[0]);
 		if (strstr(line,"geom_blending_si"))  read_skip_const_c_1(line,sim->geom_blending[1]);

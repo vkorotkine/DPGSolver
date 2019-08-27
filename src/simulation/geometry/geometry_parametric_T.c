@@ -452,18 +452,9 @@ const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
 	if (sim->nurbs_multipatch){
 		geo_data = get_geo_data("Multipatch");
 		int patch_index;
-		if (*x_i>0. && *y_i<=0.){
-			patch_index=0;
-		}
-		else if (*x_i<=0. && *y_i<=0.){
-			patch_index=1;
-		}
-		else if (*x_i<=0. && *y_i>0.){
-			patch_index=2;
-		}
-		else if (*x_i>0. && *y_i>0.){
-			patch_index=3;
-		};
+		double delta_th = 2*M_PI/(double)sim->nurbs_n_patches;
+		double point_angle=*y_i<=0 ? atan2(-*y_i,*x_i) : (atan2(-*y_i,*x_i)+2*M_PI);
+		patch_index=(int)floor(point_angle/delta_th);
 		
 		geo_patch_data=geo_data.NURBS_Patch_Data[patch_index];
 	}
@@ -535,19 +526,12 @@ const struct const_Multiarray_T* constructor_xyz_Multipatch_parametric_T
 
 
 	int patch_index;
-	if (*x_i>0. && *y_i<=0.){
-		patch_index=0;
-	}
-	else if (*x_i<=0. && *y_i<=0.){
-		patch_index=1;
-	}
-	else if (*x_i<=0. && *y_i>0.){
-		patch_index=2;
-	}
-	else if (*x_i>0. && *y_i>0.){
-		patch_index=3;
-	};
-	
+
+	double delta_th = 2*M_PI/(double)sim->nurbs_n_patches;
+
+	double point_angle=*y_i<=0 ? atan2(-*y_i,*x_i) : (atan2(-*y_i,*x_i)+2*M_PI);
+	patch_index=(int)floor(point_angle/delta_th);
+
 	struct NURBS_Patch_Geo_Data geo_patch_data=geo_data.NURBS_Patch_Data[patch_index];
 	const struct const_Multiarray_T *xyz = xyz_NURBS_patch_mapping_T(
 		(const struct const_Multiarray_d*)xyz_i_real, geo_patch_data.P, geo_patch_data.Q, 

@@ -924,7 +924,7 @@ static const struct const_Multiarray_T* constructor_NURBS_xyz_fc(
 
 	// Get the xyz locations using the rst positions on the NURBS parametric domain
 	const char n_type = 0; // UNUSED in constructor_xyz_NURBS_parametric
-	// TODO ADD MULTIPATCH IF STATEMENT
+
 	const struct const_Multiarray_T* xyz_fc;
 	if(!sim->nurbs_multipatch){
 	xyz_fc = constructor_xyz_NURBS_parametric_T(n_type, 

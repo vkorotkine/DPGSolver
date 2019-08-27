@@ -33,6 +33,7 @@ geom_blending_tp     gordon_hall
 geom_blending_si     szabo_babuska_gen
 nurbs_enhanced_metrics  1
 nurbs_multipatch        1
+nurbs_n_patches         PYTH_TEMP_N_PATCHES
 
 p_ref    PYTH_TEMP_P PYTH_TEMP_P
 

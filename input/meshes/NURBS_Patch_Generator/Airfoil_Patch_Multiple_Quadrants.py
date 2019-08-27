@@ -33,12 +33,8 @@ import NURBS_Parametric_Domain_Generator_Multiple as NURBS_main
 # NOTE: BOTH PATCHES AND SPLINE INDICES DEPEND ON THE ORDER THAT THEY ARE APPENDED IN IN THE FUNCTION. 
 
 
-#Four patches, one for each quadrant. 
-CONST_NUM_PATCHES=4
-CONST_SPLINE_PATCH_CONNECT=[[0,4], [1,5],[2,6], [3,7]]
 
-#CONST_NUM_PATCHES=1
-#CONST_SPLINE_PATCH_CONNECT=[[0,1]]
+
 #CONST_NUM_PATCHES=1
 #CONST_SPLINE_PATCH_CONNECT=[[1,2]]
 # Properties of the patch in the eta direction (eta increases in the 
@@ -438,7 +434,7 @@ def generate_knot_vector(p, num_ctrl_pts_xi):
 
 	return knots
 
-def get_BSpline_parameters(P, num_ctrl_pts_xi):
+def get_BSpline_parameters(P, num_ctrl_pts_xi, n_patches):
 	"""
 	This function is added in order to be able to add more splines without 
 	creating a separate function for each. Important for multiple NURBS patches. 
@@ -469,8 +465,10 @@ def get_BSpline_parameters(P, num_ctrl_pts_xi):
 	BSpline_parameters=[]
 	
 	# FOUR BSPLINE PARAMETETERS
-	for quadrant in range(4):
-		airfoil_parametric_equation_quadrant=lambda s: airfoil_parametric_equation(s/4-0.75+0.5*quadrant)
+	s_reparametrization=lambda s, quadrant:s/n_patches-0.75+2./n_patches*quadrant
+	s_reparametrization=lambda s, quadrant:s/n_patches+1./n_patches-1+2./n_patches*quadrant
+	for quadrant in range(n_patches):
+		airfoil_parametric_equation_quadrant=lambda s: airfoil_parametric_equation(s_reparametrization(s, quadrant))
 		control_points = get_BSpline_control_points_continuous_least_square\
 			(BSpline_Basis, knots, n, airfoil_parametric_equation_quadrant)
 		spline_function = lambda xi, BSpline_Basis=BSpline_Basis, control_points=control_points: \
@@ -486,8 +484,9 @@ def get_BSpline_parameters(P, num_ctrl_pts_xi):
 
 	farfield = lambda xi: (CONST_R_FARFIELD*math.cos(-1.*(xi+1)*math.pi), 
 							CONST_R_FARFIELD*math.sin(-1.*(xi+1)*math.pi))
-	for quadrant in range(4):
-		farfield_parametric_equation_quadrant=lambda s: farfield(s/4-0.75+0.5*quadrant)
+	
+	for quadrant in range(n_patches):
+		farfield_parametric_equation_quadrant=lambda s: farfield(s_reparametrization(s, quadrant))
 		control_points = get_BSpline_control_points_continuous_least_square\
 			(BSpline_Basis, knots, n, farfield_parametric_equation_quadrant)
 		spline_function = lambda xi, BSpline_Basis=BSpline_Basis, control_points=control_points: \
@@ -621,7 +620,7 @@ def get_optimization_pts(ControlPoints_and_Weights):
 	return optimization_control_pt_list, optimization_control_pt_limit_list
 
 
-def get_patch_information(P, num_ctrl_pts_xi):
+def get_patch_information(kwargs):
 
 	"""
 	Return the information for all patches in a list of dicts. 
@@ -638,12 +637,17 @@ get_patch_information
 	"""
 	patch_parameters=[]
 	# Get the B Spline and Farfield B Splines
-	BSpline_parameters=get_BSpline_parameters(P, num_ctrl_pts_xi)
-
-	for patch_index in range(CONST_NUM_PATCHES):
+	BSpline_parameters=get_BSpline_parameters(**kwargs)
+	P=kwargs["P"]
+	n_patches=kwargs["n_patches"]
+	spline_patch_connect=[]
+	for i in range(n_patches):
+		spline_patch_connect.append([i, i+n_patches])
+	
+	for patch_index in range(n_patches):
 		#SPLINE 0 and 1 corresponding to patch
-		SP0=CONST_SPLINE_PATCH_CONNECT[patch_index][0]
-		SP1=CONST_SPLINE_PATCH_CONNECT[patch_index][1]
+		SP0=spline_patch_connect[patch_index][0]
+		SP1=spline_patch_connect[patch_index][1]
 		Airfoil_parameters=BSpline_parameters[SP0]
 		Farfield_parameters=BSpline_parameters[SP1]
 		xiVector = BSpline_parameters[SP1]["knots"]
@@ -689,16 +693,17 @@ get_patch_information
 			"cm_le_y"  : 0.0
 		})
 
+
 	return patch_parameters
 
 
-def test(P, num_ctrl_pts_xi):
-	#get_patch_information()
-	patch_parameters = get_patch_information(P, num_ctrl_pts_xi)
+def test(**kwargs):
+
+	patch_parameters = get_patch_information(kwargs)
 	NURBS_main.plot_patch(patch_parameters)
 
 
-	BSpline_parameters=get_BSpline_parameters(P, num_ctrl_pts_xi)
+	BSpline_parameters=get_BSpline_parameters(**kwargs)
 	plot_airfoil()
 
 	for parameters in BSpline_parameters: 
@@ -715,9 +720,8 @@ def test(P, num_ctrl_pts_xi):
 
 
 if __name__ == "__main__":
-	P_test=3
-	num_ctrl_pts_test=6
-	test(P_test, num_ctrl_pts_test)
+	multipatch_kwargs_test={"P":3, "num_ctrl_pts_xi":15, "n_patches":1}
+	test(**multipatch_kwargs_test)
 
 
 

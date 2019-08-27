@@ -142,6 +142,12 @@ struct Simulation {
 	 */
 	const bool nurbs_multipatch;
 
+	/**
+	 * The number of patches to use in the NURBS multipatch. Goes together with 
+	 * the nurbs_multipatch bool. 
+	 */
+	const int nurbs_n_patches; 
+
 	/** The minimal and maximal reference orders. p-adaptation is enabled if the orders differ.
 	 *
 	 *  \note While this order corresponds to the order of the solution in the domain volumes in the case of the

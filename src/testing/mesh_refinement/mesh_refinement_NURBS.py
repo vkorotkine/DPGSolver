@@ -31,6 +31,7 @@ NURBS_GENERATION_REL_DIR="input/meshes/NURBS_Patch_Generator/"
 sys.path.append(PROJECT_SRC_DIR+NURBS_GENERATION_REL_DIR)
 PATCH_TYPE="SINGLE_PATCH"
 PATCH_TYPE="MULTIPATCH"
+N_PATCHES=1
 #editor complains here because it cant process the sys path append
 
 if PATCH_TYPE=="SINGLE_PATCH":
@@ -62,7 +63,7 @@ MESH_DIM_LIST=[[38,27], #1000 dof
 MESH_DIM_LIST=[[53,38], #2000 dof
 				[28,19],
 				[18,13]]
-MESH_DIM_LIST=[[53,38]]
+MESH_DIM_LIST=[[10,10]]
 P_LIST=[1,2,3]*4
 #P_LIST=P_LIST+P_LIST
 #MESH_DIM_LIST=[[10,10]]
@@ -154,7 +155,7 @@ def copy_files_to_archive(input_fname_list, test_identifier):
 		fname_list=input_fname_list, f_fulldir=1)
 
 
-def create_input_files(mesh_dims, ml,P, nurbs_p, nurbs_num_ctrl_pts_xi):
+def create_input_files(mesh_dims, ml,P, nurbs_p, nurbs_num_ctrl_pts_xi, n_patches):
 	"""Creates the geometry file and the control file that are used by the C code."""
 	geo_fname=GEO_FILE_FOLDER+GEO_FORMAT
 	ctrl_fname=CONTROL_FILE_FOLDER+TEST_NAME_FORMAT % (mesh_dims[0], mesh_dims[1], ML, P)+'.ctrl'
@@ -163,14 +164,20 @@ def create_input_files(mesh_dims, ml,P, nurbs_p, nurbs_num_ctrl_pts_xi):
 
 	geo_fname_nopath=GEO_FORMAT
 	#CREATE NURBS GEOMETRY FILE
-	patch_information=get_patch_information(NURBS_ORDER_P, nurbs_num_ctrl_pts_xi)
+	if PATCH_TYPE=="SINGLE_PATCH":
+		patch_information=get_patch_information(nurbs_p, nurbs_num_ctrl_pts_xi)
+	elif PATCH_TYPE=="MULTIPATCH":
+		multipatch_kwargs={"P":nurbs_p, "num_ctrl_pts_xi":nurbs_num_ctrl_pts_xi, "n_patches":n_patches}
+		patch_information=get_patch_information(multipatch_kwargs)
+
+
 	nurbs_output_file(patch_information,nurbs_geo_fname)
 
 	# CREATE GEOMETRY FILE
 	f = open(GEO_FILE_FOLDER+GEO_FILE_TEMPLATE,'r')
 	filedata = f.read()
 	f.close()
-	#need to delete after
+
 	newdata = filedata.replace("PYTH_TEMP_NUM_X_ELEMENTS",str(mesh_dims[0]))
 	newdata = newdata.replace("PYTH_TEMP_NUM_Y_ELEMENTS",str(mesh_dims[1]))
 	f = open(geo_fname,'w')
@@ -186,6 +193,8 @@ def create_input_files(mesh_dims, ml,P, nurbs_p, nurbs_num_ctrl_pts_xi):
 	newdata = newdata.replace("PYTH_TEMP_P",str(P))
 	newdata = newdata.replace("PYTH_TEMP_GEO_FILE",geo_fname_nopath)
 	newdata = newdata.replace("PYTH_TEMP_GEO_PARAMETERS_EXTENSION",nurbs_geo_extension)
+	newdata = newdata.replace("PYTH_TEMP_N_PATCHES",str(n_patches))
+	
 	f = open(ctrl_fname,'w')
 	f.write(newdata)
 	f.close()
@@ -218,9 +227,12 @@ if __name__ == "__main__":
 		
 		test_name=TEST_NAME_FORMAT % (mesh_dims[0], mesh_dims[1], ML, P)
 		#test_identifier="M%dx%d_P%d_NURBS_P%d_NCTRL%d" % (mesh_dims[0], mesh_dims[1], P, nurbs_p, num_ctrl_pts_xi)
-		test_identifier=PATCH_TYPE+"/NCTRL%d/M%dx%d_P%d_NURBS_P%d" % (num_ctrl_pts_xi, mesh_dims[0], mesh_dims[1], P, nurbs_p)
+		if PATCH_TYPE=="SINGLE_PATCH":
+			test_identifier=PATCH_TYPE+"/NCTRL%d/M%dx%d_P%d_NURBS_P%d" % (num_ctrl_pts_xi, mesh_dims[0], mesh_dims[1], P, nurbs_p)
+		elif PATCH_TYPE=="MULTIPATCH":
+			test_identifier=PATCH_TYPE+"/NCTRL%dNPATCHES%d/M%dx%d_P%d_NURBS_P%d" % (num_ctrl_pts_xi, N_PATCHES, mesh_dims[0], mesh_dims[1], P, nurbs_p)
 
-		geo_fname, ctrl_fname, nurbs_geo_fname=create_input_files(mesh_dims, ML, P, nurbs_p, num_ctrl_pts_xi)
+		geo_fname, ctrl_fname, nurbs_geo_fname=create_input_files(mesh_dims, ML, P, nurbs_p, num_ctrl_pts_xi, N_PATCHES)
 		#create output directory
 		os.makedirs(os.path.dirname(ARCHIVED_OUTPUT_PATH+test_identifier+"/"), exist_ok=True)
 		subprocess.call(shlex.split("make all"), cwd=BUILD_DIR)
@@ -232,8 +244,7 @@ if __name__ == "__main__":
 		#		test_command_to_log, ARCHIVED_OUTPUT_PATH+test_identifier+"/log.txt")
 		#os.remove(geo_fname)
 		#os.remove(ctrl_fname)
-		#os.remove(nurbs_geo_fname)/home/vassili/Desktop/DPGSolver/DPGSolver/build_debug_2D/bin/test_integration_optimization euler/NURBS_Airfoil/TEST_Euler_MULTIPATCH_NURBSAirfoil_TargetCLTestsReference_ParametricQUAD2D_mesh_10by10__ml1__p1 petsc_options_gmres_default
-
+		#os.remove(nurbs_geo_fname)
 
 
 
