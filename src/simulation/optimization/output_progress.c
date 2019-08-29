@@ -235,40 +235,160 @@ void output_NURBS_patch_information(struct Optimization_Case* optimization_case)
 	FILE* fp;
 	if ((fp = fopen_create_dir(output_name)) == NULL)
 		printf("Error: File %s did not open.\n", output_name), exit(1);
+	if(optimization_case->sim->nurbs_multipatch){
+		for(int patch_index=0;patch_index<sim->nurbs_n_patches;patch_index++){
+			output_single_NURBS_patch_information(optimization_case, patch_index);
+		}
+	}
+	else{
+		// Print the patch information
+		fprintf(fp, "P(xi_order) %d\n", optimization_case->geo_data.P);
+		fprintf(fp, "Q(eta_order) %d\n", optimization_case->geo_data.Q);
+		fprintf(fp, "\n");
+
+		fprintf(fp, "knots_xi %d\n", (int)optimization_case->geo_data.knots_xi->extents[0]);
+		for (int i = 0; i < (int)optimization_case->geo_data.knots_xi->extents[0]; i++){
+			fprintf(fp, "%.14e\n", optimization_case->geo_data.knots_xi->data[i]);
+		}
+		fprintf(fp, "\n");
+
+		fprintf(fp, "knots_eta %d\n", (int)optimization_case->geo_data.knots_eta->extents[0]);
+		for (int i = 0; i < (int)optimization_case->geo_data.knots_eta->extents[0]; i++){
+			fprintf(fp, "%.14e\n", optimization_case->geo_data.knots_eta->data[i]);
+		}
+		fprintf(fp, "\n");
+
+		fprintf(fp, "Control_Point_Data %d \n", (int)optimization_case->geo_data.control_points->extents[0]);
+		for (int i = 0; i < (int)optimization_case->geo_data.control_points->extents[0]; i++){
+			fprintf(fp, "%.14e %.14e %.14e\n", 
+				get_col_Multiarray_d(0, optimization_case->geo_data.control_points)[i],
+				get_col_Multiarray_d(1, optimization_case->geo_data.control_points)[i],
+				get_col_Multiarray_d(0, optimization_case->geo_data.control_weights)[i]
+				);
+		}
+		fprintf(fp, "\n");
+
+		fprintf(fp, "Control_Point_Connectivity %d %d\n", 
+			(int)optimization_case->geo_data.control_pt_wt_connectivity->extents[0],
+			(int)optimization_case->geo_data.control_pt_wt_connectivity->extents[1]);
+		for (int i = 0; i < (int)optimization_case->geo_data.control_pt_wt_connectivity->extents[0]; i++){
+			for (int j = 0; j < (int)optimization_case->geo_data.control_pt_wt_connectivity->extents[1]; j++){
+				fprintf(fp, "%d ", get_row_Multiarray_i(i, optimization_case->geo_data.control_pt_wt_connectivity)[j]);
+			}
+			fprintf(fp, "\n");
+		}
+
+		fclose(fp);
+
+
+		// Temporary
+		// Write the output to Optimized_NURBS_Patch file in the NURBS_Airfoil directory for easy
+		// progress monitoring using the Python script.
+
+
+		sprintf(f_name,"%s%c%s%c%s", sim->pde_name,'/',sim->pde_spec,'/', "Optimized_NURBS_Patch.txt");
+
+		strcpy(output_name,"../output/");
+		strcat(output_name,"optimization/");
+		strcat(output_name,f_name);
+
+		if ((fp = fopen_create_dir(output_name)) == NULL)
+			printf("Error: File %s did not open.\n", output_name), exit(1);
+
+		// Print the patch information
+		fprintf(fp, "P(xi_order) %d\n", optimization_case->geo_data.P);
+		fprintf(fp, "Q(eta_order) %d\n", optimization_case->geo_data.Q);
+		fprintf(fp, "\n");
+
+		fprintf(fp, "knots_xi %d\n", (int)optimization_case->geo_data.knots_xi->extents[0]);
+		for (int i = 0; i < (int)optimization_case->geo_data.knots_xi->extents[0]; i++){
+			fprintf(fp, "%.14e\n", optimization_case->geo_data.knots_xi->data[i]);
+		}
+		fprintf(fp, "\n");
+
+		fprintf(fp, "knots_eta %d\n", (int)optimization_case->geo_data.knots_eta->extents[0]);
+		for (int i = 0; i < (int)optimization_case->geo_data.knots_eta->extents[0]; i++){
+			fprintf(fp, "%.14e\n", optimization_case->geo_data.knots_eta->data[i]);
+		}
+		fprintf(fp, "\n");
+
+		fprintf(fp, "Control_Point_Data %d \n", (int)optimization_case->geo_data.control_points->extents[0]);
+		for (int i = 0; i < (int)optimization_case->geo_data.control_points->extents[0]; i++){
+			fprintf(fp, "%.14e %.14e %.14e\n", 
+				get_col_Multiarray_d(0, optimization_case->geo_data.control_points)[i],
+				get_col_Multiarray_d(1, optimization_case->geo_data.control_points)[i],
+				get_col_Multiarray_d(0, optimization_case->geo_data.control_weights)[i]
+				);
+		}
+		fprintf(fp, "\n");
+
+		fprintf(fp, "Control_Point_Connectivity %d %d\n", 
+			(int)optimization_case->geo_data.control_pt_wt_connectivity->extents[0],
+			(int)optimization_case->geo_data.control_pt_wt_connectivity->extents[1]);
+		for (int i = 0; i < (int)optimization_case->geo_data.control_pt_wt_connectivity->extents[0]; i++){
+			for (int j = 0; j < (int)optimization_case->geo_data.control_pt_wt_connectivity->extents[1]; j++){
+				fprintf(fp, "%d ", get_row_Multiarray_i(i, optimization_case->geo_data.control_pt_wt_connectivity)[j]);
+			}
+			fprintf(fp, "\n");
+		}
+
+		fclose(fp);
+	}
+}
+
+void output_single_NURBS_patch_information(struct Optimization_Case* optimization_case, int patch_index){
+	
+	struct Simulation *sim = optimization_case->sim;
+	struct Geo_Data geo_data=optimization_case->NURBS_Patch_Data[patch_index];
+
+	char f_name[4*STRLEN_MAX] = { 0, };
+	sprintf(f_name,"%s%c%s%c%sML%d_P%d_", sim->pde_name,'/',sim->pde_spec,'/',optimization_case->optimizer_output_files_prefix, 
+	sim->ml[0], sim->p_ref[0]);
+	strcat(f_name, "Optimized_NURBS_Patch.txt");
+
+	char output_name[STRLEN_MAX] = { 0, };
+	strcpy(output_name,"../output/");
+	strcat(output_name,"optimization/");
+	strcat(output_name,f_name);
+
+	FILE* fp;
+	if ((fp = fopen_create_dir(output_name)) == NULL)
+		printf("Error: File %s did not open.\n", output_name), exit(1);
 
 	// Print the patch information
-	fprintf(fp, "P(xi_order) %d\n", optimization_case->geo_data.P);
-	fprintf(fp, "Q(eta_order) %d\n", optimization_case->geo_data.Q);
+	fprintf(fp, "Patch_Index %d\n", patch_index);
+	fprintf(fp, "P(xi_order) %d\n", geo_data.P);
+	fprintf(fp, "Q(eta_order) %d\n", geo_data.Q);
 	fprintf(fp, "\n");
 
-	fprintf(fp, "knots_xi %d\n", (int)optimization_case->geo_data.knots_xi->extents[0]);
-	for (int i = 0; i < (int)optimization_case->geo_data.knots_xi->extents[0]; i++){
-		fprintf(fp, "%.14e\n", optimization_case->geo_data.knots_xi->data[i]);
+	fprintf(fp, "knots_xi %d\n", (int)geo_data.knots_xi->extents[0]);
+	for (int i = 0; i < (int)geo_data.knots_xi->extents[0]; i++){
+		fprintf(fp, "%.14e\n", geo_data.knots_xi->data[i]);
 	}
 	fprintf(fp, "\n");
 
-	fprintf(fp, "knots_eta %d\n", (int)optimization_case->geo_data.knots_eta->extents[0]);
-	for (int i = 0; i < (int)optimization_case->geo_data.knots_eta->extents[0]; i++){
-		fprintf(fp, "%.14e\n", optimization_case->geo_data.knots_eta->data[i]);
+	fprintf(fp, "knots_eta %d\n", (int)geo_data.knots_eta->extents[0]);
+	for (int i = 0; i < (int)geo_data.knots_eta->extents[0]; i++){
+		fprintf(fp, "%.14e\n", geo_data.knots_eta->data[i]);
 	}
 	fprintf(fp, "\n");
 
-	fprintf(fp, "Control_Point_Data %d \n", (int)optimization_case->geo_data.control_points->extents[0]);
-	for (int i = 0; i < (int)optimization_case->geo_data.control_points->extents[0]; i++){
+	fprintf(fp, "Control_Point_Data %d \n", (int)geo_data.control_points->extents[0]);
+	for (int i = 0; i < (int)geo_data.control_points->extents[0]; i++){
 		fprintf(fp, "%.14e %.14e %.14e\n", 
-			get_col_Multiarray_d(0, optimization_case->geo_data.control_points)[i],
-			get_col_Multiarray_d(1, optimization_case->geo_data.control_points)[i],
-			get_col_Multiarray_d(0, optimization_case->geo_data.control_weights)[i]
+			get_col_Multiarray_d(0, geo_data.control_points)[i],
+			get_col_Multiarray_d(1, geo_data.control_points)[i],
+			get_col_Multiarray_d(0, geo_data.control_weights)[i]
 			);
 	}
 	fprintf(fp, "\n");
 
 	fprintf(fp, "Control_Point_Connectivity %d %d\n", 
-		(int)optimization_case->geo_data.control_pt_wt_connectivity->extents[0],
-		(int)optimization_case->geo_data.control_pt_wt_connectivity->extents[1]);
-	for (int i = 0; i < (int)optimization_case->geo_data.control_pt_wt_connectivity->extents[0]; i++){
-		for (int j = 0; j < (int)optimization_case->geo_data.control_pt_wt_connectivity->extents[1]; j++){
-			fprintf(fp, "%d ", get_row_Multiarray_i(i, optimization_case->geo_data.control_pt_wt_connectivity)[j]);
+		(int)geo_data.control_pt_wt_connectivity->extents[0],
+		(int)geo_data.control_pt_wt_connectivity->extents[1]);
+	for (int i = 0; i < (int)geo_data.control_pt_wt_connectivity->extents[0]; i++){
+		for (int j = 0; j < (int)geo_data.control_pt_wt_connectivity->extents[1]; j++){
+			fprintf(fp, "%d ", get_row_Multiarray_i(i,geo_data.control_pt_wt_connectivity)[j]);
 		}
 		fprintf(fp, "\n");
 	}
@@ -291,45 +411,44 @@ void output_NURBS_patch_information(struct Optimization_Case* optimization_case)
 		printf("Error: File %s did not open.\n", output_name), exit(1);
 
 	// Print the patch information
-	fprintf(fp, "P(xi_order) %d\n", optimization_case->geo_data.P);
-	fprintf(fp, "Q(eta_order) %d\n", optimization_case->geo_data.Q);
+	fprintf(fp, "P(xi_order) %d\n", geo_data.P);
+	fprintf(fp, "Q(eta_order) %d\n", geo_data.Q);
 	fprintf(fp, "\n");
 
-	fprintf(fp, "knots_xi %d\n", (int)optimization_case->geo_data.knots_xi->extents[0]);
-	for (int i = 0; i < (int)optimization_case->geo_data.knots_xi->extents[0]; i++){
-		fprintf(fp, "%.14e\n", optimization_case->geo_data.knots_xi->data[i]);
+	fprintf(fp, "knots_xi %d\n", (int)geo_data.knots_xi->extents[0]);
+	for (int i = 0; i < (int)geo_data.knots_xi->extents[0]; i++){
+		fprintf(fp, "%.14e\n", geo_data.knots_xi->data[i]);
 	}
 	fprintf(fp, "\n");
 
-	fprintf(fp, "knots_eta %d\n", (int)optimization_case->geo_data.knots_eta->extents[0]);
-	for (int i = 0; i < (int)optimization_case->geo_data.knots_eta->extents[0]; i++){
-		fprintf(fp, "%.14e\n", optimization_case->geo_data.knots_eta->data[i]);
+	fprintf(fp, "knots_eta %d\n", (int)geo_data.knots_eta->extents[0]);
+	for (int i = 0; i < (int)geo_data.knots_eta->extents[0]; i++){
+		fprintf(fp, "%.14e\n", geo_data.knots_eta->data[i]);
 	}
 	fprintf(fp, "\n");
 
-	fprintf(fp, "Control_Point_Data %d \n", (int)optimization_case->geo_data.control_points->extents[0]);
-	for (int i = 0; i < (int)optimization_case->geo_data.control_points->extents[0]; i++){
+	fprintf(fp, "Control_Point_Data %d \n", (int)geo_data.control_points->extents[0]);
+	for (int i = 0; i < (int)geo_data.control_points->extents[0]; i++){
 		fprintf(fp, "%.14e %.14e %.14e\n", 
-			get_col_Multiarray_d(0, optimization_case->geo_data.control_points)[i],
-			get_col_Multiarray_d(1, optimization_case->geo_data.control_points)[i],
-			get_col_Multiarray_d(0, optimization_case->geo_data.control_weights)[i]
+			get_col_Multiarray_d(0, geo_data.control_points)[i],
+			get_col_Multiarray_d(1, geo_data.control_points)[i],
+			get_col_Multiarray_d(0, geo_data.control_weights)[i]
 			);
 	}
 	fprintf(fp, "\n");
 
 	fprintf(fp, "Control_Point_Connectivity %d %d\n", 
-		(int)optimization_case->geo_data.control_pt_wt_connectivity->extents[0],
-		(int)optimization_case->geo_data.control_pt_wt_connectivity->extents[1]);
-	for (int i = 0; i < (int)optimization_case->geo_data.control_pt_wt_connectivity->extents[0]; i++){
-		for (int j = 0; j < (int)optimization_case->geo_data.control_pt_wt_connectivity->extents[1]; j++){
-			fprintf(fp, "%d ", get_row_Multiarray_i(i, optimization_case->geo_data.control_pt_wt_connectivity)[j]);
+		(int)geo_data.control_pt_wt_connectivity->extents[0],
+		(int)geo_data.control_pt_wt_connectivity->extents[1]);
+	for (int i = 0; i < (int)geo_data.control_pt_wt_connectivity->extents[0]; i++){
+		for (int j = 0; j < (int)geo_data.control_pt_wt_connectivity->extents[1]; j++){
+			fprintf(fp, "%d ", get_row_Multiarray_i(i, geo_data.control_pt_wt_connectivity)[j]);
 		}
 		fprintf(fp, "\n");
 	}
 
 	fclose(fp);
 }
-
 
 void output_gradient(struct Optimization_Case* optimization_case, 
 	double *gradient){

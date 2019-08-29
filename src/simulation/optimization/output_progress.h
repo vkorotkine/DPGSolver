@@ -65,6 +65,13 @@ void output_NURBS_patch_information(
 	struct Optimization_Case* optimization_case ///< Consult optimization_case.h (holds the case information)
 	);
 
+/** \brief Used in output_NURBS_patch_information to output information for multiple patches
+ */
+void output_single_NURBS_patch_information(
+	struct Optimization_Case* optimization_case, ///< Consult optimization_case.h (holds the case information)
+	int patch_index ///< Index of the NURBS patch to output
+	);
+
 
 /** \brief Output the gradient of the objective function with resepct to the design 
  *	variables into a file titled Objective_Gradient.txt.

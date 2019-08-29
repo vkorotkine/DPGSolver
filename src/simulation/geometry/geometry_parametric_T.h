@@ -138,7 +138,8 @@ const struct const_Multiarray_T* constructor_grad_xyz_NURBS_parametric_T
  *	allow for shape optimization to take place.
  */
 void update_geo_data_NURBS_parametric_T
-	(const struct const_Multiarray_T* control_points ///< The new values for the control point data
+	(const struct const_Multiarray_T* control_points, ///< The new values for the control point data
+	 const struct Simulation* sim
 	);
 
 /** \brief Computes the gradient terms of the NURBS mapping at the specified points on the 

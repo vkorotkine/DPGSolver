@@ -195,8 +195,6 @@ def output_file(patch_parameters_list, output_file_name):
 
 	:param patch_parameters: The parameters used to define the patch
 	"""
-	print("Reached output file stage")
-	print(output_file_name)
 	with open(output_file_name, "w+") as fp:
 
 		fp.write("/** Geometry parameters for test case: euler/steady/NURBS\n")

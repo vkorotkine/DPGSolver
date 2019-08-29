@@ -406,14 +406,27 @@ const struct const_Multiarray_T* constructor_xyz_joukowski_parametric_T
 	return (struct const_Multiarray_T*) xyz;
 }
 
-void update_geo_data_NURBS_parametric_T(const struct const_Multiarray_T* control_points){
+void update_geo_data_NURBS_parametric_T(const struct const_Multiarray_T* control_points, const struct Simulation* sim){
+	if(sim->nurbs_multipatch){
+		struct Geo_Data geo_data = get_geo_data("Multipatch");  // get static geo_data struct
+		for(int patch_index=0; patch_index<sim->nurbs_n_patches; patch_index++){
+			struct Multiarray_T *dest = geo_data.NURBS_Patch_Data[patch_index].control_points;
 
-	struct Geo_Data geo_data = get_geo_data("NURBS");  // get static geo_data struct
-	struct Multiarray_T *dest = geo_data.control_points;
+			for (int i = 0; i < (int)dest->extents[0]; i++){
+				for(int j = 0; j < (int)dest->extents[1]; j++){
+					get_col_Multiarray_T(j, dest)[i] = get_col_const_Multiarray_T(j, control_points)[i];
+				}
+			}
+		}
+	}
+	else{
+		struct Geo_Data geo_data = get_geo_data("NURBS");  // get static geo_data struct
+		struct Multiarray_T *dest = geo_data.control_points;
 
-	for (int i = 0; i < (int)dest->extents[0]; i++){
-		for(int j = 0; j < (int)dest->extents[1]; j++){
-			get_col_Multiarray_T(j, dest)[i] = get_col_const_Multiarray_T(j, control_points)[i];
+		for (int i = 0; i < (int)dest->extents[0]; i++){
+			for(int j = 0; j < (int)dest->extents[1]; j++){
+				get_col_Multiarray_T(j, dest)[i] = get_col_const_Multiarray_T(j, control_points)[i];
+			}
 		}
 	}
 }

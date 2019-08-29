@@ -119,6 +119,10 @@ struct Optimization_Case {
 
 	} geo_data;	
 
+	struct Geo_Data * NURBS_Patch_Data;
+
+	//If multipatch, how many patches there are
+	int num_patches;
 
 	// ============================================
 	//      Optimization Data File Information

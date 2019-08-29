@@ -502,7 +502,7 @@ static double backtracking_line_search(struct Optimization_Case* optimization_ca
 
 		// Move along the search direction. Update the geometry and recompute the metric terms
 		update_design_points(optimization_case, p_k, alpha);
-		update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)optimization_case->geo_data.control_points);
+		update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)optimization_case->geo_data.control_points, (const struct Simulation *) sim);
 		set_up_solver_geometry(sim);
 
 		// Solve the flow on the updated geometry

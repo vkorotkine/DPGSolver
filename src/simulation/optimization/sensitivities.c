@@ -318,14 +318,14 @@ static void set_dI_dXp_and_dR_dXp_finite_diff(struct Sensitivity_Data *sensitivi
 			
 
 			get_col_Multiarray_d(j-1, control_points)[control_pt_index] += FINITE_DIFF_STEP;
-			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
+			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points, (const struct Simulation *) sim);
 			set_up_solver_geometry(sim);
 			I_plus_h = functional(sim);
 			R_plus_h = constructor_residual(sensitivity_data, optimization_case);  // free
 			get_col_Multiarray_d(j-1, control_points)[control_pt_index] -= FINITE_DIFF_STEP;
 
 			get_col_Multiarray_d(j-1, control_points)[control_pt_index] -= FINITE_DIFF_STEP;
-			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
+			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points, (const struct Simulation *) sim);
 			set_up_solver_geometry(sim);
 			I_min_h = functional(sim);
 			R_min_h = constructor_residual(sensitivity_data, optimization_case);  // free
@@ -347,7 +347,7 @@ static void set_dI_dXp_and_dR_dXp_finite_diff(struct Sensitivity_Data *sensitivi
 	}
 
 	// Update the geometry one last time with the original control point configurations
-	update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
+	update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points, (const struct Simulation *) sim);
 	set_up_solver_geometry(sim);
 
 }
@@ -355,64 +355,126 @@ static void set_dI_dXp_and_dR_dXp_finite_diff(struct Sensitivity_Data *sensitivi
 
 static void set_dI_dXp_and_dR_dXp_cmplx_step(struct Sensitivity_Data *sensitivity_data, struct Optimization_Case *optimization_case,
 	functional_fptr_c functional_c){
-
+	
+	struct Simulation *sim = optimization_case->sim;
 	struct Simulation *sim_c = optimization_case->sim_c;
 	
-	struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
-	int *ctrl_pt_indeces = get_col_Multiarray_i(0, ctrl_pts_opt);
-	int n_pts = (int)ctrl_pts_opt->extents[0];
+
+	if(optimization_case->sim->nurbs_multipatch){
+		for(int patch_index=0;patch_index<optimization_case->num_patches;patch_index++){
+			struct Multiarray_i* ctrl_pts_opt = optimization_case->NURBS_Patch_Data[patch_index].control_points_optimization;
+			int *ctrl_pt_indeces = get_col_Multiarray_i(0, ctrl_pts_opt);
+			int n_pts = (int)ctrl_pts_opt->extents[0];
 
 
- 	struct Matrix_d *dI_dXp = sensitivity_data->dI_dXp;
-	double *dI_dXp_i = dI_dXp->data;
-	UNUSED(dI_dXp_i);
-	UNUSED(functional_c);
+			struct Matrix_d *dI_dXp = sensitivity_data->dI_dXp;
+			double *dI_dXp_i = dI_dXp->data;
+			UNUSED(dI_dXp_i);
+			UNUSED(functional_c);
 
-	struct Matrix_d *dR_dXp = sensitivity_data->dR_dXp;
-	int num_res_eqs = (int) dR_dXp->ext_0;
+			struct Matrix_d *dR_dXp = sensitivity_data->dR_dXp;
+			int num_res_eqs = (int) dR_dXp->ext_0;
 
-	// =================================================
-	//     Compute the dI_dXp and dR_dXp components
-	// =================================================
+			// =================================================
+			//     Compute the dI_dXp and dR_dXp components
+			// =================================================
 
-	struct Multiarray_c* control_points_c = optimization_case->geo_data.control_points_c;
-	int control_pt_index;
+			struct Multiarray_c* control_points_c = optimization_case->NURBS_Patch_Data[patch_index].control_points_c;
+			int control_pt_index;
 
-	int col_index = 0;
+			int col_index = 0;
 
-	for (int i = 0; i < n_pts; i++){
-		// Loop over the design points
+			for (int i = 0; i < n_pts; i++){
+				// Loop over the design points
 
-		for (int j = 1; j <= 2; j++){
-			// Loop over the degrees of freedom for the design point
-			// j = 1 (x degree of freeedom) and j = 2 (y degree of freedom)
+				for (int j = 1; j <= 2; j++){
+					// Loop over the degrees of freedom for the design point
+					// j = 1 (x degree of freeedom) and j = 2 (y degree of freedom)
 
-			if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
-				continue;
+					if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+						continue;
 
-			control_pt_index = ctrl_pt_indeces[i];
-			get_col_Multiarray_c(j-1, control_points_c)[control_pt_index] += CX_STEP*I;
+					control_pt_index = ctrl_pt_indeces[i];
+					get_col_Multiarray_c(j-1, control_points_c)[control_pt_index] += CX_STEP*I;
 
-			update_geo_data_NURBS_parametric_c((const struct const_Multiarray_c*)control_points_c);
-			set_up_solver_geometry_c(sim_c);
+					update_geo_data_NURBS_parametric_c((const struct const_Multiarray_c*)control_points_c, (const struct Simulation *) sim);
+					set_up_solver_geometry_c(sim_c);
 
-			dI_dXp_i[col_index] = cimag(functional_c(sim_c))/CX_STEP;
+					dI_dXp_i[col_index] = cimag(functional_c(sim_c))/CX_STEP;
 
-			struct Multiarray_c *R = constructor_residual_c(sensitivity_data, optimization_case);
+					struct Multiarray_c *R = constructor_residual_c(sensitivity_data, optimization_case);
 
-			for (int k = 0; k < num_res_eqs; k++)
-				get_col_Matrix_d(col_index, dR_dXp)[k] = cimag(get_col_Multiarray_c(0, R)[k])/CX_STEP;
-			
-			destructor_Multiarray_c(R);
+					for (int k = 0; k < num_res_eqs; k++)
+						get_col_Matrix_d(col_index, dR_dXp)[k] = cimag(get_col_Multiarray_c(0, R)[k])/CX_STEP;
+					
+					destructor_Multiarray_c(R);
 
-			get_col_Multiarray_c(j-1, control_points_c)[control_pt_index] -= CX_STEP*I;
+					get_col_Multiarray_c(j-1, control_points_c)[control_pt_index] -= CX_STEP*I;
 
-			col_index++;
+					col_index++;
 
+				}
+			}
+			// Update the geometry one last time with the original control point configurations
+			update_geo_data_NURBS_parametric_c((const struct const_Multiarray_c*)control_points_c, (const struct Simulation *) sim);
 		}
+	}else{
+		struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
+		int *ctrl_pt_indeces = get_col_Multiarray_i(0, ctrl_pts_opt);
+		int n_pts = (int)ctrl_pts_opt->extents[0];
+
+
+		struct Matrix_d *dI_dXp = sensitivity_data->dI_dXp;
+		double *dI_dXp_i = dI_dXp->data;
+		UNUSED(dI_dXp_i);
+		UNUSED(functional_c);
+
+		struct Matrix_d *dR_dXp = sensitivity_data->dR_dXp;
+		int num_res_eqs = (int) dR_dXp->ext_0;
+
+		// =================================================
+		//     Compute the dI_dXp and dR_dXp components
+		// =================================================
+
+		struct Multiarray_c* control_points_c = optimization_case->geo_data.control_points_c;
+		int control_pt_index;
+
+		int col_index = 0;
+
+		for (int i = 0; i < n_pts; i++){
+			// Loop over the design points
+
+			for (int j = 1; j <= 2; j++){
+				// Loop over the degrees of freedom for the design point
+				// j = 1 (x degree of freeedom) and j = 2 (y degree of freedom)
+
+				if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+					continue;
+
+				control_pt_index = ctrl_pt_indeces[i];
+				get_col_Multiarray_c(j-1, control_points_c)[control_pt_index] += CX_STEP*I;
+
+				update_geo_data_NURBS_parametric_c((const struct const_Multiarray_c*)control_points_c, (const struct Simulation *) sim);
+				set_up_solver_geometry_c(sim_c);
+
+				dI_dXp_i[col_index] = cimag(functional_c(sim_c))/CX_STEP;
+
+				struct Multiarray_c *R = constructor_residual_c(sensitivity_data, optimization_case);
+
+				for (int k = 0; k < num_res_eqs; k++)
+					get_col_Matrix_d(col_index, dR_dXp)[k] = cimag(get_col_Multiarray_c(0, R)[k])/CX_STEP;
+				
+				destructor_Multiarray_c(R);
+
+				get_col_Multiarray_c(j-1, control_points_c)[control_pt_index] -= CX_STEP*I;
+
+				col_index++;
+
+			}
+		}
+		// Update the geometry one last time with the original control point configurations
+		update_geo_data_NURBS_parametric_c((const struct const_Multiarray_c*)control_points_c, (const struct Simulation *) sim);
 	}
 
-	// Update the geometry one last time with the original control point configurations
-	update_geo_data_NURBS_parametric_c((const struct const_Multiarray_c*)control_points_c);
 	set_up_solver_geometry_c(sim_c);
 }

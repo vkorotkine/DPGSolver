@@ -58,6 +58,11 @@ static void read_geometry_data(
 	struct Optimization_Case* optimization_case ///< The data structure holding the optimization data
 	);
 
+/*Same as read_geometry_data but for geometry files that specify multiple patches. */
+static void read_geometry_data_Multipatch(
+	struct Optimization_Case* optimization_case ///< The data structure holding the optimization data
+	);
+
 
 /** \brief 	Read the required data from the optimization.geo file and load it into the 
  * 	optimization_case data structure.
@@ -105,26 +110,49 @@ struct Optimization_Case* constructor_Optimization_Case (struct Simulation* sim)
 
 
 	// 1) Geometry Data Structures
-	read_geometry_data(optimization_case);
+	if (sim->nurbs_multipatch)
+		read_geometry_data_Multipatch(optimization_case);
+	else
+		read_geometry_data(optimization_case);
+		
 
 
 	// 2) num_design_pts_dofs
 	int num_design_pt_dofs = 0;
 
-	struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
-	int n_pts = (int)ctrl_pts_opt->extents[0];
-	
-	for (int i = 0; i < n_pts; i++){
-		// Loop over the design points
+	if(sim->nurbs_multipatch){
+		for(int patch_index=0;patch_index<optimization_case->num_patches;patch_index++){
+			struct Multiarray_i* ctrl_pts_opt = optimization_case->NURBS_Patch_Data[patch_index].control_points_optimization;
+			int n_pts = (int)ctrl_pts_opt->extents[0];
+			
+			for (int i = 0; i < n_pts; i++){
+				// Loop over the design points
 
-		for (int j = 1; j <= 2; j++){
-			// Loop over the degrees of freedom for the design point
+				for (int j = 1; j <= 2; j++){
+					// Loop over the degrees of freedom for the design point
 
-			if (get_col_Multiarray_i(j, ctrl_pts_opt)[i])
-				num_design_pt_dofs++;
+					if (get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+						num_design_pt_dofs++;
+				}
+			}	
+
 		}
-	}	
+	}
+	else{
+		struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
+		int n_pts = (int)ctrl_pts_opt->extents[0];
+		
+		for (int i = 0; i < n_pts; i++){
+			// Loop over the design points
 
+			for (int j = 1; j <= 2; j++){
+				// Loop over the degrees of freedom for the design point
+
+				if (get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+					num_design_pt_dofs++;
+			}
+		}	
+	}
 	optimization_case->num_design_pts_dofs = num_design_pt_dofs;
 
 
@@ -156,6 +184,9 @@ void destructor_Optimization_Case (struct Optimization_Case* optimization_case){
 	destructor_Multiarray_i(optimization_case->geo_data.control_pt_wt_connectivity);
 	destructor_Multiarray_i(optimization_case->geo_data.control_points_optimization);
 	destructor_Multiarray_d(optimization_case->geo_data.control_points_optimization_lims);
+
+	// TODO: Loop over patch indices and destroy the NURBS patch data array geo datas.
+	// Does there have to be an if statement for single vs multipatch? 
 
 
 	// 2) Destroy the complex simulation data structure. 
@@ -406,6 +437,199 @@ static void read_geometry_data(struct Optimization_Case* optimization_case){
 	fclose(input_file);
 
 	assert(count_found == count_to_find);
+}
+
+ //  static void read_data_Multipatch (struct Geo_Data*const geo_data)
+static void read_geometry_data_Multipatch(struct Optimization_Case* optimization_case)
+{
+
+	// Read the NURBS data from the geometry_parameters.geo file
+
+	// NOTE: Consider only 2D patches for now
+	assert(DIM == 2);
+
+	const int count_to_find_global=1; //amount of variables to find, not specific to patch
+	const int count_to_find_per_patch = 6; // amount of variables to find, specific to each patch
+	UNUSED(count_to_find_per_patch);
+
+	// Get the file pointer to the geometry file
+	FILE* input_file = fopen_input('g',NULL,NULL); // closed
+	char line[STRLEN_MAX];
+	char buffer[STRLEN_MAX];
+
+	int global_found = 0; //compare to count_to_find_global at end, make sure we have everything
+	int patches_to_find;
+	int patches_found=0;
+
+	int i, len_knots_xi, len_knots_eta;
+
+
+	// Read in the information from the file
+	while (fgets(line,sizeof(line),input_file)) {
+		read_skip_string_count_i("Number_patches", &global_found, line, &patches_to_find);
+		}
+	fclose(input_file);
+	optimization_case->num_patches=patches_to_find;
+	optimization_case->NURBS_Patch_Data=malloc(sizeof(struct Geo_Data)*(unsigned long)patches_to_find);
+	for(int patch_index=0;patch_index<=patches_to_find;patch_index++){
+		// For each patch index, open the file and search until we find the corresponding section. 
+		// Read that section until the next patch starts. 
+		int count_found = 0;
+		input_file = fopen_input('g',NULL,NULL);
+		while (fgets(line,sizeof(line),input_file)) {
+			if (strstr(line, "Patch_Index")){
+				sprintf(buffer, "Patch_Index %d\n", patch_index);
+				if(!strcmp(line, buffer)){
+					while(fgets(line,sizeof(line),input_file) && !strstr(line, "Patch_Index")){
+						read_skip_string_count_i("P(xi_order)", &count_found, line, &optimization_case->NURBS_Patch_Data[patch_index].P);
+						read_skip_string_count_i("Q(eta_order)", &count_found, line, &optimization_case->NURBS_Patch_Data[patch_index].Q);
+						// The knot vectors in the eta and xi directions:
+						//optimization_case->NURBS_Patch_Data[patch_index]
+						if (strstr(line, "knots_xi")){
+							read_skip_string_count_i("knots_xi", &count_found, line, &len_knots_xi);
+								
+							struct Multiarray_d* knots_xi = 
+									constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){len_knots_xi,1});
+							
+							for (i = 0; i < len_knots_xi; i++){
+								fgets(line,sizeof(line),input_file);  // read the next line
+								read_skip_d_1(line, 0, &get_col_Multiarray_d(0, knots_xi)[i], 1);
+							}
+
+							optimization_case->NURBS_Patch_Data[patch_index].knots_xi = knots_xi;
+						}
+						if (strstr(line, "knots_eta")){
+							read_skip_string_count_i("knots_eta", &count_found, line, &len_knots_eta);
+							
+							struct Multiarray_d* knots_eta = 
+									constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){len_knots_eta,1});
+							
+							for (i = 0; i < len_knots_eta; i++){
+								fgets(line,sizeof(line),input_file);  // read the next line
+								read_skip_d_1(line, 0, &get_col_Multiarray_d(0, knots_eta)[i], 1);
+							}
+							
+							optimization_case->NURBS_Patch_Data[patch_index].knots_eta = knots_eta;
+
+						}
+						if (strstr(line,"Control_Point_Data")){
+			
+							// Get the number of pts
+							int num_control_pts;
+							read_skip_string_count_i("Control_Point_Data", &count_found, line, &num_control_pts);
+
+							// Create the multiarray structure to hold the control point data
+							struct Multiarray_d *control_points  = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_control_pts,DIM}); // saved
+							struct Multiarray_d *control_weights = constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_control_pts,1}); // saved
+
+							double *x = get_col_Multiarray_d(0, control_points),
+								*y = get_col_Multiarray_d(1, control_points),
+								*w = get_col_Multiarray_d(0, control_weights);
+
+							// Read the pt data line by line
+							for (i = 0; i < num_control_pts; i++){
+								fgets(line,sizeof(line),input_file);
+								
+								double pt[3] = {0.0, 0.0, 0.0};
+								read_skip_d_1(line,0, pt, DIM+1);
+
+								x[i] = pt[0];
+								y[i] = pt[1];
+								w[i] = pt[2];
+							}
+
+							// Save the control pt data and store a complex copy
+							optimization_case->NURBS_Patch_Data[patch_index].control_points   = control_points;
+							optimization_case->NURBS_Patch_Data[patch_index].control_points_c = 
+								constructor_copy_Multiarray_c_Multiarray_d(control_points);
+
+							optimization_case->NURBS_Patch_Data[patch_index].control_weights  = control_weights;
+						}
+						if (strstr(line,"Control_Point_Connectivity")){
+
+							// Get the number of xi and eta points
+							count_found++;  // Connectivity information was found
+							int extents[2] = {0,0};
+							read_skip_const_i_1(line,1,extents,2);
+
+							// Multiarray structure to hold the connectivity data
+							struct Multiarray_i* control_pt_wt_connectivity = 
+								constructor_empty_Multiarray_i('R',2,(ptrdiff_t[]){extents[0], extents[1]});
+
+							// Read in the connectivity data line by line
+							for (i = 0; i < extents[0]; i++){
+								fgets(line,sizeof(line),input_file);
+								read_skip_i_1(line,0, get_row_Multiarray_i(i, control_pt_wt_connectivity), extents[1]);
+							}
+
+							optimization_case->NURBS_Patch_Data[patch_index].control_pt_wt_connectivity = control_pt_wt_connectivity;
+
+						}
+						if (strstr(line,"Optimization_Point_Connectivity")){
+			
+							int num_opt_pts;
+							read_skip_string_count_i("Optimization_Point_Connectivity", &count_found, line, &num_opt_pts);
+
+							// Multiarray structure to hold the optimization control point data.
+							struct Multiarray_i* optimization_pts = 
+								constructor_empty_Multiarray_i('C',2,(ptrdiff_t[]){num_opt_pts,DIM+1}); // saved
+
+							int *dof_i 		= get_col_Multiarray_i(0, optimization_pts),  // connectivity integer
+								*x_dof_i 	= get_col_Multiarray_i(1, optimization_pts),  // x direction dof bool
+								*y_dof_i 	= get_col_Multiarray_i(2, optimization_pts);  // y direction dof bool
+
+							// Read the pt data line by line
+							for (i = 0; i < num_opt_pts; i++){
+								fgets(line,sizeof(line),input_file);
+								
+								int line_data[3] = {0, 0, 0};
+								read_skip_i_1(line, 0, line_data, DIM+1);
+
+								dof_i  [i] = line_data[0];
+								x_dof_i[i] = line_data[1];
+								y_dof_i[i] = line_data[2];
+							}
+
+							optimization_case->NURBS_Patch_Data[patch_index].control_points_optimization = optimization_pts;
+						}
+						// Read the Optimization Point Limits Data
+						if (strstr(line,"Optimization_Point_Limit")){
+							
+							int num_opt_pts;
+							read_skip_string_count_i("Optimization_Point_Limit", &count_found, line, &num_opt_pts);
+
+							// Multiarray structure to hold the optimization control point data.
+							struct Multiarray_d* optimization_pts_lims = 
+								constructor_empty_Multiarray_d('C',2,(ptrdiff_t[]){num_opt_pts,2}); // saved
+
+							double 	*low_lim 	= get_col_Multiarray_d(0, optimization_pts_lims),
+									*high_lim 	= get_col_Multiarray_d(1, optimization_pts_lims);
+
+							// Read the pt data line by line
+							for (i = 0; i < num_opt_pts; i++){
+								fgets(line,sizeof(line),input_file);
+								
+								double line_data[3] = {0, 0, 0};
+								read_skip_d_1(line, 0, line_data, 3);
+
+								low_lim[i]  = line_data[1];
+								high_lim[i] = line_data[2];
+							}
+
+							optimization_case->NURBS_Patch_Data[patch_index].control_points_optimization_lims = optimization_pts_lims;
+						}
+					}
+				
+					//assert(count_to_find_per_patch == count_found);
+					patches_found++;
+					break;
+				}
+			}
+		}
+		fclose(input_file);
+	}
+		
+	assert(count_to_find_global == global_found);
 }
 
 

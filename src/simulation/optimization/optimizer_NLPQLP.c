@@ -208,7 +208,7 @@ void optimizer_NLPQLP(struct Optimization_Case* optimization_case){
 
 
 		// Deform the geometry and solve the flow
-		update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)optimization_case->geo_data.control_points);
+		update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)optimization_case->geo_data.control_points, (const struct Simulation *) sim);
 		set_up_solver_geometry(sim);
 		solve_implicit(sim);
 
@@ -373,30 +373,63 @@ static struct Optimizer_NLPQLP_Data* constructor_Optimizer_NLPQLP_Data(struct Op
 	// ========================================
 
 	// Load the design point data
-	struct Multiarray_d* ctrl_pts = optimization_case->geo_data.control_points;
-	struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
-	struct Multiarray_d* ctrl_pts_lims = optimization_case->geo_data.control_points_optimization_lims;
-	int n_pts = (int)ctrl_pts_opt->extents[0];
+	// From here thru end of for loop def needs to change to accomodate multipatch
+	if(optimization_case->sim->nurbs_multipatch){
+		for(int patch_index=0;patch_index<optimization_case->num_patches;patch_index++){
+			struct Multiarray_d* ctrl_pts = optimization_case->NURBS_Patch_Data[patch_index].control_points;
+			struct Multiarray_i* ctrl_pts_opt = optimization_case->NURBS_Patch_Data[patch_index].control_points_optimization;
+			struct Multiarray_d* ctrl_pts_lims = optimization_case->NURBS_Patch_Data[patch_index].control_points_optimization_lims;
+			int n_pts = (int)ctrl_pts_opt->extents[0];
 
-	int ctrl_pt_index;
-	int vec_index = 0;
+			int ctrl_pt_index;
+			int vec_index = 0;
 
-	for (int i = 0; i < n_pts; i++){
-		// Loop over the design points
+			for (int i = 0; i < n_pts; i++){
+				// Loop over the design points
 
-		for (int j = 1; j <= 2; j++){
-			// Loop over the degrees of freedom for the design point
+				for (int j = 1; j <= 2; j++){
+					// Loop over the degrees of freedom for the design point
 
-			if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
-				continue;
+					if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+						continue;
 
-			ctrl_pt_index = get_col_Multiarray_i(0, ctrl_pts_opt)[i];
+					ctrl_pt_index = get_col_Multiarray_i(0, ctrl_pts_opt)[i];
 
-			optimizer_nlpqlp_data->X->data[vec_index]  = get_col_Multiarray_d(j-1, ctrl_pts)[ctrl_pt_index];
-			optimizer_nlpqlp_data->XL->data[vec_index] = get_col_Multiarray_d(0, ctrl_pts_lims)[vec_index];
-			optimizer_nlpqlp_data->XU->data[vec_index] = get_col_Multiarray_d(1, ctrl_pts_lims)[vec_index];
+					optimizer_nlpqlp_data->X->data[vec_index]  = get_col_Multiarray_d(j-1, ctrl_pts)[ctrl_pt_index];
+					optimizer_nlpqlp_data->XL->data[vec_index] = get_col_Multiarray_d(0, ctrl_pts_lims)[vec_index];
+					optimizer_nlpqlp_data->XU->data[vec_index] = get_col_Multiarray_d(1, ctrl_pts_lims)[vec_index];
 
-			vec_index++;
+					vec_index++;
+				}
+			}
+		}
+	}
+	else{
+		struct Multiarray_d* ctrl_pts = optimization_case->geo_data.control_points;
+		struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
+		struct Multiarray_d* ctrl_pts_lims = optimization_case->geo_data.control_points_optimization_lims;
+		int n_pts = (int)ctrl_pts_opt->extents[0];
+
+		int ctrl_pt_index;
+		int vec_index = 0;
+
+		for (int i = 0; i < n_pts; i++){
+			// Loop over the design points
+
+			for (int j = 1; j <= 2; j++){
+				// Loop over the degrees of freedom for the design point
+
+				if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+					continue;
+
+				ctrl_pt_index = get_col_Multiarray_i(0, ctrl_pts_opt)[i];
+
+				optimizer_nlpqlp_data->X->data[vec_index]  = get_col_Multiarray_d(j-1, ctrl_pts)[ctrl_pt_index];
+				optimizer_nlpqlp_data->XL->data[vec_index] = get_col_Multiarray_d(0, ctrl_pts_lims)[vec_index];
+				optimizer_nlpqlp_data->XU->data[vec_index] = get_col_Multiarray_d(1, ctrl_pts_lims)[vec_index];
+
+				vec_index++;
+			}
 		}
 	}
 
@@ -937,54 +970,107 @@ static void read_NLPQLP_output_file(struct Optimizer_NLPQLP_Data* optimizer_nlpq
 static void transfer_control_point_data_NLPQLP(struct Optimization_Case *optimization_case, 
 	struct Optimizer_NLPQLP_Data* optimizer_nlpqlp_data, char transfer_direction){
 
-	struct Multiarray_d* ctrl_pts = optimization_case->geo_data.control_points;
-	struct Multiarray_i* ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
-	int n_pts = (int)ctrl_pts_opt->extents[0];
-
-	int ctrl_pt_index;
 	int vec_index = 0;
+	int ctrl_pt_index;
+	int n_pts;
+	struct Multiarray_d* ctrl_pts;
+	struct Multiarray_i* ctrl_pts_opt;
+	
+	if(optimization_case->sim->nurbs_multipatch){
+		for(int patch_index=0; patch_index<optimization_case->sim->nurbs_n_patches; patch_index++){
+			ctrl_pts = optimization_case->NURBS_Patch_Data[patch_index].control_points;
+			ctrl_pts_opt = optimization_case->NURBS_Patch_Data[patch_index].control_points_optimization;
+			n_pts = (int)ctrl_pts_opt->extents[0];
+			if(transfer_direction == 'o'){
+				// Transfer the control point data into the "o"ptimization_case data structure
 
-	if(transfer_direction == 'o'){
-		// Transfer the control point data into the "o"ptimization_case data structure
+				for (int i = 0; i < n_pts; i++){
+					// Loop over the design control points
 
-		for (int i = 0; i < n_pts; i++){
-			// Loop over the design control points
+					for (int j = 1; j <= 2; j++){
+						// Loop over the degrees of freedom for the design point
 
-			for (int j = 1; j <= 2; j++){
-				// Loop over the degrees of freedom for the design point
+						if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+							continue; // This degree of freedom of the ith control point cannot be moved
 
-				if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
-					continue; // This degree of freedom of the ith control point cannot be moved
+						ctrl_pt_index = get_col_Multiarray_i(0, ctrl_pts_opt)[i];
+						get_col_Multiarray_d(j-1, ctrl_pts)[ctrl_pt_index] = optimizer_nlpqlp_data->X->data[vec_index];
 
-				ctrl_pt_index = get_col_Multiarray_i(0, ctrl_pts_opt)[i];
-				get_col_Multiarray_d(j-1, ctrl_pts)[ctrl_pt_index] = optimizer_nlpqlp_data->X->data[vec_index];
-
-				vec_index++;
-			}
-		}
+						vec_index++;
+					}
+				}
 
 
-	} else if (transfer_direction == 'n'){
-		// Transfer the control point data into the "n"lpqlp data structure
+			} else if (transfer_direction == 'n'){
+				// Transfer the control point data into the "n"lpqlp data structure
 
-		for (int i = 0; i < n_pts; i++){
-			// Loop over the design points
+				for (int i = 0; i < n_pts; i++){
+					// Loop over the design points
 
-			for (int j = 1; j <= 2; j++){
-				// Loop over the degrees of freedom for the design point
+					for (int j = 1; j <= 2; j++){
+						// Loop over the degrees of freedom for the design point
 
-				if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
-					continue; // This degree of freedom of the ith control point cannot be moved
+						if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+							continue; // This degree of freedom of the ith control point cannot be moved
 
-				ctrl_pt_index = get_col_Multiarray_i(0, ctrl_pts_opt)[i];
-				optimizer_nlpqlp_data->X->data[vec_index] = get_col_Multiarray_d(j-1, ctrl_pts)[ctrl_pt_index];
+						ctrl_pt_index = get_col_Multiarray_i(0, ctrl_pts_opt)[i];
+						optimizer_nlpqlp_data->X->data[vec_index] = get_col_Multiarray_d(j-1, ctrl_pts)[ctrl_pt_index];
+					
+						vec_index++;
+					}
+				}
 			
-				vec_index++;
+			} else {
+				EXIT_UNSUPPORTED;
 			}
 		}
+	}
+	else{
+		ctrl_pts = optimization_case->geo_data.control_points;
+		ctrl_pts_opt = optimization_case->geo_data.control_points_optimization;
+		n_pts = (int)ctrl_pts_opt->extents[0];
+		if(transfer_direction == 'o'){
+			// Transfer the control point data into the "o"ptimization_case data structure
 
-	} else {
-		EXIT_UNSUPPORTED;
+			for (int i = 0; i < n_pts; i++){
+				// Loop over the design control points
+
+				for (int j = 1; j <= 2; j++){
+					// Loop over the degrees of freedom for the design point
+
+					if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+						continue; // This degree of freedom of the ith control point cannot be moved
+
+					ctrl_pt_index = get_col_Multiarray_i(0, ctrl_pts_opt)[i];
+					get_col_Multiarray_d(j-1, ctrl_pts)[ctrl_pt_index] = optimizer_nlpqlp_data->X->data[vec_index];
+
+					vec_index++;
+				}
+			}
+
+
+		} else if (transfer_direction == 'n'){
+			// Transfer the control point data into the "n"lpqlp data structure
+
+			for (int i = 0; i < n_pts; i++){
+				// Loop over the design points
+
+				for (int j = 1; j <= 2; j++){
+					// Loop over the degrees of freedom for the design point
+
+					if (!get_col_Multiarray_i(j, ctrl_pts_opt)[i])
+						continue; // This degree of freedom of the ith control point cannot be moved
+
+					ctrl_pt_index = get_col_Multiarray_i(0, ctrl_pts_opt)[i];
+					optimizer_nlpqlp_data->X->data[vec_index] = get_col_Multiarray_d(j-1, ctrl_pts)[ctrl_pt_index];
+				
+					vec_index++;
+				}
+			}
+
+		} else {
+			EXIT_UNSUPPORTED;
+		}
 	}
 
 }

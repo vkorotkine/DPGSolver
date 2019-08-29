@@ -133,7 +133,7 @@ void test_brute_force_gradient(struct Optimization_Case *optimization_case,
 
 			// f_plus_h
 			get_col_Multiarray_d(j-1, control_points)[control_pt_index] += FINITE_DIFF_STEP;
-			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
+			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points, (const struct Simulation *) sim);
 			set_up_solver_geometry(sim);
 			solve_implicit(sim);
 			f_plus_h = functional(sim);
@@ -141,7 +141,7 @@ void test_brute_force_gradient(struct Optimization_Case *optimization_case,
 
 			// f_min_h
 			get_col_Multiarray_d(j-1, control_points)[control_pt_index] -= FINITE_DIFF_STEP;
-			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points);
+			update_geo_data_NURBS_parametric((const struct const_Multiarray_d*)control_points, (const struct Simulation *) sim);
 			set_up_solver_geometry(sim);
 			solve_implicit(sim);
 			f_min_h = functional(sim);
